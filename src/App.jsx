@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useAuth }                                  from "./useAuth";
 import { toggleLike as fbToggleLike, recordPlay, saveGenres } from "./useUserData";
-import { collection, getDocs, query, orderBy }     from "firebase/firestore";
+import { collection, getDocs, query, orderBy, doc, updateDoc } from "firebase/firestore";
 import { db }                                       from "./firebase";
 
 const injectStyles = () => {
@@ -892,15 +892,14 @@ function AdminScreen({ tracks, setTracks, tab, setTab, editTrack, setEditTrack, 
                   <button onClick={async()=>{
                     const updated = {...editTrack, energy:parseInt(editTrack.energy)||5, bpm:parseInt(editTrack.bpm)||null};
                     try {
-                      const { doc: fdoc, updateDoc: fup } = await import("firebase/firestore");
-                      await fup(fdoc(db,"tracks",editTrack.id), {
+                      await updateDoc(doc(db,"tracks",editTrack.id), {
                         title:updated.title, artist:updated.artist, album:updated.album,
                         genre:updated.genre, energy:updated.energy, camelot:updated.camelot,
                         bpm:updated.bpm, albumCover:updated.albumCover,
                       });
                       setTracks(ts=>ts.map(tr=>tr.id===editTrack.id?updated:tr));
                       setEditTrack(null); showToast("Saved ✓");
-                    } catch(e) { showToast("Save failed"); }
+                    } catch(e) { console.error("Admin save error:", e); showToast("Save failed: " + e.message); }
                   }} style={{...BTN_PRIMARY,flex:1}}>Save</button>
                   <button onClick={()=>setEditTrack(null)} style={{...BTN_SECONDARY,flex:1}}>Cancel</button>
                 </div>
