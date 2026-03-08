@@ -889,7 +889,19 @@ function AdminScreen({ tracks, setTracks, tab, setTab, editTrack, setEditTrack, 
                   <input key={k} placeholder={p} value={editTrack[k]||""} onChange={e=>setEditTrack(t=>({...t,[k]:e.target.value}))} style={{...INPUT_ST,marginBottom:8}}/>
                 ))}
                 <div style={{ display:"flex", gap:8, marginTop:8 }}>
-                  <button onClick={()=>{setTracks(ts=>ts.map(tr=>tr.id===editTrack.id?{...editTrack,energy:parseInt(editTrack.energy)||5}:tr));setEditTrack(null);showToast("Updated");}} style={{...BTN_PRIMARY,flex:1}}>Save</button>
+                  <button onClick={async()=>{
+                    const updated = {...editTrack, energy:parseInt(editTrack.energy)||5, bpm:parseInt(editTrack.bpm)||null};
+                    try {
+                      const { doc: fdoc, updateDoc: fup } = await import("firebase/firestore");
+                      await fup(fdoc(db,"tracks",editTrack.id), {
+                        title:updated.title, artist:updated.artist, album:updated.album,
+                        genre:updated.genre, energy:updated.energy, camelot:updated.camelot,
+                        bpm:updated.bpm, albumCover:updated.albumCover,
+                      });
+                      setTracks(ts=>ts.map(tr=>tr.id===editTrack.id?updated:tr));
+                      setEditTrack(null); showToast("Saved ✓");
+                    } catch(e) { showToast("Save failed"); }
+                  }} style={{...BTN_PRIMARY,flex:1}}>Save</button>
                   <button onClick={()=>setEditTrack(null)} style={{...BTN_SECONDARY,flex:1}}>Cancel</button>
                 </div>
               </div>
