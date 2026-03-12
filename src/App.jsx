@@ -5,7 +5,9 @@ import { collection, getDocs, query, orderBy, doc, updateDoc } from "firebase/fi
 import { db }                                       from "./firebase";
 
 const injectStyles = () => {
+  if (document.getElementById("crate-app-global-styles")) return;
   const s = document.createElement("style");
+  s.id = "crate-app-global-styles";
   s.textContent = `
     * { box-sizing: border-box; margin: 0; padding: 0; }
     :root { --font: -apple-system, "SF Pro Display", "SF Pro Text", "Helvetica Neue", Arial, sans-serif; }
@@ -217,7 +219,7 @@ function CrateFlipper({ tracks, onSelect, currentTrack, isPlaying }) {
     };
   }, [onPM, onPU]);
 
-  const CARD_H = 230;
+  const CARD_H = 200;
 
   return (
     <div style={{ position:"relative", userSelect:"none", touchAction:"none" }}>
@@ -633,18 +635,20 @@ function HomeScreen({ tracks, onPlayRadio, onTogglePlay, onPlayTrack, currentTra
 
       {/* YOUR CRATE — standout section */}
       <div style={{ padding:"4px 16px 12px", display:"flex", alignItems:"baseline", gap:10, borderTop:"1px solid rgba(255,255,255,0.06)", marginTop:4 }}>
-        <div style={{ fontSize:17, fontWeight:800, letterSpacing:-0.4, color:"rgba(235,235,238,0.9)" }}>Your Crate</div>
+        <div style={{ fontSize:13, fontWeight:700, letterSpacing:1.8, color:"rgba(170,170,175,0.5)", textTransform:"uppercase" }}>Your Crate</div>
         <div style={{ fontSize:11, color:"rgba(170,170,175,0.38)", fontWeight:600, letterSpacing:0.4 }}>{tracks.length} records</div>
       </div>
-      <div style={{ marginBottom:32, borderBottom:"1px solid rgba(255,255,255,0.06)", background:"rgba(0,0,0,0.12)" }}>
-        <CrateFlipper tracks={tracks.filter(t=>(t.duration||0)<=900)} onSelect={t=>onPlayTrack(t,tracks)} currentTrack={currentTrack} isPlaying={isPlaying}/>
+      <div style={{ marginBottom:32, borderBottom:"1px solid rgba(255,255,255,0.06)", background:"rgba(0,0,0,0.12)", display:"flex", justifyContent:"center" }}>
+        <div style={{ width:"100%", maxWidth:320 }}>
+          <CrateFlipper tracks={tracks.filter(t=>(t.duration||0)<=900)} onSelect={t=>onPlayTrack(t,tracks)} currentTrack={currentTrack} isPlaying={isPlaying}/>
+        </div>
       </div>
 
       {/* MIXTAPES — tracks over 15 minutes */}
       {mixtapes.length > 0 && (
         <>
           <div style={{ padding:"20px 16px 12px", display:"flex", alignItems:"baseline", gap:10, borderTop:"1px solid rgba(255,255,255,0.06)", marginTop:8 }}>
-            <div style={{ fontSize:17, fontWeight:800, letterSpacing:-0.4, color:"rgba(235,235,238,0.9)" }}>Mixtapes</div>
+            <div style={{ fontSize:13, fontWeight:700, letterSpacing:1.8, color:"rgba(170,170,175,0.5)", textTransform:"uppercase" }}>Mixtapes</div>
             <div style={{ fontSize:11, color:"rgba(170,170,175,0.38)", fontWeight:600, letterSpacing:0.4 }}>{mixtapes.length} mixes · 15min+</div>
           </div>
           <div style={{ padding:"0 16px 4px" }}>
@@ -680,7 +684,7 @@ function HomeScreen({ tracks, onPlayRadio, onTogglePlay, onPlayTrack, currentTra
 
       {/* Top Tracks — styled to match Your Crate header */}
       <div style={{ padding:"20px 16px 12px", display:"flex", alignItems:"baseline", gap:10, borderTop:"1px solid rgba(255,255,255,0.06)", marginTop:8 }}>
-        <div style={{ fontSize:17, fontWeight:800, letterSpacing:-0.4, color:"rgba(235,235,238,0.9)" }}>Top Tracks</div>
+        <div style={{ fontSize:13, fontWeight:700, letterSpacing:1.8, color:"rgba(170,170,175,0.5)", textTransform:"uppercase" }}>Top Tracks</div>
         <div style={{ fontSize:11, color:"rgba(170,170,175,0.38)", fontWeight:600, letterSpacing:0.4 }}>most played</div>
       </div>
       <div style={{ padding:"0 16px" }}>
@@ -916,7 +920,7 @@ function AdminScreen({ tracks, setTracks, tab, setTab, editTrack, setEditTrack, 
           <button onClick={addTrack} style={{...BTN_PRIMARY,width:"100%",marginBottom:24,display:"flex",alignItems:"center",justifyContent:"center",gap:8}}><Icon name="plus" size={16}/> Add Track</button>
           <SectionLabel>Library ({tracks.length})</SectionLabel>
           {tracks.map(t=>(
-            <div key={t.id} style={{ display:"flex", alignItems:"center", gap:10, padding:"10px 12px", background:"rgba(255,255,255,0.04)", borderRadius:12, marginBottom:4, border:"1px solid rgba(255,255,255,0.06)" }}>
+            <div key={t.id} style={{ display:"flex", alignItems:"center", gap:10, padding:"10px 12px", background:"#161618", borderRadius:6, marginBottom:3, border:"1px solid rgba(255,255,255,0.05)" }}>
               <div style={{ width:36, height:36, borderRadius:7, overflow:"hidden", flexShrink:0 }}><AlbumArt track={t} size={36} borderRadius={0}/></div>
               <div style={{ flex:1, minWidth:0 }}>
                 <div style={{ fontSize:14, fontWeight:500, color:"#d8d8da", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{t.title}</div>
@@ -1184,28 +1188,7 @@ export default function App() {
   const isCrossfading  = useRef(false);
   const CROSSFADE_SECS = 15; // start crossfade this many seconds before track ends
 
-  useEffect(() => {
-    const a = new Audio(); a.volume = 1;
-    const b = new Audio(); b.volume = 0;
-    audioRef.current     = a;
-    nextAudioRef.current = b;
-
-    a.addEventListener("timeupdate", () => {
-      setProgress(Math.floor(a.currentTime));
-      // Trigger crossfade when we're CROSSFADE_SECS from the end (radio mode only)
-      if (isRadioModeRef.current && a.duration && !isCrossfading.current) {
-        const remaining = a.duration - a.currentTime;
-        if (remaining <= CROSSFADE_SECS && remaining > 0) {
-          startCrossfade();
-        }
-      }
-    });
-    a.addEventListener("loadedmetadata", () => setDuration(Math.floor(a.duration)));
-
-    return () => { a.pause(); b.pause(); a.src = ""; b.src = ""; };
-  }, []);
-
-  // Keep a ref to isRadioMode so the timeupdate listener can read latest value
+  // Keep a ref to isRadioMode so audio listeners can read the latest value
   const isRadioModeRef = useRef(false);
   useEffect(() => { isRadioModeRef.current = isRadioMode; }, [isRadioMode]);
 
@@ -1216,6 +1199,54 @@ export default function App() {
   useEffect(() => { currentRef.current = currentTrack; }, [currentTrack]);
 
   const handleSkipRef = useRef(null);
+  const primaryAudioCleanupRef = useRef(() => {});
+
+  const bindPrimaryAudio = useCallback((audio) => {
+    primaryAudioCleanupRef.current?.();
+
+    const onTimeUpdate = () => {
+      setProgress(Math.floor(audio.currentTime));
+      if (isRadioModeRef.current && audio.duration && !isCrossfading.current) {
+        const remaining = audio.duration - audio.currentTime;
+        if (remaining <= CROSSFADE_SECS && remaining > 0) {
+          startCrossfade();
+        }
+      }
+    };
+
+    const onLoadedMetadata = () => {
+      setDuration(Math.floor(audio.duration || 0));
+    };
+
+    const onEnded = () => {
+      if (!isRadioModeRef.current) handleSkipRef.current?.();
+    };
+
+    audio.addEventListener("timeupdate", onTimeUpdate);
+    audio.addEventListener("loadedmetadata", onLoadedMetadata);
+    audio.addEventListener("ended", onEnded);
+
+    primaryAudioCleanupRef.current = () => {
+      audio.removeEventListener("timeupdate", onTimeUpdate);
+      audio.removeEventListener("loadedmetadata", onLoadedMetadata);
+      audio.removeEventListener("ended", onEnded);
+    };
+  }, []);
+
+  useEffect(() => {
+    const a = new Audio(); a.volume = 1;
+    const b = new Audio(); b.volume = 0;
+    audioRef.current     = a;
+    nextAudioRef.current = b;
+    bindPrimaryAudio(a);
+
+    return () => {
+      clearInterval(crossfadeRef.current);
+      primaryAudioCleanupRef.current?.();
+      a.pause(); b.pause();
+      a.src = ""; b.src = "";
+    };
+  }, [bindPrimaryAudio]);
 
   function startCrossfade() {
     if (isCrossfading.current) return;
@@ -1235,12 +1266,8 @@ export default function App() {
     // Record the play
     if (firebaseUser) recordPlay(next.id, profile?.recentTracks || []).catch(()=>{});
 
-    // Update progress listener to follow fadeIn once it takes over
-    fadeIn.addEventListener("timeupdate", () => {
-      setProgress(Math.floor(fadeIn.currentTime));
-    }, { once: false });
     fadeIn.addEventListener("loadedmetadata", () => {
-      setDuration(Math.floor(fadeIn.duration));
+      setDuration(Math.floor(fadeIn.duration || 0));
     }, { once: true });
 
     // Ramp volumes over CROSSFADE_SECS
@@ -1264,18 +1291,10 @@ export default function App() {
         // Swap refs so audioRef always points to the active player
         audioRef.current     = fadeIn;
         nextAudioRef.current = fadeOut;
+        bindPrimaryAudio(fadeIn);
 
         setCurrent(next);
         isCrossfading.current = false;
-
-        // Wire timeupdate on the new primary
-        fadeIn.addEventListener("timeupdate", () => {
-          setProgress(Math.floor(fadeIn.currentTime));
-          if (isRadioModeRef.current && fadeIn.duration && !isCrossfading.current) {
-            const remaining = fadeIn.duration - fadeIn.currentTime;
-            if (remaining <= CROSSFADE_SECS && remaining > 0) startCrossfade();
-          }
-        });
       }
     }, interval);
   }
@@ -1304,17 +1323,6 @@ export default function App() {
     if (isPlaying) { audioRef.current.play().catch(() => {}); }
     else           { audioRef.current.pause(); }
   }, [isPlaying]);
-
-  // Non-radio ended handler (queue mode)
-  useEffect(() => {
-    if (!audioRef.current) return;
-    const audio = audioRef.current;
-    function onEnded() {
-      if (!isRadioModeRef.current) handleSkipRef.current?.();
-    }
-    audio.addEventListener("ended", onEnded);
-    return () => audio.removeEventListener("ended", onEnded);
-  }, []);
 
   // ── Playback actions ─────────────────────────────────────────────────────
   const playTrack = (track, q = null) => {
@@ -1469,7 +1477,7 @@ export default function App() {
 
   // ── Search ───────────────────────────────────────────────────────────────
   const searchResults = searchQuery.length > 1
-    ? tracks.filter(t => [t.title, t.artist, t.genre, t.camelot||""].some(v => v.toLowerCase().includes(searchQuery.toLowerCase())))
+    ? tracks.filter(t => [t.title, t.artist, t.genre, t.camelot || ""].some(v => String(v || "").toLowerCase().includes(searchQuery.toLowerCase())))
     : [];
 
   // ── Loading states ────────────────────────────────────────────────────────
@@ -1654,25 +1662,25 @@ export default function App() {
 
 // ─── SHARED STYLES ────────────────────────────────────────────────────────────
 const APP_STYLE = {
-  background:"linear-gradient(160deg,#111214 0%,#161718 45%,#0f1011 100%)",
+  background:"#0e0e0f",
   minHeight:"100vh", height:"100vh", overflow:"hidden",
   fontFamily:"-apple-system,'SF Pro Display','SF Pro Text','Helvetica Neue',Arial,sans-serif",
   color:"#e2e4e6", position:"relative", display:"flex", flexDirection:"column",
   WebkitFontSmoothing:"antialiased", MozOsxFontSmoothing:"grayscale",
 };
 const INPUT_ST = {
-  background:"rgba(255,255,255,0.06)", backdropFilter:"blur(20px)", border:"1px solid rgba(255,255,255,0.1)",
-  borderRadius:12, padding:"12px 14px", color:"#e2e4e6", fontSize:15,
+  background:"#1a1a1c", border:"1px solid rgba(255,255,255,0.08)",
+  borderRadius:8, padding:"12px 14px", color:"#e2e4e6", fontSize:15,
   fontFamily:"-apple-system,'SF Pro Text','Helvetica Neue',Arial,sans-serif", width:"100%", display:"block",
 };
 const BTN_PRIMARY = {
-  background:"rgba(255,255,255,0.1)", backdropFilter:"blur(16px)", color:"rgba(230,235,238,0.92)",
-  border:"1px solid rgba(255,255,255,0.16)", borderRadius:14, padding:"13px 20px", fontSize:15, fontWeight:600,
+  background:"#1e1e20", color:"rgba(230,235,238,0.92)",
+  border:"1px solid rgba(255,255,255,0.12)", borderRadius:8, padding:"13px 20px", fontSize:15, fontWeight:600,
   fontFamily:"-apple-system,'SF Pro Text','Helvetica Neue',Arial,sans-serif", cursor:"pointer",
 };
 const BTN_SECONDARY = {
-  background:"transparent", color:"rgba(180,180,185,0.5)", border:"1px solid rgba(255,255,255,0.08)",
-  borderRadius:14, padding:"13px 20px", fontSize:15, fontWeight:500,
+  background:"transparent", color:"rgba(180,180,185,0.5)", border:"1px solid rgba(255,255,255,0.06)",
+  borderRadius:8, padding:"13px 20px", fontSize:15, fontWeight:500,
   fontFamily:"-apple-system,'SF Pro Text','Helvetica Neue',Arial,sans-serif", cursor:"pointer",
 };
 const CTRL_BTN = {
