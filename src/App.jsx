@@ -329,7 +329,7 @@ function CrateFlipper({ tracks, onSelect, currentTrack, isPlaying }) {
 
       {/* Track counter */}
       <div style={{ display:"flex", justifyContent:"center", alignItems:"center", gap:6, padding:"14px 0 4px" }}>
-        <span style={{ fontSize:11, color:"rgba(200,200,205,0.4)", fontWeight:500 }}>{idx+1} / {tracks.length}</span>
+        <span style={{ fontSize:11, color:"rgba(210,210,215,0.65)", fontWeight:500 }}>{idx+1} / {tracks.length}</span>
         <div style={{ display:"flex", gap:3 }}>
           {tracks.map((_,i) => (
             <div key={i} onClick={()=>setIdx(i)} style={{
@@ -375,11 +375,11 @@ function DeepCutsCard({ onPlay, onTogglePlay, currentTrack, isPlaying, isRadioMo
             <div style={{ position:"absolute", inset:0, borderRadius:"50%", background: isRadioMode?"#e05555":"rgba(200,200,205,0.3)", animation:isRadioMode&&isPlaying?"breathe 1.8s ease-in-out infinite":"none" }}/>
             {isRadioMode&&isPlaying&&<div style={{ position:"absolute", inset:-4, borderRadius:"50%", border:"1px solid rgba(224,85,85,0.5)", animation:"pulse-ring 1.8s ease-out infinite" }}/>}
           </div>
-          <span style={{ fontSize:11, fontWeight:800, letterSpacing:2, color:isRadioMode&&isPlaying?"rgba(224,85,85,0.95)":"rgba(200,200,205,0.5)", textTransform:"uppercase" }}>
+          <span style={{ fontSize:11, fontWeight:800, letterSpacing:2, color:isRadioMode&&isPlaying?"rgba(224,85,85,0.95)":"rgba(220,220,225,0.75)", textTransform:"uppercase" }}>
             {isRadioMode&&isPlaying ? "LIVE" : "Now Playing"}
           </span>
         </div>
-        <div style={{ fontSize:10, color:"rgba(200,200,205,0.45)", textAlign:"right", lineHeight:1.6 }}>
+        <div style={{ fontSize:10, color:"rgba(210,210,215,0.7)", textAlign:"right", lineHeight:1.6 }}>
           <div style={{ fontWeight:700, color:"rgba(210,210,215,0.6)" }}>{timeLabel}</div>
         </div>
       </div>
@@ -392,7 +392,7 @@ function DeepCutsCard({ onPlay, onTogglePlay, currentTrack, isPlaying, isRadioMo
             </div>
             <div style={{ flex:1, minWidth:0 }}>
               <div style={{ fontSize:16, fontWeight:700, color:"#f0f0f2", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap", letterSpacing:-0.2 }}>{currentTrack.title}</div>
-              <div style={{ fontSize:13, color:"rgba(190,190,195,0.6)", marginTop:2 }}>{currentTrack.artist}</div>
+              <div style={{ fontSize:13, color:"rgba(220,220,225,0.85)", marginTop:2 }}>{currentTrack.artist}</div>
               {currentTrack.camelot&&<span style={{ fontSize:10, fontWeight:700, color:`rgba(${rgb},0.8)`, background:`rgba(${rgb},0.12)`, padding:"2px 6px", borderRadius:4, marginTop:4, display:"inline-block" }}>{currentTrack.camelot}</span>}
             </div>
           </div>
@@ -407,7 +407,7 @@ function DeepCutsCard({ onPlay, onTogglePlay, currentTrack, isPlaying, isRadioMo
       ) : (
         <div>
           <div style={{ fontSize:22, fontWeight:800, letterSpacing:-0.5, color:"#f0f0f2" }}>Crate Radio</div>
-          <div style={{ fontSize:12, color:"rgba(190,190,195,0.35)", marginTop:4, marginBottom:14 }}>Tap to tune in</div>
+          <div style={{ fontSize:12, color:"rgba(210,210,215,0.6)", marginTop:4, marginBottom:14 }}>Tap to tune in</div>
           <button onClick={e=>{e.stopPropagation();onPlay();}} style={{ width:52, height:52, borderRadius:"50%", background:"rgba(255,255,255,0.1)", border:"1px solid rgba(255,255,255,0.2)", display:"flex", alignItems:"center", justifyContent:"center", color:"rgba(255,255,255,0.8)", cursor:"pointer" }}>
             <Icon name="play" size={22}/>
           </button>
@@ -458,19 +458,19 @@ function TrackRow({ track, onPlay, active, isPlaying, onLike, extraAction, playl
         </div>
         <div style={{ flex:1, minWidth:0 }}>
           <div style={{ fontSize:14, fontWeight:active?600:500, letterSpacing:-0.2, color:active?track.color:"#d8d8da", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{track.title}</div>
-          <div style={{ fontSize:12, color:"rgba(190,190,195,0.5)", marginTop:1 }}>{track.artist}</div>
+          <div style={{ fontSize:12, color:"rgba(210,210,215,0.75)", marginTop:1 }}>{track.artist}</div>
         </div>
         <div style={{ display:"flex", flexDirection:"column", alignItems:"flex-end", gap:3, flexShrink:0 }}>
           <EnergyBar level={track.energy} color={track.color}/>
           <div style={{ display:"flex", gap:4 }}>
             {track.camelot&&<span style={{ fontSize:9, fontWeight:700, color:`rgba(${hexToRgbStr(track.color)},0.7)`, background:`rgba(${hexToRgbStr(track.color)},0.1)`, padding:"1px 5px", borderRadius:3 }}>{track.camelot}</span>}
-            <span style={{ fontSize:9, color:"rgba(190,190,195,0.35)" }}>{track.genre}</span>
+            <span style={{ fontSize:9, color:"rgba(210,210,215,0.6)" }}>{track.genre}</span>
           </div>
         </div>
-        {onLike&&<button onClick={e=>{e.stopPropagation();onLike(track.id);}} style={{ background:"none", border:"none", cursor:"pointer", color:track.liked?track.color:"rgba(190,190,195,0.25)", padding:4, transition:"color 0.2s" }}><Icon name={track.liked?"heart":"heartempty"} size={14}/></button>}
+        {onLike&&<button onClick={e=>{e.stopPropagation();onLike(track.id);}} style={{ background:"none", border:"none", cursor:"pointer", color:track.liked?track.color:"rgba(210,210,215,0.5)", padding:4, transition:"color 0.2s" }}><Icon name={track.liked?"heart":"heartempty"} size={14}/></button>}
         {/* ⋯ menu button — always visible */}
         <button onClick={e=>{e.stopPropagation();setMenuOpen(o=>!o);setShowNewPl(false);}}
-          style={{ background:"none", border:"none", cursor:"pointer", color:"rgba(190,190,195,0.3)", padding:"4px 6px", fontSize:18, lineHeight:1, flexShrink:0 }}>⋯</button>
+          style={{ background:"none", border:"none", cursor:"pointer", color:"rgba(210,210,215,0.55)", padding:"4px 6px", fontSize:18, lineHeight:1, flexShrink:0 }}>⋯</button>
         {extraAction||null}
       </div>
 
@@ -482,7 +482,7 @@ function TrackRow({ track, onPlay, active, isPlaying, onLike, extraAction, playl
           {/* Add to existing playlists */}
           {ctx.playlists.length > 0 && (
             <>
-              <div style={{ fontSize:10, fontWeight:700, letterSpacing:1.2, color:"rgba(170,170,175,0.4)", padding:"4px 14px 6px", textTransform:"uppercase" }}>Add to playlist</div>
+              <div style={{ fontSize:10, fontWeight:700, letterSpacing:1.2, color:"rgba(200,200,205,0.6)", padding:"4px 14px 6px", textTransform:"uppercase" }}>Add to playlist</div>
               {ctx.playlists.map(pl => (
                 <button key={pl.id} onClick={()=>handleAddTo(pl.id)}
                   style={{ display:"block", width:"100%", textAlign:"left", background:"none", border:"none", color:"rgba(220,220,225,0.85)", fontSize:13, padding:"9px 14px", cursor:"pointer" }}>
@@ -502,12 +502,12 @@ function TrackRow({ track, onPlay, active, isPlaying, onLike, extraAction, playl
                 style={{ background:"rgba(255,255,255,0.07)", border:"1px solid rgba(255,255,255,0.14)", borderRadius:8, padding:"7px 10px", color:"#e2e4e6", fontSize:13, fontFamily:"inherit", width:"100%", marginBottom:6 }}/>
               <div style={{ display:"flex", gap:6 }}>
                 <button onClick={handleCreateAndAdd} style={{ flex:1, background:"rgba(255,255,255,0.12)", border:"1px solid rgba(255,255,255,0.16)", borderRadius:7, color:"#e8e8ea", fontSize:12, fontWeight:600, padding:"6px 0", cursor:"pointer" }}>Create & add</button>
-                <button onClick={()=>setShowNewPl(false)} style={{ flex:1, background:"none", border:"1px solid rgba(255,255,255,0.08)", borderRadius:7, color:"rgba(190,190,195,0.4)", fontSize:12, padding:"6px 0", cursor:"pointer" }}>Cancel</button>
+                <button onClick={()=>setShowNewPl(false)} style={{ flex:1, background:"none", border:"1px solid rgba(255,255,255,0.08)", borderRadius:7, color:"rgba(210,210,215,0.65)", fontSize:12, padding:"6px 0", cursor:"pointer" }}>Cancel</button>
               </div>
             </div>
           ) : (
             <button onClick={()=>setShowNewPl(true)}
-              style={{ display:"flex", alignItems:"center", gap:8, width:"100%", textAlign:"left", background:"none", border:"none", color:"rgba(190,190,195,0.6)", fontSize:13, padding:"9px 14px", cursor:"pointer" }}>
+              style={{ display:"flex", alignItems:"center", gap:8, width:"100%", textAlign:"left", background:"none", border:"none", color:"rgba(220,220,225,0.85)", fontSize:13, padding:"9px 14px", cursor:"pointer" }}>
               <span style={{ fontSize:16, lineHeight:1 }}>+</span> New playlist
             </button>
           )}
@@ -525,7 +525,7 @@ function TrackRow({ track, onPlay, active, isPlaying, onLike, extraAction, playl
 
           <div style={{ height:1, background:"rgba(255,255,255,0.07)", margin:"4px 0" }}/>
           <button onClick={()=>setMenuOpen(false)}
-            style={{ display:"block", width:"100%", textAlign:"left", background:"none", border:"none", color:"rgba(190,190,195,0.35)", fontSize:12, padding:"7px 14px", cursor:"pointer" }}>
+            style={{ display:"block", width:"100%", textAlign:"left", background:"none", border:"none", color:"rgba(210,210,215,0.6)", fontSize:12, padding:"7px 14px", cursor:"pointer" }}>
             Cancel
           </button>
         </div>
@@ -535,7 +535,7 @@ function TrackRow({ track, onPlay, active, isPlaying, onLike, extraAction, playl
 }
 
 const SectionLabel = ({ children, style={} }) => (
-  <div style={{ fontSize:11, fontWeight:700, letterSpacing:0.6, color:"rgba(170,170,175,0.5)", marginBottom:12, textTransform:"uppercase", ...style }}>{children}</div>
+  <div style={{ fontSize:11, fontWeight:700, letterSpacing:0.6, color:"rgba(210,210,215,0.65)", marginBottom:12, textTransform:"uppercase", ...style }}>{children}</div>
 );
 
 // ─── LOGIN ────────────────────────────────────────────────────────────────────
@@ -581,7 +581,7 @@ function LoginScreen({ onSignUp, onLogIn }) {
         <div style={{ textAlign:"center" }}>
           <div style={{ fontSize:52, marginBottom:10 }}>📦</div>
           <div style={{ fontSize:42, fontWeight:700, letterSpacing:-1.5, color:"#e8e8ea" }}>CRATE</div>
-          <div style={{ color:"rgba(190,190,195,0.45)", fontSize:13, letterSpacing:1.5, textTransform:"uppercase", marginTop:5, fontWeight:500 }}>Dig Deeper</div>
+          <div style={{ color:"rgba(210,210,215,0.7)", fontSize:13, letterSpacing:1.5, textTransform:"uppercase", marginTop:5, fontWeight:500 }}>Dig Deeper</div>
         </div>
         <div style={{ width:"100%", maxWidth:320, display:"flex", flexDirection:"column", gap:12 }}>
           {/* Tab switcher */}
@@ -623,7 +623,7 @@ function HomeScreen({ tracks, onPlayRadio, onTogglePlay, onPlayTrack, currentTra
       <div style={{ padding:"24px 16px 16px", display:"flex", justifyContent:"space-between", alignItems:"flex-start" }}>
         <div>
           <div style={{ fontSize:26, fontWeight:700, letterSpacing:-0.5, color:"#e8e8ea" }}>{greeting}</div>
-          <div style={{ fontSize:14, color:"rgba(190,190,195,0.5)", marginTop:2 }}>What are you digging?</div>
+          <div style={{ fontSize:14, color:"rgba(210,210,215,0.75)", marginTop:2 }}>What are you digging?</div>
         </div>
         <div style={{ fontSize:26 }}>📦</div>
       </div>
@@ -635,8 +635,8 @@ function HomeScreen({ tracks, onPlayRadio, onTogglePlay, onPlayTrack, currentTra
 
       {/* YOUR CRATE — standout section */}
       <div style={{ padding:"4px 16px 12px", display:"flex", alignItems:"baseline", gap:10, borderTop:"1px solid rgba(255,255,255,0.06)", marginTop:4 }}>
-        <div style={{ fontSize:13, fontWeight:700, letterSpacing:1.8, color:"rgba(170,170,175,0.5)", textTransform:"uppercase" }}>Your Crate</div>
-        <div style={{ fontSize:11, color:"rgba(170,170,175,0.38)", fontWeight:600, letterSpacing:0.4 }}>{tracks.length} records</div>
+        <div style={{ fontSize:13, fontWeight:700, letterSpacing:1.8, color:"rgba(210,210,215,0.65)", textTransform:"uppercase" }}>Your Crate</div>
+        <div style={{ fontSize:11, color:"rgba(200,200,205,0.55)", fontWeight:600, letterSpacing:0.4 }}>{tracks.length} records</div>
       </div>
       <div style={{ marginBottom:32, borderBottom:"1px solid rgba(255,255,255,0.06)", background:"rgba(0,0,0,0.12)", display:"flex", justifyContent:"center" }}>
         <div style={{ width:"100%", maxWidth:320 }}>
@@ -648,8 +648,8 @@ function HomeScreen({ tracks, onPlayRadio, onTogglePlay, onPlayTrack, currentTra
       {mixtapes.length > 0 && (
         <>
           <div style={{ padding:"20px 16px 12px", display:"flex", alignItems:"baseline", gap:10, borderTop:"1px solid rgba(255,255,255,0.06)", marginTop:8 }}>
-            <div style={{ fontSize:13, fontWeight:700, letterSpacing:1.8, color:"rgba(170,170,175,0.5)", textTransform:"uppercase" }}>Mixtapes</div>
-            <div style={{ fontSize:11, color:"rgba(170,170,175,0.38)", fontWeight:600, letterSpacing:0.4 }}>{mixtapes.length} mixes · 15min+</div>
+            <div style={{ fontSize:13, fontWeight:700, letterSpacing:1.8, color:"rgba(210,210,215,0.65)", textTransform:"uppercase" }}>Mixtapes</div>
+            <div style={{ fontSize:11, color:"rgba(200,200,205,0.55)", fontWeight:600, letterSpacing:0.4 }}>{mixtapes.length} mixes · 15min+</div>
           </div>
           <div style={{ padding:"0 16px 4px" }}>
             {mixtapes.map(t => (
@@ -668,13 +668,13 @@ function HomeScreen({ tracks, onPlayRadio, onTogglePlay, onPlayTrack, currentTra
                 </div>
                 <div style={{ flex:1, minWidth:0 }}>
                   <div style={{ fontSize:14, fontWeight:600, color: currentTrack?.id===t.id ? t.color : "#d8d8da", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap", letterSpacing:-0.2 }}>{t.title}</div>
-                  <div style={{ fontSize:12, color:"rgba(190,190,195,0.5)", marginTop:1 }}>{t.artist}</div>
+                  <div style={{ fontSize:12, color:"rgba(210,210,215,0.75)", marginTop:1 }}>{t.artist}</div>
                 </div>
                 <div style={{ flexShrink:0, textAlign:"right" }}>
                   <div style={{ fontSize:12, fontWeight:600, color:`rgba(${hexToRgbStr(t.color)},0.7)`, background:`rgba(${hexToRgbStr(t.color)},0.1)`, padding:"3px 8px", borderRadius:6 }}>
                     {t.duration ? `${Math.floor(t.duration/60)}m` : "—"}
                   </div>
-                  <div style={{ fontSize:10, color:"rgba(170,170,175,0.35)", marginTop:3 }}>{t.genre}</div>
+                  <div style={{ fontSize:10, color:"rgba(200,200,205,0.55)", marginTop:3 }}>{t.genre}</div>
                 </div>
               </div>
             ))}
@@ -684,13 +684,13 @@ function HomeScreen({ tracks, onPlayRadio, onTogglePlay, onPlayTrack, currentTra
 
       {/* Top Tracks — styled to match Your Crate header */}
       <div style={{ padding:"20px 16px 12px", display:"flex", alignItems:"baseline", gap:10, borderTop:"1px solid rgba(255,255,255,0.06)", marginTop:8 }}>
-        <div style={{ fontSize:13, fontWeight:700, letterSpacing:1.8, color:"rgba(170,170,175,0.5)", textTransform:"uppercase" }}>Top Tracks</div>
-        <div style={{ fontSize:11, color:"rgba(170,170,175,0.38)", fontWeight:600, letterSpacing:0.4 }}>most played</div>
+        <div style={{ fontSize:13, fontWeight:700, letterSpacing:1.8, color:"rgba(210,210,215,0.65)", textTransform:"uppercase" }}>Top Tracks</div>
+        <div style={{ fontSize:11, color:"rgba(200,200,205,0.55)", fontWeight:600, letterSpacing:0.4 }}>most played</div>
       </div>
       <div style={{ padding:"0 16px" }}>
         {topTracks.map((t,i)=>(
           <div key={t.id} style={{ display:"flex", alignItems:"center", gap:10 }}>
-            <div style={{ width:18, textAlign:"right", fontSize:12, fontWeight:700, color:"rgba(170,170,175,0.3)", flexShrink:0 }}>{i+1}</div>
+            <div style={{ width:18, textAlign:"right", fontSize:12, fontWeight:700, color:"rgba(220,220,225,0.75)", flexShrink:0 }}>{i+1}</div>
             <div style={{ flex:1 }}>
               <TrackRow track={t} onPlay={()=>onPlayTrack(t,tracks)} active={currentTrack?.id===t.id} isPlaying={isPlaying} onLike={onLike} playlistCtx={playlistCtx}/>
             </div>
@@ -707,12 +707,12 @@ function SearchScreen({ query, setQuery, results, onPlay, onLike, currentTrack, 
     <div style={{ padding:"24px 16px 16px" }}>
       <div style={{ fontSize:28, fontWeight:700, letterSpacing:-0.5, color:"#e8e8ea", marginBottom:20 }}>Search</div>
       <div style={{ position:"relative", marginBottom:24 }}>
-        <div style={{ position:"absolute", left:14, top:"50%", transform:"translateY(-50%)", color:"rgba(190,190,195,0.4)" }}><Icon name="search" size={16}/></div>
+        <div style={{ position:"absolute", left:14, top:"50%", transform:"translateY(-50%)", color:"rgba(210,210,215,0.65)" }}><Icon name="search" size={16}/></div>
         <input placeholder="Tracks, artists, genres…" style={{...INPUT_ST,paddingLeft:42}} value={query} onChange={e=>setQuery(e.target.value)} autoFocus/>
       </div>
-      {query.length>1&&!results.length&&<div style={{ textAlign:"center", color:"rgba(170,170,175,0.4)", padding:"48px 0" }}><div style={{ fontSize:32, marginBottom:12 }}>🔍</div><div style={{ fontSize:15 }}>No results for "{query}"</div></div>}
+      {query.length>1&&!results.length&&<div style={{ textAlign:"center", color:"rgba(200,200,205,0.6)", padding:"48px 0" }}><div style={{ fontSize:32, marginBottom:12 }}>🔍</div><div style={{ fontSize:15 }}>No results for "{query}"</div></div>}
       {results.map(t=><TrackRow key={t.id} track={t} onPlay={()=>onPlay(t)} active={currentTrack?.id===t.id} isPlaying={isPlaying} onLike={onLike} playlistCtx={playlistCtx}/>)}
-      {!query&&<div style={{ color:"rgba(170,170,175,0.3)", textAlign:"center", paddingTop:48 }}><Icon name="search" size={32}/><div style={{ marginTop:12, fontSize:14 }}>Search tracks, artists or genres</div></div>}
+      {!query&&<div style={{ color:"rgba(220,220,225,0.75)", textAlign:"center", paddingTop:48 }}><Icon name="search" size={32}/><div style={{ marginTop:12, fontSize:14 }}>Search tracks, artists or genres</div></div>}
     </div>
   );
 }
@@ -742,15 +742,15 @@ function FavoritesScreen({ tracks, onPlay, onLike, currentTrack, isPlaying, user
     <div style={{ display:"flex", height:"100%", minHeight:"calc(100vh - 112px)" }}>
       {/* ── Left sidebar ── */}
       <div style={{ width:158, flexShrink:0, borderRight:"1px solid rgba(255,255,255,0.07)", paddingTop:24, display:"flex", flexDirection:"column", gap:1, overflowY:"auto" }}>
-        <div style={{ fontSize:10, fontWeight:700, letterSpacing:1.2, color:"rgba(170,170,175,0.35)", textTransform:"uppercase", padding:"0 14px 10px" }}>Library</div>
+        <div style={{ fontSize:10, fontWeight:700, letterSpacing:1.2, color:"rgba(200,200,205,0.55)", textTransform:"uppercase", padding:"0 14px 10px" }}>Library</div>
         {/* Liked Songs row */}
-        <button onClick={()=>setActiveList("liked")} style={{ background:activeList==="liked"?"rgba(255,255,255,0.09)":"none", border:"none", cursor:"pointer", textAlign:"left", padding:"9px 14px", color:activeList==="liked"?"#e8e8ea":"rgba(190,190,195,0.55)", fontSize:13, fontWeight:activeList==="liked"?600:400, display:"flex", alignItems:"center", gap:8, borderRadius:8, margin:"0 6px", transition:"all 0.15s" }}>
+        <button onClick={()=>setActiveList("liked")} style={{ background:activeList==="liked"?"rgba(255,255,255,0.09)":"none", border:"none", cursor:"pointer", textAlign:"left", padding:"9px 14px", color:activeList==="liked"?"#e8e8ea":"rgba(220,220,225,0.8)", fontSize:13, fontWeight:activeList==="liked"?600:400, display:"flex", alignItems:"center", gap:8, borderRadius:8, margin:"0 6px", transition:"all 0.15s" }}>
           <Icon name="heart" size={13}/> Liked Songs
         </button>
         {/* User playlists */}
         {userPlaylists.map(pl => (
           <div key={pl.id} style={{ position:"relative", margin:"0 6px" }}>
-            <button onClick={()=>setActiveList(pl.id)} style={{ background:activeList===pl.id?"rgba(255,255,255,0.09)":"none", border:"none", cursor:"pointer", textAlign:"left", padding:"9px 28px 9px 10px", color:activeList===pl.id?"#e8e8ea":"rgba(190,190,195,0.55)", fontSize:13, fontWeight:activeList===pl.id?600:400, display:"flex", alignItems:"center", gap:8, borderRadius:8, width:"100%", transition:"all 0.15s" }}>
+            <button onClick={()=>setActiveList(pl.id)} style={{ background:activeList===pl.id?"rgba(255,255,255,0.09)":"none", border:"none", cursor:"pointer", textAlign:"left", padding:"9px 28px 9px 10px", color:activeList===pl.id?"#e8e8ea":"rgba(220,220,225,0.8)", fontSize:13, fontWeight:activeList===pl.id?600:400, display:"flex", alignItems:"center", gap:8, borderRadius:8, width:"100%", transition:"all 0.15s" }}>
               <span style={{ fontSize:11 }}>♪</span>
               <span style={{ overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap", flex:1 }}>{pl.name}</span>
             </button>
@@ -764,7 +764,7 @@ function FavoritesScreen({ tracks, onPlay, onLike, currentTrack, isPlaying, user
               <input autoFocus value={newName} onChange={e=>setNewName(e.target.value)} onKeyDown={e=>{if(e.key==="Enter")handleCreate();if(e.key==="Escape"){setShowNewInput(false);setNewName("");}}} placeholder="Name…" style={{ background:"rgba(255,255,255,0.07)", border:"1px solid rgba(255,255,255,0.12)", borderRadius:8, padding:"7px 10px", color:"#e2e4e6", fontSize:12, fontFamily:"inherit", width:"100%" }}/>
               <div style={{ display:"flex", gap:5 }}>
                 <button onClick={handleCreate} style={{ flex:1, background:"rgba(255,255,255,0.12)", border:"1px solid rgba(255,255,255,0.15)", borderRadius:7, color:"#e8e8ea", fontSize:11, fontWeight:600, padding:"5px 0", cursor:"pointer" }}>Create</button>
-                <button onClick={()=>{setShowNewInput(false);setNewName("");}} style={{ flex:1, background:"none", border:"1px solid rgba(255,255,255,0.08)", borderRadius:7, color:"rgba(190,190,195,0.4)", fontSize:11, padding:"5px 0", cursor:"pointer" }}>Cancel</button>
+                <button onClick={()=>{setShowNewInput(false);setNewName("");}} style={{ flex:1, background:"none", border:"1px solid rgba(255,255,255,0.08)", borderRadius:7, color:"rgba(210,210,215,0.65)", fontSize:11, padding:"5px 0", cursor:"pointer" }}>Cancel</button>
               </div>
             </div>
           ) : (
@@ -779,10 +779,10 @@ function FavoritesScreen({ tracks, onPlay, onLike, currentTrack, isPlaying, user
       <div style={{ flex:1, padding:"24px 16px 16px", overflowY:"auto" }}>
         <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:16 }}>
           <div style={{ fontSize:22, fontWeight:700, letterSpacing:-0.3, color:"#e8e8ea" }}>{activeLabel}</div>
-          <div style={{ fontSize:12, color:"rgba(190,190,195,0.4)" }}>{activeTracks.length} tracks</div>
+          <div style={{ fontSize:12, color:"rgba(210,210,215,0.65)" }}>{activeTracks.length} tracks</div>
         </div>
         {!activeTracks.length ? (
-          <div style={{ textAlign:"center", color:"rgba(170,170,175,0.35)", paddingTop:48 }}>
+          <div style={{ textAlign:"center", color:"rgba(200,200,205,0.55)", paddingTop:48 }}>
             <div style={{ fontSize:36, marginBottom:12 }}>{activeList==="liked"?"🎵":"🎶"}</div>
             <div style={{ fontSize:14 }}>{activeList==="liked"?"Heart tracks to save them here":"Add tracks using the ⋯ menu on any track"}</div>
           </div>
@@ -809,18 +809,18 @@ function ProfileScreen({ user, setUser, tracks, onLogout }) {
       <div style={{ textAlign:"center", padding:"24px 0 28px" }}>
         <div style={{ fontSize:56, marginBottom:12 }}>{user.image}</div>
         <div style={{ fontSize:22, fontWeight:700, letterSpacing:-0.3, color:"#e8e8ea" }}>{user.name}</div>
-        <div style={{ fontSize:12, color:"rgba(190,190,195,0.4)", marginTop:4, letterSpacing:1.5, fontWeight:600, textTransform:"uppercase" }}>Record Collector</div>
+        <div style={{ fontSize:12, color:"rgba(210,210,215,0.65)", marginTop:4, letterSpacing:1.5, fontWeight:600, textTransform:"uppercase" }}>Record Collector</div>
       </div>
       <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:12, marginBottom:28 }}>
         {[["Saved",liked],["Genres",user.genres.length],["Radio","On"]].map(([label,val])=>(
           <div key={label} style={{ background:"rgba(255,255,255,0.06)", backdropFilter:"blur(20px)", border:"1px solid rgba(255,255,255,0.08)", borderRadius:16, padding:"14px 0", textAlign:"center" }}>
             <div style={{ fontSize:22, fontWeight:700, letterSpacing:-0.5, color:"rgba(235,235,238,0.95)" }}>{val}</div>
-            <div style={{ fontSize:11, color:"rgba(170,170,175,0.5)", letterSpacing:0.8, marginTop:2, fontWeight:600, textTransform:"uppercase" }}>{label}</div>
+            <div style={{ fontSize:11, color:"rgba(210,210,215,0.65)", letterSpacing:0.8, marginTop:2, fontWeight:600, textTransform:"uppercase" }}>{label}</div>
           </div>
         ))}
       </div>
       <SectionLabel>Preferred Genres</SectionLabel>
-      <div style={{ fontSize:12, color:"rgba(170,170,175,0.4)", marginBottom:12 }}>Tap to select — {user.genres.length} selected</div>
+      <div style={{ fontSize:12, color:"rgba(200,200,205,0.6)", marginBottom:12 }}>Tap to select — {user.genres.length} selected</div>
       <div style={{ display:"flex", flexWrap:"wrap", gap:7, marginBottom:28 }}>
         {ALL_GENRES.map(g=>{
           const on=user.genres.includes(g);
@@ -854,7 +854,7 @@ function AnalyticsRow({ rank, track, value, label, max, color, accent }) {
       </div>
       <div style={{ flexShrink:0, textAlign:"right" }}>
         <div style={{ fontSize:16, fontWeight:800, color:`rgba(${rgb},0.9)`, letterSpacing:-0.3 }}>{value}</div>
-        <div style={{ fontSize:10, color:"rgba(170,170,175,0.35)", fontWeight:600 }}>{label}</div>
+        <div style={{ fontSize:10, color:"rgba(200,200,205,0.55)", fontWeight:600 }}>{label}</div>
       </div>
     </div>
   );
@@ -878,7 +878,7 @@ function AdminScreen({ tracks, setTracks, tab, setTab, editTrack, setEditTrack, 
       </div>
       <div style={{ display:"flex", gap:6, marginBottom:20, background:"rgba(18,18,20,0.65)", backdropFilter:"blur(16px)", borderRadius:12, padding:3, border:"1px solid rgba(255,255,255,0.07)" }}>
         {["tracks","analytics"].map(t=>(
-          <button key={t} onClick={()=>setTab(t)} style={{ flex:1, padding:"8px 0", borderRadius:10, border:"none", cursor:"pointer", fontSize:13, fontWeight:600, textTransform:"capitalize", background:tab===t?"rgba(255,255,255,0.13)":"transparent", color:tab===t?"rgba(235,235,238,0.9)":"rgba(170,170,175,0.4)" }}>
+          <button key={t} onClick={()=>setTab(t)} style={{ flex:1, padding:"8px 0", borderRadius:10, border:"none", cursor:"pointer", fontSize:13, fontWeight:600, textTransform:"capitalize", background:tab===t?"rgba(255,255,255,0.13)":"transparent", color:tab===t?"rgba(235,235,238,0.9)":"rgba(200,200,205,0.6)" }}>
             {t.charAt(0).toUpperCase()+t.slice(1)}
           </button>
         ))}
@@ -920,18 +920,18 @@ function AdminScreen({ tracks, setTracks, tab, setTab, editTrack, setEditTrack, 
           <button onClick={addTrack} style={{...BTN_PRIMARY,width:"100%",marginBottom:24,display:"flex",alignItems:"center",justifyContent:"center",gap:8}}><Icon name="plus" size={16}/> Add Track</button>
           <SectionLabel>Library ({tracks.length})</SectionLabel>
           {tracks.map(t=>(
-            <div key={t.id} style={{ display:"flex", alignItems:"center", gap:10, padding:"10px 12px", background:"#161618", borderRadius:6, marginBottom:3, border:"1px solid rgba(255,255,255,0.05)" }}>
+            <div key={t.id} style={{ display:"flex", alignItems:"center", gap:10, padding:"10px 12px", background:"#121212", borderRadius:6, marginBottom:3, border:"1px solid rgba(255,255,255,0.05)" }}>
               <div style={{ width:36, height:36, borderRadius:7, overflow:"hidden", flexShrink:0 }}><AlbumArt track={t} size={36} borderRadius={0}/></div>
               <div style={{ flex:1, minWidth:0 }}>
                 <div style={{ fontSize:14, fontWeight:500, color:"#d8d8da", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{t.title}</div>
-                <div style={{ fontSize:12, color:"rgba(190,190,195,0.45)" }}>{t.artist} · {t.genre}</div>
+                <div style={{ fontSize:12, color:"rgba(210,210,215,0.7)" }}>{t.artist} · {t.genre}</div>
               </div>
               <div style={{ display:"flex", flexDirection:"column", alignItems:"flex-end", gap:2, flexShrink:0 }}>
                 <EnergyBar level={t.energy} color={t.color}/>
-                {t.camelot&&<span style={{ fontSize:9, color:"rgba(200,200,205,0.5)", fontWeight:600 }}>{t.camelot}</span>}
+                {t.camelot&&<span style={{ fontSize:9, color:"rgba(220,220,225,0.75)", fontWeight:600 }}>{t.camelot}</span>}
               </div>
-              <button onClick={()=>setEditTrack(t)} style={{ background:"none",border:"none",cursor:"pointer",color:"rgba(190,190,195,0.35)",padding:6 }}><Icon name="edit" size={14}/></button>
-              <button onClick={()=>{setTracks(ts=>ts.filter(tr=>tr.id!==t.id));showToast("Deleted");}} style={{ background:"none",border:"none",cursor:"pointer",color:"rgba(190,190,195,0.35)",padding:6 }}><Icon name="trash" size={14}/></button>
+              <button onClick={()=>setEditTrack(t)} style={{ background:"none",border:"none",cursor:"pointer",color:"rgba(210,210,215,0.6)",padding:6 }}><Icon name="edit" size={14}/></button>
+              <button onClick={()=>{setTracks(ts=>ts.filter(tr=>tr.id!==t.id));showToast("Deleted");}} style={{ background:"none",border:"none",cursor:"pointer",color:"rgba(210,210,215,0.6)",padding:6 }}><Icon name="trash" size={14}/></button>
             </div>
           ))}
         </div>
@@ -943,7 +943,7 @@ function AdminScreen({ tracks, setTracks, tab, setTab, editTrack, setEditTrack, 
           <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:8, marginBottom:24 }}>
             {[["Tracks",tracks.length],["Liked",tracks.filter(t=>t.liked).length],["Genres",[...new Set(tracks.map(t=>t.genre))].length],["Keys",[...new Set(tracks.filter(t=>t.camelot).map(t=>t.camelot))].length]].map(([l,v])=>(
               <div key={l} style={{ padding:"14px 16px", background:"rgba(255,255,255,0.04)", borderRadius:12, border:"1px solid rgba(255,255,255,0.06)" }}>
-                <div style={{ fontSize:11, fontWeight:700, letterSpacing:0.8, color:"rgba(170,170,175,0.4)", textTransform:"uppercase", marginBottom:4 }}>{l}</div>
+                <div style={{ fontSize:11, fontWeight:700, letterSpacing:0.8, color:"rgba(200,200,205,0.6)", textTransform:"uppercase", marginBottom:4 }}>{l}</div>
                 <div style={{ fontSize:26, fontWeight:800, letterSpacing:-0.5, color:"rgba(235,235,238,0.92)" }}>{v}</div>
               </div>
             ))}
@@ -963,7 +963,7 @@ function AdminScreen({ tracks, setTracks, tab, setTab, editTrack, setEditTrack, 
             ))
           }
           {tracks.every(t=>!(t.likeCount||0)) && (
-            <div style={{ textAlign:"center", color:"rgba(170,170,175,0.3)", padding:"24px 0", fontSize:13 }}>No like data yet — play some tracks!</div>
+            <div style={{ textAlign:"center", color:"rgba(220,220,225,0.75)", padding:"24px 0", fontSize:13 }}>No like data yet — play some tracks!</div>
           )}
 
           {/* ── Most skipped ── */}
@@ -980,7 +980,7 @@ function AdminScreen({ tracks, setTracks, tab, setTab, editTrack, setEditTrack, 
             ))
           }
           {tracks.every(t=>!(t.skipCount||0)) && (
-            <div style={{ textAlign:"center", color:"rgba(170,170,175,0.3)", padding:"24px 0", fontSize:13 }}>No skip data yet — start listening!</div>
+            <div style={{ textAlign:"center", color:"rgba(220,220,225,0.75)", padding:"24px 0", fontSize:13 }}>No skip data yet — start listening!</div>
           )}
 
           {/* ── Most played ── */}
@@ -997,7 +997,7 @@ function AdminScreen({ tracks, setTracks, tab, setTab, editTrack, setEditTrack, 
             ))
           }
           {tracks.every(t=>!(t.playCount||0)) && (
-            <div style={{ textAlign:"center", color:"rgba(170,170,175,0.3)", padding:"24px 0", fontSize:13 }}>No play data yet — start listening!</div>
+            <div style={{ textAlign:"center", color:"rgba(220,220,225,0.75)", padding:"24px 0", fontSize:13 }}>No play data yet — start listening!</div>
           )}
         </div>
       )}
@@ -1025,28 +1025,28 @@ function NowPlayingBar({ track, isPlaying, progress, duration, onTogglePlay, onS
         <div style={{ textAlign:"center" }}>
           {isRadioMode&&<div style={{ fontSize:11, color:"rgba(224,85,85,0.8)", letterSpacing:1.5, textTransform:"uppercase", marginBottom:6, fontWeight:700 }}>● Crate Radio</div>}
           <div style={{ fontSize:24, fontWeight:700, letterSpacing:-0.5, color:"#e8e8ea" }}>{track.title}</div>
-          <div style={{ fontSize:15, color:"rgba(190,190,195,0.55)", marginTop:4 }}>{track.artist}</div>
-          <div style={{ fontSize:12, color:"rgba(170,170,175,0.35)", marginTop:2 }}>{track.album} · {track.genre}</div>
+          <div style={{ fontSize:15, color:"rgba(220,220,225,0.8)", marginTop:4 }}>{track.artist}</div>
+          <div style={{ fontSize:12, color:"rgba(200,200,205,0.55)", marginTop:2 }}>{track.album} · {track.genre}</div>
           <div style={{ marginTop:10, display:"flex", justifyContent:"center", alignItems:"center", gap:12 }}>
             <EnergyBar level={track.energy} color={track.color} size="lg"/>
             {track.camelot&&<span style={{ fontSize:12, fontWeight:700, color:`rgba(${hexToRgbStr(track.color)},0.8)`, background:`rgba(${hexToRgbStr(track.color)},0.12)`, padding:"2px 10px", borderRadius:6 }}>{track.camelot}</span>}
-            {track.bpm&&<span style={{ fontSize:12, color:"rgba(170,170,175,0.4)" }}>{track.bpm} BPM</span>}
+            {track.bpm&&<span style={{ fontSize:12, color:"rgba(200,200,205,0.6)" }}>{track.bpm} BPM</span>}
           </div>
         </div>
         <div style={{ width:"100%" }}>
           <input type="range" min={0} max={duration} value={progress} onChange={e=>onSeek(+e.target.value)} style={{ width:"100%", accentColor:track.color }}/>
-          <div style={{ display:"flex", justifyContent:"space-between", fontSize:12, color:"rgba(170,170,175,0.4)", marginTop:4 }}>
+          <div style={{ display:"flex", justifyContent:"space-between", fontSize:12, color:"rgba(200,200,205,0.6)", marginTop:4 }}>
             <span>{fmtTime(progress)}</span><span>{fmtTime(duration)}</span>
           </div>
         </div>
         <div style={{ display:"flex", alignItems:"center", gap:28 }}>
-          <button onClick={onLike} style={{ background:"none",border:"none",cursor:"pointer",color:track.liked?track.color:"rgba(190,190,195,0.3)",padding:4 }}><Icon name={track.liked?"heart":"heartempty"} size={20}/></button>
+          <button onClick={onLike} style={{ background:"none",border:"none",cursor:"pointer",color:track.liked?track.color:"rgba(210,210,215,0.55)",padding:4 }}><Icon name={track.liked?"heart":"heartempty"} size={20}/></button>
           <button onClick={onPrev} style={CTRL_BTN}><Icon name="prev" size={22}/></button>
           <button onClick={onTogglePlay} style={{ ...CTRL_BTN,width:56,height:56,background:`rgba(${hexToRgbStr(track.color)},0.18)`,border:`1px solid rgba(${hexToRgbStr(track.color)},0.35)`,borderRadius:"50%",color:track.color }}>
             <Icon name={isPlaying?"pause":"play"} size={26}/>
           </button>
           <button onClick={onSkip} style={CTRL_BTN}><Icon name="skip" size={22}/></button>
-          <button onClick={()=>setRepeat(r=>!r)} style={{ background:"none",border:"none",cursor:"pointer",color:repeat?track.color:"rgba(190,190,195,0.3)",padding:4 }}><Icon name="repeat" size={18}/></button>
+          <button onClick={()=>setRepeat(r=>!r)} style={{ background:"none",border:"none",cursor:"pointer",color:repeat?track.color:"rgba(210,210,215,0.55)",padding:4 }}><Icon name="repeat" size={18}/></button>
         </div>
       </div>
     </div>
@@ -1061,16 +1061,16 @@ function NowPlayingBar({ track, isPlaying, progress, duration, onTogglePlay, onS
             {isRadioMode&&<span style={{ fontSize:10, color:"rgba(224,85,85,0.75)", fontWeight:700, letterSpacing:1, marginRight:6 }}>●</span>}
             {track.title}
           </div>
-          <div style={{ fontSize:12, color:"rgba(190,190,195,0.5)" }}>{track.artist}</div>
+          <div style={{ fontSize:12, color:"rgba(210,210,215,0.75)" }}>{track.artist}</div>
           <div style={{ marginTop:4, background:"rgba(255,255,255,0.08)", borderRadius:2, height:2 }}>
             <div style={{ width:`${pct}%`, background:track.color, height:"100%", borderRadius:2, transition:"width 1s linear" }}/>
           </div>
         </div>
-        <button onClick={e=>{e.stopPropagation();onLike();}} style={{ background:"none",border:"none",cursor:"pointer",color:track.liked?track.color:"rgba(190,190,195,0.25)",padding:4 }}><Icon name={track.liked?"heart":"heartempty"} size={16}/></button>
+        <button onClick={e=>{e.stopPropagation();onLike();}} style={{ background:"none",border:"none",cursor:"pointer",color:track.liked?track.color:"rgba(210,210,215,0.5)",padding:4 }}><Icon name={track.liked?"heart":"heartempty"} size={16}/></button>
         <button onClick={e=>{e.stopPropagation();onTogglePlay();}} style={{ background:`rgba(${hexToRgbStr(track.color)},0.16)`,border:`1px solid rgba(${hexToRgbStr(track.color)},0.3)`,borderRadius:"50%",width:36,height:36,cursor:"pointer",color:track.color,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0 }}>
           <Icon name={isPlaying?"pause":"play"} size={18}/>
         </button>
-        <button onClick={e=>{e.stopPropagation();onSkip();}} style={{ background:"none",border:"none",cursor:"pointer",color:"rgba(190,190,195,0.35)",padding:4 }}><Icon name="skip" size={18}/></button>
+        <button onClick={e=>{e.stopPropagation();onSkip();}} style={{ background:"none",border:"none",cursor:"pointer",color:"rgba(210,210,215,0.6)",padding:4 }}><Icon name="skip" size={18}/></button>
       </div>
     </div>
   );
@@ -1485,7 +1485,7 @@ export default function App() {
   if (authLoading) return (
     <div style={{...APP_STYLE, alignItems:"center", justifyContent:"center"}}>
       <div style={{ fontSize:40, marginBottom:16 }}>📦</div>
-      <div style={{ fontSize:14, color:"rgba(190,190,195,0.5)", letterSpacing:1 }}>Loading…</div>
+      <div style={{ fontSize:14, color:"rgba(210,210,215,0.75)", letterSpacing:1 }}>Loading…</div>
     </div>
   );
 
@@ -1500,7 +1500,7 @@ export default function App() {
       {tracksLoading && (
         <div style={{ position:"absolute", top:"50%", left:"50%", transform:"translate(-50%,-50%)", zIndex:50, textAlign:"center" }}>
           <div style={{ fontSize:32, marginBottom:12 }}>📦</div>
-          <div style={{ fontSize:13, color:"rgba(190,190,195,0.5)" }}>Loading your crate…</div>
+          <div style={{ fontSize:13, color:"rgba(210,210,215,0.75)" }}>Loading your crate…</div>
         </div>
       )}
       <div style={{ flex:1, overflow:"auto", paddingBottom:currentTrack?120:56, zIndex:1, position:"relative" }}>
@@ -1537,14 +1537,14 @@ export default function App() {
     <div style={{ display:"flex", height:"100vh", background:"#0d0e0f", overflow:"hidden", fontFamily:"-apple-system,'SF Pro Display','Helvetica Neue',Arial,sans-serif" }}>
 
       {/* ── LEFT SIDEBAR ─────────────────────────────────────────────────── */}
-      <div style={{ width:220, flexShrink:0, background:"#111214", borderRight:"1px solid rgba(255,255,255,0.06)", display:"flex", flexDirection:"column", padding:"28px 0 24px" }}>
+      <div style={{ width:220, flexShrink:0, background:"#0e0e0e", borderRight:"1px solid rgba(255,255,255,0.06)", display:"flex", flexDirection:"column", padding:"28px 0 24px" }}>
 
         {/* Logo */}
         <div style={{ padding:"0 20px 32px" }}>
           <div style={{ fontFamily:"'Barlow Condensed',sans-serif", fontSize:26, fontWeight:700, letterSpacing:1, color:"#e8e8ea", textTransform:"uppercase" }}>
-            <span style={{ color:"#7fc9ef" }}>▣</span> Crate
+            <span style={{ color:"#e8e8ea" }}>▣</span> Crate
           </div>
-          <div style={{ fontFamily:"'Space Mono',monospace", fontSize:10, color:"rgba(170,170,175,0.35)", letterSpacing:1.5, marginTop:3 }}>cratedigger.uk</div>
+          <div style={{ fontFamily:"'Space Mono',monospace", fontSize:10, color:"rgba(200,200,205,0.55)", letterSpacing:1.5, marginTop:3 }}>cratedigger.uk</div>
         </div>
 
         {/* Nav */}
@@ -1552,9 +1552,9 @@ export default function App() {
           {NAV_ITEMS.map(item => (
             <button key={item.id} onClick={()=>setScreen(item.id)} style={{
               display:"flex", alignItems:"center", gap:12, padding:"11px 20px",
-              background:screen===item.id?"rgba(127,201,239,0.1)":"none",
-              border:"none", borderLeft:screen===item.id?"3px solid #7fc9ef":"3px solid transparent",
-              color:screen===item.id?"#e8e8ea":"rgba(170,170,175,0.5)",
+              background:screen===item.id?"rgba(255,255,255,0.1)":"none",
+              border:"none", borderLeft:screen===item.id?"3px solid rgba(255,255,255,0.5)":"3px solid transparent",
+              color:screen===item.id?"#e8e8ea":"rgba(210,210,215,0.65)",
               fontSize:14, fontWeight:screen===item.id?600:400,
               cursor:"pointer", textAlign:"left", transition:"all 0.15s",
               fontFamily:"inherit",
@@ -1565,9 +1565,9 @@ export default function App() {
           {firebaseUser?.uid === "5lPAI9N1jkMbVkUyIqLTqBvBf1t1" && (
             <button onClick={()=>setScreen("admin")} style={{
               display:"flex", alignItems:"center", gap:12, padding:"11px 20px",
-              background:screen==="admin"?"rgba(127,201,239,0.1)":"none",
-              border:"none", borderLeft:screen==="admin"?"3px solid #7fc9ef":"3px solid transparent",
-              color:screen==="admin"?"#e8e8ea":"rgba(170,170,175,0.5)",
+              background:screen==="admin"?"rgba(255,255,255,0.06)":"none",
+              border:"none", borderLeft:screen==="admin"?"3px solid rgba(255,255,255,0.5)":"3px solid transparent",
+              color:screen==="admin"?"#e8e8ea":"rgba(210,210,215,0.65)",
               fontSize:14, fontWeight:screen==="admin"?600:400,
               cursor:"pointer", textAlign:"left", transition:"all 0.15s",
               fontFamily:"inherit",
@@ -1580,10 +1580,10 @@ export default function App() {
         {/* User footer */}
         <div style={{ padding:"16px 20px 0", borderTop:"1px solid rgba(255,255,255,0.06)" }}>
           <div style={{ display:"flex", alignItems:"center", gap:10 }}>
-            <div style={{ width:30, height:30, borderRadius:"50%", background:"rgba(127,201,239,0.15)", border:"1px solid rgba(127,201,239,0.25)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:15 }}>{user.image}</div>
+            <div style={{ width:30, height:30, borderRadius:"50%", background:"rgba(255,255,255,0.08)", border:"1px solid rgba(255,255,255,0.12)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:15 }}>{user.image}</div>
             <div>
               <div style={{ fontSize:13, fontWeight:600, color:"#e8e8ea" }}>{user.name}</div>
-              <div style={{ fontSize:11, color:"rgba(170,170,175,0.4)" }}>Record Collector</div>
+              <div style={{ fontSize:11, color:"rgba(200,200,205,0.6)" }}>Record Collector</div>
             </div>
           </div>
         </div>
@@ -1602,11 +1602,11 @@ export default function App() {
       </div>
 
       {/* ── RIGHT PANEL ──────────────────────────────────────────────────── */}
-      <div style={{ width:260, flexShrink:0, background:"#111214", borderLeft:"1px solid rgba(255,255,255,0.06)", display:"flex", flexDirection:"column", padding:"28px 20px 24px", overflowY:"auto" }}>
+      <div style={{ width:260, flexShrink:0, background:"#0e0e0e", borderLeft:"1px solid rgba(255,255,255,0.06)", display:"flex", flexDirection:"column", padding:"28px 20px 24px", overflowY:"auto" }}>
 
         {/* Now Playing */}
         <div style={{ marginBottom:28 }}>
-          <div style={{ fontSize:10, fontWeight:700, letterSpacing:1.4, color:"rgba(170,170,175,0.35)", textTransform:"uppercase", marginBottom:14 }}>Now Playing</div>
+          <div style={{ fontSize:10, fontWeight:700, letterSpacing:1.4, color:"rgba(255,255,255,0.85)", textTransform:"uppercase", marginBottom:14 }}>Now Playing</div>
           {currentTrack ? (
             <div>
               <div style={{ width:"100%", aspectRatio:"1", borderRadius:12, overflow:"hidden", marginBottom:16, background:"rgba(255,255,255,0.05)", boxShadow:"0 8px 32px rgba(0,0,0,0.5)" }}>
@@ -1615,18 +1615,18 @@ export default function App() {
               <div style={{ fontSize:16, fontWeight:700, color:"#e8e8ea", marginBottom:4, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{currentTrack.title}</div>
               <div style={{ fontSize:13, color:"rgba(170,170,175,0.55)", marginBottom:14, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{currentTrack.artist}</div>
               <div style={{ display:"flex", flexWrap:"wrap", gap:6 }}>
-                {currentTrack.genre && <span style={{ fontSize:11, fontWeight:600, padding:"4px 10px", borderRadius:6, background:"rgba(127,201,239,0.1)", color:"#7fc9ef", border:"1px solid rgba(127,201,239,0.2)" }}>{currentTrack.genre}</span>}
+                {currentTrack.genre && <span style={{ fontSize:11, fontWeight:600, padding:"4px 10px", borderRadius:6, background:"rgba(255,255,255,0.06)", color:"#e8e8ea", border:"1px solid rgba(255,255,255,0.1)" }}>{currentTrack.genre}</span>}
                 {currentTrack.camelot && <span style={{ fontSize:11, fontWeight:600, padding:"4px 10px", borderRadius:6, background:"rgba(255,255,255,0.06)", color:"rgba(200,200,205,0.7)", border:"1px solid rgba(255,255,255,0.08)", fontFamily:"'Space Mono',monospace" }}>{currentTrack.camelot}</span>}
                 {currentTrack.bpm && <span style={{ fontSize:11, fontWeight:600, padding:"4px 10px", borderRadius:6, background:"rgba(255,255,255,0.06)", color:"rgba(200,200,205,0.7)", border:"1px solid rgba(255,255,255,0.08)", fontFamily:"'Space Mono',monospace" }}>{currentTrack.bpm} BPM</span>}
               </div>
               {/* Progress bar */}
               <div style={{ marginTop:16 }}>
                 <div style={{ height:3, background:"rgba(255,255,255,0.08)", borderRadius:2, overflow:"hidden" }}>
-                  <div style={{ height:"100%", width:`${duration?((progress/duration)*100):0}%`, background:"#7fc9ef", borderRadius:2, transition:"width 0.5s linear" }}/>
+                  <div style={{ height:"100%", width:`${duration?((progress/duration)*100):0}%`, background:"#e8e8ea", borderRadius:2, transition:"width 0.5s linear" }}/>
                 </div>
                 <div style={{ display:"flex", justifyContent:"space-between", marginTop:5 }}>
-                  <span style={{ fontSize:11, color:"rgba(170,170,175,0.4)", fontFamily:"'Space Mono',monospace" }}>{Math.floor(progress/60)}:{String(progress%60).padStart(2,"0")}</span>
-                  <span style={{ fontSize:11, color:"rgba(170,170,175,0.4)", fontFamily:"'Space Mono',monospace" }}>{Math.floor(duration/60)}:{String(duration%60).padStart(2,"0")}</span>
+                  <span style={{ fontSize:11, color:"rgba(200,200,205,0.6)", fontFamily:"'Space Mono',monospace" }}>{Math.floor(progress/60)}:{String(progress%60).padStart(2,"0")}</span>
+                  <span style={{ fontSize:11, color:"rgba(200,200,205,0.6)", fontFamily:"'Space Mono',monospace" }}>{Math.floor(duration/60)}:{String(duration%60).padStart(2,"0")}</span>
                 </div>
               </div>
             </div>
@@ -1640,15 +1640,15 @@ export default function App() {
 
         {/* Recent tracks */}
         <div>
-          <div style={{ fontSize:10, fontWeight:700, letterSpacing:1.4, color:"rgba(170,170,175,0.35)", textTransform:"uppercase", marginBottom:12 }}>Recent Additions</div>
+          <div style={{ fontSize:10, fontWeight:700, letterSpacing:1.4, color:"rgba(200,200,205,0.55)", textTransform:"uppercase", marginBottom:12 }}>Recent Additions</div>
           <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
             {recentTracks.map(t => (
-              <div key={t.id} onClick={()=>playTrack(t,tracks)} style={{ display:"flex", alignItems:"center", gap:10, cursor:"pointer", padding:"6px 8px", borderRadius:8, background:currentTrack?.id===t.id?"rgba(127,201,239,0.08)":"transparent", transition:"background 0.15s" }}>
+              <div key={t.id} onClick={()=>playTrack(t,tracks)} style={{ display:"flex", alignItems:"center", gap:10, cursor:"pointer", padding:"6px 8px", borderRadius:8, background:currentTrack?.id===t.id?"rgba(255,255,255,0.05)":"transparent", transition:"background 0.15s" }}>
                 <div style={{ width:34, height:34, borderRadius:6, overflow:"hidden", flexShrink:0, background:"rgba(255,255,255,0.05)" }}>
                   <img src={t.albumCover||"/covers/default.jpg"} alt="" style={{ width:"100%", height:"100%", objectFit:"cover" }} onError={e=>{e.target.src="/covers/default.jpg";}}/>
                 </div>
                 <div style={{ flex:1, minWidth:0 }}>
-                  <div style={{ fontSize:12, fontWeight:600, color:currentTrack?.id===t.id?"#7fc9ef":"#e8e8ea", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{t.title}</div>
+                  <div style={{ fontSize:12, fontWeight:600, color:currentTrack?.id===t.id?"#e8e8ea":"#e8e8ea", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{t.title}</div>
                   <div style={{ fontSize:11, color:"rgba(170,170,175,0.45)", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{t.artist}</div>
                 </div>
               </div>
@@ -1662,7 +1662,7 @@ export default function App() {
 
 // ─── SHARED STYLES ────────────────────────────────────────────────────────────
 const APP_STYLE = {
-  background:"#0e0e0f",
+  background:"#080808",
   minHeight:"100vh", height:"100vh", overflow:"hidden",
   fontFamily:"-apple-system,'SF Pro Display','SF Pro Text','Helvetica Neue',Arial,sans-serif",
   color:"#e2e4e6", position:"relative", display:"flex", flexDirection:"column",
