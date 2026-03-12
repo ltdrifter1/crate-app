@@ -899,7 +899,10 @@ function AdminScreen({ tracks, setTracks, tab, setTab, editTrack, setEditTrack, 
                       });
                       setTracks(ts=>ts.map(tr=>tr.id===editTrack.id?updated:tr));
                       setEditTrack(null); showToast("Saved ✓");
-                    } catch(e) { console.error("Admin save error:", e); showToast("Save failed: " + e.message); }
+                    } catch(e) {
+                      console.error("Admin save error:", e);
+                      showToast("Save failed: " + (e.code || e.message || "unknown error"));
+                    }
                   }} style={{...BTN_PRIMARY,flex:1}}>Save</button>
                   <button onClick={()=>setEditTrack(null)} style={{...BTN_SECONDARY,flex:1}}>Cancel</button>
                 </div>
@@ -1143,10 +1146,10 @@ export default function App() {
       try {
         const q    = query(collection(db, "tracks"), orderBy("createdAt", "desc"));
         const snap = await getDocs(q);
-        const loaded = snap.docs.map(doc => ({
-          id:    doc.id,        // Firestore document ID (string)
+        const loaded = snap.docs.map(d => ({
+          ...d.data(),          // spread data first
+          id:    d.id,          // then override with real Firestore doc ID (never overwritten)
           liked: false,         // default; will be overridden from profile below
-          ...doc.data(),
         }));
         setTracks(loaded);
       } catch (err) {
