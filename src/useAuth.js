@@ -10,6 +10,7 @@ import {
   signInWithPopup,
   RecaptchaVerifier,
   signInWithPhoneNumber,
+  sendPasswordResetEmail,
 } from "firebase/auth";
 import {
   doc, setDoc, getDoc, serverTimestamp,
@@ -153,6 +154,11 @@ export function useAuth() {
     return cred.user;
   }
 
+
+  async function resetPassword(email) {
+    return sendPasswordResetEmail(auth, email);
+  }
+
   async function logOut() {
     clearRecaptcha();
     await signOut(auth);
@@ -164,6 +170,6 @@ export function useAuth() {
     firebaseUser, profile, setProfile, loading,
     signUp, logIn, logOut,
     signInWithGoogle, signInWithApple,
-    sendPhoneOTP, verifyPhoneOTP,
+    sendPhoneOTP, verifyPhoneOTP, resetPassword,
   };
 }

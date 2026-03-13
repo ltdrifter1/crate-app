@@ -10,7 +10,7 @@ const injectStyles = () => {
   s.id = "vers-app-global-styles";
   s.textContent = `
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    :root { --font: -apple-system, "SF Pro Display", "SF Pro Text", "Helvetica Neue", Arial, sans-serif; --apple-red: #FC3C44; }
+    :root { --font: -apple-system, "SF Pro Display", "SF Pro Text", "Helvetica Neue", Arial, sans-serif; --accent: #8B95A7; }
     body { font-family: var(--font); background: #F2F2F7; }
     ::-webkit-scrollbar { width: 6px; }
     ::-webkit-scrollbar-track { background: transparent; }
@@ -95,7 +95,7 @@ function EnergyBar({ level, color, size="sm" }) {
         <div key={i} style={{
           width: size==="lg"?4:2.5, height:ht,
           borderRadius:2,
-          background: i < level ? "#FC3C44" : "#E5E5EA",
+          background: i < level ? "#8B95A7" : "#E5E5EA",
           transition:"background 0.2s",
         }}/>
       ))}
@@ -289,11 +289,11 @@ function CrateFlipper({ tracks, onSelect, currentTrack, isPlaying }) {
           {/* Play button bottom left */}
           <button onClick={()=>onSelect(t)} style={{
             width:44, height:44, borderRadius:"50%",
-            background:"#FC3C44",
+            background:"#8B95A7",
             border:"none",
             color:"#FFFFFF", cursor:"pointer",
             display:"flex", alignItems:"center", justifyContent:"center",
-            boxShadow:"0 4px 16px rgba(252,60,68,0.4)",
+            boxShadow:"0 4px 16px rgba(139,149,167,0.4)",
           }}>
             <Icon name={currentTrack?.id===t.id && isPlaying ? "pause" : "play"} size={20}/>
           </button>
@@ -336,7 +336,7 @@ function CrateFlipper({ tracks, onSelect, currentTrack, isPlaying }) {
           {tracks.map((_,i) => (
             <div key={i} onClick={()=>setIdx(i)} style={{
               width: i===idx?16:4, height:4, borderRadius:2, cursor:"pointer",
-              background: i===idx?"#FC3C44":"#E5E5EA",
+              background: i===idx?"#8B95A7":"#E5E5EA",
               transition:"width 0.25s, background 0.25s",
             }}/>
           ))}
@@ -357,27 +357,27 @@ function DeepCutsCard({ onPlay, onTogglePlay, currentTrack, isPlaying, isRadioMo
     <div onClick={isRadioMode ? undefined : onPlay} style={{
       cursor: isRadioMode ? 'default' : 'pointer',
       background: isRadioMode
-        ? `linear-gradient(135deg, rgba(252,60,68,0.08) 0%, #FFFFFF 100%)`
+        ? `linear-gradient(135deg, rgba(139,149,167,0.08) 0%, #FFFFFF 100%)`
         : "#FFFFFF",
       backdropFilter:"blur(28px) saturate(1.6)",
-      border:`1px solid ${isRadioMode?"rgba(252,60,68,0.25)":"rgba(60,60,67,0.12)"}`,
+      border:`1px solid ${isRadioMode?"rgba(139,149,167,0.25)":"rgba(60,60,67,0.12)"}`,
       borderRadius:20, padding:"20px 18px", transition:"all 0.3s",
       marginBottom:24, position:"relative", overflow:"hidden",
       boxShadow: isRadioMode
-        ? "0 4px 24px rgba(252,60,68,0.1)"
+        ? "0 4px 24px rgba(139,149,167,0.1)"
         : "0 1px 8px rgba(0,0,0,0.06)",
     }}>
       {/* Background glow when on air */}
-      {isRadioMode && <div style={{ position:"absolute", top:-40, right:-40, width:160, height:160, borderRadius:"50%", background:"radial-gradient(circle, rgba(252,60,68,0.06) 0%, transparent 70%)", pointerEvents:"none" }}/>}
+      {isRadioMode && <div style={{ position:"absolute", top:-40, right:-40, width:160, height:160, borderRadius:"50%", background:"radial-gradient(circle, rgba(139,149,167,0.06) 0%, transparent 70%)", pointerEvents:"none" }}/>}
 
       <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:14 }}>
         <div style={{ display:"flex", alignItems:"center", gap:8 }}>
           {/* Live dot */}
           <div style={{ position:"relative", width:10, height:10, flexShrink:0 }}>
-            <div style={{ position:"absolute", inset:0, borderRadius:"50%", background: isRadioMode?"#FC3C44":"#AEAEB2", animation:isRadioMode&&isPlaying?"breathe 1.8s ease-in-out infinite":"none" }}/>
-            {isRadioMode&&isPlaying&&<div style={{ position:"absolute", inset:-4, borderRadius:"50%", border:"1px solid rgba(252,60,68,0.5)", animation:"pulse-ring 1.8s ease-out infinite" }}/>}
+            <div style={{ position:"absolute", inset:0, borderRadius:"50%", background: isRadioMode?"#8B95A7":"#AEAEB2", animation:isRadioMode&&isPlaying?"breathe 1.8s ease-in-out infinite":"none" }}/>
+            {isRadioMode&&isPlaying&&<div style={{ position:"absolute", inset:-4, borderRadius:"50%", border:"1px solid rgba(139,149,167,0.5)", animation:"pulse-ring 1.8s ease-out infinite" }}/>}
           </div>
-          <span style={{ fontSize:11, fontWeight:800, letterSpacing:2, color:isRadioMode&&isPlaying?"#FC3C44":"#8E8E93", textTransform:"uppercase" }}>
+          <span style={{ fontSize:11, fontWeight:800, letterSpacing:2, color:isRadioMode&&isPlaying?"#8B95A7":"#8E8E93", textTransform:"uppercase" }}>
             {isRadioMode&&isPlaying ? "LIVE" : "Now Playing"}
           </span>
         </div>
@@ -395,12 +395,12 @@ function DeepCutsCard({ onPlay, onTogglePlay, currentTrack, isPlaying, isRadioMo
             <div style={{ flex:1, minWidth:0 }}>
               <div style={{ fontSize:16, fontWeight:600, color:"#1C1C1E", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap", letterSpacing:-0.2 }}>{currentTrack.title}</div>
               <div style={{ fontSize:13, color:"#8E8E93", marginTop:2 }}>{currentTrack.artist}</div>
-              {currentTrack.camelot&&<span style={{ fontSize:10, fontWeight:600, color:"#FC3C44", background:"rgba(252,60,68,0.08)", padding:"2px 6px", borderRadius:4, marginTop:4, display:"inline-block" }}>{currentTrack.camelot}</span>}
+              {currentTrack.camelot&&<span style={{ fontSize:10, fontWeight:600, color:"#8B95A7", background:"rgba(139,149,167,0.08)", padding:"2px 6px", borderRadius:4, marginTop:4, display:"inline-block" }}>{currentTrack.camelot}</span>}
             </div>
           </div>
           {/* Energy bar + play/pause button row — button on left */}
           <div style={{ marginTop:12, display:"flex", alignItems:"center", gap:12 }}>
-            <button onClick={e=>{e.stopPropagation();onTogglePlay();}} style={{ width:40, height:40, borderRadius:"50%", background:"#FC3C44", border:"none", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, color:"#FFFFFF", cursor:"pointer" }}>
+            <button onClick={e=>{e.stopPropagation();onTogglePlay();}} style={{ width:40, height:40, borderRadius:"50%", background:"#8B95A7", border:"none", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, color:"#FFFFFF", cursor:"pointer" }}>
               <Icon name={isPlaying?"pause":"play"} size={18}/>
             </button>
             <EnergyBar level={currentTrack.energy} color={currentTrack.color} size="lg"/>
@@ -410,7 +410,7 @@ function DeepCutsCard({ onPlay, onTogglePlay, currentTrack, isPlaying, isRadioMo
         <div>
           <div style={{ fontSize:22, fontWeight:700, letterSpacing:-0.3, color:"#1C1C1E" }}>Vers Radio</div>
           <div style={{ fontSize:13, color:"#8E8E93", marginTop:4, marginBottom:14 }}>Tap to tune in</div>
-          <button onClick={e=>{e.stopPropagation();onPlay();}} style={{ width:48, height:48, borderRadius:"50%", background:"#FC3C44", border:"none", display:"flex", alignItems:"center", justifyContent:"center", color:"#FFFFFF", cursor:"pointer" }}>
+          <button onClick={e=>{e.stopPropagation();onPlay();}} style={{ width:48, height:48, borderRadius:"50%", background:"#8B95A7", border:"none", display:"flex", alignItems:"center", justifyContent:"center", color:"#FFFFFF", cursor:"pointer" }}>
             <Icon name="play" size={22}/>
           </button>
         </div>
@@ -419,7 +419,7 @@ function DeepCutsCard({ onPlay, onTogglePlay, currentTrack, isPlaying, isRadioMo
       {/* Animated waveform */}
       <div style={{ position:"absolute", right:18, bottom:18, display:"flex", gap:2.5, alignItems:"flex-end", opacity:isRadioMode&&isPlaying?0.45:0.12 }}>
         {[4,7,5,9,6,4,8,5,7,4].map((h,i)=>(
-          <div key={i} style={{ width:2.5, height:h*1.6, borderRadius:2, background:"#FC3C44", animation:isRadioMode&&isPlaying?`pulse ${0.55+i*0.07}s ease-in-out infinite alternate`:"none" }}/>
+          <div key={i} style={{ width:2.5, height:h*1.6, borderRadius:2, background:"#8B95A7", animation:isRadioMode&&isPlaying?`pulse ${0.55+i*0.07}s ease-in-out infinite alternate`:"none" }}/>
         ))}
       </div>
     </div>
@@ -452,24 +452,24 @@ function TrackRow({ track, onPlay, active, isPlaying, onLike, extraAction, playl
     <div style={{ position:"relative" }}>
       <div onClick={onPlay} onMouseEnter={()=>setHover(true)} onMouseLeave={()=>setHover(false)}
         style={{ display:"flex", alignItems:"center", gap:12, padding:"9px 12px", borderRadius:10, cursor:"pointer", transition:"background 0.15s",
-          background:active?"rgba(252,60,68,0.06)":hover?"rgba(0,0,0,0.03)":"transparent",
+          background:active?"rgba(139,149,167,0.06)":hover?"rgba(0,0,0,0.03)":"transparent",
           borderBottom:active?"":"0.5px solid rgba(60,60,67,0.08)" }}>
         <div style={{ width:40, height:40, borderRadius:7, overflow:"hidden", flexShrink:0, position:"relative" }}>
           <AlbumArt track={track} size={40} borderRadius={0}/>
-          {active&&isPlaying&&<div style={{ position:"absolute", inset:0, background:"rgba(0,0,0,0.5)", display:"flex", alignItems:"center", justifyContent:"center" }}><div style={{ width:7, height:7, borderRadius:"50%", background:"#FC3C44", animation:"pulse 1s ease-in-out infinite" }}/></div>}
+          {active&&isPlaying&&<div style={{ position:"absolute", inset:0, background:"rgba(0,0,0,0.5)", display:"flex", alignItems:"center", justifyContent:"center" }}><div style={{ width:7, height:7, borderRadius:"50%", background:"#8B95A7", animation:"pulse 1s ease-in-out infinite" }}/></div>}
         </div>
         <div style={{ flex:1, minWidth:0 }}>
-          <div style={{ fontSize:15, fontWeight:active?600:400, letterSpacing:-0.2, color:active?"#FC3C44":"#1C1C1E", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{track.title}</div>
+          <div style={{ fontSize:15, fontWeight:active?600:400, letterSpacing:-0.2, color:active?"#8B95A7":"#1C1C1E", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{track.title}</div>
           <div style={{ fontSize:13, color:"#8E8E93", marginTop:1 }}>{track.artist}</div>
         </div>
         <div style={{ display:"flex", flexDirection:"column", alignItems:"flex-end", gap:3, flexShrink:0 }}>
           <EnergyBar level={track.energy} color={track.color}/>
           <div style={{ display:"flex", gap:4 }}>
-            {track.camelot&&<span style={{ fontSize:9, fontWeight:600, color:"#FC3C44", background:"rgba(252,60,68,0.08)", padding:"1px 5px", borderRadius:3 }}>{track.camelot}</span>}
+            {track.camelot&&<span style={{ fontSize:9, fontWeight:600, color:"#8B95A7", background:"rgba(139,149,167,0.08)", padding:"1px 5px", borderRadius:3 }}>{track.camelot}</span>}
             <span style={{ fontSize:10, color:"#AEAEB2" }}>{track.genre}</span>
           </div>
         </div>
-        {onLike&&<button onClick={e=>{e.stopPropagation();onLike(track.id);}} style={{ background:"none", border:"none", cursor:"pointer", color:track.liked?"#FC3C44":"#AEAEB2", padding:4, transition:"color 0.2s" }}><Icon name={track.liked?"heart":"heartempty"} size={16}/></button>}
+        {onLike&&<button onClick={e=>{e.stopPropagation();onLike(track.id);}} style={{ background:"none", border:"none", cursor:"pointer", color:track.liked?"#8B95A7":"#AEAEB2", padding:4, transition:"color 0.2s" }}><Icon name={track.liked?"heart":"heartempty"} size={16}/></button>}
         {/* ⋯ menu button — always visible */}
         <button onClick={e=>{e.stopPropagation();setMenuOpen(o=>!o);setShowNewPl(false);}}
           style={{ background:"none", border:"none", cursor:"pointer", color:"#AEAEB2", padding:"4px 6px", fontSize:18, lineHeight:1, flexShrink:0 }}>⋯</button>
@@ -503,13 +503,13 @@ function TrackRow({ track, onPlay, active, isPlaying, onLike, extraAction, playl
                 placeholder="Playlist name…"
                 style={{ background:"rgba(255,255,255,0.07)", border:"1px solid rgba(255,255,255,0.14)", borderRadius:8, padding:"7px 10px", color:"#1C1C1E", fontSize:13, fontFamily:"inherit", width:"100%", marginBottom:6 }}/>
               <div style={{ display:"flex", gap:6 }}>
-                <button onClick={handleCreateAndAdd} style={{ flex:1, background:"#FC3C44", border:"none", borderRadius:8, color:"#FFFFFF", fontSize:13, fontWeight:600, padding:"8px 0", cursor:"pointer" }}>Create & add</button>
+                <button onClick={handleCreateAndAdd} style={{ flex:1, background:"#8B95A7", border:"none", borderRadius:8, color:"#FFFFFF", fontSize:13, fontWeight:600, padding:"8px 0", cursor:"pointer" }}>Create & add</button>
                 <button onClick={()=>setShowNewPl(false)} style={{ flex:1, background:"#F2F2F7", border:"1px solid rgba(60,60,67,0.12)", borderRadius:8, color:"#8E8E93", fontSize:13, padding:"8px 0", cursor:"pointer" }}>Cancel</button>
               </div>
             </div>
           ) : (
             <button onClick={()=>setShowNewPl(true)}
-              style={{ display:"flex", alignItems:"center", gap:8, width:"100%", textAlign:"left", background:"none", border:"none", color:"#FC3C44", fontSize:14, padding:"10px 14px", cursor:"pointer", fontWeight:500 }}>
+              style={{ display:"flex", alignItems:"center", gap:8, width:"100%", textAlign:"left", background:"none", border:"none", color:"#8B95A7", fontSize:14, padding:"10px 14px", cursor:"pointer", fontWeight:500 }}>
               <span style={{ fontSize:18, lineHeight:1 }}>+</span> New playlist
             </button>
           )}
@@ -542,34 +542,100 @@ const SectionLabel = ({ children, style={} }) => (
 
 // ─── LOGIN ────────────────────────────────────────────────────────────────────
 
+function BrandGlyph({ size=84 }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 96 96" fill="none" aria-hidden="true">
+      <defs>
+        <linearGradient id="crateGlass" x1="12" y1="10" x2="82" y2="86" gradientUnits="userSpaceOnUse">
+          <stop stopColor="rgba(255,255,255,0.95)" />
+          <stop offset="1" stopColor="rgba(199,208,222,0.35)" />
+        </linearGradient>
+        <linearGradient id="crateStroke" x1="16" y1="14" x2="80" y2="84" gradientUnits="userSpaceOnUse">
+          <stop stopColor="#F8FAFD" />
+          <stop offset="1" stopColor="#8B95A7" />
+        </linearGradient>
+      </defs>
+      <rect x="10" y="10" width="76" height="76" rx="24" fill="url(#crateGlass)" stroke="url(#crateStroke)" strokeWidth="2"/>
+      <path d="M29 60L49 28L67 41L47 68L29 60Z" fill="rgba(139,149,167,0.18)" stroke="#6F7A8F" strokeWidth="3" strokeLinejoin="round"/>
+      <path d="M38 57L49 40L58 46L47 63L38 57Z" fill="#FFFFFF" fillOpacity="0.8"/>
+      <circle cx="68" cy="29" r="6" fill="#C7D0DE" fillOpacity="0.9"/>
+      <path d="M64 26L71 33" stroke="#6F7A8F" strokeWidth="2.5" strokeLinecap="round"/>
+    </svg>
+  );
+}
+
 // ─── LOGIN SCREEN — wired to real Firebase auth ───────────────────────────────
-function LoginScreen({ onSignUp, onLogIn, onGoogleSignIn, onPhoneOTP, onVerifyOTP }) {
-  const [mode, setMode]     = useState("login");
-  const [name, setName]     = useState("");
-  const [email, setEmail]   = useState("");
-  const [pass, setPass]     = useState("");
-  const [error, setError]   = useState("");
+function LoginScreen({ onSignUp, onLogIn, onGoogleSignIn, onPhoneOTP, onVerifyOTP, onResetPassword }) {
+  const [mode, setMode] = useState("login");
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [pass, setPass] = useState("");
+  const [error, setError] = useState("");
+  const [notice, setNotice] = useState("");
   const [loading, setLoading] = useState(false);
-  const [phoneMode, setPhoneMode] = useState(false);
+  const [authMethod, setAuthMethod] = useState("email");
   const [phone, setPhone] = useState("");
   const [otp, setOtp] = useState("");
   const [confirmResult, setConfirmResult] = useState(null);
-  const [phoneStep, setPhoneStep] = useState("enter"); // "enter" | "verify"
+  const [phoneStep, setPhoneStep] = useState("enter");
+
+  function resetMessages() {
+    setError("");
+    setNotice("");
+  }
+
+  function switchMethod(method) {
+    setAuthMethod(method);
+    resetMessages();
+    setPhoneStep("enter");
+    setOtp("");
+    setConfirmResult(null);
+  }
 
   async function handleGoogleSignIn() {
-    setError(""); setLoading(true);
-    try { await onGoogleSignIn(); }
-    catch (e) { setError(e.message || "Google sign-in failed"); }
+    resetMessages();
+    setLoading(true);
+    try {
+      await onGoogleSignIn();
+    } catch (e) {
+      setError(e.message || "Google sign-in failed");
+    }
+    setLoading(false);
+  }
+
+  async function handleForgotPassword() {
+    if (!email.trim()) {
+      setError("Enter your email first, then tap Forgot password.");
+      return;
+    }
+    resetMessages();
+    setLoading(true);
+    try {
+      await onResetPassword(email.trim());
+      setNotice("Password reset email sent. Check your inbox.");
+    } catch (e) {
+      const msg = {
+        "auth/invalid-email": "That doesn't look like a valid email address.",
+        "auth/user-not-found": "No account found with that email.",
+        "auth/too-many-requests": "Too many attempts. Wait a moment and try again.",
+      }[e.code] || "Couldn't send reset email right now.";
+      setError(msg);
+    }
     setLoading(false);
   }
 
   async function handleSendOTP() {
-    if (!phone.trim()) { setError("Enter a phone number"); return; }
-    setError(""); setLoading(true);
+    if (!phone.trim()) {
+      setError("Enter a phone number");
+      return;
+    }
+    resetMessages();
+    setLoading(true);
     try {
       const result = await onPhoneOTP(phone.trim(), "recaptcha-container");
       setConfirmResult(result);
       setPhoneStep("verify");
+      setNotice("Verification code sent.");
     } catch (e) {
       const msg = {
         "auth/invalid-phone-number": "Invalid phone number format. Use +1234567890.",
@@ -581,31 +647,43 @@ function LoginScreen({ onSignUp, onLogIn, onGoogleSignIn, onPhoneOTP, onVerifyOT
   }
 
   async function handleVerifyOTP() {
-    if (!otp.trim()) { setError("Enter the verification code"); return; }
-    setError(""); setLoading(true);
-    try { await onVerifyOTP(confirmResult, otp.trim()); }
-    catch (e) { setError("Invalid code — try again"); }
+    if (!otp.trim()) {
+      setError("Enter the verification code");
+      return;
+    }
+    resetMessages();
+    setLoading(true);
+    try {
+      await onVerifyOTP(confirmResult, otp.trim());
+    } catch (e) {
+      setError("Invalid code — try again");
+    }
     setLoading(false);
   }
 
   async function handleSubmit() {
-    setError(""); setLoading(true);
+    resetMessages();
+    setLoading(true);
     try {
       if (mode === "signup") {
-        if (!name.trim()) { setError("Enter a username"); setLoading(false); return; }
+        if (!name.trim()) {
+          setError("Enter a username");
+          setLoading(false);
+          return;
+        }
         await onSignUp(email, pass, name.trim());
       } else {
         await onLogIn(email, pass);
       }
     } catch (e) {
-      // Turn Firebase error codes into plain English
       const msg = {
-        "auth/invalid-email":          "That doesn't look like a valid email address.",
-        "auth/user-not-found":         "No account found with that email.",
-        "auth/wrong-password":         "Wrong password — try again.",
-        "auth/email-already-in-use":   "An account with that email already exists.",
-        "auth/weak-password":          "Password must be at least 6 characters.",
-        "auth/too-many-requests":      "Too many attempts. Wait a moment and try again.",
+        "auth/invalid-email": "That doesn't look like a valid email address.",
+        "auth/user-not-found": "No account found with that email.",
+        "auth/wrong-password": "Wrong password — try again.",
+        "auth/invalid-credential": "Wrong email or password.",
+        "auth/email-already-in-use": "An account with that email already exists.",
+        "auth/weak-password": "Password must be at least 6 characters.",
+        "auth/too-many-requests": "Too many attempts. Wait a moment and try again.",
         "auth/network-request-failed": "Network error. Check your internet connection.",
       }[e.code] || "Something went wrong — please try again.";
       setError(msg);
@@ -615,34 +693,99 @@ function LoginScreen({ onSignUp, onLogIn, onGoogleSignIn, onPhoneOTP, onVerifyOT
 
   return (
     <div style={APP_STYLE}>
-      <BgMist/>
-      <div style={{ display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", height:"100%", gap:32, padding:32, position:"relative", zIndex:2 }}>
-        <div style={{ textAlign:"center" }}>
-          <div style={{ width:80, height:80, borderRadius:20, background:"linear-gradient(135deg, #FC3C44, #FF2D55)", display:"flex", alignItems:"center", justifyContent:"center", margin:"0 auto 16px", boxShadow:"0 8px 32px rgba(252,60,68,0.25)", fontSize:36 }}>🎵</div>
-          <div style={{ fontSize:34, fontWeight:700, letterSpacing:-0.5, color:"#1C1C1E" }}>Vers</div>
-          <div style={{ color:"#8E8E93", fontSize:14, letterSpacing:0.5, marginTop:6, fontWeight:500 }}>Your Sound</div>
+      <BgMist color="#8B95A7"/>
+      <div style={{ position:"absolute", inset:0, background:"linear-gradient(180deg, rgba(248,250,253,0.72) 0%, rgba(233,237,244,0.4) 100%)", backdropFilter:"blur(28px) saturate(135%)" }} />
+      <div style={{ display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", minHeight:"100%", gap:26, padding:24, position:"relative", zIndex:2 }}>
+        <div style={{ textAlign:"center", maxWidth:420 }}>
+          <div style={{ width:96, height:96, borderRadius:28, margin:"0 auto 18px", background:"linear-gradient(135deg, rgba(255,255,255,0.68), rgba(199,208,222,0.24))", border:"1px solid rgba(255,255,255,0.7)", boxShadow:"0 24px 60px rgba(91,101,119,0.16), inset 0 1px 0 rgba(255,255,255,0.8)", display:"flex", alignItems:"center", justifyContent:"center", backdropFilter:"blur(22px) saturate(150%)" }}>
+            <BrandGlyph size={76} />
+          </div>
+          <div style={{ fontSize:34, fontWeight:700, letterSpacing:-0.8, color:"#111827" }}>Crate</div>
+          <div style={{ color:"#667085", fontSize:14, letterSpacing:0.3, marginTop:8, fontWeight:500 }}>Signal-driven listening with a quieter futuristic skin.</div>
         </div>
-        <div style={{ width:"100%", maxWidth:320, display:"flex", flexDirection:"column", gap:12 }}>
-          {/* Tab switcher */}
-          <div style={{ display:"flex", background:"#F2F2F7", borderRadius:10, padding:2, gap:2 }}>
-            {["login","signup"].map(m=>(
-              <button key={m} onClick={()=>{setMode(m);setError("");}} style={{ flex:1, padding:"8px 0", borderRadius:10, border:"none", cursor:"pointer", fontSize:14, fontWeight:600, background:mode===m?"#FFFFFF":"transparent", color:mode===m?"#1C1C1E":"#AEAEB2", boxShadow:mode===m?"0 1px 3px rgba(0,0,0,0.06)":"none" }}>
-                {m==="login"?"Log In":"Sign Up"}
+
+        <div style={{ width:"100%", maxWidth:380, display:"flex", flexDirection:"column", gap:14, padding:18, borderRadius:28, background:"linear-gradient(180deg, rgba(255,255,255,0.62), rgba(255,255,255,0.38))", border:"1px solid rgba(255,255,255,0.72)", boxShadow:"0 20px 60px rgba(91,101,119,0.14)", backdropFilter:"blur(28px) saturate(160%)" }}>
+          <div style={{ display:"flex", background:"rgba(255,255,255,0.58)", borderRadius:16, padding:4, gap:4, border:"1px solid rgba(255,255,255,0.55)" }}>
+            {["login","signup"].map(m => (
+              <button key={m} onClick={() => { setMode(m); resetMessages(); }} style={{ flex:1, padding:"10px 0", borderRadius:12, border:"none", cursor:"pointer", fontSize:14, fontWeight:600, background:mode===m?"linear-gradient(180deg, rgba(139,149,167,0.92), rgba(111,122,143,0.92))":"transparent", color:mode===m?"#FFFFFF":"#667085", boxShadow:mode===m?"0 10px 24px rgba(91,101,119,0.18)":"none" }}>
+                {m === "login" ? "Log In" : "Sign Up"}
               </button>
             ))}
           </div>
-          {mode==="signup" && <input placeholder="Username" style={INPUT_ST} value={name} onChange={e=>setName(e.target.value)}/>}
-          <input placeholder="Email" type="email" style={INPUT_ST} value={email} onChange={e=>setEmail(e.target.value)}/>
-          <input placeholder="Password" type="password" style={INPUT_ST} value={pass} onChange={e=>setPass(e.target.value)}
-            onKeyDown={e=>e.key==="Enter"&&handleSubmit()}/>
+
+          <div style={{ display:"grid", gridTemplateColumns:"repeat(3, 1fr)", gap:8 }}>
+            {[
+              { id:"email", label:"Email" },
+              { id:"google", label:"Google" },
+              { id:"phone", label:"Phone" },
+            ].map(item => (
+              <button key={item.id} onClick={() => switchMethod(item.id)} style={{ border:"1px solid rgba(255,255,255,0.6)", background:authMethod===item.id?"rgba(139,149,167,0.14)":"rgba(255,255,255,0.42)", color:authMethod===item.id?"#485468":"#667085", borderRadius:14, padding:"10px 12px", fontWeight:600, cursor:"pointer" }}>
+                {item.label}
+              </button>
+            ))}
+          </div>
+
+          {authMethod === "email" && (
+            <>
+              {mode === "signup" && <input placeholder="Username" style={INPUT_ST} value={name} onChange={e => setName(e.target.value)} />}
+              <input placeholder="Email" type="email" style={INPUT_ST} value={email} onChange={e => setEmail(e.target.value)} />
+              <input placeholder="Password" type="password" style={INPUT_ST} value={pass} onChange={e => setPass(e.target.value)} onKeyDown={e => e.key === "Enter" && handleSubmit()} />
+              {mode === "login" && (
+                <button onClick={handleForgotPassword} disabled={loading} style={{ alignSelf:"flex-end", marginTop:-4, background:"none", border:"none", cursor:"pointer", color:"#6F7A8F", fontWeight:600, fontSize:13 }}>
+                  Forgot password?
+                </button>
+              )}
+              <button onClick={handleSubmit} disabled={loading} style={{ ...BTN_PRIMARY, opacity:loading ? 0.7 : 1 }}>
+                {loading ? "Please wait…" : mode === "login" ? "Sign In" : "Create Account"}
+              </button>
+            </>
+          )}
+
+          {authMethod === "google" && (
+            <>
+              <div style={{ padding:"14px 16px", borderRadius:18, background:"rgba(255,255,255,0.46)", border:"1px solid rgba(255,255,255,0.62)", color:"#667085", fontSize:14, lineHeight:1.45 }}>
+                Continue with your Google account. This uses Firebase popup auth and drops you straight into the app.
+              </div>
+              <button onClick={handleGoogleSignIn} disabled={loading} style={{ ...BTN_PRIMARY, opacity:loading ? 0.7 : 1 }}>
+                {loading ? "Please wait…" : "Continue with Google"}
+              </button>
+            </>
+          )}
+
+          {authMethod === "phone" && (
+            <>
+              {phoneStep === "enter" ? (
+                <>
+                  <input placeholder="Phone number (+15551234567)" type="tel" style={INPUT_ST} value={phone} onChange={e => setPhone(e.target.value)} onKeyDown={e => e.key === "Enter" && handleSendOTP()} />
+                  <button onClick={handleSendOTP} disabled={loading} style={{ ...BTN_PRIMARY, opacity:loading ? 0.7 : 1 }}>
+                    {loading ? "Sending…" : "Send verification code"}
+                  </button>
+                </>
+              ) : (
+                <>
+                  <input placeholder="6-digit code" inputMode="numeric" style={INPUT_ST} value={otp} onChange={e => setOtp(e.target.value)} onKeyDown={e => e.key === "Enter" && handleVerifyOTP()} />
+                  <div style={{ display:"flex", gap:10 }}>
+                    <button onClick={() => { setPhoneStep("enter"); setOtp(""); setConfirmResult(null); resetMessages(); }} style={{ ...BTN_SECONDARY, flex:1 }}>Edit number</button>
+                    <button onClick={handleVerifyOTP} disabled={loading} style={{ ...BTN_PRIMARY, flex:1, opacity:loading ? 0.7 : 1 }}>
+                      {loading ? "Verifying…" : "Verify code"}
+                    </button>
+                  </div>
+                </>
+              )}
+              <div id="recaptcha-container" />
+            </>
+          )}
+
           {error && (
-            <div style={{ fontSize:13, color:"#FF3B30", background:"rgba(255,59,48,0.08)", border:"1px solid rgba(255,59,48,0.15)", borderRadius:10, padding:"10px 14px", lineHeight:1.4 }}>
+            <div style={{ fontSize:13, color:"#B42318", background:"rgba(255,255,255,0.62)", border:"1px solid rgba(180,35,24,0.16)", borderRadius:16, padding:"12px 14px", lineHeight:1.45 }}>
               {error}
             </div>
           )}
-          <button onClick={handleSubmit} disabled={loading} style={{...BTN_PRIMARY, opacity:loading?0.6:1}}>
-            {loading ? "Please wait…" : mode==="login" ? "Sign In" : "Create Account"}
-          </button>
+          {notice && (
+            <div style={{ fontSize:13, color:"#344054", background:"rgba(255,255,255,0.62)", border:"1px solid rgba(111,122,143,0.2)", borderRadius:16, padding:"12px 14px", lineHeight:1.45 }}>
+              {notice}
+            </div>
+          )}
         </div>
       </div>
     </div>
@@ -694,23 +837,23 @@ function HomeScreen({ tracks, onPlayRadio, onTogglePlay, onPlayTrack, currentTra
             {mixtapes.map(t => (
               <div key={t.id} onClick={()=>onPlayTrack(t, mixtapes)}
                 style={{ display:"flex", alignItems:"center", gap:12, padding:"10px 12px", borderRadius:12, cursor:"pointer", marginBottom:4,
-                  background: currentTrack?.id===t.id ? "rgba(252,60,68,0.06)" : "#FFFFFF",
-                  border: currentTrack?.id===t.id ? "0.5px solid rgba(252,60,68,0.2)" : "0.5px solid rgba(60,60,67,0.12)",
+                  background: currentTrack?.id===t.id ? "rgba(139,149,167,0.06)" : "#FFFFFF",
+                  border: currentTrack?.id===t.id ? "0.5px solid rgba(139,149,167,0.2)" : "0.5px solid rgba(60,60,67,0.12)",
                   transition:"all 0.15s" }}>
                 <div style={{ width:48, height:48, borderRadius:9, overflow:"hidden", flexShrink:0, position:"relative" }}>
                   <AlbumArt track={t} size={48} borderRadius={0}/>
                   {currentTrack?.id===t.id && isPlaying && (
                     <div style={{ position:"absolute", inset:0, background:"rgba(0,0,0,0.5)", display:"flex", alignItems:"center", justifyContent:"center" }}>
-                      <div style={{ width:7, height:7, borderRadius:"50%", background:"#FC3C44", animation:"pulse 1s ease-in-out infinite" }}/>
+                      <div style={{ width:7, height:7, borderRadius:"50%", background:"#8B95A7", animation:"pulse 1s ease-in-out infinite" }}/>
                     </div>
                   )}
                 </div>
                 <div style={{ flex:1, minWidth:0 }}>
-                  <div style={{ fontSize:15, fontWeight:600, color: currentTrack?.id===t.id ? "#FC3C44" : "#1C1C1E", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap", letterSpacing:-0.2 }}>{t.title}</div>
+                  <div style={{ fontSize:15, fontWeight:600, color: currentTrack?.id===t.id ? "#8B95A7" : "#1C1C1E", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap", letterSpacing:-0.2 }}>{t.title}</div>
                   <div style={{ fontSize:13, color:"#8E8E93", marginTop:1 }}>{t.artist}</div>
                 </div>
                 <div style={{ flexShrink:0, textAlign:"right" }}>
-                  <div style={{ fontSize:13, fontWeight:600, color:"#FC3C44", background:"rgba(252,60,68,0.08)", padding:"3px 8px", borderRadius:6 }}>
+                  <div style={{ fontSize:13, fontWeight:600, color:"#8B95A7", background:"rgba(139,149,167,0.08)", padding:"3px 8px", borderRadius:6 }}>
                     {t.duration ? `${Math.floor(t.duration/60)}m` : "—"}
                   </div>
                   <div style={{ fontSize:11, color:"#AEAEB2", marginTop:3 }}>{t.genre}</div>
@@ -783,13 +926,13 @@ function FavoritesScreen({ tracks, onPlay, onLike, currentTrack, isPlaying, user
       <div style={{ width:160, flexShrink:0, borderRight:"0.5px solid rgba(60,60,67,0.12)", background:"#F2F2F7", paddingTop:24, display:"flex", flexDirection:"column", gap:1, overflowY:"auto" }}>
         <div style={{ fontSize:11, fontWeight:700, letterSpacing:0.5, color:"#AEAEB2", textTransform:"uppercase", padding:"0 14px 8px" }}>Library</div>
         {/* Liked Songs row */}
-        <button onClick={()=>setActiveList("liked")} style={{ background:activeList==="liked"?"#FFFFFF":"none", border:"none", cursor:"pointer", textAlign:"left", padding:"10px 14px", color:activeList==="liked"?"#FC3C44":"#1C1C1E", boxShadow:activeList==="liked"?"0 1px 3px rgba(0,0,0,0.06)":"none", fontSize:13, fontWeight:activeList==="liked"?600:400, display:"flex", alignItems:"center", gap:8, borderRadius:8, margin:"0 6px", transition:"all 0.15s" }}>
+        <button onClick={()=>setActiveList("liked")} style={{ background:activeList==="liked"?"#FFFFFF":"none", border:"none", cursor:"pointer", textAlign:"left", padding:"10px 14px", color:activeList==="liked"?"#8B95A7":"#1C1C1E", boxShadow:activeList==="liked"?"0 1px 3px rgba(0,0,0,0.06)":"none", fontSize:13, fontWeight:activeList==="liked"?600:400, display:"flex", alignItems:"center", gap:8, borderRadius:8, margin:"0 6px", transition:"all 0.15s" }}>
           <Icon name="heart" size={13}/> Liked Songs
         </button>
         {/* User playlists */}
         {userPlaylists.map(pl => (
           <div key={pl.id} style={{ position:"relative", margin:"0 6px" }}>
-            <button onClick={()=>setActiveList(pl.id)} style={{ background:activeList===pl.id?"#FFFFFF":"none", border:"none", cursor:"pointer", textAlign:"left", padding:"10px 28px 10px 14px", color:activeList===pl.id?"#FC3C44":"#1C1C1E", boxShadow:activeList===pl.id?"0 1px 3px rgba(0,0,0,0.06)":"none", fontSize:13, fontWeight:activeList===pl.id?600:400, display:"flex", alignItems:"center", gap:8, borderRadius:8, width:"100%", transition:"all 0.15s" }}>
+            <button onClick={()=>setActiveList(pl.id)} style={{ background:activeList===pl.id?"#FFFFFF":"none", border:"none", cursor:"pointer", textAlign:"left", padding:"10px 28px 10px 14px", color:activeList===pl.id?"#8B95A7":"#1C1C1E", boxShadow:activeList===pl.id?"0 1px 3px rgba(0,0,0,0.06)":"none", fontSize:13, fontWeight:activeList===pl.id?600:400, display:"flex", alignItems:"center", gap:8, borderRadius:8, width:"100%", transition:"all 0.15s" }}>
               <span style={{ fontSize:11 }}>♪</span>
               <span style={{ overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap", flex:1 }}>{pl.name}</span>
             </button>
@@ -865,9 +1008,9 @@ function ProfileScreen({ user, setUser, tracks, onLogout }) {
           const on=user.genres.includes(g);
           return <div key={g} onClick={()=>setUser(u=>({...u,genres:on?u.genres.filter(x=>x!==g):[...u.genres,g]}))}
             style={{ padding:"6px 13px", borderRadius:20, fontSize:12.5, fontWeight:on?600:400, cursor:"pointer", transition:"all 0.15s",
-              border:`1px solid ${on?"rgba(252,60,68,0.3)":"rgba(60,60,67,0.12)"}`,
-              background:on?"rgba(252,60,68,0.08)":"#FFFFFF",
-              color:on?"#FC3C44":"#8E8E93" }}>{g}</div>;
+              border:`1px solid ${on?"rgba(139,149,167,0.3)":"rgba(60,60,67,0.12)"}`,
+              background:on?"rgba(139,149,167,0.08)":"#FFFFFF",
+              color:on?"#8B95A7":"#8E8E93" }}>{g}</div>;
         })}
       </div>
       <button onClick={onLogout} style={{...BTN_SECONDARY,width:"100%"}}>Sign Out</button>
@@ -967,7 +1110,7 @@ function AdminScreen({ tracks, setTracks, tab, setTab, editTrack, setEditTrack, 
               </div>
               <div style={{ display:"flex", flexDirection:"column", alignItems:"flex-end", gap:2, flexShrink:0 }}>
                 <EnergyBar level={t.energy} color={t.color}/>
-                {t.camelot&&<span style={{ fontSize:9, color:"#FC3C44", fontWeight:600 }}>{t.camelot}</span>}
+                {t.camelot&&<span style={{ fontSize:9, color:"#8B95A7", fontWeight:600 }}>{t.camelot}</span>}
               </div>
               <button onClick={()=>setEditTrack(t)} style={{ background:"none",border:"none",cursor:"pointer",color:"#8E8E93",padding:6 }}><Icon name="edit" size={14}/></button>
               <button onClick={()=>{setTracks(ts=>ts.filter(tr=>tr.id!==t.id));showToast("Deleted");}} style={{ background:"none",border:"none",cursor:"pointer",color:"#FF3B30",padding:6 }}><Icon name="trash" size={14}/></button>
@@ -1062,7 +1205,7 @@ function NowPlayingBar({ track, isPlaying, progress, duration, onTogglePlay, onS
           <VinylRecord track={track} isPlaying={isPlaying} size={190}/>
         </div>
         <div style={{ textAlign:"center" }}>
-          {isRadioMode&&<div style={{ fontSize:11, color:"#FC3C44", letterSpacing:1.5, textTransform:"uppercase", marginBottom:6, fontWeight:700 }}>● Vers Radio</div>}
+          {isRadioMode&&<div style={{ fontSize:11, color:"#8B95A7", letterSpacing:1.5, textTransform:"uppercase", marginBottom:6, fontWeight:700 }}>● Vers Radio</div>}
           <div style={{ fontSize:24, fontWeight:700, letterSpacing:-0.5, color:"#1C1C1E" }}>{track.title}</div>
           <div style={{ fontSize:15, color:"rgba(220,220,225,0.8)", marginTop:4 }}>{track.artist}</div>
           <div style={{ fontSize:12, color:"rgba(200,200,205,0.55)", marginTop:2 }}>{track.album} · {track.genre}</div>
@@ -1079,13 +1222,13 @@ function NowPlayingBar({ track, isPlaying, progress, duration, onTogglePlay, onS
           </div>
         </div>
         <div style={{ display:"flex", alignItems:"center", gap:28 }}>
-          <button onClick={onLike} style={{ background:"none",border:"none",cursor:"pointer",color:track.liked?"#FC3C44":"rgba(255,255,255,0.55)",padding:4 }}><Icon name={track.liked?"heart":"heartempty"} size={20}/></button>
+          <button onClick={onLike} style={{ background:"none",border:"none",cursor:"pointer",color:track.liked?"#8B95A7":"rgba(255,255,255,0.55)",padding:4 }}><Icon name={track.liked?"heart":"heartempty"} size={20}/></button>
           <button onClick={onPrev} style={CTRL_BTN}><Icon name="prev" size={22}/></button>
-          <button onClick={onTogglePlay} style={{ ...CTRL_BTN,width:56,height:56,background:"#FC3C44",border:"none",borderRadius:"50%",color:"#FFFFFF" }}>
+          <button onClick={onTogglePlay} style={{ ...CTRL_BTN,width:56,height:56,background:"#8B95A7",border:"none",borderRadius:"50%",color:"#FFFFFF" }}>
             <Icon name={isPlaying?"pause":"play"} size={26}/>
           </button>
           <button onClick={onSkip} style={CTRL_BTN}><Icon name="skip" size={22}/></button>
-          <button onClick={()=>setRepeat(r=>!r)} style={{ background:"none",border:"none",cursor:"pointer",color:repeat?"#FC3C44":"rgba(255,255,255,0.55)",padding:4 }}><Icon name="repeat" size={18}/></button>
+          <button onClick={()=>setRepeat(r=>!r)} style={{ background:"none",border:"none",cursor:"pointer",color:repeat?"#8B95A7":"rgba(255,255,255,0.55)",padding:4 }}><Icon name="repeat" size={18}/></button>
         </div>
       </div>
     </div>
@@ -1097,16 +1240,16 @@ function NowPlayingBar({ track, isPlaying, progress, duration, onTogglePlay, onS
         <div style={{ width:38, height:38, borderRadius:8, overflow:"hidden", flexShrink:0 }}><AlbumArt track={track} size={38} borderRadius={0}/></div>
         <div style={{ flex:1, minWidth:0 }}>
           <div style={{ fontSize:14, fontWeight:600, color:"#1C1C1E", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
-            {isRadioMode&&<span style={{ fontSize:10, color:"#FC3C44", fontWeight:700, letterSpacing:1, marginRight:6 }}>●</span>}
+            {isRadioMode&&<span style={{ fontSize:10, color:"#8B95A7", fontWeight:700, letterSpacing:1, marginRight:6 }}>●</span>}
             {track.title}
           </div>
           <div style={{ fontSize:12, color:"#8E8E93" }}>{track.artist}</div>
           <div style={{ marginTop:4, background:"#E5E5EA", borderRadius:2, height:2.5 }}>
-            <div style={{ width:`${pct}%`, background:"#FC3C44", height:"100%", borderRadius:2, transition:"width 1s linear" }}/>
+            <div style={{ width:`${pct}%`, background:"#8B95A7", height:"100%", borderRadius:2, transition:"width 1s linear" }}/>
           </div>
         </div>
-        <button onClick={e=>{e.stopPropagation();onLike();}} style={{ background:"none",border:"none",cursor:"pointer",color:track.liked?"#FC3C44":"#AEAEB2",padding:4 }}><Icon name={track.liked?"heart":"heartempty"} size={16}/></button>
-        <button onClick={e=>{e.stopPropagation();onTogglePlay();}} style={{ background:"#FC3C44",border:"none",borderRadius:"50%",width:36,height:36,cursor:"pointer",color:"#FFFFFF",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0 }}>
+        <button onClick={e=>{e.stopPropagation();onLike();}} style={{ background:"none",border:"none",cursor:"pointer",color:track.liked?"#8B95A7":"#AEAEB2",padding:4 }}><Icon name={track.liked?"heart":"heartempty"} size={16}/></button>
+        <button onClick={e=>{e.stopPropagation();onTogglePlay();}} style={{ background:"#8B95A7",border:"none",borderRadius:"50%",width:36,height:36,cursor:"pointer",color:"#FFFFFF",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0 }}>
           <Icon name={isPlaying?"pause":"play"} size={18}/>
         </button>
         <button onClick={e=>{e.stopPropagation();onSkip();}} style={{ background:"none",border:"none",cursor:"pointer",color:"#8E8E93",padding:4 }}><Icon name="skip" size={18}/></button>
@@ -1125,7 +1268,7 @@ function BottomNav({ screen, setScreen }) {
   return (
     <div style={{ position:"fixed", bottom:0, left:0, right:0, height:56, background:"rgba(249,249,249,0.94)", backdropFilter:"blur(24px) saturate(1.5)", borderTop:"0.5px solid rgba(60,60,67,0.12)", display:"flex", zIndex:85 }}>
       {items.map(({id,icon,label})=>(
-        <button key={id} onClick={()=>setScreen(id)} style={{ flex:1,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:3,background:"none",border:"none",cursor:"pointer",color:screen===id?"#FC3C44":"#AEAEB2",transition:"color 0.18s",borderTop:screen===id?"2px solid #FC3C44":"2px solid transparent" }}>
+        <button key={id} onClick={()=>setScreen(id)} style={{ flex:1,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:3,background:"none",border:"none",cursor:"pointer",color:screen===id?"#8B95A7":"#AEAEB2",transition:"color 0.18s",borderTop:screen===id?"2px solid #8B95A7":"2px solid transparent" }}>
           <Icon name={id==="favorites"?(screen===id?"heart":"heartempty"):icon} size={18}/>
           <span style={{ fontSize:10, fontWeight:600 }}>{label}</span>
         </button>
@@ -1153,7 +1296,7 @@ const ToastEl = ({msg}) => (
 // ─── ROOT APP — Firebase wired ────────────────────────────────────────────────
 export default function App() {
   // ── Auth (login/signup/logout + user profile) ───────────────────────────
-  const { firebaseUser, profile, setProfile, loading: authLoading, signUp, logIn, logOut, signInWithGoogle, sendPhoneOTP, verifyPhoneOTP } = useAuth();
+  const { firebaseUser, profile, setProfile, loading: authLoading, signUp, logIn, logOut, signInWithGoogle, sendPhoneOTP, verifyPhoneOTP, resetPassword } = useAuth();
 
   // ── App state ────────────────────────────────────────────────────────────
   const [screen, setScreen]           = useState("home");
@@ -1523,13 +1666,13 @@ export default function App() {
   // Show nothing while we check if someone is already logged in
   if (authLoading) return (
     <div style={{...APP_STYLE, alignItems:"center", justifyContent:"center"}}>
-      <div style={{ width:60, height:60, borderRadius:15, background:"linear-gradient(135deg, #FC3C44, #FF2D55)", display:"flex", alignItems:"center", justifyContent:"center", marginBottom:16, fontSize:28 }}>🎵</div>
+      <div style={{ width:60, height:60, borderRadius:15, background:"linear-gradient(135deg, #8B95A7, #C7D0DE)", display:"flex", alignItems:"center", justifyContent:"center", marginBottom:16, fontSize:28 }}>🎵</div>
       <div style={{ fontSize:15, color:"#8E8E93" }}>Loading…</div>
     </div>
   );
 
   // Not logged in — show login screen
-  if (!firebaseUser) return <LoginScreen onSignUp={signUp} onLogIn={logIn} onGoogleSignIn={signInWithGoogle} onPhoneOTP={sendPhoneOTP} onVerifyOTP={verifyPhoneOTP}/>;
+  if (!firebaseUser) return <LoginScreen onSignUp={signUp} onLogIn={logIn} onGoogleSignIn={signInWithGoogle} onPhoneOTP={sendPhoneOTP} onVerifyOTP={verifyPhoneOTP} onResetPassword={resetPassword}/>;
 
   // ── Inner app (shared between mobile + desktop phone column) ─────────────
   const innerApp = (
@@ -1538,7 +1681,7 @@ export default function App() {
       {toast && <ToastEl msg={toast}/>}
       {tracksLoading && (
         <div style={{ position:"absolute", top:"50%", left:"50%", transform:"translate(-50%,-50%)", zIndex:50, textAlign:"center" }}>
-          <div style={{ width:56, height:56, borderRadius:14, background:"linear-gradient(135deg, #FC3C44, #FF2D55)", display:"flex", alignItems:"center", justifyContent:"center", margin:"0 auto 12px", fontSize:24 }}>🎵</div>
+          <div style={{ width:56, height:56, borderRadius:14, background:"linear-gradient(135deg, #8B95A7, #C7D0DE)", display:"flex", alignItems:"center", justifyContent:"center", margin:"0 auto 12px", fontSize:24 }}>🎵</div>
           <div style={{ fontSize:14, color:"#8E8E93" }}>Loading your collection…</div>
         </div>
       )}
@@ -1590,9 +1733,9 @@ export default function App() {
           {NAV_ITEMS.map(item => (
             <button key={item.id} onClick={()=>setScreen(item.id)} style={{
               display:"flex", alignItems:"center", gap:12, padding:"11px 20px",
-              background:screen===item.id?"rgba(252,60,68,0.08)":"none",
-              border:"none", borderLeft:screen===item.id?"3px solid #FC3C44":"3px solid transparent",
-              color:screen===item.id?"#FC3C44":"#8E8E93",
+              background:screen===item.id?"rgba(139,149,167,0.08)":"none",
+              border:"none", borderLeft:screen===item.id?"3px solid #8B95A7":"3px solid transparent",
+              color:screen===item.id?"#8B95A7":"#8E8E93",
               fontSize:14, fontWeight:screen===item.id?600:400,
               cursor:"pointer", textAlign:"left", transition:"all 0.15s",
               fontFamily:"inherit",
@@ -1603,9 +1746,9 @@ export default function App() {
           {firebaseUser?.uid === "5lPAI9N1jkMbVkUyIqLTqBvBf1t1" && (
             <button onClick={()=>setScreen("admin")} style={{
               display:"flex", alignItems:"center", gap:12, padding:"11px 20px",
-              background:screen==="admin"?"rgba(252,60,68,0.08)":"none",
-              border:"none", borderLeft:screen==="admin"?"3px solid #FC3C44":"3px solid transparent",
-              color:screen==="admin"?"#FC3C44":"#8E8E93",
+              background:screen==="admin"?"rgba(139,149,167,0.08)":"none",
+              border:"none", borderLeft:screen==="admin"?"3px solid #8B95A7":"3px solid transparent",
+              color:screen==="admin"?"#8B95A7":"#8E8E93",
               fontSize:14, fontWeight:screen==="admin"?600:400,
               cursor:"pointer", textAlign:"left", transition:"all 0.15s",
               fontFamily:"inherit",
@@ -1654,13 +1797,13 @@ export default function App() {
               <div style={{ fontSize:14, color:"#8E8E93", marginBottom:14, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{currentTrack.artist}</div>
               <div style={{ display:"flex", flexWrap:"wrap", gap:6 }}>
                 {currentTrack.genre && <span style={{ fontSize:11, fontWeight:600, padding:"4px 10px", borderRadius:8, background:"#F2F2F7", color:"#1C1C1E", border:"0.5px solid rgba(60,60,67,0.12)" }}>{currentTrack.genre}</span>}
-                {currentTrack.camelot && <span style={{ fontSize:11, fontWeight:600, padding:"4px 10px", borderRadius:8, background:"rgba(252,60,68,0.08)", color:"#FC3C44", border:"0.5px solid rgba(252,60,68,0.15)" }}>{currentTrack.camelot}</span>}
+                {currentTrack.camelot && <span style={{ fontSize:11, fontWeight:600, padding:"4px 10px", borderRadius:8, background:"rgba(139,149,167,0.08)", color:"#8B95A7", border:"0.5px solid rgba(139,149,167,0.15)" }}>{currentTrack.camelot}</span>}
                 {currentTrack.bpm && <span style={{ fontSize:11, fontWeight:600, padding:"4px 10px", borderRadius:8, background:"#F2F2F7", color:"#8E8E93", border:"0.5px solid rgba(60,60,67,0.12)", fontVariantNumeric:"tabular-nums" }}>{currentTrack.bpm} BPM</span>}
               </div>
               {/* Progress bar */}
               <div style={{ marginTop:16 }}>
                 <div style={{ height:3, background:"#E5E5EA", borderRadius:2, overflow:"hidden" }}>
-                  <div style={{ height:"100%", width:`${duration?((progress/duration)*100):0}%`, background:"#FC3C44", borderRadius:2, transition:"width 0.5s linear" }}/>
+                  <div style={{ height:"100%", width:`${duration?((progress/duration)*100):0}%`, background:"#8B95A7", borderRadius:2, transition:"width 0.5s linear" }}/>
                 </div>
                 <div style={{ display:"flex", justifyContent:"space-between", marginTop:5 }}>
                   <span style={{ fontSize:11, color:"#AEAEB2", fontVariantNumeric:"tabular-nums" }}>{Math.floor(progress/60)}:{String(progress%60).padStart(2,"0")}</span>
@@ -1681,12 +1824,12 @@ export default function App() {
           <div style={{ fontSize:11, fontWeight:700, letterSpacing:1, color:"#AEAEB2", textTransform:"uppercase", marginBottom:12 }}>Recent Additions</div>
           <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
             {recentTracks.map(t => (
-              <div key={t.id} onClick={()=>playTrack(t,tracks)} style={{ display:"flex", alignItems:"center", gap:10, cursor:"pointer", padding:"6px 8px", borderRadius:8, background:currentTrack?.id===t.id?"rgba(252,60,68,0.06)":"transparent", transition:"background 0.15s" }}>
+              <div key={t.id} onClick={()=>playTrack(t,tracks)} style={{ display:"flex", alignItems:"center", gap:10, cursor:"pointer", padding:"6px 8px", borderRadius:8, background:currentTrack?.id===t.id?"rgba(139,149,167,0.06)":"transparent", transition:"background 0.15s" }}>
                 <div style={{ width:36, height:36, borderRadius:7, overflow:"hidden", flexShrink:0, boxShadow:"0 1px 4px rgba(0,0,0,0.08)" }}>
                   <img src={t.albumCover||"/covers/default.jpg"} alt="" style={{ width:"100%", height:"100%", objectFit:"cover" }} onError={e=>{e.target.src="/covers/default.jpg";}}/>
                 </div>
                 <div style={{ flex:1, minWidth:0 }}>
-                  <div style={{ fontSize:13, fontWeight:currentTrack?.id===t.id?600:400, color:currentTrack?.id===t.id?"#FC3C44":"#1C1C1E", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{t.title}</div>
+                  <div style={{ fontSize:13, fontWeight:currentTrack?.id===t.id?600:400, color:currentTrack?.id===t.id?"#8B95A7":"#1C1C1E", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{t.title}</div>
                   <div style={{ fontSize:11, color:"#AEAEB2", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{t.artist}</div>
                 </div>
               </div>
@@ -1700,25 +1843,28 @@ export default function App() {
 
 // ─── SHARED STYLES ────────────────────────────────────────────────────────────
 const APP_STYLE = {
-  background:"#F2F2F7",
+  background:"linear-gradient(180deg, #EEF2F7 0%, #E7ECF3 100%)",
   minHeight:"100vh", height:"100vh", overflow:"hidden",
   fontFamily:"-apple-system,'SF Pro Display','SF Pro Text','Helvetica Neue',Arial,sans-serif",
   color:"#1C1C1E", position:"relative", display:"flex", flexDirection:"column",
   WebkitFontSmoothing:"antialiased", MozOsxFontSmoothing:"grayscale",
 };
 const INPUT_ST = {
-  background:"#FFFFFF", border:"1px solid rgba(60,60,67,0.12)",
-  borderRadius:10, padding:"12px 14px", color:"#1C1C1E", fontSize:15,
+  background:"rgba(255,255,255,0.52)", border:"1px solid rgba(255,255,255,0.66)",
+  borderRadius:16, padding:"13px 15px", color:"#1C1C1E", fontSize:15,
+  boxShadow:"inset 0 1px 0 rgba(255,255,255,0.7)", backdropFilter:"blur(18px)",
   fontFamily:"-apple-system,'SF Pro Text','Helvetica Neue',Arial,sans-serif", width:"100%", display:"block",
 };
 const BTN_PRIMARY = {
-  background:"#FC3C44", color:"#FFFFFF",
-  border:"none", borderRadius:10, padding:"13px 20px", fontSize:15, fontWeight:600,
+  background:"linear-gradient(180deg, #8B95A7 0%, #6F7A8F 100%)", color:"#FFFFFF",
+  border:"1px solid rgba(255,255,255,0.32)", borderRadius:16, padding:"13px 20px", fontSize:15, fontWeight:600,
+  boxShadow:"0 16px 36px rgba(91,101,119,0.2)",
   fontFamily:"-apple-system,'SF Pro Text','Helvetica Neue',Arial,sans-serif", cursor:"pointer",
 };
 const BTN_SECONDARY = {
-  background:"#FFFFFF", color:"#8E8E93", border:"1px solid rgba(60,60,67,0.12)",
-  borderRadius:10, padding:"13px 20px", fontSize:15, fontWeight:500,
+  background:"rgba(255,255,255,0.48)", color:"#667085", border:"1px solid rgba(255,255,255,0.64)",
+  borderRadius:16, padding:"13px 20px", fontSize:15, fontWeight:500,
+  backdropFilter:"blur(18px)",
   fontFamily:"-apple-system,'SF Pro Text','Helvetica Neue',Arial,sans-serif", cursor:"pointer",
 };
 const CTRL_BTN = {
