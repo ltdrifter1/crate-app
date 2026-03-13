@@ -291,7 +291,7 @@ function CrateFlipper({ tracks, onSelect, currentTrack, isPlaying }) {
             width:44, height:44, borderRadius:"50%",
             background:"#FC3C44",
             border:"none",
-            color:"#FFFFFF"", cursor:"pointer",
+            color:"#FFFFFF", cursor:"pointer",
             display:"flex", alignItems:"center", justifyContent:"center",
             boxShadow:"0 4px 16px rgba(252,60,68,0.4)",
           }}>
