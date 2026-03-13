@@ -5,9 +5,9 @@ import { collection, getDocs, query, orderBy, doc, updateDoc } from "firebase/fi
 import { db }                                       from "./firebase";
 
 const injectStyles = () => {
-  if (document.getElementById("crate-app-global-styles")) return;
+  if (document.getElementById("vers-app-global-styles")) return;
   const s = document.createElement("style");
-  s.id = "crate-app-global-styles";
+  s.id = "vers-app-global-styles";
   s.textContent = `
     * { box-sizing: border-box; margin: 0; padding: 0; }
     :root { --font: -apple-system, "SF Pro Display", "SF Pro Text", "Helvetica Neue", Arial, sans-serif; --apple-red: #FC3C44; }
@@ -174,7 +174,7 @@ function VinylRecord({ track, isPlaying, size=190 }) {
   );
 }
 
-// ─── CRATE FLIPPER — vertical, full-bleed album art ────────────────────────────
+// ─── VERS FLIPPER — vertical, full-bleed album art ────────────────────────────
 function CrateFlipper({ tracks, onSelect, currentTrack, isPlaying }) {
   const [idx, setIdx]           = useState(0);
   const [dragY, setDragY]       = useState(0);
@@ -408,7 +408,7 @@ function DeepCutsCard({ onPlay, onTogglePlay, currentTrack, isPlaying, isRadioMo
         </div>
       ) : (
         <div>
-          <div style={{ fontSize:22, fontWeight:700, letterSpacing:-0.3, color:"#1C1C1E" }}>Crate Radio</div>
+          <div style={{ fontSize:22, fontWeight:700, letterSpacing:-0.3, color:"#1C1C1E" }}>Vers Radio</div>
           <div style={{ fontSize:13, color:"#8E8E93", marginTop:4, marginBottom:14 }}>Tap to tune in</div>
           <button onClick={e=>{e.stopPropagation();onPlay();}} style={{ width:48, height:48, borderRadius:"50%", background:"#FC3C44", border:"none", display:"flex", alignItems:"center", justifyContent:"center", color:"#FFFFFF", cursor:"pointer" }}>
             <Icon name="play" size={22}/>
@@ -543,13 +543,50 @@ const SectionLabel = ({ children, style={} }) => (
 // ─── LOGIN ────────────────────────────────────────────────────────────────────
 
 // ─── LOGIN SCREEN — wired to real Firebase auth ───────────────────────────────
-function LoginScreen({ onSignUp, onLogIn }) {
+function LoginScreen({ onSignUp, onLogIn, onGoogleSignIn, onPhoneOTP, onVerifyOTP }) {
   const [mode, setMode]     = useState("login");
   const [name, setName]     = useState("");
   const [email, setEmail]   = useState("");
   const [pass, setPass]     = useState("");
   const [error, setError]   = useState("");
   const [loading, setLoading] = useState(false);
+  const [phoneMode, setPhoneMode] = useState(false);
+  const [phone, setPhone] = useState("");
+  const [otp, setOtp] = useState("");
+  const [confirmResult, setConfirmResult] = useState(null);
+  const [phoneStep, setPhoneStep] = useState("enter"); // "enter" | "verify"
+
+  async function handleGoogleSignIn() {
+    setError(""); setLoading(true);
+    try { await onGoogleSignIn(); }
+    catch (e) { setError(e.message || "Google sign-in failed"); }
+    setLoading(false);
+  }
+
+  async function handleSendOTP() {
+    if (!phone.trim()) { setError("Enter a phone number"); return; }
+    setError(""); setLoading(true);
+    try {
+      const result = await onPhoneOTP(phone.trim(), "recaptcha-container");
+      setConfirmResult(result);
+      setPhoneStep("verify");
+    } catch (e) {
+      const msg = {
+        "auth/invalid-phone-number": "Invalid phone number format. Use +1234567890.",
+        "auth/too-many-requests": "Too many attempts. Wait a moment.",
+      }[e.code] || (e.message || "Couldn't send code");
+      setError(msg);
+    }
+    setLoading(false);
+  }
+
+  async function handleVerifyOTP() {
+    if (!otp.trim()) { setError("Enter the verification code"); return; }
+    setError(""); setLoading(true);
+    try { await onVerifyOTP(confirmResult, otp.trim()); }
+    catch (e) { setError("Invalid code — try again"); }
+    setLoading(false);
+  }
 
   async function handleSubmit() {
     setError(""); setLoading(true);
@@ -582,8 +619,8 @@ function LoginScreen({ onSignUp, onLogIn }) {
       <div style={{ display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", height:"100%", gap:32, padding:32, position:"relative", zIndex:2 }}>
         <div style={{ textAlign:"center" }}>
           <div style={{ width:80, height:80, borderRadius:20, background:"linear-gradient(135deg, #FC3C44, #FF2D55)", display:"flex", alignItems:"center", justifyContent:"center", margin:"0 auto 16px", boxShadow:"0 8px 32px rgba(252,60,68,0.25)", fontSize:36 }}>🎵</div>
-          <div style={{ fontSize:34, fontWeight:700, letterSpacing:-0.5, color:"#1C1C1E" }}>Crate</div>
-          <div style={{ color:"#8E8E93", fontSize:14, letterSpacing:0.5, marginTop:6, fontWeight:500 }}>Dig Deeper</div>
+          <div style={{ fontSize:34, fontWeight:700, letterSpacing:-0.5, color:"#1C1C1E" }}>Vers</div>
+          <div style={{ color:"#8E8E93", fontSize:14, letterSpacing:0.5, marginTop:6, fontWeight:500 }}>Your Sound</div>
         </div>
         <div style={{ width:"100%", maxWidth:320, display:"flex", flexDirection:"column", gap:12 }}>
           {/* Tab switcher */}
@@ -635,9 +672,9 @@ function HomeScreen({ tracks, onPlayRadio, onTogglePlay, onPlayTrack, currentTra
         <DeepCutsCard onPlay={onPlayRadio} onTogglePlay={onTogglePlay} currentTrack={isRadioMode?currentTrack:null} isPlaying={isPlaying} isRadioMode={isRadioMode}/>
       </div>
 
-      {/* YOUR CRATE — standout section */}
+      {/* YOUR VERS — standout section */}
       <div style={{ padding:"4px 16px 12px", display:"flex", alignItems:"baseline", gap:10, borderTop:"0.5px solid rgba(60,60,67,0.12)", marginTop:4 }}>
-        <div style={{ fontSize:22, fontWeight:700, letterSpacing:-0.3, color:"#1C1C1E" }}>Your Crate</div>
+        <div style={{ fontSize:22, fontWeight:700, letterSpacing:-0.3, color:"#1C1C1E" }}>Your Collection</div>
         <div style={{ fontSize:13, color:"#8E8E93" }}>{tracks.length} records</div>
       </div>
       <div style={{ marginBottom:32, borderBottom:"0.5px solid rgba(60,60,67,0.12)", background:"rgba(0,0,0,0.02)", display:"flex", justifyContent:"center" }}>
@@ -684,7 +721,7 @@ function HomeScreen({ tracks, onPlayRadio, onTogglePlay, onPlayTrack, currentTra
         </>
       )}
 
-      {/* Top Tracks — styled to match Your Crate header */}
+      {/* Top Tracks — styled to match Your Collection header */}
       <div style={{ padding:"20px 16px 12px", display:"flex", alignItems:"baseline", gap:10, borderTop:"0.5px solid rgba(60,60,67,0.12)", marginTop:8 }}>
         <div style={{ fontSize:22, fontWeight:700, letterSpacing:-0.3, color:"#1C1C1E" }}>Top Tracks</div>
         <div style={{ fontSize:13, color:"#8E8E93" }}>most played</div>
@@ -765,8 +802,8 @@ function FavoritesScreen({ tracks, onPlay, onLike, currentTrack, isPlaying, user
             <div style={{ display:"flex", flexDirection:"column", gap:5 }}>
               <input autoFocus value={newName} onChange={e=>setNewName(e.target.value)} onKeyDown={e=>{if(e.key==="Enter")handleCreate();if(e.key==="Escape"){setShowNewInput(false);setNewName("");}}} placeholder="Name…" style={{ background:"rgba(255,255,255,0.07)", border:"1px solid rgba(255,255,255,0.12)", borderRadius:8, padding:"7px 10px", color:"#1C1C1E", fontSize:12, fontFamily:"inherit", width:"100%" }}/>
               <div style={{ display:"flex", gap:5 }}>
-                <button onClick={handleCreate} style={{ flex:1, background:"rgba(255,255,255,0.12)", border:"1px solid rgba(255,255,255,0.15)", borderRadius:7, color:"#e8e8ea", fontSize:11, fontWeight:600, padding:"5px 0", cursor:"pointer" }}>Create</button>
-                <button onClick={()=>{setShowNewInput(false);setNewName("");}} style={{ flex:1, background:"none", border:"1px solid rgba(255,255,255,0.08)", borderRadius:7, color:"rgba(210,210,215,0.65)", fontSize:11, padding:"5px 0", cursor:"pointer" }}>Cancel</button>
+                <button onClick={handleCreate} style={{ flex:1, background:"rgba(255,255,255,0.12)", border:"1px solid rgba(255,255,255,0.15)", borderRadius:7, color:"#1C1C1E", fontSize:11, fontWeight:600, padding:"5px 0", cursor:"pointer" }}>Create</button>
+                <button onClick={()=>{setShowNewInput(false);setNewName("");}} style={{ flex:1, background:"#F2F2F7", border:"1px solid rgba(60,60,67,0.12)", borderRadius:8, color:"#8E8E93", fontSize:11, padding:"5px 0", cursor:"pointer" }}>Cancel</button>
               </div>
             </div>
           ) : (
@@ -811,7 +848,7 @@ function ProfileScreen({ user, setUser, tracks, onLogout }) {
       <div style={{ textAlign:"center", padding:"24px 0 28px" }}>
         <div style={{ width:80, height:80, borderRadius:"50%", background:"#F2F2F7", display:"flex", alignItems:"center", justifyContent:"center", margin:"0 auto 12px", fontSize:40, border:"2px solid rgba(60,60,67,0.12)" }}>{user.image}</div>
         <div style={{ fontSize:24, fontWeight:700, letterSpacing:-0.3, color:"#1C1C1E" }}>{user.name}</div>
-        <div style={{ fontSize:12, color:"#8E8E93", marginTop:4, letterSpacing:1, fontWeight:600, textTransform:"uppercase" }}>Record Collector</div>
+        <div style={{ fontSize:12, color:"#8E8E93", marginTop:4, letterSpacing:1, fontWeight:600, textTransform:"uppercase" }}>Music Lover</div>
       </div>
       <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:12, marginBottom:28 }}>
         {[["Saved",liked],["Genres",user.genres.length],["Radio","On"]].map(([label,val])=>(
@@ -1025,8 +1062,8 @@ function NowPlayingBar({ track, isPlaying, progress, duration, onTogglePlay, onS
           <VinylRecord track={track} isPlaying={isPlaying} size={190}/>
         </div>
         <div style={{ textAlign:"center" }}>
-          {isRadioMode&&<div style={{ fontSize:11, color:"#FC3C44", letterSpacing:1.5, textTransform:"uppercase", marginBottom:6, fontWeight:700 }}>● Crate Radio</div>}
-          <div style={{ fontSize:24, fontWeight:700, letterSpacing:-0.5, color:"#e8e8ea" }}>{track.title}</div>
+          {isRadioMode&&<div style={{ fontSize:11, color:"#FC3C44", letterSpacing:1.5, textTransform:"uppercase", marginBottom:6, fontWeight:700 }}>● Vers Radio</div>}
+          <div style={{ fontSize:24, fontWeight:700, letterSpacing:-0.5, color:"#1C1C1E" }}>{track.title}</div>
           <div style={{ fontSize:15, color:"rgba(220,220,225,0.8)", marginTop:4 }}>{track.artist}</div>
           <div style={{ fontSize:12, color:"rgba(200,200,205,0.55)", marginTop:2 }}>{track.album} · {track.genre}</div>
           <div style={{ marginTop:10, display:"flex", justifyContent:"center", alignItems:"center", gap:12 }}>
@@ -1116,7 +1153,7 @@ const ToastEl = ({msg}) => (
 // ─── ROOT APP — Firebase wired ────────────────────────────────────────────────
 export default function App() {
   // ── Auth (login/signup/logout + user profile) ───────────────────────────
-  const { firebaseUser, profile, setProfile, loading: authLoading, signUp, logIn, logOut } = useAuth();
+  const { firebaseUser, profile, setProfile, loading: authLoading, signUp, logIn, logOut, signInWithGoogle, sendPhoneOTP, verifyPhoneOTP } = useAuth();
 
   // ── App state ────────────────────────────────────────────────────────────
   const [screen, setScreen]           = useState("home");
@@ -1338,7 +1375,7 @@ export default function App() {
     if (!tracks.length) return;
     const first = pickNextTrack(tracks, null);
     setCurrent(first); setIsPlaying(true); setProgress(0); setIsRadioMode(true); setQueue([]);
-    showToast("Crate Radio — on air");
+    showToast("Vers Radio — on air");
     if (firebaseUser) recordPlay(first.id, profile?.recentTracks || []).catch(()=>{});
   };
 
@@ -1492,7 +1529,7 @@ export default function App() {
   );
 
   // Not logged in — show login screen
-  if (!firebaseUser) return <LoginScreen onSignUp={signUp} onLogIn={logIn}/>;
+  if (!firebaseUser) return <LoginScreen onSignUp={signUp} onLogIn={logIn} onGoogleSignIn={signInWithGoogle} onPhoneOTP={sendPhoneOTP} onVerifyOTP={verifyPhoneOTP}/>;
 
   // ── Inner app (shared between mobile + desktop phone column) ─────────────
   const innerApp = (
@@ -1502,7 +1539,7 @@ export default function App() {
       {tracksLoading && (
         <div style={{ position:"absolute", top:"50%", left:"50%", transform:"translate(-50%,-50%)", zIndex:50, textAlign:"center" }}>
           <div style={{ width:56, height:56, borderRadius:14, background:"linear-gradient(135deg, #FC3C44, #FF2D55)", display:"flex", alignItems:"center", justifyContent:"center", margin:"0 auto 12px", fontSize:24 }}>🎵</div>
-          <div style={{ fontSize:14, color:"#8E8E93" }}>Loading your crate…</div>
+          <div style={{ fontSize:14, color:"#8E8E93" }}>Loading your collection…</div>
         </div>
       )}
       <div style={{ flex:1, overflow:"auto", paddingBottom:currentTrack?120:56, zIndex:1, position:"relative" }}>
@@ -1543,9 +1580,9 @@ export default function App() {
 
         {/* Logo */}
         <div style={{ padding:"0 20px 32px" }}>
-          <div style={{ fontSize:18, fontWeight:700, letterSpacing:-0.3, color:"#1C1C1E" }}>Crate
+          <div style={{ fontSize:18, fontWeight:700, letterSpacing:-0.3, color:"#1C1C1E" }}>Vers
           </div>
-          <div style={{ fontSize:10, color:"#AEAEB2", letterSpacing:0.5, marginTop:1 }}>cratedigger.uk</div>
+          <div style={{ fontSize:10, color:"#AEAEB2", letterSpacing:0.5, marginTop:1 }}>vers.fm</div>
         </div>
 
         {/* Nav */}
@@ -1584,7 +1621,7 @@ export default function App() {
             <div style={{ width:32, height:32, borderRadius:"50%", background:"#F2F2F7", border:"1px solid rgba(60,60,67,0.12)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:15 }}>{user.image}</div>
             <div>
               <div style={{ fontSize:13, fontWeight:600, color:"#1C1C1E" }}>{user.name}</div>
-              <div style={{ fontSize:11, color:"#8E8E93" }}>Record Collector</div>
+              <div style={{ fontSize:11, color:"#8E8E93" }}>Music Lover</div>
             </div>
           </div>
         </div>
@@ -1670,8 +1707,8 @@ const APP_STYLE = {
   WebkitFontSmoothing:"antialiased", MozOsxFontSmoothing:"grayscale",
 };
 const INPUT_ST = {
-  background:"#1a1a1c", border:"1px solid rgba(255,255,255,0.08)",
-  borderRadius:8, padding:"12px 14px", color:"#1C1C1E", fontSize:15,
+  background:"#FFFFFF", border:"1px solid rgba(60,60,67,0.12)",
+  borderRadius:10, padding:"12px 14px", color:"#1C1C1E", fontSize:15,
   fontFamily:"-apple-system,'SF Pro Text','Helvetica Neue',Arial,sans-serif", width:"100%", display:"block",
 };
 const BTN_PRIMARY = {
