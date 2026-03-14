@@ -947,35 +947,47 @@ function HomeScreen({ tracks, onPlayRadio, onTogglePlay, onPlayTrack, currentTra
     ? singles.filter(t => t.id !== currentTrack.id && camelotCompatible(currentTrack.camelot, t.camelot, 1) && Math.abs((t.energy||5)-(currentTrack.energy||5)) <= 3).slice(0,12)
     : [];
 
+  // ── Glass container for sections ──
+  const GlassSection = ({label, children}) => (
+    <div style={{ margin:"0 16px 16px", background:"rgba(255,255,255,0.45)", backdropFilter:"blur(32px) saturate(160%)", border:"1px solid rgba(255,255,255,0.55)", borderRadius:20, overflow:"hidden" }}>
+      {label && <div style={{ fontSize:10, fontWeight:600, letterSpacing:1.5, color:"#9CA3AF", textTransform:"uppercase", padding:"14px 16px 0" }}>{label}</div>}
+      <div style={{ padding:"12px 0 4px" }}>{children}</div>
+    </div>
+  );
+
   const ShelfLabel = ({children}) => (
     <div style={{ fontSize:10, fontWeight:600, letterSpacing:1.5, color:"#9CA3AF", textTransform:"uppercase", padding:"0 16px", marginBottom:8 }}>{children}</div>
   );
 
   const HorizShelf = ({items}) => (
-    <div style={{ display:"flex", gap:12, overflowX:"auto", padding:"0 16px 16px", WebkitOverflowScrolling:"touch" }}>
+    <div className="hide-scroll" style={{ display:"flex", gap:10, overflowX:"auto", padding:"0 16px 12px" }}>
       {items.map(t => (
-        <div key={t.id} onClick={()=>onPlayTrack(t,tracks)} style={{ flexShrink:0, width:120, cursor:"pointer", transition:"transform 0.2s" }}>
-          <div style={{ width:120, height:120, borderRadius:12, overflow:"hidden", marginBottom:8, boxShadow:"0 2px 12px rgba(0,0,0,0.08)", position:"relative" }}>
-            <AlbumArt track={t} size={120} borderRadius={0}/>
-            {currentTrack?.id===t.id && <div style={{ position:"absolute", inset:0, border:"2px solid #fff", borderRadius:12, boxShadow:"inset 0 0 0 1px rgba(0,0,0,0.15)" }}/>}
+        <div key={t.id} onClick={()=>onPlayTrack(t,tracks)} style={{ flexShrink:0, width:110, cursor:"pointer" }}>
+          <div style={{ width:110, height:110, borderRadius:10, overflow:"hidden", marginBottom:6, position:"relative",
+            boxShadow: currentTrack?.id===t.id ? "0 0 0 2px #1A1D26" : "0 1px 6px rgba(0,0,0,0.06)",
+            opacity: currentTrack?.id===t.id ? 1 : 0.92,
+            transition:"box-shadow 0.3s, opacity 0.3s" }}>
+            <AlbumArt track={t} size={110} borderRadius={0}/>
           </div>
-          <div style={{ fontSize:12, fontWeight:500, color:"#1A1D26", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{t.title}</div>
-          <div style={{ fontSize:11, color:"#9CA3AF", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{t.artist}</div>
+          <div style={{ fontSize:11, fontWeight:currentTrack?.id===t.id?600:400, color:"#1A1D26", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{t.title}</div>
+          <div style={{ fontSize:10, color:"#9CA3AF", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{t.artist}</div>
         </div>
       ))}
     </div>
   );
 
-  const GridShelf = ({items, cols=6}) => (
-    <div style={{ display:"grid", gridTemplateColumns:`repeat(${cols}, 1fr)`, gap:12, padding:"0 16px 16px" }}>
+  const GridShelf = ({items}) => (
+    <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill, minmax(100px, 1fr))", gap:10, padding:"0 16px 12px" }}>
       {items.map(t => (
-        <div key={t.id} onClick={()=>onPlayTrack(t,tracks)} style={{ cursor:"pointer", transition:"transform 0.2s" }}>
-          <div style={{ width:"100%", aspectRatio:"1", borderRadius:10, overflow:"hidden", marginBottom:6, boxShadow:"0 2px 12px rgba(0,0,0,0.08)", position:"relative" }}>
+        <div key={t.id} onClick={()=>onPlayTrack(t,tracks)} style={{ cursor:"pointer", minWidth:0 }}>
+          <div style={{ width:"100%", aspectRatio:"1", borderRadius:8, overflow:"hidden", marginBottom:4, position:"relative",
+            boxShadow: currentTrack?.id===t.id ? "0 0 0 2px #1A1D26" : "0 1px 4px rgba(0,0,0,0.05)",
+            opacity: currentTrack?.id===t.id ? 1 : 0.92,
+            transition:"box-shadow 0.3s, opacity 0.3s" }}>
             <AlbumArt track={t} size={200} borderRadius={0}/>
-            {currentTrack?.id===t.id && <div style={{ position:"absolute", inset:0, border:"2px solid #fff", borderRadius:10, boxShadow:"inset 0 0 0 1px rgba(0,0,0,0.15)" }}/>}
           </div>
-          <div style={{ fontSize:11, fontWeight:500, color:"#1A1D26", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{t.title}</div>
-          <div style={{ fontSize:10, color:"#9CA3AF", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{t.artist}</div>
+          <div style={{ fontSize:10, fontWeight:currentTrack?.id===t.id?600:400, color:"#1A1D26", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{t.title}</div>
+          <div style={{ fontSize:9, color:"#9CA3AF", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{t.artist}</div>
         </div>
       ))}
     </div>
@@ -1010,60 +1022,50 @@ function HomeScreen({ tracks, onPlayRadio, onTogglePlay, onPlayTrack, currentTra
 
       {/* Harmonic neighbors — highest priority when playing */}
       {showHarmonic && (
-        <div style={{ marginBottom:12 }}>
-          <ShelfLabel>mixes well with this</ShelfLabel>
-          <GridShelf items={harmonicNeighbors} cols={6}/>
-        </div>
+        <GlassSection label="mixes well with this">
+          <GridShelf items={harmonicNeighbors}/>
+        </GlassSection>
       )}
 
       {/* Energy-matched shelf */}
       {showEnergy && (
-        <div style={{ marginBottom:8 }}>
-          <ShelfLabel>{energyLabel} picks</ShelfLabel>
+        <GlassSection label={`${energyLabel} picks`}>
           <HorizShelf items={energyMatched}/>
-        </div>
+        </GlassSection>
       )}
 
-      {/* CD Shelf — browse like flipping through a record crate */}
+      {/* CD Shelf */}
       {showFlipper && (
-        <div style={{ marginBottom:24 }}>
-          <ShelfLabel>the crate · {singles.length} records</ShelfLabel>
-          <div style={{ display:"flex", gap:4, overflowX:"auto", padding:"0 16px 16px", WebkitOverflowScrolling:"touch" }}>
-            {singles.slice(0,30).map((t,i) => (
+        <GlassSection label={`the crate · ${singles.length} records`}>
+          <div className="hide-scroll" style={{ display:"flex", gap:3, overflowX:"auto", padding:"0 14px 10px" }}>
+            {singles.slice(0,40).map(t => (
               <div key={t.id} onClick={()=>onPlayTrack(t,tracks)}
-                style={{ flexShrink:0, width:80, cursor:"pointer", transition:"transform 0.15s, box-shadow 0.15s",
-                  transform: currentTrack?.id===t.id ? "translateY(-8px)" : "none" }}>
-                <div style={{ width:80, height:80, borderRadius:4, overflow:"hidden", position:"relative",
+                style={{ flexShrink:0, width:72, cursor:"pointer",
+                  transform: currentTrack?.id===t.id ? "translateY(-4px)" : "none",
+                  transition:"transform 0.25s cubic-bezier(0.22,1,0.36,1)" }}>
+                <div style={{ width:72, height:72, borderRadius:3, overflow:"hidden", position:"relative",
                   boxShadow: currentTrack?.id===t.id
-                    ? `0 8px 24px rgba(${hexToRgbStr(t.color)},0.25), 0 2px 4px rgba(0,0,0,0.1)`
-                    : "0 1px 3px rgba(0,0,0,0.1), -1px 0 0 rgba(0,0,0,0.04)",
-                  border: currentTrack?.id===t.id ? "2px solid rgba(255,255,255,0.8)" : "none" }}>
-                  <AlbumArt track={t} size={80} borderRadius={0}/>
-                  {currentTrack?.id===t.id && isPlaying && (
-                    <div style={{ position:"absolute", bottom:4, left:"50%", transform:"translateX(-50%)", display:"flex", gap:1.5, alignItems:"flex-end" }}>
-                      {[3,5,3,6,4].map((h,j)=><div key={j} style={{ width:2, height:h, borderRadius:1, background:"#fff", animation:`pulse ${0.4+j*0.08}s ease-in-out infinite alternate` }}/>)}
-                    </div>
-                  )}
+                    ? "0 4px 16px rgba(0,0,0,0.15), 0 0 0 2px #1A1D26"
+                    : "0 1px 2px rgba(0,0,0,0.08), -1px 0 0 rgba(0,0,0,0.03)" }}>
+                  <AlbumArt track={t} size={72} borderRadius={0}/>
                 </div>
               </div>
             ))}
           </div>
-        </div>
+        </GlassSection>
       )}
 
       {/* Recently liked */}
       {showLiked && (
-        <div style={{ marginBottom:8 }}>
-          <ShelfLabel>recently saved</ShelfLabel>
+        <GlassSection label="recently saved">
           <HorizShelf items={recentlyLiked}/>
-        </div>
+        </GlassSection>
       )}
 
       {/* Mixtapes */}
       {showMixes && (
-        <>
-          <ShelfLabel>{mixtapes.length} mixes</ShelfLabel>
-          <div style={{ padding:"0 16px 4px" }}>
+        <GlassSection label={`${mixtapes.length} mixes`}>
+          <div style={{ padding:"0 14px 4px" }}>
             {mixtapes.map(t => (
               <div key={t.id} onClick={()=>onPlayTrack(t, mixtapes)}
                 style={{ display:"flex", alignItems:"center", gap:12, padding:"8px 12px", borderRadius:10, cursor:"pointer", marginBottom:4,
@@ -1081,13 +1083,12 @@ function HomeScreen({ tracks, onPlayRadio, onTogglePlay, onPlayTrack, currentTra
               </div>
             ))}
           </div>
-        </>
+        </GlassSection>
       )}
 
       {/* Top played — only if budget allows */}
-      {showTop && <div style={{ marginTop:8 }}>
-        <ShelfLabel>top played</ShelfLabel>
-        <div style={{ padding:"0 16px" }}>
+      {showTop && <GlassSection label="top played">
+        <div style={{ padding:"0 14px" }}>
           {topTracks.map((t,i)=>(
             <div key={t.id} style={{ display:"flex", alignItems:"center", gap:8 }}>
               <div style={{ width:18, textAlign:"right", fontSize:12, fontWeight:600, color:"#C4C9D4", flexShrink:0 }}>{i+1}</div>
@@ -1097,7 +1098,7 @@ function HomeScreen({ tracks, onPlayRadio, onTogglePlay, onPlayTrack, currentTra
             </div>
           ))}
         </div>
-      </div>}
+      </GlassSection>}
     </div>
   );
 }
