@@ -91,47 +91,6 @@ function hexToRgbStr(hex) {
   return `${parseInt(hex.slice(1,3),16)},${parseInt(hex.slice(3,5),16)},${parseInt(hex.slice(5,7),16)}`;
 }
 
-function safeText(value, fallback = "") {
-  return typeof value === "string" ? value : (value == null ? fallback : String(value));
-}
-
-function normalizeTrack(track = {}, id = "") {
-  const title = safeText(track.title, "Untitled Track");
-  const artist = safeText(track.artist, "Unknown Artist");
-  const album = safeText(track.album, "Unknown Release");
-  const genre = safeText(track.genre, "");
-  const camelot = safeText(track.camelot, "");
-  const audioUrl = safeText(track.audioUrl, "");
-  const albumCover = safeText(track.albumCover, "");
-  const color = /^#[0-9A-Fa-f]{6}$/.test(track.color || "") ? track.color : "#8B95A7";
-  const duration = Number.isFinite(Number(track.duration)) ? Number(track.duration) : 0;
-  const energy = Number.isFinite(Number(track.energy)) ? Number(track.energy) : 5;
-  const bpm = Number.isFinite(Number(track.bpm)) ? Number(track.bpm) : null;
-  const playCount = Number.isFinite(Number(track.playCount)) ? Number(track.playCount) : 0;
-  const likeCount = Number.isFinite(Number(track.likeCount)) ? Number(track.likeCount) : 0;
-  const skipCount = Number.isFinite(Number(track.skipCount)) ? Number(track.skipCount) : 0;
-
-  return {
-    ...track,
-    id: safeText(track.id || id, id),
-    title,
-    artist,
-    album,
-    genre,
-    camelot,
-    audioUrl,
-    albumCover,
-    color,
-    duration,
-    energy,
-    bpm,
-    playCount,
-    likeCount,
-    skipCount,
-    liked: Boolean(track.liked),
-  };
-}
-
 const TOKENS = {
   space: { xs:4, sm:8, md:12, lg:16, xl:24 },
   radius: { sm:12, md:16, lg:20, xl:24, pill:999 },
@@ -265,7 +224,7 @@ function AlbumArt({ track, size=300, borderRadius=0 }) {
     return (
       <div style={{ width:size, height:size, borderRadius, flexShrink:0, background:`linear-gradient(135deg,rgba(${hexToRgbStr(track.color)},0.5),rgba(${hexToRgbStr(track.color)},0.1))`, display:"flex", alignItems:"center", justifyContent:"center" }}>
         <div style={{ fontSize:size*0.25, fontWeight:700, color:`rgba(${hexToRgbStr(track.color)},0.7)`, letterSpacing:-2 }}>
-          {safeText(track.title, "U").charAt(0)}{safeText(track.artist, "A").charAt(0)}
+          {track.title.charAt(0)}{track.artist.charAt(0)}
         </div>
       </div>
     );
@@ -493,6 +452,35 @@ function VerseFlipper({ tracks = [], onSelect, currentTrack, isPlaying }) {
               transition:"width 0.25s, background 0.25s",
             }}/>
           ))}
+        </div>
+
+        <div style={{ width:"100%", maxWidth:380, paddingBottom:Math.max(10, 8), display:"flex", flexDirection:"column", gap:10 }}>
+          <button
+            onClick={handleGoogleSignIn}
+            disabled={loading}
+            aria-label="Continue with Google"
+            title="Continue with Google"
+            style={{
+              width:"100%",
+              minHeight:58,
+              borderRadius:20,
+              border:"1px solid rgba(255,255,255,0.68)",
+              background:"linear-gradient(180deg, rgba(255,255,255,0.82), rgba(255,255,255,0.46))",
+              boxShadow:"0 20px 40px rgba(91,116,162,0.12), inset 0 1px 0 rgba(255,255,255,0.82)",
+              backdropFilter:"blur(24px) saturate(180%)",
+              display:"flex",
+              alignItems:"center",
+              justifyContent:"center",
+              gap:12,
+              cursor:"pointer",
+              color:"#28446B",
+              fontSize:15,
+              fontWeight:700,
+              opacity:loading ? 0.7 : 1,
+            }}
+          >
+            {loading ? <span style={{ fontSize:13, fontWeight:700, color:"#4B8CFF" }}>Please wait…</span> : <><GoogleGlyph /><span>Continue with Google</span></>}
+          </button>
         </div>
       </div>
     </div>
@@ -826,112 +814,279 @@ function LoginScreen({ onSignUp, onLogIn, onGoogleSignIn, onPhoneOTP, onVerifyOT
 
   return (
     <div style={APP_STYLE}>
-      <BgMist color="#7FB6FF"/>
-      <div style={{ position:"absolute", inset:0, background:"radial-gradient(circle at 20% 10%, rgba(127,182,255,0.18), transparent 28%), radial-gradient(circle at 80% 18%, rgba(162,121,255,0.14), transparent 24%), linear-gradient(180deg, rgba(244,247,252,0.86) 0%, rgba(236,241,248,0.82) 42%, rgba(232,238,246,0.88) 100%)", backdropFilter:"blur(40px) saturate(145%)" }} />
-      <div style={{ display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", minHeight:"100%", gap:26, padding:24, position:"relative", zIndex:2 }}>
-        <div style={{ textAlign:"center", maxWidth:420 }}>
-          <div style={{ width:110, height:110, borderRadius:32, margin:"0 auto 8px", background:"linear-gradient(135deg, rgba(255,255,255,0.5), rgba(255,255,255,0.18) 45%, rgba(180,206,255,0.14) 100%)", border:"1px solid rgba(255,255,255,0.48)", boxShadow:"0 24px 70px rgba(98,132,190,0.14), inset 0 1px 0 rgba(255,255,255,0.75), 0 0 50px rgba(127,182,255,0.08)", display:"flex", alignItems:"center", justifyContent:"center", backdropFilter:"blur(32px) saturate(180%)" }}>
-            <BrandGlyph size={82} />
+      <BgMist color="#7FB6FF" />
+      <div
+        style={{
+          position: "absolute",
+          inset: 0,
+          background:
+            "radial-gradient(circle at 20% 10%, rgba(127,182,255,0.18), transparent 28%), radial-gradient(circle at 80% 18%, rgba(162,121,255,0.14), transparent 24%), linear-gradient(180deg, rgba(244,247,252,0.86) 0%, rgba(236,241,248,0.82) 42%, rgba(232,238,246,0.88) 100%)",
+          backdropFilter: "blur(40px) saturate(145%)",
+        }}
+      />
+
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "space-between",
+          minHeight: "100%",
+          gap: 20,
+          padding: 24,
+          position: "relative",
+          zIndex: 2,
+        }}
+      >
+        <div style={{ width: "100%", display: "flex", flexDirection: "column", alignItems: "center", gap: 26 }}>
+          <div style={{ textAlign: "center", maxWidth: 420 }}>
+            <div
+              style={{
+                width: 110,
+                height: 110,
+                borderRadius: 32,
+                margin: "0 auto 8px",
+                background: "linear-gradient(135deg, rgba(255,255,255,0.5), rgba(255,255,255,0.18) 45%, rgba(180,206,255,0.14) 100%)",
+                border: "1px solid rgba(255,255,255,0.48)",
+                boxShadow: "0 24px 70px rgba(98,132,190,0.14), inset 0 1px 0 rgba(255,255,255,0.75), 0 0 50px rgba(127,182,255,0.08)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                backdropFilter: "blur(32px) saturate(180%)",
+              }}
+            >
+              <BrandGlyph size={82} />
+            </div>
+          </div>
+
+          <div
+            style={{
+              width: "100%",
+              maxWidth: 380,
+              display: "flex",
+              flexDirection: "column",
+              gap: 14,
+              padding: 18,
+              borderRadius: 28,
+              background: "linear-gradient(180deg, rgba(255,255,255,0.62), rgba(255,255,255,0.34))",
+              border: "1px solid rgba(255,255,255,0.58)",
+              boxShadow: "0 24px 80px rgba(91,116,162,0.12), inset 0 1px 0 rgba(255,255,255,0.72), 0 0 40px rgba(127,182,255,0.06)",
+              backdropFilter: "blur(34px) saturate(180%)",
+            }}
+          >
+            <div
+              style={{
+                display: "flex",
+                background: "rgba(255,255,255,0.08)",
+                borderRadius: 16,
+                padding: 4,
+                gap: 4,
+                border: "1px solid rgba(255,255,255,0.14)",
+                backdropFilter: "blur(20px)",
+              }}
+            >
+              {["login", "signup"].map((m) => (
+                <button
+                  key={m}
+                  onClick={() => {
+                    setMode(m);
+                    resetMessages();
+                  }}
+                  style={{
+                    flex: 1,
+                    padding: "10px 0",
+                    borderRadius: 12,
+                    border: "none",
+                    cursor: "pointer",
+                    fontSize: 14,
+                    fontWeight: 600,
+                    background: mode === m ? "linear-gradient(180deg, rgba(109,188,255,0.92), rgba(78,141,255,0.92))" : "transparent",
+                    color: mode === m ? "#FFFFFF" : "rgba(37,52,78,0.64)",
+                    boxShadow: mode === m ? "0 16px 36px rgba(76,126,255,0.32)" : "none",
+                  }}
+                >
+                  {m === "login" ? "Log In" : "Sign Up"}
+                </button>
+              ))}
+            </div>
+
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 8 }}>
+              {[
+                { id: "email", label: "Email" },
+                { id: "phone", label: "Phone" },
+              ].map((item) => (
+                <button
+                  key={item.id}
+                  onClick={() => switchMethod(item.id)}
+                  style={{
+                    border: "1px solid rgba(255,255,255,0.6)",
+                    background: authMethod === item.id ? "rgba(109,188,255,0.16)" : "rgba(255,255,255,0.08)",
+                    color: authMethod === item.id ? "#34517E" : "rgba(37,52,78,0.66)",
+                    borderRadius: 14,
+                    padding: "10px 12px",
+                    fontWeight: 600,
+                    cursor: "pointer",
+                  }}
+                >
+                  {item.label}
+                </button>
+              ))}
+            </div>
+
+            {authMethod === "email" && (
+              <>
+                {mode === "signup" && (
+                  <input placeholder="Username" style={INPUT_ST} value={name} onChange={(e) => setName(e.target.value)} />
+                )}
+                <input placeholder="Email" type="email" style={INPUT_ST} value={email} onChange={(e) => setEmail(e.target.value)} />
+                <input
+                  placeholder="Password"
+                  type="password"
+                  style={INPUT_ST}
+                  value={pass}
+                  onChange={(e) => setPass(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
+                />
+                {mode === "login" && (
+                  <button
+                    onClick={handleForgotPassword}
+                    disabled={loading}
+                    style={{
+                      alignSelf: "flex-end",
+                      marginTop: -4,
+                      background: "none",
+                      border: "none",
+                      cursor: "pointer",
+                      color: "#A9CCFF",
+                      fontWeight: 600,
+                      fontSize: 13,
+                    }}
+                  >
+                    Forgot password?
+                  </button>
+                )}
+                <button onClick={handleSubmit} disabled={loading} style={{ ...BTN_PRIMARY, opacity: loading ? 0.7 : 1 }}>
+                  {loading ? "Please wait…" : mode === "login" ? "Sign In" : "Create Account"}
+                </button>
+              </>
+            )}
+
+            {authMethod === "phone" && (
+              <>
+                {phoneStep === "enter" ? (
+                  <>
+                    <input
+                      placeholder="Phone number (+15551234567)"
+                      type="tel"
+                      style={INPUT_ST}
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value)}
+                      onKeyDown={(e) => e.key === "Enter" && handleSendOTP()}
+                    />
+                    <button onClick={handleSendOTP} disabled={loading} style={{ ...BTN_PRIMARY, opacity: loading ? 0.7 : 1 }}>
+                      {loading ? "Sending…" : "Send verification code"}
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <input
+                      placeholder="6-digit code"
+                      inputMode="numeric"
+                      style={INPUT_ST}
+                      value={otp}
+                      onChange={(e) => setOtp(e.target.value)}
+                      onKeyDown={(e) => e.key === "Enter" && handleVerifyOTP()}
+                    />
+                    <div style={{ display: "flex", gap: 10 }}>
+                      <button
+                        onClick={() => {
+                          setPhoneStep("enter");
+                          setOtp("");
+                          setConfirmResult(null);
+                          resetMessages();
+                        }}
+                        style={{ ...BTN_SECONDARY, flex: 1 }}
+                      >
+                        Edit number
+                      </button>
+                      <button onClick={handleVerifyOTP} disabled={loading} style={{ ...BTN_PRIMARY, flex: 1, opacity: loading ? 0.7 : 1 }}>
+                        {loading ? "Verifying…" : "Verify code"}
+                      </button>
+                    </div>
+                  </>
+                )}
+                <div id="recaptcha-container" />
+              </>
+            )}
+
+            {error && (
+              <div
+                style={{
+                  fontSize: 13,
+                  color: "#FFD2CC",
+                  background: "rgba(255,255,255,0.08)",
+                  border: "1px solid rgba(255,120,99,0.18)",
+                  borderRadius: 16,
+                  padding: "12px 14px",
+                  lineHeight: 1.45,
+                }}
+              >
+                {error}
+              </div>
+            )}
+
+            {notice && (
+              <div
+                style={{
+                  fontSize: 13,
+                  color: "#D7E7FF",
+                  background: "rgba(255,255,255,0.08)",
+                  border: "1px solid rgba(127,182,255,0.16)",
+                  borderRadius: 16,
+                  padding: "12px 14px",
+                  lineHeight: 1.45,
+                }}
+              >
+                {notice}
+              </div>
+            )}
           </div>
         </div>
 
-        <div style={{ width:"100%", maxWidth:380, display:"flex", flexDirection:"column", gap:14, padding:18, borderRadius:28, background:"linear-gradient(180deg, rgba(255,255,255,0.62), rgba(255,255,255,0.34))", border:"1px solid rgba(255,255,255,0.58)", boxShadow:"0 24px 80px rgba(91,116,162,0.12), inset 0 1px 0 rgba(255,255,255,0.72), 0 0 40px rgba(127,182,255,0.06)", backdropFilter:"blur(34px) saturate(180%)" }}>
-          <div style={{ display:"flex", background:"rgba(255,255,255,0.08)", borderRadius:16, padding:4, gap:4, border:"1px solid rgba(255,255,255,0.14)", backdropFilter:"blur(20px)" }}>
-            {["login","signup"].map(m => (
-              <button key={m} onClick={() => { setMode(m); resetMessages(); }} style={{ flex:1, padding:"10px 0", borderRadius:12, border:"none", cursor:"pointer", fontSize:14, fontWeight:600, background:mode===m?"linear-gradient(180deg, rgba(109,188,255,0.92), rgba(78,141,255,0.92))":"transparent", color:mode===m?"#FFFFFF":"rgba(37,52,78,0.64)", boxShadow:mode===m?"0 16px 36px rgba(76,126,255,0.32)":"none" }}>
-                {m === "login" ? "Log In" : "Sign Up"}
-              </button>
-            ))}
-          </div>
-
-          <div style={{ display:"grid", gridTemplateColumns:"repeat(3, 1fr)", gap:8 }}>
-            {[
-              { id:"email", label:"Email" },
-              { id:"google", label:"G" },
-              { id:"phone", label:"Phone" },
-            ].map(item => (
-              <button key={item.id} onClick={() => switchMethod(item.id)} style={{ border:"1px solid rgba(255,255,255,0.6)", background:authMethod===item.id?"rgba(109,188,255,0.16)":"rgba(255,255,255,0.08)", color:authMethod===item.id?"#34517E":"rgba(37,52,78,0.66)", borderRadius:14, padding:"10px 12px", fontWeight:600, cursor:"pointer" }}>
-                {item.label}
-              </button>
-            ))}
-          </div>
-
-          {authMethod === "email" && (
-            <>
-              {mode === "signup" && <input placeholder="Username" style={INPUT_ST} value={name} onChange={e => setName(e.target.value)} />}
-              <input placeholder="Email" type="email" style={INPUT_ST} value={email} onChange={e => setEmail(e.target.value)} />
-              <input placeholder="Password" type="password" style={INPUT_ST} value={pass} onChange={e => setPass(e.target.value)} onKeyDown={e => e.key === "Enter" && handleSubmit()} />
-              {mode === "login" && (
-                <button onClick={handleForgotPassword} disabled={loading} style={{ alignSelf:"flex-end", marginTop:-4, background:"none", border:"none", cursor:"pointer", color:"#A9CCFF", fontWeight:600, fontSize:13 }}>
-                  Forgot password?
-                </button>
-              )}
-              <button onClick={handleSubmit} disabled={loading} style={{ ...BTN_PRIMARY, opacity:loading ? 0.7 : 1 }}>
-                {loading ? "Please wait…" : mode === "login" ? "Sign In" : "Create Account"}
-              </button>
-            </>
-          )}
-
-          {authMethod === "google" && (
-            <div style={{ display:"flex", justifyContent:"center", padding:"12px 0 4px" }}>
-              <button
-                onClick={handleGoogleSignIn}
-                disabled={loading}
-                aria-label="Continue with Google"
-                title="Continue with Google"
-                style={{
-                  width:56,
-                  height:56,
-                  borderRadius:18,
-                  border:"1px solid rgba(255,255,255,0.64)",
-                  background:"linear-gradient(180deg, rgba(255,255,255,0.78), rgba(255,255,255,0.42))",
-                  boxShadow:"0 20px 40px rgba(91,116,162,0.12), inset 0 1px 0 rgba(255,255,255,0.78)",
-                  backdropFilter:"blur(24px) saturate(180%)",
-                  display:"grid",
-                  placeItems:"center",
-                  cursor:"pointer",
-                  opacity:loading ? 0.7 : 1,
-                }}
-              >
-                {loading ? <span style={{ fontSize:12, fontWeight:700, color:"#4B8CFF" }}>…</span> : <GoogleGlyph />}
-              </button>
-            </div>
-          )}
-
-          {authMethod === "phone" && (
-            <>
-              {phoneStep === "enter" ? (
-                <>
-                  <input placeholder="Phone number (+15551234567)" type="tel" style={INPUT_ST} value={phone} onChange={e => setPhone(e.target.value)} onKeyDown={e => e.key === "Enter" && handleSendOTP()} />
-                  <button onClick={handleSendOTP} disabled={loading} style={{ ...BTN_PRIMARY, opacity:loading ? 0.7 : 1 }}>
-                    {loading ? "Sending…" : "Send verification code"}
-                  </button>
-                </>
-              ) : (
-                <>
-                  <input placeholder="6-digit code" inputMode="numeric" style={INPUT_ST} value={otp} onChange={e => setOtp(e.target.value)} onKeyDown={e => e.key === "Enter" && handleVerifyOTP()} />
-                  <div style={{ display:"flex", gap:10 }}>
-                    <button onClick={() => { setPhoneStep("enter"); setOtp(""); setConfirmResult(null); resetMessages(); }} style={{ ...BTN_SECONDARY, flex:1 }}>Edit number</button>
-                    <button onClick={handleVerifyOTP} disabled={loading} style={{ ...BTN_PRIMARY, flex:1, opacity:loading ? 0.7 : 1 }}>
-                      {loading ? "Verifying…" : "Verify code"}
-                    </button>
-                  </div>
-                </>
-              )}
-              <div id="recaptcha-container" />
-            </>
-          )}
-
-          {error && (
-            <div style={{ fontSize:13, color:"#FFD2CC", background:"rgba(255,255,255,0.08)", border:"1px solid rgba(255,120,99,0.18)", borderRadius:16, padding:"12px 14px", lineHeight:1.45 }}>
-              {error}
-            </div>
-          )}
-          {notice && (
-            <div style={{ fontSize:13, color:"#D7E7FF", background:"rgba(255,255,255,0.08)", border:"1px solid rgba(127,182,255,0.16)", borderRadius:16, padding:"12px 14px", lineHeight:1.45 }}>
-              {notice}
-            </div>
-          )}
+        <div style={{ width: "100%", maxWidth: 380, paddingBottom: 10, display: "flex", flexDirection: "column", gap: 10 }}>
+          <button
+            onClick={handleGoogleSignIn}
+            disabled={loading}
+            aria-label="Continue with Google"
+            title="Continue with Google"
+            style={{
+              width: "100%",
+              minHeight: 58,
+              borderRadius: 20,
+              border: "1px solid rgba(255,255,255,0.68)",
+              background: "linear-gradient(180deg, rgba(255,255,255,0.82), rgba(255,255,255,0.46))",
+              boxShadow: "0 20px 40px rgba(91,116,162,0.12), inset 0 1px 0 rgba(255,255,255,0.82)",
+              backdropFilter: "blur(24px) saturate(180%)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 12,
+              cursor: "pointer",
+              color: "#28446B",
+              fontSize: 15,
+              fontWeight: 700,
+              opacity: loading ? 0.7 : 1,
+            }}
+          >
+            {loading ? (
+              <span style={{ fontSize: 13, fontWeight: 700, color: "#4B8CFF" }}>Please wait…</span>
+            ) : (
+              <>
+                <GoogleGlyph />
+                <span>Continue with Google</span>
+              </>
+            )}
+          </button>
         </div>
       </div>
     </div>
@@ -1388,6 +1543,35 @@ function NowPlayingBar({ track, isPlaying, progress, duration, onTogglePlay, onS
           <button onClick={e=>{e.stopPropagation();onLike();}} style={{ width:36, height:36, borderRadius:12, background:"rgba(255,255,255,0.5)", border:"1px solid rgba(255,255,255,0.78)", color:track.liked?"#4B6FA4":"#98A1B2", display:"flex", alignItems:"center", justifyContent:"center" }}><Icon name={track.liked?"heart":"heartempty"} size={15}/></button>
           <button onClick={e=>{e.stopPropagation();onTogglePlay();}} style={{ width:42, height:42, borderRadius:14, background:"linear-gradient(180deg, #79C3FF 0%, #4B8CFF 100%)", border:"1px solid rgba(255,255,255,0.52)", color:"#FFFFFF", display:"flex", alignItems:"center", justifyContent:"center", boxShadow:"0 14px 30px rgba(75,140,255,0.26)" }}><Icon name={isPlaying?"pause":"play"} size={18}/></button>
         </div>
+
+        <div style={{ width:"100%", maxWidth:380, paddingBottom:Math.max(10, 8), display:"flex", flexDirection:"column", gap:10 }}>
+          <button
+            onClick={handleGoogleSignIn}
+            disabled={loading}
+            aria-label="Continue with Google"
+            title="Continue with Google"
+            style={{
+              width:"100%",
+              minHeight:58,
+              borderRadius:20,
+              border:"1px solid rgba(255,255,255,0.68)",
+              background:"linear-gradient(180deg, rgba(255,255,255,0.82), rgba(255,255,255,0.46))",
+              boxShadow:"0 20px 40px rgba(91,116,162,0.12), inset 0 1px 0 rgba(255,255,255,0.82)",
+              backdropFilter:"blur(24px) saturate(180%)",
+              display:"flex",
+              alignItems:"center",
+              justifyContent:"center",
+              gap:12,
+              cursor:"pointer",
+              color:"#28446B",
+              fontSize:15,
+              fontWeight:700,
+              opacity:loading ? 0.7 : 1,
+            }}
+          >
+            {loading ? <span style={{ fontSize:13, fontWeight:700, color:"#4B8CFF" }}>Please wait…</span> : <><GoogleGlyph /><span>Continue with Google</span></>}
+          </button>
+        </div>
       </div>
     </div>
   );
@@ -1473,11 +1657,11 @@ export default function App() {
       try {
         const q    = query(collection(db, "tracks"), orderBy("createdAt", "desc"));
         const snap = await getDocs(q);
-        const loaded = snap.docs.map(d => normalizeTrack({
+        const loaded = snap.docs.map(d => ({
           ...d.data(),          // spread data first
-          id: d.id,             // then override with real Firestore doc ID (never overwritten)
+          id:    d.id,          // then override with real Firestore doc ID (never overwritten)
           liked: false,         // default; will be overridden from profile below
-        }, d.id));
+        }));
         setTracks(loaded);
       } catch (err) {
         console.error("Failed to load tracks:", err);
@@ -1492,7 +1676,7 @@ export default function App() {
   useEffect(() => {
     if (!profile || !tracks.length) return;
     const likedSet = new Set(profile.likedTracks || []);
-    setTracks(prev => prev.map(t => normalizeTrack({ ...t, liked: likedSet.has(t.id) }, t.id)));
+    setTracks(prev => prev.map(t => ({ ...t, liked: likedSet.has(t.id) })));
     if (profile.playlists) setUserPlaylists(profile.playlists);
   }, [profile?.likedTracks, tracks.length]);
 
@@ -1722,7 +1906,7 @@ export default function App() {
     const delta = nowLiked ? 1 : -1;
 
     // Update local state immediately so the heart feels instant
-    setTracks(prev => prev.map(t => t.id === id ? normalizeTrack({...t, liked: nowLiked, likeCount: Math.max(0,(t.likeCount||0)+delta)}, t.id) : t));
+    setTracks(prev => prev.map(t => t.id === id ? {...t, liked: nowLiked, likeCount: Math.max(0,(t.likeCount||0)+delta)} : t));
     if (currentTrack?.id === id) setCurrent(t => ({...t, liked: nowLiked}));
 
     // Sync to Firestore in the background
@@ -1734,7 +1918,7 @@ export default function App() {
         await fup(fdoc(db, "tracks", id), { likeCount: finc(delta) });
       } catch(e) {
         // Roll back on failure
-        setTracks(prev => prev.map(t => t.id === id ? normalizeTrack({...t, liked: track.liked, likeCount: Math.max(0, (t.likeCount || 0) - delta)}, t.id) : t));
+        setTracks(prev => prev.map(t => t.id === id ? {...t, liked: track.liked, likeCount: t.likeCount - delta} : t));
         showToast("Couldn't save — check your connection");
       }
     }
@@ -1800,7 +1984,7 @@ export default function App() {
 
   // ── Search ───────────────────────────────────────────────────────────────
   const searchResults = searchQuery.length > 1
-    ? tracks.filter(t => [safeText(t.title), safeText(t.artist), safeText(t.genre), safeText(t.camelot)].some(v => v.toLowerCase().includes(searchQuery.toLowerCase())))
+    ? tracks.filter(t => [t.title, t.artist, t.genre, t.camelot || ""].some(v => String(v || "").toLowerCase().includes(searchQuery.toLowerCase())))
     : [];
 
   // ── Loading states ────────────────────────────────────────────────────────
