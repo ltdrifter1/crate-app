@@ -436,7 +436,7 @@ function DeepCutsCard({ onPlay, onTogglePlay, currentTrack, isPlaying, isRadioMo
         </div>
         <div style={{ fontSize:11, color:"#8E8E93", textAlign:"right", lineHeight:1.6 }}>
           <div style={{ fontWeight:600, color:"#8E8E93" }}>{timeLabel}</div>
-          <div style={{ fontSize:10, color:"#C4C9D4" }}>E{eMin}–{eMax}</div>
+          
         </div>
       </div>
 
@@ -449,7 +449,7 @@ function DeepCutsCard({ onPlay, onTogglePlay, currentTrack, isPlaying, isRadioMo
             <div style={{ flex:1, minWidth:0 }}>
               <div style={{ fontSize:16, fontWeight:600, color:"#1C1C1E", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap", letterSpacing:-0.2 }}>{currentTrack.title}</div>
               <div style={{ fontSize:13, color:"#8E8E93", marginTop:2 }}>{currentTrack.artist}</div>
-              {currentTrack.energy&&<span style={{ fontSize:10, fontWeight:500, color:"#9CA3AF", background:"rgba(0,0,0,0.03)", padding:"2px 6px", borderRadius:4, marginTop:4, display:"inline-block" }}>Energy {currentTrack.energy}</span>}
+              
             </div>
           </div>
           {/* Energy bar + play/pause button row — button on left */}
@@ -457,7 +457,7 @@ function DeepCutsCard({ onPlay, onTogglePlay, currentTrack, isPlaying, isRadioMo
             <button onClick={e=>{e.stopPropagation();onTogglePlay();}} style={{ width:40, height:40, borderRadius:"50%", background:"#1A1D26", border:"none", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, color:"#FFFFFF", cursor:"pointer" }}>
               <Icon name={isPlaying?"pause":"play"} size={18}/>
             </button>
-            <EnergyBar level={currentTrack.energy} color={currentTrack.color} size="lg"/>
+            
           </div>
         </div>
       ) : (
@@ -517,7 +517,7 @@ function TrackRow({ track, onPlay, active, isPlaying, onLike, extraAction, playl
           <div style={{ fontSize:12, color:"#9CA3AF", marginTop:1 }}>{track.artist}</div>
         </div>
         <div style={{ display:"flex", flexDirection:"column", alignItems:"flex-end", gap:3, flexShrink:0 }}>
-          <EnergyBar level={track.energy} color={track.color}/>
+          
           <div style={{ display:"flex", gap:4 }}>
             
             <span style={{ fontSize:10, color:"#C4C9D4" }}>{track.genre}</span>
@@ -736,8 +736,7 @@ function LoginScreen({ onSignUp, onLogIn, onGoogleSignIn, onPhoneOTP, onVerifyOT
           <div style={{ width:96, height:96, borderRadius:28, margin:"0 auto 18px", background:"linear-gradient(135deg, rgba(255,255,255,0.24), rgba(127,182,255,0.08) 45%, rgba(162,121,255,0.1) 100%)", border:"1px solid rgba(255,255,255,0.24)", boxShadow:"0 30px 90px rgba(0,0,0,0.36), inset 0 1px 0 rgba(255,255,255,0.34), 0 0 50px rgba(127,182,255,0.12)", display:"flex", alignItems:"center", justifyContent:"center", backdropFilter:"blur(30px) saturate(180%)" }}>
             <BrandGlyph size={76} />
           </div>
-          <div style={{ fontSize:36, fontWeight:800, letterSpacing:-1.2, color:"#F3F8FF", textTransform:"uppercase" }}>V</div>
-          <div style={{ color:"#667085", fontSize:14, letterSpacing:0.3, marginTop:8, fontWeight:500 }}>Signal-driven listening for a glassy future state.</div>
+          
         </div>
 
         <div style={{ width:"100%", maxWidth:380, display:"flex", flexDirection:"column", gap:14, padding:18, borderRadius:28, background:"linear-gradient(180deg, rgba(255,255,255,0.16), rgba(255,255,255,0.08))", border:"1px solid rgba(255,255,255,0.18)", boxShadow:"0 24px 80px rgba(0,0,0,0.34), inset 0 1px 0 rgba(255,255,255,0.18), 0 0 40px rgba(127,182,255,0.08)", backdropFilter:"blur(34px) saturate(180%)" }}>
@@ -749,13 +748,10 @@ function LoginScreen({ onSignUp, onLogIn, onGoogleSignIn, onPhoneOTP, onVerifyOT
             ))}
           </div>
 
-          <div style={{ display:"grid", gridTemplateColumns:"repeat(3, 1fr)", gap:8 }}>
-            {[
-              { id:"email", label:"Email" },
-              { id:"google", label:"Google" },
-              { id:"phone", label:"Phone" },
-            ].map(item => (
-              <button key={item.id} onClick={() => switchMethod(item.id)} style={{ border:"1px solid rgba(255,255,255,0.6)", background:authMethod===item.id?"rgba(109,188,255,0.16)":"rgba(255,255,255,0.08)", color:authMethod===item.id?"#DCEBFF":"rgba(232,240,255,0.72)", borderRadius:14, padding:"10px 12px", fontWeight:600, cursor:"pointer" }}>
+          {/* Email/Phone method toggle */}
+          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:8 }}>
+            {[{id:"email",label:"Email"},{id:"phone",label:"Phone"}].map(item => (
+              <button key={item.id} onClick={() => switchMethod(item.id)} style={{ border:"1px solid rgba(255,255,255,0.2)", background:authMethod===item.id?"rgba(109,188,255,0.16)":"rgba(255,255,255,0.08)", color:authMethod===item.id?"#DCEBFF":"rgba(232,240,255,0.72)", borderRadius:14, padding:"10px 12px", fontWeight:600, cursor:"pointer", fontSize:13 }}>
                 {item.label}
               </button>
             ))}
@@ -773,17 +769,6 @@ function LoginScreen({ onSignUp, onLogIn, onGoogleSignIn, onPhoneOTP, onVerifyOT
               )}
               <button onClick={handleSubmit} disabled={loading} style={{ ...BTN_PRIMARY, opacity:loading ? 0.7 : 1 }}>
                 {loading ? "Please wait…" : mode === "login" ? "Sign In" : "Create Account"}
-              </button>
-            </>
-          )}
-
-          {authMethod === "google" && (
-            <>
-              <div style={{ padding:"14px 16px", borderRadius:18, background:"rgba(255,255,255,0.08)", border:"1px solid rgba(255,255,255,0.14)", color:"rgba(232,240,255,0.76)", fontSize:14, lineHeight:1.45 }}>
-                Continue with your Google account. This uses Firebase popup auth and drops you straight into the app.
-              </div>
-              <button onClick={handleGoogleSignIn} disabled={loading} style={{ ...BTN_PRIMARY, opacity:loading ? 0.7 : 1 }}>
-                {loading ? "Please wait…" : "Continue with Google"}
               </button>
             </>
           )}
@@ -811,6 +796,19 @@ function LoginScreen({ onSignUp, onLogIn, onGoogleSignIn, onPhoneOTP, onVerifyOT
               <div id="recaptcha-container" />
             </>
           )}
+
+          {/* Divider */}
+          <div style={{ display:"flex", alignItems:"center", gap:10, margin:"2px 0" }}>
+            <div style={{ flex:1, height:"0.5px", background:"rgba(255,255,255,0.15)" }}/>
+            <span style={{ fontSize:11, color:"rgba(255,255,255,0.3)" }}>or</span>
+            <div style={{ flex:1, height:"0.5px", background:"rgba(255,255,255,0.15)" }}/>
+          </div>
+
+          {/* Google — direct sign-in button with icon */}
+          <button onClick={handleGoogleSignIn} disabled={loading} style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:10, width:"100%", padding:"13px 20px", borderRadius:16, border:"1px solid rgba(255,255,255,0.2)", background:"rgba(255,255,255,0.1)", backdropFilter:"blur(20px)", cursor:"pointer", opacity:loading?0.6:1, transition:"all 0.2s" }}>
+            <svg width="18" height="18" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18A11.96 11.96 0 0 0 0 12c0 1.94.46 3.77 1.28 5.39l3.56-2.77.01-.53z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
+            <span style={{ fontSize:14, fontWeight:600, color:"rgba(232,240,255,0.85)" }}>Continue with Google</span>
+          </button>
 
           {error && (
             <div style={{ fontSize:13, color:"#FFD2CC", background:"rgba(255,255,255,0.08)", border:"1px solid rgba(255,120,99,0.18)", borderRadius:16, padding:"12px 14px", lineHeight:1.45 }}>
@@ -867,7 +865,7 @@ function RouteBuilderModal({ tracks, onClose, onPlayRoute }) {
                   <div style={{ width:32, height:32, borderRadius:6, overflow:"hidden", flexShrink:0 }}><AlbumArt track={track} size={32} borderRadius={0}/></div>
                   <div style={{ flex:1, minWidth:0 }}>
                     <div style={{ fontSize:12, fontWeight:600, color:"#1A1D26", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{track.title}</div>
-                    <div style={{ fontSize:10, color:"#9CA3AF" }}>Energy {track.energy||"?"}</div>
+                    <div style={{ fontSize:10, color:"#9CA3AF" }}>{track.genre||""}</div>
                   </div>
                 </div>
               ) : (
@@ -879,7 +877,7 @@ function RouteBuilderModal({ tracks, onClose, onPlayRoute }) {
                         <div key={t.id} onClick={()=>{setTrack(t);setSearch("");}} style={{ display:"flex", alignItems:"center", gap:8, padding:"6px 8px", cursor:"pointer", borderBottom:"0.5px solid rgba(0,0,0,0.04)", fontSize:12 }}>
                           <div style={{ width:24, height:24, borderRadius:4, overflow:"hidden", flexShrink:0 }}><AlbumArt track={t} size={24} borderRadius={0}/></div>
                           <span style={{ color:"#1A1D26" }}>{t.title}</span>
-                          <span style={{ color:"#9CA3AF", marginLeft:"auto", fontSize:10 }}>E{t.energy||"?"}</span>
+                          <span style={{ color:"#9CA3AF", marginLeft:"auto", fontSize:10 }}>{t.genre||""}</span>
                         </div>
                       ))}
                     </div>
@@ -912,7 +910,7 @@ function RouteBuilderModal({ tracks, onClose, onPlayRoute }) {
                   <div style={{ flex:1, minWidth:0 }}>
                     <div style={{ fontSize:12, fontWeight:i===0||i===route.length-1?600:400, color:"#1A1D26", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{t.title}</div>
                   </div>
-                  <span style={{ fontSize:9, fontWeight:500, padding:"2px 5px", borderRadius:4, background:"rgba(0,0,0,0.04)", color:"#9CA3AF" }}>E{t.energy||"?"}</span>
+                  
                 </div>
               ))}
             </div>
@@ -959,9 +957,7 @@ function HomeScreen({ tracks, onPlayRadio, onTogglePlay, onPlayTrack, currentTra
         <div key={t.id} onClick={()=>onPlayTrack(t,tracks)} style={{ flexShrink:0, width:120, cursor:"pointer", transition:"transform 0.2s" }}>
           <div style={{ width:120, height:120, borderRadius:12, overflow:"hidden", marginBottom:8, boxShadow:"0 2px 12px rgba(0,0,0,0.08)", position:"relative" }}>
             <AlbumArt track={t} size={120} borderRadius={0}/>
-            {currentTrack?.id===t.id && <div style={{ position:"absolute", inset:0, background:"rgba(0,0,0,0.4)", display:"flex", alignItems:"center", justifyContent:"center" }}>
-              <div style={{ width:8, height:8, borderRadius:"50%", background:"#fff", animation:isPlaying?"pulse 1s ease-in-out infinite":"none" }}/>
-            </div>}
+            {currentTrack?.id===t.id && <div style={{ position:"absolute", inset:0, border:"2px solid #fff", borderRadius:12, boxShadow:"inset 0 0 0 1px rgba(0,0,0,0.15)" }}/>}
           </div>
           <div style={{ fontSize:12, fontWeight:500, color:"#1A1D26", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{t.title}</div>
           <div style={{ fontSize:11, color:"#9CA3AF", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{t.artist}</div>
@@ -976,9 +972,7 @@ function HomeScreen({ tracks, onPlayRadio, onTogglePlay, onPlayTrack, currentTra
         <div key={t.id} onClick={()=>onPlayTrack(t,tracks)} style={{ cursor:"pointer", transition:"transform 0.2s" }}>
           <div style={{ width:"100%", aspectRatio:"1", borderRadius:10, overflow:"hidden", marginBottom:6, boxShadow:"0 2px 12px rgba(0,0,0,0.08)", position:"relative" }}>
             <AlbumArt track={t} size={200} borderRadius={0}/>
-            {currentTrack?.id===t.id && <div style={{ position:"absolute", inset:0, background:"rgba(0,0,0,0.4)", display:"flex", alignItems:"center", justifyContent:"center" }}>
-              <div style={{ width:8, height:8, borderRadius:"50%", background:"#fff", animation:isPlaying?"pulse 1s ease-in-out infinite":"none" }}/>
-            </div>}
+            {currentTrack?.id===t.id && <div style={{ position:"absolute", inset:0, border:"2px solid #fff", borderRadius:10, boxShadow:"inset 0 0 0 1px rgba(0,0,0,0.15)" }}/>}
           </div>
           <div style={{ fontSize:11, fontWeight:500, color:"#1A1D26", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{t.title}</div>
           <div style={{ fontSize:10, color:"#9CA3AF", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{t.artist}</div>
@@ -1025,7 +1019,7 @@ function HomeScreen({ tracks, onPlayRadio, onTogglePlay, onPlayTrack, currentTra
       {/* Energy-matched shelf */}
       {showEnergy && (
         <div style={{ marginBottom:8 }}>
-          <ShelfLabel>{energyLabel} energy · E{eMin}–{eMax}</ShelfLabel>
+          <ShelfLabel>{energyLabel} picks</ShelfLabel>
           <HorizShelf items={energyMatched}/>
         </div>
       )}
@@ -1248,7 +1242,7 @@ function FavoritesScreen({ tracks, onPlay, onLike, currentTrack, isPlaying, user
           {/* Right now — time-based */}
           {timeRecs.length > 0 && (
             <div style={{ marginBottom:16 }}>
-              <div style={{ padding:"0 16px", marginBottom:8 }}><SectionHead>{timeLabel} listening · E{eMin}–{eMax}</SectionHead></div>
+              <div style={{ padding:"0 16px", marginBottom:8 }}><SectionHead>{timeLabel} picks</SectionHead></div>
               <div style={{ display:"flex", gap:10, overflowX:"auto", padding:"0 16px 8px" }}>
                 {timeRecs.slice(0,8).map(t => (
                   <div key={t.id} onClick={()=>onPlay(t)} style={{ flexShrink:0, width:90, cursor:"pointer" }}>
@@ -1270,7 +1264,7 @@ function FavoritesScreen({ tracks, onPlay, onLike, currentTrack, isPlaying, user
                 <div key={mood} onClick={()=>{setView("genres");setGenreFilter(null);setMoodFilter(mood);}}
                   style={{ padding:"16px 14px", borderRadius:14, background:"rgba(255,255,255,0.5)", backdropFilter:"blur(24px)", border:"1px solid rgba(255,255,255,0.5)", cursor:"pointer", transition:"all 0.2s" }}>
                   <div style={{ fontSize:14, fontWeight:600, color:"#1A1D26" }}>{mood}</div>
-                  <div style={{ fontSize:10, color:"#9CA3AF", marginTop:4 }}>{moods[mood].length} tracks · E{mood==="Calm"?"1–3":mood==="Focus"?"3–5":mood==="Upbeat"?"5–7":mood==="High Energy"?"7–9":"9–10"}</div>
+                  <div style={{ fontSize:10, color:"#9CA3AF", marginTop:4 }}>{moods[mood].length} tracks</div>
                 </div>
               ))}
             </div>
@@ -1423,8 +1417,8 @@ function ProfileScreen({ user, setUser, tracks, onLogout }) {
               <div style={{ fontSize:10, color:"#9CA3AF", letterSpacing:1, marginTop:2, fontWeight:600, textTransform:"uppercase" }}>saved</div>
             </div>
             <div style={{ background:"rgba(255,255,255,0.5)", backdropFilter:"blur(24px)", border:"1px solid rgba(255,255,255,0.5)", borderRadius:14, padding:"16px", boxShadow:"0 1px 4px rgba(0,0,0,0.03)" }}>
-              <div style={{ fontSize:28, fontWeight:700, letterSpacing:-0.5, color:"#1A1D26" }}>{avgEnergy}</div>
-              <div style={{ fontSize:10, color:"#9CA3AF", letterSpacing:1, marginTop:2, fontWeight:600, textTransform:"uppercase" }}>avg energy</div>
+              <div style={{ fontSize:28, fontWeight:700, letterSpacing:-0.5, color:"#1A1D26" }}>{tracks.length}</div>
+              <div style={{ fontSize:10, color:"#9CA3AF", letterSpacing:1, marginTop:2, fontWeight:600, textTransform:"uppercase" }}>tracks</div>
             </div>
             <div style={{ background:"rgba(255,255,255,0.5)", backdropFilter:"blur(24px)", border:"1px solid rgba(255,255,255,0.5)", borderRadius:14, padding:"16px", boxShadow:"0 1px 4px rgba(0,0,0,0.03)" }}>
               <div style={{ fontSize:16, fontWeight:700, color:"#1A1D26" }}>{avgBpm || "—"}</div>
@@ -1545,7 +1539,7 @@ function AdminScreen({ tracks, setTracks, tab, setTab, editTrack, setEditTrack, 
                 <div style={{ fontSize:12, color:"#8E8E93" }}>{t.artist} · {t.genre}</div>
               </div>
               <div style={{ display:"flex", flexDirection:"column", alignItems:"flex-end", gap:2, flexShrink:0 }}>
-                <EnergyBar level={t.energy} color={t.color}/>
+                
                 {t.bpm&&<span style={{ fontSize:9, color:"#9CA3AF", fontWeight:500 }}>{t.bpm}bpm</span>}
               </div>
               <button onClick={()=>setEditTrack(t)} style={{ background:"none",border:"none",cursor:"pointer",color:"#8E8E93",padding:6 }}><Icon name="edit" size={14}/></button>
@@ -1646,7 +1640,7 @@ function NowPlayingBar({ track, isPlaying, progress, duration, onTogglePlay, onS
           <div style={{ fontSize:15, color:"rgba(220,220,225,0.8)", marginTop:4 }}>{track.artist}</div>
           <div style={{ fontSize:12, color:"rgba(200,200,205,0.55)", marginTop:2 }}>{track.album} · {track.genre}</div>
           <div style={{ marginTop:10, display:"flex", justifyContent:"center", alignItems:"center", gap:12 }}>
-            <EnergyBar level={track.energy} color={track.color} size="lg"/>
+            
             
             {track.bpm&&<span style={{ fontSize:12, color:"rgba(200,200,205,0.6)" }}>{track.bpm} BPM</span>}
           </div>
@@ -2268,7 +2262,7 @@ export default function App() {
               </div>
               {/* "Why this track" pill for radio mode */}
               {isRadioMode && currentTrack.energy && (
-                <span style={{ fontSize:9, fontWeight:500, padding:"3px 6px", borderRadius:6, background:"rgba(0,0,0,0.04)", color:"#6B7280", flexShrink:0 }}>E{currentTrack.energy} · {currentTrack.genre||"mix"}</span>
+                <span style={{ fontSize:9, fontWeight:500, padding:"3px 6px", borderRadius:6, background:"rgba(0,0,0,0.04)", color:"#6B7280", flexShrink:0 }}>{currentTrack.genre||"mix"}</span>
               )}
               <div style={{ width:120, height:2, background:"rgba(0,0,0,0.06)", borderRadius:1, flexShrink:0 }}>
                 <div style={{ width:`${duration?((progress/duration)*100):0}%`, height:"100%", background:"#1A1D26", borderRadius:1, transition:"width 1s linear" }}/>
@@ -2298,7 +2292,7 @@ export default function App() {
               {currentTrack.genre && <span style={{ fontSize:10, fontWeight:500, padding:"3px 8px", borderRadius:6, background:"rgba(0,0,0,0.04)", color:"#6B7280" }}>{currentTrack.genre}</span>}
               
               {currentTrack.bpm && <span style={{ fontSize:10, fontWeight:500, padding:"3px 8px", borderRadius:6, background:"rgba(0,0,0,0.04)", color:"#9CA3AF", fontVariantNumeric:"tabular-nums" }}>{currentTrack.bpm}</span>}
-              {currentTrack.energy && <span style={{ fontSize:10, fontWeight:500, padding:"3px 8px", borderRadius:6, background:"rgba(0,0,0,0.04)", color:"#9CA3AF" }}>E{currentTrack.energy}</span>}
+
             </div>
           </div>
         ) : (
