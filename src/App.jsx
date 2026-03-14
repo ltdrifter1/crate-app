@@ -272,6 +272,26 @@ function VerseFlipper({ tracks, onSelect, currentTrack, isPlaying }) {
   const [animDir, setAnimDir]   = useState(null); // "up"|"down"
   const containerRef            = useRef(null);
 
+  useEffect(() => {
+    if (!tracks.length) {
+      setIdx(0);
+      return;
+    }
+    if (idx > tracks.length - 1) {
+      setIdx(tracks.length - 1);
+    }
+  }, [tracks.length, idx]);
+
+  if (!tracks.length) {
+    return (
+      <GlassPanel level='panel' style={{ minHeight: 236, padding: 20, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:12 }}>
+        <BrandGlyph size={34} />
+        <div style={{ fontSize:14, fontWeight:700, color:TOKENS.text.primary }}>No tracks yet</div>
+        <div style={{ fontSize:12, color:TOKENS.text.secondary, textAlign:'center', maxWidth:220 }}>Add tracks in Firestore and the home feed will show up here.</div>
+      </GlassPanel>
+    );
+  }
+
   const t = tracks[idx];
   const prev = tracks[idx-1];
   const next = tracks[idx+1];
@@ -622,6 +642,17 @@ function BrandGlyph({ size=84 }) {
   );
 }
 
+function GoogleGlyph({ size=20 }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 48 48" aria-hidden="true">
+      <path fill="#EA4335" d="M24 9.5c3.54 0 6.74 1.22 9.26 3.6l6.9-6.9C35.95 2.28 30.4 0 24 0 14.62 0 6.53 5.38 2.56 13.22l8.04 6.24C12.53 13.53 17.77 9.5 24 9.5z"/>
+      <path fill="#4285F4" d="M46.98 24.55c0-1.57-.14-3.09-.4-4.55H24v9.02h12.94c-.56 3-2.25 5.54-4.8 7.23l7.73 5.99C44.38 38.1 46.98 31.9 46.98 24.55z"/>
+      <path fill="#FBBC05" d="M10.6 28.54a14.5 14.5 0 0 1 0-9.08l-8.04-6.24A23.95 23.95 0 0 0 0 24c0 3.86.92 7.51 2.56 10.78l8.04-6.24z"/>
+      <path fill="#34A853" d="M24 48c6.4 0 11.77-2.11 15.69-5.76l-7.73-5.99c-2.15 1.44-4.9 2.3-7.96 2.3-6.23 0-11.47-4.03-13.4-9.96l-8.04 6.24C6.53 42.62 14.62 48 24 48z"/>
+    </svg>
+  );
+}
+
 // ─── LOGIN SCREEN — wired to real Firebase auth ───────────────────────────────
 function LoginScreen({ onSignUp, onLogIn, onGoogleSignIn, onPhoneOTP, onVerifyOTP, onResetPassword }) {
   const [mode, setMode] = useState("login");
@@ -772,11 +803,30 @@ function LoginScreen({ onSignUp, onLogIn, onGoogleSignIn, onPhoneOTP, onVerifyOT
           <div style={{ display:"grid", gridTemplateColumns:"repeat(3, 1fr)", gap:8 }}>
             {[
               { id:"email", label:"Email" },
-              { id:"google", label:"Google" },
+              { id:"google", label:"Google", icon:true },
               { id:"phone", label:"Phone" },
             ].map(item => (
-              <button key={item.id} onClick={() => switchMethod(item.id)} style={{ border:"1px solid rgba(255,255,255,0.6)", background:authMethod===item.id?"rgba(109,188,255,0.16)":"rgba(255,255,255,0.08)", color:authMethod===item.id?"#34517E":"rgba(37,52,78,0.66)", borderRadius:14, padding:"10px 12px", fontWeight:600, cursor:"pointer" }}>
-                {item.label}
+              <button
+                key={item.id}
+                onClick={() => switchMethod(item.id)}
+                title={item.label}
+                aria-label={item.label}
+                style={{
+                  border:"1px solid rgba(255,255,255,0.6)",
+                  background:authMethod===item.id?"rgba(109,188,255,0.16)":"rgba(255,255,255,0.08)",
+                  color:authMethod===item.id?"#34517E":"rgba(37,52,78,0.66)",
+                  borderRadius:14,
+                  padding:"10px 12px",
+                  fontWeight:600,
+                  cursor:"pointer",
+                  minHeight:46,
+                  display:'flex',
+                  alignItems:'center',
+                  justifyContent:'center',
+                  gap:8,
+                }}
+              >
+                {item.id === "google" ? <GoogleGlyph size={18} /> : item.label}
               </button>
             ))}
           </div>
@@ -799,11 +849,23 @@ function LoginScreen({ onSignUp, onLogIn, onGoogleSignIn, onPhoneOTP, onVerifyOT
 
           {authMethod === "google" && (
             <>
-              <div style={{ padding:"14px 16px", borderRadius:18, background:"rgba(255,255,255,0.08)", border:"1px solid rgba(255,255,255,0.14)", color:"rgba(37,52,78,0.72)", fontSize:14, lineHeight:1.45 }}>
-                Continue with your Google account. This uses Firebase popup auth and drops you straight into the app.
-              </div>
-              <button onClick={handleGoogleSignIn} disabled={loading} style={{ ...BTN_PRIMARY, opacity:loading ? 0.7 : 1 }}>
-                {loading ? "Please wait…" : "Continue with Google"}
+              <button
+                onClick={handleGoogleSignIn}
+                disabled={loading}
+                title="Continue with Google"
+                aria-label="Continue with Google"
+                style={{
+                  ...BTN_PRIMARY,
+                  opacity:loading ? 0.7 : 1,
+                  width:'100%',
+                  minHeight:54,
+                  display:'flex',
+                  alignItems:'center',
+                  justifyContent:'center',
+                  gap:10,
+                }}
+              >
+                {loading ? <span style={{ fontSize:14, fontWeight:700 }}>…</span> : <GoogleGlyph size={22} />}
               </button>
             </>
           )}
@@ -1768,7 +1830,7 @@ export default function App() {
 
         {/* User footer */}
         <div style={{ padding:"14px 0 0", borderTop:"1px solid rgba(255,255,255,0.52)", display:"flex", justifyContent:"center" }}>
-          <div title={user.name} style={{ width:42, height:42, borderRadius:"50%", background:"linear-gradient(180deg, rgba(255,255,255,0.7), rgba(255,255,255,0.28))", border:"1px solid rgba(255,255,255,0.72)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:17, boxShadow:"0 10px 24px rgba(113,143,192,0.12)", backdropFilter:"blur(20px)" }}>{user.image}</div>
+          <div title={user.name} style={{ width:42, height:42, borderRadius:"50%", background:"linear-gradient(180deg, rgba(255,255,255,0.7), rgba(255,255,255,0.28))", border:"1px solid rgba(255,255,255,0.72)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:17, boxShadow:"0 10px 24px rgba(113,143,192,0.12)", backdropFilter:"blur(20px)", overflow:'hidden' }}>{typeof user.image === 'string' && /^https?:/i.test(user.image) ? <img src={user.image} alt="" style={{ width:'100%', height:'100%', objectFit:'cover' }} /> : user.image}</div>
         </div>
       </div>
 
