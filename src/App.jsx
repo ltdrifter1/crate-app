@@ -533,7 +533,7 @@ function TrackRow({ track, onPlay, active, isPlaying, onLike, extraAction, playl
       {/* ── Dropdown menu ── */}
       {menuOpen && (
         <div onClick={e=>e.stopPropagation()}
-          style={{ position:"absolute", right:8, top:44, zIndex:50, background:"rgba(255,255,255,0.85)", backdropFilter:"blur(32px) saturate(180%)", border:"1px solid rgba(255,255,255,0.6)", borderRadius:16, padding:"6px 0", minWidth:200, boxShadow:"0 12px 48px rgba(0,0,0,0.1)" }}>
+          style={{ position:"absolute", right:8, top:44, zIndex:50, background:"rgba(255,255,255,0.35)", backdropFilter:"blur(48px) saturate(220%)", border:"1px solid rgba(255,255,255,0.35)", borderRadius:16, padding:"6px 0", minWidth:200, boxShadow:"0 12px 48px rgba(0,0,0,0.1)" }}>
 
           {/* Add to existing playlists */}
           {ctx.playlists.length > 0 && (
@@ -929,6 +929,72 @@ function RouteBuilderModal({ tracks, onClose, onPlayRoute }) {
   );
 }
 
+// ── Shelf primitives — defined outside HomeScreen to prevent remount flashing ──
+const GlassSection = ({label, children}) => (
+  <div style={{ margin:"0 16px 16px", background:"rgba(255,255,255,0.2)", backdropFilter:"blur(40px) saturate(200%)", border:"1px solid rgba(255,255,255,0.3)", borderRadius:20, overflow:"hidden" }}>
+    {label && <div style={{ fontSize:10, fontWeight:600, letterSpacing:1.5, color:"#9CA3AF", textTransform:"uppercase", padding:"14px 16px 0" }}>{label}</div>}
+    <div style={{ padding:"12px 0 4px" }}>{children}</div>
+  </div>
+);
+
+function HorizShelf({ items, onPlay, activeId }) {
+  return (
+    <div className="hide-scroll" style={{ display:"flex", gap:10, overflowX:"auto", padding:"0 16px 12px" }}>
+      {items.map(t => (
+        <div key={t.id} onClick={()=>onPlay(t)} style={{ flexShrink:0, width:110, cursor:"pointer" }}>
+          <div style={{ width:110, height:110, borderRadius:10, overflow:"hidden", marginBottom:6, position:"relative",
+            boxShadow: activeId===t.id ? "0 0 0 2px #1A1D26" : "0 1px 6px rgba(0,0,0,0.06)",
+            opacity: activeId===t.id ? 1 : 0.92,
+            transition:"box-shadow 0.3s, opacity 0.3s" }}>
+            <AlbumArt track={t} size={110} borderRadius={0}/>
+          </div>
+          <div style={{ fontSize:11, fontWeight:activeId===t.id?600:400, color:"#1A1D26", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{t.title}</div>
+          <div style={{ fontSize:10, color:"#9CA3AF", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{t.artist}</div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function GridShelf({ items, onPlay, activeId }) {
+  return (
+    <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill, minmax(100px, 1fr))", gap:10, padding:"0 16px 12px" }}>
+      {items.map(t => (
+        <div key={t.id} onClick={()=>onPlay(t)} style={{ cursor:"pointer", minWidth:0 }}>
+          <div style={{ width:"100%", aspectRatio:"1", borderRadius:8, overflow:"hidden", marginBottom:4, position:"relative",
+            boxShadow: activeId===t.id ? "0 0 0 2px #1A1D26" : "0 1px 4px rgba(0,0,0,0.05)",
+            opacity: activeId===t.id ? 1 : 0.92,
+            transition:"box-shadow 0.3s, opacity 0.3s" }}>
+            <AlbumArt track={t} size={200} borderRadius={0}/>
+          </div>
+          <div style={{ fontSize:10, fontWeight:activeId===t.id?600:400, color:"#1A1D26", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{t.title}</div>
+          <div style={{ fontSize:9, color:"#9CA3AF", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{t.artist}</div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function CrateShelf({ items, onPlay, activeId }) {
+  return (
+    <div className="hide-scroll" style={{ display:"flex", gap:3, overflowX:"auto", padding:"0 14px 10px" }}>
+      {items.map(t => (
+        <div key={t.id} onClick={()=>onPlay(t)}
+          style={{ flexShrink:0, width:72, cursor:"pointer",
+            transform: activeId===t.id ? "translateY(-4px)" : "none",
+            transition:"transform 0.25s cubic-bezier(0.22,1,0.36,1)" }}>
+          <div style={{ width:72, height:72, borderRadius:3, overflow:"hidden", position:"relative",
+            boxShadow: activeId===t.id
+              ? "0 4px 16px rgba(0,0,0,0.15), 0 0 0 2px #1A1D26"
+              : "0 1px 2px rgba(0,0,0,0.08), -1px 0 0 rgba(0,0,0,0.03)" }}>
+            <AlbumArt track={t} size={72} borderRadius={0}/>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 function HomeScreen({ tracks, onPlayRadio, onTogglePlay, onPlayTrack, currentTrack, isPlaying, onLike, isRadioMode, playlistCtx }) {
   const hour = new Date().getHours();
   const greeting = hour<12?"Good Morning":hour<18?"Good Afternoon":"Good Evening";
@@ -947,51 +1013,7 @@ function HomeScreen({ tracks, onPlayRadio, onTogglePlay, onPlayTrack, currentTra
     ? singles.filter(t => t.id !== currentTrack.id && camelotCompatible(currentTrack.camelot, t.camelot, 1) && Math.abs((t.energy||5)-(currentTrack.energy||5)) <= 3).slice(0,12)
     : [];
 
-  // ── Glass container for sections ──
-  const GlassSection = ({label, children}) => (
-    <div style={{ margin:"0 16px 16px", background:"rgba(255,255,255,0.45)", backdropFilter:"blur(32px) saturate(160%)", border:"1px solid rgba(255,255,255,0.55)", borderRadius:20, overflow:"hidden" }}>
-      {label && <div style={{ fontSize:10, fontWeight:600, letterSpacing:1.5, color:"#9CA3AF", textTransform:"uppercase", padding:"14px 16px 0" }}>{label}</div>}
-      <div style={{ padding:"12px 0 4px" }}>{children}</div>
-    </div>
-  );
-
-  const ShelfLabel = ({children}) => (
-    <div style={{ fontSize:10, fontWeight:600, letterSpacing:1.5, color:"#9CA3AF", textTransform:"uppercase", padding:"0 16px", marginBottom:8 }}>{children}</div>
-  );
-
-  const HorizShelf = ({items}) => (
-    <div className="hide-scroll" style={{ display:"flex", gap:10, overflowX:"auto", padding:"0 16px 12px" }}>
-      {items.map(t => (
-        <div key={t.id} onClick={()=>onPlayTrack(t,tracks)} style={{ flexShrink:0, width:110, cursor:"pointer" }}>
-          <div style={{ width:110, height:110, borderRadius:10, overflow:"hidden", marginBottom:6, position:"relative",
-            boxShadow: currentTrack?.id===t.id ? "0 0 0 2px #1A1D26" : "0 1px 6px rgba(0,0,0,0.06)",
-            opacity: currentTrack?.id===t.id ? 1 : 0.92,
-            transition:"box-shadow 0.3s, opacity 0.3s" }}>
-            <AlbumArt track={t} size={110} borderRadius={0}/>
-          </div>
-          <div style={{ fontSize:11, fontWeight:currentTrack?.id===t.id?600:400, color:"#1A1D26", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{t.title}</div>
-          <div style={{ fontSize:10, color:"#9CA3AF", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{t.artist}</div>
-        </div>
-      ))}
-    </div>
-  );
-
-  const GridShelf = ({items}) => (
-    <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill, minmax(100px, 1fr))", gap:10, padding:"0 16px 12px" }}>
-      {items.map(t => (
-        <div key={t.id} onClick={()=>onPlayTrack(t,tracks)} style={{ cursor:"pointer", minWidth:0 }}>
-          <div style={{ width:"100%", aspectRatio:"1", borderRadius:8, overflow:"hidden", marginBottom:4, position:"relative",
-            boxShadow: currentTrack?.id===t.id ? "0 0 0 2px #1A1D26" : "0 1px 4px rgba(0,0,0,0.05)",
-            opacity: currentTrack?.id===t.id ? 1 : 0.92,
-            transition:"box-shadow 0.3s, opacity 0.3s" }}>
-            <AlbumArt track={t} size={200} borderRadius={0}/>
-          </div>
-          <div style={{ fontSize:10, fontWeight:currentTrack?.id===t.id?600:400, color:"#1A1D26", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{t.title}</div>
-          <div style={{ fontSize:9, color:"#9CA3AF", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{t.artist}</div>
-        </div>
-      ))}
-    </div>
-  );
+  const activeId = currentTrack?.id;
 
   // Smart section prioritization — max 4 sections below radio
   const hasHarmonic = harmonicNeighbors.length > 0;
@@ -1023,42 +1045,28 @@ function HomeScreen({ tracks, onPlayRadio, onTogglePlay, onPlayTrack, currentTra
       {/* Harmonic neighbors — highest priority when playing */}
       {showHarmonic && (
         <GlassSection label="mixes well with this">
-          <GridShelf items={harmonicNeighbors}/>
+          <GridShelf items={harmonicNeighbors} onPlay={t=>onPlayTrack(t,tracks)} activeId={activeId}/>
         </GlassSection>
       )}
 
       {/* Energy-matched shelf */}
       {showEnergy && (
         <GlassSection label={`${energyLabel} picks`}>
-          <HorizShelf items={energyMatched}/>
+          <HorizShelf items={energyMatched} onPlay={t=>onPlayTrack(t,tracks)} activeId={activeId}/>
         </GlassSection>
       )}
 
       {/* CD Shelf */}
       {showFlipper && (
         <GlassSection label={`the crate · ${singles.length} records`}>
-          <div className="hide-scroll" style={{ display:"flex", gap:3, overflowX:"auto", padding:"0 14px 10px" }}>
-            {singles.slice(0,40).map(t => (
-              <div key={t.id} onClick={()=>onPlayTrack(t,tracks)}
-                style={{ flexShrink:0, width:72, cursor:"pointer",
-                  transform: currentTrack?.id===t.id ? "translateY(-4px)" : "none",
-                  transition:"transform 0.25s cubic-bezier(0.22,1,0.36,1)" }}>
-                <div style={{ width:72, height:72, borderRadius:3, overflow:"hidden", position:"relative",
-                  boxShadow: currentTrack?.id===t.id
-                    ? "0 4px 16px rgba(0,0,0,0.15), 0 0 0 2px #1A1D26"
-                    : "0 1px 2px rgba(0,0,0,0.08), -1px 0 0 rgba(0,0,0,0.03)" }}>
-                  <AlbumArt track={t} size={72} borderRadius={0}/>
-                </div>
-              </div>
-            ))}
-          </div>
+          <CrateShelf items={singles.slice(0,40)} onPlay={t=>onPlayTrack(t,tracks)} activeId={activeId}/>
         </GlassSection>
       )}
 
       {/* Recently liked */}
       {showLiked && (
         <GlassSection label="recently saved">
-          <HorizShelf items={recentlyLiked}/>
+          <HorizShelf items={recentlyLiked} onPlay={t=>onPlayTrack(t,tracks)} activeId={activeId}/>
         </GlassSection>
       )}
 
@@ -1667,7 +1675,7 @@ function NowPlayingBar({ track, isPlaying, progress, duration, onTogglePlay, onS
 
   return (
     <div style={{ position:"fixed", bottom:56, left:0, right:0, zIndex:80, padding:"0 8px" }}>
-      <div onClick={()=>setExpanded(true)} style={{ background:"rgba(255,255,255,0.65)", backdropFilter:"blur(48px) saturate(200%)", borderRadius:16, padding:"8px 12px", display:"flex", alignItems:"center", gap:10, border:"1px solid rgba(255,255,255,0.6)", boxShadow:`0 8px 32px rgba(0,0,0,0.06), 0 0 40px rgba(${hexToRgbStr(track.color)},0.06)`, cursor:"pointer" }}>
+      <div onClick={()=>setExpanded(true)} style={{ background:"rgba(255,255,255,0.28)", backdropFilter:"blur(56px) saturate(220%)", borderRadius:16, padding:"8px 12px", display:"flex", alignItems:"center", gap:10, border:"1px solid rgba(255,255,255,0.32)", boxShadow:`0 8px 32px rgba(0,0,0,0.06), 0 0 40px rgba(${hexToRgbStr(track.color)},0.06)`, cursor:"pointer" }}>
         <div style={{ width:42, height:42, borderRadius:10, overflow:"hidden", flexShrink:0, boxShadow:"0 2px 8px rgba(0,0,0,0.1)" }}><AlbumArt track={track} size={42} borderRadius={0}/></div>
         <div style={{ flex:1, minWidth:0 }}>
           <div style={{ fontSize:14, fontWeight:600, color:"#1C1C1E", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
@@ -1697,7 +1705,7 @@ function BottomNav({ screen, setScreen }) {
     {id:"admin",label:"Admin",icon:"settings"},
   ];
   return (
-    <div style={{ position:"fixed", bottom:0, left:0, right:0, height:52, background:"rgba(255,255,255,0.5)", backdropFilter:"blur(40px) saturate(200%)", borderTop:"1px solid rgba(255,255,255,0.5)", display:"flex", zIndex:85 }}>
+    <div style={{ position:"fixed", bottom:0, left:0, right:0, height:52, background:"rgba(255,255,255,0.22)", backdropFilter:"blur(48px) saturate(220%)", borderTop:"1px solid rgba(255,255,255,0.28)", display:"flex", zIndex:85 }}>
       {items.map(({id,icon,label})=>(
         <button key={id} onClick={()=>setScreen(id)} style={{ flex:1,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:3,background:"none",border:"none",cursor:"pointer",color:screen===id?"#1A1D26":"#C4C9D4",transition:"all 0.2s",borderTop:screen===id?"2px solid #1A1D26":"2px solid transparent" }}>
           <Icon name={id==="favorites"?(screen===id?"heart":"heartempty"):icon} size={18}/>
@@ -2186,18 +2194,19 @@ export default function App() {
   const glowRgb = currentTrack ? hexToRgbStr(currentTrack.color) : "200,200,210";
 
   return (
-    <div style={{ display:"flex", height:"100vh", background:"linear-gradient(170deg, #EDEFF5 0%, #F0F1F5 50%, #E9ECF2 100%)", overflow:"hidden", fontFamily:"-apple-system,'SF Pro Display','Helvetica Neue',Arial,sans-serif" }}>
+    <div style={{ display:"flex", height:"100vh", background:"linear-gradient(170deg, #D8DCE6 0%, #DFE2EA 30%, #D5D9E3 60%, #DCDFE8 100%)", overflow:"hidden", fontFamily:"-apple-system,'SF Pro Display','Helvetica Neue',Arial,sans-serif" }}>
 
       {/* ── LEFT NAV RAIL ─────────────────────────────────────────────── */}
-      <div style={{ width:72, flexShrink:0, background:"rgba(255,255,255,0.5)", backdropFilter:"blur(40px) saturate(180%)", borderRight:"1px solid rgba(255,255,255,0.55)", display:"flex", flexDirection:"column", alignItems:"center", padding:"16px 0 16px" }}>
-        <div style={{ marginBottom:24 }}>
-          <BrandGlyph size={28}/>
+      <div style={{ width:72, flexShrink:0, background:"rgba(255,255,255,0.28)", backdropFilter:"blur(48px) saturate(200%)", borderRight:"1px solid rgba(255,255,255,0.35)", display:"flex", flexDirection:"column", alignItems:"center", padding:"16px 0 16px" }}>
+        <div style={{ marginBottom:20, textAlign:"center" }}>
+          <BrandGlyph size={26}/>
+          <div style={{ fontSize:8, fontWeight:600, letterSpacing:1.5, color:"#9CA3AF", textTransform:"uppercase", marginTop:4 }}>V Music</div>
         </div>
         <div style={{ display:"flex", flexDirection:"column", gap:4, flex:1, alignItems:"center" }}>
           {NAV_ITEMS.map(item => (
             <button key={item.id} onClick={()=>setScreen(item.id)} title={item.label} style={{
               width:44, height:44, borderRadius:12,
-              background:screen===item.id?"rgba(0,0,0,0.06)":"none",
+              background:screen===item.id?"rgba(255,255,255,0.25)":"none",
               border:"none",
               color:screen===item.id?"#1A1D26":"#9CA3AF",
               cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center",
@@ -2222,7 +2231,7 @@ export default function App() {
         <button onClick={()=>setShowRouteBuilder(true)} title="Route Builder" style={{ width:44, height:44, borderRadius:12, background:"none", border:"none", color:"#9CA3AF", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", marginBottom:8, transition:"all 0.2s" }}>
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M3 12h4l3-9 4 18 3-9h4"/></svg>
         </button>
-        <div style={{ width:32, height:32, borderRadius:"50%", background:"rgba(255,255,255,0.7)", border:"1px solid rgba(255,255,255,0.6)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:14, cursor:"pointer" }} onClick={()=>setScreen("profile")} title={user.name}>
+        <div style={{ width:32, height:32, borderRadius:"50%", background:"rgba(255,255,255,0.25)", border:"1px solid rgba(255,255,255,0.3)", backdropFilter:"blur(20px)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:14, cursor:"pointer" }} onClick={()=>setScreen("profile")} title={user.name}>
           {user.image}
         </div>
       </div>
@@ -2252,7 +2261,7 @@ export default function App() {
         {/* Desktop mini-player bar */}
         {currentTrack && (
           <div style={{ position:"fixed", bottom:0, left:72, right:320, zIndex:80, padding:"0 16px 12px" }}>
-            <div onClick={()=>setExpanded(true)} style={{ background:"rgba(255,255,255,0.65)", backdropFilter:"blur(48px) saturate(200%)", borderRadius:16, padding:"10px 16px", display:"flex", alignItems:"center", gap:12, border:"1px solid rgba(255,255,255,0.6)", boxShadow:`0 8px 32px rgba(0,0,0,0.06), 0 0 40px rgba(${glowRgb},0.06)`, cursor:"pointer" }}>
+            <div onClick={()=>setExpanded(true)} style={{ background:"rgba(255,255,255,0.3)", backdropFilter:"blur(56px) saturate(220%)", borderRadius:16, padding:"10px 16px", display:"flex", alignItems:"center", gap:12, border:"1px solid rgba(255,255,255,0.35)", boxShadow:`0 8px 32px rgba(0,0,0,0.06), 0 0 40px rgba(${glowRgb},0.06)`, cursor:"pointer" }}>
               <div style={{ width:44, height:44, borderRadius:10, overflow:"hidden", flexShrink:0, boxShadow:`0 2px 12px rgba(${glowRgb},0.2)` }}><AlbumArt track={currentTrack} size={44} borderRadius={0}/></div>
               <div style={{ flex:1, minWidth:0 }}>
                 <div style={{ fontSize:14, fontWeight:600, color:"#1A1D26", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
@@ -2280,10 +2289,10 @@ export default function App() {
       </div>
 
       {/* ── RIGHT PANEL — Queue & Now Playing ─────────────────────────── */}
-      <div style={{ width:320, flexShrink:0, background:"rgba(255,255,255,0.45)", backdropFilter:"blur(40px) saturate(180%)", borderLeft:"1px solid rgba(255,255,255,0.5)", display:"flex", flexDirection:"column", overflowY:"auto" }}>
+      <div style={{ width:320, flexShrink:0, background:"rgba(255,255,255,0.22)", backdropFilter:"blur(48px) saturate(200%)", borderLeft:"1px solid rgba(255,255,255,0.3)", display:"flex", flexDirection:"column", overflowY:"auto" }}>
         {/* Now Playing artwork + info */}
         {currentTrack ? (
-          <div style={{ padding:16, borderBottom:"1px solid rgba(255,255,255,0.4)" }}>
+          <div style={{ padding:16, borderBottom:"1px solid rgba(255,255,255,0.2)" }}>
             <div style={{ position:"relative", width:"100%", aspectRatio:"1", borderRadius:16, overflow:"hidden", marginBottom:16, boxShadow:`0 8px 32px rgba(${glowRgb},0.15), 0 2px 8px rgba(0,0,0,0.06)` }}>
               <img src={currentTrack.albumCover||"/covers/default.jpg"} alt="" style={{ width:"100%", height:"100%", objectFit:"cover" }} onError={e=>{e.target.src="/covers/default.jpg";}}/>
             </div>
@@ -2303,22 +2312,38 @@ export default function App() {
           </div>
         )}
 
-        {/* Queue / Next Up */}
+        {/* Queue / Next Up — draggable */}
         <div style={{ flex:1, padding:"12px 12px" }}>
-          <div style={{ fontSize:10, fontWeight:600, letterSpacing:1.5, color:"#9CA3AF", textTransform:"uppercase", marginBottom:8, padding:"0 4px" }}>{isRadioMode ? "up next · smart mix" : "up next"}</div>
-          <div style={{ display:"flex", flexDirection:"column", gap:2 }}>
+          <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:8, padding:"0 4px" }}>
+            <div style={{ fontSize:10, fontWeight:600, letterSpacing:1.5, color:"#9CA3AF", textTransform:"uppercase" }}>{isRadioMode ? "up next · smart mix" : "up next"}</div>
+            {!isRadioMode && queue.length > 0 && (
+              <button onClick={()=>setQueue([])} style={{ background:"none", border:"none", cursor:"pointer", color:"#C4C9D4", fontSize:10, fontWeight:500 }}>clear</button>
+            )}
+          </div>
+          <div style={{ display:"flex", flexDirection:"column", gap:1 }}>
             {nextUpTracks.map((t,i) => (
-              <div key={t.id} onClick={()=>playTrack(t,tracks)} style={{ display:"flex", alignItems:"center", gap:8, cursor:"pointer", padding:"6px 8px", borderRadius:10, transition:"background 0.15s", background:currentTrack?.id===t.id?"rgba(0,0,0,0.04)":"transparent" }}>
-                <div style={{ fontSize:11, color:"#C4C9D4", width:16, textAlign:"right", fontVariantNumeric:"tabular-nums", flexShrink:0 }}>{i+1}</div>
-                <div style={{ width:36, height:36, borderRadius:8, overflow:"hidden", flexShrink:0, boxShadow:"0 1px 3px rgba(0,0,0,0.06)" }}>
-                  <img src={t.albumCover||"/covers/default.jpg"} alt="" style={{ width:"100%", height:"100%", objectFit:"cover" }} onError={e=>{e.target.src="/covers/default.jpg";}}/>
+              <div key={t.id} style={{ display:"flex", alignItems:"center", gap:6, padding:"5px 6px", borderRadius:10, transition:"background 0.15s", background:currentTrack?.id===t.id?"rgba(255,255,255,0.2)":"transparent" }}>
+                {/* Reorder buttons */}
+                {!isRadioMode && (
+                  <div style={{ display:"flex", flexDirection:"column", gap:0, flexShrink:0 }}>
+                    <button onClick={e=>{e.stopPropagation(); if(i>0){const nq=[...nextUpTracks];[nq[i-1],nq[i]]=[nq[i],nq[i-1]];setQueue(nq);}}}
+                      style={{ background:"none", border:"none", cursor:i>0?"pointer":"default", color:i>0?"#9CA3AF":"transparent", padding:0, lineHeight:1, fontSize:10 }}>▲</button>
+                    <button onClick={e=>{e.stopPropagation(); if(i<nextUpTracks.length-1){const nq=[...nextUpTracks];[nq[i],nq[i+1]]=[nq[i+1],nq[i]];setQueue(nq);}}}
+                      style={{ background:"none", border:"none", cursor:i<nextUpTracks.length-1?"pointer":"default", color:i<nextUpTracks.length-1?"#9CA3AF":"transparent", padding:0, lineHeight:1, fontSize:10 }}>▼</button>
+                  </div>
+                )}
+                <div style={{ fontSize:10, color:"#C4C9D4", width:14, textAlign:"right", fontVariantNumeric:"tabular-nums", flexShrink:0 }}>{i+1}</div>
+                <div onClick={()=>playTrack(t,tracks)} style={{ display:"flex", alignItems:"center", gap:8, flex:1, minWidth:0, cursor:"pointer" }}>
+                  <div style={{ width:34, height:34, borderRadius:6, overflow:"hidden", flexShrink:0, boxShadow:"0 1px 3px rgba(0,0,0,0.06)" }}>
+                    <img src={t.albumCover||"/covers/default.jpg"} alt="" style={{ width:"100%", height:"100%", objectFit:"cover" }} onError={e=>{e.target.src="/covers/default.jpg";}}/>
+                  </div>
+                  <div style={{ flex:1, minWidth:0 }}>
+                    <div style={{ fontSize:11, fontWeight:500, color:"#1A1D26", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{t.title}</div>
+                    <div style={{ fontSize:10, color:"#9CA3AF", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{t.artist}</div>
+                  </div>
                 </div>
-                <div style={{ flex:1, minWidth:0 }}>
-                  <div style={{ fontSize:12, fontWeight:500, color:"#1A1D26", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{t.title}</div>
-                  <div style={{ fontSize:11, color:"#9CA3AF", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{t.artist}</div>
-                </div>
-                {isRadioMode && t.genre && (
-                  <span style={{ fontSize:9, fontWeight:500, padding:"2px 5px", borderRadius:4, background:"rgba(0,0,0,0.03)", color:"#9CA3AF", flexShrink:0 }}>{t.genre}</span>
+                {t.genre && (
+                  <span style={{ fontSize:8, fontWeight:500, padding:"2px 4px", borderRadius:4, background:"rgba(255,255,255,0.15)", color:"#9CA3AF", flexShrink:0 }}>{t.genre}</span>
                 )}
               </div>
             ))}
@@ -2371,7 +2396,7 @@ export default function App() {
 
 // ─── SHARED STYLES ────────────────────────────────────────────────────────────
 const APP_STYLE = {
-  background:"linear-gradient(165deg, #EBEEF5 0%, #E8EBF2 40%, #F0F1F5 100%)",
+  background:"linear-gradient(170deg, #D8DCE6 0%, #DFE2EA 30%, #D5D9E3 60%, #DCDFE8 100%)",
   minHeight:"100vh", height:"100vh", overflow:"hidden",
   fontFamily:"-apple-system,'SF Pro Display','SF Pro Text','Helvetica Neue',Arial,sans-serif",
   color:"#1C1C1E", position:"relative", display:"flex", flexDirection:"column",
