@@ -55,15 +55,32 @@ export function useAuth() {
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, async (fbUser) => {
-      if (fbUser) {
-        setFirebaseUser(fbUser);
-        const snap = await getDoc(doc(db, "users", fbUser.uid));
-        setProfile(snap.exists() ? snap.data() : null);
-      } else {
-        setFirebaseUser(null);
+      try {
+        if (fbUser) {
+          setFirebaseUser(fbUser);
+          const userRef = doc(db, "users", fbUser.uid);
+          const snap = await getDoc(userRef);
+          if (snap.exists()) {
+            setProfile(snap.data());
+          } else {
+            const createdProfile = await createProfile(fbUser.uid, {
+              email: fbUser.email,
+              displayName: fbUser.displayName,
+              profileImage: fbUser.photoURL || "🎧",
+            });
+            setProfile(createdProfile);
+          }
+        } else {
+          setFirebaseUser(null);
+          setProfile(null);
+        }
+      } catch (error) {
+        console.error("Auth state bootstrap failed:", error);
+        setFirebaseUser(fbUser || null);
         setProfile(null);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     });
     return unsub;
   }, []);
@@ -77,8 +94,17 @@ export function useAuth() {
 
   async function logIn(email, password) {
     const cred = await signInWithEmailAndPassword(auth, email, password);
-    const snap = await getDoc(doc(db, "users", cred.user.uid));
-    if (snap.exists()) setProfile(snap.data());
+    const userRef = doc(db, "users", cred.user.uid);
+    const snap = await getDoc(userRef);
+    if (snap.exists()) {
+      setProfile(snap.data());
+    } else {
+      const createdProfile = await createProfile(cred.user.uid, {
+        email: cred.user.email || email,
+        displayName: cred.user.displayName,
+      });
+      setProfile(createdProfile);
+    }
     return cred.user;
   }
 

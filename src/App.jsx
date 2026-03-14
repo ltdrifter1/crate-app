@@ -91,6 +91,47 @@ function hexToRgbStr(hex) {
   return `${parseInt(hex.slice(1,3),16)},${parseInt(hex.slice(3,5),16)},${parseInt(hex.slice(5,7),16)}`;
 }
 
+function safeText(value, fallback = "") {
+  return typeof value === "string" ? value : (value == null ? fallback : String(value));
+}
+
+function normalizeTrack(track = {}, id = "") {
+  const title = safeText(track.title, "Untitled Track");
+  const artist = safeText(track.artist, "Unknown Artist");
+  const album = safeText(track.album, "Unknown Release");
+  const genre = safeText(track.genre, "");
+  const camelot = safeText(track.camelot, "");
+  const audioUrl = safeText(track.audioUrl, "");
+  const albumCover = safeText(track.albumCover, "");
+  const color = /^#[0-9A-Fa-f]{6}$/.test(track.color || "") ? track.color : "#8B95A7";
+  const duration = Number.isFinite(Number(track.duration)) ? Number(track.duration) : 0;
+  const energy = Number.isFinite(Number(track.energy)) ? Number(track.energy) : 5;
+  const bpm = Number.isFinite(Number(track.bpm)) ? Number(track.bpm) : null;
+  const playCount = Number.isFinite(Number(track.playCount)) ? Number(track.playCount) : 0;
+  const likeCount = Number.isFinite(Number(track.likeCount)) ? Number(track.likeCount) : 0;
+  const skipCount = Number.isFinite(Number(track.skipCount)) ? Number(track.skipCount) : 0;
+
+  return {
+    ...track,
+    id: safeText(track.id || id, id),
+    title,
+    artist,
+    album,
+    genre,
+    camelot,
+    audioUrl,
+    albumCover,
+    color,
+    duration,
+    energy,
+    bpm,
+    playCount,
+    likeCount,
+    skipCount,
+    liked: Boolean(track.liked),
+  };
+}
+
 const TOKENS = {
   space: { xs:4, sm:8, md:12, lg:16, xl:24 },
   radius: { sm:12, md:16, lg:20, xl:24, pill:999 },
@@ -224,7 +265,7 @@ function AlbumArt({ track, size=300, borderRadius=0 }) {
     return (
       <div style={{ width:size, height:size, borderRadius, flexShrink:0, background:`linear-gradient(135deg,rgba(${hexToRgbStr(track.color)},0.5),rgba(${hexToRgbStr(track.color)},0.1))`, display:"flex", alignItems:"center", justifyContent:"center" }}>
         <div style={{ fontSize:size*0.25, fontWeight:700, color:`rgba(${hexToRgbStr(track.color)},0.7)`, letterSpacing:-2 }}>
-          {track.title.charAt(0)}{track.artist.charAt(0)}
+          {safeText(track.title, "U").charAt(0)}{safeText(track.artist, "A").charAt(0)}
         </div>
       </div>
     );
@@ -1432,11 +1473,11 @@ export default function App() {
       try {
         const q    = query(collection(db, "tracks"), orderBy("createdAt", "desc"));
         const snap = await getDocs(q);
-        const loaded = snap.docs.map(d => ({
+        const loaded = snap.docs.map(d => normalizeTrack({
           ...d.data(),          // spread data first
-          id:    d.id,          // then override with real Firestore doc ID (never overwritten)
+          id: d.id,             // then override with real Firestore doc ID (never overwritten)
           liked: false,         // default; will be overridden from profile below
-        }));
+        }, d.id));
         setTracks(loaded);
       } catch (err) {
         console.error("Failed to load tracks:", err);
@@ -1451,7 +1492,7 @@ export default function App() {
   useEffect(() => {
     if (!profile || !tracks.length) return;
     const likedSet = new Set(profile.likedTracks || []);
-    setTracks(prev => prev.map(t => ({ ...t, liked: likedSet.has(t.id) })));
+    setTracks(prev => prev.map(t => normalizeTrack({ ...t, liked: likedSet.has(t.id) }, t.id)));
     if (profile.playlists) setUserPlaylists(profile.playlists);
   }, [profile?.likedTracks, tracks.length]);
 
@@ -1681,7 +1722,7 @@ export default function App() {
     const delta = nowLiked ? 1 : -1;
 
     // Update local state immediately so the heart feels instant
-    setTracks(prev => prev.map(t => t.id === id ? {...t, liked: nowLiked, likeCount: Math.max(0,(t.likeCount||0)+delta)} : t));
+    setTracks(prev => prev.map(t => t.id === id ? normalizeTrack({...t, liked: nowLiked, likeCount: Math.max(0,(t.likeCount||0)+delta)}, t.id) : t));
     if (currentTrack?.id === id) setCurrent(t => ({...t, liked: nowLiked}));
 
     // Sync to Firestore in the background
@@ -1693,7 +1734,7 @@ export default function App() {
         await fup(fdoc(db, "tracks", id), { likeCount: finc(delta) });
       } catch(e) {
         // Roll back on failure
-        setTracks(prev => prev.map(t => t.id === id ? {...t, liked: track.liked, likeCount: t.likeCount - delta} : t));
+        setTracks(prev => prev.map(t => t.id === id ? normalizeTrack({...t, liked: track.liked, likeCount: Math.max(0, (t.likeCount || 0) - delta)}, t.id) : t));
         showToast("Couldn't save — check your connection");
       }
     }
@@ -1759,7 +1800,7 @@ export default function App() {
 
   // ── Search ───────────────────────────────────────────────────────────────
   const searchResults = searchQuery.length > 1
-    ? tracks.filter(t => [t.title, t.artist, t.genre, t.camelot || ""].some(v => String(v || "").toLowerCase().includes(searchQuery.toLowerCase())))
+    ? tracks.filter(t => [safeText(t.title), safeText(t.artist), safeText(t.genre), safeText(t.camelot)].some(v => v.toLowerCase().includes(searchQuery.toLowerCase())))
     : [];
 
   // ── Loading states ────────────────────────────────────────────────────────
