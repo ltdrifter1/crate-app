@@ -5,13 +5,13 @@ import { collection, getDocs, query, orderBy, doc, updateDoc } from "firebase/fi
 import { db }                                       from "./firebase";
 
 const injectStyles = () => {
-  if (document.getElementById("vers-app-global-styles")) return;
+  if (document.getElementById("verse-app-global-styles")) return;
   const s = document.createElement("style");
-  s.id = "vers-app-global-styles";
+  s.id = "verse-app-global-styles";
   s.textContent = `
     * { box-sizing: border-box; margin: 0; padding: 0; }
     :root { --font: -apple-system, "SF Pro Display", "SF Pro Text", "Helvetica Neue", Arial, sans-serif; --accent: #8B95A7; }
-    body { font-family: var(--font); background: #F2F2F7; }
+    body { font-family: var(--font); background: #0A0F1E; }
     ::-webkit-scrollbar { width: 6px; }
     ::-webkit-scrollbar-track { background: transparent; }
     ::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.15); border-radius: 3px; }
@@ -175,7 +175,7 @@ function VinylRecord({ track, isPlaying, size=190 }) {
 }
 
 // ─── VERS FLIPPER — vertical, full-bleed album art ────────────────────────────
-function CrateFlipper({ tracks, onSelect, currentTrack, isPlaying }) {
+function VerseFlipper({ tracks, onSelect, currentTrack, isPlaying }) {
   const [idx, setIdx]           = useState(0);
   const [dragY, setDragY]       = useState(0);
   const [dragStart, setDragStart] = useState(null);
@@ -408,7 +408,7 @@ function DeepCutsCard({ onPlay, onTogglePlay, currentTrack, isPlaying, isRadioMo
         </div>
       ) : (
         <div>
-          <div style={{ fontSize:22, fontWeight:700, letterSpacing:-0.3, color:"#1C1C1E" }}>Vers Radio</div>
+          <div style={{ fontSize:22, fontWeight:700, letterSpacing:-0.3, color:"#1C1C1E" }}>VERSE Radio</div>
           <div style={{ fontSize:13, color:"#8E8E93", marginTop:4, marginBottom:14 }}>Tap to tune in</div>
           <button onClick={e=>{e.stopPropagation();onPlay();}} style={{ width:48, height:48, borderRadius:"50%", background:"#8B95A7", border:"none", display:"flex", alignItems:"center", justifyContent:"center", color:"#FFFFFF", cursor:"pointer" }}>
             <Icon name="play" size={22}/>
@@ -546,16 +546,16 @@ function BrandGlyph({ size=84 }) {
   return (
     <svg width={size} height={size} viewBox="0 0 96 96" fill="none" aria-hidden="true">
       <defs>
-        <linearGradient id="crateGlass" x1="12" y1="10" x2="82" y2="86" gradientUnits="userSpaceOnUse">
+        <linearGradient id="verseGlass" x1="12" y1="10" x2="82" y2="86" gradientUnits="userSpaceOnUse">
           <stop stopColor="rgba(255,255,255,0.95)" />
           <stop offset="1" stopColor="rgba(199,208,222,0.35)" />
         </linearGradient>
-        <linearGradient id="crateStroke" x1="16" y1="14" x2="80" y2="84" gradientUnits="userSpaceOnUse">
+        <linearGradient id="verseStroke" x1="16" y1="14" x2="80" y2="84" gradientUnits="userSpaceOnUse">
           <stop stopColor="#F8FAFD" />
           <stop offset="1" stopColor="#8B95A7" />
         </linearGradient>
       </defs>
-      <rect x="10" y="10" width="76" height="76" rx="24" fill="url(#crateGlass)" stroke="url(#crateStroke)" strokeWidth="2"/>
+      <rect x="10" y="10" width="76" height="76" rx="24" fill="url(#verseGlass)" stroke="url(#verseStroke)" strokeWidth="2"/>
       <path d="M29 60L49 28L67 41L47 68L29 60Z" fill="rgba(139,149,167,0.18)" stroke="#6F7A8F" strokeWidth="3" strokeLinejoin="round"/>
       <path d="M38 57L49 40L58 46L47 63L38 57Z" fill="#FFFFFF" fillOpacity="0.8"/>
       <circle cx="68" cy="29" r="6" fill="#C7D0DE" fillOpacity="0.9"/>
@@ -693,42 +693,24 @@ function LoginScreen({ onSignUp, onLogIn, onGoogleSignIn, onPhoneOTP, onVerifyOT
 
   return (
     <div style={APP_STYLE}>
-      <BgMist color="#8B95A7"/>
-      <div style={{ position:"absolute", inset:0, background:"linear-gradient(180deg, rgba(248,250,253,0.72) 0%, rgba(233,237,244,0.4) 100%)", backdropFilter:"blur(28px) saturate(135%)" }} />
+      <BgMist color="#7FB6FF"/>
+      <div style={{ position:"absolute", inset:0, background:"radial-gradient(circle at 20% 10%, rgba(127,182,255,0.12), transparent 28%), radial-gradient(circle at 80% 18%, rgba(162,121,255,0.12), transparent 24%), linear-gradient(180deg, rgba(8,12,24,0.78) 0%, rgba(9,14,28,0.72) 42%, rgba(7,10,20,0.82) 100%)", backdropFilter:"blur(34px) saturate(145%)" }} />
       <div style={{ display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", minHeight:"100%", gap:26, padding:24, position:"relative", zIndex:2 }}>
         <div style={{ textAlign:"center", maxWidth:420 }}>
-          <div style={{ width:96, height:96, borderRadius:28, margin:"0 auto 18px", background:"linear-gradient(135deg, rgba(255,255,255,0.68), rgba(199,208,222,0.24))", border:"1px solid rgba(255,255,255,0.7)", boxShadow:"0 24px 60px rgba(91,101,119,0.16), inset 0 1px 0 rgba(255,255,255,0.8)", display:"flex", alignItems:"center", justifyContent:"center", backdropFilter:"blur(22px) saturate(150%)" }}>
+          <div style={{ width:96, height:96, borderRadius:28, margin:"0 auto 18px", background:"linear-gradient(135deg, rgba(255,255,255,0.24), rgba(127,182,255,0.08) 45%, rgba(162,121,255,0.1) 100%)", border:"1px solid rgba(255,255,255,0.24)", boxShadow:"0 30px 90px rgba(0,0,0,0.36), inset 0 1px 0 rgba(255,255,255,0.34), 0 0 50px rgba(127,182,255,0.12)", display:"flex", alignItems:"center", justifyContent:"center", backdropFilter:"blur(30px) saturate(180%)" }}>
             <BrandGlyph size={76} />
           </div>
-          <div style={{ fontSize:34, fontWeight:700, letterSpacing:-0.8, color:"#111827" }}>Crate</div>
-          <div style={{ color:"#667085", fontSize:14, letterSpacing:0.3, marginTop:8, fontWeight:500 }}>Signal-driven listening with a quieter futuristic skin.</div>
+          <div style={{ fontSize:36, fontWeight:800, letterSpacing:-1.2, color:"#F3F8FF", textTransform:"uppercase" }}>VERSE</div>
+          <div style={{ color:"#667085", fontSize:14, letterSpacing:0.3, marginTop:8, fontWeight:500 }}>Signal-driven listening for a glassy future state.</div>
         </div>
 
-        <div style={{ width:"100%", maxWidth:380, display:"flex", flexDirection:"column", gap:14, padding:18, borderRadius:28, background:"linear-gradient(180deg, rgba(255,255,255,0.62), rgba(255,255,255,0.38))", border:"1px solid rgba(255,255,255,0.72)", boxShadow:"0 20px 60px rgba(91,101,119,0.14)", backdropFilter:"blur(28px) saturate(160%)" }}>
-          <div style={{ display:"flex", background:"rgba(255,255,255,0.58)", borderRadius:16, padding:4, gap:4, border:"1px solid rgba(255,255,255,0.55)" }}>
+        <div style={{ width:"100%", maxWidth:380, display:"flex", flexDirection:"column", gap:14, padding:18, borderRadius:28, background:"linear-gradient(180deg, rgba(255,255,255,0.16), rgba(255,255,255,0.08))", border:"1px solid rgba(255,255,255,0.18)", boxShadow:"0 24px 80px rgba(0,0,0,0.34), inset 0 1px 0 rgba(255,255,255,0.18), 0 0 40px rgba(127,182,255,0.08)", backdropFilter:"blur(34px) saturate(180%)" }}>
+          <div style={{ display:"flex", background:"rgba(255,255,255,0.08)", borderRadius:16, padding:4, gap:4, border:"1px solid rgba(255,255,255,0.14)", backdropFilter:"blur(20px)" }}>
             {["login","signup"].map(m => (
-              <button key={m} onClick={() => { setMode(m); resetMessages(); }} style={{ flex:1, padding:"10px 0", borderRadius:12, border:"none", cursor:"pointer", fontSize:14, fontWeight:600, background:mode===m?"linear-gradient(180deg, rgba(125,179,255,0.96), rgba(84,145,255,0.94))":"transparent", color:mode===m?"#FFFFFF":"#64748B", boxShadow:mode===m?"0 14px 28px rgba(84,145,255,0.22)":"none" }}>
+              <button key={m} onClick={() => { setMode(m); resetMessages(); }} style={{ flex:1, padding:"10px 0", borderRadius:12, border:"none", cursor:"pointer", fontSize:14, fontWeight:600, background:mode===m?"linear-gradient(180deg, rgba(109,188,255,0.92), rgba(78,141,255,0.92))":"transparent", color:mode===m?"#FFFFFF":"rgba(232,240,255,0.72)", boxShadow:mode===m?"0 16px 36px rgba(76,126,255,0.32)":"none" }}>
                 {m === "login" ? "Log In" : "Sign Up"}
               </button>
             ))}
-          </div>
-
-          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10 }}>
-            <button onClick={() => { switchMethod("google"); handleGoogleSignIn(); }} disabled={loading} style={{ ...SOCIAL_BTN, opacity:loading ? 0.7 : 1 }}>
-              <span style={SOCIAL_ICON_WRAP}>
-                <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
-                  <path fill="#4285F4" d="M21.8 12.23c0-.74-.06-1.28-.2-1.84H12v3.48h5.64c-.11.86-.7 2.15-2 3.02l-.02.12 2.9 2.25.2.02c1.84-1.7 2.88-4.2 2.88-7.05Z"/>
-                  <path fill="#34A853" d="M12 22c2.76 0 5.08-.9 6.78-2.44l-3.23-2.5c-.86.6-2.02 1.02-3.55 1.02-2.7 0-4.99-1.77-5.8-4.23l-.11.01-3.02 2.34-.04.1A9.99 9.99 0 0 0 12 22Z"/>
-                  <path fill="#FBBC05" d="M6.2 13.85A5.99 5.99 0 0 1 5.87 12c0-.64.12-1.26.31-1.85l-.01-.12-3.06-2.38-.1.05A10 10 0 0 0 2 12c0 1.6.38 3.1 1.05 4.42l3.15-2.57Z"/>
-                  <path fill="#EA4335" d="M12 5.91c1.93 0 3.23.83 3.97 1.53l2.9-2.82C17.07 2.96 14.76 2 12 2 8.07 2 4.68 4.24 3.01 7.58l3.17 2.45C7 7.66 9.3 5.91 12 5.91Z"/>
-                </svg>
-              </span>
-              <span>Google</span>
-            </button>
-            <button onClick={() => switchMethod("phone")} style={SOCIAL_BTN}>
-              <span style={SOCIAL_ICON_WRAP}><Icon name="profile" size={16} /></span>
-              <span>Phone</span>
-            </button>
           </div>
 
           <div style={{ display:"grid", gridTemplateColumns:"repeat(3, 1fr)", gap:8 }}>
@@ -737,7 +719,7 @@ function LoginScreen({ onSignUp, onLogIn, onGoogleSignIn, onPhoneOTP, onVerifyOT
               { id:"google", label:"Google" },
               { id:"phone", label:"Phone" },
             ].map(item => (
-              <button key={item.id} onClick={() => switchMethod(item.id)} style={{ border:"1px solid rgba(255,255,255,0.74)", background:authMethod===item.id?"rgba(96,165,250,0.16)":"rgba(255,255,255,0.48)", color:authMethod===item.id?"#2563EB":"#64748B", borderRadius:15, padding:"10px 12px", fontWeight:600, cursor:"pointer", backdropFilter:"blur(18px)", boxShadow:authMethod===item.id?"inset 0 1px 0 rgba(255,255,255,0.72)":"none" }}>
+              <button key={item.id} onClick={() => switchMethod(item.id)} style={{ border:"1px solid rgba(255,255,255,0.6)", background:authMethod===item.id?"rgba(109,188,255,0.16)":"rgba(255,255,255,0.08)", color:authMethod===item.id?"#DCEBFF":"rgba(232,240,255,0.72)", borderRadius:14, padding:"10px 12px", fontWeight:600, cursor:"pointer" }}>
                 {item.label}
               </button>
             ))}
@@ -749,7 +731,7 @@ function LoginScreen({ onSignUp, onLogIn, onGoogleSignIn, onPhoneOTP, onVerifyOT
               <input placeholder="Email" type="email" style={INPUT_ST} value={email} onChange={e => setEmail(e.target.value)} />
               <input placeholder="Password" type="password" style={INPUT_ST} value={pass} onChange={e => setPass(e.target.value)} onKeyDown={e => e.key === "Enter" && handleSubmit()} />
               {mode === "login" && (
-                <button onClick={handleForgotPassword} disabled={loading} style={{ alignSelf:"flex-end", marginTop:-4, background:"none", border:"none", cursor:"pointer", color:"#3B82F6", fontWeight:600, fontSize:13 }}>
+                <button onClick={handleForgotPassword} disabled={loading} style={{ alignSelf:"flex-end", marginTop:-4, background:"none", border:"none", cursor:"pointer", color:"#A9CCFF", fontWeight:600, fontSize:13 }}>
                   Forgot password?
                 </button>
               )}
@@ -761,8 +743,8 @@ function LoginScreen({ onSignUp, onLogIn, onGoogleSignIn, onPhoneOTP, onVerifyOT
 
           {authMethod === "google" && (
             <>
-              <div style={{ padding:"14px 16px", borderRadius:18, background:"rgba(255,255,255,0.46)", border:"1px solid rgba(255,255,255,0.62)", color:"#667085", fontSize:14, lineHeight:1.45 }}>
-                Continue with your Google account from the main screen. This uses Firebase popup auth and drops you straight into the app.
+              <div style={{ padding:"14px 16px", borderRadius:18, background:"rgba(255,255,255,0.08)", border:"1px solid rgba(255,255,255,0.14)", color:"rgba(232,240,255,0.76)", fontSize:14, lineHeight:1.45 }}>
+                Continue with your Google account. This uses Firebase popup auth and drops you straight into the app.
               </div>
               <button onClick={handleGoogleSignIn} disabled={loading} style={{ ...BTN_PRIMARY, opacity:loading ? 0.7 : 1 }}>
                 {loading ? "Please wait…" : "Continue with Google"}
@@ -795,12 +777,12 @@ function LoginScreen({ onSignUp, onLogIn, onGoogleSignIn, onPhoneOTP, onVerifyOT
           )}
 
           {error && (
-            <div style={{ fontSize:13, color:"#B42318", background:"rgba(255,255,255,0.62)", border:"1px solid rgba(180,35,24,0.16)", borderRadius:16, padding:"12px 14px", lineHeight:1.45 }}>
+            <div style={{ fontSize:13, color:"#FFD2CC", background:"rgba(255,255,255,0.08)", border:"1px solid rgba(255,120,99,0.18)", borderRadius:16, padding:"12px 14px", lineHeight:1.45 }}>
               {error}
             </div>
           )}
           {notice && (
-            <div style={{ fontSize:13, color:"#344054", background:"rgba(255,255,255,0.62)", border:"1px solid rgba(111,122,143,0.2)", borderRadius:16, padding:"12px 14px", lineHeight:1.45 }}>
+            <div style={{ fontSize:13, color:"#D7E7FF", background:"rgba(255,255,255,0.08)", border:"1px solid rgba(127,182,255,0.16)", borderRadius:16, padding:"12px 14px", lineHeight:1.45 }}>
               {notice}
             </div>
           )}
@@ -840,7 +822,7 @@ function HomeScreen({ tracks, onPlayRadio, onTogglePlay, onPlayTrack, currentTra
       </div>
       <div style={{ marginBottom:32, borderBottom:"0.5px solid rgba(60,60,67,0.12)", background:"rgba(0,0,0,0.02)", display:"flex", justifyContent:"center" }}>
         <div style={{ width:"100%", maxWidth:320 }}>
-          <CrateFlipper tracks={tracks.filter(t=>(t.duration||0)<=900)} onSelect={t=>onPlayTrack(t,tracks)} currentTrack={currentTrack} isPlaying={isPlaying}/>
+          <VerseFlipper tracks={tracks.filter(t=>(t.duration||0)<=900)} onSelect={t=>onPlayTrack(t,tracks)} currentTrack={currentTrack} isPlaying={isPlaying}/>
         </div>
       </div>
 
@@ -1223,7 +1205,7 @@ function NowPlayingBar({ track, isPlaying, progress, duration, onTogglePlay, onS
           <VinylRecord track={track} isPlaying={isPlaying} size={190}/>
         </div>
         <div style={{ textAlign:"center" }}>
-          {isRadioMode&&<div style={{ fontSize:11, color:"#8B95A7", letterSpacing:1.5, textTransform:"uppercase", marginBottom:6, fontWeight:700 }}>● Vers Radio</div>}
+          {isRadioMode&&<div style={{ fontSize:11, color:"#8B95A7", letterSpacing:1.5, textTransform:"uppercase", marginBottom:6, fontWeight:700 }}>● VERSE Radio</div>}
           <div style={{ fontSize:24, fontWeight:700, letterSpacing:-0.5, color:"#1C1C1E" }}>{track.title}</div>
           <div style={{ fontSize:15, color:"rgba(220,220,225,0.8)", marginTop:4 }}>{track.artist}</div>
           <div style={{ fontSize:12, color:"rgba(200,200,205,0.55)", marginTop:2 }}>{track.album} · {track.genre}</div>
@@ -1536,7 +1518,7 @@ export default function App() {
     if (!tracks.length) return;
     const first = pickNextTrack(tracks, null);
     setCurrent(first); setIsPlaying(true); setProgress(0); setIsRadioMode(true); setQueue([]);
-    showToast("Vers Radio — on air");
+    showToast("VERSE Radio — on air");
     if (firebaseUser) recordPlay(first.id, profile?.recentTracks || []).catch(()=>{});
   };
 
@@ -1741,7 +1723,7 @@ export default function App() {
 
         {/* Logo */}
         <div style={{ padding:"0 20px 32px" }}>
-          <div style={{ fontSize:18, fontWeight:700, letterSpacing:-0.3, color:"#1C1C1E" }}>Vers
+          <div style={{ fontSize:18, fontWeight:700, letterSpacing:-0.3, color:"#1C1C1E" }}>VERSE
           </div>
           <div style={{ fontSize:10, color:"#AEAEB2", letterSpacing:0.5, marginTop:1 }}>vers.fm</div>
         </div>
@@ -1861,42 +1843,29 @@ export default function App() {
 
 // ─── SHARED STYLES ────────────────────────────────────────────────────────────
 const APP_STYLE = {
-  background:"linear-gradient(180deg, #EEF2F7 0%, #E7ECF3 100%)",
+  background:"radial-gradient(circle at 18% 12%, rgba(127,182,255,0.12), transparent 24%), radial-gradient(circle at 82% 16%, rgba(162,121,255,0.1), transparent 20%), linear-gradient(180deg, #070B16 0%, #0B1222 52%, #08101E 100%)",
   minHeight:"100vh", height:"100vh", overflow:"hidden",
   fontFamily:"-apple-system,'SF Pro Display','SF Pro Text','Helvetica Neue',Arial,sans-serif",
   color:"#1C1C1E", position:"relative", display:"flex", flexDirection:"column",
   WebkitFontSmoothing:"antialiased", MozOsxFontSmoothing:"grayscale",
 };
 const INPUT_ST = {
-  background:"rgba(255,255,255,0.52)", border:"1px solid rgba(255,255,255,0.78)",
-  borderRadius:18, padding:"14px 16px", color:"#0F172A", fontSize:15,
-  boxShadow:"inset 0 1px 0 rgba(255,255,255,0.88), 0 8px 24px rgba(148,163,184,0.08)", backdropFilter:"blur(24px) saturate(175%)",
+  background:"rgba(255,255,255,0.1)", border:"1px solid rgba(255,255,255,0.16)",
+  borderRadius:18, padding:"13px 15px", color:"#F3F8FF", fontSize:15,
+  boxShadow:"inset 0 1px 0 rgba(255,255,255,0.16), 0 12px 30px rgba(0,0,0,0.16)", backdropFilter:"blur(22px)",
   fontFamily:"-apple-system,'SF Pro Text','Helvetica Neue',Arial,sans-serif", width:"100%", display:"block",
 };
 const BTN_PRIMARY = {
-  background:"linear-gradient(180deg, #7DC4FF 0%, #5AA9FF 100%)", color:"#FFFFFF",
-  border:"1px solid rgba(255,255,255,0.52)", borderRadius:18, padding:"14px 20px", fontSize:15, fontWeight:600,
-  boxShadow:"0 20px 40px rgba(90,169,255,0.24), inset 0 1px 0 rgba(255,255,255,0.35)",
+  background:"linear-gradient(180deg, #79C3FF 0%, #4B8CFF 100%)", color:"#FFFFFF",
+  border:"1px solid rgba(255,255,255,0.22)", borderRadius:18, padding:"13px 20px", fontSize:15, fontWeight:700,
+  boxShadow:"0 18px 42px rgba(75,140,255,0.34), inset 0 1px 0 rgba(255,255,255,0.24)",
   fontFamily:"-apple-system,'SF Pro Text','Helvetica Neue',Arial,sans-serif", cursor:"pointer",
 };
 const BTN_SECONDARY = {
-  background:"rgba(255,255,255,0.5)", color:"#475569", border:"1px solid rgba(255,255,255,0.74)",
-  borderRadius:18, padding:"14px 20px", fontSize:15, fontWeight:500,
-  backdropFilter:"blur(24px) saturate(175%)",
-  boxShadow:"inset 0 1px 0 rgba(255,255,255,0.82)",
+  background:"rgba(255,255,255,0.08)", color:"rgba(232,240,255,0.82)", border:"1px solid rgba(255,255,255,0.16)",
+  borderRadius:18, padding:"13px 20px", fontSize:15, fontWeight:600,
+  backdropFilter:"blur(22px)",
   fontFamily:"-apple-system,'SF Pro Text','Helvetica Neue',Arial,sans-serif", cursor:"pointer",
-};
-const SOCIAL_BTN = {
-  display:"flex", alignItems:"center", justifyContent:"center", gap:10,
-  background:"linear-gradient(180deg, rgba(255,255,255,0.72), rgba(255,255,255,0.42))",
-  color:"#0F172A", border:"1px solid rgba(255,255,255,0.82)", borderRadius:18,
-  padding:"13px 16px", fontSize:15, fontWeight:600, cursor:"pointer",
-  boxShadow:"0 16px 34px rgba(148,163,184,0.12)", backdropFilter:"blur(24px) saturate(180%)",
-  fontFamily:"-apple-system,'SF Pro Text','Helvetica Neue',Arial,sans-serif",
-};
-const SOCIAL_ICON_WRAP = {
-  width:28, height:28, borderRadius:999, display:"inline-flex", alignItems:"center", justifyContent:"center",
-  background:"rgba(255,255,255,0.72)", border:"1px solid rgba(255,255,255,0.9)", boxShadow:"inset 0 1px 0 rgba(255,255,255,0.9)",
 };
 const CTRL_BTN = {
   background:"none", border:"none", cursor:"pointer", color:"#8E8E93",
