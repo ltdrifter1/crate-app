@@ -707,10 +707,28 @@ function LoginScreen({ onSignUp, onLogIn, onGoogleSignIn, onPhoneOTP, onVerifyOT
         <div style={{ width:"100%", maxWidth:380, display:"flex", flexDirection:"column", gap:14, padding:18, borderRadius:28, background:"linear-gradient(180deg, rgba(255,255,255,0.62), rgba(255,255,255,0.38))", border:"1px solid rgba(255,255,255,0.72)", boxShadow:"0 20px 60px rgba(91,101,119,0.14)", backdropFilter:"blur(28px) saturate(160%)" }}>
           <div style={{ display:"flex", background:"rgba(255,255,255,0.58)", borderRadius:16, padding:4, gap:4, border:"1px solid rgba(255,255,255,0.55)" }}>
             {["login","signup"].map(m => (
-              <button key={m} onClick={() => { setMode(m); resetMessages(); }} style={{ flex:1, padding:"10px 0", borderRadius:12, border:"none", cursor:"pointer", fontSize:14, fontWeight:600, background:mode===m?"linear-gradient(180deg, rgba(139,149,167,0.92), rgba(111,122,143,0.92))":"transparent", color:mode===m?"#FFFFFF":"#667085", boxShadow:mode===m?"0 10px 24px rgba(91,101,119,0.18)":"none" }}>
+              <button key={m} onClick={() => { setMode(m); resetMessages(); }} style={{ flex:1, padding:"10px 0", borderRadius:12, border:"none", cursor:"pointer", fontSize:14, fontWeight:600, background:mode===m?"linear-gradient(180deg, rgba(125,179,255,0.96), rgba(84,145,255,0.94))":"transparent", color:mode===m?"#FFFFFF":"#64748B", boxShadow:mode===m?"0 14px 28px rgba(84,145,255,0.22)":"none" }}>
                 {m === "login" ? "Log In" : "Sign Up"}
               </button>
             ))}
+          </div>
+
+          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10 }}>
+            <button onClick={() => { switchMethod("google"); handleGoogleSignIn(); }} disabled={loading} style={{ ...SOCIAL_BTN, opacity:loading ? 0.7 : 1 }}>
+              <span style={SOCIAL_ICON_WRAP}>
+                <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
+                  <path fill="#4285F4" d="M21.8 12.23c0-.74-.06-1.28-.2-1.84H12v3.48h5.64c-.11.86-.7 2.15-2 3.02l-.02.12 2.9 2.25.2.02c1.84-1.7 2.88-4.2 2.88-7.05Z"/>
+                  <path fill="#34A853" d="M12 22c2.76 0 5.08-.9 6.78-2.44l-3.23-2.5c-.86.6-2.02 1.02-3.55 1.02-2.7 0-4.99-1.77-5.8-4.23l-.11.01-3.02 2.34-.04.1A9.99 9.99 0 0 0 12 22Z"/>
+                  <path fill="#FBBC05" d="M6.2 13.85A5.99 5.99 0 0 1 5.87 12c0-.64.12-1.26.31-1.85l-.01-.12-3.06-2.38-.1.05A10 10 0 0 0 2 12c0 1.6.38 3.1 1.05 4.42l3.15-2.57Z"/>
+                  <path fill="#EA4335" d="M12 5.91c1.93 0 3.23.83 3.97 1.53l2.9-2.82C17.07 2.96 14.76 2 12 2 8.07 2 4.68 4.24 3.01 7.58l3.17 2.45C7 7.66 9.3 5.91 12 5.91Z"/>
+                </svg>
+              </span>
+              <span>Google</span>
+            </button>
+            <button onClick={() => switchMethod("phone")} style={SOCIAL_BTN}>
+              <span style={SOCIAL_ICON_WRAP}><Icon name="profile" size={16} /></span>
+              <span>Phone</span>
+            </button>
           </div>
 
           <div style={{ display:"grid", gridTemplateColumns:"repeat(3, 1fr)", gap:8 }}>
@@ -719,7 +737,7 @@ function LoginScreen({ onSignUp, onLogIn, onGoogleSignIn, onPhoneOTP, onVerifyOT
               { id:"google", label:"Google" },
               { id:"phone", label:"Phone" },
             ].map(item => (
-              <button key={item.id} onClick={() => switchMethod(item.id)} style={{ border:"1px solid rgba(255,255,255,0.6)", background:authMethod===item.id?"rgba(139,149,167,0.14)":"rgba(255,255,255,0.42)", color:authMethod===item.id?"#485468":"#667085", borderRadius:14, padding:"10px 12px", fontWeight:600, cursor:"pointer" }}>
+              <button key={item.id} onClick={() => switchMethod(item.id)} style={{ border:"1px solid rgba(255,255,255,0.74)", background:authMethod===item.id?"rgba(96,165,250,0.16)":"rgba(255,255,255,0.48)", color:authMethod===item.id?"#2563EB":"#64748B", borderRadius:15, padding:"10px 12px", fontWeight:600, cursor:"pointer", backdropFilter:"blur(18px)", boxShadow:authMethod===item.id?"inset 0 1px 0 rgba(255,255,255,0.72)":"none" }}>
                 {item.label}
               </button>
             ))}
@@ -731,7 +749,7 @@ function LoginScreen({ onSignUp, onLogIn, onGoogleSignIn, onPhoneOTP, onVerifyOT
               <input placeholder="Email" type="email" style={INPUT_ST} value={email} onChange={e => setEmail(e.target.value)} />
               <input placeholder="Password" type="password" style={INPUT_ST} value={pass} onChange={e => setPass(e.target.value)} onKeyDown={e => e.key === "Enter" && handleSubmit()} />
               {mode === "login" && (
-                <button onClick={handleForgotPassword} disabled={loading} style={{ alignSelf:"flex-end", marginTop:-4, background:"none", border:"none", cursor:"pointer", color:"#6F7A8F", fontWeight:600, fontSize:13 }}>
+                <button onClick={handleForgotPassword} disabled={loading} style={{ alignSelf:"flex-end", marginTop:-4, background:"none", border:"none", cursor:"pointer", color:"#3B82F6", fontWeight:600, fontSize:13 }}>
                   Forgot password?
                 </button>
               )}
@@ -744,7 +762,7 @@ function LoginScreen({ onSignUp, onLogIn, onGoogleSignIn, onPhoneOTP, onVerifyOT
           {authMethod === "google" && (
             <>
               <div style={{ padding:"14px 16px", borderRadius:18, background:"rgba(255,255,255,0.46)", border:"1px solid rgba(255,255,255,0.62)", color:"#667085", fontSize:14, lineHeight:1.45 }}>
-                Continue with your Google account. This uses Firebase popup auth and drops you straight into the app.
+                Continue with your Google account from the main screen. This uses Firebase popup auth and drops you straight into the app.
               </div>
               <button onClick={handleGoogleSignIn} disabled={loading} style={{ ...BTN_PRIMARY, opacity:loading ? 0.7 : 1 }}>
                 {loading ? "Please wait…" : "Continue with Google"}
@@ -1850,22 +1868,35 @@ const APP_STYLE = {
   WebkitFontSmoothing:"antialiased", MozOsxFontSmoothing:"grayscale",
 };
 const INPUT_ST = {
-  background:"rgba(255,255,255,0.52)", border:"1px solid rgba(255,255,255,0.66)",
-  borderRadius:16, padding:"13px 15px", color:"#1C1C1E", fontSize:15,
-  boxShadow:"inset 0 1px 0 rgba(255,255,255,0.7)", backdropFilter:"blur(18px)",
+  background:"rgba(255,255,255,0.52)", border:"1px solid rgba(255,255,255,0.78)",
+  borderRadius:18, padding:"14px 16px", color:"#0F172A", fontSize:15,
+  boxShadow:"inset 0 1px 0 rgba(255,255,255,0.88), 0 8px 24px rgba(148,163,184,0.08)", backdropFilter:"blur(24px) saturate(175%)",
   fontFamily:"-apple-system,'SF Pro Text','Helvetica Neue',Arial,sans-serif", width:"100%", display:"block",
 };
 const BTN_PRIMARY = {
-  background:"linear-gradient(180deg, #8B95A7 0%, #6F7A8F 100%)", color:"#FFFFFF",
-  border:"1px solid rgba(255,255,255,0.32)", borderRadius:16, padding:"13px 20px", fontSize:15, fontWeight:600,
-  boxShadow:"0 16px 36px rgba(91,101,119,0.2)",
+  background:"linear-gradient(180deg, #7DC4FF 0%, #5AA9FF 100%)", color:"#FFFFFF",
+  border:"1px solid rgba(255,255,255,0.52)", borderRadius:18, padding:"14px 20px", fontSize:15, fontWeight:600,
+  boxShadow:"0 20px 40px rgba(90,169,255,0.24), inset 0 1px 0 rgba(255,255,255,0.35)",
   fontFamily:"-apple-system,'SF Pro Text','Helvetica Neue',Arial,sans-serif", cursor:"pointer",
 };
 const BTN_SECONDARY = {
-  background:"rgba(255,255,255,0.48)", color:"#667085", border:"1px solid rgba(255,255,255,0.64)",
-  borderRadius:16, padding:"13px 20px", fontSize:15, fontWeight:500,
-  backdropFilter:"blur(18px)",
+  background:"rgba(255,255,255,0.5)", color:"#475569", border:"1px solid rgba(255,255,255,0.74)",
+  borderRadius:18, padding:"14px 20px", fontSize:15, fontWeight:500,
+  backdropFilter:"blur(24px) saturate(175%)",
+  boxShadow:"inset 0 1px 0 rgba(255,255,255,0.82)",
   fontFamily:"-apple-system,'SF Pro Text','Helvetica Neue',Arial,sans-serif", cursor:"pointer",
+};
+const SOCIAL_BTN = {
+  display:"flex", alignItems:"center", justifyContent:"center", gap:10,
+  background:"linear-gradient(180deg, rgba(255,255,255,0.72), rgba(255,255,255,0.42))",
+  color:"#0F172A", border:"1px solid rgba(255,255,255,0.82)", borderRadius:18,
+  padding:"13px 16px", fontSize:15, fontWeight:600, cursor:"pointer",
+  boxShadow:"0 16px 34px rgba(148,163,184,0.12)", backdropFilter:"blur(24px) saturate(180%)",
+  fontFamily:"-apple-system,'SF Pro Text','Helvetica Neue',Arial,sans-serif",
+};
+const SOCIAL_ICON_WRAP = {
+  width:28, height:28, borderRadius:999, display:"inline-flex", alignItems:"center", justifyContent:"center",
+  background:"rgba(255,255,255,0.72)", border:"1px solid rgba(255,255,255,0.9)", boxShadow:"inset 0 1px 0 rgba(255,255,255,0.9)",
 };
 const CTRL_BTN = {
   background:"none", border:"none", cursor:"pointer", color:"#8E8E93",
