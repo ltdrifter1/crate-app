@@ -3,7 +3,6 @@ import { useAuth }                                  from "./useAuth";
 import { toggleLike as fbToggleLike, recordPlay, saveGenres } from "./useUserData";
 import { collection, getDocs, query, orderBy, doc, updateDoc } from "firebase/firestore";
 import { db }                                       from "./firebase";
-import vLogo                                         from "./v-logo.png";
 
 const injectStyles = () => {
   if (document.getElementById("verse-app-global-styles")) return;
@@ -12,7 +11,7 @@ const injectStyles = () => {
   s.textContent = `
     * { box-sizing: border-box; margin: 0; padding: 0; }
     :root { --font: -apple-system, "SF Pro Display", "SF Pro Text", "Helvetica Neue", Arial, sans-serif; --accent: #8B95A7; }
-    body { font-family: var(--font); background: linear-gradient(180deg, #eef2f7 0%, #e7ecf3 100%); color:#111827; }
+    body { font-family: var(--font); background: #0A0F1E; }
     ::-webkit-scrollbar { width: 6px; }
     ::-webkit-scrollbar-track { background: transparent; }
     ::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.15); border-radius: 3px; }
@@ -25,12 +24,8 @@ const injectStyles = () => {
     @keyframes shimmer     { 0%{opacity:0.5} 50%{opacity:0.85} 100%{opacity:0.5} }
     @keyframes breathe     { 0%,100%{opacity:0.6;transform:scale(1)} 50%{opacity:1;transform:scale(1.04)} }
     @keyframes card-snap   { 0%{transform:translateY(-12px);opacity:0} 100%{transform:translateY(0);opacity:1} }
-    @keyframes floaty      { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-3px)} }
-    @keyframes glow-shift  { 0%,100%{opacity:0.5;transform:scale(1)} 50%{opacity:0.8;transform:scale(1.06)} }
-    @keyframes soft-in     { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
     input:focus { outline: none; }
-    button { transition: transform 180ms cubic-bezier(0.22,1,0.36,1), opacity 180ms cubic-bezier(0.22,1,0.36,1), background 180ms cubic-bezier(0.22,1,0.36,1), box-shadow 180ms cubic-bezier(0.22,1,0.36,1), border-color 180ms cubic-bezier(0.22,1,0.36,1), color 180ms cubic-bezier(0.22,1,0.36,1), filter 180ms cubic-bezier(0.22,1,0.36,1); font-family: var(--font); }
-    img { transition: transform 240ms cubic-bezier(0.22,1,0.36,1), opacity 180ms cubic-bezier(0.22,1,0.36,1), filter 180ms cubic-bezier(0.22,1,0.36,1), box-shadow 180ms cubic-bezier(0.22,1,0.36,1); }
+    button { transition: transform 0.12s, opacity 0.12s; font-family: var(--font); }
     button:active { transform: scale(0.96) !important; }
     input[type="range"] { -webkit-appearance: none; height: 4px; background: #E5E5EA; border-radius: 2px; outline: none; }
     input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; border-radius: 50%; background: #fff; border: 0.5px solid rgba(0,0,0,0.12); box-shadow: 0 1px 4px rgba(0,0,0,0.18); cursor: pointer; }
@@ -91,87 +86,6 @@ function hexToRgbStr(hex) {
   return `${parseInt(hex.slice(1,3),16)},${parseInt(hex.slice(3,5),16)},${parseInt(hex.slice(5,7),16)}`;
 }
 
-const TOKENS = {
-  space: { xs:4, sm:8, md:12, lg:16, xl:24 },
-  radius: { sm:12, md:16, lg:20, xl:24, pill:999 },
-  blur: { panel:'blur(28px) saturate(180%)', active:'blur(20px) saturate(170%)', modal:'blur(34px) saturate(190%)' },
-  border: { soft:'1px solid rgba(255,255,255,0.62)', strong:'1px solid rgba(255,255,255,0.82)', ghost:'1px solid rgba(255,255,255,0.24)' },
-  shadow: {
-    panel:'0 20px 44px rgba(98,132,190,0.10), inset 0 1px 0 rgba(255,255,255,0.82)',
-    active:'0 16px 30px rgba(75,140,255,0.18), inset 0 1px 0 rgba(255,255,255,0.84)',
-    modal:'0 28px 80px rgba(66,88,128,0.18), inset 0 1px 0 rgba(255,255,255,0.88)'
-  },
-  text: { primary:'#0F172A', secondary:'#667085', tertiary:'#98A2B3', accent:'#4B6FA4' },
-  accent: { base:'#79C3FF', strong:'#4B8CFF' },
-  artwork: { rail:36, row:44, mini:44, queue:40, panel:216 },
-  motion: { fast:'180ms cubic-bezier(0.22,1,0.36,1)', med:'240ms cubic-bezier(0.22,1,0.36,1)', slow:'320ms cubic-bezier(0.22,1,0.36,1)' },
-};
-
-const glassSurface = (level='panel') => ({
-  background: level === 'active'
-    ? 'linear-gradient(180deg, rgba(255,255,255,0.78), rgba(255,255,255,0.40))'
-    : level === 'modal'
-      ? 'linear-gradient(180deg, rgba(255,255,255,0.84), rgba(255,255,255,0.46))'
-      : 'linear-gradient(180deg, rgba(255,255,255,0.68), rgba(255,255,255,0.32))',
-  border: level === 'active' ? TOKENS.border.strong : TOKENS.border.soft,
-  boxShadow: TOKENS.shadow[level] || TOKENS.shadow.panel,
-  backdropFilter: TOKENS.blur[level] || TOKENS.blur.panel,
-});
-
-function GlassPanel({ children, level='panel', style={}, onClick }) {
-  return <div onClick={onClick} style={{ ...glassSurface(level), borderRadius: TOKENS.radius.xl, ...style }}>{children}</div>;
-}
-
-function IconButton({ icon, label, active=false, onClick, size=40, subtle=false, style={}, title }) {
-  return (
-    <button
-      aria-label={label}
-      title={title || label}
-      onClick={onClick}
-      style={{
-        width:size, height:size, borderRadius:Math.round(size*0.34),
-        display:'inline-flex', alignItems:'center', justifyContent:'center',
-        background: active ? 'linear-gradient(180deg, rgba(121,195,255,0.26), rgba(75,140,255,0.16))' : (subtle ? 'rgba(255,255,255,0.34)' : 'transparent'),
-        color: active ? TOKENS.text.accent : TOKENS.text.secondary,
-        border: active || subtle ? TOKENS.border.soft : '1px solid transparent',
-        boxShadow: active ? TOKENS.shadow.active : 'none',
-        backdropFilter: active || subtle ? TOKENS.blur.active : 'none',
-        transition: `transform ${TOKENS.motion.fast}, background ${TOKENS.motion.fast}, box-shadow ${TOKENS.motion.fast}, color ${TOKENS.motion.fast}`,
-        cursor:'pointer', ...style
-      }}
-    >
-      <Icon name={icon} size={Math.max(16, Math.floor(size*0.42))}/>
-    </button>
-  );
-}
-
-function Pill({ children, accent=false, style={} }) {
-  return <span style={{ fontSize:10, fontWeight:700, padding:'4px 8px', borderRadius:TOKENS.radius.pill, color: accent ? TOKENS.text.accent : TOKENS.text.secondary, background: accent ? 'rgba(75,111,164,0.10)' : 'rgba(255,255,255,0.50)', border: TOKENS.border.soft, ...style }}>{children}</span>;
-}
-
-function RailNav({ items, screen, setScreen, showAdmin }) {
-  return (
-    <div style={{ display:'flex', flexDirection:'column', gap:TOKENS.space.sm, flex:1, alignItems:'center' }}>
-      {items.map(item => (
-        <div key={item.id} style={{ position:'relative' }}>
-          <IconButton icon={item.icon} label={item.label} title={item.label} active={screen===item.id} onClick={()=>setScreen(item.id)} size={48} subtle={screen!==item.id} />
-          <div style={{ position:'absolute', left:'calc(100% + 10px)', top:'50%', transform:'translateY(-50%)', opacity:screen===item.id?1:0, pointerEvents:'none', transition:`opacity ${TOKENS.motion.fast}` }}>
-            <Pill accent>{item.label}</Pill>
-          </div>
-        </div>
-      ))}
-      {showAdmin && (
-        <div style={{ position:'relative' }}>
-          <IconButton icon='settings' label='Admin' title='Admin' active={screen==='admin'} onClick={()=>setScreen('admin')} size={48} subtle={screen!=='admin'} />
-          <div style={{ position:'absolute', left:'calc(100% + 10px)', top:'50%', transform:'translateY(-50%)', opacity:screen==='admin'?1:0, pointerEvents:'none', transition:`opacity ${TOKENS.motion.fast}` }}>
-            <Pill accent>Admin</Pill>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
-
 // ─── ENERGY BAR ───────────────────────────────────────────────────────────────
 function EnergyBar({ level, color, size="sm" }) {
   const h = size==="lg" ? [8,10,12,10,8,12,10,8,12,10] : [5,6,7,6,5,7,6,5,7,6];
@@ -209,9 +123,6 @@ const Icon = ({ name, size=18 }) => {
     trash:      <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>,
     chev_up:    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M18 15l-6-6-6 6"/></svg>,
     chev_down:  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M6 9l6 6 6-6"/></svg>,
-    dots:       <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/></svg>,
-    wave:       <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M3 12h2m2-4v8m4-10v12m4-7v2m4-5v10"/></svg>,
-    disc:       <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="2.5"/></svg>,
   };
   return icons[name] || null;
 };
@@ -264,7 +175,7 @@ function VinylRecord({ track, isPlaying, size=190 }) {
 }
 
 // ─── VERS FLIPPER — vertical, full-bleed album art ────────────────────────────
-function VerseFlipper({ tracks = [], onSelect, currentTrack, isPlaying }) {
+function VerseFlipper({ tracks, onSelect, currentTrack, isPlaying }) {
   const [idx, setIdx]           = useState(0);
   const [dragY, setDragY]       = useState(0);
   const [dragStart, setDragStart] = useState(null);
@@ -272,32 +183,9 @@ function VerseFlipper({ tracks = [], onSelect, currentTrack, isPlaying }) {
   const [animDir, setAnimDir]   = useState(null); // "up"|"down"
   const containerRef            = useRef(null);
 
-  const safeIdx = Math.min(idx, Math.max(tracks.length - 1, 0));
-  const t = tracks[safeIdx];
-  const prev = tracks[safeIdx-1];
-  const next = tracks[safeIdx+1];
-
-  useEffect(() => {
-    if (!tracks.length) {
-      if (idx != 0) setIdx(0);
-      return;
-    }
-    if (idx > tracks.length - 1) setIdx(tracks.length - 1);
-  }, [tracks.length, idx]);
-
-  if (!tracks.length || !t) {
-    return (
-      <GlassPanel level="panel" style={{ padding:24, minHeight:240, display:"flex", alignItems:"center", justifyContent:"center" }}>
-        <div style={{ textAlign:"center" }}>
-          <div style={{ width:64, height:64, borderRadius:20, margin:"0 auto 12px", display:"grid", placeItems:"center", background:"linear-gradient(180deg, rgba(255,255,255,0.82), rgba(255,255,255,0.46))", border:TOKENS.border.soft, boxShadow:TOKENS.shadow.panel }}>
-            <BrandGlyph size={28} />
-          </div>
-          <div style={{ fontSize:15, fontWeight:700, color:TOKENS.text.primary }}>No tracks yet</div>
-          <div style={{ fontSize:13, color:TOKENS.text.secondary, marginTop:6 }}>Add tracks in Firestore to start the library.</div>
-        </div>
-      </GlassPanel>
-    );
-  }
+  const t = tracks[idx];
+  const prev = tracks[idx-1];
+  const next = tracks[idx+1];
 
   const goTo = useCallback((newIdx, dir) => {
     if (newIdx < 0 || newIdx >= tracks.length) return;
@@ -443,44 +331,15 @@ function VerseFlipper({ tracks = [], onSelect, currentTrack, isPlaying }) {
 
       {/* Track counter */}
       <div style={{ display:"flex", justifyContent:"center", alignItems:"center", gap:6, padding:"14px 0 4px" }}>
-        <span style={{ fontSize:11, color:"#8E8E93", fontWeight:500 }}>{safeIdx+1} / {tracks.length}</span>
+        <span style={{ fontSize:11, color:"#8E8E93", fontWeight:500 }}>{idx+1} / {tracks.length}</span>
         <div style={{ display:"flex", gap:3 }}>
           {tracks.map((_,i) => (
             <div key={i} onClick={()=>setIdx(i)} style={{
-              width: i===safeIdx?16:4, height:4, borderRadius:2, cursor:"pointer",
-              background: i===safeIdx?"#8B95A7":"#E5E5EA",
+              width: i===idx?16:4, height:4, borderRadius:2, cursor:"pointer",
+              background: i===idx?"#8B95A7":"#E5E5EA",
               transition:"width 0.25s, background 0.25s",
             }}/>
           ))}
-        </div>
-
-        <div style={{ width:"100%", maxWidth:380, paddingBottom:Math.max(10, 8), display:"flex", flexDirection:"column", gap:10 }}>
-          <button
-            onClick={handleGoogleSignIn}
-            disabled={loading}
-            aria-label="Continue with Google"
-            title="Continue with Google"
-            style={{
-              width:"100%",
-              minHeight:58,
-              borderRadius:20,
-              border:"1px solid rgba(255,255,255,0.68)",
-              background:"linear-gradient(180deg, rgba(255,255,255,0.82), rgba(255,255,255,0.46))",
-              boxShadow:"0 20px 40px rgba(91,116,162,0.12), inset 0 1px 0 rgba(255,255,255,0.82)",
-              backdropFilter:"blur(24px) saturate(180%)",
-              display:"flex",
-              alignItems:"center",
-              justifyContent:"center",
-              gap:12,
-              cursor:"pointer",
-              color:"#28446B",
-              fontSize:15,
-              fontWeight:700,
-              opacity:loading ? 0.7 : 1,
-            }}
-          >
-            {loading ? <span style={{ fontSize:13, fontWeight:700, color:"#4B8CFF" }}>Please wait…</span> : <><GoogleGlyph /><span>Continue with Google</span></>}
-          </button>
         </div>
       </div>
     </div>
@@ -549,7 +408,8 @@ function DeepCutsCard({ onPlay, onTogglePlay, currentTrack, isPlaying, isRadioMo
         </div>
       ) : (
         <div>
-          <div style={{ marginBottom:10, display:"flex", justifyContent:"flex-start" }}><BrandGlyph size={34} /></div>
+          <div style={{ fontSize:22, fontWeight:700, letterSpacing:-0.3, color:"#1C1C1E" }}>VERSE Radio</div>
+          <div style={{ fontSize:13, color:"#8E8E93", marginTop:4, marginBottom:14 }}>Tap to tune in</div>
           <button onClick={e=>{e.stopPropagation();onPlay();}} style={{ width:48, height:48, borderRadius:"50%", background:"#8B95A7", border:"none", display:"flex", alignItems:"center", justifyContent:"center", color:"#FFFFFF", cursor:"pointer" }}>
             <Icon name="play" size={22}/>
           </button>
@@ -571,15 +431,12 @@ function DeepCutsCard({ onPlay, onTogglePlay, currentTrack, isPlaying, isRadioMo
 const PlaylistCtx = { playlists:[], onCreate:()=>{}, onAdd:()=>{}, onRemove:()=>{}, activePlaylistId:null };
 
 // ─── TRACK ROW ────────────────────────────────────────────────────────────────
-function TrackRow({ track, onPlay, active, isPlaying, onLike, extraAction, playlistCtx, activePlaylistId, density="comfortable" }) {
+function TrackRow({ track, onPlay, active, isPlaying, onLike, extraAction, playlistCtx, activePlaylistId }) {
   const [hover, setHover]         = useState(false);
   const [menuOpen, setMenuOpen]   = useState(false);
   const [newPlName, setNewPlName] = useState("");
   const [showNewPl, setShowNewPl] = useState(false);
   const ctx = playlistCtx || PlaylistCtx;
-  const compact = density === "compact";
-  const art = compact ? 40 : TOKENS.artwork.row;
-  const padY = compact ? TOKENS.space.sm : TOKENS.space.md;
 
   function handleAddTo(plId) {
     ctx.onAdd(track.id, plId);
@@ -594,93 +451,115 @@ function TrackRow({ track, onPlay, active, isPlaying, onLike, extraAction, playl
   return (
     <div style={{ position:"relative" }}>
       <div onClick={onPlay} onMouseEnter={()=>setHover(true)} onMouseLeave={()=>setHover(false)}
-        style={{
-          display:"grid", gridTemplateColumns:`${art}px minmax(0,1fr) auto auto`, alignItems:"center", columnGap:TOKENS.space.md,
-          padding:`${padY}px ${TOKENS.space.md}px`, borderRadius:TOKENS.radius.lg, cursor:"pointer", marginBottom:TOKENS.space.sm,
-          ...glassSurface(active ? 'active' : hover ? 'panel' : 'panel'),
-          background: active ? glassSurface('active').background : hover ? 'linear-gradient(180deg, rgba(255,255,255,0.58), rgba(255,255,255,0.28))' : 'rgba(255,255,255,0.22)',
-          border: active ? TOKENS.border.strong : hover ? TOKENS.border.soft : '1px solid transparent',
-          boxShadow: active ? TOKENS.shadow.active : hover ? TOKENS.shadow.panel : 'none',
-          transform: hover ? "translateY(-1px)" : "translateY(0)",
-        }}>
-        <div style={{ width:art, height:art, borderRadius:compact?12:14, overflow:"hidden", flexShrink:0, position:"relative", boxShadow:hover||active?"0 8px 18px rgba(40,55,90,0.12)":"0 2px 6px rgba(0,0,0,0.06)" }}>
-          <AlbumArt track={track} size={art} borderRadius={0}/>
-          {(active||hover)&&<div style={{ position:"absolute", inset:0, background:(active&&isPlaying)?"rgba(8,10,16,0.34)":"rgba(8,10,16,0.18)", display:"flex", alignItems:"center", justifyContent:"center", opacity:(active||hover)?1:0 }}><Icon name={active&&isPlaying?"pause":"play"} size={14}/></div>}
+        style={{ display:"flex", alignItems:"center", gap:12, padding:"9px 12px", borderRadius:10, cursor:"pointer", transition:"background 0.15s",
+          background:active?"rgba(139,149,167,0.06)":hover?"rgba(0,0,0,0.03)":"transparent",
+          borderBottom:active?"":"0.5px solid rgba(60,60,67,0.08)" }}>
+        <div style={{ width:40, height:40, borderRadius:7, overflow:"hidden", flexShrink:0, position:"relative" }}>
+          <AlbumArt track={track} size={40} borderRadius={0}/>
+          {active&&isPlaying&&<div style={{ position:"absolute", inset:0, background:"rgba(0,0,0,0.5)", display:"flex", alignItems:"center", justifyContent:"center" }}><div style={{ width:7, height:7, borderRadius:"50%", background:"#8B95A7", animation:"pulse 1s ease-in-out infinite" }}/></div>}
         </div>
-        <div style={{ minWidth:0 }}>
-          <div style={{ fontSize:compact?13:14, lineHeight:1.1, fontWeight:active?650:560, letterSpacing:-0.24, color:active?TOKENS.text.accent:TOKENS.text.primary, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{track.title}</div>
-          <div style={{ fontSize:compact?11:12, color:TOKENS.text.secondary, marginTop:4, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{track.artist}</div>
+        <div style={{ flex:1, minWidth:0 }}>
+          <div style={{ fontSize:15, fontWeight:active?600:400, letterSpacing:-0.2, color:active?"#8B95A7":"#1C1C1E", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{track.title}</div>
+          <div style={{ fontSize:13, color:"#8E8E93", marginTop:1 }}>{track.artist}</div>
         </div>
-        <div style={{ display:"flex", alignItems:"center", gap:TOKENS.space.sm, justifySelf:"end", opacity:hover||active?1:0.9 }}>
-          {track.camelot&&<Pill accent>{track.camelot}</Pill>}
-          <div style={{ opacity:0.9 }}><EnergyBar level={track.energy} color={track.color}/></div>
+        <div style={{ display:"flex", flexDirection:"column", alignItems:"flex-end", gap:3, flexShrink:0 }}>
+          <EnergyBar level={track.energy} color={track.color}/>
+          <div style={{ display:"flex", gap:4 }}>
+            {track.camelot&&<span style={{ fontSize:9, fontWeight:600, color:"#8B95A7", background:"rgba(139,149,167,0.08)", padding:"1px 5px", borderRadius:3 }}>{track.camelot}</span>}
+            <span style={{ fontSize:10, color:"#AEAEB2" }}>{track.genre}</span>
+          </div>
         </div>
-        <div style={{ display:"flex", alignItems:"center", gap:TOKENS.space.xs, justifySelf:"end" }}>
-          {onLike&&<IconButton title={track.liked?"Unlike":"Like"} label={track.liked?"Unlike":"Like"} icon={track.liked?"heart":"heartempty"} active={!!track.liked} subtle onClick={e=>{e.stopPropagation();onLike(track.id);}} size={compact?34:36} style={{ color:track.liked?TOKENS.text.accent:TOKENS.text.tertiary }} />}
-          <IconButton title="More" label="More" icon="dots" subtle active={menuOpen} onClick={e=>{e.stopPropagation();setMenuOpen(o=>!o);setShowNewPl(false);}} size={compact?34:36} style={{ color:TOKENS.text.tertiary }} />
-          {extraAction||null}
-        </div>
+        {onLike&&<button onClick={e=>{e.stopPropagation();onLike(track.id);}} style={{ background:"none", border:"none", cursor:"pointer", color:track.liked?"#8B95A7":"#AEAEB2", padding:4, transition:"color 0.2s" }}><Icon name={track.liked?"heart":"heartempty"} size={16}/></button>}
+        {/* ⋯ menu button — always visible */}
+        <button onClick={e=>{e.stopPropagation();setMenuOpen(o=>!o);setShowNewPl(false);}}
+          style={{ background:"none", border:"none", cursor:"pointer", color:"#AEAEB2", padding:"4px 6px", fontSize:18, lineHeight:1, flexShrink:0 }}>⋯</button>
+        {extraAction||null}
       </div>
 
+      {/* ── Dropdown menu ── */}
       {menuOpen && (
-        <GlassPanel level='modal' style={{ position:"absolute", right:8, top:52, zIndex:50, padding:"8px 0", minWidth:220 }}>
+        <div onClick={e=>e.stopPropagation()}
+          style={{ position:"absolute", right:8, top:44, zIndex:50, background:"#FFFFFF", border:"0.5px solid rgba(60,60,67,0.12)", borderRadius:14, padding:"6px 0", minWidth:210, boxShadow:"0 8px 40px rgba(0,0,0,0.15)" }}>
+
+          {/* Add to existing playlists */}
           {ctx.playlists.length > 0 && (
             <>
-              <div style={{ fontSize:10, fontWeight:700, letterSpacing:1.1, color:TOKENS.text.tertiary, padding:"6px 14px", textTransform:"uppercase" }}>Save to</div>
+              <div style={{ fontSize:11, fontWeight:600, letterSpacing:0.5, color:"#AEAEB2", padding:"6px 14px", textTransform:"uppercase" }}>Add to playlist</div>
               {ctx.playlists.map(pl => (
-                <button key={pl.id} onClick={()=>handleAddTo(pl.id)} style={{ display:"block", width:"100%", textAlign:"left", background:"none", border:"none", color:TOKENS.text.primary, fontSize:14, padding:"11px 14px", cursor:"pointer" }}>{pl.name}</button>
+                <button key={pl.id} onClick={()=>handleAddTo(pl.id)}
+                  style={{ display:"block", width:"100%", textAlign:"left", background:"none", border:"none", color:"#1C1C1E", fontSize:14, padding:"10px 14px", cursor:"pointer" }}>
+                  ♪ {pl.name}
+                </button>
               ))}
-              <div style={{ height:1, background:"rgba(148,163,184,0.18)", margin:"6px 14px" }}/>
+              <div style={{ height:0.5, background:"rgba(60,60,67,0.12)", margin:"4px 14px" }}/>
             </>
           )}
 
+          {/* New playlist inline */}
           {showNewPl ? (
             <div style={{ padding:"8px 12px" }}>
-              <input autoFocus value={newPlName} onChange={e=>setNewPlName(e.target.value)} onKeyDown={e=>{if(e.key==="Enter")handleCreateAndAdd();if(e.key==="Escape")setShowNewPl(false);}} placeholder="New playlist" style={{ ...INPUT_ST, marginBottom:8, fontSize:13, padding:'10px 12px', borderRadius:12 }}/>
+              <input autoFocus value={newPlName} onChange={e=>setNewPlName(e.target.value)}
+                onKeyDown={e=>{if(e.key==="Enter")handleCreateAndAdd();if(e.key==="Escape")setShowNewPl(false);}}
+                placeholder="Playlist name…"
+                style={{ background:"rgba(255,255,255,0.07)", border:"1px solid rgba(255,255,255,0.14)", borderRadius:8, padding:"7px 10px", color:"#1C1C1E", fontSize:13, fontFamily:"inherit", width:"100%", marginBottom:6 }}/>
               <div style={{ display:"flex", gap:6 }}>
-                <button onClick={handleCreateAndAdd} style={{ ...BTN_PRIMARY, flex:1, borderRadius:12, fontSize:13, padding:'9px 0' }}>Add</button>
-                <button onClick={()=>setShowNewPl(false)} style={{ ...BTN_SECONDARY, flex:1, borderRadius:12, fontSize:13, padding:'9px 0' }}>Cancel</button>
+                <button onClick={handleCreateAndAdd} style={{ flex:1, background:"#8B95A7", border:"none", borderRadius:8, color:"#FFFFFF", fontSize:13, fontWeight:600, padding:"8px 0", cursor:"pointer" }}>Create & add</button>
+                <button onClick={()=>setShowNewPl(false)} style={{ flex:1, background:"#F2F2F7", border:"1px solid rgba(60,60,67,0.12)", borderRadius:8, color:"#8E8E93", fontSize:13, padding:"8px 0", cursor:"pointer" }}>Cancel</button>
               </div>
             </div>
           ) : (
-            <button onClick={()=>setShowNewPl(true)} style={{ display:"block", width:"100%", textAlign:"left", background:"none", border:"none", color:TOKENS.text.accent, fontSize:14, padding:"11px 14px", cursor:"pointer", fontWeight:700 }}>+ New playlist</button>
+            <button onClick={()=>setShowNewPl(true)}
+              style={{ display:"flex", alignItems:"center", gap:8, width:"100%", textAlign:"left", background:"none", border:"none", color:"#8B95A7", fontSize:14, padding:"10px 14px", cursor:"pointer", fontWeight:500 }}>
+              <span style={{ fontSize:18, lineHeight:1 }}>+</span> New playlist
+            </button>
           )}
 
-          {activePlaylistId && (
+          {/* Remove from current playlist if in library view */}
+          {activePlaylistId && activePlaylistId !== "liked" && (
             <>
-              <div style={{ height:1, background:"rgba(148,163,184,0.18)", margin:"6px 14px" }}/>
-              <button onClick={()=>{ctx.onRemove(track.id, activePlaylistId);setMenuOpen(false);}} style={{ display:"block", width:"100%", textAlign:"left", background:"none", border:"none", color:"#DC2626", fontSize:14, padding:"11px 14px", cursor:"pointer" }}>Remove from playlist</button>
+              <div style={{ height:0.5, background:"rgba(60,60,67,0.12)", margin:"4px 14px" }}/>
+              <button onClick={()=>{ctx.onRemove(track.id, activePlaylistId);setMenuOpen(false);}}
+                style={{ display:"block", width:"100%", textAlign:"left", background:"none", border:"none", color:"#FF3B30", fontSize:14, padding:"10px 14px", cursor:"pointer" }}>
+                Remove from playlist
+              </button>
             </>
           )}
-        </GlassPanel>
+
+          <div style={{ height:0.5, background:"rgba(60,60,67,0.12)", margin:"4px 14px" }}/>
+          <button onClick={()=>setMenuOpen(false)}
+            style={{ display:"block", width:"100%", textAlign:"left", background:"none", border:"none", color:"#AEAEB2", fontSize:13, padding:"8px 14px", cursor:"pointer" }}>
+            Cancel
+          </button>
+        </div>
       )}
     </div>
   );
 }
 
+const SectionLabel = ({ children, style={} }) => (
+  <div style={{ fontSize:12, fontWeight:700, letterSpacing:0.3, color:"#8E8E93", marginBottom:10, textTransform:"uppercase", ...style }}>{children}</div>
+);
+
+// ─── LOGIN ────────────────────────────────────────────────────────────────────
+
 function BrandGlyph({ size=84 }) {
   return (
-    <img
-      src={vLogo}
-      alt="V"
-      style={{
-        width:size,
-        height:size,
-        objectFit:"contain",
-        display:"block",
-        filter:"drop-shadow(0 10px 28px rgba(12,18,32,0.12))",
-      }}
-    />
-  );
-}
-
-function GoogleGlyph() {
-  return (
-    <svg width="24" height="24" viewBox="0 0 48 48" aria-hidden="true">
-      <path fill="#EA4335" d="M24 9.5c3.54 0 6.72 1.22 9.23 3.62l6.88-6.88C35.94 2.41 30.41 0 24 0 14.64 0 6.54 5.38 2.56 13.22l8 6.2C12.5 13.56 17.78 9.5 24 9.5z"/>
-      <path fill="#4285F4" d="M46.5 24.55c0-1.64-.15-3.21-.42-4.73H24v9.02h12.65c-.55 2.95-2.21 5.45-4.71 7.13l7.62 5.91c4.45-4.1 6.94-10.15 6.94-17.33z"/>
-      <path fill="#FBBC05" d="M10.56 28.58A14.5 14.5 0 0 1 9.5 24c0-1.6.28-3.14.78-4.58l-8-6.2A23.92 23.92 0 0 0 0 24c0 3.84.92 7.47 2.56 10.78l8-6.2z"/>
-      <path fill="#34A853" d="M24 48c6.48 0 11.92-2.13 15.9-5.81l-7.62-5.91c-2.12 1.42-4.84 2.27-8.28 2.27-6.22 0-11.5-4.06-13.44-9.92l-8 6.2C6.54 42.62 14.64 48 24 48z"/>
+    <svg width={size} height={size} viewBox="0 0 96 96" fill="none" aria-hidden="true">
+      <defs>
+        <linearGradient id="verseGlass" x1="12" y1="10" x2="82" y2="86" gradientUnits="userSpaceOnUse">
+          <stop stopColor="rgba(255,255,255,0.95)" />
+          <stop offset="1" stopColor="rgba(199,208,222,0.35)" />
+        </linearGradient>
+        <linearGradient id="verseStroke" x1="16" y1="14" x2="80" y2="84" gradientUnits="userSpaceOnUse">
+          <stop stopColor="#F8FAFD" />
+          <stop offset="1" stopColor="#8B95A7" />
+        </linearGradient>
+      </defs>
+      <rect x="10" y="10" width="76" height="76" rx="24" fill="url(#verseGlass)" stroke="url(#verseStroke)" strokeWidth="2"/>
+      <path d="M29 60L49 28L67 41L47 68L29 60Z" fill="rgba(139,149,167,0.18)" stroke="#6F7A8F" strokeWidth="3" strokeLinejoin="round"/>
+      <path d="M38 57L49 40L58 46L47 63L38 57Z" fill="#FFFFFF" fillOpacity="0.8"/>
+      <circle cx="68" cy="29" r="6" fill="#C7D0DE" fillOpacity="0.9"/>
+      <path d="M64 26L71 33" stroke="#6F7A8F" strokeWidth="2.5" strokeLinecap="round"/>
     </svg>
   );
 }
@@ -814,314 +693,121 @@ function LoginScreen({ onSignUp, onLogIn, onGoogleSignIn, onPhoneOTP, onVerifyOT
 
   return (
     <div style={APP_STYLE}>
-      <BgMist color="#7FB6FF" />
-      <div
-        style={{
-          position: "absolute",
-          inset: 0,
-          background:
-            "radial-gradient(circle at 20% 10%, rgba(127,182,255,0.18), transparent 28%), radial-gradient(circle at 80% 18%, rgba(162,121,255,0.14), transparent 24%), linear-gradient(180deg, rgba(244,247,252,0.86) 0%, rgba(236,241,248,0.82) 42%, rgba(232,238,246,0.88) 100%)",
-          backdropFilter: "blur(40px) saturate(145%)",
-        }}
-      />
-
-      <div
-        style={{
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          justifyContent: "space-between",
-          minHeight: "100%",
-          gap: 20,
-          padding: 24,
-          position: "relative",
-          zIndex: 2,
-        }}
-      >
-        <div style={{ width: "100%", display: "flex", flexDirection: "column", alignItems: "center", gap: 26 }}>
-          <div style={{ textAlign: "center", maxWidth: 420 }}>
-            <div
-              style={{
-                width: 110,
-                height: 110,
-                borderRadius: 32,
-                margin: "0 auto 8px",
-                background: "linear-gradient(135deg, rgba(255,255,255,0.5), rgba(255,255,255,0.18) 45%, rgba(180,206,255,0.14) 100%)",
-                border: "1px solid rgba(255,255,255,0.48)",
-                boxShadow: "0 24px 70px rgba(98,132,190,0.14), inset 0 1px 0 rgba(255,255,255,0.75), 0 0 50px rgba(127,182,255,0.08)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                backdropFilter: "blur(32px) saturate(180%)",
-              }}
-            >
-              <BrandGlyph size={82} />
-            </div>
+      <BgMist color="#7FB6FF"/>
+      <div style={{ position:"absolute", inset:0, background:"radial-gradient(circle at 20% 10%, rgba(127,182,255,0.12), transparent 28%), radial-gradient(circle at 80% 18%, rgba(162,121,255,0.12), transparent 24%), linear-gradient(180deg, rgba(8,12,24,0.78) 0%, rgba(9,14,28,0.72) 42%, rgba(7,10,20,0.82) 100%)", backdropFilter:"blur(34px) saturate(145%)" }} />
+      <div style={{ display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", minHeight:"100%", gap:26, padding:24, position:"relative", zIndex:2 }}>
+        <div style={{ textAlign:"center", maxWidth:420 }}>
+          <div style={{ width:96, height:96, borderRadius:28, margin:"0 auto 18px", background:"linear-gradient(135deg, rgba(255,255,255,0.24), rgba(127,182,255,0.08) 45%, rgba(162,121,255,0.1) 100%)", border:"1px solid rgba(255,255,255,0.24)", boxShadow:"0 30px 90px rgba(0,0,0,0.36), inset 0 1px 0 rgba(255,255,255,0.34), 0 0 50px rgba(127,182,255,0.12)", display:"flex", alignItems:"center", justifyContent:"center", backdropFilter:"blur(30px) saturate(180%)" }}>
+            <BrandGlyph size={76} />
           </div>
-
-          <div
-            style={{
-              width: "100%",
-              maxWidth: 380,
-              display: "flex",
-              flexDirection: "column",
-              gap: 14,
-              padding: 18,
-              borderRadius: 28,
-              background: "linear-gradient(180deg, rgba(255,255,255,0.62), rgba(255,255,255,0.34))",
-              border: "1px solid rgba(255,255,255,0.58)",
-              boxShadow: "0 24px 80px rgba(91,116,162,0.12), inset 0 1px 0 rgba(255,255,255,0.72), 0 0 40px rgba(127,182,255,0.06)",
-              backdropFilter: "blur(34px) saturate(180%)",
-            }}
-          >
-            <div
-              style={{
-                display: "flex",
-                background: "rgba(255,255,255,0.08)",
-                borderRadius: 16,
-                padding: 4,
-                gap: 4,
-                border: "1px solid rgba(255,255,255,0.14)",
-                backdropFilter: "blur(20px)",
-              }}
-            >
-              {["login", "signup"].map((m) => (
-                <button
-                  key={m}
-                  onClick={() => {
-                    setMode(m);
-                    resetMessages();
-                  }}
-                  style={{
-                    flex: 1,
-                    padding: "10px 0",
-                    borderRadius: 12,
-                    border: "none",
-                    cursor: "pointer",
-                    fontSize: 14,
-                    fontWeight: 600,
-                    background: mode === m ? "linear-gradient(180deg, rgba(109,188,255,0.92), rgba(78,141,255,0.92))" : "transparent",
-                    color: mode === m ? "#FFFFFF" : "rgba(37,52,78,0.64)",
-                    boxShadow: mode === m ? "0 16px 36px rgba(76,126,255,0.32)" : "none",
-                  }}
-                >
-                  {m === "login" ? "Log In" : "Sign Up"}
-                </button>
-              ))}
-            </div>
-
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 8 }}>
-              {[
-                { id: "email", label: "Email" },
-                { id: "phone", label: "Phone" },
-              ].map((item) => (
-                <button
-                  key={item.id}
-                  onClick={() => switchMethod(item.id)}
-                  style={{
-                    border: "1px solid rgba(255,255,255,0.6)",
-                    background: authMethod === item.id ? "rgba(109,188,255,0.16)" : "rgba(255,255,255,0.08)",
-                    color: authMethod === item.id ? "#34517E" : "rgba(37,52,78,0.66)",
-                    borderRadius: 14,
-                    padding: "10px 12px",
-                    fontWeight: 600,
-                    cursor: "pointer",
-                  }}
-                >
-                  {item.label}
-                </button>
-              ))}
-            </div>
-
-            {authMethod === "email" && (
-              <>
-                {mode === "signup" && (
-                  <input placeholder="Username" style={INPUT_ST} value={name} onChange={(e) => setName(e.target.value)} />
-                )}
-                <input placeholder="Email" type="email" style={INPUT_ST} value={email} onChange={(e) => setEmail(e.target.value)} />
-                <input
-                  placeholder="Password"
-                  type="password"
-                  style={INPUT_ST}
-                  value={pass}
-                  onChange={(e) => setPass(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
-                />
-                {mode === "login" && (
-                  <button
-                    onClick={handleForgotPassword}
-                    disabled={loading}
-                    style={{
-                      alignSelf: "flex-end",
-                      marginTop: -4,
-                      background: "none",
-                      border: "none",
-                      cursor: "pointer",
-                      color: "#A9CCFF",
-                      fontWeight: 600,
-                      fontSize: 13,
-                    }}
-                  >
-                    Forgot password?
-                  </button>
-                )}
-                <button onClick={handleSubmit} disabled={loading} style={{ ...BTN_PRIMARY, opacity: loading ? 0.7 : 1 }}>
-                  {loading ? "Please wait…" : mode === "login" ? "Sign In" : "Create Account"}
-                </button>
-              </>
-            )}
-
-            {authMethod === "phone" && (
-              <>
-                {phoneStep === "enter" ? (
-                  <>
-                    <input
-                      placeholder="Phone number (+15551234567)"
-                      type="tel"
-                      style={INPUT_ST}
-                      value={phone}
-                      onChange={(e) => setPhone(e.target.value)}
-                      onKeyDown={(e) => e.key === "Enter" && handleSendOTP()}
-                    />
-                    <button onClick={handleSendOTP} disabled={loading} style={{ ...BTN_PRIMARY, opacity: loading ? 0.7 : 1 }}>
-                      {loading ? "Sending…" : "Send verification code"}
-                    </button>
-                  </>
-                ) : (
-                  <>
-                    <input
-                      placeholder="6-digit code"
-                      inputMode="numeric"
-                      style={INPUT_ST}
-                      value={otp}
-                      onChange={(e) => setOtp(e.target.value)}
-                      onKeyDown={(e) => e.key === "Enter" && handleVerifyOTP()}
-                    />
-                    <div style={{ display: "flex", gap: 10 }}>
-                      <button
-                        onClick={() => {
-                          setPhoneStep("enter");
-                          setOtp("");
-                          setConfirmResult(null);
-                          resetMessages();
-                        }}
-                        style={{ ...BTN_SECONDARY, flex: 1 }}
-                      >
-                        Edit number
-                      </button>
-                      <button onClick={handleVerifyOTP} disabled={loading} style={{ ...BTN_PRIMARY, flex: 1, opacity: loading ? 0.7 : 1 }}>
-                        {loading ? "Verifying…" : "Verify code"}
-                      </button>
-                    </div>
-                  </>
-                )}
-                <div id="recaptcha-container" />
-              </>
-            )}
-
-            {error && (
-              <div
-                style={{
-                  fontSize: 13,
-                  color: "#FFD2CC",
-                  background: "rgba(255,255,255,0.08)",
-                  border: "1px solid rgba(255,120,99,0.18)",
-                  borderRadius: 16,
-                  padding: "12px 14px",
-                  lineHeight: 1.45,
-                }}
-              >
-                {error}
-              </div>
-            )}
-
-            {notice && (
-              <div
-                style={{
-                  fontSize: 13,
-                  color: "#D7E7FF",
-                  background: "rgba(255,255,255,0.08)",
-                  border: "1px solid rgba(127,182,255,0.16)",
-                  borderRadius: 16,
-                  padding: "12px 14px",
-                  lineHeight: 1.45,
-                }}
-              >
-                {notice}
-              </div>
-            )}
-          </div>
+          <div style={{ fontSize:36, fontWeight:800, letterSpacing:-1.2, color:"#F3F8FF", textTransform:"uppercase" }}>VERSE</div>
+          <div style={{ color:"#667085", fontSize:14, letterSpacing:0.3, marginTop:8, fontWeight:500 }}>Signal-driven listening for a glassy future state.</div>
         </div>
 
-        <div style={{ width: "100%", maxWidth: 380, paddingBottom: 10, display: "flex", flexDirection: "column", gap: 10 }}>
-          <button
-            onClick={handleGoogleSignIn}
-            disabled={loading}
-            aria-label="Continue with Google"
-            title="Continue with Google"
-            style={{
-              width: "100%",
-              minHeight: 58,
-              borderRadius: 20,
-              border: "1px solid rgba(255,255,255,0.68)",
-              background: "linear-gradient(180deg, rgba(255,255,255,0.82), rgba(255,255,255,0.46))",
-              boxShadow: "0 20px 40px rgba(91,116,162,0.12), inset 0 1px 0 rgba(255,255,255,0.82)",
-              backdropFilter: "blur(24px) saturate(180%)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: 12,
-              cursor: "pointer",
-              color: "#28446B",
-              fontSize: 15,
-              fontWeight: 700,
-              opacity: loading ? 0.7 : 1,
-            }}
-          >
-            {loading ? (
-              <span style={{ fontSize: 13, fontWeight: 700, color: "#4B8CFF" }}>Please wait…</span>
-            ) : (
-              <>
-                <GoogleGlyph />
-                <span>Continue with Google</span>
-              </>
-            )}
-          </button>
+        <div style={{ width:"100%", maxWidth:380, display:"flex", flexDirection:"column", gap:14, padding:18, borderRadius:28, background:"linear-gradient(180deg, rgba(255,255,255,0.16), rgba(255,255,255,0.08))", border:"1px solid rgba(255,255,255,0.18)", boxShadow:"0 24px 80px rgba(0,0,0,0.34), inset 0 1px 0 rgba(255,255,255,0.18), 0 0 40px rgba(127,182,255,0.08)", backdropFilter:"blur(34px) saturate(180%)" }}>
+          <div style={{ display:"flex", background:"rgba(255,255,255,0.08)", borderRadius:16, padding:4, gap:4, border:"1px solid rgba(255,255,255,0.14)", backdropFilter:"blur(20px)" }}>
+            {["login","signup"].map(m => (
+              <button key={m} onClick={() => { setMode(m); resetMessages(); }} style={{ flex:1, padding:"10px 0", borderRadius:12, border:"none", cursor:"pointer", fontSize:14, fontWeight:600, background:mode===m?"linear-gradient(180deg, rgba(109,188,255,0.92), rgba(78,141,255,0.92))":"transparent", color:mode===m?"#FFFFFF":"rgba(232,240,255,0.72)", boxShadow:mode===m?"0 16px 36px rgba(76,126,255,0.32)":"none" }}>
+                {m === "login" ? "Log In" : "Sign Up"}
+              </button>
+            ))}
+          </div>
+
+          <div style={{ display:"grid", gridTemplateColumns:"repeat(3, 1fr)", gap:8 }}>
+            {[
+              { id:"email", label:"Email" },
+              { id:"google", label:"Google" },
+              { id:"phone", label:"Phone" },
+            ].map(item => (
+              <button key={item.id} onClick={() => switchMethod(item.id)} style={{ border:"1px solid rgba(255,255,255,0.6)", background:authMethod===item.id?"rgba(109,188,255,0.16)":"rgba(255,255,255,0.08)", color:authMethod===item.id?"#DCEBFF":"rgba(232,240,255,0.72)", borderRadius:14, padding:"10px 12px", fontWeight:600, cursor:"pointer" }}>
+                {item.label}
+              </button>
+            ))}
+          </div>
+
+          {authMethod === "email" && (
+            <>
+              {mode === "signup" && <input placeholder="Username" style={INPUT_ST} value={name} onChange={e => setName(e.target.value)} />}
+              <input placeholder="Email" type="email" style={INPUT_ST} value={email} onChange={e => setEmail(e.target.value)} />
+              <input placeholder="Password" type="password" style={INPUT_ST} value={pass} onChange={e => setPass(e.target.value)} onKeyDown={e => e.key === "Enter" && handleSubmit()} />
+              {mode === "login" && (
+                <button onClick={handleForgotPassword} disabled={loading} style={{ alignSelf:"flex-end", marginTop:-4, background:"none", border:"none", cursor:"pointer", color:"#A9CCFF", fontWeight:600, fontSize:13 }}>
+                  Forgot password?
+                </button>
+              )}
+              <button onClick={handleSubmit} disabled={loading} style={{ ...BTN_PRIMARY, opacity:loading ? 0.7 : 1 }}>
+                {loading ? "Please wait…" : mode === "login" ? "Sign In" : "Create Account"}
+              </button>
+            </>
+          )}
+
+          {authMethod === "google" && (
+            <>
+              <div style={{ padding:"14px 16px", borderRadius:18, background:"rgba(255,255,255,0.08)", border:"1px solid rgba(255,255,255,0.14)", color:"rgba(232,240,255,0.76)", fontSize:14, lineHeight:1.45 }}>
+                Continue with your Google account. This uses Firebase popup auth and drops you straight into the app.
+              </div>
+              <button onClick={handleGoogleSignIn} disabled={loading} style={{ ...BTN_PRIMARY, opacity:loading ? 0.7 : 1 }}>
+                {loading ? "Please wait…" : "Continue with Google"}
+              </button>
+            </>
+          )}
+
+          {authMethod === "phone" && (
+            <>
+              {phoneStep === "enter" ? (
+                <>
+                  <input placeholder="Phone number (+15551234567)" type="tel" style={INPUT_ST} value={phone} onChange={e => setPhone(e.target.value)} onKeyDown={e => e.key === "Enter" && handleSendOTP()} />
+                  <button onClick={handleSendOTP} disabled={loading} style={{ ...BTN_PRIMARY, opacity:loading ? 0.7 : 1 }}>
+                    {loading ? "Sending…" : "Send verification code"}
+                  </button>
+                </>
+              ) : (
+                <>
+                  <input placeholder="6-digit code" inputMode="numeric" style={INPUT_ST} value={otp} onChange={e => setOtp(e.target.value)} onKeyDown={e => e.key === "Enter" && handleVerifyOTP()} />
+                  <div style={{ display:"flex", gap:10 }}>
+                    <button onClick={() => { setPhoneStep("enter"); setOtp(""); setConfirmResult(null); resetMessages(); }} style={{ ...BTN_SECONDARY, flex:1 }}>Edit number</button>
+                    <button onClick={handleVerifyOTP} disabled={loading} style={{ ...BTN_PRIMARY, flex:1, opacity:loading ? 0.7 : 1 }}>
+                      {loading ? "Verifying…" : "Verify code"}
+                    </button>
+                  </div>
+                </>
+              )}
+              <div id="recaptcha-container" />
+            </>
+          )}
+
+          {error && (
+            <div style={{ fontSize:13, color:"#FFD2CC", background:"rgba(255,255,255,0.08)", border:"1px solid rgba(255,120,99,0.18)", borderRadius:16, padding:"12px 14px", lineHeight:1.45 }}>
+              {error}
+            </div>
+          )}
+          {notice && (
+            <div style={{ fontSize:13, color:"#D7E7FF", background:"rgba(255,255,255,0.08)", border:"1px solid rgba(127,182,255,0.16)", borderRadius:16, padding:"12px 14px", lineHeight:1.45 }}>
+              {notice}
+            </div>
+          )}
         </div>
       </div>
     </div>
   );
 }
 
-function HomeScreen({ tracks = [], onPlayRadio, onTogglePlay, onPlayTrack, currentTrack, isPlaying, onLike, isRadioMode, playlistCtx }) {
+function HomeScreen({ tracks, onPlayRadio, onTogglePlay, onPlayTrack, currentTrack, isPlaying, onLike, isRadioMode, playlistCtx }) {
   const hour = new Date().getHours();
+  const greeting = hour<12?"Good Morning":hour<18?"Good Afternoon":"Good Evening";
   // Sort tracks by playCount descending for Top Tracks section
   const topTracks = [...tracks].filter(t=>(t.duration||0)<=900).sort((a,b) => (b.playCount||0) - (a.playCount||0)).slice(0,8);
   // Mixtapes: tracks with duration > 900 seconds (15 minutes)
   const mixtapes  = tracks.filter(t => (t.duration||0) > 900).sort((a,b) => (b.duration||0) - (a.duration||0));
-
-  if (!tracks.length) {
-    return (
-      <div style={{ padding:"24px 16px 120px" }}>
-        <GlassPanel level="panel" style={{ padding:24, minHeight:320, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", textAlign:"center", gap:12 }}>
-          <div style={{ width:72, height:72, borderRadius:24, display:"grid", placeItems:"center", background:"linear-gradient(180deg, rgba(255,255,255,0.82), rgba(255,255,255,0.46))", border:TOKENS.border.soft, boxShadow:TOKENS.shadow.panel }}>
-            <BrandGlyph size={34} />
-          </div>
-          <div style={{ fontSize:18, fontWeight:750, color:TOKENS.text.primary }}>Your library is empty</div>
-          <div style={{ fontSize:14, lineHeight:1.5, color:TOKENS.text.secondary, maxWidth:320 }}>
-            The app loaded, but there are no tracks available yet. Add documents in the <code style={{ fontFamily:'inherit', background:'rgba(255,255,255,0.5)', padding:'2px 6px', borderRadius:8 }}>tracks</code> collection or check Firestore rules.
-          </div>
-        </GlassPanel>
-      </div>
-    );
-  }
-
   return (
     <div>
-      <div style={{ padding:"18px 16px 10px", display:"flex", justifyContent:"center", alignItems:"center" }}>
-        <div style={{ width:52, height:52, borderRadius:18, background:"linear-gradient(135deg, rgba(255,255,255,0.58), rgba(255,255,255,0.2))", border:"1px solid rgba(255,255,255,0.58)", boxShadow:"0 18px 40px rgba(90,110,150,0.12), inset 0 1px 0 rgba(255,255,255,0.8)", display:"flex", alignItems:"center", justifyContent:"center", backdropFilter:"blur(24px) saturate(180%)" }}>
-          <BrandGlyph size={30} />
+      {/* Header */}
+      <div style={{ padding:"24px 16px 16px", display:"flex", justifyContent:"space-between", alignItems:"flex-start" }}>
+        <div>
+          <div style={{ fontSize:28, fontWeight:700, letterSpacing:-0.5, color:"#1C1C1E" }}>{greeting}</div>
+          <div style={{ fontSize:14, color:"#8E8E93", marginTop:3 }}>What are you digging?</div>
         </div>
+        <div style={{ fontSize:26 }}>📦</div>
       </div>
 
       {/* Radio card — top of page */}
@@ -1129,9 +815,13 @@ function HomeScreen({ tracks = [], onPlayRadio, onTogglePlay, onPlayTrack, curre
         <DeepCutsCard onPlay={onPlayRadio} onTogglePlay={onTogglePlay} currentTrack={isRadioMode?currentTrack:null} isPlaying={isPlaying} isRadioMode={isRadioMode}/>
       </div>
 
-            <div style={{ padding:"8px 16px 0" }} />
-      <div style={{ marginBottom:26, display:"flex", justifyContent:"center" }}>
-        <div style={{ width:"100%", maxWidth:336, borderRadius:22, overflow:"hidden", background:"linear-gradient(180deg, rgba(255,255,255,0.5), rgba(255,255,255,0.22))", border:"1px solid rgba(255,255,255,0.62)", boxShadow:"0 20px 46px rgba(98,132,190,0.08)", backdropFilter:"blur(24px) saturate(170%)" }}>
+      {/* YOUR VERS — standout section */}
+      <div style={{ padding:"4px 16px 12px", display:"flex", alignItems:"baseline", gap:10, borderTop:"0.5px solid rgba(60,60,67,0.12)", marginTop:4 }}>
+        <div style={{ fontSize:22, fontWeight:700, letterSpacing:-0.3, color:"#1C1C1E" }}>Your Collection</div>
+        <div style={{ fontSize:13, color:"#8E8E93" }}>{tracks.length} records</div>
+      </div>
+      <div style={{ marginBottom:32, borderBottom:"0.5px solid rgba(60,60,67,0.12)", background:"rgba(0,0,0,0.02)", display:"flex", justifyContent:"center" }}>
+        <div style={{ width:"100%", maxWidth:320 }}>
           <VerseFlipper tracks={tracks.filter(t=>(t.duration||0)<=900)} onSelect={t=>onPlayTrack(t,tracks)} currentTrack={currentTrack} isPlaying={isPlaying}/>
         </div>
       </div>
@@ -1174,13 +864,17 @@ function HomeScreen({ tracks = [], onPlayRadio, onTogglePlay, onPlayTrack, curre
         </>
       )}
 
-            <div style={{ padding:"6px 16px 0" }} />
-      <div style={{ padding:"0 14px 6px" }}>
+      {/* Top Tracks — styled to match Your Collection header */}
+      <div style={{ padding:"20px 16px 12px", display:"flex", alignItems:"baseline", gap:10, borderTop:"0.5px solid rgba(60,60,67,0.12)", marginTop:8 }}>
+        <div style={{ fontSize:22, fontWeight:700, letterSpacing:-0.3, color:"#1C1C1E" }}>Top Tracks</div>
+        <div style={{ fontSize:13, color:"#8E8E93" }}>most played</div>
+      </div>
+      <div style={{ padding:"0 16px" }}>
         {topTracks.map((t,i)=>(
           <div key={t.id} style={{ display:"flex", alignItems:"center", gap:10 }}>
             <div style={{ width:22, textAlign:"right", fontSize:14, fontWeight:700, color:"#AEAEB2", flexShrink:0 }}>{i+1}</div>
             <div style={{ flex:1 }}>
-              <TrackRow track={t} onPlay={()=>onPlayTrack(t,tracks)} active={currentTrack?.id===t.id} isPlaying={isPlaying} onLike={onLike} playlistCtx={playlistCtx} density={density}/>
+              <TrackRow track={t} onPlay={()=>onPlayTrack(t,tracks)} active={currentTrack?.id===t.id} isPlaying={isPlaying} onLike={onLike} playlistCtx={playlistCtx}/>
             </div>
           </div>
         ))}
@@ -1190,22 +884,23 @@ function HomeScreen({ tracks = [], onPlayRadio, onTogglePlay, onPlayTrack, curre
 }
 
 // ─── SEARCH ───────────────────────────────────────────────────────────────────
-function SearchScreen({ query, setQuery, results, onPlay, onLike, currentTrack, isPlaying, playlistCtx, density="comfortable" }) {
+function SearchScreen({ query, setQuery, results, onPlay, onLike, currentTrack, isPlaying, playlistCtx }) {
   return (
     <div style={{ padding:"24px 16px 16px" }}>
-            <div style={{ position:"relative", marginBottom:24 }}>
+      <div style={{ fontSize:28, fontWeight:700, letterSpacing:-0.5, color:"#1C1C1E", marginBottom:16 }}>Search</div>
+      <div style={{ position:"relative", marginBottom:24 }}>
         <div style={{ position:"absolute", left:14, top:"50%", transform:"translateY(-50%)", color:"#AEAEB2" }}><Icon name="search" size={16}/></div>
         <input placeholder="Tracks, artists, genres…" style={{...INPUT_ST,paddingLeft:42}} value={query} onChange={e=>setQuery(e.target.value)} autoFocus/>
       </div>
       {query.length>1&&!results.length&&<div style={{ textAlign:"center", color:"#AEAEB2", padding:"48px 0" }}><div style={{ fontSize:32, marginBottom:12 }}>🔍</div><div style={{ fontSize:15, color:"#8E8E93" }}>No results for "{query}"</div></div>}
-      {results.map(t=><TrackRow key={t.id} track={t} onPlay={()=>onPlay(t)} active={currentTrack?.id===t.id} isPlaying={isPlaying} onLike={onLike} playlistCtx={playlistCtx} density={density}/>)}
-      {!query&&<div style={{ color:"#AEAEB2", textAlign:"center", paddingTop:56 }}><div style={{ width:58, height:58, borderRadius:20, margin:"0 auto", display:"flex", alignItems:"center", justifyContent:"center", background:"linear-gradient(180deg, rgba(255,255,255,0.72), rgba(255,255,255,0.34))", border:"1px solid rgba(255,255,255,0.72)", boxShadow:"0 14px 30px rgba(98,132,190,0.08)" }}><Icon name="search" size={22}/></div></div>}
+      {results.map(t=><TrackRow key={t.id} track={t} onPlay={()=>onPlay(t)} active={currentTrack?.id===t.id} isPlaying={isPlaying} onLike={onLike} playlistCtx={playlistCtx}/>)}
+      {!query&&<div style={{ color:"#AEAEB2", textAlign:"center", paddingTop:48 }}><Icon name="search" size={32}/><div style={{ marginTop:12, fontSize:14 }}>Search tracks, artists or genres</div></div>}
     </div>
   );
 }
 
 // ─── LIBRARY ─────────────────────────────────────────────────────────────────
-function FavoritesScreen({ tracks, onPlay, onLike, currentTrack, isPlaying, userPlaylists, onCreatePlaylist, onAddToPlaylist, onRemoveFromPlaylist, onDeletePlaylist, playlistCtx, density="comfortable" }) {
+function FavoritesScreen({ tracks, onPlay, onLike, currentTrack, isPlaying, userPlaylists, onCreatePlaylist, onAddToPlaylist, onRemoveFromPlaylist, onDeletePlaylist, playlistCtx }) {
   const [activeList, setActiveList]     = useState("liked");
   const [showNewInput, setShowNewInput] = useState(false);
   const [newName, setNewName]           = useState("");
@@ -1229,7 +924,8 @@ function FavoritesScreen({ tracks, onPlay, onLike, currentTrack, isPlaying, user
     <div style={{ display:"flex", height:"100%", minHeight:"calc(100vh - 112px)" }}>
       {/* ── Left sidebar ── */}
       <div style={{ width:160, flexShrink:0, borderRight:"0.5px solid rgba(60,60,67,0.12)", background:"#F2F2F7", paddingTop:24, display:"flex", flexDirection:"column", gap:1, overflowY:"auto" }}>
-                {/* Liked Songs row */}
+        <div style={{ fontSize:11, fontWeight:700, letterSpacing:0.5, color:"#AEAEB2", textTransform:"uppercase", padding:"0 14px 8px" }}>Library</div>
+        {/* Liked Songs row */}
         <button onClick={()=>setActiveList("liked")} style={{ background:activeList==="liked"?"#FFFFFF":"none", border:"none", cursor:"pointer", textAlign:"left", padding:"10px 14px", color:activeList==="liked"?"#8B95A7":"#1C1C1E", boxShadow:activeList==="liked"?"0 1px 3px rgba(0,0,0,0.06)":"none", fontSize:13, fontWeight:activeList==="liked"?600:400, display:"flex", alignItems:"center", gap:8, borderRadius:8, margin:"0 6px", transition:"all 0.15s" }}>
           <Icon name="heart" size={13}/> Liked Songs
         </button>
@@ -1273,7 +969,7 @@ function FavoritesScreen({ tracks, onPlay, onLike, currentTrack, isPlaying, user
             <div style={{ fontSize:14 }}>{activeList==="liked"?"Heart tracks to save them here":"Add tracks using the ⋯ menu on any track"}</div>
           </div>
         ) : activeTracks.map(t => (
-          <TrackRow key={t.id} track={t} onPlay={()=>onPlay(t)} active={currentTrack?.id===t.id} isPlaying={isPlaying} onLike={onLike} playlistCtx={playlistCtx} activePlaylistId={activeList} density={density}/>
+          <TrackRow key={t.id} track={t} onPlay={()=>onPlay(t)} active={currentTrack?.id===t.id} isPlaying={isPlaying} onLike={onLike} playlistCtx={playlistCtx} activePlaylistId={activeList}/>
         ))}
       </div>
     </div>
@@ -1287,10 +983,6 @@ const ALL_GENRES = [
   "Reggae","Afrobeat","Latin","World","Folk",
   "Rock","Indie","Alternative","Classical","Experimental",
 ];
-
-const SectionLabel = ({ children, style={} }) => (
-  <div style={{ fontSize:12, fontWeight:700, letterSpacing:0.3, color:"#8E8E93", marginBottom:10, textTransform:"uppercase", ...style }}>{children}</div>
-);
 
 function ProfileScreen({ user, setUser, tracks, onLogout }) {
   const liked = tracks.filter(t=>t.liked).length;
@@ -1497,85 +1189,70 @@ function AdminScreen({ tracks, setTracks, tab, setTab, editTrack, setEditTrack, 
 
 // ─── NOW PLAYING BAR ──────────────────────────────────────────────────────────
 function NowPlayingBar({ track, isPlaying, progress, duration, onTogglePlay, onSkip, onPrev, onLike, onSeek, repeat, setRepeat, isRadioMode, expanded, setExpanded }) {
-  const pct = duration ? ((progress / duration) * 100) : 0;
+  const pct = (progress/duration)*100;
 
   if (expanded) return (
-    <div onClick={()=>setExpanded(false)} style={{ position:"fixed", inset:0, zIndex:95, background:"rgba(232,238,246,0.5)", backdropFilter:"blur(30px) saturate(180%)" }}>
-      <div style={{ position:"absolute", inset:0, background:`radial-gradient(circle at 50% 0%, rgba(${hexToRgbStr(track.color)},0.18), transparent 36%)` }}/>
+    <div style={{ position:"fixed", inset:0, zIndex:90, overflow:"hidden" }}>
+      <div style={{ position:"absolute", inset:0, background:`radial-gradient(ellipse at 50% 20%,rgba(${hexToRgbStr(track.color)},0.12) 0%,rgba(15,15,18,0.97) 65%)`, backdropFilter:"blur(40px)" }}/>
       <BgMist color={track.color}/>
-      <div onClick={e=>e.stopPropagation()} style={{ height:"100%", display:"flex", flexDirection:"column", justifyContent:"center", padding:"34px 28px 42px", animation:"soft-in 0.22s ease" }}>
-        <div style={{ alignSelf:"center", width:54, height:5, borderRadius:999, background:"rgba(15,23,42,0.12)", marginBottom:28 }} />
-        <div style={{ alignSelf:"center", width:"min(78vw, 360px)", aspectRatio:"1", borderRadius:28, overflow:"hidden", boxShadow:"0 28px 80px rgba(66,88,128,0.18), inset 0 1px 0 rgba(255,255,255,0.85)", border:"1px solid rgba(255,255,255,0.72)", background:"linear-gradient(180deg, rgba(255,255,255,0.5), rgba(255,255,255,0.22))" }}>
-          <AlbumArt track={track} size={420} borderRadius={0}/>
+      <div style={{ position:"absolute", inset:0, background:"rgba(6,6,8,0.5)" }}/>
+      <div style={{ position:"relative", zIndex:1, height:"100%", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:32, gap:20 }}>
+        <button onClick={()=>setExpanded(false)} style={{ position:"absolute", top:20, right:20, background:"rgba(255,255,255,0.15)", border:"none", borderRadius:"50%", width:36, height:36, cursor:"pointer", color:"#FFFFFF", backdropFilter:"blur(12px)", display:"flex", alignItems:"center", justifyContent:"center" }}>
+          <Icon name="x" size={18}/>
+        </button>
+        <div style={{ position:"relative" }}>
+          {isPlaying&&<div style={{ position:"absolute", width:220, height:220, top:"50%", left:"50%", transform:"translate(-50%,-50%)", borderRadius:"50%", border:"1px solid rgba(255,255,255,0.15)", animation:"pulse-ring 2.5s ease-out infinite" }}/>}
+          <VinylRecord track={track} isPlaying={isPlaying} size={190}/>
         </div>
-        <div style={{ marginTop:28, textAlign:"center" }}>
-          <div style={{ fontSize:28, fontWeight:750, letterSpacing:-0.7, color:"#0F172A" }}>{track.title}</div>
-          <div style={{ fontSize:15, color:"#667085", marginTop:6 }}>{track.artist}</div>
-        </div>
-        <div style={{ marginTop:26, padding:"0 4px" }}>
-          <div style={{ height:6, background:"rgba(15,23,42,0.08)", borderRadius:999, overflow:"hidden" }}>
-            <div style={{ height:"100%", width:`${pct}%`, background:"linear-gradient(90deg, rgba(121,195,255,0.95), rgba(75,140,255,0.95))", borderRadius:999, boxShadow:"0 0 20px rgba(75,140,255,0.28)" }}/>
+        <div style={{ textAlign:"center" }}>
+          {isRadioMode&&<div style={{ fontSize:11, color:"#8B95A7", letterSpacing:1.5, textTransform:"uppercase", marginBottom:6, fontWeight:700 }}>● VERSE Radio</div>}
+          <div style={{ fontSize:24, fontWeight:700, letterSpacing:-0.5, color:"#1C1C1E" }}>{track.title}</div>
+          <div style={{ fontSize:15, color:"rgba(220,220,225,0.8)", marginTop:4 }}>{track.artist}</div>
+          <div style={{ fontSize:12, color:"rgba(200,200,205,0.55)", marginTop:2 }}>{track.album} · {track.genre}</div>
+          <div style={{ marginTop:10, display:"flex", justifyContent:"center", alignItems:"center", gap:12 }}>
+            <EnergyBar level={track.energy} color={track.color} size="lg"/>
+            {track.camelot&&<span style={{ fontSize:12, fontWeight:700, color:"rgba(255,255,255,0.9)", background:"rgba(255,255,255,0.15)", padding:"2px 10px", borderRadius:6 }}>{track.camelot}</span>}
+            {track.bpm&&<span style={{ fontSize:12, color:"rgba(200,200,205,0.6)" }}>{track.bpm} BPM</span>}
           </div>
-          <div style={{ display:"flex", justifyContent:"space-between", marginTop:8, color:"#7B8190", fontSize:12, fontVariantNumeric:"tabular-nums" }}>
+        </div>
+        <div style={{ width:"100%" }}>
+          <input type="range" min={0} max={duration} value={progress} onChange={e=>onSeek(+e.target.value)} style={{ width:"100%", accentColor:track.color }}/>
+          <div style={{ display:"flex", justifyContent:"space-between", fontSize:12, color:"rgba(200,200,205,0.6)", marginTop:4 }}>
             <span>{fmtTime(progress)}</span><span>{fmtTime(duration)}</span>
           </div>
-          <input type="range" min={0} max={duration||0} value={progress} onChange={e=>onSeek(+e.target.value)} style={{ width:"100%", marginTop:10, accentColor:"#4B8CFF" }}/>
         </div>
-        <div style={{ marginTop:22, display:"flex", alignItems:"center", justifyContent:"center", gap:18 }}>
-          <button onClick={onLike} style={{ width:44, height:44, borderRadius:16, background:"rgba(255,255,255,0.55)", border:"1px solid rgba(255,255,255,0.78)", color:track.liked?"#4B6FA4":"#7B8190", display:"flex", alignItems:"center", justifyContent:"center" }}><Icon name={track.liked?"heart":"heartempty"} size={18}/></button>
-          <button onClick={onPrev} style={{ width:48, height:48, borderRadius:18, background:"rgba(255,255,255,0.55)", border:"1px solid rgba(255,255,255,0.78)", color:"#344054", display:"flex", alignItems:"center", justifyContent:"center" }}><Icon name="prev" size={18}/></button>
-          <button onClick={onTogglePlay} style={{ width:68, height:68, borderRadius:24, background:"linear-gradient(180deg, #79C3FF 0%, #4B8CFF 100%)", border:"1px solid rgba(255,255,255,0.5)", color:"#FFFFFF", display:"flex", alignItems:"center", justifyContent:"center", boxShadow:"0 20px 44px rgba(75,140,255,0.34)" }}><Icon name={isPlaying?"pause":"play"} size={28}/></button>
-          <button onClick={onSkip} style={{ width:48, height:48, borderRadius:18, background:"rgba(255,255,255,0.55)", border:"1px solid rgba(255,255,255,0.78)", color:"#344054", display:"flex", alignItems:"center", justifyContent:"center" }}><Icon name="skip" size={18}/></button>
-          <button onClick={()=>setRepeat(!repeat)} style={{ width:44, height:44, borderRadius:16, background:repeat?"rgba(121,195,255,0.18)":"rgba(255,255,255,0.55)", border:"1px solid rgba(255,255,255,0.78)", color:repeat?"#4B6FA4":"#7B8190", display:"flex", alignItems:"center", justifyContent:"center" }}><Icon name="repeat" size={18}/></button>
+        <div style={{ display:"flex", alignItems:"center", gap:28 }}>
+          <button onClick={onLike} style={{ background:"none",border:"none",cursor:"pointer",color:track.liked?"#8B95A7":"rgba(255,255,255,0.55)",padding:4 }}><Icon name={track.liked?"heart":"heartempty"} size={20}/></button>
+          <button onClick={onPrev} style={CTRL_BTN}><Icon name="prev" size={22}/></button>
+          <button onClick={onTogglePlay} style={{ ...CTRL_BTN,width:56,height:56,background:"#8B95A7",border:"none",borderRadius:"50%",color:"#FFFFFF" }}>
+            <Icon name={isPlaying?"pause":"play"} size={26}/>
+          </button>
+          <button onClick={onSkip} style={CTRL_BTN}><Icon name="skip" size={22}/></button>
+          <button onClick={()=>setRepeat(r=>!r)} style={{ background:"none",border:"none",cursor:"pointer",color:repeat?"#8B95A7":"rgba(255,255,255,0.55)",padding:4 }}><Icon name="repeat" size={18}/></button>
         </div>
       </div>
     </div>
   );
 
   return (
-    <div onClick={()=>setExpanded(true)} style={{ position:"fixed", left:12, right:12, bottom:78, zIndex:90, padding:8, borderRadius:24, background:"linear-gradient(180deg, rgba(255,255,255,0.82), rgba(255,255,255,0.58))", backdropFilter:"blur(28px) saturate(180%)", border:"1px solid rgba(255,255,255,0.86)", boxShadow:"0 22px 54px rgba(98,132,190,0.16), inset 0 1px 0 rgba(255,255,255,0.86)" }}>
-      <div style={{ position:"absolute", left:10, right:10, top:0, height:3, background:"rgba(15,23,42,0.05)", borderRadius:999, overflow:"hidden" }}>
-        <div style={{ width:`${pct}%`, height:"100%", background:"linear-gradient(90deg, rgba(121,195,255,0.95), rgba(75,140,255,0.95))" }}/>
-      </div>
-      <div style={{ display:"grid", gridTemplateColumns:"44px minmax(0,1fr) auto", alignItems:"center", gap:10 }}>
-        <div style={{ width:44, height:44, borderRadius:14, overflow:"hidden", boxShadow:"0 8px 18px rgba(40,55,90,0.12)" }}><AlbumArt track={track} size={44} borderRadius={0}/></div>
-        <div style={{ minWidth:0 }}>
-          <div style={{ fontSize:13, fontWeight:700, color:"#111827", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{track.title}</div>
-          <div style={{ fontSize:12, color:"#7B8190", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{track.artist}</div>
+    <div style={{ position:"fixed", bottom:56, left:0, right:0, zIndex:80, padding:"0 8px" }}>
+      <div onClick={()=>setExpanded(true)} style={{ background:"rgba(249,249,249,0.94)", backdropFilter:"blur(24px) saturate(1.5)", borderRadius:14, padding:"10px 14px", display:"flex", alignItems:"center", gap:12, border:"0.5px solid rgba(60,60,67,0.12)", boxShadow:"0 2px 20px rgba(0,0,0,0.08)", cursor:"pointer" }}>
+        <div style={{ width:38, height:38, borderRadius:8, overflow:"hidden", flexShrink:0 }}><AlbumArt track={track} size={38} borderRadius={0}/></div>
+        <div style={{ flex:1, minWidth:0 }}>
+          <div style={{ fontSize:14, fontWeight:600, color:"#1C1C1E", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
+            {isRadioMode&&<span style={{ fontSize:10, color:"#8B95A7", fontWeight:700, letterSpacing:1, marginRight:6 }}>●</span>}
+            {track.title}
+          </div>
+          <div style={{ fontSize:12, color:"#8E8E93" }}>{track.artist}</div>
+          <div style={{ marginTop:4, background:"#E5E5EA", borderRadius:2, height:2.5 }}>
+            <div style={{ width:`${pct}%`, background:"#8B95A7", height:"100%", borderRadius:2, transition:"width 1s linear" }}/>
+          </div>
         </div>
-        <div style={{ display:"flex", alignItems:"center", gap:4 }}>
-          <button onClick={e=>{e.stopPropagation();onLike();}} style={{ width:36, height:36, borderRadius:12, background:"rgba(255,255,255,0.5)", border:"1px solid rgba(255,255,255,0.78)", color:track.liked?"#4B6FA4":"#98A1B2", display:"flex", alignItems:"center", justifyContent:"center" }}><Icon name={track.liked?"heart":"heartempty"} size={15}/></button>
-          <button onClick={e=>{e.stopPropagation();onTogglePlay();}} style={{ width:42, height:42, borderRadius:14, background:"linear-gradient(180deg, #79C3FF 0%, #4B8CFF 100%)", border:"1px solid rgba(255,255,255,0.52)", color:"#FFFFFF", display:"flex", alignItems:"center", justifyContent:"center", boxShadow:"0 14px 30px rgba(75,140,255,0.26)" }}><Icon name={isPlaying?"pause":"play"} size={18}/></button>
-        </div>
-
-        <div style={{ width:"100%", maxWidth:380, paddingBottom:Math.max(10, 8), display:"flex", flexDirection:"column", gap:10 }}>
-          <button
-            onClick={handleGoogleSignIn}
-            disabled={loading}
-            aria-label="Continue with Google"
-            title="Continue with Google"
-            style={{
-              width:"100%",
-              minHeight:58,
-              borderRadius:20,
-              border:"1px solid rgba(255,255,255,0.68)",
-              background:"linear-gradient(180deg, rgba(255,255,255,0.82), rgba(255,255,255,0.46))",
-              boxShadow:"0 20px 40px rgba(91,116,162,0.12), inset 0 1px 0 rgba(255,255,255,0.82)",
-              backdropFilter:"blur(24px) saturate(180%)",
-              display:"flex",
-              alignItems:"center",
-              justifyContent:"center",
-              gap:12,
-              cursor:"pointer",
-              color:"#28446B",
-              fontSize:15,
-              fontWeight:700,
-              opacity:loading ? 0.7 : 1,
-            }}
-          >
-            {loading ? <span style={{ fontSize:13, fontWeight:700, color:"#4B8CFF" }}>Please wait…</span> : <><GoogleGlyph /><span>Continue with Google</span></>}
-          </button>
-        </div>
+        <button onClick={e=>{e.stopPropagation();onLike();}} style={{ background:"none",border:"none",cursor:"pointer",color:track.liked?"#8B95A7":"#AEAEB2",padding:4 }}><Icon name={track.liked?"heart":"heartempty"} size={16}/></button>
+        <button onClick={e=>{e.stopPropagation();onTogglePlay();}} style={{ background:"#8B95A7",border:"none",borderRadius:"50%",width:36,height:36,cursor:"pointer",color:"#FFFFFF",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0 }}>
+          <Icon name={isPlaying?"pause":"play"} size={18}/>
+        </button>
+        <button onClick={e=>{e.stopPropagation();onSkip();}} style={{ background:"none",border:"none",cursor:"pointer",color:"#8E8E93",padding:4 }}><Icon name="skip" size={18}/></button>
       </div>
     </div>
   );
@@ -1589,13 +1266,11 @@ function BottomNav({ screen, setScreen }) {
     {id:"admin",label:"Admin",icon:"settings"},
   ];
   return (
-    <div style={{ position:"fixed", bottom:10, left:12, right:12, height:60, background:"linear-gradient(180deg, rgba(255,255,255,0.8), rgba(255,255,255,0.56))", backdropFilter:"blur(26px) saturate(1.7)", border:"1px solid rgba(255,255,255,0.82)", borderRadius:22, display:"flex", zIndex:85, boxShadow:"0 18px 42px rgba(98,132,190,0.14), inset 0 1px 0 rgba(255,255,255,0.85)" }}>
+    <div style={{ position:"fixed", bottom:0, left:0, right:0, height:56, background:"rgba(249,249,249,0.94)", backdropFilter:"blur(24px) saturate(1.5)", borderTop:"0.5px solid rgba(60,60,67,0.12)", display:"flex", zIndex:85 }}>
       {items.map(({id,icon,label})=>(
-        <button key={id} title={label} onClick={()=>setScreen(id)} style={{ flex:1,display:"flex",alignItems:"center",justifyContent:"center",background:"none",border:"none",cursor:"pointer",color:screen===id?"#4B6FA4":"#98A1B2",transition:"all 0.18s", position:"relative" }}>
-          <div style={{ width:38, height:38, borderRadius:14, display:"flex", alignItems:"center", justifyContent:"center", background:screen===id?"linear-gradient(180deg, rgba(255,255,255,0.82), rgba(255,255,255,0.44))":"transparent", border:screen===id?"1px solid rgba(255,255,255,0.82)":"1px solid transparent", boxShadow:screen===id?"0 10px 26px rgba(98,132,190,0.12)":"none" }}>
-            <Icon name={id==="favorites"?(screen===id?"heart":"heartempty"):icon} size={18}/>
-          </div>
-          {screen===id && <div style={{ position:"absolute", bottom:6, left:"50%", transform:"translateX(-50%)", width:4, height:4, borderRadius:"50%", background:"#4B6FA4" }}/> }
+        <button key={id} onClick={()=>setScreen(id)} style={{ flex:1,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:3,background:"none",border:"none",cursor:"pointer",color:screen===id?"#8B95A7":"#AEAEB2",transition:"color 0.18s",borderTop:screen===id?"2px solid #8B95A7":"2px solid transparent" }}>
+          <Icon name={id==="favorites"?(screen===id?"heart":"heartempty"):icon} size={18}/>
+          <span style={{ fontSize:10, fontWeight:600 }}>{label}</span>
         </button>
       ))}
     </div>
@@ -1639,7 +1314,6 @@ export default function App() {
   const [editTrack, setEditTrack]     = useState(null);
   const [toast, setToast]             = useState(null);
   const [expanded, setExpanded]       = useState(false);
-  const [density, setDensity]         = useState("comfortable");
   const audioRef                      = useRef(null); // the real HTML5 audio element
   // ── Desktop detection (must be before any early returns) ─────────────────
   const [isDesktop, setIsDesktop]     = useState(() => window.innerWidth >= 900);
@@ -1647,9 +1321,6 @@ export default function App() {
     const handle = () => setIsDesktop(window.innerWidth >= 900);
     window.addEventListener("resize", handle);
     return () => window.removeEventListener("resize", handle);
-  }, []);
-  useEffect(() => {
-    document.title = "V_APP";
   }, []);
   const [userPlaylists, setUserPlaylists] = useState([]); // [{id, name, trackIds:[]}]
 
@@ -2014,10 +1685,10 @@ export default function App() {
           <div style={{ fontSize:14, color:"#8E8E93" }}>Loading your collection…</div>
         </div>
       )}
-      <div style={{ flex:1, overflow:"auto", paddingBottom:currentTrack?154:84, zIndex:1, position:"relative" }}>
-        {screen==="home"      && !tracksLoading && <HomeScreen tracks={tracks} onPlayRadio={playRadio} onTogglePlay={()=>setIsPlaying(p=>!p)} onPlayTrack={playTrack} currentTrack={currentTrack} isPlaying={isPlaying} onLike={toggleLike} isRadioMode={isRadioMode} playlistCtx={playlistCtx} density={density}/>}
-        {screen==="search"    && <SearchScreen query={searchQuery} setQuery={setSearch} results={searchResults} onPlay={t=>playTrack(t,tracks)} onLike={toggleLike} currentTrack={currentTrack} isPlaying={isPlaying} playlistCtx={playlistCtx} density={density}/>}
-        {screen==="favorites" && <FavoritesScreen tracks={tracks} onPlay={t=>{setIsRadioMode(false);playTrack(t,tracks);}} onLike={toggleLike} currentTrack={currentTrack} isPlaying={isPlaying} userPlaylists={userPlaylists} onCreatePlaylist={createPlaylist} onAddToPlaylist={addToPlaylist} onRemoveFromPlaylist={removeFromPlaylist} onDeletePlaylist={deletePlaylist} playlistCtx={playlistCtx} density={density}/>}
+      <div style={{ flex:1, overflow:"auto", paddingBottom:currentTrack?120:56, zIndex:1, position:"relative" }}>
+        {screen==="home"      && !tracksLoading && <HomeScreen tracks={tracks} onPlayRadio={playRadio} onTogglePlay={()=>setIsPlaying(p=>!p)} onPlayTrack={playTrack} currentTrack={currentTrack} isPlaying={isPlaying} onLike={toggleLike} isRadioMode={isRadioMode} playlistCtx={playlistCtx}/>}
+        {screen==="search"    && <SearchScreen query={searchQuery} setQuery={setSearch} results={searchResults} onPlay={t=>playTrack(t,tracks)} onLike={toggleLike} currentTrack={currentTrack} isPlaying={isPlaying} playlistCtx={playlistCtx}/>}
+        {screen==="favorites" && <FavoritesScreen tracks={tracks} onPlay={t=>{setIsRadioMode(false);playTrack(t,tracks);}} onLike={toggleLike} currentTrack={currentTrack} isPlaying={isPlaying} userPlaylists={userPlaylists} onCreatePlaylist={createPlaylist} onAddToPlaylist={addToPlaylist} onRemoveFromPlaylist={removeFromPlaylist} onDeletePlaylist={deletePlaylist} playlistCtx={playlistCtx}/>}
         {screen==="profile"   && <ProfileScreen user={user} setUser={setUser} tracks={tracks} onLogout={logOut}/>}
         {screen==="admin"     && <AdminScreen tracks={tracks} setTracks={setTracks} tab={adminTab} setTab={setAdminTab} editTrack={editTrack} setEditTrack={setEditTrack} showToast={showToast}/>}
       </div>
@@ -2039,31 +1710,63 @@ export default function App() {
     { id:"home",      icon:"home",   label:"Home" },
     { id:"search",    icon:"search", label:"Search" },
     { id:"favorites", icon:"heart",  label:"Library" },
-    { id:"profile",   icon:"profile",   label:"Profile" },
+    { id:"profile",   icon:"user",   label:"Profile" },
   ];
 
   const recentTracks = [...tracks].slice(0, 6);
-  const queueSource = queue?.length ? queue : tracks;
-  const currentIndex = currentTrack ? queueSource.findIndex(t => t.id === currentTrack.id) : -1;
-  const nextUp = currentIndex >= 0 ? queueSource.slice(currentIndex + 1, currentIndex + 6) : recentTracks.slice(0,5);
 
   return (
     <div style={{ display:"flex", height:"100vh", background:"#F2F2F7", overflow:"hidden", fontFamily:"-apple-system,'SF Pro Display','Helvetica Neue',Arial,sans-serif" }}>
 
       {/* ── LEFT SIDEBAR ─────────────────────────────────────────────────── */}
-      <div style={{ width:84, flexShrink:0, background:"linear-gradient(180deg, rgba(255,255,255,0.6), rgba(255,255,255,0.26))", borderRight:"1px solid rgba(255,255,255,0.58)", display:"flex", flexDirection:"column", padding:"16px 0 16px", backdropFilter:"blur(30px) saturate(180%)", boxShadow:"inset -1px 0 0 rgba(255,255,255,0.52)" }}>
+      <div style={{ width:220, flexShrink:0, background:"#FFFFFF", borderRight:"0.5px solid rgba(60,60,67,0.12)", display:"flex", flexDirection:"column", padding:"20px 0 24px" }}>
 
-        <div style={{ padding:"0 0 24px", display:"flex", justifyContent:"center" }}>
-          <div style={{ width:52, height:52, borderRadius:18, background:"linear-gradient(135deg, rgba(255,255,255,0.7), rgba(255,255,255,0.22))", border:"1px solid rgba(255,255,255,0.68)", boxShadow:"0 18px 40px rgba(90,110,150,0.1), inset 0 1px 0 rgba(255,255,255,0.8)", display:"flex", alignItems:"center", justifyContent:"center", backdropFilter:"blur(24px) saturate(180%)" }}>
-            <BrandGlyph size={28} />
+        {/* Logo */}
+        <div style={{ padding:"0 20px 32px" }}>
+          <div style={{ fontSize:18, fontWeight:700, letterSpacing:-0.3, color:"#1C1C1E" }}>VERSE
           </div>
+          <div style={{ fontSize:10, color:"#AEAEB2", letterSpacing:0.5, marginTop:1 }}>vers.fm</div>
         </div>
 
-        <RailNav items={NAV_ITEMS} screen={screen} setScreen={setScreen} showAdmin={firebaseUser?.uid === "5lPAI9N1jkMbVkUyIqLTqBvBf1t1"} />
+        {/* Nav */}
+        <div style={{ display:"flex", flexDirection:"column", gap:2, flex:1 }}>
+          {NAV_ITEMS.map(item => (
+            <button key={item.id} onClick={()=>setScreen(item.id)} style={{
+              display:"flex", alignItems:"center", gap:12, padding:"11px 20px",
+              background:screen===item.id?"rgba(139,149,167,0.08)":"none",
+              border:"none", borderLeft:screen===item.id?"3px solid #8B95A7":"3px solid transparent",
+              color:screen===item.id?"#8B95A7":"#8E8E93",
+              fontSize:14, fontWeight:screen===item.id?600:400,
+              cursor:"pointer", textAlign:"left", transition:"all 0.15s",
+              fontFamily:"inherit",
+            }}>
+              <Icon name={item.icon} size={16}/> {item.label}
+            </button>
+          ))}
+          {firebaseUser?.uid === "5lPAI9N1jkMbVkUyIqLTqBvBf1t1" && (
+            <button onClick={()=>setScreen("admin")} style={{
+              display:"flex", alignItems:"center", gap:12, padding:"11px 20px",
+              background:screen==="admin"?"rgba(139,149,167,0.08)":"none",
+              border:"none", borderLeft:screen==="admin"?"3px solid #8B95A7":"3px solid transparent",
+              color:screen==="admin"?"#8B95A7":"#8E8E93",
+              fontSize:14, fontWeight:screen==="admin"?600:400,
+              cursor:"pointer", textAlign:"left", transition:"all 0.15s",
+              fontFamily:"inherit",
+            }}>
+              <Icon name="settings" size={16}/> Admin
+            </button>
+          )}
+        </div>
 
         {/* User footer */}
-        <div style={{ padding:"14px 0 0", borderTop:"1px solid rgba(255,255,255,0.52)", display:"flex", justifyContent:"center" }}>
-          <div title={user.name} style={{ width:42, height:42, borderRadius:"50%", background:"linear-gradient(180deg, rgba(255,255,255,0.7), rgba(255,255,255,0.28))", border:"1px solid rgba(255,255,255,0.72)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:17, boxShadow:"0 10px 24px rgba(113,143,192,0.12)", backdropFilter:"blur(20px)" }}>{user.image}</div>
+        <div style={{ padding:"16px 20px 0", borderTop:"0.5px solid rgba(60,60,67,0.12)" }}>
+          <div style={{ display:"flex", alignItems:"center", gap:10 }}>
+            <div style={{ width:32, height:32, borderRadius:"50%", background:"#F2F2F7", border:"1px solid rgba(60,60,67,0.12)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:15 }}>{user.image}</div>
+            <div>
+              <div style={{ fontSize:13, fontWeight:600, color:"#1C1C1E" }}>{user.name}</div>
+              <div style={{ fontSize:11, color:"#8E8E93" }}>Music Lover</div>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -2072,7 +1775,7 @@ export default function App() {
         <div style={{
           width:420, height:"calc(100vh - 48px)", maxHeight:860,
           borderRadius:28, overflow:"hidden",
-          boxShadow:"0 22px 70px rgba(100,125,170,0.14), 0 0 0 1px rgba(255,255,255,0.6), inset 0 1px 0 rgba(255,255,255,0.9)", backdropFilter:"blur(32px) saturate(180%)", background:"linear-gradient(180deg, rgba(255,255,255,0.64), rgba(255,255,255,0.32))",
+          boxShadow:"0 16px 60px rgba(0,0,0,0.12), 0 0 0 0.5px rgba(0,0,0,0.08)",
           position:"relative", flexShrink:0,
         }}>
           {innerApp}
@@ -2080,65 +1783,59 @@ export default function App() {
       </div>
 
       {/* ── RIGHT PANEL ──────────────────────────────────────────────────── */}
-      <div style={{ width:280, flexShrink:0, background:"linear-gradient(180deg, rgba(255,255,255,0.58), rgba(255,255,255,0.26))", borderLeft:"1px solid rgba(255,255,255,0.56)", display:"flex", flexDirection:"column", padding:"24px 16px", overflowY:"auto", backdropFilter:"blur(30px) saturate(180%)", boxShadow:"inset 1px 0 0 rgba(255,255,255,0.5)", gap:TOKENS.space.lg }}>
-        <GlassPanel level='panel' style={{ padding:TOKENS.space.lg, position:'relative', overflow:'hidden' }}>
-          {currentTrack ? <div style={{ position:'absolute', inset:-40, background:`radial-gradient(circle at 50% 0%, rgba(${hexToRgbStr(currentTrack.color)},0.18), transparent 55%)`, pointerEvents:'none' }}/> : null}
+      <div style={{ width:260, flexShrink:0, background:"#FFFFFF", borderLeft:"0.5px solid rgba(60,60,67,0.12)", display:"flex", flexDirection:"column", padding:"28px 20px 24px", overflowY:"auto" }}>
+
+        {/* Now Playing */}
+        <div style={{ marginBottom:28 }}>
+          <div style={{ fontSize:11, fontWeight:700, letterSpacing:1, color:"#AEAEB2", textTransform:"uppercase", marginBottom:14 }}>Now Playing</div>
           {currentTrack ? (
-            <>
-              <div style={{ width:'100%', aspectRatio:'1', borderRadius:20, overflow:'hidden', marginBottom:TOKENS.space.lg, boxShadow:'0 12px 28px rgba(40,55,90,0.12)' }}>
-                <img src={currentTrack.albumCover||"/covers/default.jpg"} alt="" style={{ width:'100%', height:'100%', objectFit:'cover' }} onError={e=>{e.target.src='/covers/default.jpg';}}/>
+            <div>
+              <div style={{ width:"100%", aspectRatio:"1", borderRadius:12, overflow:"hidden", marginBottom:16, boxShadow:"0 4px 24px rgba(0,0,0,0.1)" }}>
+                <img src={currentTrack.albumCover||"/covers/default.jpg"} alt="" style={{ width:"100%", height:"100%", objectFit:"cover" }} onError={e=>{e.target.src="/covers/default.jpg";}}/>
               </div>
-              <div style={{ display:'flex', justifyContent:'space-between', gap:TOKENS.space.sm, alignItems:'flex-start', marginBottom:TOKENS.space.md }}>
-                <div style={{ minWidth:0 }}>
-                  <div style={{ fontSize:16, fontWeight:750, color:TOKENS.text.primary, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', letterSpacing:-0.3 }}>{currentTrack.title}</div>
-                  <div style={{ fontSize:13, color:TOKENS.text.secondary, marginTop:4, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{currentTrack.artist}</div>
+              <div style={{ fontSize:17, fontWeight:700, color:"#1C1C1E", marginBottom:4, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{currentTrack.title}</div>
+              <div style={{ fontSize:14, color:"#8E8E93", marginBottom:14, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{currentTrack.artist}</div>
+              <div style={{ display:"flex", flexWrap:"wrap", gap:6 }}>
+                {currentTrack.genre && <span style={{ fontSize:11, fontWeight:600, padding:"4px 10px", borderRadius:8, background:"#F2F2F7", color:"#1C1C1E", border:"0.5px solid rgba(60,60,67,0.12)" }}>{currentTrack.genre}</span>}
+                {currentTrack.camelot && <span style={{ fontSize:11, fontWeight:600, padding:"4px 10px", borderRadius:8, background:"rgba(139,149,167,0.08)", color:"#8B95A7", border:"0.5px solid rgba(139,149,167,0.15)" }}>{currentTrack.camelot}</span>}
+                {currentTrack.bpm && <span style={{ fontSize:11, fontWeight:600, padding:"4px 10px", borderRadius:8, background:"#F2F2F7", color:"#8E8E93", border:"0.5px solid rgba(60,60,67,0.12)", fontVariantNumeric:"tabular-nums" }}>{currentTrack.bpm} BPM</span>}
+              </div>
+              {/* Progress bar */}
+              <div style={{ marginTop:16 }}>
+                <div style={{ height:3, background:"#E5E5EA", borderRadius:2, overflow:"hidden" }}>
+                  <div style={{ height:"100%", width:`${duration?((progress/duration)*100):0}%`, background:"#8B95A7", borderRadius:2, transition:"width 0.5s linear" }}/>
                 </div>
-                <Pill accent>{currentTrack.camelot || 'LIVE'}</Pill>
+                <div style={{ display:"flex", justifyContent:"space-between", marginTop:5 }}>
+                  <span style={{ fontSize:11, color:"#AEAEB2", fontVariantNumeric:"tabular-nums" }}>{Math.floor(progress/60)}:{String(progress%60).padStart(2,"0")}</span>
+                  <span style={{ fontSize:11, color:"#AEAEB2", fontVariantNumeric:"tabular-nums" }}>{Math.floor(duration/60)}:{String(duration%60).padStart(2,"0")}</span>
+                </div>
               </div>
-              <div style={{ display:'flex', flexWrap:'wrap', gap:TOKENS.space.xs, marginBottom:TOKENS.space.md }}>
-                {currentTrack.genre && <Pill>{currentTrack.genre}</Pill>}
-                {currentTrack.bpm && <Pill>{currentTrack.bpm} BPM</Pill>}
-              </div>
-              <div style={{ height:4, background:'rgba(15,23,42,0.06)', borderRadius:999, overflow:'hidden' }}><div style={{ height:'100%', width:`${duration?((progress/duration)*100):0}%`, background:`linear-gradient(90deg, rgba(${hexToRgbStr(currentTrack.color)},0.65), rgba(75,140,255,0.95))`, borderRadius:999, transition:'width 0.35s linear', boxShadow:`0 0 20px rgba(${hexToRgbStr(currentTrack.color)},0.18)` }}/></div>
-              <div style={{ display:'flex', justifyContent:'space-between', marginTop:8, fontSize:11, color:TOKENS.text.tertiary, fontVariantNumeric:'tabular-nums' }}><span>{fmtTime(progress)}</span><span>{fmtTime(duration)}</span></div>
-              <div style={{ display:'flex', alignItems:'center', gap:TOKENS.space.sm, marginTop:TOKENS.space.md }}>
-                <IconButton icon='prev' label='Previous' subtle onClick={handlePrev} />
-                <button onClick={()=>setIsPlaying(p=>!p)} style={{ flex:1, height:44, borderRadius:16, background:'linear-gradient(180deg, #79C3FF 0%, #4B8CFF 100%)', border:'1px solid rgba(255,255,255,0.56)', color:'#FFFFFF', display:'flex', alignItems:'center', justifyContent:'center', boxShadow:'0 16px 34px rgba(75,140,255,0.24)', cursor:'pointer' }}><Icon name={isPlaying?'pause':'play'} size={18}/></button>
-                <IconButton icon='skip' label='Next' subtle onClick={handleSkip} />
-              </div>
-            </>
-          ) : <div style={{ display:'grid', placeItems:'center', padding:'32px 0' }}><BrandGlyph size={32} /></div>}
-        </GlassPanel>
-
-        <GlassPanel level='panel' style={{ padding:TOKENS.space.md }}>
-          <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:TOKENS.space.md }}>
-            <Pill accent>Density</Pill>
-            <div style={{ display:'flex', gap:TOKENS.space.xs }}>
-              <button onClick={()=>setDensity('compact')} style={{ ...glassSurface(density==='compact' ? 'active' : 'panel'), borderRadius:12, padding:'8px 10px', fontSize:12, fontWeight:700, color:density==='compact'?TOKENS.text.accent:TOKENS.text.secondary, cursor:'pointer' }}>Compact</button>
-              <button onClick={()=>setDensity('comfortable')} style={{ ...glassSurface(density==='comfortable' ? 'active' : 'panel'), borderRadius:12, padding:'8px 10px', fontSize:12, fontWeight:700, color:density==='comfortable'?TOKENS.text.accent:TOKENS.text.secondary, cursor:'pointer' }}>Comfort</button>
             </div>
-          </div>
-        </GlassPanel>
+          ) : (
+            <div style={{ textAlign:"center", padding:"32px 0", color:"#AEAEB2" }}>
+              <div style={{ fontSize:36, marginBottom:10 }}>🎵</div>
+              <div style={{ fontSize:13 }}>Nothing playing yet</div>
+            </div>
+          )}
+        </div>
 
-        <GlassPanel level='panel' style={{ padding:TOKENS.space.md }}>
-          <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:TOKENS.space.md }}>
-            <Pill accent>Next up</Pill>
-            <Pill>{nextUp.length}</Pill>
-          </div>
-          <div style={{ display:'flex', flexDirection:'column', gap:TOKENS.space.sm }}>
-            {nextUp.map(t => (
-              <div key={t.id} onClick={()=>playTrack(t, queueSource)} style={{ display:'grid', gridTemplateColumns:`${TOKENS.artwork.queue}px minmax(0,1fr) auto`, alignItems:'center', gap:TOKENS.space.sm, cursor:'pointer', padding:'8px 10px', borderRadius:16, background:currentTrack?.id===t.id?'linear-gradient(180deg, rgba(255,255,255,0.82), rgba(255,255,255,0.46))':'rgba(255,255,255,0.22)', border:currentTrack?.id===t.id?TOKENS.border.strong:'1px solid transparent' }}>
-                <div style={{ width:TOKENS.artwork.queue, height:TOKENS.artwork.queue, borderRadius:12, overflow:'hidden' }}><AlbumArt track={t} size={TOKENS.artwork.queue} borderRadius={0}/></div>
-                <div style={{ minWidth:0 }}>
-                  <div style={{ fontSize:12, fontWeight:650, color:currentTrack?.id===t.id?TOKENS.text.accent:TOKENS.text.primary, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{t.title}</div>
-                  <div style={{ fontSize:11, color:TOKENS.text.secondary, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', marginTop:2 }}>{t.artist}</div>
+        {/* Recent tracks */}
+        <div>
+          <div style={{ fontSize:11, fontWeight:700, letterSpacing:1, color:"#AEAEB2", textTransform:"uppercase", marginBottom:12 }}>Recent Additions</div>
+          <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
+            {recentTracks.map(t => (
+              <div key={t.id} onClick={()=>playTrack(t,tracks)} style={{ display:"flex", alignItems:"center", gap:10, cursor:"pointer", padding:"6px 8px", borderRadius:8, background:currentTrack?.id===t.id?"rgba(139,149,167,0.06)":"transparent", transition:"background 0.15s" }}>
+                <div style={{ width:36, height:36, borderRadius:7, overflow:"hidden", flexShrink:0, boxShadow:"0 1px 4px rgba(0,0,0,0.08)" }}>
+                  <img src={t.albumCover||"/covers/default.jpg"} alt="" style={{ width:"100%", height:"100%", objectFit:"cover" }} onError={e=>{e.target.src="/covers/default.jpg";}}/>
                 </div>
-                <IconButton icon='play' label='Play next track' subtle size={32} />
+                <div style={{ flex:1, minWidth:0 }}>
+                  <div style={{ fontSize:13, fontWeight:currentTrack?.id===t.id?600:400, color:currentTrack?.id===t.id?"#8B95A7":"#1C1C1E", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{t.title}</div>
+                  <div style={{ fontSize:11, color:"#AEAEB2", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{t.artist}</div>
+                </div>
               </div>
             ))}
-            {!nextUp.length && <div style={{ fontSize:12, color:TOKENS.text.tertiary, padding:'8px 4px' }}>Queue fills as soon as a track starts.</div>}
           </div>
-        </GlassPanel>
+        </div>
       </div>
     </div>
   );
@@ -2146,16 +1843,16 @@ export default function App() {
 
 // ─── SHARED STYLES ────────────────────────────────────────────────────────────
 const APP_STYLE = {
-  background:"radial-gradient(circle at 18% 12%, rgba(127,182,255,0.16), transparent 24%), radial-gradient(circle at 82% 16%, rgba(162,121,255,0.12), transparent 20%), linear-gradient(180deg, #eef2f7 0%, #e7edf5 52%, #e3e9f1 100%)",
+  background:"radial-gradient(circle at 18% 12%, rgba(127,182,255,0.12), transparent 24%), radial-gradient(circle at 82% 16%, rgba(162,121,255,0.1), transparent 20%), linear-gradient(180deg, #070B16 0%, #0B1222 52%, #08101E 100%)",
   minHeight:"100vh", height:"100vh", overflow:"hidden",
   fontFamily:"-apple-system,'SF Pro Display','SF Pro Text','Helvetica Neue',Arial,sans-serif",
   color:"#1C1C1E", position:"relative", display:"flex", flexDirection:"column",
   WebkitFontSmoothing:"antialiased", MozOsxFontSmoothing:"grayscale",
 };
 const INPUT_ST = {
-  background:"rgba(255,255,255,0.52)", border:"1px solid rgba(255,255,255,0.7)",
-  borderRadius:18, padding:"13px 15px", color:"#1E293B", fontSize:15,
-  boxShadow:"inset 0 1px 0 rgba(255,255,255,0.85), 0 12px 30px rgba(98,132,190,0.08)", backdropFilter:"blur(22px)",
+  background:"rgba(255,255,255,0.1)", border:"1px solid rgba(255,255,255,0.16)",
+  borderRadius:18, padding:"13px 15px", color:"#F3F8FF", fontSize:15,
+  boxShadow:"inset 0 1px 0 rgba(255,255,255,0.16), 0 12px 30px rgba(0,0,0,0.16)", backdropFilter:"blur(22px)",
   fontFamily:"-apple-system,'SF Pro Text','Helvetica Neue',Arial,sans-serif", width:"100%", display:"block",
 };
 const BTN_PRIMARY = {
@@ -2165,7 +1862,7 @@ const BTN_PRIMARY = {
   fontFamily:"-apple-system,'SF Pro Text','Helvetica Neue',Arial,sans-serif", cursor:"pointer",
 };
 const BTN_SECONDARY = {
-  background:"rgba(255,255,255,0.5)", color:"#334155", border:"1px solid rgba(255,255,255,0.7)",
+  background:"rgba(255,255,255,0.08)", color:"rgba(232,240,255,0.82)", border:"1px solid rgba(255,255,255,0.16)",
   borderRadius:18, padding:"13px 20px", fontSize:15, fontWeight:600,
   backdropFilter:"blur(22px)",
   fontFamily:"-apple-system,'SF Pro Text','Helvetica Neue',Arial,sans-serif", cursor:"pointer",
