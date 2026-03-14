@@ -1288,6 +1288,10 @@ const ALL_GENRES = [
   "Rock","Indie","Alternative","Classical","Experimental",
 ];
 
+const SectionLabel = ({ children, style={} }) => (
+  <div style={{ fontSize:12, fontWeight:700, letterSpacing:0.3, color:"#8E8E93", marginBottom:10, textTransform:"uppercase", ...style }}>{children}</div>
+);
+
 function ProfileScreen({ user, setUser, tracks, onLogout }) {
   const liked = tracks.filter(t=>t.liked).length;
   return (
