@@ -475,77 +475,81 @@ function DeepCutsCard({ onPlay, onTogglePlay, currentTrack, isPlaying, isRadioMo
   const [eMin, eMax] = getEnergyRangeForHour(hour);
   const timeLabel = hour>=22||hour<=1?"Late Night":hour<=5?"Deep Hours":hour<=8?"Early Morning":hour<=11?"Morning":hour<=14?"Midday":hour<=17?"Afternoon":"Evening";
   const rgb = currentTrack ? hexToRgbStr(currentTrack.color) : "160,165,175";
+  const energyLevel = currentTrack?.energy || Math.round((eMin+eMax)/2);
 
   return (
     <div onClick={isRadioMode ? undefined : onPlay} style={{
-      cursor: isRadioMode ? 'default' : 'pointer',
+      cursor: isRadioMode ? "default" : "pointer",
       background: isRadioMode
-        ? `linear-gradient(135deg, rgba(26,29,38,0.08) 0%, #FFFFFF 100%)`
-        : "#FFFFFF",
-      backdropFilter:"blur(28px) saturate(1.6)",
-      border:`1px solid ${isRadioMode?"rgba(26,29,38,0.25)":"rgba(60,60,67,0.12)"}`,
-      borderRadius:20, padding:"20px 18px", transition:"all 0.3s",
-      marginBottom:24, position:"relative", overflow:"hidden",
-      boxShadow: isRadioMode
-        ? "0 4px 24px rgba(26,29,38,0.1)"
-        : "0 1px 8px rgba(0,0,0,0.06)",
+        ? `linear-gradient(135deg, rgba(26,29,38,0.92) 0%, rgba(20,22,30,0.88) 100%)`
+        : "linear-gradient(135deg, rgba(26,29,38,0.88) 0%, rgba(30,33,42,0.85) 100%)",
+      backdropFilter:"blur(40px) saturate(200%)",
+      border:"1px solid rgba(255,255,255,0.08)",
+      borderRadius:20, padding:"20px 20px", transition:"all 0.3s",
+      position:"relative", overflow:"hidden",
+      boxShadow:"0 8px 32px rgba(0,0,0,0.12)",
     }}>
-      {/* Background glow when on air */}
-      {isRadioMode && <div style={{ position:"absolute", top:-40, right:-40, width:160, height:160, borderRadius:"50%", background:"radial-gradient(circle, rgba(26,29,38,0.06) 0%, transparent 70%)", pointerEvents:"none" }}/>}
+      {/* Subtle accent glow from track color */}
+      {isRadioMode && currentTrack && <div style={{ position:"absolute", top:-60, right:-60, width:200, height:200, borderRadius:"50%", background:`radial-gradient(circle, rgba(${rgb},0.15) 0%, transparent 70%)`, pointerEvents:"none" }}/>}
 
-      <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:14 }}>
+      {/* Top row — status + time */}
+      <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:16 }}>
         <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-          {/* Live dot */}
-          <div style={{ position:"relative", width:10, height:10, flexShrink:0 }}>
-            <div style={{ position:"absolute", inset:0, borderRadius:"50%", background: isRadioMode?"#1A1D26":"#C4C9D4", animation:isRadioMode&&isPlaying?"breathe 1.8s ease-in-out infinite":"none" }}/>
-            {isRadioMode&&isPlaying&&<div style={{ position:"absolute", inset:-4, borderRadius:"50%", border:"1px solid rgba(26,29,38,0.5)", animation:"pulse-ring 1.8s ease-out infinite" }}/>}
+          <div style={{ position:"relative", width:8, height:8, flexShrink:0 }}>
+            <div style={{ position:"absolute", inset:0, borderRadius:"50%", background: isRadioMode&&isPlaying?"#FFFFFF":"rgba(255,255,255,0.3)", animation:isRadioMode&&isPlaying?"breathe 1.8s ease-in-out infinite":"none" }}/>
+            {isRadioMode&&isPlaying&&<div style={{ position:"absolute", inset:-3, borderRadius:"50%", border:"1px solid rgba(255,255,255,0.3)", animation:"pulse-ring 1.8s ease-out infinite" }}/>}
           </div>
-          <span style={{ fontSize:11, fontWeight:800, letterSpacing:2, color:isRadioMode&&isPlaying?"#1A1D26":"#8E8E93", textTransform:"uppercase" }}>
-            {isRadioMode&&isPlaying ? "LIVE" : "Now Playing"}
+          <span style={{ fontSize:10, fontWeight:700, letterSpacing:2, color:isRadioMode&&isPlaying?"#FFFFFF":"rgba(255,255,255,0.4)", textTransform:"uppercase" }}>
+            {isRadioMode&&isPlaying ? "live" : "radio"}
           </span>
         </div>
-        <div style={{ fontSize:11, color:"#8E8E93", textAlign:"right", lineHeight:1.6 }}>
-          <div style={{ fontWeight:600, color:"#8E8E93" }}>{timeLabel}</div>
-          
-        </div>
+        <span style={{ fontSize:10, fontWeight:600, color:"rgba(255,255,255,0.4)", letterSpacing:0.5 }}>{timeLabel}</span>
       </div>
 
       {isRadioMode&&currentTrack ? (
         <div>
-          <div style={{ display:"flex", gap:14, alignItems:"center" }}>
-            <div style={{ width:54, height:54, borderRadius:10, overflow:"hidden", flexShrink:0, boxShadow:"0 2px 12px rgba(0,0,0,0.12)" }}>
-              <AlbumArt track={currentTrack} size={54} borderRadius={0}/>
+          {/* Main content row */}
+          <div style={{ display:"flex", gap:14, alignItems:"center", marginBottom:14 }}>
+            <div style={{ width:56, height:56, borderRadius:12, overflow:"hidden", flexShrink:0, boxShadow:`0 4px 20px rgba(${rgb},0.25)` }}>
+              <AlbumArt track={currentTrack} size={56} borderRadius={0}/>
             </div>
             <div style={{ flex:1, minWidth:0 }}>
-              <div style={{ fontSize:16, fontWeight:600, color:"#1C1C1E", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap", letterSpacing:-0.2 }}>{currentTrack.title}</div>
-              <div style={{ fontSize:13, color:"#8E8E93", marginTop:2 }}>{currentTrack.artist}</div>
-              
+              <div style={{ fontSize:17, fontWeight:600, color:"#FFFFFF", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap", letterSpacing:-0.3 }}>{currentTrack.title}</div>
+              <div style={{ fontSize:12, color:"rgba(255,255,255,0.5)", marginTop:3 }}>{currentTrack.artist}</div>
             </div>
           </div>
-          {/* Energy bar + play/pause button row — button on left */}
-          <div style={{ marginTop:12, display:"flex", alignItems:"center", gap:12 }}>
-            <button onClick={e=>{e.stopPropagation();onTogglePlay();}} style={{ width:40, height:40, borderRadius:"50%", background:"#1A1D26", border:"none", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, color:"#FFFFFF", cursor:"pointer" }}>
-              <Icon name={isPlaying?"pause":"play"} size={18}/>
+          {/* Controls + energy indicator */}
+          <div style={{ display:"flex", alignItems:"center", gap:12 }}>
+            <button onClick={e=>{e.stopPropagation();onTogglePlay();}} style={{ width:38, height:38, borderRadius:"50%", background:"rgba(255,255,255,0.15)", backdropFilter:"blur(12px)", border:"1px solid rgba(255,255,255,0.15)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, color:"#FFFFFF", cursor:"pointer" }}>
+              <Icon name={isPlaying?"pause":"play"} size={16}/>
             </button>
-            
+            <div style={{ fontSize:12, fontWeight:500, color:"rgba(255,255,255,0.4)" }}>{timeLabel} Mix</div>
+            <div style={{ flex:1 }}/>
+            {/* Energy level indicator — subtle bar */}
+            <div style={{ display:"flex", gap:2, alignItems:"flex-end" }}>
+              {[1,2,3,4,5,6,7,8,9,10].map(i => (
+                <div key={i} style={{ width:3, height: 3 + i * 1.5, borderRadius:1.5, background: i <= energyLevel ? "rgba(255,255,255,0.5)" : "rgba(255,255,255,0.08)", transition:"background 0.3s" }}/>
+              ))}
+            </div>
           </div>
         </div>
       ) : (
         <div>
-          <div style={{ fontSize:18, fontWeight:600, letterSpacing:-0.2, color:"#1A1D26" }}>V Radio</div>
-          
-          <button onClick={e=>{e.stopPropagation();onPlay();}} style={{ width:48, height:48, borderRadius:"50%", background:"#1A1D26", border:"none", display:"flex", alignItems:"center", justifyContent:"center", color:"#FFFFFF", cursor:"pointer" }}>
-            <Icon name="play" size={22}/>
-          </button>
+          <div style={{ fontSize:20, fontWeight:700, letterSpacing:-0.3, color:"#FFFFFF", marginBottom:4 }}>{timeLabel} Mix</div>
+          <div style={{ fontSize:12, color:"rgba(255,255,255,0.35)", marginBottom:14 }}>Tap to start your {timeLabel.toLowerCase()} session</div>
+          <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between" }}>
+            <button onClick={e=>{e.stopPropagation();onPlay();}} style={{ width:42, height:42, borderRadius:"50%", background:"rgba(255,255,255,0.15)", backdropFilter:"blur(12px)", border:"1px solid rgba(255,255,255,0.15)", display:"flex", alignItems:"center", justifyContent:"center", color:"#FFFFFF", cursor:"pointer" }}>
+              <Icon name="play" size={20}/>
+            </button>
+            {/* Static energy range preview */}
+            <div style={{ display:"flex", gap:2, alignItems:"flex-end" }}>
+              {[1,2,3,4,5,6,7,8,9,10].map(i => (
+                <div key={i} style={{ width:3, height: 3 + i * 1.5, borderRadius:1.5, background: (i >= eMin && i <= eMax) ? "rgba(255,255,255,0.3)" : "rgba(255,255,255,0.06)" }}/>
+              ))}
+            </div>
+          </div>
         </div>
       )}
-
-      {/* Animated waveform */}
-      <div style={{ position:"absolute", right:18, bottom:18, display:"flex", gap:2.5, alignItems:"flex-end", opacity:isRadioMode&&isPlaying?0.45:0.12 }}>
-        {[4,7,5,9,6,4,8,5,7,4].map((h,i)=>(
-          <div key={i} style={{ width:2.5, height:h*1.6, borderRadius:2, background:"#1A1D26", animation:isRadioMode&&isPlaying?`pulse ${0.55+i*0.07}s ease-in-out infinite alternate`:"none" }}/>
-        ))}
-      </div>
     </div>
   );
 }
@@ -981,7 +985,7 @@ function RouteBuilderModal({ tracks, onClose, onPlayRoute }) {
               ))}
             </div>
             <button onClick={()=>setStep(2)} style={{ width:"100%", background:"rgba(255,255,255,0.18)", backdropFilter:"blur(24px)", color:"#FFFFFF", border:"1px solid rgba(255,255,255,0.25)", borderRadius:14, padding:"14px", fontSize:15, fontWeight:600, cursor:"pointer" }}>
-              Next · {duration < 60 ? `${duration} minutes` : `${(duration/60).toFixed(duration%60?1:0)} hours`}
+              Next · {duration < 60 ? `${duration}min` : `${Math.round(duration/60)}h`}
             </button>
           </div>
         )}
@@ -1165,13 +1169,18 @@ function HomeScreen({ tracks, onPlayRadio, onTogglePlay, onPlayTrack, currentTra
   const activeId = currentTrack?.id;
   // Memoize crate: set once when tracks first load, never reshuffle
   const [crateItems, setCrateItems] = useState([]);
+  const crateInitRef = useRef(false);
   useEffect(() => {
-    if (crateItems.length > 0 || !tracks.length) return;
-    const s = tracks.filter(t=>(t.duration||0)<=900);
+    if (crateInitRef.current || !tracks.length) return;
+    crateInitRef.current = true;
+    const s = tracks.filter(t => (t.duration||0) <= 900);
     const shuffled = [...s];
-    for (let i = shuffled.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]]; }
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
     setCrateItems(shuffled.slice(0, 50));
-  }, [tracks.length]);
+  }, [tracks]);
 
   // Smart section prioritization — max 4 sections below radio
   const hasHarmonic = harmonicNeighbors.length > 0;
@@ -1216,7 +1225,7 @@ function HomeScreen({ tracks, onPlayRadio, onTogglePlay, onPlayTrack, currentTra
 
       {/* CD Shelf */}
       {showFlipper && (
-        <GlassSection label={`the crate · ${singles.length} records`}>
+        <GlassSection label={crateItems.length ? `the crate · ${crateItems.length} records` : "the crate"}>
           <CrateShelf items={crateItems} onPlay={t=>onPlayTrack(t,tracks)} activeId={activeId}/>
         </GlassSection>
       )}
@@ -2676,7 +2685,7 @@ export default function App() {
   const glowRgb = currentTrack ? hexToRgbStr(currentTrack.color) : "200,200,210";
 
   return (
-    <div style={{ display:"flex", height:"100vh", background:"linear-gradient(155deg, #C5C5C5 0%, #CCCCCC 30%, #C8C8C8 55%, #D0D0D0 80%, #CACACA 100%)", overflow:"hidden", fontFamily:"-apple-system,'SF Pro Display','Helvetica Neue',Arial,sans-serif" }}>
+    <div style={{ display:"flex", height:"100vh", background:"radial-gradient(ellipse at 50% 45%, #F7F7F9 0%, #E8E8EC 25%, #DCDCE0 45%, #CECFD3 65%, #C7C8CD 100%)", overflow:"hidden", fontFamily:"-apple-system,'SF Pro Display','Helvetica Neue',Arial,sans-serif" }}>
 
       {/* ── LEFT NAV RAIL ─────────────────────────────────────────────── */}
       <div style={{ width:72, flexShrink:0, background:"rgba(255,255,255,0.12)", backdropFilter:"blur(64px) saturate(240%)", borderRight:"1px solid rgba(255,255,255,0.16)", display:"flex", flexDirection:"column", alignItems:"center", padding:"16px 0 16px" }}>
@@ -2900,7 +2909,7 @@ export default function App() {
 
 // ─── SHARED STYLES ────────────────────────────────────────────────────────────
 const APP_STYLE = {
-  background:"linear-gradient(155deg, #C5C5C5 0%, #CCCCCC 30%, #C8C8C8 55%, #D0D0D0 80%, #CACACA 100%)",
+  background:"radial-gradient(ellipse at 50% 45%, #F7F7F9 0%, #E8E8EC 25%, #DCDCE0 45%, #CECFD3 65%, #C7C8CD 100%)",
   minHeight:"100vh", height:"100vh", overflow:"hidden",
   fontFamily:"-apple-system,'SF Pro Display','SF Pro Text','Helvetica Neue',Arial,sans-serif",
   color:"#1C1C1E", position:"relative", display:"flex", flexDirection:"column",
