@@ -1366,7 +1366,7 @@ function HomeScreen({ tracks, onPlayRadio, onTogglePlay, onPlayTrack, currentTra
 
       {/* CD Shelf */}
       {showFlipper && (
-        <GlassSection label={crateItems.length ? `the crate · ${crateItems.length} records` : "the crate"}>
+        <GlassSection label="the crate">
           <CrateShelf items={crateItems} onPlay={t=>onPlayTrack(t,tracks)} activeId={activeId}/>
         </GlassSection>
       )}
@@ -1540,7 +1540,7 @@ function FavoritesScreen({ tracks, onPlay, onLike, currentTrack, isPlaying, user
   }
 
   const Pill = ({label, active, onClick}) => (
-    <button onClick={onClick} style={{ padding:"8px 20px", borderRadius:10, border:"none", background: active?"#FFFFFF":"transparent", color: active?"#1A1D26":"#6B7280", fontSize:13, fontWeight:active?600:500, cursor:"pointer", transition:"all 0.2s", flexShrink:0, boxShadow:active?"0 1px 4px rgba(0,0,0,0.08)":"none", letterSpacing:-0.1 }}>{label}</button>
+    <button onClick={onClick} style={{ padding:"8px 20px", borderRadius:10, border:"none", background: active?"rgba(255,255,255,0.95)":"transparent", color: active?"#1A1D26":"rgba(255,255,255,0.7)", fontSize:13, fontWeight:active?600:500, cursor:"pointer", transition:"all 0.2s", flexShrink:0, boxShadow:active?"0 2px 8px rgba(0,0,0,0.08)":"none", letterSpacing:-0.1 }}>{label}</button>
   );
 
   const SectionHead = ({children}) => (
@@ -1549,9 +1549,19 @@ function FavoritesScreen({ tracks, onPlay, onLike, currentTrack, isPlaying, user
 
   return (
     <div style={{ overflowY:"auto", height:"100%", minHeight:"calc(100vh - 112px)" }}>
-      {/* Tab bar */}
-      <div style={{ padding:"16px 16px 12px", position:"sticky", top:0, zIndex:10, background:"rgba(180,180,185,0.65)", backdropFilter:"blur(40px) saturate(180%)", borderBottom:"1px solid rgba(255,255,255,0.15)" }}>
-        <div style={{ display:"inline-flex", gap:2, padding:3, borderRadius:12, background:"rgba(0,0,0,0.08)", boxShadow:"inset 0 1px 3px rgba(0,0,0,0.06)" }}>
+      {/* Tab bar — glassmorphic container */}
+      <div style={{ position:"sticky", top:0, zIndex:10, padding:"12px 16px" }}>
+        <div style={{
+          background:"rgba(120,120,130,0.45)",
+          backdropFilter:"blur(60px) saturate(200%)",
+          WebkitBackdropFilter:"blur(60px) saturate(200%)",
+          border:"1px solid rgba(255,255,255,0.2)",
+          borderRadius:16,
+          padding:"6px 8px",
+          display:"inline-flex",
+          gap:2,
+          boxShadow:"0 4px 24px rgba(0,0,0,0.06), inset 0 1px 0 rgba(255,255,255,0.15)",
+        }}>
           <Pill label="Discover" active={view==="discover"} onClick={()=>setView("discover")}/>
           <Pill label="Saved" active={view==="liked"} onClick={()=>setView("liked")}/>
           <Pill label="Genres" active={view==="genres"} onClick={()=>{setView("genres");setGenreFilter(null);}}/>
