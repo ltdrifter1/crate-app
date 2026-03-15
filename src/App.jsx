@@ -987,8 +987,8 @@ function RouteBuilderModal({ tracks, onClose, onPlayRoute }) {
           {/* ── STEP 1: Duration ── */}
           {step === 1 && (
             <div style={{ width:"100%", textAlign:"center" }}>
-              <div style={{ fontSize:32, fontWeight:700, color:"#FFFFFF", letterSpacing:-0.5, marginBottom:8 }}>How long?</div>
-              <div style={{ fontSize:14, color:"rgba(255,255,255,0.35)", marginBottom:40 }}>Choose your session length</div>
+              <div style={{ fontSize:32, fontWeight:700, color:"#FFFFFF", letterSpacing:-0.5, marginBottom:8 }}>Pick your timeline</div>
+              <div style={{ fontSize:14, color:"rgba(255,255,255,0.35)", marginBottom:40 }}>How long do you want to listen?</div>
               <div style={{ display:"flex", gap:10, justifyContent:"center", marginBottom:48 }}>
                 {[30,60,120,240,480].map(m => (
                   <button key={m} onClick={()=>setDuration(m)} style={{
@@ -1122,7 +1122,15 @@ function HarmonicMap({ tracks, onPlay, currentTrack }) {
 
   return (
     <div style={{ padding:"24px 16px" }}>
-      <div style={{ fontSize:11, fontWeight:700, letterSpacing:1, color:"#1A1D26", textTransform:"uppercase", marginBottom:12 }}>Harmonic Map</div>
+      <div style={{ marginBottom:16 }}>
+        <div style={{ fontSize:18, fontWeight:700, color:"#1A1D26", letterSpacing:-0.3, marginBottom:4 }}>Harmonic Map</div>
+        <div style={{ fontSize:12, color:"#6B7280", lineHeight:1.5, marginBottom:12 }}>Your library visualized by musical key and energy. Each dot is a track — click to play. Tracks nearby sound great together.</div>
+        <div style={{ display:"flex", gap:16, fontSize:10, color:"#9CA3AF" }}>
+          <span>← Low key · High key →</span>
+          <span>↑ High energy · Low energy ↓</span>
+          {currentTrack && <span style={{ color:"#1A1D26", fontWeight:600 }}>● Now playing</span>}
+        </div>
+      </div>
       <div style={{ position:"relative", width:"100%", aspectRatio:"2/1", background:"rgba(255,255,255,0.55)", backdropFilter:"blur(40px)", borderRadius:16, border:"1px solid rgba(255,255,255,0.6)", overflow:"hidden", cursor:"crosshair" }}>
         {/* Grid lines */}
         {[1,2,3,4,5,6,7,8,9,10].map(e => (
@@ -1263,9 +1271,45 @@ function HomeScreen({ tracks, onPlayRadio, onTogglePlay, onPlayTrack, currentTra
   
   
 
-  // Harmonic neighbors — if currently playing, show compatible tracks
+  // Harmonic neighbors — dynamically matched to current track
+  const [mixSeed, setMixSeed] = useState(0);
+  const prevMixTrackRef = useRef(null);
+  // Re-shuffle when the current track changes
+  if (currentTrack?.id !== prevMixTrackRef.current) {
+    prevMixTrackRef.current = currentTrack?.id || null;
+    // Trigger a new seed on next render won't work in render, so we use a ref-based approach
+  }
   const harmonicNeighbors = currentTrack
-    ? singles.filter(t => t.id !== currentTrack.id && camelotCompatible(currentTrack.camelot, t.camelot, 1) && Math.abs((t.energy||5)-(currentTrack.energy||5)) <= 3).slice(0,12)
+    ? (() => {
+        const cE = currentTrack.energy || 5;
+        const cG = currentTrack.genre;
+        const hasCamelot = currentTrack.camelot && currentTrack.camelot.trim();
+        // Score each track by compatibility
+        const scored = singles
+          .filter(t => t.id !== currentTrack.id)
+          .map(t => {
+            let score = 0;
+            // Camelot match (if both have keys)
+            if (hasCamelot && t.camelot && camelotCompatible(currentTrack.camelot, t.camelot, 1)) score += 4;
+            else if (hasCamelot && t.camelot && camelotCompatible(currentTrack.camelot, t.camelot, 2)) score += 2;
+            // Genre match
+            if (cG && t.genre === cG) score += 3;
+            // Energy proximity
+            const eDiff = Math.abs((t.energy||5) - cE);
+            if (eDiff <= 1) score += 3;
+            else if (eDiff <= 2) score += 2;
+            else if (eDiff <= 3) score += 1;
+            // BPM proximity
+            if (currentTrack.bpm && t.bpm && Math.abs(currentTrack.bpm - t.bpm) <= 10) score += 1;
+            // Slight random factor for variety
+            score += Math.random() * 0.5;
+            return { track: t, score };
+          })
+          .sort((a, b) => b.score - a.score)
+          .slice(0, 12)
+          .map(s => s.track);
+        return scored;
+      })()
     : [];
 
   const activeId = currentTrack?.id;
@@ -1506,8 +1550,8 @@ function FavoritesScreen({ tracks, onPlay, onLike, currentTrack, isPlaying, user
   return (
     <div style={{ overflowY:"auto", height:"100%", minHeight:"calc(100vh - 112px)" }}>
       {/* Tab bar */}
-      <div style={{ padding:"16px 16px 12px", position:"sticky", top:0, zIndex:10, background:"rgba(240,240,242,0.85)", backdropFilter:"blur(24px)" }}>
-        <div style={{ display:"inline-flex", gap:2, padding:3, borderRadius:12, background:"rgba(0,0,0,0.05)" }}>
+      <div style={{ padding:"20px 16px 14px", position:"sticky", top:0, zIndex:10, background:"rgba(245,245,247,0.92)", backdropFilter:"blur(32px)" }}>
+        <div style={{ display:"inline-flex", gap:2, padding:3, borderRadius:12, background:"rgba(0,0,0,0.04)", boxShadow:"inset 0 1px 2px rgba(0,0,0,0.03)" }}>
           <Pill label="Discover" active={view==="discover"} onClick={()=>setView("discover")}/>
           <Pill label="Saved" active={view==="liked"} onClick={()=>setView("liked")}/>
           <Pill label="Genres" active={view==="genres"} onClick={()=>{setView("genres");setGenreFilter(null);}}/>
@@ -2812,7 +2856,6 @@ export default function App() {
   const NAV_TOP = [
     { id:"home",      icon:"home",   label:"Home" },
     { id:"favorites", icon:"heart",  label:"Library" },
-    { id:"map",       icon:"grid",   label:"Map" },
   ];
   const NAV_BOTTOM = [
     { id:"search",    icon:"search", label:"Search" },
@@ -2861,6 +2904,15 @@ export default function App() {
             transition:"all 0.2s",
           }}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M3 12h4l3-9 4 18 3-9h4"/></svg>
+          </button>
+          <button onClick={()=>setScreen("map")} title="Map" style={{
+            width:44, height:44, borderRadius:12,
+            background:screen==="map"?"rgba(255,255,255,0.25)":"none",
+            border:"none", color:screen==="map"?"#1A1D26":"#9CA3AF",
+            cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center",
+            transition:"all 0.2s",
+          }}>
+            <Icon name="grid" size={20}/>
           </button>
         </div>
 
