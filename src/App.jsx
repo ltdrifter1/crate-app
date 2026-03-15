@@ -1482,6 +1482,7 @@ function FavoritesScreen({ tracks, onPlay, onLike, currentTrack, isPlaying, user
                 <div style={{ fontSize:10, color:"#6B7280", marginTop:2 }}>{genreMap[g].length}</div>
               </div>
             ))}
+            </div>
           </div>
         </div>
       )}
