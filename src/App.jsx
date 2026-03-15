@@ -1594,46 +1594,36 @@ function HomeScreen({ tracks, onPlayRadio, onTogglePlay, onPlayTrack, currentTra
   
   
 
-  // Harmonic neighbors — dynamically matched to current track
-  const [mixSeed, setMixSeed] = useState(0);
+  // Harmonic neighbors — memoized, only recomputes when track changes
+  const [harmonicNeighbors, setHarmonicNeighbors] = useState([]);
   const prevMixTrackRef = useRef(null);
-  // Re-shuffle when the current track changes
-  if (currentTrack?.id !== prevMixTrackRef.current) {
+  useEffect(() => {
+    if (currentTrack?.id === prevMixTrackRef.current) return;
     prevMixTrackRef.current = currentTrack?.id || null;
-    // Trigger a new seed on next render won't work in render, so we use a ref-based approach
-  }
-  const harmonicNeighbors = currentTrack
-    ? (() => {
-        const cE = currentTrack.energy || 5;
-        const cG = currentTrack.genre;
-        const hasCamelot = currentTrack.camelot && currentTrack.camelot.trim();
-        // Score each track by compatibility
-        const scored = singles
-          .filter(t => t.id !== currentTrack.id)
-          .map(t => {
-            let score = 0;
-            // Camelot match (if both have keys)
-            if (hasCamelot && t.camelot && camelotCompatible(currentTrack.camelot, t.camelot, 1)) score += 4;
-            else if (hasCamelot && t.camelot && camelotCompatible(currentTrack.camelot, t.camelot, 2)) score += 2;
-            // Genre match
-            if (cG && t.genre === cG) score += 3;
-            // Energy proximity
-            const eDiff = Math.abs((t.energy||5) - cE);
-            if (eDiff <= 1) score += 3;
-            else if (eDiff <= 2) score += 2;
-            else if (eDiff <= 3) score += 1;
-            // BPM proximity
-            if (currentTrack.bpm && t.bpm && Math.abs(currentTrack.bpm - t.bpm) <= 10) score += 1;
-            // Slight random factor for variety
-            score += Math.random() * 0.5;
-            return { track: t, score };
-          })
-          .sort((a, b) => b.score - a.score)
-          .slice(0, 18)
-          .map(s => s.track);
-        return scored;
-      })()
-    : [];
+    if (!currentTrack) { setHarmonicNeighbors([]); return; }
+    const cE = currentTrack.energy || 5;
+    const cG = currentTrack.genre;
+    const hasCamelot = currentTrack.camelot && currentTrack.camelot.trim();
+    const scored = singles
+      .filter(t => t.id !== currentTrack.id)
+      .map(t => {
+        let score = 0;
+        if (hasCamelot && t.camelot && camelotCompatible(currentTrack.camelot, t.camelot, 1)) score += 4;
+        else if (hasCamelot && t.camelot && camelotCompatible(currentTrack.camelot, t.camelot, 2)) score += 2;
+        if (cG && t.genre === cG) score += 3;
+        const eDiff = Math.abs((t.energy||5) - cE);
+        if (eDiff <= 1) score += 3;
+        else if (eDiff <= 2) score += 2;
+        else if (eDiff <= 3) score += 1;
+        if (currentTrack.bpm && t.bpm && Math.abs(currentTrack.bpm - t.bpm) <= 10) score += 1;
+        score += Math.random() * 0.5;
+        return { track: t, score };
+      })
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 18)
+      .map(s => s.track);
+    setHarmonicNeighbors(scored);
+  }, [currentTrack?.id]);
 
   const activeId = currentTrack?.id;
   // Memoize crate: set once when tracks first load, never reshuffle
@@ -1842,11 +1832,21 @@ function FavoritesScreen({ tracks, onPlay, onLike, currentTrack, isPlaying, user
   const timeRecs = singles.filter(t => (t.energy||5) >= eMin && (t.energy||5) <= eMax);
   const timeLabel = hour>=22||hour<=5?"late night":hour<=8?"early morning":hour<=12?"morning":hour<=17?"afternoon":"evening";
 
-  // For You — mix of liked genres, right energy, shuffled
+  // For You — memoized, only reshuffles when tracks array changes
   const likedGenres = [...new Set(likedTracks.map(t=>t.genre).filter(Boolean))];
-  const forYou = likedGenres.length > 0
-    ? singles.filter(t => likedGenres.includes(t.genre) && (t.energy||5)>=eMin && (t.energy||5)<=eMax && !t.liked).sort(()=>Math.random()-0.5).slice(0,24)
-    : timeRecs.slice(0,24);
+  const [forYou, setForYou] = useState([]);
+  const forYouInitRef = useRef(null);
+  useEffect(() => {
+    const key = tracks.length + ":" + likedTracks.length;
+    if (forYouInitRef.current === key) return;
+    forYouInitRef.current = key;
+    const likedG = [...new Set(likedTracks.map(t=>t.genre).filter(Boolean))];
+    const candidates = likedG.length > 0
+      ? singles.filter(t => likedG.includes(t.genre) && (t.energy||5)>=eMin && (t.energy||5)<=eMax && !t.liked)
+      : singles.filter(t => (t.energy||5) >= eMin && (t.energy||5) <= eMax);
+    const shuffled = [...candidates].sort(() => Math.random() - 0.5).slice(0, 24);
+    setForYou(shuffled);
+  }, [tracks.length, likedTracks.length]);
 
   // Active view tracks
   const isPlaylistView = view.startsWith("pl_");
@@ -3317,6 +3317,11 @@ export default function App() {
 
       {/* ── MAIN CONTENT — full width ─────────────────────────────────── */}
       <div style={{ flex:1, overflow:"auto", position:"relative" }}>
+        {/* Drift — full screen, no padding, no maxWidth */}
+        {screen==="drift" ? (
+          <DriftMode tracks={tracks} currentTrack={currentTrack} isPlaying={isPlaying} onTogglePlay={()=>setIsPlaying(p=>!p)} onSkip={handleSkip} onPrev={()=>{}} onPlay={t=>playTrack(t,tracks)} signalState={signalState}/>
+        ) : (
+        <>
         {/* Accent glow behind content */}
         {currentTrack && <div style={{ position:"absolute", top:0, right:0, width:"40%", height:"30%", background:`radial-gradient(ellipse at 80% 0%, rgba(${glowRgb},0.07) 0%, transparent 70%)`, pointerEvents:"none", zIndex:0 }}/>}
         <div style={{ position:"relative", zIndex:1, maxWidth:960, margin:"0 auto", padding:"24px 32px", paddingBottom:currentTrack?120:24 }}>
@@ -3333,12 +3338,13 @@ export default function App() {
               {screen==="search"    && <SearchScreen query={searchQuery} setQuery={setSearch} results={searchResults} onPlay={t=>playTrack(t,tracks)} onLike={toggleLike} currentTrack={currentTrack} isPlaying={isPlaying} playlistCtx={playlistCtx}/>}
               {screen==="favorites" && <FavoritesScreen tracks={tracks} onPlay={t=>{setIsRadioMode(false);playTrack(t,tracks);}} onLike={toggleLike} currentTrack={currentTrack} isPlaying={isPlaying} userPlaylists={userPlaylists} onCreatePlaylist={createPlaylist} onAddToPlaylist={addToPlaylist} onRemoveFromPlaylist={removeFromPlaylist} onDeletePlaylist={deletePlaylist} playlistCtx={playlistCtx}/>}
               {screen==="profile"   && <ProfileScreen user={user} setUser={setUser} tracks={tracks} onLogout={logOut}/>}
-              {screen==="drift"     && <DriftMode tracks={tracks} currentTrack={currentTrack} isPlaying={isPlaying} onTogglePlay={()=>setIsPlaying(p=>!p)} onSkip={handleSkip} onPrev={()=>{}} onPlay={t=>playTrack(t,tracks)} signalState={signalState}/>}
               {screen==="map"       && <HarmonicMap tracks={tracks} onPlay={t=>playTrack(t,tracks)} currentTrack={currentTrack}/>}
               {screen==="admin"     && <AdminScreen tracks={tracks} setTracks={setTracks} tab={adminTab} setTab={setAdminTab} editTrack={editTrack} setEditTrack={setEditTrack} showToast={showToast}/>}
             </>
           )}
         </div>
+        </>
+        )}
         {/* Desktop mini-player bar */}
         {currentTrack && (
           <div style={{ position:"fixed", bottom:0, left:72, right:320, zIndex:80, padding:"0 16px 12px" }}>
