@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useAuth }                                  from "./useAuth";
 import { toggleLike as fbToggleLike, recordPlay, saveGenres } from "./useUserData";
-import { collection, getDocs, query, orderBy, doc, updateDoc, setDoc } from "firebase/firestore";
+import { collection, getDocs, addDoc, query, orderBy, doc, updateDoc, setDoc } from "firebase/firestore";
 import { db }                                       from "./firebase";
 import vLogo                                         from "./v-logo-new.png";
 
@@ -61,6 +61,126 @@ function getEnergyRangeForHour(h) {
   return m[h] ?? [1,10];
 }
 
+
+
+// ─── AURA: HUMAN STATE VECTOR ───────────────────────────────────────────────
+// Computes the listener's current state from recent behavior.
+// Returns { intensity, openness, momentum, depth, direction, label }
+
+function computeHumanState(recentPlays, sessionStartTime) {
+  if (!recentPlays.length) return { intensity: 0.5, openness: 0.5, momentum: 0, depth: 0, direction: 0, label: "arrival" };
+
+  const now = Date.now();
+  const recent = recentPlays.slice(0, 10);
+  const sessionMins = sessionStartTime ? (now - sessionStartTime) / 60000 : 0;
+
+  // Intensity: average energy of last 5 tracks, normalized to 0-1
+  const avgEnergy = recent.slice(0, 5).reduce((s, r) => s + (r.energy || 5), 0) / Math.min(5, recent.length);
+  const intensity = Math.max(0, Math.min(1, (avgEnergy - 1) / 9));
+
+  // Direction: energy trend. Compare last 3 avg vs previous 3 avg.
+  const last3 = recent.slice(0, 3).reduce((s, r) => s + (r.energy || 5), 0) / Math.min(3, recent.length);
+  const prev3 = recent.slice(3, 6);
+  const prevAvg = prev3.length > 0 ? prev3.reduce((s, r) => s + (r.energy || 5), 0) / prev3.length : last3;
+  const direction = Math.max(-1, Math.min(1, (last3 - prevAvg) / 3));
+
+  // Openness: genre variety in recent plays. More genres = higher openness.
+  const genres = new Set(recent.map(r => r.genre).filter(Boolean));
+  const openness = Math.max(0, Math.min(1, genres.size / Math.max(4, recent.length) * 1.5));
+
+  // Depth: session duration + completion rate proxy
+  const depth = Math.max(0, Math.min(1, sessionMins / 60));
+
+  // Momentum: how quickly tracks are being played (shorter gaps = higher momentum)
+  const gaps = [];
+  for (let i = 0; i < recent.length - 1; i++) {
+    gaps.push(recent[i].ts - recent[i + 1].ts);
+  }
+  const avgGap = gaps.length > 0 ? gaps.reduce((s, g) => s + g, 0) / gaps.length : 300000;
+  const momentum = Math.max(0, Math.min(1, 1 - (avgGap - 60000) / 600000));
+
+  // State label based on signals
+  let label = "arrival";
+  if (sessionMins < 3) label = "arrival";
+  else if (sessionMins < 8 && Math.abs(direction) < 0.2) label = "grounding";
+  else if (direction > 0.3 && intensity < 0.7) label = "ignition";
+  else if (intensity > 0.6 && direction > 0.1) label = "momentum";
+  else if (depth > 0.5 && Math.abs(direction) < 0.15) label = "immersion";
+  else if (direction > 0.3 && openness > 0.5) label = "expansion";
+  else if (direction < -0.2) label = "release";
+  else if (intensity < 0.3 && depth > 0.4) label = "restoration";
+  else if (sessionMins > 5) label = "grounding";
+
+  return { intensity, openness, momentum, depth, direction, label };
+}
+
+// ─── AURA: TRAIT SCORING ENGINE ─────────────────────────────────────────────
+// Computes behavioral trait scores for each track from play/skip/like data.
+// Called once after tracks load, enriches each track object with Aura scores.
+
+function computeSignalTraits(tracks, recentPlays = []) {
+  const maxPlays = Math.max(...tracks.map(t => t.playCount || 0), 1);
+  const maxSkips = Math.max(...tracks.map(t => t.skipCount || 0), 1);
+  const maxLikes = Math.max(...tracks.map(t => t.likeCount || 0), 1);
+
+  // Build a play-sequence map for lift/descent scoring
+  const sequences = [];
+  for (let i = 0; i < recentPlays.length - 1; i++) {
+    sequences.push({ from: recentPlays[i], to: recentPlays[i + 1] });
+  }
+
+  return tracks.map(t => {
+    const plays = t.playCount || 0;
+    const skips = t.skipCount || 0;
+    const likes = t.likeCount || 0;
+    const energy = t.energy || 5;
+
+    // Grip: inverse of skip ratio. High completion = high grip.
+    const skipRatio = plays > 0 ? skips / plays : 0.5;
+    const grip = Math.round(Math.max(1, Math.min(10, (1 - skipRatio) * 10)));
+
+    // Hold: based on play count relative to library average. Frequently played = high hold.
+    const hold = Math.round(Math.max(1, Math.min(10, (plays / maxPlays) * 8 + (likes > 0 ? 2 : 0))));
+
+    // Pull: how often this track is returned to. Liked + played multiple times = high pull.
+    const pull = Math.round(Math.max(1, Math.min(10,
+      (plays > 2 ? 3 : 0) + (likes > 0 ? 3 : 0) + (plays / maxPlays) * 4
+    )));
+
+    // Gravity: session-opener tendency. Approximated by high grip + moderate energy.
+    const gravity = Math.round(Math.max(1, Math.min(10,
+      grip * 0.5 + (energy >= 3 && energy <= 7 ? 3 : 1) + (pull > 5 ? 2 : 0)
+    )));
+
+    // Lift: does this track lead to higher energy next? Check sequences.
+    const liftSeqs = sequences.filter(s => s.from.id === t.id);
+    const avgLift = liftSeqs.length > 0
+      ? liftSeqs.reduce((s, seq) => {
+          const nextTrack = tracks.find(x => x.id === seq.to.id);
+          return s + ((nextTrack?.energy || 5) - energy);
+        }, 0) / liftSeqs.length
+      : 0;
+    const lift = Math.round(Math.max(1, Math.min(10, 5 + avgLift * 2)));
+
+    // Descent: inverse of lift.
+    const descent = Math.round(Math.max(1, Math.min(10, 5 - avgLift * 2)));
+
+    // Dominant trait label
+    const traits = { grip, hold, pull, gravity, lift, descent };
+    const sorted = Object.entries(traits).sort((a, b) => b[1] - a[1]);
+    const dominant = sorted[0][0];
+
+    // Map dominant trait to a user-facing label
+    const LABELS = {
+      grip: "opener", hold: "anchor", pull: "favorite",
+      gravity: "opener", lift: "build", descent: "closer"
+    };
+    const signalLabel = LABELS[dominant] || "track";
+
+    return { ...t, _signal: { grip, hold, pull, gravity, lift, descent, label: signalLabel } };
+  });
+}
+
 // ─── WEIGHTED RADIO PICK ──────────────────────────────────────────────────────
 // All tracks eligible; liked tracks get 3× weight
 // Priority: camelot+energy → camelot → energy → anything
@@ -94,6 +214,11 @@ function pickNextTrack(allTracks, currentTrack, memory = null) {
       else if (skips > 3) w = Math.max(1, Math.round(w * 0.6));
       // Genre momentum — 2× boost for tracks matching the streak
       if (momentumGenre && t.genre === momentumGenre) w *= 2;
+      // Aura trait boost: high grip after a skip, high hold in deep sessions
+      if (t._signal) {
+        if (t._signal.grip >= 7) w += 1; // high-grip tracks slightly favored
+        if (t._signal.pull >= 7) w += 1; // return favorites slightly favored
+      }
       return Array(w).fill(t);
     });
     return weighted[Math.floor(Math.random() * weighted.length)];
@@ -255,6 +380,7 @@ const Icon = ({ name, size=18 }) => {
     repeat:     <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor"><path d="M7 7h10v3l4-4-4-4v3H5v6h2V7zm10 10H7v-3l-4 4 4 4v-3h12v-6h-2v4z"/></svg>,
     settings:   <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor"><path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.07-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.74,8.87C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.07,0.94l-2.03,1.58c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.47-0.12-0.61L19.14,12.94zM12,15.6c-1.98,0-3.6-1.62-3.6-3.6s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z"/></svg>,
     plus:       <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>,
+    drift:      <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 3c2 4 2 8 0 12s-2 8 0 12" opacity="0.5"/><path d="M3 12c4-2 8-2 12 0s8 2 12 0" opacity="0.5"/></svg>,
     grid:       <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="3"/><circle cx="5" cy="7" r="2"/><circle cx="19" cy="7" r="2"/><circle cx="5" cy="17" r="2"/><circle cx="19" cy="17" r="2"/><path d="M7 8l3 3M17 8l-3 3M7 16l3-3M17 16l-3-3"/></svg>,
     x:          <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>,
     edit:       <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>,
@@ -485,7 +611,7 @@ function VerseFlipper({ tracks, onSelect, currentTrack, isPlaying }) {
 }
 
 // ─── DEEP CUTS RADIO CARD ─────────────────────────────────────────────────────
-function DeepCutsCard({ onPlay, onTogglePlay, currentTrack, isPlaying, isRadioMode }) {
+function DeepCutsCard({ onPlay, onTogglePlay, currentTrack, isPlaying, isRadioMode, signalLabel }) {
   const hour = new Date().getHours();
   const [eMin, eMax] = getEnergyRangeForHour(hour);
   const timeLabel = hour>=22||hour<=1?"Late Night":hour<=5?"Deep Hours":hour<=8?"Early Morning":hour<=11?"Morning":hour<=14?"Midday":hour<=17?"Afternoon":"Evening";
@@ -538,7 +664,7 @@ function DeepCutsCard({ onPlay, onTogglePlay, currentTrack, isPlaying, isRadioMo
             <button onClick={e=>{e.stopPropagation();onTogglePlay();}} style={{ width:38, height:38, borderRadius:"50%", background:"rgba(255,255,255,0.15)", backdropFilter:"blur(12px)", border:"1px solid rgba(255,255,255,0.15)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, color:"#FFFFFF", cursor:"pointer" }}>
               <Icon name={isPlaying?"pause":"play"} size={16}/>
             </button>
-            <div style={{ fontSize:12, fontWeight:500, color:"rgba(255,255,255,0.4)" }}>{timeLabel} Mix</div>
+            <div style={{ fontSize:12, fontWeight:500, color:"rgba(255,255,255,0.4)" }}>{timeLabel} Mix{signalLabel && isRadioMode ? ` · ${signalLabel}` : ""}</div>
             <div style={{ flex:1 }}/>
             {/* Energy level indicator — subtle bar */}
             <div style={{ display:"flex", gap:2, alignItems:"flex-end" }}>
@@ -1192,6 +1318,203 @@ function HarmonicMap({ tracks, onPlay, currentTrack }) {
   );
 }
 
+
+// ─── DRIFT — immersive cinematic playback ─────────────────────────────────────
+function DriftMode({ tracks, currentTrack, isPlaying, onTogglePlay, onSkip, onPrev, onPlay, signalState }) {
+  const [showUI, setShowUI] = useState(true);
+  const [artLoaded, setArtLoaded] = useState(false);
+  const hideTimer = useRef(null);
+
+  // Auto-hide controls after 3 seconds of no interaction
+  const resetHide = useCallback(() => {
+    setShowUI(true);
+    clearTimeout(hideTimer.current);
+    hideTimer.current = setTimeout(() => setShowUI(false), 3000);
+  }, []);
+
+  useEffect(() => {
+    resetHide();
+    return () => clearTimeout(hideTimer.current);
+  }, [currentTrack?.id]);
+
+  // Reset art loaded state on track change
+  useEffect(() => { setArtLoaded(false); }, [currentTrack?.id]);
+
+  if (!currentTrack) return (
+    <div style={{ height:"100%", display:"flex", alignItems:"center", justifyContent:"center", background:"#0A0A0C" }}>
+      <div style={{ textAlign:"center" }}>
+        <div style={{ fontSize:28, fontWeight:700, color:"rgba(255,255,255,0.15)", letterSpacing:-0.5 }}>Drift</div>
+        <div style={{ fontSize:13, color:"rgba(255,255,255,0.08)", marginTop:8 }}>Play something to enter</div>
+      </div>
+    </div>
+  );
+
+  const rgb = hexToRgbStr(currentTrack.color);
+  const traits = currentTrack._signal;
+  const energy = currentTrack.energy || 5;
+  const stateLabel = signalState?.label || "";
+
+  // Pick the top 2 traits to display
+  const traitPairs = traits ? Object.entries(traits)
+    .filter(([k]) => k !== "label")
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 2) : [];
+
+  return (
+    <div
+      onMouseMove={resetHide}
+      onClick={resetHide}
+      style={{ height:"100%", position:"relative", overflow:"hidden", background:"#0A0A0C", cursor: showUI ? "default" : "none" }}>
+
+      {/* ── Layer 0: Deep background color wash ── */}
+      <div style={{
+        position:"absolute", inset:0,
+        background:`radial-gradient(ellipse at 50% 30%, rgba(${rgb},0.15) 0%, rgba(${rgb},0.04) 40%, #0A0A0C 80%)`,
+        transition:"background 2s ease",
+      }}/>
+
+      {/* ── Layer 1: Album art — full bleed, slowly zooming ── */}
+      <div style={{
+        position:"absolute", inset:-40,
+        backgroundImage: currentTrack.albumCover ? `url(${currentTrack.albumCover})` : "none",
+        backgroundSize:"cover", backgroundPosition:"center",
+        filter:"blur(80px) saturate(150%) brightness(0.35)",
+        transform:"scale(1.15)",
+        transition:"background-image 1.5s ease, filter 1.5s ease",
+        opacity: 0.7,
+      }}/>
+
+      {/* ── Layer 2: Center album art — sharp, floating ── */}
+      <div style={{
+        position:"absolute", inset:0,
+        display:"flex", alignItems:"center", justifyContent:"center",
+      }}>
+        <div style={{
+          width:"min(55vh, 55vw)", height:"min(55vh, 55vw)",
+          borderRadius:20, overflow:"hidden",
+          boxShadow:`0 40px 120px rgba(0,0,0,0.5), 0 0 80px rgba(${rgb},0.15)`,
+          transition:"box-shadow 2s ease",
+        }}>
+          {currentTrack.albumCover ? (
+            <img
+              src={currentTrack.albumCover} alt=""
+              onLoad={()=>setArtLoaded(true)}
+              style={{ width:"100%", height:"100%", objectFit:"cover", display:"block", opacity:artLoaded?1:0, transition:"opacity 0.8s ease" }}
+            />
+          ) : (
+            <div style={{ width:"100%", height:"100%", background:`linear-gradient(135deg, rgba(${rgb},0.4), #141416)`, display:"flex", alignItems:"center", justifyContent:"center" }}>
+              <div style={{ fontSize:80, fontWeight:700, color:`rgba(${rgb},0.3)`, letterSpacing:-4 }}>{(currentTrack.title||"V")[0]}</div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* ── Layer 3: Floating mist orbs ── */}
+      <div style={{ position:"absolute", inset:0, pointerEvents:"none", overflow:"hidden" }}>
+        <div style={{ position:"absolute", top:"10%", left:"5%", width:300, height:300, borderRadius:"50%", background:`radial-gradient(circle, rgba(${rgb},0.06) 0%, transparent 70%)`, filter:"blur(60px)", animation:"mist 16s ease-in-out infinite" }}/>
+        <div style={{ position:"absolute", bottom:"15%", right:"8%", width:250, height:250, borderRadius:"50%", background:`radial-gradient(circle, rgba(${rgb},0.04) 0%, transparent 70%)`, filter:"blur(50px)", animation:"mist 20s ease-in-out infinite reverse" }}/>
+      </div>
+
+      {/* ── Layer 4: Track info — bottom left ── */}
+      <div style={{
+        position:"absolute", bottom:48, left:48,
+        opacity: showUI ? 1 : 0.6,
+        transition:"opacity 0.5s ease",
+        maxWidth:"50%",
+      }}>
+        <div style={{ fontSize:32, fontWeight:700, color:"#FFFFFF", letterSpacing:-0.5, lineHeight:1.2, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
+          {currentTrack.title}
+        </div>
+        <div style={{ fontSize:16, color:"rgba(255,255,255,0.5)", marginTop:6, letterSpacing:-0.2 }}>
+          {currentTrack.artist}
+        </div>
+        <div style={{ fontSize:12, color:"rgba(255,255,255,0.25)", marginTop:4 }}>
+          {currentTrack.album}{currentTrack.album && currentTrack.genre ? " · " : ""}{currentTrack.genre}
+        </div>
+      </div>
+
+      {/* ── Layer 5: Aura data — bottom right ── */}
+      <div style={{
+        position:"absolute", bottom:48, right:48,
+        opacity: showUI ? 1 : 0.4,
+        transition:"opacity 0.5s ease",
+        textAlign:"right",
+      }}>
+        {/* Energy bar — vertical */}
+        <div style={{ display:"flex", gap:2, justifyContent:"flex-end", alignItems:"flex-end", marginBottom:12 }}>
+          {[1,2,3,4,5,6,7,8,9,10].map(i => (
+            <div key={i} style={{
+              width:3, height: 4 + i * 2.5, borderRadius:2,
+              background: i <= energy ? `rgba(${rgb},0.5)` : "rgba(255,255,255,0.06)",
+              transition:"background 1s ease",
+            }}/>
+          ))}
+        </div>
+
+        {/* BPM + Key */}
+        <div style={{ fontSize:11, color:"rgba(255,255,255,0.2)", letterSpacing:1, fontVariantNumeric:"tabular-nums" }}>
+          {currentTrack.bpm && `${currentTrack.bpm} BPM`}
+          {currentTrack.bpm && currentTrack.camelot && "  ·  "}
+          {currentTrack.camelot && currentTrack.camelot}
+        </div>
+
+        {/* Aura traits */}
+        {traitPairs.length > 0 && (
+          <div style={{ display:"flex", gap:8, justifyContent:"flex-end", marginTop:8 }}>
+            {traitPairs.map(([name, val]) => (
+              <div key={name} style={{ fontSize:9, fontWeight:600, letterSpacing:1, color:"rgba(255,255,255,0.15)", textTransform:"uppercase" }}>
+                {name} {val}
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* State label */}
+        {stateLabel && (
+          <div style={{ fontSize:10, fontWeight:600, letterSpacing:1.5, color:"rgba(255,255,255,0.12)", textTransform:"uppercase", marginTop:6 }}>
+            {stateLabel}
+          </div>
+        )}
+      </div>
+
+      {/* ── Layer 6: Minimal floating controls — center bottom, fade on idle ── */}
+      <div style={{
+        position:"absolute", bottom:48, left:"50%", transform:"translateX(-50%)",
+        display:"flex", alignItems:"center", gap:24,
+        opacity: showUI ? 1 : 0,
+        transition:"opacity 0.5s ease",
+        pointerEvents: showUI ? "auto" : "none",
+      }}>
+        <button onClick={onPrev} style={{ background:"none", border:"none", cursor:"pointer", color:"rgba(255,255,255,0.4)", padding:8 }}>
+          <Icon name="prev" size={18}/>
+        </button>
+        <button onClick={onTogglePlay} style={{
+          width:52, height:52, borderRadius:"50%",
+          background:"rgba(255,255,255,0.08)", backdropFilter:"blur(20px)",
+          border:"1px solid rgba(255,255,255,0.12)",
+          color:"#FFFFFF", cursor:"pointer",
+          display:"flex", alignItems:"center", justifyContent:"center",
+        }}>
+          <Icon name={isPlaying?"pause":"play"} size={22}/>
+        </button>
+        <button onClick={onSkip} style={{ background:"none", border:"none", cursor:"pointer", color:"rgba(255,255,255,0.4)", padding:8 }}>
+          <Icon name="skip" size={18}/>
+        </button>
+      </div>
+
+      {/* ── Layer 7: Top bar — V logo + Drift label, always very subtle ── */}
+      <div style={{
+        position:"absolute", top:24, left:32, right:32,
+        display:"flex", justifyContent:"space-between", alignItems:"center",
+        opacity: showUI ? 0.6 : 0,
+        transition:"opacity 0.5s ease",
+      }}>
+        <div style={{ fontSize:10, fontWeight:700, letterSpacing:2, color:"rgba(255,255,255,0.2)", textTransform:"uppercase" }}>Drift</div>
+      </div>
+    </div>
+  );
+}
+
 // ── Shelf primitives — defined outside HomeScreen to prevent remount flashing ──
 const GlassSection = ({label, children}) => (
   <div style={{ margin:"0 16px 16px", background:"rgba(255,255,255,0.55)", backdropFilter:"blur(40px)", border:"1px solid rgba(255,255,255,0.6)", borderRadius:20, overflow:"hidden" }}>
@@ -1258,7 +1581,7 @@ function CrateShelf({ items, onPlay, activeId }) {
   );
 }
 
-function HomeScreen({ tracks, onPlayRadio, onTogglePlay, onPlayTrack, currentTrack, isPlaying, onLike, isRadioMode, playlistCtx }) {
+function HomeScreen({ tracks, onPlayRadio, onTogglePlay, onPlayTrack, currentTrack, isPlaying, onLike, isRadioMode, playlistCtx, signalLabel }) {
   const hour = new Date().getHours();
   const greeting = hour<12?"Good Morning":hour<18?"Good Afternoon":"Good Evening";
   const [eMin, eMax] = getEnergyRangeForHour(hour);
@@ -1352,7 +1675,7 @@ function HomeScreen({ tracks, onPlayRadio, onTogglePlay, onPlayTrack, currentTra
       </div>
 
       <div style={{ padding:"0 16px 12px" }}>
-        <DeepCutsCard onPlay={onPlayRadio} onTogglePlay={onTogglePlay} currentTrack={isRadioMode?currentTrack:null} isPlaying={isPlaying} isRadioMode={isRadioMode}/>
+        <DeepCutsCard onPlay={onPlayRadio} onTogglePlay={onTogglePlay} currentTrack={isRadioMode?currentTrack:null} isPlaying={isPlaying} isRadioMode={isRadioMode} signalLabel={signalLabel}/>
       </div>
 
       {/* Harmonic neighbors — highest priority when playing */}
@@ -1958,7 +2281,7 @@ function AdminScreen({ tracks, setTracks, tab, setTab, editTrack, setEditTrack, 
       const q2 = query(collection(db, "tracks"), orderBy("createdAt", "desc"));
       const snap = await getDocs(q2);
       const loaded = snap.docs.map(d => ({ ...d.data(), id: d.id, liked: false }));
-      setTracks(loaded);
+      setTracks(computeSignalTraits(loaded));
     } catch(e) {}
 
     setImporting(false);
@@ -2342,7 +2665,7 @@ function NowPlayingBar({ track, isPlaying, progress, duration, onTogglePlay, onS
 // ─── BOTTOM NAV ───────────────────────────────────────────────────────────────
 function BottomNav({ screen, setScreen }) {
   const items = [
-    {id:"home",label:"Home",icon:"home"},{id:"map",label:"Map",icon:"grid"},{id:"search",label:"Search",icon:"search"},
+    {id:"home",label:"Home",icon:"home"},{id:"drift",label:"Drift",icon:"drift"},{id:"search",label:"Search",icon:"search"},
     {id:"favorites",label:"Library",icon:"heartempty"},{id:"profile",label:"Profile",icon:"profile"},
     {id:"admin",label:"Admin",icon:"settings"},
   ];
@@ -2409,6 +2732,7 @@ export default function App() {
   // ── Listening Memory — tracks recently played with timestamps ──
   const recentlyPlayedRef = useRef([]); // [{id, genre, energy, timestamp}]
   const sessionStartRef = useRef(null);
+  const [signalState, setSignalState] = useState({ intensity:0.5, openness:0.5, momentum:0, depth:0, direction:0, label:"arrival" });
 
   function logTrackPlay(track) {
     const now = Date.now();
@@ -2416,10 +2740,47 @@ export default function App() {
     recentlyPlayedRef.current = [
       { id: track.id, genre: track.genre, energy: track.energy || 5, ts: now },
       ...recentlyPlayedRef.current
-    ].slice(0, 100); // keep last 100 plays in memory
+    ].slice(0, 100);
+    // Update Aura human state
+    setSignalState(computeHumanState(recentlyPlayedRef.current, sessionStartRef.current));
   }
 
   // Get genre of last N played tracks for momentum
+  // Flush session to Firestore when session boundary detected
+  const lastFlushRef = useRef(Date.now());
+  function flushSession() {
+    const plays = recentlyPlayedRef.current;
+    const start = sessionStartRef.current;
+    if (!start || plays.length < 3 || !firebaseUser) return;
+    const sessionPlays = plays.filter(p => p.ts >= start);
+    if (sessionPlays.length < 3) return;
+    const genres = [...new Set(sessionPlays.map(p => p.genre).filter(Boolean))];
+    const avgEnergy = Math.round(sessionPlays.reduce((s, p) => s + p.energy, 0) / sessionPlays.length * 10) / 10;
+    const sessionData = {
+      uid: firebaseUser.uid,
+      startTime: new Date(start),
+      endTime: new Date(),
+      trackCount: sessionPlays.length,
+      genres,
+      avgEnergy,
+      durationMins: Math.round((Date.now() - start) / 60000),
+      trackIds: sessionPlays.map(p => p.id),
+    };
+    addDoc(collection(db, "sessions"), sessionData).catch(() => {});
+    sessionStartRef.current = null;
+    lastFlushRef.current = Date.now();
+  }
+
+  // Auto-flush: check on each play if >30min gap from previous play
+  useEffect(() => {
+    if (!recentlyPlayedRef.current.length) return;
+    const latest = recentlyPlayedRef.current[0]?.ts;
+    const prev = recentlyPlayedRef.current[1]?.ts;
+    if (prev && latest && (latest - prev > 30 * 60 * 1000)) {
+      flushSession();
+    }
+  });
+
   function getRecentGenres(n = 3) {
     return recentlyPlayedRef.current.slice(0, n).map(r => r.genre).filter(Boolean);
   }
@@ -2464,7 +2825,7 @@ export default function App() {
           id:    d.id,          // then override with real Firestore doc ID (never overwritten)
           liked: false,         // default; will be overridden from profile below
         }));
-        setTracks(loaded);
+        setTracks(computeSignalTraits(loaded));
       } catch (err) {
         console.error("Failed to load tracks:", err);
         showToast("Couldn't load tracks — check your connection");
@@ -2842,10 +3203,11 @@ export default function App() {
         </div>
       )}
       <div style={{ flex:1, overflow:"auto", paddingBottom:currentTrack?120:56, zIndex:1, position:"relative" }}>
-        {screen==="home"      && !tracksLoading && <HomeScreen tracks={tracks} onPlayRadio={playRadio} onTogglePlay={()=>setIsPlaying(p=>!p)} onPlayTrack={playTrack} currentTrack={currentTrack} isPlaying={isPlaying} onLike={toggleLike} isRadioMode={isRadioMode} playlistCtx={playlistCtx}/>}
+        {screen==="home"      && !tracksLoading && <HomeScreen tracks={tracks} onPlayRadio={playRadio} onTogglePlay={()=>setIsPlaying(p=>!p)} onPlayTrack={playTrack} currentTrack={currentTrack} isPlaying={isPlaying} onLike={toggleLike} isRadioMode={isRadioMode} playlistCtx={playlistCtx} signalLabel={signalState?.label}/>}
         {screen==="search"    && <SearchScreen query={searchQuery} setQuery={setSearch} results={searchResults} onPlay={t=>playTrack(t,tracks)} onLike={toggleLike} currentTrack={currentTrack} isPlaying={isPlaying} playlistCtx={playlistCtx}/>}
         {screen==="favorites" && <FavoritesScreen tracks={tracks} onPlay={t=>{setIsRadioMode(false);playTrack(t,tracks);}} onLike={toggleLike} currentTrack={currentTrack} isPlaying={isPlaying} userPlaylists={userPlaylists} onCreatePlaylist={createPlaylist} onAddToPlaylist={addToPlaylist} onRemoveFromPlaylist={removeFromPlaylist} onDeletePlaylist={deletePlaylist} playlistCtx={playlistCtx}/>}
         {screen==="profile"   && <ProfileScreen user={user} setUser={setUser} tracks={tracks} onLogout={logOut}/>}
+        {screen==="drift"     && <DriftMode tracks={tracks} currentTrack={currentTrack} isPlaying={isPlaying} onTogglePlay={()=>setIsPlaying(p=>!p)} onSkip={handleSkip} onPrev={()=>{}} onPlay={t=>playTrack(t,tracks)} signalState={signalState}/>}
         {screen==="map"       && <HarmonicMap tracks={tracks} onPlay={t=>playTrack(t,tracks)} currentTrack={currentTrack}/>}
         {screen==="admin"     && <AdminScreen tracks={tracks} setTracks={setTracks} tab={adminTab} setTab={setAdminTab} editTrack={editTrack} setEditTrack={setEditTrack} showToast={showToast}/>}
       </div>
@@ -2866,8 +3228,10 @@ export default function App() {
   const NAV_TOP = [
     { id:"home",      icon:"home",   label:"Home" },
     { id:"favorites", icon:"heart",  label:"Library" },
+    { id:"drift",     icon:"drift",  label:"Drift" },
   ];
   const NAV_BOTTOM = [
+    { id:"map",       icon:"grid",   label:"Map" },
     { id:"search",    icon:"search", label:"Search" },
   ];
 
@@ -2915,15 +3279,7 @@ export default function App() {
           }}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M3 12h4l3-9 4 18 3-9h4"/></svg>
           </button>
-          <button onClick={()=>setScreen("map")} title="Map" style={{
-            width:44, height:44, borderRadius:12,
-            background:screen==="map"?"rgba(255,255,255,0.25)":"none",
-            border:"none", color:screen==="map"?"#1A1D26":"#9CA3AF",
-            cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center",
-            transition:"all 0.2s",
-          }}>
-            <Icon name="grid" size={20}/>
-          </button>
+
         </div>
 
         {/* Spacer */}
@@ -2973,10 +3329,11 @@ export default function App() {
             </div>
           ) : (
             <>
-              {screen==="home"      && <HomeScreen tracks={tracks} onPlayRadio={playRadio} onTogglePlay={()=>setIsPlaying(p=>!p)} onPlayTrack={playTrack} currentTrack={currentTrack} isPlaying={isPlaying} onLike={toggleLike} isRadioMode={isRadioMode} playlistCtx={playlistCtx}/>}
+              {screen==="home"      && <HomeScreen tracks={tracks} onPlayRadio={playRadio} onTogglePlay={()=>setIsPlaying(p=>!p)} onPlayTrack={playTrack} currentTrack={currentTrack} isPlaying={isPlaying} onLike={toggleLike} isRadioMode={isRadioMode} playlistCtx={playlistCtx} signalLabel={signalState?.label}/>}
               {screen==="search"    && <SearchScreen query={searchQuery} setQuery={setSearch} results={searchResults} onPlay={t=>playTrack(t,tracks)} onLike={toggleLike} currentTrack={currentTrack} isPlaying={isPlaying} playlistCtx={playlistCtx}/>}
               {screen==="favorites" && <FavoritesScreen tracks={tracks} onPlay={t=>{setIsRadioMode(false);playTrack(t,tracks);}} onLike={toggleLike} currentTrack={currentTrack} isPlaying={isPlaying} userPlaylists={userPlaylists} onCreatePlaylist={createPlaylist} onAddToPlaylist={addToPlaylist} onRemoveFromPlaylist={removeFromPlaylist} onDeletePlaylist={deletePlaylist} playlistCtx={playlistCtx}/>}
               {screen==="profile"   && <ProfileScreen user={user} setUser={setUser} tracks={tracks} onLogout={logOut}/>}
+              {screen==="drift"     && <DriftMode tracks={tracks} currentTrack={currentTrack} isPlaying={isPlaying} onTogglePlay={()=>setIsPlaying(p=>!p)} onSkip={handleSkip} onPrev={()=>{}} onPlay={t=>playTrack(t,tracks)} signalState={signalState}/>}
               {screen==="map"       && <HarmonicMap tracks={tracks} onPlay={t=>playTrack(t,tracks)} currentTrack={currentTrack}/>}
               {screen==="admin"     && <AdminScreen tracks={tracks} setTracks={setTracks} tab={adminTab} setTab={setAdminTab} editTrack={editTrack} setEditTrack={setEditTrack} showToast={showToast}/>}
             </>
@@ -3081,6 +3438,11 @@ export default function App() {
                     <div style={{ fontSize:10, color:"#6B7280", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{t.artist}</div>
                   </div>
                 </div>
+
+                {/* Aura trait label */}
+                {t._signal?.label && (
+                  <span style={{ fontSize:8, fontWeight:600, padding:"2px 6px", borderRadius:4, background:"rgba(0,0,0,0.03)", color:"#9CA3AF", flexShrink:0, letterSpacing:0.3, textTransform:"uppercase" }}>{t._signal.label}</span>
+                )}
 
                 {/* Reorder + delete — shown on all non-radio tracks */}
                 {!isRadioMode && (
