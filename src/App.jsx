@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useAuth }                                  from "./useAuth";
 import { toggleLike as fbToggleLike, recordPlay, saveGenres } from "./useUserData";
-import { collection, getDocs, query, orderBy, doc, updateDoc } from "firebase/firestore";
+import { collection, getDocs, query, orderBy, doc, updateDoc, setDoc } from "firebase/firestore";
 import { db }                                       from "./firebase";
 import vLogo                                         from "./v-logo.png";
 
@@ -13,9 +13,11 @@ const injectStyles = () => {
     * { box-sizing: border-box; margin: 0; padding: 0; }
     :root { --font: -apple-system, "SF Pro Display", "SF Pro Text", "Helvetica Neue", Arial, sans-serif; --accent: #1A1D26; }
     body { font-family: var(--font); background: #0A0F1E; }
-    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
     ::-webkit-scrollbar-track { background: transparent; }
-    ::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.15); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.3); border-radius: 10px; border: 1px solid rgba(255,255,255,0.1); }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.45); }
+    ::-webkit-scrollbar-corner { background: transparent; }
     @keyframes spin        { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
     @keyframes pulse       { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.5;transform:scale(0.8)} }
     @keyframes pulse-ring  { 0%{transform:scale(1);opacity:0.35} 100%{transform:scale(1.7);opacity:0} }
@@ -581,7 +583,7 @@ function TrackRow({ track, onPlay, active, isPlaying, onLike, extraAction, playl
           {active&&isPlaying&&<div style={{ position:"absolute", inset:0, background:"rgba(0,0,0,0.5)", display:"flex", alignItems:"center", justifyContent:"center" }}><div style={{ width:7, height:7, borderRadius:"50%", background:"#1A1D26", animation:"pulse 1s ease-in-out infinite" }}/></div>}
         </div>
         <div style={{ flex:1, minWidth:0 }}>
-          <div style={{ fontSize:14, fontWeight:active?600:400, letterSpacing:-0.15, color:active?"#3B82F6":"#1A1D26", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{track.title}</div>
+          <div style={{ fontSize:14, fontWeight:active?600:400, letterSpacing:-0.15, color:active?"#1A1D26":"#4B5563", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{track.title}</div>
           <div style={{ fontSize:12, color:"#9CA3AF", marginTop:1 }}>{track.artist}</div>
         </div>
         <div style={{ display:"flex", flexDirection:"column", alignItems:"flex-end", gap:3, flexShrink:0 }}>
@@ -659,7 +661,7 @@ function TrackRow({ track, onPlay, active, isPlaying, onLike, extraAction, playl
 }
 
 const SectionLabel = ({ children, style={} }) => (
-  <div style={{ fontSize:12, fontWeight:700, letterSpacing:0.3, color:"#8E8E93", marginBottom:10, textTransform:"uppercase", ...style }}>{children}</div>
+  <div style={{ fontSize:11, fontWeight:700, letterSpacing:1.2, color:"#FFFFFF", marginBottom:10, textTransform:"uppercase", textShadow:"0 1px 3px rgba(0,0,0,0.08)", ...style }}>{children}</div>
 );
 
 // ─── LOGIN ────────────────────────────────────────────────────────────────────
@@ -1076,8 +1078,8 @@ function RouteBuilderModal({ tracks, onClose, onPlayRoute }) {
 
 // ── Shelf primitives — defined outside HomeScreen to prevent remount flashing ──
 const GlassSection = ({label, children}) => (
-  <div style={{ margin:"0 16px 16px", background:"rgba(255,255,255,0.1)", backdropFilter:"blur(56px) saturate(240%)", border:"1px solid rgba(255,255,255,0.16)", borderRadius:20, overflow:"hidden" }}>
-    {label && <div style={{ fontSize:10, fontWeight:600, letterSpacing:1.5, color:"#9CA3AF", textTransform:"uppercase", padding:"14px 16px 0" }}>{label}</div>}
+  <div style={{ margin:"0 16px 16px", background:"rgba(255,255,255,0.08)", backdropFilter:"blur(64px) saturate(260%)", border:"1px solid rgba(255,255,255,0.12)", borderRadius:20, overflow:"hidden" }}>
+    {label && <div style={{ fontSize:10, fontWeight:700, letterSpacing:1.8, color:"#FFFFFF", textTransform:"uppercase", padding:"14px 16px 0", textShadow:"0 1px 3px rgba(0,0,0,0.08)" }}>{label}</div>}
     <div style={{ padding:"12px 0 4px" }}>{children}</div>
   </div>
 );
@@ -1093,8 +1095,8 @@ function HorizShelf({ items, onPlay, activeId }) {
             transition:"box-shadow 0.3s, opacity 0.3s" }}>
             <AlbumArt track={t} size={110} borderRadius={0}/>
           </div>
-          <div style={{ fontSize:11, fontWeight:activeId===t.id?600:400, color:"#1A1D26", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{t.title}</div>
-          <div style={{ fontSize:10, color:"#9CA3AF", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{t.artist}</div>
+          <div style={{ fontSize:11, fontWeight:activeId===t.id?600:500, color:"#FFFFFF", textShadow:"0 1px 2px rgba(0,0,0,0.08)", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{t.title}</div>
+          <div style={{ fontSize:10, color:"rgba(255,255,255,0.6)", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{t.artist}</div>
         </div>
       ))}
     </div>
@@ -1112,8 +1114,8 @@ function GridShelf({ items, onPlay, activeId }) {
             transition:"box-shadow 0.3s, opacity 0.3s" }}>
             <AlbumArt track={t} size={200} borderRadius={0}/>
           </div>
-          <div style={{ fontSize:10, fontWeight:activeId===t.id?600:400, color:"#1A1D26", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{t.title}</div>
-          <div style={{ fontSize:9, color:"#9CA3AF", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{t.artist}</div>
+          <div style={{ fontSize:10, fontWeight:activeId===t.id?600:500, color:"#FFFFFF", textShadow:"0 1px 2px rgba(0,0,0,0.08)", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{t.title}</div>
+          <div style={{ fontSize:9, color:"rgba(255,255,255,0.6)", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{t.artist}</div>
         </div>
       ))}
     </div>
@@ -1384,17 +1386,17 @@ function FavoritesScreen({ tracks, onPlay, onLike, currentTrack, isPlaying, user
   }
 
   const Pill = ({label, active, onClick}) => (
-    <button onClick={onClick} style={{ padding:"6px 14px", borderRadius:20, border: active?"1px solid #1A1D26":"1px solid rgba(255,255,255,0.5)", background: active?"#1A1D26":"rgba(255,255,255,0.45)", backdropFilter:"blur(20px)", color: active?"#FFF":"#6B7280", fontSize:11, fontWeight:active?600:500, cursor:"pointer", transition:"all 0.2s", flexShrink:0 }}>{label}</button>
+    <button onClick={onClick} style={{ padding:"7px 16px", borderRadius:20, border: active?"none":"1px solid rgba(255,255,255,0.3)", background: active?"rgba(26,29,38,0.85)":"rgba(255,255,255,0.15)", backdropFilter:"blur(24px) saturate(200%)", color: active?"#FFF":"#FFFFFF", fontSize:11, fontWeight:active?600:500, textShadow:active?"none":"0 1px 2px rgba(0,0,0,0.06)", cursor:"pointer", transition:"all 0.2s", flexShrink:0 }}>{label}</button>
   );
 
   const SectionHead = ({children}) => (
-    <div style={{ fontSize:10, fontWeight:600, letterSpacing:1.5, color:"#9CA3AF", textTransform:"uppercase", marginBottom:8 }}>{children}</div>
+    <div style={{ fontSize:10, fontWeight:700, letterSpacing:1.8, color:"#FFFFFF", textTransform:"uppercase", marginBottom:8, textShadow:"0 1px 3px rgba(0,0,0,0.1)" }}>{children}</div>
   );
 
   return (
     <div style={{ overflowY:"auto", height:"100%", minHeight:"calc(100vh - 112px)" }}>
       {/* Tab bar */}
-      <div style={{ display:"flex", gap:6, padding:"16px 16px 12px", overflowX:"auto", position:"sticky", top:0, zIndex:10, background:"rgba(240,241,245,0.9)", backdropFilter:"blur(20px)" }}>
+      <div style={{ display:"flex", gap:6, padding:"16px 16px 12px", overflowX:"auto", position:"sticky", top:0, zIndex:10, background:"rgba(195,200,213,0.5)", backdropFilter:"blur(40px) saturate(200%)" }}>
         <Pill label="Discover" active={view==="discover"} onClick={()=>setView("discover")}/>
         <Pill label="Saved" active={view==="liked"} onClick={()=>setView("liked")}/>
         <Pill label="Genres" active={view==="genres"} onClick={()=>{setView("genres");setGenreFilter(null);}}/>
@@ -1414,8 +1416,8 @@ function FavoritesScreen({ tracks, onPlay, onLike, currentTrack, isPlaying, user
                     <div style={{ width:110, height:110, borderRadius:10, overflow:"hidden", marginBottom:6, boxShadow:"0 2px 10px rgba(0,0,0,0.08)", position:"relative" }}>
                       <AlbumArt track={t} size={110} borderRadius={0}/>
                     </div>
-                    <div style={{ fontSize:11, fontWeight:500, color:"#1A1D26", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{t.title}</div>
-                    <div style={{ fontSize:10, color:"#9CA3AF" }}>{t.artist}</div>
+                    <div style={{ fontSize:11, fontWeight:500, color:"#FFFFFF", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap", textShadow:"0 1px 2px rgba(0,0,0,0.08)" }}>{t.title}</div>
+                    <div style={{ fontSize:10, color:"rgba(255,255,255,0.6)" }}>{t.artist}</div>
                   </div>
                 ))}
               </div>
@@ -1432,7 +1434,7 @@ function FavoritesScreen({ tracks, onPlay, onLike, currentTrack, isPlaying, user
                     <div style={{ width:90, height:90, borderRadius:8, overflow:"hidden", marginBottom:4, boxShadow:"0 1px 6px rgba(0,0,0,0.06)" }}>
                       <AlbumArt track={t} size={90} borderRadius={0}/>
                     </div>
-                    <div style={{ fontSize:10, fontWeight:500, color:"#1A1D26", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{t.title}</div>
+                    <div style={{ fontSize:10, fontWeight:500, color:"#FFFFFF", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap", textShadow:"0 1px 2px rgba(0,0,0,0.08)" }}>{t.title}</div>
                   </div>
                 ))}
               </div>
@@ -1446,10 +1448,10 @@ function FavoritesScreen({ tracks, onPlay, onLike, currentTrack, isPlaying, user
             <div className="hide-scroll" style={{ display:"flex", gap:8, overflowX:"auto", padding:"0 16px 8px" }}>
               {moodKeys.map(mood => (
                 <div key={mood} onClick={()=>{setView("genres");setGenreFilter(null);setMoodFilter(mood);}}
-                  style={{ flexShrink:0, width:140, padding:"14px 14px", borderRadius:14, background:"rgba(255,255,255,0.12)", backdropFilter:"blur(40px) saturate(220%)", border:"1px solid rgba(255,255,255,0.18)", cursor:"pointer", transition:"all 0.2s" }}>
-                  <div style={{ fontSize:14, fontWeight:600, color:"#1A1D26", marginBottom:2 }}>{mood}</div>
-                  <div style={{ fontSize:10, color:"#6B7280", marginBottom:6 }}>{moodMeta[mood]?.desc}</div>
-                  <div style={{ fontSize:10, color:"#9CA3AF" }}>{moods[mood].length} tracks</div>
+                  style={{ flexShrink:0, width:140, padding:"14px 14px", borderRadius:14, background:"rgba(255,255,255,0.08)", backdropFilter:"blur(48px) saturate(240%)", border:"1px solid rgba(255,255,255,0.12)", cursor:"pointer", transition:"all 0.2s" }}>
+                  <div style={{ fontSize:14, fontWeight:700, color:"#FFFFFF", marginBottom:2, textShadow:"0 1px 3px rgba(0,0,0,0.1)" }}>{mood}</div>
+                  <div style={{ fontSize:10, color:"rgba(255,255,255,0.7)", marginBottom:6 }}>{moodMeta[mood]?.desc}</div>
+                  <div style={{ fontSize:10, color:"rgba(255,255,255,0.5)" }}>{moods[mood].length} tracks</div>
                 </div>
               ))}
             </div>
@@ -1461,9 +1463,9 @@ function FavoritesScreen({ tracks, onPlay, onLike, currentTrack, isPlaying, user
           <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill, minmax(100px, 1fr))", gap:6, padding:"0 16px" }}>
             {genres.map(g => (
               <div key={g} onClick={()=>{setView("genres");setGenreFilter(g);}}
-                style={{ padding:"12px 10px", borderRadius:10, background:"rgba(255,255,255,0.12)", backdropFilter:"blur(40px) saturate(200%)", border:"1px solid rgba(255,255,255,0.18)", cursor:"pointer", textAlign:"center" }}>
-                <div style={{ fontSize:12, fontWeight:500, color:"#1A1D26" }}>{g}</div>
-                <div style={{ fontSize:10, color:"#9CA3AF", marginTop:2 }}>{genreMap[g].length}</div>
+                style={{ padding:"12px 10px", borderRadius:10, background:"rgba(255,255,255,0.08)", backdropFilter:"blur(48px) saturate(240%)", border:"1px solid rgba(255,255,255,0.12)", cursor:"pointer", textAlign:"center" }}>
+                <div style={{ fontSize:12, fontWeight:600, color:"#FFFFFF", textShadow:"0 1px 2px rgba(0,0,0,0.08)" }}>{g}</div>
+                <div style={{ fontSize:10, color:"rgba(255,255,255,0.6)", marginTop:2 }}>{genreMap[g].length}</div>
               </div>
             ))}
           </div>
@@ -1662,6 +1664,158 @@ function AnalyticsRow({ rank, track, value, label, max, color, accent }) {
 function AdminScreen({ tracks, setTracks, tab, setTab, editTrack, setEditTrack, showToast }) {
   const EMPTY = { title:"",artist:"",album:"",genre:"",energy:"",camelot:"",bpm:"",albumCover:"" };
   const [nt, setNt] = useState(EMPTY);
+  const [assigning, setAssigning] = useState(false);
+  const [assigned, setAssigned] = useState(0);
+  const [importing, setImporting] = useState(false);
+  const [importProgress, setImportProgress] = useState("");
+  const fileInputRef = useRef(null);
+
+  // ── CSV EXPORT ──
+  function exportCSV() {
+    const fields = ["id","title","artist","album","genre","energy","camelot","bpm","audioUrl","albumCover","color","duration"];
+    const escape = v => {
+      const s = String(v ?? "");
+      return s.includes(",") || s.includes('"') || s.includes("\n") ? `"${s.replace(/"/g,'""')}"` : s;
+    };
+    const rows = [fields.join(",")];
+    tracks.forEach(t => {
+      rows.push(fields.map(f => escape(t[f])).join(","));
+    });
+    const blob = new Blob([rows.join("\n")], { type:"text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = `v-music-tracks-${new Date().toISOString().slice(0,10)}.csv`;
+    a.click(); URL.revokeObjectURL(url);
+    showToast(`Exported ${tracks.length} tracks`);
+  }
+
+  // ── CSV IMPORT ──
+  async function importCSV(file) {
+    setImporting(true); setImportProgress("Reading file...");
+    const text = await file.text();
+    const lines = text.split("\n").filter(l => l.trim());
+    if (lines.length < 2) { showToast("CSV appears empty"); setImporting(false); return; }
+
+    // Parse header
+    const header = parseCSVLine(lines[0]);
+    const titleIdx = header.findIndex(h => h.toLowerCase().trim() === "title");
+    const artistIdx = header.findIndex(h => h.toLowerCase().trim() === "artist");
+    if (titleIdx === -1 || artistIdx === -1) {
+      showToast("CSV must have 'title' and 'artist' columns");
+      setImporting(false); return;
+    }
+
+    // Parse rows
+    const rows = [];
+    for (let i = 1; i < lines.length; i++) {
+      const vals = parseCSVLine(lines[i]);
+      if (!vals[titleIdx]?.trim()) continue;
+      const row = {};
+      header.forEach((h, idx) => { row[h.toLowerCase().trim()] = (vals[idx] || "").trim(); });
+      rows.push(row);
+    }
+
+    setImportProgress(`Parsed ${rows.length} rows. Writing to Firestore...`);
+
+    // Build a lookup of existing tracks by title+artist for matching
+    const existing = {};
+    tracks.forEach(t => { existing[`${(t.title||"").toLowerCase()}|||${(t.artist||"").toLowerCase()}`] = t; });
+
+    let updated = 0, created = 0, errors = 0;
+    const cols = ["#8899aa","#7a9e8a","#9090b0","#a09898","#88a8b0","#a0a0b8","#7aaa98"];
+
+    for (let i = 0; i < rows.length; i++) {
+      const r = rows[i];
+      const matchKey = `${(r.title||"").toLowerCase()}|||${(r.artist||"").toLowerCase()}`;
+      const match = existing[matchKey];
+
+      try {
+        if (match) {
+          // Update existing track — merge CSV fields onto it
+          const updates = {};
+          if (r.genre && r.genre.trim()) updates.genre = r.genre.trim();
+          if (r.camelot && r.camelot.trim()) updates.camelot = r.camelot.trim();
+          if (r.bpm && !isNaN(parseInt(r.bpm))) updates.bpm = parseInt(r.bpm);
+          if (r.energy && !isNaN(parseInt(r.energy))) updates.energy = parseInt(r.energy);
+          if (r.album && r.album.trim()) updates.album = r.album.trim();
+          if (r.audiourl || r.audioUrl) updates.audioUrl = (r.audiourl || r.audioUrl).trim();
+          if (r.albumcover || r.albumCover) updates.albumCover = (r.albumcover || r.albumCover).trim();
+          if (r.color && r.color.trim()) updates.color = r.color.trim();
+          if (r.duration && !isNaN(parseFloat(r.duration))) updates.duration = parseFloat(r.duration);
+
+          if (Object.keys(updates).length > 0) {
+            await updateDoc(doc(db, "tracks", match.id), updates);
+            setTracks(prev => prev.map(t => t.id === match.id ? { ...t, ...updates } : t));
+            updated++;
+          }
+        } else if (r.id && r.id.trim()) {
+          // Has an ID — try to update that specific doc, or create it
+          const trackData = {
+            title: r.title || "", artist: r.artist || "", album: r.album || "",
+            genre: r.genre || "", camelot: r.camelot || "",
+            energy: parseInt(r.energy) || 5, bpm: parseInt(r.bpm) || null,
+            audioUrl: r.audiourl || r.audioUrl || "", albumCover: r.albumcover || r.albumCover || "",
+            color: r.color || cols[Math.floor(Math.random() * cols.length)],
+            duration: parseFloat(r.duration) || 0,
+            createdAt: new Date(), likeCount: 0, playCount: 0, skipCount: 0,
+          };
+          await setDoc(doc(db, "tracks", r.id.trim()), trackData, { merge: true });
+          created++;
+        } else {
+          // New track without ID — create with auto-generated key
+          const trackData = {
+            title: r.title || "", artist: r.artist || "", album: r.album || "",
+            genre: r.genre || "", camelot: r.camelot || "",
+            energy: parseInt(r.energy) || 5, bpm: parseInt(r.bpm) || null,
+            audioUrl: r.audiourl || r.audioUrl || "", albumCover: r.albumcover || r.albumCover || "",
+            color: r.color || cols[Math.floor(Math.random() * cols.length)],
+            duration: parseFloat(r.duration) || 0,
+            createdAt: new Date(), likeCount: 0, playCount: 0, skipCount: 0,
+          };
+          const newId = `import_${Date.now()}_${i}`;
+          await setDoc(doc(db, "tracks", newId), trackData);
+          created++;
+        }
+      } catch(e) {
+        console.error("Import error row", i, e);
+        errors++;
+      }
+
+      if (i % 10 === 0) setImportProgress(`Processing ${i+1}/${rows.length}... (${updated} updated, ${created} created)`);
+    }
+
+    // Reload all tracks from Firestore to get fresh state
+    setImportProgress("Reloading library...");
+    try {
+      const q2 = query(collection(db, "tracks"), orderBy("createdAt", "desc"));
+      const snap = await getDocs(q2);
+      const loaded = snap.docs.map(d => ({ ...d.data(), id: d.id, liked: false }));
+      setTracks(loaded);
+    } catch(e) {}
+
+    setImporting(false);
+    setImportProgress("");
+    showToast(`Import done: ${updated} updated, ${created} created${errors ? `, ${errors} errors` : ""}`);
+  }
+
+  // Simple CSV line parser that handles quoted fields
+  function parseCSVLine(line) {
+    const result = []; let current = ""; let inQuotes = false;
+    for (let i = 0; i < line.length; i++) {
+      const c = line[i];
+      if (inQuotes) {
+        if (c === '"' && line[i+1] === '"') { current += '"'; i++; }
+        else if (c === '"') { inQuotes = false; }
+        else { current += c; }
+      } else {
+        if (c === '"') { inQuotes = true; }
+        else if (c === ',') { result.push(current); current = ""; }
+        else { current += c; }
+      }
+    }
+    result.push(current);
+    return result;
+  }
   const addTrack = () => {
     if (!nt.title||!nt.artist) { showToast("Title and artist required"); return; }
     const cols = ["#8899aa","#7a9e8a","#9090b0","#a09898","#88a8b0","#a0a0b8","#7aaa98"];
@@ -1675,7 +1829,7 @@ function AdminScreen({ tracks, setTracks, tab, setTab, editTrack, setEditTrack, 
         <div style={{ fontSize:28, fontWeight:700, letterSpacing:-0.5, color:"#1C1C1E" }}>Admin</div>
       </div>
       <div style={{ display:"flex", gap:6, marginBottom:20, background:"rgba(18,18,20,0.65)", backdropFilter:"blur(16px)", borderRadius:12, padding:3, border:"1px solid rgba(255,255,255,0.07)" }}>
-        {["tracks","analytics"].map(t=>(
+        {["tracks","analytics","audit"].map(t=>(
           <button key={t} onClick={()=>setTab(t)} style={{ flex:1, padding:"8px 0", borderRadius:10, border:"none", cursor:"pointer", fontSize:13, fontWeight:600, textTransform:"capitalize", background:tab===t?"#FFFFFF":"transparent", color:tab===t?"#1C1C1E":"#C4C9D4", boxShadow:tab===t?"0 1px 3px rgba(0,0,0,0.06)":"none" }}>
             {t.charAt(0).toUpperCase()+t.slice(1)}
           </button>
@@ -1726,7 +1880,7 @@ function AdminScreen({ tracks, setTracks, tab, setTab, editTrack, setEditTrack, 
               </div>
               <div style={{ display:"flex", gap:4, flexShrink:0, flexWrap:"wrap", justifyContent:"flex-end", maxWidth:180 }}>
                 {t.genre&&<span style={{ fontSize:10, fontWeight:500, padding:"2px 8px", borderRadius:6, background:"rgba(26,29,38,0.06)", color:"#1A1D26" }}>{t.genre}</span>}
-                {t.camelot&&<span style={{ fontSize:10, fontWeight:600, padding:"2px 8px", borderRadius:6, background:"rgba(59,130,246,0.1)", color:"#3B82F6" }}>{t.camelot}</span>}
+                {t.camelot&&<span style={{ fontSize:10, fontWeight:600, padding:"2px 8px", borderRadius:6, background:"rgba(26,29,38,0.08)", color:"#1A1D26" }}>{t.camelot}</span>}
                 {t.bpm&&<span style={{ fontSize:10, fontWeight:500, padding:"2px 8px", borderRadius:6, background:"rgba(0,0,0,0.04)", color:"#9CA3AF" }}>{t.bpm}bpm</span>}
                 {t.energy&&<span style={{ fontSize:10, fontWeight:500, padding:"2px 8px", borderRadius:6, background:"rgba(0,0,0,0.04)", color:"#9CA3AF" }}>E{t.energy}</span>}
               </div>
@@ -1801,6 +1955,147 @@ function AdminScreen({ tracks, setTracks, tab, setTab, editTrack, setEditTrack, 
           )}
         </div>
       )}
+      {tab==="audit"&&(
+        <div>
+          {/* Export / Import */}
+          <SectionLabel>Export & Import</SectionLabel>
+          <div style={{ display:"flex", gap:8, marginBottom:20 }}>
+            <button onClick={exportCSV} style={{ flex:1, padding:"14px", borderRadius:14, background:"#1A1D26", color:"#FFF", border:"none", fontSize:14, fontWeight:600, cursor:"pointer" }}>
+              Export CSV ({tracks.length} tracks)
+            </button>
+            <button onClick={()=>fileInputRef.current?.click()} disabled={importing}
+              style={{ flex:1, padding:"14px", borderRadius:14, background:"rgba(255,255,255,0.12)", backdropFilter:"blur(32px)", color:"#1A1D26", border:"1px solid rgba(255,255,255,0.18)", fontSize:14, fontWeight:600, cursor:importing?"wait":"pointer" }}>
+              {importing ? "Importing..." : "Import CSV"}
+            </button>
+            <input ref={fileInputRef} type="file" accept=".csv" style={{ display:"none" }}
+              onChange={e => { if(e.target.files[0]) importCSV(e.target.files[0]); e.target.value=""; }}/>
+          </div>
+          {importProgress && (
+            <div style={{ padding:"10px 14px", borderRadius:10, background:"rgba(255,255,255,0.08)", border:"1px solid rgba(255,255,255,0.12)", marginBottom:16, fontSize:12, color:"#6B7280" }}>
+              {importProgress}
+            </div>
+          )}
+          <div style={{ padding:"10px 14px", borderRadius:10, background:"rgba(255,255,255,0.06)", border:"1px solid rgba(255,255,255,0.1)", marginBottom:24, fontSize:11, color:"#9CA3AF", lineHeight:1.6 }}>
+            <strong style={{ color:"#6B7280" }}>How it works:</strong> Export downloads all tracks as CSV. Edit in a spreadsheet — add camelot keys, fix genres, update BPM. Import reads the CSV back and matches tracks by title + artist. Existing tracks get updated, new rows get created. Columns: id, title, artist, album, genre, energy, camelot, bpm, audioUrl, albumCover, color, duration.
+          </div>
+          {(() => {
+            const withKey = tracks.filter(t => t.camelot && t.camelot.trim());
+            const withoutKey = tracks.filter(t => !t.camelot || !t.camelot.trim());
+            const withBpm = tracks.filter(t => t.bpm);
+            const withEnergy = tracks.filter(t => t.energy && t.energy !== 5);
+            const withGenre = tracks.filter(t => t.genre && t.genre.trim());
+
+            // Key distribution
+            const keyCounts = {};
+            withKey.forEach(t => { keyCounts[t.camelot] = (keyCounts[t.camelot]||0)+1; });
+            const sortedKeys = Object.entries(keyCounts).sort((a,b) => b[1]-a[1]);
+
+            // BPM-based camelot estimation
+            function estimateCamelot(t) {
+              const bpm = t.bpm || 120;
+              const genre = (t.genre || "").toLowerCase();
+              const energy = t.energy || 5;
+              const preferMinor = ["techno","ambient","electronic","experimental","house","drum & bass","hip-hop","r&b","metal","rock"].some(g => genre.includes(g));
+              const suffix = preferMinor ? "A" : "B";
+              const keyNum = ((Math.floor(bpm / 10) + energy) % 12) + 1;
+              return `${keyNum}${suffix}`;
+            }
+
+            async function batchAssign() {
+              if (assigning) return;
+              setAssigning(true);
+              setAssigned(0);
+              let count = 0;
+              for (const t of withoutKey) {
+                const estimated = estimateCamelot(t);
+                try {
+                  await updateDoc(doc(db, "tracks", t.id), { camelot: estimated });
+                  setTracks(prev => prev.map(tr => tr.id === t.id ? { ...tr, camelot: estimated } : tr));
+                  count++;
+                  setAssigned(count);
+                } catch(e) {
+                  console.error("Failed to update", t.id, e);
+                }
+              }
+              setAssigning(false);
+              showToast(`Assigned keys to ${count} tracks`);
+            }
+
+            return (
+              <>
+                <SectionLabel>Data Coverage</SectionLabel>
+                <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:8, marginBottom:24 }}>
+                  {[
+                    ["Camelot Key", withKey.length, tracks.length],
+                    ["BPM", withBpm.length, tracks.length],
+                    ["Energy", withEnergy.length, tracks.length],
+                    ["Genre", withGenre.length, tracks.length],
+                  ].map(([label, has, total]) => {
+                    const pct = total ? Math.round(has/total*100) : 0;
+                    return (
+                      <div key={label} style={{ padding:"14px 12px", background:"rgba(255,255,255,0.1)", backdropFilter:"blur(32px)", borderRadius:14, border:"1px solid rgba(255,255,255,0.14)" }}>
+                        <div style={{ fontSize:11, fontWeight:600, color:"#FFFFFF", letterSpacing:0.5, marginBottom:8, textTransform:"uppercase" }}>{label}</div>
+                        <div style={{ fontSize:28, fontWeight:700, color:"#1A1D26" }}>{has}<span style={{ fontSize:14, color:"#9CA3AF" }}>/{total}</span></div>
+                        <div style={{ height:4, background:"rgba(0,0,0,0.06)", borderRadius:2, marginTop:8, overflow:"hidden" }}>
+                          <div style={{ width:`${pct}%`, height:"100%", background: pct === 100 ? "#22C55E" : pct > 50 ? "#1A1D26" : "#EF4444", borderRadius:2, transition:"width 0.5s" }}/>
+                        </div>
+                        <div style={{ fontSize:10, color:"#9CA3AF", marginTop:4 }}>{pct}% covered</div>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Key distribution */}
+                {sortedKeys.length > 0 && (
+                  <>
+                    <SectionLabel>Key Distribution</SectionLabel>
+                    <div style={{ display:"flex", flexWrap:"wrap", gap:6, marginBottom:24 }}>
+                      {sortedKeys.map(([key, count]) => (
+                        <div key={key} style={{ padding:"6px 12px", borderRadius:8, background:"rgba(255,255,255,0.1)", border:"1px solid rgba(255,255,255,0.14)", fontSize:12 }}>
+                          <span style={{ fontWeight:700, color:"#1A1D26", marginRight:4 }}>{key}</span>
+                          <span style={{ color:"#9CA3AF" }}>{count}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </>
+                )}
+
+                {/* Missing camelot keys */}
+                <SectionLabel>Missing Camelot Keys ({withoutKey.length})</SectionLabel>
+                {withoutKey.length === 0 ? (
+                  <div style={{ padding:"24px 0", textAlign:"center", color:"#9CA3AF", fontSize:13 }}>All tracks have Camelot keys assigned</div>
+                ) : (
+                  <>
+                    <div style={{ padding:"12px 14px", borderRadius:14, background:"rgba(255,255,255,0.08)", border:"1px solid rgba(255,255,255,0.12)", marginBottom:12 }}>
+                      <div style={{ fontSize:12, color:"#1A1D26", fontWeight:600, marginBottom:4 }}>{withoutKey.length} tracks missing keys</div>
+                      <div style={{ fontSize:11, color:"#6B7280", lineHeight:1.5, marginBottom:12 }}>You can batch-assign estimated keys based on BPM and genre. These are rough estimates — for accurate keys, use DJ software like Mixed In Key or Rekordbox to analyze audio.</div>
+                      <button onClick={batchAssign} disabled={assigning}
+                        style={{ width:"100%", background:assigning?"#6B7280":"#1A1D26", color:"#FFF", border:"none", borderRadius:12, padding:"12px", fontSize:14, fontWeight:600, cursor:assigning?"wait":"pointer", transition:"all 0.2s" }}>
+                        {assigning ? `Assigning... ${assigned}/${withoutKey.length}` : `Batch assign ${withoutKey.length} keys`}
+                      </button>
+                    </div>
+                    <div style={{ maxHeight:300, overflowY:"auto" }}>
+                      {withoutKey.slice(0, 50).map(t => (
+                        <div key={t.id} style={{ display:"flex", alignItems:"center", gap:8, padding:"6px 8px", borderRadius:8, marginBottom:2 }}>
+                          <div style={{ width:28, height:28, borderRadius:5, overflow:"hidden", flexShrink:0 }}><AlbumArt track={t} size={28} borderRadius={0}/></div>
+                          <div style={{ flex:1, minWidth:0 }}>
+                            <div style={{ fontSize:11, fontWeight:500, color:"#1A1D26", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{t.title}</div>
+                            <div style={{ fontSize:10, color:"#9CA3AF" }}>{t.artist}</div>
+                          </div>
+                          <span style={{ fontSize:9, color:"#C4C9D4" }}>{t.bpm ? `${t.bpm}bpm` : "no bpm"}</span>
+                          <span style={{ fontSize:9, color:"#C4C9D4" }}>{t.genre || "no genre"}</span>
+                          <button onClick={()=>setEditTrack(t)} style={{ background:"none", border:"none", cursor:"pointer", color:"#9CA3AF", padding:4 }}><Icon name="edit" size={12}/></button>
+                        </div>
+                      ))}
+                      {withoutKey.length > 50 && <div style={{ textAlign:"center", color:"#9CA3AF", fontSize:11, padding:8 }}>... and {withoutKey.length - 50} more</div>}
+                    </div>
+                  </>
+                )}
+              </>
+            );
+          })()}
+        </div>
+      )}
     </div>
   );
 }
@@ -1863,7 +2158,7 @@ function NowPlayingBar({ track, isPlaying, progress, duration, onTogglePlay, onS
           </div>
           <div style={{ fontSize:12, color:"#8E8E93" }}>{track.artist}</div>
           <div style={{ marginTop:4, background:"rgba(255,255,255,0.25)", borderRadius:1.5, height:2 }}>
-            <div style={{ width:`${pct}%`, background:"#3B82F6", height:"100%", borderRadius:2, transition:"width 1s linear" }}/>
+            <div style={{ width:`${pct}%`, background:"#1A1D26", height:"100%", borderRadius:2, transition:"width 1s linear" }}/>
           </div>
         </div>
         <button onClick={e=>{e.stopPropagation();onLike();}} style={{ background:"none",border:"none",cursor:"pointer",color:track.liked?"#1A1D26":"#C4C9D4",padding:4 }}><Icon name={track.liked?"heart":"heartempty"} size={16}/></button>
@@ -2379,7 +2674,7 @@ export default function App() {
       <div style={{ width:72, flexShrink:0, background:"rgba(255,255,255,0.12)", backdropFilter:"blur(64px) saturate(240%)", borderRight:"1px solid rgba(255,255,255,0.16)", display:"flex", flexDirection:"column", alignItems:"center", padding:"16px 0 16px" }}>
         <div style={{ marginBottom:20, textAlign:"center" }}>
           <BrandGlyph size={26}/>
-          <div style={{ fontSize:8, fontWeight:600, letterSpacing:1.5, color:"#9CA3AF", textTransform:"uppercase", marginTop:4 }}>V Music</div>
+          <div style={{ fontSize:8, fontWeight:700, letterSpacing:1.8, color:"#FFFFFF", textTransform:"uppercase", marginTop:4, textShadow:"0 1px 2px rgba(0,0,0,0.06)" }}>V Music</div>
         </div>
         <div style={{ display:"flex", flexDirection:"column", gap:4, flex:1, alignItems:"center" }}>
           {NAV_ITEMS.map(item => (
@@ -2494,7 +2789,7 @@ export default function App() {
         {/* Queue / Next Up — draggable */}
         <div style={{ flex:1, padding:"12px 12px" }}>
           <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:8, padding:"0 4px" }}>
-            <div style={{ fontSize:10, fontWeight:600, letterSpacing:1.5, color:"#9CA3AF", textTransform:"uppercase" }}>{isRadioMode ? "up next · smart mix" : "up next"}</div>
+            <div style={{ fontSize:10, fontWeight:700, letterSpacing:1.8, color:"#FFFFFF", textTransform:"uppercase", textShadow:"0 1px 3px rgba(0,0,0,0.08)" }}>{isRadioMode ? "up next · smart mix" : "up next"}</div>
             {!isRadioMode && queue.length > 0 && (
               <button onClick={()=>setQueue([])} style={{ background:"none", border:"none", cursor:"pointer", color:"#C4C9D4", fontSize:10, fontWeight:500 }}>clear</button>
             )}
