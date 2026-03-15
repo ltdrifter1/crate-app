@@ -575,9 +575,11 @@ function TrackRow({ track, onPlay, active, isPlaying, onLike, extraAction, playl
   return (
     <div style={{ position:"relative" }}>
       <div onClick={onPlay} onMouseEnter={()=>setHover(true)} onMouseLeave={()=>setHover(false)}
-        style={{ display:"flex", alignItems:"center", gap:8, padding:"6px 8px", borderRadius:8, cursor:"pointer", transition:"background 0.15s",
-          background:active?"rgba(26,29,38,0.06)":hover?"rgba(0,0,0,0.03)":"transparent",
-          borderBottom:active?"":"0.5px solid rgba(60,60,67,0.08)" }}>
+        style={{ display:"flex", alignItems:"center", gap:8, padding:"8px 10px", borderRadius:12, cursor:"pointer", transition:"all 0.2s",
+          background:active?"rgba(255,255,255,0.2)":hover?"rgba(255,255,255,0.12)":"rgba(255,255,255,0.06)",
+          backdropFilter:"blur(20px) saturate(160%)",
+          border:active?"1px solid rgba(255,255,255,0.25)":"1px solid rgba(255,255,255,0.08)",
+          marginBottom:2 }}>
         <div style={{ width:38, height:38, borderRadius:8, overflow:"hidden", flexShrink:0, position:"relative" }}>
           <AlbumArt track={track} size={38} borderRadius={0}/>
           {active&&isPlaying&&<div style={{ position:"absolute", inset:0, background:"rgba(0,0,0,0.5)", display:"flex", alignItems:"center", justifyContent:"center" }}><div style={{ width:7, height:7, borderRadius:"50%", background:"#1A1D26", animation:"pulse 1s ease-in-out infinite" }}/></div>}
@@ -938,9 +940,9 @@ function RouteBuilderModal({ tracks, onClose, onPlayRoute }) {
   const totalMins = session ? Math.round(session.reduce((s,t)=>s+(t.duration||210),0)/60) : 0;
 
   const gBtn = (active) => ({
-    padding:"10px 16px", borderRadius:14, border: active ? "1px solid rgba(26,29,38,0.3)" : "1px solid rgba(255,255,255,0.2)",
-    background: active ? "rgba(26,29,38,0.08)" : "rgba(255,255,255,0.1)", backdropFilter:"blur(20px)",
-    color: active ? "#1A1D26" : "#6B7280", fontSize:13, fontWeight: active ? 600 : 400,
+    padding:"10px 16px", borderRadius:14, border: active ? "1px solid rgba(255,255,255,0.4)" : "1px solid rgba(255,255,255,0.15)",
+    background: active ? "rgba(255,255,255,0.2)" : "rgba(255,255,255,0.06)", backdropFilter:"blur(24px) saturate(200%)",
+    color: active ? "#FFFFFF" : "rgba(255,255,255,0.5)", fontSize:13, fontWeight: active ? 600 : 400,
     cursor:"pointer", transition:"all 0.2s", textAlign:"center",
   });
 
@@ -956,14 +958,14 @@ function RouteBuilderModal({ tracks, onClose, onPlayRoute }) {
           </div>
           <div style={{ display:"flex", gap:8, alignItems:"center" }}>
             {step > 1 && <button onClick={()=>{ setStep(step-1); if(step===3) setSession(null); }} style={{ background:"rgba(255,255,255,0.1)", border:"1px solid rgba(255,255,255,0.15)", borderRadius:8, padding:"6px 10px", fontSize:11, color:"rgba(255,255,255,0.6)", cursor:"pointer" }}>Back</button>}
-            <button onClick={onClose} style={{ background:"rgba(0,0,0,0.04)", border:"none", borderRadius:8, width:32, height:32, cursor:"pointer", color:"#9CA3AF", display:"flex", alignItems:"center", justifyContent:"center" }}><Icon name="x" size={16}/></button>
+            <button onClick={onClose} style={{ background:"rgba(255,255,255,0.1)", border:"1px solid rgba(255,255,255,0.15)", borderRadius:8, width:32, height:32, cursor:"pointer", color:"rgba(255,255,255,0.6)", display:"flex", alignItems:"center", justifyContent:"center" }}><Icon name="x" size={16}/></button>
           </div>
         </div>
 
         {/* Step indicator */}
         <div style={{ display:"flex", gap:4, marginBottom:24 }}>
           {[1,2,3].map(s => (
-            <div key={s} style={{ flex:1, height:3, borderRadius:2, background: s <= step ? "#1A1D26" : "rgba(255,255,255,0.2)", transition:"background 0.3s" }}/>
+            <div key={s} style={{ flex:1, height:3, borderRadius:2, background: s <= step ? "#FFFFFF" : "rgba(255,255,255,0.15)", transition:"background 0.3s" }}/>
           ))}
         </div>
 
@@ -978,7 +980,7 @@ function RouteBuilderModal({ tracks, onClose, onPlayRoute }) {
                 </button>
               ))}
             </div>
-            <button onClick={()=>setStep(2)} style={{ width:"100%", background:"#1A1D26", color:"#FFF", border:"none", borderRadius:14, padding:"14px", fontSize:15, fontWeight:600, cursor:"pointer" }}>
+            <button onClick={()=>setStep(2)} style={{ width:"100%", background:"rgba(255,255,255,0.18)", backdropFilter:"blur(24px)", color:"#FFFFFF", border:"1px solid rgba(255,255,255,0.25)", borderRadius:14, padding:"14px", fontSize:15, fontWeight:600, cursor:"pointer" }}>
               Next · {duration < 60 ? `${duration} minutes` : `${(duration/60).toFixed(duration%60?1:0)} hours`}
             </button>
           </div>
@@ -1062,7 +1064,7 @@ function RouteBuilderModal({ tracks, onClose, onPlayRoute }) {
 
             {/* Actions */}
             <div style={{ display:"flex", gap:8 }}>
-              <button onClick={()=>{onPlayRoute(session.map(t=>{const {_phase,...rest}=t; return rest;}));onClose();}} style={{ flex:1, background:"#1A1D26", color:"#FFF", border:"none", borderRadius:14, padding:"14px", fontSize:15, fontWeight:600, cursor:"pointer" }}>
+              <button onClick={()=>{onPlayRoute(session.map(t=>{const {_phase,...rest}=t; return rest;}));onClose();}} style={{ flex:1, background:"rgba(255,255,255,0.2)", backdropFilter:"blur(24px)", color:"#FFFFFF", border:"1px solid rgba(255,255,255,0.3)", borderRadius:14, padding:"14px", fontSize:15, fontWeight:600, cursor:"pointer" }}>
                 Play session
               </button>
               <button onClick={handleRegenerate} style={{ background:"rgba(255,255,255,0.15)", color:"#6B7280", border:"1px solid rgba(255,255,255,0.2)", borderRadius:14, padding:"14px 18px", fontSize:13, cursor:"pointer" }}>
@@ -1161,13 +1163,15 @@ function HomeScreen({ tracks, onPlayRadio, onTogglePlay, onPlayTrack, currentTra
     : [];
 
   const activeId = currentTrack?.id;
-  // Memoize crate selection so it doesn't reshuffle every render
-  const [crateItems] = useState(() => {
+  // Memoize crate: set once when tracks first load, never reshuffle
+  const [crateItems, setCrateItems] = useState([]);
+  useEffect(() => {
+    if (crateItems.length > 0 || !tracks.length) return;
     const s = tracks.filter(t=>(t.duration||0)<=900);
     const shuffled = [...s];
     for (let i = shuffled.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]]; }
-    return shuffled.slice(0, 50);
-  });
+    setCrateItems(shuffled.slice(0, 50));
+  }, [tracks.length]);
 
   // Smart section prioritization — max 4 sections below radio
   const hasHarmonic = harmonicNeighbors.length > 0;
