@@ -3,7 +3,7 @@ import { useAuth }                                  from "./useAuth";
 import { toggleLike as fbToggleLike, recordPlay, saveGenres } from "./useUserData";
 import { collection, getDocs, query, orderBy, doc, updateDoc, setDoc } from "firebase/firestore";
 import { db }                                       from "./firebase";
-import vLogo                                         from "./v-logo.png";
+import vLogo                                         from "./v-logo-new.png";
 
 const injectStyles = () => {
   if (document.getElementById("verse-app-global-styles")) return;
@@ -533,7 +533,7 @@ function DeepCutsCard({ onPlay, onTogglePlay, currentTrack, isPlaying, isRadioMo
       ) : (
         <div>
           <div style={{ fontSize:18, fontWeight:600, letterSpacing:-0.2, color:"#1A1D26" }}>V Radio</div>
-          <div style={{ fontSize:12, color:"#9CA3AF", marginTop:4, marginBottom:14 }}>Key-matched · energy-aware · crossfade</div>
+          
           <button onClick={e=>{e.stopPropagation();onPlay();}} style={{ width:48, height:48, borderRadius:"50%", background:"#1A1D26", border:"none", display:"flex", alignItems:"center", justifyContent:"center", color:"#FFFFFF", cursor:"pointer" }}>
             <Icon name="play" size={22}/>
           </button>
@@ -951,11 +951,11 @@ function RouteBuilderModal({ tracks, onClose, onPlayRoute }) {
         {/* Header */}
         <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:24 }}>
           <div>
-            <div style={{ fontSize:20, fontWeight:700, color:"#1A1D26", letterSpacing:-0.3 }}>Session</div>
-            {step > 1 && <div style={{ fontSize:11, color:"#9CA3AF", marginTop:2 }}>{duration}min{activity ? ` · ${SESSION_PROFILES[activity]?.label}` : ""}</div>}
+            <div style={{ fontSize:20, fontWeight:700, color:"#FFFFFF", letterSpacing:-0.3 }}>Session</div>
+            {step > 1 && <div style={{ fontSize:11, color:"rgba(255,255,255,0.6)", marginTop:2 }}>{duration}min{activity ? ` · ${SESSION_PROFILES[activity]?.label}` : ""}</div>}
           </div>
           <div style={{ display:"flex", gap:8, alignItems:"center" }}>
-            {step > 1 && <button onClick={()=>{ setStep(step-1); if(step===3) setSession(null); }} style={{ background:"rgba(255,255,255,0.15)", border:"1px solid rgba(255,255,255,0.2)", borderRadius:8, padding:"6px 10px", fontSize:11, color:"#6B7280", cursor:"pointer" }}>Back</button>}
+            {step > 1 && <button onClick={()=>{ setStep(step-1); if(step===3) setSession(null); }} style={{ background:"rgba(255,255,255,0.1)", border:"1px solid rgba(255,255,255,0.15)", borderRadius:8, padding:"6px 10px", fontSize:11, color:"rgba(255,255,255,0.6)", cursor:"pointer" }}>Back</button>}
             <button onClick={onClose} style={{ background:"rgba(0,0,0,0.04)", border:"none", borderRadius:8, width:32, height:32, cursor:"pointer", color:"#9CA3AF", display:"flex", alignItems:"center", justifyContent:"center" }}><Icon name="x" size={16}/></button>
           </div>
         </div>
@@ -970,7 +970,7 @@ function RouteBuilderModal({ tracks, onClose, onPlayRoute }) {
         {/* ── STEP 1: Duration ── */}
         {step === 1 && (
           <div>
-            <div style={{ fontSize:13, color:"#1A1D26", marginBottom:16, fontWeight:500 }}>How long?</div>
+            
             <div style={{ display:"grid", gridTemplateColumns:"repeat(5, 1fr)", gap:8, marginBottom:20 }}>
               {[30,60,120,240,480].map(m => (
                 <button key={m} onClick={()=>setDuration(m)} style={gBtn(duration===m)}>
@@ -987,18 +987,18 @@ function RouteBuilderModal({ tracks, onClose, onPlayRoute }) {
         {/* ── STEP 2: Activity ── */}
         {step === 2 && (
           <div>
-            <div style={{ fontSize:12, color:"#6B7280", marginBottom:16 }}>Select activity</div>
+            <div style={{ fontSize:12, color:"rgba(255,255,255,0.5)", marginBottom:16 }}>Select activity</div>
             <div style={{ display:"grid", gridTemplateColumns:"repeat(2, 1fr)", gap:8 }}>
               {activities.map(([id, prof]) => (
                 <button key={id} onClick={()=>handleGenerate(id)}
                   style={{ padding:"14px 16px", borderRadius:14, border:"1px solid rgba(255,255,255,0.18)", background:"rgba(255,255,255,0.08)", backdropFilter:"blur(32px) saturate(200%)", cursor:"pointer", textAlign:"left", transition:"all 0.2s" }}>
-                  <div style={{ fontSize:15, fontWeight:600, color:"#1A1D26", letterSpacing:-0.2 }}>{prof.label}</div>
+                  <div style={{ fontSize:15, fontWeight:600, color:"#FFFFFF", letterSpacing:-0.2 }}>{prof.label}</div>
                   <div style={{ display:"flex", gap:3, marginTop:8, alignItems:"flex-end" }}>
                     {prof.phases.map((ph,i) => (
                       <div key={i} style={{ flex:ph.p, height: 2 + ph.e * 2.5, borderRadius:2, background:`rgba(26,29,38,${0.1 + ph.e * 0.07})`, transition:"height 0.3s" }}/>
                     ))}
                   </div>
-                  <div style={{ fontSize:9, color:"#9CA3AF", marginTop:6, letterSpacing:0.3 }}>{prof.phases.map(p=>p.name).join(" · ")}</div>
+                  <div style={{ fontSize:9, color:"rgba(255,255,255,0.45)", marginTop:6, letterSpacing:0.3 }}>{prof.phases.map(p=>p.name).join(" · ")}</div>
                 </button>
               ))}
             </div>
@@ -1017,23 +1017,23 @@ function RouteBuilderModal({ tracks, onClose, onPlayRoute }) {
             </div>
             <div style={{ display:"flex", justifyContent:"space-between", marginBottom:16 }}>
               {profile.phases.map((ph,i) => (
-                <div key={i} style={{ fontSize:9, color:"#6B7280", textTransform:"uppercase", letterSpacing:0.5, textAlign:"center", flex:ph.p, fontWeight:500 }}>{ph.name}</div>
+                <div key={i} style={{ fontSize:9, color:"rgba(255,255,255,0.5)", textTransform:"uppercase", letterSpacing:0.5, textAlign:"center", flex:ph.p, fontWeight:500 }}>{ph.name}</div>
               ))}
             </div>
 
             {/* Stats */}
             <div style={{ display:"flex", gap:8, marginBottom:16 }}>
               <div style={{ flex:1, padding:"10px 12px", borderRadius:12, background:"rgba(255,255,255,0.1)", border:"1px solid rgba(255,255,255,0.15)", textAlign:"center" }}>
-                <div style={{ fontSize:20, fontWeight:700, color:"#1A1D26" }}>{session.length}</div>
-                <div style={{ fontSize:10, color:"#6B7280", textTransform:"uppercase", letterSpacing:1, fontWeight:500 }}>tracks</div>
+                <div style={{ fontSize:20, fontWeight:700, color:"#FFFFFF" }}>{session.length}</div>
+                <div style={{ fontSize:10, color:"rgba(255,255,255,0.5)", textTransform:"uppercase", letterSpacing:1, fontWeight:500 }}>tracks</div>
               </div>
               <div style={{ flex:1, padding:"10px 12px", borderRadius:12, background:"rgba(255,255,255,0.1)", border:"1px solid rgba(255,255,255,0.15)", textAlign:"center" }}>
-                <div style={{ fontSize:20, fontWeight:700, color:"#1A1D26" }}>~{totalMins}m</div>
-                <div style={{ fontSize:10, color:"#6B7280", textTransform:"uppercase", letterSpacing:1, fontWeight:500 }}>duration</div>
+                <div style={{ fontSize:20, fontWeight:700, color:"#FFFFFF" }}>~{totalMins}m</div>
+                <div style={{ fontSize:10, color:"rgba(255,255,255,0.5)", textTransform:"uppercase", letterSpacing:1, fontWeight:500 }}>duration</div>
               </div>
               <div style={{ flex:1, padding:"10px 12px", borderRadius:12, background:"rgba(255,255,255,0.1)", border:"1px solid rgba(255,255,255,0.15)", textAlign:"center" }}>
-                <div style={{ fontSize:20, fontWeight:700, color:"#1A1D26" }}>{profile.phases.length}</div>
-                <div style={{ fontSize:10, color:"#6B7280", textTransform:"uppercase", letterSpacing:1, fontWeight:500 }}>phases</div>
+                <div style={{ fontSize:20, fontWeight:700, color:"#FFFFFF" }}>{profile.phases.length}</div>
+                <div style={{ fontSize:10, color:"rgba(255,255,255,0.5)", textTransform:"uppercase", letterSpacing:1, fontWeight:500 }}>phases</div>
               </div>
             </div>
 
@@ -1046,14 +1046,14 @@ function RouteBuilderModal({ tracks, onClose, onPlayRoute }) {
             <div style={{ display:"flex", flexDirection:"column", gap:2, marginBottom:16, maxHeight:280, overflowY:"auto" }}>
               {phases.map((phase, pi) => (
                 <div key={pi}>
-                  <div style={{ fontSize:10, fontWeight:600, letterSpacing:1, color:"#6B7280", textTransform:"uppercase", padding:"10px 8px 4px" }}>{phase.name}</div>
+                  <div style={{ fontSize:10, fontWeight:600, letterSpacing:1, color:"rgba(255,255,255,0.5)", textTransform:"uppercase", padding:"10px 8px 4px" }}>{phase.name}</div>
                   {phase.tracks.map((t, ti) => (
                     <div key={t.id} style={{ display:"flex", alignItems:"center", gap:8, padding:"4px 8px", borderRadius:8 }}>
                       <div style={{ width:26, height:26, borderRadius:5, overflow:"hidden", flexShrink:0 }}><AlbumArt track={t} size={26} borderRadius={0}/></div>
                       <div style={{ flex:1, minWidth:0 }}>
-                        <div style={{ fontSize:12, fontWeight:500, color:"#1A1D26", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{t.title}</div>
+                        <div style={{ fontSize:12, fontWeight:500, color:"#FFFFFF", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{t.title}</div>
                       </div>
-                      <span style={{ fontSize:10, color:"#9CA3AF" }}>{t.artist}</span>
+                      <span style={{ fontSize:10, color:"rgba(255,255,255,0.5)" }}>{t.artist}</span>
                     </div>
                   ))}
                 </div>
@@ -1416,7 +1416,7 @@ function FavoritesScreen({ tracks, onPlay, onLike, currentTrack, isPlaying, user
                     <div style={{ width:110, height:110, borderRadius:10, overflow:"hidden", marginBottom:6, boxShadow:"0 2px 10px rgba(0,0,0,0.08)", position:"relative" }}>
                       <AlbumArt track={t} size={110} borderRadius={0}/>
                     </div>
-                    <div style={{ fontSize:11, fontWeight:500, color:"#111111", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{t.title}</div>
+                    <div style={{ fontSize:12, fontWeight:500, color:"#1A1D26", letterSpacing:-0.1, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{t.title}</div>
                     <div style={{ fontSize:10, color:"#4B5563" }}>{t.artist}</div>
                   </div>
                 ))}
@@ -2079,7 +2079,7 @@ function AdminScreen({ tracks, setTracks, tab, setTab, editTrack, setEditTrack, 
                         <div key={t.id} style={{ display:"flex", alignItems:"center", gap:8, padding:"6px 8px", borderRadius:8, marginBottom:2 }}>
                           <div style={{ width:28, height:28, borderRadius:5, overflow:"hidden", flexShrink:0 }}><AlbumArt track={t} size={28} borderRadius={0}/></div>
                           <div style={{ flex:1, minWidth:0 }}>
-                            <div style={{ fontSize:11, fontWeight:500, color:"#111111", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{t.title}</div>
+                            <div style={{ fontSize:12, fontWeight:500, color:"#1A1D26", letterSpacing:-0.1, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{t.title}</div>
                             <div style={{ fontSize:10, color:"#9CA3AF" }}>{t.artist}</div>
                           </div>
                           <span style={{ fontSize:9, color:"#C4C9D4" }}>{t.bpm ? `${t.bpm}bpm` : "no bpm"}</span>
@@ -2238,6 +2238,7 @@ export default function App() {
   const [userPlaylists, setUserPlaylists] = useState([]); // [{id, name, trackIds:[]}]
   const [showRouteBuilder, setShowRouteBuilder] = useState(false);
 
+  useEffect(() => { document.title = 'V Music'; }, []);
   const showToast = (msg) => { setToast(msg); setTimeout(()=>setToast(null),2200); };
 
   // ── Load tracks from Firestore once on mount ────────────────────────────
@@ -2648,11 +2649,12 @@ export default function App() {
   if (!isDesktop) return innerApp;
 
   // ── Desktop: 3-column shell ───────────────────────────────────────────────
-  const NAV_ITEMS = [
+  const NAV_TOP = [
     { id:"home",      icon:"home",   label:"Home" },
-    { id:"search",    icon:"search", label:"Search" },
     { id:"favorites", icon:"heart",  label:"Library" },
-    { id:"profile",   icon:"user",   label:"Profile" },
+  ];
+  const NAV_BOTTOM = [
+    { id:"search",    icon:"search", label:"Search" },
   ];
 
   const recentTracks = [...tracks].slice(0, 6);
@@ -2674,17 +2676,18 @@ export default function App() {
 
       {/* ── LEFT NAV RAIL ─────────────────────────────────────────────── */}
       <div style={{ width:72, flexShrink:0, background:"rgba(255,255,255,0.12)", backdropFilter:"blur(64px) saturate(240%)", borderRight:"1px solid rgba(255,255,255,0.16)", display:"flex", flexDirection:"column", alignItems:"center", padding:"16px 0 16px" }}>
-        <div style={{ marginBottom:20, textAlign:"center" }}>
-          <BrandGlyph size={26}/>
-          <div style={{ fontSize:8, fontWeight:700, letterSpacing:1.8, color:"#FFFFFF", textTransform:"uppercase", marginTop:4, textShadow:"0 1px 2px rgba(0,0,0,0.06)" }}>V Music</div>
+        {/* Logo */}
+        <div style={{ marginBottom:16 }}>
+          <BrandGlyph size={28}/>
         </div>
-        <div style={{ display:"flex", flexDirection:"column", gap:4, flex:1, alignItems:"center" }}>
-          {NAV_ITEMS.map(item => (
+
+        {/* Top nav: Home, Library, Session */}
+        <div style={{ display:"flex", flexDirection:"column", gap:4, alignItems:"center" }}>
+          {NAV_TOP.map(item => (
             <button key={item.id} onClick={()=>setScreen(item.id)} title={item.label} style={{
               width:44, height:44, borderRadius:12,
               background:screen===item.id?"rgba(255,255,255,0.25)":"none",
-              border:"none",
-              color:screen===item.id?"#1A1D26":"#9CA3AF",
+              border:"none", color:screen===item.id?"#1A1D26":"#9CA3AF",
               cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center",
               transition:"all 0.2s",
             }}>
@@ -2692,16 +2695,34 @@ export default function App() {
             </button>
           ))}
           <button onClick={()=>setShowRouteBuilder(true)} title="Session" style={{
-              width:44, height:44, borderRadius:12, background:"none",
-              border:"none", color:"#9CA3AF", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center",
+            width:44, height:44, borderRadius:12, background:"none",
+            border:"none", color:"#9CA3AF", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center",
+            transition:"all 0.2s",
+          }}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M3 12h4l3-9 4 18 3-9h4"/></svg>
+          </button>
+        </div>
+
+        {/* Spacer */}
+        <div style={{ flex:1 }}/>
+
+        {/* Bottom nav: Search, Admin, Avatar */}
+        <div style={{ display:"flex", flexDirection:"column", gap:4, alignItems:"center" }}>
+          {NAV_BOTTOM.map(item => (
+            <button key={item.id} onClick={()=>setScreen(item.id)} title={item.label} style={{
+              width:44, height:44, borderRadius:12,
+              background:screen===item.id?"rgba(255,255,255,0.25)":"none",
+              border:"none", color:screen===item.id?"#1A1D26":"#9CA3AF",
+              cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center",
               transition:"all 0.2s",
             }}>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M3 12h4l3-9 4 18 3-9h4"/></svg>
+              <Icon name={item.icon} size={20}/>
             </button>
+          ))}
           {firebaseUser?.uid === "5lPAI9N1jkMbVkUyIqLTqBvBf1t1" && (
             <button onClick={()=>setScreen("admin")} title="Admin" style={{
               width:44, height:44, borderRadius:12,
-              background:screen==="admin"?"rgba(0,0,0,0.06)":"none",
+              background:screen==="admin"?"rgba(255,255,255,0.25)":"none",
               border:"none", color:screen==="admin"?"#1A1D26":"#9CA3AF",
               cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center",
               transition:"all 0.2s",
@@ -2709,9 +2730,9 @@ export default function App() {
               <Icon name="settings" size={20}/>
             </button>
           )}
-        </div>
-        <div style={{ width:32, height:32, borderRadius:"50%", background:"rgba(255,255,255,0.25)", border:"1px solid rgba(255,255,255,0.3)", backdropFilter:"blur(20px)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:14, cursor:"pointer" }} onClick={()=>setScreen("profile")} title={user.name}>
-          {user.image}
+          <div style={{ width:32, height:32, borderRadius:"50%", background:"rgba(255,255,255,0.25)", border:"1px solid rgba(255,255,255,0.3)", backdropFilter:"blur(20px)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:14, cursor:"pointer", marginTop:4 }} onClick={()=>setScreen("profile")} title={user.name}>
+            {user.image}
+          </div>
         </div>
       </div>
 
@@ -2775,8 +2796,8 @@ export default function App() {
             <div style={{ position:"relative", width:"100%", aspectRatio:"1", borderRadius:16, overflow:"hidden", marginBottom:16, boxShadow:`0 8px 32px rgba(${glowRgb},0.15), 0 2px 8px rgba(0,0,0,0.06)` }}>
               <img src={currentTrack.albumCover||"/covers/default.jpg"} alt="" style={{ width:"100%", height:"100%", objectFit:"cover" }} onError={e=>{e.target.src="/covers/default.jpg";}}/>
             </div>
-            <div style={{ fontSize:16, fontWeight:700, color:"#1A1D26", marginBottom:2, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{currentTrack.title}</div>
-            <div style={{ fontSize:13, color:"#6B7280", marginBottom:12, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{currentTrack.artist}</div>
+            <div style={{ fontSize:15, fontWeight:600, color:"#1A1D26", letterSpacing:-0.2, marginBottom:2, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{currentTrack.title}</div>
+            <div style={{ fontSize:12, color:"#6B7280", letterSpacing:-0.1, marginBottom:12, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{currentTrack.artist}</div>
             <div style={{ display:"flex", flexWrap:"wrap", gap:4 }}>
               {currentTrack.genre && <span style={{ fontSize:10, fontWeight:500, padding:"3px 8px", borderRadius:6, background:"rgba(0,0,0,0.04)", color:"#6B7280" }}>{currentTrack.genre}</span>}
               
@@ -2787,16 +2808,16 @@ export default function App() {
         ) : (
           <div style={{ padding:"48px 16px", textAlign:"center" }}>
             <BrandGlyph size={32}/>
-            <div style={{ fontSize:12, color:"#9CA3AF", marginTop:12 }}>V Music</div>
+            
           </div>
         )}
 
         {/* Queue / Next Up — draggable */}
         <div style={{ flex:1, padding:"12px 12px" }}>
           <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:8, padding:"0 4px" }}>
-            <div style={{ fontSize:10, fontWeight:700, letterSpacing:1.8, color:"#FFFFFF", textTransform:"uppercase", textShadow:"0 1px 3px rgba(0,0,0,0.08)" }}>{isRadioMode ? "up next · smart mix" : "up next"}</div>
+            <div style={{ fontSize:9, fontWeight:600, letterSpacing:2, color:"#9CA3AF", textTransform:"uppercase" }}>{isRadioMode ? "up next" : "up next"}</div>
             {!isRadioMode && queue.length > 0 && (
-              <button onClick={()=>setQueue([])} style={{ background:"none", border:"none", cursor:"pointer", color:"#C4C9D4", fontSize:10, fontWeight:500 }}>clear</button>
+              <button onClick={()=>setQueue([])} style={{ background:"none", border:"none", cursor:"pointer", color:"#9CA3AF", fontSize:9, fontWeight:500, letterSpacing:0.5 }}>clear</button>
             )}
           </div>
           <div style={{ display:"flex", flexDirection:"column", gap:1 }}>
@@ -2806,19 +2827,19 @@ export default function App() {
                 {!isRadioMode && (
                   <div style={{ display:"flex", flexDirection:"column", gap:0, flexShrink:0 }}>
                     <button onClick={e=>{e.stopPropagation(); if(i>0){const nq=[...nextUpTracks];[nq[i-1],nq[i]]=[nq[i],nq[i-1]];setQueue(nq);}}}
-                      style={{ background:"none", border:"none", cursor:i>0?"pointer":"default", color:i>0?"#9CA3AF":"transparent", padding:0, lineHeight:1, fontSize:10 }}>▲</button>
+                      style={{ background:"none", border:"none", cursor:i>0?"pointer":"default", padding:0, opacity:i>0?0.4:0, transition:"opacity 0.15s" }}><svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke={i>0?"#1A1D26":"transparent"} strokeWidth="1.5" strokeLinecap="round"><path d="M2 6.5L5 3.5L8 6.5"/></svg></button>
                     <button onClick={e=>{e.stopPropagation(); if(i<nextUpTracks.length-1){const nq=[...nextUpTracks];[nq[i],nq[i+1]]=[nq[i+1],nq[i]];setQueue(nq);}}}
-                      style={{ background:"none", border:"none", cursor:i<nextUpTracks.length-1?"pointer":"default", color:i<nextUpTracks.length-1?"#9CA3AF":"transparent", padding:0, lineHeight:1, fontSize:10 }}>▼</button>
+                      style={{ background:"none", border:"none", cursor:i<nextUpTracks.length-1?"pointer":"default", padding:0, opacity:i<nextUpTracks.length-1?0.4:0, transition:"opacity 0.15s" }}><svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke={i<nextUpTracks.length-1?"#1A1D26":"transparent"} strokeWidth="1.5" strokeLinecap="round"><path d="M2 3.5L5 6.5L8 3.5"/></svg></button>
                   </div>
                 )}
-                <div style={{ fontSize:10, color:"#C4C9D4", width:14, textAlign:"right", fontVariantNumeric:"tabular-nums", flexShrink:0 }}>{i+1}</div>
+                <div style={{ fontSize:9, color:"#C4C9D4", width:12, textAlign:"right", fontVariantNumeric:"tabular-nums", flexShrink:0 }}>{i+1}</div>
                 <div onClick={()=>playTrack(t,tracks)} style={{ display:"flex", alignItems:"center", gap:8, flex:1, minWidth:0, cursor:"pointer" }}>
                   <div style={{ width:34, height:34, borderRadius:6, overflow:"hidden", flexShrink:0, boxShadow:"0 1px 3px rgba(0,0,0,0.06)" }}>
                     <img src={t.albumCover||"/covers/default.jpg"} alt="" style={{ width:"100%", height:"100%", objectFit:"cover" }} onError={e=>{e.target.src="/covers/default.jpg";}}/>
                   </div>
                   <div style={{ flex:1, minWidth:0 }}>
-                    <div style={{ fontSize:11, fontWeight:500, color:"#111111", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{t.title}</div>
-                    <div style={{ fontSize:10, color:"#9CA3AF", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{t.artist}</div>
+                    <div style={{ fontSize:12, fontWeight:500, color:"#1A1D26", letterSpacing:-0.1, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{t.title}</div>
+                    <div style={{ fontSize:10, color:"#6B7280", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{t.artist}</div>
                   </div>
                 </div>
                 {t.genre && (
