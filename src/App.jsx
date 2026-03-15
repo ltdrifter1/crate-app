@@ -15,8 +15,8 @@ const injectStyles = () => {
     body { font-family: var(--font); background: #0A0F1E; }
     ::-webkit-scrollbar { width: 5px; height: 5px; }
     ::-webkit-scrollbar-track { background: transparent; }
-    ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.3); border-radius: 10px; border: 1px solid rgba(255,255,255,0.1); }
-    ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.45); }
+    ::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.08); border-radius: 10px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(0,0,0,0.14); }
     ::-webkit-scrollbar-corner { background: transparent; }
     @keyframes spin        { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
     @keyframes pulse       { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.5;transform:scale(0.8)} }
@@ -26,6 +26,11 @@ const injectStyles = () => {
     @keyframes mist        { 0%,100%{opacity:0.3;transform:translateX(0) scale(1)} 50%{opacity:0.45;transform:translateX(8px) scale(1.04)} }
     @keyframes shimmer     { 0%{opacity:0.5} 50%{opacity:0.85} 100%{opacity:0.5} }
     @keyframes breathe     { 0%,100%{opacity:0.6;transform:scale(1)} 50%{opacity:1;transform:scale(1.04)} }
+    @keyframes energy-breathe {
+      0%, 100% { transform: translate(-50%,-50%) scale(1); opacity: 0.4; }
+      50% { transform: translate(-50%,-50%) scale(1.08); opacity: 0.7; }
+    }
+    @keyframes glass-shine { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
     @keyframes card-snap   { 0%{transform:translateY(-12px);opacity:0} 100%{transform:translateY(0);opacity:1} }
     input:focus { outline: none; }
     button { transition: transform 0.12s, opacity 0.12s; font-family: var(--font); }
@@ -112,6 +117,36 @@ function computeHumanState(recentPlays, sessionStartTime) {
   else if (sessionMins > 5) label = "grounding";
 
   return { intensity, openness, momentum, depth, direction, label };
+}
+
+
+// ─── HYPNO VISION — psychoacoustic trait-vector similarity · Hypno Vision ───────────────────────
+function findResonant(sourceTrack, allTracks, count = 12) {
+  if (!sourceTrack._signal) return allTracks.slice(0, count);
+  const src = sourceTrack._signal;
+  return allTracks
+    .filter(t => t.id !== sourceTrack.id && t._signal)
+    .map(t => {
+      const s = t._signal;
+      // Euclidean distance across all trait dimensions
+      const dist = Math.sqrt(
+        Math.pow((src.grip - s.grip) / 10, 2) +
+        Math.pow((src.hold - s.hold) / 10, 2) +
+        Math.pow((src.pull - s.pull) / 10, 2) +
+        Math.pow((src.gravity - s.gravity) / 10, 2) +
+        Math.pow((src.lift - s.lift) / 10, 2) +
+        Math.pow((src.descent - s.descent) / 10, 2)
+      );
+      // Bonus for same genre and close energy
+      let bonus = 0;
+      if (t.genre === sourceTrack.genre) bonus += 0.05;
+      if (Math.abs((t.energy||5) - (sourceTrack.energy||5)) <= 1) bonus += 0.03;
+      if (sourceTrack.camelot && t.camelot && camelotCompatible(sourceTrack.camelot, t.camelot, 1)) bonus += 0.02;
+      return { track: t, distance: dist - bonus };
+    })
+    .sort((a, b) => a.distance - b.distance)
+    .slice(0, count)
+    .map(r => r.track);
 }
 
 // ─── AURA: TRAIT SCORING ENGINE ─────────────────────────────────────────────
@@ -679,9 +714,19 @@ function DeepCutsCard({ onPlay, onTogglePlay, currentTrack, isPlaying, isRadioMo
           <div style={{ fontSize:20, fontWeight:700, letterSpacing:-0.3, color:"#FFFFFF", marginBottom:4 }}>{timeLabel} Mix</div>
           <div style={{ fontSize:12, color:"rgba(255,255,255,0.35)", marginBottom:14 }}>Tap to start your {timeLabel.toLowerCase()} session</div>
           <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between" }}>
-            <button onClick={e=>{e.stopPropagation();onPlay();}} style={{ width:42, height:42, borderRadius:"50%", background:"rgba(255,255,255,0.15)", backdropFilter:"blur(12px)", border:"1px solid rgba(255,255,255,0.15)", display:"flex", alignItems:"center", justifyContent:"center", color:"#FFFFFF", cursor:"pointer" }}>
-              <Icon name="play" size={20}/>
-            </button>
+            <div style={{ display:"flex", alignItems:"center", gap:10 }}>
+              <button onClick={e=>{e.stopPropagation();onPlay();}} style={{ width:42, height:42, borderRadius:"50%", background:"rgba(255,255,255,0.15)", backdropFilter:"blur(12px)", border:"1px solid rgba(255,255,255,0.15)", display:"flex", alignItems:"center", justifyContent:"center", color:"#FFFFFF", cursor:"pointer" }}>
+                <Icon name="play" size={20}/>
+              </button>
+              {/* Preview: first 4 tracks from anticipatory queue */}
+              <div style={{ display:"flex", marginLeft:4 }}>
+                {tracks.filter(t=>(t.duration||0)<=900&&t.liked).slice(0,4).map((t,i) => (
+                  <div key={t.id} style={{ width:28, height:28, borderRadius:6, overflow:"hidden", marginLeft:i>0?-6:0, border:"1.5px solid rgba(0,0,0,0.3)", boxShadow:"0 1px 4px rgba(0,0,0,0.2)" }}>
+                    <AlbumArt track={t} size={28} borderRadius={0}/>
+                  </div>
+                ))}
+              </div>
+            </div>
             {/* Static energy range preview */}
             <div style={{ display:"flex", gap:2, alignItems:"flex-end" }}>
               {[1,2,3,4,5,6,7,8,9,10].map(i => (
@@ -721,9 +766,9 @@ function TrackRow({ track, onPlay, active, isPlaying, onLike, extraAction, playl
     <div style={{ position:"relative" }}>
       <div onClick={onPlay} onMouseEnter={()=>setHover(true)} onMouseLeave={()=>setHover(false)}
         style={{ display:"flex", alignItems:"center", gap:8, padding:"8px 10px", borderRadius:12, cursor:"pointer", transition:"all 0.2s",
-          background:active?"rgba(255,255,255,0.2)":hover?"rgba(255,255,255,0.12)":"rgba(255,255,255,0.06)",
-          backdropFilter:"blur(20px) saturate(160%)",
-          border:active?"1px solid rgba(255,255,255,0.25)":"1px solid rgba(255,255,255,0.08)",
+          background:active?"rgba(255,255,255,0.22)":hover?"rgba(255,255,255,0.14)":"rgba(255,255,255,0.08)",
+          backdropFilter:"blur(40px) saturate(180%)",
+          border:active?"1px solid rgba(255,255,255,0.2)":"1px solid rgba(255,255,255,0.06)",
           marginBottom:2 }}>
         <div style={{ width:38, height:38, borderRadius:8, overflow:"hidden", flexShrink:0, position:"relative" }}>
           <AlbumArt track={track} size={38} borderRadius={0}/>
@@ -789,6 +834,8 @@ function TrackRow({ track, onPlay, active, isPlaying, onLike, extraAction, playl
           {activePlaylistId && activePlaylistId !== "liked" && (
             <>
               <div style={{ height:0.5, background:"rgba(60,60,67,0.12)", margin:"4px 14px" }}/>
+              <button onClick={()=>{if(ctx.onResonance) ctx.onResonance(track); setMenuOpen(false);}}
+                style={{ width:"100%", textAlign:"left", background:"none", border:"none", padding:"8px 12px", fontSize:13, color:"#1A1D26", cursor:"pointer", borderBottom:"0.5px solid rgba(60,60,67,0.06)" }}>Hypno Vision · find similar</button>
               <button onClick={()=>{ctx.onRemove(track.id, activePlaylistId);setMenuOpen(false);}}
                 style={{ display:"block", width:"100%", textAlign:"left", background:"none", border:"none", color:"#FF3B30", fontSize:14, padding:"10px 14px", cursor:"pointer" }}>
                 Remove from playlist
@@ -1257,7 +1304,7 @@ function HarmonicMap({ tracks, onPlay, currentTrack }) {
           {currentTrack && <span style={{ color:"#1A1D26", fontWeight:600 }}>● Now playing</span>}
         </div>
       </div>
-      <div style={{ position:"relative", width:"100%", aspectRatio:"2/1", background:"rgba(255,255,255,0.55)", backdropFilter:"blur(40px)", borderRadius:16, border:"1px solid rgba(255,255,255,0.6)", overflow:"hidden", cursor:"crosshair" }}>
+      <div style={{ position:"relative", width:"100%", aspectRatio:"2/1", background:"rgba(255,255,255,0.1)", backdropFilter:"blur(60px) saturate(200%)", borderRadius:16, border:"1px solid rgba(255,255,255,0.08)", overflow:"hidden", cursor:"crosshair", boxShadow:"0 4px 24px rgba(0,0,0,0.02)" }}>
         {/* Grid lines */}
         {[1,2,3,4,5,6,7,8,9,10].map(e => (
           <div key={`e${e}`} style={{ position:"absolute", left:0, right:0, top:`${(1-((e-1)/9)*0.85-0.075)*100}%`, height:1, background:"rgba(0,0,0,0.03)" }}/>
@@ -1318,6 +1365,136 @@ function HarmonicMap({ tracks, onPlay, currentTrack }) {
   );
 }
 
+
+
+
+// ─── HYPNO VISION OVERLAY — "sounds like this" full-screen ──────────────────────
+function HypnoVisionOverlay({ sourceTrack, tracks, onPlay, onClose }) {
+  const similar = findResonant(sourceTrack, tracks, 12);
+  const rgb = hexToRgbStr(sourceTrack.color);
+
+  return (
+    <div style={{ position:"fixed", inset:0, zIndex:95, overflow:"auto" }}>
+      <div style={{ position:"absolute", inset:0, background:`radial-gradient(ellipse at 50% 20%, rgba(${rgb},0.08) 0%, rgba(8,8,12,0.92) 60%)`, backdropFilter:"blur(40px)" }} onClick={onClose}/>
+      <div style={{ position:"relative", zIndex:1, maxWidth:520, margin:"0 auto", padding:"40px 24px" }}>
+        {/* Header */}
+        <div style={{ display:"flex", alignItems:"center", gap:16, marginBottom:32 }}>
+          <div style={{ width:64, height:64, borderRadius:14, overflow:"hidden", flexShrink:0, boxShadow:`0 8px 32px rgba(${rgb},0.25)` }}>
+            <AlbumArt track={sourceTrack} size={64} borderRadius={0}/>
+          </div>
+          <div style={{ flex:1 }}>
+            <div style={{ fontSize:10, fontWeight:700, letterSpacing:2, color:"rgba(255,255,255,0.25)", textTransform:"uppercase", marginBottom:4 }}>Hypno Vision</div>
+            <div style={{ fontSize:18, fontWeight:700, color:"#FFFFFF", letterSpacing:-0.3 }}>{sourceTrack.title}</div>
+            <div style={{ fontSize:12, color:"rgba(255,255,255,0.4)", marginTop:2 }}>{sourceTrack.artist} · Tracks that feel like this</div>
+          </div>
+          <button onClick={onClose} style={{ background:"rgba(255,255,255,0.06)", border:"1px solid rgba(255,255,255,0.08)", borderRadius:"50%", width:36, height:36, cursor:"pointer", color:"rgba(255,255,255,0.4)", display:"flex", alignItems:"center", justifyContent:"center" }}>
+            <Icon name="x" size={16}/>
+          </button>
+        </div>
+
+        {/* Trait signature of source */}
+        {sourceTrack._signal && (
+          <div style={{ display:"flex", gap:12, marginBottom:24, justifyContent:"center" }}>
+            {["grip","hold","pull","lift"].map(k => (
+              <div key={k} style={{ textAlign:"center" }}>
+                <div style={{ fontSize:16, fontWeight:700, color:"rgba(255,255,255,0.6)" }}>{sourceTrack._signal[k]}</div>
+                <div style={{ fontSize:8, fontWeight:600, letterSpacing:1, color:"rgba(255,255,255,0.15)", textTransform:"uppercase" }}>{k}</div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Similar tracks grid */}
+        <div style={{ display:"grid", gridTemplateColumns:"repeat(3, 1fr)", gap:12 }}>
+          {similar.map(t => (
+            <div key={t.id} onClick={() => { onPlay(t); onClose(); }} style={{ cursor:"pointer", textAlign:"center" }}>
+              <div style={{ width:"100%", aspectRatio:"1", borderRadius:12, overflow:"hidden", marginBottom:6, boxShadow:"0 4px 16px rgba(0,0,0,0.2)" }}>
+                <AlbumArt track={t} size={200} borderRadius={0}/>
+              </div>
+              <div style={{ fontSize:11, fontWeight:500, color:"#FFFFFF", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{t.title}</div>
+              <div style={{ fontSize:9, color:"rgba(255,255,255,0.35)" }}>{t.artist}</div>
+              {t._signal && <div style={{ fontSize:8, color:"rgba(255,255,255,0.15)", marginTop:2 }}>{t._signal.label}</div>}
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── SESSION AFTERGLOW — end-of-session overlay ──────────────────────────────
+function AfterglowOverlay({ data, onClose, onSavePlaylist }) {
+  if (!data || !data.tracks.length) return null;
+
+  const tracks = data.tracks;
+  const energies = tracks.map(t => t.energy || 5);
+  const genres = [...new Set(tracks.map(t => t.genre).filter(Boolean))];
+  const avgEnergy = (energies.reduce((s, e) => s + e, 0) / energies.length).toFixed(1);
+
+  // Build energy arc SVG
+  const width = 320;
+  const height = 60;
+  const step = width / Math.max(energies.length - 1, 1);
+  const points = energies.map((e, i) => `${i * step},${height - ((e - 1) / 9) * height}`).join(" ");
+
+  return (
+    <div style={{ position:"fixed", inset:0, zIndex:95, display:"flex", alignItems:"center", justifyContent:"center", padding:32 }}>
+      <div style={{ position:"absolute", inset:0, background:"rgba(8,8,12,0.85)", backdropFilter:"blur(40px)" }} onClick={onClose}/>
+      <div style={{ position:"relative", zIndex:1, maxWidth:420, width:"100%", textAlign:"center" }}>
+        {/* Hero */}
+        <div style={{ fontSize:10, fontWeight:700, letterSpacing:2, color:"rgba(255,255,255,0.25)", textTransform:"uppercase", marginBottom:12 }}>Session Complete</div>
+        <div style={{ fontSize:32, fontWeight:700, color:"#FFFFFF", letterSpacing:-0.5, marginBottom:6 }}>{data.durationMins} minutes</div>
+        <div style={{ fontSize:14, color:"rgba(255,255,255,0.35)", marginBottom:32 }}>{tracks.length} tracks · {genres.length} genres · avg energy {avgEnergy}</div>
+
+        {/* Energy arc */}
+        <div style={{ marginBottom:32 }}>
+          <svg width={width} height={height} style={{ display:"block", margin:"0 auto" }}>
+            <defs>
+              <linearGradient id="arcGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="rgba(255,255,255,0.15)"/>
+                <stop offset="100%" stopColor="rgba(255,255,255,0)"/>
+              </linearGradient>
+            </defs>
+            <polyline points={points} fill="none" stroke="rgba(255,255,255,0.3)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            <polygon points={`0,${height} ${points} ${width},${height}`} fill="url(#arcGrad)"/>
+          </svg>
+          <div style={{ display:"flex", justifyContent:"space-between", marginTop:4 }}>
+            <span style={{ fontSize:9, color:"rgba(255,255,255,0.2)" }}>Start</span>
+            <span style={{ fontSize:9, color:"rgba(255,255,255,0.2)" }}>End</span>
+          </div>
+        </div>
+
+        {/* Genre pills */}
+        <div style={{ display:"flex", gap:6, justifyContent:"center", flexWrap:"wrap", marginBottom:32 }}>
+          {genres.slice(0, 6).map(g => (
+            <span key={g} style={{ fontSize:10, fontWeight:500, padding:"4px 10px", borderRadius:8, background:"rgba(255,255,255,0.06)", border:"1px solid rgba(255,255,255,0.08)", color:"rgba(255,255,255,0.4)" }}>{g}</span>
+          ))}
+        </div>
+
+        {/* Actions */}
+        <div style={{ display:"flex", gap:10, justifyContent:"center" }}>
+          <button onClick={() => {
+            if (onSavePlaylist) {
+              const name = `Session · ${new Date(data.startTime).toLocaleDateString()} ${new Date(data.startTime).toLocaleTimeString([], {hour:"2-digit", minute:"2-digit"})}`;
+              onSavePlaylist(name, tracks.map(t => t.id));
+            }
+            onClose();
+          }} style={{
+            padding:"14px 28px", borderRadius:14,
+            background:"rgba(255,255,255,0.1)", backdropFilter:"blur(20px)",
+            border:"1px solid rgba(255,255,255,0.12)",
+            color:"#FFFFFF", fontSize:14, fontWeight:600, cursor:"pointer",
+          }}>Save as playlist</button>
+          <button onClick={onClose} style={{
+            padding:"14px 28px", borderRadius:14,
+            background:"transparent", border:"1px solid rgba(255,255,255,0.08)",
+            color:"rgba(255,255,255,0.4)", fontSize:14, fontWeight:500, cursor:"pointer",
+          }}>Close</button>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 // ─── DRIFT — immersive cinematic playback ─────────────────────────────────────
 function DriftMode({ tracks, currentTrack, isPlaying, onTogglePlay, onSkip, onPrev, onPlay, signalState }) {
@@ -1517,7 +1694,7 @@ function DriftMode({ tracks, currentTrack, isPlaying, onTogglePlay, onSkip, onPr
 
 // ── Shelf primitives — defined outside HomeScreen to prevent remount flashing ──
 const GlassSection = ({label, children}) => (
-  <div style={{ margin:"0 16px 16px", background:"rgba(255,255,255,0.55)", backdropFilter:"blur(40px)", border:"1px solid rgba(255,255,255,0.6)", borderRadius:20, overflow:"hidden" }}>
+  <div style={{ margin:"0 16px 16px", background:"rgba(255,255,255,0.12)", backdropFilter:"blur(60px) saturate(200%)", border:"1px solid rgba(255,255,255,0.1)", borderRadius:20, boxShadow:"0 4px 24px rgba(0,0,0,0.02)", overflow:"hidden" }}>
     {label && <div style={{ fontSize:11, fontWeight:700, letterSpacing:1, color:"#1A1D26", textTransform:"uppercase", padding:"14px 16px 0" }}>{label}</div>}
     <div style={{ padding:"12px 0 4px" }}>{children}</div>
   </div>
@@ -1759,7 +1936,16 @@ function SearchScreen({ query, setQuery, results, onPlay, onLike, currentTrack, 
       )}
       {query.length>1&&!results.length&&<div style={{ textAlign:"center", color:"#C4C9D4", padding:"48px 0" }}><div style={{ fontSize:14, color:"#9CA3AF" }}>No results for "{query}"</div></div>}
       {results.map(t=><TrackRow key={t.id} track={t} onPlay={()=>onPlay(t)} active={currentTrack?.id===t.id} isPlaying={isPlaying} onLike={onLike} playlistCtx={playlistCtx}/>)}
-      {!query&&<div style={{ color:"#C4C9D4", textAlign:"center", paddingTop:32 }}><Icon name="search" size={28}/><div style={{ marginTop:8, fontSize:13, color:"#9CA3AF" }}>Search by name, genre, energy, or BPM</div></div>}
+      {!query && (
+        <div style={{ paddingTop:16 }}>
+          <div style={{ fontSize:10, fontWeight:700, letterSpacing:1, color:"#9CA3AF", textTransform:"uppercase", marginBottom:10 }}>Try</div>
+          <div style={{ display:"flex", flexWrap:"wrap", gap:6 }}>
+            {suggestions.map(s => (
+              <button key={s} onClick={() => setQuery(s)} style={{ padding:"8px 14px", borderRadius:10, background:"rgba(255,255,255,0.1)", backdropFilter:"blur(20px)", border:"1px solid rgba(255,255,255,0.08)", color:"#6B7280", fontSize:12, fontWeight:500, cursor:"pointer", transition:"all 0.15s" }}>{s}</button>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -1897,7 +2083,7 @@ function FavoritesScreen({ tracks, onPlay, onLike, currentTrack, isPlaying, user
         <div style={{ padding:"0 0 24px" }}>
           {/* For You */}
           {forYou.length > 0 && (
-            <div style={{ margin:"0 16px 16px", padding:"16px", borderRadius:16, background:"rgba(255,255,255,0.55)", backdropFilter:"blur(40px)", border:"1px solid rgba(255,255,255,0.6)" }}>
+            <div style={{ margin:"0 16px 16px", padding:"16px", borderRadius:16, background:"rgba(255,255,255,0.12)", backdropFilter:"blur(60px) saturate(200%)", border:"1px solid rgba(255,255,255,0.1)", boxShadow:"0 4px 24px rgba(0,0,0,0.02)" }}>
               <SectionHead>recommended for you</SectionHead>
               <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill, minmax(100px, 1fr))", gap:12, padding:"0 0 4px" }}>
                 {forYou.map(t => (
@@ -1915,7 +2101,7 @@ function FavoritesScreen({ tracks, onPlay, onLike, currentTrack, isPlaying, user
 
           {/* Right now — time-based */}
           {timeRecs.length > 0 && (
-            <div style={{ margin:"0 16px 16px", padding:"16px", borderRadius:16, background:"rgba(255,255,255,0.55)", backdropFilter:"blur(40px)", border:"1px solid rgba(255,255,255,0.6)" }}>
+            <div style={{ margin:"0 16px 16px", padding:"16px", borderRadius:16, background:"rgba(255,255,255,0.12)", backdropFilter:"blur(60px) saturate(200%)", border:"1px solid rgba(255,255,255,0.1)", boxShadow:"0 4px 24px rgba(0,0,0,0.02)" }}>
               <SectionHead>{timeLabel} picks</SectionHead>
               <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill, minmax(90px, 1fr))", gap:10, padding:"0 0 4px" }}>
                 {timeRecs.slice(0,16).map(t => (
@@ -1932,7 +2118,7 @@ function FavoritesScreen({ tracks, onPlay, onLike, currentTrack, isPlaying, user
 
           {/* Moods */}
           {moodKeys.length > 0 && (
-          <div style={{ margin:"0 16px 16px", padding:"16px", borderRadius:16, background:"rgba(255,255,255,0.55)", backdropFilter:"blur(40px)", border:"1px solid rgba(255,255,255,0.6)" }}>
+          <div style={{ margin:"0 16px 16px", padding:"16px", borderRadius:16, background:"rgba(255,255,255,0.12)", backdropFilter:"blur(60px) saturate(200%)", border:"1px solid rgba(255,255,255,0.1)", boxShadow:"0 4px 24px rgba(0,0,0,0.02)" }}>
             <SectionHead>moods</SectionHead>
             <div className="hide-scroll" style={{ display:"flex", gap:8, overflowX:"auto", padding:"0 0 4px" }}>
               {moodKeys.map(mood => (
@@ -1948,7 +2134,7 @@ function FavoritesScreen({ tracks, onPlay, onLike, currentTrack, isPlaying, user
           )}
 
           {/* Genre grid */}
-          <div style={{ margin:"0 16px 16px", padding:"16px", borderRadius:16, background:"rgba(255,255,255,0.55)", backdropFilter:"blur(40px)", border:"1px solid rgba(255,255,255,0.6)" }}>
+          <div style={{ margin:"0 16px 16px", padding:"16px", borderRadius:16, background:"rgba(255,255,255,0.12)", backdropFilter:"blur(60px) saturate(200%)", border:"1px solid rgba(255,255,255,0.1)", boxShadow:"0 4px 24px rgba(0,0,0,0.02)" }}>
             <SectionHead>browse by genre</SectionHead>
             <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill, minmax(90px, 1fr))", gap:6 }}>
             {genres.map(g => (
@@ -2075,54 +2261,151 @@ const ALL_GENRES = [
 ];
 
 function ProfileScreen({ user, setUser, tracks, onLogout }) {
-  const liked = tracks.filter(t=>t.liked).length;
+  const liked = tracks.filter(t => t.liked);
+  const singles = tracks.filter(t => (t.duration||0) <= 900);
+  const played = singles.filter(t => (t.playCount||0) > 0);
+
+  // ── Compute fingerprint data ──
+  const topGenres = Object.entries(
+    singles.reduce((acc, t) => { if(t.genre) acc[t.genre] = (acc[t.genre]||0) + (t.playCount||0) + (t.liked?3:0); return acc; }, {})
+  ).sort((a,b) => b[1] - a[1]);
+  const totalWeight = topGenres.reduce((s, g) => s + g[1], 0) || 1;
+
+  const avgBpm = played.filter(t=>t.bpm).length
+    ? Math.round(played.filter(t=>t.bpm).reduce((s,t) => s + t.bpm, 0) / played.filter(t=>t.bpm).length) : null;
+  const avgEnergy = played.length
+    ? (played.reduce((s,t) => s + (t.energy||5), 0) / played.length).toFixed(1) : null;
+
+  // Energy personality — distribution across 1-10
+  const energyDist = Array(10).fill(0);
+  played.forEach(t => { energyDist[Math.min(9, Math.max(0, (t.energy||5) - 1))] += (t.playCount||1); });
+  const maxEDist = Math.max(...energyDist, 1);
+
+  // Top return tracks (highest pull)
+  const returnTracks = singles
+    .filter(t => t._signal?.pull >= 5)
+    .sort((a, b) => (b._signal?.pull||0) - (a._signal?.pull||0))
+    .slice(0, 5);
+
+  // Skip tolerance
+  const totalPlays = played.reduce((s,t) => s + (t.playCount||0), 0);
+  const totalSkips = played.reduce((s,t) => s + (t.skipCount||0), 0);
+  const skipRate = totalPlays > 0 ? Math.round((totalSkips / totalPlays) * 100) : 0;
+
+  // Genre breadth
+  const genreCount = new Set(singles.map(t => t.genre).filter(Boolean)).size;
+
+  // Aura trait averages
+  const traitAvgs = {};
+  const traitKeys = ["grip","hold","pull","gravity","lift","descent"];
+  traitKeys.forEach(k => {
+    const vals = singles.filter(t => t._signal?.[k]).map(t => t._signal[k]);
+    traitAvgs[k] = vals.length ? (vals.reduce((s,v) => s+v, 0) / vals.length).toFixed(1) : "—";
+  });
+
+  const CARD = { background:"rgba(255,255,255,0.12)", backdropFilter:"blur(60px) saturate(200%)", border:"1px solid rgba(255,255,255,0.1)", boxShadow:"0 4px 24px rgba(0,0,0,0.02)", borderRadius:16, padding:"16px" };
+
   return (
     <div style={{ padding:"24px 16px 16px" }}>
-      <div style={{ textAlign:"center", padding:"24px 0 28px" }}>
-        <div style={{ width:80, height:80, borderRadius:"50%", background:"#F2F2F7", display:"flex", alignItems:"center", justifyContent:"center", margin:"0 auto 12px", fontSize:40, border:"2px solid rgba(60,60,67,0.12)" }}>{user.image}</div>
-        <div style={{ fontSize:24, fontWeight:700, letterSpacing:-0.3, color:"#1C1C1E" }}>{user.name}</div>
-        <div style={{ fontSize:12, color:"#8E8E93", marginTop:4, letterSpacing:1, fontWeight:600, textTransform:"uppercase" }}></div>
+      {/* Header */}
+      <div style={{ textAlign:"center", padding:"16px 0 24px" }}>
+        <div style={{ width:72, height:72, borderRadius:"50%", background:"rgba(255,255,255,0.5)", display:"flex", alignItems:"center", justifyContent:"center", margin:"0 auto 10px", fontSize:36, border:"2px solid rgba(255,255,255,0.6)" }}>{user.image}</div>
+        <div style={{ fontSize:22, fontWeight:700, letterSpacing:-0.3, color:"#1A1D26" }}>{user.name}</div>
+        <div style={{ fontSize:11, color:"#9CA3AF", marginTop:4 }}>{tracks.length} tracks · {genreCount} genres · {liked.length} saved</div>
       </div>
-      {/* Listening personality */}
-      {(() => {
-        const likedTracks = tracks.filter(t=>t.liked);
-        const avgEnergy = likedTracks.length ? (likedTracks.reduce((s,t)=>s+(t.energy||5),0)/likedTracks.length).toFixed(1) : "—";
-        const topGenres = Object.entries(likedTracks.reduce((acc,t)=>{if(t.genre){acc[t.genre]=(acc[t.genre]||0)+1;}return acc;},{})).sort((a,b)=>b[1]-a[1]).slice(0,3).map(([g])=>g);
-        const avgBpm = likedTracks.filter(t=>t.bpm).length ? Math.round(likedTracks.filter(t=>t.bpm).reduce((s,t)=>s+t.bpm,0)/likedTracks.filter(t=>t.bpm).length) : null;
-        return (
-          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:8, marginBottom:24 }}>
-            <div style={{ background:"rgba(255,255,255,0.15)", backdropFilter:"blur(40px) saturate(200%)", border:"1px solid rgba(255,255,255,0.2)", borderRadius:14, padding:"16px", boxShadow:"0 1px 4px rgba(0,0,0,0.03)" }}>
-              <div style={{ fontSize:28, fontWeight:700, letterSpacing:-0.5, color:"#1A1D26" }}>{liked}</div>
-              <div style={{ fontSize:10, color:"#9CA3AF", letterSpacing:1, marginTop:2, fontWeight:600, textTransform:"uppercase" }}>saved</div>
-            </div>
-            <div style={{ background:"rgba(255,255,255,0.15)", backdropFilter:"blur(40px) saturate(200%)", border:"1px solid rgba(255,255,255,0.2)", borderRadius:14, padding:"16px", boxShadow:"0 1px 4px rgba(0,0,0,0.03)" }}>
-              <div style={{ fontSize:28, fontWeight:700, letterSpacing:-0.5, color:"#1A1D26" }}>{tracks.length}</div>
-              <div style={{ fontSize:10, color:"#9CA3AF", letterSpacing:1, marginTop:2, fontWeight:600, textTransform:"uppercase" }}>tracks</div>
-            </div>
-            <div style={{ background:"rgba(255,255,255,0.15)", backdropFilter:"blur(40px) saturate(200%)", border:"1px solid rgba(255,255,255,0.2)", borderRadius:14, padding:"16px", boxShadow:"0 1px 4px rgba(0,0,0,0.03)" }}>
-              <div style={{ fontSize:16, fontWeight:700, color:"#1A1D26" }}>{avgBpm || "—"}</div>
-              <div style={{ fontSize:10, color:"#9CA3AF", letterSpacing:1, marginTop:2, fontWeight:600, textTransform:"uppercase" }}>avg bpm</div>
-            </div>
-            <div style={{ background:"rgba(255,255,255,0.15)", backdropFilter:"blur(40px) saturate(200%)", border:"1px solid rgba(255,255,255,0.2)", borderRadius:14, padding:"16px", boxShadow:"0 1px 4px rgba(0,0,0,0.03)" }}>
-              <div style={{ fontSize:13, fontWeight:600, color:"#1A1D26", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{topGenres.length ? topGenres.join(", ") : "—"}</div>
-              <div style={{ fontSize:10, color:"#9CA3AF", letterSpacing:1, marginTop:2, fontWeight:600, textTransform:"uppercase" }}>top genres</div>
-            </div>
+
+      {/* ── LISTENING FINGERPRINT ── */}
+      <div style={{ fontSize:11, fontWeight:700, letterSpacing:1, color:"#1A1D26", textTransform:"uppercase", marginBottom:12 }}>Listening Fingerprint</div>
+
+      {/* Stats row */}
+      <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr 1fr", gap:6, marginBottom:16 }}>
+        {[
+          [avgEnergy || "—", "avg energy"],
+          [avgBpm || "—", "avg bpm"],
+          [`${skipRate}%`, "skip rate"],
+          [genreCount, "genres"],
+        ].map(([val, label]) => (
+          <div key={label} style={{...CARD, padding:"12px 10px", textAlign:"center" }}>
+            <div style={{ fontSize:20, fontWeight:700, color:"#1A1D26", letterSpacing:-0.3 }}>{val}</div>
+            <div style={{ fontSize:8, color:"#9CA3AF", letterSpacing:0.8, marginTop:3, fontWeight:600, textTransform:"uppercase" }}>{label}</div>
           </div>
-        );
-      })()}
-      <SectionLabel>Preferred Genres</SectionLabel>
-      <div style={{ fontSize:12, color:"rgba(200,200,205,0.6)", marginBottom:12 }}>Tap to select — {user.genres.length} selected</div>
-      <div style={{ display:"flex", flexWrap:"wrap", gap:7, marginBottom:28 }}>
-        {ALL_GENRES.map(g=>{
-          const on=user.genres.includes(g);
-          return <div key={g} onClick={()=>setUser(u=>({...u,genres:on?u.genres.filter(x=>x!==g):[...u.genres,g]}))}
-            style={{ padding:"6px 13px", borderRadius:20, fontSize:12.5, fontWeight:on?600:400, cursor:"pointer", transition:"all 0.15s",
-              border:`1px solid ${on?"rgba(26,29,38,0.3)":"rgba(60,60,67,0.12)"}`,
-              background:on?"rgba(26,29,38,0.08)":"#FFFFFF",
-              color:on?"#1A1D26":"#8E8E93" }}>{g}</div>;
+        ))}
+      </div>
+
+      {/* Energy personality — bar chart */}
+      <div style={{...CARD, marginBottom:16 }}>
+        <div style={{ fontSize:10, fontWeight:700, letterSpacing:0.8, color:"#9CA3AF", textTransform:"uppercase", marginBottom:12 }}>Energy Personality</div>
+        <div style={{ display:"flex", gap:4, alignItems:"flex-end", height:60 }}>
+          {energyDist.map((count, i) => (
+            <div key={i} style={{ flex:1, display:"flex", flexDirection:"column", alignItems:"center", gap:4 }}>
+              <div style={{ width:"100%", height: Math.max(2, (count / maxEDist) * 52), borderRadius:4, background: count > 0 ? "#1A1D26" : "rgba(0,0,0,0.04)", transition:"height 0.3s", opacity: count > 0 ? 0.15 + (count/maxEDist) * 0.85 : 0.3 }}/>
+              <div style={{ fontSize:8, color:"#9CA3AF", fontWeight:500 }}>{i+1}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Genre constellation */}
+      <div style={{...CARD, marginBottom:16 }}>
+        <div style={{ fontSize:10, fontWeight:700, letterSpacing:0.8, color:"#9CA3AF", textTransform:"uppercase", marginBottom:12 }}>Genre Map</div>
+        <div style={{ display:"flex", flexWrap:"wrap", gap:6 }}>
+          {topGenres.slice(0, 12).map(([genre, weight]) => {
+            const pct = weight / totalWeight;
+            const size = Math.max(11, Math.min(20, 11 + pct * 60));
+            return (
+              <span key={genre} style={{
+                fontSize:size, fontWeight:pct > 0.1 ? 700 : 500,
+                color: pct > 0.15 ? "#1A1D26" : pct > 0.05 ? "#6B7280" : "#9CA3AF",
+                letterSpacing:-0.2, lineHeight:1.8,
+              }}>{genre}</span>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Aura traits */}
+      <div style={{...CARD, marginBottom:16 }}>
+        <div style={{ fontSize:10, fontWeight:700, letterSpacing:0.8, color:"#9CA3AF", textTransform:"uppercase", marginBottom:12 }}>Aura Profile</div>
+        <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:8 }}>
+          {traitKeys.map(k => (
+            <div key={k} style={{ textAlign:"center" }}>
+              <div style={{ fontSize:18, fontWeight:700, color:"#1A1D26", letterSpacing:-0.3 }}>{traitAvgs[k]}</div>
+              <div style={{ fontSize:8, color:"#9CA3AF", letterSpacing:0.8, fontWeight:600, textTransform:"uppercase", marginTop:2 }}>{k}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Return tracks — highest pull */}
+      {returnTracks.length > 0 && (
+        <div style={{...CARD, marginBottom:16 }}>
+          <div style={{ fontSize:10, fontWeight:700, letterSpacing:0.8, color:"#9CA3AF", textTransform:"uppercase", marginBottom:10 }}>Always come back to</div>
+          {returnTracks.map(t => (
+            <div key={t.id} style={{ display:"flex", alignItems:"center", gap:10, padding:"4px 0" }}>
+              <div style={{ width:32, height:32, borderRadius:6, overflow:"hidden", flexShrink:0 }}><AlbumArt track={t} size={32} borderRadius={0}/></div>
+              <div style={{ flex:1, minWidth:0 }}>
+                <div style={{ fontSize:12, fontWeight:500, color:"#1A1D26", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{t.title}</div>
+                <div style={{ fontSize:10, color:"#6B7280" }}>{t.artist}</div>
+              </div>
+              <div style={{ fontSize:9, color:"#9CA3AF", fontWeight:600 }}>pull {t._signal?.pull}</div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Preferred Genres */}
+      <div style={{ fontSize:11, fontWeight:700, letterSpacing:1, color:"#1A1D26", textTransform:"uppercase", marginBottom:8, marginTop:8 }}>Preferred Genres</div>
+      <div style={{ display:"flex", flexWrap:"wrap", gap:6, marginBottom:24 }}>
+        {ALL_GENRES.map(g => {
+          const on = user.genres.includes(g);
+          return <div key={g} onClick={() => setUser(u => ({...u, genres: on ? u.genres.filter(x=>x!==g) : [...u.genres, g]}))}
+            style={{ padding:"6px 14px", borderRadius:20, fontSize:12, fontWeight:on?600:400, cursor:"pointer", transition:"all 0.15s",
+              background: on ? "#1A1D26" : "rgba(255,255,255,0.5)",
+              color: on ? "#FFFFFF" : "#6B7280", border:"none" }}>{g}</div>;
         })}
       </div>
-      <button onClick={onLogout} style={{...BTN_SECONDARY,width:"100%"}}>Sign Out</button>
+
+      <button onClick={onLogout} style={{...BTN_SECONDARY, width:"100%"}}>Sign Out</button>
     </div>
   );
 }
@@ -2595,48 +2878,68 @@ function AdminScreen({ tracks, setTracks, tab, setTab, editTrack, setEditTrack, 
 function NowPlayingBar({ track, isPlaying, progress, duration, onTogglePlay, onSkip, onPrev, onLike, onSeek, repeat, setRepeat, isRadioMode, expanded, setExpanded }) {
   const pct = (progress/duration)*100;
 
-  if (expanded) return (
+  if (expanded) {
+    const rgb = hexToRgbStr(track.color);
+    const progressPct = duration > 0 ? (progress / duration) * 100 : 0;
+    return (
     <div style={{ position:"fixed", inset:0, zIndex:90, overflow:"hidden" }}>
-      <div style={{ position:"absolute", inset:0, background:`radial-gradient(ellipse at 50% 20%,rgba(${hexToRgbStr(track.color)},0.12) 0%,rgba(15,15,18,0.97) 65%)`, backdropFilter:"blur(40px)" }}/>
+      {/* Layered ambient background */}
+      <div style={{ position:"absolute", inset:-40, backgroundImage:track.albumCover?`url(${track.albumCover})`:"none", backgroundSize:"cover", backgroundPosition:"center", filter:"blur(80px) saturate(120%) brightness(0.25)", transform:"scale(1.2)", opacity:0.8 }}/>
+      <div style={{ position:"absolute", inset:0, background:`radial-gradient(ellipse at 50% 30%, rgba(${rgb},0.15) 0%, rgba(8,8,12,0.85) 70%)` }}/>
       <BgMist color={track.color}/>
-      <div style={{ position:"absolute", inset:0, background:"rgba(6,6,8,0.5)" }}/>
-      <div style={{ position:"relative", zIndex:1, height:"100%", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:32, gap:20 }}>
-        <button onClick={()=>setExpanded(false)} style={{ position:"absolute", top:20, right:20, background:"rgba(255,255,255,0.15)", border:"none", borderRadius:"50%", width:36, height:36, cursor:"pointer", color:"#FFFFFF", backdropFilter:"blur(12px)", display:"flex", alignItems:"center", justifyContent:"center" }}>
-          <Icon name="x" size={18}/>
+
+      <div style={{ position:"relative", zIndex:1, height:"100%", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:32, gap:24 }}>
+        {/* Close */}
+        <button onClick={()=>setExpanded(false)} style={{ position:"absolute", top:20, right:20, background:"rgba(255,255,255,0.06)", border:"1px solid rgba(255,255,255,0.08)", borderRadius:"50%", width:36, height:36, cursor:"pointer", color:"rgba(255,255,255,0.4)", backdropFilter:"blur(20px)", display:"flex", alignItems:"center", justifyContent:"center" }}>
+          <Icon name="x" size={16}/>
         </button>
+
+        {/* Album art — large, floating, glowing */}
         <div style={{ position:"relative" }}>
-          {isPlaying&&<div style={{ position:"absolute", width:220, height:220, top:"50%", left:"50%", transform:"translate(-50%,-50%)", borderRadius:"50%", border:"1px solid rgba(255,255,255,0.15)", animation:"pulse-ring 2.5s ease-out infinite" }}/>}
-          <VinylRecord track={track} isPlaying={isPlaying} size={190}/>
-        </div>
-        <div style={{ textAlign:"center" }}>
-          {isRadioMode&&<div style={{ fontSize:11, color:"#1A1D26", letterSpacing:1.5, textTransform:"uppercase", marginBottom:6, fontWeight:700 }}>● V Radio</div>}
-          <div style={{ fontSize:24, fontWeight:700, letterSpacing:-0.5, color:"#FFFFFF" }}>{track.title}</div>
-          <div style={{ fontSize:15, color:"rgba(220,220,225,0.8)", marginTop:4 }}>{track.artist}</div>
-          <div style={{ fontSize:12, color:"rgba(200,200,205,0.55)", marginTop:2 }}>{track.album} · {track.genre}</div>
-          <div style={{ marginTop:10, display:"flex", justifyContent:"center", alignItems:"center", gap:12 }}>
-            
-            
-            {track.bpm&&<span style={{ fontSize:12, color:"rgba(200,200,205,0.6)" }}>{track.bpm} BPM</span>}
+          {isPlaying&&<div style={{ position:"absolute", width:280, height:280, top:"50%", left:"50%", transform:"translate(-50%,-50%)", borderRadius:24, border:"1px solid rgba(255,255,255,0.06)", animation:"pulse-ring 3s ease-out infinite" }}/>}
+          <div style={{ width:240, height:240, borderRadius:20, overflow:"hidden", boxShadow:`0 32px 80px rgba(0,0,0,0.4), 0 0 80px rgba(${rgb},0.15)` }}>
+            {track.albumCover
+              ? <img src={track.albumCover} alt="" style={{ width:"100%", height:"100%", objectFit:"cover" }}/>
+              : <div style={{ width:"100%", height:"100%", background:`linear-gradient(135deg, rgba(${rgb},0.4), #141416)` }}/>}
           </div>
         </div>
-        <div style={{ width:"100%" }}>
+
+        {/* Track info */}
+        <div style={{ textAlign:"center", maxWidth:360 }}>
+          {isRadioMode&&<div style={{ fontSize:10, color:"rgba(255,255,255,0.3)", letterSpacing:2, textTransform:"uppercase", marginBottom:6, fontWeight:700 }}>● V Radio</div>}
+          <div style={{ fontSize:26, fontWeight:700, letterSpacing:-0.5, color:"#FFFFFF", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{track.title}</div>
+          <div style={{ fontSize:14, color:"rgba(255,255,255,0.5)", marginTop:4 }}>{track.artist}</div>
+          {/* Metadata row */}
+          <div style={{ marginTop:8, display:"flex", justifyContent:"center", alignItems:"center", gap:8 }}>
+            {track.genre && <span style={{ fontSize:10, padding:"3px 8px", borderRadius:6, background:"rgba(255,255,255,0.06)", color:"rgba(255,255,255,0.3)" }}>{track.genre}</span>}
+            {track.bpm && <span style={{ fontSize:10, padding:"3px 8px", borderRadius:6, background:"rgba(255,255,255,0.06)", color:"rgba(255,255,255,0.25)", fontVariantNumeric:"tabular-nums" }}>{track.bpm} BPM</span>}
+            {track.camelot && <span style={{ fontSize:10, padding:"3px 8px", borderRadius:6, background:"rgba(255,255,255,0.06)", color:"rgba(255,255,255,0.2)" }}>{track.camelot}</span>}
+            {track._signal?.label && <span style={{ fontSize:9, fontWeight:600, padding:"3px 8px", borderRadius:6, background:"rgba(255,255,255,0.04)", color:"rgba(255,255,255,0.15)", letterSpacing:0.8, textTransform:"uppercase" }}>{track._signal.label}</span>}
+          </div>
+        </div>
+
+        {/* Progress — color-tinted slim bar */}
+        <div style={{ width:"100%", maxWidth:360 }}>
           <input type="range" min={0} max={duration} value={progress} onChange={e=>onSeek(+e.target.value)} style={{ width:"100%", accentColor:track.color }}/>
-          <div style={{ display:"flex", justifyContent:"space-between", fontSize:12, color:"rgba(200,200,205,0.6)", marginTop:4 }}>
+          <div style={{ display:"flex", justifyContent:"space-between", fontSize:11, color:"rgba(255,255,255,0.25)", marginTop:4, fontVariantNumeric:"tabular-nums" }}>
             <span>{fmtTime(progress)}</span><span>{fmtTime(duration)}</span>
           </div>
         </div>
+
+        {/* Controls */}
         <div style={{ display:"flex", alignItems:"center", gap:28 }}>
-          <button onClick={onLike} style={{ background:"none",border:"none",cursor:"pointer",color:track.liked?"#1A1D26":"rgba(255,255,255,0.55)",padding:4 }}><Icon name={track.liked?"heart":"heartempty"} size={20}/></button>
-          <button onClick={onPrev} style={CTRL_BTN}><Icon name="prev" size={22}/></button>
-          <button onClick={onTogglePlay} style={{ ...CTRL_BTN,width:56,height:56,background:"rgba(255,255,255,0.15)",backdropFilter:"blur(20px)",border:"1px solid rgba(255,255,255,0.25)",borderRadius:"50%",color:"#FFFFFF" }}>
-            <Icon name={isPlaying?"pause":"play"} size={26}/>
+          <button onClick={onLike} style={{ background:"none",border:"none",cursor:"pointer",color:track.liked?"#FFFFFF":"rgba(255,255,255,0.3)",padding:4,transition:"color 0.2s" }}><Icon name={track.liked?"heart":"heartempty"} size={20}/></button>
+          <button onClick={onPrev} style={{ ...CTRL_BTN, color:"rgba(255,255,255,0.5)" }}><Icon name="prev" size={22}/></button>
+          <button onClick={onTogglePlay} style={{ width:60, height:60, background:"rgba(255,255,255,0.08)", backdropFilter:"blur(24px)", border:"1px solid rgba(255,255,255,0.12)", borderRadius:"50%", color:"#FFFFFF", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center" }}>
+            <Icon name={isPlaying?"pause":"play"} size={28}/>
           </button>
-          <button onClick={onSkip} style={CTRL_BTN}><Icon name="skip" size={22}/></button>
-          <button onClick={()=>setRepeat(r=>!r)} style={{ background:"none",border:"none",cursor:"pointer",color:repeat?"#1A1D26":"rgba(255,255,255,0.55)",padding:4 }}><Icon name="repeat" size={18}/></button>
+          <button onClick={onSkip} style={{ ...CTRL_BTN, color:"rgba(255,255,255,0.5)" }}><Icon name="skip" size={22}/></button>
+          <button onClick={()=>setRepeat(r=>!r)} style={{ background:"none",border:"none",cursor:"pointer",color:repeat?"#FFFFFF":"rgba(255,255,255,0.2)",padding:4,transition:"color 0.2s" }}><Icon name="repeat" size={18}/></button>
         </div>
       </div>
     </div>
-  );
+    );
+  }
 
   return (
     <div style={{ position:"fixed", bottom:56, left:0, right:0, zIndex:80, padding:"0 8px" }}>
@@ -2677,6 +2980,39 @@ function BottomNav({ screen, setScreen }) {
           
         </button>
       ))}
+    </div>
+  );
+}
+
+
+// ─── PULSE — ambient energy visualization ─────────────────────────────────────
+function Pulse({ track, isPlaying }) {
+  if (!track || !isPlaying) return null;
+  const rgb = hexToRgbStr(track.color);
+  const energy = track.energy || 5;
+  // Higher energy = faster breathing, larger orbs, more opacity
+  const speed = 4 - (energy / 10) * 2; // 4s at E1, 2s at E10
+  const scale = 0.6 + (energy / 10) * 0.6; // 0.6 at E1, 1.2 at E10
+  const opacity = 0.02 + (energy / 10) * 0.04; // very subtle
+
+  return (
+    <div style={{ position:"absolute", inset:0, pointerEvents:"none", zIndex:0, overflow:"hidden" }}>
+      <div style={{
+        position:"absolute", top:"20%", left:"60%",
+        width: 300 * scale, height: 300 * scale,
+        borderRadius:"50%",
+        background:`radial-gradient(circle, rgba(${rgb},${opacity}) 0%, transparent 70%)`,
+        filter:"blur(60px)",
+        animation:`energy-breathe ${speed}s ease-in-out infinite`,
+      }}/>
+      <div style={{
+        position:"absolute", top:"55%", left:"25%",
+        width: 200 * scale, height: 200 * scale,
+        borderRadius:"50%",
+        background:`radial-gradient(circle, rgba(${rgb},${opacity * 0.7}) 0%, transparent 70%)`,
+        filter:"blur(50px)",
+        animation:`energy-breathe ${speed * 1.3}s ease-in-out infinite reverse`,
+      }}/>
     </div>
   );
 }
@@ -2728,6 +3064,8 @@ export default function App() {
   }, []);
   const [userPlaylists, setUserPlaylists] = useState([]); // [{id, name, trackIds:[]}]
   const [showRouteBuilder, setShowRouteBuilder] = useState(false);
+  const [afterglow, setAfterglow] = useState(null);
+  const [resonanceTrack, setResonanceTrack] = useState(null); // { tracks, duration, startTime }
 
   // ── Listening Memory — tracks recently played with timestamps ──
   const recentlyPlayedRef = useRef([]); // [{id, genre, energy, timestamp}]
@@ -3253,7 +3591,7 @@ export default function App() {
     <div style={{ display:"flex", height:"100vh", background:(()=>{const h=new Date().getHours();const w=h>=6&&h<=10?1:0;const c=h>=18&&h<=23?1:h>=0&&h<=5?1:0;const center=w?"#FAF8F5":c?"#F3F4F8":"#F7F7F9";const mid=w?"#EDE8E3":c?"#DDDDE4":"#DCDCE0";const edge=w?"#CDC8C3":c?"#C4C5CE":"#C7C8CD";return `radial-gradient(ellipse at 50% 45%, ${center} 0%, ${mid} 40%, ${edge} 100%)`})(), overflow:"hidden", fontFamily:"-apple-system,'SF Pro Display','Helvetica Neue',Arial,sans-serif" }}>
 
       {/* ── LEFT NAV RAIL ─────────────────────────────────────────────── */}
-      <div style={{ width:72, flexShrink:0, background:"rgba(255,255,255,0.12)", backdropFilter:"blur(64px) saturate(240%)", borderRight:"1px solid rgba(255,255,255,0.16)", display:"flex", flexDirection:"column", alignItems:"center", padding:"16px 0 16px" }}>
+      <div style={{ width:72, flexShrink:0, background:"rgba(255,255,255,0.06)", backdropFilter:"blur(80px) saturate(180%)", borderRight:"1px solid rgba(255,255,255,0.08)", display:"flex", flexDirection:"column", alignItems:"center", padding:"16px 0 16px" }}>
         {/* Logo */}
         <div style={{ marginBottom:16 }}>
           <BrandGlyph size={28}/>
@@ -3326,6 +3664,7 @@ export default function App() {
         {currentTrack && <div style={{ position:"absolute", top:0, right:0, width:"40%", height:"30%", background:`radial-gradient(ellipse at 80% 0%, rgba(${glowRgb},0.07) 0%, transparent 70%)`, pointerEvents:"none", zIndex:0 }}/>}
         <div style={{ position:"relative", zIndex:1, maxWidth:960, margin:"0 auto", padding:"24px 32px", paddingBottom:currentTrack?120:24 }}>
           <BgMist color={currentTrack?.color}/>
+          <Pulse track={currentTrack} isPlaying={isPlaying}/>
           {toast && <ToastEl msg={toast}/>}
           {tracksLoading ? (
             <div style={{ textAlign:"center", paddingTop:120 }}>
@@ -3348,50 +3687,60 @@ export default function App() {
         {/* Desktop mini-player bar */}
         {currentTrack && (
           <div style={{ position:"fixed", bottom:0, left:72, right:320, zIndex:80, padding:"0 16px 12px" }}>
-            <div onClick={()=>setExpanded(true)} style={{ background:"rgba(255,255,255,0.12)", backdropFilter:"blur(72px) saturate(260%)", borderRadius:18, padding:"10px 16px", display:"flex", alignItems:"center", gap:12, border:"1px solid rgba(255,255,255,0.22)", boxShadow:`0 8px 32px rgba(0,0,0,0.06), 0 0 40px rgba(${glowRgb},0.06)`, cursor:"pointer" }}>
-              <div style={{ width:44, height:44, borderRadius:10, overflow:"hidden", flexShrink:0, boxShadow:`0 2px 12px rgba(${glowRgb},0.2)` }}><AlbumArt track={currentTrack} size={44} borderRadius={0}/></div>
-              <div style={{ flex:1, minWidth:0 }}>
-                <div style={{ fontSize:14, fontWeight:600, color:"#1A1D26", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
-                  {isRadioMode&&<span style={{ fontSize:9, color:"#1A1D26", fontWeight:700, letterSpacing:1.5, marginRight:8, opacity:0.4 }}>●</span>}
-                  {currentTrack.title}
+            <div onClick={()=>setExpanded(true)} style={{ background:"rgba(255,255,255,0.15)", backdropFilter:"blur(80px) saturate(200%)", borderRadius:20, display:"flex", flexDirection:"column", border:"1px solid rgba(255,255,255,0.22)", boxShadow:`0 8px 32px rgba(0,0,0,0.06), 0 0 60px rgba(${glowRgb},0.08)`, cursor:"pointer", overflow:"hidden", position:"relative" }}>
+              {/* Content row */}
+              <div style={{ display:"flex", alignItems:"center", gap:12, padding:"10px 16px" }}>
+                <div style={{ width:44, height:44, borderRadius:10, overflow:"hidden", flexShrink:0, boxShadow:`0 4px 16px rgba(${glowRgb},0.25)` }}><AlbumArt track={currentTrack} size={44} borderRadius={0}/></div>
+                <div style={{ flex:1, minWidth:0 }}>
+                  <div style={{ fontSize:14, fontWeight:600, color:"#1A1D26", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap", letterSpacing:-0.2 }}>
+                    {isRadioMode&&<span style={{ fontSize:9, color:"#1A1D26", fontWeight:700, letterSpacing:1.5, marginRight:8, opacity:0.4 }}>●</span>}
+                    {currentTrack.title}
+                  </div>
+                  <div style={{ fontSize:11, color:"#6B7280" }}>{currentTrack.artist}</div>
                 </div>
-                <div style={{ fontSize:12, color:"#9CA3AF" }}>{currentTrack.artist}</div>
+                <span style={{ fontSize:10, color:"#9CA3AF", fontVariantNumeric:"tabular-nums", flexShrink:0 }}>{fmtTime(progress)}</span>
+                <button onClick={e=>{e.stopPropagation();onLikeToggle();}} style={{ background:"none",border:"none",cursor:"pointer",color:currentTrack.liked?"#1A1D26":"#C4C9D4",padding:4 }}><Icon name={currentTrack.liked?"heart":"heartempty"} size={16}/></button>
+                <button onClick={e=>{e.stopPropagation();setIsPlaying(p=>!p);}} style={{ background:"#1A1D26",border:"none",borderRadius:"50%",width:34,height:34,cursor:"pointer",color:"#FFF",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0 }}>
+                  <Icon name={isPlaying?"pause":"play"} size={15}/>
+                </button>
+                <button onClick={e=>{e.stopPropagation();handleSkip();}} style={{ background:"none",border:"none",cursor:"pointer",color:"#9CA3AF",padding:4 }}><Icon name="skip" size={16}/></button>
               </div>
-              {/* "Why this track" pill for radio mode */}
-              {isRadioMode && currentTrack.energy && (
-                <span style={{ fontSize:9, fontWeight:500, padding:"3px 6px", borderRadius:6, background:"rgba(0,0,0,0.04)", color:"#6B7280", flexShrink:0 }}>{currentTrack.genre||"mix"}</span>
-              )}
-              <div style={{ width:120, height:2, background:"rgba(0,0,0,0.06)", borderRadius:1, flexShrink:0 }}>
-                <div style={{ width:`${duration?((progress/duration)*100):0}%`, height:"100%", background:"#1A1D26", borderRadius:1, transition:"width 1s linear" }}/>
+              {/* Full-width progress bar — color-tinted ambient strip */}
+              <div style={{ height:3, background:"rgba(0,0,0,0.04)", width:"100%" }}>
+                <div style={{ height:"100%", width:`${duration?((progress/duration)*100):0}%`, background:`rgba(${glowRgb},0.35)`, borderRadius:"0 2px 2px 0", transition:"width 1s linear" }}/>
               </div>
-              <span style={{ fontSize:11, color:"#9CA3AF", fontVariantNumeric:"tabular-nums", flexShrink:0, width:36 }}>{fmtTime(progress)}</span>
-              <button onClick={e=>{e.stopPropagation();onLikeToggle();}} style={{ background:"none",border:"none",cursor:"pointer",color:currentTrack.liked?"#1A1D26":"#C4C9D4",padding:4 }}><Icon name={currentTrack.liked?"heart":"heartempty"} size={16}/></button>
-              <button onClick={e=>{e.stopPropagation();setIsPlaying(p=>!p);}} style={{ background:"#1A1D26",border:"none",borderRadius:"50%",width:36,height:36,cursor:"pointer",color:"#FFF",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0 }}>
-                <Icon name={isPlaying?"pause":"play"} size={16}/>
-              </button>
-              <button onClick={e=>{e.stopPropagation();handleSkip();}} style={{ background:"none",border:"none",cursor:"pointer",color:"#9CA3AF",padding:4 }}><Icon name="skip" size={16}/></button>
             </div>
           </div>
         )}
       </div>
 
       {/* ── RIGHT PANEL ─────────────────────────────────────────────── */}
-      <div className="hide-scroll" style={{ width:320, flexShrink:0, background:"rgba(255,255,255,0.08)", backdropFilter:"blur(64px) saturate(240%)", borderLeft:"1px solid rgba(255,255,255,0.1)", display:"flex", flexDirection:"column", overflowY:"auto" }}>
+      <div className="hide-scroll" style={{ width:320, flexShrink:0, background:"rgba(255,255,255,0.05)", backdropFilter:"blur(80px) saturate(180%)", borderLeft:"1px solid rgba(255,255,255,0.06)", display:"flex", flexDirection:"column", overflowY:"auto" }}>
 
         {/* Now Playing */}
         {currentTrack ? (
-          <div style={{ padding:"16px 16px 12px" }}>
+          <div style={{ padding:"16px 16px 12px", position:"relative" }}>
+            {/* Ambient color glow behind art */}
+            <div style={{ position:"absolute", top:0, left:0, right:0, height:"70%", background:`radial-gradient(ellipse at 50% 30%, rgba(${glowRgb},0.08) 0%, transparent 70%)`, pointerEvents:"none" }}/>
             {/* Album art with glow */}
-            <div style={{ position:"relative", width:"100%", aspectRatio:"1", borderRadius:16, overflow:"hidden", marginBottom:14, boxShadow:`0 12px 40px rgba(${glowRgb},0.2)` }}>
+            <div style={{ position:"relative", width:"100%", aspectRatio:"1", borderRadius:16, overflow:"hidden", marginBottom:4, boxShadow:`0 16px 48px rgba(${glowRgb},0.2), 0 0 80px rgba(${glowRgb},0.06)` }}>
               <img src={currentTrack.albumCover||"/covers/default.jpg"} alt="" style={{ width:"100%", height:"100%", objectFit:"cover" }} onError={e=>{e.target.src="/covers/default.jpg";}}/>
             </div>
+            {/* Progress bar under art — thin color strip */}
+            <div style={{ height:3, background:"rgba(0,0,0,0.04)", borderRadius:2, marginBottom:12, overflow:"hidden" }}>
+              <div style={{ height:"100%", width:`${duration?((progress/duration)*100):0}%`, background:`rgba(${glowRgb},0.4)`, borderRadius:2, transition:"width 1s linear" }}/>
+            </div>
             {/* Track info */}
-            <div style={{ fontSize:15, fontWeight:600, color:"#1A1D26", letterSpacing:-0.3, marginBottom:2, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{currentTrack.title}</div>
-            <div style={{ fontSize:12, color:"#6B7280", marginBottom:10, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{currentTrack.artist}</div>
-            {/* Metadata pills */}
-            <div style={{ display:"flex", gap:4 }}>
-              {currentTrack.genre && <span style={{ fontSize:9, fontWeight:500, padding:"3px 8px", borderRadius:6, background:"rgba(0,0,0,0.04)", color:"#6B7280" }}>{currentTrack.genre}</span>}
-              {currentTrack.bpm && <span style={{ fontSize:9, fontWeight:500, padding:"3px 8px", borderRadius:6, background:"rgba(0,0,0,0.04)", color:"#9CA3AF" }}>{currentTrack.bpm} bpm</span>}
+            <div style={{ position:"relative" }}>
+              <div style={{ fontSize:15, fontWeight:600, color:"#1A1D26", letterSpacing:-0.3, marginBottom:2, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{currentTrack.title}</div>
+              <div style={{ fontSize:12, color:"#6B7280", marginBottom:8, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{currentTrack.artist}</div>
+              {/* Metadata + state label row */}
+              <div style={{ display:"flex", gap:4, alignItems:"center" }}>
+                {currentTrack.genre && <span style={{ fontSize:9, fontWeight:500, padding:"3px 8px", borderRadius:6, background:"rgba(0,0,0,0.04)", color:"#6B7280" }}>{currentTrack.genre}</span>}
+                {currentTrack.bpm && <span style={{ fontSize:9, fontWeight:500, padding:"3px 8px", borderRadius:6, background:"rgba(0,0,0,0.04)", color:"#9CA3AF" }}>{currentTrack.bpm} bpm</span>}
+                <div style={{ flex:1 }}/>
+                {signalState?.label && <span style={{ fontSize:9, fontWeight:600, letterSpacing:0.8, color:"#9CA3AF", textTransform:"uppercase" }}>{signalState.label}</span>}
+              </div>
             </div>
           </div>
         ) : (
@@ -3400,6 +3749,42 @@ export default function App() {
           </div>
         )}
 
+
+        {/* Flow Trail — session energy path */}
+        {recentlyPlayedRef.current.length > 2 && (
+          <div style={{ padding:"8px 16px 4px" }}>
+            <div style={{ fontSize:9, fontWeight:700, letterSpacing:1.2, color:"#9CA3AF", textTransform:"uppercase", marginBottom:6 }}>Flow</div>
+            <svg width="100%" height="40" viewBox="0 0 288 40" preserveAspectRatio="none" style={{ display:"block", opacity:0.6 }}>
+              <defs>
+                <linearGradient id="flowGrad" x1="0" y1="0" x2="1" y2="0">
+                  <stop offset="0%" stopColor={`rgba(${glowRgb},0.05)`}/>
+                  <stop offset="100%" stopColor={`rgba(${glowRgb},0.2)`}/>
+                </linearGradient>
+              </defs>
+              {(() => {
+                const plays = recentlyPlayedRef.current.slice(0, 15).reverse();
+                if (plays.length < 2) return null;
+                const w = 288;
+                const h = 40;
+                const step = w / (plays.length - 1);
+                const pts = plays.map((p, i) => ({
+                  x: i * step,
+                  y: h - ((((p.energy || 5) - 1) / 9) * (h - 6) + 3),
+                }));
+                const line = pts.map(p => `${p.x},${p.y}`).join(" ");
+                const area = `0,${h} ${line} ${w},${h}`;
+                return (
+                  <>
+                    <polygon points={area} fill="url(#flowGrad)"/>
+                    <polyline points={line} fill="none" stroke={`rgba(${glowRgb},0.4)`} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                    {/* Current position dot */}
+                    <circle cx={pts[pts.length-1].x} cy={pts[pts.length-1].y} r="3" fill={currentTrack?.color || "#888"} opacity="0.8"/>
+                  </>
+                );
+              })()}
+            </svg>
+          </div>
+        )}
         {/* Divider */}
         <div style={{ height:1, background:"rgba(0,0,0,0.04)", margin:"0 16px" }}/>
 
@@ -3427,8 +3812,8 @@ export default function App() {
             {nextUpTracks.map((t,i) => (
               <div key={t.id}
                 style={{ display:"flex", alignItems:"center", gap:8, padding:"6px 8px", borderRadius:10,
-                  background: currentTrack?.id===t.id ? "rgba(255,255,255,0.4)" : "rgba(255,255,255,0.15)",
-                  border: currentTrack?.id===t.id ? "1px solid rgba(255,255,255,0.5)" : "1px solid rgba(255,255,255,0.08)",
+                  background: currentTrack?.id===t.id ? "rgba(255,255,255,0.2)" : "rgba(255,255,255,0.08)",
+                  border: currentTrack?.id===t.id ? "1px solid rgba(255,255,255,0.18)" : "1px solid rgba(255,255,255,0.04)",
                   transition:"all 0.2s" }}>
 
                 {/* Index number */}
@@ -3484,6 +3869,8 @@ export default function App() {
       </div>
 
       {/* Route Builder Modal */}
+      {resonanceTrack && <HypnoVisionOverlay sourceTrack={resonanceTrack} tracks={tracks} onPlay={t=>playTrack(t,tracks)} onClose={()=>setResonanceTrack(null)}/>}
+      {afterglow && <AfterglowOverlay data={afterglow} onClose={()=>setAfterglow(null)} onSavePlaylist={(name, ids) => { createPlaylist(name); /* TODO: add tracks */ }}/>}
       {showRouteBuilder && <RouteBuilderModal tracks={tracks} onClose={()=>setShowRouteBuilder(false)} onPlayRoute={playRoute}/>}
 
       {/* Expanded NP overlay */}
