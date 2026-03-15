@@ -1306,7 +1306,7 @@ function HomeScreen({ tracks, onPlayRadio, onTogglePlay, onPlayTrack, currentTra
             return { track: t, score };
           })
           .sort((a, b) => b.score - a.score)
-          .slice(0, 12)
+          .slice(0, 18)
           .map(s => s.track);
         return scored;
       })()
@@ -1522,8 +1522,8 @@ function FavoritesScreen({ tracks, onPlay, onLike, currentTrack, isPlaying, user
   // For You — mix of liked genres, right energy, shuffled
   const likedGenres = [...new Set(likedTracks.map(t=>t.genre).filter(Boolean))];
   const forYou = likedGenres.length > 0
-    ? singles.filter(t => likedGenres.includes(t.genre) && (t.energy||5)>=eMin && (t.energy||5)<=eMax && !t.liked).sort(()=>Math.random()-0.5).slice(0,8)
-    : timeRecs.slice(0,8);
+    ? singles.filter(t => likedGenres.includes(t.genre) && (t.energy||5)>=eMin && (t.energy||5)<=eMax && !t.liked).sort(()=>Math.random()-0.5).slice(0,24)
+    : timeRecs.slice(0,24);
 
   // Active view tracks
   const isPlaylistView = view.startsWith("pl_");
@@ -1550,8 +1550,8 @@ function FavoritesScreen({ tracks, onPlay, onLike, currentTrack, isPlaying, user
   return (
     <div style={{ overflowY:"auto", height:"100%", minHeight:"calc(100vh - 112px)" }}>
       {/* Tab bar */}
-      <div style={{ padding:"20px 16px 14px", position:"sticky", top:0, zIndex:10, background:"rgba(245,245,247,0.92)", backdropFilter:"blur(32px)" }}>
-        <div style={{ display:"inline-flex", gap:2, padding:3, borderRadius:12, background:"rgba(0,0,0,0.04)", boxShadow:"inset 0 1px 2px rgba(0,0,0,0.03)" }}>
+      <div style={{ padding:"16px 16px 12px", position:"sticky", top:0, zIndex:10, background:"rgba(180,180,185,0.65)", backdropFilter:"blur(40px) saturate(180%)", borderBottom:"1px solid rgba(255,255,255,0.15)" }}>
+        <div style={{ display:"inline-flex", gap:2, padding:3, borderRadius:12, background:"rgba(0,0,0,0.08)", boxShadow:"inset 0 1px 3px rgba(0,0,0,0.06)" }}>
           <Pill label="Discover" active={view==="discover"} onClick={()=>setView("discover")}/>
           <Pill label="Saved" active={view==="liked"} onClick={()=>setView("liked")}/>
           <Pill label="Genres" active={view==="genres"} onClick={()=>{setView("genres");setGenreFilter(null);}}/>
@@ -1566,14 +1566,14 @@ function FavoritesScreen({ tracks, onPlay, onLike, currentTrack, isPlaying, user
           {forYou.length > 0 && (
             <div style={{ margin:"0 16px 16px", padding:"16px", borderRadius:16, background:"rgba(255,255,255,0.55)", backdropFilter:"blur(40px)", border:"1px solid rgba(255,255,255,0.6)" }}>
               <SectionHead>recommended for you</SectionHead>
-              <div className="hide-scroll" style={{ display:"flex", gap:12, overflowX:"auto", padding:"0 0 4px" }}>
+              <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill, minmax(100px, 1fr))", gap:12, padding:"0 0 4px" }}>
                 {forYou.map(t => (
-                  <div key={t.id} onClick={()=>onPlay(t)} style={{ flexShrink:0, width:110, cursor:"pointer" }}>
-                    <div style={{ width:110, height:110, borderRadius:10, overflow:"hidden", marginBottom:6, boxShadow:"0 2px 10px rgba(0,0,0,0.08)", position:"relative" }}>
-                      <AlbumArt track={t} size={110} borderRadius={0}/>
+                  <div key={t.id} onClick={()=>onPlay(t)} style={{ cursor:"pointer" }}>
+                    <div style={{ width:"100%", aspectRatio:"1", borderRadius:10, overflow:"hidden", marginBottom:6, boxShadow:"0 2px 10px rgba(0,0,0,0.08)" }}>
+                      <AlbumArt track={t} size={200} borderRadius={0}/>
                     </div>
-                    <div style={{ fontSize:12, fontWeight:600, color:"#1A1D26", letterSpacing:-0.2, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{t.title}</div>
-                    <div style={{ fontSize:10, color:"#6B7280" }}>{t.artist}</div>
+                    <div style={{ fontSize:11, fontWeight:600, color:"#1A1D26", letterSpacing:-0.2, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{t.title}</div>
+                    <div style={{ fontSize:10, color:"#6B7280", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{t.artist}</div>
                   </div>
                 ))}
               </div>
@@ -1584,13 +1584,13 @@ function FavoritesScreen({ tracks, onPlay, onLike, currentTrack, isPlaying, user
           {timeRecs.length > 0 && (
             <div style={{ margin:"0 16px 16px", padding:"16px", borderRadius:16, background:"rgba(255,255,255,0.55)", backdropFilter:"blur(40px)", border:"1px solid rgba(255,255,255,0.6)" }}>
               <SectionHead>{timeLabel} picks</SectionHead>
-              <div className="hide-scroll" style={{ display:"flex", gap:12, overflowX:"auto", padding:"0 0 4px" }}>
-                {timeRecs.slice(0,8).map(t => (
-                  <div key={t.id} onClick={()=>onPlay(t)} style={{ flexShrink:0, width:90, cursor:"pointer" }}>
-                    <div style={{ width:90, height:90, borderRadius:8, overflow:"hidden", marginBottom:4, boxShadow:"0 1px 6px rgba(0,0,0,0.06)" }}>
-                      <AlbumArt track={t} size={90} borderRadius={0}/>
+              <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill, minmax(90px, 1fr))", gap:10, padding:"0 0 4px" }}>
+                {timeRecs.slice(0,16).map(t => (
+                  <div key={t.id} onClick={()=>onPlay(t)} style={{ cursor:"pointer" }}>
+                    <div style={{ width:"100%", aspectRatio:"1", borderRadius:8, overflow:"hidden", marginBottom:4, boxShadow:"0 1px 6px rgba(0,0,0,0.06)" }}>
+                      <AlbumArt track={t} size={200} borderRadius={0}/>
                     </div>
-                    <div style={{ fontSize:11, fontWeight:500, color:"#1A1D26", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{t.title}</div>
+                    <div style={{ fontSize:10, fontWeight:500, color:"#1A1D26", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{t.title}</div>
                   </div>
                 ))}
               </div>
