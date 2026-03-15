@@ -503,7 +503,7 @@ function DeepCutsCard({ onPlay, onTogglePlay, currentTrack, isPlaying, isRadioMo
             {isRadioMode&&isPlaying ? "live" : "radio"}
           </span>
         </div>
-        <span style={{ fontSize:10, fontWeight:600, color:"rgba(255,255,255,0.4)", letterSpacing:0.5 }}>{timeLabel}</span>
+        <span style={{ fontSize:10, fontWeight:600, color:"rgba(255,255,255,0.4)", letterSpacing:0.5 }}>{currentTrack?.genre || ""}</span>
       </div>
 
       {isRadioMode&&currentTrack ? (
@@ -667,7 +667,7 @@ function TrackRow({ track, onPlay, active, isPlaying, onLike, extraAction, playl
 }
 
 const SectionLabel = ({ children, style={} }) => (
-  <div style={{ fontSize:11, fontWeight:700, letterSpacing:1.2, color:"#FFFFFF", marginBottom:10, textTransform:"uppercase", textShadow:"0 1px 3px rgba(0,0,0,0.08)", ...style }}>{children}</div>
+  <div style={{ fontSize:11, fontWeight:700, letterSpacing:1, color:"#1A1D26", marginBottom:10, textTransform:"uppercase", ...style }}>{children}</div>
 );
 
 // ─── LOGIN ────────────────────────────────────────────────────────────────────
@@ -1084,8 +1084,8 @@ function RouteBuilderModal({ tracks, onClose, onPlayRoute }) {
 
 // ── Shelf primitives — defined outside HomeScreen to prevent remount flashing ──
 const GlassSection = ({label, children}) => (
-  <div style={{ margin:"0 16px 16px", background:"rgba(255,255,255,0.12)", backdropFilter:"blur(80px) saturate(280%)", border:"1px solid rgba(255,255,255,0.18)", boxShadow:"0 4px 24px rgba(0,0,0,0.04)", borderRadius:20, overflow:"hidden" }}>
-    {label && <div style={{ fontSize:10, fontWeight:700, letterSpacing:1.8, color:"#FFFFFF", textTransform:"uppercase", padding:"14px 16px 0", textShadow:"0 1px 3px rgba(0,0,0,0.08)" }}>{label}</div>}
+  <div style={{ margin:"0 16px 16px", background:"rgba(255,255,255,0.55)", backdropFilter:"blur(40px)", border:"1px solid rgba(255,255,255,0.6)", borderRadius:20, overflow:"hidden" }}>
+    {label && <div style={{ fontSize:11, fontWeight:700, letterSpacing:1, color:"#1A1D26", textTransform:"uppercase", padding:"14px 16px 0" }}>{label}</div>}
     <div style={{ padding:"12px 0 4px" }}>{children}</div>
   </div>
 );
@@ -1399,17 +1399,17 @@ function FavoritesScreen({ tracks, onPlay, onLike, currentTrack, isPlaying, user
   }
 
   const Pill = ({label, active, onClick}) => (
-    <button onClick={onClick} style={{ padding:"7px 16px", borderRadius:20, border: active?"none":"1px solid rgba(255,255,255,0.3)", background: active?"rgba(26,29,38,0.85)":"rgba(255,255,255,0.15)", backdropFilter:"blur(24px) saturate(200%)", color: active?"#FFF":"#FFFFFF", fontSize:11, fontWeight:active?600:500, textShadow:active?"none":"0 1px 2px rgba(0,0,0,0.06)", cursor:"pointer", transition:"all 0.2s", flexShrink:0 }}>{label}</button>
+    <button onClick={onClick} style={{ padding:"8px 18px", borderRadius:20, border:"none", background: active?"#1A1D26":"rgba(255,255,255,0.5)", backdropFilter:active?"none":"blur(20px)", color: active?"#FFFFFF":"#1A1D26", fontSize:12, fontWeight:600, cursor:"pointer", transition:"all 0.2s", flexShrink:0, boxShadow:active?"0 2px 8px rgba(0,0,0,0.1)":"none" }}>{label}</button>
   );
 
   const SectionHead = ({children}) => (
-    <div style={{ fontSize:10, fontWeight:700, letterSpacing:1.8, color:"#FFFFFF", textTransform:"uppercase", marginBottom:8, textShadow:"0 1px 3px rgba(0,0,0,0.1)" }}>{children}</div>
+    <div style={{ fontSize:11, fontWeight:700, letterSpacing:1, color:"#1A1D26", textTransform:"uppercase", marginBottom:10 }}>{children}</div>
   );
 
   return (
     <div style={{ overflowY:"auto", height:"100%", minHeight:"calc(100vh - 112px)" }}>
       {/* Tab bar */}
-      <div style={{ display:"flex", gap:6, padding:"16px 16px 12px", overflowX:"auto", position:"sticky", top:0, zIndex:10, background:"rgba(200,200,200,0.5)", backdropFilter:"blur(40px) saturate(200%)" }}>
+      <div style={{ display:"flex", gap:6, padding:"16px 16px 12px", overflowX:"auto", position:"sticky", top:0, zIndex:10, background:"rgba(240,240,242,0.8)", backdropFilter:"blur(24px)" }}>
         <Pill label="Discover" active={view==="discover"} onClick={()=>setView("discover")}/>
         <Pill label="Saved" active={view==="liked"} onClick={()=>setView("liked")}/>
         <Pill label="Genres" active={view==="genres"} onClick={()=>{setView("genres");setGenreFilter(null);}}/>
@@ -1421,16 +1421,16 @@ function FavoritesScreen({ tracks, onPlay, onLike, currentTrack, isPlaying, user
         <div style={{ padding:"0 0 24px" }}>
           {/* For You */}
           {forYou.length > 0 && (
-            <div style={{ marginBottom:16 }}>
-              <div style={{ padding:"0 16px", marginBottom:8 }}><SectionHead>recommended for you</SectionHead></div>
-              <div style={{ display:"flex", gap:10, overflowX:"auto", padding:"0 16px 8px" }}>
+            <div style={{ margin:"0 16px 16px", padding:"16px", borderRadius:16, background:"rgba(255,255,255,0.55)", backdropFilter:"blur(40px)", border:"1px solid rgba(255,255,255,0.6)" }}>
+              <SectionHead>recommended for you</SectionHead>
+              <div className="hide-scroll" style={{ display:"flex", gap:12, overflowX:"auto", padding:"0 0 4px" }}>
                 {forYou.map(t => (
                   <div key={t.id} onClick={()=>onPlay(t)} style={{ flexShrink:0, width:110, cursor:"pointer" }}>
                     <div style={{ width:110, height:110, borderRadius:10, overflow:"hidden", marginBottom:6, boxShadow:"0 2px 10px rgba(0,0,0,0.08)", position:"relative" }}>
                       <AlbumArt track={t} size={110} borderRadius={0}/>
                     </div>
-                    <div style={{ fontSize:12, fontWeight:500, color:"#1A1D26", letterSpacing:-0.1, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{t.title}</div>
-                    <div style={{ fontSize:10, color:"#4B5563" }}>{t.artist}</div>
+                    <div style={{ fontSize:12, fontWeight:600, color:"#1A1D26", letterSpacing:-0.2, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{t.title}</div>
+                    <div style={{ fontSize:10, color:"#6B7280" }}>{t.artist}</div>
                   </div>
                 ))}
               </div>
@@ -1439,15 +1439,15 @@ function FavoritesScreen({ tracks, onPlay, onLike, currentTrack, isPlaying, user
 
           {/* Right now — time-based */}
           {timeRecs.length > 0 && (
-            <div style={{ marginBottom:16 }}>
-              <div style={{ padding:"0 16px", marginBottom:8 }}><SectionHead>{timeLabel} picks</SectionHead></div>
-              <div style={{ display:"flex", gap:10, overflowX:"auto", padding:"0 16px 8px" }}>
+            <div style={{ margin:"0 16px 16px", padding:"16px", borderRadius:16, background:"rgba(255,255,255,0.55)", backdropFilter:"blur(40px)", border:"1px solid rgba(255,255,255,0.6)" }}>
+              <SectionHead>{timeLabel} picks</SectionHead>
+              <div className="hide-scroll" style={{ display:"flex", gap:12, overflowX:"auto", padding:"0 0 4px" }}>
                 {timeRecs.slice(0,8).map(t => (
                   <div key={t.id} onClick={()=>onPlay(t)} style={{ flexShrink:0, width:90, cursor:"pointer" }}>
                     <div style={{ width:90, height:90, borderRadius:8, overflow:"hidden", marginBottom:4, boxShadow:"0 1px 6px rgba(0,0,0,0.06)" }}>
                       <AlbumArt track={t} size={90} borderRadius={0}/>
                     </div>
-                    <div style={{ fontSize:10, fontWeight:500, color:"#1A1D26", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{t.title}</div>
+                    <div style={{ fontSize:11, fontWeight:500, color:"#1A1D26", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{t.title}</div>
                   </div>
                 ))}
               </div>
@@ -1456,12 +1456,12 @@ function FavoritesScreen({ tracks, onPlay, onLike, currentTrack, isPlaying, user
 
           {/* Moods */}
           {moodKeys.length > 0 && (
-          <div style={{ marginBottom:16 }}>
-            <div style={{ padding:"0 16px", marginBottom:8 }}><SectionHead>moods</SectionHead></div>
-            <div className="hide-scroll" style={{ display:"flex", gap:8, overflowX:"auto", padding:"0 16px 8px" }}>
+          <div style={{ margin:"0 16px 16px", padding:"16px", borderRadius:16, background:"rgba(255,255,255,0.55)", backdropFilter:"blur(40px)", border:"1px solid rgba(255,255,255,0.6)" }}>
+            <SectionHead>moods</SectionHead>
+            <div className="hide-scroll" style={{ display:"flex", gap:8, overflowX:"auto", padding:"0 0 4px" }}>
               {moodKeys.map(mood => (
                 <div key={mood} onClick={()=>{setView("genres");setGenreFilter(null);setMoodFilter(mood);}}
-                  style={{ flexShrink:0, width:140, padding:"14px 14px", borderRadius:14, background:"rgba(255,255,255,0.15)", backdropFilter:"blur(64px) saturate(260%)", border:"1px solid rgba(255,255,255,0.2)", boxShadow:"0 2px 12px rgba(0,0,0,0.03)", cursor:"pointer", transition:"all 0.2s" }}>
+                  style={{ flexShrink:0, width:140, padding:"14px 14px", borderRadius:12, background:"rgba(0,0,0,0.03)", border:"none", cursor:"pointer", transition:"all 0.15s" }}>
                   <div style={{ fontSize:14, fontWeight:700, color:"#1A1D26", marginBottom:2 }}>{mood}</div>
                   <div style={{ fontSize:10, color:"#6B7280", marginBottom:6 }}>{moodMeta[mood]?.desc}</div>
                   <div style={{ fontSize:10, color:"#9CA3AF" }}>{moods[mood].length} tracks</div>
@@ -1472,11 +1472,12 @@ function FavoritesScreen({ tracks, onPlay, onLike, currentTrack, isPlaying, user
           )}
 
           {/* Genre grid */}
-          <div style={{ padding:"0 16px", marginBottom:16 }}><SectionHead>browse by genre</SectionHead></div>
-          <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill, minmax(100px, 1fr))", gap:6, padding:"0 16px" }}>
+          <div style={{ margin:"0 16px 16px", padding:"16px", borderRadius:16, background:"rgba(255,255,255,0.55)", backdropFilter:"blur(40px)", border:"1px solid rgba(255,255,255,0.6)" }}>
+            <SectionHead>browse by genre</SectionHead>
+            <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill, minmax(90px, 1fr))", gap:6 }}>
             {genres.map(g => (
               <div key={g} onClick={()=>{setView("genres");setGenreFilter(g);}}
-                style={{ padding:"12px 10px", borderRadius:10, background:"rgba(255,255,255,0.15)", backdropFilter:"blur(64px) saturate(260%)", border:"1px solid rgba(255,255,255,0.2)", boxShadow:"0 2px 12px rgba(0,0,0,0.03)", cursor:"pointer", textAlign:"center" }}>
+                style={{ padding:"10px 8px", borderRadius:10, background:"rgba(0,0,0,0.03)", border:"none", cursor:"pointer", textAlign:"center", transition:"all 0.15s" }}>
                 <div style={{ fontSize:12, fontWeight:600, color:"#1A1D26" }}>{g}</div>
                 <div style={{ fontSize:10, color:"#6B7280", marginTop:2 }}>{genreMap[g].length}</div>
               </div>
@@ -2092,7 +2093,7 @@ function AdminScreen({ tracks, setTracks, tab, setTab, editTrack, setEditTrack, 
                         <div key={t.id} style={{ display:"flex", alignItems:"center", gap:8, padding:"6px 8px", borderRadius:8, marginBottom:2 }}>
                           <div style={{ width:28, height:28, borderRadius:5, overflow:"hidden", flexShrink:0 }}><AlbumArt track={t} size={28} borderRadius={0}/></div>
                           <div style={{ flex:1, minWidth:0 }}>
-                            <div style={{ fontSize:12, fontWeight:500, color:"#1A1D26", letterSpacing:-0.1, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{t.title}</div>
+                            <div style={{ fontSize:12, fontWeight:600, color:"#1A1D26", letterSpacing:-0.2, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{t.title}</div>
                             <div style={{ fontSize:10, color:"#9CA3AF" }}>{t.artist}</div>
                           </div>
                           <span style={{ fontSize:9, color:"#C4C9D4" }}>{t.bpm ? `${t.bpm}bpm` : "no bpm"}</span>
@@ -2828,7 +2829,7 @@ export default function App() {
         {/* Queue / Next Up — draggable */}
         <div style={{ flex:1, padding:"12px 12px" }}>
           <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:8, padding:"0 4px" }}>
-            <div style={{ fontSize:9, fontWeight:600, letterSpacing:2, color:"#9CA3AF", textTransform:"uppercase" }}>{isRadioMode ? "up next" : "up next"}</div>
+            <div style={{ fontSize:10, fontWeight:700, letterSpacing:1, color:"#1A1D26", textTransform:"uppercase" }}>{isRadioMode ? "up next" : "up next"}</div>
             {!isRadioMode && queue.length > 0 && (
               <button onClick={()=>setQueue([])} style={{ background:"none", border:"none", cursor:"pointer", color:"#9CA3AF", fontSize:9, fontWeight:500, letterSpacing:0.5 }}>clear</button>
             )}
@@ -2851,7 +2852,7 @@ export default function App() {
                     <img src={t.albumCover||"/covers/default.jpg"} alt="" style={{ width:"100%", height:"100%", objectFit:"cover" }} onError={e=>{e.target.src="/covers/default.jpg";}}/>
                   </div>
                   <div style={{ flex:1, minWidth:0 }}>
-                    <div style={{ fontSize:12, fontWeight:500, color:"#1A1D26", letterSpacing:-0.1, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{t.title}</div>
+                    <div style={{ fontSize:12, fontWeight:600, color:"#1A1D26", letterSpacing:-0.2, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{t.title}</div>
                     <div style={{ fontSize:10, color:"#6B7280", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{t.artist}</div>
                   </div>
                 </div>
