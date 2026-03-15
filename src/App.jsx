@@ -1078,7 +1078,7 @@ function RouteBuilderModal({ tracks, onClose, onPlayRoute }) {
 
 // ── Shelf primitives — defined outside HomeScreen to prevent remount flashing ──
 const GlassSection = ({label, children}) => (
-  <div style={{ margin:"0 16px 16px", background:"rgba(255,255,255,0.08)", backdropFilter:"blur(64px) saturate(260%)", border:"1px solid rgba(255,255,255,0.12)", borderRadius:20, overflow:"hidden" }}>
+  <div style={{ margin:"0 16px 16px", background:"rgba(255,255,255,0.12)", backdropFilter:"blur(80px) saturate(280%)", border:"1px solid rgba(255,255,255,0.18)", boxShadow:"0 4px 24px rgba(0,0,0,0.04)", borderRadius:20, overflow:"hidden" }}>
     {label && <div style={{ fontSize:10, fontWeight:700, letterSpacing:1.8, color:"#FFFFFF", textTransform:"uppercase", padding:"14px 16px 0", textShadow:"0 1px 3px rgba(0,0,0,0.08)" }}>{label}</div>}
     <div style={{ padding:"12px 0 4px" }}>{children}</div>
   </div>
@@ -1095,8 +1095,8 @@ function HorizShelf({ items, onPlay, activeId }) {
             transition:"box-shadow 0.3s, opacity 0.3s" }}>
             <AlbumArt track={t} size={110} borderRadius={0}/>
           </div>
-          <div style={{ fontSize:11, fontWeight:activeId===t.id?600:500, color:"#FFFFFF", textShadow:"0 1px 2px rgba(0,0,0,0.08)", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{t.title}</div>
-          <div style={{ fontSize:10, color:"rgba(255,255,255,0.6)", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{t.artist}</div>
+          <div style={{ fontSize:11, fontWeight:activeId===t.id?600:500, color:"#1A1D26", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{t.title}</div>
+          <div style={{ fontSize:10, color:"#4B5563", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{t.artist}</div>
         </div>
       ))}
     </div>
@@ -1114,8 +1114,8 @@ function GridShelf({ items, onPlay, activeId }) {
             transition:"box-shadow 0.3s, opacity 0.3s" }}>
             <AlbumArt track={t} size={200} borderRadius={0}/>
           </div>
-          <div style={{ fontSize:10, fontWeight:activeId===t.id?600:500, color:"#FFFFFF", textShadow:"0 1px 2px rgba(0,0,0,0.08)", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{t.title}</div>
-          <div style={{ fontSize:9, color:"rgba(255,255,255,0.6)", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{t.artist}</div>
+          <div style={{ fontSize:10, fontWeight:activeId===t.id?600:500, color:"#1A1D26", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{t.title}</div>
+          <div style={{ fontSize:9, color:"#4B5563", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{t.artist}</div>
         </div>
       ))}
     </div>
@@ -1396,7 +1396,7 @@ function FavoritesScreen({ tracks, onPlay, onLike, currentTrack, isPlaying, user
   return (
     <div style={{ overflowY:"auto", height:"100%", minHeight:"calc(100vh - 112px)" }}>
       {/* Tab bar */}
-      <div style={{ display:"flex", gap:6, padding:"16px 16px 12px", overflowX:"auto", position:"sticky", top:0, zIndex:10, background:"rgba(195,200,213,0.5)", backdropFilter:"blur(40px) saturate(200%)" }}>
+      <div style={{ display:"flex", gap:6, padding:"16px 16px 12px", overflowX:"auto", position:"sticky", top:0, zIndex:10, background:"rgba(200,200,200,0.5)", backdropFilter:"blur(40px) saturate(200%)" }}>
         <Pill label="Discover" active={view==="discover"} onClick={()=>setView("discover")}/>
         <Pill label="Saved" active={view==="liked"} onClick={()=>setView("liked")}/>
         <Pill label="Genres" active={view==="genres"} onClick={()=>{setView("genres");setGenreFilter(null);}}/>
@@ -1416,8 +1416,8 @@ function FavoritesScreen({ tracks, onPlay, onLike, currentTrack, isPlaying, user
                     <div style={{ width:110, height:110, borderRadius:10, overflow:"hidden", marginBottom:6, boxShadow:"0 2px 10px rgba(0,0,0,0.08)", position:"relative" }}>
                       <AlbumArt track={t} size={110} borderRadius={0}/>
                     </div>
-                    <div style={{ fontSize:11, fontWeight:500, color:"#FFFFFF", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap", textShadow:"0 1px 2px rgba(0,0,0,0.08)" }}>{t.title}</div>
-                    <div style={{ fontSize:10, color:"rgba(255,255,255,0.6)" }}>{t.artist}</div>
+                    <div style={{ fontSize:11, fontWeight:500, color:"#111111", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{t.title}</div>
+                    <div style={{ fontSize:10, color:"#4B5563" }}>{t.artist}</div>
                   </div>
                 ))}
               </div>
@@ -1434,7 +1434,7 @@ function FavoritesScreen({ tracks, onPlay, onLike, currentTrack, isPlaying, user
                     <div style={{ width:90, height:90, borderRadius:8, overflow:"hidden", marginBottom:4, boxShadow:"0 1px 6px rgba(0,0,0,0.06)" }}>
                       <AlbumArt track={t} size={90} borderRadius={0}/>
                     </div>
-                    <div style={{ fontSize:10, fontWeight:500, color:"#FFFFFF", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap", textShadow:"0 1px 2px rgba(0,0,0,0.08)" }}>{t.title}</div>
+                    <div style={{ fontSize:10, fontWeight:500, color:"#1A1D26", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{t.title}</div>
                   </div>
                 ))}
               </div>
@@ -1448,10 +1448,10 @@ function FavoritesScreen({ tracks, onPlay, onLike, currentTrack, isPlaying, user
             <div className="hide-scroll" style={{ display:"flex", gap:8, overflowX:"auto", padding:"0 16px 8px" }}>
               {moodKeys.map(mood => (
                 <div key={mood} onClick={()=>{setView("genres");setGenreFilter(null);setMoodFilter(mood);}}
-                  style={{ flexShrink:0, width:140, padding:"14px 14px", borderRadius:14, background:"rgba(255,255,255,0.08)", backdropFilter:"blur(48px) saturate(240%)", border:"1px solid rgba(255,255,255,0.12)", cursor:"pointer", transition:"all 0.2s" }}>
-                  <div style={{ fontSize:14, fontWeight:700, color:"#FFFFFF", marginBottom:2, textShadow:"0 1px 3px rgba(0,0,0,0.1)" }}>{mood}</div>
-                  <div style={{ fontSize:10, color:"rgba(255,255,255,0.7)", marginBottom:6 }}>{moodMeta[mood]?.desc}</div>
-                  <div style={{ fontSize:10, color:"rgba(255,255,255,0.5)" }}>{moods[mood].length} tracks</div>
+                  style={{ flexShrink:0, width:140, padding:"14px 14px", borderRadius:14, background:"rgba(255,255,255,0.15)", backdropFilter:"blur(64px) saturate(260%)", border:"1px solid rgba(255,255,255,0.2)", boxShadow:"0 2px 12px rgba(0,0,0,0.03)", cursor:"pointer", transition:"all 0.2s" }}>
+                  <div style={{ fontSize:14, fontWeight:700, color:"#1A1D26", marginBottom:2 }}>{mood}</div>
+                  <div style={{ fontSize:10, color:"#6B7280", marginBottom:6 }}>{moodMeta[mood]?.desc}</div>
+                  <div style={{ fontSize:10, color:"#9CA3AF" }}>{moods[mood].length} tracks</div>
                 </div>
               ))}
             </div>
@@ -1463,9 +1463,9 @@ function FavoritesScreen({ tracks, onPlay, onLike, currentTrack, isPlaying, user
           <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill, minmax(100px, 1fr))", gap:6, padding:"0 16px" }}>
             {genres.map(g => (
               <div key={g} onClick={()=>{setView("genres");setGenreFilter(g);}}
-                style={{ padding:"12px 10px", borderRadius:10, background:"rgba(255,255,255,0.08)", backdropFilter:"blur(48px) saturate(240%)", border:"1px solid rgba(255,255,255,0.12)", cursor:"pointer", textAlign:"center" }}>
-                <div style={{ fontSize:12, fontWeight:600, color:"#FFFFFF", textShadow:"0 1px 2px rgba(0,0,0,0.08)" }}>{g}</div>
-                <div style={{ fontSize:10, color:"rgba(255,255,255,0.6)", marginTop:2 }}>{genreMap[g].length}</div>
+                style={{ padding:"12px 10px", borderRadius:10, background:"rgba(255,255,255,0.15)", backdropFilter:"blur(64px) saturate(260%)", border:"1px solid rgba(255,255,255,0.2)", boxShadow:"0 2px 12px rgba(0,0,0,0.03)", cursor:"pointer", textAlign:"center" }}>
+                <div style={{ fontSize:12, fontWeight:600, color:"#1A1D26" }}>{g}</div>
+                <div style={{ fontSize:10, color:"#6B7280", marginTop:2 }}>{genreMap[g].length}</div>
               </div>
             ))}
           </div>
@@ -2079,7 +2079,7 @@ function AdminScreen({ tracks, setTracks, tab, setTab, editTrack, setEditTrack, 
                         <div key={t.id} style={{ display:"flex", alignItems:"center", gap:8, padding:"6px 8px", borderRadius:8, marginBottom:2 }}>
                           <div style={{ width:28, height:28, borderRadius:5, overflow:"hidden", flexShrink:0 }}><AlbumArt track={t} size={28} borderRadius={0}/></div>
                           <div style={{ flex:1, minWidth:0 }}>
-                            <div style={{ fontSize:11, fontWeight:500, color:"#1A1D26", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{t.title}</div>
+                            <div style={{ fontSize:11, fontWeight:500, color:"#111111", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{t.title}</div>
                             <div style={{ fontSize:10, color:"#9CA3AF" }}>{t.artist}</div>
                           </div>
                           <span style={{ fontSize:9, color:"#C4C9D4" }}>{t.bpm ? `${t.bpm}bpm` : "no bpm"}</span>
@@ -2390,7 +2390,9 @@ export default function App() {
         bindPrimaryAudio(fadeIn);
 
         setCurrent(next);
-        isCrossfading.current = false;
+        // Delay clearing the crossfade flag so the currentTrack useEffect
+        // sees isCrossfading=true and skips reloading the audio
+        setTimeout(() => { isCrossfading.current = false; }, 100);
       }
     }, interval);
   }
@@ -2668,7 +2670,7 @@ export default function App() {
   const glowRgb = currentTrack ? hexToRgbStr(currentTrack.color) : "200,200,210";
 
   return (
-    <div style={{ display:"flex", height:"100vh", background:"linear-gradient(155deg, #BFC5D3 0%, #C8CDD9 30%, #C3C8D5 55%, #CDD1DC 80%, #C6CBD7 100%)", overflow:"hidden", fontFamily:"-apple-system,'SF Pro Display','Helvetica Neue',Arial,sans-serif" }}>
+    <div style={{ display:"flex", height:"100vh", background:"linear-gradient(155deg, #C5C5C5 0%, #CCCCCC 30%, #C8C8C8 55%, #D0D0D0 80%, #CACACA 100%)", overflow:"hidden", fontFamily:"-apple-system,'SF Pro Display','Helvetica Neue',Arial,sans-serif" }}>
 
       {/* ── LEFT NAV RAIL ─────────────────────────────────────────────── */}
       <div style={{ width:72, flexShrink:0, background:"rgba(255,255,255,0.12)", backdropFilter:"blur(64px) saturate(240%)", borderRight:"1px solid rgba(255,255,255,0.16)", display:"flex", flexDirection:"column", alignItems:"center", padding:"16px 0 16px" }}>
@@ -2689,6 +2691,13 @@ export default function App() {
               <Icon name={item.icon} size={20}/>
             </button>
           ))}
+          <button onClick={()=>setShowRouteBuilder(true)} title="Session" style={{
+              width:44, height:44, borderRadius:12, background:"none",
+              border:"none", color:"#9CA3AF", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center",
+              transition:"all 0.2s",
+            }}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M3 12h4l3-9 4 18 3-9h4"/></svg>
+            </button>
           {firebaseUser?.uid === "5lPAI9N1jkMbVkUyIqLTqBvBf1t1" && (
             <button onClick={()=>setScreen("admin")} title="Admin" style={{
               width:44, height:44, borderRadius:12,
@@ -2701,10 +2710,6 @@ export default function App() {
             </button>
           )}
         </div>
-        {/* Route Builder button */}
-        <button onClick={()=>setShowRouteBuilder(true)} title="Session" style={{ width:44, height:44, borderRadius:12, background:"none", border:"none", color:"#9CA3AF", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", marginBottom:8, transition:"all 0.2s" }}>
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M3 12h4l3-9 4 18 3-9h4"/></svg>
-        </button>
         <div style={{ width:32, height:32, borderRadius:"50%", background:"rgba(255,255,255,0.25)", border:"1px solid rgba(255,255,255,0.3)", backdropFilter:"blur(20px)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:14, cursor:"pointer" }} onClick={()=>setScreen("profile")} title={user.name}>
           {user.image}
         </div>
@@ -2812,7 +2817,7 @@ export default function App() {
                     <img src={t.albumCover||"/covers/default.jpg"} alt="" style={{ width:"100%", height:"100%", objectFit:"cover" }} onError={e=>{e.target.src="/covers/default.jpg";}}/>
                   </div>
                   <div style={{ flex:1, minWidth:0 }}>
-                    <div style={{ fontSize:11, fontWeight:500, color:"#1A1D26", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{t.title}</div>
+                    <div style={{ fontSize:11, fontWeight:500, color:"#111111", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{t.title}</div>
                     <div style={{ fontSize:10, color:"#9CA3AF", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{t.artist}</div>
                   </div>
                 </div>
@@ -2870,7 +2875,7 @@ export default function App() {
 
 // ─── SHARED STYLES ────────────────────────────────────────────────────────────
 const APP_STYLE = {
-  background:"linear-gradient(155deg, #BFC5D3 0%, #C8CDD9 30%, #C3C8D5 55%, #CDD1DC 80%, #C6CBD7 100%)",
+  background:"linear-gradient(155deg, #C5C5C5 0%, #CCCCCC 30%, #C8C8C8 55%, #D0D0D0 80%, #CACACA 100%)",
   minHeight:"100vh", height:"100vh", overflow:"hidden",
   fontFamily:"-apple-system,'SF Pro Display','SF Pro Text','Helvetica Neue',Arial,sans-serif",
   color:"#1C1C1E", position:"relative", display:"flex", flexDirection:"column",
