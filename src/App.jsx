@@ -64,22 +64,36 @@ function getEnergyRangeForHour(h) {
 // ─── WEIGHTED RADIO PICK ──────────────────────────────────────────────────────
 // All tracks eligible; liked tracks get 3× weight
 // Priority: camelot+energy → camelot → energy → anything
-function pickNextTrack(allTracks, currentTrack) {
+function pickNextTrack(allTracks, currentTrack, memory = null) {
   if (!allTracks.length) return null;
   const hour = new Date().getHours();
   const [eMin, eMax] = getEnergyRangeForHour(hour);
-  const pool = allTracks.filter(t => t.id !== currentTrack?.id && (t.duration||0) <= 900);
-  if (!pool.length) return allTracks[0];
+  // Recency decay — exclude tracks played in last 2 hours
+  const recentIds = memory ? new Set(
+    memory.filter(r => r.ts > Date.now() - 2 * 60 * 60 * 1000).map(r => r.id)
+  ) : new Set();
+  // Genre momentum — boost the current genre streak
+  const recentGenres = memory ? memory.slice(0, 3).map(r => r.genre).filter(Boolean) : [];
+  const momentumGenre = recentGenres.length >= 2 && recentGenres[0] === recentGenres[1] ? recentGenres[0] : null;
+
+  const pool = allTracks.filter(t => t.id !== currentTrack?.id && (t.duration||0) <= 900 && !recentIds.has(t.id));
+  if (!pool.length) {
+    // Fallback: if recency filter emptied the pool, ignore it
+    const fallback = allTracks.filter(t => t.id !== currentTrack?.id && (t.duration||0) <= 900);
+    if (!fallback.length) return allTracks[0];
+    return fallback[Math.floor(Math.random() * fallback.length)];
+  }
 
   function weightedPick(candidates) {
     const weighted = candidates.flatMap(t => {
-      // Liked tracks get 3× weight
       let w = t.liked ? 3 : 1;
-      // Frequently skipped tracks get downweighted
+      // Skip penalty
       const plays = t.playCount || 0;
       const skips = t.skipCount || 0;
-      if (plays > 0 && skips > plays * 0.5) w = Math.max(1, Math.round(w * 0.3)); // heavy skip ratio → 0.3×
-      else if (skips > 3) w = Math.max(1, Math.round(w * 0.6)); // moderate skips → 0.6×
+      if (plays > 0 && skips > plays * 0.5) w = Math.max(1, Math.round(w * 0.3));
+      else if (skips > 3) w = Math.max(1, Math.round(w * 0.6));
+      // Genre momentum — 2× boost for tracks matching the streak
+      if (momentumGenre && t.genre === momentumGenre) w *= 2;
       return Array(w).fill(t);
     });
     return weighted[Math.floor(Math.random() * weighted.length)];
@@ -241,6 +255,7 @@ const Icon = ({ name, size=18 }) => {
     repeat:     <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor"><path d="M7 7h10v3l4-4-4-4v3H5v6h2V7zm10 10H7v-3l-4 4 4 4v-3h12v-6h-2v4z"/></svg>,
     settings:   <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor"><path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.07-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.74,8.87C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.07,0.94l-2.03,1.58c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.47-0.12-0.61L19.14,12.94zM12,15.6c-1.98,0-3.6-1.62-3.6-3.6s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z"/></svg>,
     plus:       <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>,
+    grid:       <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="3"/><circle cx="5" cy="7" r="2"/><circle cx="19" cy="7" r="2"/><circle cx="5" cy="17" r="2"/><circle cx="19" cy="17" r="2"/><path d="M7 8l3 3M17 8l-3 3M7 16l3-3M17 16l-3-3"/></svg>,
     x:          <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>,
     edit:       <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>,
     trash:      <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>,
@@ -904,9 +919,8 @@ function LoginScreen({ onSignUp, onLogIn, onGoogleSignIn, onPhoneOTP, onVerifyOT
 
 // ─── ROUTE BUILDER MODAL ──────────────────────────────────────────────────────
 function RouteBuilderModal({ tracks, onClose, onPlayRoute }) {
-  const [step, setStep] = useState(1); // 1=duration, 2=activity, 3=preview
+  const [step, setStep] = useState(1);
   const [duration, setDuration] = useState(60);
-
   const [activity, setActivity] = useState(null);
   const [session, setSession] = useState(null);
 
@@ -926,7 +940,6 @@ function RouteBuilderModal({ tracks, onClose, onPlayRoute }) {
     }
   }
 
-  // Group session tracks by phase for display
   const phases = session ? (() => {
     const groups = [];
     let current = null;
@@ -943,138 +956,227 @@ function RouteBuilderModal({ tracks, onClose, onPlayRoute }) {
   const profile = activity ? SESSION_PROFILES[activity] : null;
   const totalMins = session ? Math.round(session.reduce((s,t)=>s+(t.duration||210),0)/60) : 0;
 
-  const gBtn = (active) => ({
-    padding:"10px 16px", borderRadius:14, border: active ? "1px solid rgba(255,255,255,0.4)" : "1px solid rgba(255,255,255,0.15)",
-    background: active ? "rgba(255,255,255,0.2)" : "rgba(255,255,255,0.06)", backdropFilter:"blur(24px) saturate(200%)",
-    color: active ? "#FFFFFF" : "rgba(255,255,255,0.5)", fontSize:13, fontWeight: active ? 600 : 400,
-    cursor:"pointer", transition:"all 0.2s", textAlign:"center",
-  });
-
+  // Full-screen immersive overlay
   return (
-    <div style={{ position:"fixed", inset:0, zIndex:100, background:"rgba(0,0,0,0.4)", backdropFilter:"blur(16px)", display:"flex", alignItems:"center", justifyContent:"center", padding:24 }} onClick={onClose}>
-      <div onClick={e=>e.stopPropagation()} className="hide-scroll" style={{ background:"rgba(255,255,255,0.1)", backdropFilter:"blur(72px) saturate(260%)", borderRadius:28, padding:28, width:"100%", maxWidth:520, maxHeight:"85vh", overflow:"auto", border:"1px solid rgba(255,255,255,0.2)", boxShadow:"0 32px 100px rgba(0,0,0,0.15)" }}>
+    <div style={{ position:"fixed", inset:0, zIndex:100, overflow:"hidden" }}>
+      {/* Layered background */}
+      <div style={{ position:"absolute", inset:0, background:"linear-gradient(180deg, rgba(12,12,16,0.95) 0%, rgba(8,8,12,0.98) 100%)" }}/>
+      <BgMist color={session?.[0]?.color || "#6B7280"}/>
+      <div style={{ position:"absolute", inset:0, background:"rgba(6,6,10,0.4)" }}/>
 
-        {/* Header */}
-        <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:24 }}>
-          <div>
-            <div style={{ fontSize:20, fontWeight:700, color:"#FFFFFF", letterSpacing:-0.3 }}>Session</div>
-            {step > 1 && <div style={{ fontSize:11, color:"rgba(255,255,255,0.6)", marginTop:2 }}>{duration}min{activity ? ` · ${SESSION_PROFILES[activity]?.label}` : ""}</div>}
+      {/* Content */}
+      <div className="hide-scroll" style={{ position:"relative", zIndex:1, height:"100%", overflowY:"auto", display:"flex", flexDirection:"column" }}>
+
+        {/* Header bar */}
+        <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"20px 24px", flexShrink:0 }}>
+          <div style={{ display:"flex", alignItems:"center", gap:12 }}>
+            {step > 1 && (
+              <button onClick={()=>{ setStep(step-1); if(step===3) setSession(null); }}
+                style={{ background:"rgba(255,255,255,0.08)", border:"1px solid rgba(255,255,255,0.1)", borderRadius:10, padding:"8px 14px", fontSize:12, fontWeight:500, color:"rgba(255,255,255,0.5)", cursor:"pointer", backdropFilter:"blur(20px)" }}>Back</button>
+            )}
+            <div style={{ fontSize:11, fontWeight:600, letterSpacing:2, color:"rgba(255,255,255,0.3)", textTransform:"uppercase" }}>Session</div>
           </div>
-          <div style={{ display:"flex", gap:8, alignItems:"center" }}>
-            {step > 1 && <button onClick={()=>{ setStep(step-1); if(step===3) setSession(null); }} style={{ background:"rgba(255,255,255,0.1)", border:"1px solid rgba(255,255,255,0.15)", borderRadius:8, padding:"6px 10px", fontSize:11, color:"rgba(255,255,255,0.6)", cursor:"pointer" }}>Back</button>}
-            <button onClick={onClose} style={{ background:"rgba(255,255,255,0.1)", border:"1px solid rgba(255,255,255,0.15)", borderRadius:8, width:32, height:32, cursor:"pointer", color:"rgba(255,255,255,0.6)", display:"flex", alignItems:"center", justifyContent:"center" }}><Icon name="x" size={16}/></button>
-          </div>
+          <button onClick={onClose} style={{ background:"rgba(255,255,255,0.06)", border:"1px solid rgba(255,255,255,0.08)", borderRadius:"50%", width:36, height:36, cursor:"pointer", color:"rgba(255,255,255,0.4)", display:"flex", alignItems:"center", justifyContent:"center", backdropFilter:"blur(20px)" }}>
+            <Icon name="x" size={16}/>
+          </button>
         </div>
 
-        {/* Step indicator */}
-        <div style={{ display:"flex", gap:4, marginBottom:24 }}>
-          {[1,2,3].map(s => (
-            <div key={s} style={{ flex:1, height:3, borderRadius:2, background: s <= step ? "#FFFFFF" : "rgba(255,255,255,0.15)", transition:"background 0.3s" }}/>
-          ))}
-        </div>
+        {/* Main content area — centered */}
+        <div style={{ flex:1, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:"0 32px 40px", maxWidth:560, margin:"0 auto", width:"100%" }}>
 
-        {/* ── STEP 1: Duration ── */}
-        {step === 1 && (
-          <div>
-            
-            <div style={{ display:"grid", gridTemplateColumns:"repeat(5, 1fr)", gap:8, marginBottom:20 }}>
-              {[30,60,120,240,480].map(m => (
-                <button key={m} onClick={()=>setDuration(m)} style={gBtn(duration===m)}>
-                  {m < 60 ? `${m}m` : `${m/60}h`}
-                </button>
-              ))}
-            </div>
-            <button onClick={()=>setStep(2)} style={{ width:"100%", background:"rgba(255,255,255,0.18)", backdropFilter:"blur(24px)", color:"#FFFFFF", border:"1px solid rgba(255,255,255,0.25)", borderRadius:14, padding:"14px", fontSize:15, fontWeight:600, cursor:"pointer" }}>
-              Next · {duration < 60 ? `${duration}min` : `${Math.round(duration/60)}h`}
-            </button>
-          </div>
-        )}
-
-        {/* ── STEP 2: Activity ── */}
-        {step === 2 && (
-          <div>
-            <div style={{ fontSize:12, color:"rgba(255,255,255,0.5)", marginBottom:16 }}>Select activity</div>
-            <div style={{ display:"grid", gridTemplateColumns:"repeat(2, 1fr)", gap:8 }}>
-              {activities.map(([id, prof]) => (
-                <button key={id} onClick={()=>handleGenerate(id)}
-                  style={{ padding:"14px 16px", borderRadius:14, border:"1px solid rgba(255,255,255,0.18)", background:"rgba(255,255,255,0.08)", backdropFilter:"blur(32px) saturate(200%)", cursor:"pointer", textAlign:"left", transition:"all 0.2s" }}>
-                  <div style={{ fontSize:15, fontWeight:600, color:"#FFFFFF", letterSpacing:-0.2 }}>{prof.label}</div>
-                  <div style={{ display:"flex", gap:3, marginTop:8, alignItems:"flex-end" }}>
-                    {prof.phases.map((ph,i) => (
-                      <div key={i} style={{ flex:ph.p, height: 2 + ph.e * 2.5, borderRadius:2, background:`rgba(26,29,38,${0.1 + ph.e * 0.07})`, transition:"height 0.3s" }}/>
-                    ))}
-                  </div>
-                  <div style={{ fontSize:9, color:"rgba(255,255,255,0.45)", marginTop:6, letterSpacing:0.3 }}>{prof.phases.map(p=>p.name).join(" · ")}</div>
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* ── STEP 3: Session Preview ── */}
-        {step === 3 && session && profile && (
-          <div>
-            {/* Phase timeline bar */}
-            <div style={{ display:"flex", borderRadius:8, overflow:"hidden", height:6, marginBottom:4 }}>
-              {profile.phases.map((ph,i) => (
-                <div key={i} style={{ flex:ph.p, background:`rgba(26,29,38,${0.15 + ph.e * 0.08})`, transition:"flex 0.3s" }}
-                  title={`${ph.name}: energy ${ph.e}`}/>
-              ))}
-            </div>
-            <div style={{ display:"flex", justifyContent:"space-between", marginBottom:16 }}>
-              {profile.phases.map((ph,i) => (
-                <div key={i} style={{ fontSize:9, color:"rgba(255,255,255,0.5)", textTransform:"uppercase", letterSpacing:0.5, textAlign:"center", flex:ph.p, fontWeight:500 }}>{ph.name}</div>
-              ))}
-            </div>
-
-            {/* Stats */}
-            <div style={{ display:"flex", gap:8, marginBottom:16 }}>
-              <div style={{ flex:1, padding:"10px 12px", borderRadius:12, background:"rgba(255,255,255,0.1)", border:"1px solid rgba(255,255,255,0.15)", textAlign:"center" }}>
-                <div style={{ fontSize:20, fontWeight:700, color:"#FFFFFF" }}>{session.length}</div>
-                <div style={{ fontSize:10, color:"rgba(255,255,255,0.5)", textTransform:"uppercase", letterSpacing:1, fontWeight:500 }}>tracks</div>
+          {/* ── STEP 1: Duration ── */}
+          {step === 1 && (
+            <div style={{ width:"100%", textAlign:"center" }}>
+              <div style={{ fontSize:32, fontWeight:700, color:"#FFFFFF", letterSpacing:-0.5, marginBottom:8 }}>How long?</div>
+              <div style={{ fontSize:14, color:"rgba(255,255,255,0.35)", marginBottom:40 }}>Choose your session length</div>
+              <div style={{ display:"flex", gap:10, justifyContent:"center", marginBottom:48 }}>
+                {[30,60,120,240,480].map(m => (
+                  <button key={m} onClick={()=>setDuration(m)} style={{
+                    width:64, height:64, borderRadius:16, border: duration===m ? "1px solid rgba(255,255,255,0.3)" : "1px solid rgba(255,255,255,0.08)",
+                    background: duration===m ? "rgba(255,255,255,0.12)" : "rgba(255,255,255,0.04)",
+                    backdropFilter:"blur(24px)", color: duration===m ? "#FFFFFF" : "rgba(255,255,255,0.35)",
+                    fontSize:16, fontWeight:600, cursor:"pointer", transition:"all 0.25s",
+                    display:"flex", alignItems:"center", justifyContent:"center",
+                  }}>
+                    {m < 60 ? `${m}m` : `${m/60}h`}
+                  </button>
+                ))}
               </div>
-              <div style={{ flex:1, padding:"10px 12px", borderRadius:12, background:"rgba(255,255,255,0.1)", border:"1px solid rgba(255,255,255,0.15)", textAlign:"center" }}>
-                <div style={{ fontSize:20, fontWeight:700, color:"#FFFFFF" }}>~{totalMins}m</div>
-                <div style={{ fontSize:10, color:"rgba(255,255,255,0.5)", textTransform:"uppercase", letterSpacing:1, fontWeight:500 }}>duration</div>
-              </div>
-              <div style={{ flex:1, padding:"10px 12px", borderRadius:12, background:"rgba(255,255,255,0.1)", border:"1px solid rgba(255,255,255,0.15)", textAlign:"center" }}>
-                <div style={{ fontSize:20, fontWeight:700, color:"#FFFFFF" }}>{profile.phases.length}</div>
-                <div style={{ fontSize:10, color:"rgba(255,255,255,0.5)", textTransform:"uppercase", letterSpacing:1, fontWeight:500 }}>phases</div>
+              <button onClick={()=>setStep(2)} style={{ padding:"16px 48px", borderRadius:16, background:"rgba(255,255,255,0.1)", backdropFilter:"blur(24px)", border:"1px solid rgba(255,255,255,0.15)", color:"#FFFFFF", fontSize:16, fontWeight:600, cursor:"pointer", transition:"all 0.2s" }}>
+                Continue
+              </button>
+            </div>
+          )}
+
+          {/* ── STEP 2: Activity ── */}
+          {step === 2 && (
+            <div style={{ width:"100%", textAlign:"center" }}>
+              <div style={{ fontSize:32, fontWeight:700, color:"#FFFFFF", letterSpacing:-0.5, marginBottom:8 }}>What's the vibe?</div>
+              <div style={{ fontSize:14, color:"rgba(255,255,255,0.35)", marginBottom:32 }}>{duration < 60 ? `${duration} minute` : `${Math.round(duration/60)} hour`} session</div>
+              <div style={{ display:"grid", gridTemplateColumns:"repeat(2, 1fr)", gap:10, textAlign:"left" }}>
+                {activities.map(([id, prof]) => (
+                  <button key={id} onClick={()=>handleGenerate(id)}
+                    style={{ padding:"16px 18px", borderRadius:16, border:"1px solid rgba(255,255,255,0.08)", background:"rgba(255,255,255,0.04)", backdropFilter:"blur(32px)", cursor:"pointer", textAlign:"left", transition:"all 0.2s" }}>
+                    <div style={{ fontSize:16, fontWeight:600, color:"#FFFFFF", letterSpacing:-0.2, marginBottom:10 }}>{prof.label}</div>
+                    <div style={{ display:"flex", gap:2, alignItems:"flex-end", marginBottom:8 }}>
+                      {prof.phases.map((ph,i) => (
+                        <div key={i} style={{ flex:ph.p, height: 2 + ph.e * 2, borderRadius:2, background:`rgba(255,255,255,${0.06 + ph.e * 0.04})` }}/>
+                      ))}
+                    </div>
+                    <div style={{ fontSize:10, color:"rgba(255,255,255,0.25)", letterSpacing:0.3 }}>{prof.phases.map(p=>p.name).join(" · ")}</div>
+                  </button>
+                ))}
               </div>
             </div>
+          )}
 
-            {/* Energy sparkline */}
-            <div style={{ marginBottom:12 }}>
-              <EnergySparkline tracks={session} width={Math.min(464, session.length * 28)} height={28}/>
-            </div>
+          {/* ── STEP 3: Session Generated — immersive preview ── */}
+          {step === 3 && session && profile && (
+            <div style={{ width:"100%" }}>
+              {/* Hero */}
+              <div style={{ textAlign:"center", marginBottom:32 }}>
+                <div style={{ fontSize:11, fontWeight:600, letterSpacing:2, color:"rgba(255,255,255,0.25)", textTransform:"uppercase", marginBottom:8 }}>{profile.label} · {duration < 60 ? `${duration}min` : `${Math.round(duration/60)}h`}</div>
+                <div style={{ fontSize:36, fontWeight:700, color:"#FFFFFF", letterSpacing:-0.5, marginBottom:4 }}>Your session is ready</div>
+                <div style={{ fontSize:14, color:"rgba(255,255,255,0.35)" }}>{session.length} tracks · ~{totalMins} minutes</div>
+              </div>
 
-            {/* Track list grouped by phase */}
-            <div style={{ display:"flex", flexDirection:"column", gap:2, marginBottom:16, maxHeight:280, overflowY:"auto" }}>
-              {phases.map((phase, pi) => (
-                <div key={pi}>
-                  <div style={{ fontSize:10, fontWeight:600, letterSpacing:1, color:"rgba(255,255,255,0.5)", textTransform:"uppercase", padding:"10px 8px 4px" }}>{phase.name}</div>
-                  {phase.tracks.map((t, ti) => (
-                    <div key={t.id} style={{ display:"flex", alignItems:"center", gap:8, padding:"4px 8px", borderRadius:8 }}>
-                      <div style={{ width:26, height:26, borderRadius:5, overflow:"hidden", flexShrink:0 }}><AlbumArt track={t} size={26} borderRadius={0}/></div>
-                      <div style={{ flex:1, minWidth:0 }}>
-                        <div style={{ fontSize:12, fontWeight:500, color:"#FFFFFF", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{t.title}</div>
-                      </div>
-                      <span style={{ fontSize:10, color:"rgba(255,255,255,0.5)" }}>{t.artist}</span>
+              {/* Phase timeline — visual arc */}
+              <div style={{ marginBottom:32, padding:"0 8px" }}>
+                <div style={{ display:"flex", borderRadius:12, overflow:"hidden", height:8, marginBottom:8, background:"rgba(255,255,255,0.04)" }}>
+                  {profile.phases.map((ph,i) => (
+                    <div key={i} style={{ flex:ph.p, background:`rgba(255,255,255,${0.05 + ph.e * 0.06})`, transition:"flex 0.3s" }}/>
+                  ))}
+                </div>
+                <div style={{ display:"flex" }}>
+                  {profile.phases.map((ph,i) => (
+                    <div key={i} style={{ flex:ph.p, textAlign:"center" }}>
+                      <div style={{ fontSize:9, fontWeight:600, color:"rgba(255,255,255,0.3)", textTransform:"uppercase", letterSpacing:0.5 }}>{ph.name}</div>
                     </div>
                   ))}
                 </div>
-              ))}
-            </div>
+              </div>
 
-            {/* Actions */}
-            <div style={{ display:"flex", gap:8 }}>
-              <button onClick={()=>{onPlayRoute(session.map(t=>{const {_phase,...rest}=t; return rest;}));onClose();}} style={{ flex:1, background:"rgba(255,255,255,0.2)", backdropFilter:"blur(24px)", color:"#FFFFFF", border:"1px solid rgba(255,255,255,0.3)", borderRadius:14, padding:"14px", fontSize:15, fontWeight:600, cursor:"pointer" }}>
-                Play session
-              </button>
-              <button onClick={handleRegenerate} style={{ background:"rgba(255,255,255,0.15)", color:"#6B7280", border:"1px solid rgba(255,255,255,0.2)", borderRadius:14, padding:"14px 18px", fontSize:13, cursor:"pointer" }}>
-                ↻
-              </button>
+              {/* Track list by phase */}
+              <div style={{ maxHeight:320, overflowY:"auto", marginBottom:32, borderRadius:16, background:"rgba(255,255,255,0.03)", border:"1px solid rgba(255,255,255,0.06)", padding:"8px 0" }}>
+                {phases.map((phase, pi) => (
+                  <div key={pi}>
+                    <div style={{ fontSize:9, fontWeight:700, letterSpacing:1.5, color:"rgba(255,255,255,0.2)", textTransform:"uppercase", padding:"12px 16px 6px" }}>{phase.name}</div>
+                    {phase.tracks.map((t) => (
+                      <div key={t.id} style={{ display:"flex", alignItems:"center", gap:10, padding:"6px 16px" }}>
+                        <div style={{ width:32, height:32, borderRadius:6, overflow:"hidden", flexShrink:0 }}><AlbumArt track={t} size={32} borderRadius={0}/></div>
+                        <div style={{ flex:1, minWidth:0 }}>
+                          <div style={{ fontSize:13, fontWeight:500, color:"#FFFFFF", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{t.title}</div>
+                          <div style={{ fontSize:11, color:"rgba(255,255,255,0.35)" }}>{t.artist}</div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ))}
+              </div>
+
+              {/* Actions */}
+              <div style={{ display:"flex", gap:10, justifyContent:"center" }}>
+                <button onClick={()=>{onPlayRoute(session.map(t=>{const {_phase,...rest}=t; return rest;}));onClose();}}
+                  style={{ flex:1, maxWidth:280, padding:"16px 32px", borderRadius:16, background:"rgba(255,255,255,0.1)", backdropFilter:"blur(24px)", border:"1px solid rgba(255,255,255,0.15)", color:"#FFFFFF", fontSize:16, fontWeight:600, cursor:"pointer" }}>
+                  Play
+                </button>
+                <button onClick={handleRegenerate}
+                  style={{ width:52, height:52, borderRadius:16, background:"rgba(255,255,255,0.06)", border:"1px solid rgba(255,255,255,0.08)", color:"rgba(255,255,255,0.4)", fontSize:16, cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", backdropFilter:"blur(20px)" }}>
+                  ↻
+                </button>
+              </div>
             </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+
+// ─── HARMONIC MAP — 2D visualization of library by key × energy ──────────────
+function HarmonicMap({ tracks, onPlay, currentTrack }) {
+  const canvasRef = useRef(null);
+  const [hover, setHover] = useState(null);
+  const singles = tracks.filter(t => t.camelot && t.energy && (t.duration||0) <= 900);
+
+  // Parse camelot key to x position (1-12, A/B variants)
+  function keyToX(camelot) {
+    const num = parseInt(camelot);
+    const isMinor = camelot.includes("A");
+    return ((num - 1) / 11) * 0.85 + 0.075 + (isMinor ? 0 : 0.02);
+  }
+
+  // Energy to y position (inverted — high energy at top)
+  function energyToY(e) {
+    return 1 - ((e - 1) / 9) * 0.85 - 0.075;
+  }
+
+  const nodes = singles.map(t => ({
+    track: t,
+    x: keyToX(t.camelot),
+    y: energyToY(t.energy),
+    color: t.color || "#888",
+    active: currentTrack?.id === t.id,
+  }));
+
+  return (
+    <div style={{ padding:"24px 16px" }}>
+      <div style={{ fontSize:11, fontWeight:700, letterSpacing:1, color:"#1A1D26", textTransform:"uppercase", marginBottom:12 }}>Harmonic Map</div>
+      <div style={{ position:"relative", width:"100%", aspectRatio:"2/1", background:"rgba(255,255,255,0.55)", backdropFilter:"blur(40px)", borderRadius:16, border:"1px solid rgba(255,255,255,0.6)", overflow:"hidden", cursor:"crosshair" }}>
+        {/* Grid lines */}
+        {[1,2,3,4,5,6,7,8,9,10].map(e => (
+          <div key={`e${e}`} style={{ position:"absolute", left:0, right:0, top:`${(1-((e-1)/9)*0.85-0.075)*100}%`, height:1, background:"rgba(0,0,0,0.03)" }}/>
+        ))}
+        {[1,2,3,4,5,6,7,8,9,10,11,12].map(k => (
+          <div key={`k${k}`} style={{ position:"absolute", top:0, bottom:0, left:`${((k-1)/11)*0.85*100+7.5}%`, width:1, background:"rgba(0,0,0,0.03)" }}/>
+        ))}
+
+        {/* Key labels along bottom */}
+        {[1,2,3,4,5,6,7,8,9,10,11,12].map(k => (
+          <div key={`kl${k}`} style={{ position:"absolute", bottom:4, left:`${((k-1)/11)*0.85*100+7.5}%`, transform:"translateX(-50%)", fontSize:8, color:"#9CA3AF", fontWeight:500 }}>{k}</div>
+        ))}
+
+        {/* Energy labels along left */}
+        {[2,4,6,8,10].map(e => (
+          <div key={`el${e}`} style={{ position:"absolute", left:4, top:`${(1-((e-1)/9)*0.85-0.075)*100}%`, transform:"translateY(-50%)", fontSize:8, color:"#9CA3AF", fontWeight:500 }}>{e}</div>
+        ))}
+
+        {/* Track dots */}
+        {nodes.map((n, i) => (
+          <div key={n.track.id}
+            onClick={()=>onPlay(n.track)}
+            onMouseEnter={()=>setHover(n.track)}
+            onMouseLeave={()=>setHover(null)}
+            style={{
+              position:"absolute",
+              left:`${n.x * 100}%`, top:`${n.y * 100}%`,
+              transform:"translate(-50%,-50%)",
+              width: n.active ? 14 : 8,
+              height: n.active ? 14 : 8,
+              borderRadius:"50%",
+              background: n.active ? "#1A1D26" : `rgba(${hexToRgbStr(n.color)},0.6)`,
+              border: n.active ? "2px solid #FFFFFF" : "1px solid rgba(255,255,255,0.5)",
+              boxShadow: n.active ? `0 0 12px rgba(${hexToRgbStr(n.color)},0.4)` : "none",
+              transition:"all 0.2s",
+              cursor:"pointer",
+              zIndex: n.active ? 10 : hover?.id === n.track.id ? 5 : 1,
+            }}/>
+        ))}
+
+        {/* Hover tooltip */}
+        {hover && (
+          <div style={{
+            position:"absolute",
+            left:`${keyToX(hover.camelot) * 100}%`,
+            top:`${energyToY(hover.energy) * 100 - 5}%`,
+            transform:"translate(-50%,-100%)",
+            background:"rgba(26,29,38,0.9)", backdropFilter:"blur(12px)",
+            borderRadius:8, padding:"6px 10px", pointerEvents:"none",
+            whiteSpace:"nowrap", zIndex:20,
+          }}>
+            <div style={{ fontSize:11, fontWeight:600, color:"#FFF" }}>{hover.title}</div>
+            <div style={{ fontSize:9, color:"rgba(255,255,255,0.5)" }}>{hover.artist} · {hover.camelot} · E{hover.energy}</div>
           </div>
         )}
       </div>
@@ -1154,12 +1256,12 @@ function HomeScreen({ tracks, onPlayRadio, onTogglePlay, onPlayTrack, currentTra
   const [eMin, eMax] = getEnergyRangeForHour(hour);
   const singles = tracks.filter(t=>(t.duration||0)<=900);
   const topTracks = [...singles].sort((a,b) => (b.playCount||0) - (a.playCount||0)).slice(0,6);
-  const mixtapes = tracks.filter(t => (t.duration||0) > 900).sort((a,b) => (b.duration||0) - (a.duration||0));
+  const mixtapes = tracks.filter(t => (t.artist||"").toLowerCase() === "mixtape").sort((a,b) => (b.playCount||0) - (a.playCount||0));
   const recentlyLiked = [...singles].filter(t=>t.liked).slice(0,6);
 
   // Time-aware energy shelf — tracks matching current energy window
-  const energyMatched = singles.filter(t => t.energy >= eMin && t.energy <= eMax).slice(0,6);
-  const energyLabel = hour>=22||hour<=5?"late night":hour<=11?"morning":hour<=17?"afternoon":"evening";
+  
+  
 
   // Harmonic neighbors — if currently playing, show compatible tracks
   const harmonicNeighbors = currentTrack
@@ -1184,7 +1286,7 @@ function HomeScreen({ tracks, onPlayRadio, onTogglePlay, onPlayTrack, currentTra
 
   // Smart section prioritization — max 4 sections below radio
   const hasHarmonic = harmonicNeighbors.length > 0;
-  const hasEnergy = energyMatched.length > 0;
+  
   const hasLiked = recentlyLiked.length > 0;
   const hasMixes = mixtapes.length > 0;
 
@@ -1192,7 +1294,7 @@ function HomeScreen({ tracks, onPlayRadio, onTogglePlay, onPlayTrack, currentTra
   // Cap at 4 content sections below radio card
   let sectionBudget = 4;
   const showHarmonic = hasHarmonic && sectionBudget > 0; if (showHarmonic) sectionBudget--;
-  const showEnergy = hasEnergy && sectionBudget > 0; if (showEnergy) sectionBudget--;
+  
   const showFlipper = sectionBudget > 0; if (showFlipper) sectionBudget--;
   const showLiked = hasLiked && sectionBudget > 0; if (showLiked) sectionBudget--;
   const showMixes = hasMixes && sectionBudget > 0; if (showMixes) sectionBudget--;
@@ -1216,12 +1318,7 @@ function HomeScreen({ tracks, onPlayRadio, onTogglePlay, onPlayTrack, currentTra
         </GlassSection>
       )}
 
-      {/* Energy-matched shelf */}
-      {showEnergy && (
-        <GlassSection label={`${energyLabel} picks`}>
-          <HorizShelf items={energyMatched} onPlay={t=>onPlayTrack(t,tracks)} activeId={activeId}/>
-        </GlassSection>
-      )}
+
 
       {/* CD Shelf */}
       {showFlipper && (
@@ -1399,7 +1496,7 @@ function FavoritesScreen({ tracks, onPlay, onLike, currentTrack, isPlaying, user
   }
 
   const Pill = ({label, active, onClick}) => (
-    <button onClick={onClick} style={{ padding:"8px 18px", borderRadius:20, border:"none", background: active?"#1A1D26":"rgba(255,255,255,0.5)", backdropFilter:active?"none":"blur(20px)", color: active?"#FFFFFF":"#1A1D26", fontSize:12, fontWeight:600, cursor:"pointer", transition:"all 0.2s", flexShrink:0, boxShadow:active?"0 2px 8px rgba(0,0,0,0.1)":"none" }}>{label}</button>
+    <button onClick={onClick} style={{ padding:"8px 20px", borderRadius:10, border:"none", background: active?"#FFFFFF":"transparent", color: active?"#1A1D26":"#6B7280", fontSize:13, fontWeight:active?600:500, cursor:"pointer", transition:"all 0.2s", flexShrink:0, boxShadow:active?"0 1px 4px rgba(0,0,0,0.08)":"none", letterSpacing:-0.1 }}>{label}</button>
   );
 
   const SectionHead = ({children}) => (
@@ -1409,11 +1506,13 @@ function FavoritesScreen({ tracks, onPlay, onLike, currentTrack, isPlaying, user
   return (
     <div style={{ overflowY:"auto", height:"100%", minHeight:"calc(100vh - 112px)" }}>
       {/* Tab bar */}
-      <div style={{ display:"flex", gap:6, padding:"16px 16px 12px", overflowX:"auto", position:"sticky", top:0, zIndex:10, background:"rgba(240,240,242,0.8)", backdropFilter:"blur(24px)" }}>
-        <Pill label="Discover" active={view==="discover"} onClick={()=>setView("discover")}/>
-        <Pill label="Saved" active={view==="liked"} onClick={()=>setView("liked")}/>
-        <Pill label="Genres" active={view==="genres"} onClick={()=>{setView("genres");setGenreFilter(null);}}/>
-        <Pill label="Playlists" active={view==="playlists"||isPlaylistView} onClick={()=>setView("playlists")}/>
+      <div style={{ padding:"16px 16px 12px", position:"sticky", top:0, zIndex:10, background:"rgba(240,240,242,0.85)", backdropFilter:"blur(24px)" }}>
+        <div style={{ display:"inline-flex", gap:2, padding:3, borderRadius:12, background:"rgba(0,0,0,0.05)" }}>
+          <Pill label="Discover" active={view==="discover"} onClick={()=>setView("discover")}/>
+          <Pill label="Saved" active={view==="liked"} onClick={()=>setView("liked")}/>
+          <Pill label="Genres" active={view==="genres"} onClick={()=>{setView("genres");setGenreFilter(null);}}/>
+          <Pill label="Playlists" active={view==="playlists"||isPlaylistView} onClick={()=>setView("playlists")}/>
+        </div>
       </div>
 
       {/* ══ DISCOVER view — intelligent recommendations ══ */}
@@ -2189,7 +2288,7 @@ function NowPlayingBar({ track, isPlaying, progress, duration, onTogglePlay, onS
 // ─── BOTTOM NAV ───────────────────────────────────────────────────────────────
 function BottomNav({ screen, setScreen }) {
   const items = [
-    {id:"home",label:"Home",icon:"home"},{id:"search",label:"Search",icon:"search"},
+    {id:"home",label:"Home",icon:"home"},{id:"map",label:"Map",icon:"grid"},{id:"search",label:"Search",icon:"search"},
     {id:"favorites",label:"Library",icon:"heartempty"},{id:"profile",label:"Profile",icon:"profile"},
     {id:"admin",label:"Admin",icon:"settings"},
   ];
@@ -2253,7 +2352,51 @@ export default function App() {
   const [userPlaylists, setUserPlaylists] = useState([]); // [{id, name, trackIds:[]}]
   const [showRouteBuilder, setShowRouteBuilder] = useState(false);
 
+  // ── Listening Memory — tracks recently played with timestamps ──
+  const recentlyPlayedRef = useRef([]); // [{id, genre, energy, timestamp}]
+  const sessionStartRef = useRef(null);
+
+  function logTrackPlay(track) {
+    const now = Date.now();
+    if (!sessionStartRef.current) sessionStartRef.current = now;
+    recentlyPlayedRef.current = [
+      { id: track.id, genre: track.genre, energy: track.energy || 5, ts: now },
+      ...recentlyPlayedRef.current
+    ].slice(0, 100); // keep last 100 plays in memory
+  }
+
+  // Get genre of last N played tracks for momentum
+  function getRecentGenres(n = 3) {
+    return recentlyPlayedRef.current.slice(0, n).map(r => r.genre).filter(Boolean);
+  }
+
+  // Check if a track was played recently (within hours)
+  function wasPlayedRecently(trackId, hoursAgo = 2) {
+    const cutoff = Date.now() - hoursAgo * 60 * 60 * 1000;
+    return recentlyPlayedRef.current.some(r => r.id === trackId && r.ts > cutoff);
+  }
+
   useEffect(() => { document.title = 'V Music'; }, []);
+
+  // ── Anticipatory Queue — pre-generate when tracks load ──
+  const anticipatoryBuilt = useRef(false);
+  useEffect(() => {
+    if (anticipatoryBuilt.current || !tracks.length || queue.length > 0 || currentTrack) return;
+    anticipatoryBuilt.current = true;
+    const hour = new Date().getHours();
+    const [eMin, eMax] = getEnergyRangeForHour(hour);
+    const singles = tracks.filter(t => (t.duration||0) <= 900);
+    // Prefer liked tracks in the right energy range, then any in range, then random
+    const liked = singles.filter(t => t.liked && (t.energy||5) >= eMin && (t.energy||5) <= eMax);
+    const energyMatch = singles.filter(t => (t.energy||5) >= eMin && (t.energy||5) <= eMax);
+    const pool = liked.length >= 4 ? liked : energyMatch.length >= 4 ? energyMatch : singles;
+    const shuffled = [...pool];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    setQueue(shuffled.slice(0, 8));
+  }, [tracks]);
   const showToast = (msg) => { setToast(msg); setTimeout(()=>setToast(null),2200); };
 
   // ── Load tracks from Firestore once on mount ────────────────────────────
@@ -2364,7 +2507,7 @@ export default function App() {
     if (isCrossfading.current) return;
     isCrossfading.current = true;
 
-    const next = pickNextTrack(tracksRef.current, currentRef.current);
+    const next = pickNextTrack(tracksRef.current, currentRef.current, recentlyPlayedRef.current);
     if (!next?.audioUrl) { isCrossfading.current = false; return; }
 
     const fadeOut = audioRef.current;
@@ -2442,14 +2585,15 @@ export default function App() {
   const playTrack = (track, q = null) => {
     setCurrent(track); setIsPlaying(true); setProgress(0); setIsRadioMode(false);
     if (q) setQueue(q.filter(t => t.id !== track.id));
-    // Save to recent plays in Firestore (fire and forget)
+    logTrackPlay(track);
     if (firebaseUser) recordPlay(track.id, profile?.recentTracks || []).catch(()=>{});
   };
 
   const playRadio = () => {
     if (!tracks.length) return;
-    const first = pickNextTrack(tracks, null);
+    const first = pickNextTrack(tracks, null, recentlyPlayedRef.current);
     setCurrent(first); setIsPlaying(true); setProgress(0); setIsRadioMode(true); setQueue([]);
+    logTrackPlay(first);
     showToast("V Radio — on air");
     if (firebaseUser) recordPlay(first.id, profile?.recentTracks || []).catch(()=>{});
   };
@@ -2482,7 +2626,7 @@ export default function App() {
       setTracks(prev => prev.map(t => t.id === currentTrack.id ? { ...t, skipCount: (t.skipCount||0)+1 } : t));
     }
     if (isRadioMode) {
-      const next = pickNextTrack(tracks, currentTrack);
+      const next = pickNextTrack(tracks, currentTrack, recentlyPlayedRef.current);
       if (next) {
         setCurrent(next); setProgress(0); setIsPlaying(true);
         if (firebaseUser) recordPlay(next.id, profile?.recentTracks || []).catch(()=>{});
@@ -2648,6 +2792,7 @@ export default function App() {
         {screen==="search"    && <SearchScreen query={searchQuery} setQuery={setSearch} results={searchResults} onPlay={t=>playTrack(t,tracks)} onLike={toggleLike} currentTrack={currentTrack} isPlaying={isPlaying} playlistCtx={playlistCtx}/>}
         {screen==="favorites" && <FavoritesScreen tracks={tracks} onPlay={t=>{setIsRadioMode(false);playTrack(t,tracks);}} onLike={toggleLike} currentTrack={currentTrack} isPlaying={isPlaying} userPlaylists={userPlaylists} onCreatePlaylist={createPlaylist} onAddToPlaylist={addToPlaylist} onRemoveFromPlaylist={removeFromPlaylist} onDeletePlaylist={deletePlaylist} playlistCtx={playlistCtx}/>}
         {screen==="profile"   && <ProfileScreen user={user} setUser={setUser} tracks={tracks} onLogout={logOut}/>}
+        {screen==="map"       && <HarmonicMap tracks={tracks} onPlay={t=>playTrack(t,tracks)} currentTrack={currentTrack}/>}
         {screen==="admin"     && <AdminScreen tracks={tracks} setTracks={setTracks} tab={adminTab} setTab={setAdminTab} editTrack={editTrack} setEditTrack={setEditTrack} showToast={showToast}/>}
       </div>
       {currentTrack && (
@@ -2667,6 +2812,7 @@ export default function App() {
   const NAV_TOP = [
     { id:"home",      icon:"home",   label:"Home" },
     { id:"favorites", icon:"heart",  label:"Library" },
+    { id:"map",       icon:"grid",   label:"Map" },
   ];
   const NAV_BOTTOM = [
     { id:"search",    icon:"search", label:"Search" },
@@ -2687,7 +2833,7 @@ export default function App() {
   const glowRgb = currentTrack ? hexToRgbStr(currentTrack.color) : "200,200,210";
 
   return (
-    <div style={{ display:"flex", height:"100vh", background:"radial-gradient(ellipse at 50% 45%, #F7F7F9 0%, #E8E8EC 25%, #DCDCE0 45%, #CECFD3 65%, #C7C8CD 100%)", overflow:"hidden", fontFamily:"-apple-system,'SF Pro Display','Helvetica Neue',Arial,sans-serif" }}>
+    <div style={{ display:"flex", height:"100vh", background:(()=>{const h=new Date().getHours();const w=h>=6&&h<=10?1:0;const c=h>=18&&h<=23?1:h>=0&&h<=5?1:0;const center=w?"#FAF8F5":c?"#F3F4F8":"#F7F7F9";const mid=w?"#EDE8E3":c?"#DDDDE4":"#DCDCE0";const edge=w?"#CDC8C3":c?"#C4C5CE":"#C7C8CD";return `radial-gradient(ellipse at 50% 45%, ${center} 0%, ${mid} 40%, ${edge} 100%)`})(), overflow:"hidden", fontFamily:"-apple-system,'SF Pro Display','Helvetica Neue',Arial,sans-serif" }}>
 
       {/* ── LEFT NAV RAIL ─────────────────────────────────────────────── */}
       <div style={{ width:72, flexShrink:0, background:"rgba(255,255,255,0.12)", backdropFilter:"blur(64px) saturate(240%)", borderRight:"1px solid rgba(255,255,255,0.16)", display:"flex", flexDirection:"column", alignItems:"center", padding:"16px 0 16px" }}>
@@ -2769,6 +2915,7 @@ export default function App() {
               {screen==="search"    && <SearchScreen query={searchQuery} setQuery={setSearch} results={searchResults} onPlay={t=>playTrack(t,tracks)} onLike={toggleLike} currentTrack={currentTrack} isPlaying={isPlaying} playlistCtx={playlistCtx}/>}
               {screen==="favorites" && <FavoritesScreen tracks={tracks} onPlay={t=>{setIsRadioMode(false);playTrack(t,tracks);}} onLike={toggleLike} currentTrack={currentTrack} isPlaying={isPlaying} userPlaylists={userPlaylists} onCreatePlaylist={createPlaylist} onAddToPlaylist={addToPlaylist} onRemoveFromPlaylist={removeFromPlaylist} onDeletePlaylist={deletePlaylist} playlistCtx={playlistCtx}/>}
               {screen==="profile"   && <ProfileScreen user={user} setUser={setUser} tracks={tracks} onLogout={logOut}/>}
+              {screen==="map"       && <HarmonicMap tracks={tracks} onPlay={t=>playTrack(t,tracks)} currentTrack={currentTrack}/>}
               {screen==="admin"     && <AdminScreen tracks={tracks} setTracks={setTracks} tab={adminTab} setTab={setAdminTab} editTrack={editTrack} setEditTrack={setEditTrack} showToast={showToast}/>}
             </>
           )}
@@ -2803,66 +2950,106 @@ export default function App() {
         )}
       </div>
 
-      {/* ── RIGHT PANEL — Queue & Now Playing ─────────────────────────── */}
-      <div style={{ width:320, flexShrink:0, background:"rgba(255,255,255,0.1)", backdropFilter:"blur(64px) saturate(240%)", borderLeft:"1px solid rgba(255,255,255,0.14)", display:"flex", flexDirection:"column", overflowY:"auto" }}>
-        {/* Now Playing artwork + info */}
+      {/* ── RIGHT PANEL ─────────────────────────────────────────────── */}
+      <div className="hide-scroll" style={{ width:320, flexShrink:0, background:"rgba(255,255,255,0.08)", backdropFilter:"blur(64px) saturate(240%)", borderLeft:"1px solid rgba(255,255,255,0.1)", display:"flex", flexDirection:"column", overflowY:"auto" }}>
+
+        {/* Now Playing */}
         {currentTrack ? (
-          <div style={{ padding:16, borderBottom:"1px solid rgba(255,255,255,0.12)" }}>
-            <div style={{ position:"relative", width:"100%", aspectRatio:"1", borderRadius:16, overflow:"hidden", marginBottom:16, boxShadow:`0 8px 32px rgba(${glowRgb},0.15), 0 2px 8px rgba(0,0,0,0.06)` }}>
+          <div style={{ padding:"16px 16px 12px" }}>
+            {/* Album art with glow */}
+            <div style={{ position:"relative", width:"100%", aspectRatio:"1", borderRadius:16, overflow:"hidden", marginBottom:14, boxShadow:`0 12px 40px rgba(${glowRgb},0.2)` }}>
               <img src={currentTrack.albumCover||"/covers/default.jpg"} alt="" style={{ width:"100%", height:"100%", objectFit:"cover" }} onError={e=>{e.target.src="/covers/default.jpg";}}/>
             </div>
-            <div style={{ fontSize:15, fontWeight:600, color:"#1A1D26", letterSpacing:-0.2, marginBottom:2, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{currentTrack.title}</div>
-            <div style={{ fontSize:12, color:"#6B7280", letterSpacing:-0.1, marginBottom:12, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{currentTrack.artist}</div>
-            <div style={{ display:"flex", flexWrap:"wrap", gap:4 }}>
-              {currentTrack.genre && <span style={{ fontSize:10, fontWeight:500, padding:"3px 8px", borderRadius:6, background:"rgba(0,0,0,0.04)", color:"#6B7280" }}>{currentTrack.genre}</span>}
-              
-              {currentTrack.bpm && <span style={{ fontSize:10, fontWeight:500, padding:"3px 8px", borderRadius:6, background:"rgba(0,0,0,0.04)", color:"#9CA3AF", fontVariantNumeric:"tabular-nums" }}>{currentTrack.bpm}</span>}
-
+            {/* Track info */}
+            <div style={{ fontSize:15, fontWeight:600, color:"#1A1D26", letterSpacing:-0.3, marginBottom:2, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{currentTrack.title}</div>
+            <div style={{ fontSize:12, color:"#6B7280", marginBottom:10, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{currentTrack.artist}</div>
+            {/* Metadata pills */}
+            <div style={{ display:"flex", gap:4 }}>
+              {currentTrack.genre && <span style={{ fontSize:9, fontWeight:500, padding:"3px 8px", borderRadius:6, background:"rgba(0,0,0,0.04)", color:"#6B7280" }}>{currentTrack.genre}</span>}
+              {currentTrack.bpm && <span style={{ fontSize:9, fontWeight:500, padding:"3px 8px", borderRadius:6, background:"rgba(0,0,0,0.04)", color:"#9CA3AF" }}>{currentTrack.bpm} bpm</span>}
             </div>
           </div>
         ) : (
-          <div style={{ padding:"48px 16px", textAlign:"center" }}>
-            <BrandGlyph size={32}/>
-            
+          <div style={{ padding:"60px 16px", textAlign:"center" }}>
+            <BrandGlyph size={28}/>
           </div>
         )}
 
-        {/* Queue / Next Up — draggable */}
-        <div style={{ flex:1, padding:"12px 12px" }}>
-          <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:8, padding:"0 4px" }}>
-            <div style={{ fontSize:10, fontWeight:700, letterSpacing:1, color:"#1A1D26", textTransform:"uppercase" }}>{isRadioMode ? "up next" : "up next"}</div>
-            {!isRadioMode && queue.length > 0 && (
-              <button onClick={()=>setQueue([])} style={{ background:"none", border:"none", cursor:"pointer", color:"#9CA3AF", fontSize:9, fontWeight:500, letterSpacing:0.5 }}>clear</button>
-            )}
+        {/* Divider */}
+        <div style={{ height:1, background:"rgba(0,0,0,0.04)", margin:"0 16px" }}/>
+
+        {/* Up Next */}
+        <div style={{ flex:1, padding:"12px 12px 16px" }}>
+          {/* Header with actions */}
+          <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"4px 4px 10px" }}>
+            <div style={{ fontSize:10, fontWeight:700, letterSpacing:1.2, color:"#1A1D26", textTransform:"uppercase" }}>Up Next</div>
+            <div style={{ display:"flex", gap:4 }}>
+              <button onClick={()=>{const pool=tracks.filter(t=>t.id!==currentTrack?.id&&(t.duration||0)<=900);const shuffled=[...pool];for(let i=shuffled.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[shuffled[i],shuffled[j]]=[shuffled[j],shuffled[i]];}setQueue(shuffled.slice(0,8));}}
+                style={{ background:"rgba(0,0,0,0.03)", border:"none", borderRadius:6, padding:"4px 8px", cursor:"pointer", color:"#9CA3AF", fontSize:9, fontWeight:600, letterSpacing:0.3, transition:"all 0.15s" }}>
+                Shuffle
+              </button>
+              {queue.length > 0 && (
+                <button onClick={()=>setQueue([])}
+                  style={{ background:"rgba(0,0,0,0.03)", border:"none", borderRadius:6, padding:"4px 8px", cursor:"pointer", color:"#9CA3AF", fontSize:9, fontWeight:600, letterSpacing:0.3 }}>
+                  Clear
+                </button>
+              )}
+            </div>
           </div>
-          <div style={{ display:"flex", flexDirection:"column", gap:1 }}>
+
+          {/* Track list */}
+          <div style={{ display:"flex", flexDirection:"column", gap:2 }}>
             {nextUpTracks.map((t,i) => (
-              <div key={t.id} style={{ display:"flex", alignItems:"center", gap:6, padding:"5px 6px", borderRadius:10, transition:"background 0.15s", background:currentTrack?.id===t.id?"rgba(255,255,255,0.15)":"transparent" }}>
-                {/* Reorder buttons */}
-                {!isRadioMode && (
-                  <div style={{ display:"flex", flexDirection:"column", gap:0, flexShrink:0 }}>
-                    <button onClick={e=>{e.stopPropagation(); if(i>0){const nq=[...nextUpTracks];[nq[i-1],nq[i]]=[nq[i],nq[i-1]];setQueue(nq);}}}
-                      style={{ background:"none", border:"none", cursor:i>0?"pointer":"default", padding:0, opacity:i>0?0.4:0, transition:"opacity 0.15s" }}><svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke={i>0?"#1A1D26":"transparent"} strokeWidth="1.5" strokeLinecap="round"><path d="M2 6.5L5 3.5L8 6.5"/></svg></button>
-                    <button onClick={e=>{e.stopPropagation(); if(i<nextUpTracks.length-1){const nq=[...nextUpTracks];[nq[i],nq[i+1]]=[nq[i+1],nq[i]];setQueue(nq);}}}
-                      style={{ background:"none", border:"none", cursor:i<nextUpTracks.length-1?"pointer":"default", padding:0, opacity:i<nextUpTracks.length-1?0.4:0, transition:"opacity 0.15s" }}><svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke={i<nextUpTracks.length-1?"#1A1D26":"transparent"} strokeWidth="1.5" strokeLinecap="round"><path d="M2 3.5L5 6.5L8 3.5"/></svg></button>
-                  </div>
-                )}
-                <div style={{ fontSize:9, color:"#C4C9D4", width:12, textAlign:"right", fontVariantNumeric:"tabular-nums", flexShrink:0 }}>{i+1}</div>
+              <div key={t.id}
+                style={{ display:"flex", alignItems:"center", gap:8, padding:"6px 8px", borderRadius:10,
+                  background: currentTrack?.id===t.id ? "rgba(255,255,255,0.4)" : "rgba(255,255,255,0.15)",
+                  border: currentTrack?.id===t.id ? "1px solid rgba(255,255,255,0.5)" : "1px solid rgba(255,255,255,0.08)",
+                  transition:"all 0.2s" }}>
+
+                {/* Index number */}
+                <div style={{ width:16, fontSize:10, fontWeight:500, color:"#9CA3AF", textAlign:"center", flexShrink:0 }}>{i+1}</div>
+
+                {/* Art + info — clickable */}
                 <div onClick={()=>playTrack(t,tracks)} style={{ display:"flex", alignItems:"center", gap:8, flex:1, minWidth:0, cursor:"pointer" }}>
-                  <div style={{ width:34, height:34, borderRadius:6, overflow:"hidden", flexShrink:0, boxShadow:"0 1px 3px rgba(0,0,0,0.06)" }}>
+                  <div style={{ width:36, height:36, borderRadius:8, overflow:"hidden", flexShrink:0, boxShadow:"0 1px 4px rgba(0,0,0,0.06)" }}>
                     <img src={t.albumCover||"/covers/default.jpg"} alt="" style={{ width:"100%", height:"100%", objectFit:"cover" }} onError={e=>{e.target.src="/covers/default.jpg";}}/>
                   </div>
                   <div style={{ flex:1, minWidth:0 }}>
-                    <div style={{ fontSize:12, fontWeight:600, color:"#1A1D26", letterSpacing:-0.2, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{t.title}</div>
+                    <div style={{ fontSize:12, fontWeight:500, color:"#1A1D26", letterSpacing:-0.1, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{t.title}</div>
                     <div style={{ fontSize:10, color:"#6B7280", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{t.artist}</div>
                   </div>
                 </div>
-                {t.genre && (
-                  <span style={{ fontSize:8, fontWeight:500, padding:"2px 4px", borderRadius:4, background:"rgba(255,255,255,0.15)", color:"#9CA3AF", flexShrink:0 }}>{t.genre}</span>
+
+                {/* Reorder + delete — shown on all non-radio tracks */}
+                {!isRadioMode && (
+                  <div style={{ display:"flex", alignItems:"center", gap:2, flexShrink:0 }}>
+                    {/* Move up */}
+                    <button onClick={e=>{e.stopPropagation(); if(i>0){const nq=[...nextUpTracks];[nq[i-1],nq[i]]=[nq[i],nq[i-1]];setQueue(nq);}}}
+                      style={{ background:"none", border:"none", cursor:i>0?"pointer":"default", padding:"2px", opacity:i>0?0.3:0, transition:"opacity 0.15s" }}>
+                      <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="#1A1D26" strokeWidth="1.5" strokeLinecap="round"><path d="M3 7L6 4L9 7"/></svg>
+                    </button>
+                    {/* Move down */}
+                    <button onClick={e=>{e.stopPropagation(); if(i<nextUpTracks.length-1){const nq=[...nextUpTracks];[nq[i],nq[i+1]]=[nq[i+1],nq[i]];setQueue(nq);}}}
+                      style={{ background:"none", border:"none", cursor:i<nextUpTracks.length-1?"pointer":"default", padding:"2px", opacity:i<nextUpTracks.length-1?0.3:0, transition:"opacity 0.15s" }}>
+                      <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="#1A1D26" strokeWidth="1.5" strokeLinecap="round"><path d="M3 5L6 8L9 5"/></svg>
+                    </button>
+                  </div>
                 )}
+                {/* Delete */}
+                <button onClick={e=>{e.stopPropagation();setQueue(prev=>{const nq=[...nextUpTracks];nq.splice(i,1);return nq;});}}
+                  style={{ background:"none", border:"none", cursor:"pointer", padding:"2px", opacity:0.2, transition:"opacity 0.15s", flexShrink:0 }}>
+                  <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="#1A1D26" strokeWidth="1.5" strokeLinecap="round"><path d="M2.5 2.5L7.5 7.5M7.5 2.5L2.5 7.5"/></svg>
+                </button>
               </div>
             ))}
           </div>
+
+          {/* Empty state */}
+          {nextUpTracks.length === 0 && (
+            <div style={{ textAlign:"center", padding:"32px 0", color:"#9CA3AF", fontSize:12 }}>
+              No tracks queued
+            </div>
+          )}
         </div>
       </div>
 
@@ -2911,7 +3098,7 @@ export default function App() {
 
 // ─── SHARED STYLES ────────────────────────────────────────────────────────────
 const APP_STYLE = {
-  background:"radial-gradient(ellipse at 50% 45%, #F7F7F9 0%, #E8E8EC 25%, #DCDCE0 45%, #CECFD3 65%, #C7C8CD 100%)",
+  background:(()=>{const h=new Date().getHours();const w=h>=6&&h<=10?1:0;const c=h>=18&&h<=23?1:h>=0&&h<=5?1:0;const center=w?"#FAF8F5":c?"#F3F4F8":"#F7F7F9";const mid=w?"#EDE8E3":c?"#DDDDE4":"#DCDCE0";const edge=w?"#CDC8C3":c?"#C4C5CE":"#C7C8CD";return `radial-gradient(ellipse at 50% 45%, ${center} 0%, ${mid} 40%, ${edge} 100%)`})(),
   minHeight:"100vh", height:"100vh", overflow:"hidden",
   fontFamily:"-apple-system,'SF Pro Display','SF Pro Text','Helvetica Neue',Arial,sans-serif",
   color:"#1C1C1E", position:"relative", display:"flex", flexDirection:"column",
