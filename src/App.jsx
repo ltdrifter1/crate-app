@@ -1327,15 +1327,37 @@ function FavoritesScreen({ tracks, onPlay, onLike, currentTrack, isPlaying, user
   singles.forEach(t => { if(t.genre) { if(!genreMap[t.genre]) genreMap[t.genre]=[]; genreMap[t.genre].push(t); }});
   const genres = Object.keys(genreMap).sort((a,b) => genreMap[b].length - genreMap[a].length);
 
-  // Mood inference from energy
-  const moods = {
-    "Calm": singles.filter(t=>(t.energy||5)<=3),
-    "Focus": singles.filter(t=>(t.energy||5)>=3&&(t.energy||5)<=5),
-    "Upbeat": singles.filter(t=>(t.energy||5)>=5&&(t.energy||5)<=7),
-    "High Energy": singles.filter(t=>(t.energy||5)>=7&&(t.energy||5)<=9),
-    "Peak": singles.filter(t=>(t.energy||5)>=9),
-  };
-  const moodKeys = Object.keys(moods).filter(k=>moods[k].length>0);
+  // Mood system — uses energy, genre, and BPM to classify tracks into emotional contexts
+  // Each mood defines a filter function that checks multiple signals
+  const MOOD_DEFS = [
+    { id:"meditative",  label:"Meditative",   desc:"Still & spacious",     filter: t => (t.energy||5) <= 2 },
+    { id:"melancholy",  label:"Melancholy",    desc:"Reflective & deep",    filter: t => (t.energy||5) <= 3 && ["Soul","Jazz","Blues","Classical","Ambient","Folk"].includes(t.genre) },
+    { id:"calm",        label:"Calm",          desc:"Gentle & easy",        filter: t => (t.energy||5) <= 3 },
+    { id:"dreamy",      label:"Dreamy",        desc:"Floating & hazy",      filter: t => (t.energy||5) >= 2 && (t.energy||5) <= 4 && ["Ambient","Electronic","Indie","Experimental"].includes(t.genre) },
+    { id:"focus",       label:"Focus",         desc:"Clear & undistracted", filter: t => (t.energy||5) >= 3 && (t.energy||5) <= 5 && (t.bpm||120) <= 120 },
+    { id:"warm",        label:"Warm",          desc:"Comfortable & golden", filter: t => (t.energy||5) >= 3 && (t.energy||5) <= 5 && ["Soul","R&B","Jazz","Folk","World"].includes(t.genre) },
+    { id:"groovy",      label:"Groovy",        desc:"Locked in & moving",   filter: t => (t.energy||5) >= 4 && (t.energy||5) <= 7 && ["Funk","R&B","Soul","House","Disco","Afrobeat"].includes(t.genre) },
+    { id:"uplifting",   label:"Uplifting",     desc:"Bright & positive",    filter: t => (t.energy||5) >= 5 && (t.energy||5) <= 7 },
+    { id:"driving",     label:"Driving",       desc:"Steady & forward",     filter: t => (t.energy||5) >= 6 && (t.energy||5) <= 8 && (t.bpm||120) >= 115 },
+    { id:"euphoric",    label:"Euphoric",      desc:"Ecstatic & free",      filter: t => (t.energy||5) >= 7 && (t.energy||5) <= 9 && ["House","Techno","Electronic","Afrobeat"].includes(t.genre) },
+    { id:"intense",     label:"Intense",       desc:"Raw power",            filter: t => (t.energy||5) >= 8 },
+    { id:"chaotic",     label:"Chaotic",       desc:"Unhinged & wild",      filter: t => (t.energy||5) >= 9 },
+    { id:"nocturnal",   label:"Nocturnal",     desc:"Late & introspective", filter: t => (t.energy||5) >= 3 && (t.energy||5) <= 6 && ["Electronic","Techno","House","Ambient","Experimental"].includes(t.genre) },
+    { id:"cinematic",   label:"Cinematic",     desc:"Widescreen & epic",    filter: t => (t.energy||5) >= 4 && (t.energy||5) <= 7 && ["Classical","Ambient","Electronic","Experimental","World"].includes(t.genre) },
+    { id:"social",      label:"Social",        desc:"Background buzz",      filter: t => (t.energy||5) >= 4 && (t.energy||5) <= 6 && ["Jazz","Soul","R&B","Latin","Afrobeat","Funk","Reggae"].includes(t.genre) },
+    { id:"raw",         label:"Raw",           desc:"Gritty & unpolished",  filter: t => (t.energy||5) >= 5 && ["Rock","Alternative","Hip-Hop","Indie","Experimental"].includes(t.genre) },
+  ];
+
+  const moods = {};
+  const moodMeta = {};
+  MOOD_DEFS.forEach(def => {
+    const matched = singles.filter(def.filter);
+    if (matched.length >= 1) {
+      moods[def.label] = matched;
+      moodMeta[def.label] = def;
+    }
+  });
+  const moodKeys = Object.keys(moods);
 
   // Time-based recommendations
   const timeRecs = singles.filter(t => (t.energy||5) >= eMin && (t.energy||5) <= eMax);
@@ -1418,18 +1440,21 @@ function FavoritesScreen({ tracks, onPlay, onLike, currentTrack, isPlaying, user
           )}
 
           {/* Moods */}
+          {moodKeys.length > 0 && (
           <div style={{ marginBottom:16 }}>
             <div style={{ padding:"0 16px", marginBottom:8 }}><SectionHead>moods</SectionHead></div>
-            <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill, minmax(140px, 1fr))", gap:8, padding:"0 16px" }}>
+            <div className="hide-scroll" style={{ display:"flex", gap:8, overflowX:"auto", padding:"0 16px 8px" }}>
               {moodKeys.map(mood => (
                 <div key={mood} onClick={()=>{setView("genres");setGenreFilter(null);setMoodFilter(mood);}}
-                  style={{ padding:"16px 14px", borderRadius:14, background:"rgba(255,255,255,0.15)", backdropFilter:"blur(40px) saturate(200%)", border:"1px solid rgba(255,255,255,0.2)", cursor:"pointer", transition:"all 0.2s" }}>
-                  <div style={{ fontSize:14, fontWeight:600, color:"#1A1D26" }}>{mood}</div>
-                  <div style={{ fontSize:10, color:"#9CA3AF", marginTop:4 }}>{moods[mood].length} tracks</div>
+                  style={{ flexShrink:0, width:140, padding:"14px 14px", borderRadius:14, background:"rgba(255,255,255,0.12)", backdropFilter:"blur(40px) saturate(220%)", border:"1px solid rgba(255,255,255,0.18)", cursor:"pointer", transition:"all 0.2s" }}>
+                  <div style={{ fontSize:14, fontWeight:600, color:"#1A1D26", marginBottom:2 }}>{mood}</div>
+                  <div style={{ fontSize:10, color:"#6B7280", marginBottom:6 }}>{moodMeta[mood]?.desc}</div>
+                  <div style={{ fontSize:10, color:"#9CA3AF" }}>{moods[mood].length} tracks</div>
                 </div>
               ))}
             </div>
           </div>
+          )}
 
           {/* Genre grid */}
           <div style={{ padding:"0 16px", marginBottom:16 }}><SectionHead>browse by genre</SectionHead></div>
