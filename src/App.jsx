@@ -120,35 +120,6 @@ function computeHumanState(recentPlays, sessionStartTime) {
 }
 
 
-// ─── HYPNO VISION — psychoacoustic trait-vector similarity · Hypno Vision ───────────────────────
-function findResonant(sourceTrack, allTracks, count = 12) {
-  if (!sourceTrack._signal) return allTracks.slice(0, count);
-  const src = sourceTrack._signal;
-  return allTracks
-    .filter(t => t.id !== sourceTrack.id && t._signal)
-    .map(t => {
-      const s = t._signal;
-      // Euclidean distance across all trait dimensions
-      const dist = Math.sqrt(
-        Math.pow((src.grip - s.grip) / 10, 2) +
-        Math.pow((src.hold - s.hold) / 10, 2) +
-        Math.pow((src.pull - s.pull) / 10, 2) +
-        Math.pow((src.gravity - s.gravity) / 10, 2) +
-        Math.pow((src.lift - s.lift) / 10, 2) +
-        Math.pow((src.descent - s.descent) / 10, 2)
-      );
-      // Bonus for same genre and close energy
-      let bonus = 0;
-      if (t.genre === sourceTrack.genre) bonus += 0.05;
-      if (Math.abs((t.energy||5) - (sourceTrack.energy||5)) <= 1) bonus += 0.03;
-      if (sourceTrack.camelot && t.camelot && camelotCompatible(sourceTrack.camelot, t.camelot, 1)) bonus += 0.02;
-      return { track: t, distance: dist - bonus };
-    })
-    .sort((a, b) => a.distance - b.distance)
-    .slice(0, count)
-    .map(r => r.track);
-}
-
 // ─── AURA: TRAIT SCORING ENGINE ─────────────────────────────────────────────
 // Computes behavioral trait scores for each track from play/skip/like data.
 // Called once after tracks load, enriches each track object with Aura scores.
@@ -834,8 +805,6 @@ function TrackRow({ track, onPlay, active, isPlaying, onLike, extraAction, playl
           {activePlaylistId && activePlaylistId !== "liked" && (
             <>
               <div style={{ height:0.5, background:"rgba(60,60,67,0.12)", margin:"4px 14px" }}/>
-              <button onClick={()=>{if(ctx.onResonance) ctx.onResonance(track); setMenuOpen(false);}}
-                style={{ width:"100%", textAlign:"left", background:"none", border:"none", padding:"8px 12px", fontSize:13, color:"#1A1D26", cursor:"pointer", borderBottom:"0.5px solid rgba(60,60,67,0.06)" }}>Hypno Vision · find similar</button>
               <button onClick={()=>{ctx.onRemove(track.id, activePlaylistId);setMenuOpen(false);}}
                 style={{ display:"block", width:"100%", textAlign:"left", background:"none", border:"none", color:"#FF3B30", fontSize:14, padding:"10px 14px", cursor:"pointer" }}>
                 Remove from playlist
@@ -1367,134 +1336,6 @@ function HarmonicMap({ tracks, onPlay, currentTrack }) {
 
 
 
-
-// ─── HYPNO VISION OVERLAY — "sounds like this" full-screen ──────────────────────
-function HypnoVisionOverlay({ sourceTrack, tracks, onPlay, onClose }) {
-  const similar = findResonant(sourceTrack, tracks, 12);
-  const rgb = hexToRgbStr(sourceTrack.color);
-
-  return (
-    <div style={{ position:"fixed", inset:0, zIndex:95, overflow:"auto" }}>
-      <div style={{ position:"absolute", inset:0, background:`radial-gradient(ellipse at 50% 20%, rgba(${rgb},0.08) 0%, rgba(8,8,12,0.92) 60%)`, backdropFilter:"blur(40px)" }} onClick={onClose}/>
-      <div style={{ position:"relative", zIndex:1, maxWidth:520, margin:"0 auto", padding:"40px 24px" }}>
-        {/* Header */}
-        <div style={{ display:"flex", alignItems:"center", gap:16, marginBottom:32 }}>
-          <div style={{ width:64, height:64, borderRadius:14, overflow:"hidden", flexShrink:0, boxShadow:`0 8px 32px rgba(${rgb},0.25)` }}>
-            <AlbumArt track={sourceTrack} size={64} borderRadius={0}/>
-          </div>
-          <div style={{ flex:1 }}>
-            <div style={{ fontSize:10, fontWeight:700, letterSpacing:2, color:"rgba(255,255,255,0.25)", textTransform:"uppercase", marginBottom:4 }}>More like this</div>
-            <div style={{ fontSize:18, fontWeight:700, color:"#FFFFFF", letterSpacing:-0.3 }}>{sourceTrack.title}</div>
-            <div style={{ fontSize:12, color:"rgba(255,255,255,0.4)", marginTop:2 }}>{sourceTrack.artist}</div>
-          </div>
-          <button onClick={onClose} style={{ background:"rgba(255,255,255,0.06)", border:"1px solid rgba(255,255,255,0.08)", borderRadius:"50%", width:36, height:36, cursor:"pointer", color:"rgba(255,255,255,0.4)", display:"flex", alignItems:"center", justifyContent:"center" }}>
-            <Icon name="x" size={16}/>
-          </button>
-        </div>
-
-        {/* Trait signature of source */}
-        {sourceTrack._signal && (
-          <div style={{ display:"flex", gap:12, marginBottom:24, justifyContent:"center" }}>
-            {["grip","hold","pull","lift"].map(k => (
-              <div key={k} style={{ textAlign:"center" }}>
-                <div style={{ fontSize:16, fontWeight:700, color:"rgba(255,255,255,0.6)" }}>{sourceTrack._signal[k]}</div>
-                <div style={{ fontSize:8, fontWeight:600, letterSpacing:1, color:"rgba(255,255,255,0.15)", textTransform:"uppercase" }}>{k}</div>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {/* Similar tracks grid */}
-        <div style={{ display:"grid", gridTemplateColumns:"repeat(3, 1fr)", gap:12 }}>
-          {similar.map(t => (
-            <div key={t.id} onClick={() => { onPlay(t); onClose(); }} style={{ cursor:"pointer", textAlign:"center" }}>
-              <div style={{ width:"100%", aspectRatio:"1", borderRadius:12, overflow:"hidden", marginBottom:6, boxShadow:"0 4px 16px rgba(0,0,0,0.2)" }}>
-                <AlbumArt track={t} size={200} borderRadius={0}/>
-              </div>
-              <div style={{ fontSize:11, fontWeight:500, color:"#FFFFFF", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{t.title}</div>
-              <div style={{ fontSize:9, color:"rgba(255,255,255,0.35)" }}>{t.artist}</div>
-              {t._signal && <div style={{ fontSize:8, color:"rgba(255,255,255,0.15)", marginTop:2 }}>{t._signal.label}</div>}
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ─── SESSION AFTERGLOW — end-of-session overlay ──────────────────────────────
-function AfterglowOverlay({ data, onClose, onSavePlaylist }) {
-  if (!data || !data.tracks.length) return null;
-
-  const tracks = data.tracks;
-  const energies = tracks.map(t => t.energy || 5);
-  const genres = [...new Set(tracks.map(t => t.genre).filter(Boolean))];
-  const avgEnergy = (energies.reduce((s, e) => s + e, 0) / energies.length).toFixed(1);
-
-  // Build energy arc SVG
-  const width = 320;
-  const height = 60;
-  const step = width / Math.max(energies.length - 1, 1);
-  const points = energies.map((e, i) => `${i * step},${height - ((e - 1) / 9) * height}`).join(" ");
-
-  return (
-    <div style={{ position:"fixed", inset:0, zIndex:95, display:"flex", alignItems:"center", justifyContent:"center", padding:32 }}>
-      <div style={{ position:"absolute", inset:0, background:"rgba(8,8,12,0.85)", backdropFilter:"blur(40px)" }} onClick={onClose}/>
-      <div style={{ position:"relative", zIndex:1, maxWidth:420, width:"100%", textAlign:"center" }}>
-        {/* Hero */}
-        <div style={{ fontSize:10, fontWeight:700, letterSpacing:2, color:"rgba(255,255,255,0.25)", textTransform:"uppercase", marginBottom:12 }}>Session Complete</div>
-        <div style={{ fontSize:32, fontWeight:700, color:"#FFFFFF", letterSpacing:-0.5, marginBottom:6 }}>{data.durationMins} minutes</div>
-        <div style={{ fontSize:14, color:"rgba(255,255,255,0.35)", marginBottom:32 }}>{tracks.length} tracks · {genres.length} genres · avg energy {avgEnergy}</div>
-
-        {/* Energy arc */}
-        <div style={{ marginBottom:32 }}>
-          <svg width={width} height={height} style={{ display:"block", margin:"0 auto" }}>
-            <defs>
-              <linearGradient id="arcGrad" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="rgba(255,255,255,0.15)"/>
-                <stop offset="100%" stopColor="rgba(255,255,255,0)"/>
-              </linearGradient>
-            </defs>
-            <polyline points={points} fill="none" stroke="rgba(255,255,255,0.3)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-            <polygon points={`0,${height} ${points} ${width},${height}`} fill="url(#arcGrad)"/>
-          </svg>
-          <div style={{ display:"flex", justifyContent:"space-between", marginTop:4 }}>
-            <span style={{ fontSize:9, color:"rgba(255,255,255,0.2)" }}>Start</span>
-            <span style={{ fontSize:9, color:"rgba(255,255,255,0.2)" }}>End</span>
-          </div>
-        </div>
-
-        {/* Genre pills */}
-        <div style={{ display:"flex", gap:6, justifyContent:"center", flexWrap:"wrap", marginBottom:32 }}>
-          {genres.slice(0, 6).map(g => (
-            <span key={g} style={{ fontSize:10, fontWeight:500, padding:"4px 10px", borderRadius:8, background:"rgba(255,255,255,0.06)", border:"1px solid rgba(255,255,255,0.08)", color:"rgba(255,255,255,0.4)" }}>{g}</span>
-          ))}
-        </div>
-
-        {/* Actions */}
-        <div style={{ display:"flex", gap:10, justifyContent:"center" }}>
-          <button onClick={() => {
-            if (onSavePlaylist) {
-              const name = `Session · ${new Date(data.startTime).toLocaleDateString()} ${new Date(data.startTime).toLocaleTimeString([], {hour:"2-digit", minute:"2-digit"})}`;
-              onSavePlaylist(name, tracks.map(t => t.id));
-            }
-            onClose();
-          }} style={{
-            padding:"14px 28px", borderRadius:14,
-            background:"rgba(255,255,255,0.1)", backdropFilter:"blur(20px)",
-            border:"1px solid rgba(255,255,255,0.12)",
-            color:"#FFFFFF", fontSize:14, fontWeight:600, cursor:"pointer",
-          }}>Save as playlist</button>
-          <button onClick={onClose} style={{
-            padding:"14px 28px", borderRadius:14,
-            background:"transparent", border:"1px solid rgba(255,255,255,0.08)",
-            color:"rgba(255,255,255,0.4)", fontSize:14, fontWeight:500, cursor:"pointer",
-          }}>Close</button>
-        </div>
-      </div>
-    </div>
-  );
-}
 
 // ─── DRIFT — immersive cinematic playback ─────────────────────────────────────
 function DriftMode({ tracks, currentTrack, isPlaying, onTogglePlay, onSkip, onPrev, onPlay, signalState }) {
@@ -3042,11 +2883,11 @@ export default function App() {
   }, []);
   const [userPlaylists, setUserPlaylists] = useState([]); // [{id, name, trackIds:[]}]
   const [showRouteBuilder, setShowRouteBuilder] = useState(false);
-  const [afterglow, setAfterglow] = useState(null);
-  const [resonanceTrack, setResonanceTrack] = useState(null); // { tracks, duration, startTime }
 
   // ── Listening Memory — tracks recently played with timestamps ──
   const recentlyPlayedRef = useRef([]); // [{id, genre, energy, timestamp}]
+  const historyRef = useRef([]); // full track objects, most-recent last — powers "previous"
+  const pushHistory = (t) => { if (t) historyRef.current = [...historyRef.current, t].slice(-100); };
   const sessionStartRef = useRef(null);
   const [signalState, setSignalState] = useState({ intensity:0.5, openness:0.5, momentum:0, depth:0, direction:0, label:"warming up" });
 
@@ -3279,6 +3120,7 @@ export default function App() {
         nextAudioRef.current = fadeOut;
         bindPrimaryAudio(fadeIn);
 
+        pushHistory(currentRef.current);
         setCurrent(next);
         // Delay clearing the crossfade flag so the currentTrack useEffect
         // sees isCrossfading=true and skips reloading the audio
@@ -3314,6 +3156,7 @@ export default function App() {
 
   // ── Playback actions ─────────────────────────────────────────────────────
   const playTrack = (track, q = null) => {
+    if (currentRef.current && currentRef.current.id !== track.id) pushHistory(currentRef.current);
     setCurrent(track); setIsPlaying(true); setProgress(0); setIsRadioMode(false);
     if (q) setQueue(q.filter(t => t.id !== track.id));
     logTrackPlay(track);
@@ -3359,6 +3202,7 @@ export default function App() {
     if (isRadioMode) {
       const next = pickNextTrack(tracks, currentTrack, recentlyPlayedRef.current);
       if (next) {
+        pushHistory(currentTrack);
         setCurrent(next); setProgress(0); setIsPlaying(true);
         if (firebaseUser) recordPlay(next.id, profile?.recentTracks || []).catch(()=>{});
       }
@@ -3366,6 +3210,7 @@ export default function App() {
     }
     if (!queue.length) { setIsPlaying(false); return; }
     const next = queue[0];
+    pushHistory(currentTrack);
     setQueue(repeat ? [...queue.filter(t=>t.id!==next.id), currentTrack] : queue.filter(t=>t.id!==next.id));
     setCurrent(next); setProgress(0); setIsPlaying(true);
   };
@@ -3378,14 +3223,20 @@ export default function App() {
     if (audioRef.current) audioRef.current.currentTime = seconds;
   };
 
-  // Prev: if more than 3 seconds in, restart the track; otherwise go to previous
+  // Prev: if more than 3 seconds in, restart the track; otherwise step back through history
   const handlePrev = () => {
     if (audioRef.current && audioRef.current.currentTime > 3) {
       audioRef.current.currentTime = 0;
       setProgress(0);
-    } else {
-      // No queue history yet — just restart
-      audioRef.current && (audioRef.current.currentTime = 0);
+      return;
+    }
+    const prev = historyRef.current.pop();
+    if (prev) {
+      setIsRadioMode(false);
+      setCurrent(prev); setProgress(0); setIsPlaying(true);
+      if (firebaseUser) recordPlay(prev.id, profile?.recentTracks || []).catch(()=>{});
+    } else if (audioRef.current) {
+      audioRef.current.currentTime = 0;
       setProgress(0);
     }
   };
@@ -3523,7 +3374,7 @@ export default function App() {
         {screen==="search"    && <SearchScreen query={searchQuery} setQuery={setSearch} results={searchResults} onPlay={t=>playTrack(t,tracks)} onLike={toggleLike} currentTrack={currentTrack} isPlaying={isPlaying} playlistCtx={playlistCtx}/>}
         {screen==="favorites" && <FavoritesScreen tracks={tracks} onPlay={t=>{setIsRadioMode(false);playTrack(t,tracks);}} onLike={toggleLike} currentTrack={currentTrack} isPlaying={isPlaying} userPlaylists={userPlaylists} onCreatePlaylist={createPlaylist} onAddToPlaylist={addToPlaylist} onRemoveFromPlaylist={removeFromPlaylist} onDeletePlaylist={deletePlaylist} playlistCtx={playlistCtx}/>}
         {screen==="profile"   && <ProfileScreen user={user} setUser={setUser} tracks={tracks} onLogout={logOut}/>}
-        {screen==="drift"     && <DriftMode tracks={tracks} currentTrack={currentTrack} isPlaying={isPlaying} onTogglePlay={()=>setIsPlaying(p=>!p)} onSkip={handleSkip} onPrev={()=>{}} onPlay={t=>playTrack(t,tracks)} signalState={signalState}/>}
+        {screen==="drift"     && <DriftMode tracks={tracks} currentTrack={currentTrack} isPlaying={isPlaying} onTogglePlay={()=>setIsPlaying(p=>!p)} onSkip={handleSkip} onPrev={handlePrev} onPlay={t=>playTrack(t,tracks)} signalState={signalState}/>}
         {screen==="map"       && <HarmonicMap tracks={tracks} onPlay={t=>playTrack(t,tracks)} currentTrack={currentTrack}/>}
         {screen==="admin"     && <AdminScreen tracks={tracks} setTracks={setTracks} tab={adminTab} setTab={setAdminTab} editTrack={editTrack} setEditTrack={setEditTrack} showToast={showToast}/>}
       </div>
@@ -3635,7 +3486,7 @@ export default function App() {
       <div style={{ flex:1, overflow:"auto", position:"relative" }}>
         {/* Drift — full screen, no padding, no maxWidth */}
         {screen==="drift" ? (
-          <DriftMode tracks={tracks} currentTrack={currentTrack} isPlaying={isPlaying} onTogglePlay={()=>setIsPlaying(p=>!p)} onSkip={handleSkip} onPrev={()=>{}} onPlay={t=>playTrack(t,tracks)} signalState={signalState}/>
+          <DriftMode tracks={tracks} currentTrack={currentTrack} isPlaying={isPlaying} onTogglePlay={()=>setIsPlaying(p=>!p)} onSkip={handleSkip} onPrev={handlePrev} onPlay={t=>playTrack(t,tracks)} signalState={signalState}/>
         ) : (
         <>
         {/* Accent glow behind content */}
@@ -3846,9 +3697,7 @@ export default function App() {
         </div>
       </div>
 
-      {/* Route Builder Modal */}
-      {resonanceTrack && <HypnoVisionOverlay sourceTrack={resonanceTrack} tracks={tracks} onPlay={t=>playTrack(t,tracks)} onClose={()=>setResonanceTrack(null)}/>}
-      {afterglow && <AfterglowOverlay data={afterglow} onClose={()=>setAfterglow(null)} onSavePlaylist={(name, ids) => { createPlaylist(name); /* TODO: add tracks */ }}/>}
+      {/* Sessions Modal */}
       {showRouteBuilder && <RouteBuilderModal tracks={tracks} onClose={()=>setShowRouteBuilder(false)} onPlayRoute={playRoute}/>}
 
       {/* Expanded NP overlay */}
