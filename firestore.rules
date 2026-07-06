@@ -1,0 +1,61 @@
+rules_version = '2';
+
+// Crate — Firestore security rules
+// Deploy with: firebase deploy --only firestore:rules
+//
+// Design goals:
+//  - A user can only read/write their own profile document.
+//  - Track metadata is publicly readable (a public catalog); only admins
+//    may create/delete tracks or edit their content fields.
+//  - Signed-in users may nudge ONLY the popularity counters on a track
+//    (playCount / skipCount / likeCount) — never titles, URLs, etc.
+//  - Listening sessions are private to the user who created them.
+//  - Everything else is denied by default.
+//
+// NOTE: the counter allowance below is a pragmatic, non-breaking step that
+// matches the current client. The more robust long-term fix is to move all
+// counter mutations into a Cloud Function and lock these fields to admin.
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isSignedIn() && (
+        request.auth.token.admin == true ||
+        request.auth.uid == '5lPAI9N1jkMbVkUyIqLTqBvBf1t1'
+      );
+    }
+
+    // ── User profiles ───────────────────────────────────────────────
+    match /users/{uid} {
+      allow read, write: if isSignedIn() && request.auth.uid == uid;
+    }
+
+    // ── Track catalog ───────────────────────────────────────────────
+    match /tracks/{trackId} {
+      allow read: if true;
+      allow create, delete: if isAdmin();
+      allow update: if isAdmin() || (
+        isSignedIn() &&
+        request.resource.data.diff(resource.data).affectedKeys()
+          .hasOnly(['playCount', 'skipCount', 'likeCount'])
+      );
+    }
+
+    // ── Listening sessions (private analytics) ──────────────────────
+    match /sessions/{sessionId} {
+      allow read:   if isSignedIn() && resource.data.uid == request.auth.uid;
+      allow create: if isSignedIn() && request.resource.data.uid == request.auth.uid;
+      allow update, delete: if false;
+    }
+
+    // ── Default deny ────────────────────────────────────────────────
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
