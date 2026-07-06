@@ -8,6 +8,14 @@ import { computeHumanState, computeSignalTraits, pickNextTrack, buildSession, SE
 import { font, color, radius, shadow } from "./lib/theme";
 import vLogo                                         from "./v-logo-new.png";
 
+// Screens whose state is mirrored in the URL hash (shareable + back button).
+// 'admin' is intentionally excluded so it is never surfaced via a URL.
+const VALID_SCREENS = ["home", "search", "favorites", "profile", "drift", "map"];
+function screenFromHash() {
+  const h = (window.location.hash || "").replace(/^#\/?/, "");
+  return VALID_SCREENS.includes(h) ? h : null;
+}
+
 const injectStyles = () => {
   if (document.getElementById("verse-app-global-styles")) return;
   const s = document.createElement("style");
@@ -2562,7 +2570,7 @@ export default function App() {
   const { firebaseUser, profile, setProfile, loading: authLoading, signUp, logIn, logOut, signInWithGoogle, sendPhoneOTP, verifyPhoneOTP, resetPassword } = useAuth();
 
   // ── App state ────────────────────────────────────────────────────────────
-  const [screen, setScreen]           = useState("home");
+  const [screen, setScreen]           = useState(() => screenFromHash() || "home");
   const [tracks, setTracks]           = useState([]);          // loaded from Firestore
   const [tracksLoading, setTracksLoading] = useState(true);
   const [currentTrack, setCurrent]    = useState(null);
@@ -2584,6 +2592,26 @@ export default function App() {
     const handle = () => setIsDesktop(window.innerWidth >= 900);
     window.addEventListener("resize", handle);
     return () => window.removeEventListener("resize", handle);
+  }, []);
+
+  // ── Deep links — mirror the current screen in the URL hash ──────────────
+  // pushState (not location.hash=) so our own writes don't re-trigger; back /
+  // forward fire popstate, which we read back into screen state.
+  useEffect(() => {
+    if (!VALID_SCREENS.includes(screen)) return; // e.g. admin — keep out of URL
+    const target = `#/${screen}`;
+    if (window.location.hash !== target) {
+      window.history.pushState(null, "", target);
+    }
+  }, [screen]);
+  useEffect(() => {
+    const onNav = () => { const s = screenFromHash(); if (s) setScreen(s); };
+    window.addEventListener("hashchange", onNav);
+    window.addEventListener("popstate", onNav);
+    return () => {
+      window.removeEventListener("hashchange", onNav);
+      window.removeEventListener("popstate", onNav);
+    };
   }, []);
   const [userPlaylists, setUserPlaylists] = useState([]); // [{id, name, trackIds:[]}]
   const [showRouteBuilder, setShowRouteBuilder] = useState(false);
