@@ -2421,7 +2421,7 @@ function NowPlayingBar({ track, isPlaying, progress, duration, onTogglePlay, onS
 
       <div style={{ position:"relative", zIndex:1, height:"100%", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:32, gap:24 }}>
         {/* Close */}
-        <button onClick={()=>setExpanded(false)} style={{ position:"absolute", top:20, right:20, background:"rgba(255,255,255,0.06)", border:"1px solid rgba(255,255,255,0.08)", borderRadius:"50%", width:36, height:36, cursor:"pointer", color:"rgba(255,255,255,0.4)", backdropFilter:"blur(20px)", display:"flex", alignItems:"center", justifyContent:"center" }}>
+        <button aria-label="Close" onClick={()=>setExpanded(false)} style={{ position:"absolute", top:20, right:20, background:"rgba(255,255,255,0.06)", border:"1px solid rgba(255,255,255,0.08)", borderRadius:"50%", width:36, height:36, cursor:"pointer", color:"rgba(255,255,255,0.4)", backdropFilter:"blur(20px)", display:"flex", alignItems:"center", justifyContent:"center" }}>
           <Icon name="x" size={16}/>
         </button>
 
@@ -2459,13 +2459,13 @@ function NowPlayingBar({ track, isPlaying, progress, duration, onTogglePlay, onS
 
         {/* Controls */}
         <div style={{ display:"flex", alignItems:"center", gap:28 }}>
-          <button onClick={onLike} style={{ background:"none",border:"none",cursor:"pointer",color:track.liked?"#FFFFFF":"rgba(255,255,255,0.3)",padding:4,transition:"color 0.2s" }}><Icon name={track.liked?"heart":"heartempty"} size={20}/></button>
-          <button onClick={onPrev} style={{ ...CTRL_BTN, color:"rgba(255,255,255,0.5)" }}><Icon name="prev" size={22}/></button>
-          <button onClick={onTogglePlay} style={{ width:60, height:60, background:"rgba(255,255,255,0.08)", backdropFilter:"blur(24px)", border:"1px solid rgba(255,255,255,0.12)", borderRadius:"50%", color:"#FFFFFF", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center" }}>
+          <button aria-label={track.liked?"Unlike":"Like"} aria-pressed={!!track.liked} onClick={onLike} style={{ background:"none",border:"none",cursor:"pointer",color:track.liked?"#FFFFFF":"rgba(255,255,255,0.3)",padding:4,transition:"color 0.2s" }}><Icon name={track.liked?"heart":"heartempty"} size={20}/></button>
+          <button aria-label="Previous" onClick={onPrev} style={{ ...CTRL_BTN, color:"rgba(255,255,255,0.5)" }}><Icon name="prev" size={22}/></button>
+          <button aria-label={isPlaying?"Pause":"Play"} onClick={onTogglePlay} style={{ width:60, height:60, background:"rgba(255,255,255,0.08)", backdropFilter:"blur(24px)", border:"1px solid rgba(255,255,255,0.12)", borderRadius:"50%", color:"#FFFFFF", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center" }}>
             <Icon name={isPlaying?"pause":"play"} size={28}/>
           </button>
-          <button onClick={onSkip} style={{ ...CTRL_BTN, color:"rgba(255,255,255,0.5)" }}><Icon name="skip" size={22}/></button>
-          <button onClick={()=>setRepeat(r=>!r)} style={{ background:"none",border:"none",cursor:"pointer",color:repeat?"#FFFFFF":"rgba(255,255,255,0.2)",padding:4,transition:"color 0.2s" }}><Icon name="repeat" size={18}/></button>
+          <button aria-label="Next" onClick={onSkip} style={{ ...CTRL_BTN, color:"rgba(255,255,255,0.5)" }}><Icon name="skip" size={22}/></button>
+          <button aria-label="Repeat" aria-pressed={!!repeat} onClick={()=>setRepeat(r=>!r)} style={{ background:"none",border:"none",cursor:"pointer",color:repeat?"#FFFFFF":"rgba(255,255,255,0.2)",padding:4,transition:"color 0.2s" }}><Icon name="repeat" size={18}/></button>
         </div>
       </div>
     </div>
@@ -2486,11 +2486,11 @@ function NowPlayingBar({ track, isPlaying, progress, duration, onTogglePlay, onS
             <div style={{ width:`${pct}%`, background:"#1A1D26", height:"100%", borderRadius:2, transition:"width 1s linear" }}/>
           </div>
         </div>
-        <button onClick={e=>{e.stopPropagation();onLike();}} style={{ background:"none",border:"none",cursor:"pointer",color:track.liked?"#1A1D26":"#C4C9D4",padding:4 }}><Icon name={track.liked?"heart":"heartempty"} size={16}/></button>
-        <button onClick={e=>{e.stopPropagation();onTogglePlay();}} style={{ background:"#1A1D26",border:"none",borderRadius:"50%",width:34,height:34,cursor:"pointer",color:"#FFFFFF",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,boxShadow:"0 2px 8px rgba(0,0,0,0.15)" }}>
+        <button aria-label={track.liked?"Unlike":"Like"} aria-pressed={!!track.liked} onClick={e=>{e.stopPropagation();onLike();}} style={{ background:"none",border:"none",cursor:"pointer",color:track.liked?"#1A1D26":"#C4C9D4",padding:4 }}><Icon name={track.liked?"heart":"heartempty"} size={16}/></button>
+        <button aria-label={isPlaying?"Pause":"Play"} onClick={e=>{e.stopPropagation();onTogglePlay();}} style={{ background:"#1A1D26",border:"none",borderRadius:"50%",width:34,height:34,cursor:"pointer",color:"#FFFFFF",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,boxShadow:"0 2px 8px rgba(0,0,0,0.15)" }}>
           <Icon name={isPlaying?"pause":"play"} size={18}/>
         </button>
-        <button onClick={e=>{e.stopPropagation();onSkip();}} style={{ background:"none",border:"none",cursor:"pointer",color:"#8E8E93",padding:4 }}><Icon name="skip" size={18}/></button>
+        <button aria-label="Next" onClick={e=>{e.stopPropagation();onSkip();}} style={{ background:"none",border:"none",cursor:"pointer",color:"#8E8E93",padding:4 }}><Icon name="skip" size={18}/></button>
       </div>
     </div>
   );
@@ -2506,7 +2506,7 @@ function BottomNav({ screen, setScreen }) {
   return (
     <div style={{ position:"fixed", bottom:0, left:0, right:0, height:52, background:"rgba(255,255,255,0.1)", backdropFilter:"blur(64px) saturate(260%)", borderTop:"1px solid rgba(255,255,255,0.14)", display:"flex", zIndex:85 }}>
       {items.map(({id,icon,label})=>(
-        <button key={id} onClick={()=>setScreen(id)} style={{ flex:1,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:3,background:"none",border:"none",cursor:"pointer",color:screen===id?"#1A1D26":"#C4C9D4",transition:"all 0.2s",borderTop:screen===id?"2px solid #1A1D26":"2px solid transparent" }}>
+        <button key={id} aria-label={label} aria-current={screen===id?"page":undefined} onClick={()=>setScreen(id)} style={{ flex:1,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:3,background:"none",border:"none",cursor:"pointer",color:screen===id?"#1A1D26":"#C4C9D4",transition:"all 0.2s",borderTop:screen===id?"2px solid #1A1D26":"2px solid transparent" }}>
           <Icon name={id==="favorites"?(screen===id?"heart":"heartempty"):icon} size={18}/>
           
         </button>
