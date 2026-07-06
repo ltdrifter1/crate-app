@@ -3007,6 +3007,7 @@ export default function App() {
 
   const handleSkipRef = useRef(null);
   const primaryAudioCleanupRef = useRef(() => {});
+  const mediaActionsRef = useRef({}); // latest transport actions for MediaSession
 
   const bindPrimaryAudio = useCallback((audio) => {
     primaryAudioCleanupRef.current?.();
@@ -3134,6 +3135,43 @@ export default function App() {
     else           { audioRef.current.pause(); }
   }, [isPlaying]);
 
+  // ── MediaSession — lock-screen / hardware media-key / Bluetooth controls ──
+  // Register action handlers once; they defer to the latest transport via ref.
+  useEffect(() => {
+    if (!("mediaSession" in navigator)) return;
+    const ms = navigator.mediaSession;
+    const set = (action, fn) => { try { ms.setActionHandler(action, fn); } catch (e) {} };
+    set("play",          () => mediaActionsRef.current.play?.());
+    set("pause",         () => mediaActionsRef.current.pause?.());
+    set("previoustrack", () => mediaActionsRef.current.prev?.());
+    set("nexttrack",     () => mediaActionsRef.current.next?.());
+    set("seekto",        (d) => { if (d && d.seekTime != null) mediaActionsRef.current.seek?.(d.seekTime); });
+    return () => {
+      ["play","pause","previoustrack","nexttrack","seekto"].forEach(a => set(a, null));
+    };
+  }, []);
+
+  // Reflect the current track in OS now-playing UI.
+  useEffect(() => {
+    if (!("mediaSession" in navigator) || typeof window.MediaMetadata !== "function" || !currentTrack) return;
+    try {
+      navigator.mediaSession.metadata = new window.MediaMetadata({
+        title:  currentTrack.title  || "",
+        artist: currentTrack.artist || "",
+        album:  currentTrack.album  || "",
+        artwork: currentTrack.albumCover
+          ? [{ src: currentTrack.albumCover, sizes: "512x512", type: "image/jpeg" }]
+          : [],
+      });
+    } catch (e) {}
+  }, [currentTrack?.id]);
+
+  // Reflect play/pause state.
+  useEffect(() => {
+    if (!("mediaSession" in navigator)) return;
+    try { navigator.mediaSession.playbackState = isPlaying ? "playing" : "paused"; } catch (e) {}
+  }, [isPlaying]);
+
   // ── Playback actions ─────────────────────────────────────────────────────
   const playTrack = (track, q = null) => {
     if (currentRef.current && currentRef.current.id !== track.id) pushHistory(currentRef.current);
@@ -3219,6 +3257,15 @@ export default function App() {
       audioRef.current.currentTime = 0;
       setProgress(0);
     }
+  };
+
+  // Expose the latest transport actions to the MediaSession handlers.
+  mediaActionsRef.current = {
+    play: () => setIsPlaying(true),
+    pause: () => setIsPlaying(false),
+    next: () => handleSkip(),
+    prev: () => handlePrev(),
+    seek: (t) => handleSeek(t),
   };
 
   // ── Like/unlike — optimistic UI + Firestore sync ────────────────────────
