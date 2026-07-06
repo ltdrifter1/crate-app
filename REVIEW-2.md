@@ -142,4 +142,29 @@ Crate should feel like **a beautifully lit late-night listening room in your poc
 
 ---
 
-*Prepared as a review + status deliverable. Continuing in small, safe commits toward the design roadmap in §6.*
+## 9. Implementation status (phases A–C)
+
+Delivered in this pass (all build-verified, tests green, no behavior regressions):
+
+**Phase A — foundation for the look**
+- ✅ `src/lib/theme.js` design tokens (font, color ramp, glass tiers, radius, spacing, motion, shadow).
+- ✅ Shared style constants (`APP_STYLE`, `INPUT_ST`, `BTN_*`) now derive from tokens; secondary-button gray darkened for legibility.
+- ✅ `prefers-reduced-motion` (shipped earlier).
+
+**Phase B — signature interactions**
+- ✅ **MediaSession**: lock-screen / hardware-key / Bluetooth controls (play/pause/prev/next/seek) + OS now-playing metadata (title/artist/album/artwork) + playback-state sync.
+
+**Phase C — reach & scale**
+- ✅ **Installable PWA**: real manifest + 192/512 icons, iOS web-app meta, matching theme color, and a safe service worker (network-first navigations with offline shell fallback; cache-first hashed assets; Firebase/audio left to the network). Registered in production only.
+
+### Deferred — needs a browser to verify before shipping
+These are entangled with working systems, so doing them blind would risk breaking playback/navigation (violating "never break existing functionality"). They should be done incrementally with real-device QA (enable manual testing at cursor.com/onboard):
+
+- **Web Audio gapless / gain-node crossfade** — requires the audio origin (Cloud Storage) to send CORS headers; without that, routing audio through Web Audio breaks playback. Prerequisite: configure Storage CORS, then migrate behind a flag and A/B against the current crossfade.
+- **Routing + deep links** — converting the `screen` state + duplicated mobile/desktop trees to a router is invasive; needs runtime QA to avoid navigation regressions.
+- **Catalog pagination + relevance search** — the whole app currently assumes `tracks` holds the entire catalog (home shelves, search, recommendations). Pagination must land together with a server-side search/index, so it's a coordinated change, not a drop-in.
+- **Waveform scrubbing + shared-element transition** — visual/interaction work best tuned with a live preview.
+
+---
+
+*Prepared as a review + status deliverable. Phases A–C landed the safe, high-value work; the deferred items are scoped above and await browser QA.*
