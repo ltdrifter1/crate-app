@@ -2295,14 +2295,6 @@ function ProfileScreen({ user, setUser, tracks, onLogout }) {
   // Genre breadth
   const genreCount = new Set(singles.map(t => t.genre).filter(Boolean)).size;
 
-  // Aura trait averages
-  const traitAvgs = {};
-  const traitKeys = ["grip","hold","pull","gravity","lift","descent"];
-  traitKeys.forEach(k => {
-    const vals = singles.filter(t => t._signal?.[k]).map(t => t._signal[k]);
-    traitAvgs[k] = vals.length ? (vals.reduce((s,v) => s+v, 0) / vals.length).toFixed(1) : "—";
-  });
-
   const CARD = { background:"rgba(255,255,255,0.12)", backdropFilter:"blur(60px) saturate(200%)", border:"1px solid rgba(255,255,255,0.1)", boxShadow:"0 4px 24px rgba(0,0,0,0.02)", borderRadius:16, padding:"16px" };
 
   return (
@@ -2363,19 +2355,6 @@ function ProfileScreen({ user, setUser, tracks, onLogout }) {
         </div>
       </div>
 
-      {/* Aura traits */}
-      <div style={{...CARD, marginBottom:16 }}>
-        <div style={{ fontSize:10, fontWeight:700, letterSpacing:0.8, color:"#9CA3AF", textTransform:"uppercase", marginBottom:12 }}>Your sound</div>
-        <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:8 }}>
-          {traitKeys.map(k => (
-            <div key={k} style={{ textAlign:"center" }}>
-              <div style={{ fontSize:18, fontWeight:700, color:"#1A1D26", letterSpacing:-0.3 }}>{traitAvgs[k]}</div>
-              <div style={{ fontSize:8, color:"#9CA3AF", letterSpacing:0.8, fontWeight:600, textTransform:"uppercase", marginTop:2 }}>{k}</div>
-            </div>
-          ))}
-        </div>
-      </div>
-
       {/* Return tracks — highest pull */}
       {returnTracks.length > 0 && (
         <div style={{...CARD, marginBottom:16 }}>
@@ -2387,7 +2366,6 @@ function ProfileScreen({ user, setUser, tracks, onLogout }) {
                 <div style={{ fontSize:12, fontWeight:500, color:"#1A1D26", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{t.title}</div>
                 <div style={{ fontSize:10, color:"#6B7280" }}>{t.artist}</div>
               </div>
-              <div style={{ fontSize:9, color:"#9CA3AF", fontWeight:600 }}>pull {t._signal?.pull}</div>
             </div>
           ))}
         </div>
