@@ -63,3 +63,15 @@ export const shadow = {
   soft: "0 4px 16px rgba(0,0,0,0.12)",
   card: "0 1px 3px rgba(0,0,0,0.04)",
 };
+
+// Ambient app background that subtly shifts with the time of day:
+// warmer at morning, cooler in the evening/night, neutral midday.
+export function timeOfDayGradient(date = new Date()) {
+  const h = date.getHours();
+  const warm = h >= 6 && h <= 10 ? 1 : 0;
+  const cool = (h >= 18 && h <= 23) || (h >= 0 && h <= 5) ? 1 : 0;
+  const center = warm ? "#FAF8F5" : cool ? "#F3F4F8" : "#F7F7F9";
+  const mid    = warm ? "#EDE8E3" : cool ? "#DDDDE4" : "#DCDCE0";
+  const edge   = warm ? "#CDC8C3" : cool ? "#C4C5CE" : "#C7C8CD";
+  return `radial-gradient(ellipse at 50% 45%, ${center} 0%, ${mid} 40%, ${edge} 100%)`;
+}

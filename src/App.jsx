@@ -5,7 +5,7 @@ import { collection, getDocs, addDoc, query, orderBy, doc, updateDoc, setDoc } f
 import { db }                                       from "./firebase";
 import { camelotCompatible, getEnergyRangeForHour, fmtTime, hexToRgbStr } from "./lib/harmony";
 import { computeHumanState, computeSignalTraits, pickNextTrack, buildSession, SESSION_PROFILES } from "./lib/engine";
-import { font, color, radius, shadow } from "./lib/theme";
+import { font, color, radius, shadow, timeOfDayGradient } from "./lib/theme";
 import vLogo                                         from "./v-logo-new.png";
 
 // Screens whose state is mirrored in the URL hash (shareable + back button).
@@ -3196,7 +3196,7 @@ export default function App() {
   const glowRgb = currentTrack ? hexToRgbStr(currentTrack.color) : "200,200,210";
 
   return (
-    <div style={{ display:"flex", height:"100vh", background:(()=>{const h=new Date().getHours();const w=h>=6&&h<=10?1:0;const c=h>=18&&h<=23?1:h>=0&&h<=5?1:0;const center=w?"#FAF8F5":c?"#F3F4F8":"#F7F7F9";const mid=w?"#EDE8E3":c?"#DDDDE4":"#DCDCE0";const edge=w?"#CDC8C3":c?"#C4C5CE":"#C7C8CD";return `radial-gradient(ellipse at 50% 45%, ${center} 0%, ${mid} 40%, ${edge} 100%)`})(), overflow:"hidden", fontFamily:"-apple-system,'SF Pro Display','Helvetica Neue',Arial,sans-serif" }}>
+    <div style={{ display:"flex", height:"100vh", background:timeOfDayGradient(), overflow:"hidden", fontFamily:font }}>
 
       {/* ── LEFT NAV RAIL ─────────────────────────────────────────────── */}
       <div style={{ width:72, flexShrink:0, background:"rgba(255,255,255,0.06)", backdropFilter:"blur(80px) saturate(180%)", borderRight:"1px solid rgba(255,255,255,0.08)", display:"flex", flexDirection:"column", alignItems:"center", padding:"16px 0 16px" }}>
@@ -3522,7 +3522,7 @@ export default function App() {
 // ─── SHARED STYLES ────────────────────────────────────────────────────────────
 // Built from design tokens in src/lib/theme.js (font/color/radius/shadow).
 const APP_STYLE = {
-  background:(()=>{const h=new Date().getHours();const w=h>=6&&h<=10?1:0;const c=h>=18&&h<=23?1:h>=0&&h<=5?1:0;const center=w?"#FAF8F5":c?"#F3F4F8":"#F7F7F9";const mid=w?"#EDE8E3":c?"#DDDDE4":"#DCDCE0";const edge=w?"#CDC8C3":c?"#C4C5CE":"#C7C8CD";return `radial-gradient(ellipse at 50% 45%, ${center} 0%, ${mid} 40%, ${edge} 100%)`})(),
+  background:timeOfDayGradient(),
   minHeight:"100vh", height:"100vh", overflow:"hidden",
   fontFamily:font,
   color:color.ink, position:"relative", display:"flex", flexDirection:"column",
