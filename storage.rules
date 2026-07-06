@@ -1,0 +1,18 @@
+rules_version = '2';
+
+// Crate — Cloud Storage security rules
+// Deploy with: firebase deploy --only storage
+//
+// Audio and cover assets form a public catalog and are read-only to the
+// client. Uploads are performed server-side via the Firebase Admin SDK
+// (see upload-tracks.js), which bypasses these rules, so client writes
+// are denied entirely.
+
+service firebase.storage {
+  match /b/{bucket}/o {
+    match /{allPaths=**} {
+      allow read: if true;
+      allow write: if false;
+    }
+  }
+}

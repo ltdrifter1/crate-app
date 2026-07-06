@@ -3,7 +3,18 @@ import { useAuth }                                  from "./useAuth";
 import { toggleLike as fbToggleLike, recordPlay, saveGenres } from "./useUserData";
 import { collection, getDocs, addDoc, query, orderBy, doc, updateDoc, setDoc } from "firebase/firestore";
 import { db }                                       from "./firebase";
+import { camelotCompatible, getEnergyRangeForHour, fmtTime, hexToRgbStr } from "./lib/harmony";
+import { computeHumanState, computeSignalTraits, pickNextTrack, buildSession, SESSION_PROFILES } from "./lib/engine";
+import { font, color, radius, shadow, timeOfDayGradient } from "./lib/theme";
 import vLogo                                         from "./v-logo-new.png";
+
+// Screens whose state is mirrored in the URL hash (shareable + back button).
+// 'admin' is intentionally excluded so it is never surfaced via a URL.
+const VALID_SCREENS = ["home", "search", "favorites", "profile", "drift", "map"];
+function screenFromHash() {
+  const h = (window.location.hash || "").replace(/^#\/?/, "");
+  return VALID_SCREENS.includes(h) ? h : null;
+}
 
 const injectStyles = () => {
   if (document.getElementById("verse-app-global-styles")) return;
@@ -42,346 +53,18 @@ const injectStyles = () => {
     input[type="range"]::-webkit-slider-thumb:active { transform: scale(0.95); }
     input[type="range"]::-moz-range-thumb { width: 18px; height: 18px; border-radius: 50%; background: rgba(255,255,255,0.95); border: none; box-shadow: 0 2px 8px rgba(0,0,0,0.2), 0 0 0 4px rgba(255,255,255,0.15); cursor: pointer; }
     input[type="range"]::-moz-range-track { height: 6px; background: rgba(255,255,255,0.2); border-radius: 3px; border: none; }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.001ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.001ms !important;
+        scroll-behavior: auto !important;
+      }
+    }
   `;
   document.head.appendChild(s);
 };
 injectStyles();
-
-// ─── CAMELOT ──────────────────────────────────────────────────────────────────
-function camelotCompatible(keyA, keyB, range = 2) {
-  if (!keyA || !keyB) return true;
-  const numA = parseInt(keyA), numB = parseInt(keyB);
-  if (isNaN(numA) || isNaN(numB)) return true;
-  const diff = Math.abs(numA - numB);
-  return Math.min(diff, 12 - diff) <= range;
-}
-
-// ─── TIME → ENERGY ────────────────────────────────────────────────────────────
-function getEnergyRangeForHour(h) {
-  const m = {
-    0:[7,9],1:[5,7],2:[2,4],3:[2,4],4:[2,4],5:[2,4],6:[2,4],7:[2,4],8:[2,4],
-    9:[4,6],10:[4,6],11:[4,6],12:[5,8],13:[5,8],14:[5,8],15:[5,8],
-    16:[4,8],17:[4,8],18:[4,8],19:[4,8],20:[4,8],21:[4,8],22:[7,9],23:[7,9],
-  };
-  return m[h] ?? [1,10];
-}
-
-
-
-// ─── AURA: HUMAN STATE VECTOR ───────────────────────────────────────────────
-// Computes the listener's current state from recent behavior.
-// Returns { intensity, openness, momentum, depth, direction, label }
-
-function computeHumanState(recentPlays, sessionStartTime) {
-  if (!recentPlays.length) return { intensity: 0.5, openness: 0.5, momentum: 0, depth: 0, direction: 0, label: "arrival" };
-
-  const now = Date.now();
-  const recent = recentPlays.slice(0, 10);
-  const sessionMins = sessionStartTime ? (now - sessionStartTime) / 60000 : 0;
-
-  // Intensity: average energy of last 5 tracks, normalized to 0-1
-  const avgEnergy = recent.slice(0, 5).reduce((s, r) => s + (r.energy || 5), 0) / Math.min(5, recent.length);
-  const intensity = Math.max(0, Math.min(1, (avgEnergy - 1) / 9));
-
-  // Direction: energy trend. Compare last 3 avg vs previous 3 avg.
-  const last3 = recent.slice(0, 3).reduce((s, r) => s + (r.energy || 5), 0) / Math.min(3, recent.length);
-  const prev3 = recent.slice(3, 6);
-  const prevAvg = prev3.length > 0 ? prev3.reduce((s, r) => s + (r.energy || 5), 0) / prev3.length : last3;
-  const direction = Math.max(-1, Math.min(1, (last3 - prevAvg) / 3));
-
-  // Openness: genre variety in recent plays. More genres = higher openness.
-  const genres = new Set(recent.map(r => r.genre).filter(Boolean));
-  const openness = Math.max(0, Math.min(1, genres.size / Math.max(4, recent.length) * 1.5));
-
-  // Depth: session duration + completion rate proxy
-  const depth = Math.max(0, Math.min(1, sessionMins / 60));
-
-  // Momentum: how quickly tracks are being played (shorter gaps = higher momentum)
-  const gaps = [];
-  for (let i = 0; i < recent.length - 1; i++) {
-    gaps.push(recent[i].ts - recent[i + 1].ts);
-  }
-  const avgGap = gaps.length > 0 ? gaps.reduce((s, g) => s + g, 0) / gaps.length : 300000;
-  const momentum = Math.max(0, Math.min(1, 1 - (avgGap - 60000) / 600000));
-
-  // State label based on signals
-  let label = "arrival";
-  if (sessionMins < 3) label = "arrival";
-  else if (sessionMins < 8 && Math.abs(direction) < 0.2) label = "grounding";
-  else if (direction > 0.3 && intensity < 0.7) label = "ignition";
-  else if (intensity > 0.6 && direction > 0.1) label = "momentum";
-  else if (depth > 0.5 && Math.abs(direction) < 0.15) label = "immersion";
-  else if (direction > 0.3 && openness > 0.5) label = "expansion";
-  else if (direction < -0.2) label = "release";
-  else if (intensity < 0.3 && depth > 0.4) label = "restoration";
-  else if (sessionMins > 5) label = "grounding";
-
-  return { intensity, openness, momentum, depth, direction, label };
-}
-
-
-// ─── HYPNO VISION — psychoacoustic trait-vector similarity · Hypno Vision ───────────────────────
-function findResonant(sourceTrack, allTracks, count = 12) {
-  if (!sourceTrack._signal) return allTracks.slice(0, count);
-  const src = sourceTrack._signal;
-  return allTracks
-    .filter(t => t.id !== sourceTrack.id && t._signal)
-    .map(t => {
-      const s = t._signal;
-      // Euclidean distance across all trait dimensions
-      const dist = Math.sqrt(
-        Math.pow((src.grip - s.grip) / 10, 2) +
-        Math.pow((src.hold - s.hold) / 10, 2) +
-        Math.pow((src.pull - s.pull) / 10, 2) +
-        Math.pow((src.gravity - s.gravity) / 10, 2) +
-        Math.pow((src.lift - s.lift) / 10, 2) +
-        Math.pow((src.descent - s.descent) / 10, 2)
-      );
-      // Bonus for same genre and close energy
-      let bonus = 0;
-      if (t.genre === sourceTrack.genre) bonus += 0.05;
-      if (Math.abs((t.energy||5) - (sourceTrack.energy||5)) <= 1) bonus += 0.03;
-      if (sourceTrack.camelot && t.camelot && camelotCompatible(sourceTrack.camelot, t.camelot, 1)) bonus += 0.02;
-      return { track: t, distance: dist - bonus };
-    })
-    .sort((a, b) => a.distance - b.distance)
-    .slice(0, count)
-    .map(r => r.track);
-}
-
-// ─── AURA: TRAIT SCORING ENGINE ─────────────────────────────────────────────
-// Computes behavioral trait scores for each track from play/skip/like data.
-// Called once after tracks load, enriches each track object with Aura scores.
-
-function computeSignalTraits(tracks, recentPlays = []) {
-  const maxPlays = Math.max(...tracks.map(t => t.playCount || 0), 1);
-  const maxSkips = Math.max(...tracks.map(t => t.skipCount || 0), 1);
-  const maxLikes = Math.max(...tracks.map(t => t.likeCount || 0), 1);
-
-  // Build a play-sequence map for lift/descent scoring
-  const sequences = [];
-  for (let i = 0; i < recentPlays.length - 1; i++) {
-    sequences.push({ from: recentPlays[i], to: recentPlays[i + 1] });
-  }
-
-  return tracks.map(t => {
-    const plays = t.playCount || 0;
-    const skips = t.skipCount || 0;
-    const likes = t.likeCount || 0;
-    const energy = t.energy || 5;
-
-    // Grip: inverse of skip ratio. High completion = high grip.
-    const skipRatio = plays > 0 ? skips / plays : 0.5;
-    const grip = Math.round(Math.max(1, Math.min(10, (1 - skipRatio) * 10)));
-
-    // Hold: based on play count relative to library average. Frequently played = high hold.
-    const hold = Math.round(Math.max(1, Math.min(10, (plays / maxPlays) * 8 + (likes > 0 ? 2 : 0))));
-
-    // Pull: how often this track is returned to. Liked + played multiple times = high pull.
-    const pull = Math.round(Math.max(1, Math.min(10,
-      (plays > 2 ? 3 : 0) + (likes > 0 ? 3 : 0) + (plays / maxPlays) * 4
-    )));
-
-    // Gravity: session-opener tendency. Approximated by high grip + moderate energy.
-    const gravity = Math.round(Math.max(1, Math.min(10,
-      grip * 0.5 + (energy >= 3 && energy <= 7 ? 3 : 1) + (pull > 5 ? 2 : 0)
-    )));
-
-    // Lift: does this track lead to higher energy next? Check sequences.
-    const liftSeqs = sequences.filter(s => s.from.id === t.id);
-    const avgLift = liftSeqs.length > 0
-      ? liftSeqs.reduce((s, seq) => {
-          const nextTrack = tracks.find(x => x.id === seq.to.id);
-          return s + ((nextTrack?.energy || 5) - energy);
-        }, 0) / liftSeqs.length
-      : 0;
-    const lift = Math.round(Math.max(1, Math.min(10, 5 + avgLift * 2)));
-
-    // Descent: inverse of lift.
-    const descent = Math.round(Math.max(1, Math.min(10, 5 - avgLift * 2)));
-
-    // Dominant trait label
-    const traits = { grip, hold, pull, gravity, lift, descent };
-    const sorted = Object.entries(traits).sort((a, b) => b[1] - a[1]);
-    const dominant = sorted[0][0];
-
-    // Map dominant trait to a user-facing label
-    const LABELS = {
-      grip: "opener", hold: "anchor", pull: "favorite",
-      gravity: "opener", lift: "build", descent: "closer"
-    };
-    const signalLabel = LABELS[dominant] || "track";
-
-    return { ...t, _signal: { grip, hold, pull, gravity, lift, descent, label: signalLabel } };
-  });
-}
-
-// ─── WEIGHTED RADIO PICK ──────────────────────────────────────────────────────
-// All tracks eligible; liked tracks get 3× weight
-// Priority: camelot+energy → camelot → energy → anything
-function pickNextTrack(allTracks, currentTrack, memory = null) {
-  if (!allTracks.length) return null;
-  const hour = new Date().getHours();
-  const [eMin, eMax] = getEnergyRangeForHour(hour);
-  // Recency decay — exclude tracks played in last 2 hours
-  const recentIds = memory ? new Set(
-    memory.filter(r => r.ts > Date.now() - 2 * 60 * 60 * 1000).map(r => r.id)
-  ) : new Set();
-  // Genre momentum — boost the current genre streak
-  const recentGenres = memory ? memory.slice(0, 3).map(r => r.genre).filter(Boolean) : [];
-  const momentumGenre = recentGenres.length >= 2 && recentGenres[0] === recentGenres[1] ? recentGenres[0] : null;
-
-  const pool = allTracks.filter(t => t.id !== currentTrack?.id && (t.duration||0) <= 900 && !recentIds.has(t.id));
-  if (!pool.length) {
-    // Fallback: if recency filter emptied the pool, ignore it
-    const fallback = allTracks.filter(t => t.id !== currentTrack?.id && (t.duration||0) <= 900);
-    if (!fallback.length) return allTracks[0];
-    return fallback[Math.floor(Math.random() * fallback.length)];
-  }
-
-  function weightedPick(candidates) {
-    const weighted = candidates.flatMap(t => {
-      let w = t.liked ? 3 : 1;
-      // Skip penalty
-      const plays = t.playCount || 0;
-      const skips = t.skipCount || 0;
-      if (plays > 0 && skips > plays * 0.5) w = Math.max(1, Math.round(w * 0.3));
-      else if (skips > 3) w = Math.max(1, Math.round(w * 0.6));
-      // Genre momentum — 2× boost for tracks matching the streak
-      if (momentumGenre && t.genre === momentumGenre) w *= 2;
-      // Aura trait boost: high grip after a skip, high hold in deep sessions
-      if (t._signal) {
-        if (t._signal.grip >= 7) w += 1; // high-grip tracks slightly favored
-        if (t._signal.pull >= 7) w += 1; // return favorites slightly favored
-      }
-      return Array(w).fill(t);
-    });
-    return weighted[Math.floor(Math.random() * weighted.length)];
-  }
-
-  const p1 = pool.filter(t => camelotCompatible(currentTrack?.camelot,t.camelot) && t.energy>=eMin && t.energy<=eMax);
-  if (p1.length) return weightedPick(p1);
-  const p2 = pool.filter(t => camelotCompatible(currentTrack?.camelot,t.camelot));
-  if (p2.length) return weightedPick(p2);
-  const p3 = pool.filter(t => t.energy>=eMin && t.energy<=eMax);
-  if (p3.length) return weightedPick(p3);
-  return weightedPick(pool);
-}
-
-
-// ─── ROUTE BUILDER ───────────────────────────────────────────────────────────
-// Given a start track and end track, build a harmonic path between them.
-// Steps through adjacent Camelot keys, interpolating energy from start to end.
-function buildRoute(allTracks, startTrack, endTrack, maxSteps = 12) {
-  if (!startTrack || !endTrack || startTrack.id === endTrack.id) return [startTrack, endTrack].filter(Boolean);
-  const startE = startTrack.energy || 5;
-  const endE = endTrack.energy || 5;
-  const pool = allTracks.filter(t => t.id !== startTrack.id && t.id !== endTrack.id && (t.duration||0) <= 900);
-
-  const route = [startTrack];
-  let current = startTrack;
-  const used = new Set([startTrack.id, endTrack.id]);
-
-  for (let step = 1; step <= maxSteps; step++) {
-    const progress = step / (maxSteps + 1);
-    const targetEnergy = Math.round(startE + (endE - startE) * progress);
-
-    // Find candidates: Camelot-adjacent to current, closest to target energy, not used
-    const candidates = pool
-      .filter(t => !used.has(t.id) && camelotCompatible(current.camelot, t.camelot, 1))
-      .map(t => ({ track: t, score: Math.abs((t.energy||5) - targetEnergy) }))
-      .sort((a, b) => a.score - b.score);
-
-    if (!candidates.length) break;
-
-    // Check if we can reach the end track from here
-    if (camelotCompatible(candidates[0].track.camelot, endTrack.camelot, 2)) {
-      // Close enough to bridge to end — pick best and stop
-      route.push(candidates[0].track);
-      used.add(candidates[0].track.id);
-      break;
-    }
-
-    route.push(candidates[0].track);
-    used.add(candidates[0].track.id);
-    current = candidates[0].track;
-  }
-
-  route.push(endTrack);
-  return route;
-}
-
-// ─── SESSION ENGINE ──────────────────────────────────────────────────────────
-// Activity-based energy arc profiles. Each phase has a proportion (0-1) and target energy.
-const SESSION_PROFILES = {
-  party:      { label:"Party",       phases:[{name:"Warm Up",p:0.15,e:4},{name:"Build",p:0.2,e:6},{name:"Peak",p:0.35,e:9},{name:"Sustain",p:0.2,e:8},{name:"Wind Down",p:0.1,e:5}] },
-  run:        { label:"Run",         phases:[{name:"Pace Up",p:0.1,e:6},{name:"Stride",p:0.4,e:8},{name:"Push",p:0.35,e:9},{name:"Cool",p:0.15,e:5}] },
-  workout:    { label:"Workout",     phases:[{name:"Warm Up",p:0.12,e:5},{name:"Build",p:0.2,e:7},{name:"Peak",p:0.4,e:9},{name:"Push",p:0.18,e:8},{name:"Stretch",p:0.1,e:3}] },
-  chill:      { label:"Chill",       phases:[{name:"Drift",p:0.3,e:3},{name:"Float",p:0.4,e:2},{name:"Settle",p:0.3,e:3}] },
-  focus:      { label:"Focus",       phases:[{name:"Settle In",p:0.15,e:4},{name:"Flow",p:0.6,e:3},{name:"Sustain",p:0.2,e:4},{name:"Ease Out",p:0.05,e:3}] },
-  drive:      { label:"Late Drive",  phases:[{name:"Depart",p:0.15,e:5},{name:"Cruise",p:0.5,e:6},{name:"Deep",p:0.25,e:4},{name:"Arrive",p:0.1,e:3}] },
-  dinner:     { label:"Dinner",      phases:[{name:"Arrival",p:0.2,e:4},{name:"Conversation",p:0.5,e:3},{name:"Linger",p:0.3,e:4}] },
-  predrinks:  { label:"Pre-drinks",  phases:[{name:"Ease In",p:0.2,e:4},{name:"Lift",p:0.35,e:6},{name:"Buzz",p:0.3,e:7},{name:"Ready",p:0.15,e:8}] },
-  study:      { label:"Study",       phases:[{name:"Settle",p:0.1,e:3},{name:"Deep Work",p:0.7,e:2},{name:"Break",p:0.1,e:4},{name:"Close",p:0.1,e:2}] },
-  recovery:   { label:"Recovery",    phases:[{name:"Ground",p:0.2,e:2},{name:"Restore",p:0.5,e:1},{name:"Ease Up",p:0.3,e:3}] },
-};
-
-function buildSession(allTracks, durationMins, activityId) {
-  const profile = SESSION_PROFILES[activityId];
-  if (!profile) return [];
-  const pool = allTracks.filter(t => (t.duration||0) <= 900 && (t.duration||0) > 0);
-  if (!pool.length) return [];
-
-  const totalSecs = durationMins * 60;
-  const avgTrackLen = pool.reduce((s,t)=>s+(t.duration||210),0) / pool.length;
-  const targetCount = Math.max(3, Math.round(totalSecs / avgTrackLen));
-
-  const session = [];
-  const used = new Set();
-  let accumulated = 0;
-
-  for (const phase of profile.phases) {
-    const phaseTarget = phase.e;
-    const phaseTracks = Math.max(1, Math.round(targetCount * phase.p));
-
-    // Find tracks near this energy level, prefer camelot compatibility with last track
-    const lastTrack = session.length ? session[session.length-1] : null;
-    let candidates = pool
-      .filter(t => !used.has(t.id))
-      .map(t => {
-        let score = Math.abs((t.energy||5) - phaseTarget) * 3;
-        if (lastTrack && !camelotCompatible(lastTrack.camelot, t.camelot, 2)) score += 2;
-        if (t.liked) score -= 0.5;
-        const skips = t.skipCount || 0;
-        const plays = t.playCount || 0;
-        if (plays > 0 && skips > plays * 0.5) score += 3;
-        return { track:t, score };
-      })
-      .sort((a,b) => a.score - b.score);
-
-    for (let i = 0; i < phaseTracks && candidates.length > 0; i++) {
-      // Pick from top 3 randomly for variety
-      const pick = candidates.splice(Math.floor(Math.random() * Math.min(3, candidates.length)), 1)[0];
-      if (!pick) break;
-      session.push({ ...pick.track, _phase: phase.name });
-      used.add(pick.track.id);
-      accumulated += (pick.track.duration || avgTrackLen);
-      if (accumulated >= totalSecs * 1.05) break;
-    }
-    if (accumulated >= totalSecs * 1.05) break;
-  }
-
-  return session;
-}
-
-function fmtTime(s) {
-  if (!s||isNaN(s)) return "0:00";
-  return `${Math.floor(s/60)}:${Math.floor(s%60).toString().padStart(2,"0")}`;
-}
-function hexToRgbStr(hex) {
-  if (!hex||hex.length<7) return "160,165,175";
-  return `${parseInt(hex.slice(1,3),16)},${parseInt(hex.slice(3,5),16)},${parseInt(hex.slice(5,7),16)}`;
-}
 
 // ─── ENERGY BAR ───────────────────────────────────────────────────────────────
 function EnergyBar({ level, color, size="sm" }) {
@@ -834,8 +517,6 @@ function TrackRow({ track, onPlay, active, isPlaying, onLike, extraAction, playl
           {activePlaylistId && activePlaylistId !== "liked" && (
             <>
               <div style={{ height:0.5, background:"rgba(60,60,67,0.12)", margin:"4px 14px" }}/>
-              <button onClick={()=>{if(ctx.onResonance) ctx.onResonance(track); setMenuOpen(false);}}
-                style={{ width:"100%", textAlign:"left", background:"none", border:"none", padding:"8px 12px", fontSize:13, color:"#1A1D26", cursor:"pointer", borderBottom:"0.5px solid rgba(60,60,67,0.06)" }}>Hypno Vision · find similar</button>
               <button onClick={()=>{ctx.onRemove(track.id, activePlaylistId);setMenuOpen(false);}}
                 style={{ display:"block", width:"100%", textAlign:"left", background:"none", border:"none", color:"#FF3B30", fontSize:14, padding:"10px 14px", cursor:"pointer" }}>
                 Remove from playlist
@@ -1368,134 +1049,6 @@ function HarmonicMap({ tracks, onPlay, currentTrack }) {
 
 
 
-// ─── HYPNO VISION OVERLAY — "sounds like this" full-screen ──────────────────────
-function HypnoVisionOverlay({ sourceTrack, tracks, onPlay, onClose }) {
-  const similar = findResonant(sourceTrack, tracks, 12);
-  const rgb = hexToRgbStr(sourceTrack.color);
-
-  return (
-    <div style={{ position:"fixed", inset:0, zIndex:95, overflow:"auto" }}>
-      <div style={{ position:"absolute", inset:0, background:`radial-gradient(ellipse at 50% 20%, rgba(${rgb},0.08) 0%, rgba(8,8,12,0.92) 60%)`, backdropFilter:"blur(40px)" }} onClick={onClose}/>
-      <div style={{ position:"relative", zIndex:1, maxWidth:520, margin:"0 auto", padding:"40px 24px" }}>
-        {/* Header */}
-        <div style={{ display:"flex", alignItems:"center", gap:16, marginBottom:32 }}>
-          <div style={{ width:64, height:64, borderRadius:14, overflow:"hidden", flexShrink:0, boxShadow:`0 8px 32px rgba(${rgb},0.25)` }}>
-            <AlbumArt track={sourceTrack} size={64} borderRadius={0}/>
-          </div>
-          <div style={{ flex:1 }}>
-            <div style={{ fontSize:10, fontWeight:700, letterSpacing:2, color:"rgba(255,255,255,0.25)", textTransform:"uppercase", marginBottom:4 }}>Hypno Vision</div>
-            <div style={{ fontSize:18, fontWeight:700, color:"#FFFFFF", letterSpacing:-0.3 }}>{sourceTrack.title}</div>
-            <div style={{ fontSize:12, color:"rgba(255,255,255,0.4)", marginTop:2 }}>{sourceTrack.artist} · Tracks that feel like this</div>
-          </div>
-          <button onClick={onClose} style={{ background:"rgba(255,255,255,0.06)", border:"1px solid rgba(255,255,255,0.08)", borderRadius:"50%", width:36, height:36, cursor:"pointer", color:"rgba(255,255,255,0.4)", display:"flex", alignItems:"center", justifyContent:"center" }}>
-            <Icon name="x" size={16}/>
-          </button>
-        </div>
-
-        {/* Trait signature of source */}
-        {sourceTrack._signal && (
-          <div style={{ display:"flex", gap:12, marginBottom:24, justifyContent:"center" }}>
-            {["grip","hold","pull","lift"].map(k => (
-              <div key={k} style={{ textAlign:"center" }}>
-                <div style={{ fontSize:16, fontWeight:700, color:"rgba(255,255,255,0.6)" }}>{sourceTrack._signal[k]}</div>
-                <div style={{ fontSize:8, fontWeight:600, letterSpacing:1, color:"rgba(255,255,255,0.15)", textTransform:"uppercase" }}>{k}</div>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {/* Similar tracks grid */}
-        <div style={{ display:"grid", gridTemplateColumns:"repeat(3, 1fr)", gap:12 }}>
-          {similar.map(t => (
-            <div key={t.id} onClick={() => { onPlay(t); onClose(); }} style={{ cursor:"pointer", textAlign:"center" }}>
-              <div style={{ width:"100%", aspectRatio:"1", borderRadius:12, overflow:"hidden", marginBottom:6, boxShadow:"0 4px 16px rgba(0,0,0,0.2)" }}>
-                <AlbumArt track={t} size={200} borderRadius={0}/>
-              </div>
-              <div style={{ fontSize:11, fontWeight:500, color:"#FFFFFF", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{t.title}</div>
-              <div style={{ fontSize:9, color:"rgba(255,255,255,0.35)" }}>{t.artist}</div>
-              {t._signal && <div style={{ fontSize:8, color:"rgba(255,255,255,0.15)", marginTop:2 }}>{t._signal.label}</div>}
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ─── SESSION AFTERGLOW — end-of-session overlay ──────────────────────────────
-function AfterglowOverlay({ data, onClose, onSavePlaylist }) {
-  if (!data || !data.tracks.length) return null;
-
-  const tracks = data.tracks;
-  const energies = tracks.map(t => t.energy || 5);
-  const genres = [...new Set(tracks.map(t => t.genre).filter(Boolean))];
-  const avgEnergy = (energies.reduce((s, e) => s + e, 0) / energies.length).toFixed(1);
-
-  // Build energy arc SVG
-  const width = 320;
-  const height = 60;
-  const step = width / Math.max(energies.length - 1, 1);
-  const points = energies.map((e, i) => `${i * step},${height - ((e - 1) / 9) * height}`).join(" ");
-
-  return (
-    <div style={{ position:"fixed", inset:0, zIndex:95, display:"flex", alignItems:"center", justifyContent:"center", padding:32 }}>
-      <div style={{ position:"absolute", inset:0, background:"rgba(8,8,12,0.85)", backdropFilter:"blur(40px)" }} onClick={onClose}/>
-      <div style={{ position:"relative", zIndex:1, maxWidth:420, width:"100%", textAlign:"center" }}>
-        {/* Hero */}
-        <div style={{ fontSize:10, fontWeight:700, letterSpacing:2, color:"rgba(255,255,255,0.25)", textTransform:"uppercase", marginBottom:12 }}>Session Complete</div>
-        <div style={{ fontSize:32, fontWeight:700, color:"#FFFFFF", letterSpacing:-0.5, marginBottom:6 }}>{data.durationMins} minutes</div>
-        <div style={{ fontSize:14, color:"rgba(255,255,255,0.35)", marginBottom:32 }}>{tracks.length} tracks · {genres.length} genres · avg energy {avgEnergy}</div>
-
-        {/* Energy arc */}
-        <div style={{ marginBottom:32 }}>
-          <svg width={width} height={height} style={{ display:"block", margin:"0 auto" }}>
-            <defs>
-              <linearGradient id="arcGrad" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="rgba(255,255,255,0.15)"/>
-                <stop offset="100%" stopColor="rgba(255,255,255,0)"/>
-              </linearGradient>
-            </defs>
-            <polyline points={points} fill="none" stroke="rgba(255,255,255,0.3)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-            <polygon points={`0,${height} ${points} ${width},${height}`} fill="url(#arcGrad)"/>
-          </svg>
-          <div style={{ display:"flex", justifyContent:"space-between", marginTop:4 }}>
-            <span style={{ fontSize:9, color:"rgba(255,255,255,0.2)" }}>Start</span>
-            <span style={{ fontSize:9, color:"rgba(255,255,255,0.2)" }}>End</span>
-          </div>
-        </div>
-
-        {/* Genre pills */}
-        <div style={{ display:"flex", gap:6, justifyContent:"center", flexWrap:"wrap", marginBottom:32 }}>
-          {genres.slice(0, 6).map(g => (
-            <span key={g} style={{ fontSize:10, fontWeight:500, padding:"4px 10px", borderRadius:8, background:"rgba(255,255,255,0.06)", border:"1px solid rgba(255,255,255,0.08)", color:"rgba(255,255,255,0.4)" }}>{g}</span>
-          ))}
-        </div>
-
-        {/* Actions */}
-        <div style={{ display:"flex", gap:10, justifyContent:"center" }}>
-          <button onClick={() => {
-            if (onSavePlaylist) {
-              const name = `Session · ${new Date(data.startTime).toLocaleDateString()} ${new Date(data.startTime).toLocaleTimeString([], {hour:"2-digit", minute:"2-digit"})}`;
-              onSavePlaylist(name, tracks.map(t => t.id));
-            }
-            onClose();
-          }} style={{
-            padding:"14px 28px", borderRadius:14,
-            background:"rgba(255,255,255,0.1)", backdropFilter:"blur(20px)",
-            border:"1px solid rgba(255,255,255,0.12)",
-            color:"#FFFFFF", fontSize:14, fontWeight:600, cursor:"pointer",
-          }}>Save as playlist</button>
-          <button onClick={onClose} style={{
-            padding:"14px 28px", borderRadius:14,
-            background:"transparent", border:"1px solid rgba(255,255,255,0.08)",
-            color:"rgba(255,255,255,0.4)", fontSize:14, fontWeight:500, cursor:"pointer",
-          }}>Close</button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 // ─── DRIFT — immersive cinematic playback ─────────────────────────────────────
 function DriftMode({ tracks, currentTrack, isPlaying, onTogglePlay, onSkip, onPrev, onPlay, signalState }) {
   const [showUI, setShowUI] = useState(true);
@@ -1847,7 +1400,7 @@ function HomeScreen({ tracks, onPlayRadio, onTogglePlay, onPlayTrack, currentTra
 
       {/* Harmonic neighbors — highest priority when playing */}
       {showHarmonic && (
-        <GlassSection label="mixes well with this">
+        <GlassSection label="goes with this">
           <GridShelf items={harmonicNeighbors} onPlay={t=>onPlayTrack(t,tracks)} activeId={activeId}/>
         </GlassSection>
       )}
@@ -2295,14 +1848,6 @@ function ProfileScreen({ user, setUser, tracks, onLogout }) {
   // Genre breadth
   const genreCount = new Set(singles.map(t => t.genre).filter(Boolean)).size;
 
-  // Aura trait averages
-  const traitAvgs = {};
-  const traitKeys = ["grip","hold","pull","gravity","lift","descent"];
-  traitKeys.forEach(k => {
-    const vals = singles.filter(t => t._signal?.[k]).map(t => t._signal[k]);
-    traitAvgs[k] = vals.length ? (vals.reduce((s,v) => s+v, 0) / vals.length).toFixed(1) : "—";
-  });
-
   const CARD = { background:"rgba(255,255,255,0.12)", backdropFilter:"blur(60px) saturate(200%)", border:"1px solid rgba(255,255,255,0.1)", boxShadow:"0 4px 24px rgba(0,0,0,0.02)", borderRadius:16, padding:"16px" };
 
   return (
@@ -2363,19 +1908,6 @@ function ProfileScreen({ user, setUser, tracks, onLogout }) {
         </div>
       </div>
 
-      {/* Aura traits */}
-      <div style={{...CARD, marginBottom:16 }}>
-        <div style={{ fontSize:10, fontWeight:700, letterSpacing:0.8, color:"#9CA3AF", textTransform:"uppercase", marginBottom:12 }}>Aura Profile</div>
-        <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:8 }}>
-          {traitKeys.map(k => (
-            <div key={k} style={{ textAlign:"center" }}>
-              <div style={{ fontSize:18, fontWeight:700, color:"#1A1D26", letterSpacing:-0.3 }}>{traitAvgs[k]}</div>
-              <div style={{ fontSize:8, color:"#9CA3AF", letterSpacing:0.8, fontWeight:600, textTransform:"uppercase", marginTop:2 }}>{k}</div>
-            </div>
-          ))}
-        </div>
-      </div>
-
       {/* Return tracks — highest pull */}
       {returnTracks.length > 0 && (
         <div style={{...CARD, marginBottom:16 }}>
@@ -2387,7 +1919,6 @@ function ProfileScreen({ user, setUser, tracks, onLogout }) {
                 <div style={{ fontSize:12, fontWeight:500, color:"#1A1D26", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{t.title}</div>
                 <div style={{ fontSize:10, color:"#6B7280" }}>{t.artist}</div>
               </div>
-              <div style={{ fontSize:9, color:"#9CA3AF", fontWeight:600 }}>pull {t._signal?.pull}</div>
             </div>
           ))}
         </div>
@@ -2890,7 +2421,7 @@ function NowPlayingBar({ track, isPlaying, progress, duration, onTogglePlay, onS
 
       <div style={{ position:"relative", zIndex:1, height:"100%", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:32, gap:24 }}>
         {/* Close */}
-        <button onClick={()=>setExpanded(false)} style={{ position:"absolute", top:20, right:20, background:"rgba(255,255,255,0.06)", border:"1px solid rgba(255,255,255,0.08)", borderRadius:"50%", width:36, height:36, cursor:"pointer", color:"rgba(255,255,255,0.4)", backdropFilter:"blur(20px)", display:"flex", alignItems:"center", justifyContent:"center" }}>
+        <button aria-label="Close" onClick={()=>setExpanded(false)} style={{ position:"absolute", top:20, right:20, background:"rgba(255,255,255,0.06)", border:"1px solid rgba(255,255,255,0.08)", borderRadius:"50%", width:36, height:36, cursor:"pointer", color:"rgba(255,255,255,0.4)", backdropFilter:"blur(20px)", display:"flex", alignItems:"center", justifyContent:"center" }}>
           <Icon name="x" size={16}/>
         </button>
 
@@ -2906,7 +2437,7 @@ function NowPlayingBar({ track, isPlaying, progress, duration, onTogglePlay, onS
 
         {/* Track info */}
         <div style={{ textAlign:"center", maxWidth:360 }}>
-          {isRadioMode&&<div style={{ fontSize:10, color:"rgba(255,255,255,0.3)", letterSpacing:2, textTransform:"uppercase", marginBottom:6, fontWeight:700 }}>● V Radio</div>}
+          {isRadioMode&&<div style={{ fontSize:10, color:"rgba(255,255,255,0.3)", letterSpacing:2, textTransform:"uppercase", marginBottom:6, fontWeight:700 }}>● Radio</div>}
           <div style={{ fontSize:26, fontWeight:700, letterSpacing:-0.5, color:"#FFFFFF", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{track.title}</div>
           <div style={{ fontSize:14, color:"rgba(255,255,255,0.5)", marginTop:4 }}>{track.artist}</div>
           {/* Metadata row */}
@@ -2928,13 +2459,13 @@ function NowPlayingBar({ track, isPlaying, progress, duration, onTogglePlay, onS
 
         {/* Controls */}
         <div style={{ display:"flex", alignItems:"center", gap:28 }}>
-          <button onClick={onLike} style={{ background:"none",border:"none",cursor:"pointer",color:track.liked?"#FFFFFF":"rgba(255,255,255,0.3)",padding:4,transition:"color 0.2s" }}><Icon name={track.liked?"heart":"heartempty"} size={20}/></button>
-          <button onClick={onPrev} style={{ ...CTRL_BTN, color:"rgba(255,255,255,0.5)" }}><Icon name="prev" size={22}/></button>
-          <button onClick={onTogglePlay} style={{ width:60, height:60, background:"rgba(255,255,255,0.08)", backdropFilter:"blur(24px)", border:"1px solid rgba(255,255,255,0.12)", borderRadius:"50%", color:"#FFFFFF", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center" }}>
+          <button aria-label={track.liked?"Unlike":"Like"} aria-pressed={!!track.liked} onClick={onLike} style={{ background:"none",border:"none",cursor:"pointer",color:track.liked?"#FFFFFF":"rgba(255,255,255,0.3)",padding:4,transition:"color 0.2s" }}><Icon name={track.liked?"heart":"heartempty"} size={20}/></button>
+          <button aria-label="Previous" onClick={onPrev} style={{ ...CTRL_BTN, color:"rgba(255,255,255,0.5)" }}><Icon name="prev" size={22}/></button>
+          <button aria-label={isPlaying?"Pause":"Play"} onClick={onTogglePlay} style={{ width:60, height:60, background:"rgba(255,255,255,0.08)", backdropFilter:"blur(24px)", border:"1px solid rgba(255,255,255,0.12)", borderRadius:"50%", color:"#FFFFFF", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center" }}>
             <Icon name={isPlaying?"pause":"play"} size={28}/>
           </button>
-          <button onClick={onSkip} style={{ ...CTRL_BTN, color:"rgba(255,255,255,0.5)" }}><Icon name="skip" size={22}/></button>
-          <button onClick={()=>setRepeat(r=>!r)} style={{ background:"none",border:"none",cursor:"pointer",color:repeat?"#FFFFFF":"rgba(255,255,255,0.2)",padding:4,transition:"color 0.2s" }}><Icon name="repeat" size={18}/></button>
+          <button aria-label="Next" onClick={onSkip} style={{ ...CTRL_BTN, color:"rgba(255,255,255,0.5)" }}><Icon name="skip" size={22}/></button>
+          <button aria-label="Repeat" aria-pressed={!!repeat} onClick={()=>setRepeat(r=>!r)} style={{ background:"none",border:"none",cursor:"pointer",color:repeat?"#FFFFFF":"rgba(255,255,255,0.2)",padding:4,transition:"color 0.2s" }}><Icon name="repeat" size={18}/></button>
         </div>
       </div>
     </div>
@@ -2955,11 +2486,11 @@ function NowPlayingBar({ track, isPlaying, progress, duration, onTogglePlay, onS
             <div style={{ width:`${pct}%`, background:"#1A1D26", height:"100%", borderRadius:2, transition:"width 1s linear" }}/>
           </div>
         </div>
-        <button onClick={e=>{e.stopPropagation();onLike();}} style={{ background:"none",border:"none",cursor:"pointer",color:track.liked?"#1A1D26":"#C4C9D4",padding:4 }}><Icon name={track.liked?"heart":"heartempty"} size={16}/></button>
-        <button onClick={e=>{e.stopPropagation();onTogglePlay();}} style={{ background:"#1A1D26",border:"none",borderRadius:"50%",width:34,height:34,cursor:"pointer",color:"#FFFFFF",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,boxShadow:"0 2px 8px rgba(0,0,0,0.15)" }}>
+        <button aria-label={track.liked?"Unlike":"Like"} aria-pressed={!!track.liked} onClick={e=>{e.stopPropagation();onLike();}} style={{ background:"none",border:"none",cursor:"pointer",color:track.liked?"#1A1D26":"#C4C9D4",padding:4 }}><Icon name={track.liked?"heart":"heartempty"} size={16}/></button>
+        <button aria-label={isPlaying?"Pause":"Play"} onClick={e=>{e.stopPropagation();onTogglePlay();}} style={{ background:"#1A1D26",border:"none",borderRadius:"50%",width:34,height:34,cursor:"pointer",color:"#FFFFFF",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,boxShadow:"0 2px 8px rgba(0,0,0,0.15)" }}>
           <Icon name={isPlaying?"pause":"play"} size={18}/>
         </button>
-        <button onClick={e=>{e.stopPropagation();onSkip();}} style={{ background:"none",border:"none",cursor:"pointer",color:"#8E8E93",padding:4 }}><Icon name="skip" size={18}/></button>
+        <button aria-label="Next" onClick={e=>{e.stopPropagation();onSkip();}} style={{ background:"none",border:"none",cursor:"pointer",color:"#8E8E93",padding:4 }}><Icon name="skip" size={18}/></button>
       </div>
     </div>
   );
@@ -2975,7 +2506,7 @@ function BottomNav({ screen, setScreen }) {
   return (
     <div style={{ position:"fixed", bottom:0, left:0, right:0, height:52, background:"rgba(255,255,255,0.1)", backdropFilter:"blur(64px) saturate(260%)", borderTop:"1px solid rgba(255,255,255,0.14)", display:"flex", zIndex:85 }}>
       {items.map(({id,icon,label})=>(
-        <button key={id} onClick={()=>setScreen(id)} style={{ flex:1,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:3,background:"none",border:"none",cursor:"pointer",color:screen===id?"#1A1D26":"#C4C9D4",transition:"all 0.2s",borderTop:screen===id?"2px solid #1A1D26":"2px solid transparent" }}>
+        <button key={id} aria-label={label} aria-current={screen===id?"page":undefined} onClick={()=>setScreen(id)} style={{ flex:1,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:3,background:"none",border:"none",cursor:"pointer",color:screen===id?"#1A1D26":"#C4C9D4",transition:"all 0.2s",borderTop:screen===id?"2px solid #1A1D26":"2px solid transparent" }}>
           <Icon name={id==="favorites"?(screen===id?"heart":"heartempty"):icon} size={18}/>
           
         </button>
@@ -3039,7 +2570,7 @@ export default function App() {
   const { firebaseUser, profile, setProfile, loading: authLoading, signUp, logIn, logOut, signInWithGoogle, sendPhoneOTP, verifyPhoneOTP, resetPassword } = useAuth();
 
   // ── App state ────────────────────────────────────────────────────────────
-  const [screen, setScreen]           = useState("home");
+  const [screen, setScreen]           = useState(() => screenFromHash() || "home");
   const [tracks, setTracks]           = useState([]);          // loaded from Firestore
   const [tracksLoading, setTracksLoading] = useState(true);
   const [currentTrack, setCurrent]    = useState(null);
@@ -3062,15 +2593,35 @@ export default function App() {
     window.addEventListener("resize", handle);
     return () => window.removeEventListener("resize", handle);
   }, []);
+
+  // ── Deep links — mirror the current screen in the URL hash ──────────────
+  // pushState (not location.hash=) so our own writes don't re-trigger; back /
+  // forward fire popstate, which we read back into screen state.
+  useEffect(() => {
+    if (!VALID_SCREENS.includes(screen)) return; // e.g. admin — keep out of URL
+    const target = `#/${screen}`;
+    if (window.location.hash !== target) {
+      window.history.pushState(null, "", target);
+    }
+  }, [screen]);
+  useEffect(() => {
+    const onNav = () => { const s = screenFromHash(); if (s) setScreen(s); };
+    window.addEventListener("hashchange", onNav);
+    window.addEventListener("popstate", onNav);
+    return () => {
+      window.removeEventListener("hashchange", onNav);
+      window.removeEventListener("popstate", onNav);
+    };
+  }, []);
   const [userPlaylists, setUserPlaylists] = useState([]); // [{id, name, trackIds:[]}]
   const [showRouteBuilder, setShowRouteBuilder] = useState(false);
-  const [afterglow, setAfterglow] = useState(null);
-  const [resonanceTrack, setResonanceTrack] = useState(null); // { tracks, duration, startTime }
 
   // ── Listening Memory — tracks recently played with timestamps ──
   const recentlyPlayedRef = useRef([]); // [{id, genre, energy, timestamp}]
+  const historyRef = useRef([]); // full track objects, most-recent last — powers "previous"
+  const pushHistory = (t) => { if (t) historyRef.current = [...historyRef.current, t].slice(-100); };
   const sessionStartRef = useRef(null);
-  const [signalState, setSignalState] = useState({ intensity:0.5, openness:0.5, momentum:0, depth:0, direction:0, label:"arrival" });
+  const [signalState, setSignalState] = useState({ intensity:0.5, openness:0.5, momentum:0, depth:0, direction:0, label:"warming up" });
 
   function logTrackPlay(track) {
     const now = Date.now();
@@ -3208,6 +2759,7 @@ export default function App() {
 
   const handleSkipRef = useRef(null);
   const primaryAudioCleanupRef = useRef(() => {});
+  const mediaActionsRef = useRef({}); // latest transport actions for MediaSession
 
   const bindPrimaryAudio = useCallback((audio) => {
     primaryAudioCleanupRef.current?.();
@@ -3301,6 +2853,7 @@ export default function App() {
         nextAudioRef.current = fadeOut;
         bindPrimaryAudio(fadeIn);
 
+        pushHistory(currentRef.current);
         setCurrent(next);
         // Delay clearing the crossfade flag so the currentTrack useEffect
         // sees isCrossfading=true and skips reloading the audio
@@ -3334,8 +2887,46 @@ export default function App() {
     else           { audioRef.current.pause(); }
   }, [isPlaying]);
 
+  // ── MediaSession — lock-screen / hardware media-key / Bluetooth controls ──
+  // Register action handlers once; they defer to the latest transport via ref.
+  useEffect(() => {
+    if (!("mediaSession" in navigator)) return;
+    const ms = navigator.mediaSession;
+    const set = (action, fn) => { try { ms.setActionHandler(action, fn); } catch (e) {} };
+    set("play",          () => mediaActionsRef.current.play?.());
+    set("pause",         () => mediaActionsRef.current.pause?.());
+    set("previoustrack", () => mediaActionsRef.current.prev?.());
+    set("nexttrack",     () => mediaActionsRef.current.next?.());
+    set("seekto",        (d) => { if (d && d.seekTime != null) mediaActionsRef.current.seek?.(d.seekTime); });
+    return () => {
+      ["play","pause","previoustrack","nexttrack","seekto"].forEach(a => set(a, null));
+    };
+  }, []);
+
+  // Reflect the current track in OS now-playing UI.
+  useEffect(() => {
+    if (!("mediaSession" in navigator) || typeof window.MediaMetadata !== "function" || !currentTrack) return;
+    try {
+      navigator.mediaSession.metadata = new window.MediaMetadata({
+        title:  currentTrack.title  || "",
+        artist: currentTrack.artist || "",
+        album:  currentTrack.album  || "",
+        artwork: currentTrack.albumCover
+          ? [{ src: currentTrack.albumCover, sizes: "512x512", type: "image/jpeg" }]
+          : [],
+      });
+    } catch (e) {}
+  }, [currentTrack?.id]);
+
+  // Reflect play/pause state.
+  useEffect(() => {
+    if (!("mediaSession" in navigator)) return;
+    try { navigator.mediaSession.playbackState = isPlaying ? "playing" : "paused"; } catch (e) {}
+  }, [isPlaying]);
+
   // ── Playback actions ─────────────────────────────────────────────────────
   const playTrack = (track, q = null) => {
+    if (currentRef.current && currentRef.current.id !== track.id) pushHistory(currentRef.current);
     setCurrent(track); setIsPlaying(true); setProgress(0); setIsRadioMode(false);
     if (q) setQueue(q.filter(t => t.id !== track.id));
     logTrackPlay(track);
@@ -3347,7 +2938,7 @@ export default function App() {
     const first = pickNextTrack(tracks, null, recentlyPlayedRef.current);
     setCurrent(first); setIsPlaying(true); setProgress(0); setIsRadioMode(true); setQueue([]);
     logTrackPlay(first);
-    showToast("V Radio — on air");
+    showToast("Radio — on air");
     if (firebaseUser) recordPlay(first.id, profile?.recentTracks || []).catch(()=>{});
   };
 
@@ -3381,6 +2972,7 @@ export default function App() {
     if (isRadioMode) {
       const next = pickNextTrack(tracks, currentTrack, recentlyPlayedRef.current);
       if (next) {
+        pushHistory(currentTrack);
         setCurrent(next); setProgress(0); setIsPlaying(true);
         if (firebaseUser) recordPlay(next.id, profile?.recentTracks || []).catch(()=>{});
       }
@@ -3388,6 +2980,7 @@ export default function App() {
     }
     if (!queue.length) { setIsPlaying(false); return; }
     const next = queue[0];
+    pushHistory(currentTrack);
     setQueue(repeat ? [...queue.filter(t=>t.id!==next.id), currentTrack] : queue.filter(t=>t.id!==next.id));
     setCurrent(next); setProgress(0); setIsPlaying(true);
   };
@@ -3400,16 +2993,31 @@ export default function App() {
     if (audioRef.current) audioRef.current.currentTime = seconds;
   };
 
-  // Prev: if more than 3 seconds in, restart the track; otherwise go to previous
+  // Prev: if more than 3 seconds in, restart the track; otherwise step back through history
   const handlePrev = () => {
     if (audioRef.current && audioRef.current.currentTime > 3) {
       audioRef.current.currentTime = 0;
       setProgress(0);
-    } else {
-      // No queue history yet — just restart
-      audioRef.current && (audioRef.current.currentTime = 0);
+      return;
+    }
+    const prev = historyRef.current.pop();
+    if (prev) {
+      setIsRadioMode(false);
+      setCurrent(prev); setProgress(0); setIsPlaying(true);
+      if (firebaseUser) recordPlay(prev.id, profile?.recentTracks || []).catch(()=>{});
+    } else if (audioRef.current) {
+      audioRef.current.currentTime = 0;
       setProgress(0);
     }
+  };
+
+  // Expose the latest transport actions to the MediaSession handlers.
+  mediaActionsRef.current = {
+    play: () => setIsPlaying(true),
+    pause: () => setIsPlaying(false),
+    next: () => handleSkip(),
+    prev: () => handlePrev(),
+    seek: (t) => handleSeek(t),
   };
 
   // ── Like/unlike — optimistic UI + Firestore sync ────────────────────────
@@ -3545,7 +3153,7 @@ export default function App() {
         {screen==="search"    && <SearchScreen query={searchQuery} setQuery={setSearch} results={searchResults} onPlay={t=>playTrack(t,tracks)} onLike={toggleLike} currentTrack={currentTrack} isPlaying={isPlaying} playlistCtx={playlistCtx}/>}
         {screen==="favorites" && <FavoritesScreen tracks={tracks} onPlay={t=>{setIsRadioMode(false);playTrack(t,tracks);}} onLike={toggleLike} currentTrack={currentTrack} isPlaying={isPlaying} userPlaylists={userPlaylists} onCreatePlaylist={createPlaylist} onAddToPlaylist={addToPlaylist} onRemoveFromPlaylist={removeFromPlaylist} onDeletePlaylist={deletePlaylist} playlistCtx={playlistCtx}/>}
         {screen==="profile"   && <ProfileScreen user={user} setUser={setUser} tracks={tracks} onLogout={logOut}/>}
-        {screen==="drift"     && <DriftMode tracks={tracks} currentTrack={currentTrack} isPlaying={isPlaying} onTogglePlay={()=>setIsPlaying(p=>!p)} onSkip={handleSkip} onPrev={()=>{}} onPlay={t=>playTrack(t,tracks)} signalState={signalState}/>}
+        {screen==="drift"     && <DriftMode tracks={tracks} currentTrack={currentTrack} isPlaying={isPlaying} onTogglePlay={()=>setIsPlaying(p=>!p)} onSkip={handleSkip} onPrev={handlePrev} onPlay={t=>playTrack(t,tracks)} signalState={signalState}/>}
         {screen==="map"       && <HarmonicMap tracks={tracks} onPlay={t=>playTrack(t,tracks)} currentTrack={currentTrack}/>}
         {screen==="admin"     && <AdminScreen tracks={tracks} setTracks={setTracks} tab={adminTab} setTab={setAdminTab} editTrack={editTrack} setEditTrack={setEditTrack} showToast={showToast}/>}
       </div>
@@ -3588,7 +3196,7 @@ export default function App() {
   const glowRgb = currentTrack ? hexToRgbStr(currentTrack.color) : "200,200,210";
 
   return (
-    <div style={{ display:"flex", height:"100vh", background:(()=>{const h=new Date().getHours();const w=h>=6&&h<=10?1:0;const c=h>=18&&h<=23?1:h>=0&&h<=5?1:0;const center=w?"#FAF8F5":c?"#F3F4F8":"#F7F7F9";const mid=w?"#EDE8E3":c?"#DDDDE4":"#DCDCE0";const edge=w?"#CDC8C3":c?"#C4C5CE":"#C7C8CD";return `radial-gradient(ellipse at 50% 45%, ${center} 0%, ${mid} 40%, ${edge} 100%)`})(), overflow:"hidden", fontFamily:"-apple-system,'SF Pro Display','Helvetica Neue',Arial,sans-serif" }}>
+    <div style={{ display:"flex", height:"100vh", background:timeOfDayGradient(), overflow:"hidden", fontFamily:font }}>
 
       {/* ── LEFT NAV RAIL ─────────────────────────────────────────────── */}
       <div style={{ width:72, flexShrink:0, background:"rgba(255,255,255,0.06)", backdropFilter:"blur(80px) saturate(180%)", borderRight:"1px solid rgba(255,255,255,0.08)", display:"flex", flexDirection:"column", alignItems:"center", padding:"16px 0 16px" }}>
@@ -3657,7 +3265,7 @@ export default function App() {
       <div style={{ flex:1, overflow:"auto", position:"relative" }}>
         {/* Drift — full screen, no padding, no maxWidth */}
         {screen==="drift" ? (
-          <DriftMode tracks={tracks} currentTrack={currentTrack} isPlaying={isPlaying} onTogglePlay={()=>setIsPlaying(p=>!p)} onSkip={handleSkip} onPrev={()=>{}} onPlay={t=>playTrack(t,tracks)} signalState={signalState}/>
+          <DriftMode tracks={tracks} currentTrack={currentTrack} isPlaying={isPlaying} onTogglePlay={()=>setIsPlaying(p=>!p)} onSkip={handleSkip} onPrev={handlePrev} onPlay={t=>playTrack(t,tracks)} signalState={signalState}/>
         ) : (
         <>
         {/* Accent glow behind content */}
@@ -3868,9 +3476,7 @@ export default function App() {
         </div>
       </div>
 
-      {/* Route Builder Modal */}
-      {resonanceTrack && <HypnoVisionOverlay sourceTrack={resonanceTrack} tracks={tracks} onPlay={t=>playTrack(t,tracks)} onClose={()=>setResonanceTrack(null)}/>}
-      {afterglow && <AfterglowOverlay data={afterglow} onClose={()=>setAfterglow(null)} onSavePlaylist={(name, ids) => { createPlaylist(name); /* TODO: add tracks */ }}/>}
+      {/* Sessions Modal */}
       {showRouteBuilder && <RouteBuilderModal tracks={tracks} onClose={()=>setShowRouteBuilder(false)} onPlayRoute={playRoute}/>}
 
       {/* Expanded NP overlay */}
@@ -3885,7 +3491,7 @@ export default function App() {
             </button>
             <VinylRecord track={currentTrack} isPlaying={isPlaying} size={190}/>
             <div style={{ textAlign:"center" }}>
-              {isRadioMode&&<div style={{ fontSize:11, color:"rgba(255,255,255,0.5)", letterSpacing:1.5, textTransform:"uppercase", marginBottom:6, fontWeight:700 }}>● V Radio</div>}
+              {isRadioMode&&<div style={{ fontSize:11, color:"rgba(255,255,255,0.5)", letterSpacing:1.5, textTransform:"uppercase", marginBottom:6, fontWeight:700 }}>● Radio</div>}
               <div style={{ fontSize:24, fontWeight:700, letterSpacing:-0.5, color:"#FFF" }}>{currentTrack.title}</div>
               <div style={{ fontSize:15, color:"rgba(255,255,255,0.7)", marginTop:4 }}>{currentTrack.artist}</div>
             </div>
@@ -3914,30 +3520,31 @@ export default function App() {
 }
 
 // ─── SHARED STYLES ────────────────────────────────────────────────────────────
+// Built from design tokens in src/lib/theme.js (font/color/radius/shadow).
 const APP_STYLE = {
-  background:(()=>{const h=new Date().getHours();const w=h>=6&&h<=10?1:0;const c=h>=18&&h<=23?1:h>=0&&h<=5?1:0;const center=w?"#FAF8F5":c?"#F3F4F8":"#F7F7F9";const mid=w?"#EDE8E3":c?"#DDDDE4":"#DCDCE0";const edge=w?"#CDC8C3":c?"#C4C5CE":"#C7C8CD";return `radial-gradient(ellipse at 50% 45%, ${center} 0%, ${mid} 40%, ${edge} 100%)`})(),
+  background:timeOfDayGradient(),
   minHeight:"100vh", height:"100vh", overflow:"hidden",
-  fontFamily:"-apple-system,'SF Pro Display','SF Pro Text','Helvetica Neue',Arial,sans-serif",
-  color:"#1C1C1E", position:"relative", display:"flex", flexDirection:"column",
+  fontFamily:font,
+  color:color.ink, position:"relative", display:"flex", flexDirection:"column",
   WebkitFontSmoothing:"antialiased", MozOsxFontSmoothing:"grayscale",
 };
 const INPUT_ST = {
   background:"rgba(255,255,255,0.65)", border:"1px solid rgba(255,255,255,0.7)",
-  borderRadius:12, padding:"12px 14px", color:"#1A1D26", fontSize:15,
-  boxShadow:"0 1px 3px rgba(0,0,0,0.04)", backdropFilter:"blur(20px)",
-  fontFamily:"-apple-system,'SF Pro Text','Helvetica Neue',Arial,sans-serif", width:"100%", display:"block",
+  borderRadius:radius.sm, padding:"12px 14px", color:color.ink, fontSize:15,
+  boxShadow:shadow.card, backdropFilter:"blur(20px)",
+  fontFamily:font, width:"100%", display:"block",
 };
 const BTN_PRIMARY = {
-  background:"#1A1D26", color:"#FFFFFF",
-  border:"none", borderRadius:12, padding:"13px 20px", fontSize:15, fontWeight:600,
-  boxShadow:"0 4px 16px rgba(0,0,0,0.12)",
-  fontFamily:"-apple-system,'SF Pro Text','Helvetica Neue',Arial,sans-serif", cursor:"pointer",
+  background:color.ink, color:color.onDark,
+  border:"none", borderRadius:radius.sm, padding:"13px 20px", fontSize:15, fontWeight:600,
+  boxShadow:shadow.soft,
+  fontFamily:font, cursor:"pointer",
 };
 const BTN_SECONDARY = {
-  background:"rgba(255,255,255,0.6)", color:"#6B7280", border:"1px solid rgba(255,255,255,0.5)",
-  borderRadius:12, padding:"13px 20px", fontSize:15, fontWeight:500,
+  background:"rgba(255,255,255,0.6)", color:color.muted, border:"1px solid rgba(255,255,255,0.5)",
+  borderRadius:radius.sm, padding:"13px 20px", fontSize:15, fontWeight:500,
   backdropFilter:"blur(20px)",
-  fontFamily:"-apple-system,'SF Pro Text','Helvetica Neue',Arial,sans-serif", cursor:"pointer",
+  fontFamily:font, cursor:"pointer",
 };
 const CTRL_BTN = {
   background:"none", border:"none", cursor:"pointer", color:"#8E8E93",
