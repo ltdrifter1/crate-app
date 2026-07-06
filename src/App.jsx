@@ -43,6 +43,14 @@ const injectStyles = () => {
     input[type="range"]::-webkit-slider-thumb:active { transform: scale(0.95); }
     input[type="range"]::-moz-range-thumb { width: 18px; height: 18px; border-radius: 50%; background: rgba(255,255,255,0.95); border: none; box-shadow: 0 2px 8px rgba(0,0,0,0.2), 0 0 0 4px rgba(255,255,255,0.15); cursor: pointer; }
     input[type="range"]::-moz-range-track { height: 6px; background: rgba(255,255,255,0.2); border-radius: 3px; border: none; }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.001ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.001ms !important;
+        scroll-behavior: auto !important;
+      }
+    }
   `;
   document.head.appendChild(s);
 };
