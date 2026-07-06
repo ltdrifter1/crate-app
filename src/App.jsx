@@ -3,6 +3,7 @@ import { useAuth }                                  from "./useAuth";
 import { toggleLike as fbToggleLike, recordPlay, saveGenres } from "./useUserData";
 import { collection, getDocs, addDoc, query, orderBy, doc, updateDoc, setDoc } from "firebase/firestore";
 import { db }                                       from "./firebase";
+import { camelotCompatible, getEnergyRangeForHour, fmtTime, hexToRgbStr } from "./lib/harmony";
 import vLogo                                         from "./v-logo-new.png";
 
 const injectStyles = () => {
@@ -46,27 +47,6 @@ const injectStyles = () => {
   document.head.appendChild(s);
 };
 injectStyles();
-
-// ─── CAMELOT ──────────────────────────────────────────────────────────────────
-function camelotCompatible(keyA, keyB, range = 2) {
-  if (!keyA || !keyB) return true;
-  const numA = parseInt(keyA), numB = parseInt(keyB);
-  if (isNaN(numA) || isNaN(numB)) return true;
-  const diff = Math.abs(numA - numB);
-  return Math.min(diff, 12 - diff) <= range;
-}
-
-// ─── TIME → ENERGY ────────────────────────────────────────────────────────────
-function getEnergyRangeForHour(h) {
-  const m = {
-    0:[7,9],1:[5,7],2:[2,4],3:[2,4],4:[2,4],5:[2,4],6:[2,4],7:[2,4],8:[2,4],
-    9:[4,6],10:[4,6],11:[4,6],12:[5,8],13:[5,8],14:[5,8],15:[5,8],
-    16:[4,8],17:[4,8],18:[4,8],19:[4,8],20:[4,8],21:[4,8],22:[7,9],23:[7,9],
-  };
-  return m[h] ?? [1,10];
-}
-
-
 
 // ─── AURA: HUMAN STATE VECTOR ───────────────────────────────────────────────
 // Computes the listener's current state from recent behavior.
@@ -343,15 +323,6 @@ function buildSession(allTracks, durationMins, activityId) {
   }
 
   return session;
-}
-
-function fmtTime(s) {
-  if (!s||isNaN(s)) return "0:00";
-  return `${Math.floor(s/60)}:${Math.floor(s%60).toString().padStart(2,"0")}`;
-}
-function hexToRgbStr(hex) {
-  if (!hex||hex.length<7) return "160,165,175";
-  return `${parseInt(hex.slice(1,3),16)},${parseInt(hex.slice(3,5),16)},${parseInt(hex.slice(5,7),16)}`;
 }
 
 // ─── ENERGY BAR ───────────────────────────────────────────────────────────────
