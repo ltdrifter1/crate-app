@@ -73,7 +73,7 @@ function getEnergyRangeForHour(h) {
 // Returns { intensity, openness, momentum, depth, direction, label }
 
 function computeHumanState(recentPlays, sessionStartTime) {
-  if (!recentPlays.length) return { intensity: 0.5, openness: 0.5, momentum: 0, depth: 0, direction: 0, label: "arrival" };
+  if (!recentPlays.length) return { intensity: 0.5, openness: 0.5, momentum: 0, depth: 0, direction: 0, label: "warming up" };
 
   const now = Date.now();
   const recent = recentPlays.slice(0, 10);
@@ -105,16 +105,16 @@ function computeHumanState(recentPlays, sessionStartTime) {
   const momentum = Math.max(0, Math.min(1, 1 - (avgGap - 60000) / 600000));
 
   // State label based on signals
-  let label = "arrival";
-  if (sessionMins < 3) label = "arrival";
-  else if (sessionMins < 8 && Math.abs(direction) < 0.2) label = "grounding";
-  else if (direction > 0.3 && intensity < 0.7) label = "ignition";
-  else if (intensity > 0.6 && direction > 0.1) label = "momentum";
-  else if (depth > 0.5 && Math.abs(direction) < 0.15) label = "immersion";
-  else if (direction > 0.3 && openness > 0.5) label = "expansion";
-  else if (direction < -0.2) label = "release";
-  else if (intensity < 0.3 && depth > 0.4) label = "restoration";
-  else if (sessionMins > 5) label = "grounding";
+  let label = "warming up";
+  if (sessionMins < 3) label = "warming up";
+  else if (sessionMins < 8 && Math.abs(direction) < 0.2) label = "warming up";
+  else if (direction > 0.3 && intensity < 0.7) label = "rising";
+  else if (intensity > 0.6 && direction > 0.1) label = "locked in";
+  else if (depth > 0.5 && Math.abs(direction) < 0.15) label = "deep";
+  else if (direction > 0.3 && openness > 0.5) label = "rising";
+  else if (direction < -0.2) label = "winding down";
+  else if (intensity < 0.3 && depth > 0.4) label = "reset";
+  else if (sessionMins > 5) label = "warming up";
 
   return { intensity, openness, momentum, depth, direction, label };
 }
@@ -1383,9 +1383,9 @@ function HypnoVisionOverlay({ sourceTrack, tracks, onPlay, onClose }) {
             <AlbumArt track={sourceTrack} size={64} borderRadius={0}/>
           </div>
           <div style={{ flex:1 }}>
-            <div style={{ fontSize:10, fontWeight:700, letterSpacing:2, color:"rgba(255,255,255,0.25)", textTransform:"uppercase", marginBottom:4 }}>Hypno Vision</div>
+            <div style={{ fontSize:10, fontWeight:700, letterSpacing:2, color:"rgba(255,255,255,0.25)", textTransform:"uppercase", marginBottom:4 }}>More like this</div>
             <div style={{ fontSize:18, fontWeight:700, color:"#FFFFFF", letterSpacing:-0.3 }}>{sourceTrack.title}</div>
-            <div style={{ fontSize:12, color:"rgba(255,255,255,0.4)", marginTop:2 }}>{sourceTrack.artist} · Tracks that feel like this</div>
+            <div style={{ fontSize:12, color:"rgba(255,255,255,0.4)", marginTop:2 }}>{sourceTrack.artist}</div>
           </div>
           <button onClick={onClose} style={{ background:"rgba(255,255,255,0.06)", border:"1px solid rgba(255,255,255,0.08)", borderRadius:"50%", width:36, height:36, cursor:"pointer", color:"rgba(255,255,255,0.4)", display:"flex", alignItems:"center", justifyContent:"center" }}>
             <Icon name="x" size={16}/>
@@ -1847,7 +1847,7 @@ function HomeScreen({ tracks, onPlayRadio, onTogglePlay, onPlayTrack, currentTra
 
       {/* Harmonic neighbors — highest priority when playing */}
       {showHarmonic && (
-        <GlassSection label="mixes well with this">
+        <GlassSection label="goes with this">
           <GridShelf items={harmonicNeighbors} onPlay={t=>onPlayTrack(t,tracks)} activeId={activeId}/>
         </GlassSection>
       )}
@@ -2365,7 +2365,7 @@ function ProfileScreen({ user, setUser, tracks, onLogout }) {
 
       {/* Aura traits */}
       <div style={{...CARD, marginBottom:16 }}>
-        <div style={{ fontSize:10, fontWeight:700, letterSpacing:0.8, color:"#9CA3AF", textTransform:"uppercase", marginBottom:12 }}>Aura Profile</div>
+        <div style={{ fontSize:10, fontWeight:700, letterSpacing:0.8, color:"#9CA3AF", textTransform:"uppercase", marginBottom:12 }}>Your sound</div>
         <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:8 }}>
           {traitKeys.map(k => (
             <div key={k} style={{ textAlign:"center" }}>
@@ -2906,7 +2906,7 @@ function NowPlayingBar({ track, isPlaying, progress, duration, onTogglePlay, onS
 
         {/* Track info */}
         <div style={{ textAlign:"center", maxWidth:360 }}>
-          {isRadioMode&&<div style={{ fontSize:10, color:"rgba(255,255,255,0.3)", letterSpacing:2, textTransform:"uppercase", marginBottom:6, fontWeight:700 }}>● V Radio</div>}
+          {isRadioMode&&<div style={{ fontSize:10, color:"rgba(255,255,255,0.3)", letterSpacing:2, textTransform:"uppercase", marginBottom:6, fontWeight:700 }}>● Radio</div>}
           <div style={{ fontSize:26, fontWeight:700, letterSpacing:-0.5, color:"#FFFFFF", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{track.title}</div>
           <div style={{ fontSize:14, color:"rgba(255,255,255,0.5)", marginTop:4 }}>{track.artist}</div>
           {/* Metadata row */}
@@ -3070,7 +3070,7 @@ export default function App() {
   // ── Listening Memory — tracks recently played with timestamps ──
   const recentlyPlayedRef = useRef([]); // [{id, genre, energy, timestamp}]
   const sessionStartRef = useRef(null);
-  const [signalState, setSignalState] = useState({ intensity:0.5, openness:0.5, momentum:0, depth:0, direction:0, label:"arrival" });
+  const [signalState, setSignalState] = useState({ intensity:0.5, openness:0.5, momentum:0, depth:0, direction:0, label:"warming up" });
 
   function logTrackPlay(track) {
     const now = Date.now();
@@ -3347,7 +3347,7 @@ export default function App() {
     const first = pickNextTrack(tracks, null, recentlyPlayedRef.current);
     setCurrent(first); setIsPlaying(true); setProgress(0); setIsRadioMode(true); setQueue([]);
     logTrackPlay(first);
-    showToast("V Radio — on air");
+    showToast("Radio — on air");
     if (firebaseUser) recordPlay(first.id, profile?.recentTracks || []).catch(()=>{});
   };
 
@@ -3885,7 +3885,7 @@ export default function App() {
             </button>
             <VinylRecord track={currentTrack} isPlaying={isPlaying} size={190}/>
             <div style={{ textAlign:"center" }}>
-              {isRadioMode&&<div style={{ fontSize:11, color:"rgba(255,255,255,0.5)", letterSpacing:1.5, textTransform:"uppercase", marginBottom:6, fontWeight:700 }}>● V Radio</div>}
+              {isRadioMode&&<div style={{ fontSize:11, color:"rgba(255,255,255,0.5)", letterSpacing:1.5, textTransform:"uppercase", marginBottom:6, fontWeight:700 }}>● Radio</div>}
               <div style={{ fontSize:24, fontWeight:700, letterSpacing:-0.5, color:"#FFF" }}>{currentTrack.title}</div>
               <div style={{ fontSize:15, color:"rgba(255,255,255,0.7)", marginTop:4 }}>{currentTrack.artist}</div>
             </div>
