@@ -4,6 +4,7 @@ import { toggleLike as fbToggleLike, recordPlay, saveGenres } from "./useUserDat
 import { collection, getDocs, addDoc, query, orderBy, doc, updateDoc, setDoc } from "firebase/firestore";
 import { db }                                       from "./firebase";
 import { camelotCompatible, getEnergyRangeForHour, fmtTime, hexToRgbStr } from "./lib/harmony";
+import { font, color, radius, shadow } from "./lib/theme";
 import vLogo                                         from "./v-logo-new.png";
 
 const injectStyles = () => {
@@ -3720,30 +3721,31 @@ export default function App() {
 }
 
 // ─── SHARED STYLES ────────────────────────────────────────────────────────────
+// Built from design tokens in src/lib/theme.js (font/color/radius/shadow).
 const APP_STYLE = {
   background:(()=>{const h=new Date().getHours();const w=h>=6&&h<=10?1:0;const c=h>=18&&h<=23?1:h>=0&&h<=5?1:0;const center=w?"#FAF8F5":c?"#F3F4F8":"#F7F7F9";const mid=w?"#EDE8E3":c?"#DDDDE4":"#DCDCE0";const edge=w?"#CDC8C3":c?"#C4C5CE":"#C7C8CD";return `radial-gradient(ellipse at 50% 45%, ${center} 0%, ${mid} 40%, ${edge} 100%)`})(),
   minHeight:"100vh", height:"100vh", overflow:"hidden",
-  fontFamily:"-apple-system,'SF Pro Display','SF Pro Text','Helvetica Neue',Arial,sans-serif",
-  color:"#1C1C1E", position:"relative", display:"flex", flexDirection:"column",
+  fontFamily:font,
+  color:color.ink, position:"relative", display:"flex", flexDirection:"column",
   WebkitFontSmoothing:"antialiased", MozOsxFontSmoothing:"grayscale",
 };
 const INPUT_ST = {
   background:"rgba(255,255,255,0.65)", border:"1px solid rgba(255,255,255,0.7)",
-  borderRadius:12, padding:"12px 14px", color:"#1A1D26", fontSize:15,
-  boxShadow:"0 1px 3px rgba(0,0,0,0.04)", backdropFilter:"blur(20px)",
-  fontFamily:"-apple-system,'SF Pro Text','Helvetica Neue',Arial,sans-serif", width:"100%", display:"block",
+  borderRadius:radius.sm, padding:"12px 14px", color:color.ink, fontSize:15,
+  boxShadow:shadow.card, backdropFilter:"blur(20px)",
+  fontFamily:font, width:"100%", display:"block",
 };
 const BTN_PRIMARY = {
-  background:"#1A1D26", color:"#FFFFFF",
-  border:"none", borderRadius:12, padding:"13px 20px", fontSize:15, fontWeight:600,
-  boxShadow:"0 4px 16px rgba(0,0,0,0.12)",
-  fontFamily:"-apple-system,'SF Pro Text','Helvetica Neue',Arial,sans-serif", cursor:"pointer",
+  background:color.ink, color:color.onDark,
+  border:"none", borderRadius:radius.sm, padding:"13px 20px", fontSize:15, fontWeight:600,
+  boxShadow:shadow.soft,
+  fontFamily:font, cursor:"pointer",
 };
 const BTN_SECONDARY = {
-  background:"rgba(255,255,255,0.6)", color:"#6B7280", border:"1px solid rgba(255,255,255,0.5)",
-  borderRadius:12, padding:"13px 20px", fontSize:15, fontWeight:500,
+  background:"rgba(255,255,255,0.6)", color:color.muted, border:"1px solid rgba(255,255,255,0.5)",
+  borderRadius:radius.sm, padding:"13px 20px", fontSize:15, fontWeight:500,
   backdropFilter:"blur(20px)",
-  fontFamily:"-apple-system,'SF Pro Text','Helvetica Neue',Arial,sans-serif", cursor:"pointer",
+  fontFamily:font, cursor:"pointer",
 };
 const CTRL_BTN = {
   background:"none", border:"none", cursor:"pointer", color:"#8E8E93",
