@@ -120,16 +120,16 @@ export function normalizeGenre(raw) {
   return "";
 }
 
-/** Soft PNW tones for genre tiles — only canonical keys. */
+/** Warm charcoal tones for genre tiles — only canonical keys. */
 export const GENRE_TONES = {
-  Rock: "#1A1818",
-  "R&B": "#1A1C22",
-  Country: "#1A1C18",
-  "Hip-Hop": "#181A20",
-  House: "#182028",
-  "Drum and Bass": "#141820",
-  Soul: "#1A1E24",
-  Jazz: "#161A22",
-  Classical: "#18181C",
-  Metal: "#141416",
+  Rock: "#1A1614",
+  "R&B": "#1A1816",
+  Country: "#1A1814",
+  "Hip-Hop": "#181614",
+  House: "#1A1612",
+  "Drum and Bass": "#161412",
+  Soul: "#1C1814",
+  Jazz: "#1A1612",
+  Classical: "#181614",
+  Metal: "#141210",
 };

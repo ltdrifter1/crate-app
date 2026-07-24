@@ -7,6 +7,7 @@ import {
   roomsByKind,
   atmosphereGradient,
   roomPosterStyle,
+  roomLabelForId,
   presencePhrase,
 } from "./rooms";
 import { CLUB_ROOMS } from "./club";
@@ -116,6 +117,14 @@ describe("atmosphereGradient", () => {
   test("returns CSS gradients for known atmospheres", () => {
     expect(atmosphereGradient("amber-lamp")).toContain("radial-gradient");
     expect(atmosphereGradient("unknown-xyz")).toContain("radial-gradient");
+  });
+});
+
+describe("roomLabelForId", () => {
+  test("resolves culture and club room labels", () => {
+    expect(roomLabelForId("jazz-cafe")).toBe("Jazz Cafe");
+    expect(roomLabelForId("peak")).toBe("Peak");
+    expect(roomLabelForId("missing-room-xyz")).toBeNull();
   });
 });
 

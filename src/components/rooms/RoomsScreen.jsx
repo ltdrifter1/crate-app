@@ -170,6 +170,7 @@ function RoomHero({ room, onEnter, onPlay }) {
 }
 
 function RoomRow({ room, onEnter, isActive }) {
+  const poster = roomPosterStyle(room);
   return (
     <button
       type="button"
@@ -189,6 +190,32 @@ function RoomRow({ room, onEnter, isActive }) {
         transition: `background ${motion.base}`,
       }}
     >
+      <div
+        aria-hidden="true"
+        style={{
+          width: 36,
+          height: 36,
+          marginRight: 12,
+          flexShrink: 0,
+          background: poster.gradient,
+          border: `1px solid ${color.line}`,
+          position: "relative",
+          overflow: "hidden",
+        }}
+      >
+        {poster.texture && (
+          <div
+            style={{
+              position: "absolute",
+              inset: 0,
+              opacity: poster.textureOpacity,
+              backgroundImage: poster.texture,
+              backgroundSize: poster.textureSize || "auto",
+              mixBlendMode: poster.textureBlend || "soft-light",
+            }}
+          />
+        )}
+      </div>
       <div style={{ minWidth: 0, flex: 1 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
           <div

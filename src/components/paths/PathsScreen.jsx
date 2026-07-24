@@ -1,7 +1,8 @@
 import { useMemo } from "react";
 import { font, fontDisplay, fontMono, color, radius } from "../../theme";
 import { listPaths, findPath } from "../../lib/paths";
-import { atmosphereGradient } from "../../lib/rooms";
+import { roomPosterStyle } from "../../lib/rooms";
+import RoomPosterBackdrop from "../brand/RoomPosterBackdrop";
 
 /** Listening journeys — paths across rooms and pockets. */
 export default function PathsScreen({
@@ -127,51 +128,21 @@ export default function PathsScreen({
 
 function PathDetail({ path, onBack, onPlayPath, onOpenRoom }) {
   const cover = path.stops?.[0]?.track?.albumCover;
-  const bg = atmosphereGradient(path.stops?.[0]?.room?.atmosphere || "night-fog");
+  const atmosphere = path.stops?.[0]?.room?.atmosphere || "night-fog";
+  const poster = roomPosterStyle(atmosphere);
 
   return (
     <div style={{ minHeight: "100%", animation: "fadeIn 0.35s ease both", fontFamily: font }}>
-      <div
-        style={{
-          position: "relative",
-          overflow: "hidden",
-          minHeight: 220,
-          padding: "20px 20px 28px",
-          display: "flex",
-          flexDirection: "column",
-          justifyContent: "flex-end",
-        }}
+      <RoomPosterBackdrop
+        atmosphere={atmosphere}
+        coverUrl={cover}
+        minHeight={240}
+        style={{ padding: "20px 20px 28px" }}
       >
-        <div aria-hidden="true" style={{ position: "absolute", inset: 0, background: bg }} />
-        {cover && (
-          <div
-            aria-hidden="true"
-            style={{
-              position: "absolute",
-              inset: 0,
-              backgroundImage: `url(${cover})`,
-              backgroundSize: "cover",
-              backgroundPosition: "center",
-              filter: "blur(28px) brightness(0.42)",
-              transform: "scale(1.1)",
-              opacity: 0.8,
-            }}
-          />
-        )}
-        <div
-          aria-hidden="true"
-          style={{
-            position: "absolute",
-            inset: 0,
-            background: "linear-gradient(180deg, rgba(12,11,10,0.3) 0%, rgba(12,11,10,0.94) 100%)",
-          }}
-        />
         <button
           type="button"
           onClick={onBack}
           style={{
-            position: "relative",
-            zIndex: 1,
             alignSelf: "flex-start",
             marginBottom: 18,
             background: "none",
@@ -184,7 +155,7 @@ function PathDetail({ path, onBack, onPlayPath, onOpenRoom }) {
         >
           ← All paths
         </button>
-        <div style={{ position: "relative", zIndex: 1 }}>
+        <div>
           <div
             style={{
               fontSize: 11,
@@ -201,12 +172,12 @@ function PathDetail({ path, onBack, onPlayPath, onOpenRoom }) {
           <h1
             style={{
               margin: 0,
-              fontSize: "clamp(28px, 8vw, 40px)",
-              fontWeight: 800,
-              letterSpacing: -1.2,
+              fontSize: poster.titleSize,
+              fontWeight: poster.fontWeight,
+              letterSpacing: poster.letterSpacing,
               fontFamily: fontDisplay,
               color: color.onDark,
-              lineHeight: 1.05,
+              lineHeight: poster.lineHeight,
             }}
           >
             {path.title}
@@ -235,7 +206,7 @@ function PathDetail({ path, onBack, onPlayPath, onOpenRoom }) {
             </button>
           )}
         </div>
-      </div>
+      </RoomPosterBackdrop>
 
       <div style={{ padding: "8px 20px 40px" }}>
         <div style={{ fontSize: 13, fontWeight: 650, fontFamily: fontDisplay, color: color.ink, marginBottom: 12 }}>
