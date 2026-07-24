@@ -3,7 +3,6 @@ import { useAuth }                                  from "./useAuth";
 import { toggleLike as fbToggleLike, recordPlay, saveGenres } from "./useUserData";
 import { collection, getDocs, addDoc, query, orderBy, doc, updateDoc, setDoc } from "firebase/firestore";
 import { db }                                       from "./firebase";
-import vLogo                                         from "./v-logo-new.png";
 import {
   font, color, radius, motion, timeOfDayGradient,
   APP_STYLE, INPUT_ST, BTN_PRIMARY, BTN_SECONDARY, CTRL_BTN, ADMIN_UID,
@@ -338,8 +337,18 @@ const SectionLabel = ({ children, style={} }) => (
 
 // ─── LOGIN ────────────────────────────────────────────────────────────────────
 
-function BrandGlyph({ size=84 }) {
-  return <img src={vLogo} alt="" style={{ width:size, height:size, objectFit:"contain", display:"block" }}/>;
+function BrandGlyph({ size=84, light=false }) {
+  return (
+    <div aria-label="4AM" style={{
+      fontSize: Math.max(14, Math.round(size * 0.4)),
+      fontWeight: 750,
+      letterSpacing: size >= 48 ? -1.6 : -0.8,
+      color: light ? "#FFFFFF" : color.ink,
+      lineHeight: 1,
+      fontFamily: font,
+      userSelect: "none",
+    }}>4AM</div>
+  );
 }
 
 // ─── LOGIN SCREEN — wired to real Firebase auth ───────────────────────────────
@@ -476,8 +485,8 @@ function LoginScreen({ onSignUp, onLogIn, onGoogleSignIn, onPhoneOTP, onVerifyOT
           <div style={{ width:72, height:72, borderRadius: radius.lg, margin:"0 auto 16px", background: color.surfaceSolid, border:`1px solid ${color.line}`, display:"flex", alignItems:"center", justifyContent:"center" }}>
             <BrandGlyph size={56} />
           </div>
-          <div style={{ fontSize:22, fontWeight:650, letterSpacing:-0.4, color: color.ink }}>V Music</div>
-          <div style={{ fontSize:13, color: color.muted, marginTop:6 }}>Listen with intention</div>
+          <div style={{ fontSize:22, fontWeight:650, letterSpacing:-0.4, color: color.ink }}>4AM</div>
+          <div style={{ fontSize:13, color: color.muted, marginTop:6 }}>House music for late nights</div>
         </div>
 
         <div style={{ width:"100%", display:"flex", flexDirection:"column", gap:12, padding:20, borderRadius: radius.lg, background: color.surfaceSolid, border:`1px solid ${color.line}` }}>
@@ -971,7 +980,7 @@ function AfterglowOverlay({ data, onClose, onSavePlaylist }) {
 }
 
 // ─── DRIFT — immersive cinematic playback ─────────────────────────────────────
-function DriftMode({ tracks, currentTrack, isPlaying, onTogglePlay, onSkip, onPrev, onPlay, signalState }) {
+function ImmersivePlayer({ currentTrack, isPlaying, onTogglePlay, onSkip, onPrev, onClose, signalState }) {
   const [showUI, setShowUI] = useState(true);
   const [artLoaded, setArtLoaded] = useState(false);
   const hideTimer = useRef(null);
@@ -991,19 +1000,7 @@ function DriftMode({ tracks, currentTrack, isPlaying, onTogglePlay, onSkip, onPr
   // Reset art loaded state on track change
   useEffect(() => { setArtLoaded(false); }, [currentTrack?.id]);
 
-  if (!currentTrack) return (
-    <div style={{ height:"100%", display:"flex", alignItems:"center", justifyContent:"center", background:"#0A0A0C", padding:32 }}>
-      <div style={{ textAlign:"center", maxWidth:300 }}>
-        <div style={{ fontSize:28, fontWeight:650, color:"rgba(255,255,255,0.85)", letterSpacing:-0.5 }}>Drift</div>
-        <div style={{ fontSize:14, color:"rgba(255,255,255,0.45)", marginTop:12, lineHeight:1.5 }}>
-          A quiet full-screen mode for just listening — artwork up, chrome down.
-        </div>
-        <div style={{ fontSize:13, color:"rgba(255,255,255,0.28)", marginTop:18, lineHeight:1.45 }}>
-          Play any track, then come back here.
-        </div>
-      </div>
-    </div>
-  );
+  if (!currentTrack) return null;
 
   const rgb = hexToRgbStr(currentTrack.color);
   const traits = currentTrack._signal;
@@ -1020,7 +1017,7 @@ function DriftMode({ tracks, currentTrack, isPlaying, onTogglePlay, onSkip, onPr
     <div
       onMouseMove={resetHide}
       onClick={resetHide}
-      style={{ height:"100%", position:"relative", overflow:"hidden", background:"#0A0A0C", cursor: showUI ? "default" : "none" }}>
+      style={{ position:"fixed", inset:0, zIndex:100, overflow:"hidden", background:"#0A0A0C", cursor: showUI ? "default" : "none" }}>
 
       {/* ── Layer 0: Deep background color wash ── */}
       <div style={{
@@ -1153,17 +1150,25 @@ function DriftMode({ tracks, currentTrack, isPlaying, onTogglePlay, onSkip, onPr
         </button>
       </div>
 
-      {/* ── Top bar — quiet label ── */}
+      {/* ── Top bar — back to browse ── */}
       <div style={{
-        position:"absolute", top:24, left:32, right:32,
+        position:"absolute", top:20, left:20, right:20,
         display:"flex", justifyContent:"space-between", alignItems:"center",
-        opacity: showUI ? 0.85 : 0,
+        opacity: showUI ? 1 : 0,
         transition:"opacity 0.5s ease",
+        pointerEvents: showUI ? "auto" : "none",
+        zIndex: 2,
       }}>
-        <div>
-          <div style={{ fontSize:10, fontWeight:700, letterSpacing:2, color:"rgba(255,255,255,0.35)", textTransform:"uppercase" }}>Drift</div>
-          <div style={{ fontSize:11, color:"rgba(255,255,255,0.22)", marginTop:4 }}>Lean back and listen</div>
-        </div>
+        <button type="button" onClick={onClose} aria-label="Back to browse"
+          style={{
+            display:"flex", alignItems:"center", gap:8, background:"rgba(255,255,255,0.08)",
+            border:"1px solid rgba(255,255,255,0.12)", borderRadius:999, padding:"10px 14px",
+            color:"rgba(255,255,255,0.85)", cursor:"pointer", fontSize:13, fontWeight:600,
+          }}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><path d="M6 9l6 6 6-6"/></svg>
+          Browse
+        </button>
+        <div style={{ fontSize:12, fontWeight:750, letterSpacing:-0.5, color:"rgba(255,255,255,0.35)" }}>4AM</div>
       </div>
     </div>
   );
@@ -2356,61 +2361,16 @@ function AdminScreen({ tracks, setTracks, tab, setTab, editTrack, setEditTrack, 
 }
 
 // ─── NOW PLAYING BAR ──────────────────────────────────────────────────────────
-function NowPlayingBar({ track, isPlaying, progress, duration, onTogglePlay, onSkip, onPrev, onLike, onSeek, repeat, setRepeat, isRadioMode, expanded, setExpanded }) {
+function NowPlayingBar({ track, isPlaying, progress, duration, onTogglePlay, onSkip, onPrev, onLike, onSeek, repeat, setRepeat, isRadioMode, onOpen }) {
   const pct = duration > 0 ? (progress/duration)*100 : 0;
-
-  if (expanded) {
-    return (
-      <div style={{ position:"fixed", inset:0, zIndex:90, background: color.ink, color:"#FFF", display:"flex", flexDirection:"column" }}>
-        <div style={{ display:"flex", justifyContent:"flex-end", padding:"16px 16px 0" }}>
-          <button type="button" aria-label="Close" onClick={()=>setExpanded(false)}
-            style={{ background:"rgba(255,255,255,0.08)", border:"none", borderRadius:"50%", width:36, height:36, cursor:"pointer", color:"rgba(255,255,255,0.6)", display:"flex", alignItems:"center", justifyContent:"center" }}>
-            <Icon name="x" size={16}/>
-          </button>
-        </div>
-        <div style={{ flex:1, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:"24px 32px 48px", gap:28 }}>
-          <div style={{ width:240, height:240, maxWidth:"70vw", maxHeight:"70vw", borderRadius: radius.lg, overflow:"hidden" }}>
-            {track.albumCover
-              ? <img src={track.albumCover} alt="" style={{ width:"100%", height:"100%", objectFit:"cover" }}/>
-              : <div style={{ width:"100%", height:"100%", background:"#2A2D36" }}/>}
-          </div>
-          <div style={{ textAlign:"center", maxWidth:360, width:"100%" }}>
-            {isRadioMode && <div style={{ fontSize:10, color:"rgba(255,255,255,0.35)", letterSpacing:1.6, textTransform:"uppercase", marginBottom:8, fontWeight:650 }}>Radio</div>}
-            <div style={{ fontSize:24, fontWeight:650, letterSpacing:-0.4, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{track.title}</div>
-            <div style={{ fontSize:14, color:"rgba(255,255,255,0.5)", marginTop:6 }}>{track.artist}</div>
-            <div style={{ marginTop:12, display:"flex", justifyContent:"center", gap:8, flexWrap:"wrap" }}>
-              {track.genre && <MetaChip>{track.genre}</MetaChip>}
-              {track.bpm && <MetaChip>{track.bpm} BPM</MetaChip>}
-              {track.camelot && <MetaChip>{track.camelot}</MetaChip>}
-            </div>
-          </div>
-          <div style={{ width:"100%", maxWidth:360 }}>
-            <input type="range" min={0} max={duration||0} value={progress} aria-label="Seek" onChange={e=>onSeek(+e.target.value)} style={{ width:"100%", accentColor:"#FFF" }}/>
-            <div style={{ display:"flex", justifyContent:"space-between", fontSize:11, color:"rgba(255,255,255,0.35)", marginTop:6, fontVariantNumeric:"tabular-nums" }}>
-              <span>{fmtTime(progress)}</span><span>{fmtTime(duration)}</span>
-            </div>
-          </div>
-          <div style={{ display:"flex", alignItems:"center", gap:28 }}>
-            <button type="button" aria-label={track.liked?"Unlike":"Like"} onClick={onLike} style={{ background:"none",border:"none",cursor:"pointer",color:track.liked?"#FFF":"rgba(255,255,255,0.35)",padding:4 }}><Icon name={track.liked?"heart":"heartempty"} size={20}/></button>
-            <button type="button" aria-label="Previous" onClick={onPrev} style={{ ...CTRL_BTN, color:"rgba(255,255,255,0.7)" }}><Icon name="prev" size={22}/></button>
-            <button type="button" aria-label={isPlaying?"Pause":"Play"} onClick={onTogglePlay} style={{ width:64, height:64, background:"#FFF", border:"none", borderRadius:"50%", color: color.ink, cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center" }}>
-              <Icon name={isPlaying?"pause":"play"} size={28}/>
-            </button>
-            <button type="button" aria-label="Next" onClick={onSkip} style={{ ...CTRL_BTN, color:"rgba(255,255,255,0.7)" }}><Icon name="skip" size={22}/></button>
-            <button type="button" aria-label="Repeat" onClick={()=>setRepeat(r=>!r)} style={{ background:"none",border:"none",cursor:"pointer",color:repeat?"#FFF":"rgba(255,255,255,0.25)",padding:4 }}><Icon name="repeat" size={18}/></button>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div style={{ position:"fixed", bottom:56, left:0, right:0, zIndex:80, padding:"0 10px 8px" }}>
       <div
         role="button"
         tabIndex={0}
-        onClick={()=>setExpanded(true)}
-        onKeyDown={e=>{ if(e.key==="Enter") setExpanded(true); }}
+        onClick={onOpen}
+        onKeyDown={e=>{ if(e.key==="Enter") onOpen?.(); }}
+        aria-label="Open now playing"
         style={{
           background: "rgba(255,255,255,0.92)", border:`1px solid ${color.line}`, borderRadius: radius.md,
           padding:"8px 10px", display:"flex", alignItems:"center", gap:10, cursor:"pointer",
@@ -2446,7 +2406,6 @@ function MetaChip({ children }) {
 function BottomNav({ screen, setScreen, showAdmin = false }) {
   const items = [
     {id:"home",label:"Home",icon:"home"},
-    {id:"drift",label:"Drift",icon:"drift"},
     {id:"search",label:"Search",icon:"search"},
     {id:"favorites",label:"Library",icon:"heartempty"},
     {id:"profile",label:"You",icon:"profile"},
@@ -2509,6 +2468,8 @@ export default function App() {
 
   // ── App state ────────────────────────────────────────────────────────────
   const [screen, setScreen]           = useState("home");
+  // Legacy: Drift was removed as a tab — bounce any stale screen id home
+  useEffect(() => { if (screen === "drift") setScreen("home"); }, [screen]);
   const [tracks, setTracks]           = useState([]);          // loaded from Firestore
   const [tracksLoading, setTracksLoading] = useState(true);
   const [currentTrack, setCurrent]    = useState(null);
@@ -2522,7 +2483,7 @@ export default function App() {
   const [adminTab, setAdminTab]       = useState("tracks");
   const [editTrack, setEditTrack]     = useState(null);
   const [toast, setToast]             = useState(null);
-  const [expanded, setExpanded]       = useState(false);
+  const [immersive, setImmersive]     = useState(false);
   const audioRef                      = useRef(null); // the real HTML5 audio element
   // ── Desktop detection (must be before any early returns) ─────────────────
   const [isDesktop, setIsDesktop]     = useState(() => window.innerWidth >= 900);
@@ -2592,7 +2553,7 @@ export default function App() {
 
   // Check if a track was played recently (within hours)
 
-  useEffect(() => { document.title = 'V Music'; }, []);
+  useEffect(() => { document.title = '4AM'; }, []);
 
   // ── Anticipatory Queue — pre-generate when tracks load ──
   const anticipatoryBuilt = useRef(false);
@@ -2806,7 +2767,7 @@ export default function App() {
     if (currentTrack && currentTrack.id !== track.id) {
       playHistoryRef.current = [currentTrack, ...playHistoryRef.current].slice(0, 50);
     }
-    setCurrent(track); setIsPlaying(true); setProgress(0); setIsRadioMode(false);
+    setCurrent(track); setIsPlaying(true); setProgress(0); setIsRadioMode(false); setImmersive(true);
     if (q) setQueue(q.filter(t => t.id !== track.id));
     logTrackPlay(track);
     if (firebaseUser) recordPlay(track.id, profile?.recentTracks || []).catch(()=>{});
@@ -2816,7 +2777,7 @@ export default function App() {
     if (!tracks.length) return;
     const first = pickNextTrack(tracks, null, recentlyPlayedRef.current);
     if (currentTrack) playHistoryRef.current = [currentTrack, ...playHistoryRef.current].slice(0, 50);
-    setCurrent(first); setIsPlaying(true); setProgress(0); setIsRadioMode(true); setQueue([]);
+    setCurrent(first); setIsPlaying(true); setProgress(0); setIsRadioMode(true); setQueue([]); setImmersive(true);
     logTrackPlay(first);
     showToast("Radio on");
     if (firebaseUser) recordPlay(first.id, profile?.recentTracks || []).catch(()=>{});
@@ -2826,7 +2787,7 @@ export default function App() {
   const playRoute = (routeTracks) => {
     if (!routeTracks.length) return;
     const first = routeTracks[0];
-    setCurrent(first); setIsPlaying(true); setProgress(0); setIsRadioMode(false);
+    setCurrent(first); setIsPlaying(true); setProgress(0); setIsRadioMode(false); setImmersive(true);
     setQueue(routeTracks.slice(1));
     showToast(`Session: ${routeTracks.length} tracks queued`);
     if (firebaseUser) recordPlay(first.id, profile?.recentTracks || []).catch(()=>{});
@@ -3054,17 +3015,28 @@ export default function App() {
         {screen==="search"    && <SearchScreen query={searchQuery} setQuery={setSearch} results={searchResults} onPlay={t=>playTrack(t,tracks)} onLike={toggleLike} currentTrack={currentTrack} isPlaying={isPlaying} playlistCtx={playlistCtx}/>}
         {screen==="favorites" && <FavoritesScreen tracks={tracks} onPlay={t=>{setIsRadioMode(false);playTrack(t,tracks);}} onLike={toggleLike} currentTrack={currentTrack} isPlaying={isPlaying} userPlaylists={userPlaylists} onCreatePlaylist={createPlaylist} onAddToPlaylist={addToPlaylist} onRemoveFromPlaylist={removeFromPlaylist} onDeletePlaylist={deletePlaylist} playlistCtx={playlistCtx}/>}
         {screen==="profile"   && <ProfileScreen user={user} setUser={setUser} tracks={tracks} onLogout={logOut}/>}
-        {screen==="drift"     && <DriftMode tracks={tracks} currentTrack={currentTrack} isPlaying={isPlaying} onTogglePlay={()=>setIsPlaying(p=>!p)} onSkip={handleSkip} onPrev={()=>{}} onPlay={t=>playTrack(t,tracks)} signalState={signalState}/>}
         {screen==="map"       && <HarmonicMap tracks={tracks} onPlay={t=>playTrack(t,tracks)} currentTrack={currentTrack}/>}
         {screen==="admin"     && <AdminScreen tracks={tracks} setTracks={setTracks} tab={adminTab} setTab={setAdminTab} editTrack={editTrack} setEditTrack={setEditTrack} showToast={showToast}/>}
       </div>
-      {currentTrack && (
+      {currentTrack && !immersive && (
         <NowPlayingBar track={currentTrack} isPlaying={isPlaying} progress={progress} duration={duration}
           onTogglePlay={()=>setIsPlaying(p=>!p)} onSkip={handleSkip} onPrev={handlePrev}
           onLike={()=>toggleLike(currentTrack.id)} onSeek={handleSeek}
-          repeat={repeat} setRepeat={setRepeat} isRadioMode={isRadioMode} expanded={expanded} setExpanded={setExpanded}/>
+          repeat={repeat} setRepeat={setRepeat} isRadioMode={isRadioMode}
+          onOpen={()=>setImmersive(true)}/>
       )}
       <BottomNav screen={screen} setScreen={setScreen} showAdmin={firebaseUser?.uid === ADMIN_UID}/>
+      {immersive && currentTrack && (
+        <ImmersivePlayer
+          currentTrack={currentTrack}
+          isPlaying={isPlaying}
+          onTogglePlay={()=>setIsPlaying(p=>!p)}
+          onSkip={handleSkip}
+          onPrev={handlePrev}
+          onClose={()=>setImmersive(false)}
+          signalState={signalState}
+        />
+      )}
     </div>
   );
 
@@ -3075,7 +3047,6 @@ export default function App() {
   const NAV_TOP = [
     { id:"home",      icon:"home",   label:"Home" },
     { id:"favorites", icon:"heart",  label:"Library" },
-    { id:"drift",     icon:"drift",  label:"Drift" },
   ];
   const NAV_BOTTOM = [
     { id:"map",       icon:"grid",   label:"Map" },
@@ -3164,10 +3135,6 @@ export default function App() {
 
       {/* ── MAIN CONTENT — full width ─────────────────────────────────── */}
       <div style={{ flex:1, overflow:"auto", position:"relative" }}>
-        {/* Drift — full screen, no padding, no maxWidth */}
-        {screen==="drift" ? (
-          <DriftMode tracks={tracks} currentTrack={currentTrack} isPlaying={isPlaying} onTogglePlay={()=>setIsPlaying(p=>!p)} onSkip={handleSkip} onPrev={()=>{}} onPlay={t=>playTrack(t,tracks)} signalState={signalState}/>
-        ) : (
         <>
         {/* Accent glow behind content */}
         {currentTrack && <div style={{ position:"absolute", top:0, right:0, width:"40%", height:"30%", background:`radial-gradient(ellipse at 80% 0%, rgba(${glowRgb},0.07) 0%, transparent 70%)`, pointerEvents:"none", zIndex:0 }}/>}
@@ -3192,11 +3159,10 @@ export default function App() {
           )}
         </div>
         </>
-        )}
         {/* Desktop mini-player bar */}
-        {currentTrack && (
+        {currentTrack && !immersive && (
           <div style={{ position:"fixed", bottom:0, left:72, right:320, zIndex:80, padding:"0 16px 12px" }}>
-            <div onClick={()=>setExpanded(true)} style={{ background:"rgba(255,255,255,0.15)", backdropFilter:"blur(80px) saturate(200%)", borderRadius:20, display:"flex", flexDirection:"column", border:"1px solid rgba(255,255,255,0.22)", boxShadow:`0 8px 32px rgba(0,0,0,0.06), 0 0 60px rgba(${glowRgb},0.08)`, cursor:"pointer", overflow:"hidden", position:"relative" }}>
+            <div onClick={()=>setImmersive(true)} style={{ background:"rgba(255,255,255,0.15)", backdropFilter:"blur(80px) saturate(200%)", borderRadius:20, display:"flex", flexDirection:"column", border:"1px solid rgba(255,255,255,0.22)", boxShadow:`0 8px 32px rgba(0,0,0,0.06), 0 0 60px rgba(${glowRgb},0.08)`, cursor:"pointer", overflow:"hidden", position:"relative" }}>
               {/* Content row */}
               <div style={{ display:"flex", alignItems:"center", gap:12, padding:"10px 16px" }}>
                 <div style={{ width:44, height:44, borderRadius:10, overflow:"hidden", flexShrink:0, boxShadow:`0 4px 16px rgba(${glowRgb},0.25)` }}><AlbumArt track={currentTrack} size={44} borderRadius={0}/></div>
@@ -3382,39 +3348,16 @@ export default function App() {
       {afterglow && <AfterglowOverlay data={afterglow} onClose={()=>setAfterglow(null)} onSavePlaylist={(name, ids) => { createPlaylist(name); /* TODO: add tracks */ }}/>}
       {showRouteBuilder && <RouteBuilderModal tracks={tracks} onClose={()=>setShowRouteBuilder(false)} onPlayRoute={playRoute}/>}
 
-      {/* Expanded NP overlay */}
-      {expanded && currentTrack && (
-        <div style={{ position:"fixed", inset:0, zIndex:90, overflow:"hidden" }}>
-          <div style={{ position:"absolute", inset:0, background:`radial-gradient(ellipse at 50% 20%,rgba(${hexToRgbStr(currentTrack.color)},0.12) 0%,rgba(15,15,18,0.97) 65%)`, backdropFilter:"blur(40px)" }}/>
-          <BgMist color={currentTrack.color}/>
-          <div style={{ position:"absolute", inset:0, background:"rgba(6,6,8,0.5)" }}/>
-          <div style={{ position:"relative", zIndex:1, height:"100%", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:32, gap:20 }}>
-            <button onClick={()=>setExpanded(false)} style={{ position:"absolute", top:20, right:20, background:"rgba(255,255,255,0.15)", border:"none", borderRadius:"50%", width:36, height:36, cursor:"pointer", color:"#FFF", backdropFilter:"blur(12px)", display:"flex", alignItems:"center", justifyContent:"center" }}>
-              <Icon name="x" size={18}/>
-            </button>
-            <VinylRecord track={currentTrack} isPlaying={isPlaying} size={190}/>
-            <div style={{ textAlign:"center" }}>
-              {isRadioMode&&<div style={{ fontSize:11, color:"rgba(255,255,255,0.5)", letterSpacing:1.5, textTransform:"uppercase", marginBottom:6, fontWeight:700 }}>● V Radio</div>}
-              <div style={{ fontSize:24, fontWeight:700, letterSpacing:-0.5, color:"#FFF" }}>{currentTrack.title}</div>
-              <div style={{ fontSize:15, color:"rgba(255,255,255,0.7)", marginTop:4 }}>{currentTrack.artist}</div>
-            </div>
-            <div style={{ width:"100%", maxWidth:340 }}>
-              <input type="range" min={0} max={duration} value={progress} onChange={e=>handleSeek(+e.target.value)} style={{ width:"100%", accentColor:currentTrack.color }}/>
-              <div style={{ display:"flex", justifyContent:"space-between", fontSize:12, color:"rgba(255,255,255,0.4)", marginTop:4 }}>
-                <span>{fmtTime(progress)}</span><span>{fmtTime(duration)}</span>
-              </div>
-            </div>
-            <div style={{ display:"flex", alignItems:"center", gap:28 }}>
-              <button onClick={()=>toggleLike(currentTrack.id)} style={{ background:"none",border:"none",cursor:"pointer",color:currentTrack.liked?"#FFF":"rgba(255,255,255,0.4)",padding:4 }}><Icon name={currentTrack.liked?"heart":"heartempty"} size={20}/></button>
-              <button onClick={handlePrev} style={CTRL_BTN}><Icon name="prev" size={22}/></button>
-              <button onClick={()=>setIsPlaying(p=>!p)} style={{ ...CTRL_BTN,width:56,height:56,background:"rgba(255,255,255,0.15)",backdropFilter:"blur(20px)",border:"1px solid rgba(255,255,255,0.25)",borderRadius:"50%",color:"#FFF" }}>
-                <Icon name={isPlaying?"pause":"play"} size={26}/>
-              </button>
-              <button onClick={handleSkip} style={CTRL_BTN}><Icon name="skip" size={22}/></button>
-              <button onClick={()=>setRepeat(r=>!r)} style={{ background:"none",border:"none",cursor:"pointer",color:repeat?"#FFF":"rgba(255,255,255,0.4)",padding:4 }}><Icon name="repeat" size={18}/></button>
-            </div>
-          </div>
-        </div>
+      {immersive && currentTrack && (
+        <ImmersivePlayer
+          currentTrack={currentTrack}
+          isPlaying={isPlaying}
+          onTogglePlay={()=>setIsPlaying(p=>!p)}
+          onSkip={handleSkip}
+          onPrev={handlePrev}
+          onClose={()=>setImmersive(false)}
+          signalState={signalState}
+        />
       )}
     </div>
   );

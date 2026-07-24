@@ -12,7 +12,7 @@ export default class ErrorBoundary extends React.Component {
   }
 
   componentDidCatch(error, info) {
-    console.error("Crate crashed:", error, info);
+    console.error("4AM crashed:", error, info);
   }
 
   render() {
@@ -43,7 +43,7 @@ export default class ErrorBoundary extends React.Component {
             color: color.faint,
           }}
         >
-          V Music
+          4AM
         </div>
         <div style={{ fontSize: 20, fontWeight: 600, letterSpacing: -0.3 }}>
           Something skipped.

@@ -1,6 +1,6 @@
-# V Music / Crate
+# 4AM
 
-Intentional listening for diggers, DJs, collectors, and everyday listeners.
+Late-night house listening for diggers, DJs, and everyday heads.
 Harmonic (Camelot) mixing, energy-aware radio, sessions, and a quiet modern UI.
 
 ## Stack
