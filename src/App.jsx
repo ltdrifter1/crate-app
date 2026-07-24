@@ -143,13 +143,13 @@ function VinylRecord({ track, isPlaying, size=190 }) {
   );
 }
 
-// ─── VERS FLIPPER — vertical, full-bleed album art ────────────────────────────
+// ─── RADIO — home hero station ────────────────────────────────────────────────
 function DeepCutsCard({ onPlay, onTogglePlay, currentTrack, isPlaying, isRadioMode, signalLabel, previewTracks = [] }) {
   const hour = new Date().getHours();
   const [eMin, eMax] = getEnergyRangeForHour(hour);
   const timeLabel = hour>=22||hour<=1?"Late Night":hour<=5?"Deep Hours":hour<=8?"Early Morning":hour<=11?"Morning":hour<=14?"Midday":hour<=17?"Afternoon":"Evening";
   const energyLevel = currentTrack?.energy || Math.round((eMin+eMax)/2);
-  const previews = (previewTracks || []).filter(t => (t.duration||0) <= 900 && t.liked).slice(0, 4);
+  const previews = (previewTracks || []).filter(t => (t.duration||0) <= 900 && t.liked).slice(0, 5);
   const cover = currentTrack?.albumCover;
   const live = isRadioMode && currentTrack;
 
@@ -158,101 +158,113 @@ function DeepCutsCard({ onPlay, onTogglePlay, currentTrack, isPlaying, isRadioMo
       style={{
         cursor: live ? "default" : "pointer",
         background: color.station,
-        borderRadius: radius.xl,
-        padding: live ? "22px 20px 20px" : "28px 22px 22px",
+        borderRadius: 32,
+        padding: live ? "28px 26px 26px" : "36px 26px 28px",
         position: "relative",
         overflow: "hidden",
-        border: `1px solid ${color.line}`,
-        minHeight: live ? 148 : 168,
-        animation: "rise 0.55s cubic-bezier(0.22,1,0.36,1) both",
+        border: `1px solid ${color.lineStrong}`,
+        minHeight: live ? 240 : 260,
+        boxShadow: "0 24px 64px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.04)",
+        animation: "rise 0.65s cubic-bezier(0.22,1,0.36,1) both",
       }}>
       {cover && (
         <div aria-hidden="true" style={{
           position:"absolute", inset:0,
           backgroundImage:`url(${cover})`, backgroundSize:"cover", backgroundPosition:"center",
-          filter:"blur(36px) saturate(140%) brightness(0.45)", transform:"scale(1.2)", opacity:0.55,
+          filter:"blur(48px) saturate(125%) brightness(0.38)", transform:"scale(1.3)", opacity:0.65,
         }}/>
       )}
       <div aria-hidden="true" style={{
         position:"absolute", inset:0,
         background: cover
-          ? "linear-gradient(135deg, rgba(9,11,13,0.55) 0%, rgba(9,11,13,0.82) 100%)"
-          : "linear-gradient(145deg, #141A22 0%, #0C0F12 48%, #090B0D 100%)",
+          ? "linear-gradient(165deg, rgba(9,11,13,0.2) 0%, rgba(9,11,13,0.55) 42%, rgba(9,11,13,0.92) 100%)"
+          : "linear-gradient(160deg, #182028 0%, #10151A 45%, #090B0D 100%)",
       }}/>
       <div aria-hidden="true" style={{
-        position:"absolute", top:-40, right:-20, width:180, height:180, borderRadius:"50%",
+        position:"absolute", top:"-25%", left:"35%", width:320, height:320, borderRadius:"50%",
         background:`radial-gradient(circle, ${color.accentSoft} 0%, transparent 70%)`, pointerEvents:"none",
       }}/>
 
-      <div style={{ position:"relative", zIndex:1 }}>
-        <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom: live ? 18 : 22 }}>
-          <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+      <div style={{ position:"relative", zIndex:1, display:"flex", flexDirection:"column", height:"100%", minHeight: live ? 188 : 204 }}>
+        <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+          <div style={{ display:"flex", alignItems:"center", gap:10 }}>
             <div style={{
-              width:7, height:7, borderRadius:"50%",
-              background: live && isPlaying ? color.accent : "rgba(232,236,240,0.28)",
+              width:8, height:8, borderRadius:"50%",
+              background: live && isPlaying ? color.accent : "rgba(232,236,240,0.2)",
               animation: live && isPlaying ? "breathe 2s ease-in-out infinite" : "none",
+              boxShadow: live && isPlaying ? `0 0 0 5px ${color.accentSoft}` : "none",
             }}/>
             <span style={{
-              fontSize:11, fontWeight:700, letterSpacing:1.8,
-              color: live && isPlaying ? color.accent : "rgba(232,236,240,0.4)",
+              fontSize:11, fontWeight:700, letterSpacing:2.2,
+              color: live && isPlaying ? color.accent : "rgba(232,236,240,0.42)",
               textTransform:"uppercase", fontFamily: fontDisplay,
             }}>
-              {live && isPlaying ? "On Air" : "Radio"}
+              {live && isPlaying ? "On Air" : "Station"}
             </span>
           </div>
-          <span style={{ fontSize:12, fontWeight:500, color:"rgba(232,236,240,0.4)" }}>{currentTrack?.genre || timeLabel}</span>
+          <span style={{ fontSize:12, fontWeight:500, color:"rgba(232,236,240,0.36)", letterSpacing:0.3 }}>{live ? (currentTrack?.genre || timeLabel) : timeLabel}</span>
         </div>
 
         {live ? (
-          <div>
-            <div style={{ display:"flex", gap:16, alignItems:"center", marginBottom:18 }}>
-              <div style={{ width:72, height:72, borderRadius:12, overflow:"hidden", flexShrink:0, border:`1px solid ${color.lineStrong}` }}>
-                <AlbumArt track={currentTrack} size={72} borderRadius={0}/>
+          <div style={{ marginTop:"auto", paddingTop:36 }}>
+            <div style={{ display:"flex", gap:20, alignItems:"center", marginBottom:24 }}>
+              <div style={{ width:96, height:96, borderRadius:18, overflow:"hidden", flexShrink:0, border:`1px solid ${color.lineStrong}`, boxShadow:"0 20px 48px rgba(0,0,0,0.5)" }}>
+                <AlbumArt track={currentTrack} size={96} borderRadius={0}/>
               </div>
               <div style={{ flex:1, minWidth:0 }}>
-                <div style={{ fontSize:20, fontWeight:700, color: color.onDark, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap", letterSpacing:-0.5, fontFamily: fontDisplay }}>{currentTrack.title}</div>
-                <div style={{ fontSize:14, color:"rgba(232,236,240,0.5)", marginTop:4 }}>{currentTrack.artist}</div>
+                <div style={{ fontSize:26, fontWeight:750, color: color.onDark, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap", letterSpacing:-0.9, fontFamily: fontDisplay, lineHeight:1.08 }}>{currentTrack.title}</div>
+                <div style={{ fontSize:15, color:"rgba(232,236,240,0.48)", marginTop:8, letterSpacing:-0.1 }}>{currentTrack.artist}</div>
+                {(currentTrack.bpm || currentTrack.camelot) && (
+                  <div style={{ fontSize:11, color:"rgba(232,236,240,0.28)", marginTop:8, fontVariantNumeric:"tabular-nums", letterSpacing:0.4 }}>
+                    {[currentTrack.bpm && `${currentTrack.bpm} BPM`, currentTrack.camelot].filter(Boolean).join("  ·  ")}
+                  </div>
+                )}
               </div>
             </div>
-            <div style={{ display:"flex", alignItems:"center", gap:12 }}>
+            <div style={{ display:"flex", alignItems:"center", gap:14 }}>
               <button type="button" aria-label={isPlaying?"Pause":"Play"} onClick={e=>{e.stopPropagation();onTogglePlay();}}
-                style={{ width:44, height:44, borderRadius:"50%", background: color.accent, border:"none", display:"flex", alignItems:"center", justifyContent:"center", color: color.onAccent, cursor:"pointer" }}>
-                <Icon name={isPlaying?"pause":"play"} size={17}/>
+                style={{ width:54, height:54, borderRadius:"50%", background: color.accent, border:"none", display:"flex", alignItems:"center", justifyContent:"center", color: color.onAccent, cursor:"pointer", flexShrink:0, boxShadow:"0 8px 24px rgba(122,145,164,0.28)" }}>
+                <Icon name={isPlaying?"pause":"play"} size={20}/>
               </button>
-              <div style={{ fontSize:12, color:"rgba(232,236,240,0.42)" }}>{timeLabel}{signalLabel ? ` · ${signalLabel}` : ""}</div>
+              <div style={{ fontSize:13, color:"rgba(232,236,240,0.4)", letterSpacing:0.1 }}>{timeLabel}{signalLabel ? ` · ${signalLabel}` : ""}</div>
               <div style={{ flex:1 }}/>
-              <div style={{ display:"flex", gap:2.5, alignItems:"flex-end" }} aria-hidden="true">
+              <div style={{ display:"flex", gap:3, alignItems:"flex-end", height:30 }} aria-hidden="true">
                 {[1,2,3,4,5,6,7,8,9,10].map(i => (
-                  <div key={i} style={{ width:2.5, height: 3 + i * 1.5, borderRadius:1, background: i <= energyLevel ? color.accent : "rgba(232,236,240,0.12)" }}/>
+                  <div key={i} style={{ width:3, height: 5 + i * 2.2, borderRadius:2, background: i <= energyLevel ? color.accent : "rgba(232,236,240,0.1)" }}/>
                 ))}
               </div>
             </div>
           </div>
         ) : (
-          <div>
-            <div style={{ fontSize:28, fontWeight:750, letterSpacing:-0.8, color: color.onDark, marginBottom:8, fontFamily: fontDisplay, lineHeight:1.05 }}>{timeLabel}</div>
-            <div style={{ fontSize:14, color:"rgba(232,236,240,0.45)", marginBottom:22, lineHeight:1.45, maxWidth:280 }}>
-              A session shaped for this hour — keys, energy, and the room you’re in.
+          <div style={{ marginTop:"auto", paddingTop:40 }}>
+            <div style={{ fontSize:40, fontWeight:800, letterSpacing:-1.6, color: color.onDark, marginBottom:12, fontFamily: fontDisplay, lineHeight:0.95 }}>
+              {timeLabel}
+            </div>
+            <div style={{ fontSize:15, color:"rgba(232,236,240,0.4)", marginBottom:32, lineHeight:1.55, maxWidth:280, letterSpacing:-0.1 }}>
+              Press play. The hour shapes the set.
             </div>
             <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between" }}>
-              <div style={{ display:"flex", alignItems:"center", gap:12 }}>
+              <div style={{ display:"flex", alignItems:"center", gap:16 }}>
                 <button type="button" aria-label="Start radio" onClick={e=>{e.stopPropagation();onPlay();}}
-                  style={{ width:48, height:48, borderRadius:"50%", background: color.accent, border:"none", display:"flex", alignItems:"center", justifyContent:"center", color: color.onAccent, cursor:"pointer" }}>
-                  <Icon name="play" size={19}/>
+                  style={{ width:58, height:58, borderRadius:"50%", background: color.accent, border:"none", display:"flex", alignItems:"center", justifyContent:"center", color: color.onAccent, cursor:"pointer", boxShadow:"0 10px 28px rgba(122,145,164,0.3)" }}>
+                  <Icon name="play" size={22}/>
                 </button>
-                {previews.length > 0 && (
-                  <div style={{ display:"flex" }}>
-                    {previews.map((t,i) => (
-                      <div key={t.id} style={{ width:28, height:28, borderRadius:7, overflow:"hidden", marginLeft:i>0?-7:0, border:`1.5px solid ${color.station}` }}>
-                        <AlbumArt track={t} size={28} borderRadius={0}/>
-                      </div>
-                    ))}
-                  </div>
-                )}
+                <div>
+                  <div style={{ fontSize:13, fontWeight:600, color:"rgba(232,236,240,0.72)", letterSpacing:-0.1 }}>Listen now</div>
+                  {previews.length > 0 && (
+                    <div style={{ display:"flex", marginTop:8 }}>
+                      {previews.map((t,i) => (
+                        <div key={t.id} style={{ width:26, height:26, borderRadius:7, overflow:"hidden", marginLeft:i>0?-7:0, border:`2px solid ${color.station}` }}>
+                          <AlbumArt track={t} size={26} borderRadius={0}/>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
-              <div style={{ display:"flex", gap:2.5, alignItems:"flex-end" }} aria-hidden="true">
+              <div style={{ display:"flex", gap:3, alignItems:"flex-end", height:30 }} aria-hidden="true">
                 {[1,2,3,4,5,6,7,8,9,10].map(i => (
-                  <div key={i} style={{ width:2.5, height: 3 + i * 1.5, borderRadius:1, background: (i >= eMin && i <= eMax) ? "rgba(122,145,164,0.55)" : "rgba(232,236,240,0.1)" }}/>
+                  <div key={i} style={{ width:3, height: 5 + i * 2.2, borderRadius:2, background: (i >= eMin && i <= eMax) ? "rgba(122,145,164,0.55)" : "rgba(232,236,240,0.1)" }}/>
                 ))}
               </div>
             </div>
@@ -1216,237 +1228,164 @@ function ImmersivePlayer({ currentTrack, isPlaying, onTogglePlay, onSkip, onPrev
   );
 }
 
-// ── Shelf primitives — defined outside HomeScreen to prevent remount flashing ──
-const GlassSection = ({label, children, sub}) => (
-  <div style={{ margin:"6px 0 28px", padding:"0 0 4px", animation:"rise 0.5s cubic-bezier(0.22,1,0.36,1) both" }}>
-    {label && (
-      <div style={{ padding:"0 16px 14px" }}>
-        <div style={{ fontSize:17, fontWeight:700, letterSpacing:-0.4, color: color.ink, fontFamily: fontDisplay }}>{label}</div>
-        {sub && <div style={{ fontSize:12, color: color.muted, marginTop:4 }}>{sub}</div>}
-      </div>
-    )}
+// ── Home — three acts only ────────────────────────────────────────────────────
+const HomeSection = ({ label, count, children, delay = 0 }) => (
+  <section style={{ margin:"0 0 44px", animation:`rise 0.6s cubic-bezier(0.22,1,0.36,1) ${delay}s both` }}>
+    <div style={{ padding:"0 20px 18px", display:"flex", alignItems:"baseline", gap:12 }}>
+      <h2 style={{ margin:0, fontSize:22, fontWeight:750, letterSpacing:-0.6, color: color.ink, fontFamily: fontDisplay }}>{label}</h2>
+      {count != null && <span style={{ fontSize:12, color: color.faint, fontVariantNumeric:"tabular-nums" }}>{count}</span>}
+    </div>
     {children}
-  </div>
+  </section>
 );
 
-function HorizShelf({ items, onPlay, activeId }) {
-  return (
-    <div className="hide-scroll" style={{ display:"flex", gap:14, overflowX:"auto", padding:"0 16px 12px" }}>
-      {items.map(t => (
-        <div key={t.id} onClick={()=>onPlay(t)} style={{ flexShrink:0, width:148, cursor:"pointer" }}>
-          <div style={{
-            width:148, height:148, borderRadius:12, overflow:"hidden", marginBottom:10, position:"relative",
-            boxShadow: activeId===t.id ? `0 0 0 2px ${color.accent}` : "0 8px 24px rgba(0,0,0,0.35)",
-            opacity: activeId===t.id ? 1 : 0.94,
-            transition:"box-shadow 0.3s, opacity 0.3s, transform 0.25s",
-            transform: activeId===t.id ? "translateY(-2px)" : "none",
-          }}>
-            <AlbumArt track={t} size={148} borderRadius={0}/>
-          </div>
-          <div style={{ fontSize:13, fontWeight:activeId===t.id?650:550, color: activeId===t.id ? color.accent : color.ink, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap", letterSpacing:-0.2 }}>{t.title}</div>
-          <div style={{ fontSize:11, color: color.muted, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap", marginTop:3 }}>{t.artist}</div>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-function GridShelf({ items, onPlay, activeId }) {
-  return (
-    <div className="hide-scroll" style={{ display:"flex", gap:14, overflowX:"auto", padding:"0 16px 12px" }}>
-      {items.map(t => (
-        <div key={t.id} onClick={()=>onPlay(t)} style={{ flexShrink:0, width:132, cursor:"pointer" }}>
-          <div style={{
-            width:132, height:132, borderRadius:12, overflow:"hidden", marginBottom:8, position:"relative",
-            boxShadow: activeId===t.id ? `0 0 0 2px ${color.accent}` : "0 6px 20px rgba(0,0,0,0.3)",
-            transition:"box-shadow 0.3s",
-          }}>
-            <AlbumArt track={t} size={132} borderRadius={0}/>
-          </div>
-          <div style={{ fontSize:12, fontWeight:activeId===t.id?650:500, color: activeId===t.id ? color.accent : color.ink, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{t.title}</div>
-          <div style={{ fontSize:11, color: color.muted, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap", marginTop:2 }}>{t.artist}</div>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-function CrateShelf({ items, onPlay, activeId }) {
-  return (
-    <div className="hide-scroll" style={{ display:"flex", gap:4, overflowX:"auto", padding:"0 16px 14px" }}>
-      {items.map(t => (
-        <div key={t.id} onClick={()=>onPlay(t)}
-          style={{ flexShrink:0, width:96, cursor:"pointer",
-            transform: activeId===t.id ? "translateY(-6px)" : "none",
-            transition:"transform 0.25s cubic-bezier(0.22,1,0.36,1)" }}>
-          <div style={{
-            width:96, height:96, borderRadius:4, overflow:"hidden", position:"relative",
-            boxShadow: activeId===t.id
-              ? `0 10px 28px rgba(0,0,0,0.45), 0 0 0 2px ${color.accent}`
-              : "0 4px 14px rgba(0,0,0,0.35), -2px 0 0 rgba(0,0,0,0.25)",
-          }}>
-            <AlbumArt track={t} size={96} borderRadius={0}/>
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-}
-
 function HomeScreen({ tracks, onPlayRadio, onTogglePlay, onPlayTrack, currentTrack, isPlaying, onLike, isRadioMode, playlistCtx, signalLabel }) {
-  const hour = new Date().getHours();
-  const greeting = hour<12?"Good Morning":hour<18?"Good Afternoon":"Good Evening";
-  const [eMin, eMax] = getEnergyRangeForHour(hour);
-  const singles = tracks.filter(t=>(t.duration||0)<=900);
-  const topTracks = [...singles].sort((a,b) => (b.playCount||0) - (a.playCount||0)).slice(0,6);
-  const mixtapes = tracks.filter(t => (t.artist||"").toLowerCase() === "mixtape").sort((a,b) => (b.playCount||0) - (a.playCount||0));
-  const recentlyLiked = [...singles].filter(t=>t.liked).slice(0,6);
-
-  // Time-aware energy shelf — tracks matching current energy window
-  
-  
-
-  // Harmonic neighbors — memoized, only recomputes when track changes
-  const [harmonicNeighbors, setHarmonicNeighbors] = useState([]);
-  const prevMixTrackRef = useRef(null);
-  useEffect(() => {
-    if (currentTrack?.id === prevMixTrackRef.current) return;
-    prevMixTrackRef.current = currentTrack?.id || null;
-    if (!currentTrack) { setHarmonicNeighbors([]); return; }
-    const cE = currentTrack.energy || 5;
-    const cG = currentTrack.genre;
-    const hasCamelot = currentTrack.camelot && currentTrack.camelot.trim();
-    const scored = singles
-      .filter(t => t.id !== currentTrack.id)
-      .map(t => {
-        let score = 0;
-        if (hasCamelot && t.camelot && camelotCompatible(currentTrack.camelot, t.camelot, 1)) score += 4;
-        else if (hasCamelot && t.camelot && camelotCompatible(currentTrack.camelot, t.camelot, 2)) score += 2;
-        if (cG && t.genre === cG) score += 3;
-        const eDiff = Math.abs((t.energy||5) - cE);
-        if (eDiff <= 1) score += 3;
-        else if (eDiff <= 2) score += 2;
-        else if (eDiff <= 3) score += 1;
-        if (currentTrack.bpm && t.bpm && Math.abs(currentTrack.bpm - t.bpm) <= 10) score += 1;
-        score += Math.random() * 0.5;
-        return { track: t, score };
-      })
-      .sort((a, b) => b.score - a.score)
-      .slice(0, 18)
-      .map(s => s.track);
-    setHarmonicNeighbors(scored);
-  }, [currentTrack?.id]);
-
+  const singles = tracks.filter(t => (t.duration || 0) <= 900);
+  const topTracks = [...singles].sort((a, b) => (b.playCount || 0) - (a.playCount || 0)).slice(0, 8);
+  const recentlySaved = [...singles].filter(t => t.liked).slice(0, 12);
   const activeId = currentTrack?.id;
-  // Memoize crate: set once when tracks first load, never reshuffle
-  const [crateItems, setCrateItems] = useState([]);
-  const crateInitRef = useRef(false);
-  useEffect(() => {
-    if (crateInitRef.current || !tracks.length) return;
-    crateInitRef.current = true;
-    const s = tracks.filter(t => (t.duration||0) <= 900);
-    const shuffled = [...s];
-    for (let i = shuffled.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-    }
-    setCrateItems(shuffled.slice(0, 50));
-  }, [tracks]);
-
-  // Smart section prioritization — max 4 sections below radio
-  const hasHarmonic = harmonicNeighbors.length > 0;
-  
-  const hasLiked = recentlyLiked.length > 0;
-  const hasMixes = mixtapes.length > 0;
-
-  // Priority: harmonic (if playing) > energy > flipper (always) > liked > mixes > top
-  // Cap at 4 content sections below radio card
-  let sectionBudget = 4;
-  const showHarmonic = hasHarmonic && sectionBudget > 0; if (showHarmonic) sectionBudget--;
-  
-  const showFlipper = sectionBudget > 0; if (showFlipper) sectionBudget--;
-  const showLiked = hasLiked && sectionBudget > 0; if (showLiked) sectionBudget--;
-  const showMixes = hasMixes && sectionBudget > 0; if (showMixes) sectionBudget--;
-  const showTop = sectionBudget > 0;
 
   return (
-    <div style={{ position:"relative", paddingBottom:8 }}>
+    <div style={{ position:"relative", paddingBottom:36 }}>
       <div aria-hidden="true" style={{
-        position:"absolute", top:0, left:0, right:0, height:220, pointerEvents:"none",
+        position:"absolute", top:0, left:0, right:0, height:340, pointerEvents:"none",
         background: timeOfDayGradient(),
       }}/>
 
-      <div style={{ position:"relative", padding:"28px 18px 8px", animation:"fadeIn 0.6s ease both" }}>
-        <div style={{ fontSize:56, fontWeight:800, letterSpacing:-2.4, lineHeight:0.92, color: color.ink, fontFamily: fontDisplay }}>4AM</div>
-        <div style={{ display:"flex", alignItems:"baseline", gap:10, marginTop:10 }}>
-          <div style={{ fontSize:14, color: color.muted }}>{greeting}</div>
-          <div style={{ width:3, height:3, borderRadius:"50%", background: color.faint }}/>
-          <div style={{ fontSize:13, color: color.faint }}>Stay in the pocket</div>
-        </div>
+      <header style={{ position:"relative", padding:"20px 20px 2px", display:"flex", alignItems:"center", justifyContent:"space-between", animation:"fadeIn 0.45s ease both" }}>
+        <div style={{ fontSize:16, fontWeight:800, letterSpacing:-0.5, color: color.ink, fontFamily: fontDisplay }}>4AM</div>
+        <div style={{ fontSize:11, fontWeight:600, letterSpacing:1.4, textTransform:"uppercase", color: color.faint, fontFamily: fontDisplay }}>Home</div>
+      </header>
+
+      {/* 1 — Radio */}
+      <div style={{ position:"relative", padding:"18px 16px 40px" }}>
+        <DeepCutsCard
+          onPlay={onPlayRadio}
+          onTogglePlay={onTogglePlay}
+          currentTrack={isRadioMode ? currentTrack : null}
+          isPlaying={isPlaying}
+          isRadioMode={isRadioMode}
+          signalLabel={signalLabel}
+          previewTracks={tracks}
+        />
       </div>
 
-      <div style={{ position:"relative", padding:"16px 16px 8px" }}>
-        <DeepCutsCard onPlay={onPlayRadio} onTogglePlay={onTogglePlay} currentTrack={isRadioMode?currentTrack:null} isPlaying={isPlaying} isRadioMode={isRadioMode} signalLabel={signalLabel} previewTracks={tracks}/>
-      </div>
-
-      {/* Harmonic neighbors — highest priority when playing */}
-      {showHarmonic && (
-        <GlassSection label="Mixes well" sub="Harmonic neighbors for what’s playing">
-          <GridShelf items={harmonicNeighbors} onPlay={t=>onPlayTrack(t,tracks)} activeId={activeId}/>
-        </GlassSection>
-      )}
-
-      {/* CD Shelf */}
-      {showFlipper && (
-        <GlassSection label="The crate" sub="Pull a record">
-          <CrateShelf items={crateItems} onPlay={t=>onPlayTrack(t,tracks)} activeId={activeId}/>
-        </GlassSection>
-      )}
-
-      {/* Recently liked */}
-      {showLiked && (
-        <GlassSection label="Recently saved">
-          <HorizShelf items={recentlyLiked} onPlay={t=>onPlayTrack(t,tracks)} activeId={activeId}/>
-        </GlassSection>
-      )}
-
-      {/* Mixtapes */}
-      {showMixes && (
-        <GlassSection label="Mixtapes">
-          <div style={{ padding:"0 16px 4px", display:"flex", flexDirection:"column", gap:6 }}>
-            {mixtapes.map(t => (
-              <div key={t.id} onClick={()=>onPlayTrack(t, mixtapes)}
-                style={{ display:"flex", alignItems:"center", gap:14, padding:"10px 12px", borderRadius:14, cursor:"pointer",
-                  background: currentTrack?.id===t.id ? color.accentSoft : color.surface,
-                  border: `1px solid ${currentTrack?.id===t.id ? "rgba(122,145,164,0.35)" : color.line}`,
-                  transition:"all 0.2s" }}>
-                <div style={{ width:52, height:52, borderRadius:10, overflow:"hidden", flexShrink:0 }}>
-                  <AlbumArt track={t} size={52} borderRadius={0}/>
+      {/* 2 — Top played */}
+      {topTracks.length > 0 && (
+        <HomeSection label="Top played" count={topTracks.length} delay={0.05}>
+          <div style={{
+            margin:"0 16px",
+            borderRadius:22,
+            background: color.surfaceSolid,
+            border:`1px solid ${color.line}`,
+            overflow:"hidden",
+            boxShadow:"0 1px 0 rgba(255,255,255,0.03) inset",
+          }}>
+            {topTracks.map((t, i) => {
+              const active = activeId === t.id;
+              const plays = t.playCount || 0;
+              return (
+                <div
+                  key={t.id}
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => onPlayTrack(t, tracks)}
+                  onKeyDown={e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onPlayTrack(t, tracks); } }}
+                  style={{
+                    display:"flex", alignItems:"center", gap:14, padding:"14px 16px",
+                    cursor:"pointer",
+                    background: active ? color.accentSoft : "transparent",
+                    borderTop: i === 0 ? "none" : `1px solid ${color.line}`,
+                    transition:"background 0.18s",
+                  }}
+                >
+                  <div style={{
+                    width:26, flexShrink:0, textAlign:"center",
+                    fontSize:14, fontWeight:700, fontFamily: fontDisplay, fontVariantNumeric:"tabular-nums",
+                    color: i < 3 ? color.accent : color.faint,
+                  }}>{String(i + 1).padStart(2, "0")}</div>
+                  <div style={{
+                    width:56, height:56, borderRadius:12, overflow:"hidden", flexShrink:0, position:"relative",
+                    boxShadow: active ? `0 0 0 2px ${color.accent}` : "0 8px 20px rgba(0,0,0,0.35)",
+                  }}>
+                    <AlbumArt track={t} size={56} borderRadius={0}/>
+                    {active && isPlaying && (
+                      <div style={{ position:"absolute", inset:0, background:"rgba(0,0,0,0.45)", display:"flex", alignItems:"center", justifyContent:"center" }}>
+                        <div style={{ width:7, height:7, borderRadius:"50%", background: color.accent, animation:"pulse 1.2s ease-in-out infinite" }}/>
+                      </div>
+                    )}
+                  </div>
+                  <div style={{ flex:1, minWidth:0 }}>
+                    <div style={{
+                      fontSize:15, fontWeight: active ? 650 : 550, letterSpacing:-0.3,
+                      color: active ? color.accent : color.ink,
+                      overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap",
+                    }}>{t.title}</div>
+                    <div style={{ fontSize:12, color: color.muted, marginTop:4, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
+                      {t.artist}{t.genre ? ` · ${t.genre}` : ""}
+                    </div>
+                  </div>
+                  <div style={{ flexShrink:0, textAlign:"right" }}>
+                    <div style={{ fontSize:11, color: color.faint, fontVariantNumeric:"tabular-nums" }}>{plays > 0 ? `${plays}×` : "—"}</div>
+                  </div>
+                  {onLike && (
+                    <button
+                      type="button"
+                      aria-label={t.liked ? "Unlike" : "Like"}
+                      onClick={e => { e.stopPropagation(); onLike(t.id); }}
+                      style={{ background:"none", border:"none", cursor:"pointer", color: t.liked ? color.accent : color.faint, padding:6, marginLeft:2 }}
+                    >
+                      <Icon name={t.liked ? "heart" : "heartempty"} size={15}/>
+                    </button>
+                  )}
                 </div>
-                <div style={{ flex:1, minWidth:0 }}>
-                  <div style={{ fontSize:14, fontWeight:600, color: color.ink, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap", letterSpacing:-0.2 }}>{t.title}</div>
-                  <div style={{ fontSize:12, color: color.muted, marginTop:2 }}>{t.artist}</div>
-                </div>
-                <span style={{ fontSize:12, fontWeight:500, color: color.faint, flexShrink:0, fontVariantNumeric:"tabular-nums" }}>{t.duration ? `${Math.floor(t.duration/60)}m` : ""}</span>
-              </div>
-            ))}
+              );
+            })}
           </div>
-        </GlassSection>
+        </HomeSection>
       )}
 
-      {/* Top played — only if budget allows */}
-      {showTop && <GlassSection label="Top played">
-        <div style={{ padding:"0 12px" }}>
-          {topTracks.map((t,i)=>(
-            <div key={t.id} style={{ display:"flex", alignItems:"center", gap:8 }}>
-              <div style={{ width:22, textAlign:"right", fontSize:13, fontWeight:700, color: i < 3 ? color.accent : color.faint, flexShrink:0, fontFamily: fontDisplay }}>{i+1}</div>
-              <div style={{ flex:1 }}>
-                <TrackRow track={t} onPlay={()=>onPlayTrack(t,tracks)} active={currentTrack?.id===t.id} isPlaying={isPlaying} onLike={onLike} playlistCtx={playlistCtx}/>
-              </div>
-            </div>
-          ))}
-        </div>
-      </GlassSection>}
+      {/* 3 — Recently saved */}
+      {recentlySaved.length > 0 && (
+        <HomeSection label="Recently saved" count={recentlySaved.length} delay={0.1}>
+          <div className="hide-scroll" style={{ display:"flex", gap:16, overflowX:"auto", padding:"0 16px 10px" }}>
+            {recentlySaved.map((t, i) => {
+              const active = activeId === t.id;
+              return (
+                <div
+                  key={t.id}
+                  onClick={() => onPlayTrack(t, tracks)}
+                  style={{
+                    flexShrink:0, width:160, cursor:"pointer",
+                    animation:`rise 0.55s cubic-bezier(0.22,1,0.36,1) ${0.08 + i * 0.03}s both`,
+                  }}
+                >
+                  <div style={{
+                    width:160, height:160, borderRadius:18, overflow:"hidden", marginBottom:12, position:"relative",
+                    boxShadow: active ? `0 0 0 2px ${color.accent}` : "0 16px 40px rgba(0,0,0,0.42)",
+                    transform: active ? "translateY(-3px)" : "none",
+                    transition:"box-shadow 0.25s, transform 0.25s",
+                  }}>
+                    <AlbumArt track={t} size={160} borderRadius={0}/>
+                    <div aria-hidden="true" style={{
+                      position:"absolute", inset:0,
+                      background:"linear-gradient(180deg, transparent 55%, rgba(9,11,13,0.55) 100%)",
+                      opacity: active ? 1 : 0.35,
+                      transition:"opacity 0.25s",
+                    }}/>
+                  </div>
+                  <div style={{
+                    fontSize:14, fontWeight: active ? 650 : 560, letterSpacing:-0.25,
+                    color: active ? color.accent : color.ink,
+                    overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap",
+                  }}>{t.title}</div>
+                  <div style={{ fontSize:12, color: color.muted, marginTop:4, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{t.artist}</div>
+                </div>
+              );
+            })}
+          </div>
+        </HomeSection>
+      )}
     </div>
   );
 }
