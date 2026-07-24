@@ -12,7 +12,9 @@ import {
   roomsByKind,
   atmosphereGradient,
   KIND_LABELS,
+  presencePhrase,
 } from "../../lib/rooms";
+import { explainPick } from "../../lib/explain";
 
 function RoomHero({ room, onEnter, onPlay }) {
   const cover = room.coverTrack?.albumCover;
@@ -96,7 +98,7 @@ function RoomHero({ room, onEnter, onPlay }) {
         >
           {room.floor ? room.floor.label : KIND_LABELS[room.kind] || "Room"}
           {room.presence > 0 && (
-            <span style={{ color: color.faint }}> · {room.presence} here</span>
+            <span style={{ color: color.faint }}> · {presencePhrase(room)}</span>
           )}
         </div>
         <div
@@ -273,9 +275,11 @@ function RoomRow({ room, onEnter, isActive }) {
   );
 }
 
-function RoomDetail({ room, onBack, onPlay, AlbumArt, TrackRow, currentTrack, isPlaying, onLike, playlistCtx }) {
+function RoomDetail({ room, onBack, onPlay, AlbumArt, TrackRow, currentTrack, isPlaying, onLike, playlistCtx, preferredGenres = [] }) {
   const bg = atmosphereGradient(room.atmosphere || room.id);
   const cover = room.coverTrack;
+  const presence = presencePhrase(room);
+  const why = cover ? explainPick(cover, { room, preferredGenres }) : "";
 
   return (
     <div style={{ minHeight: "100%", animation: "fadeIn 0.35s ease both" }}>
@@ -346,7 +350,7 @@ function RoomDetail({ room, onBack, onPlay, AlbumArt, TrackRow, currentTrack, is
             }}
           >
             {KIND_LABELS[room.kind] || "Room"}
-            {room.presence > 0 ? ` · ${room.presence} listening` : ""}
+            {` · ${presence}`}
           </div>
           <h1
             style={{
@@ -386,10 +390,13 @@ function RoomDetail({ room, onBack, onPlay, AlbumArt, TrackRow, currentTrack, is
           >
             <span>{room.count} tracks</span>
             <span>·</span>
-            <span>E{room.avgEnergy}</span>
-            <span>·</span>
             <span>{room.lastActivity}</span>
           </div>
+          {why && (
+            <div style={{ marginTop: 10, fontSize: 12, color: color.muted, lineHeight: 1.4, maxWidth: 320 }}>
+              {why}
+            </div>
+          )}
           {cover && (
             <button
               type="button"
@@ -509,8 +516,11 @@ export default function RoomsScreen({
   TrackRow,
   activeRoomId,
   onActiveRoomChange,
+  preferredGenres = [],
+  onOpenPaths,
 }) {
   const [internalId, setInternalId] = useState(null);
+  const [expandedKinds, setExpandedKinds] = useState({});
   const controlled = onActiveRoomChange != null;
   const activeId = controlled ? (activeRoomId || null) : internalId;
   const setActiveId = (id) => {
@@ -538,6 +548,7 @@ export default function RoomsScreen({
         isPlaying={isPlaying}
         onLike={onLike}
         playlistCtx={playlistCtx}
+        preferredGenres={preferredGenres}
       />
     );
   }
@@ -576,45 +587,104 @@ export default function RoomsScreen({
         >
           Rooms worth inhabiting
         </h2>
-        <p style={{ margin: "0 0 28px", fontSize: 14, color: color.muted, lineHeight: 1.5, maxWidth: 340 }}>
-          Places built around music — cities, moods, scenes, and nights. Not playlists.
+        <p style={{ margin: "0 0 20px", fontSize: 14, color: color.muted, lineHeight: 1.5, maxWidth: 340 }}>
+          Places built around music — enter one and stay awhile.
         </p>
 
-        {groups.map((group) => (
-          <section key={group.kind} style={{ marginBottom: 36 }}>
-            <div
-              style={{
-                fontSize: 13,
-                fontWeight: 650,
-                fontFamily: fontDisplay,
-                color: color.ink,
-                marginBottom: 4,
-                letterSpacing: -0.2,
-              }}
-            >
-              {group.label}
-            </div>
-            <div style={{ fontSize: 12, color: color.faint, marginBottom: 8 }}>
-              {group.kind === "time"
-                ? "The floor shifts with the hour"
-                : group.kind === "city"
-                  ? "Listen as if you were there"
-                  : group.kind === "mood"
-                    ? "Weather for the inner ear"
-                    : "Enter and stay awhile"}
-            </div>
+        {onOpenPaths && (
+          <button
+            type="button"
+            onClick={onOpenPaths}
+            style={{
+              width: "100%",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              gap: 16,
+              padding: "16px 0 24px",
+              background: "none",
+              border: "none",
+              borderBottom: `1px solid ${color.lineStrong}`,
+              cursor: "pointer",
+              textAlign: "left",
+              color: color.ink,
+              marginBottom: 28,
+            }}
+          >
             <div>
-              {group.rooms.map((room) => (
-                <RoomRow
-                  key={room.id}
-                  room={room}
-                  isActive={featured?.id === room.id}
-                  onEnter={(r) => setActiveId(r.id)}
-                />
-              ))}
+              <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 1.8, color: color.accent, fontFamily: fontMono, textTransform: "uppercase", marginBottom: 6 }}>
+                Journeys
+              </div>
+              <div style={{ fontSize: 16, fontWeight: 700, fontFamily: fontDisplay, letterSpacing: -0.3 }}>
+                Walk a path
+              </div>
             </div>
-          </section>
-        ))}
+            <span style={{ fontSize: 13, color: color.faint }}>→</span>
+          </button>
+        )}
+
+        {groups.map((group) => {
+          const more = group.moreRooms || [];
+          const expanded = !!expandedKinds[group.kind];
+          const visible = expanded ? [...group.rooms, ...more] : group.rooms;
+          return (
+            <section key={group.kind} style={{ marginBottom: 36 }}>
+              <div
+                style={{
+                  fontSize: 13,
+                  fontWeight: 650,
+                  fontFamily: fontDisplay,
+                  color: color.ink,
+                  marginBottom: 4,
+                  letterSpacing: -0.2,
+                }}
+              >
+                {group.label}
+              </div>
+              <div style={{ fontSize: 12, color: color.faint, marginBottom: 8 }}>
+                {group.kind === "time"
+                  ? "The floor shifts with the hour"
+                  : group.kind === "city"
+                    ? "Listen as if you were there"
+                    : group.kind === "mood"
+                      ? "Weather for the inner ear"
+                      : group.kind === "scene"
+                        ? "Culture rooms first — more scenes when you want them"
+                        : "Enter and stay awhile"}
+              </div>
+              <div>
+                {visible.map((room) => (
+                  <RoomRow
+                    key={room.id}
+                    room={room}
+                    isActive={featured?.id === room.id}
+                    onEnter={(r) => setActiveId(r.id)}
+                  />
+                ))}
+              </div>
+              {more.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() =>
+                    setExpandedKinds((prev) => ({ ...prev, [group.kind]: !expanded }))
+                  }
+                  style={{
+                    marginTop: 8,
+                    background: "none",
+                    border: "none",
+                    color: color.muted,
+                    fontSize: 13,
+                    fontWeight: 600,
+                    cursor: "pointer",
+                    padding: "8px 0",
+                  }}
+                >
+                  {expanded ? "Show fewer" : `More scenes · ${more.length}`}
+                </button>
+              )}
+            </section>
+          );
+        })}
       </div>
     </div>
   );

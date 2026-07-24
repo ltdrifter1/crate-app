@@ -248,8 +248,17 @@ export function populateRoom(room, tracks = []) {
     avgEnergy: Math.round(avgEnergy * 10) / 10,
     // Soft presence — placeholder until real multiplayer
     presence: matched.length > 0 ? Math.min(48, 3 + Math.floor(matched.length / 4)) : 0,
-    lastActivity: coverTrack ? "Listening now" : "Quiet",
+    lastActivity: coverTrack ? "Someone just played here" : "Quiet tonight",
   };
+}
+
+/** Soft presence copy — never a raw headcount in the UI. */
+export function presencePhrase(room) {
+  const n = room?.presence || 0;
+  if (n <= 0) return "Quiet tonight";
+  if (n < 8) return "A few listening";
+  if (n < 20) return "Warming up";
+  return "Busy tonight";
 }
 
 /** Populate every destination Room that has at least one track. */
@@ -275,7 +284,7 @@ export function tonightRoom(tracks = []) {
   return populateRoom(asDest, tracks);
 }
 
-/** Group rooms by kind for editorial browsing. */
+/** Group rooms by kind for editorial browsing. Taxonomy scenes nest under moreRooms. */
 export function roomsByKind(populated) {
   const order = ["time", "mood", "scene", "city", "season", "community", "genre"];
   const groups = {};
@@ -284,11 +293,25 @@ export function roomsByKind(populated) {
     if (!groups[k]) groups[k] = [];
     groups[k].push(r);
   });
-  return order.filter((k) => groups[k]?.length).map((k) => ({
-    kind: k,
-    label: KIND_LABELS[k] || k,
-    rooms: groups[k],
-  }));
+  return order.filter((k) => groups[k]?.length).map((k) => {
+    const list = groups[k];
+    if (k === "scene") {
+      const featured = list.filter((r) => !String(r.id).startsWith("scene-"));
+      const taxonomy = list.filter((r) => String(r.id).startsWith("scene-"));
+      return {
+        kind: k,
+        label: KIND_LABELS[k] || k,
+        rooms: featured.length ? featured : taxonomy.slice(0, 6),
+        moreRooms: featured.length ? taxonomy : taxonomy.slice(6),
+      };
+    }
+    return {
+      kind: k,
+      label: KIND_LABELS[k] || k,
+      rooms: list,
+      moreRooms: [],
+    };
+  });
 }
 
 export const KIND_LABELS = {

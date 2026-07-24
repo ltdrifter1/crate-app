@@ -6,6 +6,7 @@ import {
   tonightRoom,
   roomsByKind,
   atmosphereGradient,
+  presencePhrase,
 } from "./rooms";
 import { CLUB_ROOMS } from "./club";
 
@@ -70,6 +71,7 @@ describe("populateRoom", () => {
     );
     expect(populated.coverTrack?.id).toBe("2");
     expect(populated.presence).toBeGreaterThan(0);
+    expect(presencePhrase(populated)).toMatch(/listening|Warming|Busy|Quiet/i);
   });
 });
 
@@ -92,11 +94,20 @@ describe("populateAllRooms / tonightRoom / roomsByKind", () => {
     expect(Array.isArray(t.featured)).toBe(true);
   });
 
-  test("roomsByKind groups editorial sections", () => {
+  test("roomsByKind nests taxonomy scenes under moreRooms", () => {
     const groups = roomsByKind(populateAllRooms(tracks));
     expect(groups.length).toBeGreaterThan(0);
     expect(groups[0]).toHaveProperty("label");
     expect(groups[0]).toHaveProperty("rooms");
+    const sceneGroup = groups.find((g) => g.kind === "scene");
+    if (sceneGroup) {
+      expect(Array.isArray(sceneGroup.moreRooms)).toBe(true);
+      // Featured culture scenes stay visible; taxonomy nests
+      const featuredAreCulture = sceneGroup.rooms.every(
+        (r) => !String(r.id).startsWith("scene-")
+      );
+      expect(featuredAreCulture || sceneGroup.rooms.length <= 6).toBe(true);
+    }
   });
 });
 

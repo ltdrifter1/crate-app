@@ -22,16 +22,15 @@ import {
 } from "./lib/club";
 import { parsePath, buildPath, documentTitleFor } from "./lib/routes";
 import { digLeadStory, explainPick, SEARCH_PROMPTS } from "./lib/explain";
-import { buildHomeCollections, livedInRooms, rediscoveredTracks } from "./lib/homeCollections";
+import { buildHomeCollections, livedInRooms, savedTracks } from "./lib/homeCollections";
 import { atmosphereGradient } from "./lib/rooms";
 import { slugify, findArtist, findAlbum, searchEntities } from "./lib/catalog";
-import { enrichTracksWithScenes, displaySceneLabel, trackMatchesScene, destinationIdForScene, matchSceneFromText } from "./lib/scenes";
+import { enrichTracksWithScenes, displaySceneLabel, trackMatchesScene, matchSceneFromText } from "./lib/scenes";
 import RoomsScreen from "./components/rooms/RoomsScreen";
 import OnboardingRitual from "./components/onboarding/OnboardingRitual";
 import ArtistPage, { AlbumPage } from "./components/catalog/ArtistPage";
 import LinerNotesSheet from "./components/catalog/LinerNotesSheet";
 import PathsScreen from "./components/paths/PathsScreen";
-import ScenesBrowser from "./components/scenes/ScenesBrowser";
 
 const injectStyles = () => {
   if (document.getElementById("verse-app-global-styles")) return;
@@ -1942,63 +1941,101 @@ function HomeScreen({
   isRadioMode, playlistCtx, signalLabel, setPrev, setNext, onBuildNight,
   doorsSoundOn, onToggleDoorsSound, homeRooms = [], onOpenRoom, onOpenRooms,
   userName = "there",
+  userPlaylists = [], onCreatePlaylist, onDeletePlaylist,
 }) {
   const singles = tracks.filter(t => (t.duration || 0) <= 900);
+  const saved = savedTracks(tracks, 24);
   const collections = buildHomeCollections(tracks);
-  const rooms = livedInRooms(tracks, homeRooms, 6);
-  const rediscovered = rediscoveredTracks(singles, 8);
-  const recentlySaved = singles.filter(t => t.liked).slice(0, 12);
+  const rooms = livedInRooms(tracks, homeRooms, 4);
   const activeId = currentTrack?.id;
   const { menu, openFromButton, openFromContext, close } = useTrackMenu();
+  const [showNewInput, setShowNewInput] = useState(false);
+  const [newName, setNewName] = useState("");
+  const [openPlaylistId, setOpenPlaylistId] = useState(null);
+
+  function handleCreate() {
+    if (!newName.trim() || !onCreatePlaylist) return;
+    onCreatePlaylist(newName.trim());
+    setNewName("");
+    setShowNewInput(false);
+  }
+
+  const openPlaylist = openPlaylistId
+    ? userPlaylists.find(p => p.id === openPlaylistId)
+    : null;
+  const openPlaylistTracks = openPlaylist
+    ? (openPlaylist.trackIds || []).map(id => tracks.find(t => t.id === id)).filter(Boolean)
+    : [];
+
+  if (openPlaylist) {
+    return (
+      <div style={{ padding: "24px 16px 36px" }}>
+        <button type="button" onClick={() => setOpenPlaylistId(null)} style={{
+          background: "none", border: "none", color: color.muted, fontSize: 13, cursor: "pointer", fontWeight: 600, marginBottom: 16,
+        }}>← Home</button>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
+          <div style={{ fontSize: 24, fontWeight: 750, color: color.ink, fontFamily: fontDisplay, letterSpacing: -0.6 }}>{openPlaylist.name}</div>
+          <span style={{ fontSize: 12, color: color.muted }}>{openPlaylistTracks.length}</span>
+        </div>
+        {openPlaylistTracks.length === 0 ? (
+          <div style={{ fontSize: 14, color: color.faint, paddingTop: 32, textAlign: "center" }}>Empty playlist — add tracks with ⋯</div>
+        ) : openPlaylistTracks.map(t => (
+          <TrackRow key={t.id} track={t} onPlay={() => onPlayTrack(t, openPlaylistTracks)} active={activeId === t.id} isPlaying={isPlaying} onLike={onLike} playlistCtx={playlistCtx} activePlaylistId={openPlaylist.id}/>
+        ))}
+        {menu && (
+          <TrackActionsMenu track={menu.track} playlistCtx={playlistCtx} activePlaylistId={menu.activePlaylistId} x={menu.x} y={menu.y} onClose={close}/>
+        )}
+      </div>
+    );
+  }
 
   return (
-    <div style={{ position:"relative", paddingBottom:36 }}>
-      {/* Personal home hero — place, not dashboard */}
+    <div style={{ position: "relative", paddingBottom: 36 }}>
       {!isRadioMode && (
         <div style={{
-          position:"relative", overflow:"hidden",
+          position: "relative", overflow: "hidden",
           minHeight: "min(42vh, 340px)",
-          display:"flex", flexDirection:"column", justifyContent:"flex-end",
-          padding:"40px 20px 28px",
-          animation:"stationIn 0.7s cubic-bezier(0.22,1,0.36,1) both",
+          display: "flex", flexDirection: "column", justifyContent: "flex-end",
+          padding: "40px 20px 28px",
+          animation: "stationIn 0.7s cubic-bezier(0.22,1,0.36,1) both",
         }}>
-          <div aria-hidden="true" style={{ position:"absolute", inset:0, background: timeOfDayGradient() }}/>
+          <div aria-hidden="true" style={{ position: "absolute", inset: 0, background: timeOfDayGradient() }}/>
           <div aria-hidden="true" style={{
-            position:"absolute", top:"-20%", right:"-10%", width:300, height:300, borderRadius:"50%",
-            background:`radial-gradient(circle, ${color.accentSoft} 0%, transparent 70%)`,
-            animation:"breathe 7s ease-in-out infinite",
+            position: "absolute", top: "-20%", right: "-10%", width: 300, height: 300, borderRadius: "50%",
+            background: `radial-gradient(circle, ${color.accentSoft} 0%, transparent 70%)`,
+            animation: "breathe 7s ease-in-out infinite",
           }}/>
-          <div style={{ position:"relative", zIndex:1, maxWidth:420 }}>
+          <div style={{ position: "relative", zIndex: 1, maxWidth: 420 }}>
             <div style={{
-              fontSize:11, fontWeight:700, letterSpacing:2, color: color.accent,
-              fontFamily: fontMono, textTransform:"uppercase", marginBottom:12,
+              fontSize: 11, fontWeight: 700, letterSpacing: 2, color: color.accent,
+              fontFamily: fontMono, textTransform: "uppercase", marginBottom: 12,
             }}>Your home</div>
             <div style={{
-              fontSize:"clamp(40px, 12vw, 56px)", fontWeight:800, letterSpacing:-1.8,
-              color: color.onDark, fontFamily: fontDisplay, lineHeight:0.95, marginBottom:12,
+              fontSize: "clamp(40px, 12vw, 56px)", fontWeight: 800, letterSpacing: -1.8,
+              color: color.onDark, fontFamily: fontDisplay, lineHeight: 0.95, marginBottom: 12,
             }}>
               {BRAND_NAME}
             </div>
-            <div style={{ fontSize:15, color: color.body, lineHeight:1.5, maxWidth:300, marginBottom:22 }}>
-              Hey {userName.split(" ")[0]}. A place for the music you keep — and the rooms you return to.
+            <div style={{ fontSize: 15, color: color.body, lineHeight: 1.5, maxWidth: 300, marginBottom: 22 }}>
+              Hey {userName.split(" ")[0]}. The music you keep — and the rooms you return to.
             </div>
-            <div style={{ display:"flex", gap:10, flexWrap:"wrap" }}>
+            <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
               <button type="button" className="play-primary" onClick={onPlayRadio}
                 style={{
-                  display:"inline-flex", alignItems:"center", gap:10,
-                  padding:"13px 18px 13px 14px", borderRadius: radius.sm,
-                  background: color.accent, border:"none", color: color.onAccent,
-                  cursor:"pointer", fontSize:14, fontWeight:650,
-                  boxShadow:`0 12px 32px ${color.accentGlow}`,
+                  display: "inline-flex", alignItems: "center", gap: 10,
+                  padding: "13px 18px 13px 14px", borderRadius: radius.sm,
+                  background: color.accent, border: "none", color: color.onAccent,
+                  cursor: "pointer", fontSize: 14, fontWeight: 650,
+                  boxShadow: `0 12px 32px ${color.accentGlow}`,
                 }}>
                 <Icon name="play" size={16}/> Open the floor
               </button>
               {onOpenRooms && (
                 <button type="button" onClick={onOpenRooms}
                   style={{
-                    padding:"13px 16px", borderRadius: radius.sm, background:"none",
-                    border:`1px solid ${color.lineStrong}`, color: color.body,
-                    cursor:"pointer", fontSize:13, fontWeight:600,
+                    padding: "13px 16px", borderRadius: radius.sm, background: "none",
+                    border: `1px solid ${color.lineStrong}`, color: color.body,
+                    cursor: "pointer", fontSize: 13, fontWeight: 600,
                   }}>
                   Browse rooms
                 </button>
@@ -2008,9 +2045,8 @@ function HomeScreen({
         </div>
       )}
 
-      {/* Live floor when On Air */}
       {isRadioMode && (
-        <div style={{ position:"relative", marginBottom:20 }}>
+        <div style={{ position: "relative", marginBottom: 20 }}>
           <DeepCutsCard
             onPlay={onPlayRadio}
             onTogglePlay={onTogglePlay}
@@ -2026,44 +2062,43 @@ function HomeScreen({
         </div>
       )}
 
-      {/* Rooms you live in */}
       {rooms.length > 0 && (
         <HomeSection label="Rooms you live in" count={rooms.length} delay={0.04}>
-          <div className="hide-scroll" style={{ display:"flex", gap:12, overflowX:"auto", padding:"0 20px 8px" }}>
+          <div className="hide-scroll" style={{ display: "flex", gap: 12, overflowX: "auto", padding: "0 20px 8px" }}>
             {rooms.map((room, i) => (
               <button
                 key={room.id}
                 type="button"
                 onClick={() => onOpenRoom?.(room.id)}
                 style={{
-                  flexShrink:0, width:148, padding:0, border:"none", background:"none",
-                  cursor: onOpenRoom ? "pointer" : "default", textAlign:"left",
-                  animation:`rise 0.5s cubic-bezier(0.22,1,0.36,1) ${0.05 + i * 0.03}s both`,
+                  flexShrink: 0, width: 148, padding: 0, border: "none", background: "none",
+                  cursor: onOpenRoom ? "pointer" : "default", textAlign: "left",
+                  animation: `rise 0.5s cubic-bezier(0.22,1,0.36,1) ${0.05 + i * 0.03}s both`,
                 }}
               >
                 <div style={{
-                  width:148, height:100, marginBottom:10, position:"relative", overflow:"hidden",
+                  width: 148, height: 100, marginBottom: 10, position: "relative", overflow: "hidden",
                   background: atmosphereGradient(room.atmosphere || room.id),
                 }}>
                   {room.coverTrack?.albumCover && (
                     <div aria-hidden="true" style={{
-                      position:"absolute", inset:0,
-                      backgroundImage:`url(${room.coverTrack.albumCover})`,
-                      backgroundSize:"cover", backgroundPosition:"center",
-                      opacity:0.45, filter:"saturate(110%)",
+                      position: "absolute", inset: 0,
+                      backgroundImage: `url(${room.coverTrack.albumCover})`,
+                      backgroundSize: "cover", backgroundPosition: "center",
+                      opacity: 0.45, filter: "saturate(110%)",
                     }}/>
                   )}
                   <div style={{
-                    position:"absolute", inset:0,
-                    background:"linear-gradient(180deg, transparent 30%, rgba(12,11,10,0.92) 100%)",
+                    position: "absolute", inset: 0,
+                    background: "linear-gradient(180deg, transparent 30%, rgba(12,11,10,0.92) 100%)",
                   }}/>
                   <div style={{
-                    position:"absolute", left:10, right:10, bottom:10,
-                    fontSize:14, fontWeight:750, color: color.onDark, fontFamily: fontDisplay, letterSpacing:-0.3,
+                    position: "absolute", left: 10, right: 10, bottom: 10,
+                    fontSize: 14, fontWeight: 750, color: color.onDark, fontFamily: fontDisplay, letterSpacing: -0.3,
                   }}>{room.label}</div>
                 </div>
-                <div style={{ fontSize:11, color: color.muted, lineHeight:1.35 }}>
-                  {room.count} tracks · {room.desc || room.story}
+                <div style={{ fontSize: 11, color: color.muted, lineHeight: 1.35 }}>
+                  {room.count} tracks
                 </div>
               </button>
             ))}
@@ -2071,41 +2106,77 @@ function HomeScreen({
         </HomeSection>
       )}
 
-      {onBuildNight && (
-        <div style={{ padding:"0 20px 28px", animation:"rise 0.55s cubic-bezier(0.22,1,0.36,1) 0.06s both" }}>
-          <button
-            type="button"
-            onClick={onBuildNight}
-            style={{
-              width:"100%", display:"flex", alignItems:"center", justifyContent:"space-between",
-              gap:16, padding:"18px 0",
-              background: "none", border:"none",
-              borderBottom:`1px solid ${color.lineStrong}`,
-              cursor:"pointer", textAlign:"left", color: color.ink,
-            }}
-          >
-            <div>
-              <div style={{ fontSize:11, fontWeight:700, letterSpacing:1.8, color: color.accent, fontFamily: fontMono, textTransform:"uppercase", marginBottom:6 }}>Session</div>
-              <div style={{ fontSize:18, fontWeight:750, fontFamily: fontDisplay, letterSpacing:-0.4 }}>Shape a session</div>
-              <div style={{ fontSize:13, color: color.muted, marginTop:4 }}>Build a night, or plot an A→B route</div>
-            </div>
-            <div style={{
-              width:40, height:40, borderRadius: radius.sm, background: color.accentSoft,
-              display:"flex", alignItems:"center", justifyContent:"center", color: color.accent, flexShrink:0,
-            }}>
-              <Icon name="play" size={16}/>
-            </div>
-          </button>
-        </div>
+      {saved.length > 0 && (
+        <HomeSection label="Saved" count={saved.length} delay={0.06}>
+          <div style={{ padding: "0 20px 4px", fontSize: 13, color: color.muted, marginTop: -8, marginBottom: 14 }}>
+            The records you keep close
+          </div>
+          <div style={{ padding: "0 16px" }}>
+            {saved.slice(0, 12).map(t => (
+              <TrackRow key={t.id} track={t} onPlay={() => onPlayTrack(t, saved)} active={activeId === t.id} isPlaying={isPlaying} onLike={onLike} playlistCtx={playlistCtx}/>
+            ))}
+          </div>
+        </HomeSection>
       )}
 
-      {/* Collections wall */}
+      <HomeSection label="Playlists" count={userPlaylists.length || undefined} delay={0.08}>
+        <div style={{ padding: "0 16px" }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+            {userPlaylists.map(pl => {
+              const plTracks = (pl.trackIds || []).map(id => tracks.find(t => t.id === id)).filter(Boolean);
+              return (
+                <div key={pl.id} onClick={() => setOpenPlaylistId(pl.id)}
+                  style={{
+                    display: "flex", alignItems: "center", gap: 12, padding: "14px 4px",
+                    borderBottom: `1px solid ${color.line}`, cursor: "pointer",
+                  }}>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: 15, fontWeight: 650, color: color.ink, fontFamily: fontDisplay, letterSpacing: -0.2 }}>{pl.name}</div>
+                    <div style={{ fontSize: 12, color: color.muted, marginTop: 2 }}>{plTracks.length} tracks</div>
+                  </div>
+                  {onDeletePlaylist && (
+                    <button type="button" onClick={e => { e.stopPropagation(); onDeletePlaylist(pl.id); }}
+                      style={{ background: "none", border: "none", color: color.faint, cursor: "pointer", padding: 4, fontSize: 14 }}>×</button>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+          <div style={{ marginTop: 12 }}>
+            {showNewInput ? (
+              <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                <input autoFocus value={newName} onChange={e => setNewName(e.target.value)}
+                  onKeyDown={e => { if (e.key === "Enter") handleCreate(); if (e.key === "Escape") { setShowNewInput(false); setNewName(""); } }}
+                  placeholder="Playlist name…" style={{ flex: 1, ...INPUT_ST, padding: "10px 12px", fontSize: 13 }}/>
+                <button type="button" onClick={handleCreate} style={{
+                  background: color.accent, border: "none", borderRadius: 10, color: color.onAccent,
+                  fontSize: 13, fontWeight: 600, padding: "10px 16px", cursor: "pointer",
+                }}>Create</button>
+              </div>
+            ) : (
+              <button type="button" onClick={() => setShowNewInput(true)} style={{
+                width: "100%", padding: "14px 4px", background: "none",
+                border: "none", borderTop: userPlaylists.length ? "none" : `1px dashed ${color.lineStrong}`,
+                color: color.muted, fontSize: 13, cursor: "pointer", textAlign: "left", fontWeight: 600,
+              }}>
+                + New playlist
+              </button>
+            )}
+          </div>
+          {userPlaylists.length === 0 && !showNewInput && (
+            <div style={{ marginTop: 8, fontSize: 13, color: color.faint, lineHeight: 1.5 }}>
+              Tip: tap ⋯ on any track to add it here.
+            </div>
+          )}
+        </div>
+      </HomeSection>
+
       {collections.map((col, ci) => (
-        <HomeSection key={col.id} label={col.label} count={col.tracks.length} delay={0.08 + ci * 0.03}>
-          <div style={{ padding:"0 20px 4px", fontSize:13, color: color.muted, marginTop:-8, marginBottom:14 }}>
+        <HomeSection key={col.id} label={col.label} count={col.tracks.length} delay={0.1 + ci * 0.03}>
+          <div style={{ padding: "0 20px 4px", fontSize: 13, color: color.muted, marginTop: -8, marginBottom: 14 }}>
             {col.story}
           </div>
-          <div className="hide-scroll" style={{ display:"flex", gap:14, overflowX:"auto", padding:"0 20px 10px" }}>
+          <div className="hide-scroll" style={{ display: "flex", gap: 14, overflowX: "auto", padding: "0 20px 10px" }}>
             {col.tracks.map((t, i) => {
               const active = activeId === t.id;
               return (
@@ -2114,25 +2185,25 @@ function HomeScreen({
                   onClick={() => onPlayTrack(t, col.tracks)}
                   onContextMenu={(e) => openFromContext(e, t)}
                   style={{
-                    flexShrink:0, width:132, cursor:"pointer", position:"relative",
-                    animation:`rise 0.5s cubic-bezier(0.22,1,0.36,1) ${0.06 + i * 0.025}s both`,
+                    flexShrink: 0, width: 132, cursor: "pointer", position: "relative",
+                    animation: `rise 0.5s cubic-bezier(0.22,1,0.36,1) ${0.06 + i * 0.025}s both`,
                   }}
                 >
                   <div style={{
-                    width:132, height:132, overflow:"hidden", marginBottom:10, position:"relative",
+                    width: 132, height: 132, overflow: "hidden", marginBottom: 10, position: "relative",
                     boxShadow: active ? `0 0 0 2px ${color.accent}` : "0 10px 28px rgba(0,0,0,0.35)",
                   }}>
                     <AlbumArt track={t} size={132} borderRadius={0}/>
-                    <div style={{ position:"absolute", top:4, right:2, zIndex:2 }} onClick={e=>e.stopPropagation()}>
+                    <div style={{ position: "absolute", top: 4, right: 2, zIndex: 2 }} onClick={e => e.stopPropagation()}>
                       <TrackMoreButton onClick={(e) => openFromButton(e, t)} />
                     </div>
                   </div>
                   <div style={{
-                    fontSize:13, fontWeight: active ? 650 : 500, letterSpacing:-0.2,
+                    fontSize: 13, fontWeight: active ? 650 : 500, letterSpacing: -0.2,
                     color: active ? color.accent : color.ink,
-                    overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap",
+                    overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
                   }}>{t.title}</div>
-                  <div style={{ fontSize:11, color: color.muted, marginTop:3, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{t.artist}</div>
+                  <div style={{ fontSize: 11, color: color.muted, marginTop: 3, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{t.artist}</div>
                 </div>
               );
             })}
@@ -2140,29 +2211,46 @@ function HomeScreen({
         </HomeSection>
       ))}
 
-      {/* Rediscovered list (if not already a collection rail) */}
-      {rediscovered.length > 0 && !collections.some(c => c.id === "rediscovered") && (
-        <HomeSection label="Rediscovered" count={rediscovered.length} delay={0.2}>
-          <div style={{ padding:"0 20px" }}>
-            {rediscovered.map(t => (
-              <TrackRow key={t.id} track={t} onPlay={() => onPlayTrack(t, rediscovered)} active={activeId===t.id} isPlaying={isPlaying} onLike={onLike} playlistCtx={playlistCtx}/>
-            ))}
-          </div>
-        </HomeSection>
+      {onBuildNight && (
+        <div style={{ padding: "8px 20px 28px", animation: "rise 0.55s cubic-bezier(0.22,1,0.36,1) 0.12s both" }}>
+          <button
+            type="button"
+            onClick={onBuildNight}
+            style={{
+              width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between",
+              gap: 16, padding: "18px 0",
+              background: "none", border: "none",
+              borderBottom: `1px solid ${color.lineStrong}`,
+              cursor: "pointer", textAlign: "left", color: color.ink,
+            }}
+          >
+            <div>
+              <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 1.8, color: color.accent, fontFamily: fontMono, textTransform: "uppercase", marginBottom: 6 }}>Session</div>
+              <div style={{ fontSize: 18, fontWeight: 750, fontFamily: fontDisplay, letterSpacing: -0.4 }}>Shape a session</div>
+              <div style={{ fontSize: 13, color: color.muted, marginTop: 4 }}>Build a night, or plot an A→B route</div>
+            </div>
+            <div style={{
+              width: 40, height: 40, borderRadius: radius.sm, background: color.accentSoft,
+              display: "flex", alignItems: "center", justifyContent: "center", color: color.accent, flexShrink: 0,
+            }}>
+              <Icon name="play" size={16}/>
+            </div>
+          </button>
+        </div>
       )}
 
-      {recentlySaved.length === 0 && collections.length === 0 && (
-        <div style={{ padding:"40px 20px", textAlign:"center" }}>
-          <div style={{ fontSize:16, fontWeight:700, fontFamily: fontDisplay, color: color.ink, marginBottom:8 }}>
+      {saved.length === 0 && collections.length === 0 && userPlaylists.length === 0 && (
+        <div style={{ padding: "40px 20px", textAlign: "center" }}>
+          <div style={{ fontSize: 16, fontWeight: 700, fontFamily: fontDisplay, color: color.ink, marginBottom: 8 }}>
             Your shelves are empty
           </div>
-          <div style={{ fontSize:14, color: color.muted, lineHeight:1.5, maxWidth:280, margin:"0 auto 18px" }}>
+          <div style={{ fontSize: 14, color: color.muted, lineHeight: 1.5, maxWidth: 280, margin: "0 auto 18px" }}>
             Save a track, enter a room, or open the floor — home grows as you listen.
           </div>
           {onOpenRooms && (
             <button type="button" onClick={onOpenRooms} style={{
-              padding:"12px 18px", borderRadius: radius.sm, border:"none",
-              background: color.accent, color: color.onAccent, fontWeight:650, cursor:"pointer",
+              padding: "12px 18px", borderRadius: radius.sm, border: "none",
+              background: color.accent, color: color.onAccent, fontWeight: 650, cursor: "pointer",
             }}>Find a room</button>
           )}
         </div>
@@ -2322,51 +2410,30 @@ function EnergySparkline({ tracks, width=120, height=24 }) {
   );
 }
 
-// ─── LIBRARY ─────────────────────────────────────────────────────────────────
-function FavoritesScreen({ tracks, preferredGenres = [], onPlay, onLike, currentTrack, isPlaying, userPlaylists, onCreatePlaylist, onAddToPlaylist, onRemoveFromPlaylist, onDeletePlaylist, playlistCtx, onOpenPaths, onOpenSceneRoom, onPlayScene }) {
-  const [view, setView] = useState("discover"); // "discover" | "scenes" | "liked" | "genres" | "playlists" | playlist id
-  const [showNewInput, setShowNewInput] = useState(false);
-  const [newName, setNewName] = useState("");
-  const [genreFilter, setGenreFilter] = useState(null);
-  const [moodFilter, setMoodFilter] = useState(null);
+// ─── DIG (Discover) ───────────────────────────────────────────────────────────
+function FavoritesScreen({
+  tracks, preferredGenres = [], onPlay, onLike, currentTrack, isPlaying,
+  playlistCtx, onOpenPaths, onOpenRooms,
+}) {
   const { menu, openFromButton, openFromContext, close } = useTrackMenu();
 
-  const singles = tracks.filter(t=>(t.duration||0)<=900);
+  const singles = tracks.filter(t => (t.duration || 0) <= 900);
   const likedTracks = tracks.filter(t => t.liked);
   const hour = new Date().getHours();
   const [eMin, eMax] = getEnergyRangeForHour(hour);
 
-  // Genre map — only canonical labels
-  const genreMap = {};
-  CANONICAL_GENRES.forEach(g => { genreMap[g] = []; });
-  singles.forEach(t => {
-    const g = normalizeGenre(t.genre);
-    if (!g) return;
-    genreMap[g].push(t);
-  });
-  const genres = CANONICAL_GENRES.filter(g => genreMap[g].length > 0);
-
-  // Tonight's rooms — dig by floor energy, not genre cards
   const rooms = {};
-  const roomMeta = {};
   CLUB_ROOMS.forEach(def => {
     const matched = singles.filter(def.filter);
-    if (matched.length >= 1) {
-      rooms[def.label] = matched;
-      roomMeta[def.label] = def;
-    }
+    if (matched.length >= 1) rooms[def.label] = matched;
   });
-  const roomKeys = Object.keys(rooms);
   const floor = getFloorPhase(hour);
   const activeRoomLabel = roomForFloorPhase(floor.id);
   const roomTracks = rooms[activeRoomLabel] || [];
-
-  // Time / room recommendations
   const timeRecs = roomTracks.length > 0
     ? roomTracks
-    : singles.filter(t => (t.energy||5) >= eMin && (t.energy||5) <= eMax);
+    : singles.filter(t => (t.energy || 5) >= eMin && (t.energy || 5) <= eMax);
 
-  // For You — liked genres + profile preferred genres + hour energy
   const [forYou, setForYou] = useState([]);
   const forYouInitRef = useRef(null);
   useEffect(() => {
@@ -2379,9 +2446,8 @@ function FavoritesScreen({ tracks, preferredGenres = [], onPlay, onLike, current
       ...(preferredGenres || []),
     ])];
     const candidates = likedG.length > 0
-      ? singles.filter(t => likedG.includes(t.genre) && (t.energy||5)>=eMin && (t.energy||5)<=eMax && !t.liked)
-      : singles.filter(t => (t.energy||5) >= eMin && (t.energy||5) <= eMax);
-    // Soft preference: preferred genres first, then liked-genre matches
+      ? singles.filter(t => likedG.includes(t.genre) && (t.energy || 5) >= eMin && (t.energy || 5) <= eMax && !t.liked)
+      : singles.filter(t => (t.energy || 5) >= eMin && (t.energy || 5) <= eMax);
     const preferredSet = new Set(preferredGenres || []);
     const ranked = [...candidates].sort((a, b) => {
       const ap = preferredSet.has(a.genre) ? 1 : 0;
@@ -2392,374 +2458,165 @@ function FavoritesScreen({ tracks, preferredGenres = [], onPlay, onLike, current
     setForYou(ranked);
   }, [tracks.length, likedTracks.length, preferredGenres]);
 
-  // Active view tracks
-  const isPlaylistView = view.startsWith("pl_");
-  const activeTracks = view === "liked" ? likedTracks
-    : view === "genres" ? (genreFilter ? (genreMap[genreFilter]||[]) : [])
-    : isPlaylistView ? (() => { const pl = userPlaylists.find(p=>p.id===view); return (pl?.trackIds||[]).map(id=>tracks.find(t=>t.id===id)).filter(Boolean); })()
-    : [];
-  const activeLabel = view === "liked" ? "Saved" : view === "genres" ? (genreFilter||"Genres") : isPlaylistView ? (userPlaylists.find(p=>p.id===view)?.name||"Playlist") : "";
+  const digPool = timeRecs.length > 0 ? timeRecs : (forYou.length > 0 ? forYou : singles);
+  const digLead = digPool[0];
+  const digLane = digPool.filter(t => t.id !== digLead?.id).slice(0, 10);
 
-  function handleCreate() {
-    if(!newName.trim()) return;
-    onCreatePlaylist(newName.trim());
-    setNewName(""); setShowNewInput(false);
-  }
-
-  const Pill = ({label, active, onClick}) => (
-    <button type="button" onClick={onClick} style={{
-      padding:"9px 15px", borderRadius:8, border:"none",
-      background: active? color.accent :"transparent",
-      color: active? color.onAccent: color.muted,
-      fontSize:13, fontWeight:active?650:500, cursor:"pointer", flexShrink:0, letterSpacing:-0.1,
-    }}>{label}</button>
-  );
-
-  const SectionHead = ({children, sub}) => (
-    <div style={{ marginBottom:14 }}>
-      <div style={{ fontSize:20, fontWeight:750, letterSpacing:-0.5, color: color.ink, fontFamily: fontDisplay }}>{children}</div>
-      {sub && <div style={{ fontSize:12, color: color.muted, marginTop:4 }}>{sub}</div>}
+  const SectionHead = ({ children, sub }) => (
+    <div style={{ marginBottom: 14 }}>
+      <div style={{ fontSize: 20, fontWeight: 750, letterSpacing: -0.5, color: color.ink, fontFamily: fontDisplay }}>{children}</div>
+      {sub && <div style={{ fontSize: 12, color: color.muted, marginTop: 4 }}>{sub}</div>}
     </div>
   );
 
   return (
-    <div style={{ overflowY:"auto", height:"100%", minHeight:"calc(100vh - 112px)" }}>
-      {/* Quiet mode switcher — not a streaming segment control */}
-      <div style={{
-        position:"sticky", top:0, zIndex:10, padding:"12px 20px 8px",
-        background:"rgba(9,11,13,0.92)", borderBottom:`1px solid ${color.line}`,
-        display:"flex", gap:18, overflowX:"auto",
-      }} className="hide-scroll">
-        {[
-          { id:"discover", label:"Dig" },
-          { id:"scenes", label:"Scenes" },
-          { id:"liked", label:"Saved" },
-          { id:"genres", label:"Lanes" },
-          { id:"playlists", label:"Playlists" },
-        ].map(tab => (
-          <button
-            key={tab.id}
-            type="button"
-            onClick={()=>{
-              if (tab.id === "genres") { setView("genres"); setGenreFilter(null); }
-              else setView(tab.id);
-            }}
+    <div style={{ overflowY: "auto", height: "100%", minHeight: "calc(100vh - 112px)" }}>
+      <div style={{ padding: "0 0 32px" }}>
+        {digLead && (
+          <div
+            onClick={() => onPlay(digLead)}
+            onContextMenu={(e) => openFromContext(e, digLead)}
+            role="button"
+            tabIndex={0}
+            onKeyDown={e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onPlay(digLead); } }}
             style={{
-              background:"none", border:"none", cursor:"pointer", padding:"6px 0",
-              color: (tab.id === "playlists" ? (view==="playlists"||isPlaylistView) : view===tab.id) ? color.ink : color.faint,
-              fontSize:13, fontWeight: (tab.id === "playlists" ? (view==="playlists"||isPlaylistView) : view===tab.id) ? 700 : 500,
-              fontFamily: fontDisplay, letterSpacing:-0.2,
-              borderBottom: (tab.id === "playlists" ? (view==="playlists"||isPlaylistView) : view===tab.id) ? `2px solid ${color.accent}` : "2px solid transparent",
-              flexShrink:0,
+              position: "relative", overflow: "hidden", cursor: "pointer",
+              minHeight: "min(52vh, 420px)",
+              display: "flex", flexDirection: "column", justifyContent: "flex-end",
+              padding: "40px 20px 28px",
+              marginBottom: 28,
+              animation: "stationIn 0.7s cubic-bezier(0.22,1,0.36,1) both",
             }}
-          >{tab.label}</button>
-        ))}
-      </div>
+          >
+            <div aria-hidden="true" style={{
+              position: "absolute", inset: 0,
+              backgroundImage: digLead.albumCover ? `url(${digLead.albumCover})` : "none",
+              backgroundSize: "cover", backgroundPosition: "center",
+              filter: "saturate(115%) brightness(0.55)",
+              transform: "scale(1.04)",
+            }}/>
+            <div aria-hidden="true" style={{
+              position: "absolute", inset: 0,
+              background: "linear-gradient(180deg, rgba(9,11,13,0.2) 0%, rgba(9,11,13,0.55) 45%, rgba(9,11,13,0.96) 100%)",
+            }}/>
+            <div style={{ position: "absolute", top: 16, right: 12, zIndex: 2 }} onClick={e => e.stopPropagation()}>
+              <TrackMoreButton onClick={(e) => openFromButton(e, digLead)} />
+            </div>
+            <div style={{ position: "relative", zIndex: 1, maxWidth: 360 }}>
+              {(() => {
+                const story = digLeadStory(activeRoomLabel, floor, digLead);
+                return (
+                  <>
+                    <div style={{
+                      fontSize: 11, fontWeight: 700, letterSpacing: 2, color: color.accent,
+                      fontFamily: fontMono, textTransform: "uppercase", marginBottom: 10,
+                    }}>{story.eyebrow}</div>
+                    <div style={{
+                      fontSize: "clamp(40px, 12vw, 56px)", fontWeight: 800, letterSpacing: -1.8,
+                      color: color.onDark, fontFamily: fontDisplay, lineHeight: 0.95, marginBottom: 12,
+                    }}>
+                      {activeRoomLabel}
+                    </div>
+                    <div style={{ fontSize: 14, color: color.body, lineHeight: 1.45, marginBottom: 22, maxWidth: 280 }}>
+                      {story.body}
+                    </div>
+                  </>
+                );
+              })()}
+              <div style={{ fontSize: 18, fontWeight: 700, color: color.onDark, fontFamily: fontDisplay, letterSpacing: -0.4, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                {digLead.title}
+              </div>
+              <div style={{ fontSize: 13, color: color.muted, marginTop: 4 }}>{digLead.artist}</div>
+              <div style={{ fontSize: 11, color: color.faint, marginTop: 10, fontFamily: fontMono, letterSpacing: 0.3 }}>
+                {explainPick(digLead, { room: { label: activeRoomLabel }, preferredGenres })}
+              </div>
+            </div>
+          </div>
+        )}
 
-      {/* ══ DISCOVER — tonight's rooms ══ */}
-      {view === "discover" && (() => {
-        const digPool = timeRecs.length > 0 ? timeRecs : (forYou.length > 0 ? forYou : singles);
-        const digLead = digPool[0];
-        const digLane = digPool.filter(t => t.id !== digLead?.id).slice(0, 10);
-        return (
-        <div style={{ padding:"0 0 32px" }}>
-          {digLead && (
-            <div
-              onClick={()=>onPlay(digLead)}
-              onContextMenu={(e) => openFromContext(e, digLead)}
-              role="button"
-              tabIndex={0}
-              onKeyDown={e=>{ if(e.key==="Enter"||e.key===" ") { e.preventDefault(); onPlay(digLead); } }}
+        {digLane.length > 0 && (
+          <div style={{ marginBottom: 36 }}>
+            <div style={{ padding: "0 20px" }}>
+              <SectionHead sub={`From the ${activeRoomLabel.toLowerCase()} room`}>More from the room</SectionHead>
+            </div>
+            <div className="hide-scroll" style={{ display: "flex", gap: 12, overflowX: "auto", padding: "0 20px 4px" }}>
+              {digLane.map((t, i) => (
+                <div
+                  key={t.id}
+                  onClick={() => onPlay(t)}
+                  onContextMenu={(e) => openFromContext(e, t)}
+                  style={{
+                    flexShrink: 0, width: 132, cursor: "pointer", position: "relative",
+                    animation: `rise 0.5s cubic-bezier(0.22,1,0.36,1) ${Math.min(i, 6) * 0.04}s both`,
+                  }}
+                >
+                  <div style={{
+                    width: 132, height: 132, overflow: "hidden", marginBottom: 8, position: "relative",
+                    boxShadow: currentTrack?.id === t.id ? `0 0 0 2px ${color.accent}` : "0 8px 22px rgba(0,0,0,0.35)",
+                  }}>
+                    <AlbumArt track={t} size={132} borderRadius={0}/>
+                    <div style={{ position: "absolute", top: 4, right: 2, zIndex: 2 }} onClick={e => e.stopPropagation()}>
+                      <TrackMoreButton onClick={(e) => openFromButton(e, t)} />
+                    </div>
+                  </div>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: color.ink, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", letterSpacing: -0.2 }}>{t.title}</div>
+                  <div style={{ fontSize: 11, color: color.muted, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", marginTop: 3 }}>{t.artist}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <div style={{ padding: "0 20px" }}>
+          {onOpenRooms && (
+            <button
+              type="button"
+              onClick={onOpenRooms}
               style={{
-                position:"relative", overflow:"hidden", cursor:"pointer",
-                minHeight: "min(52vh, 420px)",
-                display:"flex", flexDirection:"column", justifyContent:"flex-end",
-                padding:"40px 20px 28px",
-                marginBottom:28,
-                animation:"stationIn 0.7s cubic-bezier(0.22,1,0.36,1) both",
+                width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between",
+                gap: 16, padding: "18px 0", background: "none", border: "none",
+                borderBottom: `1px solid ${color.lineStrong}`, cursor: "pointer", textAlign: "left", color: color.ink,
               }}
             >
-              <div aria-hidden="true" style={{
-                position:"absolute", inset:0,
-                backgroundImage: digLead.albumCover ? `url(${digLead.albumCover})` : "none",
-                backgroundSize:"cover", backgroundPosition:"center",
-                filter:"saturate(115%) brightness(0.55)",
-                transform:"scale(1.04)",
-              }}/>
-              <div aria-hidden="true" style={{
-                position:"absolute", inset:0,
-                background:"linear-gradient(180deg, rgba(9,11,13,0.2) 0%, rgba(9,11,13,0.55) 45%, rgba(9,11,13,0.96) 100%)",
-              }}/>
-              <div style={{ position:"absolute", top:16, right:12, zIndex:2 }} onClick={e=>e.stopPropagation()}>
-                <TrackMoreButton onClick={(e) => openFromButton(e, digLead)} />
+              <div>
+                <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 1.8, color: color.accent, fontFamily: fontMono, textTransform: "uppercase", marginBottom: 6 }}>Places</div>
+                <div style={{ fontSize: 18, fontWeight: 750, fontFamily: fontDisplay, letterSpacing: -0.4 }}>Browse rooms</div>
+                <div style={{ fontSize: 13, color: color.muted, marginTop: 4 }}>Cities, moods, scenes — enter and stay</div>
               </div>
-              <div style={{ position:"relative", zIndex:1, maxWidth:360 }}>
-                {(() => {
-                  const story = digLeadStory(activeRoomLabel, floor, digLead);
-                  return (
-                    <>
-                      <div style={{
-                        fontSize:11, fontWeight:700, letterSpacing:2, color: color.accent,
-                        fontFamily: fontMono, textTransform:"uppercase", marginBottom:10,
-                      }}>{story.eyebrow}</div>
-                      <div style={{
-                        fontSize:"clamp(40px, 12vw, 56px)", fontWeight:800, letterSpacing:-1.8,
-                        color: color.onDark, fontFamily: fontDisplay, lineHeight:0.95, marginBottom:12,
-                      }}>
-                        {activeRoomLabel}
-                      </div>
-                      <div style={{ fontSize:14, color: color.body, lineHeight:1.45, marginBottom:22, maxWidth:280 }}>
-                        {story.body}
-                      </div>
-                    </>
-                  );
-                })()}
-                <div style={{ fontSize:18, fontWeight:700, color: color.onDark, fontFamily: fontDisplay, letterSpacing:-0.4, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
-                  {digLead.title}
-                </div>
-                <div style={{ fontSize:13, color: color.muted, marginTop:4 }}>{digLead.artist}</div>
-                <div style={{ fontSize:11, color: color.faint, marginTop:10, fontFamily: fontMono, letterSpacing:0.3 }}>
-                  {explainPick(digLead, { room: { label: activeRoomLabel }, preferredGenres })}
-                </div>
+              <div style={{
+                width: 40, height: 40, borderRadius: radius.sm, background: color.accentSoft,
+                display: "flex", alignItems: "center", justifyContent: "center", color: color.accent, flexShrink: 0,
+              }}>
+                <Icon name="drift" size={16}/>
               </div>
-            </div>
-          )}
-
-          {digLane.length > 0 && (
-            <div style={{ marginBottom:36 }}>
-              <div style={{ padding:"0 20px" }}>
-                <SectionHead sub={`From the ${activeRoomLabel.toLowerCase()} room`}>More from the room</SectionHead>
-              </div>
-              <div className="hide-scroll" style={{ display:"flex", gap:12, overflowX:"auto", padding:"0 20px 4px" }}>
-                {digLane.map((t, i) => (
-                  <div
-                    key={t.id}
-                    onClick={()=>onPlay(t)}
-                    onContextMenu={(e) => openFromContext(e, t)}
-                    style={{
-                      flexShrink:0, width:132, cursor:"pointer", position:"relative",
-                      animation:`rise 0.5s cubic-bezier(0.22,1,0.36,1) ${Math.min(i,6)*0.04}s both`,
-                    }}
-                  >
-                    <div style={{
-                      width:132, height:132, overflow:"hidden", marginBottom:8, position:"relative",
-                      boxShadow: currentTrack?.id===t.id ? `0 0 0 2px ${color.accent}` : "0 8px 22px rgba(0,0,0,0.35)",
-                    }}>
-                      <AlbumArt track={t} size={132} borderRadius={0}/>
-                      <div style={{ position:"absolute", top:4, right:2, zIndex:2 }} onClick={e=>e.stopPropagation()}>
-                        <TrackMoreButton onClick={(e) => openFromButton(e, t)} />
-                      </div>
-                    </div>
-                    <div style={{ fontSize:13, fontWeight:600, color: color.ink, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap", letterSpacing:-0.2 }}>{t.title}</div>
-                    <div style={{ fontSize:11, color: color.muted, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap", marginTop:3 }}>{t.artist}</div>
-                  </div>
-                ))}
-              </div>
-            </div>
+            </button>
           )}
 
           {onOpenPaths && (
-            <div style={{ padding:"0 20px 32px" }}>
-              <button
-                type="button"
-                onClick={onOpenPaths}
-                style={{
-                  width:"100%", display:"flex", alignItems:"center", justifyContent:"space-between",
-                  gap:16, padding:"18px 0", background:"none", border:"none",
-                  borderBottom:`1px solid ${color.lineStrong}`, cursor:"pointer", textAlign:"left", color: color.ink,
-                }}
-              >
-                <div>
-                  <div style={{ fontSize:11, fontWeight:700, letterSpacing:1.8, color: color.accent, fontFamily: fontMono, textTransform:"uppercase", marginBottom:6 }}>Journeys</div>
-                  <div style={{ fontSize:18, fontWeight:750, fontFamily: fontDisplay, letterSpacing:-0.4 }}>Walk a path</div>
-                  <div style={{ fontSize:13, color: color.muted, marginTop:4 }}>Rooms connected into listening journeys</div>
-                </div>
-                <div style={{
-                  width:40, height:40, borderRadius: radius.sm, background: color.accentSoft,
-                  display:"flex", alignItems:"center", justifyContent:"center", color: color.accent, flexShrink:0,
-                }}>
-                  <Icon name="drift" size={16}/>
-                </div>
-              </button>
-            </div>
-          )}
-
-          {/* Tonight's rooms */}
-          {roomKeys.length > 0 && (
-          <div style={{ marginBottom:32, padding:"0 20px" }}>
-            <SectionHead sub="Dig by room energy — not genre shelves">Tonight’s rooms</SectionHead>
-            <div style={{ display:"flex", flexDirection:"column", gap:2 }}>
-              {roomKeys.map(room => {
-                const meta = roomMeta[room];
-                const isNow = room === activeRoomLabel;
-                return (
-                  <button
-                    key={room}
-                    type="button"
-                    onClick={()=>{setView("genres");setGenreFilter(null);setMoodFilter(room);}}
-                    style={{
-                      display:"flex", alignItems:"center", justifyContent:"space-between",
-                      padding:"16px 4px", background:"none", border:"none", borderBottom:`1px solid ${color.line}`,
-                      cursor:"pointer", textAlign:"left", color: color.ink,
-                    }}
-                  >
-                    <div>
-                      <div style={{ display:"flex", alignItems:"center", gap:10 }}>
-                        <div style={{ fontSize:16, fontWeight:700, fontFamily: fontDisplay, letterSpacing:-0.3 }}>{room}</div>
-                        {isNow && (
-                          <span style={{ fontSize:9, fontWeight:700, letterSpacing:1.2, color: color.accent, fontFamily: fontMono }}>NOW</span>
-                        )}
-                      </div>
-                      <div style={{ fontSize:12, color: color.muted, marginTop:3 }}>{meta?.desc}</div>
-                    </div>
-                    <div style={{ fontSize:12, color: color.faint, fontVariantNumeric:"tabular-nums", fontFamily: fontMono }}>{rooms[room].length}</div>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-          )}
-
-          {/* Genres buried — coarse lanes */}
-          <div style={{ padding:"0 20px" }}>
-            <SectionHead sub="Coarse filing lanes — scenes carry the culture">Lanes</SectionHead>
-            <div style={{ display:"flex", flexDirection:"column", gap:2 }}>
-            {genres.map(g => (
-              <button
-                key={g}
-                type="button"
-                onClick={()=>{setView("genres");setGenreFilter(g);}}
-                style={{
-                  display:"flex", alignItems:"center", justifyContent:"space-between",
-                  padding:"15px 4px", background:"none", border:"none", borderBottom:`1px solid ${color.line}`,
-                  cursor:"pointer", textAlign:"left", color: color.ink,
-                }}
-              >
-                <div style={{ fontSize:15, fontWeight:700, fontFamily: fontDisplay, letterSpacing:-0.2 }}>{g}</div>
-                <div style={{ fontSize:12, color: color.faint, fontVariantNumeric:"tabular-nums" }}>{genreMap[g].length}</div>
-              </button>
-            ))}
-            </div>
-          </div>
-        </div>
-        );
-      })()}
-
-      {/* ══ SCENES — rich taxonomy browser ══ */}
-      {view === "scenes" && (
-        <ScenesBrowser
-          tracks={tracks}
-          onOpenSceneRoom={(sceneId) => {
-            onOpenSceneRoom?.(sceneId);
-          }}
-          onPlayScene={(sceneId) => onPlayScene?.(sceneId)}
-        />
-      )}
-
-      {/* ══ LIKED / GENRE / PLAYLIST views — track list ══ */}
-      {(view === "liked" || view === "genres" || isPlaylistView) && (
-        <div style={{ padding:"0 16px 16px" }}>
-          {view === "genres" && !genreFilter && !moodFilter && (
-            <div style={{ display:"flex", gap:6, flexWrap:"wrap", marginBottom:16 }}>
-              {genres.map(g => <Pill key={g} label={`${g} (${genreMap[g].length})`} active={false} onClick={()=>setGenreFilter(g)}/>)}
-            </div>
-          )}
-          {view === "genres" && moodFilter && (
-            <div style={{ marginBottom:16 }}>
-              <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center" }}>
-                <div style={{ fontSize:24, fontWeight:750, color: color.ink, fontFamily: fontDisplay, letterSpacing:-0.6 }}>{moodFilter}</div>
-                <button type="button" onClick={()=>{setMoodFilter(null);setView("discover");}} style={{ background:"none", border:"none", color: color.muted, fontSize:13, cursor:"pointer" }}>← back</button>
+            <button
+              type="button"
+              onClick={onOpenPaths}
+              style={{
+                width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between",
+                gap: 16, padding: "18px 0", background: "none", border: "none",
+                borderBottom: `1px solid ${color.lineStrong}`, cursor: "pointer", textAlign: "left", color: color.ink,
+              }}
+            >
+              <div>
+                <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 1.8, color: color.accent, fontFamily: fontMono, textTransform: "uppercase", marginBottom: 6 }}>Journeys</div>
+                <div style={{ fontSize: 18, fontWeight: 750, fontFamily: fontDisplay, letterSpacing: -0.4 }}>Walk a path</div>
+                <div style={{ fontSize: 13, color: color.muted, marginTop: 4 }}>Rooms connected into listening journeys</div>
               </div>
-              <div style={{ fontSize:13, color: color.muted, marginTop:6 }}>{rooms[moodFilter]?.length||0} tracks · {roomMeta[moodFilter]?.desc}</div>
-            </div>
-          )}
-          {view === "genres" && genreFilter && !moodFilter && (
-            <div style={{ marginBottom:16 }}>
-              <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center" }}>
-                <div style={{ fontSize:24, fontWeight:750, color: color.ink, fontFamily: fontDisplay, letterSpacing:-0.6 }}>{genreFilter}</div>
-                <button type="button" onClick={()=>setGenreFilter(null)} style={{ background:"none", border:"none", color: color.muted, fontSize:13, cursor:"pointer" }}>← all genres</button>
+              <div style={{
+                width: 40, height: 40, borderRadius: radius.sm, background: color.accentSoft,
+                display: "flex", alignItems: "center", justifyContent: "center", color: color.accent, flexShrink: 0,
+              }}>
+                <Icon name="hypno" size={16}/>
               </div>
-              <div style={{ fontSize:13, color: color.muted, marginTop:6 }}>{(genreMap[genreFilter]||[]).length} tracks</div>
-            </div>
-          )}
-          {(view === "liked" || (view === "genres" && (genreFilter || moodFilter)) || isPlaylistView) && (
-            <>
-              {view === "liked" && (
-                <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:14 }}>
-                  <div style={{ fontSize:24, fontWeight:750, color: color.ink, fontFamily: fontDisplay, letterSpacing:-0.6 }}>Saved</div>
-                  <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-                    <span style={{ fontSize:12, color: color.muted }}>{likedTracks.length}</span>
-                    <EnergySparkline tracks={likedTracks}/>
-                  </div>
-                </div>
-              )}
-              {isPlaylistView && (
-                <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:14 }}>
-                  <div style={{ fontSize:24, fontWeight:750, color: color.ink, fontFamily: fontDisplay, letterSpacing:-0.6 }}>{activeLabel}</div>
-                  <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-                    <span style={{ fontSize:12, color: color.muted }}>{activeTracks.length}</span>
-                    <EnergySparkline tracks={activeTracks}/>
-                  </div>
-                </div>
-              )}
-              {(moodFilter ? (rooms[moodFilter]||[]) : (genreFilter ? (genreMap[genreFilter]||[]) : activeTracks)).length === 0 ? (
-                <div style={{ textAlign:"center", color: color.faint, paddingTop:48 }}>
-                  <div style={{ fontSize:14 }}>No tracks yet</div>
-                </div>
-              ) : (moodFilter ? (rooms[moodFilter]||[]) : (genreFilter ? (genreMap[genreFilter]||[]) : activeTracks)).map(t => (
-                <TrackRow key={t.id} track={t} onPlay={()=>onPlay(t)} active={currentTrack?.id===t.id} isPlaying={isPlaying} onLike={onLike} playlistCtx={playlistCtx} activePlaylistId={isPlaylistView?view:undefined}/>
-              ))}
-            </>
+            </button>
           )}
         </div>
-      )}
-
-      {/* ══ PLAYLISTS view ══ */}
-      {view === "playlists" && !isPlaylistView && (
-        <div style={{ padding:"0 16px 16px" }}>
-          <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
-            {userPlaylists.map(pl => {
-              const plTracks = (pl.trackIds||[]).map(id=>tracks.find(t=>t.id===id)).filter(Boolean);
-              return (
-                <div key={pl.id} onClick={()=>setView(pl.id)}
-                  style={{ display:"flex", alignItems:"center", gap:12, padding:"12px 14px", borderRadius:14, background: color.surface, border:`1px solid ${color.line}`, cursor:"pointer", transition:"all 0.2s" }}>
-                  <div style={{ display:"flex", gap:2, flexShrink:0 }}>
-                    {plTracks.slice(0,3).map((t,i)=>(
-                      <div key={i} style={{ width:36, height:36, borderRadius:6, overflow:"hidden", marginLeft:i>0?-8:0, border:`1px solid ${color.canvas}` }}>
-                        <AlbumArt track={t} size={36} borderRadius={0}/>
-                      </div>
-                    ))}
-                    {plTracks.length === 0 && <div style={{ width:36, height:36, borderRadius:6, background: color.surfaceRaised, display:"flex", alignItems:"center", justifyContent:"center", color: color.faint }}><Icon name="plus" size={14}/></div>}
-                  </div>
-                  <div style={{ flex:1, minWidth:0 }}>
-                    <div style={{ fontSize:14, fontWeight:600, color: color.ink }}>{pl.name}</div>
-                    <div style={{ fontSize:11, color: color.muted }}>{plTracks.length} tracks</div>
-                  </div>
-                  <EnergySparkline tracks={plTracks} width={60} height={16}/>
-                  <button type="button" onClick={e=>{e.stopPropagation();onDeletePlaylist(pl.id);}} style={{ background:"none", border:"none", color: color.faint, cursor:"pointer", padding:4, fontSize:14 }}>×</button>
-                </div>
-              );
-            })}
-          </div>
-          <div style={{ marginTop:12 }}>
-            {showNewInput ? (
-              <div style={{ display:"flex", gap:8, alignItems:"center" }}>
-                <input autoFocus value={newName} onChange={e=>setNewName(e.target.value)} onKeyDown={e=>{if(e.key==="Enter")handleCreate();if(e.key==="Escape"){setShowNewInput(false);setNewName("");}}} placeholder="Playlist name…" style={{ flex:1, ...INPUT_ST, padding:"10px 12px", fontSize:13 }}/>
-                <button type="button" onClick={handleCreate} style={{ background: color.accent, border:"none", borderRadius:10, color: color.onAccent, fontSize:13, fontWeight:600, padding:"10px 16px", cursor:"pointer" }}>Create</button>
-              </div>
-            ) : (
-              <button type="button" onClick={()=>setShowNewInput(true)} style={{ width:"100%", padding:"14px", borderRadius:14, border:`1px dashed ${color.lineStrong}`, background: color.surface, color: color.muted, fontSize:13, cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", gap:6 }}>
-                <Icon name="plus" size={14}/> New playlist
-              </button>
-            )}
-          </div>
-          {userPlaylists.length === 0 && !showNewInput && (
-            <div style={{ marginTop:20, fontSize:13, color: color.muted, lineHeight:1.5, textAlign:"center" }}>
-              Tip: tap ⋯ on any track (or right-click) to add it to a playlist.
-            </div>
-          )}
-        </div>
-      )}
+      </div>
 
       {menu && (
         <TrackActionsMenu
@@ -3513,7 +3370,7 @@ function BottomNav({ screen, setScreen, showAdmin = false, hasPlayer = false }) 
   const items = [
     {id:"rooms",label:"Rooms",icon:"drift"},
     {id:"home",label:"Home",icon:"home"},
-    {id:"favorites",label:"Discover",icon:"grid"},
+    {id:"favorites",label:"Dig",icon:"grid"},
     {id:"search",label:"Search",icon:"search"},
     {id:"profile",label:"You",icon:"profile"},
   ];
@@ -4484,11 +4341,13 @@ export default function App() {
             TrackRow={TrackRow}
             activeRoomId={routeRoomId}
             onActiveRoomChange={setRoomRoute}
+            preferredGenres={user.genres}
+            onOpenPaths={() => openPath(null)}
           />
         )}
-        {screen==="home"      && !tracksLoading && <HomeScreen tracks={tracks} onPlayRadio={playRadio} onTogglePlay={()=>setIsPlaying(p=>!p)} onPlayTrack={playTrack} currentTrack={currentTrack} isPlaying={isPlaying} onLike={toggleLike} isRadioMode={isRadioMode} playlistCtx={playlistCtx} signalLabel={signalState?.label} setPrev={setPrev} setNext={setNext} onBuildNight={()=>setShowRouteBuilder(true)} doorsSoundOn={doorsSoundOn} onToggleDoorsSound={toggleDoorsSound} homeRooms={homeRooms} onOpenRoom={(id)=>setRoomRoute(id)} onOpenRooms={()=>setScreen("rooms")} userName={user.name}/>}
+        {screen==="home"      && !tracksLoading && <HomeScreen tracks={tracks} onPlayRadio={playRadio} onTogglePlay={()=>setIsPlaying(p=>!p)} onPlayTrack={playTrack} currentTrack={currentTrack} isPlaying={isPlaying} onLike={toggleLike} isRadioMode={isRadioMode} playlistCtx={playlistCtx} signalLabel={signalState?.label} setPrev={setPrev} setNext={setNext} onBuildNight={()=>setShowRouteBuilder(true)} doorsSoundOn={doorsSoundOn} onToggleDoorsSound={toggleDoorsSound} homeRooms={homeRooms} onOpenRoom={(id)=>setRoomRoute(id)} onOpenRooms={()=>setScreen("rooms")} userName={user.name} userPlaylists={userPlaylists} onCreatePlaylist={createPlaylist} onDeletePlaylist={deletePlaylist}/>}
         {screen==="search"    && <SearchScreen query={searchQuery} setQuery={setSearch} results={searchResults} onPlay={t=>playTrack(t,tracks)} onLike={toggleLike} currentTrack={currentTrack} isPlaying={isPlaying} playlistCtx={playlistCtx} onOpenRoom={()=>setScreen("rooms")} entityHits={entityHits} onOpenArtist={openArtist} onOpenAlbum={(slug)=>openAlbum(slug)}/>}
-        {screen==="favorites" && <FavoritesScreen tracks={tracks} preferredGenres={user.genres} onPlay={t=>{setIsRadioMode(false);playTrack(t,tracks);}} onLike={toggleLike} currentTrack={currentTrack} isPlaying={isPlaying} userPlaylists={userPlaylists} onCreatePlaylist={createPlaylist} onAddToPlaylist={addToPlaylist} onRemoveFromPlaylist={removeFromPlaylist} onDeletePlaylist={deletePlaylist} playlistCtx={playlistCtx} onOpenPaths={()=>openPath(null)} onOpenSceneRoom={(sceneId)=>{ setScreen("rooms"); setRoomRoute(destinationIdForScene(sceneId)); }} onPlayScene={(sceneId)=>{ const pool = tracks.filter(t => (t.duration||0)<=900 && trackMatchesScene(t, sceneId)); if(pool[0]) playTrack(pool[0], pool, { room: { id: destinationIdForScene(sceneId), label: pool[0]._scene?.label || sceneId } }); }}/>}
+        {screen==="favorites" && <FavoritesScreen tracks={tracks} preferredGenres={user.genres} onPlay={t=>{setIsRadioMode(false);playTrack(t,tracks);}} onLike={toggleLike} currentTrack={currentTrack} isPlaying={isPlaying} playlistCtx={playlistCtx} onOpenPaths={()=>openPath(null)} onOpenRooms={()=>setScreen("rooms")}/>}
         {screen==="paths"     && !tracksLoading && (
           <PathsScreen
             tracks={tracks}
@@ -4553,12 +4412,11 @@ export default function App() {
   const NAV_TOP = [
     { id:"rooms",     icon:"drift",  label:"Rooms" },
     { id:"home",      icon:"home",   label:"Home" },
-    { id:"favorites", icon:"grid",   label:"Discover" },
-    { id:"paths",     icon:"hypno",  label:"Paths" },
+    { id:"favorites", icon:"grid",   label:"Dig" },
   ];
   const NAV_BOTTOM = [
-    { id:"map",       icon:"grid",   label:"Map" },
     { id:"search",    icon:"search", label:"Search" },
+    { id:"map",       icon:"grid",   label:"Map" },
   ];
 
   const recentTracks = [...tracks].slice(0, 6);
@@ -4681,11 +4539,13 @@ export default function App() {
                   TrackRow={TrackRow}
                   activeRoomId={routeRoomId}
                   onActiveRoomChange={setRoomRoute}
+                  preferredGenres={user.genres}
+                  onOpenPaths={() => openPath(null)}
                 />
               )}
-              {screen==="home"      && <HomeScreen tracks={tracks} onPlayRadio={playRadio} onTogglePlay={()=>setIsPlaying(p=>!p)} onPlayTrack={playTrack} currentTrack={currentTrack} isPlaying={isPlaying} onLike={toggleLike} isRadioMode={isRadioMode} playlistCtx={playlistCtx} signalLabel={signalState?.label} setPrev={setPrev} setNext={setNext} onBuildNight={()=>setShowRouteBuilder(true)} doorsSoundOn={doorsSoundOn} onToggleDoorsSound={toggleDoorsSound} homeRooms={homeRooms} onOpenRoom={(id)=>setRoomRoute(id)} onOpenRooms={()=>setScreen("rooms")} userName={user.name}/>}
+              {screen==="home"      && <HomeScreen tracks={tracks} onPlayRadio={playRadio} onTogglePlay={()=>setIsPlaying(p=>!p)} onPlayTrack={playTrack} currentTrack={currentTrack} isPlaying={isPlaying} onLike={toggleLike} isRadioMode={isRadioMode} playlistCtx={playlistCtx} signalLabel={signalState?.label} setPrev={setPrev} setNext={setNext} onBuildNight={()=>setShowRouteBuilder(true)} doorsSoundOn={doorsSoundOn} onToggleDoorsSound={toggleDoorsSound} homeRooms={homeRooms} onOpenRoom={(id)=>setRoomRoute(id)} onOpenRooms={()=>setScreen("rooms")} userName={user.name} userPlaylists={userPlaylists} onCreatePlaylist={createPlaylist} onDeletePlaylist={deletePlaylist}/>}
               {screen==="search"    && <SearchScreen query={searchQuery} setQuery={setSearch} results={searchResults} onPlay={t=>playTrack(t,tracks)} onLike={toggleLike} currentTrack={currentTrack} isPlaying={isPlaying} playlistCtx={playlistCtx} onOpenRoom={()=>setScreen("rooms")} entityHits={entityHits} onOpenArtist={openArtist} onOpenAlbum={(slug)=>openAlbum(slug)}/>}
-              {screen==="favorites" && <FavoritesScreen tracks={tracks} preferredGenres={user.genres} onPlay={t=>{setIsRadioMode(false);playTrack(t,tracks);}} onLike={toggleLike} currentTrack={currentTrack} isPlaying={isPlaying} userPlaylists={userPlaylists} onCreatePlaylist={createPlaylist} onAddToPlaylist={addToPlaylist} onRemoveFromPlaylist={removeFromPlaylist} onDeletePlaylist={deletePlaylist} playlistCtx={playlistCtx} onOpenPaths={()=>openPath(null)} onOpenSceneRoom={(sceneId)=>{ setScreen("rooms"); setRoomRoute(destinationIdForScene(sceneId)); }} onPlayScene={(sceneId)=>{ const pool = tracks.filter(t => (t.duration||0)<=900 && trackMatchesScene(t, sceneId)); if(pool[0]) playTrack(pool[0], pool, { room: { id: destinationIdForScene(sceneId), label: pool[0]._scene?.label || sceneId } }); }}/>}
+              {screen==="favorites" && <FavoritesScreen tracks={tracks} preferredGenres={user.genres} onPlay={t=>{setIsRadioMode(false);playTrack(t,tracks);}} onLike={toggleLike} currentTrack={currentTrack} isPlaying={isPlaying} playlistCtx={playlistCtx} onOpenPaths={()=>openPath(null)} onOpenRooms={()=>setScreen("rooms")}/>}
               {screen==="paths"     && (
                 <PathsScreen
                   tracks={tracks}

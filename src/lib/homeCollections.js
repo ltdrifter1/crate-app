@@ -3,6 +3,7 @@ import { populateAllRooms } from "./rooms";
 
 /**
  * Smart collections for Personal Home — record wall, not file folders.
+ * Keep shelves few: Saved lives as its own Home section; collections stay quiet.
  */
 
 export function rediscoveredTracks(tracks = [], limit = 12) {
@@ -68,16 +69,13 @@ export function livedInRooms(tracks = [], homeRoomIds = [], limit = 6) {
     .slice(0, limit);
 }
 
+/**
+ * Quiet home shelves — Saved is rendered separately on Home.
+ * Cap at two curated rails so the wall doesn't sprawl.
+ */
 export function buildHomeCollections(tracks = []) {
   const singles = tracks.filter((t) => (t.duration || 0) <= 900);
-  const saved = singles.filter((t) => t.liked);
-  return [
-    {
-      id: "saved",
-      label: "Saved",
-      story: "The records you keep close",
-      tracks: saved.slice(0, 16),
-    },
+  const candidates = [
     {
       id: "rediscovered",
       label: "Rediscovered",
@@ -90,17 +88,13 @@ export function buildHomeCollections(tracks = []) {
       story: "Low light, unhurried",
       tracks: softEvening(singles),
     },
-    {
-      id: "high-pressure",
-      label: "High pressure",
-      story: "When the room needs weight",
-      tracks: highPressure(singles),
-    },
-    {
-      id: "unplayed-saves",
-      label: "Still unplayed",
-      story: "Liked, not yet lived with",
-      tracks: wishlistish(singles),
-    },
-  ].filter((c) => c.tracks.length > 0);
+  ];
+  return candidates.filter((c) => c.tracks.length > 0).slice(0, 2);
+}
+
+/** Saved shelf for Personal Home. */
+export function savedTracks(tracks = [], limit = 24) {
+  return tracks
+    .filter((t) => (t.duration || 0) <= 900 && t.liked)
+    .slice(0, limit);
 }
