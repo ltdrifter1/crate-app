@@ -49,6 +49,10 @@ Files: `firestore.rules`, `storage.rules`, `firebase.json`.
 
 Until this runs, Console rules may still be looser/outdated than the repo.
 
+### A note on rules
+
+If you already ran `firebase deploy --only firestore:rules,storage` successfully, you can skip section A.
+
 ### B. Clean messy track names
 
 **Option 1 — Admin CSV (best for hand edits)**  
@@ -62,7 +66,21 @@ Until this runs, Console rules may still be looser/outdated than the repo.
 2. `node clean-titles.js` → review `titles-review.csv`  
 3. `node clean-titles.js --apply`
 
-### C. Add a lot more tracks
+### C. Normalize genres (canonical set only)
+
+Only these genres are shown in the app:
+
+`Rock, R&B, Country, Hip-Hop, House, Drum and Bass, Soul, Jazz, Classical, Metal`
+
+```bash
+cd ~/crate-app
+node normalize-genres.js          # writes genres-review.csv
+node normalize-genres.js --apply  # updates Firestore
+```
+
+Legacy labels (Techno, Ambient, Funk, etc.) are remapped; unknown genres are cleared.
+
+### D. Add a lot more tracks
 
 1. Build an M3U playlist of new tracks  
 2. Edit paths in `build-crate-from-playlist.py` if needed, then run it → fills `audio/`, `covers/`, `tracks.csv`  

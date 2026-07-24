@@ -12,6 +12,7 @@ import {
   computeHumanState, findResonant, computeSignalTraits, pickNextTrack,
   buildSession, SESSION_PROFILES,
 } from "./lib/engine";
+import { CANONICAL_GENRES, normalizeGenre, GENRE_TONES } from "./lib/genres";
 
 const injectStyles = () => {
   if (document.getElementById("verse-app-global-styles")) return;
@@ -319,7 +320,7 @@ function TrackRow({ track, onPlay, active, isPlaying, onLike, extraAction, playl
         </div>
         <div style={{ flex:1, minWidth:0 }}>
           <div style={{ fontSize:14, fontWeight: active?600:500, letterSpacing:-0.15, color: active ? color.accent : color.ink, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{track.title}</div>
-          <div style={{ fontSize:12, color: color.muted, marginTop:2 }}>{track.artist}{track.genre ? ` · ${track.genre}` : ""}</div>
+          <div style={{ fontSize:12, color: color.muted, marginTop:2 }}>{track.artist}{normalizeGenre(track.genre) ? ` · ${normalizeGenre(track.genre)}` : ""}</div>
         </div>
         {onLike&&(
           <button type="button" aria-label={track.liked?"Unlike":"Like"} onClick={e=>{e.stopPropagation();onLike(track.id);}}
@@ -1322,7 +1323,7 @@ function HomeScreen({ tracks, onPlayRadio, onTogglePlay, onPlayTrack, currentTra
                       overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap",
                     }}>{t.title}</div>
                     <div style={{ fontSize:12, color: color.muted, marginTop:4, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
-                      {t.artist}{t.genre ? ` · ${t.genre}` : ""}
+                      {t.artist}{normalizeGenre(t.genre) ? ` · ${normalizeGenre(t.genre)}` : ""}
                     </div>
                   </div>
                   <div style={{ flexShrink:0, textAlign:"right" }}>
@@ -1408,7 +1409,7 @@ function SearchScreen({ query, setQuery, results, onPlay, onLike, currentTrack, 
       </div>
       {!query && (
         <div style={{ display:"flex", gap:8, marginBottom:24, flexWrap:"wrap" }}>
-          {["Soul","R&B","Jazz","House","Techno","Hip-Hop","Ambient","Funk"].map(g=>(
+          {CANONICAL_GENRES.map(g=>(
             <button key={g} type="button" onClick={()=>setQuery(g)} style={{
               padding:"8px 14px", borderRadius: radius.sm, border:`1px solid ${color.line}`,
               background: color.surface, color: color.body, fontSize:12, fontWeight:500, cursor:"pointer",
@@ -1466,21 +1467,26 @@ function FavoritesScreen({ tracks, onPlay, onLike, currentTrack, isPlaying, user
   const hour = new Date().getHours();
   const [eMin, eMax] = getEnergyRangeForHour(hour);
 
-  // Genre map
+  // Genre map — only canonical labels
   const genreMap = {};
-  singles.forEach(t => { if(t.genre) { if(!genreMap[t.genre]) genreMap[t.genre]=[]; genreMap[t.genre].push(t); }});
-  const genres = Object.keys(genreMap).sort((a,b) => genreMap[b].length - genreMap[a].length);
+  CANONICAL_GENRES.forEach(g => { genreMap[g] = []; });
+  singles.forEach(t => {
+    const g = normalizeGenre(t.genre);
+    if (!g) return;
+    genreMap[g].push(t);
+  });
+  const genres = CANONICAL_GENRES.filter(g => genreMap[g].length > 0);
 
-  // Mood system — curated late-night house contexts (purged from 16 noisy chips)
+  // Mood system — curated late-night contexts using canonical genres only
   const MOOD_DEFS = [
-    { id:"nocturnal",  label:"Nocturnal",  desc:"Late & locked in",     tone:"#141C28", filter: t => (t.energy||5) >= 3 && (t.energy||5) <= 6 && ["Electronic","Techno","House","Ambient","Experimental"].includes(t.genre) },
-    { id:"deep",       label:"Deep",       desc:"Low lights, long builds", tone:"#121820", filter: t => (t.energy||5) <= 4 && ["House","Techno","Ambient","Electronic","Soul"].includes(t.genre) },
-    { id:"groovy",     label:"Groovy",     desc:"Locked pocket",        tone:"#161E24", filter: t => (t.energy||5) >= 4 && (t.energy||5) <= 7 && ["Funk","R&B","Soul","House","Disco","Afrobeat"].includes(t.genre) },
+    { id:"nocturnal",  label:"Nocturnal",  desc:"Late & locked in",     tone:"#141C28", filter: t => (t.energy||5) >= 3 && (t.energy||5) <= 6 && ["House","Drum and Bass"].includes(normalizeGenre(t.genre)) },
+    { id:"deep",       label:"Deep",       desc:"Low lights, long builds", tone:"#121820", filter: t => (t.energy||5) <= 4 && ["House","Soul","Jazz","Classical"].includes(normalizeGenre(t.genre)) },
+    { id:"groovy",     label:"Groovy",     desc:"Locked pocket",        tone:"#161E24", filter: t => (t.energy||5) >= 4 && (t.energy||5) <= 7 && ["R&B","Soul","House"].includes(normalizeGenre(t.genre)) },
     { id:"driving",    label:"Driving",    desc:"Forward motion",       tone:"#151C26", filter: t => (t.energy||5) >= 6 && (t.energy||5) <= 8 && (t.bpm||120) >= 115 },
-    { id:"euphoric",   label:"Peak",       desc:"Hands up, eyes closed", tone:"#1A222C", filter: t => (t.energy||5) >= 7 && ["House","Techno","Electronic","Afrobeat"].includes(t.genre) },
-    { id:"warm",       label:"Warm",       desc:"Afterhours hush",      tone:"#181E24", filter: t => (t.energy||5) >= 3 && (t.energy||5) <= 5 && ["Soul","R&B","Jazz","Folk","World"].includes(t.genre) },
-    { id:"melancholy", label:"Melancholy", desc:"Reflective & deep",    tone:"#141820", filter: t => (t.energy||5) <= 3 && ["Soul","Jazz","Blues","Classical","Ambient","Folk"].includes(t.genre) },
-    { id:"raw",        label:"Raw",        desc:"Gritty & unpolished",  tone:"#1A1C20", filter: t => (t.energy||5) >= 5 && ["Rock","Alternative","Hip-Hop","Indie","Experimental","Techno"].includes(t.genre) },
+    { id:"euphoric",   label:"Peak",       desc:"Hands up, eyes closed", tone:"#1A222C", filter: t => (t.energy||5) >= 7 && ["House","Drum and Bass"].includes(normalizeGenre(t.genre)) },
+    { id:"warm",       label:"Warm",       desc:"Afterhours hush",      tone:"#181E24", filter: t => (t.energy||5) >= 3 && (t.energy||5) <= 5 && ["Soul","R&B","Jazz","Country"].includes(normalizeGenre(t.genre)) },
+    { id:"melancholy", label:"Melancholy", desc:"Reflective & deep",    tone:"#141820", filter: t => (t.energy||5) <= 3 && ["Soul","Jazz","Classical","Country"].includes(normalizeGenre(t.genre)) },
+    { id:"raw",        label:"Raw",        desc:"Gritty & unpolished",  tone:"#1A1C20", filter: t => (t.energy||5) >= 5 && ["Rock","Metal","Hip-Hop"].includes(normalizeGenre(t.genre)) },
   ];
 
   const moods = {};
@@ -1543,11 +1549,6 @@ function FavoritesScreen({ tracks, onPlay, onLike, currentTrack, isPlaying, user
       {sub && <div style={{ fontSize:12, color: color.muted, marginTop:4 }}>{sub}</div>}
     </div>
   );
-
-  const GENRE_TONES = {
-    House:"#182028", Techno:"#141820", Soul:"#1A1E24", "R&B":"#1A1C22", Jazz:"#161A22",
-    Disco:"#1A2026", Funk:"#181C22", Ambient:"#14181C", Electronic:"#161A20", Afrobeat:"#1A1E24",
-  };
 
   return (
     <div style={{ overflowY:"auto", height:"100%", minHeight:"calc(100vh - 112px)" }}>
@@ -1822,12 +1823,7 @@ function FavoritesScreen({ tracks, onPlay, onLike, currentTrack, isPlaying, user
 }
 
 // ─── PROFILE ─────────────────────────────────────────────────────────────────
-const ALL_GENRES = [
-  "Soul","R&B","Jazz","Blues","Funk",
-  "Hip-Hop","Electronic","House","Techno","Ambient",
-  "Reggae","Afrobeat","Latin","World","Folk",
-  "Rock","Indie","Alternative","Classical","Experimental",
-];
+const ALL_GENRES = CANONICAL_GENRES;
 
 function ProfileScreen({ user, setUser, tracks, onLogout }) {
   const liked = tracks.filter(t => t.liked);
@@ -2073,7 +2069,7 @@ function AdminScreen({ tracks, setTracks, tab, setTab, editTrack, setEditTrack, 
       if (r.title != null && String(r.title).trim() !== "") updates.title = String(r.title).trim();
       if (r.artist != null && String(r.artist).trim() !== "") updates.artist = String(r.artist).trim();
       if (r.album != null && String(r.album).trim() !== "") updates.album = String(r.album).trim();
-      if (r.genre != null && String(r.genre).trim() !== "") updates.genre = String(r.genre).trim();
+      if (r.genre != null && String(r.genre).trim() !== "") updates.genre = normalizeGenre(r.genre) || String(r.genre).trim();
       if (r.camelot != null && String(r.camelot).trim() !== "") updates.camelot = String(r.camelot).trim();
       if (r.bpm && !isNaN(parseInt(r.bpm, 10))) updates.bpm = parseInt(r.bpm, 10);
       if (r.energy && !isNaN(parseInt(r.energy, 10))) updates.energy = parseInt(r.energy, 10);
@@ -2105,7 +2101,7 @@ function AdminScreen({ tracks, setTracks, tab, setTab, editTrack, setEditTrack, 
         } else if (id) {
           const trackData = {
             title: r.title || "", artist: r.artist || "", album: r.album || "",
-            genre: r.genre || "", camelot: r.camelot || "",
+            genre: normalizeGenre(r.genre) || "", camelot: r.camelot || "",
             energy: parseInt(r.energy, 10) || 5, bpm: parseInt(r.bpm, 10) || null,
             audioUrl: r.audiourl || r.audioUrl || "", albumCover: r.albumcover || r.albumCover || "",
             color: r.color || cols[Math.floor(Math.random() * cols.length)],
@@ -2118,7 +2114,7 @@ function AdminScreen({ tracks, setTracks, tab, setTab, editTrack, setEditTrack, 
         } else {
           const trackData = {
             title: r.title || "", artist: r.artist || "", album: r.album || "",
-            genre: r.genre || "", camelot: r.camelot || "",
+            genre: normalizeGenre(r.genre) || "", camelot: r.camelot || "",
             energy: parseInt(r.energy, 10) || 5, bpm: parseInt(r.bpm, 10) || null,
             audioUrl: r.audiourl || r.audioUrl || "", albumCover: r.albumcover || r.albumCover || "",
             color: r.color || cols[Math.floor(Math.random() * cols.length)],
