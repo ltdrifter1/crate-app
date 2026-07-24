@@ -5,14 +5,14 @@ html, body, #root {
   min-height: 100%;
 }
 body {
-  font-family: "DM Sans", "Avenir Next", "Segoe UI", sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Helvetica Neue", Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background: #0C0B0A;
-  color: #EDE8E1;
+  background: #000000;
+  color: #F5F5F7;
 }
 code {
-  font-family: "IBM Plex Mono", "SF Mono", "Menlo", "Monaco", "Courier New", monospace;
+  font-family: "SF Mono", ui-monospace, Menlo, Monaco, "Courier New", monospace;
 }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {

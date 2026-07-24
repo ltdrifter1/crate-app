@@ -138,7 +138,7 @@ export default function LoginScreen({
     resetMessages();
     if (mode === "signup") {
       if (!name.trim()) {
-        setError("Choose a display name so the room knows you.");
+        setError("Choose a display name.");
         return;
       }
       if (!email.trim()) {
@@ -198,14 +198,14 @@ export default function LoginScreen({
                 marginBottom: 20,
               }}
             >
-              {floor?.label || "Tonight"} · doors open
+              {floor?.label || "Listen"}
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 18 }}>
               <DoorGlyph size={56} title="" />
               <div
                 style={{
                   fontSize: "clamp(52px, 16vw, 80px)",
-                  fontWeight: 800,
+                  fontWeight: 700,
                   letterSpacing: -2.4,
                   lineHeight: 0.9,
                   color: color.onDark,
@@ -224,7 +224,7 @@ export default function LoginScreen({
                 marginBottom: 28,
               }}
             >
-              {BRAND_TAGLINE}. Living destinations — not another feed.
+              {BRAND_TAGLINE}. Your music, simply.
             </p>
             <button
               type="button"
@@ -237,11 +237,10 @@ export default function LoginScreen({
                 alignItems: "center",
                 gap: 12,
                 padding: "15px 22px",
-                boxShadow: `0 14px 36px ${color.accentGlow}`,
+                borderRadius: 980,
               }}
             >
-              <DoorGlyph size={20} color={color.onAccent} fill={color.accent} title="" />
-              Open the door
+              Continue
             </button>
           </div>
         </RoomPosterBackdrop>
@@ -286,17 +285,17 @@ export default function LoginScreen({
               padding: 0,
             }}
           >
-            ← Back to the door
+            ← Back
           </button>
           <div style={{ marginBottom: 8 }}>
             <BrandMark size={44} light />
           </div>
-          <div style={{ fontSize: 14, color: color.body, lineHeight: 1.5, maxWidth: 320 }}>
+          <div style={{ fontSize: 15, color: color.body, lineHeight: 1.5, maxWidth: 320 }}>
             {method === "phone"
               ? "We’ll text a one-time code. No password to remember."
               : mode === "signup"
-                ? "Make a key. Pick a name the rooms can call you."
-                : "Step inside. We’ll leave the light on."}
+                ? "Create an account to start listening."
+                : "Sign in to continue."}
           </div>
         </div>
 

@@ -1,10 +1,9 @@
 /**
- * ROOMS brand mark — threshold glyph + Syne wordmark.
- * Door ajar on charcoal; brass stroke. Works at favicon and hero scale.
+ * Brand mark — minimal note glyph + SF Pro wordmark.
  */
 import { fontDisplay, color, BRAND_NAME } from "../../theme";
 
-/** Minimal doorway glyph — open door = inhabit. */
+/** Minimal music-note glyph. */
 export function BrandGlyph({
   size = 28,
   color: stroke = color.accent,
@@ -24,23 +23,24 @@ export function BrandGlyph({
       aria-label={title || undefined}
     >
       {title ? <title>{title}</title> : null}
-      {filled && <rect width="32" height="32" rx="6" fill={fill} />}
-      <g stroke={stroke} strokeWidth="2" strokeLinecap="square" strokeLinejoin="miter">
-        <path d="M8 7h16v18H8z" />
-        <path d="M11 10h7.2l1.8 12H11z" fill={filled ? fill : "transparent"} />
-      </g>
-      <circle cx="17.2" cy="16" r="1.15" fill={stroke} />
+      {filled && <rect width="32" height="32" rx="8" fill={fill} />}
+      <path
+        d="M12 22.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7zM20 20.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7z"
+        fill={stroke}
+      />
+      <path
+        d="M15.5 19V9.5l8-1.5V18"
+        stroke={stroke}
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
     </svg>
   );
 }
 
 /**
  * Full brand lockup.
- * @param {object} props
- * @param {number} [props.size=40] glyph pixel size
- * @param {boolean} [props.showWordmark=true]
- * @param {boolean} [props.light] brighter ink for dark heroes
- * @param {"row"|"stack"} [props.layout="row"]
  */
 export default function BrandMark({
   size = 40,
@@ -68,8 +68,8 @@ export default function BrandMark({
         <div
           style={{
             fontSize: wordSize,
-            fontWeight: 800,
-            letterSpacing: size >= 48 ? -1.4 : -0.7,
+            fontWeight: 700,
+            letterSpacing: size >= 48 ? -0.8 : -0.4,
             color: ink,
             lineHeight: 1,
             fontFamily: fontDisplay,

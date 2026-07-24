@@ -1,5 +1,4 @@
 import { normalizeGenre } from "./genres";
-import { populateAllRooms } from "./rooms";
 
 /**
  * Smart collections for Personal Home — record wall, not file folders.
@@ -47,27 +46,6 @@ export function wishlistish(tracks = [], limit = 12) {
     .slice(0, limit);
 }
 
-/** Rooms the user "lives in" — preferred from onboarding or inferred. */
-export function livedInRooms(tracks = [], homeRoomIds = [], limit = 6) {
-  const all = populateAllRooms(tracks);
-  if (homeRoomIds?.length) {
-    const set = new Set(homeRoomIds);
-    const preferred = all.filter((r) => set.has(r.id));
-    const rest = all.filter((r) => !set.has(r.id));
-    return [...preferred, ...rest].slice(0, limit);
-  }
-  // Infer from listening: rooms with most liked/played overlap
-  return [...all]
-    .sort((a, b) => {
-      const score = (r) =>
-        r.tracks.reduce(
-          (s, t) => s + (t.liked ? 3 : 0) + Math.min(t.playCount || 0, 5),
-          0
-        );
-      return score(b) - score(a);
-    })
-    .slice(0, limit);
-}
 
 /**
  * Quiet home shelves — Saved is rendered separately on Home.
