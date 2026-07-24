@@ -1,5 +1,5 @@
 // 4AM design tokens — late-night editorial listening UI.
-// Warm sodium accent on deep charcoal. Prefer these over one-off colors.
+// PNW slate blue / fog grey on deep charcoal. Prefer these over one-off colors.
 
 export const fontDisplay =
   "'Syne', 'Avenir Next', 'Segoe UI', sans-serif";
@@ -9,24 +9,25 @@ export const fontMono =
   "'IBM Plex Mono', 'SF Mono', 'Menlo', 'Monaco', monospace";
 
 export const color = {
-  ink: "#F2F0EB",
-  body: "#C8C4BC",
-  muted: "#8E8A82",
-  faint: "#5E5A54",
-  line: "rgba(242, 240, 235, 0.08)",
-  lineStrong: "rgba(242, 240, 235, 0.14)",
-  surface: "rgba(255, 255, 255, 0.045)",
-  surfaceSolid: "#141416",
-  surfaceRaised: "#1A1A1E",
-  canvas: "#09090B",
-  canvasEdge: "#101012",
-  accent: "#E2A83A",
-  accentSoft: "rgba(226, 168, 58, 0.14)",
-  onAccent: "#0A0A0B",
-  onDark: "#F2F0EB",
-  onDarkMuted: "rgba(242,240,235,0.55)",
+  ink: "#E8ECF0",
+  body: "#B4BCC6",
+  muted: "#7E8792",
+  faint: "#555D68",
+  line: "rgba(232, 236, 240, 0.08)",
+  lineStrong: "rgba(232, 236, 240, 0.14)",
+  surface: "rgba(255, 255, 255, 0.04)",
+  surfaceSolid: "#12151A",
+  surfaceRaised: "#171B21",
+  canvas: "#090B0D",
+  canvasEdge: "#0E1115",
+  // Fog / Puget Sound steel — cool, muted, never sunny
+  accent: "#7A91A4",
+  accentSoft: "rgba(122, 145, 164, 0.16)",
+  onAccent: "#090B0D",
+  onDark: "#E8ECF0",
+  onDarkMuted: "rgba(232,236,240,0.55)",
   alert: "#E5484D",
-  station: "#0E0E10",
+  station: "#0C0F12",
 };
 
 export const radius = { sm: 10, md: 14, lg: 18, xl: 24 };
@@ -51,22 +52,22 @@ export const motion = {
   ease: "cubic-bezier(0.22, 1, 0.36, 1)",
 };
 
-/** Night atmosphere that shifts with the hour — always dark, never flat. */
+/** Night atmosphere that shifts with the hour — cool blue-grey mist. */
 export function timeOfDayGradient(date = new Date()) {
   const h = date.getHours();
   const late = h >= 22 || h <= 4;
   const dawn = h >= 5 && h <= 8;
   const day = h >= 9 && h <= 16;
   if (late) {
-    return `radial-gradient(ellipse at 50% -10%, #1A1410 0%, #0C0C0E 42%, #09090B 100%)`;
+    return `radial-gradient(ellipse at 50% -10%, #141A22 0%, #0C0E12 42%, #090B0D 100%)`;
   }
   if (dawn) {
-    return `radial-gradient(ellipse at 70% 0%, #1C1812 0%, #0E0E10 48%, #09090B 100%)`;
+    return `radial-gradient(ellipse at 70% 0%, #161C24 0%, #0E1115 48%, #090B0D 100%)`;
   }
   if (day) {
-    return `radial-gradient(ellipse at 40% -5%, #14161A 0%, #0B0B0D 50%, #09090B 100%)`;
+    return `radial-gradient(ellipse at 40% -5%, #12161C 0%, #0B0D10 50%, #090B0D 100%)`;
   }
-  return `radial-gradient(ellipse at 55% 0%, #16120E 0%, #0C0C0E 45%, #09090B 100%)`;
+  return `radial-gradient(ellipse at 55% 0%, #151A20 0%, #0C0E12 45%, #090B0D 100%)`;
 }
 
 export const APP_STYLE = {
