@@ -1,8 +1,9 @@
 import React, { useState } from "react";
 import { populateAllRooms, roomPosterStyle, KIND_LABELS } from "../../lib/rooms";
 import {
-  font, fontDisplay, fontMono, color, radius, BRAND_NAME,
+  font, fontDisplay, fontMono, color, radius,
 } from "../../theme";
+import BrandMark from "../brand/BrandMark";
 
 /**
  * First-visit ritual: press into Rooms that feel like home — posters, not checkboxes.
@@ -47,6 +48,9 @@ export default function OnboardingRitual({ tracks, onComplete, onSkip }) {
       />
 
       <div style={{ position: "relative", maxWidth: 560, margin: "0 auto", padding: "48px 20px 120px" }}>
+        <div style={{ marginBottom: 18 }}>
+          <BrandMark size={40} />
+        </div>
         <div
           style={{
             fontSize: 11,
@@ -58,7 +62,7 @@ export default function OnboardingRitual({ tracks, onComplete, onSkip }) {
             marginBottom: 14,
           }}
         >
-          Welcome to {BRAND_NAME}
+          Welcome · doors ajar
         </div>
         <h1
           style={{

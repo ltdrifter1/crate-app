@@ -33,7 +33,7 @@ import PathsScreen from "./components/paths/PathsScreen";
 import ScenesBrowser from "./components/scenes/ScenesBrowser";
 import BrandMark, { BrandGlyph as DoorGlyph } from "./components/brand/BrandMark";
 import RoomPosterBackdrop from "./components/brand/RoomPosterBackdrop";
-import { roomPosterStyle } from "./lib/rooms";
+import { roomPosterStyle, roomLabelForId } from "./lib/rooms";
 
 const injectStyles = () => {
   if (document.getElementById("rooms-app-global-styles")) return;
@@ -113,6 +113,9 @@ const Icon = ({ name, size=18 }) => {
     repeat:     <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor"><path d="M7 7h10v3l4-4-4-4v3H5v6h2V7zm10 10H7v-3l-4 4 4 4v-3h12v-6h-2v4z"/></svg>,
     settings:   <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor"><path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.07-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.74,8.87C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.07,0.94l-2.03,1.58c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.47-0.12-0.61L19.14,12.94zM12,15.6c-1.98,0-3.6-1.62-3.6-3.6s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z"/></svg>,
     plus:       <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>,
+    door:       <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="square" strokeLinejoin="miter"><path d="M6 4h12v16H6z"/><path d="M9 7h5.2l1.3 10H9z"/><circle cx="13.2" cy="12" r="0.9" fill="currentColor" stroke="none"/></svg>,
+    dig:        <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round"><path d="M4 8h16v3H4z"/><path d="M5 11h14v3H5z"/><path d="M6 14h12v3H6z"/><path d="M8 6l2-2h4l2 2"/></svg>,
+    map:        <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round"><path d="M12 3l7 4v10l-7 4-7-4V7l7-4z"/><path d="M12 8v8M9 10.5h6"/></svg>,
     drift:      <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 3c2 4 2 8 0 12s-2 8 0 12" opacity="0.5"/><path d="M3 12c4-2 8-2 12 0s8 2 12 0" opacity="0.5"/></svg>,
     grid:       <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="3"/><circle cx="5" cy="7" r="2"/><circle cx="19" cy="7" r="2"/><circle cx="5" cy="17" r="2"/><circle cx="19" cy="17" r="2"/><path d="M7 8l3 3M17 8l-3 3M7 16l3-3M17 16l-3-3"/></svg>,
     x:          <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>,
@@ -1362,7 +1365,7 @@ function RouteBuilderModal({ tracks, onClose, onPlayRoute }) {
   return (
     <div style={{ position:"fixed", inset:0, zIndex:100, overflow:"hidden" }}>
       <div style={{ position:"absolute", inset:0, background:"linear-gradient(180deg, rgba(12,12,16,0.95) 0%, rgba(8,8,12,0.98) 100%)" }}/>
-      <BgMist color={session?.[0]?.color || pathStart?.color || "#6B7280"}/>
+      <BgMist color={session?.[0]?.color || pathStart?.color || "#A8926A"}/>
       <div style={{ position:"absolute", inset:0, background:"rgba(6,6,10,0.4)" }}/>
 
       <div className="hide-scroll" style={{ position:"relative", zIndex:1, height:"100%", overflowY:"auto", display:"flex", flexDirection:"column" }}>
@@ -2283,74 +2286,52 @@ function HomeScreen({
 
   return (
     <div style={{ position: "relative", paddingBottom: 36 }}>
-      {!isRadioMode && (
-        <div style={{
-          position: "relative", overflow: "hidden",
-          minHeight: "min(42vh, 340px)",
-          display: "flex", flexDirection: "column", justifyContent: "flex-end",
-          padding: "40px 20px 28px",
-          animation: "stationIn 0.7s cubic-bezier(0.22,1,0.36,1) both",
-        }}>
-          <div aria-hidden="true" style={{ position: "absolute", inset: 0, background: timeOfDayGradient() }}/>
-          <div aria-hidden="true" style={{
-            position: "absolute", top: "-20%", right: "-10%", width: 300, height: 300, borderRadius: "50%",
-            background: `radial-gradient(circle, ${color.accentSoft} 0%, transparent 70%)`,
-            animation: "breathe 7s ease-in-out infinite",
-          }}/>
-          <div style={{ position: "relative", zIndex: 1, maxWidth: 420 }}>
-            <div style={{
-              fontSize: 11, fontWeight: 700, letterSpacing: 2, color: color.accent,
-              fontFamily: fontMono, textTransform: "uppercase", marginBottom: 12,
-            }}>Your home</div>
-            <div style={{
-              fontSize: "clamp(40px, 12vw, 56px)", fontWeight: 800, letterSpacing: -1.8,
-              color: color.onDark, fontFamily: fontDisplay, lineHeight: 0.95, marginBottom: 12,
-            }}>
-              {BRAND_NAME}
-            </div>
-            <div style={{ fontSize: 15, color: color.body, lineHeight: 1.5, maxWidth: 300, marginBottom: 22 }}>
-              Hey {userName.split(" ")[0]}. The music you keep — and the rooms you return to.
-            </div>
-            <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-              <button type="button" className="play-primary" onClick={onPlayRadio}
-                style={{
-                  display: "inline-flex", alignItems: "center", gap: 10,
-                  padding: "13px 18px 13px 14px", borderRadius: radius.sm,
-                  background: color.accent, border: "none", color: color.onAccent,
-                  cursor: "pointer", fontSize: 14, fontWeight: 650,
-                  boxShadow: `0 12px 32px ${color.accentGlow}`,
-                }}>
-                <Icon name="play" size={16}/> Open the floor
-              </button>
-              {onOpenRooms && (
-                <button type="button" onClick={onOpenRooms}
-                  style={{
-                    padding: "13px 16px", borderRadius: radius.sm, background: "none",
-                    border: `1px solid ${color.lineStrong}`, color: color.body,
-                    cursor: "pointer", fontSize: 13, fontWeight: 600,
-                  }}>
-                  Browse rooms
-                </button>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Floor poster is always Home's first viewport — place before shelves */}
+      <div style={{ position: "relative", marginBottom: isRadioMode ? 20 : 8 }}>
+        <DeepCutsCard
+          onPlay={onPlayRadio}
+          onTogglePlay={onTogglePlay}
+          currentTrack={currentTrack}
+          isPlaying={isPlaying}
+          isRadioMode={isRadioMode}
+          signalLabel={signalLabel}
+          setPrev={setPrev}
+          setNext={setNext}
+          doorsSoundOn={doorsSoundOn}
+          onToggleDoorsSound={onToggleDoorsSound}
+        />
+      </div>
 
-      {isRadioMode && (
-        <div style={{ position: "relative", marginBottom: 20 }}>
-          <DeepCutsCard
-            onPlay={onPlayRadio}
-            onTogglePlay={onTogglePlay}
-            currentTrack={currentTrack}
-            isPlaying={isPlaying}
-            isRadioMode={isRadioMode}
-            signalLabel={signalLabel}
-            setPrev={setPrev}
-            setNext={setNext}
-            doorsSoundOn={doorsSoundOn}
-            onToggleDoorsSound={onToggleDoorsSound}
-          />
+      {!isRadioMode && (
+        <div style={{ padding: "4px 20px 28px", maxWidth: 420 }}>
+          <div style={{
+            fontSize: 11, fontWeight: 700, letterSpacing: 1.8, color: color.faint,
+            fontFamily: fontMono, textTransform: "uppercase", marginBottom: 8,
+          }}>
+            Your home
+          </div>
+          <div style={{ fontSize: 15, color: color.body, lineHeight: 1.5 }}>
+            Hey {userName.split(" ")[0]}. Shelves you keep — rooms you return to.
+          </div>
+          {onOpenRooms && (
+            <button
+              type="button"
+              onClick={onOpenRooms}
+              style={{
+                marginTop: 14,
+                padding: "10px 0",
+                background: "none",
+                border: "none",
+                color: color.accent,
+                cursor: "pointer",
+                fontSize: 13,
+                fontWeight: 650,
+                fontFamily: fontDisplay,
+              }}
+            >
+              Browse rooms →
+            </button>
+          )}
         </div>
       )}
 
@@ -2850,7 +2831,7 @@ function FavoritesScreen({
                 width: 40, height: 40, borderRadius: radius.sm, background: color.accentSoft,
                 display: "flex", alignItems: "center", justifyContent: "center", color: color.accent, flexShrink: 0,
               }}>
-                <Icon name="drift" size={16}/>
+                <Icon name="door" size={16}/>
               </div>
             </button>
           )}
@@ -2906,12 +2887,13 @@ function FavoritesScreen({
 // ─── PROFILE ─────────────────────────────────────────────────────────────────
 const ALL_GENRES = CANONICAL_GENRES;
 
-function ProfileScreen({ user, setUser, tracks, onLogout }) {
+function ProfileScreen({ user, setUser, tracks, onLogout, homeRooms = [], onOpenRoom, onOpenRooms }) {
+  const [showSignals, setShowSignals] = useState(false);
   const liked = tracks.filter(t => t.liked);
   const singles = tracks.filter(t => (t.duration||0) <= 900);
   const played = singles.filter(t => (t.playCount||0) > 0);
+  const rooms = livedInRooms(tracks, homeRooms, 6);
 
-  // ── Compute fingerprint data ──
   const topGenres = Object.entries(
     singles.reduce((acc, t) => { if(t.genre) acc[t.genre] = (acc[t.genre]||0) + (t.playCount||0) + (t.liked?3:0); return acc; }, {})
   ).sort((a,b) => b[1] - a[1]);
@@ -2922,26 +2904,20 @@ function ProfileScreen({ user, setUser, tracks, onLogout }) {
   const avgEnergy = played.length
     ? (played.reduce((s,t) => s + (t.energy||5), 0) / played.length).toFixed(1) : null;
 
-  // Energy personality — distribution across 1-10
   const energyDist = Array(10).fill(0);
   played.forEach(t => { energyDist[Math.min(9, Math.max(0, (t.energy||5) - 1))] += (t.playCount||1); });
   const maxEDist = Math.max(...energyDist, 1);
 
-  // Top return tracks (highest pull)
   const returnTracks = singles
     .filter(t => t._signal?.pull >= 5)
     .sort((a, b) => (b._signal?.pull||0) - (a._signal?.pull||0))
     .slice(0, 5);
 
-  // Skip tolerance
   const totalPlays = played.reduce((s,t) => s + (t.playCount||0), 0);
   const totalSkips = played.reduce((s,t) => s + (t.skipCount||0), 0);
   const skipRate = totalPlays > 0 ? Math.round((totalSkips / totalPlays) * 100) : 0;
-
-  // Genre breadth
   const genreCount = new Set(singles.map(t => t.genre).filter(Boolean)).size;
 
-  // Aura trait averages
   const traitAvgs = {};
   const traitKeys = ["grip","hold","pull","gravity","lift","descent"];
   traitKeys.forEach(k => {
@@ -2949,109 +2925,278 @@ function ProfileScreen({ user, setUser, tracks, onLogout }) {
     traitAvgs[k] = vals.length ? (vals.reduce((s,v) => s+v, 0) / vals.length).toFixed(1) : "—";
   });
 
-  const CARD = { background: color.surfaceSolid, border: `1px solid ${color.line}`, borderRadius: radius.md, padding:"16px" };
+  const initial = (user.name || "R").trim().charAt(0).toUpperCase();
+  const quietPanel = {
+    background: color.surfaceSolid,
+    border: `1px solid ${color.line}`,
+    borderRadius: radius.md,
+    padding: "16px",
+  };
 
   return (
-    <div style={{ padding:"24px 16px 16px" }}>
-      {/* Header */}
-      <div style={{ textAlign:"center", padding:"16px 0 24px" }}>
-        <div style={{ width:72, height:72, borderRadius:"50%", background: color.surfaceRaised, display:"flex", alignItems:"center", justifyContent:"center", margin:"0 auto 10px", fontSize:36, border: `1px solid ${color.lineStrong}` }}>{user.image}</div>
-        <div style={{ fontSize:22, fontWeight:700, letterSpacing:-0.3, color: color.ink }}>{user.name}</div>
-        <div style={{ fontSize:11, color: color.muted, marginTop:4 }}>{tracks.length} tracks · {genreCount} genres · {liked.length} saved</div>
-      </div>
-
-      {/* ── LISTENING FINGERPRINT ── */}
-      <div style={{ fontSize:11, fontWeight:700, letterSpacing:1, color: color.ink, textTransform:"uppercase", marginBottom:12 }}>Listening Fingerprint</div>
-
-      {/* Stats row */}
-      <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr 1fr", gap:6, marginBottom:16 }}>
-        {[
-          [avgEnergy || "—", "avg energy"],
-          [avgBpm || "—", "avg bpm"],
-          [`${skipRate}%`, "skip rate"],
-          [genreCount, "genres"],
-        ].map(([val, label]) => (
-          <div key={label} style={{...CARD, padding:"12px 10px", textAlign:"center" }}>
-            <div style={{ fontSize:20, fontWeight:700, color: color.ink, letterSpacing:-0.3 }}>{val}</div>
-            <div style={{ fontSize:8, color: color.muted, letterSpacing:0.8, marginTop:3, fontWeight:600, textTransform:"uppercase" }}>{label}</div>
+    <div style={{ paddingBottom: 24 }}>
+      <RoomPosterBackdrop
+        atmosphere="amber-lamp"
+        minHeight={220}
+        style={{ padding: "36px 20px 28px" }}
+      >
+        <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+          <div
+            aria-hidden="true"
+            style={{
+              width: 64,
+              height: 64,
+              borderRadius: radius.sm,
+              background: color.surfaceRaised,
+              border: `1px solid ${color.lineStrong}`,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              flexShrink: 0,
+            }}
+          >
+            {user.image ? (
+              <span style={{ fontSize: 28 }}>{user.image}</span>
+            ) : (
+              <span style={{
+                fontSize: 28, fontWeight: 800, fontFamily: fontDisplay,
+                color: color.accent, letterSpacing: -1,
+              }}>{initial}</span>
+            )}
           </div>
-        ))}
-      </div>
-
-      {/* Energy personality — bar chart */}
-      <div style={{...CARD, marginBottom:16 }}>
-        <div style={{ fontSize:10, fontWeight:700, letterSpacing:0.8, color: color.muted, textTransform:"uppercase", marginBottom:12 }}>Energy Personality</div>
-        <div style={{ display:"flex", gap:4, alignItems:"flex-end", height:60 }}>
-          {energyDist.map((count, i) => (
-            <div key={i} style={{ flex:1, display:"flex", flexDirection:"column", alignItems:"center", gap:4 }}>
-              <div style={{ width:"100%", height: Math.max(2, (count / maxEDist) * 52), borderRadius:4, background: count > 0 ? color.accent : "rgba(232,236,240,0.06)", transition:"height 0.3s", opacity: count > 0 ? 0.15 + (count/maxEDist) * 0.85 : 0.3 }}/>
-              <div style={{ fontSize:8, color: color.muted, fontWeight:500 }}>{i+1}</div>
+          <div style={{ minWidth: 0 }}>
+            <div style={{
+              fontSize: 11, fontWeight: 700, letterSpacing: 1.8, color: color.accent,
+              fontFamily: fontMono, textTransform: "uppercase", marginBottom: 8,
+            }}>
+              You
             </div>
-          ))}
+            <div style={{
+              fontSize: "clamp(28px, 8vw, 40px)", fontWeight: 800, letterSpacing: -1.4,
+              fontFamily: fontDisplay, color: color.onDark, lineHeight: 1,
+            }}>
+              {user.name}
+            </div>
+            <div style={{ fontSize: 13, color: color.body, marginTop: 8 }}>
+              {liked.length} kept close · {rooms.length} rooms lived in
+            </div>
+          </div>
         </div>
-      </div>
+      </RoomPosterBackdrop>
 
-      {/* Genre constellation */}
-      <div style={{...CARD, marginBottom:16 }}>
-        <div style={{ fontSize:10, fontWeight:700, letterSpacing:0.8, color: color.muted, textTransform:"uppercase", marginBottom:12 }}>Genre Map</div>
-        <div style={{ display:"flex", flexWrap:"wrap", gap:6 }}>
-          {topGenres.slice(0, 12).map(([genre, weight]) => {
-            const pct = weight / totalWeight;
-            const size = Math.max(11, Math.min(20, 11 + pct * 60));
+      <div style={{ padding: "8px 16px 0" }}>
+        <div style={{
+          fontSize: 11, fontWeight: 700, letterSpacing: 1.8, color: color.accent,
+          fontFamily: fontMono, textTransform: "uppercase", marginBottom: 10,
+        }}>
+          Rooms you live in
+        </div>
+        {rooms.length === 0 ? (
+          <div style={{ ...quietPanel, marginBottom: 24 }}>
+            <div style={{ fontSize: 15, fontWeight: 650, fontFamily: fontDisplay, color: color.ink }}>
+              No rooms claimed yet
+            </div>
+            <div style={{ fontSize: 13, color: color.muted, marginTop: 6, lineHeight: 1.45 }}>
+              Press into a few on Home or Dig — we&apos;ll keep the door cracked.
+            </div>
+            {onOpenRooms && (
+              <button
+                type="button"
+                onClick={onOpenRooms}
+                style={{
+                  marginTop: 14, background: "none", border: "none", padding: 0,
+                  color: color.accent, fontWeight: 650, fontSize: 13, cursor: "pointer",
+                  fontFamily: fontDisplay,
+                }}
+              >
+                Browse rooms →
+              </button>
+            )}
+          </div>
+        ) : (
+          <div style={{ marginBottom: 28 }}>
+            {rooms.map((room) => (
+              <button
+                key={room.id}
+                type="button"
+                onClick={() => onOpenRoom?.(room.id)}
+                style={{
+                  display: "flex", alignItems: "center", justifyContent: "space-between",
+                  width: "100%", padding: "14px 0", background: "none", border: "none",
+                  borderBottom: `1px solid ${color.line}`, cursor: onOpenRoom ? "pointer" : "default",
+                  textAlign: "left", color: color.ink,
+                }}
+              >
+                <div style={{ minWidth: 0 }}>
+                  <div style={{ fontSize: 16, fontWeight: 700, fontFamily: fontDisplay, letterSpacing: -0.3 }}>
+                    {room.label}
+                  </div>
+                  <div style={{ fontSize: 12, color: color.muted, marginTop: 3 }}>
+                    {room.desc || room.story}
+                  </div>
+                </div>
+                <span style={{ fontSize: 12, color: color.faint, fontFamily: fontMono, marginLeft: 12 }}>
+                  {room.count}
+                </span>
+              </button>
+            ))}
+          </div>
+        )}
+
+        {returnTracks.length > 0 && (
+          <div style={{ marginBottom: 28 }}>
+            <div style={{
+              fontSize: 11, fontWeight: 700, letterSpacing: 1.8, color: color.accent,
+              fontFamily: fontMono, textTransform: "uppercase", marginBottom: 10,
+            }}>
+              Always come back
+            </div>
+            {returnTracks.map((t) => (
+              <div key={t.id} style={{ display: "flex", alignItems: "center", gap: 12, padding: "8px 0", borderBottom: `1px solid ${color.line}` }}>
+                <div style={{ width: 40, height: 40, overflow: "hidden", flexShrink: 0 }}>
+                  <AlbumArt track={t} size={40} borderRadius={0} />
+                </div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontSize: 14, fontWeight: 600, color: color.ink, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                    {t.title}
+                  </div>
+                  <div style={{ fontSize: 12, color: color.muted }}>{t.artist}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        <div style={{
+          fontSize: 11, fontWeight: 700, letterSpacing: 1.8, color: color.accent,
+          fontFamily: fontMono, textTransform: "uppercase", marginBottom: 10,
+        }}>
+          Preferred lanes
+        </div>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 28 }}>
+          {ALL_GENRES.map((g) => {
+            const on = user.genres.includes(g);
             return (
-              <span key={genre} style={{
-                fontSize:size, fontWeight:pct > 0.1 ? 700 : 500,
-                color: pct > 0.15 ? color.ink : pct > 0.05 ? color.body : color.faint,
-                letterSpacing:-0.2, lineHeight:1.8,
-              }}>{genre}</span>
+              <button
+                key={g}
+                type="button"
+                onClick={() => setUser((u) => ({
+                  ...u,
+                  genres: on ? u.genres.filter((x) => x !== g) : [...u.genres, g],
+                }))}
+                style={{
+                  padding: "8px 12px",
+                  borderRadius: radius.sm,
+                  fontSize: 12,
+                  fontWeight: on ? 650 : 500,
+                  cursor: "pointer",
+                  background: on ? color.accent : color.surface,
+                  color: on ? color.onAccent : color.muted,
+                  border: `1px solid ${on ? "transparent" : color.line}`,
+                }}
+              >
+                {g}
+              </button>
             );
           })}
         </div>
-      </div>
 
-      {/* Aura traits */}
-      <div style={{...CARD, marginBottom:16 }}>
-        <div style={{ fontSize:10, fontWeight:700, letterSpacing:0.8, color: color.muted, textTransform:"uppercase", marginBottom:12 }}>Aura Profile</div>
-        <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:8 }}>
-          {traitKeys.map(k => (
-            <div key={k} style={{ textAlign:"center" }}>
-              <div style={{ fontSize:18, fontWeight:700, color: color.ink, letterSpacing:-0.3 }}>{traitAvgs[k]}</div>
-              <div style={{ fontSize:8, color: color.muted, letterSpacing:0.8, fontWeight:600, textTransform:"uppercase", marginTop:2 }}>{k}</div>
+        <button
+          type="button"
+          onClick={() => setShowSignals((v) => !v)}
+          style={{
+            width: "100%",
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            padding: "14px 0",
+            background: "none",
+            border: "none",
+            borderTop: `1px solid ${color.line}`,
+            borderBottom: `1px solid ${color.line}`,
+            cursor: "pointer",
+            color: color.body,
+            marginBottom: showSignals ? 16 : 24,
+          }}
+        >
+          <span style={{ fontSize: 13, fontWeight: 650, fontFamily: fontDisplay, color: color.ink }}>
+            Signals
+          </span>
+          <span style={{ fontSize: 12, color: color.faint, fontFamily: fontMono }}>
+            {showSignals ? "Hide" : "Quiet stats"}
+          </span>
+        </button>
+
+        {showSignals && (
+          <div style={{ marginBottom: 24 }}>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 6, marginBottom: 12 }}>
+              {[
+                [avgEnergy || "—", "energy"],
+                [avgBpm || "—", "bpm"],
+                [`${skipRate}%`, "skips"],
+                [genreCount, "genres"],
+              ].map(([val, label]) => (
+                <div key={label} style={{ ...quietPanel, padding: "12px 10px", textAlign: "center" }}>
+                  <div style={{ fontSize: 18, fontWeight: 700, color: color.ink, fontFamily: fontDisplay }}>{val}</div>
+                  <div style={{ fontSize: 9, color: color.muted, letterSpacing: 0.8, marginTop: 3, fontFamily: fontMono, textTransform: "uppercase" }}>{label}</div>
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Return tracks — highest pull */}
-      {returnTracks.length > 0 && (
-        <div style={{...CARD, marginBottom:16 }}>
-          <div style={{ fontSize:10, fontWeight:700, letterSpacing:0.8, color: color.muted, textTransform:"uppercase", marginBottom:10 }}>Always come back to</div>
-          {returnTracks.map(t => (
-            <div key={t.id} style={{ display:"flex", alignItems:"center", gap:10, padding:"4px 0" }}>
-              <div style={{ width:32, height:32, borderRadius:6, overflow:"hidden", flexShrink:0 }}><AlbumArt track={t} size={32} borderRadius={0}/></div>
-              <div style={{ flex:1, minWidth:0 }}>
-                <div style={{ fontSize:12, fontWeight:500, color: color.ink, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{t.title}</div>
-                <div style={{ fontSize:10, color: color.muted }}>{t.artist}</div>
+            <div style={{ ...quietPanel, marginBottom: 12 }}>
+              <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 0.8, color: color.muted, textTransform: "uppercase", marginBottom: 12, fontFamily: fontMono }}>
+                Energy shape
               </div>
-              <div style={{ fontSize:9, color: color.muted, fontWeight:600 }}>pull {t._signal?.pull}</div>
+              <div style={{ display: "flex", gap: 4, alignItems: "flex-end", height: 56 }}>
+                {energyDist.map((count, i) => (
+                  <div key={i} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
+                    <div style={{
+                      width: "100%",
+                      height: Math.max(2, (count / maxEDist) * 48),
+                      borderRadius: 3,
+                      background: count > 0 ? color.accent : "rgba(237,232,225,0.06)",
+                      opacity: count > 0 ? 0.2 + (count / maxEDist) * 0.8 : 0.3,
+                    }}/>
+                    <div style={{ fontSize: 8, color: color.faint }}>{i + 1}</div>
+                  </div>
+                ))}
+              </div>
             </div>
-          ))}
-        </div>
-      )}
+            <div style={{ ...quietPanel }}>
+              <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 0.8, color: color.muted, textTransform: "uppercase", marginBottom: 10, fontFamily: fontMono }}>
+                Aura
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8 }}>
+                {traitKeys.map((k) => (
+                  <div key={k} style={{ textAlign: "center" }}>
+                    <div style={{ fontSize: 16, fontWeight: 700, color: color.ink, fontFamily: fontDisplay }}>{traitAvgs[k]}</div>
+                    <div style={{ fontSize: 8, color: color.muted, letterSpacing: 0.8, fontFamily: fontMono, textTransform: "uppercase", marginTop: 2 }}>{k}</div>
+                  </div>
+                ))}
+              </div>
+              {topGenres.length > 0 && (
+                <div style={{ marginTop: 14, display: "flex", flexWrap: "wrap", gap: 8 }}>
+                  {topGenres.slice(0, 8).map(([genre, weight]) => {
+                    const pct = weight / totalWeight;
+                    return (
+                      <span key={genre} style={{
+                        fontSize: 12,
+                        fontWeight: pct > 0.1 ? 650 : 500,
+                        color: pct > 0.1 ? color.ink : color.muted,
+                      }}>
+                        {genre}
+                      </span>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
 
-      {/* Preferred Genres */}
-      <div style={{ fontSize:11, fontWeight:700, letterSpacing:1, color: color.ink, textTransform:"uppercase", marginBottom:8, marginTop:8 }}>Preferred Genres</div>
-      <div style={{ display:"flex", flexWrap:"wrap", gap:6, marginBottom:24 }}>
-        {ALL_GENRES.map(g => {
-          const on = user.genres.includes(g);
-          return <div key={g} onClick={() => setUser(u => ({...u, genres: on ? u.genres.filter(x=>x!==g) : [...u.genres, g]}))}
-            style={{ padding:"6px 14px", borderRadius:20, fontSize:12, fontWeight:on?600:400, cursor:"pointer", transition:"all 0.15s",
-              background: on ? color.accent : color.surface,
-              color: on ? color.onAccent : color.muted, border:`1px solid ${on ? "transparent" : color.line}` }}>{g}</div>;
-        })}
+        <button type="button" onClick={onLogout} style={{ ...BTN_SECONDARY, width: "100%" }}>
+          Leave for now
+        </button>
       </div>
-
-      <button onClick={onLogout} style={{...BTN_SECONDARY, width:"100%"}}>Sign Out</button>
     </div>
   );
 }
@@ -3143,7 +3288,7 @@ function AdminScreen({ tracks, setTracks, tab, setTab, editTrack, setEditTrack, 
     });
 
     let updated = 0, created = 0, errors = 0, skipped = 0;
-    const cols = ["#8899aa","#7a9e8a","#9090b0","#a09898","#88a8b0","#a0a0b8","#7aaa98"];
+    const cols = ["#A8926A","#8A7A5C","#B8A078","#6E6250","#C4B08A","#9A8A6E","#7A6E58"];
 
     function fieldUpdates(r) {
       const updates = {};
@@ -3247,14 +3392,14 @@ function AdminScreen({ tracks, setTracks, tab, setTab, editTrack, setEditTrack, 
   }
   const addTrack = () => {
     if (!nt.title||!nt.artist) { showToast("Title and artist required"); return; }
-    const cols = ["#8899aa","#7a9e8a","#9090b0","#a09898","#88a8b0","#a0a0b8","#7aaa98"];
+    const cols = ["#A8926A","#8A7A5C","#B8A078","#6E6250","#C4B08A","#9A8A6E","#7A6E58"];
     setTracks(ts=>[...ts,{ id:Date.now(),...nt,energy:parseInt(nt.energy)||5,bpm:parseInt(nt.bpm)||null,liked:false,color:cols[Math.floor(Math.random()*cols.length)] }]);
     setNt(EMPTY); showToast("Track added");
   };
   return (
     <div style={{ padding:"24px 16px 16px" }}>
-      <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:20 }}>
-        <div style={{ fontSize:20 }}>⚙️</div>
+      <div style={{ display:"flex", alignItems:"center", gap:12, marginBottom:20 }}>
+        <DoorGlyph size={28} title="" />
         <div style={{ fontSize:28, fontWeight:700, letterSpacing:-0.5, color: color.ink, fontFamily: fontDisplay }}>Admin</div>
       </div>
       <div style={{ display:"flex", gap:6, marginBottom:20, background: color.surfaceSolid, borderRadius:12, padding:3, border:`1px solid ${color.line}` }}>
@@ -3314,7 +3459,7 @@ function AdminScreen({ tracks, setTracks, tab, setTab, editTrack, setEditTrack, 
                 {t.energy&&<span style={{ fontSize:10, fontWeight:500, padding:"2px 8px", borderRadius:6, background:"rgba(0,0,0,0.04)", color: color.muted }}>E{t.energy}</span>}
               </div>
               <button onClick={()=>setEditTrack(t)} style={{ background:"none",border:"none",cursor:"pointer",color: color.muted,padding:6 }}><Icon name="edit" size={14}/></button>
-              <button onClick={()=>{setTracks(ts=>ts.filter(tr=>tr.id!==t.id));showToast("Deleted");}} style={{ background:"none",border:"none",cursor:"pointer",color:"#FF3B30",padding:6 }}><Icon name="trash" size={14}/></button>
+              <button onClick={()=>{setTracks(ts=>ts.filter(tr=>tr.id!==t.id));showToast("Deleted");}} style={{ background:"none",border:"none",cursor:"pointer",color: color.alert,padding:6 }}><Icon name="trash" size={14}/></button>
             </div>
           ))}
         </div>
@@ -3327,7 +3472,7 @@ function AdminScreen({ tracks, setTracks, tab, setTab, editTrack, setEditTrack, 
             {[["Tracks",tracks.length],["Liked",tracks.filter(t=>t.liked).length],["Genres",[...new Set(tracks.map(t=>t.genre))].length],["BPMs",[...new Set(tracks.filter(t=>t.bpm).map(t=>t.bpm))].length]].map(([l,v])=>(
               <div key={l} style={{ padding:"14px 16px", background: color.surfaceSolid, borderRadius:14, border:"0.5px solid rgba(60,60,67,0.12)", boxShadow:"0 1px 4px rgba(0,0,0,0.04)" }}>
                 <div style={{ fontSize:11, fontWeight:600, letterSpacing:0.5, color: color.faint, textTransform:"uppercase", marginBottom:4 }}>{l}</div>
-                <div style={{ fontSize:28, fontWeight:700, letterSpacing:-0.5, color:"#1C1C1E" }}>{v}</div>
+                <div style={{ fontSize:28, fontWeight:700, letterSpacing:-0.5, color: color.ink }}>{v}</div>
               </div>
             ))}
           </div>
@@ -3466,7 +3611,7 @@ function AdminScreen({ tracks, setTracks, tab, setTab, editTrack, setEditTrack, 
                         <div style={{ fontSize:11, fontWeight:600, color:"#FFFFFF", letterSpacing:0.5, marginBottom:8, textTransform:"uppercase" }}>{label}</div>
                         <div style={{ fontSize:28, fontWeight:700, color: color.ink }}>{has}<span style={{ fontSize:14, color: color.muted }}>/{total}</span></div>
                         <div style={{ height:4, background:"rgba(0,0,0,0.06)", borderRadius:2, marginTop:8, overflow:"hidden" }}>
-                          <div style={{ width:`${pct}%`, height:"100%", background: pct === 100 ? "#22C55E" : pct > 50 ? "#1A1D26" : "#EF4444", borderRadius:2, transition:"width 0.5s" }}/>
+                          <div style={{ width:`${pct}%`, height:"100%", background: pct === 100 ? "#A8926A" : pct > 50 ? "#181512" : "#E5484D", borderRadius:2, transition:"width 0.5s" }}/>
                         </div>
                         <div style={{ fontSize:10, color: color.muted, marginTop:4 }}>{pct}% covered</div>
                       </div>
@@ -3499,7 +3644,7 @@ function AdminScreen({ tracks, setTracks, tab, setTab, editTrack, setEditTrack, 
                       <div style={{ fontSize:12, color: color.ink, fontWeight:600, marginBottom:4 }}>{withoutKey.length} tracks missing keys</div>
                       <div style={{ fontSize:11, color: color.muted, lineHeight:1.5, marginBottom:12 }}>You can batch-assign estimated keys based on BPM and genre. These are rough estimates — for accurate keys, use DJ software like Mixed In Key or Rekordbox to analyze audio.</div>
                       <button onClick={batchAssign} disabled={assigning}
-                        style={{ width:"100%", background:assigning?"#6B7280":"#1A1D26", color:"#FFF", border:"none", borderRadius:12, padding:"12px", fontSize:14, fontWeight:600, cursor:assigning?"wait":"pointer", transition:"all 0.2s" }}>
+                        style={{ width:"100%", background:assigning?"#817870":"#181512", color:"#FFF", border:"none", borderRadius:12, padding:"12px", fontSize:14, fontWeight:600, cursor:assigning?"wait":"pointer", transition:"all 0.2s" }}>
                         {assigning ? `Assigning... ${assigned}/${withoutKey.length}` : `Batch assign ${withoutKey.length} keys`}
                       </button>
                     </div>
@@ -3639,9 +3784,9 @@ function MetaChip({ children }) {
 function BottomNav({ screen, setScreen, showAdmin = false, hasPlayer = false }) {
   // IA: Rooms (destinations) · Home (personal) · Discover · Search · You
   const items = [
-    {id:"rooms",label:"Rooms",icon:"drift"},
+    {id:"rooms",label:"Rooms",icon:"door"},
     {id:"home",label:"Home",icon:"home"},
-    {id:"favorites",label:"Dig",icon:"grid"},
+    {id:"favorites",label:"Dig",icon:"dig"},
     {id:"search",label:"Search",icon:"search"},
     {id:"profile",label:"You",icon:"profile"},
   ];
@@ -3902,7 +4047,7 @@ export default function App() {
     let label = null;
     if (screen === "artist" && artistSlug) label = findArtist(tracks, artistSlug)?.name;
     if (screen === "album" && albumSlug) label = findAlbum(tracks, albumSlug)?.title;
-    if (screen === "rooms" && routeRoomId) label = routeRoomId;
+    if (screen === "rooms" && routeRoomId) label = roomLabelForId(routeRoomId) || routeRoomId;
     if (screen === "paths" && routePathId) label = routePathId;
     document.title = documentTitleFor(screen, label);
   }, [screen, routeRoomId, artistSlug, albumSlug, routePathId, tracks]);
@@ -3931,19 +4076,27 @@ export default function App() {
   const shareRoomDoor = async (room) => {
     if (!room?.id) return;
     const url = `${window.location.origin}${buildPath("rooms", room.id)}`;
+    const title = `${room.label || roomLabelForId(room.id) || "Room"} · ROOMS`;
+    const text = room.story || room.desc || "Music you inhabit — the door is open.";
     try {
-      if (navigator.clipboard?.writeText) await navigator.clipboard.writeText(url);
+      if (navigator.share) {
+        await navigator.share({ title, text, url });
+        showToast("Door left open");
+        return;
+      }
+      if (navigator.clipboard?.writeText) await navigator.clipboard.writeText(`${text}\n${url}`);
       else {
         const ta = document.createElement("textarea");
-        ta.value = url;
+        ta.value = `${text}\n${url}`;
         document.body.appendChild(ta);
         ta.select();
         document.execCommand("copy");
         document.body.removeChild(ta);
       }
-      showToast("Door left open");
-    } catch {
-      showToast("Couldn't copy the door");
+      showToast("Door left open — link copied");
+    } catch (err) {
+      if (err?.name === "AbortError") return;
+      showToast("Couldn't share the door");
     }
   };
 
@@ -3984,8 +4137,8 @@ export default function App() {
 
   // ── User object shaped like the rest of the app expects ─────────────────
   const user = {
-    name:   profile?.displayName || "Digger",
-    image:  profile?.profileImage || "🎧",
+    name:   profile?.displayName || "Listener",
+    image:  profile?.profileImage || "",
     genres: profile?.genres || [],
   };
   const homeRooms = profile?.homeRooms || [];
@@ -4679,7 +4832,7 @@ export default function App() {
             playlistCtx={playlistCtx}
           />
         )}
-        {screen==="profile"   && <ProfileScreen user={user} setUser={setUser} tracks={tracks} onLogout={logOut}/>}
+        {screen==="profile"   && <ProfileScreen user={user} setUser={setUser} tracks={tracks} onLogout={logOut} homeRooms={homeRooms} onOpenRoom={(id)=>setRoomRoute(id)} onOpenRooms={()=>setScreen("rooms")}/>}
         {screen==="map"       && <HarmonicMap tracks={tracks} onPlay={t=>playTrack(t,tracks)} currentTrack={currentTrack}/>}
         {screen==="admin"     && <AdminScreen tracks={tracks} setTracks={setTracks} tab={adminTab} setTab={setAdminTab} editTrack={editTrack} setEditTrack={setEditTrack} showToast={showToast}/>}
       </div>
@@ -4702,13 +4855,14 @@ export default function App() {
 
   // ── Desktop: 3-column shell ───────────────────────────────────────────────
   const NAV_TOP = [
-    { id:"rooms",     icon:"drift",  label:"Rooms" },
+    { id:"rooms",     icon:"door",   label:"Rooms" },
     { id:"home",      icon:"home",   label:"Home" },
-    { id:"favorites", icon:"grid",   label:"Dig" },
+    { id:"favorites", icon:"dig",    label:"Dig" },
+    { id:"paths",     icon:"hypno",  label:"Paths" },
   ];
   const NAV_BOTTOM = [
     { id:"search",    icon:"search", label:"Search" },
-    { id:"map",       icon:"grid",   label:"Map" },
+    { id:"map",       icon:"map",    label:"Map" },
   ];
 
   const recentTracks = [...tracks].slice(0, 6);
@@ -4723,7 +4877,7 @@ export default function App() {
     : queueSource.slice(0, 8);
 
   // Accent glow color from current track
-  const glowRgb = currentTrack ? hexToRgbStr(currentTrack.color) : "200,200,210";
+  const glowRgb = currentTrack ? hexToRgbStr(currentTrack.color) : "168,146,106";
 
   return (
     <div style={{ display:"flex", height:"100vh", background: color.canvas, overflow:"hidden", fontFamily: font }}>
@@ -4878,7 +5032,7 @@ export default function App() {
                   playlistCtx={playlistCtx}
                 />
               )}
-              {screen==="profile"   && <ProfileScreen user={user} setUser={setUser} tracks={tracks} onLogout={logOut}/>}
+              {screen==="profile"   && <ProfileScreen user={user} setUser={setUser} tracks={tracks} onLogout={logOut} homeRooms={homeRooms} onOpenRoom={(id)=>setRoomRoute(id)} onOpenRooms={()=>setScreen("rooms")}/>}
               {screen==="map"       && <HarmonicMap tracks={tracks} onPlay={t=>playTrack(t,tracks)} currentTrack={currentTrack}/>}
               {screen==="admin"     && <AdminScreen tracks={tracks} setTracks={setTracks} tab={adminTab} setTab={setAdminTab} editTrack={editTrack} setEditTrack={setEditTrack} showToast={showToast}/>}
             </>

@@ -1,5 +1,6 @@
 import { font, fontDisplay, fontMono, color, radius } from "../../theme";
-import { atmosphereGradient } from "../../lib/rooms";
+import { roomPosterStyle } from "../../lib/rooms";
+import RoomPosterBackdrop from "../brand/RoomPosterBackdrop";
 
 /** Artist destination — catalogue as a world, not a discography dump. */
 export default function ArtistPage({
@@ -245,49 +246,18 @@ function EntityHero({
   playLabel,
   subtitle,
 }) {
-  const bg = atmosphereGradient(atmosphere || "vault");
+  const poster = roomPosterStyle(atmosphere || "vault");
   return (
-    <div
-      style={{
-        position: "relative",
-        overflow: "hidden",
-        minHeight: "min(52vh, 420px)",
-        padding: "20px 20px 32px",
-        display: "flex",
-        flexDirection: "column",
-        justifyContent: "flex-end",
-      }}
+    <RoomPosterBackdrop
+      atmosphere={atmosphere || "vault"}
+      coverUrl={coverUrl}
+      minHeight="min(52vh, 420px)"
+      style={{ padding: "20px 20px 32px" }}
     >
-      <div aria-hidden="true" style={{ position: "absolute", inset: 0, background: bg }} />
-      {coverUrl && (
-        <div
-          aria-hidden="true"
-          style={{
-            position: "absolute",
-            inset: 0,
-            backgroundImage: `url(${coverUrl})`,
-            backgroundSize: "cover",
-            backgroundPosition: "center",
-            filter: "blur(28px) brightness(0.42) saturate(112%)",
-            transform: "scale(1.1)",
-            opacity: 0.9,
-          }}
-        />
-      )}
-      <div
-        aria-hidden="true"
-        style={{
-          position: "absolute",
-          inset: 0,
-          background: "linear-gradient(180deg, rgba(12,11,10,0.2) 0%, rgba(12,11,10,0.55) 45%, rgba(12,11,10,0.96) 100%)",
-        }}
-      />
       <button
         type="button"
         onClick={onBack}
         style={{
-          position: "relative",
-          zIndex: 1,
           alignSelf: "flex-start",
           marginBottom: 24,
           background: "none",
@@ -300,7 +270,7 @@ function EntityHero({
       >
         ← {backLabel}
       </button>
-      <div style={{ position: "relative", zIndex: 1, maxWidth: 440 }}>
+      <div style={{ maxWidth: 440 }}>
         {coverUrl && (
           <div
             style={{
@@ -330,12 +300,12 @@ function EntityHero({
         <h1
           style={{
             margin: 0,
-            fontSize: "clamp(32px, 9vw, 48px)",
-            fontWeight: 800,
-            letterSpacing: -1.4,
+            fontSize: poster.titleSize,
+            fontWeight: poster.fontWeight,
+            letterSpacing: poster.letterSpacing,
             fontFamily: fontDisplay,
             color: color.onDark,
-            lineHeight: 1.02,
+            lineHeight: poster.lineHeight,
           }}
         >
           {title}
@@ -373,6 +343,6 @@ function EntityHero({
           </button>
         )}
       </div>
-    </div>
+    </RoomPosterBackdrop>
   );
 }

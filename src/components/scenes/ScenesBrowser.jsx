@@ -187,7 +187,7 @@ export default function ScenesBrowser({
             marginBottom: 8,
           }}
         >
-          Taxonomy
+          Cultures
         </div>
         <h2
           style={{
