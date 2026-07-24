@@ -11,7 +11,7 @@ import {
 import { camelotCompatible, getEnergyRangeForHour, fmtTime, hexToRgbStr } from "./lib/harmony";
 import {
   computeHumanState, findResonant, computeSignalTraits, pickNextTrack,
-  buildSession, SESSION_PROFILES,
+  buildSession, buildRoute, SESSION_PROFILES,
 } from "./lib/engine";
 import { CANONICAL_GENRES, normalizeGenre } from "./lib/genres";
 import {
@@ -101,6 +101,9 @@ const Icon = ({ name, size=18 }) => {
     trash:      <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>,
     chev_up:    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M18 15l-6-6-6 6"/></svg>,
     chev_down:  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M6 9l6 6 6-6"/></svg>,
+    queue:      <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M4 6h16M4 12h16M4 18h10"/><circle cx="18" cy="18" r="2" fill="currentColor" stroke="none"/></svg>,
+    volume:     <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor"><path d="M3 10v4h4l5 5V5L7 10H3zm13.5 2c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"/></svg>,
+    hypno:      <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.5" fill="currentColor" stroke="none"/></svg>,
   };
   return icons[name] || null;
 };
@@ -586,6 +589,17 @@ function TrackActionsMenu({ track, playlistCtx, activePlaylistId, x, y, onClose 
         </button>
       )}
 
+      {ctx.onHypnoRadio && (
+        <button
+          type="button"
+          role="menuitem"
+          onClick={() => { ctx.onHypnoRadio(track); onClose(); }}
+          style={{ display: "block", width: "100%", textAlign: "left", background: "none", border: "none", color: color.ink, fontSize: 14, padding: "10px 14px", cursor: "pointer" }}
+        >
+          Stay in this pocket
+        </button>
+      )}
+
       {activePlaylistId && activePlaylistId !== "liked" && (
         <>
           <div style={{ height: 1, background: color.line, margin: "4px 14px" }} />
@@ -940,14 +954,20 @@ function LoginScreen({ onSignUp, onLogIn, onGoogleSignIn, onPhoneOTP, onVerifyOT
   );
 }
 
-// ─── ROUTE BUILDER MODAL ──────────────────────────────────────────────────────
+// ─── ROUTE BUILDER MODAL — Build a night + A→B harmonic path ──────────────────
 function RouteBuilderModal({ tracks, onClose, onPlayRoute }) {
+  const [mode, setMode] = useState(null); // null | "night" | "path"
   const [step, setStep] = useState(1);
   const [duration, setDuration] = useState(60);
   const [activity, setActivity] = useState(null);
   const [session, setSession] = useState(null);
+  const [pathStart, setPathStart] = useState(null);
+  const [pathEnd, setPathEnd] = useState(null);
+  const [pathQuery, setPathQuery] = useState("");
+  const [pathPick, setPathPick] = useState("start"); // which end we're picking
 
   const activities = Object.entries(SESSION_PROFILES);
+  const singles = tracks.filter(t => (t.duration || 0) <= 900);
 
   function handleGenerate(act) {
     setActivity(act);
@@ -963,7 +983,14 @@ function RouteBuilderModal({ tracks, onClose, onPlayRoute }) {
     }
   }
 
-  const phases = session ? (() => {
+  function buildPath() {
+    if (!pathStart || !pathEnd) return;
+    const route = buildRoute(tracks, pathStart, pathEnd);
+    setSession(route);
+    setStep(3);
+  }
+
+  const phases = session && mode === "night" ? (() => {
     const groups = [];
     let current = null;
     session.forEach(t => {
@@ -978,43 +1005,73 @@ function RouteBuilderModal({ tracks, onClose, onPlayRoute }) {
 
   const profile = activity ? SESSION_PROFILES[activity] : null;
   const totalMins = session ? Math.round(session.reduce((s,t)=>s+(t.duration||210),0)/60) : 0;
+  const pathResults = pathQuery.trim().length > 0
+    ? singles.filter(t => {
+        const q = pathQuery.toLowerCase();
+        return [t.title, t.artist, t.genre].some(v => String(v || "").toLowerCase().includes(q));
+      }).slice(0, 24)
+    : singles.slice(0, 24);
 
-  // Full-screen immersive overlay
+  function handleBack() {
+    if (mode && step === 1) { setMode(null); return; }
+    if (step > 1) {
+      setStep(step - 1);
+      if (step === 3) setSession(null);
+    }
+  }
+
+  const headerLabel = !mode ? "Session" : mode === "night" ? "Build a night" : "Plot a route";
+
   return (
     <div style={{ position:"fixed", inset:0, zIndex:100, overflow:"hidden" }}>
-      {/* Layered background */}
       <div style={{ position:"absolute", inset:0, background:"linear-gradient(180deg, rgba(12,12,16,0.95) 0%, rgba(8,8,12,0.98) 100%)" }}/>
-      <BgMist color={session?.[0]?.color || "#6B7280"}/>
+      <BgMist color={session?.[0]?.color || pathStart?.color || "#6B7280"}/>
       <div style={{ position:"absolute", inset:0, background:"rgba(6,6,10,0.4)" }}/>
 
-      {/* Content */}
       <div className="hide-scroll" style={{ position:"relative", zIndex:1, height:"100%", overflowY:"auto", display:"flex", flexDirection:"column" }}>
-
-        {/* Header bar */}
         <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"20px 24px", flexShrink:0 }}>
           <div style={{ display:"flex", alignItems:"center", gap:12 }}>
-            {step > 1 && (
-              <button onClick={()=>{ setStep(step-1); if(step===3) setSession(null); }}
+            {(mode || step > 1) && (
+              <button type="button" onClick={handleBack}
                 style={{ background:"rgba(255,255,255,0.08)", border:"1px solid rgba(255,255,255,0.1)", borderRadius:10, padding:"8px 14px", fontSize:12, fontWeight:500, color:"rgba(255,255,255,0.5)", cursor:"pointer", backdropFilter:"blur(20px)" }}>Back</button>
             )}
-            <div style={{ fontSize:11, fontWeight:600, letterSpacing:2, color:"rgba(255,255,255,0.3)", textTransform:"uppercase" }}>Build a night</div>
+            <div style={{ fontSize:11, fontWeight:600, letterSpacing:2, color:"rgba(255,255,255,0.3)", textTransform:"uppercase" }}>{headerLabel}</div>
           </div>
-          <button onClick={onClose} style={{ background:"rgba(255,255,255,0.06)", border:"1px solid rgba(255,255,255,0.08)", borderRadius:"50%", width:36, height:36, cursor:"pointer", color:"rgba(255,255,255,0.4)", display:"flex", alignItems:"center", justifyContent:"center", backdropFilter:"blur(20px)" }}>
+          <button type="button" onClick={onClose} style={{ background:"rgba(255,255,255,0.06)", border:"1px solid rgba(255,255,255,0.08)", borderRadius:"50%", width:36, height:36, cursor:"pointer", color:"rgba(255,255,255,0.4)", display:"flex", alignItems:"center", justifyContent:"center", backdropFilter:"blur(20px)" }}>
             <Icon name="x" size={16}/>
           </button>
         </div>
 
-        {/* Main content area — centered */}
         <div style={{ flex:1, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:"0 32px 40px", maxWidth:560, margin:"0 auto", width:"100%" }}>
 
-          {/* ── STEP 1: Duration ── */}
-          {step === 1 && (
+          {/* Mode picker */}
+          {!mode && (
+            <div style={{ width:"100%", textAlign:"center", animation:"rise 0.45s cubic-bezier(0.22,1,0.36,1) both" }}>
+              <div style={{ fontSize:32, fontWeight:700, color:"#FFFFFF", letterSpacing:-0.5, marginBottom:8, fontFamily: fontDisplay }}>How do you want to listen?</div>
+              <div style={{ fontSize:14, color:"rgba(255,255,255,0.35)", marginBottom:36 }}>Shape a night, or plot a harmonic path.</div>
+              <div style={{ display:"grid", gap:12 }}>
+                <button type="button" onClick={()=>{ setMode("night"); setStep(1); }}
+                  style={{ padding:"22px 24px", borderRadius:16, border:"1px solid rgba(255,255,255,0.1)", background:"rgba(255,255,255,0.06)", textAlign:"left", cursor:"pointer" }}>
+                  <div style={{ fontSize:18, fontWeight:700, color:"#FFFFFF", fontFamily: fontDisplay, marginBottom:6 }}>Build a night</div>
+                  <div style={{ fontSize:13, color:"rgba(255,255,255,0.4)" }}>Duration + activity → phased energy arc</div>
+                </button>
+                <button type="button" onClick={()=>{ setMode("path"); setStep(1); setPathPick("start"); }}
+                  style={{ padding:"22px 24px", borderRadius:16, border:"1px solid rgba(255,255,255,0.1)", background:"rgba(255,255,255,0.06)", textAlign:"left", cursor:"pointer" }}>
+                  <div style={{ fontSize:18, fontWeight:700, color:"#FFFFFF", fontFamily: fontDisplay, marginBottom:6 }}>Plot a route</div>
+                  <div style={{ fontSize:13, color:"rgba(255,255,255,0.4)" }}>A → B through Camelot-compatible steps</div>
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Night step 1: Duration */}
+          {mode === "night" && step === 1 && (
             <div style={{ width:"100%", textAlign:"center" }}>
               <div style={{ fontSize:32, fontWeight:700, color:"#FFFFFF", letterSpacing:-0.5, marginBottom:8, fontFamily: fontDisplay }}>How long is the night?</div>
               <div style={{ fontSize:14, color:"rgba(255,255,255,0.35)", marginBottom:40 }}>Pick a runtime. We’ll shape the arc.</div>
-              <div style={{ display:"flex", gap:10, justifyContent:"center", marginBottom:48 }}>
+              <div style={{ display:"flex", gap:10, justifyContent:"center", marginBottom:48, flexWrap:"wrap" }}>
                 {[30,60,120,240,480].map(m => (
-                  <button key={m} onClick={()=>setDuration(m)} style={{
+                  <button type="button" key={m} onClick={()=>setDuration(m)} style={{
                     width:64, height:64, borderRadius:16, border: duration===m ? "1px solid rgba(255,255,255,0.3)" : "1px solid rgba(255,255,255,0.08)",
                     background: duration===m ? "rgba(255,255,255,0.12)" : "rgba(255,255,255,0.04)",
                     backdropFilter:"blur(24px)", color: duration===m ? "#FFFFFF" : "rgba(255,255,255,0.35)",
@@ -1025,21 +1082,21 @@ function RouteBuilderModal({ tracks, onClose, onPlayRoute }) {
                   </button>
                 ))}
               </div>
-              <button onClick={()=>setStep(2)} style={{ padding:"16px 48px", borderRadius:16, background:"rgba(255,255,255,0.1)", backdropFilter:"blur(24px)", border:"1px solid rgba(255,255,255,0.15)", color:"#FFFFFF", fontSize:16, fontWeight:600, cursor:"pointer", transition:"all 0.2s" }}>
+              <button type="button" onClick={()=>setStep(2)} style={{ padding:"16px 48px", borderRadius:16, background:"rgba(255,255,255,0.1)", backdropFilter:"blur(24px)", border:"1px solid rgba(255,255,255,0.15)", color:"#FFFFFF", fontSize:16, fontWeight:600, cursor:"pointer" }}>
                 Continue
               </button>
             </div>
           )}
 
-          {/* ── STEP 2: Activity ── */}
-          {step === 2 && (
+          {/* Night step 2: Activity */}
+          {mode === "night" && step === 2 && (
             <div style={{ width:"100%", textAlign:"center" }}>
               <div style={{ fontSize:32, fontWeight:700, color:"#FFFFFF", letterSpacing:-0.5, marginBottom:8, fontFamily: fontDisplay }}>Shape the night</div>
               <div style={{ fontSize:14, color:"rgba(255,255,255,0.35)", marginBottom:32 }}>{duration < 60 ? `${duration} minute` : `${Math.round(duration/60)} hour`} set</div>
               <div style={{ display:"grid", gridTemplateColumns:"repeat(2, 1fr)", gap:10, textAlign:"left" }}>
                 {activities.map(([id, prof]) => (
-                  <button key={id} onClick={()=>handleGenerate(id)}
-                    style={{ padding:"16px 18px", borderRadius:16, border:"1px solid rgba(255,255,255,0.08)", background:"rgba(255,255,255,0.04)", backdropFilter:"blur(32px)", cursor:"pointer", textAlign:"left", transition:"all 0.2s" }}>
+                  <button type="button" key={id} onClick={()=>handleGenerate(id)}
+                    style={{ padding:"16px 18px", borderRadius:16, border:"1px solid rgba(255,255,255,0.08)", background:"rgba(255,255,255,0.04)", backdropFilter:"blur(32px)", cursor:"pointer", textAlign:"left" }}>
                     <div style={{ fontSize:16, fontWeight:600, color:"#FFFFFF", letterSpacing:-0.2, marginBottom:10 }}>{prof.label}</div>
                     <div style={{ display:"flex", gap:2, alignItems:"flex-end", marginBottom:8 }}>
                       {prof.phases.map((ph,i) => (
@@ -1053,35 +1110,118 @@ function RouteBuilderModal({ tracks, onClose, onPlayRoute }) {
             </div>
           )}
 
-          {/* ── STEP 3: Session Generated — immersive preview ── */}
-          {step === 3 && session && profile && (
+          {/* Path step 1–2: pick start/end */}
+          {mode === "path" && step < 3 && (
             <div style={{ width:"100%" }}>
-              {/* Hero */}
+              <div style={{ textAlign:"center", marginBottom:24 }}>
+                <div style={{ fontSize:28, fontWeight:700, color:"#FFFFFF", letterSpacing:-0.5, marginBottom:8, fontFamily: fontDisplay }}>
+                  {pathPick === "start" ? "Where do we start?" : "Where do we land?"}
+                </div>
+                <div style={{ fontSize:13, color:"rgba(255,255,255,0.35)", marginBottom:16 }}>
+                  Harmonic steps from A to B · Camelot + energy
+                </div>
+                <div style={{ display:"flex", gap:8, justifyContent:"center", marginBottom:20 }}>
+                  <button type="button" onClick={()=>setPathPick("start")} style={{
+                    padding:"8px 14px", borderRadius:10, border: pathPick==="start" ? "1px solid rgba(255,255,255,0.28)" : "1px solid rgba(255,255,255,0.08)",
+                    background: pathPick==="start" ? "rgba(255,255,255,0.1)" : "transparent", color: pathStart ? "#FFFFFF" : "rgba(255,255,255,0.4)", fontSize:12, cursor:"pointer", maxWidth:180, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap",
+                  }}>{pathStart ? pathStart.title : "Start"}</button>
+                  <span style={{ color:"rgba(255,255,255,0.25)", alignSelf:"center", fontSize:12 }}>→</span>
+                  <button type="button" onClick={()=>setPathPick("end")} style={{
+                    padding:"8px 14px", borderRadius:10, border: pathPick==="end" ? "1px solid rgba(255,255,255,0.28)" : "1px solid rgba(255,255,255,0.08)",
+                    background: pathPick==="end" ? "rgba(255,255,255,0.1)" : "transparent", color: pathEnd ? "#FFFFFF" : "rgba(255,255,255,0.4)", fontSize:12, cursor:"pointer", maxWidth:180, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap",
+                  }}>{pathEnd ? pathEnd.title : "End"}</button>
+                </div>
+                <input
+                  value={pathQuery}
+                  onChange={e=>setPathQuery(e.target.value)}
+                  placeholder="Search tracks…"
+                  style={{ width:"100%", padding:"12px 14px", borderRadius:12, border:"1px solid rgba(255,255,255,0.1)", background:"rgba(255,255,255,0.04)", color:"#FFFFFF", fontSize:14, marginBottom:14, outline:"none" }}
+                />
+              </div>
+              <div style={{ maxHeight:280, overflowY:"auto", borderRadius:14, border:"1px solid rgba(255,255,255,0.06)", background:"rgba(255,255,255,0.03)", marginBottom:20 }}>
+                {pathResults.map(t => (
+                  <button type="button" key={t.id} onClick={() => {
+                    if (pathPick === "start") {
+                      setPathStart(t);
+                      setPathPick("end");
+                      setPathQuery("");
+                    } else {
+                      setPathEnd(t);
+                      setPathQuery("");
+                    }
+                  }} style={{
+                    display:"flex", alignItems:"center", gap:10, width:"100%", padding:"10px 14px",
+                    background: (pathStart?.id===t.id || pathEnd?.id===t.id) ? "rgba(255,255,255,0.08)" : "transparent",
+                    border:"none", borderBottom:"1px solid rgba(255,255,255,0.04)", cursor:"pointer", textAlign:"left",
+                  }}>
+                    <div style={{ width:36, height:36, borderRadius:6, overflow:"hidden", flexShrink:0 }}><AlbumArt track={t} size={36} borderRadius={0}/></div>
+                    <div style={{ flex:1, minWidth:0 }}>
+                      <div style={{ fontSize:13, fontWeight:550, color:"#FFFFFF", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{t.title}</div>
+                      <div style={{ fontSize:11, color:"rgba(255,255,255,0.35)" }}>{t.artist} · {t.camelot || "—"} · E{t.energy ?? "—"}</div>
+                    </div>
+                  </button>
+                ))}
+              </div>
+              <button type="button" disabled={!pathStart || !pathEnd}
+                onClick={buildPath}
+                style={{
+                  width:"100%", padding:"16px", borderRadius:16,
+                  background: pathStart && pathEnd ? "rgba(255,255,255,0.12)" : "rgba(255,255,255,0.04)",
+                  border:"1px solid rgba(255,255,255,0.12)", color: pathStart && pathEnd ? "#FFFFFF" : "rgba(255,255,255,0.25)",
+                  fontSize:15, fontWeight:600, cursor: pathStart && pathEnd ? "pointer" : "default",
+                }}>
+                Build route
+              </button>
+            </div>
+          )}
+
+          {/* Preview (night or path) */}
+          {step === 3 && session && (mode === "path" || profile) && (
+            <div style={{ width:"100%" }}>
               <div style={{ textAlign:"center", marginBottom:32 }}>
-                <div style={{ fontSize:11, fontWeight:600, letterSpacing:2, color:"rgba(255,255,255,0.25)", textTransform:"uppercase", marginBottom:8 }}>{profile.label} · {duration < 60 ? `${duration}min` : `${Math.round(duration/60)}h`}</div>
-                <div style={{ fontSize:36, fontWeight:700, color:"#FFFFFF", letterSpacing:-0.5, marginBottom:4, fontFamily: fontDisplay }}>Tonight’s set is ready</div>
+                <div style={{ fontSize:11, fontWeight:600, letterSpacing:2, color:"rgba(255,255,255,0.25)", textTransform:"uppercase", marginBottom:8 }}>
+                  {mode === "path"
+                    ? `Route · ${pathStart?.camelot || "?"} → ${pathEnd?.camelot || "?"}`
+                    : `${profile.label} · ${duration < 60 ? `${duration}min` : `${Math.round(duration/60)}h`}`}
+                </div>
+                <div style={{ fontSize:36, fontWeight:700, color:"#FFFFFF", letterSpacing:-0.5, marginBottom:4, fontFamily: fontDisplay }}>
+                  {mode === "path" ? "Path is ready" : "Tonight’s set is ready"}
+                </div>
                 <div style={{ fontSize:14, color:"rgba(255,255,255,0.35)" }}>{session.length} tracks · ~{totalMins} minutes</div>
               </div>
 
-              {/* Phase timeline — visual arc */}
-              <div style={{ marginBottom:32, padding:"0 8px" }}>
-                <div style={{ display:"flex", borderRadius:12, overflow:"hidden", height:8, marginBottom:8, background:"rgba(255,255,255,0.04)" }}>
-                  {profile.phases.map((ph,i) => (
-                    <div key={i} style={{ flex:ph.p, background:`rgba(255,255,255,${0.05 + ph.e * 0.06})`, transition:"flex 0.3s" }}/>
-                  ))}
+              {mode === "night" && profile && (
+                <div style={{ marginBottom:32, padding:"0 8px" }}>
+                  <div style={{ display:"flex", borderRadius:12, overflow:"hidden", height:8, marginBottom:8, background:"rgba(255,255,255,0.04)" }}>
+                    {profile.phases.map((ph,i) => (
+                      <div key={i} style={{ flex:ph.p, background:`rgba(255,255,255,${0.05 + ph.e * 0.06})` }}/>
+                    ))}
+                  </div>
+                  <div style={{ display:"flex" }}>
+                    {profile.phases.map((ph,i) => (
+                      <div key={i} style={{ flex:ph.p, textAlign:"center" }}>
+                        <div style={{ fontSize:9, fontWeight:600, color:"rgba(255,255,255,0.3)", textTransform:"uppercase", letterSpacing:0.5 }}>{ph.name}</div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-                <div style={{ display:"flex" }}>
-                  {profile.phases.map((ph,i) => (
-                    <div key={i} style={{ flex:ph.p, textAlign:"center" }}>
-                      <div style={{ fontSize:9, fontWeight:600, color:"rgba(255,255,255,0.3)", textTransform:"uppercase", letterSpacing:0.5 }}>{ph.name}</div>
-                    </div>
-                  ))}
-                </div>
-              </div>
+              )}
 
-              {/* Track list by phase */}
+              {mode === "path" && (
+                <div style={{ marginBottom:24, height:48 }}>
+                  <svg width="100%" height="48" viewBox="0 0 320 48" preserveAspectRatio="none">
+                    {(() => {
+                      const energies = session.map(t => t.energy || 5);
+                      const stepX = 320 / Math.max(energies.length - 1, 1);
+                      const pts = energies.map((e, i) => `${i * stepX},${48 - ((e - 1) / 9) * 40}`).join(" ");
+                      return <polyline points={pts} fill="none" stroke="rgba(255,255,255,0.45)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>;
+                    })()}
+                  </svg>
+                </div>
+              )}
+
               <div style={{ maxHeight:320, overflowY:"auto", marginBottom:32, borderRadius:16, background:"rgba(255,255,255,0.03)", border:"1px solid rgba(255,255,255,0.06)", padding:"8px 0" }}>
-                {phases.map((phase, pi) => (
+                {mode === "night" ? phases.map((phase, pi) => (
                   <div key={pi}>
                     <div style={{ fontSize:9, fontWeight:700, letterSpacing:1.5, color:"rgba(255,255,255,0.2)", textTransform:"uppercase", padding:"12px 16px 6px" }}>{phase.name}</div>
                     {phase.tracks.map((t) => (
@@ -1094,19 +1234,33 @@ function RouteBuilderModal({ tracks, onClose, onPlayRoute }) {
                       </div>
                     ))}
                   </div>
+                )) : session.map((t, i) => (
+                  <div key={t.id} style={{ display:"flex", alignItems:"center", gap:10, padding:"6px 16px" }}>
+                    <div style={{ width:18, fontSize:10, color:"rgba(255,255,255,0.25)", fontVariantNumeric:"tabular-nums" }}>{i + 1}</div>
+                    <div style={{ width:32, height:32, borderRadius:6, overflow:"hidden", flexShrink:0 }}><AlbumArt track={t} size={32} borderRadius={0}/></div>
+                    <div style={{ flex:1, minWidth:0 }}>
+                      <div style={{ fontSize:13, fontWeight:500, color:"#FFFFFF", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{t.title}</div>
+                      <div style={{ fontSize:11, color:"rgba(255,255,255,0.35)" }}>{t.artist} · {t.camelot || "—"} · E{t.energy ?? "—"}</div>
+                    </div>
+                  </div>
                 ))}
               </div>
 
-              {/* Actions */}
               <div style={{ display:"flex", gap:10, justifyContent:"center" }}>
-                <button onClick={()=>{onPlayRoute(session.map(t=>{const {_phase,...rest}=t; return rest;}));onClose();}}
+                <button type="button" onClick={()=>{
+                  const cleaned = session.map(t => { const {_phase, ...rest} = t; return rest; });
+                  onPlayRoute(cleaned, mode === "night" ? "night" : "path");
+                  onClose();
+                }}
                   style={{ flex:1, maxWidth:280, padding:"16px 32px", borderRadius:16, background:"rgba(255,255,255,0.1)", backdropFilter:"blur(24px)", border:"1px solid rgba(255,255,255,0.15)", color:"#FFFFFF", fontSize:16, fontWeight:600, cursor:"pointer" }}>
-                  Play
+                  Open session
                 </button>
-                <button onClick={handleRegenerate}
-                  style={{ width:52, height:52, borderRadius:16, background:"rgba(255,255,255,0.06)", border:"1px solid rgba(255,255,255,0.08)", color:"rgba(255,255,255,0.4)", fontSize:16, cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", backdropFilter:"blur(20px)" }}>
-                  ↻
-                </button>
+                {mode === "night" && (
+                  <button type="button" onClick={handleRegenerate}
+                    style={{ width:52, height:52, borderRadius:16, background:"rgba(255,255,255,0.06)", border:"1px solid rgba(255,255,255,0.08)", color:"rgba(255,255,255,0.4)", fontSize:16, cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", backdropFilter:"blur(20px)" }}>
+                    ↻
+                  </button>
+                )}
               </div>
             </div>
           )}
@@ -1346,26 +1500,31 @@ function AfterglowOverlay({ data, onClose, onSavePlaylist }) {
   );
 }
 
-// ─── DRIFT — immersive cinematic playback ─────────────────────────────────────
-function ImmersivePlayer({ currentTrack, isPlaying, onTogglePlay, onSkip, onPrev, onClose, signalState, progress = 0, duration = 0 }) {
+// ─── DRIFT — immersive cinematic playback (Booth instrument) ─────────────────
+function ImmersivePlayer({
+  currentTrack, isPlaying, onTogglePlay, onSkip, onPrev, onClose,
+  signalState, progress = 0, duration = 0, onSeek, onLike,
+  volume = 1, onVolumeChange, onHypno, onHypnoRadio, onShowQueue,
+  sessionArc = null, isRadioMode = false, hypnoPocket = false,
+}) {
   const [showUI, setShowUI] = useState(true);
   const [artLoaded, setArtLoaded] = useState(false);
+  const [showVol, setShowVol] = useState(false);
   const hideTimer = useRef(null);
+  const scrubRef = useRef(null);
   const pct = duration > 0 ? (progress / duration) * 100 : 0;
 
-  // Auto-hide controls after 3 seconds of no interaction
   const resetHide = useCallback(() => {
     setShowUI(true);
     clearTimeout(hideTimer.current);
-    hideTimer.current = setTimeout(() => setShowUI(false), 3000);
+    hideTimer.current = setTimeout(() => setShowUI(false), 3500);
   }, []);
 
   useEffect(() => {
     resetHide();
     return () => clearTimeout(hideTimer.current);
-  }, [currentTrack?.id]);
+  }, [currentTrack?.id, resetHide]);
 
-  // Reset art loaded state on track change
   useEffect(() => { setArtLoaded(false); }, [currentTrack?.id]);
 
   if (!currentTrack) return null;
@@ -1373,13 +1532,19 @@ function ImmersivePlayer({ currentTrack, isPlaying, onTogglePlay, onSkip, onPrev
   const rgb = hexToRgbStr(currentTrack.color);
   const stateLabel = signalState?.label || "";
 
+  function seekFromClientX(clientX) {
+    if (!scrubRef.current || !duration || !onSeek) return;
+    const rect = scrubRef.current.getBoundingClientRect();
+    const ratio = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
+    onSeek(Math.floor(ratio * duration));
+  }
+
   return (
     <div
       onMouseMove={resetHide}
       onClick={resetHide}
       style={{ position:"fixed", inset:0, zIndex:100, overflow:"hidden", background: color.canvas, cursor: showUI ? "default" : "none" }}>
 
-      {/* Full-bleed art plane */}
       <div style={{
         position:"absolute", inset:0,
         backgroundImage: currentTrack.albumCover ? `url(${currentTrack.albumCover})` : "none",
@@ -1389,11 +1554,8 @@ function ImmersivePlayer({ currentTrack, isPlaying, onTogglePlay, onSkip, onPrev
         opacity: artLoaded ? 1 : 0.4,
       }}>
         {currentTrack.albumCover && (
-          <img
-            src={currentTrack.albumCover} alt=""
-            onLoad={()=>setArtLoaded(true)}
-            style={{ position:"absolute", width:1, height:1, opacity:0, pointerEvents:"none" }}
-          />
+          <img src={currentTrack.albumCover} alt="" onLoad={()=>setArtLoaded(true)}
+            style={{ position:"absolute", width:1, height:1, opacity:0, pointerEvents:"none" }}/>
         )}
       </div>
       {!currentTrack.albumCover && (
@@ -1408,17 +1570,45 @@ function ImmersivePlayer({ currentTrack, isPlaying, onTogglePlay, onSkip, onPrev
         </div>
       )}
 
-      {/* Station wash — keep art dominant */}
       <div aria-hidden="true" style={{
         position:"absolute", inset:0,
         background:"linear-gradient(180deg, rgba(9,11,13,0.25) 0%, rgba(9,11,13,0.15) 35%, rgba(9,11,13,0.78) 72%, rgba(9,11,13,0.96) 100%)",
       }}/>
 
+      {/* Live session / flow arc */}
+      {sessionArc?.energies?.length > 1 && (
+        <div style={{
+          position:"absolute", top:72, left:20, right:20, maxWidth:420,
+          opacity: showUI ? 1 : 0, transition:"opacity 0.45s ease",
+          pointerEvents: showUI ? "auto" : "none",
+        }}>
+          <div style={{ fontSize:9, fontWeight:700, letterSpacing:1.4, color: color.faint, textTransform:"uppercase", marginBottom:6 }}>
+            {sessionArc.label || "Session arc"}
+          </div>
+          <svg width="100%" height="36" viewBox="0 0 320 36" preserveAspectRatio="none">
+            {(() => {
+              const energies = sessionArc.energies;
+              const idx = Math.min(sessionArc.index || 0, energies.length - 1);
+              const stepX = 320 / Math.max(energies.length - 1, 1);
+              const pts = energies.map((e, i) => `${i * stepX},${36 - ((e - 1) / 9) * 28}`).join(" ");
+              const cx = idx * stepX;
+              const cy = 36 - (((energies[idx] || 5) - 1) / 9) * 28;
+              return (
+                <>
+                  <polyline points={pts} fill="none" stroke="rgba(232,236,240,0.28)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                  <circle cx={cx} cy={cy} r="3.5" fill={color.accent}/>
+                </>
+              );
+            })()}
+          </svg>
+        </div>
+      )}
+
       {/* Track info + booth HUD */}
       <div
         key={currentTrack.id}
         style={{
-          position:"absolute", bottom:118, left:20, right:20,
+          position:"absolute", bottom:168, left:20, right:20,
           opacity: showUI ? 1 : 0.55,
           transition:"opacity 0.5s ease",
           maxWidth:520,
@@ -1439,26 +1629,69 @@ function ImmersivePlayer({ currentTrack, isPlaying, onTogglePlay, onSkip, onPrev
         <div style={{ marginTop:18 }}>
           <BoothHud track={currentTrack} size="lg"/>
         </div>
-        {(normalizeGenre(currentTrack.genre) || stateLabel) && (
+        {(normalizeGenre(currentTrack.genre) || stateLabel || hypnoPocket || isRadioMode) && (
           <div style={{ fontSize:11, color: color.faint, marginTop:12, letterSpacing:0.4, fontFamily: fontMono, textTransform:"uppercase" }}>
-            {[normalizeGenre(currentTrack.genre), stateLabel].filter(Boolean).join("  ·  ")}
+            {[
+              hypnoPocket ? "Pocket" : (isRadioMode ? "On Air" : null),
+              normalizeGenre(currentTrack.genre),
+              stateLabel,
+            ].filter(Boolean).join("  ·  ")}
           </div>
         )}
       </div>
 
-      {/* Controls — accent station language */}
+      {/* Seekable progress */}
+      <div
+        ref={scrubRef}
+        role="slider"
+        aria-label="Seek"
+        aria-valuemin={0}
+        aria-valuemax={duration || 0}
+        aria-valuenow={progress}
+        tabIndex={0}
+        onClick={(e) => { e.stopPropagation(); seekFromClientX(e.clientX); resetHide(); }}
+        onKeyDown={(e) => {
+          if (!onSeek || !duration) return;
+          if (e.key === "ArrowRight") onSeek(Math.min(duration, progress + 5));
+          if (e.key === "ArrowLeft") onSeek(Math.max(0, progress - 5));
+        }}
+        style={{
+          position:"absolute", bottom:128, left:20, right:20, maxWidth:520,
+          opacity: showUI ? 1 : 0, transition:"opacity 0.45s ease",
+          pointerEvents: showUI ? "auto" : "none", cursor:"pointer",
+        }}
+      >
+        <div style={{ display:"flex", justifyContent:"space-between", marginBottom:6, fontSize:10, color: color.faint, fontFamily: fontMono, fontVariantNumeric:"tabular-nums" }}>
+          <span>{fmtTime(progress)}</span>
+          <span>{fmtTime(duration)}</span>
+        </div>
+        <div style={{ height:4, background:"rgba(232,236,240,0.12)", borderRadius:2, position:"relative" }}>
+          <div style={{ width:`${pct}%`, background: color.accent, height:"100%", borderRadius:2, transition:"width 0.2s linear" }}/>
+          <div style={{
+            position:"absolute", top:"50%", left:`${pct}%`, transform:"translate(-50%,-50%)",
+            width:12, height:12, borderRadius:"50%", background: color.accent,
+            boxShadow:"0 0 0 3px rgba(122,145,164,0.25)",
+          }}/>
+        </div>
+      </div>
+
+      {/* Controls */}
       <div style={{
-        position:"absolute", bottom:32, left:20, right:20,
-        display:"flex", alignItems:"center", justifyContent:"center", gap:28,
+        position:"absolute", bottom:36, left:20, right:20,
+        display:"flex", alignItems:"center", justifyContent:"center", gap:18,
         opacity: showUI ? 1 : 0,
         transition:"opacity 0.5s ease",
         pointerEvents: showUI ? "auto" : "none",
       }}>
-        <button type="button" onClick={onPrev} aria-label="Previous"
+        <button type="button" onClick={(e)=>{ e.stopPropagation(); onLike?.(currentTrack.id); }} aria-label={currentTrack.liked?"Unlike":"Like"}
+          style={{ background:"none", border:"none", cursor:"pointer", color: currentTrack.liked ? color.accent : color.body, padding:8 }}>
+          <Icon name={currentTrack.liked?"heart":"heartempty"} size={18}/>
+        </button>
+        <button type="button" onClick={(e)=>{ e.stopPropagation(); onPrev(); }} aria-label="Previous"
           style={{ background:"none", border:"none", cursor:"pointer", color: color.body, padding:8 }}>
           <Icon name="prev" size={20}/>
         </button>
-        <button type="button" className="play-primary" onClick={onTogglePlay} aria-label={isPlaying?"Pause":"Play"} style={{
+        <button type="button" className="play-primary" onClick={(e)=>{ e.stopPropagation(); onTogglePlay(); }} aria-label={isPlaying?"Pause":"Play"} style={{
           width:58, height:58, borderRadius: radius.sm,
           background: color.accent, border:"none",
           color: color.onAccent, cursor:"pointer",
@@ -1467,15 +1700,14 @@ function ImmersivePlayer({ currentTrack, isPlaying, onTogglePlay, onSkip, onPrev
         }}>
           <Icon name={isPlaying?"pause":"play"} size={22}/>
         </button>
-        <button type="button" onClick={onSkip} aria-label="Next"
+        <button type="button" onClick={(e)=>{ e.stopPropagation(); onSkip(); }} aria-label="Next"
           style={{ background:"none", border:"none", cursor:"pointer", color: color.body, padding:8 }}>
           <Icon name="skip" size={20}/>
         </button>
-      </div>
-
-      {/* Progress edge — same language as now-playing bar */}
-      <div aria-hidden="true" style={{ position:"absolute", bottom:0, left:0, right:0, height:2, background:"rgba(232,236,240,0.08)", zIndex:3 }}>
-        <div style={{ width:`${pct}%`, background: color.accent, height:"100%", transition:"width 1s linear" }}/>
+        <button type="button" onClick={(e)=>{ e.stopPropagation(); onShowQueue?.(); }} aria-label="Up Next"
+          style={{ background:"none", border:"none", cursor:"pointer", color: color.body, padding:8 }}>
+          <Icon name="queue" size={18}/>
+        </button>
       </div>
 
       {/* Top chrome */}
@@ -1487,7 +1719,7 @@ function ImmersivePlayer({ currentTrack, isPlaying, onTogglePlay, onSkip, onPrev
         pointerEvents: showUI ? "auto" : "none",
         zIndex: 2,
       }}>
-        <button type="button" onClick={onClose} aria-label="Back"
+        <button type="button" onClick={(e)=>{ e.stopPropagation(); onClose(); }} aria-label="Back"
           style={{
             display:"flex", alignItems:"center", gap:8, background:"rgba(9,11,13,0.55)",
             border:`1px solid ${color.lineStrong}`, borderRadius: radius.sm, padding:"10px 14px",
@@ -1496,7 +1728,124 @@ function ImmersivePlayer({ currentTrack, isPlaying, onTogglePlay, onSkip, onPrev
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><path d="M6 9l6 6 6-6"/></svg>
           Back
         </button>
-        <div style={{ fontSize:15, fontWeight:800, letterSpacing:-0.6, color: color.ink, fontFamily: fontDisplay }}>4AM</div>
+        <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+          {onHypno && (
+            <button type="button" onClick={(e)=>{ e.stopPropagation(); onHypno(currentTrack); }} aria-label="Hypno Vision"
+              style={{
+                display:"flex", alignItems:"center", gap:6, background:"rgba(9,11,13,0.55)",
+                border:`1px solid ${color.lineStrong}`, borderRadius: radius.sm, padding:"10px 12px",
+                color: color.ink, cursor:"pointer", fontSize:12, fontWeight:600,
+              }}>
+              <Icon name="hypno" size={14}/> Similar
+            </button>
+          )}
+          {onHypnoRadio && (
+            <button type="button" onClick={(e)=>{ e.stopPropagation(); onHypnoRadio(currentTrack); }} aria-label="Stay in pocket"
+              style={{
+                background:"rgba(9,11,13,0.55)", border:`1px solid ${color.lineStrong}`,
+                borderRadius: radius.sm, padding:"10px 12px",
+                color: hypnoPocket ? color.accent : color.ink, cursor:"pointer", fontSize:12, fontWeight:600,
+              }}>
+              Pocket
+            </button>
+          )}
+          <div style={{ position:"relative" }}>
+            <button type="button" onClick={(e)=>{ e.stopPropagation(); setShowVol(v => !v); }} aria-label="Volume"
+              style={{
+                background:"rgba(9,11,13,0.55)", border:`1px solid ${color.lineStrong}`,
+                borderRadius: radius.sm, padding:"10px 12px",
+                color: color.ink, cursor:"pointer", display:"flex", alignItems:"center",
+              }}>
+              <Icon name="volume" size={14}/>
+            </button>
+            {showVol && (
+              <div onClick={e=>e.stopPropagation()} style={{
+                position:"absolute", top:"110%", right:0, padding:"12px 14px",
+                background:"rgba(9,11,13,0.92)", border:`1px solid ${color.lineStrong}`,
+                borderRadius:12, minWidth:140,
+              }}>
+                <input
+                  type="range" min={0} max={1} step={0.01} value={volume}
+                  onChange={(e) => onVolumeChange?.(parseFloat(e.target.value))}
+                  style={{ width:112 }}
+                  aria-label="Volume level"
+                />
+              </div>
+            )}
+          </div>
+          <div style={{ fontSize:15, fontWeight:800, letterSpacing:-0.6, color: color.ink, fontFamily: fontDisplay, marginLeft:4 }}>4AM</div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── UP NEXT SHEET (mobile queue) ─────────────────────────────────────────────
+function QueueSheet({ queue, currentTrack, onPlay, onClose, onClear, onShuffle, isRadioMode, radioHint }) {
+  return (
+    <div style={{ position:"fixed", inset:0, zIndex:110 }}>
+      <div onClick={onClose} style={{ position:"absolute", inset:0, background:"rgba(9,11,13,0.72)", backdropFilter:"blur(8px)" }}/>
+      <div style={{
+        position:"absolute", left:0, right:0, bottom:0, maxHeight:"72vh",
+        background: color.surfaceSolid, borderTop:`1px solid ${color.lineStrong}`,
+        borderRadius:"16px 16px 0 0", display:"flex", flexDirection:"column",
+        animation:"rise 0.35s cubic-bezier(0.22,1,0.36,1) both",
+      }}>
+        <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"16px 18px 10px" }}>
+          <div>
+            <div style={{ fontSize:16, fontWeight:750, color: color.ink, fontFamily: fontDisplay, letterSpacing:-0.3 }}>Up Next</div>
+            {isRadioMode && (
+              <div style={{ fontSize:11, color: color.muted, marginTop:2 }}>
+                {radioHint || "Floor is choosing · Camelot + energy"}
+              </div>
+            )}
+          </div>
+          <div style={{ display:"flex", gap:8, alignItems:"center" }}>
+            {onShuffle && (
+              <button type="button" onClick={onShuffle} style={{ background: color.surface, border:"none", borderRadius:8, padding:"6px 10px", color: color.muted, fontSize:11, fontWeight:600, cursor:"pointer" }}>Shuffle</button>
+            )}
+            {queue.length > 0 && onClear && (
+              <button type="button" onClick={onClear} style={{ background: color.surface, border:"none", borderRadius:8, padding:"6px 10px", color: color.muted, fontSize:11, fontWeight:600, cursor:"pointer" }}>Clear</button>
+            )}
+            <button type="button" onClick={onClose} aria-label="Close" style={{ background:"none", border:"none", color: color.faint, cursor:"pointer", padding:4 }}>
+              <Icon name="x" size={18}/>
+            </button>
+          </div>
+        </div>
+        <div className="hide-scroll" style={{ overflowY:"auto", padding:"4px 12px 28px" }}>
+          {currentTrack && (
+            <div style={{ display:"flex", alignItems:"center", gap:10, padding:"10px 8px", marginBottom:6, borderRadius:10, background: color.accentSoft, border:`1px solid rgba(122,145,164,0.3)` }}>
+              <div style={{ width:40, height:40, overflow:"hidden", flexShrink:0 }}><AlbumArt track={currentTrack} size={40} borderRadius={0}/></div>
+              <div style={{ flex:1, minWidth:0 }}>
+                <div style={{ fontSize:10, fontWeight:700, letterSpacing:1, color: color.accent, textTransform:"uppercase", marginBottom:2 }}>Now</div>
+                <div style={{ fontSize:13, fontWeight:600, color: color.ink, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{currentTrack.title}</div>
+                <div style={{ fontSize:11, color: color.muted }}>{currentTrack.artist}</div>
+              </div>
+            </div>
+          )}
+          {queue.length === 0 && (
+            <div style={{ textAlign:"center", padding:"36px 12px", color: color.faint, fontSize:13 }}>
+              {isRadioMode ? "Next pick lands after the crossfade" : "Queue is empty"}
+            </div>
+          )}
+          {queue.map((t, i) => (
+            <button type="button" key={t.id} onClick={() => { onPlay(t); onClose(); }}
+              style={{
+                display:"flex", alignItems:"center", gap:10, width:"100%", padding:"10px 8px",
+                background:"none", border:"none", borderBottom:`1px solid ${color.line}`, cursor:"pointer", textAlign:"left",
+              }}>
+              <div style={{ width:16, fontSize:10, color: color.faint, fontVariantNumeric:"tabular-nums" }}>{i + 1}</div>
+              <div style={{ width:40, height:40, overflow:"hidden", flexShrink:0 }}><AlbumArt track={t} size={40} borderRadius={0}/></div>
+              <div style={{ flex:1, minWidth:0 }}>
+                <div style={{ fontSize:13, fontWeight:550, color: color.ink, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{t.title}</div>
+                <div style={{ fontSize:11, color: color.muted, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{t.artist}</div>
+              </div>
+              {t._signal?.label && (
+                <span style={{ fontSize:9, color: color.faint, textTransform:"uppercase", letterSpacing:0.4 }}>{t._signal.label}</span>
+              )}
+            </button>
+          ))}
+        </div>
       </div>
     </div>
   );
@@ -1558,8 +1907,8 @@ function HomeScreen({
           >
             <div>
               <div style={{ fontSize:11, fontWeight:700, letterSpacing:1.8, color: color.accent, fontFamily: fontMono, textTransform:"uppercase", marginBottom:6 }}>Session</div>
-              <div style={{ fontSize:18, fontWeight:750, fontFamily: fontDisplay, letterSpacing:-0.4 }}>Build a night</div>
-              <div style={{ fontSize:13, color: color.muted, marginTop:4 }}>Warmup → peak → afterhours → close</div>
+              <div style={{ fontSize:18, fontWeight:750, fontFamily: fontDisplay, letterSpacing:-0.4 }}>Shape a session</div>
+              <div style={{ fontSize:13, color: color.muted, marginTop:4 }}>Build a night, or plot an A→B route</div>
             </div>
             <div style={{
               width:40, height:40, borderRadius: radius.sm, background: color.accentSoft,
@@ -1765,7 +2114,7 @@ function EnergySparkline({ tracks, width=120, height=24 }) {
 }
 
 // ─── LIBRARY ─────────────────────────────────────────────────────────────────
-function FavoritesScreen({ tracks, onPlay, onLike, currentTrack, isPlaying, userPlaylists, onCreatePlaylist, onAddToPlaylist, onRemoveFromPlaylist, onDeletePlaylist, playlistCtx }) {
+function FavoritesScreen({ tracks, preferredGenres = [], onPlay, onLike, currentTrack, isPlaying, userPlaylists, onCreatePlaylist, onAddToPlaylist, onRemoveFromPlaylist, onDeletePlaylist, playlistCtx }) {
   const [view, setView] = useState("discover"); // "discover" | "liked" | "genres" | "playlists" | playlist id
   const [showNewInput, setShowNewInput] = useState(false);
   const [newName, setNewName] = useState("");
@@ -1808,21 +2157,31 @@ function FavoritesScreen({ tracks, onPlay, onLike, currentTrack, isPlaying, user
     ? roomTracks
     : singles.filter(t => (t.energy||5) >= eMin && (t.energy||5) <= eMax);
 
-  // For You — memoized, only reshuffles when tracks array changes
-  const likedGenres = [...new Set(likedTracks.map(t=>t.genre).filter(Boolean))];
+  // For You — liked genres + profile preferred genres + hour energy
   const [forYou, setForYou] = useState([]);
   const forYouInitRef = useRef(null);
   useEffect(() => {
-    const key = tracks.length + ":" + likedTracks.length;
+    const preferredKey = (preferredGenres || []).join(",");
+    const key = tracks.length + ":" + likedTracks.length + ":" + preferredKey;
     if (forYouInitRef.current === key) return;
     forYouInitRef.current = key;
-    const likedG = [...new Set(likedTracks.map(t=>t.genre).filter(Boolean))];
+    const likedG = [...new Set([
+      ...likedTracks.map(t => t.genre).filter(Boolean),
+      ...(preferredGenres || []),
+    ])];
     const candidates = likedG.length > 0
       ? singles.filter(t => likedG.includes(t.genre) && (t.energy||5)>=eMin && (t.energy||5)<=eMax && !t.liked)
       : singles.filter(t => (t.energy||5) >= eMin && (t.energy||5) <= eMax);
-    const shuffled = [...candidates].sort(() => Math.random() - 0.5).slice(0, 24);
-    setForYou(shuffled);
-  }, [tracks.length, likedTracks.length]);
+    // Soft preference: preferred genres first, then liked-genre matches
+    const preferredSet = new Set(preferredGenres || []);
+    const ranked = [...candidates].sort((a, b) => {
+      const ap = preferredSet.has(a.genre) ? 1 : 0;
+      const bp = preferredSet.has(b.genre) ? 1 : 0;
+      if (ap !== bp) return bp - ap;
+      return Math.random() - 0.5;
+    }).slice(0, 24);
+    setForYou(ranked);
+  }, [tracks.length, likedTracks.length, preferredGenres]);
 
   // Active view tracks
   const isPlaylistView = view.startsWith("pl_");
@@ -2786,12 +3145,21 @@ function AdminScreen({ tracks, setTracks, tab, setTab, editTrack, setEditTrack, 
 }
 
 // ─── NOW PLAYING BAR — flat station strip ─────────────────────────────────────
-function NowPlayingBar({ track, isPlaying, progress, duration, onTogglePlay, onSkip, onPrev, onLike, onSeek, repeat, setRepeat, isRadioMode, onOpen, playlistCtx }) {
+function NowPlayingBar({ track, isPlaying, progress, duration, onTogglePlay, onSkip, onPrev, onLike, onSeek, repeat, setRepeat, isRadioMode, onOpen, playlistCtx, onShowQueue, hypnoPocket }) {
   const pct = duration > 0 ? (progress/duration)*100 : 0;
   const bpm = track.bpm ? String(track.bpm) : "—";
   const key = track.camelot || "—";
   const energy = track.energy != null ? String(track.energy) : "—";
   const { menu, openFromButton, openFromContext, close } = useTrackMenu();
+  const scrubRef = useRef(null);
+
+  function seekFromClientX(clientX) {
+    if (!scrubRef.current || !duration || !onSeek) return;
+    const rect = scrubRef.current.getBoundingClientRect();
+    const ratio = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
+    onSeek(Math.floor(ratio * duration));
+  }
+
   return (
     <div style={{ position:"fixed", bottom:56, left:0, right:0, zIndex:80 }}>
       <div
@@ -2811,14 +3179,25 @@ function NowPlayingBar({ track, isPlaying, progress, duration, onTogglePlay, onS
           borderLeft: isRadioMode ? `2px solid ${color.accent}` : "2px solid transparent",
         }}
       >
-        {/* Progress as tactile top edge */}
-        <div aria-hidden="true" style={{ position:"absolute", top:0, left:0, right:0, height:2, background:"rgba(232,236,240,0.08)" }}>
-          <div style={{ width:`${pct}%`, background: color.accent, height:"100%", transition:"width 1s linear" }}/>
+        {/* Seekable progress edge */}
+        <div
+          ref={scrubRef}
+          role="slider"
+          aria-label="Seek"
+          aria-valuemin={0}
+          aria-valuemax={duration || 0}
+          aria-valuenow={progress}
+          onClick={e=>{ e.stopPropagation(); seekFromClientX(e.clientX); }}
+          style={{ position:"absolute", top:0, left:0, right:0, height:8, cursor:"pointer", zIndex:2 }}
+        >
+          <div aria-hidden="true" style={{ position:"absolute", top:0, left:0, right:0, height:2, background:"rgba(232,236,240,0.08)" }}>
+            <div style={{ width:`${pct}%`, background: color.accent, height:"100%", transition:"width 0.25s linear" }}/>
+          </div>
         </div>
         <div style={{ width:42, height:42, overflow:"hidden", flexShrink:0 }}><AlbumArt track={track} size={42} borderRadius={0}/></div>
         <div key={track.id} style={{ flex:1, minWidth:0, animation:"fadeIn 0.3s ease both" }}>
           <div style={{ fontSize:13, fontWeight:650, color: color.ink, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap", fontFamily: fontDisplay, letterSpacing:-0.2 }}>
-            {isRadioMode && (
+            {(isRadioMode || hypnoPocket) && (
               <span style={{
                 display:"inline-block", width:6, height:6, borderRadius:"50%",
                 background: color.accent, marginRight:8, verticalAlign:"middle",
@@ -2832,7 +3211,7 @@ function NowPlayingBar({ track, isPlaying, progress, duration, onTogglePlay, onS
             fontSize:10, color: color.muted, marginTop:4, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap",
             fontFamily: fontMono, fontVariantNumeric:"tabular-nums", letterSpacing:0.3,
           }}>
-            {track.artist}
+            {hypnoPocket ? "Pocket" : isRadioMode ? "On air" : track.artist}
             <span style={{ color: color.faint }}>  ·  </span>
             <span style={{ color: color.accent }}>{bpm}</span>
             <span style={{ color: color.faint }}> BPM · </span>
@@ -2842,6 +3221,11 @@ function NowPlayingBar({ track, isPlaying, progress, duration, onTogglePlay, onS
           </div>
         </div>
         <button type="button" aria-label={track.liked?"Unlike":"Like"} onClick={e=>{e.stopPropagation();onLike();}} style={{ background:"none",border:"none",cursor:"pointer",color:track.liked?color.accent:color.faint,padding:4 }}><Icon name={track.liked?"heart":"heartempty"} size={16}/></button>
+        {onShowQueue && (
+          <button type="button" aria-label="Up Next" onClick={e=>{e.stopPropagation();onShowQueue();}} style={{ background:"none",border:"none",cursor:"pointer",color: color.faint,padding:4 }}>
+            <Icon name="queue" size={16}/>
+          </button>
+        )}
         <TrackMoreButton onClick={(e) => openFromButton(e, track)} />
         <button type="button" className="play-primary" aria-label={isPlaying?"Pause":"Play"} onClick={e=>{e.stopPropagation();onTogglePlay();}} style={{ background: color.accent, border:"none", borderRadius: radius.sm, width:36, height:36, cursor:"pointer", color: color.onAccent, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
           <Icon name={isPlaying?"pause":"play"} size={16}/>
@@ -2969,8 +3353,14 @@ export default function App() {
   const [userPlaylists, setUserPlaylists] = useState([]); // [{id, name, trackIds:[]}]
   const [showRouteBuilder, setShowRouteBuilder] = useState(false);
   const [afterglow, setAfterglow] = useState(null);
-  const [resonanceTrack, setResonanceTrack] = useState(null); // { tracks, duration, startTime }
+  const [resonanceTrack, setResonanceTrack] = useState(null); // Hypno Vision source
   const [doorsSoundOn, setDoorsSoundOn] = useState(() => getArrivalSoundEnabled());
+  const [sessionMeta, setSessionMeta] = useState(null); // { tracks, startTime, kind, label }
+  const [showQueue, setShowQueue] = useState(false);
+  const [volume, setVolume] = useState(1);
+  const [hypnoSeed, setHypnoSeed] = useState(null); // pocket-mode seed track
+  const volumeRef = useRef(1);
+  useEffect(() => { volumeRef.current = volume; }, [volume]);
 
   const toggleDoorsSound = () => {
     const next = !doorsSoundOn;
@@ -2986,11 +3376,16 @@ export default function App() {
   const [signalState, setSignalState] = useState({ intensity:0.5, openness:0.5, momentum:0, depth:0, direction:0, label:"arrival" });
 
   // Set arc for On Air floor (last 2 → now → next)
+  const radioPickOpts = () => ({
+    preferredGenres: profile?.genres || [],
+    signalState,
+    seedTrack: hypnoSeed,
+  });
   const setPrev = isRadioMode && currentTrack
     ? playHistoryRef.current.filter(t => t && t.id !== currentTrack.id).slice(0, 2).reverse()
     : [];
   const setNext = isRadioMode && currentTrack
-    ? pickNextTrack(tracks, currentTrack, recentlyPlayedRef.current)
+    ? pickNextTrack(tracks, currentTrack, recentlyPlayedRef.current, radioPickOpts())
     : null;
 
   function logTrackPlay(track) {
@@ -3007,12 +3402,54 @@ export default function App() {
   // Get genre of last N played tracks for momentum
   // Flush session to Firestore when session boundary detected
   const lastFlushRef = useRef(Date.now());
+  function buildAfterglowPayload() {
+    const start = sessionStartRef.current || sessionMeta?.startTime;
+    if (!start) return null;
+    let trackObjs = [];
+    if (sessionMeta?.tracks?.length) {
+      // Prefer the crafted session order, clipped to what was actually reached
+      const playedIds = new Set(recentlyPlayedRef.current.filter(p => p.ts >= start).map(p => p.id));
+      const reached = [];
+      for (const t of sessionMeta.tracks) {
+        reached.push(t);
+        if (!playedIds.has(t.id) && t.id !== currentTrack?.id) break;
+      }
+      trackObjs = reached.length ? reached : sessionMeta.tracks;
+    } else {
+      const sessionPlays = recentlyPlayedRef.current.filter(p => p.ts >= start);
+      trackObjs = sessionPlays
+        .map(p => tracksRef.current.find(t => t.id === p.id))
+        .filter(Boolean)
+        .reverse();
+    }
+    if (trackObjs.length < 2) return null;
+    return {
+      tracks: trackObjs,
+      durationMins: Math.max(1, Math.round((Date.now() - start) / 60000)),
+      startTime: start,
+    };
+  }
+
+  function endSessionWithAfterglow(showGlow = true) {
+    const glow = showGlow ? buildAfterglowPayload() : null;
+    flushSession();
+    setSessionMeta(null);
+    setHypnoSeed(null);
+    if (glow) setAfterglow(glow);
+  }
+
   function flushSession() {
     const plays = recentlyPlayedRef.current;
     const start = sessionStartRef.current;
-    if (!start || plays.length < 3 || !firebaseUser) return;
+    if (!start || plays.length < 3 || !firebaseUser) {
+      sessionStartRef.current = null;
+      return;
+    }
     const sessionPlays = plays.filter(p => p.ts >= start);
-    if (sessionPlays.length < 3) return;
+    if (sessionPlays.length < 3) {
+      sessionStartRef.current = null;
+      return;
+    }
     const genres = [...new Set(sessionPlays.map(p => p.genre).filter(Boolean))];
     const avgEnergy = Math.round(sessionPlays.reduce((s, p) => s + p.energy, 0) / sessionPlays.length * 10) / 10;
     const sessionData = {
@@ -3036,7 +3473,8 @@ export default function App() {
     const latest = recentlyPlayedRef.current[0]?.ts;
     const prev = recentlyPlayedRef.current[1]?.ts;
     if (prev && latest && (latest - prev > 30 * 60 * 1000)) {
-      flushSession();
+      if (sessionMeta) endSessionWithAfterglow(true);
+      else flushSession();
     }
   }, [currentTrack?.id]);
 
@@ -3174,7 +3612,11 @@ export default function App() {
     if (isCrossfading.current) return;
     isCrossfading.current = true;
 
-    const next = pickNextTrack(tracksRef.current, currentRef.current, recentlyPlayedRef.current);
+    const next = pickNextTrack(tracksRef.current, currentRef.current, recentlyPlayedRef.current, {
+      preferredGenres: profile?.genres || [],
+      signalState,
+      seedTrack: hypnoSeed,
+    });
     if (!next?.audioUrl) { isCrossfading.current = false; return; }
 
     const fadeOut = audioRef.current;
@@ -3201,14 +3643,15 @@ export default function App() {
     crossfadeRef.current = setInterval(() => {
       step++;
       const t = step / steps;
-      fadeOut.volume = Math.max(0, 1 - t);
-      fadeIn.volume  = Math.min(1, t);
+      const targetVol = volumeRef.current;
+      fadeOut.volume = Math.max(0, targetVol * (1 - t));
+      fadeIn.volume  = Math.min(targetVol, targetVol * t);
 
       if (step >= steps) {
         clearInterval(crossfadeRef.current);
         fadeOut.pause();
         fadeOut.src = "";
-        fadeOut.volume = 1;
+        fadeOut.volume = targetVol;
 
         // Swap refs so audioRef always points to the active player
         audioRef.current     = fadeIn;
@@ -3252,36 +3695,69 @@ export default function App() {
     else           { audioRef.current.pause(); }
   }, [isPlaying]);
 
+  // Sync volume to both audio elements
+  useEffect(() => {
+    if (audioRef.current && !isCrossfading.current) audioRef.current.volume = volume;
+    // nextAudioRef volume is managed during crossfade
+  }, [volume]);
+
   // ── Playback actions ─────────────────────────────────────────────────────
-  const playTrack = (track, q = null) => {
+  const playTrack = (track, q = null, opts = {}) => {
     if (currentTrack && currentTrack.id !== track.id) {
       playHistoryRef.current = [currentTrack, ...playHistoryRef.current].slice(0, 50);
     }
-    setCurrent(track); setIsPlaying(true); setProgress(0); setIsRadioMode(false); setImmersive(true);
+    // Quiet dig by default — only open Booth when asked (radio / session / explicit)
+    const openImmersive = opts.immersive === true;
+    setCurrent(track); setIsPlaying(true); setProgress(0); setIsRadioMode(false);
+    if (!opts.keepSession) setSessionMeta(null);
+    if (!opts.keepHypno) setHypnoSeed(null);
+    if (openImmersive) setImmersive(true);
     if (q) setQueue(q.filter(t => t.id !== track.id));
     logTrackPlay(track);
     if (firebaseUser) recordPlay(track.id, profile?.recentTracks || []).catch(()=>{});
   };
 
-  const playRadio = () => {
+  const playRadio = (seed = null) => {
     if (!tracks.length) return;
-    const first = pickNextTrack(tracks, null, recentlyPlayedRef.current);
+    const seedTrack = seed || null;
+    setHypnoSeed(seedTrack);
+    const first = pickNextTrack(tracks, null, recentlyPlayedRef.current, {
+      preferredGenres: profile?.genres || [],
+      signalState,
+      seedTrack,
+    }) || tracks.find(t => (t.duration || 0) <= 900) || tracks[0];
     if (currentTrack) playHistoryRef.current = [currentTrack, ...playHistoryRef.current].slice(0, 50);
     playArrivalSound();
     setCurrent(first); setIsPlaying(true); setProgress(0); setIsRadioMode(true); setQueue([]); setImmersive(true);
+    setSessionMeta(null);
+    if (!sessionStartRef.current) sessionStartRef.current = Date.now();
     logTrackPlay(first);
-    showToast("Floor open");
+    showToast(seedTrack ? "Pocket open" : "Floor open");
     if (firebaseUser) recordPlay(first.id, profile?.recentTracks || []).catch(()=>{});
   };
 
-  // Play a generated route as a queue
-  const playRoute = (routeTracks) => {
+  // Play a generated route / night as a queue — session ritual
+  const playRoute = (routeTracks, kind = "night") => {
     if (!routeTracks.length) return;
     const first = routeTracks[0];
+    const now = Date.now();
+    setHypnoSeed(null);
     setCurrent(first); setIsPlaying(true); setProgress(0); setIsRadioMode(false); setImmersive(true);
     setQueue(routeTracks.slice(1));
-    showToast(`Session: ${routeTracks.length} tracks queued`);
+    sessionStartRef.current = now;
+    setSessionMeta({
+      tracks: routeTracks,
+      startTime: now,
+      kind,
+      label: kind === "path" ? "Route" : "Tonight",
+    });
+    logTrackPlay(first);
+    showToast(kind === "path" ? `Route · ${routeTracks.length} steps` : `Session · ${routeTracks.length} tracks`);
     if (firebaseUser) recordPlay(first.id, profile?.recentTracks || []).catch(()=>{});
+  };
+
+  const playHypnoRadio = (track) => {
+    playRadio(track);
   };
 
   // Record a skip on the track that was skipped (only if it had played >2s, not auto-advance)
@@ -3303,7 +3779,7 @@ export default function App() {
     }
     if (currentTrack) playHistoryRef.current = [currentTrack, ...playHistoryRef.current].slice(0, 50);
     if (isRadioMode) {
-      const next = pickNextTrack(tracks, currentTrack, recentlyPlayedRef.current);
+      const next = pickNextTrack(tracks, currentTrack, recentlyPlayedRef.current, radioPickOpts());
       if (next) {
         setCurrent(next); setProgress(0); setIsPlaying(true);
         logTrackPlay(next);
@@ -3311,7 +3787,14 @@ export default function App() {
       }
       return;
     }
-    if (!queue.length) { setIsPlaying(false); return; }
+    if (!queue.length) {
+      setIsPlaying(false);
+      if (sessionMeta) {
+        endSessionWithAfterglow(true);
+        setImmersive(false);
+      }
+      return;
+    }
     const next = queue[0];
     setQueue(repeat ? [...queue.filter(t=>t.id!==next.id), currentTrack] : queue.filter(t=>t.id!==next.id));
     setCurrent(next); setProgress(0); setIsPlaying(true);
@@ -3467,6 +3950,7 @@ export default function App() {
     onRemove:  removeFromPlaylist,
     onToast:   showToast,
     onResonance: (t) => setResonanceTrack(t),
+    onHypnoRadio: (t) => playHypnoRadio(t),
     onLike: (id) => toggleLike(id),
   };
 
@@ -3503,6 +3987,97 @@ export default function App() {
   // Not logged in — show login screen
   if (!firebaseUser) return <LoginScreen onSignUp={signUp} onLogIn={logIn} onGoogleSignIn={signInWithGoogle} onPhoneOTP={sendPhoneOTP} onVerifyOTP={verifyPhoneOTP} onResetPassword={resetPassword}/>;
 
+  const sessionArc = sessionMeta?.tracks?.length
+    ? {
+        label: sessionMeta.label || "Session arc",
+        energies: sessionMeta.tracks.map(t => t.energy || 5),
+        index: Math.max(0, sessionMeta.tracks.findIndex(t => t.id === currentTrack?.id)),
+      }
+    : (recentlyPlayedRef.current.length > 2
+      ? {
+          label: signalState?.label ? `Flow · ${signalState.label}` : "Flow",
+          energies: recentlyPlayedRef.current.slice(0, 12).reverse().map(p => p.energy || 5),
+          index: Math.min(11, recentlyPlayedRef.current.slice(0, 12).length - 1),
+        }
+      : null);
+
+  const handleVolume = (v) => {
+    setVolume(v);
+    if (audioRef.current && !isCrossfading.current) audioRef.current.volume = v;
+  };
+
+  const shuffleQueue = () => {
+    const pool = tracks.filter(t => t.id !== currentTrack?.id && (t.duration || 0) <= 900);
+    const shuffled = [...pool];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    setQueue(shuffled.slice(0, 8));
+    setIsRadioMode(false);
+    setHypnoSeed(null);
+    setSessionMeta(null);
+  };
+
+  const listeningOverlays = (
+    <>
+      {showQueue && (
+        <QueueSheet
+          queue={queue}
+          currentTrack={currentTrack}
+          isRadioMode={isRadioMode}
+          radioHint={hypnoSeed ? `Pocket · ${hypnoSeed.title}` : (signalState?.label ? `Floor · ${signalState.label}` : null)}
+          onPlay={(t) => playTrack(t, queue)}
+          onClose={() => setShowQueue(false)}
+          onClear={() => setQueue([])}
+          onShuffle={shuffleQueue}
+        />
+      )}
+      {resonanceTrack && (
+        <HypnoVisionOverlay
+          sourceTrack={resonanceTrack}
+          tracks={tracks}
+          onPlay={(t) => playTrack(t, tracks)}
+          onClose={() => setResonanceTrack(null)}
+        />
+      )}
+      {afterglow && (
+        <AfterglowOverlay
+          data={afterglow}
+          onClose={() => setAfterglow(null)}
+          onSavePlaylist={(name, ids) => { createPlaylist(name, ids); }}
+        />
+      )}
+      {showRouteBuilder && (
+        <RouteBuilderModal tracks={tracks} onClose={() => setShowRouteBuilder(false)} onPlayRoute={playRoute}/>
+      )}
+    </>
+  );
+
+  const boothPlayer = immersive && currentTrack ? (
+    <ImmersivePlayer
+      currentTrack={currentTrack}
+      isPlaying={isPlaying}
+      onTogglePlay={() => setIsPlaying(p => !p)}
+      onSkip={handleSkip}
+      onPrev={handlePrev}
+      onClose={() => setImmersive(false)}
+      signalState={signalState}
+      progress={progress}
+      duration={duration}
+      onSeek={handleSeek}
+      onLike={toggleLike}
+      volume={volume}
+      onVolumeChange={handleVolume}
+      onHypno={(t) => setResonanceTrack(t)}
+      onHypnoRadio={playHypnoRadio}
+      onShowQueue={() => setShowQueue(true)}
+      sessionArc={sessionArc}
+      isRadioMode={isRadioMode}
+      hypnoPocket={!!hypnoSeed}
+    />
+  ) : null;
+
   // ── Inner app (shared between mobile + desktop phone column) ─────────────
   const innerApp = (
     <div style={{ ...APP_STYLE, position:"relative" }}>
@@ -3517,7 +4092,7 @@ export default function App() {
       <div style={{ flex:1, overflow:"auto", paddingBottom:currentTrack?120:56, zIndex:1, position:"relative" }}>
         {screen==="home"      && !tracksLoading && <HomeScreen tracks={tracks} onPlayRadio={playRadio} onTogglePlay={()=>setIsPlaying(p=>!p)} onPlayTrack={playTrack} currentTrack={currentTrack} isPlaying={isPlaying} onLike={toggleLike} isRadioMode={isRadioMode} playlistCtx={playlistCtx} signalLabel={signalState?.label} setPrev={setPrev} setNext={setNext} onBuildNight={()=>setShowRouteBuilder(true)} doorsSoundOn={doorsSoundOn} onToggleDoorsSound={toggleDoorsSound}/>}
         {screen==="search"    && <SearchScreen query={searchQuery} setQuery={setSearch} results={searchResults} onPlay={t=>playTrack(t,tracks)} onLike={toggleLike} currentTrack={currentTrack} isPlaying={isPlaying} playlistCtx={playlistCtx}/>}
-        {screen==="favorites" && <FavoritesScreen tracks={tracks} onPlay={t=>{setIsRadioMode(false);playTrack(t,tracks);}} onLike={toggleLike} currentTrack={currentTrack} isPlaying={isPlaying} userPlaylists={userPlaylists} onCreatePlaylist={createPlaylist} onAddToPlaylist={addToPlaylist} onRemoveFromPlaylist={removeFromPlaylist} onDeletePlaylist={deletePlaylist} playlistCtx={playlistCtx}/>}
+        {screen==="favorites" && <FavoritesScreen tracks={tracks} preferredGenres={user.genres} onPlay={t=>{setIsRadioMode(false);playTrack(t,tracks);}} onLike={toggleLike} currentTrack={currentTrack} isPlaying={isPlaying} userPlaylists={userPlaylists} onCreatePlaylist={createPlaylist} onAddToPlaylist={addToPlaylist} onRemoveFromPlaylist={removeFromPlaylist} onDeletePlaylist={deletePlaylist} playlistCtx={playlistCtx}/>}
         {screen==="profile"   && <ProfileScreen user={user} setUser={setUser} tracks={tracks} onLogout={logOut}/>}
         {screen==="map"       && <HarmonicMap tracks={tracks} onPlay={t=>playTrack(t,tracks)} currentTrack={currentTrack}/>}
         {screen==="admin"     && <AdminScreen tracks={tracks} setTracks={setTracks} tab={adminTab} setTab={setAdminTab} editTrack={editTrack} setEditTrack={setEditTrack} showToast={showToast}/>}
@@ -3527,23 +4102,12 @@ export default function App() {
           onTogglePlay={()=>setIsPlaying(p=>!p)} onSkip={handleSkip} onPrev={handlePrev}
           onLike={()=>toggleLike(currentTrack.id)} onSeek={handleSeek}
           repeat={repeat} setRepeat={setRepeat} isRadioMode={isRadioMode}
-          onOpen={()=>setImmersive(true)} playlistCtx={playlistCtx}/>
+          hypnoPocket={!!hypnoSeed}
+          onOpen={()=>setImmersive(true)} onShowQueue={()=>setShowQueue(true)} playlistCtx={playlistCtx}/>
       )}
       <BottomNav screen={screen} setScreen={setScreen} showAdmin={firebaseUser?.uid === ADMIN_UID} hasPlayer={!!currentTrack && !immersive}/>
-      {immersive && currentTrack && (
-        <ImmersivePlayer
-          currentTrack={currentTrack}
-          isPlaying={isPlaying}
-          onTogglePlay={()=>setIsPlaying(p=>!p)}
-          onSkip={handleSkip}
-          onPrev={handlePrev}
-          onClose={()=>setImmersive(false)}
-          signalState={signalState}
-          progress={progress}
-          duration={duration}
-        />
-      )}
-      {showRouteBuilder && <RouteBuilderModal tracks={tracks} onClose={()=>setShowRouteBuilder(false)} onPlayRoute={playRoute}/>}
+      {boothPlayer}
+      {listeningOverlays}
     </div>
   );
 
@@ -3665,7 +4229,7 @@ export default function App() {
             <>
               {screen==="home"      && <HomeScreen tracks={tracks} onPlayRadio={playRadio} onTogglePlay={()=>setIsPlaying(p=>!p)} onPlayTrack={playTrack} currentTrack={currentTrack} isPlaying={isPlaying} onLike={toggleLike} isRadioMode={isRadioMode} playlistCtx={playlistCtx} signalLabel={signalState?.label} setPrev={setPrev} setNext={setNext} onBuildNight={()=>setShowRouteBuilder(true)} doorsSoundOn={doorsSoundOn} onToggleDoorsSound={toggleDoorsSound}/>}
               {screen==="search"    && <SearchScreen query={searchQuery} setQuery={setSearch} results={searchResults} onPlay={t=>playTrack(t,tracks)} onLike={toggleLike} currentTrack={currentTrack} isPlaying={isPlaying} playlistCtx={playlistCtx}/>}
-              {screen==="favorites" && <FavoritesScreen tracks={tracks} onPlay={t=>{setIsRadioMode(false);playTrack(t,tracks);}} onLike={toggleLike} currentTrack={currentTrack} isPlaying={isPlaying} userPlaylists={userPlaylists} onCreatePlaylist={createPlaylist} onAddToPlaylist={addToPlaylist} onRemoveFromPlaylist={removeFromPlaylist} onDeletePlaylist={deletePlaylist} playlistCtx={playlistCtx}/>}
+              {screen==="favorites" && <FavoritesScreen tracks={tracks} preferredGenres={user.genres} onPlay={t=>{setIsRadioMode(false);playTrack(t,tracks);}} onLike={toggleLike} currentTrack={currentTrack} isPlaying={isPlaying} userPlaylists={userPlaylists} onCreatePlaylist={createPlaylist} onAddToPlaylist={addToPlaylist} onRemoveFromPlaylist={removeFromPlaylist} onDeletePlaylist={deletePlaylist} playlistCtx={playlistCtx}/>}
               {screen==="profile"   && <ProfileScreen user={user} setUser={setUser} tracks={tracks} onLogout={logOut}/>}
               {screen==="map"       && <HarmonicMap tracks={tracks} onPlay={t=>playTrack(t,tracks)} currentTrack={currentTrack}/>}
               {screen==="admin"     && <AdminScreen tracks={tracks} setTracks={setTracks} tab={adminTab} setTab={setAdminTab} editTrack={editTrack} setEditTrack={setEditTrack} showToast={showToast}/>}
@@ -3863,24 +4427,9 @@ export default function App() {
         </div>
       </div>
 
-      {/* Route Builder Modal */}
-      {resonanceTrack && <HypnoVisionOverlay sourceTrack={resonanceTrack} tracks={tracks} onPlay={t=>playTrack(t,tracks)} onClose={()=>setResonanceTrack(null)}/>}
-      {afterglow && <AfterglowOverlay data={afterglow} onClose={()=>setAfterglow(null)} onSavePlaylist={(name, ids) => { createPlaylist(name, ids); }}/>}
-      {showRouteBuilder && <RouteBuilderModal tracks={tracks} onClose={()=>setShowRouteBuilder(false)} onPlayRoute={playRoute}/>}
-
-      {immersive && currentTrack && (
-        <ImmersivePlayer
-          currentTrack={currentTrack}
-          isPlaying={isPlaying}
-          onTogglePlay={()=>setIsPlaying(p=>!p)}
-          onSkip={handleSkip}
-          onPrev={handlePrev}
-          onClose={()=>setImmersive(false)}
-          signalState={signalState}
-          progress={progress}
-          duration={duration}
-        />
-      )}
+      {/* Listening overlays + Booth */}
+      {listeningOverlays}
+      {boothPlayer}
     </div>
   );
 

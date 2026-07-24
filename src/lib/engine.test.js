@@ -79,6 +79,41 @@ describe("pickNextTrack", () => {
       expect(pickNextTrack(lib, null).id).toBe("short");
     }
   });
+
+  test("preferred genres bias the pick when energy/camelot match", () => {
+    const cur = mkTrack({ id: "cur", camelot: "8A", energy: 5, genre: "House" });
+    const house = mkTrack({ id: "house", camelot: "8A", energy: 5, genre: "House" });
+    const rock = mkTrack({ id: "rock", camelot: "8A", energy: 5, genre: "Rock" });
+    const lib = [cur, house, rock];
+    const counts = { house: 0, rock: 0 };
+    for (let i = 0; i < 80; i++) {
+      const next = pickNextTrack(lib, cur, null, { preferredGenres: ["House"] });
+      counts[next.id] += 1;
+    }
+    expect(counts.house).toBeGreaterThan(counts.rock);
+  });
+
+  test("seedTrack pocket mode stays near seed energy", () => {
+    const seed = mkTrack({
+      id: "seed", camelot: "8A", energy: 8, genre: "House",
+      _signal: { grip: 8, hold: 7, pull: 6, gravity: 5, lift: 8, descent: 3, label: "build" },
+    });
+    const near = mkTrack({
+      id: "near", camelot: "8A", energy: 8, genre: "House",
+      _signal: { grip: 8, hold: 7, pull: 6, gravity: 5, lift: 8, descent: 3, label: "build" },
+    });
+    const far = mkTrack({
+      id: "far", camelot: "3A", energy: 2, genre: "Jazz",
+      _signal: { grip: 2, hold: 2, pull: 2, gravity: 2, lift: 2, descent: 8, label: "closer" },
+    });
+    const lib = [seed, near, far];
+    const counts = { near: 0, far: 0 };
+    for (let i = 0; i < 40; i++) {
+      const next = pickNextTrack(lib, seed, null, { seedTrack: seed });
+      counts[next.id] += 1;
+    }
+    expect(counts.near).toBeGreaterThan(counts.far);
+  });
 });
 
 describe("buildRoute", () => {
