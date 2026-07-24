@@ -47,3 +47,22 @@ Genre enrichment: set `DISCOGS_TOKEN` / `LASTFM_KEY` then `python fix_genres.py`
 
 - Admin UI is limited to the configured admin UID (see `src/theme.js` + rules).
 - Prefer small, safe changes; keep playback working after every commit.
+
+
+## Cloudflare Pages
+
+Preview/production deploys use the Cloudflare Git integration.
+
+**Current setup:** the `build/` folder is committed so Pages can deploy
+with an empty build command (output directory = `build`).
+
+**Recommended (optional):** in the Cloudflare dashboard set:
+
+| Setting | Value |
+|---|---|
+| Build command | `npm run build` |
+| Build output directory | `build` |
+| Node version | `22` (or match `.nvmrc`) |
+| Environment variable | `CI=false` (avoids CRA treating warnings as errors) |
+
+After that, you can stop committing `build/` and add it back to `.gitignore`.
