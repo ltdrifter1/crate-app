@@ -150,3 +150,18 @@ export function playArrivalSound() {
     /* ignore */
   }
 }
+
+/** Light tap — optional, silent if unsupported. */
+export function hapticTap(ms = 12) {
+  try {
+    if (typeof navigator !== "undefined" && navigator.vibrate) navigator.vibrate(ms);
+  } catch {
+    /* ignore */
+  }
+}
+
+/** Enter a Room — doors sound + soft haptic. */
+export function enterRoomCue() {
+  playArrivalSound();
+  hapticTap(12);
+}

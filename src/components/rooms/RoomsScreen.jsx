@@ -1,11 +1,16 @@
 /**
  * RoomsScreen — first-class destination browser for ROOMS.
- * Living spaces (mood, scene, city, season, floor) — not playlist shelves.
+ * Living spaces — enter choreography, quiet presence, shareable doors.
  */
 import { useMemo, useState } from "react";
 import {
   font, fontDisplay, fontMono, color, radius, motion,
 } from "../../theme";
+import {
+  duration as motionDuration,
+  ease as motionEase,
+  stagger,
+} from "../../motion/tokens";
 import {
   populateAllRooms,
   tonightRoom,
@@ -15,6 +20,7 @@ import {
   presencePhrase,
 } from "../../lib/rooms";
 import { explainPick } from "../../lib/explain";
+import { enterRoomCue } from "../../lib/club";
 
 function RoomHero({ room, onEnter, onPlay }) {
   const cover = room.coverTrack?.albumCover;
@@ -40,7 +46,7 @@ function RoomHero({ room, onEnter, onPlay }) {
         justifyContent: "flex-end",
         padding: "44px 20px 32px",
         cursor: "pointer",
-        animation: "stationIn 0.7s cubic-bezier(0.22,1,0.36,1) both",
+        animation: `stationIn ${motionDuration.enter + 0.15}s ${motionEase.out} both`,
       }}
     >
       <div aria-hidden="true" style={{ position: "absolute", inset: 0, background: bg }} />
@@ -56,7 +62,7 @@ function RoomHero({ room, onEnter, onPlay }) {
             filter: "blur(36px) saturate(115%) brightness(0.42)",
             transform: "scale(1.15)",
             opacity: 0.85,
-            animation: "fadeIn 1s ease both",
+            animation: `fadeIn ${motionDuration.art / 8}s ${motionEase.soft} both`,
           }}
         />
       )}
@@ -80,7 +86,7 @@ function RoomHero({ room, onEnter, onPlay }) {
           borderRadius: "50%",
           background: `radial-gradient(circle, ${color.accentSoft} 0%, transparent 68%)`,
           pointerEvents: "none",
-          animation: "breathe 7s ease-in-out infinite",
+          animation: `breathe ${motionDuration.ambient}s ease-in-out infinite`,
         }}
       />
 
@@ -97,9 +103,7 @@ function RoomHero({ room, onEnter, onPlay }) {
           }}
         >
           {room.floor ? room.floor.label : KIND_LABELS[room.kind] || "Room"}
-          {room.presence > 0 && (
-            <span style={{ color: color.faint }}> · {presencePhrase(room)}</span>
-          )}
+          <span style={{ color: color.faint }}> · {presencePhrase(room)}</span>
         </div>
         <div
           style={{
@@ -275,26 +279,52 @@ function RoomRow({ room, onEnter, isActive }) {
   );
 }
 
-function RoomDetail({ room, onBack, onPlay, AlbumArt, TrackRow, currentTrack, isPlaying, onLike, playlistCtx, preferredGenres = [] }) {
+function RoomDetail({
+  room,
+  onBack,
+  onPlay,
+  AlbumArt,
+  TrackRow,
+  currentTrack,
+  isPlaying,
+  onLike,
+  playlistCtx,
+  preferredGenres = [],
+  onShareRoom,
+}) {
   const bg = atmosphereGradient(room.atmosphere || room.id);
   const cover = room.coverTrack;
-  const presence = presencePhrase(room);
+  const activity = presencePhrase(room);
   const why = cover ? explainPick(cover, { room, preferredGenres }) : "";
+  const list = room.featured.length ? room.featured : room.tracks;
 
   return (
-    <div style={{ minHeight: "100%", animation: "fadeIn 0.35s ease both" }}>
+    <div
+      style={{
+        minHeight: "100%",
+        animation: `roomEnter ${motionDuration.enter}s ${motionEase.out} both`,
+      }}
+    >
       <div
         style={{
           position: "relative",
           overflow: "hidden",
-          minHeight: 220,
+          minHeight: 240,
           padding: "20px 20px 28px",
           display: "flex",
           flexDirection: "column",
           justifyContent: "flex-end",
         }}
       >
-        <div aria-hidden="true" style={{ position: "absolute", inset: 0, background: bg }} />
+        <div
+          aria-hidden="true"
+          style={{
+            position: "absolute",
+            inset: 0,
+            background: bg,
+            animation: `fadeIn ${motionDuration.settle}s ${motionEase.soft} both`,
+          }}
+        />
         {cover?.albumCover && (
           <div
             aria-hidden="true"
@@ -307,6 +337,7 @@ function RoomDetail({ room, onBack, onPlay, AlbumArt, TrackRow, currentTrack, is
               filter: "blur(28px) brightness(0.45)",
               transform: "scale(1.1)",
               opacity: 0.8,
+              animation: `fadeIn ${motionDuration.enter}s ${motionEase.soft} both`,
             }}
           />
         )}
@@ -319,24 +350,49 @@ function RoomDetail({ room, onBack, onPlay, AlbumArt, TrackRow, currentTrack, is
               "linear-gradient(180deg, rgba(12,11,10,0.3) 0%, rgba(12,11,10,0.92) 100%)",
           }}
         />
-        <button
-          type="button"
-          onClick={onBack}
+        <div
           style={{
             position: "relative",
             zIndex: 1,
-            alignSelf: "flex-start",
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
             marginBottom: 20,
-            background: "none",
-            border: "none",
-            color: color.muted,
-            fontSize: 13,
-            cursor: "pointer",
-            fontWeight: 600,
           }}
         >
-          ← All rooms
-        </button>
+          <button
+            type="button"
+            onClick={onBack}
+            style={{
+              background: "none",
+              border: "none",
+              color: color.muted,
+              fontSize: 13,
+              cursor: "pointer",
+              fontWeight: 600,
+            }}
+          >
+            ← All rooms
+          </button>
+          {onShareRoom && (
+            <button
+              type="button"
+              onClick={() => onShareRoom(room)}
+              style={{
+                background: "none",
+                border: `1px solid ${color.lineStrong}`,
+                borderRadius: radius.sm,
+                color: color.body,
+                fontSize: 12,
+                fontWeight: 600,
+                cursor: "pointer",
+                padding: "8px 12px",
+              }}
+            >
+              Leave door open
+            </button>
+          )}
+        </div>
         <div style={{ position: "relative", zIndex: 1 }}>
           <div
             style={{
@@ -347,10 +403,11 @@ function RoomDetail({ room, onBack, onPlay, AlbumArt, TrackRow, currentTrack, is
               fontFamily: fontMono,
               textTransform: "uppercase",
               marginBottom: 8,
+              animation: `rise ${motionDuration.settle}s ${motionEase.out} both`,
             }}
           >
             {KIND_LABELS[room.kind] || "Room"}
-            {` · ${presence}`}
+            {` · ${activity}`}
           </div>
           <h1
             style={{
@@ -361,6 +418,7 @@ function RoomDetail({ room, onBack, onPlay, AlbumArt, TrackRow, currentTrack, is
               fontFamily: fontDisplay,
               color: color.onDark,
               lineHeight: 1,
+              animation: `rise ${motionDuration.enter}s ${motionEase.out} 0.06s both`,
             }}
           >
             {room.label}
@@ -372,6 +430,7 @@ function RoomDetail({ room, onBack, onPlay, AlbumArt, TrackRow, currentTrack, is
               color: color.body,
               lineHeight: 1.5,
               maxWidth: 360,
+              animation: `rise ${motionDuration.enter}s ${motionEase.out} 0.1s both`,
             }}
           >
             {room.story || room.desc}
@@ -386,14 +445,22 @@ function RoomDetail({ room, onBack, onPlay, AlbumArt, TrackRow, currentTrack, is
               fontSize: 11,
               color: color.faint,
               letterSpacing: 0.4,
+              animation: `rise ${motionDuration.enter}s ${motionEase.out} 0.14s both`,
             }}
           >
             <span>{room.count} tracks</span>
-            <span>·</span>
-            <span>{room.lastActivity}</span>
           </div>
           {why && (
-            <div style={{ marginTop: 10, fontSize: 12, color: color.muted, lineHeight: 1.4, maxWidth: 320 }}>
+            <div
+              style={{
+                marginTop: 10,
+                fontSize: 12,
+                color: color.muted,
+                lineHeight: 1.4,
+                maxWidth: 320,
+                animation: `rise ${motionDuration.enter}s ${motionEase.out} 0.16s both`,
+              }}
+            >
               {why}
             </div>
           )}
@@ -415,6 +482,7 @@ function RoomDetail({ room, onBack, onPlay, AlbumArt, TrackRow, currentTrack, is
                 cursor: "pointer",
                 fontSize: 13,
                 fontWeight: 650,
+                animation: `rise ${motionDuration.enter}s ${motionEase.out} 0.18s both`,
               }}
             >
               Play room
@@ -432,21 +500,28 @@ function RoomDetail({ room, onBack, onPlay, AlbumArt, TrackRow, currentTrack, is
             color: color.ink,
             marginBottom: 12,
             letterSpacing: -0.2,
+            animation: `rise ${motionDuration.settle}s ${motionEase.out} 0.2s both`,
           }}
         >
           In this room
         </div>
-        {(room.featured.length ? room.featured : room.tracks).map((t) =>
+        {list.map((t, i) =>
           TrackRow ? (
-            <TrackRow
+            <div
               key={t.id}
-              track={t}
-              onPlay={() => onPlay(t, room)}
-              active={currentTrack?.id === t.id}
-              isPlaying={isPlaying}
-              onLike={onLike}
-              playlistCtx={playlistCtx}
-            />
+              style={{
+                animation: `rise ${motionDuration.enter}s ${motionEase.out} ${0.22 + stagger(i)}s both`,
+              }}
+            >
+              <TrackRow
+                track={t}
+                onPlay={() => onPlay(t, room)}
+                active={currentTrack?.id === t.id}
+                isPlaying={isPlaying}
+                onLike={onLike}
+                playlistCtx={playlistCtx}
+              />
+            </div>
           ) : (
             <button
               key={t.id}
@@ -463,6 +538,7 @@ function RoomDetail({ room, onBack, onPlay, AlbumArt, TrackRow, currentTrack, is
                 borderBottom: `1px solid ${color.line}`,
                 cursor: "pointer",
                 textAlign: "left",
+                animation: `rise ${motionDuration.enter}s ${motionEase.out} ${0.22 + stagger(i)}s both`,
               }}
             >
               {AlbumArt && (
@@ -518,14 +594,30 @@ export default function RoomsScreen({
   onActiveRoomChange,
   preferredGenres = [],
   onOpenPaths,
+  onShareRoom,
 }) {
   const [internalId, setInternalId] = useState(null);
   const [expandedKinds, setExpandedKinds] = useState({});
+  const [exiting, setExiting] = useState(false);
   const controlled = onActiveRoomChange != null;
   const activeId = controlled ? (activeRoomId || null) : internalId;
-  const setActiveId = (id) => {
+
+  const enterRoom = (id) => {
+    if (!id) return;
     if (controlled) onActiveRoomChange(id);
-    else setInternalId(id);
+    else {
+      enterRoomCue();
+      setInternalId(id);
+    }
+  };
+
+  const leaveRoom = () => {
+    setExiting(true);
+    window.setTimeout(() => {
+      if (controlled) onActiveRoomChange(null);
+      else setInternalId(null);
+      setExiting(false);
+    }, motionDuration.settle * 1000);
   };
 
   const populated = useMemo(() => populateAllRooms(tracks), [tracks]);
@@ -538,26 +630,35 @@ export default function RoomsScreen({
 
   if (active && activeId) {
     return (
-      <RoomDetail
-        room={active}
-        onBack={() => setActiveId(null)}
-        onPlay={(t, room) => (onPlayRoom ? onPlayRoom(t, room) : onPlay(t))}
-        AlbumArt={AlbumArt}
-        TrackRow={TrackRow}
-        currentTrack={currentTrack}
-        isPlaying={isPlaying}
-        onLike={onLike}
-        playlistCtx={playlistCtx}
-        preferredGenres={preferredGenres}
-      />
+      <div
+        style={{
+          opacity: exiting ? 0 : 1,
+          transform: exiting ? "translateY(8px)" : "none",
+          transition: `opacity ${motionDuration.settle}s ${motionEase.out}, transform ${motionDuration.settle}s ${motionEase.out}`,
+        }}
+      >
+        <RoomDetail
+          room={active}
+          onBack={leaveRoom}
+          onPlay={(t, room) => (onPlayRoom ? onPlayRoom(t, room) : onPlay(t))}
+          AlbumArt={AlbumArt}
+          TrackRow={TrackRow}
+          currentTrack={currentTrack}
+          isPlaying={isPlaying}
+          onLike={onLike}
+          playlistCtx={playlistCtx}
+          preferredGenres={preferredGenres}
+          onShareRoom={onShareRoom}
+        />
+      </div>
     );
   }
 
   return (
-    <div style={{ paddingBottom: 36, fontFamily: font }}>
+    <div style={{ paddingBottom: 36, fontFamily: font, animation: `fadeIn ${motionDuration.settle}s ${motionEase.out} both` }}>
       <RoomHero
         room={featured}
-        onEnter={(room) => setActiveId(room.id)}
+        onEnter={(room) => enterRoom(room.id)}
         onPlay={(t, room) => (onPlayRoom ? onPlayRoom(t, room) : onPlay(t))}
       />
 
@@ -658,7 +759,7 @@ export default function RoomsScreen({
                     key={room.id}
                     room={room}
                     isActive={featured?.id === room.id}
-                    onEnter={(r) => setActiveId(r.id)}
+                    onEnter={(r) => enterRoom(r.id)}
                   />
                 ))}
               </div>

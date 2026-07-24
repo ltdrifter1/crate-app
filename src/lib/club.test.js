@@ -4,6 +4,8 @@ import {
   roomForFloorPhase,
   getArrivalSoundEnabled,
   setArrivalSoundEnabled,
+  enterRoomCue,
+  hapticTap,
 } from "./club";
 
 describe("getFloorPhase", () => {
@@ -62,5 +64,10 @@ describe("arrival sound preference", () => {
     expect(getArrivalSoundEnabled()).toBe(true);
     setArrivalSoundEnabled(false);
     expect(getArrivalSoundEnabled()).toBe(false);
+  });
+
+  test("enterRoomCue and hapticTap are safe no-ops when muted", () => {
+    expect(() => enterRoomCue()).not.toThrow();
+    expect(() => hapticTap()).not.toThrow();
   });
 });
