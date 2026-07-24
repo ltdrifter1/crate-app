@@ -98,16 +98,17 @@ describe("routes entities", () => {
     expect(parsePath("/album/four-tet__rounds")).toEqual(
       expect.objectContaining({ screen: "album", albumSlug: "four-tet__rounds" })
     );
+    // Paths retired — deep links land on Home
     expect(parsePath("/paths/city-hop")).toEqual(
-      expect.objectContaining({ screen: "paths", pathId: "city-hop" })
+      expect.objectContaining({ screen: "home", pathId: null })
     );
   });
 
   test("buildPath for entities", () => {
     expect(buildPath("artist", { artistSlug: "burial" })).toBe("/artist/burial");
     expect(buildPath("album", { albumSlug: "burial__untrue" })).toBe("/album/burial__untrue");
-    expect(buildPath("paths", { pathId: "city-hop" })).toBe("/paths/city-hop");
-    expect(buildPath("paths")).toBe("/paths");
+    expect(buildPath("paths", { pathId: "city-hop" })).toBe("/home");
+    expect(buildPath("paths")).toBe("/home");
   });
 
   test("documentTitleFor with label", () => {

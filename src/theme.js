@@ -1,37 +1,37 @@
-// ROOMS design tokens — warm underground editorial listening UI.
-// Charcoal canvas, muted brass accent, fog atmosphere. Places, not dashboards.
+// Design tokens — premium minimal listening UI.
+// Apple Music / iTunes iOS typography (SF Pro system stack). Quiet surfaces, one accent.
 
 export const fontDisplay =
-  "'Syne', 'Avenir Next', 'Segoe UI', sans-serif";
+  '-apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", Helvetica, Arial, sans-serif';
 export const font =
-  "'DM Sans', 'Avenir Next', 'Segoe UI', sans-serif";
+  '-apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Helvetica Neue", Helvetica, Arial, sans-serif';
 export const fontMono =
-  "'IBM Plex Mono', 'SF Mono', 'Menlo', 'Monaco', monospace";
+  '"SF Mono", ui-monospace, Menlo, Monaco, "Courier New", monospace';
 
 export const color = {
-  ink: "#EDE8E1",
-  body: "#B8B0A6",
-  muted: "#817870",
-  faint: "#5A544E",
-  line: "rgba(237, 232, 225, 0.08)",
-  lineStrong: "rgba(237, 232, 225, 0.14)",
-  surface: "rgba(255, 248, 240, 0.04)",
-  surfaceSolid: "#12100E",
-  surfaceRaised: "#181512",
-  canvas: "#0C0B0A",
-  canvasEdge: "#100E0C",
-  // Muted brass / warm tungsten — human, never neon
-  accent: "#A8926A",
-  accentSoft: "rgba(168, 146, 106, 0.16)",
-  accentGlow: "rgba(168, 146, 106, 0.28)",
-  onAccent: "#0C0B0A",
-  onDark: "#EDE8E1",
-  onDarkMuted: "rgba(237,232,225,0.55)",
-  alert: "#E5484D",
-  station: "#0E0C0A",
+  ink: "#F5F5F7",
+  body: "#A1A1A6",
+  muted: "#8E8E93",
+  faint: "#636366",
+  line: "rgba(255, 255, 255, 0.08)",
+  lineStrong: "rgba(255, 255, 255, 0.14)",
+  surface: "rgba(255, 255, 255, 0.04)",
+  surfaceSolid: "#1C1C1E",
+  surfaceRaised: "#2C2C2E",
+  canvas: "#000000",
+  canvasEdge: "#0A0A0A",
+  // Apple Music red — clear, singular accent
+  accent: "#FA243C",
+  accentSoft: "rgba(250, 36, 60, 0.16)",
+  accentGlow: "rgba(250, 36, 60, 0.28)",
+  onAccent: "#FFFFFF",
+  onDark: "#F5F5F7",
+  onDarkMuted: "rgba(245,245,247,0.55)",
+  alert: "#FF453A",
+  station: "#0A0A0A",
 };
 
-export const radius = { sm: 10, md: 14, lg: 18, xl: 24 };
+export const radius = { sm: 10, md: 12, lg: 16, xl: 22 };
 
 export const space = (n) => n * 4;
 
@@ -39,7 +39,7 @@ export const space = (n) => n * 4;
 export const panel = {
   background: color.surfaceRaised,
   border: `1px solid ${color.line}`,
-  boxShadow: "0 1px 0 rgba(255,248,240,0.03) inset",
+  boxShadow: "none",
 };
 
 export const panelQuiet = {
@@ -54,22 +54,22 @@ export const motion = {
   ease: "cubic-bezier(0.22, 1, 0.36, 1)",
 };
 
-/** Atmosphere that shifts with the hour — warm fog, not cool steel. */
+/** Soft atmosphere that shifts with the hour — subtle, never busy. */
 export function timeOfDayGradient(date = new Date()) {
   const h = date.getHours();
   const late = h >= 22 || h <= 4;
   const dawn = h >= 5 && h <= 8;
   const day = h >= 9 && h <= 16;
   if (late) {
-    return `radial-gradient(ellipse at 50% -10%, #1A1612 0%, #100E0C 42%, #0C0B0A 100%)`;
+    return `radial-gradient(ellipse at 50% -10%, #1C1C1E 0%, #0A0A0A 42%, #000000 100%)`;
   }
   if (dawn) {
-    return `radial-gradient(ellipse at 70% 0%, #1C1814 0%, #12100E 48%, #0C0B0A 100%)`;
+    return `radial-gradient(ellipse at 70% 0%, #222224 0%, #111113 48%, #000000 100%)`;
   }
   if (day) {
-    return `radial-gradient(ellipse at 40% -5%, #161410 0%, #0E0C0A 50%, #0C0B0A 100%)`;
+    return `radial-gradient(ellipse at 40% -5%, #1A1A1C 0%, #0C0C0E 50%, #000000 100%)`;
   }
-  return `radial-gradient(ellipse at 55% 0%, #1A1612 0%, #100E0C 45%, #0C0B0A 100%)`;
+  return `radial-gradient(ellipse at 55% 0%, #1C1C1E 0%, #0A0A0A 45%, #000000 100%)`;
 }
 
 export const APP_STYLE = {
@@ -88,9 +88,9 @@ export const INPUT_ST = {
   padding: "14px 16px",
   borderRadius: radius.md,
   border: `1px solid ${color.lineStrong}`,
-  background: color.surfaceRaised,
+  background: color.surfaceSolid,
   color: color.ink,
-  fontSize: 15,
+  fontSize: 17,
   fontFamily: font,
 };
 
@@ -101,8 +101,8 @@ export const BTN_PRIMARY = {
   border: "none",
   background: color.accent,
   color: color.onAccent,
-  fontSize: 15,
-  fontWeight: 650,
+  fontSize: 17,
+  fontWeight: 600,
   cursor: "pointer",
   fontFamily: font,
 };
@@ -114,7 +114,7 @@ export const BTN_SECONDARY = {
   border: `1px solid ${color.lineStrong}`,
   background: color.surface,
   color: color.body,
-  fontSize: 15,
+  fontSize: 17,
   fontWeight: 600,
   cursor: "pointer",
   fontFamily: font,
@@ -130,9 +130,9 @@ export const CTRL_BTN = {
   justifyContent: "center",
 };
 
-/** Product brand — ROOMS. Legacy 4AM floor lives as a time Room. */
+/** Product brand. */
 export const BRAND_NAME = "ROOMS";
-export const BRAND_TAGLINE = "Music you inhabit";
+export const BRAND_TAGLINE = "Listen";
 
 /** Admin UID — keep in sync with firestore.rules until custom claims exist. */
 export const ADMIN_UID = "5lPAI9N1jkMbVkUyIqLTqBvBf1t1";
