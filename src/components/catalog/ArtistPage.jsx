@@ -34,7 +34,7 @@ export default function ArtistPage({
         eyebrow="Artist"
         title={artist.name}
         story={artist.story}
-        meta={`${artist.count} tracks · E${artist.avgEnergy}${artist.topGenre ? ` · ${artist.topGenre}` : ""}`}
+        meta={`${artist.count} tracks${artist.topGenre ? ` · ${artist.topGenre}` : ""}`}
         coverUrl={cover?.albumCover}
         atmosphere="amber-lamp"
         onPlay={() => cover && onPlay(cover, artist.tracks)}
@@ -129,10 +129,8 @@ export function AlbumPage({
         title={album.title}
         story={album.story}
         meta={[
-          album.count + " tracks",
+          album.count + (album.count === 1 ? " track" : " tracks"),
           album.avgBpm ? `${album.avgBpm} BPM` : null,
-          album.keys?.[0] ? album.keys[0] : null,
-          `E${album.avgEnergy}`,
         ]
           .filter(Boolean)
           .join(" · ")}
@@ -253,8 +251,8 @@ function EntityHero({
       style={{
         position: "relative",
         overflow: "hidden",
-        minHeight: 240,
-        padding: "20px 20px 28px",
+        minHeight: "min(52vh, 420px)",
+        padding: "20px 20px 32px",
         display: "flex",
         flexDirection: "column",
         justifyContent: "flex-end",
@@ -270,9 +268,9 @@ function EntityHero({
             backgroundImage: `url(${coverUrl})`,
             backgroundSize: "cover",
             backgroundPosition: "center",
-            filter: "blur(32px) brightness(0.45)",
-            transform: "scale(1.12)",
-            opacity: 0.85,
+            filter: "blur(28px) brightness(0.42) saturate(112%)",
+            transform: "scale(1.1)",
+            opacity: 0.9,
           }}
         />
       )}
@@ -281,7 +279,7 @@ function EntityHero({
         style={{
           position: "absolute",
           inset: 0,
-          background: "linear-gradient(180deg, rgba(12,11,10,0.25) 0%, rgba(12,11,10,0.92) 100%)",
+          background: "linear-gradient(180deg, rgba(12,11,10,0.2) 0%, rgba(12,11,10,0.55) 45%, rgba(12,11,10,0.96) 100%)",
         }}
       />
       <button
@@ -291,7 +289,7 @@ function EntityHero({
           position: "relative",
           zIndex: 1,
           alignSelf: "flex-start",
-          marginBottom: 20,
+          marginBottom: 24,
           background: "none",
           border: "none",
           color: color.muted,
@@ -302,80 +300,78 @@ function EntityHero({
       >
         ← {backLabel}
       </button>
-      <div style={{ position: "relative", zIndex: 1, display: "flex", gap: 18, alignItems: "flex-end" }}>
+      <div style={{ position: "relative", zIndex: 1, maxWidth: 440 }}>
         {coverUrl && (
           <div
             style={{
-              width: 96,
-              height: 96,
-              flexShrink: 0,
+              width: 140,
+              height: 140,
               overflow: "hidden",
-              boxShadow: "0 16px 40px rgba(0,0,0,0.45)",
+              marginBottom: 20,
+              boxShadow: "0 20px 48px rgba(0,0,0,0.5)",
             }}
           >
             <img src={coverUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
           </div>
         )}
-        <div style={{ minWidth: 0, flex: 1 }}>
-          <div
-            style={{
-              fontSize: 11,
-              fontWeight: 700,
-              letterSpacing: 1.8,
-              color: color.accent,
-              fontFamily: fontMono,
-              textTransform: "uppercase",
-              marginBottom: 8,
-            }}
-          >
-            {eyebrow}
-          </div>
-          <h1
-            style={{
-              margin: 0,
-              fontSize: "clamp(28px, 8vw, 40px)",
-              fontWeight: 800,
-              letterSpacing: -1.2,
-              fontFamily: fontDisplay,
-              color: color.onDark,
-              lineHeight: 1.05,
-            }}
-          >
-            {title}
-          </h1>
-          {subtitle}
-          <p style={{ margin: "10px 0 0", fontSize: 14, color: color.body, lineHeight: 1.45, maxWidth: 360 }}>
-            {story}
-          </p>
-          {meta && (
-            <div style={{ marginTop: 12, fontFamily: fontMono, fontSize: 11, color: color.faint, letterSpacing: 0.3 }}>
-              {meta}
-            </div>
-          )}
-          {onPlay && (
-            <button
-              type="button"
-              className="play-primary"
-              onClick={onPlay}
-              style={{
-                marginTop: 18,
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 8,
-                padding: "12px 18px",
-                borderRadius: radius.sm,
-                background: color.accent,
-                border: "none",
-                color: color.onAccent,
-                cursor: "pointer",
-                fontSize: 13,
-                fontWeight: 650,
-              }}
-            >
-              {playLabel}
-            </button>
-          )}
+        <div
+          style={{
+            fontSize: 11,
+            fontWeight: 700,
+            letterSpacing: 1.8,
+            color: color.accent,
+            fontFamily: fontMono,
+            textTransform: "uppercase",
+            marginBottom: 10,
+          }}
+        >
+          {eyebrow}
         </div>
+        <h1
+          style={{
+            margin: 0,
+            fontSize: "clamp(32px, 9vw, 48px)",
+            fontWeight: 800,
+            letterSpacing: -1.4,
+            fontFamily: fontDisplay,
+            color: color.onDark,
+            lineHeight: 1.02,
+          }}
+        >
+          {title}
+        </h1>
+        {subtitle}
+        <p style={{ margin: "14px 0 0", fontSize: 15, color: color.body, lineHeight: 1.5, maxWidth: 360 }}>
+          {story}
+        </p>
+        {meta && (
+          <div style={{ marginTop: 14, fontFamily: fontMono, fontSize: 11, color: color.faint, letterSpacing: 0.3 }}>
+            {meta}
+          </div>
+        )}
+        {onPlay && (
+          <button
+            type="button"
+            className="play-primary"
+            onClick={onPlay}
+            style={{
+              marginTop: 22,
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 8,
+              padding: "13px 18px",
+              borderRadius: radius.sm,
+              background: color.accent,
+              border: "none",
+              color: color.onAccent,
+              cursor: "pointer",
+              fontSize: 13,
+              fontWeight: 650,
+            }}
+          >
+            {playLabel}
+          </button>
+        )}
       </div>
     </div>
   );

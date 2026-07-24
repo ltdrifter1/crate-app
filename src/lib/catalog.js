@@ -133,12 +133,21 @@ export function findAlbum(tracks, slug) {
 }
 
 export function artistStory(name, genre, count) {
-  if (genre) return `${count} track${count === 1 ? "" : "s"} · most often filed under ${genre}`;
-  return `${count} track${count === 1 ? "" : "s"} in your catalog`;
+  const first = String(name || "This artist").split(/\s+/)[0];
+  if (genre && count >= 8) {
+    return `${first} keeps showing up in ${genre} — a crate you can live in for a while.`;
+  }
+  if (genre) {
+    return `Most often filed under ${genre}. ${count} cut${count === 1 ? "" : "s"} worth knowing by name.`;
+  }
+  return `${count} track${count === 1 ? "" : "s"} in your rooms — follow the sleeve, not the folder.`;
 }
 
 export function albumStory(title, artist, count) {
-  return `${count} track${count === 1 ? "" : "s"} · ${artist}`;
+  if (count <= 3) {
+    return `A short release from ${artist} — treat it as one sitting.`;
+  }
+  return `“${title}” as an object: ${count} tracks from ${artist}, meant to be heard in order when you can.`;
 }
 
 /** Search hits that are entities, not only tracks. */
@@ -162,28 +171,28 @@ export function searchEntities(tracks, query) {
 export function linerNotesFor(track) {
   if (!track) return null;
   const notes = [];
-  if (track.genre) notes.push({ label: "Filed under", value: track.genre });
-  if (track.album) notes.push({ label: "Album", value: track.album });
-  if (track.bpm) notes.push({ label: "Tempo", value: `${track.bpm} BPM` });
-  if (track.camelot) notes.push({ label: "Key", value: track.camelot });
-  if (track.energy != null) notes.push({ label: "Energy", value: String(track.energy) });
-  if (track._signal?.grip) notes.push({ label: "Grip", value: String(track._signal.grip) });
-  if (track._signal?.pull) notes.push({ label: "Pull", value: String(track._signal.pull) });
-  if (track.playCount) notes.push({ label: "Plays here", value: String(track.playCount) });
-  if (track.liked) notes.push({ label: "Saved", value: "In your collection" });
+  if (track.album) notes.push({ label: "Release", value: track.album });
+  if (track.genre) notes.push({ label: "Lane", value: track.genre });
+  if (track.bpm && track.camelot) {
+    notes.push({ label: "Handoff", value: `${track.camelot} · ${track.bpm} BPM` });
+  } else {
+    if (track.bpm) notes.push({ label: "Tempo", value: `${track.bpm} BPM` });
+    if (track.camelot) notes.push({ label: "Key", value: track.camelot });
+  }
+  if (track.liked) notes.push({ label: "Shelf", value: "Saved here" });
 
   const paragraphs = [
     track.album
-      ? `From “${track.album}” — treat the sleeve as the doorway, not a filename.`
-      : `A standalone cut from ${track.artist || "an unknown hand"}.`,
+      ? `From “${track.album}” — the sleeve is the doorway, not a filename.`
+      : `A standalone cut from ${track.artist || "an unknown hand"}. File it by feel.`,
     track.camelot && track.bpm
-      ? `Sits near ${track.camelot} at ${track.bpm} BPM — useful when the floor needs a clean handoff.`
+      ? `Sits near ${track.camelot} at ${track.bpm} BPM — clean when the floor needs a handoff.`
       : null,
     track.energy != null
       ? track.energy >= 7
-        ? "High pressure — peak-room weight."
+        ? "High pressure — peak-room weight. Give it space to land."
         : track.energy <= 3
-          ? "Soft landing — closing-time energy."
+          ? "Soft landing — closing-time energy, lights still warm."
           : "Mid-floor — builds without shouting."
       : null,
   ].filter(Boolean);
