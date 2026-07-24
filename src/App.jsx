@@ -5,9 +5,14 @@ import { collection, getDocs, addDoc, query, orderBy, doc, updateDoc, setDoc } f
 import { db }                                       from "./firebase";
 import vLogo                                         from "./v-logo-new.png";
 import {
-  font, color, radius, panel, panelQuiet, motion, timeOfDayGradient,
+  font, color, radius, motion, timeOfDayGradient,
   APP_STYLE, INPUT_ST, BTN_PRIMARY, BTN_SECONDARY, CTRL_BTN, ADMIN_UID,
 } from "./theme";
+import { camelotCompatible, getEnergyRangeForHour, fmtTime, hexToRgbStr } from "./lib/harmony";
+import {
+  computeHumanState, findResonant, computeSignalTraits, pickNextTrack,
+  buildSession, SESSION_PROFILES,
+} from "./lib/engine";
 
 const injectStyles = () => {
   if (document.getElementById("verse-app-global-styles")) return;
@@ -40,343 +45,8 @@ const injectStyles = () => {
 injectStyles();
 
 
-// ─── CAMELOT ──────────────────────────────────────────────────────────────────
-function camelotCompatible(keyA, keyB, range = 2) {
-  if (!keyA || !keyB) return true;
-  const numA = parseInt(keyA), numB = parseInt(keyB);
-  if (isNaN(numA) || isNaN(numB)) return true;
-  const diff = Math.abs(numA - numB);
-  return Math.min(diff, 12 - diff) <= range;
-}
+// Engine helpers imported from ./lib/harmony + ./lib/engine
 
-// ─── TIME → ENERGY ────────────────────────────────────────────────────────────
-function getEnergyRangeForHour(h) {
-  const m = {
-    0:[7,9],1:[5,7],2:[2,4],3:[2,4],4:[2,4],5:[2,4],6:[2,4],7:[2,4],8:[2,4],
-    9:[4,6],10:[4,6],11:[4,6],12:[5,8],13:[5,8],14:[5,8],15:[5,8],
-    16:[4,8],17:[4,8],18:[4,8],19:[4,8],20:[4,8],21:[4,8],22:[7,9],23:[7,9],
-  };
-  return m[h] ?? [1,10];
-}
-
-
-
-// ─── AURA: HUMAN STATE VECTOR ───────────────────────────────────────────────
-// Computes the listener's current state from recent behavior.
-// Returns { intensity, openness, momentum, depth, direction, label }
-
-function computeHumanState(recentPlays, sessionStartTime) {
-  if (!recentPlays.length) return { intensity: 0.5, openness: 0.5, momentum: 0, depth: 0, direction: 0, label: "arrival" };
-
-  const now = Date.now();
-  const recent = recentPlays.slice(0, 10);
-  const sessionMins = sessionStartTime ? (now - sessionStartTime) / 60000 : 0;
-
-  // Intensity: average energy of last 5 tracks, normalized to 0-1
-  const avgEnergy = recent.slice(0, 5).reduce((s, r) => s + (r.energy || 5), 0) / Math.min(5, recent.length);
-  const intensity = Math.max(0, Math.min(1, (avgEnergy - 1) / 9));
-
-  // Direction: energy trend. Compare last 3 avg vs previous 3 avg.
-  const last3 = recent.slice(0, 3).reduce((s, r) => s + (r.energy || 5), 0) / Math.min(3, recent.length);
-  const prev3 = recent.slice(3, 6);
-  const prevAvg = prev3.length > 0 ? prev3.reduce((s, r) => s + (r.energy || 5), 0) / prev3.length : last3;
-  const direction = Math.max(-1, Math.min(1, (last3 - prevAvg) / 3));
-
-  // Openness: genre variety in recent plays. More genres = higher openness.
-  const genres = new Set(recent.map(r => r.genre).filter(Boolean));
-  const openness = Math.max(0, Math.min(1, genres.size / Math.max(4, recent.length) * 1.5));
-
-  // Depth: session duration + completion rate proxy
-  const depth = Math.max(0, Math.min(1, sessionMins / 60));
-
-  // Momentum: how quickly tracks are being played (shorter gaps = higher momentum)
-  const gaps = [];
-  for (let i = 0; i < recent.length - 1; i++) {
-    gaps.push(recent[i].ts - recent[i + 1].ts);
-  }
-  const avgGap = gaps.length > 0 ? gaps.reduce((s, g) => s + g, 0) / gaps.length : 300000;
-  const momentum = Math.max(0, Math.min(1, 1 - (avgGap - 60000) / 600000));
-
-  // State label based on signals
-  let label = "arrival";
-  if (sessionMins < 3) label = "arrival";
-  else if (sessionMins < 8 && Math.abs(direction) < 0.2) label = "grounding";
-  else if (direction > 0.3 && intensity < 0.7) label = "ignition";
-  else if (intensity > 0.6 && direction > 0.1) label = "momentum";
-  else if (depth > 0.5 && Math.abs(direction) < 0.15) label = "immersion";
-  else if (direction > 0.3 && openness > 0.5) label = "expansion";
-  else if (direction < -0.2) label = "release";
-  else if (intensity < 0.3 && depth > 0.4) label = "restoration";
-  else if (sessionMins > 5) label = "grounding";
-
-  return { intensity, openness, momentum, depth, direction, label };
-}
-
-
-// ─── HYPNO VISION — psychoacoustic trait-vector similarity · Hypno Vision ───────────────────────
-function findResonant(sourceTrack, allTracks, count = 12) {
-  if (!sourceTrack._signal) return allTracks.slice(0, count);
-  const src = sourceTrack._signal;
-  return allTracks
-    .filter(t => t.id !== sourceTrack.id && t._signal)
-    .map(t => {
-      const s = t._signal;
-      // Euclidean distance across all trait dimensions
-      const dist = Math.sqrt(
-        Math.pow((src.grip - s.grip) / 10, 2) +
-        Math.pow((src.hold - s.hold) / 10, 2) +
-        Math.pow((src.pull - s.pull) / 10, 2) +
-        Math.pow((src.gravity - s.gravity) / 10, 2) +
-        Math.pow((src.lift - s.lift) / 10, 2) +
-        Math.pow((src.descent - s.descent) / 10, 2)
-      );
-      // Bonus for same genre and close energy
-      let bonus = 0;
-      if (t.genre === sourceTrack.genre) bonus += 0.05;
-      if (Math.abs((t.energy||5) - (sourceTrack.energy||5)) <= 1) bonus += 0.03;
-      if (sourceTrack.camelot && t.camelot && camelotCompatible(sourceTrack.camelot, t.camelot, 1)) bonus += 0.02;
-      return { track: t, distance: dist - bonus };
-    })
-    .sort((a, b) => a.distance - b.distance)
-    .slice(0, count)
-    .map(r => r.track);
-}
-
-// ─── AURA: TRAIT SCORING ENGINE ─────────────────────────────────────────────
-// Computes behavioral trait scores for each track from play/skip/like data.
-// Called once after tracks load, enriches each track object with Aura scores.
-
-function computeSignalTraits(tracks, recentPlays = []) {
-  const maxPlays = Math.max(...tracks.map(t => t.playCount || 0), 1);
-  const maxSkips = Math.max(...tracks.map(t => t.skipCount || 0), 1);
-  const maxLikes = Math.max(...tracks.map(t => t.likeCount || 0), 1);
-
-  // Build a play-sequence map for lift/descent scoring
-  const sequences = [];
-  for (let i = 0; i < recentPlays.length - 1; i++) {
-    sequences.push({ from: recentPlays[i], to: recentPlays[i + 1] });
-  }
-
-  return tracks.map(t => {
-    const plays = t.playCount || 0;
-    const skips = t.skipCount || 0;
-    const likes = t.likeCount || 0;
-    const energy = t.energy || 5;
-
-    // Grip: inverse of skip ratio. High completion = high grip.
-    const skipRatio = plays > 0 ? skips / plays : 0.5;
-    const grip = Math.round(Math.max(1, Math.min(10, (1 - skipRatio) * 10)));
-
-    // Hold: based on play count relative to library average. Frequently played = high hold.
-    const hold = Math.round(Math.max(1, Math.min(10, (plays / maxPlays) * 8 + (likes > 0 ? 2 : 0))));
-
-    // Pull: how often this track is returned to. Liked + played multiple times = high pull.
-    const pull = Math.round(Math.max(1, Math.min(10,
-      (plays > 2 ? 3 : 0) + (likes > 0 ? 3 : 0) + (plays / maxPlays) * 4
-    )));
-
-    // Gravity: session-opener tendency. Approximated by high grip + moderate energy.
-    const gravity = Math.round(Math.max(1, Math.min(10,
-      grip * 0.5 + (energy >= 3 && energy <= 7 ? 3 : 1) + (pull > 5 ? 2 : 0)
-    )));
-
-    // Lift: does this track lead to higher energy next? Check sequences.
-    const liftSeqs = sequences.filter(s => s.from.id === t.id);
-    const avgLift = liftSeqs.length > 0
-      ? liftSeqs.reduce((s, seq) => {
-          const nextTrack = tracks.find(x => x.id === seq.to.id);
-          return s + ((nextTrack?.energy || 5) - energy);
-        }, 0) / liftSeqs.length
-      : 0;
-    const lift = Math.round(Math.max(1, Math.min(10, 5 + avgLift * 2)));
-
-    // Descent: inverse of lift.
-    const descent = Math.round(Math.max(1, Math.min(10, 5 - avgLift * 2)));
-
-    // Dominant trait label
-    const traits = { grip, hold, pull, gravity, lift, descent };
-    const sorted = Object.entries(traits).sort((a, b) => b[1] - a[1]);
-    const dominant = sorted[0][0];
-
-    // Map dominant trait to a user-facing label
-    const LABELS = {
-      grip: "opener", hold: "anchor", pull: "favorite",
-      gravity: "opener", lift: "build", descent: "closer"
-    };
-    const signalLabel = LABELS[dominant] || "track";
-
-    return { ...t, _signal: { grip, hold, pull, gravity, lift, descent, label: signalLabel } };
-  });
-}
-
-// ─── WEIGHTED RADIO PICK ──────────────────────────────────────────────────────
-// All tracks eligible; liked tracks get 3× weight
-// Priority: camelot+energy → camelot → energy → anything
-function pickNextTrack(allTracks, currentTrack, memory = null) {
-  if (!allTracks.length) return null;
-  const hour = new Date().getHours();
-  const [eMin, eMax] = getEnergyRangeForHour(hour);
-  // Recency decay — exclude tracks played in last 2 hours
-  const recentIds = memory ? new Set(
-    memory.filter(r => r.ts > Date.now() - 2 * 60 * 60 * 1000).map(r => r.id)
-  ) : new Set();
-  // Genre momentum — boost the current genre streak
-  const recentGenres = memory ? memory.slice(0, 3).map(r => r.genre).filter(Boolean) : [];
-  const momentumGenre = recentGenres.length >= 2 && recentGenres[0] === recentGenres[1] ? recentGenres[0] : null;
-
-  const pool = allTracks.filter(t => t.id !== currentTrack?.id && (t.duration||0) <= 900 && !recentIds.has(t.id));
-  if (!pool.length) {
-    // Fallback: if recency filter emptied the pool, ignore it
-    const fallback = allTracks.filter(t => t.id !== currentTrack?.id && (t.duration||0) <= 900);
-    if (!fallback.length) return allTracks[0];
-    return fallback[Math.floor(Math.random() * fallback.length)];
-  }
-
-  function weightedPick(candidates) {
-    const weighted = candidates.flatMap(t => {
-      let w = t.liked ? 3 : 1;
-      // Skip penalty
-      const plays = t.playCount || 0;
-      const skips = t.skipCount || 0;
-      if (plays > 0 && skips > plays * 0.5) w = Math.max(1, Math.round(w * 0.3));
-      else if (skips > 3) w = Math.max(1, Math.round(w * 0.6));
-      // Genre momentum — 2× boost for tracks matching the streak
-      if (momentumGenre && t.genre === momentumGenre) w *= 2;
-      // Aura trait boost: high grip after a skip, high hold in deep sessions
-      if (t._signal) {
-        if (t._signal.grip >= 7) w += 1; // high-grip tracks slightly favored
-        if (t._signal.pull >= 7) w += 1; // return favorites slightly favored
-      }
-      return Array(w).fill(t);
-    });
-    return weighted[Math.floor(Math.random() * weighted.length)];
-  }
-
-  const p1 = pool.filter(t => camelotCompatible(currentTrack?.camelot,t.camelot) && t.energy>=eMin && t.energy<=eMax);
-  if (p1.length) return weightedPick(p1);
-  const p2 = pool.filter(t => camelotCompatible(currentTrack?.camelot,t.camelot));
-  if (p2.length) return weightedPick(p2);
-  const p3 = pool.filter(t => t.energy>=eMin && t.energy<=eMax);
-  if (p3.length) return weightedPick(p3);
-  return weightedPick(pool);
-}
-
-
-// ─── ROUTE BUILDER ───────────────────────────────────────────────────────────
-// Given a start track and end track, build a harmonic path between them.
-// Steps through adjacent Camelot keys, interpolating energy from start to end.
-function buildRoute(allTracks, startTrack, endTrack, maxSteps = 12) {
-  if (!startTrack || !endTrack || startTrack.id === endTrack.id) return [startTrack, endTrack].filter(Boolean);
-  const startE = startTrack.energy || 5;
-  const endE = endTrack.energy || 5;
-  const pool = allTracks.filter(t => t.id !== startTrack.id && t.id !== endTrack.id && (t.duration||0) <= 900);
-
-  const route = [startTrack];
-  let current = startTrack;
-  const used = new Set([startTrack.id, endTrack.id]);
-
-  for (let step = 1; step <= maxSteps; step++) {
-    const progress = step / (maxSteps + 1);
-    const targetEnergy = Math.round(startE + (endE - startE) * progress);
-
-    // Find candidates: Camelot-adjacent to current, closest to target energy, not used
-    const candidates = pool
-      .filter(t => !used.has(t.id) && camelotCompatible(current.camelot, t.camelot, 1))
-      .map(t => ({ track: t, score: Math.abs((t.energy||5) - targetEnergy) }))
-      .sort((a, b) => a.score - b.score);
-
-    if (!candidates.length) break;
-
-    // Check if we can reach the end track from here
-    if (camelotCompatible(candidates[0].track.camelot, endTrack.camelot, 2)) {
-      // Close enough to bridge to end — pick best and stop
-      route.push(candidates[0].track);
-      used.add(candidates[0].track.id);
-      break;
-    }
-
-    route.push(candidates[0].track);
-    used.add(candidates[0].track.id);
-    current = candidates[0].track;
-  }
-
-  route.push(endTrack);
-  return route;
-}
-
-// ─── SESSION ENGINE ──────────────────────────────────────────────────────────
-// Activity-based energy arc profiles. Each phase has a proportion (0-1) and target energy.
-const SESSION_PROFILES = {
-  party:      { label:"Party",       phases:[{name:"Warm Up",p:0.15,e:4},{name:"Build",p:0.2,e:6},{name:"Peak",p:0.35,e:9},{name:"Sustain",p:0.2,e:8},{name:"Wind Down",p:0.1,e:5}] },
-  run:        { label:"Run",         phases:[{name:"Pace Up",p:0.1,e:6},{name:"Stride",p:0.4,e:8},{name:"Push",p:0.35,e:9},{name:"Cool",p:0.15,e:5}] },
-  workout:    { label:"Workout",     phases:[{name:"Warm Up",p:0.12,e:5},{name:"Build",p:0.2,e:7},{name:"Peak",p:0.4,e:9},{name:"Push",p:0.18,e:8},{name:"Stretch",p:0.1,e:3}] },
-  chill:      { label:"Chill",       phases:[{name:"Drift",p:0.3,e:3},{name:"Float",p:0.4,e:2},{name:"Settle",p:0.3,e:3}] },
-  focus:      { label:"Focus",       phases:[{name:"Settle In",p:0.15,e:4},{name:"Flow",p:0.6,e:3},{name:"Sustain",p:0.2,e:4},{name:"Ease Out",p:0.05,e:3}] },
-  drive:      { label:"Late Drive",  phases:[{name:"Depart",p:0.15,e:5},{name:"Cruise",p:0.5,e:6},{name:"Deep",p:0.25,e:4},{name:"Arrive",p:0.1,e:3}] },
-  dinner:     { label:"Dinner",      phases:[{name:"Arrival",p:0.2,e:4},{name:"Conversation",p:0.5,e:3},{name:"Linger",p:0.3,e:4}] },
-  predrinks:  { label:"Pre-drinks",  phases:[{name:"Ease In",p:0.2,e:4},{name:"Lift",p:0.35,e:6},{name:"Buzz",p:0.3,e:7},{name:"Ready",p:0.15,e:8}] },
-  study:      { label:"Study",       phases:[{name:"Settle",p:0.1,e:3},{name:"Deep Work",p:0.7,e:2},{name:"Break",p:0.1,e:4},{name:"Close",p:0.1,e:2}] },
-  recovery:   { label:"Recovery",    phases:[{name:"Ground",p:0.2,e:2},{name:"Restore",p:0.5,e:1},{name:"Ease Up",p:0.3,e:3}] },
-};
-
-function buildSession(allTracks, durationMins, activityId) {
-  const profile = SESSION_PROFILES[activityId];
-  if (!profile) return [];
-  const pool = allTracks.filter(t => (t.duration||0) <= 900 && (t.duration||0) > 0);
-  if (!pool.length) return [];
-
-  const totalSecs = durationMins * 60;
-  const avgTrackLen = pool.reduce((s,t)=>s+(t.duration||210),0) / pool.length;
-  const targetCount = Math.max(3, Math.round(totalSecs / avgTrackLen));
-
-  const session = [];
-  const used = new Set();
-  let accumulated = 0;
-
-  for (const phase of profile.phases) {
-    const phaseTarget = phase.e;
-    const phaseTracks = Math.max(1, Math.round(targetCount * phase.p));
-
-    // Find tracks near this energy level, prefer camelot compatibility with last track
-    const lastTrack = session.length ? session[session.length-1] : null;
-    let candidates = pool
-      .filter(t => !used.has(t.id))
-      .map(t => {
-        let score = Math.abs((t.energy||5) - phaseTarget) * 3;
-        if (lastTrack && !camelotCompatible(lastTrack.camelot, t.camelot, 2)) score += 2;
-        if (t.liked) score -= 0.5;
-        const skips = t.skipCount || 0;
-        const plays = t.playCount || 0;
-        if (plays > 0 && skips > plays * 0.5) score += 3;
-        return { track:t, score };
-      })
-      .sort((a,b) => a.score - b.score);
-
-    for (let i = 0; i < phaseTracks && candidates.length > 0; i++) {
-      // Pick from top 3 randomly for variety
-      const pick = candidates.splice(Math.floor(Math.random() * Math.min(3, candidates.length)), 1)[0];
-      if (!pick) break;
-      session.push({ ...pick.track, _phase: phase.name });
-      used.add(pick.track.id);
-      accumulated += (pick.track.duration || avgTrackLen);
-      if (accumulated >= totalSecs * 1.05) break;
-    }
-    if (accumulated >= totalSecs * 1.05) break;
-  }
-
-  return session;
-}
-
-function fmtTime(s) {
-  if (!s||isNaN(s)) return "0:00";
-  return `${Math.floor(s/60)}:${Math.floor(s%60).toString().padStart(2,"0")}`;
-}
-function hexToRgbStr(hex) {
-  if (!hex||hex.length<7) return "160,165,175";
-  return `${parseInt(hex.slice(1,3),16)},${parseInt(hex.slice(3,5),16)},${parseInt(hex.slice(5,7),16)}`;
-}
-
-// ─── ENERGY BAR ───────────────────────────────────────────────────────────────
 function EnergyBar({ level, color, size="sm" }) {
   const h = size==="lg" ? [8,10,12,10,8,12,10,8,12,10] : [5,6,7,6,5,7,6,5,7,6];
   return (
@@ -467,178 +137,6 @@ function VinylRecord({ track, isPlaying, size=190 }) {
 }
 
 // ─── VERS FLIPPER — vertical, full-bleed album art ────────────────────────────
-function VerseFlipper({ tracks, onSelect, currentTrack, isPlaying }) {
-  const [idx, setIdx]           = useState(0);
-  const [dragY, setDragY]       = useState(0);
-  const [dragStart, setDragStart] = useState(null);
-  const [dragging, setDragging] = useState(false);
-  const [animDir, setAnimDir]   = useState(null); // "up"|"down"
-  const containerRef            = useRef(null);
-
-  const t = tracks[idx];
-  const prev = tracks[idx-1];
-  const next = tracks[idx+1];
-
-  const goTo = useCallback((newIdx, dir) => {
-    if (newIdx < 0 || newIdx >= tracks.length) return;
-    setAnimDir(dir);
-    setIdx(newIdx);
-    setTimeout(() => setAnimDir(null), 350);
-  }, [tracks.length]);
-
-  const onPD = (e) => { setDragStart(e.clientY ?? e.touches?.[0]?.clientY ?? 0); setDragging(true); };
-  const onPM = useCallback((e) => {
-    if (!dragging) return;
-    const y = e.clientY ?? e.touches?.[0]?.clientY ?? 0;
-    setDragY(y - dragStart);
-  }, [dragging, dragStart]);
-  const onPU = useCallback(() => {
-    if (!dragging) return;
-    setDragging(false);
-    if (dragY < -55 && idx < tracks.length-1) goTo(idx+1, "up");
-    else if (dragY > 55 && idx > 0) goTo(idx-1, "down");
-    setDragY(0); setDragStart(null);
-  }, [dragging, dragY, idx, tracks.length, goTo]);
-
-  useEffect(() => {
-    window.addEventListener("pointermove", onPM);
-    window.addEventListener("pointerup", onPU);
-    window.addEventListener("touchmove", onPM, {passive:true});
-    window.addEventListener("touchend", onPU);
-    return () => {
-      window.removeEventListener("pointermove", onPM);
-      window.removeEventListener("pointerup", onPU);
-      window.removeEventListener("touchmove", onPM);
-      window.removeEventListener("touchend", onPU);
-    };
-  }, [onPM, onPU]);
-
-  const CARD_H = 200;
-
-  return (
-    <div style={{ position:"relative", userSelect:"none", touchAction:"none" }}>
-      {/* Peek card above (previous) */}
-      {prev && (
-        <div style={{ position:"absolute", top:-28, left:0, right:0, height:32, zIndex:0, overflow:"hidden", opacity:0.35, pointerEvents:"none" }}>
-          <div style={{ position:"absolute", bottom:0, left:0, right:0, height:80, background:"rgba(0,0,0,0.6)", backdropFilter:"blur(4px)" }}/>
-          <img src={prev.albumCover} alt="" style={{ width:"100%", height:"100%", objectFit:"cover", display:"block", filter:"brightness(0.4)" }}/>
-          <div style={{ position:"absolute", inset:0, background:"linear-gradient(to bottom, rgba(0,0,0,0.7) 0%, transparent 100%)" }}/>
-        </div>
-      )}
-
-      {/* Main card */}
-      <div ref={containerRef}
-        onPointerDown={onPD}
-        style={{
-          height: CARD_H,
-          position:"relative", overflow:"hidden",
-          cursor: dragging ? "grabbing" : "grab",
-          borderRadius: 0,
-          transform: dragging ? `translateY(${dragY * 0.18}px)` : "none",
-          transition: dragging ? "none" : "transform 0.35s cubic-bezier(0.22,1,0.36,1)",
-          animation: animDir ? `card-snap 0.32s cubic-bezier(0.22,1,0.36,1)` : "none",
-          WebkitBackfaceVisibility: "hidden",
-        }}>
-
-        {/* Full-bleed album image */}
-        <div style={{ position:"absolute", inset:0, zIndex:0 }}>
-          <AlbumArt track={t} size={CARD_H} borderRadius={0}/>
-          <div style={{ position:"absolute", inset:0, width:"100%" }}>
-            {/* Re-render as full-width cover */}
-            <img src={t.albumCover} alt="" style={{ position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover", display:"block" }}
-              onError={()=>{}}/>
-          </div>
-        </div>
-
-        {/* Gradient overlay — dark at bottom for text readability */}
-        <div style={{ position:"absolute", inset:0, zIndex:1,
-          background:"linear-gradient(to bottom, rgba(0,0,0,0.15) 0%, rgba(0,0,0,0.0) 35%, rgba(0,0,0,0.65) 70%, rgba(0,0,0,0.92) 100%)"
-        }}/>
-
-        {/* Top badges — genre, liked indicator */}
-        <div style={{ position:"absolute", top:16, left:16, right:16, zIndex:3, display:"flex", justifyContent:"space-between", alignItems:"flex-start" }}>
-          <div style={{ display:"flex", gap:6, flexWrap:"wrap" }}>
-            <span style={{ fontSize:10, fontWeight:700, letterSpacing:1.2, textTransform:"uppercase", color:"rgba(255,255,255,0.9)", background:"rgba(0,0,0,0.5)", backdropFilter:"blur(8px)", padding:"4px 9px", borderRadius:20, border:"1px solid rgba(255,255,255,0.12)" }}>{t.genre}</span>
-            {t.liked && <span style={{ fontSize:10, fontWeight:700, letterSpacing:0.8, color:"rgba(255,255,255,0.85)", background:"rgba(255,255,255,0.12)", backdropFilter:"blur(8px)", padding:"4px 9px", borderRadius:20, border:"1px solid rgba(255,255,255,0.2)" }}>♥ Saved</span>}
-          </div>
-          <div style={{ display:"flex", flexDirection:"column", alignItems:"flex-end", gap:4 }}>
-            
-            {t.bpm && <span style={{ fontSize:9, color:"rgba(255,255,255,0.5)", letterSpacing:0.5 }}>{t.bpm} BPM</span>}
-          </div>
-        </div>
-
-        {/* Bottom info — title, artist, album, energy, play */}
-        <div style={{ position:"absolute", bottom:0, left:0, right:0, zIndex:3, padding:"0 16px 18px" }}>
-          <div style={{ fontSize:22, fontWeight:700, letterSpacing:-0.4, color:"#ffffff", lineHeight:1.15, marginBottom:3, textShadow:"0 2px 12px rgba(0,0,0,0.8)" }}>
-            {t.title}
-          </div>
-          <div style={{ fontSize:14, color:"rgba(255,255,255,0.72)", fontWeight:500, marginBottom:2 }}>
-            {t.artist}
-          </div>
-          <div style={{ fontSize:12, color:"rgba(255,255,255,0.4)", marginBottom:12 }}>
-            {t.album}
-          </div>
-          {/* Play button bottom left */}
-          <button onClick={()=>onSelect(t)} style={{
-            width:44, height:44, borderRadius:"50%",
-            background:"#1A1D26",
-            border:"none",
-            color:"#FFFFFF", cursor:"pointer",
-            display:"flex", alignItems:"center", justifyContent:"center",
-            boxShadow:"0 4px 16px rgba(26,29,38,0.4)",
-          }}>
-            <Icon name={currentTrack?.id===t.id && isPlaying ? "pause" : "play"} size={20}/>
-          </button>
-        </div>
-
-        {/* Swipe hint arrows (subtle) */}
-        {idx > 0 && (
-          <button onClick={()=>goTo(idx-1,"down")} style={{ position:"absolute", top:12, left:"50%", transform:"translateX(-50%)", background:"none", border:"none", cursor:"pointer", color:"rgba(255,255,255,0.3)", zIndex:4, padding:4 }}>
-            <Icon name="chev_up" size={18}/>
-          </button>
-        )}
-        {idx < tracks.length-1 && (
-          <button onClick={()=>goTo(idx+1,"up")} style={{ position:"absolute", bottom:72, left:"50%", transform:"translateX(-50%)", background:"none", border:"none", cursor:"pointer", color:"rgba(255,255,255,0.3)", zIndex:4, padding:4 }}>
-            <Icon name="chev_down" size={18}/>
-          </button>
-        )}
-
-        {/* Playing indicator */}
-        {currentTrack?.id === t.id && (
-          <div style={{ position:"absolute", top:16, left:"50%", transform:"translateX(-50%)", zIndex:4, display:"flex", gap:2, alignItems:"flex-end" }}>
-            {[5,8,5,9,6].map((h,i)=>(
-              <div key={i} style={{ width:3, height:h, borderRadius:2, background:"rgba(255,255,255,0.7)", animation:isPlaying?`pulse ${0.5+i*0.1}s ease-in-out infinite alternate`:"none" }}/>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {/* Peek card below (next) */}
-      {next && (
-        <div style={{ position:"absolute", bottom:-28, left:0, right:0, height:32, zIndex:0, overflow:"hidden", opacity:0.35, pointerEvents:"none" }}>
-          <img src={next.albumCover} alt="" style={{ width:"100%", height:"100%", objectFit:"cover", display:"block", filter:"brightness(0.4)" }}/>
-          <div style={{ position:"absolute", inset:0, background:"linear-gradient(to top, rgba(0,0,0,0.7) 0%, transparent 100%)" }}/>
-        </div>
-      )}
-
-      {/* Track counter */}
-      <div style={{ display:"flex", justifyContent:"center", alignItems:"center", gap:6, padding:"14px 0 4px" }}>
-        <span style={{ fontSize:11, color:"#8E8E93", fontWeight:500 }}>{idx+1} / {tracks.length}</span>
-        <div style={{ display:"flex", gap:3 }}>
-          {tracks.map((_,i) => (
-            <div key={i} onClick={()=>setIdx(i)} style={{
-              width: i===idx?16:4, height:4, borderRadius:2, cursor:"pointer",
-              background: i===idx?"#1A1D26":"#E5E5EA",
-              transition:"width 0.25s, background 0.25s",
-            }}/>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ─── DEEP CUTS RADIO CARD ─────────────────────────────────────────────────────
 function DeepCutsCard({ onPlay, onTogglePlay, currentTrack, isPlaying, isRadioMode, signalLabel, previewTracks = [] }) {
   const hour = new Date().getHours();
   const [eMin, eMax] = getEnergyRangeForHour(hour);
@@ -1545,7 +1043,7 @@ function DriftMode({ tracks, currentTrack, isPlaying, onTogglePlay, onSkip, onPr
         <div style={{
           width:"min(55vh, 55vw)", height:"min(55vh, 55vw)",
           borderRadius:20, overflow:"hidden",
-          boxShadow:`0 40px 120px rgba(0,0,0,0.5), 0 0 80px rgba(${rgb},0.15)`,
+          boxShadow:"0 24px 64px rgba(0,0,0,0.45)",
           transition:"box-shadow 2s ease",
         }}>
           {currentTrack.albumCover ? (
@@ -1562,11 +1060,6 @@ function DriftMode({ tracks, currentTrack, isPlaying, onTogglePlay, onSkip, onPr
         </div>
       </div>
 
-      {/* ── Layer 3: Floating mist orbs ── */}
-      <div style={{ position:"absolute", inset:0, pointerEvents:"none", overflow:"hidden" }}>
-        <div style={{ position:"absolute", top:"10%", left:"5%", width:300, height:300, borderRadius:"50%", background:`radial-gradient(circle, rgba(${rgb},0.06) 0%, transparent 70%)`, filter:"blur(60px)", animation:"mist 16s ease-in-out infinite" }}/>
-        <div style={{ position:"absolute", bottom:"15%", right:"8%", width:250, height:250, borderRadius:"50%", background:`radial-gradient(circle, rgba(${rgb},0.04) 0%, transparent 70%)`, filter:"blur(50px)", animation:"mist 20s ease-in-out infinite reverse" }}/>
-      </div>
 
       {/* ── Layer 4: Track info — bottom left ── */}
       <div style={{
@@ -2032,27 +1525,24 @@ function FavoritesScreen({ tracks, onPlay, onLike, currentTrack, isPlaying, user
   }
 
   const Pill = ({label, active, onClick}) => (
-    <button onClick={onClick} style={{ padding:"8px 20px", borderRadius:10, border:"none", background: active?"rgba(255,255,255,0.95)":"transparent", color: active?"#1A1D26":"rgba(255,255,255,0.7)", fontSize:13, fontWeight:active?600:500, cursor:"pointer", transition:"all 0.2s", flexShrink:0, boxShadow:active?"0 2px 8px rgba(0,0,0,0.08)":"none", letterSpacing:-0.1 }}>{label}</button>
+    <button type="button" onClick={onClick} style={{ padding:"8px 16px", borderRadius:8, border:"none", background: active? color.ink :"transparent", color: active? "#FFF": color.muted, fontSize:13, fontWeight:active?600:500, cursor:"pointer", flexShrink:0, letterSpacing:-0.1 }}>{label}</button>
   );
 
   const SectionHead = ({children}) => (
-    <div style={{ fontSize:11, fontWeight:700, letterSpacing:1, color:"#1A1D26", textTransform:"uppercase", marginBottom:10 }}>{children}</div>
+    <div style={{ fontSize:11, fontWeight:650, letterSpacing:1.2, color: color.faint, textTransform:"uppercase", marginBottom:12 }}>{children}</div>
   );
 
   return (
     <div style={{ overflowY:"auto", height:"100%", minHeight:"calc(100vh - 112px)" }}>
       {/* Tab bar — glassmorphic container */}
-      <div style={{ position:"sticky", top:0, zIndex:10, padding:"12px 16px" }}>
+      <div style={{ position:"sticky", top:0, zIndex:10, padding:"12px 16px", background:"rgba(244,245,247,0.92)", backdropFilter:"blur(12px)" }}>
         <div style={{
-          background:"rgba(120,120,130,0.45)",
-          backdropFilter:"blur(60px) saturate(200%)",
-          WebkitBackdropFilter:"blur(60px) saturate(200%)",
-          border:"1px solid rgba(255,255,255,0.2)",
-          borderRadius:16,
-          padding:"6px 8px",
+          background: color.surfaceSolid,
+          border: `1px solid ${color.line}`,
+          borderRadius: radius.md,
+          padding: 4,
           display:"inline-flex",
-          gap:2,
-          boxShadow:"0 4px 24px rgba(0,0,0,0.06), inset 0 1px 0 rgba(255,255,255,0.15)",
+          gap: 2,
         }}>
           <Pill label="Discover" active={view==="discover"} onClick={()=>setView("discover")}/>
           <Pill label="Saved" active={view==="liked"} onClick={()=>setView("liked")}/>
@@ -2066,7 +1556,7 @@ function FavoritesScreen({ tracks, onPlay, onLike, currentTrack, isPlaying, user
         <div style={{ padding:"0 0 24px" }}>
           {/* For You */}
           {forYou.length > 0 && (
-            <div style={{ margin:"0 16px 16px", padding:"16px", borderRadius:16, background:"rgba(255,255,255,0.12)", backdropFilter:"blur(60px) saturate(200%)", border:"1px solid rgba(255,255,255,0.1)", boxShadow:"0 4px 24px rgba(0,0,0,0.02)" }}>
+            <div style={{ margin:"0 16px 20px", padding:"4px 0 8px" }}>
               <SectionHead>recommended for you</SectionHead>
               <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill, minmax(100px, 1fr))", gap:12, padding:"0 0 4px" }}>
                 {forYou.map(t => (
@@ -2084,7 +1574,7 @@ function FavoritesScreen({ tracks, onPlay, onLike, currentTrack, isPlaying, user
 
           {/* Right now — time-based */}
           {timeRecs.length > 0 && (
-            <div style={{ margin:"0 16px 16px", padding:"16px", borderRadius:16, background:"rgba(255,255,255,0.12)", backdropFilter:"blur(60px) saturate(200%)", border:"1px solid rgba(255,255,255,0.1)", boxShadow:"0 4px 24px rgba(0,0,0,0.02)" }}>
+            <div style={{ margin:"0 16px 20px", padding:"4px 0 8px" }}>
               <SectionHead>{timeLabel} picks</SectionHead>
               <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill, minmax(90px, 1fr))", gap:10, padding:"0 0 4px" }}>
                 {timeRecs.slice(0,16).map(t => (
@@ -2101,12 +1591,12 @@ function FavoritesScreen({ tracks, onPlay, onLike, currentTrack, isPlaying, user
 
           {/* Moods */}
           {moodKeys.length > 0 && (
-          <div style={{ margin:"0 16px 16px", padding:"16px", borderRadius:16, background:"rgba(255,255,255,0.12)", backdropFilter:"blur(60px) saturate(200%)", border:"1px solid rgba(255,255,255,0.1)", boxShadow:"0 4px 24px rgba(0,0,0,0.02)" }}>
+          <div style={{ margin:"0 16px 20px", padding:"4px 0 8px" }}>
             <SectionHead>moods</SectionHead>
             <div className="hide-scroll" style={{ display:"flex", gap:8, overflowX:"auto", padding:"0 0 4px" }}>
               {moodKeys.map(mood => (
                 <div key={mood} onClick={()=>{setView("genres");setGenreFilter(null);setMoodFilter(mood);}}
-                  style={{ flexShrink:0, width:140, padding:"14px 14px", borderRadius:12, background:"rgba(0,0,0,0.03)", border:"none", cursor:"pointer", transition:"all 0.15s" }}>
+                  style={{ flexShrink:0, width:140, padding:"14px 14px", borderRadius: radius.sm, background: color.surfaceSolid, border:`1px solid ${color.line}`, cursor:"pointer" }}>
                   <div style={{ fontSize:14, fontWeight:700, color:"#1A1D26", marginBottom:2 }}>{mood}</div>
                   <div style={{ fontSize:10, color:"#6B7280", marginBottom:6 }}>{moodMeta[mood]?.desc}</div>
                   <div style={{ fontSize:10, color:"#9CA3AF" }}>{moods[mood].length} tracks</div>
@@ -2117,12 +1607,12 @@ function FavoritesScreen({ tracks, onPlay, onLike, currentTrack, isPlaying, user
           )}
 
           {/* Genre grid */}
-          <div style={{ margin:"0 16px 16px", padding:"16px", borderRadius:16, background:"rgba(255,255,255,0.12)", backdropFilter:"blur(60px) saturate(200%)", border:"1px solid rgba(255,255,255,0.1)", boxShadow:"0 4px 24px rgba(0,0,0,0.02)" }}>
+          <div style={{ margin:"0 16px 20px", padding:"4px 0 8px" }}>
             <SectionHead>browse by genre</SectionHead>
             <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill, minmax(90px, 1fr))", gap:6 }}>
             {genres.map(g => (
               <div key={g} onClick={()=>{setView("genres");setGenreFilter(g);}}
-                style={{ padding:"10px 8px", borderRadius:10, background:"rgba(0,0,0,0.03)", border:"none", cursor:"pointer", textAlign:"center", transition:"all 0.15s" }}>
+                style={{ padding:"10px 8px", borderRadius: radius.sm, background: color.surfaceSolid, border:`1px solid ${color.line}`, cursor:"pointer", textAlign:"center" }}>
                 <div style={{ fontSize:12, fontWeight:600, color:"#1A1D26" }}>{g}</div>
                 <div style={{ fontSize:10, color:"#6B7280", marginTop:2 }}>{genreMap[g].length}</div>
               </div>
@@ -2286,7 +1776,7 @@ function ProfileScreen({ user, setUser, tracks, onLogout }) {
     traitAvgs[k] = vals.length ? (vals.reduce((s,v) => s+v, 0) / vals.length).toFixed(1) : "—";
   });
 
-  const CARD = { background:"rgba(255,255,255,0.12)", backdropFilter:"blur(60px) saturate(200%)", border:"1px solid rgba(255,255,255,0.1)", boxShadow:"0 4px 24px rgba(0,0,0,0.02)", borderRadius:16, padding:"16px" };
+  const CARD = { background: color.surfaceSolid, border: `1px solid ${color.line}`, borderRadius: radius.md, padding:"16px" };
 
   return (
     <div style={{ padding:"24px 16px 16px" }}>
@@ -3091,15 +2581,8 @@ export default function App() {
     }
   }, [currentTrack?.id]);
 
-  function getRecentGenres(n = 3) {
-    return recentlyPlayedRef.current.slice(0, n).map(r => r.genre).filter(Boolean);
-  }
 
   // Check if a track was played recently (within hours)
-  function wasPlayedRecently(trackId, hoursAgo = 2) {
-    const cutoff = Date.now() - hoursAgo * 60 * 60 * 1000;
-    return recentlyPlayedRef.current.some(r => r.id === trackId && r.ts > cutoff);
-  }
 
   useEffect(() => { document.title = 'V Music'; }, []);
 
