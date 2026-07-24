@@ -108,7 +108,7 @@ export function documentTitleFor(screen, label) {
   const labels = {
     rooms: "Rooms",
     home: "Home",
-    favorites: "Discover",
+    favorites: "Dig",
     search: "Search",
     profile: "You",
     map: "Map",
