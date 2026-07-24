@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { populateAllRooms, atmosphereGradient, KIND_LABELS } from "../../lib/rooms";
+import { populateAllRooms, roomPosterStyle, KIND_LABELS } from "../../lib/rooms";
 import {
   font, fontDisplay, fontMono, color, radius, BRAND_NAME,
 } from "../../theme";
@@ -94,7 +94,7 @@ export default function OnboardingRitual({ tracks, onComplete, onSkip }) {
         >
           {rooms.map((room, i) => {
             const on = selected.includes(room.id);
-            const bg = atmosphereGradient(room.atmosphere || room.id);
+            const poster = roomPosterStyle(room);
             const cover = room.coverTrack?.albumCover;
             return (
               <button
@@ -115,7 +115,7 @@ export default function OnboardingRitual({ tracks, onComplete, onSkip }) {
                   animation: `rise 0.5s cubic-bezier(0.22,1,0.36,1) ${Math.min(i, 8) * 0.03}s both`,
                 }}
               >
-                <div aria-hidden="true" style={{ position: "absolute", inset: 0, background: bg }} />
+                <div aria-hidden="true" style={{ position: "absolute", inset: 0, background: poster.gradient }} />
                 {cover && (
                   <div
                     aria-hidden="true"
@@ -126,7 +126,21 @@ export default function OnboardingRitual({ tracks, onComplete, onSkip }) {
                       backgroundSize: "cover",
                       backgroundPosition: "center",
                       opacity: on ? 0.55 : 0.35,
-                      filter: "saturate(110%)",
+                      filter: `saturate(${poster.coverSat}%) brightness(${Math.min(1, poster.coverBright + 0.2)})`,
+                    }}
+                  />
+                )}
+                {poster.texture && (
+                  <div
+                    aria-hidden="true"
+                    style={{
+                      position: "absolute",
+                      inset: 0,
+                      opacity: poster.textureOpacity * 0.7,
+                      backgroundImage: poster.texture,
+                      backgroundSize: poster.textureSize || "auto",
+                      mixBlendMode: poster.textureBlend || "soft-light",
+                      pointerEvents: "none",
                     }}
                   />
                 )}

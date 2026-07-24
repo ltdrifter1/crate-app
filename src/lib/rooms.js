@@ -329,24 +329,318 @@ export const KIND_LABELS = {
 
 /** Atmosphere → soft background gradient hints (CSS-ready). */
 export function atmosphereGradient(atmosphere, accent = "#A8926A") {
-  const map = {
-    "dawn-haze": `radial-gradient(ellipse at 30% 0%, #1A1612 0%, #0C0B0A 55%, #090808 100%)`,
-    "night-fog": `radial-gradient(ellipse at 50% -10%, #141820 0%, #0C0E12 45%, #090B0D 100%)`,
-    vault: `radial-gradient(ellipse at 70% 20%, #161412 0%, #0B0A09 60%, #080707 100%)`,
-    shopfront: `radial-gradient(ellipse at 20% 0%, #1C1814 0%, #0E0C0A 50%, #090808 100%)`,
-    concrete: `radial-gradient(ellipse at 60% 0%, #181A1C 0%, #0C0D0E 50%, #090A0B 100%)`,
-    "amber-lamp": `radial-gradient(ellipse at 40% -5%, #221C14 0%, #100E0B 48%, #0A0908 100%)`,
-    "rain-glass": `radial-gradient(ellipse at 50% 0%, #14181C 0%, #0B0D0F 50%, #090A0B 100%)`,
-    "heat-haze": `radial-gradient(ellipse at 80% 10%, #1E1812 0%, #100E0B 45%, #0A0908 100%)`,
-    "neon-damp": `radial-gradient(ellipse at 10% 30%, #161820 0%, #0C0D12 50%, #090A0C 100%)`,
-    "factory-glow": `radial-gradient(ellipse at 70% 0%, #1A1618 0%, #0E0C0E 48%, #090808 100%)`,
-    "tube-hum": `radial-gradient(ellipse at 40% 0%, #14161A 0%, #0B0C0E 50%, #090A0B 100%)`,
-    "snow-window": `radial-gradient(ellipse at 50% 0%, #161A1E 0%, #0C0E10 48%, #090A0B 100%)`,
-    peak: `radial-gradient(ellipse at 50% -10%, #1A1820 0%, #0C0E12 42%, #090B0D 100%)`,
-    afterhours: `radial-gradient(ellipse at 60% 0%, #14161C 0%, #0C0E12 45%, #090B0D 100%)`,
-    closing: `radial-gradient(ellipse at 30% 10%, #161410 0%, #0E0C0A 48%, #090808 100%)`,
-    warmup: `radial-gradient(ellipse at 40% 0%, #181614 0%, #0E0C0B 48%, #090808 100%)`,
-    dark: `radial-gradient(ellipse at 50% 20%, #121018 0%, #0A0A0E 50%, #080809 100%)`,
+  return roomPosterStyle(atmosphere).gradient;
+}
+
+/**
+ * Per-Room poster identity — distinct light, texture, type, and motion.
+ * Sunday Morning should not look like Warehouse.
+ * Accepts atmosphere id string or a room-like object `{ atmosphere, id, kind }`.
+ */
+export function roomPosterStyle(atmosphereOrRoom) {
+  const atmosphere =
+    typeof atmosphereOrRoom === "string"
+      ? atmosphereOrRoom
+      : atmosphereOrRoom?.atmosphere || atmosphereOrRoom?.id || "vault";
+  const kind =
+    typeof atmosphereOrRoom === "object" && atmosphereOrRoom
+      ? atmosphereOrRoom.kind
+      : null;
+
+  const base = {
+    atmosphere,
+    kind,
+    gradient: `radial-gradient(ellipse at 50% 0%, #161412 0%, #0C0B0A 50%, #090808 100%)`,
+    overlay:
+      "linear-gradient(180deg, rgba(12,11,10,0.22) 0%, rgba(12,11,10,0.58) 42%, rgba(12,11,10,0.96) 100%)",
+    wash: {
+      top: "-12%",
+      right: "-6%",
+      left: "auto",
+      size: 320,
+      color: "rgba(168,146,106,0.16)",
+    },
+    coverBlur: 36,
+    coverSat: 115,
+    coverBright: 0.42,
+    coverScale: 1.15,
+    coverOpacity: 0.85,
+    coverAnim: "fadeIn 1s cubic-bezier(0.33,1,0.68,1) both",
+    titleSize: "clamp(44px, 13vw, 64px)",
+    fontWeight: 800,
+    letterSpacing: -1.8,
+    lineHeight: 0.94,
+    ambientDuration: 6,
+    texture: null,
+    textureOpacity: 0.35,
+    textureSize: "auto",
+    textureBlend: "soft-light",
+    enterName: "roomEnter",
   };
-  return map[atmosphere] || `radial-gradient(ellipse at 50% 0%, #161412 0%, #0C0B0A 50%, #090808 100%)`;
+
+  const grain =
+    "repeating-linear-gradient(0deg, rgba(237,232,225,0.03) 0 1px, transparent 1px 3px)";
+  const rain =
+    "repeating-linear-gradient(105deg, rgba(180,200,220,0.045) 0 1px, transparent 1px 7px)";
+  const concrete =
+    "repeating-linear-gradient(90deg, rgba(237,232,225,0.04) 0 1px, transparent 1px 18px), repeating-linear-gradient(0deg, rgba(237,232,225,0.025) 0 1px, transparent 1px 22px)";
+  const heat =
+    "repeating-linear-gradient(180deg, rgba(220,170,100,0.05) 0 2px, transparent 2px 10px)";
+  const snow =
+    "radial-gradient(circle at 20% 30%, rgba(220,230,240,0.08) 0 1px, transparent 1.5px), radial-gradient(circle at 70% 55%, rgba(220,230,240,0.06) 0 1px, transparent 1.5px)";
+
+  const presets = {
+    "dawn-haze": {
+      gradient: `radial-gradient(ellipse at 28% 0%, #2A2218 0%, #16120E 42%, #0C0B0A 100%)`,
+      overlay:
+        "linear-gradient(180deg, rgba(12,11,10,0.12) 0%, rgba(18,14,10,0.45) 40%, rgba(12,11,10,0.96) 100%)",
+      wash: { top: "-6%", left: "8%", right: "auto", size: 420, color: "rgba(212,176,120,0.22)" },
+      coverBlur: 44,
+      coverSat: 108,
+      coverBright: 0.52,
+      coverOpacity: 0.72,
+      titleSize: "clamp(48px, 14vw, 72px)",
+      fontWeight: 750,
+      letterSpacing: -2.2,
+      lineHeight: 0.92,
+      ambientDuration: 9,
+      texture: grain,
+      textureOpacity: 0.4,
+    },
+    "night-fog": {
+      gradient: `radial-gradient(ellipse at 50% -8%, #1A1C22 0%, #101218 48%, #0C0B0A 100%)`,
+      overlay:
+        "linear-gradient(180deg, rgba(12,11,10,0.35) 0%, rgba(12,11,10,0.62) 45%, rgba(12,11,10,0.97) 100%)",
+      wash: { top: "10%", right: "-10%", left: "auto", size: 380, color: "rgba(140,150,170,0.12)" },
+      coverBlur: 40,
+      coverBright: 0.36,
+      coverSat: 110,
+      titleSize: "clamp(42px, 12vw, 60px)",
+      letterSpacing: -1.6,
+      ambientDuration: 8,
+      texture: grain,
+      textureOpacity: 0.28,
+    },
+    vault: {
+      gradient: `radial-gradient(ellipse at 72% 18%, #1A1612 0%, #0E0C0A 55%, #090808 100%)`,
+      overlay:
+        "linear-gradient(165deg, rgba(12,11,10,0.4) 0%, rgba(12,11,10,0.7) 50%, rgba(12,11,10,0.98) 100%)",
+      wash: { top: "30%", left: "-8%", right: "auto", size: 260, color: "rgba(168,146,106,0.1)" },
+      coverBlur: 28,
+      coverBright: 0.38,
+      coverScale: 1.08,
+      titleSize: "clamp(40px, 11vw, 56px)",
+      letterSpacing: -1.2,
+      fontWeight: 800,
+      ambientDuration: 7,
+      texture: concrete,
+      textureOpacity: 0.22,
+      textureSize: "48px 48px",
+    },
+    shopfront: {
+      gradient: `radial-gradient(ellipse at 18% 0%, #241C14 0%, #120F0C 50%, #0C0B0A 100%)`,
+      overlay:
+        "linear-gradient(180deg, rgba(12,11,10,0.18) 0%, rgba(12,11,10,0.55) 48%, rgba(12,11,10,0.96) 100%)",
+      wash: { top: "-10%", left: "20%", right: "auto", size: 340, color: "rgba(200,160,100,0.18)" },
+      coverBlur: 32,
+      coverBright: 0.48,
+      coverSat: 120,
+      titleSize: "clamp(44px, 12vw, 62px)",
+      letterSpacing: -1.7,
+      ambientDuration: 5.5,
+      texture: grain,
+    },
+    concrete: {
+      gradient: `radial-gradient(ellipse at 62% 0%, #1C1E20 0%, #101214 48%, #0C0B0A 100%)`,
+      overlay:
+        "linear-gradient(180deg, rgba(12,11,10,0.45) 0%, rgba(12,11,10,0.72) 40%, rgba(12,11,10,0.98) 100%)",
+      wash: { top: "25%", right: "-12%", left: "auto", size: 240, color: "rgba(170,175,185,0.08)" },
+      coverBlur: 14,
+      coverBright: 0.32,
+      coverSat: 95,
+      coverScale: 1.06,
+      coverOpacity: 0.9,
+      titleSize: "clamp(40px, 11vw, 58px)",
+      fontWeight: 800,
+      letterSpacing: -0.6,
+      lineHeight: 0.98,
+      ambientDuration: 4,
+      texture: concrete,
+      textureOpacity: 0.45,
+      textureSize: "36px 36px",
+      textureBlend: "overlay",
+    },
+    "amber-lamp": {
+      gradient: `radial-gradient(ellipse at 38% -5%, #2C2216 0%, #14100C 48%, #0C0B0A 100%)`,
+      overlay:
+        "linear-gradient(180deg, rgba(12,11,10,0.15) 0%, rgba(20,14,8,0.5) 45%, rgba(12,11,10,0.96) 100%)",
+      wash: { top: "-4%", left: "30%", right: "auto", size: 400, color: "rgba(220,160,80,0.2)" },
+      coverBlur: 38,
+      coverBright: 0.46,
+      coverSat: 125,
+      titleSize: "clamp(46px, 13vw, 66px)",
+      fontWeight: 750,
+      letterSpacing: -1.9,
+      ambientDuration: 7.5,
+      texture: grain,
+      textureOpacity: 0.3,
+    },
+    "rain-glass": {
+      gradient: `radial-gradient(ellipse at 50% 0%, #181C20 0%, #0E1014 50%, #0C0B0A 100%)`,
+      overlay:
+        "linear-gradient(180deg, rgba(12,11,10,0.3) 0%, rgba(12,14,16,0.65) 48%, rgba(12,11,10,0.97) 100%)",
+      wash: { top: "0%", left: "40%", right: "auto", size: 360, color: "rgba(150,170,190,0.1)" },
+      coverBlur: 48,
+      coverBright: 0.4,
+      coverSat: 90,
+      coverOpacity: 0.7,
+      titleSize: "clamp(44px, 13vw, 64px)",
+      fontWeight: 700,
+      letterSpacing: -2,
+      ambientDuration: 10,
+      texture: rain,
+      textureOpacity: 0.55,
+      textureSize: "12px 12px",
+      textureBlend: "screen",
+    },
+    "heat-haze": {
+      gradient: `radial-gradient(ellipse at 82% 8%, #2A1E14 0%, #14100C 45%, #0C0B0A 100%)`,
+      overlay:
+        "linear-gradient(200deg, rgba(12,11,10,0.1) 0%, rgba(24,16,10,0.5) 42%, rgba(12,11,10,0.96) 100%)",
+      wash: { top: "-15%", right: "0%", left: "auto", size: 440, color: "rgba(230,160,70,0.22)" },
+      coverBlur: 30,
+      coverBright: 0.5,
+      coverSat: 130,
+      titleSize: "clamp(48px, 14vw, 70px)",
+      fontWeight: 800,
+      letterSpacing: -2.4,
+      ambientDuration: 5,
+      texture: heat,
+      textureOpacity: 0.4,
+    },
+    "neon-damp": {
+      gradient: `radial-gradient(ellipse at 8% 28%, #1A1C28 0%, #101218 50%, #0C0B0A 100%)`,
+      overlay:
+        "linear-gradient(135deg, rgba(12,11,10,0.25) 0%, rgba(12,11,10,0.6) 50%, rgba(12,11,10,0.97) 100%)",
+      wash: { top: "40%", left: "-5%", right: "auto", size: 300, color: "rgba(168,146,106,0.14)" },
+      coverBlur: 26,
+      coverBright: 0.4,
+      coverSat: 118,
+      titleSize: "clamp(42px, 12vw, 60px)",
+      letterSpacing: -1.4,
+      ambientDuration: 4.5,
+      texture: rain,
+      textureOpacity: 0.35,
+    },
+    "factory-glow": {
+      gradient: `radial-gradient(ellipse at 70% 0%, #22181C 0%, #120E10 48%, #0C0B0A 100%)`,
+      overlay:
+        "linear-gradient(180deg, rgba(12,11,10,0.35) 0%, rgba(12,11,10,0.68) 45%, rgba(12,11,10,0.98) 100%)",
+      wash: { top: "-8%", right: "5%", left: "auto", size: 320, color: "rgba(180,100,90,0.12)" },
+      coverBlur: 18,
+      coverBright: 0.34,
+      coverSat: 105,
+      titleSize: "clamp(40px, 11vw, 56px)",
+      letterSpacing: -0.8,
+      ambientDuration: 4.2,
+      texture: concrete,
+      textureOpacity: 0.35,
+      textureSize: "40px 40px",
+    },
+    "tube-hum": {
+      gradient: `radial-gradient(ellipse at 40% 0%, #1A1C22 0%, #101214 50%, #0C0B0A 100%)`,
+      overlay:
+        "linear-gradient(180deg, rgba(12,11,10,0.32) 0%, rgba(12,11,10,0.66) 48%, rgba(12,11,10,0.97) 100%)",
+      wash: { top: "15%", left: "50%", right: "auto", size: 280, color: "rgba(160,170,190,0.1)" },
+      coverBlur: 34,
+      coverBright: 0.38,
+      titleSize: "clamp(42px, 12vw, 60px)",
+      letterSpacing: -1.5,
+      ambientDuration: 6.5,
+      texture: grain,
+    },
+    "snow-window": {
+      gradient: `radial-gradient(ellipse at 50% 0%, #1C2228 0%, #101418 48%, #0C0B0A 100%)`,
+      overlay:
+        "linear-gradient(180deg, rgba(12,11,10,0.2) 0%, rgba(14,16,18,0.55) 45%, rgba(12,11,10,0.96) 100%)",
+      wash: { top: "-10%", left: "25%", right: "auto", size: 400, color: "rgba(200,210,220,0.12)" },
+      coverBlur: 40,
+      coverBright: 0.44,
+      coverSat: 95,
+      titleSize: "clamp(44px, 13vw, 64px)",
+      fontWeight: 750,
+      letterSpacing: -1.8,
+      ambientDuration: 9,
+      texture: snow,
+      textureOpacity: 0.65,
+      textureSize: "120px 120px",
+      textureBlend: "screen",
+    },
+    peak: {
+      gradient: `radial-gradient(ellipse at 50% -10%, #221C28 0%, #121018 42%, #0C0B0A 100%)`,
+      overlay:
+        "linear-gradient(180deg, rgba(12,11,10,0.28) 0%, rgba(12,11,10,0.6) 40%, rgba(12,11,10,0.97) 100%)",
+      wash: { top: "-18%", right: "-4%", left: "auto", size: 380, color: "rgba(168,146,106,0.18)" },
+      coverBlur: 22,
+      coverBright: 0.4,
+      coverSat: 120,
+      titleSize: "clamp(48px, 14vw, 72px)",
+      letterSpacing: -2.2,
+      ambientDuration: 3.8,
+      texture: grain,
+      textureOpacity: 0.25,
+    },
+    afterhours: {
+      gradient: `radial-gradient(ellipse at 60% 0%, #181A22 0%, #101218 45%, #0C0B0A 100%)`,
+      overlay:
+        "linear-gradient(180deg, rgba(12,11,10,0.38) 0%, rgba(12,11,10,0.68) 48%, rgba(12,11,10,0.98) 100%)",
+      wash: { top: "20%", right: "-8%", left: "auto", size: 300, color: "rgba(140,150,180,0.1)" },
+      coverBlur: 36,
+      coverBright: 0.34,
+      titleSize: "clamp(42px, 12vw, 60px)",
+      letterSpacing: -1.4,
+      ambientDuration: 7,
+    },
+    closing: {
+      gradient: `radial-gradient(ellipse at 30% 10%, #1C1814 0%, #120E0C 48%, #0C0B0A 100%)`,
+      overlay:
+        "linear-gradient(180deg, rgba(12,11,10,0.25) 0%, rgba(12,11,10,0.62) 50%, rgba(12,11,10,0.97) 100%)",
+      wash: { top: "5%", left: "10%", right: "auto", size: 340, color: "rgba(168,146,106,0.12)" },
+      coverBlur: 42,
+      coverBright: 0.36,
+      titleSize: "clamp(40px, 11vw, 56px)",
+      fontWeight: 750,
+      letterSpacing: -1.6,
+      ambientDuration: 8.5,
+      texture: grain,
+    },
+    warmup: {
+      gradient: `radial-gradient(ellipse at 40% 0%, #1E1A16 0%, #120F0C 48%, #0C0B0A 100%)`,
+      overlay:
+        "linear-gradient(180deg, rgba(12,11,10,0.2) 0%, rgba(12,11,10,0.55) 48%, rgba(12,11,10,0.96) 100%)",
+      wash: { top: "-8%", left: "35%", right: "auto", size: 360, color: "rgba(190,160,110,0.16)" },
+      coverBlur: 34,
+      coverBright: 0.44,
+      titleSize: "clamp(44px, 12vw, 62px)",
+      letterSpacing: -1.7,
+      ambientDuration: 6,
+    },
+    dark: {
+      gradient: `radial-gradient(ellipse at 50% 20%, #141018 0%, #0C0A0E 50%, #0A090B 100%)`,
+      overlay:
+        "linear-gradient(180deg, rgba(12,11,10,0.5) 0%, rgba(12,11,10,0.78) 45%, rgba(12,11,10,0.98) 100%)",
+      wash: { top: "35%", left: "40%", right: "auto", size: 220, color: "rgba(120,110,140,0.08)" },
+      coverBlur: 20,
+      coverBright: 0.28,
+      coverSat: 100,
+      titleSize: "clamp(40px, 11vw, 56px)",
+      letterSpacing: -1,
+      ambientDuration: 5,
+      texture: grain,
+      textureOpacity: 0.2,
+    },
+  };
+
+  const preset = presets[atmosphere] || {};
+  return { ...base, ...preset, wash: { ...base.wash, ...(preset.wash || {}) } };
 }

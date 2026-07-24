@@ -66,6 +66,11 @@ describe("arrival sound preference", () => {
     expect(getArrivalSoundEnabled()).toBe(false);
   });
 
+  test("reads legacy crate-arrival-sound key", () => {
+    localStorage.setItem("crate-arrival-sound", "1");
+    expect(getArrivalSoundEnabled()).toBe(true);
+  });
+
   test("enterRoomCue and hapticTap are safe no-ops when muted", () => {
     expect(() => enterRoomCue()).not.toThrow();
     expect(() => hapticTap()).not.toThrow();

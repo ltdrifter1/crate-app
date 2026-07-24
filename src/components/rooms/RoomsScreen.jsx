@@ -15,19 +15,23 @@ import {
   populateAllRooms,
   tonightRoom,
   roomsByKind,
-  atmosphereGradient,
+  roomPosterStyle,
   KIND_LABELS,
   presencePhrase,
 } from "../../lib/rooms";
 import { explainPick } from "../../lib/explain";
 import { enterRoomCue } from "../../lib/club";
+import RoomPosterBackdrop from "../brand/RoomPosterBackdrop";
 
 function RoomHero({ room, onEnter, onPlay }) {
   const cover = room.coverTrack?.albumCover;
-  const bg = atmosphereGradient(room.atmosphere || room.id);
+  const poster = roomPosterStyle(room);
 
   return (
-    <div
+    <RoomPosterBackdrop
+      room={room}
+      coverUrl={cover}
+      minHeight="min(58vh, 480px)"
       role="button"
       tabIndex={0}
       onClick={() => onEnter(room)}
@@ -38,59 +42,12 @@ function RoomHero({ room, onEnter, onPlay }) {
         }
       }}
       style={{
-        position: "relative",
-        overflow: "hidden",
-        minHeight: "min(58vh, 480px)",
-        display: "flex",
-        flexDirection: "column",
-        justifyContent: "flex-end",
         padding: "44px 20px 32px",
         cursor: "pointer",
         animation: `stationIn ${motionDuration.enter + 0.15}s ${motionEase.out} both`,
       }}
     >
-      <div aria-hidden="true" style={{ position: "absolute", inset: 0, background: bg }} />
-      {cover && (
-        <div
-          aria-hidden="true"
-          style={{
-            position: "absolute",
-            inset: 0,
-            backgroundImage: `url(${cover})`,
-            backgroundSize: "cover",
-            backgroundPosition: "center",
-            filter: "blur(36px) saturate(115%) brightness(0.42)",
-            transform: "scale(1.15)",
-            opacity: 0.85,
-            animation: `fadeIn ${motionDuration.art / 8}s ${motionEase.soft} both`,
-          }}
-        />
-      )}
-      <div
-        aria-hidden="true"
-        style={{
-          position: "absolute",
-          inset: 0,
-          background:
-            "linear-gradient(180deg, rgba(12,11,10,0.25) 0%, rgba(12,11,10,0.55) 42%, rgba(12,11,10,0.96) 100%)",
-        }}
-      />
-      <div
-        aria-hidden="true"
-        style={{
-          position: "absolute",
-          top: "-12%",
-          right: "-6%",
-          width: 320,
-          height: 320,
-          borderRadius: "50%",
-          background: `radial-gradient(circle, ${color.accentSoft} 0%, transparent 68%)`,
-          pointerEvents: "none",
-          animation: `breathe ${motionDuration.ambient}s ease-in-out infinite`,
-        }}
-      />
-
-      <div style={{ position: "relative", zIndex: 1, maxWidth: 420 }}>
+      <div style={{ maxWidth: 420 }}>
         <div
           style={{
             fontSize: 11,
@@ -107,10 +64,10 @@ function RoomHero({ room, onEnter, onPlay }) {
         </div>
         <div
           style={{
-            fontSize: "clamp(44px, 13vw, 64px)",
-            fontWeight: 800,
-            letterSpacing: -1.8,
-            lineHeight: 0.94,
+            fontSize: poster.titleSize,
+            fontWeight: poster.fontWeight,
+            letterSpacing: poster.letterSpacing,
+            lineHeight: poster.lineHeight,
             color: color.onDark,
             fontFamily: fontDisplay,
             marginBottom: 14,
@@ -142,7 +99,7 @@ function RoomHero({ room, onEnter, onPlay }) {
                 marginBottom: 6,
               }}
             >
-              Featured
+              On the table
             </div>
             <div
               style={{
@@ -208,7 +165,7 @@ function RoomHero({ room, onEnter, onPlay }) {
           </button>
         </div>
       </div>
-    </div>
+    </RoomPosterBackdrop>
   );
 }
 
@@ -292,7 +249,7 @@ function RoomDetail({
   preferredGenres = [],
   onShareRoom,
 }) {
-  const bg = atmosphereGradient(room.atmosphere || room.id);
+  const poster = roomPosterStyle(room);
   const cover = room.coverTrack;
   const activity = presencePhrase(room);
   const why = cover ? explainPick(cover, { room, preferredGenres }) : "";
@@ -305,55 +262,14 @@ function RoomDetail({
         animation: `roomEnter ${motionDuration.enter}s ${motionEase.out} both`,
       }}
     >
-      <div
-        style={{
-          position: "relative",
-          overflow: "hidden",
-          minHeight: 240,
-          padding: "20px 20px 28px",
-          display: "flex",
-          flexDirection: "column",
-          justifyContent: "flex-end",
-        }}
+      <RoomPosterBackdrop
+        room={room}
+        coverUrl={cover?.albumCover}
+        minHeight={260}
+        style={{ padding: "20px 20px 28px" }}
       >
         <div
-          aria-hidden="true"
           style={{
-            position: "absolute",
-            inset: 0,
-            background: bg,
-            animation: `fadeIn ${motionDuration.settle}s ${motionEase.soft} both`,
-          }}
-        />
-        {cover?.albumCover && (
-          <div
-            aria-hidden="true"
-            style={{
-              position: "absolute",
-              inset: 0,
-              backgroundImage: `url(${cover.albumCover})`,
-              backgroundSize: "cover",
-              backgroundPosition: "center",
-              filter: "blur(28px) brightness(0.45)",
-              transform: "scale(1.1)",
-              opacity: 0.8,
-              animation: `fadeIn ${motionDuration.enter}s ${motionEase.soft} both`,
-            }}
-          />
-        )}
-        <div
-          aria-hidden="true"
-          style={{
-            position: "absolute",
-            inset: 0,
-            background:
-              "linear-gradient(180deg, rgba(12,11,10,0.3) 0%, rgba(12,11,10,0.92) 100%)",
-          }}
-        />
-        <div
-          style={{
-            position: "relative",
-            zIndex: 1,
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
@@ -393,7 +309,7 @@ function RoomDetail({
             </button>
           )}
         </div>
-        <div style={{ position: "relative", zIndex: 1 }}>
+        <div>
           <div
             style={{
               fontSize: 11,
@@ -412,12 +328,12 @@ function RoomDetail({
           <h1
             style={{
               margin: 0,
-              fontSize: "clamp(32px, 9vw, 44px)",
-              fontWeight: 800,
-              letterSpacing: -1.4,
+              fontSize: poster.titleSize,
+              fontWeight: poster.fontWeight,
+              letterSpacing: poster.letterSpacing,
               fontFamily: fontDisplay,
               color: color.onDark,
-              lineHeight: 1,
+              lineHeight: poster.lineHeight,
               animation: `rise ${motionDuration.enter}s ${motionEase.out} 0.06s both`,
             }}
           >
@@ -489,7 +405,7 @@ function RoomDetail({
             </button>
           )}
         </div>
-      </div>
+      </RoomPosterBackdrop>
 
       <div style={{ padding: "8px 16px 40px" }}>
         <div

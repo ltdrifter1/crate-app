@@ -6,6 +6,7 @@ import {
   tonightRoom,
   roomsByKind,
   atmosphereGradient,
+  roomPosterStyle,
   presencePhrase,
 } from "./rooms";
 import { CLUB_ROOMS } from "./club";
@@ -115,5 +116,26 @@ describe("atmosphereGradient", () => {
   test("returns CSS gradients for known atmospheres", () => {
     expect(atmosphereGradient("amber-lamp")).toContain("radial-gradient");
     expect(atmosphereGradient("unknown-xyz")).toContain("radial-gradient");
+  });
+});
+
+describe("roomPosterStyle", () => {
+  test("gives Sunday Morning and Warehouse distinct poster identities", () => {
+    const dawn = roomPosterStyle("dawn-haze");
+    const warehouse = roomPosterStyle("concrete");
+    expect(dawn.gradient).not.toEqual(warehouse.gradient);
+    expect(dawn.coverBlur).toBeGreaterThan(warehouse.coverBlur);
+    expect(dawn.ambientDuration).toBeGreaterThan(warehouse.ambientDuration);
+    expect(warehouse.texture).toBeTruthy();
+    expect(dawn.titleSize).toBeTruthy();
+  });
+
+  test("accepts room objects and unknown atmospheres", () => {
+    const fromRoom = roomPosterStyle({ atmosphere: "rain-glass", kind: "mood", id: "rain" });
+    expect(fromRoom.texture).toBeTruthy();
+    expect(fromRoom.letterSpacing).toBeLessThan(0);
+    const fallback = roomPosterStyle("totally-unknown");
+    expect(fallback.gradient).toContain("radial-gradient");
+    expect(fallback.wash.size).toBeGreaterThan(0);
   });
 });

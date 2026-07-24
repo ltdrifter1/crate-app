@@ -1,4 +1,4 @@
-// Canonical genre set for 4AM — nothing outside this list is shown or stored after normalize.
+// Canonical genre set for ROOMS — nothing outside this list is shown or stored after normalize.
 
 export const CANONICAL_GENRES = [
   "Rock",
