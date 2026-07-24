@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
+import { createPortal }                             from "react-dom";
 import { useAuth }                                  from "./useAuth";
 import { toggleLike as fbToggleLike, recordPlay, saveGenres } from "./useUserData";
 import { collection, getDocs, addDoc, query, orderBy, doc, updateDoc, setDoc } from "firebase/firestore";
@@ -395,111 +396,304 @@ function DeepCutsCard({
 }
 
 // ─── PLAYLIST MENU CONTEXT ────────────────────────────────────────────────────
-// Passed down from App so every TrackRow can access playlists + handlers
-const PlaylistCtx = { playlists:[], onCreate:()=>{}, onAdd:()=>{}, onRemove:()=>{}, activePlaylistId:null };
+// Passed down so every track surface can add/remove playlists
+const PlaylistCtx = {
+  playlists: [],
+  onCreate: () => {},
+  onAdd: () => {},
+  onRemove: () => {},
+  onToast: () => {},
+  onResonance: null,
+  onLike: null,
+};
 
-// ─── TRACK ROW ────────────────────────────────────────────────────────────────
-function TrackRow({ track, onPlay, active, isPlaying, onLike, extraAction, playlistCtx, activePlaylistId }) {
-  const [menuOpen, setMenuOpen]   = useState(false);
+function clampMenuPos(x, y, w = 240, h = 320) {
+  const pad = 8;
+  const left = Math.max(pad, Math.min(x, (typeof window !== "undefined" ? window.innerWidth : 400) - w - pad));
+  const top = Math.max(pad, Math.min(y, (typeof window !== "undefined" ? window.innerHeight : 700) - h - pad));
+  return { left, top };
+}
+
+/** Spotify/iTunes-style track menu — ⋯ or right-click. Portaled so it never clips. */
+function TrackActionsMenu({ track, playlistCtx, activePlaylistId, x, y, onClose }) {
+  const ctx = playlistCtx || PlaylistCtx;
   const [newPlName, setNewPlName] = useState("");
   const [showNewPl, setShowNewPl] = useState(false);
-  const ctx = playlistCtx || PlaylistCtx;
+  const menuRef = useRef(null);
+  const pos = clampMenuPos(x, y);
 
-  function handleAddTo(plId) {
-    ctx.onAdd(track.id, plId);
-    setMenuOpen(false);
+  useEffect(() => {
+    const onKey = (e) => { if (e.key === "Escape") onClose(); };
+    const onDown = (e) => {
+      if (menuRef.current && !menuRef.current.contains(e.target)) onClose();
+    };
+    document.addEventListener("keydown", onKey);
+    document.addEventListener("mousedown", onDown);
+    document.addEventListener("touchstart", onDown);
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.removeEventListener("mousedown", onDown);
+      document.removeEventListener("touchstart", onDown);
+    };
+  }, [onClose]);
+
+  function inPlaylist(pl) {
+    return (pl.trackIds || []).includes(track.id);
   }
+
+  function handleTogglePlaylist(pl) {
+    if (inPlaylist(pl)) {
+      ctx.onRemove(track.id, pl.id);
+    } else {
+      ctx.onAdd(track.id, pl.id);
+    }
+    onClose();
+  }
+
   function handleCreateAndAdd() {
     if (!newPlName.trim()) return;
     ctx.onCreate(newPlName.trim(), track.id);
-    setNewPlName(""); setShowNewPl(false); setMenuOpen(false);
+    setNewPlName("");
+    setShowNewPl(false);
+    onClose();
   }
 
+  const menu = (
+    <div
+      ref={menuRef}
+      role="menu"
+      aria-label="Track actions"
+      onClick={(e) => e.stopPropagation()}
+      onContextMenu={(e) => e.preventDefault()}
+      style={{
+        position: "fixed",
+        left: pos.left,
+        top: pos.top,
+        zIndex: 400,
+        background: color.surfaceRaised,
+        border: `1px solid ${color.lineStrong}`,
+        borderRadius: radius.md,
+        padding: "6px 0",
+        minWidth: 220,
+        maxWidth: 280,
+        maxHeight: "min(70vh, 420px)",
+        overflowY: "auto",
+        boxShadow: "0 20px 48px rgba(0,0,0,0.55)",
+        animation: "fadeIn 0.12s ease both",
+      }}
+    >
+      <div style={{ padding: "8px 14px 10px", borderBottom: `1px solid ${color.line}` }}>
+        <div style={{ fontSize: 13, fontWeight: 650, color: color.ink, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontFamily: fontDisplay }}>
+          {track.title}
+        </div>
+        <div style={{ fontSize: 11, color: color.muted, marginTop: 2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+          {track.artist}
+        </div>
+      </div>
+
+      <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 1.2, color: color.faint, padding: "10px 14px 4px", textTransform: "uppercase", fontFamily: fontMono }}>
+        Add to playlist
+      </div>
+
+      {ctx.playlists.length === 0 && !showNewPl && (
+        <div style={{ fontSize: 13, color: color.muted, padding: "8px 14px 4px" }}>
+          No playlists yet — create one below.
+        </div>
+      )}
+
+      {ctx.playlists.map((pl) => {
+        const has = inPlaylist(pl);
+        return (
+          <button
+            key={pl.id}
+            type="button"
+            role="menuitem"
+            onClick={() => handleTogglePlaylist(pl)}
+            style={{
+              display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12,
+              width: "100%", textAlign: "left", background: "none", border: "none",
+              color: color.ink, fontSize: 14, padding: "10px 14px", cursor: "pointer",
+            }}
+          >
+            <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{pl.name}</span>
+            <span style={{
+              flexShrink: 0, fontSize: 12, fontFamily: fontMono,
+              color: has ? color.accent : color.faint,
+            }}>
+              {has ? "✓" : "+"}
+            </span>
+          </button>
+        );
+      })}
+
+      <div style={{ height: 1, background: color.line, margin: "4px 14px" }} />
+
+      {showNewPl ? (
+        <div style={{ padding: "8px 12px" }}>
+          <input
+            autoFocus
+            value={newPlName}
+            onChange={(e) => setNewPlName(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") handleCreateAndAdd();
+              if (e.key === "Escape") setShowNewPl(false);
+            }}
+            placeholder="Playlist name…"
+            style={{ ...INPUT_ST, marginBottom: 6, padding: "8px 10px", fontSize: 13 }}
+          />
+          <div style={{ display: "flex", gap: 6 }}>
+            <button type="button" onClick={handleCreateAndAdd} style={{ flex: 1, background: color.accent, border: "none", borderRadius: radius.sm, color: color.onAccent, fontSize: 13, fontWeight: 600, padding: "8px 0", cursor: "pointer" }}>
+              Create
+            </button>
+            <button type="button" onClick={() => setShowNewPl(false)} style={{ flex: 1, background: "transparent", border: `1px solid ${color.line}`, borderRadius: radius.sm, color: color.muted, fontSize: 13, padding: "8px 0", cursor: "pointer" }}>
+              Cancel
+            </button>
+          </div>
+        </div>
+      ) : (
+        <button
+          type="button"
+          role="menuitem"
+          onClick={() => setShowNewPl(true)}
+          style={{ display: "flex", alignItems: "center", gap: 8, width: "100%", textAlign: "left", background: "none", border: "none", color: color.ink, fontSize: 14, padding: "10px 14px", cursor: "pointer", fontWeight: 500 }}
+        >
+          <Icon name="plus" size={14} /> New playlist
+        </button>
+      )}
+
+      {ctx.onLike && (
+        <>
+          <div style={{ height: 1, background: color.line, margin: "4px 14px" }} />
+          <button
+            type="button"
+            role="menuitem"
+            onClick={() => { ctx.onLike(track.id); onClose(); }}
+            style={{ display: "block", width: "100%", textAlign: "left", background: "none", border: "none", color: color.ink, fontSize: 14, padding: "10px 14px", cursor: "pointer" }}
+          >
+            {track.liked ? "Remove from Saved" : "Save track"}
+          </button>
+        </>
+      )}
+
+      {ctx.onResonance && (
+        <button
+          type="button"
+          role="menuitem"
+          onClick={() => { ctx.onResonance(track); onClose(); }}
+          style={{ display: "block", width: "100%", textAlign: "left", background: "none", border: "none", color: color.ink, fontSize: 14, padding: "10px 14px", cursor: "pointer" }}
+        >
+          Find similar
+        </button>
+      )}
+
+      {activePlaylistId && activePlaylistId !== "liked" && (
+        <>
+          <div style={{ height: 1, background: color.line, margin: "4px 14px" }} />
+          <button
+            type="button"
+            role="menuitem"
+            onClick={() => {
+              ctx.onRemove(track.id, activePlaylistId);
+              onClose();
+            }}
+            style={{ display: "block", width: "100%", textAlign: "left", background: "none", border: "none", color: color.alert, fontSize: 14, padding: "10px 14px", cursor: "pointer" }}
+          >
+            Remove from this playlist
+          </button>
+        </>
+      )}
+    </div>
+  );
+
+  return createPortal(menu, document.body);
+}
+
+function useTrackMenu() {
+  const [menu, setMenu] = useState(null); // { track, x, y, activePlaylistId } | null
+  const openAt = useCallback((track, x, y, activePlaylistId = null) => {
+    setMenu({ track, x, y, activePlaylistId });
+  }, []);
+  const openFromButton = useCallback((e, track, activePlaylistId = null) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const r = e.currentTarget.getBoundingClientRect();
+    openAt(track, r.right - 220, r.bottom + 4, activePlaylistId);
+  }, [openAt]);
+  const openFromContext = useCallback((e, track, activePlaylistId = null) => {
+    e.preventDefault();
+    e.stopPropagation();
+    openAt(track, e.clientX, e.clientY, activePlaylistId);
+  }, [openAt]);
+  const close = useCallback(() => setMenu(null), []);
+  return { menu, openFromButton, openFromContext, close };
+}
+
+function TrackMoreButton({ onClick, size = 18 }) {
   return (
-    <div style={{ position:"relative" }}>
+    <button
+      type="button"
+      aria-label="More"
+      aria-haspopup="menu"
+      onClick={onClick}
+      style={{
+        background: "none", border: "none", cursor: "pointer",
+        color: color.faint, padding: "4px 6px", fontSize: size, lineHeight: 1, flexShrink: 0,
+      }}
+    >
+      ⋯
+    </button>
+  );
+}
+
+// ─── TRACK ROW ────────────────────────────────────────────────────────────────
+function TrackRow({ track, onPlay, active, isPlaying, onLike, extraAction, playlistCtx, activePlaylistId }) {
+  const { menu, openFromButton, openFromContext, close } = useTrackMenu();
+
+  return (
+    <div style={{ position: "relative" }}>
       <div
         role="button"
         tabIndex={0}
         onClick={onPlay}
-        onKeyDown={e=>{ if(e.key==="Enter"||e.key===" ") { e.preventDefault(); onPlay(); } }}
+        onContextMenu={(e) => openFromContext(e, track, activePlaylistId)}
+        onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onPlay(); } }}
         style={{
-          display:"flex", alignItems:"center", gap:12, padding:"10px 8px", borderRadius: radius.sm,
-          cursor:"pointer", marginBottom:1,
+          display: "flex", alignItems: "center", gap: 12, padding: "10px 8px", borderRadius: radius.sm,
+          cursor: "pointer", marginBottom: 1,
           background: active ? color.accentSoft : "transparent",
         }}
       >
-        <div style={{ width:44, height:44, borderRadius:9, overflow:"hidden", flexShrink:0, position:"relative" }}>
-          <AlbumArt track={track} size={44} borderRadius={0}/>
-          {active&&isPlaying&&(
-            <div style={{ position:"absolute", inset:0, background:"rgba(0,0,0,0.4)", display:"flex", alignItems:"center", justifyContent:"center" }}>
-              <div style={{ width:6, height:6, borderRadius:"50%", background: color.accent, animation:"pulse 1.2s ease-in-out infinite" }}/>
+        <div style={{ width: 44, height: 44, borderRadius: 9, overflow: "hidden", flexShrink: 0, position: "relative" }}>
+          <AlbumArt track={track} size={44} borderRadius={0} />
+          {active && isPlaying && (
+            <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.4)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <div style={{ width: 6, height: 6, borderRadius: "50%", background: color.accent, animation: "pulse 1.2s ease-in-out infinite" }} />
             </div>
           )}
         </div>
-        <div style={{ flex:1, minWidth:0 }}>
-          <div style={{ fontSize:14, fontWeight: active?600:500, letterSpacing:-0.15, color: active ? color.accent : color.ink, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{track.title}</div>
-          <div style={{ fontSize:12, color: color.muted, marginTop:2 }}>{track.artist}{normalizeGenre(track.genre) ? ` · ${normalizeGenre(track.genre)}` : ""}</div>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontSize: 14, fontWeight: active ? 600 : 500, letterSpacing: -0.15, color: active ? color.accent : color.ink, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{track.title}</div>
+          <div style={{ fontSize: 12, color: color.muted, marginTop: 2 }}>{track.artist}{normalizeGenre(track.genre) ? ` · ${normalizeGenre(track.genre)}` : ""}</div>
         </div>
-        {onLike&&(
-          <button type="button" aria-label={track.liked?"Unlike":"Like"} onClick={e=>{e.stopPropagation();onLike(track.id);}}
-            style={{ background:"none", border:"none", cursor:"pointer", color: track.liked? color.accent : color.faint, padding:6 }}>
-            <Icon name={track.liked?"heart":"heartempty"} size={16}/>
+        {onLike && (
+          <button type="button" aria-label={track.liked ? "Unlike" : "Like"} onClick={(e) => { e.stopPropagation(); onLike(track.id); }}
+            style={{ background: "none", border: "none", cursor: "pointer", color: track.liked ? color.accent : color.faint, padding: 6 }}>
+            <Icon name={track.liked ? "heart" : "heartempty"} size={16} />
           </button>
         )}
-        <button type="button" aria-label="More" onClick={e=>{e.stopPropagation();setMenuOpen(o=>!o);setShowNewPl(false);}}
-          style={{ background:"none", border:"none", cursor:"pointer", color: color.faint, padding:"4px 6px", fontSize:18, lineHeight:1, flexShrink:0 }}>⋯</button>
-        {extraAction||null}
+        <TrackMoreButton onClick={(e) => openFromButton(e, track, activePlaylistId)} />
+        {extraAction || null}
       </div>
 
-      {menuOpen && (
-        <div onClick={e=>e.stopPropagation()}
-          style={{ position:"absolute", right:8, top:52, zIndex:50, background: color.surfaceRaised, border:`1px solid ${color.lineStrong}`, borderRadius: radius.md, padding:"6px 0", minWidth:200, boxShadow:"0 16px 40px rgba(0,0,0,0.45)" }}>
-          {ctx.playlists.length > 0 && (
-            <>
-              <div style={{ fontSize:10, fontWeight:650, letterSpacing:0.8, color: color.faint, padding:"6px 14px", textTransform:"uppercase" }}>Add to playlist</div>
-              {ctx.playlists.map(pl => (
-                <button key={pl.id} type="button" onClick={()=>handleAddTo(pl.id)}
-                  style={{ display:"block", width:"100%", textAlign:"left", background:"none", border:"none", color: color.ink, fontSize:14, padding:"10px 14px", cursor:"pointer" }}>
-                  {pl.name}
-                </button>
-              ))}
-              <div style={{ height:1, background: color.line, margin:"4px 14px" }}/>
-            </>
-          )}
-          {showNewPl ? (
-            <div style={{ padding:"8px 12px" }}>
-              <input autoFocus value={newPlName} onChange={e=>setNewPlName(e.target.value)}
-                onKeyDown={e=>{if(e.key==="Enter")handleCreateAndAdd();if(e.key==="Escape")setShowNewPl(false);}}
-                placeholder="Playlist name…"
-                style={{ ...INPUT_ST, marginBottom:6, padding:"8px 10px", fontSize:13 }}/>
-              <div style={{ display:"flex", gap:6 }}>
-                <button type="button" onClick={handleCreateAndAdd} style={{ flex:1, background: color.accent, border:"none", borderRadius:8, color: color.onAccent, fontSize:13, fontWeight:600, padding:"8px 0", cursor:"pointer" }}>Create</button>
-                <button type="button" onClick={()=>setShowNewPl(false)} style={{ flex:1, background:"transparent", border:`1px solid ${color.line}`, borderRadius:8, color: color.muted, fontSize:13, padding:"8px 0", cursor:"pointer" }}>Cancel</button>
-              </div>
-            </div>
-          ) : (
-            <button type="button" onClick={()=>setShowNewPl(true)}
-              style={{ display:"flex", alignItems:"center", gap:8, width:"100%", textAlign:"left", background:"none", border:"none", color: color.ink, fontSize:14, padding:"10px 14px", cursor:"pointer", fontWeight:500 }}>
-              + New playlist
-            </button>
-          )}
-          {activePlaylistId && activePlaylistId !== "liked" && (
-            <>
-              <div style={{ height:1, background: color.line, margin:"4px 14px" }}/>
-              <button type="button" onClick={()=>{if(ctx.onResonance) ctx.onResonance(track); setMenuOpen(false);}}
-                style={{ width:"100%", textAlign:"left", background:"none", border:"none", padding:"10px 14px", fontSize:13, color: color.ink, cursor:"pointer" }}>Find similar</button>
-              <button type="button" onClick={()=>{ctx.onRemove(track.id, activePlaylistId);setMenuOpen(false);}}
-                style={{ display:"block", width:"100%", textAlign:"left", background:"none", border:"none", color: color.alert, fontSize:14, padding:"10px 14px", cursor:"pointer" }}>
-                Remove from playlist
-              </button>
-            </>
-          )}
-          <div style={{ height:1, background: color.line, margin:"4px 14px" }}/>
-          <button type="button" onClick={()=>setMenuOpen(false)}
-            style={{ display:"block", width:"100%", textAlign:"left", background:"none", border:"none", color: color.faint, fontSize:13, padding:"8px 14px", cursor:"pointer" }}>
-            Close
-          </button>
-        </div>
+      {menu && (
+        <TrackActionsMenu
+          track={menu.track}
+          playlistCtx={playlistCtx}
+          activePlaylistId={menu.activePlaylistId}
+          x={menu.x}
+          y={menu.y}
+          onClose={close}
+        />
       )}
     </div>
   );
@@ -1328,6 +1522,7 @@ function HomeScreen({
   const topTracks = [...singles].sort((a, b) => (b.playCount || 0) - (a.playCount || 0)).slice(0, 8);
   const recentlySaved = [...singles].filter(t => t.liked).slice(0, 12);
   const activeId = currentTrack?.id;
+  const { menu, openFromButton, openFromContext, close } = useTrackMenu();
 
   return (
     <div style={{ position:"relative", paddingBottom:36 }}>
@@ -1389,6 +1584,7 @@ function HomeScreen({
                   role="button"
                   tabIndex={0}
                   onClick={() => onPlayTrack(t, tracks)}
+                  onContextMenu={(e) => openFromContext(e, t)}
                   onKeyDown={e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onPlayTrack(t, tracks); } }}
                   style={{
                     display:"flex", alignItems:"center", gap:14, padding:"14px 0",
@@ -1437,6 +1633,7 @@ function HomeScreen({
                       <Icon name={t.liked ? "heart" : "heartempty"} size={15}/>
                     </button>
                   )}
+                  <TrackMoreButton onClick={(e) => openFromButton(e, t)} />
                 </div>
               );
             })}
@@ -1454,8 +1651,9 @@ function HomeScreen({
                 <div
                   key={t.id}
                   onClick={() => onPlayTrack(t, tracks)}
+                  onContextMenu={(e) => openFromContext(e, t)}
                   style={{
-                    flexShrink:0, width:148, cursor:"pointer",
+                    flexShrink:0, width:148, cursor:"pointer", position:"relative",
                     animation:`rise 0.55s cubic-bezier(0.22,1,0.36,1) ${0.08 + i * 0.03}s both`,
                   }}
                 >
@@ -1472,6 +1670,9 @@ function HomeScreen({
                       opacity: active ? 1 : 0.35,
                       transition:"opacity 0.25s",
                     }}/>
+                    <div style={{ position:"absolute", top:6, right:4, zIndex:2 }} onClick={e=>e.stopPropagation()}>
+                      <TrackMoreButton onClick={(e) => openFromButton(e, t)} />
+                    </div>
                   </div>
                   <div style={{
                     fontSize:14, fontWeight: active ? 650 : 500, letterSpacing:-0.25,
@@ -1484,6 +1685,17 @@ function HomeScreen({
             })}
           </div>
         </HomeSection>
+      )}
+
+      {menu && (
+        <TrackActionsMenu
+          track={menu.track}
+          playlistCtx={playlistCtx}
+          activePlaylistId={menu.activePlaylistId}
+          x={menu.x}
+          y={menu.y}
+          onClose={close}
+        />
       )}
     </div>
   );
@@ -1559,6 +1771,7 @@ function FavoritesScreen({ tracks, onPlay, onLike, currentTrack, isPlaying, user
   const [newName, setNewName] = useState("");
   const [genreFilter, setGenreFilter] = useState(null);
   const [moodFilter, setMoodFilter] = useState(null);
+  const { menu, openFromButton, openFromContext, close } = useTrackMenu();
 
   const singles = tracks.filter(t=>(t.duration||0)<=900);
   const likedTracks = tracks.filter(t => t.liked);
@@ -1684,6 +1897,7 @@ function FavoritesScreen({ tracks, onPlay, onLike, currentTrack, isPlaying, user
           {digLead && (
             <div
               onClick={()=>onPlay(digLead)}
+              onContextMenu={(e) => openFromContext(e, digLead)}
               role="button"
               tabIndex={0}
               onKeyDown={e=>{ if(e.key==="Enter"||e.key===" ") { e.preventDefault(); onPlay(digLead); } }}
@@ -1707,6 +1921,9 @@ function FavoritesScreen({ tracks, onPlay, onLike, currentTrack, isPlaying, user
                 position:"absolute", inset:0,
                 background:"linear-gradient(180deg, rgba(9,11,13,0.2) 0%, rgba(9,11,13,0.55) 45%, rgba(9,11,13,0.96) 100%)",
               }}/>
+              <div style={{ position:"absolute", top:16, right:12, zIndex:2 }} onClick={e=>e.stopPropagation()}>
+                <TrackMoreButton onClick={(e) => openFromButton(e, digLead)} />
+              </div>
               <div style={{ position:"relative", zIndex:1, maxWidth:360 }}>
                 <div style={{
                   fontSize:11, fontWeight:700, letterSpacing:2, color: color.accent,
@@ -1736,15 +1953,23 @@ function FavoritesScreen({ tracks, onPlay, onLike, currentTrack, isPlaying, user
               </div>
               <div className="hide-scroll" style={{ display:"flex", gap:12, overflowX:"auto", padding:"0 20px 4px" }}>
                 {digLane.map((t, i) => (
-                  <div key={t.id} onClick={()=>onPlay(t)} style={{
-                    flexShrink:0, width:132, cursor:"pointer",
-                    animation:`rise 0.5s cubic-bezier(0.22,1,0.36,1) ${Math.min(i,6)*0.04}s both`,
-                  }}>
+                  <div
+                    key={t.id}
+                    onClick={()=>onPlay(t)}
+                    onContextMenu={(e) => openFromContext(e, t)}
+                    style={{
+                      flexShrink:0, width:132, cursor:"pointer", position:"relative",
+                      animation:`rise 0.5s cubic-bezier(0.22,1,0.36,1) ${Math.min(i,6)*0.04}s both`,
+                    }}
+                  >
                     <div style={{
-                      width:132, height:132, overflow:"hidden", marginBottom:8,
+                      width:132, height:132, overflow:"hidden", marginBottom:8, position:"relative",
                       boxShadow: currentTrack?.id===t.id ? `0 0 0 2px ${color.accent}` : "0 8px 22px rgba(0,0,0,0.35)",
                     }}>
                       <AlbumArt track={t} size={132} borderRadius={0}/>
+                      <div style={{ position:"absolute", top:4, right:2, zIndex:2 }} onClick={e=>e.stopPropagation()}>
+                        <TrackMoreButton onClick={(e) => openFromButton(e, t)} />
+                      </div>
                     </div>
                     <div style={{ fontSize:13, fontWeight:600, color: color.ink, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap", letterSpacing:-0.2 }}>{t.title}</div>
                     <div style={{ fontSize:11, color: color.muted, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap", marginTop:3 }}>{t.artist}</div>
@@ -1912,7 +2137,23 @@ function FavoritesScreen({ tracks, onPlay, onLike, currentTrack, isPlaying, user
               </button>
             )}
           </div>
+          {userPlaylists.length === 0 && !showNewInput && (
+            <div style={{ marginTop:20, fontSize:13, color: color.muted, lineHeight:1.5, textAlign:"center" }}>
+              Tip: tap ⋯ on any track (or right-click) to add it to a playlist.
+            </div>
+          )}
         </div>
+      )}
+
+      {menu && (
+        <TrackActionsMenu
+          track={menu.track}
+          playlistCtx={playlistCtx}
+          activePlaylistId={menu.activePlaylistId}
+          x={menu.x}
+          y={menu.y}
+          onClose={close}
+        />
       )}
     </div>
   );
@@ -2545,17 +2786,19 @@ function AdminScreen({ tracks, setTracks, tab, setTab, editTrack, setEditTrack, 
 }
 
 // ─── NOW PLAYING BAR — flat station strip ─────────────────────────────────────
-function NowPlayingBar({ track, isPlaying, progress, duration, onTogglePlay, onSkip, onPrev, onLike, onSeek, repeat, setRepeat, isRadioMode, onOpen }) {
+function NowPlayingBar({ track, isPlaying, progress, duration, onTogglePlay, onSkip, onPrev, onLike, onSeek, repeat, setRepeat, isRadioMode, onOpen, playlistCtx }) {
   const pct = duration > 0 ? (progress/duration)*100 : 0;
   const bpm = track.bpm ? String(track.bpm) : "—";
   const key = track.camelot || "—";
   const energy = track.energy != null ? String(track.energy) : "—";
+  const { menu, openFromButton, openFromContext, close } = useTrackMenu();
   return (
     <div style={{ position:"fixed", bottom:56, left:0, right:0, zIndex:80 }}>
       <div
         role="button"
         tabIndex={0}
         onClick={onOpen}
+        onContextMenu={(e) => openFromContext(e, track)}
         onKeyDown={e=>{ if(e.key==="Enter") onOpen?.(); }}
         aria-label="Open now playing"
         style={{
@@ -2599,11 +2842,22 @@ function NowPlayingBar({ track, isPlaying, progress, duration, onTogglePlay, onS
           </div>
         </div>
         <button type="button" aria-label={track.liked?"Unlike":"Like"} onClick={e=>{e.stopPropagation();onLike();}} style={{ background:"none",border:"none",cursor:"pointer",color:track.liked?color.accent:color.faint,padding:4 }}><Icon name={track.liked?"heart":"heartempty"} size={16}/></button>
+        <TrackMoreButton onClick={(e) => openFromButton(e, track)} />
         <button type="button" className="play-primary" aria-label={isPlaying?"Pause":"Play"} onClick={e=>{e.stopPropagation();onTogglePlay();}} style={{ background: color.accent, border:"none", borderRadius: radius.sm, width:36, height:36, cursor:"pointer", color: color.onAccent, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
           <Icon name={isPlaying?"pause":"play"} size={16}/>
         </button>
         <button type="button" aria-label="Next" onClick={e=>{e.stopPropagation();onSkip();}} style={{ background:"none",border:"none",cursor:"pointer",color: color.muted, padding:4 }}><Icon name="skip" size={16}/></button>
       </div>
+      {menu && (
+        <TrackActionsMenu
+          track={menu.track}
+          playlistCtx={playlistCtx}
+          activePlaylistId={menu.activePlaylistId}
+          x={menu.x}
+          y={menu.y}
+          onClose={close}
+        />
+      )}
     </div>
   );
 }
@@ -3167,40 +3421,53 @@ export default function App() {
     }
   };
 
-  const createPlaylist = (name, trackId = null) => {
-    const newPl = { id: `pl_${Date.now()}`, name, trackIds: trackId ? [trackId] : [] };
+  const createPlaylist = (name, trackIdOrIds = null) => {
+    const ids = Array.isArray(trackIdOrIds)
+      ? trackIdOrIds.filter(Boolean)
+      : (trackIdOrIds ? [trackIdOrIds] : []);
+    const newPl = { id: `pl_${Date.now()}`, name, trackIds: ids };
     savePlaylists([...userPlaylists, newPl]);
+    showToast(ids.length ? `Created “${name}”` : `Playlist “${name}” created`);
+    return newPl;
   };
 
   const addToPlaylist = (trackId, playlistId) => {
-    const updated = userPlaylists.map(pl =>
-      pl.id === playlistId && !pl.trackIds.includes(trackId)
-        ? { ...pl, trackIds: [...pl.trackIds, trackId] }
-        : pl
+    const pl = userPlaylists.find(p => p.id === playlistId);
+    if (!pl) return;
+    if ((pl.trackIds || []).includes(trackId)) {
+      showToast(`Already in ${pl.name}`);
+      return;
+    }
+    const updated = userPlaylists.map(p =>
+      p.id === playlistId ? { ...p, trackIds: [...(p.trackIds || []), trackId] } : p
     );
     savePlaylists(updated);
+    showToast(`Added to ${pl.name}`);
   };
 
   const removeFromPlaylist = (trackId, playlistId) => {
-    const updated = userPlaylists.map(pl =>
-      pl.id === playlistId ? { ...pl, trackIds: pl.trackIds.filter(id => id !== trackId) } : pl
+    const pl = userPlaylists.find(p => p.id === playlistId);
+    const updated = userPlaylists.map(p =>
+      p.id === playlistId ? { ...p, trackIds: (p.trackIds || []).filter(id => id !== trackId) } : p
     );
     savePlaylists(updated);
+    if (pl) showToast(`Removed from ${pl.name}`);
   };
 
   const deletePlaylist = (playlistId) => {
     savePlaylists(userPlaylists.filter(pl => pl.id !== playlistId));
+    showToast("Playlist deleted");
   };
 
-  // Load playlists from profile when it arrives
-  // (profile.playlists is set when user was created or updated)
-
-  // ── Playlist context — passed to every TrackRow so the menu works everywhere
+  // ── Playlist context — ⋯ / right-click menu on every track surface
   const playlistCtx = {
     playlists: userPlaylists,
     onCreate:  createPlaylist,
     onAdd:     addToPlaylist,
     onRemove:  removeFromPlaylist,
+    onToast:   showToast,
+    onResonance: (t) => setResonanceTrack(t),
+    onLike: (id) => toggleLike(id),
   };
 
   // ── Search ───────────────────────────────────────────────────────────────
@@ -3260,7 +3527,7 @@ export default function App() {
           onTogglePlay={()=>setIsPlaying(p=>!p)} onSkip={handleSkip} onPrev={handlePrev}
           onLike={()=>toggleLike(currentTrack.id)} onSeek={handleSeek}
           repeat={repeat} setRepeat={setRepeat} isRadioMode={isRadioMode}
-          onOpen={()=>setImmersive(true)}/>
+          onOpen={()=>setImmersive(true)} playlistCtx={playlistCtx}/>
       )}
       <BottomNav screen={screen} setScreen={setScreen} showAdmin={firebaseUser?.uid === ADMIN_UID} hasPlayer={!!currentTrack && !immersive}/>
       {immersive && currentTrack && (
@@ -3598,7 +3865,7 @@ export default function App() {
 
       {/* Route Builder Modal */}
       {resonanceTrack && <HypnoVisionOverlay sourceTrack={resonanceTrack} tracks={tracks} onPlay={t=>playTrack(t,tracks)} onClose={()=>setResonanceTrack(null)}/>}
-      {afterglow && <AfterglowOverlay data={afterglow} onClose={()=>setAfterglow(null)} onSavePlaylist={(name, ids) => { createPlaylist(name); /* TODO: add tracks */ }}/>}
+      {afterglow && <AfterglowOverlay data={afterglow} onClose={()=>setAfterglow(null)} onSavePlaylist={(name, ids) => { createPlaylist(name, ids); }}/>}
       {showRouteBuilder && <RouteBuilderModal tracks={tracks} onClose={()=>setShowRouteBuilder(false)} onPlayRoute={playRoute}/>}
 
       {immersive && currentTrack && (
