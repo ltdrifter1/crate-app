@@ -1291,7 +1291,7 @@ function RouteBuilderModal({ tracks, onClose, onPlayRoute }) {
                       const energies = session.map(t => t.energy || 5);
                       const stepX = 320 / Math.max(energies.length - 1, 1);
                       const pts = energies.map((e, i) => `${i * stepX},${48 - ((e - 1) / 9) * 40}`).join(" ");
-                      return <polyline points={pts} fill="none" stroke=color.body strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>;
+                      return <polyline points={pts} fill="none" stroke={color.body} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>;
                     })()}
                   </svg>
                 </div>
