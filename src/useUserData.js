@@ -47,6 +47,16 @@ export async function saveGenres(genres) {
   await updateDoc(userRef(), { genres });
 }
 
+// ── COMPLETE ONBOARDING ───────────────────────────────────────────────────
+export async function completeOnboarding({ homeRooms = [], genres = null } = {}) {
+  const payload = {
+    onboarded: true,
+    homeRooms,
+  };
+  if (genres) payload.genres = genres;
+  await updateDoc(userRef(), payload);
+}
+
 // ── SAVE SETTINGS ─────────────────────────────────────────────────────────
 export async function saveSettings(settings) {
   await updateDoc(userRef(), { settings });

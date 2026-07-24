@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { createPortal }                             from "react-dom";
+import { useNavigate, useLocation }                 from "react-router-dom";
 import { useAuth }                                  from "./useAuth";
-import { toggleLike as fbToggleLike, recordPlay, saveGenres } from "./useUserData";
+import { toggleLike as fbToggleLike, recordPlay, saveGenres, completeOnboarding } from "./useUserData";
 import { collection, getDocs, addDoc, query, orderBy, doc, updateDoc, setDoc } from "firebase/firestore";
 import { db }                                       from "./firebase";
 import {
@@ -19,7 +20,12 @@ import {
   getFloorPhase, CLUB_ROOMS, roomForFloorPhase,
   getArrivalSoundEnabled, setArrivalSoundEnabled, playArrivalSound,
 } from "./lib/club";
+import { parsePath, buildPath, documentTitleFor } from "./lib/routes";
+import { digLeadStory, explainPick, SEARCH_PROMPTS } from "./lib/explain";
+import { buildHomeCollections, livedInRooms, rediscoveredTracks } from "./lib/homeCollections";
+import { atmosphereGradient } from "./lib/rooms";
 import RoomsScreen from "./components/rooms/RoomsScreen";
+import OnboardingRitual from "./components/onboarding/OnboardingRitual";
 
 const injectStyles = () => {
   if (document.getElementById("verse-app-global-styles")) return;
@@ -1869,35 +1875,139 @@ const HomeSection = ({ label, count, children, delay = 0 }) => (
 function HomeScreen({
   tracks, onPlayRadio, onTogglePlay, onPlayTrack, currentTrack, isPlaying, onLike,
   isRadioMode, playlistCtx, signalLabel, setPrev, setNext, onBuildNight,
-  doorsSoundOn, onToggleDoorsSound,
+  doorsSoundOn, onToggleDoorsSound, homeRooms = [], onOpenRoom, onOpenRooms,
+  userName = "there",
 }) {
   const singles = tracks.filter(t => (t.duration || 0) <= 900);
-  const topTracks = [...singles].sort((a, b) => (b.playCount || 0) - (a.playCount || 0)).slice(0, 8);
-  const recentlySaved = [...singles].filter(t => t.liked).slice(0, 12);
+  const collections = buildHomeCollections(tracks);
+  const rooms = livedInRooms(tracks, homeRooms, 6);
+  const rediscovered = rediscoveredTracks(singles, 8);
+  const recentlySaved = singles.filter(t => t.liked).slice(0, 12);
   const activeId = currentTrack?.id;
   const { menu, openFromButton, openFromContext, close } = useTrackMenu();
 
   return (
     <div style={{ position:"relative", paddingBottom:36 }}>
-      {/* 1 — Floor (full-bleed radio) */}
-      <div style={{ position:"relative", marginBottom:20 }}>
-        <DeepCutsCard
-          onPlay={onPlayRadio}
-          onTogglePlay={onTogglePlay}
-          currentTrack={isRadioMode ? currentTrack : null}
-          isPlaying={isPlaying}
-          isRadioMode={isRadioMode}
-          signalLabel={signalLabel}
-          setPrev={setPrev}
-          setNext={setNext}
-          doorsSoundOn={doorsSoundOn}
-          onToggleDoorsSound={onToggleDoorsSound}
-        />
-      </div>
+      {/* Personal home hero — place, not dashboard */}
+      {!isRadioMode && (
+        <div style={{
+          position:"relative", overflow:"hidden",
+          minHeight: "min(42vh, 340px)",
+          display:"flex", flexDirection:"column", justifyContent:"flex-end",
+          padding:"40px 20px 28px",
+          animation:"stationIn 0.7s cubic-bezier(0.22,1,0.36,1) both",
+        }}>
+          <div aria-hidden="true" style={{ position:"absolute", inset:0, background: timeOfDayGradient() }}/>
+          <div aria-hidden="true" style={{
+            position:"absolute", top:"-20%", right:"-10%", width:300, height:300, borderRadius:"50%",
+            background:`radial-gradient(circle, ${color.accentSoft} 0%, transparent 70%)`,
+            animation:"breathe 7s ease-in-out infinite",
+          }}/>
+          <div style={{ position:"relative", zIndex:1, maxWidth:420 }}>
+            <div style={{
+              fontSize:11, fontWeight:700, letterSpacing:2, color: color.accent,
+              fontFamily: fontMono, textTransform:"uppercase", marginBottom:12,
+            }}>Your home</div>
+            <div style={{
+              fontSize:"clamp(40px, 12vw, 56px)", fontWeight:800, letterSpacing:-1.8,
+              color: color.onDark, fontFamily: fontDisplay, lineHeight:0.95, marginBottom:12,
+            }}>
+              {BRAND_NAME}
+            </div>
+            <div style={{ fontSize:15, color: color.body, lineHeight:1.5, maxWidth:300, marginBottom:22 }}>
+              Hey {userName.split(" ")[0]}. A place for the music you keep — and the rooms you return to.
+            </div>
+            <div style={{ display:"flex", gap:10, flexWrap:"wrap" }}>
+              <button type="button" className="play-primary" onClick={onPlayRadio}
+                style={{
+                  display:"inline-flex", alignItems:"center", gap:10,
+                  padding:"13px 18px 13px 14px", borderRadius: radius.sm,
+                  background: color.accent, border:"none", color: color.onAccent,
+                  cursor:"pointer", fontSize:14, fontWeight:650,
+                  boxShadow:`0 12px 32px ${color.accentGlow}`,
+                }}>
+                <Icon name="play" size={16}/> Open the floor
+              </button>
+              {onOpenRooms && (
+                <button type="button" onClick={onOpenRooms}
+                  style={{
+                    padding:"13px 16px", borderRadius: radius.sm, background:"none",
+                    border:`1px solid ${color.lineStrong}`, color: color.body,
+                    cursor:"pointer", fontSize:13, fontWeight:600,
+                  }}>
+                  Browse rooms
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
-      {/* Build a night — club session entry */}
+      {/* Live floor when On Air */}
+      {isRadioMode && (
+        <div style={{ position:"relative", marginBottom:20 }}>
+          <DeepCutsCard
+            onPlay={onPlayRadio}
+            onTogglePlay={onTogglePlay}
+            currentTrack={currentTrack}
+            isPlaying={isPlaying}
+            isRadioMode={isRadioMode}
+            signalLabel={signalLabel}
+            setPrev={setPrev}
+            setNext={setNext}
+            doorsSoundOn={doorsSoundOn}
+            onToggleDoorsSound={onToggleDoorsSound}
+          />
+        </div>
+      )}
+
+      {/* Rooms you live in */}
+      {rooms.length > 0 && (
+        <HomeSection label="Rooms you live in" count={rooms.length} delay={0.04}>
+          <div className="hide-scroll" style={{ display:"flex", gap:12, overflowX:"auto", padding:"0 20px 8px" }}>
+            {rooms.map((room, i) => (
+              <button
+                key={room.id}
+                type="button"
+                onClick={() => onOpenRoom?.(room.id)}
+                style={{
+                  flexShrink:0, width:148, padding:0, border:"none", background:"none",
+                  cursor: onOpenRoom ? "pointer" : "default", textAlign:"left",
+                  animation:`rise 0.5s cubic-bezier(0.22,1,0.36,1) ${0.05 + i * 0.03}s both`,
+                }}
+              >
+                <div style={{
+                  width:148, height:100, marginBottom:10, position:"relative", overflow:"hidden",
+                  background: atmosphereGradient(room.atmosphere || room.id),
+                }}>
+                  {room.coverTrack?.albumCover && (
+                    <div aria-hidden="true" style={{
+                      position:"absolute", inset:0,
+                      backgroundImage:`url(${room.coverTrack.albumCover})`,
+                      backgroundSize:"cover", backgroundPosition:"center",
+                      opacity:0.45, filter:"saturate(110%)",
+                    }}/>
+                  )}
+                  <div style={{
+                    position:"absolute", inset:0,
+                    background:"linear-gradient(180deg, transparent 30%, rgba(12,11,10,0.92) 100%)",
+                  }}/>
+                  <div style={{
+                    position:"absolute", left:10, right:10, bottom:10,
+                    fontSize:14, fontWeight:750, color: color.onDark, fontFamily: fontDisplay, letterSpacing:-0.3,
+                  }}>{room.label}</div>
+                </div>
+                <div style={{ fontSize:11, color: color.muted, lineHeight:1.35 }}>
+                  {room.count} tracks · {room.desc || room.story}
+                </div>
+              </button>
+            ))}
+          </div>
+        </HomeSection>
+      )}
+
       {onBuildNight && (
-        <div style={{ padding:"0 20px 28px", animation:"rise 0.55s cubic-bezier(0.22,1,0.36,1) 0.04s both" }}>
+        <div style={{ padding:"0 20px 28px", animation:"rise 0.55s cubic-bezier(0.22,1,0.36,1) 0.06s both" }}>
           <button
             type="button"
             onClick={onBuildNight}
@@ -1924,120 +2034,73 @@ function HomeScreen({
         </div>
       )}
 
-      {/* 2 — Top played (yields to the set when On Air) */}
-      {!isRadioMode && topTracks.length > 0 && (
-        <HomeSection label="Top played" count={topTracks.length} delay={0.05}>
-          <div style={{ padding:"0 20px" }}>
-            {topTracks.map((t, i) => {
-              const active = activeId === t.id;
-              const plays = t.playCount || 0;
-              return (
-                <div
-                  key={t.id}
-                  role="button"
-                  tabIndex={0}
-                  onClick={() => onPlayTrack(t, tracks)}
-                  onContextMenu={(e) => openFromContext(e, t)}
-                  onKeyDown={e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onPlayTrack(t, tracks); } }}
-                  style={{
-                    display:"flex", alignItems:"center", gap:14, padding:"14px 0",
-                    cursor:"pointer",
-                    background: "transparent",
-                    borderBottom: `1px solid ${color.line}`,
-                    transition:"background 0.18s",
-                  }}
-                >
-                  <div style={{
-                    width:26, flexShrink:0, textAlign:"center",
-                    fontSize:14, fontWeight:700, fontFamily: fontMono, fontVariantNumeric:"tabular-nums",
-                    color: i < 3 ? color.accent : color.faint,
-                  }}>{String(i + 1).padStart(2, "0")}</div>
-                  <div style={{
-                    width:56, height:56, overflow:"hidden", flexShrink:0, position:"relative",
-                    boxShadow: active ? `0 0 0 2px ${color.accent}` : "none",
-                  }}>
-                    <AlbumArt track={t} size={56} borderRadius={0}/>
-                    {active && isPlaying && (
-                      <div style={{ position:"absolute", inset:0, background:"rgba(0,0,0,0.45)", display:"flex", alignItems:"center", justifyContent:"center" }}>
-                        <div style={{ width:7, height:7, borderRadius:"50%", background: color.accent, animation:"pulse 1.2s ease-in-out infinite" }}/>
-                      </div>
-                    )}
-                  </div>
-                  <div style={{ flex:1, minWidth:0 }}>
-                    <div style={{
-                      fontSize:15, fontWeight: active ? 650 : 500, letterSpacing:-0.3,
-                      color: active ? color.accent : color.ink,
-                      overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap",
-                    }}>{t.title}</div>
-                    <div style={{ fontSize:12, color: color.muted, marginTop:4, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
-                      {t.artist}{normalizeGenre(t.genre) ? ` · ${normalizeGenre(t.genre)}` : ""}
-                    </div>
-                  </div>
-                  <div style={{ flexShrink:0, textAlign:"right" }}>
-                    <div style={{ fontSize:11, color: color.faint, fontVariantNumeric:"tabular-nums", fontFamily: fontMono }}>{plays > 0 ? `${plays}×` : "—"}</div>
-                  </div>
-                  {onLike && (
-                    <button
-                      type="button"
-                      aria-label={t.liked ? "Unlike" : "Like"}
-                      onClick={e => { e.stopPropagation(); onLike(t.id); }}
-                      style={{ background:"none", border:"none", cursor:"pointer", color: t.liked ? color.accent : color.faint, padding:6, marginLeft:2 }}
-                    >
-                      <Icon name={t.liked ? "heart" : "heartempty"} size={15}/>
-                    </button>
-                  )}
-                  <TrackMoreButton onClick={(e) => openFromButton(e, t)} />
-                </div>
-              );
-            })}
+      {/* Collections wall */}
+      {collections.map((col, ci) => (
+        <HomeSection key={col.id} label={col.label} count={col.tracks.length} delay={0.08 + ci * 0.03}>
+          <div style={{ padding:"0 20px 4px", fontSize:13, color: color.muted, marginTop:-8, marginBottom:14 }}>
+            {col.story}
           </div>
-        </HomeSection>
-      )}
-
-      {/* 3 — Recently saved */}
-      {recentlySaved.length > 0 && (
-        <HomeSection label="Recently saved" count={recentlySaved.length} delay={0.1}>
           <div className="hide-scroll" style={{ display:"flex", gap:14, overflowX:"auto", padding:"0 20px 10px" }}>
-            {recentlySaved.map((t, i) => {
+            {col.tracks.map((t, i) => {
               const active = activeId === t.id;
               return (
                 <div
                   key={t.id}
-                  onClick={() => onPlayTrack(t, tracks)}
+                  onClick={() => onPlayTrack(t, col.tracks)}
                   onContextMenu={(e) => openFromContext(e, t)}
                   style={{
-                    flexShrink:0, width:148, cursor:"pointer", position:"relative",
-                    animation:`rise 0.55s cubic-bezier(0.22,1,0.36,1) ${0.08 + i * 0.03}s both`,
+                    flexShrink:0, width:132, cursor:"pointer", position:"relative",
+                    animation:`rise 0.5s cubic-bezier(0.22,1,0.36,1) ${0.06 + i * 0.025}s both`,
                   }}
                 >
                   <div style={{
-                    width:148, height:148, overflow:"hidden", marginBottom:12, position:"relative",
-                    boxShadow: active ? `0 0 0 2px ${color.accent}` : "0 12px 32px rgba(0,0,0,0.4)",
-                    transform: active ? "translateY(-2px)" : "none",
-                    transition:"box-shadow 0.25s, transform 0.25s",
+                    width:132, height:132, overflow:"hidden", marginBottom:10, position:"relative",
+                    boxShadow: active ? `0 0 0 2px ${color.accent}` : "0 10px 28px rgba(0,0,0,0.35)",
                   }}>
-                    <AlbumArt track={t} size={148} borderRadius={0}/>
-                    <div aria-hidden="true" style={{
-                      position:"absolute", inset:0,
-                      background:"linear-gradient(180deg, transparent 55%, rgba(9,11,13,0.55) 100%)",
-                      opacity: active ? 1 : 0.35,
-                      transition:"opacity 0.25s",
-                    }}/>
-                    <div style={{ position:"absolute", top:6, right:4, zIndex:2 }} onClick={e=>e.stopPropagation()}>
+                    <AlbumArt track={t} size={132} borderRadius={0}/>
+                    <div style={{ position:"absolute", top:4, right:2, zIndex:2 }} onClick={e=>e.stopPropagation()}>
                       <TrackMoreButton onClick={(e) => openFromButton(e, t)} />
                     </div>
                   </div>
                   <div style={{
-                    fontSize:14, fontWeight: active ? 650 : 500, letterSpacing:-0.25,
+                    fontSize:13, fontWeight: active ? 650 : 500, letterSpacing:-0.2,
                     color: active ? color.accent : color.ink,
                     overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap",
                   }}>{t.title}</div>
-                  <div style={{ fontSize:12, color: color.muted, marginTop:4, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{t.artist}</div>
+                  <div style={{ fontSize:11, color: color.muted, marginTop:3, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{t.artist}</div>
                 </div>
               );
             })}
           </div>
         </HomeSection>
+      ))}
+
+      {/* Rediscovered list (if not already a collection rail) */}
+      {rediscovered.length > 0 && !collections.some(c => c.id === "rediscovered") && (
+        <HomeSection label="Rediscovered" count={rediscovered.length} delay={0.2}>
+          <div style={{ padding:"0 20px" }}>
+            {rediscovered.map(t => (
+              <TrackRow key={t.id} track={t} onPlay={() => onPlayTrack(t, rediscovered)} active={activeId===t.id} isPlaying={isPlaying} onLike={onLike} playlistCtx={playlistCtx}/>
+            ))}
+          </div>
+        </HomeSection>
+      )}
+
+      {recentlySaved.length === 0 && collections.length === 0 && (
+        <div style={{ padding:"40px 20px", textAlign:"center" }}>
+          <div style={{ fontSize:16, fontWeight:700, fontFamily: fontDisplay, color: color.ink, marginBottom:8 }}>
+            Your shelves are empty
+          </div>
+          <div style={{ fontSize:14, color: color.muted, lineHeight:1.5, maxWidth:280, margin:"0 auto 18px" }}>
+            Save a track, enter a room, or open the floor — home grows as you listen.
+          </div>
+          {onOpenRooms && (
+            <button type="button" onClick={onOpenRooms} style={{
+              padding:"12px 18px", borderRadius: radius.sm, border:"none",
+              background: color.accent, color: color.onAccent, fontWeight:650, cursor:"pointer",
+            }}>Find a room</button>
+          )}
+        </div>
       )}
 
       {menu && (
@@ -2055,10 +2118,16 @@ function HomeScreen({
 }
 
 // ─── SEARCH ───────────────────────────────────────────────────────────────────
-function SearchScreen({ query, setQuery, results, onPlay, onLike, currentTrack, isPlaying, playlistCtx }) {
-  const suggestions = ["e7", "120bpm", "Soul", "8A", "House", "Jazz"];
+function SearchScreen({ query, setQuery, results, onPlay, onLike, currentTrack, isPlaying, playlistCtx, onOpenRoom }) {
   return (
     <div style={{ padding:"28px 16px 16px" }}>
+      <div style={{ marginBottom:8 }}>
+        <div style={{ fontSize:11, fontWeight:700, letterSpacing:1.8, color: color.accent, fontFamily: fontMono, textTransform:"uppercase", marginBottom:8 }}>Search</div>
+        <div style={{ fontSize:22, fontWeight:750, fontFamily: fontDisplay, letterSpacing:-0.5, color: color.ink, marginBottom:6 }}>Dig the crates</div>
+        <div style={{ fontSize:13, color: color.muted, marginBottom:18, lineHeight:1.45 }}>
+          Tracks, artists, Camelot keys, BPM — or wander by feeling.
+        </div>
+      </div>
       <div style={{ position:"relative", marginBottom:20 }}>
         <div style={{ position:"absolute", left:14, top:"50%", transform:"translateY(-50%)", color: color.faint }}><Icon name="search" size={16}/></div>
         <input
@@ -2081,20 +2150,38 @@ function SearchScreen({ query, setQuery, results, onPlay, onLike, currentTrack, 
         </div>
       )}
       {query.length>1&&!results.length&&(
-        <div style={{ textAlign:"center", padding:"56px 0", color: color.muted, fontSize:14 }}>No results for “{query}”</div>
+        <div style={{ textAlign:"center", padding:"56px 0" }}>
+          <div style={{ color: color.ink, fontSize:15, fontWeight:650, fontFamily: fontDisplay, marginBottom:8 }}>Nothing filed under “{query}”</div>
+          <div style={{ color: color.muted, fontSize:13, lineHeight:1.5, maxWidth:260, margin:"0 auto" }}>
+            Try a Camelot key (8A), a tempo (120bpm), or step into a room instead.
+          </div>
+          {onOpenRoom && (
+            <button type="button" onClick={() => onOpenRoom(null)} style={{
+              marginTop:18, padding:"10px 16px", borderRadius: radius.sm, border:`1px solid ${color.lineStrong}`,
+              background:"none", color: color.body, fontWeight:600, cursor:"pointer", fontSize:13,
+            }}>Browse rooms</button>
+          )}
+        </div>
       )}
       {results.map(t=>(
         <TrackRow key={t.id} track={t} onPlay={()=>onPlay(t)} active={currentTrack?.id===t.id} isPlaying={isPlaying} onLike={onLike} playlistCtx={playlistCtx}/>
       ))}
       {!query && (
         <div style={{ paddingTop:8 }}>
-          <div style={{ fontSize:12, fontWeight:650, letterSpacing:-0.2, color: color.muted, marginBottom:12, fontFamily: fontDisplay }}>Try</div>
-          <div style={{ display:"flex", flexWrap:"wrap", gap:8 }}>
-            {suggestions.map(s => (
-              <button key={s} type="button" onClick={() => setQuery(s)} style={{
-                padding:"8px 14px", borderRadius: radius.sm, background:"transparent",
-                border:`1px solid ${color.line}`, color: color.muted, fontSize:12, fontWeight:500, cursor:"pointer",
-              }}>{s}</button>
+          <div style={{ fontSize:12, fontWeight:650, letterSpacing:-0.2, color: color.muted, marginBottom:12, fontFamily: fontDisplay }}>Try digging</div>
+          <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
+            {SEARCH_PROMPTS.map(s => (
+              <button key={s.q} type="button" onClick={() => setQuery(s.q)} style={{
+                display:"flex", justifyContent:"space-between", alignItems:"center",
+                padding:"12px 4px", background:"none", border:"none", borderBottom:`1px solid ${color.line}`,
+                cursor:"pointer", textAlign:"left", color: color.ink,
+              }}>
+                <div>
+                  <div style={{ fontSize:14, fontWeight:650, fontFamily: fontDisplay }}>{s.label}</div>
+                  <div style={{ fontSize:12, color: color.muted, marginTop:2 }}>{s.hint}</div>
+                </div>
+                <span style={{ fontSize:11, color: color.faint, fontFamily: fontMono }}>{s.q}</span>
+              </button>
             ))}
           </div>
         </div>
@@ -2288,23 +2375,33 @@ function FavoritesScreen({ tracks, preferredGenres = [], onPlay, onLike, current
                 <TrackMoreButton onClick={(e) => openFromButton(e, digLead)} />
               </div>
               <div style={{ position:"relative", zIndex:1, maxWidth:360 }}>
-                <div style={{
-                  fontSize:11, fontWeight:700, letterSpacing:2, color: color.accent,
-                  fontFamily: fontMono, textTransform:"uppercase", marginBottom:10,
-                }}>{floor.label}</div>
-                <div style={{
-                  fontSize:"clamp(40px, 12vw, 56px)", fontWeight:800, letterSpacing:-1.8,
-                  color: color.onDark, fontFamily: fontDisplay, lineHeight:0.95, marginBottom:12,
-                }}>
-                  {activeRoomLabel}
-                </div>
-                <div style={{ fontSize:14, color: color.body, lineHeight:1.45, marginBottom:22, maxWidth:280 }}>
-                  {floor.blurb}
-                </div>
+                {(() => {
+                  const story = digLeadStory(activeRoomLabel, floor, digLead);
+                  return (
+                    <>
+                      <div style={{
+                        fontSize:11, fontWeight:700, letterSpacing:2, color: color.accent,
+                        fontFamily: fontMono, textTransform:"uppercase", marginBottom:10,
+                      }}>{story.eyebrow}</div>
+                      <div style={{
+                        fontSize:"clamp(40px, 12vw, 56px)", fontWeight:800, letterSpacing:-1.8,
+                        color: color.onDark, fontFamily: fontDisplay, lineHeight:0.95, marginBottom:12,
+                      }}>
+                        {activeRoomLabel}
+                      </div>
+                      <div style={{ fontSize:14, color: color.body, lineHeight:1.45, marginBottom:22, maxWidth:280 }}>
+                        {story.body}
+                      </div>
+                    </>
+                  );
+                })()}
                 <div style={{ fontSize:18, fontWeight:700, color: color.onDark, fontFamily: fontDisplay, letterSpacing:-0.4, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
                   {digLead.title}
                 </div>
                 <div style={{ fontSize:13, color: color.muted, marginTop:4 }}>{digLead.artist}</div>
+                <div style={{ fontSize:11, color: color.faint, marginTop:10, fontFamily: fontMono, letterSpacing:0.3 }}>
+                  {explainPick(digLead, { room: { label: activeRoomLabel }, preferredGenres })}
+                </div>
               </div>
             </div>
           )}
@@ -3330,10 +3427,21 @@ export default function App() {
   // ── Auth (login/signup/logout + user profile) ───────────────────────────
   const { firebaseUser, profile, setProfile, loading: authLoading, signUp, logIn, logOut, signInWithGoogle, sendPhoneOTP, verifyPhoneOTP, resetPassword } = useAuth();
 
-  // ── App state ────────────────────────────────────────────────────────────
-  const [screen, setScreen]           = useState("rooms");
+  // ── URL ↔ screen ─────────────────────────────────────────────────────────
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { screen, roomId: routeRoomId } = parsePath(location.pathname);
+  const setScreen = useCallback((id, roomId = null) => {
+    navigate(buildPath(id, roomId));
+  }, [navigate]);
+  const setRoomRoute = useCallback((id) => {
+    navigate(buildPath("rooms", id || null));
+  }, [navigate]);
+
   // Legacy: Drift was removed as a tab — bounce any stale screen id to Rooms
-  useEffect(() => { if (screen === "drift") setScreen("rooms"); }, [screen]);
+  useEffect(() => { if (screen === "drift") setScreen("rooms"); }, [screen, setScreen]);
+
+  // ── App state ────────────────────────────────────────────────────────────
   const [tracks, setTracks]           = useState([]);          // loaded from Firestore
   const [tracksLoading, setTracksLoading] = useState(true);
   const [currentTrack, setCurrent]    = useState(null);
@@ -3365,6 +3473,7 @@ export default function App() {
   const [showQueue, setShowQueue] = useState(false);
   const [volume, setVolume] = useState(1);
   const [hypnoSeed, setHypnoSeed] = useState(null); // pocket-mode seed track
+  const [onboardingDismissed, setOnboardingDismissed] = useState(false);
   const volumeRef = useRef(1);
   useEffect(() => { volumeRef.current = volume; }, [volume]);
 
@@ -3487,7 +3596,9 @@ export default function App() {
 
   // Check if a track was played recently (within hours)
 
-  useEffect(() => { document.title = BRAND_NAME; }, []);
+  useEffect(() => {
+    document.title = documentTitleFor(screen);
+  }, [screen, routeRoomId]);
 
   // ── Anticipatory Queue — pre-generate when tracks load ──
   const anticipatoryBuilt = useRef(false);
@@ -3545,6 +3656,8 @@ export default function App() {
     image:  profile?.profileImage || "🎧",
     genres: profile?.genres || [],
   };
+  const homeRooms = profile?.homeRooms || [];
+  const needsOnboarding = !!firebaseUser && profile && profile.onboarded === false && !onboardingDismissed && !tracksLoading;
 
   // ── Crossfade audio engine ───────────────────────────────────────────────
   // Two audio elements — A and B. We alternate between them for crossfade.
@@ -4025,14 +4138,49 @@ export default function App() {
     setSessionMeta(null);
   };
 
+  const handleOnboardingComplete = async (selectedRooms) => {
+    try {
+      await completeOnboarding({ homeRooms: selectedRooms });
+      setProfile((p) => ({ ...(p || {}), onboarded: true, homeRooms: selectedRooms }));
+      setOnboardingDismissed(true);
+      if (selectedRooms[0]) setRoomRoute(selectedRooms[0]);
+      else setScreen("rooms");
+      showToast("Home rooms saved");
+    } catch (e) {
+      showToast("Couldn't save — try again");
+    }
+  };
+
+  const handleOnboardingSkip = async () => {
+    try {
+      await completeOnboarding({ homeRooms: [] });
+      setProfile((p) => ({ ...(p || {}), onboarded: true, homeRooms: [] }));
+    } catch (e) {
+      /* still dismiss locally */
+    }
+    setOnboardingDismissed(true);
+  };
+
   const listeningOverlays = (
     <>
+      {needsOnboarding && (
+        <OnboardingRitual
+          tracks={tracks}
+          onComplete={handleOnboardingComplete}
+          onSkip={handleOnboardingSkip}
+        />
+      )}
       {showQueue && (
         <QueueSheet
           queue={queue}
           currentTrack={currentTrack}
           isRadioMode={isRadioMode}
-          radioHint={hypnoSeed ? `Pocket · ${hypnoSeed.title}` : (signalState?.label ? `Floor · ${signalState.label}` : null)}
+          radioHint={hypnoSeed
+            ? `Pocket · ${hypnoSeed.title}`
+            : explainPick(setNext || currentTrack, {
+                signalLabel: signalState?.label,
+                preferredGenres: profile?.genres || [],
+              })}
           onPlay={(t) => playTrack(t, queue)}
           onClose={() => setShowQueue(false)}
           onClear={() => setQueue([])}
@@ -4111,10 +4259,12 @@ export default function App() {
             playlistCtx={playlistCtx}
             AlbumArt={AlbumArt}
             TrackRow={TrackRow}
+            activeRoomId={routeRoomId}
+            onActiveRoomChange={setRoomRoute}
           />
         )}
-        {screen==="home"      && !tracksLoading && <HomeScreen tracks={tracks} onPlayRadio={playRadio} onTogglePlay={()=>setIsPlaying(p=>!p)} onPlayTrack={playTrack} currentTrack={currentTrack} isPlaying={isPlaying} onLike={toggleLike} isRadioMode={isRadioMode} playlistCtx={playlistCtx} signalLabel={signalState?.label} setPrev={setPrev} setNext={setNext} onBuildNight={()=>setShowRouteBuilder(true)} doorsSoundOn={doorsSoundOn} onToggleDoorsSound={toggleDoorsSound}/>}
-        {screen==="search"    && <SearchScreen query={searchQuery} setQuery={setSearch} results={searchResults} onPlay={t=>playTrack(t,tracks)} onLike={toggleLike} currentTrack={currentTrack} isPlaying={isPlaying} playlistCtx={playlistCtx}/>}
+        {screen==="home"      && !tracksLoading && <HomeScreen tracks={tracks} onPlayRadio={playRadio} onTogglePlay={()=>setIsPlaying(p=>!p)} onPlayTrack={playTrack} currentTrack={currentTrack} isPlaying={isPlaying} onLike={toggleLike} isRadioMode={isRadioMode} playlistCtx={playlistCtx} signalLabel={signalState?.label} setPrev={setPrev} setNext={setNext} onBuildNight={()=>setShowRouteBuilder(true)} doorsSoundOn={doorsSoundOn} onToggleDoorsSound={toggleDoorsSound} homeRooms={homeRooms} onOpenRoom={(id)=>setRoomRoute(id)} onOpenRooms={()=>setScreen("rooms")} userName={user.name}/>}
+        {screen==="search"    && <SearchScreen query={searchQuery} setQuery={setSearch} results={searchResults} onPlay={t=>playTrack(t,tracks)} onLike={toggleLike} currentTrack={currentTrack} isPlaying={isPlaying} playlistCtx={playlistCtx} onOpenRoom={()=>setScreen("rooms")}/>}
         {screen==="favorites" && <FavoritesScreen tracks={tracks} preferredGenres={user.genres} onPlay={t=>{setIsRadioMode(false);playTrack(t,tracks);}} onLike={toggleLike} currentTrack={currentTrack} isPlaying={isPlaying} userPlaylists={userPlaylists} onCreatePlaylist={createPlaylist} onAddToPlaylist={addToPlaylist} onRemoveFromPlaylist={removeFromPlaylist} onDeletePlaylist={deletePlaylist} playlistCtx={playlistCtx}/>}
         {screen==="profile"   && <ProfileScreen user={user} setUser={setUser} tracks={tracks} onLogout={logOut}/>}
         {screen==="map"       && <HarmonicMap tracks={tracks} onPlay={t=>playTrack(t,tracks)} currentTrack={currentTrack}/>}
@@ -4266,10 +4416,12 @@ export default function App() {
                   playlistCtx={playlistCtx}
                   AlbumArt={AlbumArt}
                   TrackRow={TrackRow}
+                  activeRoomId={routeRoomId}
+                  onActiveRoomChange={setRoomRoute}
                 />
               )}
-              {screen==="home"      && <HomeScreen tracks={tracks} onPlayRadio={playRadio} onTogglePlay={()=>setIsPlaying(p=>!p)} onPlayTrack={playTrack} currentTrack={currentTrack} isPlaying={isPlaying} onLike={toggleLike} isRadioMode={isRadioMode} playlistCtx={playlistCtx} signalLabel={signalState?.label} setPrev={setPrev} setNext={setNext} onBuildNight={()=>setShowRouteBuilder(true)} doorsSoundOn={doorsSoundOn} onToggleDoorsSound={toggleDoorsSound}/>}
-              {screen==="search"    && <SearchScreen query={searchQuery} setQuery={setSearch} results={searchResults} onPlay={t=>playTrack(t,tracks)} onLike={toggleLike} currentTrack={currentTrack} isPlaying={isPlaying} playlistCtx={playlistCtx}/>}
+              {screen==="home"      && <HomeScreen tracks={tracks} onPlayRadio={playRadio} onTogglePlay={()=>setIsPlaying(p=>!p)} onPlayTrack={playTrack} currentTrack={currentTrack} isPlaying={isPlaying} onLike={toggleLike} isRadioMode={isRadioMode} playlistCtx={playlistCtx} signalLabel={signalState?.label} setPrev={setPrev} setNext={setNext} onBuildNight={()=>setShowRouteBuilder(true)} doorsSoundOn={doorsSoundOn} onToggleDoorsSound={toggleDoorsSound} homeRooms={homeRooms} onOpenRoom={(id)=>setRoomRoute(id)} onOpenRooms={()=>setScreen("rooms")} userName={user.name}/>}
+              {screen==="search"    && <SearchScreen query={searchQuery} setQuery={setSearch} results={searchResults} onPlay={t=>playTrack(t,tracks)} onLike={toggleLike} currentTrack={currentTrack} isPlaying={isPlaying} playlistCtx={playlistCtx} onOpenRoom={()=>setScreen("rooms")}/>}
               {screen==="favorites" && <FavoritesScreen tracks={tracks} preferredGenres={user.genres} onPlay={t=>{setIsRadioMode(false);playTrack(t,tracks);}} onLike={toggleLike} currentTrack={currentTrack} isPlaying={isPlaying} userPlaylists={userPlaylists} onCreatePlaylist={createPlaylist} onAddToPlaylist={addToPlaylist} onRemoveFromPlaylist={removeFromPlaylist} onDeletePlaylist={deletePlaylist} playlistCtx={playlistCtx}/>}
               {screen==="profile"   && <ProfileScreen user={user} setUser={setUser} tracks={tracks} onLogout={logOut}/>}
               {screen==="map"       && <HarmonicMap tracks={tracks} onPlay={t=>playTrack(t,tracks)} currentTrack={currentTrack}/>}

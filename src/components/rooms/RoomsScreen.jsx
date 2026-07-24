@@ -507,13 +507,24 @@ export default function RoomsScreen({
   playlistCtx,
   AlbumArt,
   TrackRow,
+  activeRoomId,
+  onActiveRoomChange,
 }) {
-  const [activeId, setActiveId] = useState(null);
+  const [internalId, setInternalId] = useState(null);
+  const controlled = onActiveRoomChange != null;
+  const activeId = controlled ? (activeRoomId || null) : internalId;
+  const setActiveId = (id) => {
+    if (controlled) onActiveRoomChange(id);
+    else setInternalId(id);
+  };
 
   const populated = useMemo(() => populateAllRooms(tracks), [tracks]);
   const featured = useMemo(() => tonightRoom(tracks), [tracks]);
   const groups = useMemo(() => roomsByKind(populated), [populated]);
-  const active = activeId ? populated.find((r) => r.id === activeId) || featured : null;
+  const active = activeId
+    ? populated.find((r) => r.id === activeId) ||
+      (featured?.id === activeId ? featured : null)
+    : null;
 
   if (active && activeId) {
     return (
