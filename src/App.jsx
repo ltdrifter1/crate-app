@@ -4,6 +4,15 @@ import { toggleLike as fbToggleLike, recordPlay, saveGenres } from "./useUserDat
 import { collection, getDocs, addDoc, query, orderBy, doc, updateDoc, setDoc } from "firebase/firestore";
 import { db }                                       from "./firebase";
 import vLogo                                         from "./v-logo-new.png";
+import {
+  font, color, radius, motion, timeOfDayGradient,
+  APP_STYLE, INPUT_ST, BTN_PRIMARY, BTN_SECONDARY, CTRL_BTN, ADMIN_UID,
+} from "./theme";
+import { camelotCompatible, getEnergyRangeForHour, fmtTime, hexToRgbStr } from "./lib/harmony";
+import {
+  computeHumanState, findResonant, computeSignalTraits, pickNextTrack,
+  buildSession, SESSION_PROFILES,
+} from "./lib/engine";
 
 const injectStyles = () => {
   if (document.getElementById("verse-app-global-styles")) return;
@@ -11,379 +20,33 @@ const injectStyles = () => {
   s.id = "verse-app-global-styles";
   s.textContent = `
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    :root { --font: -apple-system, "SF Pro Display", "SF Pro Text", "Helvetica Neue", Arial, sans-serif; --accent: #1A1D26; }
-    body { font-family: var(--font); background: #0A0F1E; }
-    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    :root { --font: ${font}; --ink: ${color.ink}; --muted: ${color.muted}; --faint: ${color.faint}; --line: ${color.line}; --canvas: ${color.canvas}; }
+    body { font-family: var(--font); background: var(--canvas); color: var(--ink); }
+    ::-webkit-scrollbar { width: 4px; height: 4px; }
     ::-webkit-scrollbar-track { background: transparent; }
-    ::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.08); border-radius: 10px; }
-    ::-webkit-scrollbar-thumb:hover { background: rgba(0,0,0,0.14); }
-    ::-webkit-scrollbar-corner { background: transparent; }
-    @keyframes spin        { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
-    @keyframes pulse       { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.5;transform:scale(0.8)} }
-    @keyframes pulse-ring  { 0%{transform:scale(1);opacity:0.35} 100%{transform:scale(1.7);opacity:0} }
-    @keyframes slide-up    { from{transform:translateY(10px);opacity:0} to{transform:translateY(0);opacity:1} }
-    @keyframes slide-in    { from{transform:translateY(100%)} to{transform:translateY(0)} }
-    @keyframes mist        { 0%,100%{opacity:0.3;transform:translateX(0) scale(1)} 50%{opacity:0.45;transform:translateX(8px) scale(1.04)} }
-    @keyframes shimmer     { 0%{opacity:0.5} 50%{opacity:0.85} 100%{opacity:0.5} }
-    @keyframes breathe     { 0%,100%{opacity:0.6;transform:scale(1)} 50%{opacity:1;transform:scale(1.04)} }
-    @keyframes energy-breathe {
-      0%, 100% { transform: translate(-50%,-50%) scale(1); opacity: 0.4; }
-      50% { transform: translate(-50%,-50%) scale(1.08); opacity: 0.7; }
-    }
-    @keyframes glass-shine { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
-    @keyframes card-snap   { 0%{transform:translateY(-12px);opacity:0} 100%{transform:translateY(0);opacity:1} }
+    ::-webkit-scrollbar-thumb { background: rgba(20,22,28,0.12); border-radius: 4px; }
+    button { transition: opacity ${motion.fast}, background ${motion.base}; font-family: var(--font); }
+    button:active { opacity: 0.72; }
+    button:focus-visible, input:focus-visible { outline: 2px solid rgba(20,22,28,0.35); outline-offset: 2px; }
     input:focus { outline: none; }
-    button { transition: transform 0.12s, opacity 0.12s; font-family: var(--font); }
-    button:active { transform: scale(0.96) !important; }
-    input[type="range"] { -webkit-appearance: none; height: 6px; background: rgba(255,255,255,0.2); border-radius: 3px; outline: none; cursor: pointer; transition: height 0.15s; }
-    input[type="range"]:hover { height: 8px; }
-    input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 18px; height: 18px; border-radius: 50%; background: rgba(255,255,255,0.95); border: none; box-shadow: 0 2px 8px rgba(0,0,0,0.2), 0 0 0 4px rgba(255,255,255,0.15); cursor: pointer; transition: transform 0.15s, box-shadow 0.15s; }
-    input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.15); box-shadow: 0 2px 12px rgba(0,0,0,0.25), 0 0 0 6px rgba(255,255,255,0.2); }
-    input[type="range"]::-webkit-slider-thumb:active { transform: scale(0.95); }
-    input[type="range"]::-moz-range-thumb { width: 18px; height: 18px; border-radius: 50%; background: rgba(255,255,255,0.95); border: none; box-shadow: 0 2px 8px rgba(0,0,0,0.2), 0 0 0 4px rgba(255,255,255,0.15); cursor: pointer; }
-    input[type="range"]::-moz-range-track { height: 6px; background: rgba(255,255,255,0.2); border-radius: 3px; border: none; }
+    input[type="range"] { -webkit-appearance: none; height: 3px; background: rgba(20,22,28,0.1); border-radius: 2px; outline: none; cursor: pointer; }
+    input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; border-radius: 50%; background: ${color.ink}; border: none; box-shadow: none; cursor: pointer; }
+    input[type="range"]::-moz-range-thumb { width: 14px; height: 14px; border-radius: 50%; background: ${color.ink}; border: none; cursor: pointer; }
+    @keyframes spin { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.45} }
+    @keyframes pulse-ring { 0%{transform:scale(1);opacity:0.3} 100%{transform:scale(1.5);opacity:0} }
+    @keyframes breathe { 0%,100%{opacity:0.55} 50%{opacity:1} }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
+    }
   `;
   document.head.appendChild(s);
 };
 injectStyles();
 
-// ─── CAMELOT ──────────────────────────────────────────────────────────────────
-function camelotCompatible(keyA, keyB, range = 2) {
-  if (!keyA || !keyB) return true;
-  const numA = parseInt(keyA), numB = parseInt(keyB);
-  if (isNaN(numA) || isNaN(numB)) return true;
-  const diff = Math.abs(numA - numB);
-  return Math.min(diff, 12 - diff) <= range;
-}
 
-// ─── TIME → ENERGY ────────────────────────────────────────────────────────────
-function getEnergyRangeForHour(h) {
-  const m = {
-    0:[7,9],1:[5,7],2:[2,4],3:[2,4],4:[2,4],5:[2,4],6:[2,4],7:[2,4],8:[2,4],
-    9:[4,6],10:[4,6],11:[4,6],12:[5,8],13:[5,8],14:[5,8],15:[5,8],
-    16:[4,8],17:[4,8],18:[4,8],19:[4,8],20:[4,8],21:[4,8],22:[7,9],23:[7,9],
-  };
-  return m[h] ?? [1,10];
-}
+// Engine helpers imported from ./lib/harmony + ./lib/engine
 
-
-
-// ─── AURA: HUMAN STATE VECTOR ───────────────────────────────────────────────
-// Computes the listener's current state from recent behavior.
-// Returns { intensity, openness, momentum, depth, direction, label }
-
-function computeHumanState(recentPlays, sessionStartTime) {
-  if (!recentPlays.length) return { intensity: 0.5, openness: 0.5, momentum: 0, depth: 0, direction: 0, label: "arrival" };
-
-  const now = Date.now();
-  const recent = recentPlays.slice(0, 10);
-  const sessionMins = sessionStartTime ? (now - sessionStartTime) / 60000 : 0;
-
-  // Intensity: average energy of last 5 tracks, normalized to 0-1
-  const avgEnergy = recent.slice(0, 5).reduce((s, r) => s + (r.energy || 5), 0) / Math.min(5, recent.length);
-  const intensity = Math.max(0, Math.min(1, (avgEnergy - 1) / 9));
-
-  // Direction: energy trend. Compare last 3 avg vs previous 3 avg.
-  const last3 = recent.slice(0, 3).reduce((s, r) => s + (r.energy || 5), 0) / Math.min(3, recent.length);
-  const prev3 = recent.slice(3, 6);
-  const prevAvg = prev3.length > 0 ? prev3.reduce((s, r) => s + (r.energy || 5), 0) / prev3.length : last3;
-  const direction = Math.max(-1, Math.min(1, (last3 - prevAvg) / 3));
-
-  // Openness: genre variety in recent plays. More genres = higher openness.
-  const genres = new Set(recent.map(r => r.genre).filter(Boolean));
-  const openness = Math.max(0, Math.min(1, genres.size / Math.max(4, recent.length) * 1.5));
-
-  // Depth: session duration + completion rate proxy
-  const depth = Math.max(0, Math.min(1, sessionMins / 60));
-
-  // Momentum: how quickly tracks are being played (shorter gaps = higher momentum)
-  const gaps = [];
-  for (let i = 0; i < recent.length - 1; i++) {
-    gaps.push(recent[i].ts - recent[i + 1].ts);
-  }
-  const avgGap = gaps.length > 0 ? gaps.reduce((s, g) => s + g, 0) / gaps.length : 300000;
-  const momentum = Math.max(0, Math.min(1, 1 - (avgGap - 60000) / 600000));
-
-  // State label based on signals
-  let label = "arrival";
-  if (sessionMins < 3) label = "arrival";
-  else if (sessionMins < 8 && Math.abs(direction) < 0.2) label = "grounding";
-  else if (direction > 0.3 && intensity < 0.7) label = "ignition";
-  else if (intensity > 0.6 && direction > 0.1) label = "momentum";
-  else if (depth > 0.5 && Math.abs(direction) < 0.15) label = "immersion";
-  else if (direction > 0.3 && openness > 0.5) label = "expansion";
-  else if (direction < -0.2) label = "release";
-  else if (intensity < 0.3 && depth > 0.4) label = "restoration";
-  else if (sessionMins > 5) label = "grounding";
-
-  return { intensity, openness, momentum, depth, direction, label };
-}
-
-
-// ─── HYPNO VISION — psychoacoustic trait-vector similarity · Hypno Vision ───────────────────────
-function findResonant(sourceTrack, allTracks, count = 12) {
-  if (!sourceTrack._signal) return allTracks.slice(0, count);
-  const src = sourceTrack._signal;
-  return allTracks
-    .filter(t => t.id !== sourceTrack.id && t._signal)
-    .map(t => {
-      const s = t._signal;
-      // Euclidean distance across all trait dimensions
-      const dist = Math.sqrt(
-        Math.pow((src.grip - s.grip) / 10, 2) +
-        Math.pow((src.hold - s.hold) / 10, 2) +
-        Math.pow((src.pull - s.pull) / 10, 2) +
-        Math.pow((src.gravity - s.gravity) / 10, 2) +
-        Math.pow((src.lift - s.lift) / 10, 2) +
-        Math.pow((src.descent - s.descent) / 10, 2)
-      );
-      // Bonus for same genre and close energy
-      let bonus = 0;
-      if (t.genre === sourceTrack.genre) bonus += 0.05;
-      if (Math.abs((t.energy||5) - (sourceTrack.energy||5)) <= 1) bonus += 0.03;
-      if (sourceTrack.camelot && t.camelot && camelotCompatible(sourceTrack.camelot, t.camelot, 1)) bonus += 0.02;
-      return { track: t, distance: dist - bonus };
-    })
-    .sort((a, b) => a.distance - b.distance)
-    .slice(0, count)
-    .map(r => r.track);
-}
-
-// ─── AURA: TRAIT SCORING ENGINE ─────────────────────────────────────────────
-// Computes behavioral trait scores for each track from play/skip/like data.
-// Called once after tracks load, enriches each track object with Aura scores.
-
-function computeSignalTraits(tracks, recentPlays = []) {
-  const maxPlays = Math.max(...tracks.map(t => t.playCount || 0), 1);
-  const maxSkips = Math.max(...tracks.map(t => t.skipCount || 0), 1);
-  const maxLikes = Math.max(...tracks.map(t => t.likeCount || 0), 1);
-
-  // Build a play-sequence map for lift/descent scoring
-  const sequences = [];
-  for (let i = 0; i < recentPlays.length - 1; i++) {
-    sequences.push({ from: recentPlays[i], to: recentPlays[i + 1] });
-  }
-
-  return tracks.map(t => {
-    const plays = t.playCount || 0;
-    const skips = t.skipCount || 0;
-    const likes = t.likeCount || 0;
-    const energy = t.energy || 5;
-
-    // Grip: inverse of skip ratio. High completion = high grip.
-    const skipRatio = plays > 0 ? skips / plays : 0.5;
-    const grip = Math.round(Math.max(1, Math.min(10, (1 - skipRatio) * 10)));
-
-    // Hold: based on play count relative to library average. Frequently played = high hold.
-    const hold = Math.round(Math.max(1, Math.min(10, (plays / maxPlays) * 8 + (likes > 0 ? 2 : 0))));
-
-    // Pull: how often this track is returned to. Liked + played multiple times = high pull.
-    const pull = Math.round(Math.max(1, Math.min(10,
-      (plays > 2 ? 3 : 0) + (likes > 0 ? 3 : 0) + (plays / maxPlays) * 4
-    )));
-
-    // Gravity: session-opener tendency. Approximated by high grip + moderate energy.
-    const gravity = Math.round(Math.max(1, Math.min(10,
-      grip * 0.5 + (energy >= 3 && energy <= 7 ? 3 : 1) + (pull > 5 ? 2 : 0)
-    )));
-
-    // Lift: does this track lead to higher energy next? Check sequences.
-    const liftSeqs = sequences.filter(s => s.from.id === t.id);
-    const avgLift = liftSeqs.length > 0
-      ? liftSeqs.reduce((s, seq) => {
-          const nextTrack = tracks.find(x => x.id === seq.to.id);
-          return s + ((nextTrack?.energy || 5) - energy);
-        }, 0) / liftSeqs.length
-      : 0;
-    const lift = Math.round(Math.max(1, Math.min(10, 5 + avgLift * 2)));
-
-    // Descent: inverse of lift.
-    const descent = Math.round(Math.max(1, Math.min(10, 5 - avgLift * 2)));
-
-    // Dominant trait label
-    const traits = { grip, hold, pull, gravity, lift, descent };
-    const sorted = Object.entries(traits).sort((a, b) => b[1] - a[1]);
-    const dominant = sorted[0][0];
-
-    // Map dominant trait to a user-facing label
-    const LABELS = {
-      grip: "opener", hold: "anchor", pull: "favorite",
-      gravity: "opener", lift: "build", descent: "closer"
-    };
-    const signalLabel = LABELS[dominant] || "track";
-
-    return { ...t, _signal: { grip, hold, pull, gravity, lift, descent, label: signalLabel } };
-  });
-}
-
-// ─── WEIGHTED RADIO PICK ──────────────────────────────────────────────────────
-// All tracks eligible; liked tracks get 3× weight
-// Priority: camelot+energy → camelot → energy → anything
-function pickNextTrack(allTracks, currentTrack, memory = null) {
-  if (!allTracks.length) return null;
-  const hour = new Date().getHours();
-  const [eMin, eMax] = getEnergyRangeForHour(hour);
-  // Recency decay — exclude tracks played in last 2 hours
-  const recentIds = memory ? new Set(
-    memory.filter(r => r.ts > Date.now() - 2 * 60 * 60 * 1000).map(r => r.id)
-  ) : new Set();
-  // Genre momentum — boost the current genre streak
-  const recentGenres = memory ? memory.slice(0, 3).map(r => r.genre).filter(Boolean) : [];
-  const momentumGenre = recentGenres.length >= 2 && recentGenres[0] === recentGenres[1] ? recentGenres[0] : null;
-
-  const pool = allTracks.filter(t => t.id !== currentTrack?.id && (t.duration||0) <= 900 && !recentIds.has(t.id));
-  if (!pool.length) {
-    // Fallback: if recency filter emptied the pool, ignore it
-    const fallback = allTracks.filter(t => t.id !== currentTrack?.id && (t.duration||0) <= 900);
-    if (!fallback.length) return allTracks[0];
-    return fallback[Math.floor(Math.random() * fallback.length)];
-  }
-
-  function weightedPick(candidates) {
-    const weighted = candidates.flatMap(t => {
-      let w = t.liked ? 3 : 1;
-      // Skip penalty
-      const plays = t.playCount || 0;
-      const skips = t.skipCount || 0;
-      if (plays > 0 && skips > plays * 0.5) w = Math.max(1, Math.round(w * 0.3));
-      else if (skips > 3) w = Math.max(1, Math.round(w * 0.6));
-      // Genre momentum — 2× boost for tracks matching the streak
-      if (momentumGenre && t.genre === momentumGenre) w *= 2;
-      // Aura trait boost: high grip after a skip, high hold in deep sessions
-      if (t._signal) {
-        if (t._signal.grip >= 7) w += 1; // high-grip tracks slightly favored
-        if (t._signal.pull >= 7) w += 1; // return favorites slightly favored
-      }
-      return Array(w).fill(t);
-    });
-    return weighted[Math.floor(Math.random() * weighted.length)];
-  }
-
-  const p1 = pool.filter(t => camelotCompatible(currentTrack?.camelot,t.camelot) && t.energy>=eMin && t.energy<=eMax);
-  if (p1.length) return weightedPick(p1);
-  const p2 = pool.filter(t => camelotCompatible(currentTrack?.camelot,t.camelot));
-  if (p2.length) return weightedPick(p2);
-  const p3 = pool.filter(t => t.energy>=eMin && t.energy<=eMax);
-  if (p3.length) return weightedPick(p3);
-  return weightedPick(pool);
-}
-
-
-// ─── ROUTE BUILDER ───────────────────────────────────────────────────────────
-// Given a start track and end track, build a harmonic path between them.
-// Steps through adjacent Camelot keys, interpolating energy from start to end.
-function buildRoute(allTracks, startTrack, endTrack, maxSteps = 12) {
-  if (!startTrack || !endTrack || startTrack.id === endTrack.id) return [startTrack, endTrack].filter(Boolean);
-  const startE = startTrack.energy || 5;
-  const endE = endTrack.energy || 5;
-  const pool = allTracks.filter(t => t.id !== startTrack.id && t.id !== endTrack.id && (t.duration||0) <= 900);
-
-  const route = [startTrack];
-  let current = startTrack;
-  const used = new Set([startTrack.id, endTrack.id]);
-
-  for (let step = 1; step <= maxSteps; step++) {
-    const progress = step / (maxSteps + 1);
-    const targetEnergy = Math.round(startE + (endE - startE) * progress);
-
-    // Find candidates: Camelot-adjacent to current, closest to target energy, not used
-    const candidates = pool
-      .filter(t => !used.has(t.id) && camelotCompatible(current.camelot, t.camelot, 1))
-      .map(t => ({ track: t, score: Math.abs((t.energy||5) - targetEnergy) }))
-      .sort((a, b) => a.score - b.score);
-
-    if (!candidates.length) break;
-
-    // Check if we can reach the end track from here
-    if (camelotCompatible(candidates[0].track.camelot, endTrack.camelot, 2)) {
-      // Close enough to bridge to end — pick best and stop
-      route.push(candidates[0].track);
-      used.add(candidates[0].track.id);
-      break;
-    }
-
-    route.push(candidates[0].track);
-    used.add(candidates[0].track.id);
-    current = candidates[0].track;
-  }
-
-  route.push(endTrack);
-  return route;
-}
-
-// ─── SESSION ENGINE ──────────────────────────────────────────────────────────
-// Activity-based energy arc profiles. Each phase has a proportion (0-1) and target energy.
-const SESSION_PROFILES = {
-  party:      { label:"Party",       phases:[{name:"Warm Up",p:0.15,e:4},{name:"Build",p:0.2,e:6},{name:"Peak",p:0.35,e:9},{name:"Sustain",p:0.2,e:8},{name:"Wind Down",p:0.1,e:5}] },
-  run:        { label:"Run",         phases:[{name:"Pace Up",p:0.1,e:6},{name:"Stride",p:0.4,e:8},{name:"Push",p:0.35,e:9},{name:"Cool",p:0.15,e:5}] },
-  workout:    { label:"Workout",     phases:[{name:"Warm Up",p:0.12,e:5},{name:"Build",p:0.2,e:7},{name:"Peak",p:0.4,e:9},{name:"Push",p:0.18,e:8},{name:"Stretch",p:0.1,e:3}] },
-  chill:      { label:"Chill",       phases:[{name:"Drift",p:0.3,e:3},{name:"Float",p:0.4,e:2},{name:"Settle",p:0.3,e:3}] },
-  focus:      { label:"Focus",       phases:[{name:"Settle In",p:0.15,e:4},{name:"Flow",p:0.6,e:3},{name:"Sustain",p:0.2,e:4},{name:"Ease Out",p:0.05,e:3}] },
-  drive:      { label:"Late Drive",  phases:[{name:"Depart",p:0.15,e:5},{name:"Cruise",p:0.5,e:6},{name:"Deep",p:0.25,e:4},{name:"Arrive",p:0.1,e:3}] },
-  dinner:     { label:"Dinner",      phases:[{name:"Arrival",p:0.2,e:4},{name:"Conversation",p:0.5,e:3},{name:"Linger",p:0.3,e:4}] },
-  predrinks:  { label:"Pre-drinks",  phases:[{name:"Ease In",p:0.2,e:4},{name:"Lift",p:0.35,e:6},{name:"Buzz",p:0.3,e:7},{name:"Ready",p:0.15,e:8}] },
-  study:      { label:"Study",       phases:[{name:"Settle",p:0.1,e:3},{name:"Deep Work",p:0.7,e:2},{name:"Break",p:0.1,e:4},{name:"Close",p:0.1,e:2}] },
-  recovery:   { label:"Recovery",    phases:[{name:"Ground",p:0.2,e:2},{name:"Restore",p:0.5,e:1},{name:"Ease Up",p:0.3,e:3}] },
-};
-
-function buildSession(allTracks, durationMins, activityId) {
-  const profile = SESSION_PROFILES[activityId];
-  if (!profile) return [];
-  const pool = allTracks.filter(t => (t.duration||0) <= 900 && (t.duration||0) > 0);
-  if (!pool.length) return [];
-
-  const totalSecs = durationMins * 60;
-  const avgTrackLen = pool.reduce((s,t)=>s+(t.duration||210),0) / pool.length;
-  const targetCount = Math.max(3, Math.round(totalSecs / avgTrackLen));
-
-  const session = [];
-  const used = new Set();
-  let accumulated = 0;
-
-  for (const phase of profile.phases) {
-    const phaseTarget = phase.e;
-    const phaseTracks = Math.max(1, Math.round(targetCount * phase.p));
-
-    // Find tracks near this energy level, prefer camelot compatibility with last track
-    const lastTrack = session.length ? session[session.length-1] : null;
-    let candidates = pool
-      .filter(t => !used.has(t.id))
-      .map(t => {
-        let score = Math.abs((t.energy||5) - phaseTarget) * 3;
-        if (lastTrack && !camelotCompatible(lastTrack.camelot, t.camelot, 2)) score += 2;
-        if (t.liked) score -= 0.5;
-        const skips = t.skipCount || 0;
-        const plays = t.playCount || 0;
-        if (plays > 0 && skips > plays * 0.5) score += 3;
-        return { track:t, score };
-      })
-      .sort((a,b) => a.score - b.score);
-
-    for (let i = 0; i < phaseTracks && candidates.length > 0; i++) {
-      // Pick from top 3 randomly for variety
-      const pick = candidates.splice(Math.floor(Math.random() * Math.min(3, candidates.length)), 1)[0];
-      if (!pick) break;
-      session.push({ ...pick.track, _phase: phase.name });
-      used.add(pick.track.id);
-      accumulated += (pick.track.duration || avgTrackLen);
-      if (accumulated >= totalSecs * 1.05) break;
-    }
-    if (accumulated >= totalSecs * 1.05) break;
-  }
-
-  return session;
-}
-
-function fmtTime(s) {
-  if (!s||isNaN(s)) return "0:00";
-  return `${Math.floor(s/60)}:${Math.floor(s%60).toString().padStart(2,"0")}`;
-}
-function hexToRgbStr(hex) {
-  if (!hex||hex.length<7) return "160,165,175";
-  return `${parseInt(hex.slice(1,3),16)},${parseInt(hex.slice(3,5),16)},${parseInt(hex.slice(5,7),16)}`;
-}
-
-// ─── ENERGY BAR ───────────────────────────────────────────────────────────────
 function EnergyBar({ level, color, size="sm" }) {
   const h = size==="lg" ? [8,10,12,10,8,12,10,8,12,10] : [5,6,7,6,5,7,6,5,7,6];
   return (
@@ -474,263 +137,81 @@ function VinylRecord({ track, isPlaying, size=190 }) {
 }
 
 // ─── VERS FLIPPER — vertical, full-bleed album art ────────────────────────────
-function VerseFlipper({ tracks, onSelect, currentTrack, isPlaying }) {
-  const [idx, setIdx]           = useState(0);
-  const [dragY, setDragY]       = useState(0);
-  const [dragStart, setDragStart] = useState(null);
-  const [dragging, setDragging] = useState(false);
-  const [animDir, setAnimDir]   = useState(null); // "up"|"down"
-  const containerRef            = useRef(null);
-
-  const t = tracks[idx];
-  const prev = tracks[idx-1];
-  const next = tracks[idx+1];
-
-  const goTo = useCallback((newIdx, dir) => {
-    if (newIdx < 0 || newIdx >= tracks.length) return;
-    setAnimDir(dir);
-    setIdx(newIdx);
-    setTimeout(() => setAnimDir(null), 350);
-  }, [tracks.length]);
-
-  const onPD = (e) => { setDragStart(e.clientY ?? e.touches?.[0]?.clientY ?? 0); setDragging(true); };
-  const onPM = useCallback((e) => {
-    if (!dragging) return;
-    const y = e.clientY ?? e.touches?.[0]?.clientY ?? 0;
-    setDragY(y - dragStart);
-  }, [dragging, dragStart]);
-  const onPU = useCallback(() => {
-    if (!dragging) return;
-    setDragging(false);
-    if (dragY < -55 && idx < tracks.length-1) goTo(idx+1, "up");
-    else if (dragY > 55 && idx > 0) goTo(idx-1, "down");
-    setDragY(0); setDragStart(null);
-  }, [dragging, dragY, idx, tracks.length, goTo]);
-
-  useEffect(() => {
-    window.addEventListener("pointermove", onPM);
-    window.addEventListener("pointerup", onPU);
-    window.addEventListener("touchmove", onPM, {passive:true});
-    window.addEventListener("touchend", onPU);
-    return () => {
-      window.removeEventListener("pointermove", onPM);
-      window.removeEventListener("pointerup", onPU);
-      window.removeEventListener("touchmove", onPM);
-      window.removeEventListener("touchend", onPU);
-    };
-  }, [onPM, onPU]);
-
-  const CARD_H = 200;
-
-  return (
-    <div style={{ position:"relative", userSelect:"none", touchAction:"none" }}>
-      {/* Peek card above (previous) */}
-      {prev && (
-        <div style={{ position:"absolute", top:-28, left:0, right:0, height:32, zIndex:0, overflow:"hidden", opacity:0.35, pointerEvents:"none" }}>
-          <div style={{ position:"absolute", bottom:0, left:0, right:0, height:80, background:"rgba(0,0,0,0.6)", backdropFilter:"blur(4px)" }}/>
-          <img src={prev.albumCover} alt="" style={{ width:"100%", height:"100%", objectFit:"cover", display:"block", filter:"brightness(0.4)" }}/>
-          <div style={{ position:"absolute", inset:0, background:"linear-gradient(to bottom, rgba(0,0,0,0.7) 0%, transparent 100%)" }}/>
-        </div>
-      )}
-
-      {/* Main card */}
-      <div ref={containerRef}
-        onPointerDown={onPD}
-        style={{
-          height: CARD_H,
-          position:"relative", overflow:"hidden",
-          cursor: dragging ? "grabbing" : "grab",
-          borderRadius: 0,
-          transform: dragging ? `translateY(${dragY * 0.18}px)` : "none",
-          transition: dragging ? "none" : "transform 0.35s cubic-bezier(0.22,1,0.36,1)",
-          animation: animDir ? `card-snap 0.32s cubic-bezier(0.22,1,0.36,1)` : "none",
-          WebkitBackfaceVisibility: "hidden",
-        }}>
-
-        {/* Full-bleed album image */}
-        <div style={{ position:"absolute", inset:0, zIndex:0 }}>
-          <AlbumArt track={t} size={CARD_H} borderRadius={0}/>
-          <div style={{ position:"absolute", inset:0, width:"100%" }}>
-            {/* Re-render as full-width cover */}
-            <img src={t.albumCover} alt="" style={{ position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover", display:"block" }}
-              onError={()=>{}}/>
-          </div>
-        </div>
-
-        {/* Gradient overlay — dark at bottom for text readability */}
-        <div style={{ position:"absolute", inset:0, zIndex:1,
-          background:"linear-gradient(to bottom, rgba(0,0,0,0.15) 0%, rgba(0,0,0,0.0) 35%, rgba(0,0,0,0.65) 70%, rgba(0,0,0,0.92) 100%)"
-        }}/>
-
-        {/* Top badges — genre, liked indicator */}
-        <div style={{ position:"absolute", top:16, left:16, right:16, zIndex:3, display:"flex", justifyContent:"space-between", alignItems:"flex-start" }}>
-          <div style={{ display:"flex", gap:6, flexWrap:"wrap" }}>
-            <span style={{ fontSize:10, fontWeight:700, letterSpacing:1.2, textTransform:"uppercase", color:"rgba(255,255,255,0.9)", background:"rgba(0,0,0,0.5)", backdropFilter:"blur(8px)", padding:"4px 9px", borderRadius:20, border:"1px solid rgba(255,255,255,0.12)" }}>{t.genre}</span>
-            {t.liked && <span style={{ fontSize:10, fontWeight:700, letterSpacing:0.8, color:"rgba(255,255,255,0.85)", background:"rgba(255,255,255,0.12)", backdropFilter:"blur(8px)", padding:"4px 9px", borderRadius:20, border:"1px solid rgba(255,255,255,0.2)" }}>♥ Saved</span>}
-          </div>
-          <div style={{ display:"flex", flexDirection:"column", alignItems:"flex-end", gap:4 }}>
-            
-            {t.bpm && <span style={{ fontSize:9, color:"rgba(255,255,255,0.5)", letterSpacing:0.5 }}>{t.bpm} BPM</span>}
-          </div>
-        </div>
-
-        {/* Bottom info — title, artist, album, energy, play */}
-        <div style={{ position:"absolute", bottom:0, left:0, right:0, zIndex:3, padding:"0 16px 18px" }}>
-          <div style={{ fontSize:22, fontWeight:700, letterSpacing:-0.4, color:"#ffffff", lineHeight:1.15, marginBottom:3, textShadow:"0 2px 12px rgba(0,0,0,0.8)" }}>
-            {t.title}
-          </div>
-          <div style={{ fontSize:14, color:"rgba(255,255,255,0.72)", fontWeight:500, marginBottom:2 }}>
-            {t.artist}
-          </div>
-          <div style={{ fontSize:12, color:"rgba(255,255,255,0.4)", marginBottom:12 }}>
-            {t.album}
-          </div>
-          {/* Play button bottom left */}
-          <button onClick={()=>onSelect(t)} style={{
-            width:44, height:44, borderRadius:"50%",
-            background:"#1A1D26",
-            border:"none",
-            color:"#FFFFFF", cursor:"pointer",
-            display:"flex", alignItems:"center", justifyContent:"center",
-            boxShadow:"0 4px 16px rgba(26,29,38,0.4)",
-          }}>
-            <Icon name={currentTrack?.id===t.id && isPlaying ? "pause" : "play"} size={20}/>
-          </button>
-        </div>
-
-        {/* Swipe hint arrows (subtle) */}
-        {idx > 0 && (
-          <button onClick={()=>goTo(idx-1,"down")} style={{ position:"absolute", top:12, left:"50%", transform:"translateX(-50%)", background:"none", border:"none", cursor:"pointer", color:"rgba(255,255,255,0.3)", zIndex:4, padding:4 }}>
-            <Icon name="chev_up" size={18}/>
-          </button>
-        )}
-        {idx < tracks.length-1 && (
-          <button onClick={()=>goTo(idx+1,"up")} style={{ position:"absolute", bottom:72, left:"50%", transform:"translateX(-50%)", background:"none", border:"none", cursor:"pointer", color:"rgba(255,255,255,0.3)", zIndex:4, padding:4 }}>
-            <Icon name="chev_down" size={18}/>
-          </button>
-        )}
-
-        {/* Playing indicator */}
-        {currentTrack?.id === t.id && (
-          <div style={{ position:"absolute", top:16, left:"50%", transform:"translateX(-50%)", zIndex:4, display:"flex", gap:2, alignItems:"flex-end" }}>
-            {[5,8,5,9,6].map((h,i)=>(
-              <div key={i} style={{ width:3, height:h, borderRadius:2, background:"rgba(255,255,255,0.7)", animation:isPlaying?`pulse ${0.5+i*0.1}s ease-in-out infinite alternate`:"none" }}/>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {/* Peek card below (next) */}
-      {next && (
-        <div style={{ position:"absolute", bottom:-28, left:0, right:0, height:32, zIndex:0, overflow:"hidden", opacity:0.35, pointerEvents:"none" }}>
-          <img src={next.albumCover} alt="" style={{ width:"100%", height:"100%", objectFit:"cover", display:"block", filter:"brightness(0.4)" }}/>
-          <div style={{ position:"absolute", inset:0, background:"linear-gradient(to top, rgba(0,0,0,0.7) 0%, transparent 100%)" }}/>
-        </div>
-      )}
-
-      {/* Track counter */}
-      <div style={{ display:"flex", justifyContent:"center", alignItems:"center", gap:6, padding:"14px 0 4px" }}>
-        <span style={{ fontSize:11, color:"#8E8E93", fontWeight:500 }}>{idx+1} / {tracks.length}</span>
-        <div style={{ display:"flex", gap:3 }}>
-          {tracks.map((_,i) => (
-            <div key={i} onClick={()=>setIdx(i)} style={{
-              width: i===idx?16:4, height:4, borderRadius:2, cursor:"pointer",
-              background: i===idx?"#1A1D26":"#E5E5EA",
-              transition:"width 0.25s, background 0.25s",
-            }}/>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ─── DEEP CUTS RADIO CARD ─────────────────────────────────────────────────────
-function DeepCutsCard({ onPlay, onTogglePlay, currentTrack, isPlaying, isRadioMode, signalLabel }) {
+function DeepCutsCard({ onPlay, onTogglePlay, currentTrack, isPlaying, isRadioMode, signalLabel, previewTracks = [] }) {
   const hour = new Date().getHours();
   const [eMin, eMax] = getEnergyRangeForHour(hour);
   const timeLabel = hour>=22||hour<=1?"Late Night":hour<=5?"Deep Hours":hour<=8?"Early Morning":hour<=11?"Morning":hour<=14?"Midday":hour<=17?"Afternoon":"Evening";
-  const rgb = currentTrack ? hexToRgbStr(currentTrack.color) : "160,165,175";
   const energyLevel = currentTrack?.energy || Math.round((eMin+eMax)/2);
+  const previews = (previewTracks || []).filter(t => (t.duration||0) <= 900 && t.liked).slice(0, 4);
 
   return (
-    <div onClick={isRadioMode ? undefined : onPlay} style={{
-      cursor: isRadioMode ? "default" : "pointer",
-      background: isRadioMode
-        ? `linear-gradient(135deg, rgba(26,29,38,0.92) 0%, rgba(20,22,30,0.88) 100%)`
-        : "linear-gradient(135deg, rgba(26,29,38,0.88) 0%, rgba(30,33,42,0.85) 100%)",
-      backdropFilter:"blur(40px) saturate(200%)",
-      border:"1px solid rgba(255,255,255,0.08)",
-      borderRadius:20, padding:"20px 20px", transition:"all 0.3s",
-      position:"relative", overflow:"hidden",
-      boxShadow:"0 8px 32px rgba(0,0,0,0.12)",
-    }}>
-      {/* Subtle accent glow from track color */}
-      {isRadioMode && currentTrack && <div style={{ position:"absolute", top:-60, right:-60, width:200, height:200, borderRadius:"50%", background:`radial-gradient(circle, rgba(${rgb},0.15) 0%, transparent 70%)`, pointerEvents:"none" }}/>}
-
-      {/* Top row — status + time */}
-      <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:16 }}>
+    <div onClick={isRadioMode ? undefined : onPlay} role={isRadioMode ? undefined : "button"}
+      style={{
+        cursor: isRadioMode ? "default" : "pointer",
+        background: color.ink,
+        borderRadius: radius.lg,
+        padding: "22px 20px",
+        position: "relative",
+        overflow: "hidden",
+      }}>
+      <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:18 }}>
         <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-          <div style={{ position:"relative", width:8, height:8, flexShrink:0 }}>
-            <div style={{ position:"absolute", inset:0, borderRadius:"50%", background: isRadioMode&&isPlaying?"#FFFFFF":"rgba(255,255,255,0.3)", animation:isRadioMode&&isPlaying?"breathe 1.8s ease-in-out infinite":"none" }}/>
-            {isRadioMode&&isPlaying&&<div style={{ position:"absolute", inset:-3, borderRadius:"50%", border:"1px solid rgba(255,255,255,0.3)", animation:"pulse-ring 1.8s ease-out infinite" }}/>}
-          </div>
-          <span style={{ fontSize:10, fontWeight:700, letterSpacing:2, color:isRadioMode&&isPlaying?"#FFFFFF":"rgba(255,255,255,0.4)", textTransform:"uppercase" }}>
-            {isRadioMode&&isPlaying ? "live" : "radio"}
+          <div style={{ width:6, height:6, borderRadius:"50%", background: isRadioMode&&isPlaying ? "#FFF" : "rgba(255,255,255,0.28)", animation: isRadioMode&&isPlaying ? "breathe 2s ease-in-out infinite" : "none" }}/>
+          <span style={{ fontSize:10, fontWeight:700, letterSpacing:1.6, color: isRadioMode&&isPlaying ? "#FFF" : "rgba(255,255,255,0.35)", textTransform:"uppercase" }}>
+            {isRadioMode&&isPlaying ? "Live" : "Radio"}
           </span>
         </div>
-        <span style={{ fontSize:10, fontWeight:600, color:"rgba(255,255,255,0.4)", letterSpacing:0.5 }}>{currentTrack?.genre || ""}</span>
+        <span style={{ fontSize:11, fontWeight:500, color:"rgba(255,255,255,0.35)" }}>{currentTrack?.genre || timeLabel}</span>
       </div>
 
       {isRadioMode&&currentTrack ? (
         <div>
-          {/* Main content row */}
-          <div style={{ display:"flex", gap:14, alignItems:"center", marginBottom:14 }}>
-            <div style={{ width:56, height:56, borderRadius:12, overflow:"hidden", flexShrink:0, boxShadow:`0 4px 20px rgba(${rgb},0.25)` }}>
-              <AlbumArt track={currentTrack} size={56} borderRadius={0}/>
+          <div style={{ display:"flex", gap:14, alignItems:"center", marginBottom:16 }}>
+            <div style={{ width:52, height:52, borderRadius: radius.sm, overflow:"hidden", flexShrink:0 }}>
+              <AlbumArt track={currentTrack} size={52} borderRadius={0}/>
             </div>
             <div style={{ flex:1, minWidth:0 }}>
-              <div style={{ fontSize:17, fontWeight:600, color:"#FFFFFF", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap", letterSpacing:-0.3 }}>{currentTrack.title}</div>
-              <div style={{ fontSize:12, color:"rgba(255,255,255,0.5)", marginTop:3 }}>{currentTrack.artist}</div>
+              <div style={{ fontSize:17, fontWeight:600, color:"#FFF", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap", letterSpacing:-0.3 }}>{currentTrack.title}</div>
+              <div style={{ fontSize:13, color:"rgba(255,255,255,0.45)", marginTop:3 }}>{currentTrack.artist}</div>
             </div>
           </div>
-          {/* Controls + energy indicator */}
           <div style={{ display:"flex", alignItems:"center", gap:12 }}>
-            <button onClick={e=>{e.stopPropagation();onTogglePlay();}} style={{ width:38, height:38, borderRadius:"50%", background:"rgba(255,255,255,0.15)", backdropFilter:"blur(12px)", border:"1px solid rgba(255,255,255,0.15)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, color:"#FFFFFF", cursor:"pointer" }}>
+            <button type="button" aria-label={isPlaying?"Pause":"Play"} onClick={e=>{e.stopPropagation();onTogglePlay();}}
+              style={{ width:40, height:40, borderRadius:"50%", background:"rgba(255,255,255,0.12)", border:"none", display:"flex", alignItems:"center", justifyContent:"center", color:"#FFF", cursor:"pointer" }}>
               <Icon name={isPlaying?"pause":"play"} size={16}/>
             </button>
-            <div style={{ fontSize:12, fontWeight:500, color:"rgba(255,255,255,0.4)" }}>{timeLabel} Mix{signalLabel && isRadioMode ? ` · ${signalLabel}` : ""}</div>
+            <div style={{ fontSize:12, color:"rgba(255,255,255,0.4)" }}>{timeLabel}{signalLabel ? ` · ${signalLabel}` : ""}</div>
             <div style={{ flex:1 }}/>
-            {/* Energy level indicator — subtle bar */}
-            <div style={{ display:"flex", gap:2, alignItems:"flex-end" }}>
+            <div style={{ display:"flex", gap:2, alignItems:"flex-end" }} aria-hidden="true">
               {[1,2,3,4,5,6,7,8,9,10].map(i => (
-                <div key={i} style={{ width:3, height: 3 + i * 1.5, borderRadius:1.5, background: i <= energyLevel ? "rgba(255,255,255,0.5)" : "rgba(255,255,255,0.08)", transition:"background 0.3s" }}/>
+                <div key={i} style={{ width:2, height: 2 + i * 1.4, borderRadius:1, background: i <= energyLevel ? "rgba(255,255,255,0.55)" : "rgba(255,255,255,0.1)" }}/>
               ))}
             </div>
           </div>
         </div>
       ) : (
         <div>
-          <div style={{ fontSize:20, fontWeight:700, letterSpacing:-0.3, color:"#FFFFFF", marginBottom:4 }}>{timeLabel} Mix</div>
-          <div style={{ fontSize:12, color:"rgba(255,255,255,0.35)", marginBottom:14 }}>Tap to start your {timeLabel.toLowerCase()} session</div>
+          <div style={{ fontSize:22, fontWeight:650, letterSpacing:-0.4, color:"#FFF", marginBottom:6 }}>{timeLabel}</div>
+          <div style={{ fontSize:13, color:"rgba(255,255,255,0.4)", marginBottom:18, lineHeight:1.4 }}>Start a session shaped for right now.</div>
           <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between" }}>
             <div style={{ display:"flex", alignItems:"center", gap:10 }}>
-              <button onClick={e=>{e.stopPropagation();onPlay();}} style={{ width:42, height:42, borderRadius:"50%", background:"rgba(255,255,255,0.15)", backdropFilter:"blur(12px)", border:"1px solid rgba(255,255,255,0.15)", display:"flex", alignItems:"center", justifyContent:"center", color:"#FFFFFF", cursor:"pointer" }}>
-                <Icon name="play" size={20}/>
+              <button type="button" aria-label="Start radio" onClick={e=>{e.stopPropagation();onPlay();}}
+                style={{ width:44, height:44, borderRadius:"50%", background:"#FFF", border:"none", display:"flex", alignItems:"center", justifyContent:"center", color: color.ink, cursor:"pointer" }}>
+                <Icon name="play" size={18}/>
               </button>
-              {/* Preview: first 4 tracks from anticipatory queue */}
-              <div style={{ display:"flex", marginLeft:4 }}>
-                {tracks.filter(t=>(t.duration||0)<=900&&t.liked).slice(0,4).map((t,i) => (
-                  <div key={t.id} style={{ width:28, height:28, borderRadius:6, overflow:"hidden", marginLeft:i>0?-6:0, border:"1.5px solid rgba(0,0,0,0.3)", boxShadow:"0 1px 4px rgba(0,0,0,0.2)" }}>
-                    <AlbumArt track={t} size={28} borderRadius={0}/>
-                  </div>
-                ))}
-              </div>
+              {previews.length > 0 && (
+                <div style={{ display:"flex" }}>
+                  {previews.map((t,i) => (
+                    <div key={t.id} style={{ width:26, height:26, borderRadius:6, overflow:"hidden", marginLeft:i>0?-6:0, border:`1.5px solid ${color.ink}` }}>
+                      <AlbumArt track={t} size={26} borderRadius={0}/>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
-            {/* Static energy range preview */}
-            <div style={{ display:"flex", gap:2, alignItems:"flex-end" }}>
+            <div style={{ display:"flex", gap:2, alignItems:"flex-end" }} aria-hidden="true">
               {[1,2,3,4,5,6,7,8,9,10].map(i => (
-                <div key={i} style={{ width:3, height: 3 + i * 1.5, borderRadius:1.5, background: (i >= eMin && i <= eMax) ? "rgba(255,255,255,0.3)" : "rgba(255,255,255,0.06)" }}/>
+                <div key={i} style={{ width:2, height: 2 + i * 1.4, borderRadius:1, background: (i >= eMin && i <= eMax) ? "rgba(255,255,255,0.35)" : "rgba(255,255,255,0.08)" }}/>
               ))}
             </div>
           </div>
@@ -746,7 +227,6 @@ const PlaylistCtx = { playlists:[], onCreate:()=>{}, onAdd:()=>{}, onRemove:()=>
 
 // ─── TRACK ROW ────────────────────────────────────────────────────────────────
 function TrackRow({ track, onPlay, active, isPlaying, onLike, extraAction, playlistCtx, activePlaylistId }) {
-  const [hover, setHover]         = useState(false);
   const [menuOpen, setMenuOpen]   = useState(false);
   const [newPlName, setNewPlName] = useState("");
   const [showNewPl, setShowNewPl] = useState(false);
@@ -764,89 +244,87 @@ function TrackRow({ track, onPlay, active, isPlaying, onLike, extraAction, playl
 
   return (
     <div style={{ position:"relative" }}>
-      <div onClick={onPlay} onMouseEnter={()=>setHover(true)} onMouseLeave={()=>setHover(false)}
-        style={{ display:"flex", alignItems:"center", gap:8, padding:"8px 10px", borderRadius:12, cursor:"pointer", transition:"all 0.2s",
-          background:active?"rgba(255,255,255,0.22)":hover?"rgba(255,255,255,0.14)":"rgba(255,255,255,0.08)",
-          backdropFilter:"blur(40px) saturate(180%)",
-          border:active?"1px solid rgba(255,255,255,0.2)":"1px solid rgba(255,255,255,0.06)",
-          marginBottom:2 }}>
-        <div style={{ width:38, height:38, borderRadius:8, overflow:"hidden", flexShrink:0, position:"relative" }}>
-          <AlbumArt track={track} size={38} borderRadius={0}/>
-          {active&&isPlaying&&<div style={{ position:"absolute", inset:0, background:"rgba(0,0,0,0.5)", display:"flex", alignItems:"center", justifyContent:"center" }}><div style={{ width:7, height:7, borderRadius:"50%", background:"#1A1D26", animation:"pulse 1s ease-in-out infinite" }}/></div>}
+      <div
+        role="button"
+        tabIndex={0}
+        onClick={onPlay}
+        onKeyDown={e=>{ if(e.key==="Enter"||e.key===" ") { e.preventDefault(); onPlay(); } }}
+        style={{
+          display:"flex", alignItems:"center", gap:12, padding:"10px 8px", borderRadius: radius.sm,
+          cursor:"pointer", marginBottom:1,
+          background: active ? "rgba(20,22,28,0.05)" : "transparent",
+        }}
+      >
+        <div style={{ width:40, height:40, borderRadius:8, overflow:"hidden", flexShrink:0, position:"relative" }}>
+          <AlbumArt track={track} size={40} borderRadius={0}/>
+          {active&&isPlaying&&(
+            <div style={{ position:"absolute", inset:0, background:"rgba(0,0,0,0.35)", display:"flex", alignItems:"center", justifyContent:"center" }}>
+              <div style={{ width:6, height:6, borderRadius:"50%", background:"#FFF", animation:"pulse 1.2s ease-in-out infinite" }}/>
+            </div>
+          )}
         </div>
         <div style={{ flex:1, minWidth:0 }}>
-          <div style={{ fontSize:14, fontWeight:active?600:400, letterSpacing:-0.15, color:active?"#1A1D26":"#4B5563", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{track.title}</div>
-          <div style={{ fontSize:12, color:"#9CA3AF", marginTop:1 }}>{track.artist}</div>
+          <div style={{ fontSize:14, fontWeight: active?600:500, letterSpacing:-0.15, color: color.ink, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{track.title}</div>
+          <div style={{ fontSize:12, color: color.muted, marginTop:2 }}>{track.artist}{track.genre ? ` · ${track.genre}` : ""}</div>
         </div>
-        <div style={{ display:"flex", flexDirection:"column", alignItems:"flex-end", gap:3, flexShrink:0 }}>
-          
-          <div style={{ display:"flex", gap:4 }}>
-            
-            <span style={{ fontSize:10, color:"#C4C9D4" }}>{track.genre}</span>
-          </div>
-        </div>
-        {onLike&&<button onClick={e=>{e.stopPropagation();onLike(track.id);}} style={{ background:"none", border:"none", cursor:"pointer", color:track.liked?"#1A1D26":"#C4C9D4", padding:4, transition:"color 0.2s" }}><Icon name={track.liked?"heart":"heartempty"} size={16}/></button>}
-        {/* ⋯ menu button — always visible */}
-        <button onClick={e=>{e.stopPropagation();setMenuOpen(o=>!o);setShowNewPl(false);}}
-          style={{ background:"none", border:"none", cursor:"pointer", color:"#C4C9D4", padding:"4px 6px", fontSize:18, lineHeight:1, flexShrink:0 }}>⋯</button>
+        {onLike&&(
+          <button type="button" aria-label={track.liked?"Unlike":"Like"} onClick={e=>{e.stopPropagation();onLike(track.id);}}
+            style={{ background:"none", border:"none", cursor:"pointer", color: track.liked? color.ink : color.faint, padding:6 }}>
+            <Icon name={track.liked?"heart":"heartempty"} size={16}/>
+          </button>
+        )}
+        <button type="button" aria-label="More" onClick={e=>{e.stopPropagation();setMenuOpen(o=>!o);setShowNewPl(false);}}
+          style={{ background:"none", border:"none", cursor:"pointer", color: color.faint, padding:"4px 6px", fontSize:18, lineHeight:1, flexShrink:0 }}>⋯</button>
         {extraAction||null}
       </div>
 
-      {/* ── Dropdown menu ── */}
       {menuOpen && (
         <div onClick={e=>e.stopPropagation()}
-          style={{ position:"absolute", right:8, top:44, zIndex:50, background:"rgba(255,255,255,0.18)", backdropFilter:"blur(56px) saturate(240%)", border:"1px solid rgba(255,255,255,0.2)", borderRadius:16, padding:"6px 0", minWidth:200, boxShadow:"0 12px 48px rgba(0,0,0,0.1)" }}>
-
-          {/* Add to existing playlists */}
+          style={{ position:"absolute", right:8, top:48, zIndex:50, background: color.surfaceSolid, border:`1px solid ${color.lineStrong}`, borderRadius: radius.md, padding:"6px 0", minWidth:200, boxShadow:"0 8px 24px rgba(20,22,28,0.08)" }}>
           {ctx.playlists.length > 0 && (
             <>
-              <div style={{ fontSize:11, fontWeight:600, letterSpacing:0.5, color:"#C4C9D4", padding:"6px 14px", textTransform:"uppercase" }}>Add to playlist</div>
+              <div style={{ fontSize:10, fontWeight:650, letterSpacing:0.8, color: color.faint, padding:"6px 14px", textTransform:"uppercase" }}>Add to playlist</div>
               {ctx.playlists.map(pl => (
-                <button key={pl.id} onClick={()=>handleAddTo(pl.id)}
-                  style={{ display:"block", width:"100%", textAlign:"left", background:"none", border:"none", color:"#1C1C1E", fontSize:14, padding:"10px 14px", cursor:"pointer" }}>
-                  ♪ {pl.name}
+                <button key={pl.id} type="button" onClick={()=>handleAddTo(pl.id)}
+                  style={{ display:"block", width:"100%", textAlign:"left", background:"none", border:"none", color: color.ink, fontSize:14, padding:"10px 14px", cursor:"pointer" }}>
+                  {pl.name}
                 </button>
               ))}
-              <div style={{ height:0.5, background:"rgba(60,60,67,0.12)", margin:"4px 14px" }}/>
+              <div style={{ height:1, background: color.line, margin:"4px 14px" }}/>
             </>
           )}
-
-          {/* New playlist inline */}
           {showNewPl ? (
             <div style={{ padding:"8px 12px" }}>
               <input autoFocus value={newPlName} onChange={e=>setNewPlName(e.target.value)}
                 onKeyDown={e=>{if(e.key==="Enter")handleCreateAndAdd();if(e.key==="Escape")setShowNewPl(false);}}
                 placeholder="Playlist name…"
-                style={{ background:"rgba(255,255,255,0.07)", border:"1px solid rgba(255,255,255,0.14)", borderRadius:8, padding:"7px 10px", color:"#1C1C1E", fontSize:13, fontFamily:"inherit", width:"100%", marginBottom:6 }}/>
+                style={{ ...INPUT_ST, marginBottom:6, padding:"8px 10px", fontSize:13 }}/>
               <div style={{ display:"flex", gap:6 }}>
-                <button onClick={handleCreateAndAdd} style={{ flex:1, background:"#1A1D26", border:"none", borderRadius:8, color:"#FFFFFF", fontSize:13, fontWeight:600, padding:"8px 0", cursor:"pointer" }}>Create & add</button>
-                <button onClick={()=>setShowNewPl(false)} style={{ flex:1, background:"#F2F2F7", border:"1px solid rgba(60,60,67,0.12)", borderRadius:8, color:"#8E8E93", fontSize:13, padding:"8px 0", cursor:"pointer" }}>Cancel</button>
+                <button type="button" onClick={handleCreateAndAdd} style={{ flex:1, background: color.ink, border:"none", borderRadius:8, color:"#FFF", fontSize:13, fontWeight:600, padding:"8px 0", cursor:"pointer" }}>Create</button>
+                <button type="button" onClick={()=>setShowNewPl(false)} style={{ flex:1, background:"transparent", border:`1px solid ${color.line}`, borderRadius:8, color: color.muted, fontSize:13, padding:"8px 0", cursor:"pointer" }}>Cancel</button>
               </div>
             </div>
           ) : (
-            <button onClick={()=>setShowNewPl(true)}
-              style={{ display:"flex", alignItems:"center", gap:8, width:"100%", textAlign:"left", background:"none", border:"none", color:"#1A1D26", fontSize:14, padding:"10px 14px", cursor:"pointer", fontWeight:500 }}>
-              <span style={{ fontSize:18, lineHeight:1 }}>+</span> New playlist
+            <button type="button" onClick={()=>setShowNewPl(true)}
+              style={{ display:"flex", alignItems:"center", gap:8, width:"100%", textAlign:"left", background:"none", border:"none", color: color.ink, fontSize:14, padding:"10px 14px", cursor:"pointer", fontWeight:500 }}>
+              + New playlist
             </button>
           )}
-
-          {/* Remove from current playlist if in library view */}
           {activePlaylistId && activePlaylistId !== "liked" && (
             <>
-              <div style={{ height:0.5, background:"rgba(60,60,67,0.12)", margin:"4px 14px" }}/>
-              <button onClick={()=>{if(ctx.onResonance) ctx.onResonance(track); setMenuOpen(false);}}
-                style={{ width:"100%", textAlign:"left", background:"none", border:"none", padding:"8px 12px", fontSize:13, color:"#1A1D26", cursor:"pointer", borderBottom:"0.5px solid rgba(60,60,67,0.06)" }}>Hypno Vision · find similar</button>
-              <button onClick={()=>{ctx.onRemove(track.id, activePlaylistId);setMenuOpen(false);}}
-                style={{ display:"block", width:"100%", textAlign:"left", background:"none", border:"none", color:"#FF3B30", fontSize:14, padding:"10px 14px", cursor:"pointer" }}>
+              <div style={{ height:1, background: color.line, margin:"4px 14px" }}/>
+              <button type="button" onClick={()=>{if(ctx.onResonance) ctx.onResonance(track); setMenuOpen(false);}}
+                style={{ width:"100%", textAlign:"left", background:"none", border:"none", padding:"10px 14px", fontSize:13, color: color.ink, cursor:"pointer" }}>Find similar</button>
+              <button type="button" onClick={()=>{ctx.onRemove(track.id, activePlaylistId);setMenuOpen(false);}}
+                style={{ display:"block", width:"100%", textAlign:"left", background:"none", border:"none", color: color.alert, fontSize:14, padding:"10px 14px", cursor:"pointer" }}>
                 Remove from playlist
               </button>
             </>
           )}
-
-          <div style={{ height:0.5, background:"rgba(60,60,67,0.12)", margin:"4px 14px" }}/>
-          <button onClick={()=>setMenuOpen(false)}
-            style={{ display:"block", width:"100%", textAlign:"left", background:"none", border:"none", color:"#C4C9D4", fontSize:13, padding:"8px 14px", cursor:"pointer" }}>
-            Cancel
+          <div style={{ height:1, background: color.line, margin:"4px 14px" }}/>
+          <button type="button" onClick={()=>setMenuOpen(false)}
+            style={{ display:"block", width:"100%", textAlign:"left", background:"none", border:"none", color: color.faint, fontSize:13, padding:"8px 14px", cursor:"pointer" }}>
+            Close
           </button>
         </div>
       )}
@@ -992,30 +470,28 @@ function LoginScreen({ onSignUp, onLogIn, onGoogleSignIn, onPhoneOTP, onVerifyOT
   }
 
   return (
-    <div style={APP_STYLE}>
-      <BgMist color="#7FB6FF"/>
-      <div style={{ position:"absolute", inset:0, background:"radial-gradient(circle at 20% 10%, rgba(127,182,255,0.12), transparent 28%), radial-gradient(circle at 80% 18%, rgba(162,121,255,0.12), transparent 24%), linear-gradient(180deg, rgba(8,12,24,0.78) 0%, rgba(9,14,28,0.72) 42%, rgba(7,10,20,0.82) 100%)", backdropFilter:"blur(34px) saturate(145%)" }} />
-      <div style={{ display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", minHeight:"100%", gap:26, padding:24, position:"relative", zIndex:2 }}>
-        <div style={{ textAlign:"center", maxWidth:420 }}>
-          <div style={{ width:96, height:96, borderRadius:28, margin:"0 auto 18px", background:"linear-gradient(135deg, rgba(255,255,255,0.24), rgba(127,182,255,0.08) 45%, rgba(162,121,255,0.1) 100%)", border:"1px solid rgba(255,255,255,0.24)", boxShadow:"0 30px 90px rgba(0,0,0,0.36), inset 0 1px 0 rgba(255,255,255,0.34), 0 0 50px rgba(127,182,255,0.12)", display:"flex", alignItems:"center", justifyContent:"center", backdropFilter:"blur(30px) saturate(180%)" }}>
-            <BrandGlyph size={76} />
+    <div style={{ ...APP_STYLE, background: color.canvas, justifyContent:"center" }}>
+      <div style={{ display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", minHeight:"100%", gap:28, padding:24, width:"100%", maxWidth:420, margin:"0 auto" }}>
+        <div style={{ textAlign:"center" }}>
+          <div style={{ width:72, height:72, borderRadius: radius.lg, margin:"0 auto 16px", background: color.surfaceSolid, border:`1px solid ${color.line}`, display:"flex", alignItems:"center", justifyContent:"center" }}>
+            <BrandGlyph size={56} />
           </div>
-          
+          <div style={{ fontSize:22, fontWeight:650, letterSpacing:-0.4, color: color.ink }}>V Music</div>
+          <div style={{ fontSize:13, color: color.muted, marginTop:6 }}>Listen with intention</div>
         </div>
 
-        <div style={{ width:"100%", maxWidth:380, display:"flex", flexDirection:"column", gap:14, padding:18, borderRadius:28, background:"linear-gradient(180deg, rgba(255,255,255,0.12), rgba(255,255,255,0.05))", border:"1px solid rgba(255,255,255,0.14)", boxShadow:"0 24px 80px rgba(0,0,0,0.34), inset 0 1px 0 rgba(255,255,255,0.18), 0 0 40px rgba(127,182,255,0.08)", backdropFilter:"blur(34px) saturate(180%)" }}>
-          <div style={{ display:"flex", background:"rgba(255,255,255,0.08)", borderRadius:16, padding:4, gap:4, border:"1px solid rgba(255,255,255,0.14)", backdropFilter:"blur(20px)" }}>
+        <div style={{ width:"100%", display:"flex", flexDirection:"column", gap:12, padding:20, borderRadius: radius.lg, background: color.surfaceSolid, border:`1px solid ${color.line}` }}>
+          <div style={{ display:"flex", background: color.canvas, borderRadius: radius.sm, padding:3, gap:2 }}>
             {["login","signup"].map(m => (
-              <button key={m} onClick={() => { setMode(m); resetMessages(); }} style={{ flex:1, padding:"10px 0", borderRadius:12, border:"none", cursor:"pointer", fontSize:14, fontWeight:600, background:mode===m?"linear-gradient(180deg, rgba(109,188,255,0.92), rgba(78,141,255,0.92))":"transparent", color:mode===m?"#FFFFFF":"rgba(232,240,255,0.72)", boxShadow:mode===m?"0 16px 36px rgba(76,126,255,0.32)":"none" }}>
+              <button key={m} type="button" onClick={() => { setMode(m); resetMessages(); }} style={{ flex:1, padding:"10px 0", borderRadius:8, border:"none", cursor:"pointer", fontSize:13, fontWeight:600, background:mode===m? color.ink :"transparent", color:mode===m? "#FFF": color.muted }}>
                 {m === "login" ? "Log In" : "Sign Up"}
               </button>
             ))}
           </div>
 
-          {/* Email/Phone method toggle */}
-          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:8 }}>
+          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:6 }}>
             {[{id:"email",label:"Email"},{id:"phone",label:"Phone"}].map(item => (
-              <button key={item.id} onClick={() => switchMethod(item.id)} style={{ border:"1px solid rgba(255,255,255,0.2)", background:authMethod===item.id?"rgba(109,188,255,0.16)":"rgba(255,255,255,0.08)", color:authMethod===item.id?"#DCEBFF":"rgba(232,240,255,0.72)", borderRadius:14, padding:"10px 12px", fontWeight:600, cursor:"pointer", fontSize:13 }}>
+              <button key={item.id} type="button" onClick={() => switchMethod(item.id)} style={{ border:`1px solid ${color.line}`, background:authMethod===item.id? "rgba(20,22,28,0.05)":"transparent", color:authMethod===item.id? color.ink: color.muted, borderRadius: radius.sm, padding:"10px 12px", fontWeight:600, cursor:"pointer", fontSize:13 }}>
                 {item.label}
               </button>
             ))}
@@ -1023,15 +499,15 @@ function LoginScreen({ onSignUp, onLogIn, onGoogleSignIn, onPhoneOTP, onVerifyOT
 
           {authMethod === "email" && (
             <>
-              {mode === "signup" && <input placeholder="Username" style={INPUT_ST} value={name} onChange={e => setName(e.target.value)} />}
-              <input placeholder="Email" type="email" style={INPUT_ST} value={email} onChange={e => setEmail(e.target.value)} />
-              <input placeholder="Password" type="password" style={INPUT_ST} value={pass} onChange={e => setPass(e.target.value)} onKeyDown={e => e.key === "Enter" && handleSubmit()} />
+              {mode === "signup" && <input placeholder="Username" aria-label="Username" style={INPUT_ST} value={name} onChange={e => setName(e.target.value)} />}
+              <input placeholder="Email" type="email" aria-label="Email" style={INPUT_ST} value={email} onChange={e => setEmail(e.target.value)} />
+              <input placeholder="Password" type="password" aria-label="Password" style={INPUT_ST} value={pass} onChange={e => setPass(e.target.value)} onKeyDown={e => e.key === "Enter" && handleSubmit()} />
               {mode === "login" && (
-                <button onClick={handleForgotPassword} disabled={loading} style={{ alignSelf:"flex-end", marginTop:-4, background:"none", border:"none", cursor:"pointer", color:"#A9CCFF", fontWeight:600, fontSize:13 }}>
+                <button type="button" onClick={handleForgotPassword} disabled={loading} style={{ alignSelf:"flex-end", marginTop:-4, background:"none", border:"none", cursor:"pointer", color: color.muted, fontWeight:600, fontSize:12 }}>
                   Forgot password?
                 </button>
               )}
-              <button onClick={handleSubmit} disabled={loading} style={{ ...BTN_PRIMARY, opacity:loading ? 0.7 : 1 }}>
+              <button type="button" onClick={handleSubmit} disabled={loading} style={{ ...BTN_PRIMARY, opacity:loading ? 0.7 : 1 }}>
                 {loading ? "Please wait…" : mode === "login" ? "Sign In" : "Create Account"}
               </button>
             </>
@@ -1041,18 +517,18 @@ function LoginScreen({ onSignUp, onLogIn, onGoogleSignIn, onPhoneOTP, onVerifyOT
             <>
               {phoneStep === "enter" ? (
                 <>
-                  <input placeholder="Phone number (+15551234567)" type="tel" style={INPUT_ST} value={phone} onChange={e => setPhone(e.target.value)} onKeyDown={e => e.key === "Enter" && handleSendOTP()} />
-                  <button onClick={handleSendOTP} disabled={loading} style={{ ...BTN_PRIMARY, opacity:loading ? 0.7 : 1 }}>
-                    {loading ? "Sending…" : "Send verification code"}
+                  <input placeholder="Phone (+15551234567)" type="tel" aria-label="Phone number" style={INPUT_ST} value={phone} onChange={e => setPhone(e.target.value)} onKeyDown={e => e.key === "Enter" && handleSendOTP()} />
+                  <button type="button" onClick={handleSendOTP} disabled={loading} style={{ ...BTN_PRIMARY, opacity:loading ? 0.7 : 1 }}>
+                    {loading ? "Sending…" : "Send code"}
                   </button>
                 </>
               ) : (
                 <>
-                  <input placeholder="6-digit code" inputMode="numeric" style={INPUT_ST} value={otp} onChange={e => setOtp(e.target.value)} onKeyDown={e => e.key === "Enter" && handleVerifyOTP()} />
+                  <input placeholder="6-digit code" inputMode="numeric" aria-label="Verification code" style={INPUT_ST} value={otp} onChange={e => setOtp(e.target.value)} onKeyDown={e => e.key === "Enter" && handleVerifyOTP()} />
                   <div style={{ display:"flex", gap:10 }}>
-                    <button onClick={() => { setPhoneStep("enter"); setOtp(""); setConfirmResult(null); resetMessages(); }} style={{ ...BTN_SECONDARY, flex:1 }}>Edit number</button>
-                    <button onClick={handleVerifyOTP} disabled={loading} style={{ ...BTN_PRIMARY, flex:1, opacity:loading ? 0.7 : 1 }}>
-                      {loading ? "Verifying…" : "Verify code"}
+                    <button type="button" onClick={() => { setPhoneStep("enter"); setOtp(""); setConfirmResult(null); resetMessages(); }} style={{ ...BTN_SECONDARY, flex:1 }}>Edit number</button>
+                    <button type="button" onClick={handleVerifyOTP} disabled={loading} style={{ ...BTN_PRIMARY, flex:1, opacity:loading ? 0.7 : 1 }}>
+                      {loading ? "Verifying…" : "Verify"}
                     </button>
                   </div>
                 </>
@@ -1061,26 +537,24 @@ function LoginScreen({ onSignUp, onLogIn, onGoogleSignIn, onPhoneOTP, onVerifyOT
             </>
           )}
 
-          {/* Divider */}
           <div style={{ display:"flex", alignItems:"center", gap:10, margin:"2px 0" }}>
-            <div style={{ flex:1, height:"0.5px", background:"rgba(255,255,255,0.15)" }}/>
-            <span style={{ fontSize:11, color:"rgba(255,255,255,0.3)" }}>or</span>
-            <div style={{ flex:1, height:"0.5px", background:"rgba(255,255,255,0.15)" }}/>
+            <div style={{ flex:1, height:1, background: color.line }}/>
+            <span style={{ fontSize:11, color: color.faint }}>or</span>
+            <div style={{ flex:1, height:1, background: color.line }}/>
           </div>
 
-          {/* Google — direct sign-in button with icon */}
-          <button onClick={handleGoogleSignIn} disabled={loading} style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:10, width:"100%", padding:"13px 20px", borderRadius:16, border:"1px solid rgba(255,255,255,0.2)", background:"rgba(255,255,255,0.1)", backdropFilter:"blur(20px)", cursor:"pointer", opacity:loading?0.6:1, transition:"all 0.2s" }}>
-            <svg width="18" height="18" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18A11.96 11.96 0 0 0 0 12c0 1.94.46 3.77 1.28 5.39l3.56-2.77.01-.53z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
-            <span style={{ fontSize:14, fontWeight:600, color:"rgba(232,240,255,0.85)" }}>Continue with Google</span>
+          <button type="button" onClick={handleGoogleSignIn} disabled={loading} style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:10, width:"100%", padding:"13px 20px", borderRadius: radius.md, border:`1px solid ${color.lineStrong}`, background: color.surfaceSolid, cursor:"pointer", opacity:loading?0.6:1 }}>
+            <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18A11.96 11.96 0 0 0 0 12c0 1.94.46 3.77 1.28 5.39l3.56-2.77.01-.53z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
+            <span style={{ fontSize:14, fontWeight:600, color: color.ink }}>Continue with Google</span>
           </button>
 
           {error && (
-            <div style={{ fontSize:13, color:"#FFD2CC", background:"rgba(255,255,255,0.08)", border:"1px solid rgba(255,120,99,0.18)", borderRadius:16, padding:"12px 14px", lineHeight:1.45 }}>
+            <div role="alert" style={{ fontSize:13, color: color.alert, background:"rgba(229,72,77,0.06)", border:`1px solid rgba(229,72,77,0.15)`, borderRadius: radius.sm, padding:"12px 14px", lineHeight:1.45 }}>
               {error}
             </div>
           )}
           {notice && (
-            <div style={{ fontSize:13, color:"#D7E7FF", background:"rgba(255,255,255,0.08)", border:"1px solid rgba(127,182,255,0.16)", borderRadius:16, padding:"12px 14px", lineHeight:1.45 }}>
+            <div role="status" style={{ fontSize:13, color: color.body, background: color.canvas, border:`1px solid ${color.line}`, borderRadius: radius.sm, padding:"12px 14px", lineHeight:1.45 }}>
               {notice}
             </div>
           )}
@@ -1569,7 +1043,7 @@ function DriftMode({ tracks, currentTrack, isPlaying, onTogglePlay, onSkip, onPr
         <div style={{
           width:"min(55vh, 55vw)", height:"min(55vh, 55vw)",
           borderRadius:20, overflow:"hidden",
-          boxShadow:`0 40px 120px rgba(0,0,0,0.5), 0 0 80px rgba(${rgb},0.15)`,
+          boxShadow:"0 24px 64px rgba(0,0,0,0.45)",
           transition:"box-shadow 2s ease",
         }}>
           {currentTrack.albumCover ? (
@@ -1586,11 +1060,6 @@ function DriftMode({ tracks, currentTrack, isPlaying, onTogglePlay, onSkip, onPr
         </div>
       </div>
 
-      {/* ── Layer 3: Floating mist orbs ── */}
-      <div style={{ position:"absolute", inset:0, pointerEvents:"none", overflow:"hidden" }}>
-        <div style={{ position:"absolute", top:"10%", left:"5%", width:300, height:300, borderRadius:"50%", background:`radial-gradient(circle, rgba(${rgb},0.06) 0%, transparent 70%)`, filter:"blur(60px)", animation:"mist 16s ease-in-out infinite" }}/>
-        <div style={{ position:"absolute", bottom:"15%", right:"8%", width:250, height:250, borderRadius:"50%", background:`radial-gradient(circle, rgba(${rgb},0.04) 0%, transparent 70%)`, filter:"blur(50px)", animation:"mist 20s ease-in-out infinite reverse" }}/>
-      </div>
 
       {/* ── Layer 4: Track info — bottom left ── */}
       <div style={{
@@ -1694,9 +1163,9 @@ function DriftMode({ tracks, currentTrack, isPlaying, onTogglePlay, onSkip, onPr
 
 // ── Shelf primitives — defined outside HomeScreen to prevent remount flashing ──
 const GlassSection = ({label, children}) => (
-  <div style={{ margin:"0 16px 16px", background:"rgba(255,255,255,0.12)", backdropFilter:"blur(60px) saturate(200%)", border:"1px solid rgba(255,255,255,0.1)", borderRadius:20, boxShadow:"0 4px 24px rgba(0,0,0,0.02)", overflow:"hidden" }}>
-    {label && <div style={{ fontSize:11, fontWeight:700, letterSpacing:1, color:"#1A1D26", textTransform:"uppercase", padding:"14px 16px 0" }}>{label}</div>}
-    <div style={{ padding:"12px 0 4px" }}>{children}</div>
+  <div style={{ margin:"8px 0 20px", padding:"0 0 4px" }}>
+    {label && <div style={{ padding:"0 16px 10px", fontSize:11, fontWeight:650, letterSpacing:1.2, color: color.faint, textTransform:"uppercase" }}>{label}</div>}
+    {children}
   </div>
 );
 
@@ -1836,13 +1305,12 @@ function HomeScreen({ tracks, onPlayRadio, onTogglePlay, onPlayTrack, currentTra
 
   return (
     <div>
-      <div style={{ padding:"16px 16px 8px", display:"flex", justifyContent:"space-between", alignItems:"center" }}>
-        <BrandGlyph size={28}/>
-
+      <div style={{ padding:"20px 16px 12px", display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+        <BrandGlyph size={26}/>
       </div>
 
       <div style={{ padding:"0 16px 12px" }}>
-        <DeepCutsCard onPlay={onPlayRadio} onTogglePlay={onTogglePlay} currentTrack={isRadioMode?currentTrack:null} isPlaying={isPlaying} isRadioMode={isRadioMode} signalLabel={signalLabel}/>
+        <DeepCutsCard onPlay={onPlayRadio} onTogglePlay={onTogglePlay} currentTrack={isRadioMode?currentTrack:null} isPlaying={isPlaying} isRadioMode={isRadioMode} signalLabel={signalLabel} previewTracks={tracks}/>
       </div>
 
       {/* Harmonic neighbors — highest priority when playing */}
@@ -1911,37 +1379,45 @@ function HomeScreen({ tracks, onPlayRadio, onTogglePlay, onPlayTrack, currentTra
 
 // ─── SEARCH ───────────────────────────────────────────────────────────────────
 function SearchScreen({ query, setQuery, results, onPlay, onLike, currentTrack, isPlaying, playlistCtx }) {
-  const [mixWith, setMixWith] = useState(null); // track to find mixes for
-  const allTracks = results.length ? results : [];
-
-  // Mix With results — Camelot compatible + similar energy
-  const mixResults = mixWith ? allTracks.length === 0
-    ? [] // placeholder, mixWith uses all tracks from parent
-    : []
-    : [];
-
+  const suggestions = ["e7", "120bpm", "Soul", "8A", "House", "Jazz"];
   return (
-    <div style={{ padding:"24px 16px 16px" }}>
-      <div style={{ position:"relative", marginBottom:16 }}>
-        <div style={{ position:"absolute", left:14, top:"50%", transform:"translateY(-50%)", color:"#C4C9D4" }}><Icon name="search" size={16}/></div>
-        <input placeholder="Tracks, artists, keys, energy…" style={{...INPUT_ST,paddingLeft:42}} value={query} onChange={e=>{setQuery(e.target.value);setMixWith(null);}} autoFocus/>
+    <div style={{ padding:"28px 16px 16px" }}>
+      <div style={{ position:"relative", marginBottom:20 }}>
+        <div style={{ position:"absolute", left:14, top:"50%", transform:"translateY(-50%)", color: color.faint }}><Icon name="search" size={16}/></div>
+        <input
+          placeholder="Track, artist, key, energy…"
+          aria-label="Search"
+          style={{...INPUT_ST, paddingLeft:42, background:"rgba(255,255,255,0.9)", border:`1px solid ${color.line}`}}
+          value={query}
+          onChange={e=>setQuery(e.target.value)}
+          autoFocus
+        />
       </div>
-      {/* Quick filters */}
       {!query && (
-        <div style={{ display:"flex", gap:6, marginBottom:16, flexWrap:"wrap" }}>
-          {["Soul","R&B","Jazz","House","Techno","Hip-Hop","Electronic","Ambient","Funk","Afrobeat","Rock","Indie"].map(g=>(
-            <button key={g} onClick={()=>setQuery(g)} style={{ padding:"5px 12px", borderRadius:10, border:"1px solid rgba(255,255,255,0.5)", background:"rgba(255,255,255,0.4)", backdropFilter:"blur(20px)", color:"#6B7280", fontSize:11, fontWeight:500, cursor:"pointer", transition:"all 0.15s" }}>{g}</button>
+        <div style={{ display:"flex", gap:8, marginBottom:24, flexWrap:"wrap" }}>
+          {["Soul","R&B","Jazz","House","Techno","Hip-Hop","Ambient","Funk"].map(g=>(
+            <button key={g} type="button" onClick={()=>setQuery(g)} style={{
+              padding:"8px 14px", borderRadius: radius.sm, border:`1px solid ${color.line}`,
+              background: "rgba(255,255,255,0.65)", color: color.body, fontSize:12, fontWeight:500, cursor:"pointer",
+            }}>{g}</button>
           ))}
         </div>
       )}
-      {query.length>1&&!results.length&&<div style={{ textAlign:"center", color:"#C4C9D4", padding:"48px 0" }}><div style={{ fontSize:14, color:"#9CA3AF" }}>No results for "{query}"</div></div>}
-      {results.map(t=><TrackRow key={t.id} track={t} onPlay={()=>onPlay(t)} active={currentTrack?.id===t.id} isPlaying={isPlaying} onLike={onLike} playlistCtx={playlistCtx}/>)}
+      {query.length>1&&!results.length&&(
+        <div style={{ textAlign:"center", padding:"56px 0", color: color.muted, fontSize:14 }}>No results for “{query}”</div>
+      )}
+      {results.map(t=>(
+        <TrackRow key={t.id} track={t} onPlay={()=>onPlay(t)} active={currentTrack?.id===t.id} isPlaying={isPlaying} onLike={onLike} playlistCtx={playlistCtx}/>
+      ))}
       {!query && (
-        <div style={{ paddingTop:16 }}>
-          <div style={{ fontSize:10, fontWeight:700, letterSpacing:1, color:"#9CA3AF", textTransform:"uppercase", marginBottom:10 }}>Try</div>
-          <div style={{ display:"flex", flexWrap:"wrap", gap:6 }}>
+        <div style={{ paddingTop:8 }}>
+          <div style={{ fontSize:11, fontWeight:650, letterSpacing:1.2, color: color.faint, textTransform:"uppercase", marginBottom:12 }}>Try</div>
+          <div style={{ display:"flex", flexWrap:"wrap", gap:8 }}>
             {suggestions.map(s => (
-              <button key={s} onClick={() => setQuery(s)} style={{ padding:"8px 14px", borderRadius:10, background:"rgba(255,255,255,0.1)", backdropFilter:"blur(20px)", border:"1px solid rgba(255,255,255,0.08)", color:"#6B7280", fontSize:12, fontWeight:500, cursor:"pointer", transition:"all 0.15s" }}>{s}</button>
+              <button key={s} type="button" onClick={() => setQuery(s)} style={{
+                padding:"8px 14px", borderRadius: radius.sm, background:"transparent",
+                border:`1px solid ${color.line}`, color: color.muted, fontSize:12, fontWeight:500, cursor:"pointer",
+              }}>{s}</button>
             ))}
           </div>
         </div>
@@ -2049,27 +1525,24 @@ function FavoritesScreen({ tracks, onPlay, onLike, currentTrack, isPlaying, user
   }
 
   const Pill = ({label, active, onClick}) => (
-    <button onClick={onClick} style={{ padding:"8px 20px", borderRadius:10, border:"none", background: active?"rgba(255,255,255,0.95)":"transparent", color: active?"#1A1D26":"rgba(255,255,255,0.7)", fontSize:13, fontWeight:active?600:500, cursor:"pointer", transition:"all 0.2s", flexShrink:0, boxShadow:active?"0 2px 8px rgba(0,0,0,0.08)":"none", letterSpacing:-0.1 }}>{label}</button>
+    <button type="button" onClick={onClick} style={{ padding:"8px 16px", borderRadius:8, border:"none", background: active? color.ink :"transparent", color: active? "#FFF": color.muted, fontSize:13, fontWeight:active?600:500, cursor:"pointer", flexShrink:0, letterSpacing:-0.1 }}>{label}</button>
   );
 
   const SectionHead = ({children}) => (
-    <div style={{ fontSize:11, fontWeight:700, letterSpacing:1, color:"#1A1D26", textTransform:"uppercase", marginBottom:10 }}>{children}</div>
+    <div style={{ fontSize:11, fontWeight:650, letterSpacing:1.2, color: color.faint, textTransform:"uppercase", marginBottom:12 }}>{children}</div>
   );
 
   return (
     <div style={{ overflowY:"auto", height:"100%", minHeight:"calc(100vh - 112px)" }}>
       {/* Tab bar — glassmorphic container */}
-      <div style={{ position:"sticky", top:0, zIndex:10, padding:"12px 16px" }}>
+      <div style={{ position:"sticky", top:0, zIndex:10, padding:"12px 16px", background:"rgba(244,245,247,0.92)", backdropFilter:"blur(12px)" }}>
         <div style={{
-          background:"rgba(120,120,130,0.45)",
-          backdropFilter:"blur(60px) saturate(200%)",
-          WebkitBackdropFilter:"blur(60px) saturate(200%)",
-          border:"1px solid rgba(255,255,255,0.2)",
-          borderRadius:16,
-          padding:"6px 8px",
+          background: color.surfaceSolid,
+          border: `1px solid ${color.line}`,
+          borderRadius: radius.md,
+          padding: 4,
           display:"inline-flex",
-          gap:2,
-          boxShadow:"0 4px 24px rgba(0,0,0,0.06), inset 0 1px 0 rgba(255,255,255,0.15)",
+          gap: 2,
         }}>
           <Pill label="Discover" active={view==="discover"} onClick={()=>setView("discover")}/>
           <Pill label="Saved" active={view==="liked"} onClick={()=>setView("liked")}/>
@@ -2083,7 +1556,7 @@ function FavoritesScreen({ tracks, onPlay, onLike, currentTrack, isPlaying, user
         <div style={{ padding:"0 0 24px" }}>
           {/* For You */}
           {forYou.length > 0 && (
-            <div style={{ margin:"0 16px 16px", padding:"16px", borderRadius:16, background:"rgba(255,255,255,0.12)", backdropFilter:"blur(60px) saturate(200%)", border:"1px solid rgba(255,255,255,0.1)", boxShadow:"0 4px 24px rgba(0,0,0,0.02)" }}>
+            <div style={{ margin:"0 16px 20px", padding:"4px 0 8px" }}>
               <SectionHead>recommended for you</SectionHead>
               <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill, minmax(100px, 1fr))", gap:12, padding:"0 0 4px" }}>
                 {forYou.map(t => (
@@ -2101,7 +1574,7 @@ function FavoritesScreen({ tracks, onPlay, onLike, currentTrack, isPlaying, user
 
           {/* Right now — time-based */}
           {timeRecs.length > 0 && (
-            <div style={{ margin:"0 16px 16px", padding:"16px", borderRadius:16, background:"rgba(255,255,255,0.12)", backdropFilter:"blur(60px) saturate(200%)", border:"1px solid rgba(255,255,255,0.1)", boxShadow:"0 4px 24px rgba(0,0,0,0.02)" }}>
+            <div style={{ margin:"0 16px 20px", padding:"4px 0 8px" }}>
               <SectionHead>{timeLabel} picks</SectionHead>
               <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill, minmax(90px, 1fr))", gap:10, padding:"0 0 4px" }}>
                 {timeRecs.slice(0,16).map(t => (
@@ -2118,12 +1591,12 @@ function FavoritesScreen({ tracks, onPlay, onLike, currentTrack, isPlaying, user
 
           {/* Moods */}
           {moodKeys.length > 0 && (
-          <div style={{ margin:"0 16px 16px", padding:"16px", borderRadius:16, background:"rgba(255,255,255,0.12)", backdropFilter:"blur(60px) saturate(200%)", border:"1px solid rgba(255,255,255,0.1)", boxShadow:"0 4px 24px rgba(0,0,0,0.02)" }}>
+          <div style={{ margin:"0 16px 20px", padding:"4px 0 8px" }}>
             <SectionHead>moods</SectionHead>
             <div className="hide-scroll" style={{ display:"flex", gap:8, overflowX:"auto", padding:"0 0 4px" }}>
               {moodKeys.map(mood => (
                 <div key={mood} onClick={()=>{setView("genres");setGenreFilter(null);setMoodFilter(mood);}}
-                  style={{ flexShrink:0, width:140, padding:"14px 14px", borderRadius:12, background:"rgba(0,0,0,0.03)", border:"none", cursor:"pointer", transition:"all 0.15s" }}>
+                  style={{ flexShrink:0, width:140, padding:"14px 14px", borderRadius: radius.sm, background: color.surfaceSolid, border:`1px solid ${color.line}`, cursor:"pointer" }}>
                   <div style={{ fontSize:14, fontWeight:700, color:"#1A1D26", marginBottom:2 }}>{mood}</div>
                   <div style={{ fontSize:10, color:"#6B7280", marginBottom:6 }}>{moodMeta[mood]?.desc}</div>
                   <div style={{ fontSize:10, color:"#9CA3AF" }}>{moods[mood].length} tracks</div>
@@ -2134,12 +1607,12 @@ function FavoritesScreen({ tracks, onPlay, onLike, currentTrack, isPlaying, user
           )}
 
           {/* Genre grid */}
-          <div style={{ margin:"0 16px 16px", padding:"16px", borderRadius:16, background:"rgba(255,255,255,0.12)", backdropFilter:"blur(60px) saturate(200%)", border:"1px solid rgba(255,255,255,0.1)", boxShadow:"0 4px 24px rgba(0,0,0,0.02)" }}>
+          <div style={{ margin:"0 16px 20px", padding:"4px 0 8px" }}>
             <SectionHead>browse by genre</SectionHead>
             <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill, minmax(90px, 1fr))", gap:6 }}>
             {genres.map(g => (
               <div key={g} onClick={()=>{setView("genres");setGenreFilter(g);}}
-                style={{ padding:"10px 8px", borderRadius:10, background:"rgba(0,0,0,0.03)", border:"none", cursor:"pointer", textAlign:"center", transition:"all 0.15s" }}>
+                style={{ padding:"10px 8px", borderRadius: radius.sm, background: color.surfaceSolid, border:`1px solid ${color.line}`, cursor:"pointer", textAlign:"center" }}>
                 <div style={{ fontSize:12, fontWeight:600, color:"#1A1D26" }}>{g}</div>
                 <div style={{ fontSize:10, color:"#6B7280", marginTop:2 }}>{genreMap[g].length}</div>
               </div>
@@ -2303,7 +1776,7 @@ function ProfileScreen({ user, setUser, tracks, onLogout }) {
     traitAvgs[k] = vals.length ? (vals.reduce((s,v) => s+v, 0) / vals.length).toFixed(1) : "—";
   });
 
-  const CARD = { background:"rgba(255,255,255,0.12)", backdropFilter:"blur(60px) saturate(200%)", border:"1px solid rgba(255,255,255,0.1)", boxShadow:"0 4px 24px rgba(0,0,0,0.02)", borderRadius:16, padding:"16px" };
+  const CARD = { background: color.surfaceSolid, border: `1px solid ${color.line}`, borderRadius: radius.md, padding:"16px" };
 
   return (
     <div style={{ padding:"24px 16px 16px" }}>
@@ -2876,159 +2349,147 @@ function AdminScreen({ tracks, setTracks, tab, setTab, editTrack, setEditTrack, 
 
 // ─── NOW PLAYING BAR ──────────────────────────────────────────────────────────
 function NowPlayingBar({ track, isPlaying, progress, duration, onTogglePlay, onSkip, onPrev, onLike, onSeek, repeat, setRepeat, isRadioMode, expanded, setExpanded }) {
-  const pct = (progress/duration)*100;
+  const pct = duration > 0 ? (progress/duration)*100 : 0;
 
   if (expanded) {
-    const rgb = hexToRgbStr(track.color);
-    const progressPct = duration > 0 ? (progress / duration) * 100 : 0;
     return (
-    <div style={{ position:"fixed", inset:0, zIndex:90, overflow:"hidden" }}>
-      {/* Layered ambient background */}
-      <div style={{ position:"absolute", inset:-40, backgroundImage:track.albumCover?`url(${track.albumCover})`:"none", backgroundSize:"cover", backgroundPosition:"center", filter:"blur(80px) saturate(120%) brightness(0.25)", transform:"scale(1.2)", opacity:0.8 }}/>
-      <div style={{ position:"absolute", inset:0, background:`radial-gradient(ellipse at 50% 30%, rgba(${rgb},0.15) 0%, rgba(8,8,12,0.85) 70%)` }}/>
-      <BgMist color={track.color}/>
-
-      <div style={{ position:"relative", zIndex:1, height:"100%", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:32, gap:24 }}>
-        {/* Close */}
-        <button onClick={()=>setExpanded(false)} style={{ position:"absolute", top:20, right:20, background:"rgba(255,255,255,0.06)", border:"1px solid rgba(255,255,255,0.08)", borderRadius:"50%", width:36, height:36, cursor:"pointer", color:"rgba(255,255,255,0.4)", backdropFilter:"blur(20px)", display:"flex", alignItems:"center", justifyContent:"center" }}>
-          <Icon name="x" size={16}/>
-        </button>
-
-        {/* Album art — large, floating, glowing */}
-        <div style={{ position:"relative" }}>
-          {isPlaying&&<div style={{ position:"absolute", width:280, height:280, top:"50%", left:"50%", transform:"translate(-50%,-50%)", borderRadius:24, border:"1px solid rgba(255,255,255,0.06)", animation:"pulse-ring 3s ease-out infinite" }}/>}
-          <div style={{ width:240, height:240, borderRadius:20, overflow:"hidden", boxShadow:`0 32px 80px rgba(0,0,0,0.4), 0 0 80px rgba(${rgb},0.15)` }}>
+      <div style={{ position:"fixed", inset:0, zIndex:90, background: color.ink, color:"#FFF", display:"flex", flexDirection:"column" }}>
+        <div style={{ display:"flex", justifyContent:"flex-end", padding:"16px 16px 0" }}>
+          <button type="button" aria-label="Close" onClick={()=>setExpanded(false)}
+            style={{ background:"rgba(255,255,255,0.08)", border:"none", borderRadius:"50%", width:36, height:36, cursor:"pointer", color:"rgba(255,255,255,0.6)", display:"flex", alignItems:"center", justifyContent:"center" }}>
+            <Icon name="x" size={16}/>
+          </button>
+        </div>
+        <div style={{ flex:1, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:"24px 32px 48px", gap:28 }}>
+          <div style={{ width:240, height:240, maxWidth:"70vw", maxHeight:"70vw", borderRadius: radius.lg, overflow:"hidden" }}>
             {track.albumCover
               ? <img src={track.albumCover} alt="" style={{ width:"100%", height:"100%", objectFit:"cover" }}/>
-              : <div style={{ width:"100%", height:"100%", background:`linear-gradient(135deg, rgba(${rgb},0.4), #141416)` }}/>}
+              : <div style={{ width:"100%", height:"100%", background:"#2A2D36" }}/>}
           </div>
-        </div>
-
-        {/* Track info */}
-        <div style={{ textAlign:"center", maxWidth:360 }}>
-          {isRadioMode&&<div style={{ fontSize:10, color:"rgba(255,255,255,0.3)", letterSpacing:2, textTransform:"uppercase", marginBottom:6, fontWeight:700 }}>● V Radio</div>}
-          <div style={{ fontSize:26, fontWeight:700, letterSpacing:-0.5, color:"#FFFFFF", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{track.title}</div>
-          <div style={{ fontSize:14, color:"rgba(255,255,255,0.5)", marginTop:4 }}>{track.artist}</div>
-          {/* Metadata row */}
-          <div style={{ marginTop:8, display:"flex", justifyContent:"center", alignItems:"center", gap:8 }}>
-            {track.genre && <span style={{ fontSize:10, padding:"3px 8px", borderRadius:6, background:"rgba(255,255,255,0.06)", color:"rgba(255,255,255,0.3)" }}>{track.genre}</span>}
-            {track.bpm && <span style={{ fontSize:10, padding:"3px 8px", borderRadius:6, background:"rgba(255,255,255,0.06)", color:"rgba(255,255,255,0.25)", fontVariantNumeric:"tabular-nums" }}>{track.bpm} BPM</span>}
-            {track.camelot && <span style={{ fontSize:10, padding:"3px 8px", borderRadius:6, background:"rgba(255,255,255,0.06)", color:"rgba(255,255,255,0.2)" }}>{track.camelot}</span>}
-            {track._signal?.label && <span style={{ fontSize:9, fontWeight:600, padding:"3px 8px", borderRadius:6, background:"rgba(255,255,255,0.04)", color:"rgba(255,255,255,0.15)", letterSpacing:0.8, textTransform:"uppercase" }}>{track._signal.label}</span>}
+          <div style={{ textAlign:"center", maxWidth:360, width:"100%" }}>
+            {isRadioMode && <div style={{ fontSize:10, color:"rgba(255,255,255,0.35)", letterSpacing:1.6, textTransform:"uppercase", marginBottom:8, fontWeight:650 }}>Radio</div>}
+            <div style={{ fontSize:24, fontWeight:650, letterSpacing:-0.4, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{track.title}</div>
+            <div style={{ fontSize:14, color:"rgba(255,255,255,0.5)", marginTop:6 }}>{track.artist}</div>
+            <div style={{ marginTop:12, display:"flex", justifyContent:"center", gap:8, flexWrap:"wrap" }}>
+              {track.genre && <MetaChip>{track.genre}</MetaChip>}
+              {track.bpm && <MetaChip>{track.bpm} BPM</MetaChip>}
+              {track.camelot && <MetaChip>{track.camelot}</MetaChip>}
+            </div>
           </div>
-        </div>
-
-        {/* Progress — color-tinted slim bar */}
-        <div style={{ width:"100%", maxWidth:360 }}>
-          <input type="range" min={0} max={duration} value={progress} onChange={e=>onSeek(+e.target.value)} style={{ width:"100%", accentColor:track.color }}/>
-          <div style={{ display:"flex", justifyContent:"space-between", fontSize:11, color:"rgba(255,255,255,0.25)", marginTop:4, fontVariantNumeric:"tabular-nums" }}>
-            <span>{fmtTime(progress)}</span><span>{fmtTime(duration)}</span>
+          <div style={{ width:"100%", maxWidth:360 }}>
+            <input type="range" min={0} max={duration||0} value={progress} aria-label="Seek" onChange={e=>onSeek(+e.target.value)} style={{ width:"100%", accentColor:"#FFF" }}/>
+            <div style={{ display:"flex", justifyContent:"space-between", fontSize:11, color:"rgba(255,255,255,0.35)", marginTop:6, fontVariantNumeric:"tabular-nums" }}>
+              <span>{fmtTime(progress)}</span><span>{fmtTime(duration)}</span>
+            </div>
           </div>
-        </div>
-
-        {/* Controls */}
-        <div style={{ display:"flex", alignItems:"center", gap:28 }}>
-          <button onClick={onLike} style={{ background:"none",border:"none",cursor:"pointer",color:track.liked?"#FFFFFF":"rgba(255,255,255,0.3)",padding:4,transition:"color 0.2s" }}><Icon name={track.liked?"heart":"heartempty"} size={20}/></button>
-          <button onClick={onPrev} style={{ ...CTRL_BTN, color:"rgba(255,255,255,0.5)" }}><Icon name="prev" size={22}/></button>
-          <button onClick={onTogglePlay} style={{ width:60, height:60, background:"rgba(255,255,255,0.08)", backdropFilter:"blur(24px)", border:"1px solid rgba(255,255,255,0.12)", borderRadius:"50%", color:"#FFFFFF", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center" }}>
-            <Icon name={isPlaying?"pause":"play"} size={28}/>
-          </button>
-          <button onClick={onSkip} style={{ ...CTRL_BTN, color:"rgba(255,255,255,0.5)" }}><Icon name="skip" size={22}/></button>
-          <button onClick={()=>setRepeat(r=>!r)} style={{ background:"none",border:"none",cursor:"pointer",color:repeat?"#FFFFFF":"rgba(255,255,255,0.2)",padding:4,transition:"color 0.2s" }}><Icon name="repeat" size={18}/></button>
+          <div style={{ display:"flex", alignItems:"center", gap:28 }}>
+            <button type="button" aria-label={track.liked?"Unlike":"Like"} onClick={onLike} style={{ background:"none",border:"none",cursor:"pointer",color:track.liked?"#FFF":"rgba(255,255,255,0.35)",padding:4 }}><Icon name={track.liked?"heart":"heartempty"} size={20}/></button>
+            <button type="button" aria-label="Previous" onClick={onPrev} style={{ ...CTRL_BTN, color:"rgba(255,255,255,0.7)" }}><Icon name="prev" size={22}/></button>
+            <button type="button" aria-label={isPlaying?"Pause":"Play"} onClick={onTogglePlay} style={{ width:64, height:64, background:"#FFF", border:"none", borderRadius:"50%", color: color.ink, cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center" }}>
+              <Icon name={isPlaying?"pause":"play"} size={28}/>
+            </button>
+            <button type="button" aria-label="Next" onClick={onSkip} style={{ ...CTRL_BTN, color:"rgba(255,255,255,0.7)" }}><Icon name="skip" size={22}/></button>
+            <button type="button" aria-label="Repeat" onClick={()=>setRepeat(r=>!r)} style={{ background:"none",border:"none",cursor:"pointer",color:repeat?"#FFF":"rgba(255,255,255,0.25)",padding:4 }}><Icon name="repeat" size={18}/></button>
+          </div>
         </div>
       </div>
-    </div>
     );
   }
 
   return (
-    <div style={{ position:"fixed", bottom:56, left:0, right:0, zIndex:80, padding:"0 8px" }}>
-      <div onClick={()=>setExpanded(true)} style={{ background:"rgba(255,255,255,0.1)", backdropFilter:"blur(72px) saturate(260%)", borderRadius:18, padding:"8px 12px", display:"flex", alignItems:"center", gap:10, border:"1px solid rgba(255,255,255,0.2)", boxShadow:`0 8px 32px rgba(0,0,0,0.06), 0 0 40px rgba(${hexToRgbStr(track.color)},0.06)`, cursor:"pointer" }}>
-        <div style={{ width:42, height:42, borderRadius:10, overflow:"hidden", flexShrink:0, boxShadow:"0 2px 8px rgba(0,0,0,0.1)" }}><AlbumArt track={track} size={42} borderRadius={0}/></div>
+    <div style={{ position:"fixed", bottom:56, left:0, right:0, zIndex:80, padding:"0 10px 8px" }}>
+      <div
+        role="button"
+        tabIndex={0}
+        onClick={()=>setExpanded(true)}
+        onKeyDown={e=>{ if(e.key==="Enter") setExpanded(true); }}
+        style={{
+          background: "rgba(255,255,255,0.92)", border:`1px solid ${color.line}`, borderRadius: radius.md,
+          padding:"8px 10px", display:"flex", alignItems:"center", gap:10, cursor:"pointer",
+          boxShadow: "0 4px 16px rgba(20,22,28,0.06)",
+        }}
+      >
+        <div style={{ width:40, height:40, borderRadius:8, overflow:"hidden", flexShrink:0 }}><AlbumArt track={track} size={40} borderRadius={0}/></div>
         <div style={{ flex:1, minWidth:0 }}>
-          <div style={{ fontSize:14, fontWeight:600, color:"#1C1C1E", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
-            {isRadioMode&&<span style={{ fontSize:10, color:"#1A1D26", fontWeight:700, letterSpacing:1, marginRight:6 }}>●</span>}
+          <div style={{ fontSize:13, fontWeight:600, color: color.ink, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
+            {isRadioMode && <span style={{ fontSize:9, fontWeight:700, letterSpacing:1, marginRight:6, color: color.muted }}>●</span>}
             {track.title}
           </div>
-          <div style={{ fontSize:12, color:"#8E8E93" }}>{track.artist}</div>
-          <div style={{ marginTop:4, background:"rgba(255,255,255,0.25)", borderRadius:1.5, height:2 }}>
-            <div style={{ width:`${pct}%`, background:"#1A1D26", height:"100%", borderRadius:2, transition:"width 1s linear" }}/>
+          <div style={{ fontSize:11, color: color.muted }}>{track.artist}</div>
+          <div style={{ marginTop:5, background: color.line, borderRadius:1, height:2 }}>
+            <div style={{ width:`${pct}%`, background: color.ink, height:"100%", borderRadius:1, transition:"width 1s linear" }}/>
           </div>
         </div>
-        <button onClick={e=>{e.stopPropagation();onLike();}} style={{ background:"none",border:"none",cursor:"pointer",color:track.liked?"#1A1D26":"#C4C9D4",padding:4 }}><Icon name={track.liked?"heart":"heartempty"} size={16}/></button>
-        <button onClick={e=>{e.stopPropagation();onTogglePlay();}} style={{ background:"#1A1D26",border:"none",borderRadius:"50%",width:34,height:34,cursor:"pointer",color:"#FFFFFF",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,boxShadow:"0 2px 8px rgba(0,0,0,0.15)" }}>
-          <Icon name={isPlaying?"pause":"play"} size={18}/>
+        <button type="button" aria-label={track.liked?"Unlike":"Like"} onClick={e=>{e.stopPropagation();onLike();}} style={{ background:"none",border:"none",cursor:"pointer",color:track.liked?color.ink:color.faint,padding:4 }}><Icon name={track.liked?"heart":"heartempty"} size={16}/></button>
+        <button type="button" aria-label={isPlaying?"Pause":"Play"} onClick={e=>{e.stopPropagation();onTogglePlay();}} style={{ background: color.ink, border:"none", borderRadius:"50%", width:34, height:34, cursor:"pointer", color:"#FFF", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
+          <Icon name={isPlaying?"pause":"play"} size={16}/>
         </button>
-        <button onClick={e=>{e.stopPropagation();onSkip();}} style={{ background:"none",border:"none",cursor:"pointer",color:"#8E8E93",padding:4 }}><Icon name="skip" size={18}/></button>
+        <button type="button" aria-label="Next" onClick={e=>{e.stopPropagation();onSkip();}} style={{ background:"none",border:"none",cursor:"pointer",color: color.muted, padding:4 }}><Icon name="skip" size={16}/></button>
       </div>
     </div>
   );
 }
 
-// ─── BOTTOM NAV ───────────────────────────────────────────────────────────────
-function BottomNav({ screen, setScreen }) {
-  const items = [
-    {id:"home",label:"Home",icon:"home"},{id:"drift",label:"Drift",icon:"drift"},{id:"search",label:"Search",icon:"search"},
-    {id:"favorites",label:"Library",icon:"heartempty"},{id:"profile",label:"Profile",icon:"profile"},
-    {id:"admin",label:"Admin",icon:"settings"},
-  ];
-  return (
-    <div style={{ position:"fixed", bottom:0, left:0, right:0, height:52, background:"rgba(255,255,255,0.1)", backdropFilter:"blur(64px) saturate(260%)", borderTop:"1px solid rgba(255,255,255,0.14)", display:"flex", zIndex:85 }}>
-      {items.map(({id,icon,label})=>(
-        <button key={id} onClick={()=>setScreen(id)} style={{ flex:1,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:3,background:"none",border:"none",cursor:"pointer",color:screen===id?"#1A1D26":"#C4C9D4",transition:"all 0.2s",borderTop:screen===id?"2px solid #1A1D26":"2px solid transparent" }}>
-          <Icon name={id==="favorites"?(screen===id?"heart":"heartempty"):icon} size={18}/>
-          
-        </button>
-      ))}
-    </div>
-  );
+function MetaChip({ children }) {
+  return <span style={{ fontSize:10, padding:"4px 8px", borderRadius:6, background:"rgba(255,255,255,0.08)", color:"rgba(255,255,255,0.45)", fontVariantNumeric:"tabular-nums" }}>{children}</span>;
 }
 
+// ─── BOTTOM NAV ───────────────────────────────────────────────────────────────
+function BottomNav({ screen, setScreen, showAdmin = false }) {
+  const items = [
+    {id:"home",label:"Home",icon:"home"},
+    {id:"drift",label:"Drift",icon:"drift"},
+    {id:"search",label:"Search",icon:"search"},
+    {id:"favorites",label:"Library",icon:"heartempty"},
+    {id:"profile",label:"You",icon:"profile"},
+  ];
+  if (showAdmin) items.push({id:"admin",label:"Admin",icon:"settings"});
+  return (
+    <nav aria-label="Main" style={{
+      position:"fixed", bottom:0, left:0, right:0, height:56,
+      background: "rgba(255,255,255,0.86)", backdropFilter:"blur(20px)",
+      borderTop: `1px solid ${color.line}`, display:"flex", zIndex:85,
+    }}>
+      {items.map(({id,icon,label})=>(
+        <button key={id} type="button" aria-label={label} aria-current={screen===id?"page":undefined}
+          onClick={()=>setScreen(id)}
+          style={{
+            flex:1, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", gap:3,
+            background:"none", border:"none", cursor:"pointer",
+            color: screen===id ? color.ink : color.faint,
+          }}>
+          <Icon name={id==="favorites"?(screen===id?"heart":"heartempty"):icon} size={18}/>
+          <span style={{ fontSize:9, fontWeight: screen===id ? 650 : 500, letterSpacing:0.2 }}>{label}</span>
+        </button>
+      ))}
+    </nav>
+  );
+}
 
 // ─── PULSE — ambient energy visualization ─────────────────────────────────────
 function Pulse({ track, isPlaying }) {
-  if (!track || !isPlaying) return null;
-  const rgb = hexToRgbStr(track.color);
-  const energy = track.energy || 5;
-  // Higher energy = faster breathing, larger orbs, more opacity
-  const speed = 4 - (energy / 10) * 2; // 4s at E1, 2s at E10
-  const scale = 0.6 + (energy / 10) * 0.6; // 0.6 at E1, 1.2 at E10
-  const opacity = 0.02 + (energy / 10) * 0.04; // very subtle
-
-  return (
-    <div style={{ position:"absolute", inset:0, pointerEvents:"none", zIndex:0, overflow:"hidden" }}>
-      <div style={{
-        position:"absolute", top:"20%", left:"60%",
-        width: 300 * scale, height: 300 * scale,
-        borderRadius:"50%",
-        background:`radial-gradient(circle, rgba(${rgb},${opacity}) 0%, transparent 70%)`,
-        filter:"blur(60px)",
-        animation:`energy-breathe ${speed}s ease-in-out infinite`,
-      }}/>
-      <div style={{
-        position:"absolute", top:"55%", left:"25%",
-        width: 200 * scale, height: 200 * scale,
-        borderRadius:"50%",
-        background:`radial-gradient(circle, rgba(${rgb},${opacity * 0.7}) 0%, transparent 70%)`,
-        filter:"blur(50px)",
-        animation:`energy-breathe ${speed * 1.3}s ease-in-out infinite reverse`,
-      }}/>
-    </div>
-  );
+  // Kept intentionally empty for the minimal shell — ambient motion lives in the player only.
+  return null;
 }
 
-function BgMist({ color="#909090" }) {
+function BgMist({ color: mistColor = "#909090" }) {
   return (
     <div style={{ position:"absolute", inset:0, pointerEvents:"none", zIndex:0, overflow:"hidden" }}>
-      <div style={{ position:"absolute", top:"-15%", left:"20%", width:320, height:320, borderRadius:"50%", background:`radial-gradient(circle,rgba(${hexToRgbStr(color)},0.06) 0%,transparent 70%)`, filter:"blur(50px)", animation:"mist 14s ease-in-out infinite" }}/>
-      <div style={{ position:"absolute", top:"40%", right:"-10%", width:260, height:260, borderRadius:"50%", background:"radial-gradient(circle,rgba(100,100,100,0.03) 0%,transparent 70%)", filter:"blur(60px)", animation:"mist 18s ease-in-out infinite reverse" }}/>
-      <div style={{ position:"absolute", bottom:"20%", left:"-5%", width:200, height:200, borderRadius:"50%", background:"radial-gradient(circle,rgba(100,100,100,0.02) 0%,transparent 70%)", filter:"blur(45px)", animation:"mist 22s ease-in-out infinite" }}/>
+      <div style={{
+        position:"absolute", top:"-10%", left:"30%", width:280, height:280, borderRadius:"50%",
+        background:`radial-gradient(circle,rgba(${hexToRgbStr(mistColor)},0.045) 0%,transparent 70%)`,
+        filter:"blur(40px)",
+      }}/>
     </div>
   );
 }
 
 const ToastEl = ({msg}) => (
-  <div style={{ position:"fixed", bottom:120, left:"50%", transform:"translateX(-50%)", background:"rgba(20,22,30,0.75)", backdropFilter:"blur(48px) saturate(200%)", color:"#FFFFFF", padding:"10px 20px", borderRadius:24, fontSize:13, zIndex:200, border:"1px solid rgba(255,255,255,0.1)", whiteSpace:"nowrap", fontWeight:600 }}>{msg}</div>
+  <div role="status" style={{
+    position:"fixed", bottom:120, left:"50%", transform:"translateX(-50%)",
+    background: color.ink, color: "#FFF", padding:"10px 18px", borderRadius: radius.md,
+    fontSize:13, zIndex:200, whiteSpace:"nowrap", fontWeight:550,
+  }}>{msg}</div>
 );
 
 // ─── ROOT APP ─────────────────────────────────────────────────────────────────
@@ -3069,6 +2530,7 @@ export default function App() {
 
   // ── Listening Memory — tracks recently played with timestamps ──
   const recentlyPlayedRef = useRef([]); // [{id, genre, energy, timestamp}]
+  const playHistoryRef = useRef([]); // previous tracks for "prev" button
   const sessionStartRef = useRef(null);
   const [signalState, setSignalState] = useState({ intensity:0.5, openness:0.5, momentum:0, depth:0, direction:0, label:"arrival" });
 
@@ -3117,17 +2579,10 @@ export default function App() {
     if (prev && latest && (latest - prev > 30 * 60 * 1000)) {
       flushSession();
     }
-  });
+  }, [currentTrack?.id]);
 
-  function getRecentGenres(n = 3) {
-    return recentlyPlayedRef.current.slice(0, n).map(r => r.genre).filter(Boolean);
-  }
 
   // Check if a track was played recently (within hours)
-  function wasPlayedRecently(trackId, hoursAgo = 2) {
-    const cutoff = Date.now() - hoursAgo * 60 * 60 * 1000;
-    return recentlyPlayedRef.current.some(r => r.id === trackId && r.ts > cutoff);
-  }
 
   useEffect(() => { document.title = 'V Music'; }, []);
 
@@ -3302,6 +2757,10 @@ export default function App() {
         bindPrimaryAudio(fadeIn);
 
         setCurrent(next);
+        if (currentRef.current) {
+          playHistoryRef.current = [currentRef.current, ...playHistoryRef.current].slice(0, 50);
+        }
+        logTrackPlay(next);
         // Delay clearing the crossfade flag so the currentTrack useEffect
         // sees isCrossfading=true and skips reloading the audio
         setTimeout(() => { isCrossfading.current = false; }, 100);
@@ -3336,6 +2795,9 @@ export default function App() {
 
   // ── Playback actions ─────────────────────────────────────────────────────
   const playTrack = (track, q = null) => {
+    if (currentTrack && currentTrack.id !== track.id) {
+      playHistoryRef.current = [currentTrack, ...playHistoryRef.current].slice(0, 50);
+    }
     setCurrent(track); setIsPlaying(true); setProgress(0); setIsRadioMode(false);
     if (q) setQueue(q.filter(t => t.id !== track.id));
     logTrackPlay(track);
@@ -3345,9 +2807,10 @@ export default function App() {
   const playRadio = () => {
     if (!tracks.length) return;
     const first = pickNextTrack(tracks, null, recentlyPlayedRef.current);
+    if (currentTrack) playHistoryRef.current = [currentTrack, ...playHistoryRef.current].slice(0, 50);
     setCurrent(first); setIsPlaying(true); setProgress(0); setIsRadioMode(true); setQueue([]);
     logTrackPlay(first);
-    showToast("V Radio — on air");
+    showToast("Radio on");
     if (firebaseUser) recordPlay(first.id, profile?.recentTracks || []).catch(()=>{});
   };
 
@@ -3378,10 +2841,12 @@ export default function App() {
       // Also update local tracks state so analytics tab reflects it immediately
       setTracks(prev => prev.map(t => t.id === currentTrack.id ? { ...t, skipCount: (t.skipCount||0)+1 } : t));
     }
+    if (currentTrack) playHistoryRef.current = [currentTrack, ...playHistoryRef.current].slice(0, 50);
     if (isRadioMode) {
       const next = pickNextTrack(tracks, currentTrack, recentlyPlayedRef.current);
       if (next) {
         setCurrent(next); setProgress(0); setIsPlaying(true);
+        logTrackPlay(next);
         if (firebaseUser) recordPlay(next.id, profile?.recentTracks || []).catch(()=>{});
       }
       return;
@@ -3390,6 +2855,7 @@ export default function App() {
     const next = queue[0];
     setQueue(repeat ? [...queue.filter(t=>t.id!==next.id), currentTrack] : queue.filter(t=>t.id!==next.id));
     setCurrent(next); setProgress(0); setIsPlaying(true);
+    logTrackPlay(next);
   };
   // Keep ref in sync so the audio "ended" listener always calls the latest handleSkip
   handleSkipRef.current = handleSkip;
@@ -3405,12 +2871,47 @@ export default function App() {
     if (audioRef.current && audioRef.current.currentTime > 3) {
       audioRef.current.currentTime = 0;
       setProgress(0);
-    } else {
-      // No queue history yet — just restart
-      audioRef.current && (audioRef.current.currentTime = 0);
-      setProgress(0);
+      return;
     }
+    const prev = playHistoryRef.current[0];
+    if (prev) {
+      playHistoryRef.current = playHistoryRef.current.slice(1);
+      if (currentTrack) setQueue(q => [currentTrack, ...q.filter(t => t.id !== currentTrack.id)]);
+      setCurrent(prev); setProgress(0); setIsPlaying(true);
+      return;
+    }
+    if (audioRef.current) audioRef.current.currentTime = 0;
+    setProgress(0);
   };
+
+  // Media Session — lock screen / headset / OS transport controls
+  useEffect(() => {
+    if (!("mediaSession" in navigator) || !currentTrack) return;
+    try {
+      navigator.mediaSession.metadata = new window.MediaMetadata({
+        title: currentTrack.title || "Unknown",
+        artist: currentTrack.artist || "",
+        album: currentTrack.album || "",
+        artwork: currentTrack.albumCover
+          ? [{ src: currentTrack.albumCover, sizes: "512x512", type: "image/jpeg" }]
+          : [],
+      });
+      navigator.mediaSession.playbackState = isPlaying ? "playing" : "paused";
+      navigator.mediaSession.setActionHandler("play", () => setIsPlaying(true));
+      navigator.mediaSession.setActionHandler("pause", () => setIsPlaying(false));
+      navigator.mediaSession.setActionHandler("previoustrack", () => handlePrev());
+      navigator.mediaSession.setActionHandler("nexttrack", () => handleSkipRef.current?.());
+      navigator.mediaSession.setActionHandler("seekto", (details) => {
+        if (details.seekTime != null && audioRef.current) {
+          audioRef.current.currentTime = details.seekTime;
+          setProgress(Math.floor(details.seekTime));
+        }
+      });
+    } catch (e) {
+      // MediaSession unsupported or rejected — ignore
+    }
+  }, [currentTrack?.id, isPlaying]);
+
 
   // ── Like/unlike — optimistic UI + Firestore sync ────────────────────────
   const toggleLike = async (id) => {
@@ -3521,8 +3022,8 @@ export default function App() {
   // Show nothing while we check if someone is already logged in
   if (authLoading) return (
     <div style={{...APP_STYLE, alignItems:"center", justifyContent:"center"}}>
-      <div style={{ width:60, height:60, borderRadius:15, background:"linear-gradient(135deg, #1A1D26, #C7D0DE)", display:"flex", alignItems:"center", justifyContent:"center", marginBottom:16, fontSize:28 }}>🎵</div>
-      <div style={{ fontSize:15, color:"#8E8E93" }}>Loading…</div>
+      <BrandGlyph size={40}/>
+      <div style={{ fontSize:13, color: color.muted, marginTop:14 }}>Loading…</div>
     </div>
   );
 
@@ -3555,7 +3056,7 @@ export default function App() {
           onLike={()=>toggleLike(currentTrack.id)} onSeek={handleSeek}
           repeat={repeat} setRepeat={setRepeat} isRadioMode={isRadioMode} expanded={expanded} setExpanded={setExpanded}/>
       )}
-      <BottomNav screen={screen} setScreen={setScreen}/>
+      <BottomNav screen={screen} setScreen={setScreen} showAdmin={firebaseUser?.uid === ADMIN_UID}/>
     </div>
   );
 
@@ -3588,10 +3089,10 @@ export default function App() {
   const glowRgb = currentTrack ? hexToRgbStr(currentTrack.color) : "200,200,210";
 
   return (
-    <div style={{ display:"flex", height:"100vh", background:(()=>{const h=new Date().getHours();const w=h>=6&&h<=10?1:0;const c=h>=18&&h<=23?1:h>=0&&h<=5?1:0;const center=w?"#FAF8F5":c?"#F3F4F8":"#F7F7F9";const mid=w?"#EDE8E3":c?"#DDDDE4":"#DCDCE0";const edge=w?"#CDC8C3":c?"#C4C5CE":"#C7C8CD";return `radial-gradient(ellipse at 50% 45%, ${center} 0%, ${mid} 40%, ${edge} 100%)`})(), overflow:"hidden", fontFamily:"-apple-system,'SF Pro Display','Helvetica Neue',Arial,sans-serif" }}>
+    <div style={{ display:"flex", height:"100vh", background: timeOfDayGradient(), overflow:"hidden", fontFamily: font }}>
 
       {/* ── LEFT NAV RAIL ─────────────────────────────────────────────── */}
-      <div style={{ width:72, flexShrink:0, background:"rgba(255,255,255,0.06)", backdropFilter:"blur(80px) saturate(180%)", borderRight:"1px solid rgba(255,255,255,0.08)", display:"flex", flexDirection:"column", alignItems:"center", padding:"16px 0 16px" }}>
+      <div style={{ width:72, flexShrink:0, background:"rgba(255,255,255,0.55)", borderRight:`1px solid ${color.line}`, display:"flex", flexDirection:"column", alignItems:"center", padding:"16px 0 16px" }}>
         {/* Logo */}
         <div style={{ marginBottom:16 }}>
           <BrandGlyph size={28}/>
@@ -3636,7 +3137,7 @@ export default function App() {
               <Icon name={item.icon} size={20}/>
             </button>
           ))}
-          {firebaseUser?.uid === "5lPAI9N1jkMbVkUyIqLTqBvBf1t1" && (
+          {firebaseUser?.uid === ADMIN_UID && (
             <button onClick={()=>setScreen("admin")} title="Admin" style={{
               width:44, height:44, borderRadius:12,
               background:screen==="admin"?"rgba(255,255,255,0.25)":"none",
@@ -3715,7 +3216,7 @@ export default function App() {
       </div>
 
       {/* ── RIGHT PANEL ─────────────────────────────────────────────── */}
-      <div className="hide-scroll" style={{ width:320, flexShrink:0, background:"rgba(255,255,255,0.05)", backdropFilter:"blur(80px) saturate(180%)", borderLeft:"1px solid rgba(255,255,255,0.06)", display:"flex", flexDirection:"column", overflowY:"auto" }}>
+      <div className="hide-scroll" style={{ width:320, flexShrink:0, background:"rgba(255,255,255,0.55)", borderLeft:`1px solid ${color.line}`, display:"flex", flexDirection:"column", overflowY:"auto" }}>
 
         {/* Now Playing */}
         {currentTrack ? (
@@ -3913,33 +3414,3 @@ export default function App() {
   function onLikeToggle() { if(currentTrack) toggleLike(currentTrack.id); }
 }
 
-// ─── SHARED STYLES ────────────────────────────────────────────────────────────
-const APP_STYLE = {
-  background:(()=>{const h=new Date().getHours();const w=h>=6&&h<=10?1:0;const c=h>=18&&h<=23?1:h>=0&&h<=5?1:0;const center=w?"#FAF8F5":c?"#F3F4F8":"#F7F7F9";const mid=w?"#EDE8E3":c?"#DDDDE4":"#DCDCE0";const edge=w?"#CDC8C3":c?"#C4C5CE":"#C7C8CD";return `radial-gradient(ellipse at 50% 45%, ${center} 0%, ${mid} 40%, ${edge} 100%)`})(),
-  minHeight:"100vh", height:"100vh", overflow:"hidden",
-  fontFamily:"-apple-system,'SF Pro Display','SF Pro Text','Helvetica Neue',Arial,sans-serif",
-  color:"#1C1C1E", position:"relative", display:"flex", flexDirection:"column",
-  WebkitFontSmoothing:"antialiased", MozOsxFontSmoothing:"grayscale",
-};
-const INPUT_ST = {
-  background:"rgba(255,255,255,0.65)", border:"1px solid rgba(255,255,255,0.7)",
-  borderRadius:12, padding:"12px 14px", color:"#1A1D26", fontSize:15,
-  boxShadow:"0 1px 3px rgba(0,0,0,0.04)", backdropFilter:"blur(20px)",
-  fontFamily:"-apple-system,'SF Pro Text','Helvetica Neue',Arial,sans-serif", width:"100%", display:"block",
-};
-const BTN_PRIMARY = {
-  background:"#1A1D26", color:"#FFFFFF",
-  border:"none", borderRadius:12, padding:"13px 20px", fontSize:15, fontWeight:600,
-  boxShadow:"0 4px 16px rgba(0,0,0,0.12)",
-  fontFamily:"-apple-system,'SF Pro Text','Helvetica Neue',Arial,sans-serif", cursor:"pointer",
-};
-const BTN_SECONDARY = {
-  background:"rgba(255,255,255,0.6)", color:"#6B7280", border:"1px solid rgba(255,255,255,0.5)",
-  borderRadius:12, padding:"13px 20px", fontSize:15, fontWeight:500,
-  backdropFilter:"blur(20px)",
-  fontFamily:"-apple-system,'SF Pro Text','Helvetica Neue',Arial,sans-serif", cursor:"pointer",
-};
-const CTRL_BTN = {
-  background:"none", border:"none", cursor:"pointer", color:"#8E8E93",
-  display:"flex", alignItems:"center", justifyContent:"center", padding:8,
-};

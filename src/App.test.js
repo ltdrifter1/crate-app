@@ -1,8 +1,8 @@
-import { render, screen } from '@testing-library/react';
-import App from './App';
+import { color, font, ADMIN_UID, timeOfDayGradient } from './theme';
 
-test('renders learn react link', () => {
-  render(<App />);
-  const linkElement = screen.getByText(/learn react/i);
-  expect(linkElement).toBeInTheDocument();
+test('theme exports core tokens', () => {
+  expect(color.ink).toBeTruthy();
+  expect(font).toMatch(/SF Pro/);
+  expect(ADMIN_UID).toHaveLength(28);
+  expect(timeOfDayGradient()).toMatch(/gradient/);
 });
