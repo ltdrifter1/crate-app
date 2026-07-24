@@ -38,11 +38,12 @@ describe("CULTURE_ROOMS", () => {
 });
 
 describe("allDestinationRooms", () => {
-  test("includes club floor rooms plus culture rooms", () => {
+  test("includes club floor rooms plus culture and scene rooms", () => {
     const all = allDestinationRooms();
-    expect(all.length).toBe(CLUB_ROOMS.length + CULTURE_ROOMS.length);
+    expect(all.length).toBeGreaterThan(CLUB_ROOMS.length + CULTURE_ROOMS.length);
     expect(all.some((r) => r.label === "Peak")).toBe(true);
     expect(all.some((r) => r.label === "Jazz Cafe")).toBe(true);
+    expect(all.some((r) => r.id === "scene-techno" || r.label === "Techno")).toBe(true);
   });
 });
 

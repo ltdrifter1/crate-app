@@ -3,6 +3,7 @@
 
 import { CLUB_ROOMS, getFloorPhase, roomForFloorPhase } from "./club";
 import { normalizeGenre } from "./genres";
+import { allSceneRooms, trackMatchesScene, inferScene } from "./scenes";
 
 export { CLUB_ROOMS, getFloorPhase, roomForFloorPhase };
 
@@ -83,7 +84,11 @@ export const CULTURE_ROOMS = [
     filter: (t) => {
       const e = t.energy || 5;
       const g = normalizeGenre(t.genre);
-      return e >= 6 && ["House", "Drum and Bass", "Hip-Hop"].includes(g);
+      return e >= 6 && (
+        ["House", "Drum and Bass", "Hip-Hop"].includes(g) ||
+        trackMatchesScene(t, "techno") ||
+        trackMatchesScene(t, "tech-house")
+      );
     },
   },
   {
@@ -131,12 +136,7 @@ export const CULTURE_ROOMS = [
     desc: "Skip, shuffle, late bus home.",
     story: "A scene room — not a playlist tagged garage.",
     atmosphere: "neon-damp",
-    filter: (t) => {
-      const raw = String(t.genre || "").toLowerCase();
-      const g = normalizeGenre(t.genre);
-      const e = t.energy || 5;
-      return raw.includes("garage") || (g === "House" && e >= 5 && e <= 8);
-    },
+    filter: (t) => trackMatchesScene(t, "uk-garage"),
   },
   {
     id: "detroit",
@@ -146,13 +146,14 @@ export const CULTURE_ROOMS = [
     story: "A city as Room: techno lineage filtered through the house floor.",
     atmosphere: "factory-glow",
     filter: (t) => {
-      const g = normalizeGenre(t.genre);
-      const e = t.energy || 5;
+      const scene = inferScene(t);
       const a = String(t.artist || "").toLowerCase();
+      const al = String(t.album || "").toLowerCase();
       return (
-        g === "House" && e >= 5 ||
+        scene?.id === "techno" ||
         a.includes("detroit") ||
-        String(t.album || "").toLowerCase().includes("detroit")
+        al.includes("detroit") ||
+        (normalizeGenre(t.genre) === "House" && (t.energy || 5) >= 6)
       );
     },
   },
@@ -164,8 +165,9 @@ export const CULTURE_ROOMS = [
     story: "Pirate frequencies, club basements, morning trains.",
     atmosphere: "tube-hum",
     filter: (t) => {
-      const g = normalizeGenre(t.genre);
-      return ["Drum and Bass", "House", "Hip-Hop", "Soul"].includes(g);
+      const scene = inferScene(t);
+      return ["uk-garage", "drum-and-bass", "jungle", "grime", "broken-beat", "dubstep"].includes(scene?.id) ||
+        ["Drum and Bass", "Hip-Hop"].includes(normalizeGenre(t.genre));
     },
   },
   {
@@ -176,9 +178,9 @@ export const CULTURE_ROOMS = [
     story: "A northern listening city — house, jazz, and afterhours.",
     atmosphere: "snow-window",
     filter: (t) => {
-      const g = normalizeGenre(t.genre);
-      const e = t.energy || 5;
-      return ["House", "Jazz", "Soul", "Electronic"].includes(g) || (g === "House" && e <= 7);
+      const scene = inferScene(t);
+      return ["house", "deep-house", "jazz", "soul", "ambient"].includes(scene?.id) ||
+        ["Jazz", "Soul"].includes(normalizeGenre(t.genre));
     },
   },
 ];
@@ -196,7 +198,16 @@ export function clubRoomsAsDestinations() {
 
 /** All browseable Rooms for the Rooms destination. */
 export function allDestinationRooms() {
-  return [...clubRoomsAsDestinations(), ...CULTURE_ROOMS];
+  // Culture + floor rooms keep editorial ids (uk-garage, detroit…).
+  // Scene taxonomy adds scene-* rooms for the full graph; skip duplicates.
+  const cultureIds = new Set(CULTURE_ROOMS.map((r) => r.id));
+  const sceneRooms = allSceneRooms().filter((r) => {
+    if (cultureIds.has(r.id)) return false;
+    // Avoid scene-uk-garage alongside culture uk-garage
+    if (r.sceneId && cultureIds.has(r.sceneId)) return false;
+    return true;
+  });
+  return [...clubRoomsAsDestinations(), ...CULTURE_ROOMS, ...sceneRooms];
 }
 
 /**

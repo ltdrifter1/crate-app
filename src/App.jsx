@@ -25,11 +25,13 @@ import { digLeadStory, explainPick, SEARCH_PROMPTS } from "./lib/explain";
 import { buildHomeCollections, livedInRooms, rediscoveredTracks } from "./lib/homeCollections";
 import { atmosphereGradient } from "./lib/rooms";
 import { slugify, findArtist, findAlbum, searchEntities } from "./lib/catalog";
+import { enrichTracksWithScenes, displaySceneLabel, trackMatchesScene, destinationIdForScene, matchSceneFromText } from "./lib/scenes";
 import RoomsScreen from "./components/rooms/RoomsScreen";
 import OnboardingRitual from "./components/onboarding/OnboardingRitual";
 import ArtistPage, { AlbumPage } from "./components/catalog/ArtistPage";
 import LinerNotesSheet from "./components/catalog/LinerNotesSheet";
 import PathsScreen from "./components/paths/PathsScreen";
+import ScenesBrowser from "./components/scenes/ScenesBrowser";
 
 const injectStyles = () => {
   if (document.getElementById("verse-app-global-styles")) return;
@@ -726,7 +728,7 @@ function TrackRow({ track, onPlay, active, isPlaying, onLike, extraAction, playl
         </div>
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ fontSize: 14, fontWeight: active ? 600 : 500, letterSpacing: -0.15, color: active ? color.accent : color.ink, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{track.title}</div>
-          <div style={{ fontSize: 12, color: color.muted, marginTop: 2 }}>{track.artist}{normalizeGenre(track.genre) ? ` · ${normalizeGenre(track.genre)}` : ""}</div>
+          <div style={{ fontSize: 12, color: color.muted, marginTop: 2 }}>{track.artist}{displaySceneLabel(track) ? ` · ${displaySceneLabel(track)}` : (normalizeGenre(track.genre) ? ` · ${normalizeGenre(track.genre)}` : "")}</div>
         </div>
         {onLike && (
           <button type="button" aria-label={track.liked ? "Unlike" : "Like"} onClick={(e) => { e.stopPropagation(); onLike(track.id); }}
@@ -1696,7 +1698,7 @@ function ImmersivePlayer({
           <div style={{ fontSize:11, color: color.faint, marginTop:12, letterSpacing:0.4, fontFamily: fontMono, textTransform:"uppercase" }}>
             {[
               hypnoPocket ? "Pocket" : (isRadioMode ? "On Air" : null),
-              normalizeGenre(currentTrack.genre),
+              displaySceneLabel(currentTrack) || normalizeGenre(currentTrack.genre),
               stateLabel,
             ].filter(Boolean).join("  ·  ")}
           </div>
@@ -2321,8 +2323,8 @@ function EnergySparkline({ tracks, width=120, height=24 }) {
 }
 
 // ─── LIBRARY ─────────────────────────────────────────────────────────────────
-function FavoritesScreen({ tracks, preferredGenres = [], onPlay, onLike, currentTrack, isPlaying, userPlaylists, onCreatePlaylist, onAddToPlaylist, onRemoveFromPlaylist, onDeletePlaylist, playlistCtx, onOpenPaths }) {
-  const [view, setView] = useState("discover"); // "discover" | "liked" | "genres" | "playlists" | playlist id
+function FavoritesScreen({ tracks, preferredGenres = [], onPlay, onLike, currentTrack, isPlaying, userPlaylists, onCreatePlaylist, onAddToPlaylist, onRemoveFromPlaylist, onDeletePlaylist, playlistCtx, onOpenPaths, onOpenSceneRoom, onPlayScene }) {
+  const [view, setView] = useState("discover"); // "discover" | "scenes" | "liked" | "genres" | "playlists" | playlist id
   const [showNewInput, setShowNewInput] = useState(false);
   const [newName, setNewName] = useState("");
   const [genreFilter, setGenreFilter] = useState(null);
@@ -2430,8 +2432,9 @@ function FavoritesScreen({ tracks, preferredGenres = [], onPlay, onLike, current
       }} className="hide-scroll">
         {[
           { id:"discover", label:"Dig" },
+          { id:"scenes", label:"Scenes" },
           { id:"liked", label:"Saved" },
-          { id:"genres", label:"Genres" },
+          { id:"genres", label:"Lanes" },
           { id:"playlists", label:"Playlists" },
         ].map(tab => (
           <button
@@ -2617,9 +2620,9 @@ function FavoritesScreen({ tracks, preferredGenres = [], onPlay, onLike, current
           </div>
           )}
 
-          {/* Genres buried */}
+          {/* Genres buried — coarse lanes */}
           <div style={{ padding:"0 20px" }}>
-            <SectionHead sub="If you still want lanes">Genres</SectionHead>
+            <SectionHead sub="Coarse filing lanes — scenes carry the culture">Lanes</SectionHead>
             <div style={{ display:"flex", flexDirection:"column", gap:2 }}>
             {genres.map(g => (
               <button
@@ -2641,6 +2644,17 @@ function FavoritesScreen({ tracks, preferredGenres = [], onPlay, onLike, current
         </div>
         );
       })()}
+
+      {/* ══ SCENES — rich taxonomy browser ══ */}
+      {view === "scenes" && (
+        <ScenesBrowser
+          tracks={tracks}
+          onOpenSceneRoom={(sceneId) => {
+            onOpenSceneRoom?.(sceneId);
+          }}
+          onPlayScene={(sceneId) => onPlayScene?.(sceneId)}
+        />
+      )}
 
       {/* ══ LIKED / GENRE / PLAYLIST views — track list ══ */}
       {(view === "liked" || view === "genres" || isPlaylistView) && (
@@ -3810,7 +3824,13 @@ export default function App() {
   useEffect(() => {
     if (!profile || !tracks.length) return;
     const likedSet = new Set(profile.likedTracks || []);
-    setTracks(prev => prev.map(t => ({ ...t, liked: likedSet.has(t.id) })));
+    setTracks(prev => prev.map(t => ({
+      ...t,
+      liked: likedSet.has(t.id),
+      // keep scene enrichment if already present
+      _scene: t._scene,
+      _scenes: t._scenes,
+    })));
     if (profile.playlists) setUserPlaylists(profile.playlists);
   }, [profile?.likedTracks, tracks.length]);
 
@@ -4265,8 +4285,13 @@ export default function App() {
           const bVal = parseInt(bpmMatch[1]);
           return tracks.filter(t => t.bpm && Math.abs(t.bpm - bVal) <= 5);
         }
-        // Standard text search (title, artist, genre, camelot)
-        return tracks.filter(t => [t.title, t.artist, t.genre, t.album || "", String(t.bpm || "")].some(v => String(v || "").toLowerCase().includes(q)));
+        // Standard text search (title, artist, genre, album, scene)
+        return tracks.filter(t => {
+          const sceneHit = matchSceneFromText(q);
+          if (sceneHit && trackMatchesScene(t, sceneHit.id)) return true;
+          const sceneLabel = (t._scene?.label || displaySceneLabel(t) || "").toLowerCase();
+          return [t.title, t.artist, t.genre, t.album || "", String(t.bpm || ""), sceneLabel].some(v => String(v || "").toLowerCase().includes(q));
+        });
       })()
     : [];
   const entityHits = searchQuery.length > 1 ? searchEntities(tracks, searchQuery) : { artists: [], albums: [] };
@@ -4463,7 +4488,7 @@ export default function App() {
         )}
         {screen==="home"      && !tracksLoading && <HomeScreen tracks={tracks} onPlayRadio={playRadio} onTogglePlay={()=>setIsPlaying(p=>!p)} onPlayTrack={playTrack} currentTrack={currentTrack} isPlaying={isPlaying} onLike={toggleLike} isRadioMode={isRadioMode} playlistCtx={playlistCtx} signalLabel={signalState?.label} setPrev={setPrev} setNext={setNext} onBuildNight={()=>setShowRouteBuilder(true)} doorsSoundOn={doorsSoundOn} onToggleDoorsSound={toggleDoorsSound} homeRooms={homeRooms} onOpenRoom={(id)=>setRoomRoute(id)} onOpenRooms={()=>setScreen("rooms")} userName={user.name}/>}
         {screen==="search"    && <SearchScreen query={searchQuery} setQuery={setSearch} results={searchResults} onPlay={t=>playTrack(t,tracks)} onLike={toggleLike} currentTrack={currentTrack} isPlaying={isPlaying} playlistCtx={playlistCtx} onOpenRoom={()=>setScreen("rooms")} entityHits={entityHits} onOpenArtist={openArtist} onOpenAlbum={(slug)=>openAlbum(slug)}/>}
-        {screen==="favorites" && <FavoritesScreen tracks={tracks} preferredGenres={user.genres} onPlay={t=>{setIsRadioMode(false);playTrack(t,tracks);}} onLike={toggleLike} currentTrack={currentTrack} isPlaying={isPlaying} userPlaylists={userPlaylists} onCreatePlaylist={createPlaylist} onAddToPlaylist={addToPlaylist} onRemoveFromPlaylist={removeFromPlaylist} onDeletePlaylist={deletePlaylist} playlistCtx={playlistCtx} onOpenPaths={()=>openPath(null)}/>}
+        {screen==="favorites" && <FavoritesScreen tracks={tracks} preferredGenres={user.genres} onPlay={t=>{setIsRadioMode(false);playTrack(t,tracks);}} onLike={toggleLike} currentTrack={currentTrack} isPlaying={isPlaying} userPlaylists={userPlaylists} onCreatePlaylist={createPlaylist} onAddToPlaylist={addToPlaylist} onRemoveFromPlaylist={removeFromPlaylist} onDeletePlaylist={deletePlaylist} playlistCtx={playlistCtx} onOpenPaths={()=>openPath(null)} onOpenSceneRoom={(sceneId)=>{ setScreen("rooms"); setRoomRoute(destinationIdForScene(sceneId)); }} onPlayScene={(sceneId)=>{ const pool = tracks.filter(t => (t.duration||0)<=900 && trackMatchesScene(t, sceneId)); if(pool[0]) playTrack(pool[0], pool, { room: { id: destinationIdForScene(sceneId), label: pool[0]._scene?.label || sceneId } }); }}/>}
         {screen==="paths"     && !tracksLoading && (
           <PathsScreen
             tracks={tracks}
@@ -4660,7 +4685,7 @@ export default function App() {
               )}
               {screen==="home"      && <HomeScreen tracks={tracks} onPlayRadio={playRadio} onTogglePlay={()=>setIsPlaying(p=>!p)} onPlayTrack={playTrack} currentTrack={currentTrack} isPlaying={isPlaying} onLike={toggleLike} isRadioMode={isRadioMode} playlistCtx={playlistCtx} signalLabel={signalState?.label} setPrev={setPrev} setNext={setNext} onBuildNight={()=>setShowRouteBuilder(true)} doorsSoundOn={doorsSoundOn} onToggleDoorsSound={toggleDoorsSound} homeRooms={homeRooms} onOpenRoom={(id)=>setRoomRoute(id)} onOpenRooms={()=>setScreen("rooms")} userName={user.name}/>}
               {screen==="search"    && <SearchScreen query={searchQuery} setQuery={setSearch} results={searchResults} onPlay={t=>playTrack(t,tracks)} onLike={toggleLike} currentTrack={currentTrack} isPlaying={isPlaying} playlistCtx={playlistCtx} onOpenRoom={()=>setScreen("rooms")} entityHits={entityHits} onOpenArtist={openArtist} onOpenAlbum={(slug)=>openAlbum(slug)}/>}
-              {screen==="favorites" && <FavoritesScreen tracks={tracks} preferredGenres={user.genres} onPlay={t=>{setIsRadioMode(false);playTrack(t,tracks);}} onLike={toggleLike} currentTrack={currentTrack} isPlaying={isPlaying} userPlaylists={userPlaylists} onCreatePlaylist={createPlaylist} onAddToPlaylist={addToPlaylist} onRemoveFromPlaylist={removeFromPlaylist} onDeletePlaylist={deletePlaylist} playlistCtx={playlistCtx} onOpenPaths={()=>openPath(null)}/>}
+              {screen==="favorites" && <FavoritesScreen tracks={tracks} preferredGenres={user.genres} onPlay={t=>{setIsRadioMode(false);playTrack(t,tracks);}} onLike={toggleLike} currentTrack={currentTrack} isPlaying={isPlaying} userPlaylists={userPlaylists} onCreatePlaylist={createPlaylist} onAddToPlaylist={addToPlaylist} onRemoveFromPlaylist={removeFromPlaylist} onDeletePlaylist={deletePlaylist} playlistCtx={playlistCtx} onOpenPaths={()=>openPath(null)} onOpenSceneRoom={(sceneId)=>{ setScreen("rooms"); setRoomRoute(destinationIdForScene(sceneId)); }} onPlayScene={(sceneId)=>{ const pool = tracks.filter(t => (t.duration||0)<=900 && trackMatchesScene(t, sceneId)); if(pool[0]) playTrack(pool[0], pool, { room: { id: destinationIdForScene(sceneId), label: pool[0]._scene?.label || sceneId } }); }}/>}
               {screen==="paths"     && (
                 <PathsScreen
                   tracks={tracks}

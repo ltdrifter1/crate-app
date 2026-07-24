@@ -1,6 +1,7 @@
 import { normalizeGenre } from "./genres";
 import { populateAllRooms } from "./rooms";
 import { findResonant } from "./engine";
+import { sceneLineagePath, inferScene } from "./scenes";
 
 /**
  * Listening paths — curated journeys across rooms, artists, and moods.
@@ -51,6 +52,29 @@ export const SEED_PATHS = [
       { type: "room", id: "hidden-gems", note: "Quiet finds" },
       { type: "room", id: "warmup", note: "Ease in" },
       { type: "room", id: "peak", note: "Hands up" },
+    ],
+  },
+  {
+    id: "ukg-lineage",
+    title: "UK Garage lineage",
+    story: "2-step into broken beat, grime, and the bass family — a scene path.",
+    kind: "scene",
+    steps: sceneLineagePath("uk-garage", 4)?.steps || [
+      { type: "room", id: "uk-garage", note: "Skip & shuffle" },
+      { type: "room", id: "scene-broken-beat", note: "West London swing" },
+      { type: "room", id: "scene-grime", note: "MC pressure" },
+    ],
+  },
+  {
+    id: "detroit-berlin",
+    title: "Detroit → Berlin",
+    story: "Techno’s machine soul across the Atlantic.",
+    kind: "scene",
+    steps: [
+      { type: "room", id: "detroit", note: "Motor City" },
+      { type: "room", id: "scene-techno", note: "Machines with intent" },
+      { type: "room", id: "scene-minimal", note: "Reduction" },
+      { type: "room", id: "warehouse", note: "Concrete" },
     ],
   },
   {
@@ -141,9 +165,16 @@ export function findPath(id, tracks = [], opts = {}) {
 }
 
 /** Suggest a path based on preferred genres / hour. */
-export function suggestPath(tracks = [], { preferredGenres = [] } = {}) {
-  const paths = listPaths(tracks);
+export function suggestPath(tracks = [], { preferredGenres = [], seedTrack = null } = {}) {
+  const paths = listPaths(tracks, { seedTrack });
   if (!paths.length) return null;
+  const scene = inferScene(seedTrack);
+  if (scene?.id === "uk-garage" || scene?.id === "broken-beat") {
+    return paths.find((p) => p.id === "ukg-lineage") || paths[0];
+  }
+  if (scene?.id === "techno" || scene?.id === "minimal") {
+    return paths.find((p) => p.id === "detroit-berlin") || paths[0];
+  }
   const houseLean = preferredGenres.some((g) =>
     ["House", "Drum and Bass"].includes(normalizeGenre(g) || g)
   );
