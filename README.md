@@ -7,6 +7,7 @@ Harmonic (Camelot) mixing, energy-aware radio, sessions, and a quiet modern UI.
 
 - React 18 (Create React App)
 - Firebase Auth, Firestore, Cloud Storage, Hosting
+- Cloudflare Pages (serves committed `build/` today)
 
 ## Setup
 
@@ -25,6 +26,61 @@ Copy `.env.example` for local ingest scripts. Never commit API keys or `serviceA
 | `npm start` | Dev server |
 | `npm test` | Unit tests |
 | `npm run build` | Production build |
+| `node upload-tracks.js` | Bulk add audio → Storage + Firestore (deduped) |
+| `node clean-titles.js` | Dry-run title/artist cleanup → `titles-review.csv` |
+| `node clean-titles.js --apply` | Write cleaned titles/artists to Firestore |
+
+---
+
+## What you need (checklist)
+
+### A. Deferred Firebase security rules (still outstanding)
+
+Rules are in the repo but **must be deployed from your machine** (needs your Firebase login):
+
+```bash
+npm i -g firebase-tools   # once
+firebase login
+firebase use              # should show crate-app-58494 from .firebaserc
+firebase deploy --only firestore:rules,storage
+```
+
+Files: `firestore.rules`, `storage.rules`, `firebase.json`.
+
+Until this runs, Console rules may still be looser/outdated than the repo.
+
+### B. Clean messy track names
+
+**Option 1 — Admin CSV (best for hand edits)**  
+1. Sign in as admin → Admin → Audit → **Export CSV**  
+2. Keep the `id` column  
+3. Fix `title` / `artist` in Sheets  
+4. **Import CSV** (matches by **id** first so renames stick)
+
+**Option 2 — Auto cleanup script**  
+1. Put `serviceAccountKey.json` in repo root (gitignored)  
+2. `node clean-titles.js` → review `titles-review.csv`  
+3. `node clean-titles.js --apply`
+
+### C. Add a lot more tracks
+
+1. Build an M3U playlist of new tracks  
+2. Edit paths in `build-crate-from-playlist.py` if needed, then run it → fills `audio/`, `covers/`, `tracks.csv`  
+3. `serviceAccountKey.json` in repo root  
+4. `node upload-tracks.js` — **skips duplicates** (by title+artist, audio filename, or existing Storage object)  
+5. Optional: `DISCOGS_TOKEN` / `LASTFM_KEY` then `python fix_genres.py`  
+6. Optional: `python find_missing_covers.py`
+
+### Files you must have locally (never commit)
+
+| File | From |
+|---|---|
+| `serviceAccountKey.json` | Firebase Console → Project Settings → Service Accounts → Generate new private key |
+| `audio/` + `covers/` | Your library / playlist builder |
+| `tracks.csv` | Playlist builder or hand-written |
+| `.env` | Copy `.env.example` for Discogs/Last.fm |
+
+---
 
 ## Security rules
 
@@ -32,37 +88,14 @@ Copy `.env.example` for local ingest scripts. Never commit API keys or `serviceA
 firebase deploy --only firestore:rules,storage
 ```
 
-Rules live in `firestore.rules` and `storage.rules`.
-
-## Ingest
-
-1. Place audio in `audio/` and covers in `covers/` (gitignored).
-2. Build `tracks.csv` (see `build-crate-from-playlist.py`).
-3. Put `serviceAccountKey.json` in the repo root (gitignored).
-4. Run `node upload-tracks.js`.
-
-Genre enrichment: set `DISCOGS_TOKEN` / `LASTFM_KEY` then `python fix_genres.py`.
-
 ## Notes
 
-- Admin UI is limited to the configured admin UID (see `src/theme.js` + rules).
+- Admin UI is limited to the configured admin UID (`src/theme.js` + rules).
+- Admin **Add Track** in the UI does not upload audio — use `upload-tracks.js` for real adds.
 - Prefer small, safe changes; keep playback working after every commit.
-
 
 ## Cloudflare Pages
 
-Preview/production deploys use the Cloudflare Git integration.
+**Current setup:** `build/` is committed so Pages can deploy with an empty build command.
 
-**Current setup:** the `build/` folder is committed so Pages can deploy
-with an empty build command (output directory = `build`).
-
-**Recommended (optional):** in the Cloudflare dashboard set:
-
-| Setting | Value |
-|---|---|
-| Build command | `npm run build` |
-| Build output directory | `build` |
-| Node version | `22` (or match `.nvmrc`) |
-| Environment variable | `CI=false` (avoids CRA treating warnings as errors) |
-
-After that, you can stop committing `build/` and add it back to `.gitignore`.
+**Recommended (optional):** set Build command `npm run build`, output `build`, Node 22, `CI=false`, then stop committing `build/`.
