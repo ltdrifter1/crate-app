@@ -6,6 +6,10 @@ import {
   setArrivalSoundEnabled,
   enterRoomCue,
   hapticTap,
+  setPlaceTone,
+  setPlaceToneDucked,
+  stopPlaceTone,
+  playPlaceTransition,
 } from "./club";
 
 describe("getFloorPhase", () => {
@@ -69,5 +73,22 @@ describe("arrival sound preference", () => {
   test("enterRoomCue and hapticTap are safe no-ops when muted", () => {
     expect(() => enterRoomCue()).not.toThrow();
     expect(() => hapticTap()).not.toThrow();
+  });
+
+  test("place tone and transition are safe no-ops when muted", () => {
+    expect(() => setPlaceTone("night")).not.toThrow();
+    expect(() => setPlaceToneDucked(true)).not.toThrow();
+    expect(() => stopPlaceTone()).not.toThrow();
+    expect(() => playPlaceTransition()).not.toThrow();
+  });
+
+  test("place tone helpers are safe when doors are on", () => {
+    setArrivalSoundEnabled(true);
+    expect(() => setPlaceTone("dawn")).not.toThrow();
+    expect(() => setPlaceTone("booth")).not.toThrow();
+    expect(() => setPlaceToneDucked(true)).not.toThrow();
+    expect(() => setPlaceToneDucked(false)).not.toThrow();
+    expect(() => playPlaceTransition()).not.toThrow();
+    expect(() => stopPlaceTone()).not.toThrow();
   });
 });

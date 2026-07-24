@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { createPortal }                             from "react-dom";
 import { useNavigate, useLocation }                 from "react-router-dom";
 import { useAuth }                                  from "./useAuth";
@@ -19,7 +19,10 @@ import { CANONICAL_GENRES, normalizeGenre } from "./lib/genres";
 import {
   getFloorPhase, CLUB_ROOMS, roomForFloorPhase,
   getArrivalSoundEnabled, setArrivalSoundEnabled, playArrivalSound, enterRoomCue,
+  setPlaceTone, setPlaceToneDucked, stopPlaceTone, playPlaceTransition,
 } from "./lib/club";
+import { resolvePlaceAtmosphere, placeKey as makePlaceKey } from "./lib/placeAtmosphere";
+import { duration as motionDuration, ease as motionEase } from "./motion/tokens";
 import { parsePath, buildPath, documentTitleFor } from "./lib/routes";
 import { digLeadStory, explainPick, SEARCH_PROMPTS } from "./lib/explain";
 import { buildHomeCollections, livedInRooms, savedTracks } from "./lib/homeCollections";
@@ -67,6 +70,8 @@ const injectStyles = () => {
     @keyframes stationIn { from{opacity:0;transform:translateY(18px) scale(0.985)} to{opacity:1;transform:none} }
     @keyframes roomEnter { from{opacity:0;transform:translateY(14px)} to{opacity:1;transform:none} }
     @keyframes trackSwap { from{opacity:0;transform:translateY(4px)} to{opacity:1;transform:none} }
+    @keyframes placeIn { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:none} }
+    @keyframes atmosphereCross { from{opacity:0} to{opacity:1} }
     @media (prefers-reduced-motion: reduce) {
       *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
     }
@@ -3406,10 +3411,75 @@ function BottomNav({ screen, setScreen, showAdmin = false, hasPlayer = false }) 
   );
 }
 
-// ─── PULSE — ambient energy visualization ─────────────────────────────────────
-function Pulse({ track, isPlaying }) {
-  // Kept intentionally empty for the minimal shell — ambient motion lives in the player only.
-  return null;
+// ─── AMBIENT SHELL — persistent place atmosphere ─────────────────────────────
+function AmbientShell({ place }) {
+  const gradient = place?.gradient || timeOfDayGradient();
+  const energy = place?.energy ?? 5;
+  const mistOpacity = 0.04 + Math.min(energy, 10) * 0.006;
+
+  return (
+    <div
+      aria-hidden="true"
+      style={{
+        position: "absolute",
+        inset: 0,
+        pointerEvents: "none",
+        zIndex: 0,
+        overflow: "hidden",
+      }}
+    >
+      <div
+        key={place?.key || "atm"}
+        style={{
+          position: "absolute",
+          inset: 0,
+          background: gradient,
+          animation: `atmosphereCross ${motionDuration.enter + 0.4}s ${motionEase.soft} both`,
+        }}
+      />
+      <div
+        style={{
+          position: "absolute",
+          top: "-18%",
+          right: "-8%",
+          width: 340,
+          height: 340,
+          borderRadius: "50%",
+          background: `radial-gradient(circle, ${color.accentSoft} 0%, transparent 70%)`,
+          opacity: mistOpacity * 8,
+          animation: `breathe ${motionDuration.ambient}s ease-in-out infinite`,
+        }}
+      />
+      <div
+        style={{
+          position: "absolute",
+          bottom: "-20%",
+          left: "-10%",
+          width: 280,
+          height: 280,
+          borderRadius: "50%",
+          background: `radial-gradient(circle, rgba(237,232,225,${mistOpacity}) 0%, transparent 70%)`,
+          filter: "blur(40px)",
+          animation: `breathe ${motionDuration.ambient + 2}s ease-in-out infinite`,
+          animationDelay: "1.5s",
+        }}
+      />
+    </div>
+  );
+}
+
+function PlaceCrossfade({ placeKey, children }) {
+  return (
+    <div
+      key={placeKey}
+      style={{
+        animation: `placeIn ${motionDuration.enter}s ${motionEase.out} both`,
+        minHeight: "100%",
+      }}
+    >
+      {children}
+    </div>
+  );
 }
 
 function BgMist({ color: mistColor = "#909090" }) {
@@ -3445,16 +3515,20 @@ export default function App() {
   const location = useLocation();
   const { screen, roomId: routeRoomId, artistSlug, albumSlug, pathId: routePathId } = parsePath(location.pathname);
   const setScreen = useCallback((id, param = null) => {
+    playPlaceTransition();
     navigate(buildPath(id, param));
   }, [navigate]);
   const setRoomRoute = useCallback((id) => {
     if (id) enterRoomCue();
+    else playPlaceTransition();
     navigate(buildPath("rooms", id || null));
   }, [navigate]);
   const openArtist = useCallback((nameOrSlug) => {
+    playPlaceTransition();
     navigate(buildPath("artist", { artistSlug: slugify(nameOrSlug) }));
   }, [navigate]);
   const openAlbum = useCallback((trackOrSlug) => {
+    playPlaceTransition();
     if (typeof trackOrSlug === "string") {
       navigate(buildPath("album", { albumSlug: trackOrSlug }));
       return;
@@ -3464,6 +3538,7 @@ export default function App() {
     navigate(buildPath("album", { albumSlug: `${slugify(artist)}__${slugify(album)}` }));
   }, [navigate]);
   const openPath = useCallback((id) => {
+    playPlaceTransition();
     navigate(buildPath("paths", id ? { pathId: id } : null));
   }, [navigate]);
 
@@ -3508,11 +3583,50 @@ export default function App() {
   const volumeRef = useRef(1);
   useEffect(() => { volumeRef.current = volume; }, [volume]);
 
+  const placeAtmosphere = useMemo(
+    () =>
+      resolvePlaceAtmosphere({
+        screen,
+        roomId: routeRoomId,
+        track: currentTrack,
+        immersive,
+        listeningRoom,
+      }),
+    [screen, routeRoomId, currentTrack, immersive, listeningRoom]
+  );
+  const activePlaceKey = useMemo(
+    () =>
+      makePlaceKey({
+        screen,
+        roomId: routeRoomId,
+        immersive,
+        trackId: currentTrack?.id,
+      }),
+    [screen, routeRoomId, immersive, currentTrack?.id]
+  );
+
+  // Acoustic continuity — quiet place-tone bed that morphs between spaces
+  useEffect(() => {
+    if (doorsSoundOn) setPlaceTone(placeAtmosphere.tone);
+    else stopPlaceTone();
+  }, [placeAtmosphere.tone, doorsSoundOn]);
+
+  useEffect(() => {
+    setPlaceToneDucked(isPlaying || immersive);
+  }, [isPlaying, immersive]);
+
+  useEffect(() => () => stopPlaceTone(), []);
+
   const toggleDoorsSound = () => {
     const next = !doorsSoundOn;
     setDoorsSoundOn(next);
     setArrivalSoundEnabled(next);
-    if (next) playArrivalSound();
+    if (next) {
+      playArrivalSound();
+      setPlaceTone(placeAtmosphere.tone);
+    } else {
+      stopPlaceTone();
+    }
   };
 
   // ── Listening Memory — tracks recently played with timestamps ──
@@ -4335,7 +4449,7 @@ export default function App() {
   // ── Inner app (shared between mobile + desktop phone column) ─────────────
   const innerApp = (
     <div style={{ ...APP_STYLE, position:"relative" }}>
-      <BgMist color={currentTrack?.color}/>
+      <AmbientShell place={placeAtmosphere}/>
       {toast && <ToastEl msg={toast}/>}
       {tracksLoading && (
         <div style={{ position:"absolute", top:"50%", left:"50%", transform:"translate(-50%,-50%)", zIndex:50, textAlign:"center" }}>
@@ -4344,6 +4458,7 @@ export default function App() {
         </div>
       )}
       <div style={{ flex:1, overflow:"auto", paddingBottom:currentTrack?120:56, zIndex:1, position:"relative" }}>
+        <PlaceCrossfade placeKey={activePlaceKey}>
         {screen==="rooms"     && !tracksLoading && (
           <RoomsScreen
             tracks={tracks}
@@ -4411,6 +4526,7 @@ export default function App() {
         {screen==="profile"   && <ProfileScreen user={user} setUser={setUser} tracks={tracks} onLogout={logOut}/>}
         {screen==="map"       && <HarmonicMap tracks={tracks} onPlay={t=>playTrack(t,tracks)} currentTrack={currentTrack}/>}
         {screen==="admin"     && <AdminScreen tracks={tracks} setTracks={setTracks} tab={adminTab} setTab={setAdminTab} editTrack={editTrack} setEditTrack={setEditTrack} showToast={showToast}/>}
+        </PlaceCrossfade>
       </div>
       {currentTrack && !immersive && (
         <NowPlayingBar track={currentTrack} isPlaying={isPlaying} progress={progress} duration={duration}
@@ -4523,6 +4639,7 @@ export default function App() {
       {/* ── MAIN CONTENT — full width ─────────────────────────────────── */}
       <div style={{ flex:1, overflow:"auto", position:"relative" }}>
         <>
+        <AmbientShell place={placeAtmosphere}/>
         {/* Accent glow behind content */}
         {currentTrack && <div style={{ position:"absolute", top:0, right:0, width:"40%", height:"30%", background:`radial-gradient(ellipse at 80% 0%, rgba(${glowRgb},0.07) 0%, transparent 70%)`, pointerEvents:"none", zIndex:0 }}/>}
         <div style={{
@@ -4533,8 +4650,6 @@ export default function App() {
             ? `0 0 ${currentTrack?120:24}px`
             : `24px 32px ${currentTrack?120:24}px`,
         }}>
-          <BgMist color={currentTrack?.color}/>
-          <Pulse track={currentTrack} isPlaying={isPlaying}/>
           {toast && <ToastEl msg={toast}/>}
           {tracksLoading ? (
             <div style={{ textAlign:"center", paddingTop:120 }}>
@@ -4542,7 +4657,7 @@ export default function App() {
               <div style={{ fontSize:14, color: color.muted, marginTop:12 }}>Loading…</div>
             </div>
           ) : (
-            <>
+            <PlaceCrossfade placeKey={activePlaceKey}>
               {screen==="rooms"     && (
                 <RoomsScreen
                   tracks={tracks}
@@ -4610,7 +4725,7 @@ export default function App() {
               {screen==="profile"   && <ProfileScreen user={user} setUser={setUser} tracks={tracks} onLogout={logOut}/>}
               {screen==="map"       && <HarmonicMap tracks={tracks} onPlay={t=>playTrack(t,tracks)} currentTrack={currentTrack}/>}
               {screen==="admin"     && <AdminScreen tracks={tracks} setTracks={setTracks} tab={adminTab} setTab={setAdminTab} editTrack={editTrack} setEditTrack={setEditTrack} showToast={showToast}/>}
-            </>
+            </PlaceCrossfade>
           )}
         </div>
         </>
