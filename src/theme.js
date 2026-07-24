@@ -1,5 +1,5 @@
-// 4AM design tokens — late-night editorial listening UI.
-// PNW slate blue / fog grey on deep charcoal. Prefer these over one-off colors.
+// ROOMS design tokens — warm underground editorial listening UI.
+// Charcoal canvas, muted brass accent, fog atmosphere. Places, not dashboards.
 
 export const fontDisplay =
   "'Syne', 'Avenir Next', 'Segoe UI', sans-serif";
@@ -9,36 +9,37 @@ export const fontMono =
   "'IBM Plex Mono', 'SF Mono', 'Menlo', 'Monaco', monospace";
 
 export const color = {
-  ink: "#E8ECF0",
-  body: "#B4BCC6",
-  muted: "#7E8792",
-  faint: "#555D68",
-  line: "rgba(232, 236, 240, 0.08)",
-  lineStrong: "rgba(232, 236, 240, 0.14)",
-  surface: "rgba(255, 255, 255, 0.04)",
-  surfaceSolid: "#12151A",
-  surfaceRaised: "#171B21",
-  canvas: "#090B0D",
-  canvasEdge: "#0E1115",
-  // Fog / Puget Sound steel — cool, muted, never sunny
-  accent: "#7A91A4",
-  accentSoft: "rgba(122, 145, 164, 0.16)",
-  onAccent: "#090B0D",
-  onDark: "#E8ECF0",
-  onDarkMuted: "rgba(232,236,240,0.55)",
+  ink: "#EDE8E1",
+  body: "#B8B0A6",
+  muted: "#817870",
+  faint: "#5A544E",
+  line: "rgba(237, 232, 225, 0.08)",
+  lineStrong: "rgba(237, 232, 225, 0.14)",
+  surface: "rgba(255, 248, 240, 0.04)",
+  surfaceSolid: "#12100E",
+  surfaceRaised: "#181512",
+  canvas: "#0C0B0A",
+  canvasEdge: "#100E0C",
+  // Muted brass / warm tungsten — human, never neon
+  accent: "#A8926A",
+  accentSoft: "rgba(168, 146, 106, 0.16)",
+  accentGlow: "rgba(168, 146, 106, 0.28)",
+  onAccent: "#0C0B0A",
+  onDark: "#EDE8E1",
+  onDarkMuted: "rgba(237,232,225,0.55)",
   alert: "#E5484D",
-  station: "#0C0F12",
+  station: "#0E0C0A",
 };
 
 export const radius = { sm: 10, md: 14, lg: 18, xl: 24 };
 
 export const space = (n) => n * 4;
 
-/** Quiet elevated panel — no heavy glass. */
+/** Quiet elevated panel — soft inset, no heavy glass. */
 export const panel = {
   background: color.surfaceRaised,
   border: `1px solid ${color.line}`,
-  boxShadow: "0 1px 0 rgba(255,255,255,0.03) inset",
+  boxShadow: "0 1px 0 rgba(255,248,240,0.03) inset",
 };
 
 export const panelQuiet = {
@@ -49,25 +50,26 @@ export const panelQuiet = {
 export const motion = {
   fast: "0.12s",
   base: "0.2s",
+  settle: "0.35s",
   ease: "cubic-bezier(0.22, 1, 0.36, 1)",
 };
 
-/** Night atmosphere that shifts with the hour — cool blue-grey mist. */
+/** Atmosphere that shifts with the hour — warm fog, not cool steel. */
 export function timeOfDayGradient(date = new Date()) {
   const h = date.getHours();
   const late = h >= 22 || h <= 4;
   const dawn = h >= 5 && h <= 8;
   const day = h >= 9 && h <= 16;
   if (late) {
-    return `radial-gradient(ellipse at 50% -10%, #141A22 0%, #0C0E12 42%, #090B0D 100%)`;
+    return `radial-gradient(ellipse at 50% -10%, #1A1612 0%, #100E0C 42%, #0C0B0A 100%)`;
   }
   if (dawn) {
-    return `radial-gradient(ellipse at 70% 0%, #161C24 0%, #0E1115 48%, #090B0D 100%)`;
+    return `radial-gradient(ellipse at 70% 0%, #1C1814 0%, #12100E 48%, #0C0B0A 100%)`;
   }
   if (day) {
-    return `radial-gradient(ellipse at 40% -5%, #12161C 0%, #0B0D10 50%, #090B0D 100%)`;
+    return `radial-gradient(ellipse at 40% -5%, #161410 0%, #0E0C0A 50%, #0C0B0A 100%)`;
   }
-  return `radial-gradient(ellipse at 55% 0%, #151A20 0%, #0C0E12 45%, #090B0D 100%)`;
+  return `radial-gradient(ellipse at 55% 0%, #1A1612 0%, #100E0C 45%, #0C0B0A 100%)`;
 }
 
 export const APP_STYLE = {
@@ -127,6 +129,10 @@ export const CTRL_BTN = {
   alignItems: "center",
   justifyContent: "center",
 };
+
+/** Product brand — ROOMS. Legacy 4AM floor lives as a time Room. */
+export const BRAND_NAME = "ROOMS";
+export const BRAND_TAGLINE = "Music you inhabit";
 
 /** Admin UID — keep in sync with firestore.rules until custom claims exist. */
 export const ADMIN_UID = "5lPAI9N1jkMbVkUyIqLTqBvBf1t1";
