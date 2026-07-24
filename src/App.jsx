@@ -18,12 +18,11 @@ import {
 import { CANONICAL_GENRES, normalizeGenre } from "./lib/genres";
 import {
   getFloorPhase, CLUB_ROOMS, roomForFloorPhase,
-  getArrivalSoundEnabled, setArrivalSoundEnabled, playArrivalSound,
+  getArrivalSoundEnabled, setArrivalSoundEnabled, playArrivalSound, enterRoomCue,
 } from "./lib/club";
 import { parsePath, buildPath, documentTitleFor } from "./lib/routes";
 import { digLeadStory, explainPick, SEARCH_PROMPTS } from "./lib/explain";
 import { buildHomeCollections, livedInRooms, savedTracks } from "./lib/homeCollections";
-import { atmosphereGradient } from "./lib/rooms";
 import { slugify, findArtist, findAlbum, searchEntities } from "./lib/catalog";
 import { enrichTracksWithScenes, displaySceneLabel, trackMatchesScene, matchSceneFromText } from "./lib/scenes";
 import RoomsScreen from "./components/rooms/RoomsScreen";
@@ -66,6 +65,8 @@ const injectStyles = () => {
     @keyframes fadeIn { from{opacity:0} to{opacity:1} }
     @keyframes shimmer { 0%{opacity:0.35} 50%{opacity:0.7} 100%{opacity:0.35} }
     @keyframes stationIn { from{opacity:0;transform:translateY(18px) scale(0.985)} to{opacity:1;transform:none} }
+    @keyframes roomEnter { from{opacity:0;transform:translateY(14px)} to{opacity:1;transform:none} }
+    @keyframes trackSwap { from{opacity:0;transform:translateY(4px)} to{opacity:1;transform:none} }
     @media (prefers-reduced-motion: reduce) {
       *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
     }
@@ -1074,11 +1075,11 @@ function RouteBuilderModal({ tracks, onClose, onPlayRoute }) {
           <div style={{ display:"flex", alignItems:"center", gap:12 }}>
             {(mode || step > 1) && (
               <button type="button" onClick={handleBack}
-                style={{ background:"rgba(255,255,255,0.08)", border:"1px solid rgba(255,255,255,0.1)", borderRadius:10, padding:"8px 14px", fontSize:12, fontWeight:500, color:"rgba(255,255,255,0.5)", cursor:"pointer", backdropFilter:"blur(20px)" }}>Back</button>
+                style={{ background: color.surface, border:`1px solid ${color.lineStrong}`, borderRadius:10, padding:"8px 14px", fontSize:12, fontWeight:500, color: color.body, cursor:"pointer" }}>Back</button>
             )}
-            <div style={{ fontSize:11, fontWeight:600, letterSpacing:2, color:"rgba(255,255,255,0.3)", textTransform:"uppercase" }}>{headerLabel}</div>
+            <div style={{ fontSize:11, fontWeight:600, letterSpacing:2, color: color.faint, textTransform:"uppercase" }}>{headerLabel}</div>
           </div>
-          <button type="button" onClick={onClose} style={{ background:"rgba(255,255,255,0.06)", border:"1px solid rgba(255,255,255,0.08)", borderRadius:"50%", width:36, height:36, cursor:"pointer", color:"rgba(255,255,255,0.4)", display:"flex", alignItems:"center", justifyContent:"center", backdropFilter:"blur(20px)" }}>
+          <button type="button" onClick={onClose} style={{ background: color.surface, border:`1px solid ${color.line}`, borderRadius:"50%", width:36, height:36, cursor:"pointer", color: color.muted, display:"flex", alignItems:"center", justifyContent:"center" }}>
             <Icon name="x" size={16}/>
           </button>
         </div>
@@ -1088,18 +1089,18 @@ function RouteBuilderModal({ tracks, onClose, onPlayRoute }) {
           {/* Mode picker */}
           {!mode && (
             <div style={{ width:"100%", textAlign:"center", animation:"rise 0.45s cubic-bezier(0.22,1,0.36,1) both" }}>
-              <div style={{ fontSize:32, fontWeight:700, color:"#FFFFFF", letterSpacing:-0.5, marginBottom:8, fontFamily: fontDisplay }}>How do you want to listen?</div>
-              <div style={{ fontSize:14, color:"rgba(255,255,255,0.35)", marginBottom:36 }}>Shape a night, or plot a harmonic path.</div>
+              <div style={{ fontSize:32, fontWeight:700, color: color.ink, letterSpacing:-0.5, marginBottom:8, fontFamily: fontDisplay }}>How do you want to listen?</div>
+              <div style={{ fontSize:14, color: color.muted, marginBottom:36 }}>Shape a night, or plot a harmonic path.</div>
               <div style={{ display:"grid", gap:12 }}>
                 <button type="button" onClick={()=>{ setMode("night"); setStep(1); }}
-                  style={{ padding:"22px 24px", borderRadius:16, border:"1px solid rgba(255,255,255,0.1)", background:"rgba(255,255,255,0.06)", textAlign:"left", cursor:"pointer" }}>
-                  <div style={{ fontSize:18, fontWeight:700, color:"#FFFFFF", fontFamily: fontDisplay, marginBottom:6 }}>Build a night</div>
-                  <div style={{ fontSize:13, color:"rgba(255,255,255,0.4)" }}>Duration + activity → phased energy arc</div>
+                  style={{ padding:"22px 24px", borderRadius:16, border:`1px solid ${color.lineStrong}`, background: color.surface, textAlign:"left", cursor:"pointer" }}>
+                  <div style={{ fontSize:18, fontWeight:700, color: color.ink, fontFamily: fontDisplay, marginBottom:6 }}>Build a night</div>
+                  <div style={{ fontSize:13, color: color.muted }}>Duration + activity → phased energy arc</div>
                 </button>
                 <button type="button" onClick={()=>{ setMode("path"); setStep(1); setPathPick("start"); }}
-                  style={{ padding:"22px 24px", borderRadius:16, border:"1px solid rgba(255,255,255,0.1)", background:"rgba(255,255,255,0.06)", textAlign:"left", cursor:"pointer" }}>
-                  <div style={{ fontSize:18, fontWeight:700, color:"#FFFFFF", fontFamily: fontDisplay, marginBottom:6 }}>Plot a route</div>
-                  <div style={{ fontSize:13, color:"rgba(255,255,255,0.4)" }}>A → B through Camelot-compatible steps</div>
+                  style={{ padding:"22px 24px", borderRadius:16, border:`1px solid ${color.lineStrong}`, background: color.surface, textAlign:"left", cursor:"pointer" }}>
+                  <div style={{ fontSize:18, fontWeight:700, color: color.ink, fontFamily: fontDisplay, marginBottom:6 }}>Plot a route</div>
+                  <div style={{ fontSize:13, color: color.muted }}>A → B through Camelot-compatible steps</div>
                 </button>
               </div>
             </div>
@@ -1108,14 +1109,14 @@ function RouteBuilderModal({ tracks, onClose, onPlayRoute }) {
           {/* Night step 1: Duration */}
           {mode === "night" && step === 1 && (
             <div style={{ width:"100%", textAlign:"center" }}>
-              <div style={{ fontSize:32, fontWeight:700, color:"#FFFFFF", letterSpacing:-0.5, marginBottom:8, fontFamily: fontDisplay }}>How long is the night?</div>
-              <div style={{ fontSize:14, color:"rgba(255,255,255,0.35)", marginBottom:40 }}>Pick a runtime. We’ll shape the arc.</div>
+              <div style={{ fontSize:32, fontWeight:700, color: color.ink, letterSpacing:-0.5, marginBottom:8, fontFamily: fontDisplay }}>How long is the night?</div>
+              <div style={{ fontSize:14, color: color.muted, marginBottom:40 }}>Pick a runtime. We’ll shape the arc.</div>
               <div style={{ display:"flex", gap:10, justifyContent:"center", marginBottom:48, flexWrap:"wrap" }}>
                 {[30,60,120,240,480].map(m => (
                   <button type="button" key={m} onClick={()=>setDuration(m)} style={{
                     width:64, height:64, borderRadius:16, border: duration===m ? "1px solid rgba(255,255,255,0.3)" : "1px solid rgba(255,255,255,0.08)",
                     background: duration===m ? "rgba(255,255,255,0.12)" : "rgba(255,255,255,0.04)",
-                    backdropFilter:"blur(24px)", color: duration===m ? "#FFFFFF" : "rgba(255,255,255,0.35)",
+                    color: duration===m ? "#FFFFFF" : "rgba(255,255,255,0.35)",
                     fontSize:16, fontWeight:600, cursor:"pointer", transition:"all 0.25s",
                     display:"flex", alignItems:"center", justifyContent:"center",
                   }}>
@@ -1123,7 +1124,7 @@ function RouteBuilderModal({ tracks, onClose, onPlayRoute }) {
                   </button>
                 ))}
               </div>
-              <button type="button" onClick={()=>setStep(2)} style={{ padding:"16px 48px", borderRadius:16, background:"rgba(255,255,255,0.1)", backdropFilter:"blur(24px)", border:"1px solid rgba(255,255,255,0.15)", color:"#FFFFFF", fontSize:16, fontWeight:600, cursor:"pointer" }}>
+              <button type="button" onClick={()=>setStep(2)} style={{ padding:"16px 48px", borderRadius:16, background: color.accentSoft, border:`1px solid ${color.lineStrong}`, color: color.ink, fontSize:16, fontWeight:600, cursor:"pointer" }}>
                 Continue
               </button>
             </div>
@@ -1132,19 +1133,19 @@ function RouteBuilderModal({ tracks, onClose, onPlayRoute }) {
           {/* Night step 2: Activity */}
           {mode === "night" && step === 2 && (
             <div style={{ width:"100%", textAlign:"center" }}>
-              <div style={{ fontSize:32, fontWeight:700, color:"#FFFFFF", letterSpacing:-0.5, marginBottom:8, fontFamily: fontDisplay }}>Shape the night</div>
-              <div style={{ fontSize:14, color:"rgba(255,255,255,0.35)", marginBottom:32 }}>{duration < 60 ? `${duration} minute` : `${Math.round(duration/60)} hour`} set</div>
+              <div style={{ fontSize:32, fontWeight:700, color: color.ink, letterSpacing:-0.5, marginBottom:8, fontFamily: fontDisplay }}>Shape the night</div>
+              <div style={{ fontSize:14, color: color.muted, marginBottom:32 }}>{duration < 60 ? `${duration} minute` : `${Math.round(duration/60)} hour`} set</div>
               <div style={{ display:"grid", gridTemplateColumns:"repeat(2, 1fr)", gap:10, textAlign:"left" }}>
                 {activities.map(([id, prof]) => (
                   <button type="button" key={id} onClick={()=>handleGenerate(id)}
-                    style={{ padding:"16px 18px", borderRadius:16, border:"1px solid rgba(255,255,255,0.08)", background:"rgba(255,255,255,0.04)", backdropFilter:"blur(32px)", cursor:"pointer", textAlign:"left" }}>
-                    <div style={{ fontSize:16, fontWeight:600, color:"#FFFFFF", letterSpacing:-0.2, marginBottom:10 }}>{prof.label}</div>
+                    style={{ padding:"16px 18px", borderRadius:16, border:`1px solid ${color.line}`, background: color.surface, cursor:"pointer", textAlign:"left" }}>
+                    <div style={{ fontSize:16, fontWeight:600, color: color.ink, letterSpacing:-0.2, marginBottom:10 }}>{prof.label}</div>
                     <div style={{ display:"flex", gap:2, alignItems:"flex-end", marginBottom:8 }}>
                       {prof.phases.map((ph,i) => (
                         <div key={i} style={{ flex:ph.p, height: 2 + ph.e * 2, borderRadius:2, background:`rgba(255,255,255,${0.06 + ph.e * 0.04})` }}/>
                       ))}
                     </div>
-                    <div style={{ fontSize:10, color:"rgba(255,255,255,0.25)", letterSpacing:0.3 }}>{prof.phases.map(p=>p.name).join(" · ")}</div>
+                    <div style={{ fontSize:10, color: color.faint, letterSpacing:0.3 }}>{prof.phases.map(p=>p.name).join(" · ")}</div>
                   </button>
                 ))}
               </div>
@@ -1155,10 +1156,10 @@ function RouteBuilderModal({ tracks, onClose, onPlayRoute }) {
           {mode === "path" && step < 3 && (
             <div style={{ width:"100%" }}>
               <div style={{ textAlign:"center", marginBottom:24 }}>
-                <div style={{ fontSize:28, fontWeight:700, color:"#FFFFFF", letterSpacing:-0.5, marginBottom:8, fontFamily: fontDisplay }}>
+                <div style={{ fontSize:28, fontWeight:700, color: color.ink, letterSpacing:-0.5, marginBottom:8, fontFamily: fontDisplay }}>
                   {pathPick === "start" ? "Where do we start?" : "Where do we land?"}
                 </div>
-                <div style={{ fontSize:13, color:"rgba(255,255,255,0.35)", marginBottom:16 }}>
+                <div style={{ fontSize:13, color: color.muted, marginBottom:16 }}>
                   Harmonic steps from A to B · Camelot + energy
                 </div>
                 <div style={{ display:"flex", gap:8, justifyContent:"center", marginBottom:20 }}>
@@ -1166,7 +1167,7 @@ function RouteBuilderModal({ tracks, onClose, onPlayRoute }) {
                     padding:"8px 14px", borderRadius:10, border: pathPick==="start" ? "1px solid rgba(255,255,255,0.28)" : "1px solid rgba(255,255,255,0.08)",
                     background: pathPick==="start" ? "rgba(255,255,255,0.1)" : "transparent", color: pathStart ? "#FFFFFF" : "rgba(255,255,255,0.4)", fontSize:12, cursor:"pointer", maxWidth:180, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap",
                   }}>{pathStart ? pathStart.title : "Start"}</button>
-                  <span style={{ color:"rgba(255,255,255,0.25)", alignSelf:"center", fontSize:12 }}>→</span>
+                  <span style={{ color: color.faint, alignSelf:"center", fontSize:12 }}>→</span>
                   <button type="button" onClick={()=>setPathPick("end")} style={{
                     padding:"8px 14px", borderRadius:10, border: pathPick==="end" ? "1px solid rgba(255,255,255,0.28)" : "1px solid rgba(255,255,255,0.08)",
                     background: pathPick==="end" ? "rgba(255,255,255,0.1)" : "transparent", color: pathEnd ? "#FFFFFF" : "rgba(255,255,255,0.4)", fontSize:12, cursor:"pointer", maxWidth:180, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap",
@@ -1176,7 +1177,7 @@ function RouteBuilderModal({ tracks, onClose, onPlayRoute }) {
                   value={pathQuery}
                   onChange={e=>setPathQuery(e.target.value)}
                   placeholder="Search tracks…"
-                  style={{ width:"100%", padding:"12px 14px", borderRadius:12, border:"1px solid rgba(255,255,255,0.1)", background:"rgba(255,255,255,0.04)", color:"#FFFFFF", fontSize:14, marginBottom:14, outline:"none" }}
+                  style={{ width:"100%", padding:"12px 14px", borderRadius:12, border:`1px solid ${color.lineStrong}`, background: color.surface, color: color.ink, fontSize:14, marginBottom:14, outline:"none" }}
                 />
               </div>
               <div style={{ maxHeight:280, overflowY:"auto", borderRadius:14, border:"1px solid rgba(255,255,255,0.06)", background:"rgba(255,255,255,0.03)", marginBottom:20 }}>
@@ -1197,8 +1198,8 @@ function RouteBuilderModal({ tracks, onClose, onPlayRoute }) {
                   }}>
                     <div style={{ width:36, height:36, borderRadius:6, overflow:"hidden", flexShrink:0 }}><AlbumArt track={t} size={36} borderRadius={0}/></div>
                     <div style={{ flex:1, minWidth:0 }}>
-                      <div style={{ fontSize:13, fontWeight:550, color:"#FFFFFF", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{t.title}</div>
-                      <div style={{ fontSize:11, color:"rgba(255,255,255,0.35)" }}>{t.artist} · {t.camelot || "—"} · E{t.energy ?? "—"}</div>
+                      <div style={{ fontSize:13, fontWeight:550, color: color.ink, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{t.title}</div>
+                      <div style={{ fontSize:11, color: color.muted }}>{t.artist} · {t.camelot || "—"} · E{t.energy ?? "—"}</div>
                     </div>
                   </button>
                 ))}
@@ -1220,20 +1221,20 @@ function RouteBuilderModal({ tracks, onClose, onPlayRoute }) {
           {step === 3 && session && (mode === "path" || profile) && (
             <div style={{ width:"100%" }}>
               <div style={{ textAlign:"center", marginBottom:32 }}>
-                <div style={{ fontSize:11, fontWeight:600, letterSpacing:2, color:"rgba(255,255,255,0.25)", textTransform:"uppercase", marginBottom:8 }}>
+                <div style={{ fontSize:11, fontWeight:600, letterSpacing:2, color: color.faint, textTransform:"uppercase", marginBottom:8 }}>
                   {mode === "path"
                     ? `Route · ${pathStart?.camelot || "?"} → ${pathEnd?.camelot || "?"}`
                     : `${profile.label} · ${duration < 60 ? `${duration}min` : `${Math.round(duration/60)}h`}`}
                 </div>
-                <div style={{ fontSize:36, fontWeight:700, color:"#FFFFFF", letterSpacing:-0.5, marginBottom:4, fontFamily: fontDisplay }}>
+                <div style={{ fontSize:36, fontWeight:700, color: color.ink, letterSpacing:-0.5, marginBottom:4, fontFamily: fontDisplay }}>
                   {mode === "path" ? "Path is ready" : "Tonight’s set is ready"}
                 </div>
-                <div style={{ fontSize:14, color:"rgba(255,255,255,0.35)" }}>{session.length} tracks · ~{totalMins} minutes</div>
+                <div style={{ fontSize:14, color: color.muted }}>{session.length} tracks · ~{totalMins} minutes</div>
               </div>
 
               {mode === "night" && profile && (
                 <div style={{ marginBottom:32, padding:"0 8px" }}>
-                  <div style={{ display:"flex", borderRadius:12, overflow:"hidden", height:8, marginBottom:8, background:"rgba(255,255,255,0.04)" }}>
+                  <div style={{ display:"flex", borderRadius:12, overflow:"hidden", height:8, marginBottom:8, background: color.surface }}>
                     {profile.phases.map((ph,i) => (
                       <div key={i} style={{ flex:ph.p, background:`rgba(255,255,255,${0.05 + ph.e * 0.06})` }}/>
                     ))}
@@ -1241,7 +1242,7 @@ function RouteBuilderModal({ tracks, onClose, onPlayRoute }) {
                   <div style={{ display:"flex" }}>
                     {profile.phases.map((ph,i) => (
                       <div key={i} style={{ flex:ph.p, textAlign:"center" }}>
-                        <div style={{ fontSize:9, fontWeight:600, color:"rgba(255,255,255,0.3)", textTransform:"uppercase", letterSpacing:0.5 }}>{ph.name}</div>
+                        <div style={{ fontSize:9, fontWeight:600, color: color.faint, textTransform:"uppercase", letterSpacing:0.5 }}>{ph.name}</div>
                       </div>
                     ))}
                   </div>
@@ -1264,24 +1265,24 @@ function RouteBuilderModal({ tracks, onClose, onPlayRoute }) {
               <div style={{ maxHeight:320, overflowY:"auto", marginBottom:32, borderRadius:16, background:"rgba(255,255,255,0.03)", border:"1px solid rgba(255,255,255,0.06)", padding:"8px 0" }}>
                 {mode === "night" ? phases.map((phase, pi) => (
                   <div key={pi}>
-                    <div style={{ fontSize:9, fontWeight:700, letterSpacing:1.5, color:"rgba(255,255,255,0.2)", textTransform:"uppercase", padding:"12px 16px 6px" }}>{phase.name}</div>
+                    <div style={{ fontSize:9, fontWeight:700, letterSpacing:1.5, color: color.faint, textTransform:"uppercase", padding:"12px 16px 6px" }}>{phase.name}</div>
                     {phase.tracks.map((t) => (
                       <div key={t.id} style={{ display:"flex", alignItems:"center", gap:10, padding:"6px 16px" }}>
                         <div style={{ width:32, height:32, borderRadius:6, overflow:"hidden", flexShrink:0 }}><AlbumArt track={t} size={32} borderRadius={0}/></div>
                         <div style={{ flex:1, minWidth:0 }}>
-                          <div style={{ fontSize:13, fontWeight:500, color:"#FFFFFF", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{t.title}</div>
-                          <div style={{ fontSize:11, color:"rgba(255,255,255,0.35)" }}>{t.artist}</div>
+                          <div style={{ fontSize:13, fontWeight:500, color: color.ink, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{t.title}</div>
+                          <div style={{ fontSize:11, color: color.muted }}>{t.artist}</div>
                         </div>
                       </div>
                     ))}
                   </div>
                 )) : session.map((t, i) => (
                   <div key={t.id} style={{ display:"flex", alignItems:"center", gap:10, padding:"6px 16px" }}>
-                    <div style={{ width:18, fontSize:10, color:"rgba(255,255,255,0.25)", fontVariantNumeric:"tabular-nums" }}>{i + 1}</div>
+                    <div style={{ width:18, fontSize:10, color: color.faint, fontVariantNumeric:"tabular-nums" }}>{i + 1}</div>
                     <div style={{ width:32, height:32, borderRadius:6, overflow:"hidden", flexShrink:0 }}><AlbumArt track={t} size={32} borderRadius={0}/></div>
                     <div style={{ flex:1, minWidth:0 }}>
-                      <div style={{ fontSize:13, fontWeight:500, color:"#FFFFFF", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{t.title}</div>
-                      <div style={{ fontSize:11, color:"rgba(255,255,255,0.35)" }}>{t.artist} · {t.camelot || "—"} · E{t.energy ?? "—"}</div>
+                      <div style={{ fontSize:13, fontWeight:500, color: color.ink, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{t.title}</div>
+                      <div style={{ fontSize:11, color: color.muted }}>{t.artist} · {t.camelot || "—"} · E{t.energy ?? "—"}</div>
                     </div>
                   </div>
                 ))}
@@ -1293,12 +1294,12 @@ function RouteBuilderModal({ tracks, onClose, onPlayRoute }) {
                   onPlayRoute(cleaned, mode === "night" ? "night" : "path");
                   onClose();
                 }}
-                  style={{ flex:1, maxWidth:280, padding:"16px 32px", borderRadius:16, background:"rgba(255,255,255,0.1)", backdropFilter:"blur(24px)", border:"1px solid rgba(255,255,255,0.15)", color:"#FFFFFF", fontSize:16, fontWeight:600, cursor:"pointer" }}>
+                  style={{ flex:1, maxWidth:280, padding:"16px 32px", borderRadius:16, background: color.accentSoft, border:`1px solid ${color.lineStrong}`, color: color.ink, fontSize:16, fontWeight:600, cursor:"pointer" }}>
                   Open session
                 </button>
                 {mode === "night" && (
                   <button type="button" onClick={handleRegenerate}
-                    style={{ width:52, height:52, borderRadius:16, background:"rgba(255,255,255,0.06)", border:"1px solid rgba(255,255,255,0.08)", color:"rgba(255,255,255,0.4)", fontSize:16, cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", backdropFilter:"blur(20px)" }}>
+                    style={{ width:52, height:52, borderRadius:16, background: color.surface, border:`1px solid ${color.line}`, color: color.muted, fontSize:16, cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center" }}>
                     ↻
                   </button>
                 )}
@@ -1654,7 +1655,7 @@ function ImmersivePlayer({
           opacity: showUI ? 1 : 0.55,
           transition:"opacity 0.5s ease",
           maxWidth:520,
-          animation: "fadeIn 0.35s ease both",
+          animation: "trackSwap 0.4s cubic-bezier(0.22,1,0.36,1) both",
         }}
       >
         <div style={{
@@ -2064,42 +2065,34 @@ function HomeScreen({
 
       {rooms.length > 0 && (
         <HomeSection label="Rooms you live in" count={rooms.length} delay={0.04}>
-          <div className="hide-scroll" style={{ display: "flex", gap: 12, overflowX: "auto", padding: "0 20px 8px" }}>
+          <div style={{ padding: "0 20px" }}>
             {rooms.map((room, i) => (
               <button
                 key={room.id}
                 type="button"
                 onClick={() => onOpenRoom?.(room.id)}
                 style={{
-                  flexShrink: 0, width: 148, padding: 0, border: "none", background: "none",
-                  cursor: onOpenRoom ? "pointer" : "default", textAlign: "left",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  width: "100%",
+                  padding: "14px 0",
+                  background: "none",
+                  border: "none",
+                  borderBottom: `1px solid ${color.line}`,
+                  cursor: onOpenRoom ? "pointer" : "default",
+                  textAlign: "left",
+                  color: color.ink,
                   animation: `rise 0.5s cubic-bezier(0.22,1,0.36,1) ${0.05 + i * 0.03}s both`,
                 }}
               >
-                <div style={{
-                  width: 148, height: 100, marginBottom: 10, position: "relative", overflow: "hidden",
-                  background: atmosphereGradient(room.atmosphere || room.id),
-                }}>
-                  {room.coverTrack?.albumCover && (
-                    <div aria-hidden="true" style={{
-                      position: "absolute", inset: 0,
-                      backgroundImage: `url(${room.coverTrack.albumCover})`,
-                      backgroundSize: "cover", backgroundPosition: "center",
-                      opacity: 0.45, filter: "saturate(110%)",
-                    }}/>
-                  )}
-                  <div style={{
-                    position: "absolute", inset: 0,
-                    background: "linear-gradient(180deg, transparent 30%, rgba(12,11,10,0.92) 100%)",
-                  }}/>
-                  <div style={{
-                    position: "absolute", left: 10, right: 10, bottom: 10,
-                    fontSize: 14, fontWeight: 750, color: color.onDark, fontFamily: fontDisplay, letterSpacing: -0.3,
-                  }}>{room.label}</div>
+                <div style={{ minWidth: 0, flex: 1 }}>
+                  <div style={{ fontSize: 16, fontWeight: 700, fontFamily: fontDisplay, letterSpacing: -0.3 }}>{room.label}</div>
+                  <div style={{ fontSize: 12, color: color.muted, marginTop: 3, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                    {room.desc || room.story}
+                  </div>
                 </div>
-                <div style={{ fontSize: 11, color: color.muted, lineHeight: 1.35 }}>
-                  {room.count} tracks
-                </div>
+                <div style={{ fontSize: 12, color: color.faint, fontFamily: fontMono, marginLeft: 12, flexShrink: 0 }}>{room.count}</div>
               </button>
             ))}
           </div>
@@ -2176,37 +2169,22 @@ function HomeScreen({
           <div style={{ padding: "0 20px 4px", fontSize: 13, color: color.muted, marginTop: -8, marginBottom: 14 }}>
             {col.story}
           </div>
-          <div className="hide-scroll" style={{ display: "flex", gap: 14, overflowX: "auto", padding: "0 20px 10px" }}>
-            {col.tracks.map((t, i) => {
-              const active = activeId === t.id;
-              return (
-                <div
-                  key={t.id}
-                  onClick={() => onPlayTrack(t, col.tracks)}
-                  onContextMenu={(e) => openFromContext(e, t)}
-                  style={{
-                    flexShrink: 0, width: 132, cursor: "pointer", position: "relative",
-                    animation: `rise 0.5s cubic-bezier(0.22,1,0.36,1) ${0.06 + i * 0.025}s both`,
-                  }}
-                >
-                  <div style={{
-                    width: 132, height: 132, overflow: "hidden", marginBottom: 10, position: "relative",
-                    boxShadow: active ? `0 0 0 2px ${color.accent}` : "0 10px 28px rgba(0,0,0,0.35)",
-                  }}>
-                    <AlbumArt track={t} size={132} borderRadius={0}/>
-                    <div style={{ position: "absolute", top: 4, right: 2, zIndex: 2 }} onClick={e => e.stopPropagation()}>
-                      <TrackMoreButton onClick={(e) => openFromButton(e, t)} />
-                    </div>
-                  </div>
-                  <div style={{
-                    fontSize: 13, fontWeight: active ? 650 : 500, letterSpacing: -0.2,
-                    color: active ? color.accent : color.ink,
-                    overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
-                  }}>{t.title}</div>
-                  <div style={{ fontSize: 11, color: color.muted, marginTop: 3, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{t.artist}</div>
-                </div>
-              );
-            })}
+          <div style={{ padding: "0 16px" }}>
+            {col.tracks.slice(0, 8).map((t, i) => (
+              <div
+                key={t.id}
+                style={{ animation: `rise 0.45s cubic-bezier(0.22,1,0.36,1) ${0.06 + i * 0.03}s both` }}
+              >
+                <TrackRow
+                  track={t}
+                  onPlay={() => onPlayTrack(t, col.tracks)}
+                  active={activeId === t.id}
+                  isPlaying={isPlaying}
+                  onLike={onLike}
+                  playlistCtx={playlistCtx}
+                />
+              </div>
+            ))}
           </div>
         </HomeSection>
       ))}
@@ -2535,35 +2513,25 @@ function FavoritesScreen({
         )}
 
         {digLane.length > 0 && (
-          <div style={{ marginBottom: 36 }}>
-            <div style={{ padding: "0 20px" }}>
+          <div style={{ marginBottom: 36, padding: "0 16px" }}>
+            <div style={{ padding: "0 4px 14px" }}>
               <SectionHead sub={`From the ${activeRoomLabel.toLowerCase()} room`}>More from the room</SectionHead>
             </div>
-            <div className="hide-scroll" style={{ display: "flex", gap: 12, overflowX: "auto", padding: "0 20px 4px" }}>
-              {digLane.map((t, i) => (
-                <div
-                  key={t.id}
-                  onClick={() => onPlay(t)}
-                  onContextMenu={(e) => openFromContext(e, t)}
-                  style={{
-                    flexShrink: 0, width: 132, cursor: "pointer", position: "relative",
-                    animation: `rise 0.5s cubic-bezier(0.22,1,0.36,1) ${Math.min(i, 6) * 0.04}s both`,
-                  }}
-                >
-                  <div style={{
-                    width: 132, height: 132, overflow: "hidden", marginBottom: 8, position: "relative",
-                    boxShadow: currentTrack?.id === t.id ? `0 0 0 2px ${color.accent}` : "0 8px 22px rgba(0,0,0,0.35)",
-                  }}>
-                    <AlbumArt track={t} size={132} borderRadius={0}/>
-                    <div style={{ position: "absolute", top: 4, right: 2, zIndex: 2 }} onClick={e => e.stopPropagation()}>
-                      <TrackMoreButton onClick={(e) => openFromButton(e, t)} />
-                    </div>
-                  </div>
-                  <div style={{ fontSize: 13, fontWeight: 600, color: color.ink, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", letterSpacing: -0.2 }}>{t.title}</div>
-                  <div style={{ fontSize: 11, color: color.muted, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", marginTop: 3 }}>{t.artist}</div>
-                </div>
-              ))}
-            </div>
+            {digLane.map((t, i) => (
+              <div
+                key={t.id}
+                style={{ animation: `rise 0.45s cubic-bezier(0.22,1,0.36,1) ${Math.min(i, 6) * 0.04}s both` }}
+              >
+                <TrackRow
+                  track={t}
+                  onPlay={() => onPlay(t)}
+                  active={currentTrack?.id === t.id}
+                  isPlaying={isPlaying}
+                  onLike={onLike}
+                  playlistCtx={playlistCtx}
+                />
+              </div>
+            ))}
           </div>
         )}
 
@@ -3448,6 +3416,7 @@ export default function App() {
     navigate(buildPath(id, param));
   }, [navigate]);
   const setRoomRoute = useCallback((id) => {
+    if (id) enterRoomCue();
     navigate(buildPath("rooms", id || null));
   }, [navigate]);
   const openArtist = useCallback((nameOrSlug) => {
@@ -3655,6 +3624,25 @@ export default function App() {
     setQueue(shuffled.slice(0, 8));
   }, [tracks]);
   const showToast = (msg) => { setToast(msg); setTimeout(()=>setToast(null),2200); };
+
+  const shareRoomDoor = async (room) => {
+    if (!room?.id) return;
+    const url = `${window.location.origin}${buildPath("rooms", room.id)}`;
+    try {
+      if (navigator.clipboard?.writeText) await navigator.clipboard.writeText(url);
+      else {
+        const ta = document.createElement("textarea");
+        ta.value = url;
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand("copy");
+        document.body.removeChild(ta);
+      }
+      showToast("Door left open");
+    } catch {
+      showToast("Couldn't copy the door");
+    }
+  };
 
   // ── Load tracks from Firestore once on mount ────────────────────────────
   useEffect(() => {
@@ -4343,6 +4331,7 @@ export default function App() {
             onActiveRoomChange={setRoomRoute}
             preferredGenres={user.genres}
             onOpenPaths={() => openPath(null)}
+            onShareRoom={shareRoomDoor}
           />
         )}
         {screen==="home"      && !tracksLoading && <HomeScreen tracks={tracks} onPlayRadio={playRadio} onTogglePlay={()=>setIsPlaying(p=>!p)} onPlayTrack={playTrack} currentTrack={currentTrack} isPlaying={isPlaying} onLike={toggleLike} isRadioMode={isRadioMode} playlistCtx={playlistCtx} signalLabel={signalState?.label} setPrev={setPrev} setNext={setNext} onBuildNight={()=>setShowRouteBuilder(true)} doorsSoundOn={doorsSoundOn} onToggleDoorsSound={toggleDoorsSound} homeRooms={homeRooms} onOpenRoom={(id)=>setRoomRoute(id)} onOpenRooms={()=>setScreen("rooms")} userName={user.name} userPlaylists={userPlaylists} onCreatePlaylist={createPlaylist} onDeletePlaylist={deletePlaylist}/>}
@@ -4541,6 +4530,7 @@ export default function App() {
                   onActiveRoomChange={setRoomRoute}
                   preferredGenres={user.genres}
                   onOpenPaths={() => openPath(null)}
+                  onShareRoom={shareRoomDoor}
                 />
               )}
               {screen==="home"      && <HomeScreen tracks={tracks} onPlayRadio={playRadio} onTogglePlay={()=>setIsPlaying(p=>!p)} onPlayTrack={playTrack} currentTrack={currentTrack} isPlaying={isPlaying} onLike={toggleLike} isRadioMode={isRadioMode} playlistCtx={playlistCtx} signalLabel={signalState?.label} setPrev={setPrev} setNext={setNext} onBuildNight={()=>setShowRouteBuilder(true)} doorsSoundOn={doorsSoundOn} onToggleDoorsSound={toggleDoorsSound} homeRooms={homeRooms} onOpenRoom={(id)=>setRoomRoute(id)} onOpenRooms={()=>setScreen("rooms")} userName={user.name} userPlaylists={userPlaylists} onCreatePlaylist={createPlaylist} onDeletePlaylist={deletePlaylist}/>}
@@ -4646,24 +4636,23 @@ export default function App() {
             {/* Ambient color wash behind art */}
             <div style={{ position:"absolute", top:0, left:0, right:0, height:"70%", background:`radial-gradient(ellipse at 50% 30%, rgba(${glowRgb},0.12) 0%, transparent 70%)`, pointerEvents:"none" }}/>
             {/* Album art */}
-            <div style={{ position:"relative", width:"100%", aspectRatio:"1", borderRadius:16, overflow:"hidden", marginBottom:4, boxShadow:`0 16px 48px rgba(0,0,0,0.45)` }}>
+            <div style={{ position:"relative", width:"100%", aspectRatio:"1", overflow:"hidden", marginBottom:4, boxShadow:`0 16px 40px rgba(0,0,0,0.4)` }}>
               <img src={currentTrack.albumCover||"/covers/default.jpg"} alt="" style={{ width:"100%", height:"100%", objectFit:"cover" }} onError={e=>{e.target.src="/covers/default.jpg";}}/>
             </div>
             {/* Progress bar under art */}
-            <div style={{ height:3, background:"rgba(232,236,240,0.08)", borderRadius:2, marginBottom:12, overflow:"hidden" }}>
+            <div style={{ height:3, background: color.line, borderRadius:2, marginBottom:12, overflow:"hidden" }}>
               <div style={{ height:"100%", width:`${duration?((progress/duration)*100):0}%`, background: color.accent, borderRadius:2, transition:"width 1s linear" }}/>
             </div>
             {/* Track info */}
-            <div style={{ position:"relative" }}>
-              <div style={{ fontSize:15, fontWeight:600, color: color.ink, letterSpacing:-0.3, marginBottom:2, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{currentTrack.title}</div>
-              <div style={{ fontSize:12, color: color.muted, marginBottom:8, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{currentTrack.artist}</div>
-              {/* Metadata + state label row */}
-              <div style={{ display:"flex", gap:4, alignItems:"center" }}>
-                {currentTrack.genre && <span style={{ fontSize:9, fontWeight:500, padding:"3px 8px", borderRadius:6, background: color.surface, color: color.muted }}>{currentTrack.genre}</span>}
-                {currentTrack.bpm && <span style={{ fontSize:9, fontWeight:500, padding:"3px 8px", borderRadius:6, background: color.surface, color: color.faint }}>{currentTrack.bpm} bpm</span>}
-                <div style={{ flex:1 }}/>
-                {signalState?.label && <span style={{ fontSize:9, fontWeight:600, letterSpacing:0.8, color: color.faint, textTransform:"uppercase" }}>{signalState.label}</span>}
-              </div>
+            <div key={currentTrack.id} style={{ position:"relative", animation: "trackSwap 0.35s cubic-bezier(0.22,1,0.36,1) both" }}>
+              <div style={{ fontSize:15, fontWeight:650, color: color.ink, letterSpacing:-0.3, marginBottom:2, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap", fontFamily: fontDisplay }}>{currentTrack.title}</div>
+              <div style={{ fontSize:12, color: color.muted, marginBottom:10, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{currentTrack.artist}</div>
+              <BoothHud track={currentTrack} size="sm"/>
+              {signalState?.label && (
+                <div style={{ marginTop:10, fontSize:10, fontWeight:700, letterSpacing:1.2, color: color.faint, textTransform:"uppercase", fontFamily: fontMono }}>
+                  {signalState.label}
+                </div>
+              )}
             </div>
           </div>
         ) : (

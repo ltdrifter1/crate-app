@@ -246,19 +246,19 @@ export function populateRoom(room, tracks = []) {
     coverTrack,
     count: matched.length,
     avgEnergy: Math.round(avgEnergy * 10) / 10,
-    // Soft presence — placeholder until real multiplayer
-    presence: matched.length > 0 ? Math.min(48, 3 + Math.floor(matched.length / 4)) : 0,
-    lastActivity: coverTrack ? "Someone just played here" : "Quiet tonight",
+    // Presence is quiet until real multiplayer — no synthetic headcounts
+    presence: 0,
+    lastActivity: matched.some((t) => t.liked)
+      ? "Yours are here"
+      : coverTrack
+        ? "Ready when you are"
+        : "Quiet tonight",
   };
 }
 
-/** Soft presence copy — never a raw headcount in the UI. */
+/** Activity line for a Room — never invents a crowd. */
 export function presencePhrase(room) {
-  const n = room?.presence || 0;
-  if (n <= 0) return "Quiet tonight";
-  if (n < 8) return "A few listening";
-  if (n < 20) return "Warming up";
-  return "Busy tonight";
+  return room?.lastActivity || "Quiet tonight";
 }
 
 /** Populate every destination Room that has at least one track. */

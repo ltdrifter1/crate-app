@@ -63,15 +63,15 @@ describe("populateRoom", () => {
     expect(populated.tracks.every((t) => (t.duration || 0) <= 900)).toBe(true);
   });
 
-  test("exposes presence and cover", () => {
+  test("exposes quiet activity and cover", () => {
     const room = CLUB_ROOMS.find((r) => r.id === "peak");
     const populated = populateRoom(
       { ...room, kind: "time", story: room.desc, atmosphere: "peak" },
       tracks
     );
     expect(populated.coverTrack?.id).toBe("2");
-    expect(populated.presence).toBeGreaterThan(0);
-    expect(presencePhrase(populated)).toMatch(/listening|Warming|Busy|Quiet/i);
+    expect(populated.presence).toBe(0);
+    expect(presencePhrase(populated)).toMatch(/Quiet|Ready|Yours/i);
   });
 });
 
