@@ -13,7 +13,10 @@
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "catalog:upload": "node upload-tracks.js",
+    "catalog:clean-titles": "node clean-titles.js",
+    "catalog:clean-titles:apply": "node clean-titles.js --apply"
   },
   "browserslist": {
     "production": [
@@ -28,6 +31,7 @@
     ]
   },
   "devDependencies": {
+    "firebase-admin": "^13.0.2",
     "typescript": "^4.9.5"
   }
 }

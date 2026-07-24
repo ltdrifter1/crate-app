@@ -2026,89 +2026,100 @@ function AdminScreen({ tracks, setTracks, tab, setTab, editTrack, setEditTrack, 
     const blob = new Blob([rows.join("\n")], { type:"text/csv" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
-    a.href = url; a.download = `v-music-tracks-${new Date().toISOString().slice(0,10)}.csv`;
+    a.href = url; a.download = `4am-tracks-${new Date().toISOString().slice(0,10)}.csv`;
     a.click(); URL.revokeObjectURL(url);
     showToast(`Exported ${tracks.length} tracks`);
   }
 
   // ── CSV IMPORT ──
+  // Prefer match by `id` so title/artist renames stick. Fall back to title+artist.
   async function importCSV(file) {
     setImporting(true); setImportProgress("Reading file...");
     const text = await file.text();
     const lines = text.split("\n").filter(l => l.trim());
     if (lines.length < 2) { showToast("CSV appears empty"); setImporting(false); return; }
 
-    // Parse header
-    const header = parseCSVLine(lines[0]);
-    const titleIdx = header.findIndex(h => h.toLowerCase().trim() === "title");
-    const artistIdx = header.findIndex(h => h.toLowerCase().trim() === "artist");
+    const header = parseCSVLine(lines[0]).map(h => h.toLowerCase().trim());
+    const titleIdx = header.indexOf("title");
+    const artistIdx = header.indexOf("artist");
     if (titleIdx === -1 || artistIdx === -1) {
       showToast("CSV must have 'title' and 'artist' columns");
       setImporting(false); return;
     }
 
-    // Parse rows
     const rows = [];
     for (let i = 1; i < lines.length; i++) {
       const vals = parseCSVLine(lines[i]);
       if (!vals[titleIdx]?.trim()) continue;
       const row = {};
-      header.forEach((h, idx) => { row[h.toLowerCase().trim()] = (vals[idx] || "").trim(); });
+      header.forEach((h, idx) => { row[h] = (vals[idx] || "").trim(); });
       rows.push(row);
     }
 
     setImportProgress(`Parsed ${rows.length} rows. Writing to Firestore...`);
 
-    // Build a lookup of existing tracks by title+artist for matching
-    const existing = {};
-    tracks.forEach(t => { existing[`${(t.title||"").toLowerCase()}|||${(t.artist||"").toLowerCase()}`] = t; });
+    const byId = {};
+    const byName = {};
+    tracks.forEach(t => {
+      byId[t.id] = t;
+      byName[`${(t.title||"").toLowerCase()}|||${(t.artist||"").toLowerCase()}`] = t;
+    });
 
-    let updated = 0, created = 0, errors = 0;
+    let updated = 0, created = 0, errors = 0, skipped = 0;
     const cols = ["#8899aa","#7a9e8a","#9090b0","#a09898","#88a8b0","#a0a0b8","#7aaa98"];
+
+    function fieldUpdates(r) {
+      const updates = {};
+      if (r.title != null && String(r.title).trim() !== "") updates.title = String(r.title).trim();
+      if (r.artist != null && String(r.artist).trim() !== "") updates.artist = String(r.artist).trim();
+      if (r.album != null && String(r.album).trim() !== "") updates.album = String(r.album).trim();
+      if (r.genre != null && String(r.genre).trim() !== "") updates.genre = String(r.genre).trim();
+      if (r.camelot != null && String(r.camelot).trim() !== "") updates.camelot = String(r.camelot).trim();
+      if (r.bpm && !isNaN(parseInt(r.bpm, 10))) updates.bpm = parseInt(r.bpm, 10);
+      if (r.energy && !isNaN(parseInt(r.energy, 10))) updates.energy = parseInt(r.energy, 10);
+      const audioUrl = r.audiourl || r.audioUrl;
+      if (audioUrl && String(audioUrl).trim()) updates.audioUrl = String(audioUrl).trim();
+      const albumCover = r.albumcover || r.albumCover;
+      if (albumCover && String(albumCover).trim()) updates.albumCover = String(albumCover).trim();
+      if (r.color && String(r.color).trim()) updates.color = String(r.color).trim();
+      if (r.duration && !isNaN(parseFloat(r.duration))) updates.duration = parseFloat(r.duration);
+      return updates;
+    }
 
     for (let i = 0; i < rows.length; i++) {
       const r = rows[i];
-      const matchKey = `${(r.title||"").toLowerCase()}|||${(r.artist||"").toLowerCase()}`;
-      const match = existing[matchKey];
+      const id = (r.id || "").trim();
+      const matchById = id ? byId[id] : null;
+      const matchByName = byName[`${(r.title||"").toLowerCase()}|||${(r.artist||"").toLowerCase()}`];
+      const match = matchById || (!id ? matchByName : null);
 
       try {
         if (match) {
-          // Update existing track — merge CSV fields onto it
-          const updates = {};
-          if (r.genre && r.genre.trim()) updates.genre = r.genre.trim();
-          if (r.camelot && r.camelot.trim()) updates.camelot = r.camelot.trim();
-          if (r.bpm && !isNaN(parseInt(r.bpm))) updates.bpm = parseInt(r.bpm);
-          if (r.energy && !isNaN(parseInt(r.energy))) updates.energy = parseInt(r.energy);
-          if (r.album && r.album.trim()) updates.album = r.album.trim();
-          if (r.audiourl || r.audioUrl) updates.audioUrl = (r.audiourl || r.audioUrl).trim();
-          if (r.albumcover || r.albumCover) updates.albumCover = (r.albumcover || r.albumCover).trim();
-          if (r.color && r.color.trim()) updates.color = r.color.trim();
-          if (r.duration && !isNaN(parseFloat(r.duration))) updates.duration = parseFloat(r.duration);
-
-          if (Object.keys(updates).length > 0) {
-            await updateDoc(doc(db, "tracks", match.id), updates);
-            setTracks(prev => prev.map(t => t.id === match.id ? { ...t, ...updates } : t));
-            updated++;
-          }
-        } else if (r.id && r.id.trim()) {
-          // Has an ID — try to update that specific doc, or create it
+          const updates = fieldUpdates(r);
+          if (Object.keys(updates).length === 0) { skipped++; continue; }
+          await updateDoc(doc(db, "tracks", match.id), updates);
+          setTracks(prev => prev.map(t => t.id === match.id ? { ...t, ...updates } : t));
+          // Keep lookups fresh for later rows
+          byId[match.id] = { ...match, ...updates };
+          updated++;
+        } else if (id) {
           const trackData = {
             title: r.title || "", artist: r.artist || "", album: r.album || "",
             genre: r.genre || "", camelot: r.camelot || "",
-            energy: parseInt(r.energy) || 5, bpm: parseInt(r.bpm) || null,
+            energy: parseInt(r.energy, 10) || 5, bpm: parseInt(r.bpm, 10) || null,
             audioUrl: r.audiourl || r.audioUrl || "", albumCover: r.albumcover || r.albumCover || "",
             color: r.color || cols[Math.floor(Math.random() * cols.length)],
             duration: parseFloat(r.duration) || 0,
-            createdAt: new Date(), likeCount: 0, playCount: 0, skipCount: 0,
+            likeCount: 0, playCount: 0, skipCount: 0,
           };
-          await setDoc(doc(db, "tracks", r.id.trim()), trackData, { merge: true });
+          await setDoc(doc(db, "tracks", id), trackData, { merge: true });
+          byId[id] = { ...trackData, id };
           created++;
         } else {
-          // New track without ID — create with auto-generated key
           const trackData = {
             title: r.title || "", artist: r.artist || "", album: r.album || "",
             genre: r.genre || "", camelot: r.camelot || "",
-            energy: parseInt(r.energy) || 5, bpm: parseInt(r.bpm) || null,
+            energy: parseInt(r.energy, 10) || 5, bpm: parseInt(r.bpm, 10) || null,
             audioUrl: r.audiourl || r.audioUrl || "", albumCover: r.albumcover || r.albumCover || "",
             color: r.color || cols[Math.floor(Math.random() * cols.length)],
             duration: parseFloat(r.duration) || 0,
@@ -2126,7 +2137,6 @@ function AdminScreen({ tracks, setTracks, tab, setTab, editTrack, setEditTrack, 
       if (i % 10 === 0) setImportProgress(`Processing ${i+1}/${rows.length}... (${updated} updated, ${created} created)`);
     }
 
-    // Reload all tracks from Firestore to get fresh state
     setImportProgress("Reloading library...");
     try {
       const q2 = query(collection(db, "tracks"), orderBy("createdAt", "desc"));
@@ -2137,7 +2147,7 @@ function AdminScreen({ tracks, setTracks, tab, setTab, editTrack, setEditTrack, 
 
     setImporting(false);
     setImportProgress("");
-    showToast(`Import done: ${updated} updated, ${created} created${errors ? `, ${errors} errors` : ""}`);
+    showToast(`Import done: ${updated} updated, ${created} created${skipped ? `, ${skipped} unchanged` : ""}${errors ? `, ${errors} errors` : ""}`);
   }
 
   // Simple CSV line parser that handles quoted fields
@@ -2318,7 +2328,7 @@ function AdminScreen({ tracks, setTracks, tab, setTab, editTrack, setEditTrack, 
             </div>
           )}
           <div style={{ padding:"10px 14px", borderRadius:10, background:"rgba(255,255,255,0.06)", border:"1px solid rgba(255,255,255,0.1)", marginBottom:24, fontSize:11, color: color.muted, lineHeight:1.6 }}>
-            <strong style={{ color: color.muted }}>How it works:</strong> Export downloads all tracks as CSV. Edit in a spreadsheet — add camelot keys, fix genres, update BPM. Import reads the CSV back and matches tracks by title + artist. Existing tracks get updated, new rows get created. Columns: id, title, artist, album, genre, energy, camelot, bpm, audioUrl, albumCover, color, duration.
+            <strong style={{ color: color.muted }}>How it works:</strong> Export downloads all tracks as CSV (keep the <code>id</code> column). Edit titles/artists/genres/BPM/Camelot in Sheets, then Import. Matching is by <strong>id first</strong> so renames stick; title+artist is only a fallback when id is blank. New rows without id are created. Columns: id, title, artist, album, genre, energy, camelot, bpm, audioUrl, albumCover, color, duration.
           </div>
           {(() => {
             const withKey = tracks.filter(t => t.camelot && t.camelot.trim());
