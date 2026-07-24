@@ -11,19 +11,23 @@ import {
   RecaptchaVerifier,
   signInWithPhoneNumber,
   sendPasswordResetEmail,
+  updateProfile,
 } from "firebase/auth";
 import {
   doc, setDoc, getDoc, serverTimestamp,
 } from "firebase/firestore";
 import { auth, db } from "./firebase";
+import { normalizePhoneE164 } from "./lib/phone";
 
 async function createProfile(uid, fields = {}) {
+  const displayName = fields.displayName || fields.username || "Listener";
   const profile = {
     uid,
-    username:     fields.username     || "Digger",
+    username:     fields.username     || displayName,
     email:        fields.email        || "",
-    displayName:  fields.displayName  || fields.username || "Digger",
-    profileImage: fields.profileImage || "🎧",
+    phone:        fields.phone        || "",
+    displayName,
+    profileImage: fields.profileImage || "",
     createdAt:    serverTimestamp(),
     genres:       fields.genres       || [],
     likedTracks:  [],
@@ -48,6 +52,31 @@ function clearRecaptcha() {
   if (el) el.innerHTML = "";
 }
 
+async function buildRecaptcha(containerId, size = "invisible") {
+  clearRecaptcha();
+  const el = document.getElementById(containerId);
+  if (!el) {
+    const err = new Error("Security check isn’t ready. Refresh and try again.");
+    err.code = "auth/argument-error";
+    throw err;
+  }
+  const verifier = new RecaptchaVerifier(auth, containerId, {
+    size,
+    callback: () => {},
+    "expired-callback": () => {
+      clearRecaptcha();
+    },
+  });
+  window.recaptchaVerifier = verifier;
+  // render() ensures the widget is ready before signInWithPhoneNumber
+  try {
+    await verifier.render();
+  } catch (e) {
+    // Already rendered or invisible stub — continue
+  }
+  return verifier;
+}
+
 export function useAuth() {
   const [firebaseUser, setFirebaseUser] = useState(null);
   const [profile,      setProfile]      = useState(null);
@@ -69,14 +98,51 @@ export function useAuth() {
   }, []);
 
   async function signUp(email, password, username) {
-    const cred    = await createUserWithEmailAndPassword(auth, email, password);
-    const profile = await createProfile(cred.user.uid, { email, username });
+    const cleanEmail = String(email || "").trim();
+    const cleanName = String(username || "").trim();
+    if (!cleanEmail) {
+      const err = new Error("Enter an email address.");
+      err.code = "auth/invalid-email";
+      throw err;
+    }
+    if (!cleanName) {
+      const err = new Error("Choose a display name.");
+      err.code = "auth/argument-error";
+      throw err;
+    }
+    if (String(password || "").length < 6) {
+      const err = new Error("Password must be at least 6 characters.");
+      err.code = "auth/weak-password";
+      throw err;
+    }
+    const cred = await createUserWithEmailAndPassword(auth, cleanEmail, password);
+    try {
+      await updateProfile(cred.user, { displayName: cleanName });
+    } catch {
+      /* non-fatal */
+    }
+    const profile = await createProfile(cred.user.uid, {
+      email: cleanEmail,
+      username: cleanName,
+      displayName: cleanName,
+    });
     setProfile(profile);
     return cred.user;
   }
 
   async function logIn(email, password) {
-    const cred = await signInWithEmailAndPassword(auth, email, password);
+    const cleanEmail = String(email || "").trim();
+    if (!cleanEmail) {
+      const err = new Error("Enter an email address.");
+      err.code = "auth/invalid-email";
+      throw err;
+    }
+    if (!password) {
+      const err = new Error("Enter your password.");
+      err.code = "auth/wrong-password";
+      throw err;
+    }
+    const cred = await signInWithEmailAndPassword(auth, cleanEmail, password);
     const snap = await getDoc(doc(db, "users", cred.user.uid));
     if (snap.exists()) setProfile(snap.data());
     return cred.user;
@@ -91,8 +157,9 @@ export function useAuth() {
     } else {
       const profile = await createProfile(cred.user.uid, {
         email:        cred.user.email,
-        displayName:  cred.user.displayName,
-        profileImage: cred.user.photoURL || "🎧",
+        displayName:  cred.user.displayName || "Listener",
+        username:     cred.user.displayName || "Listener",
+        profileImage: cred.user.photoURL || "",
       });
       setProfile(profile);
     }
@@ -110,53 +177,90 @@ export function useAuth() {
     } else {
       const profile = await createProfile(cred.user.uid, {
         email:       cred.user.email,
-        displayName: cred.user.displayName,
+        displayName: cred.user.displayName || "Listener",
+        username:    cred.user.displayName || "Listener",
       });
       setProfile(profile);
     }
     return cred.user;
   }
 
-  async function sendPhoneOTP(phoneNumber, recaptchaContainerId) {
-    clearRecaptcha();
-    window.recaptchaVerifier = new RecaptchaVerifier(
-      auth,
-      recaptchaContainerId,
-      {
-        size: "invisible",
-        callback: () => {},
-        "expired-callback": () => { clearRecaptcha(); },
-      }
-    );
+  /**
+   * Send SMS OTP. Accepts messy human phone input; normalizes to E.164.
+   * Tries invisible reCAPTCHA, then falls back to a visible widget once.
+   */
+  async function sendPhoneOTP(phoneNumber, recaptchaContainerId = "recaptcha-container") {
+    const e164 = normalizePhoneE164(phoneNumber);
+    if (!e164) {
+      const err = new Error("Enter a valid mobile number.");
+      err.code = "auth/invalid-phone-number";
+      throw err;
+    }
+
+    async function attempt(size) {
+      const verifier = await buildRecaptcha(recaptchaContainerId, size);
+      return signInWithPhoneNumber(auth, e164, verifier);
+    }
+
     try {
-      const confirmation = await signInWithPhoneNumber(
-        auth, phoneNumber, window.recaptchaVerifier
-      );
-      return confirmation;
+      return await attempt("invisible");
     } catch (e) {
-      clearRecaptcha();
-      throw e;
+      const retryable = [
+        "auth/argument-error",
+        "auth/captcha-check-failed",
+        "auth/invalid-app-credential",
+      ].includes(e?.code) || /recaptcha/i.test(e?.message || "");
+      if (!retryable) {
+        clearRecaptcha();
+        throw e;
+      }
+      // Visible widget — more reliable when invisible fails (ad blockers, domain config)
+      try {
+        return await attempt("normal");
+      } catch (e2) {
+        clearRecaptcha();
+        throw e2;
+      }
     }
   }
 
   async function verifyPhoneOTP(confirmationResult, code) {
-    const cred = await confirmationResult.confirm(code);
+    const clean = String(code || "").replace(/\s/g, "");
+    if (!/^\d{6}$/.test(clean)) {
+      const err = new Error("Enter the 6-digit code.");
+      err.code = "auth/invalid-verification-code";
+      throw err;
+    }
+    if (!confirmationResult?.confirm) {
+      const err = new Error("Request a new code first.");
+      err.code = "auth/session-expired";
+      throw err;
+    }
+    const cred = await confirmationResult.confirm(clean);
     clearRecaptcha();
     const snap = await getDoc(doc(db, "users", cred.user.uid));
     if (snap.exists()) {
       setProfile(snap.data());
     } else {
+      const phone = cred.user.phoneNumber || "";
       const profile = await createProfile(cred.user.uid, {
-        displayName: cred.user.phoneNumber,
+        displayName: "Listener",
+        username: "Listener",
+        phone,
       });
       setProfile(profile);
     }
     return cred.user;
   }
 
-
   async function resetPassword(email) {
-    return sendPasswordResetEmail(auth, email);
+    const cleanEmail = String(email || "").trim();
+    if (!cleanEmail) {
+      const err = new Error("Enter your email first.");
+      err.code = "auth/invalid-email";
+      throw err;
+    }
+    return sendPasswordResetEmail(auth, cleanEmail);
   }
 
   async function logOut() {
