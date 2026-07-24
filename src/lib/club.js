@@ -78,11 +78,14 @@ export function roomForFloorPhase(phaseId) {
   return map[phaseId] || "Warmup";
 }
 
-const ARRIVAL_KEY = "crate-arrival-sound";
+const ARRIVAL_KEY = "rooms-arrival-sound";
+const ARRIVAL_KEY_LEGACY = "crate-arrival-sound";
 
 export function getArrivalSoundEnabled() {
   try {
-    return localStorage.getItem(ARRIVAL_KEY) === "1";
+    const next = localStorage.getItem(ARRIVAL_KEY);
+    if (next === "1" || next === "0") return next === "1";
+    return localStorage.getItem(ARRIVAL_KEY_LEGACY) === "1";
   } catch {
     return false;
   }

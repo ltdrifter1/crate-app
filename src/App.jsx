@@ -30,11 +30,15 @@ import OnboardingRitual from "./components/onboarding/OnboardingRitual";
 import ArtistPage, { AlbumPage } from "./components/catalog/ArtistPage";
 import LinerNotesSheet from "./components/catalog/LinerNotesSheet";
 import PathsScreen from "./components/paths/PathsScreen";
+import ScenesBrowser from "./components/scenes/ScenesBrowser";
+import BrandMark, { BrandGlyph as DoorGlyph } from "./components/brand/BrandMark";
+import RoomPosterBackdrop from "./components/brand/RoomPosterBackdrop";
+import { roomPosterStyle } from "./lib/rooms";
 
 const injectStyles = () => {
-  if (document.getElementById("verse-app-global-styles")) return;
+  if (document.getElementById("rooms-app-global-styles")) return;
   const s = document.createElement("style");
-  s.id = "verse-app-global-styles";
+  s.id = "rooms-app-global-styles";
   s.textContent = `
     * { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
@@ -46,13 +50,13 @@ const injectStyles = () => {
     body { font-family: var(--font); background: var(--canvas); color: var(--ink); }
     ::-webkit-scrollbar { width: 4px; height: 4px; }
     ::-webkit-scrollbar-track { background: transparent; }
-    ::-webkit-scrollbar-thumb { background: rgba(232,236,240,0.14); border-radius: 4px; }
+    ::-webkit-scrollbar-thumb { background: rgba(237,232,225,0.14); border-radius: 4px; }
     button { transition: opacity ${motion.fast}, background ${motion.base}, transform ${motion.fast}; font-family: var(--font); }
     button:active { opacity: 0.72; }
     button.play-primary:active { transform: scale(0.96); opacity: 0.9; }
     button:focus-visible, input:focus-visible { outline: 2px solid ${color.accent}; outline-offset: 2px; }
     input:focus { outline: none; }
-    input[type="range"] { -webkit-appearance: none; height: 3px; background: rgba(232,236,240,0.12); border-radius: 2px; outline: none; cursor: pointer; }
+    input[type="range"] { -webkit-appearance: none; height: 3px; background: rgba(237,232,225,0.12); border-radius: 2px; outline: none; cursor: pointer; }
     input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; border-radius: 50%; background: ${color.accent}; border: none; cursor: pointer; }
     input[type="range"]::-moz-range-thumb { width: 14px; height: 14px; border-radius: 50%; background: ${color.accent}; border: none; cursor: pointer; }
     .hide-scroll { -ms-overflow-style: none; scrollbar-width: none; }
@@ -86,7 +90,7 @@ function EnergyBar({ level, size="sm" }) {
         <div key={i} style={{
           width: size==="lg"?4:2.5, height:ht,
           borderRadius:2,
-          background: i < level ? color.accent : "rgba(232,236,240,0.12)",
+          background: i < level ? color.accent : "rgba(237,232,225,0.12)",
           transition:"background 0.2s",
         }}/>
       ))}
@@ -226,74 +230,71 @@ function DeepCutsCard({
   const floor = getFloorPhase();
   const cover = currentTrack?.albumCover;
   const live = isRadioMode && currentTrack;
+  const poster = roomPosterStyle(floor?.id || "warmup");
   const arc = live
     ? [...setPrev.slice(-2).map(t => ({ track: t, role: "prev" })), { track: currentTrack, role: "now" }, ...(setNext ? [{ track: setNext, role: "next" }] : [])]
     : [];
 
   return (
-    <div
+    <RoomPosterBackdrop
+      atmosphere={floor?.id || "warmup"}
+      coverUrl={cover}
+      minHeight={live ? "min(78vh, 620px)" : "min(72vh, 560px)"}
       onClick={live ? undefined : onPlay}
       role={live ? undefined : "button"}
       style={{
         cursor: live ? "default" : "pointer",
-        position: "relative",
-        overflow: "hidden",
-        minHeight: live ? "min(78vh, 620px)" : "min(72vh, 560px)",
-        display: "flex",
-        flexDirection: "column",
-        justifyContent: "flex-end",
         padding: "48px 20px 36px",
         background: color.canvas,
         animation: "stationIn 0.75s cubic-bezier(0.22,1,0.36,1) both",
       }}
     >
-      <div aria-hidden="true" style={{
-        position:"absolute", inset:0,
-        background: timeOfDayGradient(),
-      }}/>
-      {cover && (
-        <div aria-hidden="true" style={{
-          position:"absolute", inset:0,
-          backgroundImage:`url(${cover})`, backgroundSize:"cover", backgroundPosition:"center",
-          filter:"blur(40px) saturate(120%) brightness(0.38)", transform:"scale(1.18)", opacity:0.78,
-          animation: "fadeIn 1.1s ease both",
-        }}/>
-      )}
-      <div aria-hidden="true" style={{
-        position:"absolute", inset:0,
-        background: cover
-          ? "linear-gradient(180deg, rgba(9,11,13,0.4) 0%, rgba(9,11,13,0.58) 38%, rgba(9,11,13,0.96) 100%)"
-          : "linear-gradient(180deg, rgba(9,11,13,0.15) 0%, rgba(9,11,13,0.55) 50%, rgba(9,11,13,0.96) 100%)",
-      }}/>
-      <div aria-hidden="true" style={{
-        position:"absolute", top:"-18%", right:"-8%", width:360, height:360, borderRadius:"50%",
-        background:`radial-gradient(circle, ${color.accentSoft} 0%, transparent 68%)`, pointerEvents:"none",
-        animation: "breathe 6s ease-in-out infinite",
-      }}/>
-
-      <div style={{ position:"relative", zIndex:1, maxWidth:460 }}>
-        <div style={{
-          fontSize: "clamp(56px, 18vw, 88px)",
-          fontWeight:800, letterSpacing:-2.4, lineHeight:0.9,
-          color: color.onDark, fontFamily: fontDisplay,
-          marginBottom: live ? 20 : 14,
-        }}>
-          {BRAND_NAME}
-        </div>
-
-        <div style={{
-          fontSize:12, fontWeight:700, letterSpacing:2.4, fontFamily: fontMono,
-          color: color.accent, marginBottom: live ? 18 : 12,
-        }}>
-          {floor.label}
-        </div>
+      <div style={{ maxWidth: 460 }}>
+        {live ? (
+          <>
+            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}>
+              <DoorGlyph size={22} title="" />
+              <span style={{
+                fontSize: 11, fontWeight: 700, letterSpacing: 2, fontFamily: fontMono,
+                color: color.accent, textTransform: "uppercase",
+              }}>{BRAND_NAME}</span>
+            </div>
+            <div style={{
+              fontSize: poster.titleSize,
+              fontWeight: poster.fontWeight,
+              letterSpacing: poster.letterSpacing,
+              lineHeight: poster.lineHeight,
+              color: color.onDark, fontFamily: fontDisplay,
+              marginBottom: 16,
+            }}>
+              {floor.label}
+            </div>
+          </>
+        ) : (
+          <>
+            <div style={{
+              fontSize: "clamp(56px, 18vw, 88px)",
+              fontWeight: 800, letterSpacing: -2.4, lineHeight: 0.9,
+              color: color.onDark, fontFamily: fontDisplay,
+              marginBottom: 14,
+            }}>
+              {BRAND_NAME}
+            </div>
+            <div style={{
+              fontSize: 12, fontWeight: 700, letterSpacing: 2.4, fontFamily: fontMono,
+              color: color.accent, marginBottom: 12,
+            }}>
+              {floor.label}
+            </div>
+          </>
+        )}
 
         {live ? (
           <>
             <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:16 }}>
               <div style={{
                 width:7, height:7, borderRadius:"50%",
-                background: isPlaying ? color.accent : "rgba(232,236,240,0.25)",
+                background: isPlaying ? color.accent : "rgba(237,232,225,0.25)",
                 animation: isPlaying ? "breathe 2s ease-in-out infinite" : "none",
                 boxShadow: isPlaying ? `0 0 0 4px ${color.accentSoft}` : "none",
               }}/>
@@ -381,7 +382,7 @@ function DeepCutsCard({
                   boxShadow:`0 12px 32px ${color.accentGlow}`,
                 }}>
                 <span style={{
-                  width:32, height:32, borderRadius: radius.sm, background:"rgba(9,11,13,0.18)",
+                  width:32, height:32, borderRadius: radius.sm, background:"rgba(12,11,10,0.18)",
                   display:"flex", alignItems:"center", justifyContent:"center",
                 }}>
                   <Icon name="play" size={16}/>
@@ -409,7 +410,7 @@ function DeepCutsCard({
           </>
         )}
       </div>
-    </div>
+    </RoomPosterBackdrop>
   );
 }
 
@@ -760,23 +761,15 @@ const SectionLabel = ({ children, style={} }) => (
 
 // ─── LOGIN ────────────────────────────────────────────────────────────────────
 
-function BrandGlyph({ size=84, light=false }) {
-  const compact = size < 40;
-  return (
-    <div aria-label={BRAND_NAME} style={{
-      fontSize: Math.max(11, Math.round(size * (compact ? 0.32 : 0.28))),
-      fontWeight: 800,
-      letterSpacing: size >= 48 ? -1.2 : -0.6,
-      color: light ? color.onDark : color.ink,
-      lineHeight: 1,
-      fontFamily: fontDisplay,
-      userSelect: "none",
-    }}>{BRAND_NAME}</div>
-  );
+function BrandGlyph({ size = 40, light = false, showWordmark }) {
+  // Compact chrome: door glyph only. Larger moments keep the wordmark.
+  const withWord = showWordmark ?? size >= 36;
+  return <BrandMark size={size} light={light} showWordmark={withWord} />;
 }
 
 // ─── LOGIN SCREEN — wired to real Firebase auth ───────────────────────────────
 function LoginScreen({ onSignUp, onLogIn, onGoogleSignIn, onPhoneOTP, onVerifyOTP, onResetPassword }) {
+  const [gate, setGate] = useState("invite"); // invite → place first; auth second
   const [mode, setMode] = useState("login");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -789,6 +782,8 @@ function LoginScreen({ onSignUp, onLogIn, onGoogleSignIn, onPhoneOTP, onVerifyOT
   const [otp, setOtp] = useState("");
   const [confirmResult, setConfirmResult] = useState(null);
   const [phoneStep, setPhoneStep] = useState("enter");
+  const floor = getFloorPhase();
+  const thresholdAtmosphere = floor?.id || "warmup";
 
   function resetMessages() {
     setError("");
@@ -902,64 +897,193 @@ function LoginScreen({ onSignUp, onLogIn, onGoogleSignIn, onPhoneOTP, onVerifyOT
     setLoading(false);
   }
 
-  return (
-    <div style={{ ...APP_STYLE, position:"relative", justifyContent:"flex-end" }}>
-      <div aria-hidden="true" style={{ position:"absolute", inset:0, background: timeOfDayGradient() }}/>
-      <div aria-hidden="true" style={{
-        position:"absolute", top:"-18%", right:"-12%", width:380, height:380, borderRadius:"50%",
-        background:`radial-gradient(circle, ${color.accentSoft} 0%, transparent 70%)`,
-        animation:"breathe 8s ease-in-out infinite",
-      }}/>
-      <div aria-hidden="true" style={{
-        position:"absolute", inset:0,
-        background:"linear-gradient(180deg, rgba(12,11,10,0.15) 0%, rgba(12,11,10,0.55) 42%, rgba(12,11,10,0.96) 78%)",
-      }}/>
-
-      <div style={{
-        position:"relative", zIndex:1, width:"100%", maxWidth:420, margin:"0 auto",
-        padding:"48px 20px 36px", display:"flex", flexDirection:"column", gap:28,
-        animation:"stationIn 0.7s cubic-bezier(0.22,1,0.36,1) both",
-      }}>
-        <div>
-          <div style={{
-            fontSize:11, fontWeight:700, letterSpacing:2, color: color.accent,
-            fontFamily: fontMono, textTransform:"uppercase", marginBottom:14,
-          }}>Enter</div>
-          <div style={{ marginBottom:12 }}>
-            <BrandGlyph size={56} light />
+  // Threshold invitation — place before credentials
+  if (gate === "invite") {
+    return (
+      <div style={{ ...APP_STYLE, position: "relative" }}>
+        <RoomPosterBackdrop
+          atmosphere={thresholdAtmosphere}
+          minHeight="100vh"
+          style={{
+            flex: 1,
+            padding: "56px 24px 48px",
+            justifyContent: "flex-end",
+            animation: "stationIn 0.85s cubic-bezier(0.22,1,0.36,1) both",
+          }}
+        >
+          <div style={{ width: "100%", maxWidth: 420, margin: "0 auto" }}>
+            <div
+              style={{
+                fontSize: 11,
+                fontWeight: 700,
+                letterSpacing: 2.2,
+                color: color.accent,
+                fontFamily: fontMono,
+                textTransform: "uppercase",
+                marginBottom: 20,
+              }}
+            >
+              {floor?.label || "Tonight"} · doors open
+            </div>
+            <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 18 }}>
+              <DoorGlyph size={56} title="" />
+              <div
+                style={{
+                  fontSize: "clamp(52px, 16vw, 80px)",
+                  fontWeight: 800,
+                  letterSpacing: -2.4,
+                  lineHeight: 0.9,
+                  color: color.onDark,
+                  fontFamily: fontDisplay,
+                }}
+              >
+                {BRAND_NAME}
+              </div>
+            </div>
+            <p
+              style={{
+                fontSize: 17,
+                color: color.body,
+                lineHeight: 1.5,
+                maxWidth: 300,
+                marginBottom: 28,
+              }}
+            >
+              {BRAND_TAGLINE}. Living destinations — not another feed.
+            </p>
+            <button
+              type="button"
+              className="play-primary"
+              onClick={() => setGate("auth")}
+              style={{
+                ...BTN_PRIMARY,
+                width: "auto",
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 12,
+                padding: "15px 22px",
+                boxShadow: `0 14px 36px ${color.accentGlow}`,
+              }}
+            >
+              <DoorGlyph size={20} color={color.onAccent} fill={color.accent} title="" />
+              Open the door
+            </button>
           </div>
-          <div style={{
-            fontSize:15, color: color.body, lineHeight:1.5, maxWidth:300,
-          }}>{BRAND_TAGLINE}</div>
+        </RoomPosterBackdrop>
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ ...APP_STYLE, position: "relative", justifyContent: "flex-end" }}>
+      <RoomPosterBackdrop
+        atmosphere={thresholdAtmosphere}
+        minHeight="100%"
+        style={{
+          position: "absolute",
+          inset: 0,
+          minHeight: "100%",
+        }}
+      />
+      <div
+        style={{
+          position: "relative",
+          zIndex: 1,
+          width: "100%",
+          maxWidth: 420,
+          margin: "0 auto",
+          padding: "40px 20px 36px",
+          display: "flex",
+          flexDirection: "column",
+          gap: 22,
+          animation: "stationIn 0.55s cubic-bezier(0.22,1,0.36,1) both",
+        }}
+      >
+        <div>
+          <button
+            type="button"
+            onClick={() => setGate("invite")}
+            style={{
+              background: "none",
+              border: "none",
+              color: color.muted,
+              fontSize: 12,
+              fontWeight: 600,
+              cursor: "pointer",
+              marginBottom: 16,
+              padding: 0,
+            }}
+          >
+            ← Back to the door
+          </button>
+          <div style={{ marginBottom: 10 }}>
+            <BrandMark size={48} light />
+          </div>
+          <div style={{ fontSize: 14, color: color.body, lineHeight: 1.5, maxWidth: 300 }}>
+            Step inside. We&apos;ll leave the light on.
+          </div>
         </div>
 
-        <div style={{
-          width:"100%", display:"flex", flexDirection:"column", gap:12,
-          padding:"20px 18px 18px",
-          background: color.surfaceSolid,
-          border:`1px solid ${color.line}`,
-        }}>
-          <div style={{ display:"flex", gap:18, marginBottom:4, borderBottom:`1px solid ${color.line}` }}>
-            {["login","signup"].map(m => (
-              <button key={m} type="button" onClick={() => { setMode(m); resetMessages(); }} style={{
-                background:"none", border:"none", cursor:"pointer", padding:"8px 0 12px",
-                fontSize:13, fontWeight: mode===m ? 700 : 500, fontFamily: fontDisplay, letterSpacing:-0.2,
-                color: mode===m ? color.ink : color.faint,
-                borderBottom: mode===m ? `2px solid ${color.accent}` : "2px solid transparent",
-              }}>
+        <div
+          style={{
+            width: "100%",
+            display: "flex",
+            flexDirection: "column",
+            gap: 12,
+            padding: "20px 18px 18px",
+            background: color.surfaceSolid,
+            border: `1px solid ${color.line}`,
+          }}
+        >
+          <div style={{ display: "flex", gap: 18, marginBottom: 4, borderBottom: `1px solid ${color.line}` }}>
+            {["login", "signup"].map((m) => (
+              <button
+                key={m}
+                type="button"
+                onClick={() => {
+                  setMode(m);
+                  resetMessages();
+                }}
+                style={{
+                  background: "none",
+                  border: "none",
+                  cursor: "pointer",
+                  padding: "8px 0 12px",
+                  fontSize: 13,
+                  fontWeight: mode === m ? 700 : 500,
+                  fontFamily: fontDisplay,
+                  letterSpacing: -0.2,
+                  color: mode === m ? color.ink : color.faint,
+                  borderBottom: mode === m ? `2px solid ${color.accent}` : "2px solid transparent",
+                }}
+              >
                 {m === "login" ? "Log in" : "Sign up"}
               </button>
             ))}
           </div>
 
-          <div style={{ display:"flex", gap:14 }}>
-            {[{id:"email",label:"Email"},{id:"phone",label:"Phone"}].map(item => (
-              <button key={item.id} type="button" onClick={() => switchMethod(item.id)} style={{
-                background:"none", border:"none", cursor:"pointer", padding:"4px 0",
-                fontSize:12, fontWeight: authMethod===item.id ? 700 : 500,
-                color: authMethod===item.id ? color.accent : color.faint,
-                fontFamily: fontMono, letterSpacing:0.6, textTransform:"uppercase",
-              }}>
+          <div style={{ display: "flex", gap: 14 }}>
+            {[
+              { id: "email", label: "Email" },
+              { id: "phone", label: "Phone" },
+            ].map((item) => (
+              <button
+                key={item.id}
+                type="button"
+                onClick={() => switchMethod(item.id)}
+                style={{
+                  background: "none",
+                  border: "none",
+                  cursor: "pointer",
+                  padding: "4px 0",
+                  fontSize: 12,
+                  fontWeight: authMethod === item.id ? 700 : 500,
+                  color: authMethod === item.id ? color.accent : color.faint,
+                  fontFamily: fontMono,
+                  letterSpacing: 0.6,
+                  textTransform: "uppercase",
+                }}
+              >
                 {item.label}
               </button>
             ))}
@@ -967,15 +1091,57 @@ function LoginScreen({ onSignUp, onLogIn, onGoogleSignIn, onPhoneOTP, onVerifyOT
 
           {authMethod === "email" && (
             <>
-              {mode === "signup" && <input placeholder="Username" aria-label="Username" style={INPUT_ST} value={name} onChange={e => setName(e.target.value)} />}
-              <input placeholder="Email" type="email" aria-label="Email" style={INPUT_ST} value={email} onChange={e => setEmail(e.target.value)} />
-              <input placeholder="Password" type="password" aria-label="Password" style={INPUT_ST} value={pass} onChange={e => setPass(e.target.value)} onKeyDown={e => e.key === "Enter" && handleSubmit()} />
+              {mode === "signup" && (
+                <input
+                  placeholder="Username"
+                  aria-label="Username"
+                  style={INPUT_ST}
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                />
+              )}
+              <input
+                placeholder="Email"
+                type="email"
+                aria-label="Email"
+                style={INPUT_ST}
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
+              <input
+                placeholder="Password"
+                type="password"
+                aria-label="Password"
+                style={INPUT_ST}
+                value={pass}
+                onChange={(e) => setPass(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
+              />
               {mode === "login" && (
-                <button type="button" onClick={handleForgotPassword} disabled={loading} style={{ alignSelf:"flex-end", marginTop:-4, background:"none", border:"none", cursor:"pointer", color: color.muted, fontWeight:600, fontSize:12 }}>
+                <button
+                  type="button"
+                  onClick={handleForgotPassword}
+                  disabled={loading}
+                  style={{
+                    alignSelf: "flex-end",
+                    marginTop: -4,
+                    background: "none",
+                    border: "none",
+                    cursor: "pointer",
+                    color: color.muted,
+                    fontWeight: 600,
+                    fontSize: 12,
+                  }}
+                >
                   Forgot password?
                 </button>
               )}
-              <button type="button" onClick={handleSubmit} disabled={loading} style={{ ...BTN_PRIMARY, opacity:loading ? 0.7 : 1 }}>
+              <button
+                type="button"
+                onClick={handleSubmit}
+                disabled={loading}
+                style={{ ...BTN_PRIMARY, opacity: loading ? 0.7 : 1 }}
+              >
                 {loading ? "Please wait…" : mode === "login" ? "Enter" : "Create account"}
               </button>
             </>
@@ -985,17 +1151,54 @@ function LoginScreen({ onSignUp, onLogIn, onGoogleSignIn, onPhoneOTP, onVerifyOT
             <>
               {phoneStep === "enter" ? (
                 <>
-                  <input placeholder="Phone (+15551234567)" type="tel" aria-label="Phone number" style={INPUT_ST} value={phone} onChange={e => setPhone(e.target.value)} onKeyDown={e => e.key === "Enter" && handleSendOTP()} />
-                  <button type="button" onClick={handleSendOTP} disabled={loading} style={{ ...BTN_PRIMARY, opacity:loading ? 0.7 : 1 }}>
+                  <input
+                    placeholder="Phone (+15551234567)"
+                    type="tel"
+                    aria-label="Phone number"
+                    style={INPUT_ST}
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && handleSendOTP()}
+                  />
+                  <button
+                    type="button"
+                    onClick={handleSendOTP}
+                    disabled={loading}
+                    style={{ ...BTN_PRIMARY, opacity: loading ? 0.7 : 1 }}
+                  >
                     {loading ? "Sending…" : "Send code"}
                   </button>
                 </>
               ) : (
                 <>
-                  <input placeholder="6-digit code" inputMode="numeric" aria-label="Verification code" style={INPUT_ST} value={otp} onChange={e => setOtp(e.target.value)} onKeyDown={e => e.key === "Enter" && handleVerifyOTP()} />
-                  <div style={{ display:"flex", gap:10 }}>
-                    <button type="button" onClick={() => { setPhoneStep("enter"); setOtp(""); setConfirmResult(null); resetMessages(); }} style={{ ...BTN_SECONDARY, flex:1 }}>Edit number</button>
-                    <button type="button" onClick={handleVerifyOTP} disabled={loading} style={{ ...BTN_PRIMARY, flex:1, opacity:loading ? 0.7 : 1 }}>
+                  <input
+                    placeholder="6-digit code"
+                    inputMode="numeric"
+                    aria-label="Verification code"
+                    style={INPUT_ST}
+                    value={otp}
+                    onChange={(e) => setOtp(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && handleVerifyOTP()}
+                  />
+                  <div style={{ display: "flex", gap: 10 }}>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setPhoneStep("enter");
+                        setOtp("");
+                        setConfirmResult(null);
+                        resetMessages();
+                      }}
+                      style={{ ...BTN_SECONDARY, flex: 1 }}
+                    >
+                      Edit number
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleVerifyOTP}
+                      disabled={loading}
+                      style={{ ...BTN_PRIMARY, flex: 1, opacity: loading ? 0.7 : 1 }}
+                    >
                       {loading ? "Verifying…" : "Verify"}
                     </button>
                   </div>
@@ -1005,24 +1208,80 @@ function LoginScreen({ onSignUp, onLogIn, onGoogleSignIn, onPhoneOTP, onVerifyOT
             </>
           )}
 
-          <div style={{ display:"flex", alignItems:"center", gap:10, margin:"2px 0" }}>
-            <div style={{ flex:1, height:1, background: color.line }}/>
-            <span style={{ fontSize:11, color: color.faint }}>or</span>
-            <div style={{ flex:1, height:1, background: color.line }}/>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, margin: "2px 0" }}>
+            <div style={{ flex: 1, height: 1, background: color.line }} />
+            <span style={{ fontSize: 11, color: color.faint }}>or</span>
+            <div style={{ flex: 1, height: 1, background: color.line }} />
           </div>
 
-          <button type="button" onClick={handleGoogleSignIn} disabled={loading} style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:10, width:"100%", padding:"13px 20px", borderRadius: radius.md, border:`1px solid ${color.lineStrong}`, background: color.surface, cursor:"pointer", opacity:loading?0.6:1 }}>
-            <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18A11.96 11.96 0 0 0 0 12c0 1.94.46 3.77 1.28 5.39l3.56-2.77.01-.53z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
-            <span style={{ fontSize:14, fontWeight:600, color: color.ink }}>Continue with Google</span>
+          <button
+            type="button"
+            onClick={handleGoogleSignIn}
+            disabled={loading}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 10,
+              width: "100%",
+              padding: "13px 20px",
+              borderRadius: radius.md,
+              border: `1px solid ${color.lineStrong}`,
+              background: color.surface,
+              cursor: "pointer",
+              opacity: loading ? 0.6 : 1,
+            }}
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"
+                fill="#4285F4"
+              />
+              <path
+                d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                fill="#34A853"
+              />
+              <path
+                d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18A11.96 11.96 0 0 0 0 12c0 1.94.46 3.77 1.28 5.39l3.56-2.77.01-.53z"
+                fill="#FBBC05"
+              />
+              <path
+                d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+                fill="#EA4335"
+              />
+            </svg>
+            <span style={{ fontSize: 14, fontWeight: 600, color: color.ink }}>Continue with Google</span>
           </button>
 
           {error && (
-            <div role="alert" style={{ fontSize:13, color: color.alert, background:"rgba(229,72,77,0.06)", border:`1px solid rgba(229,72,77,0.15)`, borderRadius: radius.sm, padding:"12px 14px", lineHeight:1.45 }}>
+            <div
+              role="alert"
+              style={{
+                fontSize: 13,
+                color: color.alert,
+                background: "rgba(229,72,77,0.06)",
+                border: `1px solid rgba(229,72,77,0.15)`,
+                borderRadius: radius.sm,
+                padding: "12px 14px",
+                lineHeight: 1.45,
+              }}
+            >
               {error}
             </div>
           )}
           {notice && (
-            <div role="status" style={{ fontSize:13, color: color.body, background: color.canvas, border:`1px solid ${color.line}`, borderRadius: radius.sm, padding:"12px 14px", lineHeight:1.45 }}>
+            <div
+              role="status"
+              style={{
+                fontSize: 13,
+                color: color.body,
+                background: color.canvas,
+                border: `1px solid ${color.line}`,
+                borderRadius: radius.sm,
+                padding: "12px 14px",
+                lineHeight: 1.45,
+              }}
+            >
               {notice}
             </div>
           )}
@@ -1652,7 +1911,7 @@ function ImmersivePlayer({
 
       <div aria-hidden="true" style={{
         position:"absolute", inset:0,
-        background:"linear-gradient(180deg, rgba(9,11,13,0.25) 0%, rgba(9,11,13,0.15) 35%, rgba(9,11,13,0.78) 72%, rgba(9,11,13,0.96) 100%)",
+        background:"linear-gradient(180deg, rgba(12,11,10,0.25) 0%, rgba(12,11,10,0.15) 35%, rgba(12,11,10,0.78) 72%, rgba(12,11,10,0.96) 100%)",
       }}/>
 
       {/* Live session / flow arc */}
@@ -1767,7 +2026,7 @@ function ImmersivePlayer({
           <span>{fmtTime(progress)}</span>
           <span>{fmtTime(duration)}</span>
         </div>
-        <div style={{ height:4, background:"rgba(232,236,240,0.12)", borderRadius:2, position:"relative" }}>
+        <div style={{ height:4, background:"rgba(237,232,225,0.12)", borderRadius:2, position:"relative" }}>
           <div style={{ width:`${pct}%`, background: color.accent, height:"100%", borderRadius:2, transition:"width 0.2s linear" }}/>
           <div style={{
             position:"absolute", top:"50%", left:`${pct}%`, transform:"translate(-50%,-50%)",
@@ -1891,7 +2150,7 @@ function ImmersivePlayer({
 function QueueSheet({ queue, currentTrack, onPlay, onClose, onClear, onShuffle, isRadioMode, radioHint }) {
   return (
     <div style={{ position:"fixed", inset:0, zIndex:110 }}>
-      <div onClick={onClose} style={{ position:"absolute", inset:0, background:"rgba(9,11,13,0.72)", backdropFilter:"blur(8px)" }}/>
+      <div onClick={onClose} style={{ position:"absolute", inset:0, background:"rgba(12,11,10,0.72)", backdropFilter:"blur(8px)" }}/>
       <div style={{
         position:"absolute", left:0, right:0, bottom:0, maxHeight:"72vh",
         background: color.surfaceSolid, borderTop:`1px solid ${color.lineStrong}`,
@@ -2471,6 +2730,7 @@ function FavoritesScreen({
   const digPool = timeRecs.length > 0 ? timeRecs : (forYou.length > 0 ? forYou : singles);
   const digLead = digPool[0];
   const digLane = digPool.filter(t => t.id !== digLead?.id).slice(0, 10);
+  const digPoster = roomPosterStyle(floor?.id || "warmup");
 
   const SectionHead = ({ children, sub }) => (
     <div style={{ marginBottom: 14 }}>
@@ -2479,40 +2739,40 @@ function FavoritesScreen({
     </div>
   );
 
+  function playScene(sceneId) {
+    const matched = singles.filter((t) => trackMatchesScene(t, sceneId));
+    if (matched[0]) onPlay(matched[0]);
+  }
+
   return (
     <div style={{ overflowY: "auto", height: "100%", minHeight: "calc(100vh - 112px)" }}>
       <div style={{ padding: "0 0 32px" }}>
         {digLead && (
-          <div
+          <RoomPosterBackdrop
+            atmosphere={floor?.id || "warmup"}
+            coverUrl={digLead.albumCover}
+            minHeight="min(52vh, 420px)"
             onClick={() => onPlay(digLead)}
             onContextMenu={(e) => openFromContext(e, digLead)}
             role="button"
             tabIndex={0}
-            onKeyDown={e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onPlay(digLead); } }}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                onPlay(digLead);
+              }
+            }}
             style={{
-              position: "relative", overflow: "hidden", cursor: "pointer",
-              minHeight: "min(52vh, 420px)",
-              display: "flex", flexDirection: "column", justifyContent: "flex-end",
+              cursor: "pointer",
               padding: "40px 20px 28px",
               marginBottom: 28,
               animation: "stationIn 0.7s cubic-bezier(0.22,1,0.36,1) both",
             }}
           >
-            <div aria-hidden="true" style={{
-              position: "absolute", inset: 0,
-              backgroundImage: digLead.albumCover ? `url(${digLead.albumCover})` : "none",
-              backgroundSize: "cover", backgroundPosition: "center",
-              filter: "saturate(115%) brightness(0.55)",
-              transform: "scale(1.04)",
-            }}/>
-            <div aria-hidden="true" style={{
-              position: "absolute", inset: 0,
-              background: "linear-gradient(180deg, rgba(9,11,13,0.2) 0%, rgba(9,11,13,0.55) 45%, rgba(9,11,13,0.96) 100%)",
-            }}/>
-            <div style={{ position: "absolute", top: 16, right: 12, zIndex: 2 }} onClick={e => e.stopPropagation()}>
+            <div style={{ position: "absolute", top: 16, right: 12, zIndex: 2 }} onClick={(e) => e.stopPropagation()}>
               <TrackMoreButton onClick={(e) => openFromButton(e, digLead)} />
             </div>
-            <div style={{ position: "relative", zIndex: 1, maxWidth: 360 }}>
+            <div style={{ maxWidth: 360 }}>
               {(() => {
                 const story = digLeadStory(activeRoomLabel, floor, digLead);
                 return (
@@ -2522,8 +2782,11 @@ function FavoritesScreen({
                       fontFamily: fontMono, textTransform: "uppercase", marginBottom: 10,
                     }}>{story.eyebrow}</div>
                     <div style={{
-                      fontSize: "clamp(40px, 12vw, 56px)", fontWeight: 800, letterSpacing: -1.8,
-                      color: color.onDark, fontFamily: fontDisplay, lineHeight: 0.95, marginBottom: 12,
+                      fontSize: digPoster.titleSize,
+                      fontWeight: digPoster.fontWeight,
+                      letterSpacing: digPoster.letterSpacing,
+                      lineHeight: digPoster.lineHeight,
+                      color: color.onDark, fontFamily: fontDisplay, marginBottom: 12,
                     }}>
                       {activeRoomLabel}
                     </div>
@@ -2541,7 +2804,7 @@ function FavoritesScreen({
                 {explainPick(digLead, { room: { label: activeRoomLabel }, preferredGenres })}
               </div>
             </div>
-          </div>
+          </RoomPosterBackdrop>
         )}
 
         {digLane.length > 0 && (
@@ -2615,6 +2878,14 @@ function FavoritesScreen({
               </div>
             </button>
           )}
+        </div>
+
+        <div style={{ marginTop: 12 }}>
+          <ScenesBrowser
+            tracks={tracks}
+            onPlayScene={playScene}
+            onOpenSceneRoom={() => onOpenRooms?.()}
+          />
         </div>
       </div>
 
@@ -4177,7 +4448,7 @@ export default function App() {
   // Show nothing while we check if someone is already logged in
   if (authLoading) return (
     <div style={{...APP_STYLE, alignItems:"center", justifyContent:"center"}}>
-      <BrandGlyph size={40}/>
+      <BrandMark size={44} />
       <div style={{ fontSize:13, color: color.muted, marginTop:14 }}>Loading…</div>
     </div>
   );
@@ -4339,7 +4610,7 @@ export default function App() {
       {toast && <ToastEl msg={toast}/>}
       {tracksLoading && (
         <div style={{ position:"absolute", top:"50%", left:"50%", transform:"translate(-50%,-50%)", zIndex:50, textAlign:"center" }}>
-          <div style={{ width:56, height:56, borderRadius:14, background: color.surfaceRaised, border:`1px solid ${color.line}`, display:"flex", alignItems:"center", justifyContent:"center", margin:"0 auto 12px", overflow:"hidden" }}><BrandGlyph size={40}/></div>
+          <div style={{ width:56, height:56, borderRadius:14, background: color.surfaceRaised, border:`1px solid ${color.line}`, display:"flex", alignItems:"center", justifyContent:"center", margin:"0 auto 12px", overflow:"hidden" }}><BrandGlyph size={40} showWordmark={false}/></div>
           <div style={{ fontSize:14, color: color.muted }}>Loading your collection…</div>
         </div>
       )}

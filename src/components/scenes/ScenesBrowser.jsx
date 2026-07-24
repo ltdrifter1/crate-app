@@ -6,7 +6,8 @@ import {
   getScene,
   SCENE_FAMILIES,
 } from "../../lib/scenes";
-import { atmosphereGradient } from "../../lib/rooms";
+import { roomPosterStyle } from "../../lib/rooms";
+import RoomPosterBackdrop from "../brand/RoomPosterBackdrop";
 
 /**
  * Editorial scene browser — families, scenes, related graph.
@@ -23,38 +24,18 @@ export default function ScenesBrowser({
   const related = active ? relatedScenes(active.id) : [];
 
   if (active) {
+    const poster = roomPosterStyle(active.atmosphere || "night-fog");
     return (
       <div style={{ padding: "8px 0 32px", fontFamily: font, animation: "fadeIn 0.3s ease both" }}>
-        <div
-          style={{
-            position: "relative",
-            overflow: "hidden",
-            minHeight: 200,
-            padding: "20px 20px 24px",
-            display: "flex",
-            flexDirection: "column",
-            justifyContent: "flex-end",
-            marginBottom: 8,
-          }}
+        <RoomPosterBackdrop
+          atmosphere={active.atmosphere || "night-fog"}
+          minHeight={220}
+          style={{ padding: "20px 20px 24px", marginBottom: 8 }}
         >
-          <div
-            aria-hidden="true"
-            style={{ position: "absolute", inset: 0, background: atmosphereGradient(active.atmosphere || "night-fog") }}
-          />
-          <div
-            aria-hidden="true"
-            style={{
-              position: "absolute",
-              inset: 0,
-              background: "linear-gradient(180deg, rgba(12,11,10,0.2) 0%, rgba(12,11,10,0.94) 100%)",
-            }}
-          />
           <button
             type="button"
             onClick={() => setActiveId(null)}
             style={{
-              position: "relative",
-              zIndex: 1,
               alignSelf: "flex-start",
               marginBottom: 16,
               background: "none",
@@ -67,7 +48,7 @@ export default function ScenesBrowser({
           >
             ← All scenes
           </button>
-          <div style={{ position: "relative", zIndex: 1 }}>
+          <div>
             <div
               style={{
                 fontSize: 11,
@@ -85,12 +66,12 @@ export default function ScenesBrowser({
             <h2
               style={{
                 margin: 0,
-                fontSize: "clamp(28px, 8vw, 40px)",
-                fontWeight: 800,
-                letterSpacing: -1.2,
+                fontSize: poster.titleSize,
+                fontWeight: poster.fontWeight,
+                letterSpacing: poster.letterSpacing,
                 fontFamily: fontDisplay,
                 color: color.onDark,
-                lineHeight: 1.05,
+                lineHeight: poster.lineHeight,
               }}
             >
               {active.label}
@@ -149,7 +130,7 @@ export default function ScenesBrowser({
               </button>
             </div>
           </div>
-        </div>
+        </RoomPosterBackdrop>
 
         {related.length > 0 && (
           <div style={{ padding: "16px 20px 0" }}>
