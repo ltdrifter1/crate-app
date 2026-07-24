@@ -44,6 +44,8 @@ const injectStyles = () => {
     @keyframes breathe { 0%,100%{opacity:0.55} 50%{opacity:1} }
     @keyframes rise { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:none} }
     @keyframes fadeIn { from{opacity:0} to{opacity:1} }
+    @keyframes shimmer { 0%{opacity:0.35} 50%{opacity:0.7} 100%{opacity:0.35} }
+    @keyframes stationIn { from{opacity:0;transform:translateY(18px) scale(0.985)} to{opacity:1;transform:none} }
     @media (prefers-reduced-motion: reduce) {
       *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
     }
@@ -144,132 +146,136 @@ function VinylRecord({ track, isPlaying, size=190 }) {
   );
 }
 
-// ─── RADIO — home hero station ────────────────────────────────────────────────
-function DeepCutsCard({ onPlay, onTogglePlay, currentTrack, isPlaying, isRadioMode, signalLabel, previewTracks = [] }) {
+// ─── RADIO — full-bleed home station ──────────────────────────────────────────
+function DeepCutsCard({ onPlay, onTogglePlay, currentTrack, isPlaying, isRadioMode, signalLabel }) {
   const hour = new Date().getHours();
-  const [eMin, eMax] = getEnergyRangeForHour(hour);
   const timeLabel = hour>=22||hour<=1?"Late Night":hour<=5?"Deep Hours":hour<=8?"Early Morning":hour<=11?"Morning":hour<=14?"Midday":hour<=17?"Afternoon":"Evening";
-  const energyLevel = currentTrack?.energy || Math.round((eMin+eMax)/2);
-  const previews = (previewTracks || []).filter(t => (t.duration||0) <= 900 && t.liked).slice(0, 5);
   const cover = currentTrack?.albumCover;
   const live = isRadioMode && currentTrack;
 
   return (
-    <div onClick={live ? undefined : onPlay} role={live ? undefined : "button"}
+    <div
+      onClick={live ? undefined : onPlay}
+      role={live ? undefined : "button"}
       style={{
         cursor: live ? "default" : "pointer",
-        background: color.station,
-        borderRadius: 32,
-        padding: live ? "28px 26px 26px" : "36px 26px 28px",
         position: "relative",
         overflow: "hidden",
-        border: `1px solid ${color.lineStrong}`,
-        minHeight: live ? 240 : 260,
-        boxShadow: "0 24px 64px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.04)",
-        animation: "rise 0.65s cubic-bezier(0.22,1,0.36,1) both",
-      }}>
+        minHeight: "min(72vh, 560px)",
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "flex-end",
+        padding: "48px 22px 36px",
+        background: color.canvas,
+        animation: "stationIn 0.75s cubic-bezier(0.22,1,0.36,1) both",
+      }}
+    >
+      <div aria-hidden="true" style={{
+        position:"absolute", inset:0,
+        background: timeOfDayGradient(),
+      }}/>
       {cover && (
         <div aria-hidden="true" style={{
           position:"absolute", inset:0,
           backgroundImage:`url(${cover})`, backgroundSize:"cover", backgroundPosition:"center",
-          filter:"blur(48px) saturate(125%) brightness(0.38)", transform:"scale(1.3)", opacity:0.65,
+          filter:"blur(40px) saturate(120%) brightness(0.42)", transform:"scale(1.18)", opacity:0.72,
+          animation: "fadeIn 1.1s ease both",
         }}/>
       )}
       <div aria-hidden="true" style={{
         position:"absolute", inset:0,
         background: cover
-          ? "linear-gradient(165deg, rgba(9,11,13,0.2) 0%, rgba(9,11,13,0.55) 42%, rgba(9,11,13,0.92) 100%)"
-          : "linear-gradient(160deg, #182028 0%, #10151A 45%, #090B0D 100%)",
+          ? "linear-gradient(180deg, rgba(9,11,13,0.35) 0%, rgba(9,11,13,0.55) 38%, rgba(9,11,13,0.94) 100%)"
+          : "linear-gradient(180deg, rgba(9,11,13,0.15) 0%, rgba(9,11,13,0.55) 50%, rgba(9,11,13,0.96) 100%)",
       }}/>
       <div aria-hidden="true" style={{
-        position:"absolute", top:"-25%", left:"35%", width:320, height:320, borderRadius:"50%",
-        background:`radial-gradient(circle, ${color.accentSoft} 0%, transparent 70%)`, pointerEvents:"none",
+        position:"absolute", top:"-18%", right:"-8%", width:360, height:360, borderRadius:"50%",
+        background:`radial-gradient(circle, ${color.accentSoft} 0%, transparent 68%)`, pointerEvents:"none",
+        animation: "breathe 6s ease-in-out infinite",
       }}/>
 
-      <div style={{ position:"relative", zIndex:1, display:"flex", flexDirection:"column", height:"100%", minHeight: live ? 188 : 204 }}>
-        <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center" }}>
-          <div style={{ display:"flex", alignItems:"center", gap:10 }}>
-            <div style={{
-              width:8, height:8, borderRadius:"50%",
-              background: live && isPlaying ? color.accent : "rgba(232,236,240,0.2)",
-              animation: live && isPlaying ? "breathe 2s ease-in-out infinite" : "none",
-              boxShadow: live && isPlaying ? `0 0 0 5px ${color.accentSoft}` : "none",
-            }}/>
-            <span style={{
-              fontSize:11, fontWeight:700, letterSpacing:2.2,
-              color: live && isPlaying ? color.accent : "rgba(232,236,240,0.42)",
-              textTransform:"uppercase", fontFamily: fontDisplay,
-            }}>
-              {live && isPlaying ? "On Air" : "Station"}
-            </span>
-          </div>
-          <span style={{ fontSize:12, fontWeight:500, color:"rgba(232,236,240,0.36)", letterSpacing:0.3 }}>{live ? (currentTrack?.genre || timeLabel) : timeLabel}</span>
+      <div style={{ position:"relative", zIndex:1, maxWidth:420 }}>
+        <div style={{
+          fontSize: "clamp(56px, 18vw, 88px)",
+          fontWeight:800, letterSpacing:-2.4, lineHeight:0.9,
+          color: color.onDark, fontFamily: fontDisplay,
+          marginBottom: live ? 28 : 18,
+        }}>
+          4AM
         </div>
 
         {live ? (
-          <div style={{ marginTop:"auto", paddingTop:36 }}>
-            <div style={{ display:"flex", gap:20, alignItems:"center", marginBottom:24 }}>
-              <div style={{ width:96, height:96, borderRadius:18, overflow:"hidden", flexShrink:0, border:`1px solid ${color.lineStrong}`, boxShadow:"0 20px 48px rgba(0,0,0,0.5)" }}>
-                <AlbumArt track={currentTrack} size={96} borderRadius={0}/>
+          <>
+            <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:18 }}>
+              <div style={{
+                width:7, height:7, borderRadius:"50%",
+                background: isPlaying ? color.accent : "rgba(232,236,240,0.25)",
+                animation: isPlaying ? "breathe 2s ease-in-out infinite" : "none",
+                boxShadow: isPlaying ? `0 0 0 4px ${color.accentSoft}` : "none",
+              }}/>
+              <span style={{
+                fontSize:11, fontWeight:700, letterSpacing:2,
+                color: isPlaying ? color.accent : color.muted,
+                textTransform:"uppercase", fontFamily: fontDisplay,
+              }}>
+                {isPlaying ? "On Air" : "Station"}
+              </span>
+              <span style={{ fontSize:12, color: color.faint }}>· {timeLabel}</span>
+            </div>
+            <div style={{ display:"flex", gap:16, alignItems:"center", marginBottom:28 }}>
+              <div style={{
+                width:88, height:88, overflow:"hidden", flexShrink:0,
+                boxShadow:"0 18px 40px rgba(0,0,0,0.45)",
+              }}>
+                <AlbumArt track={currentTrack} size={88} borderRadius={0}/>
               </div>
               <div style={{ flex:1, minWidth:0 }}>
-                <div style={{ fontSize:26, fontWeight:750, color: color.onDark, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap", letterSpacing:-0.9, fontFamily: fontDisplay, lineHeight:1.08 }}>{currentTrack.title}</div>
-                <div style={{ fontSize:15, color:"rgba(232,236,240,0.48)", marginTop:8, letterSpacing:-0.1 }}>{currentTrack.artist}</div>
-                {(currentTrack.bpm || currentTrack.camelot) && (
-                  <div style={{ fontSize:11, color:"rgba(232,236,240,0.28)", marginTop:8, fontVariantNumeric:"tabular-nums", letterSpacing:0.4 }}>
-                    {[currentTrack.bpm && `${currentTrack.bpm} BPM`, currentTrack.camelot].filter(Boolean).join("  ·  ")}
+                <div style={{
+                  fontSize:24, fontWeight:750, color: color.onDark,
+                  overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap",
+                  letterSpacing:-0.7, fontFamily: fontDisplay, lineHeight:1.1,
+                }}>{currentTrack.title}</div>
+                <div style={{ fontSize:14, color: color.body, marginTop:6 }}>{currentTrack.artist}</div>
+                {(currentTrack.bpm || currentTrack.camelot || signalLabel) && (
+                  <div style={{ fontSize:11, color: color.faint, marginTop:8, fontVariantNumeric:"tabular-nums", letterSpacing:0.3 }}>
+                    {[currentTrack.bpm && `${currentTrack.bpm} BPM`, currentTrack.camelot, signalLabel].filter(Boolean).join("  ·  ")}
                   </div>
                 )}
               </div>
             </div>
-            <div style={{ display:"flex", alignItems:"center", gap:14 }}>
-              <button type="button" aria-label={isPlaying?"Pause":"Play"} onClick={e=>{e.stopPropagation();onTogglePlay();}}
-                style={{ width:54, height:54, borderRadius:"50%", background: color.accent, border:"none", display:"flex", alignItems:"center", justifyContent:"center", color: color.onAccent, cursor:"pointer", flexShrink:0, boxShadow:"0 8px 24px rgba(122,145,164,0.28)" }}>
-                <Icon name={isPlaying?"pause":"play"} size={20}/>
-              </button>
-              <div style={{ fontSize:13, color:"rgba(232,236,240,0.4)", letterSpacing:0.1 }}>{timeLabel}{signalLabel ? ` · ${signalLabel}` : ""}</div>
-              <div style={{ flex:1 }}/>
-              <div style={{ display:"flex", gap:3, alignItems:"flex-end", height:30 }} aria-hidden="true">
-                {[1,2,3,4,5,6,7,8,9,10].map(i => (
-                  <div key={i} style={{ width:3, height: 5 + i * 2.2, borderRadius:2, background: i <= energyLevel ? color.accent : "rgba(232,236,240,0.1)" }}/>
-                ))}
-              </div>
-            </div>
-          </div>
+            <button type="button" aria-label={isPlaying?"Pause":"Play"} onClick={e=>{e.stopPropagation();onTogglePlay();}}
+              style={{
+                width:56, height:56, borderRadius:"50%", background: color.accent, border:"none",
+                display:"flex", alignItems:"center", justifyContent:"center", color: color.onAccent,
+                cursor:"pointer", boxShadow:"0 10px 28px rgba(122,145,164,0.28)",
+              }}>
+              <Icon name={isPlaying?"pause":"play"} size={20}/>
+            </button>
+          </>
         ) : (
-          <div style={{ marginTop:"auto", paddingTop:40 }}>
-            <div style={{ fontSize:40, fontWeight:800, letterSpacing:-1.6, color: color.onDark, marginBottom:12, fontFamily: fontDisplay, lineHeight:0.95 }}>
-              {timeLabel}
+          <>
+            <div style={{
+              fontSize:15, color: color.body, marginBottom:28, lineHeight:1.5, maxWidth:280, letterSpacing:-0.1,
+            }}>
+              {timeLabel} — the hour shapes the set.
             </div>
-            <div style={{ fontSize:15, color:"rgba(232,236,240,0.4)", marginBottom:32, lineHeight:1.55, maxWidth:280, letterSpacing:-0.1 }}>
-              Press play. The hour shapes the set.
-            </div>
-            <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between" }}>
-              <div style={{ display:"flex", alignItems:"center", gap:16 }}>
-                <button type="button" aria-label="Start radio" onClick={e=>{e.stopPropagation();onPlay();}}
-                  style={{ width:58, height:58, borderRadius:"50%", background: color.accent, border:"none", display:"flex", alignItems:"center", justifyContent:"center", color: color.onAccent, cursor:"pointer", boxShadow:"0 10px 28px rgba(122,145,164,0.3)" }}>
-                  <Icon name="play" size={22}/>
-                </button>
-                <div>
-                  <div style={{ fontSize:13, fontWeight:600, color:"rgba(232,236,240,0.72)", letterSpacing:-0.1 }}>Listen now</div>
-                  {previews.length > 0 && (
-                    <div style={{ display:"flex", marginTop:8 }}>
-                      {previews.map((t,i) => (
-                        <div key={t.id} style={{ width:26, height:26, borderRadius:7, overflow:"hidden", marginLeft:i>0?-7:0, border:`2px solid ${color.station}` }}>
-                          <AlbumArt track={t} size={26} borderRadius={0}/>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </div>
-              <div style={{ display:"flex", gap:3, alignItems:"flex-end", height:30 }} aria-hidden="true">
-                {[1,2,3,4,5,6,7,8,9,10].map(i => (
-                  <div key={i} style={{ width:3, height: 5 + i * 2.2, borderRadius:2, background: (i >= eMin && i <= eMax) ? "rgba(122,145,164,0.55)" : "rgba(232,236,240,0.1)" }}/>
-                ))}
-              </div>
-            </div>
-          </div>
+            <button type="button" aria-label="Start radio" onClick={e=>{e.stopPropagation();onPlay();}}
+              style={{
+                display:"inline-flex", alignItems:"center", gap:12,
+                padding:"14px 22px 14px 16px", borderRadius:999,
+                background: color.accent, border:"none", color: color.onAccent,
+                cursor:"pointer", fontSize:14, fontWeight:650, letterSpacing:-0.2,
+                boxShadow:"0 12px 32px rgba(122,145,164,0.28)",
+              }}>
+              <span style={{
+                width:32, height:32, borderRadius:"50%", background:"rgba(9,11,13,0.18)",
+                display:"flex", alignItems:"center", justifyContent:"center",
+              }}>
+                <Icon name="play" size={16}/>
+              </span>
+              Listen now
+            </button>
+          </>
         )}
       </div>
     </div>
@@ -1058,154 +1064,101 @@ function ImmersivePlayer({ currentTrack, isPlaying, onTogglePlay, onSkip, onPrev
   if (!currentTrack) return null;
 
   const rgb = hexToRgbStr(currentTrack.color);
-  const traits = currentTrack._signal;
-  const energy = currentTrack.energy || 5;
   const stateLabel = signalState?.label || "";
-
-  // Pick the top 2 traits to display
-  const traitPairs = traits ? Object.entries(traits)
-    .filter(([k]) => k !== "label")
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, 2) : [];
 
   return (
     <div
       onMouseMove={resetHide}
       onClick={resetHide}
-      style={{ position:"fixed", inset:0, zIndex:100, overflow:"hidden", background:"#0A0A0C", cursor: showUI ? "default" : "none" }}>
+      style={{ position:"fixed", inset:0, zIndex:100, overflow:"hidden", background: color.canvas, cursor: showUI ? "default" : "none" }}>
 
-      {/* ── Layer 0: Deep background color wash ── */}
+      {/* Full-bleed art plane */}
       <div style={{
         position:"absolute", inset:0,
-        background:`radial-gradient(ellipse at 50% 30%, rgba(${rgb},0.15) 0%, rgba(${rgb},0.04) 40%, #0A0A0C 80%)`,
-        transition:"background 2s ease",
-      }}/>
-
-      {/* ── Layer 1: Album art — full bleed, slowly zooming ── */}
-      <div style={{
-        position:"absolute", inset:-40,
         backgroundImage: currentTrack.albumCover ? `url(${currentTrack.albumCover})` : "none",
         backgroundSize:"cover", backgroundPosition:"center",
-        filter:"blur(80px) saturate(150%) brightness(0.35)",
-        transform:"scale(1.15)",
-        transition:"background-image 1.5s ease, filter 1.5s ease",
-        opacity: 0.7,
+        transform: artLoaded ? "scale(1.02)" : "scale(1.08)",
+        transition:"transform 8s cubic-bezier(0.22,1,0.36,1), opacity 0.8s ease",
+        opacity: artLoaded ? 1 : 0.4,
+      }}>
+        {currentTrack.albumCover && (
+          <img
+            src={currentTrack.albumCover} alt=""
+            onLoad={()=>setArtLoaded(true)}
+            style={{ position:"absolute", width:1, height:1, opacity:0, pointerEvents:"none" }}
+          />
+        )}
+      </div>
+      {!currentTrack.albumCover && (
+        <div style={{
+          position:"absolute", inset:0,
+          background:`linear-gradient(160deg, rgba(${rgb},0.35) 0%, ${color.canvas} 70%)`,
+          display:"flex", alignItems:"center", justifyContent:"center",
+        }}>
+          <div style={{ fontSize:120, fontWeight:800, color:`rgba(${rgb},0.25)`, letterSpacing:-6, fontFamily: fontDisplay }}>
+            {(currentTrack.title||"4")[0]}
+          </div>
+        </div>
+      )}
+
+      {/* Station wash — keep art dominant */}
+      <div aria-hidden="true" style={{
+        position:"absolute", inset:0,
+        background:"linear-gradient(180deg, rgba(9,11,13,0.25) 0%, rgba(9,11,13,0.15) 35%, rgba(9,11,13,0.78) 72%, rgba(9,11,13,0.96) 100%)",
       }}/>
 
-      {/* ── Layer 2: Center album art — sharp, floating ── */}
+      {/* Track info — Syne, bottom-left */}
       <div style={{
-        position:"absolute", inset:0,
-        display:"flex", alignItems:"center", justifyContent:"center",
+        position:"absolute", bottom:120, left:24, right:24,
+        opacity: showUI ? 1 : 0.55,
+        transition:"opacity 0.5s ease",
+        maxWidth:480,
       }}>
         <div style={{
-          width:"min(55vh, 55vw)", height:"min(55vh, 55vw)",
-          borderRadius:20, overflow:"hidden",
-          boxShadow:"0 24px 64px rgba(0,0,0,0.45)",
-          transition:"box-shadow 2s ease",
+          fontSize:"clamp(28px, 7vw, 42px)", fontWeight:750, color: color.onDark,
+          letterSpacing:-1, lineHeight:1.05, fontFamily: fontDisplay,
+          overflow:"hidden", textOverflow:"ellipsis", display:"-webkit-box",
+          WebkitLineClamp:2, WebkitBoxOrient:"vertical",
         }}>
-          {currentTrack.albumCover ? (
-            <img
-              src={currentTrack.albumCover} alt=""
-              onLoad={()=>setArtLoaded(true)}
-              style={{ width:"100%", height:"100%", objectFit:"cover", display:"block", opacity:artLoaded?1:0, transition:"opacity 0.8s ease" }}
-            />
-          ) : (
-            <div style={{ width:"100%", height:"100%", background:`linear-gradient(135deg, rgba(${rgb},0.4), #141416)`, display:"flex", alignItems:"center", justifyContent:"center" }}>
-              <div style={{ fontSize:80, fontWeight:700, color:`rgba(${rgb},0.3)`, letterSpacing:-4 }}>{(currentTrack.title||"V")[0]}</div>
-            </div>
-          )}
-        </div>
-      </div>
-
-
-      {/* ── Layer 4: Track info — bottom left ── */}
-      <div style={{
-        position:"absolute", bottom:48, left:48,
-        opacity: showUI ? 1 : 0.6,
-        transition:"opacity 0.5s ease",
-        maxWidth:"50%",
-      }}>
-        <div style={{ fontSize:32, fontWeight:700, color:"#FFFFFF", letterSpacing:-0.5, lineHeight:1.2, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
           {currentTrack.title}
         </div>
-        <div style={{ fontSize:16, color:"rgba(255,255,255,0.5)", marginTop:6, letterSpacing:-0.2 }}>
+        <div style={{ fontSize:16, color: color.body, marginTop:10, letterSpacing:-0.2 }}>
           {currentTrack.artist}
         </div>
-        <div style={{ fontSize:12, color:"rgba(255,255,255,0.25)", marginTop:4 }}>
-          {currentTrack.album}{currentTrack.album && currentTrack.genre ? " · " : ""}{currentTrack.genre}
+        <div style={{ fontSize:12, color: color.faint, marginTop:8, fontVariantNumeric:"tabular-nums", letterSpacing:0.3 }}>
+          {[normalizeGenre(currentTrack.genre), currentTrack.bpm && `${currentTrack.bpm} BPM`, currentTrack.camelot, stateLabel]
+            .filter(Boolean).join("  ·  ")}
         </div>
       </div>
 
-      {/* ── Layer 5: Aura data — bottom right ── */}
+      {/* Controls — accent station language */}
       <div style={{
-        position:"absolute", bottom:48, right:48,
-        opacity: showUI ? 1 : 0.4,
-        transition:"opacity 0.5s ease",
-        textAlign:"right",
-      }}>
-        {/* Energy bar — vertical */}
-        <div style={{ display:"flex", gap:2, justifyContent:"flex-end", alignItems:"flex-end", marginBottom:12 }}>
-          {[1,2,3,4,5,6,7,8,9,10].map(i => (
-            <div key={i} style={{
-              width:3, height: 4 + i * 2.5, borderRadius:2,
-              background: i <= energy ? `rgba(${rgb},0.5)` : "rgba(255,255,255,0.06)",
-              transition:"background 1s ease",
-            }}/>
-          ))}
-        </div>
-
-        {/* BPM + Key */}
-        <div style={{ fontSize:11, color:"rgba(255,255,255,0.2)", letterSpacing:1, fontVariantNumeric:"tabular-nums" }}>
-          {currentTrack.bpm && `${currentTrack.bpm} BPM`}
-          {currentTrack.bpm && currentTrack.camelot && "  ·  "}
-          {currentTrack.camelot && currentTrack.camelot}
-        </div>
-
-        {/* Aura traits */}
-        {traitPairs.length > 0 && (
-          <div style={{ display:"flex", gap:8, justifyContent:"flex-end", marginTop:8 }}>
-            {traitPairs.map(([name, val]) => (
-              <div key={name} style={{ fontSize:9, fontWeight:600, letterSpacing:1, color:"rgba(255,255,255,0.15)", textTransform:"uppercase" }}>
-                {name} {val}
-              </div>
-            ))}
-          </div>
-        )}
-
-        {/* State label */}
-        {stateLabel && (
-          <div style={{ fontSize:10, fontWeight:600, letterSpacing:1.5, color:"rgba(255,255,255,0.12)", textTransform:"uppercase", marginTop:6 }}>
-            {stateLabel}
-          </div>
-        )}
-      </div>
-
-      {/* ── Layer 6: Minimal floating controls — center bottom, fade on idle ── */}
-      <div style={{
-        position:"absolute", bottom:48, left:"50%", transform:"translateX(-50%)",
-        display:"flex", alignItems:"center", gap:24,
+        position:"absolute", bottom:36, left:24, right:24,
+        display:"flex", alignItems:"center", justifyContent:"center", gap:28,
         opacity: showUI ? 1 : 0,
         transition:"opacity 0.5s ease",
         pointerEvents: showUI ? "auto" : "none",
       }}>
-        <button onClick={onPrev} style={{ background:"none", border:"none", cursor:"pointer", color:"rgba(255,255,255,0.4)", padding:8 }}>
-          <Icon name="prev" size={18}/>
+        <button type="button" onClick={onPrev} aria-label="Previous"
+          style={{ background:"none", border:"none", cursor:"pointer", color: color.body, padding:8 }}>
+          <Icon name="prev" size={20}/>
         </button>
-        <button onClick={onTogglePlay} style={{
-          width:52, height:52, borderRadius:"50%",
-          background:"rgba(255,255,255,0.08)", backdropFilter:"blur(20px)",
-          border:"1px solid rgba(255,255,255,0.12)",
-          color:"#FFFFFF", cursor:"pointer",
+        <button type="button" onClick={onTogglePlay} aria-label={isPlaying?"Pause":"Play"} style={{
+          width:58, height:58, borderRadius:"50%",
+          background: color.accent, border:"none",
+          color: color.onAccent, cursor:"pointer",
           display:"flex", alignItems:"center", justifyContent:"center",
+          boxShadow:"0 12px 32px rgba(122,145,164,0.35)",
         }}>
           <Icon name={isPlaying?"pause":"play"} size={22}/>
         </button>
-        <button onClick={onSkip} style={{ background:"none", border:"none", cursor:"pointer", color:"rgba(255,255,255,0.4)", padding:8 }}>
-          <Icon name="skip" size={18}/>
+        <button type="button" onClick={onSkip} aria-label="Next"
+          style={{ background:"none", border:"none", cursor:"pointer", color: color.body, padding:8 }}>
+          <Icon name="skip" size={20}/>
         </button>
       </div>
 
-      {/* ── Top bar — back to browse ── */}
+      {/* Top chrome */}
       <div style={{
         position:"absolute", top:20, left:20, right:20,
         display:"flex", justifyContent:"space-between", alignItems:"center",
@@ -1214,16 +1167,16 @@ function ImmersivePlayer({ currentTrack, isPlaying, onTogglePlay, onSkip, onPrev
         pointerEvents: showUI ? "auto" : "none",
         zIndex: 2,
       }}>
-        <button type="button" onClick={onClose} aria-label="Back to browse"
+        <button type="button" onClick={onClose} aria-label="Back"
           style={{
-            display:"flex", alignItems:"center", gap:8, background:"rgba(255,255,255,0.08)",
-            border:"1px solid rgba(255,255,255,0.12)", borderRadius:999, padding:"10px 14px",
-            color:"rgba(255,255,255,0.85)", cursor:"pointer", fontSize:13, fontWeight:600,
+            display:"flex", alignItems:"center", gap:8, background:"rgba(9,11,13,0.45)",
+            border:`1px solid ${color.lineStrong}`, borderRadius:999, padding:"10px 14px",
+            color: color.ink, cursor:"pointer", fontSize:13, fontWeight:600,
           }}>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><path d="M6 9l6 6 6-6"/></svg>
-          Browse
+          Back
         </button>
-        <div style={{ fontSize:12, fontWeight:750, letterSpacing:-0.5, color:"rgba(255,255,255,0.35)" }}>4AM</div>
+        <div style={{ fontSize:15, fontWeight:800, letterSpacing:-0.6, color: color.ink, fontFamily: fontDisplay }}>4AM</div>
       </div>
     </div>
   );
@@ -1248,18 +1201,8 @@ function HomeScreen({ tracks, onPlayRadio, onTogglePlay, onPlayTrack, currentTra
 
   return (
     <div style={{ position:"relative", paddingBottom:36 }}>
-      <div aria-hidden="true" style={{
-        position:"absolute", top:0, left:0, right:0, height:340, pointerEvents:"none",
-        background: timeOfDayGradient(),
-      }}/>
-
-      <header style={{ position:"relative", padding:"20px 20px 2px", display:"flex", alignItems:"center", justifyContent:"space-between", animation:"fadeIn 0.45s ease both" }}>
-        <div style={{ fontSize:16, fontWeight:800, letterSpacing:-0.5, color: color.ink, fontFamily: fontDisplay }}>4AM</div>
-        <div style={{ fontSize:11, fontWeight:600, letterSpacing:1.4, textTransform:"uppercase", color: color.faint, fontFamily: fontDisplay }}>Home</div>
-      </header>
-
-      {/* 1 — Radio */}
-      <div style={{ position:"relative", padding:"18px 16px 40px" }}>
+      {/* 1 — Radio (full-bleed station) */}
+      <div style={{ position:"relative", marginBottom:28 }}>
         <DeepCutsCard
           onPlay={onPlayRadio}
           onTogglePlay={onTogglePlay}
@@ -1267,7 +1210,6 @@ function HomeScreen({ tracks, onPlayRadio, onTogglePlay, onPlayTrack, currentTra
           isPlaying={isPlaying}
           isRadioMode={isRadioMode}
           signalLabel={signalLabel}
-          previewTracks={tracks}
         />
       </div>
 
@@ -1552,172 +1494,168 @@ function FavoritesScreen({ tracks, onPlay, onLike, currentTrack, isPlaying, user
 
   return (
     <div style={{ overflowY:"auto", height:"100%", minHeight:"calc(100vh - 112px)" }}>
-      {/* Tab bar */}
-      <div style={{ position:"sticky", top:0, zIndex:10, padding:"14px 16px 10px", background:"rgba(9,11,13,0.88)", backdropFilter:"blur(16px)" }}>
-        <div style={{
-          background: color.surfaceSolid,
-          border: `1px solid ${color.line}`,
-          borderRadius: radius.md,
-          padding: 4,
-          display:"inline-flex",
-          gap: 2,
-          maxWidth:"100%",
-          overflowX:"auto",
-        }}>
-          <Pill label="Discover" active={view==="discover"} onClick={()=>setView("discover")}/>
-          <Pill label="Saved" active={view==="liked"} onClick={()=>setView("liked")}/>
-          <Pill label="Genres" active={view==="genres"} onClick={()=>{setView("genres");setGenreFilter(null);}}/>
-          <Pill label="Playlists" active={view==="playlists"||isPlaylistView} onClick={()=>setView("playlists")}/>
-        </div>
+      {/* Quiet mode switcher — not a streaming segment control */}
+      <div style={{
+        position:"sticky", top:0, zIndex:10, padding:"12px 18px 8px",
+        background:"rgba(9,11,13,0.92)", borderBottom:`1px solid ${color.line}`,
+        display:"flex", gap:18, overflowX:"auto",
+      }} className="hide-scroll">
+        {[
+          { id:"discover", label:"Dig" },
+          { id:"liked", label:"Saved" },
+          { id:"genres", label:"Genres" },
+          { id:"playlists", label:"Playlists" },
+        ].map(tab => (
+          <button
+            key={tab.id}
+            type="button"
+            onClick={()=>{
+              if (tab.id === "genres") { setView("genres"); setGenreFilter(null); }
+              else setView(tab.id);
+            }}
+            style={{
+              background:"none", border:"none", cursor:"pointer", padding:"6px 0",
+              color: (tab.id === "playlists" ? (view==="playlists"||isPlaylistView) : view===tab.id) ? color.ink : color.faint,
+              fontSize:13, fontWeight: (tab.id === "playlists" ? (view==="playlists"||isPlaylistView) : view===tab.id) ? 700 : 500,
+              fontFamily: fontDisplay, letterSpacing:-0.2,
+              borderBottom: (tab.id === "playlists" ? (view==="playlists"||isPlaylistView) : view===tab.id) ? `2px solid ${color.accent}` : "2px solid transparent",
+              flexShrink:0,
+            }}
+          >{tab.label}</button>
+        ))}
       </div>
 
-      {/* ══ DISCOVER view — editorial late-night browse ══ */}
-      {view === "discover" && (
-        <div style={{ padding:"4px 0 32px" }}>
-          <div style={{ padding:"8px 18px 22px", animation:"fadeIn 0.45s ease both" }}>
-            <div style={{ fontSize:36, fontWeight:800, letterSpacing:-1.4, color: color.ink, fontFamily: fontDisplay, lineHeight:1 }}>Discover</div>
-            <div style={{ fontSize:14, color: color.muted, marginTop:8, maxWidth:320, lineHeight:1.45 }}>
-              Dig by hour, mood, and crate — not playlists that look like everyone else’s.
-            </div>
-          </div>
-
-          {/* For You — large horizontal editorial cards */}
-          {forYou.length > 0 && (
-            <div style={{ marginBottom:28 }}>
-              <div style={{ padding:"0 18px" }}>
-                <SectionHead sub="Based on what you save and the hour">For you</SectionHead>
+      {/* ══ DISCOVER view — one dig plane, then lanes ══ */}
+      {view === "discover" && (() => {
+        const digLead = forYou[0] || timeRecs[0] || singles[0];
+        const digLane = (forYou.length > 0 ? forYou : timeRecs).filter(t => t.id !== digLead?.id).slice(0, 10);
+        return (
+        <div style={{ padding:"0 0 32px" }}>
+          {/* One editorial dig composition */}
+          {digLead && (
+            <div
+              onClick={()=>onPlay(digLead)}
+              role="button"
+              tabIndex={0}
+              onKeyDown={e=>{ if(e.key==="Enter"||e.key===" ") { e.preventDefault(); onPlay(digLead); } }}
+              style={{
+                position:"relative", overflow:"hidden", cursor:"pointer",
+                minHeight: "min(52vh, 420px)",
+                display:"flex", flexDirection:"column", justifyContent:"flex-end",
+                padding:"40px 20px 28px",
+                marginBottom:32,
+                animation:"stationIn 0.7s cubic-bezier(0.22,1,0.36,1) both",
+              }}
+            >
+              <div aria-hidden="true" style={{
+                position:"absolute", inset:0,
+                backgroundImage: digLead.albumCover ? `url(${digLead.albumCover})` : "none",
+                backgroundSize:"cover", backgroundPosition:"center",
+                filter:"saturate(115%) brightness(0.55)",
+                transform:"scale(1.04)",
+              }}/>
+              <div aria-hidden="true" style={{
+                position:"absolute", inset:0,
+                background:"linear-gradient(180deg, rgba(9,11,13,0.2) 0%, rgba(9,11,13,0.55) 45%, rgba(9,11,13,0.96) 100%)",
+              }}/>
+              <div style={{ position:"relative", zIndex:1, maxWidth:360 }}>
+                <div style={{
+                  fontSize:"clamp(40px, 12vw, 56px)", fontWeight:800, letterSpacing:-1.8,
+                  color: color.onDark, fontFamily: fontDisplay, lineHeight:0.95, marginBottom:12,
+                }}>
+                  {timeLabel}
+                </div>
+                <div style={{ fontSize:14, color: color.body, lineHeight:1.45, marginBottom:22, maxWidth:280 }}>
+                  Energy matched to this hour. Dig from here.
+                </div>
+                <div style={{ fontSize:18, fontWeight:700, color: color.onDark, fontFamily: fontDisplay, letterSpacing:-0.4, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
+                  {digLead.title}
+                </div>
+                <div style={{ fontSize:13, color: color.muted, marginTop:4 }}>{digLead.artist}</div>
               </div>
-              <div className="hide-scroll" style={{ display:"flex", gap:14, overflowX:"auto", padding:"0 18px 4px" }}>
-                {forYou.slice(0, 12).map((t, i) => (
+            </div>
+          )}
+
+          {/* Secondary dig lane — no featured overlays */}
+          {digLane.length > 0 && (
+            <div style={{ marginBottom:36 }}>
+              <div style={{ padding:"0 18px" }}>
+                <SectionHead sub="From your crate and this hour">More from the set</SectionHead>
+              </div>
+              <div className="hide-scroll" style={{ display:"flex", gap:12, overflowX:"auto", padding:"0 18px 4px" }}>
+                {digLane.map((t, i) => (
                   <div key={t.id} onClick={()=>onPlay(t)} style={{
-                    flexShrink:0, width: i === 0 ? 220 : 156, cursor:"pointer",
+                    flexShrink:0, width:132, cursor:"pointer",
                     animation:`rise 0.5s cubic-bezier(0.22,1,0.36,1) ${Math.min(i,6)*0.04}s both`,
                   }}>
                     <div style={{
-                      width:"100%", aspectRatio: i===0 ? "1/1.05" : "1",
-                      borderRadius:14, overflow:"hidden", marginBottom:10, position:"relative",
-                      boxShadow: currentTrack?.id===t.id ? `0 0 0 2px ${color.accent}` : "0 10px 28px rgba(0,0,0,0.4)",
+                      width:132, height:132, overflow:"hidden", marginBottom:8,
+                      boxShadow: currentTrack?.id===t.id ? `0 0 0 2px ${color.accent}` : "0 8px 22px rgba(0,0,0,0.35)",
                     }}>
-                      <AlbumArt track={t} size={240} borderRadius={0}/>
-                      {i === 0 && (
-                        <div style={{
-                          position:"absolute", inset:0,
-                          background:"linear-gradient(180deg, transparent 45%, rgba(9,11,13,0.85) 100%)",
-                          display:"flex", alignItems:"flex-end", padding:14,
-                        }}>
-                          <div>
-                            <div style={{ fontSize:10, fontWeight:700, letterSpacing:1.4, color: color.accent, textTransform:"uppercase", marginBottom:4 }}>Featured</div>
-                            <div style={{ fontSize:16, fontWeight:700, color:"#FFF", letterSpacing:-0.3, fontFamily: fontDisplay }}>{t.title}</div>
-                            <div style={{ fontSize:12, color:"rgba(255,255,255,0.55)", marginTop:2 }}>{t.artist}</div>
-                          </div>
-                        </div>
-                      )}
+                      <AlbumArt track={t} size={132} borderRadius={0}/>
                     </div>
-                    {i !== 0 && (
-                      <>
-                        <div style={{ fontSize:13, fontWeight:600, color: color.ink, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap", letterSpacing:-0.2 }}>{t.title}</div>
-                        <div style={{ fontSize:11, color: color.muted, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap", marginTop:3 }}>{t.artist}</div>
-                      </>
-                    )}
+                    <div style={{ fontSize:13, fontWeight:600, color: color.ink, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap", letterSpacing:-0.2 }}>{t.title}</div>
+                    <div style={{ fontSize:11, color: color.muted, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap", marginTop:3 }}>{t.artist}</div>
                   </div>
                 ))}
               </div>
             </div>
           )}
 
-          {/* Right now — time-based horizontal strip */}
-          {timeRecs.length > 0 && (
-            <div style={{ marginBottom:28 }}>
-              <div style={{ padding:"0 18px" }}>
-                <SectionHead sub="Energy matched to this hour">{timeLabel} picks</SectionHead>
-              </div>
-              <div className="hide-scroll" style={{ display:"flex", gap:12, overflowX:"auto", padding:"0 18px 4px" }}>
-                {timeRecs.slice(0,14).map(t => (
-                  <div key={t.id} onClick={()=>onPlay(t)} style={{ flexShrink:0, width:118, cursor:"pointer" }}>
-                    <div style={{
-                      width:118, height:118, borderRadius:12, overflow:"hidden", marginBottom:8,
-                      boxShadow: currentTrack?.id===t.id ? `0 0 0 2px ${color.accent}` : "0 6px 18px rgba(0,0,0,0.35)",
-                    }}>
-                      <AlbumArt track={t} size={118} borderRadius={0}/>
-                    </div>
-                    <div style={{ fontSize:12, fontWeight:550, color: color.ink, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{t.title}</div>
-                    <div style={{ fontSize:11, color: color.muted, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap", marginTop:2 }}>{t.artist}</div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Moods — tonal field tiles */}
+          {/* Moods — quiet lane labels, not dense card hero */}
           {moodKeys.length > 0 && (
-          <div style={{ marginBottom:28, padding:"0 18px" }}>
+          <div style={{ marginBottom:32, padding:"0 18px" }}>
             <SectionHead sub="Contexts for the booth and the walk home">Moods</SectionHead>
-            <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10 }}>
+            <div style={{ display:"flex", flexDirection:"column", gap:2 }}>
               {moodKeys.map(mood => {
                 const meta = moodMeta[mood];
-                const cover = moods[mood][0];
                 return (
-                  <div key={mood} onClick={()=>{setView("genres");setGenreFilter(null);setMoodFilter(mood);}}
+                  <button
+                    key={mood}
+                    type="button"
+                    onClick={()=>{setView("genres");setGenreFilter(null);setMoodFilter(mood);}}
                     style={{
-                      position:"relative", borderRadius:16, overflow:"hidden", cursor:"pointer",
-                      minHeight:108, border:`1px solid ${color.line}`,
-                      background: meta?.tone || color.surfaceRaised,
-                    }}>
-                    {cover && (
-                      <div aria-hidden="true" style={{
-                        position:"absolute", inset:0, opacity:0.35,
-                        backgroundImage: cover.albumCover ? `url(${cover.albumCover})` : "none",
-                        backgroundSize:"cover", backgroundPosition:"center", filter:"saturate(120%)",
-                      }}/>
-                    )}
-                    <div style={{
-                      position:"absolute", inset:0,
-                      background:"linear-gradient(160deg, rgba(9,11,13,0.15) 0%, rgba(9,11,13,0.72) 100%)",
-                    }}/>
-                    <div style={{ position:"relative", zIndex:1, padding:"16px 14px", display:"flex", flexDirection:"column", justifyContent:"flex-end", minHeight:108 }}>
-                      <div style={{ fontSize:16, fontWeight:700, color: color.ink, fontFamily: fontDisplay, letterSpacing:-0.3 }}>{mood}</div>
-                      <div style={{ fontSize:11, color:"rgba(232,236,240,0.55)", marginTop:3 }}>{meta?.desc}</div>
-                      <div style={{ fontSize:10, color: color.accent, marginTop:8, fontWeight:600 }}>{moods[mood].length} tracks</div>
+                      display:"flex", alignItems:"center", justifyContent:"space-between",
+                      padding:"16px 4px", background:"none", border:"none", borderBottom:`1px solid ${color.line}`,
+                      cursor:"pointer", textAlign:"left", color: color.ink,
+                    }}
+                  >
+                    <div>
+                      <div style={{ fontSize:16, fontWeight:700, fontFamily: fontDisplay, letterSpacing:-0.3 }}>{mood}</div>
+                      <div style={{ fontSize:12, color: color.muted, marginTop:3 }}>{meta?.desc}</div>
                     </div>
-                  </div>
+                    <div style={{ fontSize:12, color: color.faint, fontVariantNumeric:"tabular-nums" }}>{moods[mood].length}</div>
+                  </button>
                 );
               })}
             </div>
           </div>
           )}
 
-          {/* Genre grid — art-backed tiles */}
+          {/* Genre lanes */}
           <div style={{ padding:"0 18px" }}>
             <SectionHead sub="Browse the collection by lane">Genres</SectionHead>
-            <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10 }}>
-            {genres.map(g => {
-              const sample = genreMap[g][0];
-              return (
-                <div key={g} onClick={()=>{setView("genres");setGenreFilter(g);}}
-                  style={{
-                    position:"relative", borderRadius:14, overflow:"hidden", cursor:"pointer",
-                    minHeight:88, border:`1px solid ${color.line}`,
-                    background: GENRE_TONES[g] || color.surfaceRaised,
-                  }}>
-                  {sample?.albumCover && (
-                    <div aria-hidden="true" style={{
-                      position:"absolute", right:-8, top:-8, width:84, height:84, borderRadius:10, overflow:"hidden",
-                      opacity:0.55, transform:"rotate(8deg)",
-                    }}>
-                      <AlbumArt track={sample} size={84} borderRadius={0}/>
-                    </div>
-                  )}
-                  <div style={{ position:"relative", zIndex:1, padding:"16px 14px" }}>
-                    <div style={{ fontSize:15, fontWeight:700, color: color.ink, fontFamily: fontDisplay, letterSpacing:-0.2 }}>{g}</div>
-                    <div style={{ fontSize:11, color: color.muted, marginTop:4 }}>{genreMap[g].length} tracks</div>
-                  </div>
-                </div>
-              );
-            })}
+            <div style={{ display:"flex", flexDirection:"column", gap:2 }}>
+            {genres.map(g => (
+              <button
+                key={g}
+                type="button"
+                onClick={()=>{setView("genres");setGenreFilter(g);}}
+                style={{
+                  display:"flex", alignItems:"center", justifyContent:"space-between",
+                  padding:"15px 4px", background:"none", border:"none", borderBottom:`1px solid ${color.line}`,
+                  cursor:"pointer", textAlign:"left", color: color.ink,
+                }}
+              >
+                <div style={{ fontSize:15, fontWeight:700, fontFamily: fontDisplay, letterSpacing:-0.2 }}>{g}</div>
+                <div style={{ fontSize:12, color: color.faint, fontVariantNumeric:"tabular-nums" }}>{genreMap[g].length}</div>
+              </button>
+            ))}
             </div>
           </div>
         </div>
-      )}
+        );
+      })()}
 
       {/* ══ LIKED / GENRE / PLAYLIST views — track list ══ */}
       {(view === "liked" || view === "genres" || isPlaylistView) && (
@@ -2448,11 +2386,11 @@ function AdminScreen({ tracks, setTracks, tab, setTab, editTrack, setEditTrack, 
   );
 }
 
-// ─── NOW PLAYING BAR ──────────────────────────────────────────────────────────
+// ─── NOW PLAYING BAR — flat station strip ─────────────────────────────────────
 function NowPlayingBar({ track, isPlaying, progress, duration, onTogglePlay, onSkip, onPrev, onLike, onSeek, repeat, setRepeat, isRadioMode, onOpen }) {
   const pct = duration > 0 ? (progress/duration)*100 : 0;
   return (
-    <div style={{ position:"fixed", bottom:56, left:0, right:0, zIndex:80, padding:"0 10px 8px" }}>
+    <div style={{ position:"fixed", bottom:56, left:0, right:0, zIndex:80 }}>
       <div
         role="button"
         tabIndex={0}
@@ -2460,25 +2398,36 @@ function NowPlayingBar({ track, isPlaying, progress, duration, onTogglePlay, onS
         onKeyDown={e=>{ if(e.key==="Enter") onOpen?.(); }}
         aria-label="Open now playing"
         style={{
-          background: "rgba(20,20,22,0.94)", border:`1px solid ${color.lineStrong}`, borderRadius: radius.md,
-          padding:"8px 10px", display:"flex", alignItems:"center", gap:10, cursor:"pointer",
-          boxShadow: "0 8px 28px rgba(0,0,0,0.45)",
-          backdropFilter: "blur(20px)",
+          background: color.station,
+          borderTop: `1px solid ${color.lineStrong}`,
+          padding:"10px 12px 12px",
+          display:"flex", alignItems:"center", gap:12, cursor:"pointer",
+          position:"relative",
         }}
       >
-        <div style={{ width:40, height:40, borderRadius:8, overflow:"hidden", flexShrink:0 }}><AlbumArt track={track} size={40} borderRadius={0}/></div>
+        {/* Progress as tactile top edge */}
+        <div aria-hidden="true" style={{ position:"absolute", top:0, left:0, right:0, height:2, background:"rgba(232,236,240,0.08)" }}>
+          <div style={{ width:`${pct}%`, background: color.accent, height:"100%", transition:"width 1s linear" }}/>
+        </div>
+        <div style={{ width:42, height:42, overflow:"hidden", flexShrink:0 }}><AlbumArt track={track} size={42} borderRadius={0}/></div>
         <div style={{ flex:1, minWidth:0 }}>
-          <div style={{ fontSize:13, fontWeight:600, color: color.ink, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
-            {isRadioMode && <span style={{ fontSize:9, fontWeight:700, letterSpacing:1, marginRight:6, color: color.accent }}>●</span>}
+          <div style={{ fontSize:13, fontWeight:650, color: color.ink, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap", fontFamily: fontDisplay, letterSpacing:-0.2 }}>
+            {isRadioMode && (
+              <span style={{
+                display:"inline-block", width:6, height:6, borderRadius:"50%",
+                background: color.accent, marginRight:8, verticalAlign:"middle",
+                boxShadow: isPlaying ? `0 0 0 3px ${color.accentSoft}` : "none",
+                animation: isPlaying ? "breathe 2s ease-in-out infinite" : "none",
+              }}/>
+            )}
             {track.title}
           </div>
-          <div style={{ fontSize:11, color: color.muted }}>{track.artist}</div>
-          <div style={{ marginTop:5, background: "rgba(232,236,240,0.1)", borderRadius:1, height:2 }}>
-            <div style={{ width:`${pct}%`, background: color.accent, height:"100%", borderRadius:1, transition:"width 1s linear" }}/>
+          <div style={{ fontSize:11, color: color.muted, marginTop:2 }}>
+            {isRadioMode ? `On air · ${track.artist}` : track.artist}
           </div>
         </div>
         <button type="button" aria-label={track.liked?"Unlike":"Like"} onClick={e=>{e.stopPropagation();onLike();}} style={{ background:"none",border:"none",cursor:"pointer",color:track.liked?color.accent:color.faint,padding:4 }}><Icon name={track.liked?"heart":"heartempty"} size={16}/></button>
-        <button type="button" aria-label={isPlaying?"Pause":"Play"} onClick={e=>{e.stopPropagation();onTogglePlay();}} style={{ background: color.accent, border:"none", borderRadius:"50%", width:34, height:34, cursor:"pointer", color: color.onAccent, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
+        <button type="button" aria-label={isPlaying?"Pause":"Play"} onClick={e=>{e.stopPropagation();onTogglePlay();}} style={{ background: color.accent, border:"none", borderRadius:"50%", width:36, height:36, cursor:"pointer", color: color.onAccent, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
           <Icon name={isPlaying?"pause":"play"} size={16}/>
         </button>
         <button type="button" aria-label="Next" onClick={e=>{e.stopPropagation();onSkip();}} style={{ background:"none",border:"none",cursor:"pointer",color: color.muted, padding:4 }}><Icon name="skip" size={16}/></button>
@@ -2496,14 +2445,14 @@ function BottomNav({ screen, setScreen, showAdmin = false }) {
   const items = [
     {id:"home",label:"Home",icon:"home"},
     {id:"search",label:"Search",icon:"search"},
-    {id:"favorites",label:"Library",icon:"heartempty"},
+    {id:"favorites",label:"Discover",icon:"grid"},
     {id:"profile",label:"You",icon:"profile"},
   ];
   if (showAdmin) items.push({id:"admin",label:"Admin",icon:"settings"});
   return (
     <nav aria-label="Main" style={{
       position:"fixed", bottom:0, left:0, right:0, height:56,
-      background: "rgba(9,11,13,0.92)", backdropFilter:"blur(20px)",
+      background: color.canvas,
       borderTop: `1px solid ${color.line}`, display:"flex", zIndex:85,
     }}>
       {items.map(({id,icon,label})=>(
@@ -2514,7 +2463,7 @@ function BottomNav({ screen, setScreen, showAdmin = false }) {
             background:"none", border:"none", cursor:"pointer",
             color: screen===id ? color.accent : color.faint,
           }}>
-          <Icon name={id==="favorites"?(screen===id?"heart":"heartempty"):icon} size={18}/>
+          <Icon name={icon} size={18}/>
           <span style={{ fontSize:9, fontWeight: screen===id ? 650 : 500, letterSpacing:0.2 }}>{label}</span>
         </button>
       ))}
@@ -3136,7 +3085,7 @@ export default function App() {
   // ── Desktop: 3-column shell ───────────────────────────────────────────────
   const NAV_TOP = [
     { id:"home",      icon:"home",   label:"Home" },
-    { id:"favorites", icon:"heart",  label:"Library" },
+    { id:"favorites", icon:"grid",   label:"Discover" },
   ];
   const NAV_BOTTOM = [
     { id:"map",       icon:"grid",   label:"Map" },
@@ -3167,7 +3116,7 @@ export default function App() {
           <BrandGlyph size={28}/>
         </div>
 
-        {/* Top nav: Home, Library, Session */}
+        {/* Top nav: Home, Discover, Session */}
         <div style={{ display:"flex", flexDirection:"column", gap:4, alignItems:"center" }}>
           {NAV_TOP.map(item => (
             <button key={item.id} onClick={()=>setScreen(item.id)} title={item.label} style={{
@@ -3228,7 +3177,14 @@ export default function App() {
         <>
         {/* Accent glow behind content */}
         {currentTrack && <div style={{ position:"absolute", top:0, right:0, width:"40%", height:"30%", background:`radial-gradient(ellipse at 80% 0%, rgba(${glowRgb},0.07) 0%, transparent 70%)`, pointerEvents:"none", zIndex:0 }}/>}
-        <div style={{ position:"relative", zIndex:1, maxWidth:960, margin:"0 auto", padding:"24px 32px", paddingBottom:currentTrack?120:24 }}>
+        <div style={{
+          position:"relative", zIndex:1,
+          maxWidth: (screen==="home" || screen==="favorites") ? "none" : 960,
+          margin:"0 auto",
+          padding: (screen==="home" || screen==="favorites")
+            ? `0 0 ${currentTrack?120:24}px`
+            : `24px 32px ${currentTrack?120:24}px`,
+        }}>
           <BgMist color={currentTrack?.color}/>
           <Pulse track={currentTrack} isPlaying={isPlaying}/>
           {toast && <ToastEl msg={toast}/>}
@@ -3249,30 +3205,42 @@ export default function App() {
           )}
         </div>
         </>
-        {/* Desktop mini-player bar */}
+        {/* Desktop mini-player — flat station strip */}
         {currentTrack && !immersive && (
-          <div style={{ position:"fixed", bottom:0, left:72, right:320, zIndex:80, padding:"0 16px 12px" }}>
-            <div onClick={()=>setImmersive(true)} style={{ background: "rgba(20,20,22,0.92)", backdropFilter:"blur(24px)", borderRadius:16, display:"flex", flexDirection:"column", border:`1px solid ${color.lineStrong}`, boxShadow:`0 12px 40px rgba(0,0,0,0.4)`, cursor:"pointer", overflow:"hidden", position:"relative" }}>
-              {/* Content row */}
-              <div style={{ display:"flex", alignItems:"center", gap:12, padding:"10px 16px" }}>
-                <div style={{ width:44, height:44, borderRadius:10, overflow:"hidden", flexShrink:0 }}><AlbumArt track={currentTrack} size={44} borderRadius={0}/></div>
+          <div style={{ position:"fixed", bottom:0, left:72, right:320, zIndex:80 }}>
+            <div onClick={()=>setImmersive(true)} style={{
+              background: color.station,
+              borderTop:`1px solid ${color.lineStrong}`,
+              display:"flex", flexDirection:"column",
+              cursor:"pointer", overflow:"hidden", position:"relative",
+            }}>
+              <div aria-hidden="true" style={{ height:2, background:"rgba(232,236,240,0.08)", width:"100%" }}>
+                <div style={{ height:"100%", width:`${duration?((progress/duration)*100):0}%`, background: color.accent, transition:"width 1s linear" }}/>
+              </div>
+              <div style={{ display:"flex", alignItems:"center", gap:12, padding:"12px 18px" }}>
+                <div style={{ width:44, height:44, overflow:"hidden", flexShrink:0 }}><AlbumArt track={currentTrack} size={44} borderRadius={0}/></div>
                 <div style={{ flex:1, minWidth:0 }}>
-                  <div style={{ fontSize:14, fontWeight:600, color: color.ink, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap", letterSpacing:-0.2 }}>
-                    {isRadioMode&&<span style={{ fontSize:9, color: color.accent, fontWeight:700, letterSpacing:1.5, marginRight:8 }}>●</span>}
+                  <div style={{ fontSize:14, fontWeight:650, color: color.ink, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap", letterSpacing:-0.2, fontFamily: fontDisplay }}>
+                    {isRadioMode && (
+                      <span style={{
+                        display:"inline-block", width:6, height:6, borderRadius:"50%",
+                        background: color.accent, marginRight:8, verticalAlign:"middle",
+                        boxShadow: isPlaying ? `0 0 0 3px ${color.accentSoft}` : "none",
+                        animation: isPlaying ? "breathe 2s ease-in-out infinite" : "none",
+                      }}/>
+                    )}
                     {currentTrack.title}
                   </div>
-                  <div style={{ fontSize:11, color: color.muted }}>{currentTrack.artist}</div>
+                  <div style={{ fontSize:11, color: color.muted, marginTop:2 }}>
+                    {isRadioMode ? `On air · ${currentTrack.artist}` : currentTrack.artist}
+                  </div>
                 </div>
                 <span style={{ fontSize:10, color: color.faint, fontVariantNumeric:"tabular-nums", flexShrink:0 }}>{fmtTime(progress)}</span>
                 <button onClick={e=>{e.stopPropagation();onLikeToggle();}} style={{ background:"none",border:"none",cursor:"pointer",color:currentTrack.liked?color.accent:color.faint,padding:4 }}><Icon name={currentTrack.liked?"heart":"heartempty"} size={16}/></button>
-                <button onClick={e=>{e.stopPropagation();setIsPlaying(p=>!p);}} style={{ background: color.accent,border:"none",borderRadius:"50%",width:34,height:34,cursor:"pointer",color: color.onAccent,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0 }}>
+                <button onClick={e=>{e.stopPropagation();setIsPlaying(p=>!p);}} style={{ background: color.accent,border:"none",borderRadius:"50%",width:36,height:36,cursor:"pointer",color: color.onAccent,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0 }}>
                   <Icon name={isPlaying?"pause":"play"} size={15}/>
                 </button>
                 <button onClick={e=>{e.stopPropagation();handleSkip();}} style={{ background:"none",border:"none",cursor:"pointer",color: color.muted,padding:4 }}><Icon name="skip" size={16}/></button>
-              </div>
-              {/* Full-width progress bar — color-tinted ambient strip */}
-              <div style={{ height:3, background:"rgba(232,236,240,0.08)", width:"100%" }}>
-                <div style={{ height:"100%", width:`${duration?((progress/duration)*100):0}%`, background: color.accent, borderRadius:"0 2px 2px 0", transition:"width 1s linear" }}/>
               </div>
             </div>
           </div>
