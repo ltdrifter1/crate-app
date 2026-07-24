@@ -5,10 +5,10 @@ import {
 } from "../../theme";
 
 /**
- * First-visit ritual: pick Rooms that feel like home.
+ * First-visit ritual: press into Rooms that feel like home — posters, not checkboxes.
  */
 export default function OnboardingRitual({ tracks, onComplete, onSkip }) {
-  const rooms = populateAllRooms(tracks).slice(0, 14);
+  const rooms = populateAllRooms(tracks).slice(0, 12);
   const [selected, setSelected] = useState([]);
 
   function toggle(id) {
@@ -33,7 +33,20 @@ export default function OnboardingRitual({ tracks, onComplete, onSkip }) {
         animation: "fadeIn 0.4s ease both",
       }}
     >
-      <div style={{ maxWidth: 520, margin: "0 auto", padding: "48px 20px 120px" }}>
+      <div
+        aria-hidden="true"
+        style={{
+          position: "absolute",
+          top: 0,
+          left: 0,
+          right: 0,
+          height: "42vh",
+          background: "radial-gradient(ellipse at 40% 0%, #1A1612 0%, #0C0B0A 55%, transparent 100%)",
+          pointerEvents: "none",
+        }}
+      />
+
+      <div style={{ position: "relative", maxWidth: 560, margin: "0 auto", padding: "48px 20px 120px" }}>
         <div
           style={{
             fontSize: 11,
@@ -50,32 +63,39 @@ export default function OnboardingRitual({ tracks, onComplete, onSkip }) {
         <h1
           style={{
             margin: 0,
-            fontSize: "clamp(32px, 8vw, 44px)",
+            fontSize: "clamp(34px, 9vw, 48px)",
             fontWeight: 800,
-            letterSpacing: -1.4,
+            letterSpacing: -1.6,
             fontFamily: fontDisplay,
             color: color.ink,
-            lineHeight: 1.05,
+            lineHeight: 0.98,
           }}
         >
           Which rooms feel like home?
         </h1>
         <p
           style={{
-            margin: "14px 0 28px",
+            margin: "14px 0 32px",
             fontSize: 15,
             color: color.body,
             lineHeight: 1.5,
-            maxWidth: 360,
+            maxWidth: 340,
           }}
         >
-          Pick up to three. We’ll leave the door cracked — you can always wander later.
+          Press into up to three. We’ll leave the door cracked.
         </p>
 
-        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-          {rooms.map((room) => {
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fill, minmax(148px, 1fr))",
+            gap: 12,
+          }}
+        >
+          {rooms.map((room, i) => {
             const on = selected.includes(room.id);
             const bg = atmosphereGradient(room.atmosphere || room.id);
+            const cover = room.coverTrack?.albumCover;
             return (
               <button
                 key={room.id}
@@ -83,77 +103,79 @@ export default function OnboardingRitual({ tracks, onComplete, onSkip }) {
                 onClick={() => toggle(room.id)}
                 aria-pressed={on}
                 style={{
-                  display: "flex",
-                  alignItems: "stretch",
-                  gap: 0,
+                  position: "relative",
+                  minHeight: 168,
                   padding: 0,
-                  border: on ? `1px solid ${color.accent}` : `1px solid ${color.line}`,
-                  borderRadius: radius.md,
+                  border: on ? `2px solid ${color.accent}` : `1px solid ${color.line}`,
                   overflow: "hidden",
                   background: color.surfaceSolid,
                   cursor: "pointer",
                   textAlign: "left",
-                  color: color.ink,
+                  color: color.onDark,
+                  animation: `rise 0.5s cubic-bezier(0.22,1,0.36,1) ${Math.min(i, 8) * 0.03}s both`,
                 }}
               >
+                <div aria-hidden="true" style={{ position: "absolute", inset: 0, background: bg }} />
+                {cover && (
+                  <div
+                    aria-hidden="true"
+                    style={{
+                      position: "absolute",
+                      inset: 0,
+                      backgroundImage: `url(${cover})`,
+                      backgroundSize: "cover",
+                      backgroundPosition: "center",
+                      opacity: on ? 0.55 : 0.35,
+                      filter: "saturate(110%)",
+                    }}
+                  />
+                )}
                 <div
                   aria-hidden="true"
                   style={{
-                    width: 8,
-                    flexShrink: 0,
-                    background: on ? color.accent : bg,
+                    position: "absolute",
+                    inset: 0,
+                    background:
+                      "linear-gradient(180deg, transparent 20%, rgba(12,11,10,0.92) 100%)",
                   }}
                 />
-                <div style={{ flex: 1, padding: "14px 16px" }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", gap: 12 }}>
-                    <div>
-                      <div
-                        style={{
-                          fontSize: 10,
-                          fontWeight: 700,
-                          letterSpacing: 1.2,
-                          color: color.faint,
-                          fontFamily: fontMono,
-                          textTransform: "uppercase",
-                          marginBottom: 4,
-                        }}
-                      >
-                        {KIND_LABELS[room.kind] || "Room"}
-                      </div>
-                      <div
-                        style={{
-                          fontSize: 16,
-                          fontWeight: 700,
-                          fontFamily: fontDisplay,
-                          letterSpacing: -0.3,
-                          color: on ? color.accent : color.ink,
-                        }}
-                      >
-                        {room.label}
-                      </div>
-                      <div style={{ fontSize: 12, color: color.muted, marginTop: 4 }}>
-                        {room.desc || room.story}
-                      </div>
-                    </div>
-                    <div
-                      style={{
-                        width: 22,
-                        height: 22,
-                        borderRadius: 6,
-                        border: `1px solid ${on ? color.accent : color.lineStrong}`,
-                        background: on ? color.accent : "transparent",
-                        color: on ? color.onAccent : "transparent",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        fontSize: 12,
-                        fontWeight: 700,
-                        flexShrink: 0,
-                        marginTop: 4,
-                      }}
-                    >
-                      ✓
-                    </div>
+                <div
+                  style={{
+                    position: "relative",
+                    zIndex: 1,
+                    height: "100%",
+                    minHeight: 168,
+                    display: "flex",
+                    flexDirection: "column",
+                    justifyContent: "flex-end",
+                    padding: "14px 14px 16px",
+                  }}
+                >
+                  <div
+                    style={{
+                      fontSize: 9,
+                      fontWeight: 700,
+                      letterSpacing: 1.4,
+                      color: on ? color.accent : color.faint,
+                      fontFamily: fontMono,
+                      textTransform: "uppercase",
+                      marginBottom: 6,
+                    }}
+                  >
+                    {KIND_LABELS[room.kind] || "Room"}
+                    {on ? " · In" : ""}
+                  </div>
+                  <div
+                    style={{
+                      fontSize: 16,
+                      fontWeight: 750,
+                      fontFamily: fontDisplay,
+                      letterSpacing: -0.4,
+                      color: color.onDark,
+                      lineHeight: 1.15,
+                    }}
+                  >
+                    {room.label}
                   </div>
                 </div>
               </button>

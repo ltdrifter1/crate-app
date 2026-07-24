@@ -903,27 +903,63 @@ function LoginScreen({ onSignUp, onLogIn, onGoogleSignIn, onPhoneOTP, onVerifyOT
   }
 
   return (
-    <div style={{ ...APP_STYLE, background: color.canvas, justifyContent:"center" }}>
-      <div style={{ display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", minHeight:"100%", gap:28, padding:24, width:"100%", maxWidth:420, margin:"0 auto" }}>
-        <div style={{ textAlign:"center" }}>
-          <div style={{ margin:"0 auto 18px" }}>
-            <BrandGlyph size={96} />
+    <div style={{ ...APP_STYLE, position:"relative", justifyContent:"flex-end" }}>
+      <div aria-hidden="true" style={{ position:"absolute", inset:0, background: timeOfDayGradient() }}/>
+      <div aria-hidden="true" style={{
+        position:"absolute", top:"-18%", right:"-12%", width:380, height:380, borderRadius:"50%",
+        background:`radial-gradient(circle, ${color.accentSoft} 0%, transparent 70%)`,
+        animation:"breathe 8s ease-in-out infinite",
+      }}/>
+      <div aria-hidden="true" style={{
+        position:"absolute", inset:0,
+        background:"linear-gradient(180deg, rgba(12,11,10,0.15) 0%, rgba(12,11,10,0.55) 42%, rgba(12,11,10,0.96) 78%)",
+      }}/>
+
+      <div style={{
+        position:"relative", zIndex:1, width:"100%", maxWidth:420, margin:"0 auto",
+        padding:"48px 20px 36px", display:"flex", flexDirection:"column", gap:28,
+        animation:"stationIn 0.7s cubic-bezier(0.22,1,0.36,1) both",
+      }}>
+        <div>
+          <div style={{
+            fontSize:11, fontWeight:700, letterSpacing:2, color: color.accent,
+            fontFamily: fontMono, textTransform:"uppercase", marginBottom:14,
+          }}>Enter</div>
+          <div style={{ marginBottom:12 }}>
+            <BrandGlyph size={56} light />
           </div>
-          <div style={{ fontSize:14, color: color.muted, letterSpacing:0.2 }}>{BRAND_TAGLINE}</div>
+          <div style={{
+            fontSize:15, color: color.body, lineHeight:1.5, maxWidth:300,
+          }}>{BRAND_TAGLINE}</div>
         </div>
 
-        <div style={{ width:"100%", display:"flex", flexDirection:"column", gap:12, padding:22, borderRadius: radius.xl, background: color.surfaceSolid, border:`1px solid ${color.line}` }}>
-          <div style={{ display:"flex", background: color.canvas, borderRadius: radius.sm, padding:3, gap:2 }}>
+        <div style={{
+          width:"100%", display:"flex", flexDirection:"column", gap:12,
+          padding:"20px 18px 18px",
+          background: color.surfaceSolid,
+          border:`1px solid ${color.line}`,
+        }}>
+          <div style={{ display:"flex", gap:18, marginBottom:4, borderBottom:`1px solid ${color.line}` }}>
             {["login","signup"].map(m => (
-              <button key={m} type="button" onClick={() => { setMode(m); resetMessages(); }} style={{ flex:1, padding:"10px 0", borderRadius:8, border:"none", cursor:"pointer", fontSize:13, fontWeight:600, background:mode===m? color.accent :"transparent", color:mode===m? color.onAccent: color.muted }}>
-                {m === "login" ? "Log In" : "Sign Up"}
+              <button key={m} type="button" onClick={() => { setMode(m); resetMessages(); }} style={{
+                background:"none", border:"none", cursor:"pointer", padding:"8px 0 12px",
+                fontSize:13, fontWeight: mode===m ? 700 : 500, fontFamily: fontDisplay, letterSpacing:-0.2,
+                color: mode===m ? color.ink : color.faint,
+                borderBottom: mode===m ? `2px solid ${color.accent}` : "2px solid transparent",
+              }}>
+                {m === "login" ? "Log in" : "Sign up"}
               </button>
             ))}
           </div>
 
-          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:6 }}>
+          <div style={{ display:"flex", gap:14 }}>
             {[{id:"email",label:"Email"},{id:"phone",label:"Phone"}].map(item => (
-              <button key={item.id} type="button" onClick={() => switchMethod(item.id)} style={{ border:`1px solid ${color.line}`, background:authMethod===item.id? color.accentSoft:"transparent", color:authMethod===item.id? color.ink: color.muted, borderRadius: radius.sm, padding:"10px 12px", fontWeight:600, cursor:"pointer", fontSize:13 }}>
+              <button key={item.id} type="button" onClick={() => switchMethod(item.id)} style={{
+                background:"none", border:"none", cursor:"pointer", padding:"4px 0",
+                fontSize:12, fontWeight: authMethod===item.id ? 700 : 500,
+                color: authMethod===item.id ? color.accent : color.faint,
+                fontFamily: fontMono, letterSpacing:0.6, textTransform:"uppercase",
+              }}>
                 {item.label}
               </button>
             ))}
@@ -940,7 +976,7 @@ function LoginScreen({ onSignUp, onLogIn, onGoogleSignIn, onPhoneOTP, onVerifyOT
                 </button>
               )}
               <button type="button" onClick={handleSubmit} disabled={loading} style={{ ...BTN_PRIMARY, opacity:loading ? 0.7 : 1 }}>
-                {loading ? "Please wait…" : mode === "login" ? "Sign In" : "Create Account"}
+                {loading ? "Please wait…" : mode === "login" ? "Enter" : "Create account"}
               </button>
             </>
           )}
@@ -975,7 +1011,7 @@ function LoginScreen({ onSignUp, onLogIn, onGoogleSignIn, onPhoneOTP, onVerifyOT
             <div style={{ flex:1, height:1, background: color.line }}/>
           </div>
 
-          <button type="button" onClick={handleGoogleSignIn} disabled={loading} style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:10, width:"100%", padding:"13px 20px", borderRadius: radius.md, border:`1px solid ${color.lineStrong}`, background: color.surfaceSolid, cursor:"pointer", opacity:loading?0.6:1 }}>
+          <button type="button" onClick={handleGoogleSignIn} disabled={loading} style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:10, width:"100%", padding:"13px 20px", borderRadius: radius.md, border:`1px solid ${color.lineStrong}`, background: color.surface, cursor:"pointer", opacity:loading?0.6:1 }}>
             <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18A11.96 11.96 0 0 0 0 12c0 1.94.46 3.77 1.28 5.39l3.56-2.77.01-.53z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
             <span style={{ fontSize:14, fontWeight:600, color: color.ink }}>Continue with Google</span>
           </button>
@@ -1114,9 +1150,8 @@ function RouteBuilderModal({ tracks, onClose, onPlayRoute }) {
               <div style={{ display:"flex", gap:10, justifyContent:"center", marginBottom:48, flexWrap:"wrap" }}>
                 {[30,60,120,240,480].map(m => (
                   <button type="button" key={m} onClick={()=>setDuration(m)} style={{
-                    width:64, height:64, borderRadius:16, border: duration===m ? "1px solid rgba(255,255,255,0.3)" : "1px solid rgba(255,255,255,0.08)",
-                    background: duration===m ? "rgba(255,255,255,0.12)" : "rgba(255,255,255,0.04)",
-                    color: duration===m ? "#FFFFFF" : "rgba(255,255,255,0.35)",
+                    width:64, height:64, borderRadius:16, border: duration===m ? `${"1px solid "}${color.accent}` : `${"1px solid "}${color.line}`,
+                    background: duration===m ? color.accent : color.surface, color: duration===m ? color.onAccent : color.muted,
                     fontSize:16, fontWeight:600, cursor:"pointer", transition:"all 0.25s",
                     display:"flex", alignItems:"center", justifyContent:"center",
                   }}>
@@ -1142,7 +1177,7 @@ function RouteBuilderModal({ tracks, onClose, onPlayRoute }) {
                     <div style={{ fontSize:16, fontWeight:600, color: color.ink, letterSpacing:-0.2, marginBottom:10 }}>{prof.label}</div>
                     <div style={{ display:"flex", gap:2, alignItems:"flex-end", marginBottom:8 }}>
                       {prof.phases.map((ph,i) => (
-                        <div key={i} style={{ flex:ph.p, height: 2 + ph.e * 2, borderRadius:2, background:`rgba(255,255,255,${0.06 + ph.e * 0.04})` }}/>
+                        <div key={i} style={{ flex:ph.p, height: 2 + ph.e * 2, borderRadius:2, background: color.accentSoft }}/>
                       ))}
                     </div>
                     <div style={{ fontSize:10, color: color.faint, letterSpacing:0.3 }}>{prof.phases.map(p=>p.name).join(" · ")}</div>
@@ -1164,13 +1199,13 @@ function RouteBuilderModal({ tracks, onClose, onPlayRoute }) {
                 </div>
                 <div style={{ display:"flex", gap:8, justifyContent:"center", marginBottom:20 }}>
                   <button type="button" onClick={()=>setPathPick("start")} style={{
-                    padding:"8px 14px", borderRadius:10, border: pathPick==="start" ? "1px solid rgba(255,255,255,0.28)" : "1px solid rgba(255,255,255,0.08)",
-                    background: pathPick==="start" ? "rgba(255,255,255,0.1)" : "transparent", color: pathStart ? "#FFFFFF" : "rgba(255,255,255,0.4)", fontSize:12, cursor:"pointer", maxWidth:180, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap",
+                    padding:"8px 14px", borderRadius:10, border: pathPick==="start" ? `${"1px solid "}${color.accent}` : `${"1px solid "}${color.line}`,
+                    background: pathPick==="start" ? color.accentSoft : "transparent", color: pathStart ? color.ink : color.muted, fontSize:12, cursor:"pointer", maxWidth:180, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap",
                   }}>{pathStart ? pathStart.title : "Start"}</button>
                   <span style={{ color: color.faint, alignSelf:"center", fontSize:12 }}>→</span>
                   <button type="button" onClick={()=>setPathPick("end")} style={{
-                    padding:"8px 14px", borderRadius:10, border: pathPick==="end" ? "1px solid rgba(255,255,255,0.28)" : "1px solid rgba(255,255,255,0.08)",
-                    background: pathPick==="end" ? "rgba(255,255,255,0.1)" : "transparent", color: pathEnd ? "#FFFFFF" : "rgba(255,255,255,0.4)", fontSize:12, cursor:"pointer", maxWidth:180, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap",
+                    padding:"8px 14px", borderRadius:10, border: pathPick==="end" ? `${"1px solid "}${color.accent}` : `${"1px solid "}${color.line}`,
+                    background: pathPick==="end" ? color.accentSoft : "transparent", color: pathEnd ? color.ink : color.muted, fontSize:12, cursor:"pointer", maxWidth:180, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap",
                   }}>{pathEnd ? pathEnd.title : "End"}</button>
                 </div>
                 <input
@@ -1180,7 +1215,7 @@ function RouteBuilderModal({ tracks, onClose, onPlayRoute }) {
                   style={{ width:"100%", padding:"12px 14px", borderRadius:12, border:`1px solid ${color.lineStrong}`, background: color.surface, color: color.ink, fontSize:14, marginBottom:14, outline:"none" }}
                 />
               </div>
-              <div style={{ maxHeight:280, overflowY:"auto", borderRadius:14, border:"1px solid rgba(255,255,255,0.06)", background:"rgba(255,255,255,0.03)", marginBottom:20 }}>
+              <div style={{ maxHeight:280, overflowY:"auto", borderRadius:14, border:`${"1px solid "}${color.line}`, background:color.surface, marginBottom:20 }}>
                 {pathResults.map(t => (
                   <button type="button" key={t.id} onClick={() => {
                     if (pathPick === "start") {
@@ -1193,8 +1228,8 @@ function RouteBuilderModal({ tracks, onClose, onPlayRoute }) {
                     }
                   }} style={{
                     display:"flex", alignItems:"center", gap:10, width:"100%", padding:"10px 14px",
-                    background: (pathStart?.id===t.id || pathEnd?.id===t.id) ? "rgba(255,255,255,0.08)" : "transparent",
-                    border:"none", borderBottom:"1px solid rgba(255,255,255,0.04)", cursor:"pointer", textAlign:"left",
+                    background: (pathStart?.id===t.id || pathEnd?.id===t.id) ? color.surface : "transparent",
+                    border:"none", borderBottom:`${"1px solid "}${color.line}`, cursor:"pointer", textAlign:"left",
                   }}>
                     <div style={{ width:36, height:36, borderRadius:6, overflow:"hidden", flexShrink:0 }}><AlbumArt track={t} size={36} borderRadius={0}/></div>
                     <div style={{ flex:1, minWidth:0 }}>
@@ -1208,8 +1243,8 @@ function RouteBuilderModal({ tracks, onClose, onPlayRoute }) {
                 onClick={buildPath}
                 style={{
                   width:"100%", padding:"16px", borderRadius:16,
-                  background: pathStart && pathEnd ? "rgba(255,255,255,0.12)" : "rgba(255,255,255,0.04)",
-                  border:"1px solid rgba(255,255,255,0.12)", color: pathStart && pathEnd ? "#FFFFFF" : "rgba(255,255,255,0.25)",
+                  background: pathStart && pathEnd ? color.accent : color.surface,
+                  border:`${"1px solid "}${color.lineStrong}`, color: pathStart && pathEnd ? color.onAccent : color.faint,
                   fontSize:15, fontWeight:600, cursor: pathStart && pathEnd ? "pointer" : "default",
                 }}>
                 Build route
@@ -1236,7 +1271,7 @@ function RouteBuilderModal({ tracks, onClose, onPlayRoute }) {
                 <div style={{ marginBottom:32, padding:"0 8px" }}>
                   <div style={{ display:"flex", borderRadius:12, overflow:"hidden", height:8, marginBottom:8, background: color.surface }}>
                     {profile.phases.map((ph,i) => (
-                      <div key={i} style={{ flex:ph.p, background:`rgba(255,255,255,${0.05 + ph.e * 0.06})` }}/>
+                      <div key={i} style={{ flex:ph.p, background: color.accentSoft }}/>
                     ))}
                   </div>
                   <div style={{ display:"flex" }}>
@@ -1256,13 +1291,13 @@ function RouteBuilderModal({ tracks, onClose, onPlayRoute }) {
                       const energies = session.map(t => t.energy || 5);
                       const stepX = 320 / Math.max(energies.length - 1, 1);
                       const pts = energies.map((e, i) => `${i * stepX},${48 - ((e - 1) / 9) * 40}`).join(" ");
-                      return <polyline points={pts} fill="none" stroke="rgba(255,255,255,0.45)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>;
+                      return <polyline points={pts} fill="none" stroke={color.body} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>;
                     })()}
                   </svg>
                 </div>
               )}
 
-              <div style={{ maxHeight:320, overflowY:"auto", marginBottom:32, borderRadius:16, background:"rgba(255,255,255,0.03)", border:"1px solid rgba(255,255,255,0.06)", padding:"8px 0" }}>
+              <div style={{ maxHeight:320, overflowY:"auto", marginBottom:32, borderRadius:16, background:color.surface, border:`${"1px solid "}${color.line}`, padding:"8px 0" }}>
                 {mode === "night" ? phases.map((phase, pi) => (
                   <div key={pi}>
                     <div style={{ fontSize:9, fontWeight:700, letterSpacing:1.5, color: color.faint, textTransform:"uppercase", padding:"12px 16px 6px" }}>{phase.name}</div>
@@ -1421,46 +1456,53 @@ function HypnoVisionOverlay({ sourceTrack, tracks, onPlay, onClose }) {
 
   return (
     <div style={{ position:"fixed", inset:0, zIndex:95, overflow:"auto" }}>
-      <div style={{ position:"absolute", inset:0, background:`radial-gradient(ellipse at 50% 20%, rgba(${rgb},0.08) 0%, rgba(8,8,12,0.92) 60%)`, backdropFilter:"blur(40px)" }} onClick={onClose}/>
-      <div style={{ position:"relative", zIndex:1, maxWidth:520, margin:"0 auto", padding:"40px 24px" }}>
-        {/* Header */}
-        <div style={{ display:"flex", alignItems:"center", gap:16, marginBottom:32 }}>
-          <div style={{ width:64, height:64, borderRadius:14, overflow:"hidden", flexShrink:0, boxShadow:`0 8px 32px rgba(${rgb},0.25)` }}>
-            <AlbumArt track={sourceTrack} size={64} borderRadius={0}/>
+      <div style={{ position:"absolute", inset:0, background:`radial-gradient(ellipse at 50% 20%, rgba(${rgb},0.12) 0%, ${color.canvas} 58%)` }} onClick={onClose}/>
+      <div style={{ position:"relative", zIndex:1, maxWidth:520, margin:"0 auto", padding:"40px 24px 56px" }}>
+        <div style={{ display:"flex", alignItems:"center", gap:16, marginBottom:28 }}>
+          <div style={{ width:72, height:72, overflow:"hidden", flexShrink:0, boxShadow:`0 12px 32px rgba(${rgb},0.22)` }}>
+            <AlbumArt track={sourceTrack} size={72} borderRadius={0}/>
           </div>
-          <div style={{ flex:1 }}>
-            <div style={{ fontSize:10, fontWeight:700, letterSpacing:2, color:"rgba(255,255,255,0.25)", textTransform:"uppercase", marginBottom:4 }}>Hypno Vision</div>
-            <div style={{ fontSize:18, fontWeight:700, color:"#FFFFFF", letterSpacing:-0.3 }}>{sourceTrack.title}</div>
-            <div style={{ fontSize:12, color:"rgba(255,255,255,0.4)", marginTop:2 }}>{sourceTrack.artist} · Tracks that feel like this</div>
+          <div style={{ flex:1, minWidth:0 }}>
+            <div style={{ fontSize:10, fontWeight:700, letterSpacing:2, color: color.accent, fontFamily: fontMono, textTransform:"uppercase", marginBottom:6 }}>Same pocket</div>
+            <div style={{ fontSize:20, fontWeight:750, color: color.ink, letterSpacing:-0.4, fontFamily: fontDisplay, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{sourceTrack.title}</div>
+            <div style={{ fontSize:13, color: color.muted, marginTop:4 }}>{sourceTrack.artist} · tracks that feel like this</div>
           </div>
-          <button onClick={onClose} style={{ background:"rgba(255,255,255,0.06)", border:"1px solid rgba(255,255,255,0.08)", borderRadius:"50%", width:36, height:36, cursor:"pointer", color:"rgba(255,255,255,0.4)", display:"flex", alignItems:"center", justifyContent:"center" }}>
+          <button type="button" onClick={onClose} aria-label="Close" style={{ background: color.surface, border:`1px solid ${color.lineStrong}`, borderRadius:"50%", width:36, height:36, cursor:"pointer", color: color.muted, display:"flex", alignItems:"center", justifyContent:"center" }}>
             <Icon name="x" size={16}/>
           </button>
         </div>
 
-        {/* Trait signature of source */}
         {sourceTrack._signal && (
-          <div style={{ display:"flex", gap:12, marginBottom:24, justifyContent:"center" }}>
+          <div style={{ display:"flex", gap:20, marginBottom:28, justifyContent:"flex-start", paddingBottom:20, borderBottom:`1px solid ${color.line}` }}>
             {["grip","hold","pull","lift"].map(k => (
-              <div key={k} style={{ textAlign:"center" }}>
-                <div style={{ fontSize:16, fontWeight:700, color:"rgba(255,255,255,0.6)" }}>{sourceTrack._signal[k]}</div>
-                <div style={{ fontSize:8, fontWeight:600, letterSpacing:1, color:"rgba(255,255,255,0.15)", textTransform:"uppercase" }}>{k}</div>
+              <div key={k}>
+                <div style={{ fontSize:18, fontWeight:700, color: color.ink, fontFamily: fontDisplay }}>{sourceTrack._signal[k]}</div>
+                <div style={{ fontSize:9, fontWeight:700, letterSpacing:1.4, color: color.faint, textTransform:"uppercase", fontFamily: fontMono, marginTop:2 }}>{k}</div>
               </div>
             ))}
           </div>
         )}
 
-        {/* Similar tracks grid */}
-        <div style={{ display:"grid", gridTemplateColumns:"repeat(3, 1fr)", gap:12 }}>
+        <div style={{ display:"flex", flexDirection:"column" }}>
           {similar.map(t => (
-            <div key={t.id} onClick={() => { onPlay(t); onClose(); }} style={{ cursor:"pointer", textAlign:"center" }}>
-              <div style={{ width:"100%", aspectRatio:"1", borderRadius:12, overflow:"hidden", marginBottom:6, boxShadow:"0 4px 16px rgba(0,0,0,0.2)" }}>
-                <AlbumArt track={t} size={200} borderRadius={0}/>
+            <button
+              key={t.id}
+              type="button"
+              onClick={() => { onPlay(t); onClose(); }}
+              style={{
+                display:"flex", alignItems:"center", gap:14, width:"100%",
+                padding:"12px 0", background:"none", border:"none",
+                borderBottom:`1px solid ${color.line}`, cursor:"pointer", textAlign:"left",
+              }}
+            >
+              <div style={{ width:52, height:52, overflow:"hidden", flexShrink:0 }}>
+                <AlbumArt track={t} size={52} borderRadius={0}/>
               </div>
-              <div style={{ fontSize:11, fontWeight:500, color:"#FFFFFF", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{t.title}</div>
-              <div style={{ fontSize:9, color:"rgba(255,255,255,0.35)" }}>{t.artist}</div>
-              {t._signal && <div style={{ fontSize:8, color:"rgba(255,255,255,0.15)", marginTop:2 }}>{t._signal.label}</div>}
-            </div>
+              <div style={{ flex:1, minWidth:0 }}>
+                <div style={{ fontSize:14, fontWeight:650, color: color.ink, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap", fontFamily: fontDisplay, letterSpacing:-0.2 }}>{t.title}</div>
+                <div style={{ fontSize:12, color: color.muted, marginTop:2 }}>{t.artist}{t._signal?.label ? ` · ${t._signal.label}` : ""}</div>
+              </div>
+            </button>
           ))}
         </div>
       </div>
@@ -1477,7 +1519,6 @@ function AfterglowOverlay({ data, onClose, onSavePlaylist }) {
   const genres = [...new Set(tracks.map(t => t.genre).filter(Boolean))];
   const avgEnergy = (energies.reduce((s, e) => s + e, 0) / energies.length).toFixed(1);
 
-  // Build energy arc SVG
   const width = 320;
   const height = 60;
   const step = width / Math.max(energies.length - 1, 1);
@@ -1485,56 +1526,51 @@ function AfterglowOverlay({ data, onClose, onSavePlaylist }) {
 
   return (
     <div style={{ position:"fixed", inset:0, zIndex:95, display:"flex", alignItems:"center", justifyContent:"center", padding:32 }}>
-      <div style={{ position:"absolute", inset:0, background:"rgba(8,8,12,0.85)", backdropFilter:"blur(40px)" }} onClick={onClose}/>
-      <div style={{ position:"relative", zIndex:1, maxWidth:420, width:"100%", textAlign:"center" }}>
-        {/* Hero */}
-        <div style={{ fontSize:10, fontWeight:700, letterSpacing:2, color:"rgba(255,255,255,0.25)", textTransform:"uppercase", marginBottom:12 }}>Session Complete</div>
-        <div style={{ fontSize:32, fontWeight:700, color:"#FFFFFF", letterSpacing:-0.5, marginBottom:6 }}>{data.durationMins} minutes</div>
-        <div style={{ fontSize:14, color:"rgba(255,255,255,0.35)", marginBottom:32 }}>{tracks.length} tracks · {genres.length} genres · avg energy {avgEnergy}</div>
+      <div style={{ position:"absolute", inset:0, background:"rgba(12,11,10,0.88)" }} onClick={onClose}/>
+      <div style={{ position:"relative", zIndex:1, maxWidth:420, width:"100%", textAlign:"center", animation:"rise 0.45s cubic-bezier(0.22,1,0.36,1) both" }}>
+        <div style={{ fontSize:10, fontWeight:700, letterSpacing:2, color: color.accent, fontFamily: fontMono, textTransform:"uppercase", marginBottom:12 }}>Afterglow</div>
+        <div style={{ fontSize:36, fontWeight:800, color: color.ink, letterSpacing:-1, marginBottom:8, fontFamily: fontDisplay }}>{data.durationMins} minutes</div>
+        <div style={{ fontSize:14, color: color.muted, marginBottom:32 }}>{tracks.length} tracks · {genres.length} scenes · energy {avgEnergy}</div>
 
-        {/* Energy arc */}
-        <div style={{ marginBottom:32 }}>
+        <div style={{ marginBottom:28 }}>
           <svg width={width} height={height} style={{ display:"block", margin:"0 auto" }}>
             <defs>
               <linearGradient id="arcGrad" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="rgba(255,255,255,0.15)"/>
-                <stop offset="100%" stopColor="rgba(255,255,255,0)"/>
+                <stop offset="0%" stopColor={color.accentSoft}/>
+                <stop offset="100%" stopColor="transparent"/>
               </linearGradient>
             </defs>
-            <polyline points={points} fill="none" stroke="rgba(255,255,255,0.3)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            <polyline points={points} fill="none" stroke={color.accent} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" opacity="0.85"/>
             <polygon points={`0,${height} ${points} ${width},${height}`} fill="url(#arcGrad)"/>
           </svg>
-          <div style={{ display:"flex", justifyContent:"space-between", marginTop:4 }}>
-            <span style={{ fontSize:9, color:"rgba(255,255,255,0.2)" }}>Start</span>
-            <span style={{ fontSize:9, color:"rgba(255,255,255,0.2)" }}>End</span>
+          <div style={{ display:"flex", justifyContent:"space-between", marginTop:6, maxWidth:width, marginLeft:"auto", marginRight:"auto" }}>
+            <span style={{ fontSize:10, color: color.faint, fontFamily: fontMono }}>Start</span>
+            <span style={{ fontSize:10, color: color.faint, fontFamily: fontMono }}>End</span>
           </div>
         </div>
 
-        {/* Genre pills */}
-        <div style={{ display:"flex", gap:6, justifyContent:"center", flexWrap:"wrap", marginBottom:32 }}>
-          {genres.slice(0, 6).map(g => (
-            <span key={g} style={{ fontSize:10, fontWeight:500, padding:"4px 10px", borderRadius:8, background:"rgba(255,255,255,0.06)", border:"1px solid rgba(255,255,255,0.08)", color:"rgba(255,255,255,0.4)" }}>{g}</span>
-          ))}
-        </div>
+        {genres.length > 0 && (
+          <div style={{ marginBottom:28, fontSize:13, color: color.body, lineHeight:1.5 }}>
+            {genres.slice(0, 4).join(" · ")}
+          </div>
+        )}
 
-        {/* Actions */}
         <div style={{ display:"flex", gap:10, justifyContent:"center" }}>
-          <button onClick={() => {
+          <button type="button" onClick={() => {
             if (onSavePlaylist) {
               const name = `Session · ${new Date(data.startTime).toLocaleDateString()} ${new Date(data.startTime).toLocaleTimeString([], {hour:"2-digit", minute:"2-digit"})}`;
               onSavePlaylist(name, tracks.map(t => t.id));
             }
             onClose();
           }} style={{
-            padding:"14px 28px", borderRadius:14,
-            background:"rgba(255,255,255,0.1)", backdropFilter:"blur(20px)",
-            border:"1px solid rgba(255,255,255,0.12)",
-            color:"#FFFFFF", fontSize:14, fontWeight:600, cursor:"pointer",
+            padding:"14px 24px", borderRadius: radius.sm,
+            background: color.accent, border:"none",
+            color: color.onAccent, fontSize:14, fontWeight:650, cursor:"pointer",
           }}>Save as playlist</button>
-          <button onClick={onClose} style={{
-            padding:"14px 28px", borderRadius:14,
-            background:"transparent", border:"1px solid rgba(255,255,255,0.08)",
-            color:"rgba(255,255,255,0.4)", fontSize:14, fontWeight:500, cursor:"pointer",
+          <button type="button" onClick={onClose} style={{
+            padding:"14px 24px", borderRadius: radius.sm,
+            background:"none", border:`1px solid ${color.lineStrong}`,
+            color: color.muted, fontSize:14, fontWeight:600, cursor:"pointer",
           }}>Close</button>
         </div>
       </div>
@@ -1552,7 +1588,7 @@ function ImmersivePlayer({
 }) {
   const [showUI, setShowUI] = useState(true);
   const [artLoaded, setArtLoaded] = useState(false);
-  const [showVol, setShowVol] = useState(false);
+  const [showMore, setShowMore] = useState(false);
   const hideTimer = useRef(null);
   const scrubRef = useRef(null);
   const pct = duration > 0 ? (progress / duration) * 100 : 0;
@@ -1565,6 +1601,7 @@ function ImmersivePlayer({
 
   useEffect(() => {
     resetHide();
+    setShowMore(false);
     return () => clearTimeout(hideTimer.current);
   }, [currentTrack?.id, resetHide]);
 
@@ -1775,7 +1812,7 @@ function ImmersivePlayer({
         </button>
       </div>
 
-      {/* Top chrome */}
+      {/* Top chrome — quiet: back + overflow */}
       <div style={{
         position:"absolute", top:20, left:20, right:20,
         display:"flex", justifyContent:"space-between", alignItems:"center",
@@ -1786,69 +1823,64 @@ function ImmersivePlayer({
       }}>
         <button type="button" onClick={(e)=>{ e.stopPropagation(); onClose(); }} aria-label="Back"
           style={{
-            display:"flex", alignItems:"center", gap:8, background:"rgba(9,11,13,0.55)",
+            display:"flex", alignItems:"center", gap:8, background:"rgba(12,11,10,0.55)",
             border:`1px solid ${color.lineStrong}`, borderRadius: radius.sm, padding:"10px 14px",
             color: color.ink, cursor:"pointer", fontSize:13, fontWeight:600,
           }}>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><path d="M6 9l6 6 6-6"/></svg>
           Back
         </button>
-        <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-          {onOpenLiner && (
-            <button type="button" onClick={(e)=>{ e.stopPropagation(); onOpenLiner(currentTrack); }} aria-label="Liner notes"
+        <div style={{ display:"flex", alignItems:"center", gap:10, position:"relative" }}>
+          <div style={{ fontSize:13, fontWeight:800, letterSpacing:-0.4, color: color.ink, fontFamily: fontDisplay }}>{BRAND_NAME}</div>
+          <button type="button" onClick={(e)=>{ e.stopPropagation(); setShowVol(false); setShowMore(m => !m); }} aria-label="More"
+            aria-expanded={showMore}
+            style={{
+              background:"rgba(12,11,10,0.55)", border:`1px solid ${color.lineStrong}`,
+              borderRadius: radius.sm, padding:"10px 12px",
+              color: color.ink, cursor:"pointer", fontSize:12, fontWeight:650,
+            }}>
+            ···
+          </button>
+          {showMore && (
+            <div
+              onClick={e=>e.stopPropagation()}
               style={{
-                display:"flex", alignItems:"center", gap:6, background:"rgba(9,11,13,0.55)",
-                border:`1px solid ${color.lineStrong}`, borderRadius: radius.sm, padding:"10px 12px",
-                color: color.ink, cursor:"pointer", fontSize:12, fontWeight:600,
-              }}>
-              Notes
-            </button>
-          )}
-          {onHypno && (
-            <button type="button" onClick={(e)=>{ e.stopPropagation(); onHypno(currentTrack); }} aria-label="Hypno Vision"
-              style={{
-                display:"flex", alignItems:"center", gap:6, background:"rgba(9,11,13,0.55)",
-                border:`1px solid ${color.lineStrong}`, borderRadius: radius.sm, padding:"10px 12px",
-                color: color.ink, cursor:"pointer", fontSize:12, fontWeight:600,
-              }}>
-              <Icon name="hypno" size={14}/> Similar
-            </button>
-          )}
-          {onHypnoRadio && (
-            <button type="button" onClick={(e)=>{ e.stopPropagation(); onHypnoRadio(currentTrack); }} aria-label="Stay in pocket"
-              style={{
-                background:"rgba(9,11,13,0.55)", border:`1px solid ${color.lineStrong}`,
-                borderRadius: radius.sm, padding:"10px 12px",
-                color: hypnoPocket ? color.accent : color.ink, cursor:"pointer", fontSize:12, fontWeight:600,
-              }}>
-              Pocket
-            </button>
-          )}
-          <div style={{ position:"relative" }}>
-            <button type="button" onClick={(e)=>{ e.stopPropagation(); setShowVol(v => !v); }} aria-label="Volume"
-              style={{
-                background:"rgba(9,11,13,0.55)", border:`1px solid ${color.lineStrong}`,
-                borderRadius: radius.sm, padding:"10px 12px",
-                color: color.ink, cursor:"pointer", display:"flex", alignItems:"center",
-              }}>
-              <Icon name="volume" size={14}/>
-            </button>
-            {showVol && (
-              <div onClick={e=>e.stopPropagation()} style={{
-                position:"absolute", top:"110%", right:0, padding:"12px 14px",
-                background:"rgba(9,11,13,0.92)", border:`1px solid ${color.lineStrong}`,
-                borderRadius:12, minWidth:140,
-              }}>
+                position:"absolute", top:"110%", right:0, minWidth:168,
+                background: color.surfaceSolid, border:`1px solid ${color.lineStrong}`,
+                padding:"6px 0", zIndex:5,
+                animation:"rise 0.2s cubic-bezier(0.22,1,0.36,1) both",
+              }}
+            >
+              {onOpenLiner && (
+                <button type="button" onClick={() => { setShowMore(false); onOpenLiner(currentTrack); }}
+                  style={{ display:"block", width:"100%", textAlign:"left", padding:"12px 16px", background:"none", border:"none", color: color.ink, fontSize:13, fontWeight:600, cursor:"pointer" }}>
+                  Liner notes
+                </button>
+              )}
+              {onHypno && (
+                <button type="button" onClick={() => { setShowMore(false); onHypno(currentTrack); }}
+                  style={{ display:"block", width:"100%", textAlign:"left", padding:"12px 16px", background:"none", border:"none", color: color.ink, fontSize:13, fontWeight:600, cursor:"pointer" }}>
+                  Same pocket
+                </button>
+              )}
+              {onHypnoRadio && (
+                <button type="button" onClick={() => { setShowMore(false); onHypnoRadio(currentTrack); }}
+                  style={{ display:"block", width:"100%", textAlign:"left", padding:"12px 16px", background:"none", border:"none", color: hypnoPocket ? color.accent : color.ink, fontSize:13, fontWeight:600, cursor:"pointer" }}>
+                  {hypnoPocket ? "Pocket on" : "Stay in pocket"}
+                </button>
+              )}
+              <div style={{ height:1, background: color.line, margin:"4px 0" }}/>
+              <div style={{ padding:"10px 16px 14px" }}>
+                <div style={{ fontSize:10, fontWeight:700, letterSpacing:1.2, color: color.faint, fontFamily: fontMono, textTransform:"uppercase", marginBottom:8 }}>Volume</div>
                 <input
                   type="range" min={0} max={1} step={0.01} value={volume}
                   onChange={(e) => onVolumeChange?.(parseFloat(e.target.value))}
-                  style={{ width:112 }}
+                  style={{ width:"100%" }}
                   aria-label="Volume level"
                 />
               </div>
-            )}
-          </div>
-          <div style={{ fontSize:13, fontWeight:800, letterSpacing:-0.4, color: color.ink, fontFamily: fontDisplay, marginLeft:4 }}>{BRAND_NAME}</div>
+            </div>
+          )}
         </div>
       </div>
     </div>
