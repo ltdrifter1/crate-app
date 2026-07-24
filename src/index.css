@@ -1,9 +1,21 @@
 * { box-sizing: border-box; margin: 0; padding: 0; }
+html, body, #root {
+  width: 100%;
+  max-width: 100vw;
+  min-height: 100%;
+}
 body {
   font-family: -apple-system, "SF Pro Display", "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background: #F0F1F5;
-  color: #1A1D26;
+  background: #F4F5F7;
+  color: #14161C;
 }
 code { font-family: "SF Mono", "Menlo", "Monaco", "Courier New", monospace; }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
