@@ -4,7 +4,7 @@ import { toggleLike as fbToggleLike, recordPlay, saveGenres } from "./useUserDat
 import { collection, getDocs, addDoc, query, orderBy, doc, updateDoc, setDoc } from "firebase/firestore";
 import { db }                                       from "./firebase";
 import {
-  font, fontDisplay, color, radius, motion, timeOfDayGradient,
+  font, fontDisplay, fontMono, color, radius, motion, timeOfDayGradient,
   APP_STYLE, INPUT_ST, BTN_PRIMARY, BTN_SECONDARY, CTRL_BTN, ADMIN_UID,
 } from "./theme";
 import { camelotCompatible, getEnergyRangeForHour, fmtTime, hexToRgbStr } from "./lib/harmony";
@@ -12,7 +12,11 @@ import {
   computeHumanState, findResonant, computeSignalTraits, pickNextTrack,
   buildSession, SESSION_PROFILES,
 } from "./lib/engine";
-import { CANONICAL_GENRES, normalizeGenre, GENRE_TONES } from "./lib/genres";
+import { CANONICAL_GENRES, normalizeGenre } from "./lib/genres";
+import {
+  getFloorPhase, CLUB_ROOMS, roomForFloorPhase,
+  getArrivalSoundEnabled, setArrivalSoundEnabled, playArrivalSound,
+} from "./lib/club";
 
 const injectStyles = () => {
   if (document.getElementById("verse-app-global-styles")) return;
@@ -146,12 +150,65 @@ function VinylRecord({ track, isPlaying, size=190 }) {
   );
 }
 
-// ─── RADIO — full-bleed home station ──────────────────────────────────────────
-function DeepCutsCard({ onPlay, onTogglePlay, currentTrack, isPlaying, isRadioMode, signalLabel }) {
-  const hour = new Date().getHours();
-  const timeLabel = hour>=22||hour<=1?"Late Night":hour<=5?"Deep Hours":hour<=8?"Early Morning":hour<=11?"Morning":hour<=14?"Midday":hour<=17?"Afternoon":"Evening";
+// ─── Booth HUD — BPM / key / energy ───────────────────────────────────────────
+function BoothHud({ track, size = "md", align = "left" }) {
+  if (!track) return null;
+  const bpm = track.bpm ? String(track.bpm) : "—";
+  const key = track.camelot || "—";
+  const energy = track.energy != null ? String(track.energy) : "—";
+  const big = size === "lg";
+  const compact = size === "sm";
+  if (compact) {
+    return (
+      <div style={{
+        fontFamily: fontMono, fontVariantNumeric:"tabular-nums",
+        fontSize:10, letterSpacing:0.6, color: color.accent, fontWeight:600,
+      }}>
+        {bpm}<span style={{ color: color.faint }}> BPM</span>
+        <span style={{ color: color.faint }}>  ·  </span>
+        {key}
+        <span style={{ color: color.faint }}>  ·  E</span>{energy}
+      </div>
+    );
+  }
+  const cells = [
+    { label: "BPM", value: bpm },
+    { label: "KEY", value: key },
+    { label: "NRG", value: energy },
+  ];
+  return (
+    <div style={{
+      display:"flex", gap: big ? 22 : 14,
+      justifyContent: align === "center" ? "center" : align === "right" ? "flex-end" : "flex-start",
+      fontFamily: fontMono, fontVariantNumeric:"tabular-nums",
+    }}>
+      {cells.map(c => (
+        <div key={c.label} style={{ textAlign: align === "right" ? "right" : "left" }}>
+          <div style={{
+            fontSize: big ? 10 : 9, letterSpacing:1.6, color: color.faint,
+            textTransform:"uppercase", marginBottom:4, fontWeight:600,
+          }}>{c.label}</div>
+          <div style={{
+            fontSize: big ? 28 : 15, fontWeight:600, color: color.accent,
+            letterSpacing: big ? -0.5 : 0, lineHeight:1,
+          }}>{c.value}</div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ─── RADIO — full-bleed club floor ────────────────────────────────────────────
+function DeepCutsCard({
+  onPlay, onTogglePlay, currentTrack, isPlaying, isRadioMode, signalLabel,
+  setPrev = [], setNext = null, doorsSoundOn = false, onToggleDoorsSound,
+}) {
+  const floor = getFloorPhase();
   const cover = currentTrack?.albumCover;
   const live = isRadioMode && currentTrack;
+  const arc = live
+    ? [...setPrev.slice(-2).map(t => ({ track: t, role: "prev" })), { track: currentTrack, role: "now" }, ...(setNext ? [{ track: setNext, role: "next" }] : [])]
+    : [];
 
   return (
     <div
@@ -161,7 +218,7 @@ function DeepCutsCard({ onPlay, onTogglePlay, currentTrack, isPlaying, isRadioMo
         cursor: live ? "default" : "pointer",
         position: "relative",
         overflow: "hidden",
-        minHeight: "min(72vh, 560px)",
+        minHeight: live ? "min(78vh, 620px)" : "min(72vh, 560px)",
         display: "flex",
         flexDirection: "column",
         justifyContent: "flex-end",
@@ -178,14 +235,14 @@ function DeepCutsCard({ onPlay, onTogglePlay, currentTrack, isPlaying, isRadioMo
         <div aria-hidden="true" style={{
           position:"absolute", inset:0,
           backgroundImage:`url(${cover})`, backgroundSize:"cover", backgroundPosition:"center",
-          filter:"blur(40px) saturate(120%) brightness(0.42)", transform:"scale(1.18)", opacity:0.72,
+          filter:"blur(40px) saturate(120%) brightness(0.38)", transform:"scale(1.18)", opacity:0.78,
           animation: "fadeIn 1.1s ease both",
         }}/>
       )}
       <div aria-hidden="true" style={{
         position:"absolute", inset:0,
         background: cover
-          ? "linear-gradient(180deg, rgba(9,11,13,0.35) 0%, rgba(9,11,13,0.55) 38%, rgba(9,11,13,0.94) 100%)"
+          ? "linear-gradient(180deg, rgba(9,11,13,0.4) 0%, rgba(9,11,13,0.58) 38%, rgba(9,11,13,0.96) 100%)"
           : "linear-gradient(180deg, rgba(9,11,13,0.15) 0%, rgba(9,11,13,0.55) 50%, rgba(9,11,13,0.96) 100%)",
       }}/>
       <div aria-hidden="true" style={{
@@ -194,19 +251,26 @@ function DeepCutsCard({ onPlay, onTogglePlay, currentTrack, isPlaying, isRadioMo
         animation: "breathe 6s ease-in-out infinite",
       }}/>
 
-      <div style={{ position:"relative", zIndex:1, maxWidth:420 }}>
+      <div style={{ position:"relative", zIndex:1, maxWidth:460 }}>
         <div style={{
           fontSize: "clamp(56px, 18vw, 88px)",
           fontWeight:800, letterSpacing:-2.4, lineHeight:0.9,
           color: color.onDark, fontFamily: fontDisplay,
-          marginBottom: live ? 28 : 18,
+          marginBottom: live ? 20 : 14,
         }}>
           4AM
         </div>
 
+        <div style={{
+          fontSize:12, fontWeight:700, letterSpacing:2.4, fontFamily: fontMono,
+          color: color.accent, marginBottom: live ? 18 : 12,
+        }}>
+          {floor.label}
+        </div>
+
         {live ? (
           <>
-            <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:18 }}>
+            <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:16 }}>
               <div style={{
                 width:7, height:7, borderRadius:"50%",
                 background: isPlaying ? color.accent : "rgba(232,236,240,0.25)",
@@ -218,11 +282,11 @@ function DeepCutsCard({ onPlay, onTogglePlay, currentTrack, isPlaying, isRadioMo
                 color: isPlaying ? color.accent : color.muted,
                 textTransform:"uppercase", fontFamily: fontDisplay,
               }}>
-                {isPlaying ? "On Air" : "Station"}
+                {isPlaying ? "On Air" : "Floor"}
               </span>
-              <span style={{ fontSize:12, color: color.faint }}>· {timeLabel}</span>
+              {signalLabel && <span style={{ fontSize:12, color: color.faint }}>· {signalLabel}</span>}
             </div>
-            <div style={{ display:"flex", gap:16, alignItems:"center", marginBottom:28 }}>
+            <div style={{ display:"flex", gap:16, alignItems:"center", marginBottom:18 }}>
               <div style={{
                 width:88, height:88, overflow:"hidden", flexShrink:0,
                 boxShadow:"0 18px 40px rgba(0,0,0,0.45)",
@@ -236,13 +300,45 @@ function DeepCutsCard({ onPlay, onTogglePlay, currentTrack, isPlaying, isRadioMo
                   letterSpacing:-0.7, fontFamily: fontDisplay, lineHeight:1.1,
                 }}>{currentTrack.title}</div>
                 <div style={{ fontSize:14, color: color.body, marginTop:6 }}>{currentTrack.artist}</div>
-                {(currentTrack.bpm || currentTrack.camelot || signalLabel) && (
-                  <div style={{ fontSize:11, color: color.faint, marginTop:8, fontVariantNumeric:"tabular-nums", letterSpacing:0.3 }}>
-                    {[currentTrack.bpm && `${currentTrack.bpm} BPM`, currentTrack.camelot, signalLabel].filter(Boolean).join("  ·  ")}
-                  </div>
-                )}
               </div>
             </div>
+            <div style={{ marginBottom:22 }}>
+              <BoothHud track={currentTrack} size="md"/>
+            </div>
+
+            {/* Set arc: last → now → next */}
+            {arc.length > 1 && (
+              <div style={{ marginBottom:22 }} onClick={e=>e.stopPropagation()}>
+                <div style={{
+                  fontSize:10, fontWeight:700, letterSpacing:1.8, color: color.faint,
+                  textTransform:"uppercase", fontFamily: fontMono, marginBottom:10,
+                }}>The set</div>
+                <div style={{ display:"flex", alignItems:"stretch", gap:8 }}>
+                  {arc.map(({ track, role }) => (
+                    <div key={`${role}-${track.id}`} style={{
+                      flex: role === "now" ? 1.35 : 1, minWidth:0,
+                      padding:"10px 10px",
+                      borderTop: role === "now" ? `2px solid ${color.accent}` : `1px solid ${color.lineStrong}`,
+                      background: role === "now" ? color.accentSoft : "rgba(255,255,255,0.02)",
+                    }}>
+                      <div style={{
+                        fontSize:9, letterSpacing:1.2, color: role === "now" ? color.accent : color.faint,
+                        fontFamily: fontMono, textTransform:"uppercase", marginBottom:4,
+                      }}>{role === "prev" ? "Was" : role === "now" ? "Now" : "Next"}</div>
+                      <div style={{
+                        fontSize:12, fontWeight:600, color: color.ink,
+                        overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap",
+                      }}>{track.title}</div>
+                      <div style={{
+                        fontSize:10, color: color.muted, marginTop:2,
+                        overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap",
+                      }}>{track.artist}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
             <button type="button" aria-label={isPlaying?"Pause":"Play"} onClick={e=>{e.stopPropagation();onTogglePlay();}}
               style={{
                 width:56, height:56, borderRadius:"50%", background: color.accent, border:"none",
@@ -255,26 +351,45 @@ function DeepCutsCard({ onPlay, onTogglePlay, currentTrack, isPlaying, isRadioMo
         ) : (
           <>
             <div style={{
-              fontSize:15, color: color.body, marginBottom:28, lineHeight:1.5, maxWidth:280, letterSpacing:-0.1,
+              fontSize:15, color: color.body, marginBottom:28, lineHeight:1.5, maxWidth:300, letterSpacing:-0.1,
             }}>
-              {timeLabel} — the hour shapes the set.
+              {floor.blurb}
             </div>
-            <button type="button" aria-label="Start radio" onClick={e=>{e.stopPropagation();onPlay();}}
-              style={{
-                display:"inline-flex", alignItems:"center", gap:12,
-                padding:"14px 22px 14px 16px", borderRadius:999,
-                background: color.accent, border:"none", color: color.onAccent,
-                cursor:"pointer", fontSize:14, fontWeight:650, letterSpacing:-0.2,
-                boxShadow:"0 12px 32px rgba(122,145,164,0.28)",
-              }}>
-              <span style={{
-                width:32, height:32, borderRadius:"50%", background:"rgba(9,11,13,0.18)",
-                display:"flex", alignItems:"center", justifyContent:"center",
-              }}>
-                <Icon name="play" size={16}/>
-              </span>
-              Listen now
-            </button>
+            <div style={{ display:"flex", alignItems:"center", gap:14, flexWrap:"wrap" }}>
+              <button type="button" aria-label="Open the floor" onClick={e=>{e.stopPropagation();onPlay();}}
+                style={{
+                  display:"inline-flex", alignItems:"center", gap:12,
+                  padding:"14px 22px 14px 16px", borderRadius:999,
+                  background: color.accent, border:"none", color: color.onAccent,
+                  cursor:"pointer", fontSize:14, fontWeight:650, letterSpacing:-0.2,
+                  boxShadow:"0 12px 32px rgba(122,145,164,0.28)",
+                }}>
+                <span style={{
+                  width:32, height:32, borderRadius:"50%", background:"rgba(9,11,13,0.18)",
+                  display:"flex", alignItems:"center", justifyContent:"center",
+                }}>
+                  <Icon name="play" size={16}/>
+                </span>
+                Open the floor
+              </button>
+              {onToggleDoorsSound && (
+                <button
+                  type="button"
+                  aria-pressed={doorsSoundOn}
+                  aria-label={doorsSoundOn ? "Doors sound on" : "Doors sound off"}
+                  onClick={e=>{ e.stopPropagation(); onToggleDoorsSound(); }}
+                  style={{
+                    background:"none", border:`1px solid ${color.lineStrong}`,
+                    color: doorsSoundOn ? color.accent : color.faint,
+                    padding:"10px 14px", borderRadius:999, cursor:"pointer",
+                    fontSize:11, fontWeight:650, letterSpacing:1, fontFamily: fontMono,
+                    textTransform:"uppercase",
+                  }}
+                >
+                  Doors {doorsSoundOn ? "on" : "off"}
+                </button>
+              )}
+            </div>
           </>
         )}
       </div>
@@ -691,7 +806,7 @@ function RouteBuilderModal({ tracks, onClose, onPlayRoute }) {
               <button onClick={()=>{ setStep(step-1); if(step===3) setSession(null); }}
                 style={{ background:"rgba(255,255,255,0.08)", border:"1px solid rgba(255,255,255,0.1)", borderRadius:10, padding:"8px 14px", fontSize:12, fontWeight:500, color:"rgba(255,255,255,0.5)", cursor:"pointer", backdropFilter:"blur(20px)" }}>Back</button>
             )}
-            <div style={{ fontSize:11, fontWeight:600, letterSpacing:2, color:"rgba(255,255,255,0.3)", textTransform:"uppercase" }}>Session</div>
+            <div style={{ fontSize:11, fontWeight:600, letterSpacing:2, color:"rgba(255,255,255,0.3)", textTransform:"uppercase" }}>Build a night</div>
           </div>
           <button onClick={onClose} style={{ background:"rgba(255,255,255,0.06)", border:"1px solid rgba(255,255,255,0.08)", borderRadius:"50%", width:36, height:36, cursor:"pointer", color:"rgba(255,255,255,0.4)", display:"flex", alignItems:"center", justifyContent:"center", backdropFilter:"blur(20px)" }}>
             <Icon name="x" size={16}/>
@@ -704,8 +819,8 @@ function RouteBuilderModal({ tracks, onClose, onPlayRoute }) {
           {/* ── STEP 1: Duration ── */}
           {step === 1 && (
             <div style={{ width:"100%", textAlign:"center" }}>
-              <div style={{ fontSize:32, fontWeight:700, color:"#FFFFFF", letterSpacing:-0.5, marginBottom:8 }}>Pick your timeline</div>
-              <div style={{ fontSize:14, color:"rgba(255,255,255,0.35)", marginBottom:40 }}>How long do you want to listen?</div>
+              <div style={{ fontSize:32, fontWeight:700, color:"#FFFFFF", letterSpacing:-0.5, marginBottom:8, fontFamily: fontDisplay }}>How long is the night?</div>
+              <div style={{ fontSize:14, color:"rgba(255,255,255,0.35)", marginBottom:40 }}>Pick a runtime. We’ll shape the arc.</div>
               <div style={{ display:"flex", gap:10, justifyContent:"center", marginBottom:48 }}>
                 {[30,60,120,240,480].map(m => (
                   <button key={m} onClick={()=>setDuration(m)} style={{
@@ -728,8 +843,8 @@ function RouteBuilderModal({ tracks, onClose, onPlayRoute }) {
           {/* ── STEP 2: Activity ── */}
           {step === 2 && (
             <div style={{ width:"100%", textAlign:"center" }}>
-              <div style={{ fontSize:32, fontWeight:700, color:"#FFFFFF", letterSpacing:-0.5, marginBottom:8 }}>What's the vibe?</div>
-              <div style={{ fontSize:14, color:"rgba(255,255,255,0.35)", marginBottom:32 }}>{duration < 60 ? `${duration} minute` : `${Math.round(duration/60)} hour`} session</div>
+              <div style={{ fontSize:32, fontWeight:700, color:"#FFFFFF", letterSpacing:-0.5, marginBottom:8, fontFamily: fontDisplay }}>Shape the night</div>
+              <div style={{ fontSize:14, color:"rgba(255,255,255,0.35)", marginBottom:32 }}>{duration < 60 ? `${duration} minute` : `${Math.round(duration/60)} hour`} set</div>
               <div style={{ display:"grid", gridTemplateColumns:"repeat(2, 1fr)", gap:10, textAlign:"left" }}>
                 {activities.map(([id, prof]) => (
                   <button key={id} onClick={()=>handleGenerate(id)}
@@ -753,7 +868,7 @@ function RouteBuilderModal({ tracks, onClose, onPlayRoute }) {
               {/* Hero */}
               <div style={{ textAlign:"center", marginBottom:32 }}>
                 <div style={{ fontSize:11, fontWeight:600, letterSpacing:2, color:"rgba(255,255,255,0.25)", textTransform:"uppercase", marginBottom:8 }}>{profile.label} · {duration < 60 ? `${duration}min` : `${Math.round(duration/60)}h`}</div>
-                <div style={{ fontSize:36, fontWeight:700, color:"#FFFFFF", letterSpacing:-0.5, marginBottom:4 }}>Your session is ready</div>
+                <div style={{ fontSize:36, fontWeight:700, color:"#FFFFFF", letterSpacing:-0.5, marginBottom:4, fontFamily: fontDisplay }}>Tonight’s set is ready</div>
                 <div style={{ fontSize:14, color:"rgba(255,255,255,0.35)" }}>{session.length} tracks · ~{totalMins} minutes</div>
               </div>
 
@@ -1107,12 +1222,12 @@ function ImmersivePlayer({ currentTrack, isPlaying, onTogglePlay, onSkip, onPrev
         background:"linear-gradient(180deg, rgba(9,11,13,0.25) 0%, rgba(9,11,13,0.15) 35%, rgba(9,11,13,0.78) 72%, rgba(9,11,13,0.96) 100%)",
       }}/>
 
-      {/* Track info — Syne, bottom-left */}
+      {/* Track info + booth HUD */}
       <div style={{
-        position:"absolute", bottom:120, left:24, right:24,
+        position:"absolute", bottom:118, left:24, right:24,
         opacity: showUI ? 1 : 0.55,
         transition:"opacity 0.5s ease",
-        maxWidth:480,
+        maxWidth:520,
       }}>
         <div style={{
           fontSize:"clamp(28px, 7vw, 42px)", fontWeight:750, color: color.onDark,
@@ -1125,15 +1240,19 @@ function ImmersivePlayer({ currentTrack, isPlaying, onTogglePlay, onSkip, onPrev
         <div style={{ fontSize:16, color: color.body, marginTop:10, letterSpacing:-0.2 }}>
           {currentTrack.artist}
         </div>
-        <div style={{ fontSize:12, color: color.faint, marginTop:8, fontVariantNumeric:"tabular-nums", letterSpacing:0.3 }}>
-          {[normalizeGenre(currentTrack.genre), currentTrack.bpm && `${currentTrack.bpm} BPM`, currentTrack.camelot, stateLabel]
-            .filter(Boolean).join("  ·  ")}
+        <div style={{ marginTop:18 }}>
+          <BoothHud track={currentTrack} size="lg"/>
         </div>
+        {(normalizeGenre(currentTrack.genre) || stateLabel) && (
+          <div style={{ fontSize:11, color: color.faint, marginTop:12, letterSpacing:0.4, fontFamily: fontMono, textTransform:"uppercase" }}>
+            {[normalizeGenre(currentTrack.genre), stateLabel].filter(Boolean).join("  ·  ")}
+          </div>
+        )}
       </div>
 
       {/* Controls — accent station language */}
       <div style={{
-        position:"absolute", bottom:36, left:24, right:24,
+        position:"absolute", bottom:32, left:24, right:24,
         display:"flex", alignItems:"center", justifyContent:"center", gap:28,
         opacity: showUI ? 1 : 0,
         transition:"opacity 0.5s ease",
@@ -1193,7 +1312,11 @@ const HomeSection = ({ label, count, children, delay = 0 }) => (
   </section>
 );
 
-function HomeScreen({ tracks, onPlayRadio, onTogglePlay, onPlayTrack, currentTrack, isPlaying, onLike, isRadioMode, playlistCtx, signalLabel }) {
+function HomeScreen({
+  tracks, onPlayRadio, onTogglePlay, onPlayTrack, currentTrack, isPlaying, onLike,
+  isRadioMode, playlistCtx, signalLabel, setPrev, setNext, onBuildNight,
+  doorsSoundOn, onToggleDoorsSound,
+}) {
   const singles = tracks.filter(t => (t.duration || 0) <= 900);
   const topTracks = [...singles].sort((a, b) => (b.playCount || 0) - (a.playCount || 0)).slice(0, 8);
   const recentlySaved = [...singles].filter(t => t.liked).slice(0, 12);
@@ -1201,8 +1324,8 @@ function HomeScreen({ tracks, onPlayRadio, onTogglePlay, onPlayTrack, currentTra
 
   return (
     <div style={{ position:"relative", paddingBottom:36 }}>
-      {/* 1 — Radio (full-bleed station) */}
-      <div style={{ position:"relative", marginBottom:28 }}>
+      {/* 1 — Floor (full-bleed radio) */}
+      <div style={{ position:"relative", marginBottom:20 }}>
         <DeepCutsCard
           onPlay={onPlayRadio}
           onTogglePlay={onTogglePlay}
@@ -1210,11 +1333,43 @@ function HomeScreen({ tracks, onPlayRadio, onTogglePlay, onPlayTrack, currentTra
           isPlaying={isPlaying}
           isRadioMode={isRadioMode}
           signalLabel={signalLabel}
+          setPrev={setPrev}
+          setNext={setNext}
+          doorsSoundOn={doorsSoundOn}
+          onToggleDoorsSound={onToggleDoorsSound}
         />
       </div>
 
-      {/* 2 — Top played */}
-      {topTracks.length > 0 && (
+      {/* Build a night — club session entry */}
+      {onBuildNight && (
+        <div style={{ padding:"0 16px 28px", animation:"rise 0.55s cubic-bezier(0.22,1,0.36,1) 0.04s both" }}>
+          <button
+            type="button"
+            onClick={onBuildNight}
+            style={{
+              width:"100%", display:"flex", alignItems:"center", justifyContent:"space-between",
+              gap:16, padding:"18px 20px",
+              background: color.surfaceSolid, border:`1px solid ${color.lineStrong}`,
+              cursor:"pointer", textAlign:"left", color: color.ink,
+            }}
+          >
+            <div>
+              <div style={{ fontSize:11, fontWeight:700, letterSpacing:1.8, color: color.accent, fontFamily: fontMono, textTransform:"uppercase", marginBottom:6 }}>Session</div>
+              <div style={{ fontSize:18, fontWeight:750, fontFamily: fontDisplay, letterSpacing:-0.4 }}>Build a night</div>
+              <div style={{ fontSize:13, color: color.muted, marginTop:4 }}>Warmup → peak → afterhours → close</div>
+            </div>
+            <div style={{
+              width:40, height:40, borderRadius:"50%", background: color.accentSoft,
+              display:"flex", alignItems:"center", justifyContent:"center", color: color.accent, flexShrink:0,
+            }}>
+              <Icon name="play" size={16}/>
+            </div>
+          </button>
+        </div>
+      )}
+
+      {/* 2 — Top played (yields to the set when On Air) */}
+      {!isRadioMode && topTracks.length > 0 && (
         <HomeSection label="Top played" count={topTracks.length} delay={0.05}>
           <div style={{
             margin:"0 16px",
@@ -1419,32 +1574,25 @@ function FavoritesScreen({ tracks, onPlay, onLike, currentTrack, isPlaying, user
   });
   const genres = CANONICAL_GENRES.filter(g => genreMap[g].length > 0);
 
-  // Mood system — curated late-night contexts using canonical genres only
-  const MOOD_DEFS = [
-    { id:"nocturnal",  label:"Nocturnal",  desc:"Late & locked in",     tone:"#141C28", filter: t => (t.energy||5) >= 3 && (t.energy||5) <= 6 && ["House","Drum and Bass"].includes(normalizeGenre(t.genre)) },
-    { id:"deep",       label:"Deep",       desc:"Low lights, long builds", tone:"#121820", filter: t => (t.energy||5) <= 4 && ["House","Soul","Jazz","Classical"].includes(normalizeGenre(t.genre)) },
-    { id:"groovy",     label:"Groovy",     desc:"Locked pocket",        tone:"#161E24", filter: t => (t.energy||5) >= 4 && (t.energy||5) <= 7 && ["R&B","Soul","House"].includes(normalizeGenre(t.genre)) },
-    { id:"driving",    label:"Driving",    desc:"Forward motion",       tone:"#151C26", filter: t => (t.energy||5) >= 6 && (t.energy||5) <= 8 && (t.bpm||120) >= 115 },
-    { id:"euphoric",   label:"Peak",       desc:"Hands up, eyes closed", tone:"#1A222C", filter: t => (t.energy||5) >= 7 && ["House","Drum and Bass"].includes(normalizeGenre(t.genre)) },
-    { id:"warm",       label:"Warm",       desc:"Afterhours hush",      tone:"#181E24", filter: t => (t.energy||5) >= 3 && (t.energy||5) <= 5 && ["Soul","R&B","Jazz","Country"].includes(normalizeGenre(t.genre)) },
-    { id:"melancholy", label:"Melancholy", desc:"Reflective & deep",    tone:"#141820", filter: t => (t.energy||5) <= 3 && ["Soul","Jazz","Classical","Country"].includes(normalizeGenre(t.genre)) },
-    { id:"raw",        label:"Raw",        desc:"Gritty & unpolished",  tone:"#1A1C20", filter: t => (t.energy||5) >= 5 && ["Rock","Metal","Hip-Hop"].includes(normalizeGenre(t.genre)) },
-  ];
-
-  const moods = {};
-  const moodMeta = {};
-  MOOD_DEFS.forEach(def => {
+  // Tonight's rooms — dig by floor energy, not genre cards
+  const rooms = {};
+  const roomMeta = {};
+  CLUB_ROOMS.forEach(def => {
     const matched = singles.filter(def.filter);
     if (matched.length >= 1) {
-      moods[def.label] = matched;
-      moodMeta[def.label] = def;
+      rooms[def.label] = matched;
+      roomMeta[def.label] = def;
     }
   });
-  const moodKeys = Object.keys(moods);
+  const roomKeys = Object.keys(rooms);
+  const floor = getFloorPhase(hour);
+  const activeRoomLabel = roomForFloorPhase(floor.id);
+  const roomTracks = rooms[activeRoomLabel] || [];
 
-  // Time-based recommendations
-  const timeRecs = singles.filter(t => (t.energy||5) >= eMin && (t.energy||5) <= eMax);
-  const timeLabel = hour>=22||hour<=5?"Late night":hour<=8?"Early morning":hour<=12?"Morning":hour<=17?"Afternoon":"Evening";
+  // Time / room recommendations
+  const timeRecs = roomTracks.length > 0
+    ? roomTracks
+    : singles.filter(t => (t.energy||5) >= eMin && (t.energy||5) <= eMax);
 
   // For You — memoized, only reshuffles when tracks array changes
   const likedGenres = [...new Set(likedTracks.map(t=>t.genre).filter(Boolean))];
@@ -1525,13 +1673,13 @@ function FavoritesScreen({ tracks, onPlay, onLike, currentTrack, isPlaying, user
         ))}
       </div>
 
-      {/* ══ DISCOVER view — one dig plane, then lanes ══ */}
+      {/* ══ DISCOVER — tonight's rooms ══ */}
       {view === "discover" && (() => {
-        const digLead = forYou[0] || timeRecs[0] || singles[0];
-        const digLane = (forYou.length > 0 ? forYou : timeRecs).filter(t => t.id !== digLead?.id).slice(0, 10);
+        const digPool = timeRecs.length > 0 ? timeRecs : (forYou.length > 0 ? forYou : singles);
+        const digLead = digPool[0];
+        const digLane = digPool.filter(t => t.id !== digLead?.id).slice(0, 10);
         return (
         <div style={{ padding:"0 0 32px" }}>
-          {/* One editorial dig composition */}
           {digLead && (
             <div
               onClick={()=>onPlay(digLead)}
@@ -1560,13 +1708,17 @@ function FavoritesScreen({ tracks, onPlay, onLike, currentTrack, isPlaying, user
               }}/>
               <div style={{ position:"relative", zIndex:1, maxWidth:360 }}>
                 <div style={{
+                  fontSize:11, fontWeight:700, letterSpacing:2, color: color.accent,
+                  fontFamily: fontMono, textTransform:"uppercase", marginBottom:10,
+                }}>{floor.label}</div>
+                <div style={{
                   fontSize:"clamp(40px, 12vw, 56px)", fontWeight:800, letterSpacing:-1.8,
                   color: color.onDark, fontFamily: fontDisplay, lineHeight:0.95, marginBottom:12,
                 }}>
-                  {timeLabel}
+                  {activeRoomLabel}
                 </div>
                 <div style={{ fontSize:14, color: color.body, lineHeight:1.45, marginBottom:22, maxWidth:280 }}>
-                  Energy matched to this hour. Dig from here.
+                  {floor.blurb}
                 </div>
                 <div style={{ fontSize:18, fontWeight:700, color: color.onDark, fontFamily: fontDisplay, letterSpacing:-0.4, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
                   {digLead.title}
@@ -1576,11 +1728,10 @@ function FavoritesScreen({ tracks, onPlay, onLike, currentTrack, isPlaying, user
             </div>
           )}
 
-          {/* Secondary dig lane — no featured overlays */}
           {digLane.length > 0 && (
             <div style={{ marginBottom:36 }}>
               <div style={{ padding:"0 18px" }}>
-                <SectionHead sub="From your crate and this hour">More from the set</SectionHead>
+                <SectionHead sub={`From the ${activeRoomLabel.toLowerCase()} room`}>More from the room</SectionHead>
               </div>
               <div className="hide-scroll" style={{ display:"flex", gap:12, overflowX:"auto", padding:"0 18px 4px" }}>
                 {digLane.map((t, i) => (
@@ -1602,18 +1753,19 @@ function FavoritesScreen({ tracks, onPlay, onLike, currentTrack, isPlaying, user
             </div>
           )}
 
-          {/* Moods — quiet lane labels, not dense card hero */}
-          {moodKeys.length > 0 && (
+          {/* Tonight's rooms */}
+          {roomKeys.length > 0 && (
           <div style={{ marginBottom:32, padding:"0 18px" }}>
-            <SectionHead sub="Contexts for the booth and the walk home">Moods</SectionHead>
+            <SectionHead sub="Dig by room energy — not genre shelves">Tonight’s rooms</SectionHead>
             <div style={{ display:"flex", flexDirection:"column", gap:2 }}>
-              {moodKeys.map(mood => {
-                const meta = moodMeta[mood];
+              {roomKeys.map(room => {
+                const meta = roomMeta[room];
+                const isNow = room === activeRoomLabel;
                 return (
                   <button
-                    key={mood}
+                    key={room}
                     type="button"
-                    onClick={()=>{setView("genres");setGenreFilter(null);setMoodFilter(mood);}}
+                    onClick={()=>{setView("genres");setGenreFilter(null);setMoodFilter(room);}}
                     style={{
                       display:"flex", alignItems:"center", justifyContent:"space-between",
                       padding:"16px 4px", background:"none", border:"none", borderBottom:`1px solid ${color.line}`,
@@ -1621,10 +1773,15 @@ function FavoritesScreen({ tracks, onPlay, onLike, currentTrack, isPlaying, user
                     }}
                   >
                     <div>
-                      <div style={{ fontSize:16, fontWeight:700, fontFamily: fontDisplay, letterSpacing:-0.3 }}>{mood}</div>
+                      <div style={{ display:"flex", alignItems:"center", gap:10 }}>
+                        <div style={{ fontSize:16, fontWeight:700, fontFamily: fontDisplay, letterSpacing:-0.3 }}>{room}</div>
+                        {isNow && (
+                          <span style={{ fontSize:9, fontWeight:700, letterSpacing:1.2, color: color.accent, fontFamily: fontMono }}>NOW</span>
+                        )}
+                      </div>
                       <div style={{ fontSize:12, color: color.muted, marginTop:3 }}>{meta?.desc}</div>
                     </div>
-                    <div style={{ fontSize:12, color: color.faint, fontVariantNumeric:"tabular-nums" }}>{moods[mood].length}</div>
+                    <div style={{ fontSize:12, color: color.faint, fontVariantNumeric:"tabular-nums", fontFamily: fontMono }}>{rooms[room].length}</div>
                   </button>
                 );
               })}
@@ -1632,9 +1789,9 @@ function FavoritesScreen({ tracks, onPlay, onLike, currentTrack, isPlaying, user
           </div>
           )}
 
-          {/* Genre lanes */}
+          {/* Genres buried */}
           <div style={{ padding:"0 18px" }}>
-            <SectionHead sub="Browse the collection by lane">Genres</SectionHead>
+            <SectionHead sub="If you still want lanes">Genres</SectionHead>
             <div style={{ display:"flex", flexDirection:"column", gap:2 }}>
             {genres.map(g => (
               <button
@@ -1671,7 +1828,7 @@ function FavoritesScreen({ tracks, onPlay, onLike, currentTrack, isPlaying, user
                 <div style={{ fontSize:24, fontWeight:750, color: color.ink, fontFamily: fontDisplay, letterSpacing:-0.6 }}>{moodFilter}</div>
                 <button type="button" onClick={()=>{setMoodFilter(null);setView("discover");}} style={{ background:"none", border:"none", color: color.muted, fontSize:13, cursor:"pointer" }}>← back</button>
               </div>
-              <div style={{ fontSize:13, color: color.muted, marginTop:6 }}>{moods[moodFilter]?.length||0} tracks · {moodMeta[moodFilter]?.desc}</div>
+              <div style={{ fontSize:13, color: color.muted, marginTop:6 }}>{rooms[moodFilter]?.length||0} tracks · {roomMeta[moodFilter]?.desc}</div>
             </div>
           )}
           {view === "genres" && genreFilter && !moodFilter && (
@@ -1703,11 +1860,11 @@ function FavoritesScreen({ tracks, onPlay, onLike, currentTrack, isPlaying, user
                   </div>
                 </div>
               )}
-              {(moodFilter ? (moods[moodFilter]||[]) : (genreFilter ? (genreMap[genreFilter]||[]) : activeTracks)).length === 0 ? (
+              {(moodFilter ? (rooms[moodFilter]||[]) : (genreFilter ? (genreMap[genreFilter]||[]) : activeTracks)).length === 0 ? (
                 <div style={{ textAlign:"center", color: color.faint, paddingTop:48 }}>
                   <div style={{ fontSize:14 }}>No tracks yet</div>
                 </div>
-              ) : (moodFilter ? (moods[moodFilter]||[]) : (genreFilter ? (genreMap[genreFilter]||[]) : activeTracks)).map(t => (
+              ) : (moodFilter ? (rooms[moodFilter]||[]) : (genreFilter ? (genreMap[genreFilter]||[]) : activeTracks)).map(t => (
                 <TrackRow key={t.id} track={t} onPlay={()=>onPlay(t)} active={currentTrack?.id===t.id} isPlaying={isPlaying} onLike={onLike} playlistCtx={playlistCtx} activePlaylistId={isPlaylistView?view:undefined}/>
               ))}
             </>
@@ -2422,8 +2579,11 @@ function NowPlayingBar({ track, isPlaying, progress, duration, onTogglePlay, onS
             )}
             {track.title}
           </div>
-          <div style={{ fontSize:11, color: color.muted, marginTop:2 }}>
+          <div style={{ fontSize:11, color: color.muted, marginTop:2, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
             {isRadioMode ? `On air · ${track.artist}` : track.artist}
+          </div>
+          <div style={{ marginTop:6 }}>
+            <BoothHud track={track} size="sm"/>
           </div>
         </div>
         <button type="button" aria-label={track.liked?"Unlike":"Like"} onClick={e=>{e.stopPropagation();onLike();}} style={{ background:"none",border:"none",cursor:"pointer",color:track.liked?color.accent:color.faint,padding:4 }}><Icon name={track.liked?"heart":"heartempty"} size={16}/></button>
@@ -2535,12 +2695,28 @@ export default function App() {
   const [showRouteBuilder, setShowRouteBuilder] = useState(false);
   const [afterglow, setAfterglow] = useState(null);
   const [resonanceTrack, setResonanceTrack] = useState(null); // { tracks, duration, startTime }
+  const [doorsSoundOn, setDoorsSoundOn] = useState(() => getArrivalSoundEnabled());
+
+  const toggleDoorsSound = () => {
+    const next = !doorsSoundOn;
+    setDoorsSoundOn(next);
+    setArrivalSoundEnabled(next);
+    if (next) playArrivalSound();
+  };
 
   // ── Listening Memory — tracks recently played with timestamps ──
   const recentlyPlayedRef = useRef([]); // [{id, genre, energy, timestamp}]
   const playHistoryRef = useRef([]); // previous tracks for "prev" button
   const sessionStartRef = useRef(null);
   const [signalState, setSignalState] = useState({ intensity:0.5, openness:0.5, momentum:0, depth:0, direction:0, label:"arrival" });
+
+  // Set arc for On Air floor (last 2 → now → next)
+  const setPrev = isRadioMode && currentTrack
+    ? playHistoryRef.current.filter(t => t && t.id !== currentTrack.id).slice(0, 2).reverse()
+    : [];
+  const setNext = isRadioMode && currentTrack
+    ? pickNextTrack(tracks, currentTrack, recentlyPlayedRef.current)
+    : null;
 
   function logTrackPlay(track) {
     const now = Date.now();
@@ -2816,9 +2992,10 @@ export default function App() {
     if (!tracks.length) return;
     const first = pickNextTrack(tracks, null, recentlyPlayedRef.current);
     if (currentTrack) playHistoryRef.current = [currentTrack, ...playHistoryRef.current].slice(0, 50);
+    playArrivalSound();
     setCurrent(first); setIsPlaying(true); setProgress(0); setIsRadioMode(true); setQueue([]); setImmersive(true);
     logTrackPlay(first);
-    showToast("Radio on");
+    showToast("Floor open");
     if (firebaseUser) recordPlay(first.id, profile?.recentTracks || []).catch(()=>{});
   };
 
@@ -3050,7 +3227,7 @@ export default function App() {
         </div>
       )}
       <div style={{ flex:1, overflow:"auto", paddingBottom:currentTrack?120:56, zIndex:1, position:"relative" }}>
-        {screen==="home"      && !tracksLoading && <HomeScreen tracks={tracks} onPlayRadio={playRadio} onTogglePlay={()=>setIsPlaying(p=>!p)} onPlayTrack={playTrack} currentTrack={currentTrack} isPlaying={isPlaying} onLike={toggleLike} isRadioMode={isRadioMode} playlistCtx={playlistCtx} signalLabel={signalState?.label}/>}
+        {screen==="home"      && !tracksLoading && <HomeScreen tracks={tracks} onPlayRadio={playRadio} onTogglePlay={()=>setIsPlaying(p=>!p)} onPlayTrack={playTrack} currentTrack={currentTrack} isPlaying={isPlaying} onLike={toggleLike} isRadioMode={isRadioMode} playlistCtx={playlistCtx} signalLabel={signalState?.label} setPrev={setPrev} setNext={setNext} onBuildNight={()=>setShowRouteBuilder(true)} doorsSoundOn={doorsSoundOn} onToggleDoorsSound={toggleDoorsSound}/>}
         {screen==="search"    && <SearchScreen query={searchQuery} setQuery={setSearch} results={searchResults} onPlay={t=>playTrack(t,tracks)} onLike={toggleLike} currentTrack={currentTrack} isPlaying={isPlaying} playlistCtx={playlistCtx}/>}
         {screen==="favorites" && <FavoritesScreen tracks={tracks} onPlay={t=>{setIsRadioMode(false);playTrack(t,tracks);}} onLike={toggleLike} currentTrack={currentTrack} isPlaying={isPlaying} userPlaylists={userPlaylists} onCreatePlaylist={createPlaylist} onAddToPlaylist={addToPlaylist} onRemoveFromPlaylist={removeFromPlaylist} onDeletePlaylist={deletePlaylist} playlistCtx={playlistCtx}/>}
         {screen==="profile"   && <ProfileScreen user={user} setUser={setUser} tracks={tracks} onLogout={logOut}/>}
@@ -3076,6 +3253,7 @@ export default function App() {
           signalState={signalState}
         />
       )}
+      {showRouteBuilder && <RouteBuilderModal tracks={tracks} onClose={()=>setShowRouteBuilder(false)} onPlayRoute={playRoute}/>}
     </div>
   );
 
@@ -3129,7 +3307,7 @@ export default function App() {
               <Icon name={item.icon} size={20}/>
             </button>
           ))}
-          <button onClick={()=>setShowRouteBuilder(true)} title="Session" style={{
+          <button onClick={()=>setShowRouteBuilder(true)} title="Build a night" style={{
             width:44, height:44, borderRadius:12, background:"none",
             border:"none", color: color.faint, cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center",
             transition:"all 0.2s",
@@ -3195,7 +3373,7 @@ export default function App() {
             </div>
           ) : (
             <>
-              {screen==="home"      && <HomeScreen tracks={tracks} onPlayRadio={playRadio} onTogglePlay={()=>setIsPlaying(p=>!p)} onPlayTrack={playTrack} currentTrack={currentTrack} isPlaying={isPlaying} onLike={toggleLike} isRadioMode={isRadioMode} playlistCtx={playlistCtx} signalLabel={signalState?.label}/>}
+              {screen==="home"      && <HomeScreen tracks={tracks} onPlayRadio={playRadio} onTogglePlay={()=>setIsPlaying(p=>!p)} onPlayTrack={playTrack} currentTrack={currentTrack} isPlaying={isPlaying} onLike={toggleLike} isRadioMode={isRadioMode} playlistCtx={playlistCtx} signalLabel={signalState?.label} setPrev={setPrev} setNext={setNext} onBuildNight={()=>setShowRouteBuilder(true)} doorsSoundOn={doorsSoundOn} onToggleDoorsSound={toggleDoorsSound}/>}
               {screen==="search"    && <SearchScreen query={searchQuery} setQuery={setSearch} results={searchResults} onPlay={t=>playTrack(t,tracks)} onLike={toggleLike} currentTrack={currentTrack} isPlaying={isPlaying} playlistCtx={playlistCtx}/>}
               {screen==="favorites" && <FavoritesScreen tracks={tracks} onPlay={t=>{setIsRadioMode(false);playTrack(t,tracks);}} onLike={toggleLike} currentTrack={currentTrack} isPlaying={isPlaying} userPlaylists={userPlaylists} onCreatePlaylist={createPlaylist} onAddToPlaylist={addToPlaylist} onRemoveFromPlaylist={removeFromPlaylist} onDeletePlaylist={deletePlaylist} playlistCtx={playlistCtx}/>}
               {screen==="profile"   && <ProfileScreen user={user} setUser={setUser} tracks={tracks} onLogout={logOut}/>}
@@ -3233,6 +3411,9 @@ export default function App() {
                   </div>
                   <div style={{ fontSize:11, color: color.muted, marginTop:2 }}>
                     {isRadioMode ? `On air · ${currentTrack.artist}` : currentTrack.artist}
+                  </div>
+                  <div style={{ marginTop:5 }}>
+                    <BoothHud track={currentTrack} size="sm"/>
                   </div>
                 </div>
                 <span style={{ fontSize:10, color: color.faint, fontVariantNumeric:"tabular-nums", flexShrink:0 }}>{fmtTime(progress)}</span>
