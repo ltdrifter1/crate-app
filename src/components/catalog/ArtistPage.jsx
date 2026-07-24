@@ -1,0 +1,382 @@
+import { font, fontDisplay, fontMono, color, radius } from "../../theme";
+import { atmosphereGradient } from "../../lib/rooms";
+
+/** Artist destination — catalogue as a world, not a discography dump. */
+export default function ArtistPage({
+  artist,
+  onBack,
+  onPlay,
+  onOpenAlbum,
+  currentTrack,
+  isPlaying,
+  onLike,
+  AlbumArt,
+  TrackRow,
+  playlistCtx,
+}) {
+  if (!artist) {
+    return (
+      <EmptyEntity
+        title="Artist not found"
+        body="This name isn’t in the catalog yet."
+        onBack={onBack}
+      />
+    );
+  }
+
+  const cover = artist.coverTrack;
+
+  return (
+    <div style={{ minHeight: "100%", animation: "fadeIn 0.35s ease both", fontFamily: font }}>
+      <EntityHero
+        onBack={onBack}
+        backLabel="Back"
+        eyebrow="Artist"
+        title={artist.name}
+        story={artist.story}
+        meta={`${artist.count} tracks · E${artist.avgEnergy}${artist.topGenre ? ` · ${artist.topGenre}` : ""}`}
+        coverUrl={cover?.albumCover}
+        atmosphere="amber-lamp"
+        onPlay={() => cover && onPlay(cover, artist.tracks)}
+        playLabel="Play artist"
+      />
+
+      {artist.albums?.length > 0 && (
+        <section style={{ padding: "28px 20px 8px" }}>
+          <SectionTitle sub="Albums as objects — not folders">Albums</SectionTitle>
+          <div className="hide-scroll" style={{ display: "flex", gap: 14, overflowX: "auto", paddingBottom: 8 }}>
+            {artist.albums.map((al) => (
+              <button
+                key={al.slug}
+                type="button"
+                onClick={() => onOpenAlbum?.(al.slug)}
+                style={{
+                  flexShrink: 0,
+                  width: 140,
+                  background: "none",
+                  border: "none",
+                  padding: 0,
+                  cursor: onOpenAlbum ? "pointer" : "default",
+                  textAlign: "left",
+                  color: color.ink,
+                }}
+              >
+                <div style={{ width: 140, height: 140, overflow: "hidden", marginBottom: 10, background: color.surfaceRaised }}>
+                  {AlbumArt && al.coverTrack ? (
+                    <AlbumArt track={al.coverTrack} size={140} borderRadius={0} />
+                  ) : null}
+                </div>
+                <div style={{ fontSize: 13, fontWeight: 650, fontFamily: fontDisplay, letterSpacing: -0.2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                  {al.title}
+                </div>
+                <div style={{ fontSize: 11, color: color.muted, marginTop: 3 }}>{al.count} tracks</div>
+              </button>
+            ))}
+          </div>
+        </section>
+      )}
+
+      <section style={{ padding: "20px 16px 40px" }}>
+        <SectionTitle sub="Everything filed under this name">Tracks</SectionTitle>
+        {artist.tracks.map((t) =>
+          TrackRow ? (
+            <TrackRow
+              key={t.id}
+              track={t}
+              onPlay={() => onPlay(t, artist.tracks)}
+              active={currentTrack?.id === t.id}
+              isPlaying={isPlaying}
+              onLike={onLike}
+              playlistCtx={playlistCtx}
+            />
+          ) : null
+        )}
+      </section>
+    </div>
+  );
+}
+
+export function AlbumPage({
+  album,
+  onBack,
+  onPlay,
+  onOpenArtist,
+  currentTrack,
+  isPlaying,
+  onLike,
+  AlbumArt,
+  TrackRow,
+  playlistCtx,
+}) {
+  if (!album) {
+    return (
+      <EmptyEntity
+        title="Album not found"
+        body="This release isn’t in the catalog yet."
+        onBack={onBack}
+      />
+    );
+  }
+
+  const cover = album.coverTrack;
+
+  return (
+    <div style={{ minHeight: "100%", animation: "fadeIn 0.35s ease both", fontFamily: font }}>
+      <EntityHero
+        onBack={onBack}
+        backLabel="Back"
+        eyebrow="Album"
+        title={album.title}
+        story={album.story}
+        meta={[
+          album.count + " tracks",
+          album.avgBpm ? `${album.avgBpm} BPM` : null,
+          album.keys?.[0] ? album.keys[0] : null,
+          `E${album.avgEnergy}`,
+        ]
+          .filter(Boolean)
+          .join(" · ")}
+        coverUrl={cover?.albumCover}
+        atmosphere="vault"
+        onPlay={() => cover && onPlay(cover, album.tracks)}
+        playLabel="Play album"
+        subtitle={
+          <button
+            type="button"
+            onClick={() => onOpenArtist?.(album.artistSlug || album.artist)}
+            style={{
+              background: "none",
+              border: "none",
+              padding: 0,
+              color: color.accent,
+              fontSize: 14,
+              fontWeight: 600,
+              cursor: onOpenArtist ? "pointer" : "default",
+              marginTop: 8,
+            }}
+          >
+            {album.artist}
+          </button>
+        }
+      />
+
+      <section style={{ padding: "8px 16px 40px" }}>
+        <SectionTitle>Tracklist</SectionTitle>
+        {album.tracks.map((t, i) =>
+          TrackRow ? (
+            <div key={t.id} style={{ display: "flex", alignItems: "center", gap: 4 }}>
+              <div
+                style={{
+                  width: 28,
+                  flexShrink: 0,
+                  fontSize: 11,
+                  fontFamily: fontMono,
+                  color: color.faint,
+                  textAlign: "right",
+                  paddingRight: 4,
+                }}
+              >
+                {String(i + 1).padStart(2, "0")}
+              </div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <TrackRow
+                  track={t}
+                  onPlay={() => onPlay(t, album.tracks)}
+                  active={currentTrack?.id === t.id}
+                  isPlaying={isPlaying}
+                  onLike={onLike}
+                  playlistCtx={playlistCtx}
+                />
+              </div>
+            </div>
+          ) : null
+        )}
+      </section>
+    </div>
+  );
+}
+
+function SectionTitle({ children, sub }) {
+  return (
+    <div style={{ marginBottom: 14 }}>
+      <div style={{ fontSize: 18, fontWeight: 750, fontFamily: fontDisplay, letterSpacing: -0.4, color: color.ink }}>
+        {children}
+      </div>
+      {sub && <div style={{ fontSize: 12, color: color.muted, marginTop: 4 }}>{sub}</div>}
+    </div>
+  );
+}
+
+function EmptyEntity({ title, body, onBack }) {
+  return (
+    <div style={{ padding: "48px 20px", textAlign: "center", fontFamily: font }}>
+      <div style={{ fontSize: 20, fontWeight: 750, fontFamily: fontDisplay, color: color.ink }}>{title}</div>
+      <div style={{ fontSize: 14, color: color.muted, marginTop: 8 }}>{body}</div>
+      {onBack && (
+        <button
+          type="button"
+          onClick={onBack}
+          style={{
+            marginTop: 20,
+            padding: "12px 18px",
+            borderRadius: radius.sm,
+            border: `1px solid ${color.lineStrong}`,
+            background: "none",
+            color: color.body,
+            cursor: "pointer",
+            fontWeight: 600,
+          }}
+        >
+          Go back
+        </button>
+      )}
+    </div>
+  );
+}
+
+function EntityHero({
+  onBack,
+  backLabel,
+  eyebrow,
+  title,
+  story,
+  meta,
+  coverUrl,
+  atmosphere,
+  onPlay,
+  playLabel,
+  subtitle,
+}) {
+  const bg = atmosphereGradient(atmosphere || "vault");
+  return (
+    <div
+      style={{
+        position: "relative",
+        overflow: "hidden",
+        minHeight: 240,
+        padding: "20px 20px 28px",
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "flex-end",
+      }}
+    >
+      <div aria-hidden="true" style={{ position: "absolute", inset: 0, background: bg }} />
+      {coverUrl && (
+        <div
+          aria-hidden="true"
+          style={{
+            position: "absolute",
+            inset: 0,
+            backgroundImage: `url(${coverUrl})`,
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+            filter: "blur(32px) brightness(0.45)",
+            transform: "scale(1.12)",
+            opacity: 0.85,
+          }}
+        />
+      )}
+      <div
+        aria-hidden="true"
+        style={{
+          position: "absolute",
+          inset: 0,
+          background: "linear-gradient(180deg, rgba(12,11,10,0.25) 0%, rgba(12,11,10,0.92) 100%)",
+        }}
+      />
+      <button
+        type="button"
+        onClick={onBack}
+        style={{
+          position: "relative",
+          zIndex: 1,
+          alignSelf: "flex-start",
+          marginBottom: 20,
+          background: "none",
+          border: "none",
+          color: color.muted,
+          fontSize: 13,
+          cursor: "pointer",
+          fontWeight: 600,
+        }}
+      >
+        ← {backLabel}
+      </button>
+      <div style={{ position: "relative", zIndex: 1, display: "flex", gap: 18, alignItems: "flex-end" }}>
+        {coverUrl && (
+          <div
+            style={{
+              width: 96,
+              height: 96,
+              flexShrink: 0,
+              overflow: "hidden",
+              boxShadow: "0 16px 40px rgba(0,0,0,0.45)",
+            }}
+          >
+            <img src={coverUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+          </div>
+        )}
+        <div style={{ minWidth: 0, flex: 1 }}>
+          <div
+            style={{
+              fontSize: 11,
+              fontWeight: 700,
+              letterSpacing: 1.8,
+              color: color.accent,
+              fontFamily: fontMono,
+              textTransform: "uppercase",
+              marginBottom: 8,
+            }}
+          >
+            {eyebrow}
+          </div>
+          <h1
+            style={{
+              margin: 0,
+              fontSize: "clamp(28px, 8vw, 40px)",
+              fontWeight: 800,
+              letterSpacing: -1.2,
+              fontFamily: fontDisplay,
+              color: color.onDark,
+              lineHeight: 1.05,
+            }}
+          >
+            {title}
+          </h1>
+          {subtitle}
+          <p style={{ margin: "10px 0 0", fontSize: 14, color: color.body, lineHeight: 1.45, maxWidth: 360 }}>
+            {story}
+          </p>
+          {meta && (
+            <div style={{ marginTop: 12, fontFamily: fontMono, fontSize: 11, color: color.faint, letterSpacing: 0.3 }}>
+              {meta}
+            </div>
+          )}
+          {onPlay && (
+            <button
+              type="button"
+              className="play-primary"
+              onClick={onPlay}
+              style={{
+                marginTop: 18,
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 8,
+                padding: "12px 18px",
+                borderRadius: radius.sm,
+                background: color.accent,
+                border: "none",
+                color: color.onAccent,
+                cursor: "pointer",
+                fontSize: 13,
+                fontWeight: 650,
+              }}
+            >
+              {playLabel}
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
