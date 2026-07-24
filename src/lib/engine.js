@@ -148,10 +148,48 @@ export function computeSignalTraits(tracks, recentPlays = []) {
 // ─── WEIGHTED RADIO PICK ──────────────────────────────────────────────────────
 // All tracks eligible; liked tracks get 3× weight
 // Priority: camelot+energy → camelot → energy → anything
-export function pickNextTrack(allTracks, currentTrack, memory = null) {
+// options: { preferredGenres, signalState, seedTrack }
+//   preferredGenres — profile tastes get a weight boost
+//   signalState     — human-state vector steers energy (lift / release / immersion)
+//   seedTrack       — Hypno pocket mode: stay near this track's aura + key
+export function pickNextTrack(allTracks, currentTrack, memory = null, options = {}) {
   if (!allTracks.length) return null;
+  const preferredGenres = Array.isArray(options.preferredGenres)
+    ? options.preferredGenres.filter(Boolean)
+    : [];
+  const preferredSet = new Set(preferredGenres);
+  const signalState = options.signalState || null;
+  const seedTrack = options.seedTrack || null;
+  const anchor = seedTrack || currentTrack;
+
   const hour = new Date().getHours();
-  const [eMin, eMax] = getEnergyRangeForHour(hour);
+  let [eMin, eMax] = getEnergyRangeForHour(hour);
+
+  // Human-state energy steer — the Floor moves with you
+  if (signalState) {
+    const label = signalState.label || "";
+    const dir = signalState.direction || 0;
+    if (label === "release" || label === "restoration" || dir < -0.25) {
+      eMin = Math.max(1, eMin - 2);
+      eMax = Math.max(eMin + 1, eMax - 1);
+    } else if (label === "ignition" || label === "momentum" || label === "expansion" || dir > 0.25) {
+      eMin = Math.min(9, eMin + 1);
+      eMax = Math.min(10, Math.max(eMin + 1, eMax + 1));
+    } else if (label === "immersion") {
+      // Hold the pocket — tighten around current energy
+      const curE = currentTrack?.energy || Math.round((eMin + eMax) / 2);
+      eMin = Math.max(1, curE - 1);
+      eMax = Math.min(10, curE + 1);
+    }
+  }
+
+  // Pocket mode: stay near seed energy (±2)
+  if (seedTrack?.energy != null) {
+    const se = seedTrack.energy;
+    eMin = Math.max(1, se - 2);
+    eMax = Math.min(10, se + 2);
+  }
+
   // Recency decay — exclude tracks played in last 2 hours
   const recentIds = memory ? new Set(
     memory.filter(r => r.ts > Date.now() - 2 * 60 * 60 * 1000).map(r => r.id)
@@ -160,7 +198,8 @@ export function pickNextTrack(allTracks, currentTrack, memory = null) {
   const recentGenres = memory ? memory.slice(0, 3).map(r => r.genre).filter(Boolean) : [];
   const momentumGenre = recentGenres.length >= 2 && recentGenres[0] === recentGenres[1] ? recentGenres[0] : null;
 
-  const pool = allTracks.filter(t => t.id !== currentTrack?.id && (t.duration||0) <= 900 && !recentIds.has(t.id));
+  const excludeIds = new Set([currentTrack?.id, seedTrack?.id].filter(Boolean));
+  const pool = allTracks.filter(t => !excludeIds.has(t.id) && (t.duration||0) <= 900 && !recentIds.has(t.id));
   if (!pool.length) {
     // Fallback: if recency filter emptied the pool, ignore it
     const fallback = allTracks.filter(t => t.id !== currentTrack?.id && (t.duration||0) <= 900);
@@ -178,21 +217,41 @@ export function pickNextTrack(allTracks, currentTrack, memory = null) {
       else if (skips > 3) w = Math.max(1, Math.round(w * 0.6));
       // Genre momentum — 2× boost for tracks matching the streak
       if (momentumGenre && t.genre === momentumGenre) w *= 2;
+      // Preferred genres from profile — living Floor taste
+      if (preferredSet.size && preferredSet.has(t.genre)) w = Math.round(w * 2.5);
       // Aura trait boost: high grip after a skip, high hold in deep sessions
       if (t._signal) {
-        if (t._signal.grip >= 7) w += 1; // high-grip tracks slightly favored
-        if (t._signal.pull >= 7) w += 1; // return favorites slightly favored
+        if (t._signal.grip >= 7) w += 1;
+        if (t._signal.pull >= 7) w += 1;
+        if (signalState?.label === "immersion" && t._signal.hold >= 7) w += 2;
+        if ((signalState?.label === "ignition" || signalState?.label === "momentum") && t._signal.lift >= 7) w += 2;
+        if ((signalState?.label === "release" || signalState?.label === "restoration") && t._signal.descent >= 7) w += 2;
       }
-      return Array(w).fill(t);
+      // Hypno pocket — reward aura proximity + Camelot adjacency to seed
+      if (seedTrack?._signal && t._signal) {
+        const src = seedTrack._signal;
+        const s = t._signal;
+        const dist = Math.sqrt(
+          Math.pow((src.grip - s.grip) / 10, 2) +
+          Math.pow((src.hold - s.hold) / 10, 2) +
+          Math.pow((src.pull - s.pull) / 10, 2) +
+          Math.pow((src.lift - s.lift) / 10, 2)
+        );
+        if (dist < 0.25) w *= 3;
+        else if (dist < 0.45) w *= 2;
+      }
+      if (seedTrack?.camelot && t.camelot && camelotCompatible(seedTrack.camelot, t.camelot, 1)) w *= 2;
+      if (seedTrack?.genre && t.genre === seedTrack.genre) w = Math.round(w * 1.5);
+      return Array(Math.max(1, Math.round(w))).fill(t);
     });
     return weighted[Math.floor(Math.random() * weighted.length)];
   }
 
-  const p1 = pool.filter(t => camelotCompatible(currentTrack?.camelot,t.camelot) && t.energy>=eMin && t.energy<=eMax);
+  const p1 = pool.filter(t => camelotCompatible(anchor?.camelot, t.camelot) && t.energy >= eMin && t.energy <= eMax);
   if (p1.length) return weightedPick(p1);
-  const p2 = pool.filter(t => camelotCompatible(currentTrack?.camelot,t.camelot));
+  const p2 = pool.filter(t => camelotCompatible(anchor?.camelot, t.camelot));
   if (p2.length) return weightedPick(p2);
-  const p3 = pool.filter(t => t.energy>=eMin && t.energy<=eMax);
+  const p3 = pool.filter(t => t.energy >= eMin && t.energy <= eMax);
   if (p3.length) return weightedPick(p3);
   return weightedPick(pool);
 }
