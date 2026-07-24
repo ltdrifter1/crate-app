@@ -6,3 +6,7 @@ build.zip
 audio/
 covers/
 *.csv
+build/
+.env
+.env.*
+!.env.example

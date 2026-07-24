@@ -17,9 +17,10 @@ import requests
 import firebase_admin
 from firebase_admin import credentials, firestore
 
-# ── API keys ──────────────────────────────────────────────────────────────
-DISCOGS_TOKEN = "mhrANiNVwVpTEfEfsuljWYMijVhCiseGePGyNFRC"
-LASTFM_KEY    = "140694bd2e12b370905d290375d812a0"
+# ── API keys (set via environment — never commit secrets) ─────────────────
+import os
+DISCOGS_TOKEN = os.getenv("DISCOGS_TOKEN", "").strip()
+LASTFM_KEY    = os.getenv("LASTFM_KEY", "").strip()
 
 # ── Allowed genres ────────────────────────────────────────────────────────
 ALLOWED = [
