@@ -32,10 +32,8 @@ AUDIO_DIR.mkdir(exist_ok=True)
 COVERS_DIR.mkdir(exist_ok=True)
 
 ALLOWED_GENRES = {
-    "Soul","R&B","Jazz","Blues","Funk",
-    "Hip-Hop","House","Techno","Ambient",
-    "Reggae","Drum & Bass","Uk Garage","Metal","Folk",
-    "Rock","Alternative","Classical","Experimental"
+    "Rock", "R&B", "Country", "Hip-Hop", "House",
+    "Drum and Bass", "Soul", "Jazz", "Classical", "Metal",
 }
 
 def sanitize_filename(name: str) -> str:
@@ -114,39 +112,37 @@ GENRE_KEYWORDS = [
     ("rap", "Hip-Hop"),
     ("boom bap", "Hip-Hop"),
 
-    # House / Techno / Ambient
+    # House / DnB
     ("house", "House"),
-    ("techno", "Techno"),
-    ("ambient", "Ambient"),
-    ("drone", "Ambient"),
+    ("techno", "House"),
+    ("ambient", "House"),
+    ("drone", "House"),
+    ("garage", "House"),
+    ("drum and bass", "Drum and Bass"),
+    ("drum & bass", "Drum and Bass"),
+    ("dnb", "Drum and Bass"),
+    ("jungle", "Drum and Bass"),
 
-    # Soul / R&B / Jazz / Blues / Funk
+    # Soul / R&B / Jazz
     ("r&b", "R&B"),
     ("rnb", "R&B"),
     ("neo soul", "Soul"),
     ("soul", "Soul"),
     ("jazz", "Jazz"),
-    ("blues", "Blues"),
-    ("funk", "Funk"),
+    ("blues", "Jazz"),
+    ("funk", "Soul"),
 
-    # Reggae family
-    ("reggae", "Reggae"),
-    ("dub", "Reggae"),
-    ("dancehall", "Reggae"),
-
-    # Metal / Folk / Rock / Alt / Classical / Experimental
+    # Country / Rock / Metal / Classical
+    ("country", "Country"),
+    ("folk", "Country"),
     ("metal", "Metal"),
-    ("folk", "Folk"),
-    ("alternative", "Alternative"),
-    ("alt", "Alternative"),
+    ("alternative", "Rock"),
+    ("alt", "Rock"),
+    ("indie", "Rock"),
     ("rock", "Rock"),
+    ("punk", "Rock"),
     ("classical", "Classical"),
     ("orchestral", "Classical"),
-    ("experimental", "Experimental"),
-    ("industrial", "Experimental"),
-    ("noise", "Experimental"),
-    ("idm", "Experimental"),
-    ("electronica", "Experimental"),
 ]
 
 def map_to_allowed(raw_genre: str) -> str:

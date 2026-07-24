@@ -24,11 +24,31 @@ LASTFM_KEY    = os.getenv("LASTFM_KEY", "").strip()
 
 # ── Allowed genres ────────────────────────────────────────────────────────
 ALLOWED = [
-    "Soul", "R&B", "Jazz", "Blues", "Funk",
-    "Hip-Hop", "House", "Techno", "Ambient",
-    "Reggae", "Drum & Bass", "UK Garage", "Metal", "Folk",
-    "Rock", "Alternative", "Classical", "Experimental",
+    "Rock", "R&B", "Country", "Hip-Hop", "House",
+    "Drum and Bass", "Soul", "Jazz", "Classical", "Metal",
 ]
+
+LEGACY_TO_CANONICAL = {
+    "Techno": "House", "Ambient": "House", "Electronic": "House", "Disco": "House",
+    "UK Garage": "House", "Uk Garage": "House", "Funk": "Soul", "Blues": "Jazz",
+    "Drum & Bass": "Drum and Bass", "Alternative": "Rock", "Indie": "Rock",
+    "Folk": "Country", "Reggae": "Soul", "Afrobeat": "Soul", "Experimental": "Jazz",
+    "Latin": "Jazz", "World": "Jazz", "Pop": "R&B", "Rap": "Hip-Hop",
+}
+
+def to_canonical(g):
+    if not g:
+        return ""
+    g = str(g).strip()
+    if g in ALLOWED:
+        return g
+    if g in LEGACY_TO_CANONICAL:
+        return LEGACY_TO_CANONICAL[g]
+    low = g.lower()
+    for a in ALLOWED:
+        if a.lower() == low:
+            return a
+    return LEGACY_TO_CANONICAL.get(g, "")
 
 # ── Known artist → genre ──────────────────────────────────────────────────
 KNOWN_ARTISTS = {
@@ -47,7 +67,7 @@ KNOWN_ARTISTS = {
     "greentea peng": "Soul", "steve lacy": "R&B", "blood orange": "R&B",
     "kaytranada": "R&B", "angie stone": "Soul", "fousheé": "R&B",
     "ravyn lenae": "R&B", "the delfonics": "Soul", "the dramatics": "Soul",
-    "detroit emeralds": "Soul", "phony ppl": "R&B", "kool & the gang": "Funk",
+    "detroit emeralds": "Soul", "phony ppl": "R&B", "kool & the gang": "Soul",
     "phil-osophy": "Soul", "another taste": "Soul", "d.d. mirage": "Soul",
     "lady blackbird": "Soul", "bob & gene": "Soul", "blaze": "House",
     "dinnerparty": "Soul", "cise star": "Hip-Hop",
@@ -55,64 +75,64 @@ KNOWN_ARTISTS = {
     "ahmad jamal": "Jazz", "grant green": "Jazz", "butcher brown": "Jazz",
     "brandee younger": "Jazz", "polyrhythmics": "Jazz", "alfa mist": "Jazz",
     "emma-jean thackray": "Jazz", "dj cam": "Jazz",
-    "jean-jacques perrey": "Experimental", "children of zeus": "Hip-Hop",
+    "jean-jacques perrey": "Jazz", "children of zeus": "Hip-Hop",
     "nubya garcia": "Jazz", "love me not": "Jazz",
     # Drum & Bass
-    "calibre": "Drum & Bass", "alix perez": "Drum & Bass", "adam f": "Drum & Bass",
-    "bcee": "Drum & Bass", "anile": "Drum & Bass", "break": "Drum & Bass",
-    "mat zo": "Drum & Bass", "4am kru": "Drum & Bass", "coco bryce": "Drum & Bass",
-    "deeb": "Drum & Bass", "q project": "Drum & Bass", "omni trio": "Drum & Bass",
-    "bop & chime": "Drum & Bass", "archangel": "Drum & Bass",
-    "askel & elere": "Drum & Bass", "anushka": "Drum & Bass",
-    "roni size": "Drum & Bass", "hopper1000": "Drum & Bass",
-    "echo shift": "Drum & Bass", "fox l-side": "Drum & Bass",
-    "the chameleon": "Drum & Bass", "deeprot": "Drum & Bass",
-    "dangerous goods": "Drum & Bass", "bop": "Drum & Bass",
-    "sio": "Drum & Bass",
+    "calibre": "Drum and Bass", "alix perez": "Drum and Bass", "adam f": "Drum and Bass",
+    "bcee": "Drum and Bass", "anile": "Drum and Bass", "break": "Drum and Bass",
+    "mat zo": "Drum and Bass", "4am kru": "Drum and Bass", "coco bryce": "Drum and Bass",
+    "deeb": "Drum and Bass", "q project": "Drum and Bass", "omni trio": "Drum and Bass",
+    "bop & chime": "Drum and Bass", "archangel": "Drum and Bass",
+    "askel & elere": "Drum and Bass", "anushka": "Drum and Bass",
+    "roni size": "Drum and Bass", "hopper1000": "Drum and Bass",
+    "echo shift": "Drum and Bass", "fox l-side": "Drum and Bass",
+    "the chameleon": "Drum and Bass", "deeprot": "Drum and Bass",
+    "dangerous goods": "Drum and Bass", "bop": "Drum and Bass",
+    "sio": "Drum and Bass",
     # House / Electronic
     "dusky": "House", "chaos in the cbd": "House", "1-800 girls": "House",
     "dj koze": "House", "logic1000": "House", "daft punk": "House",
     "lazy deejay": "House", "username": "House", "barry can't swim": "House",
     # Ambient / Downtempo
-    "maribou state": "Ambient", "the album leaf": "Ambient", "bobby lee": "Ambient",
-    "dahlak band": "Ambient", "mr. yt": "Ambient", "casino versus japan": "Ambient",
-    "charlie forrest": "Ambient", "bad tuner": "Ambient",
+    "maribou state": "House", "the album leaf": "House", "bobby lee": "House",
+    "dahlak band": "House", "mr. yt": "House", "casino versus japan": "House",
+    "charlie forrest": "House", "bad tuner": "House",
     # Rock / Alternative
-    "radiohead": "Alternative", "big thief": "Alternative",
-    "khruangbin": "Alternative", "night beats": "Rock", "la lom": "Rock",
-    "tijuana panthers": "Rock", "chastity belt": "Alternative",
-    "built to spill": "Rock", "stereolab": "Experimental",
-    "cocteau twins": "Alternative", "clinic": "Rock", "can": "Experimental",
-    "beak_": "Experimental", "haley heynderickx": "Folk",
-    "atlas sound": "Alternative", "destroyer": "Alternative",
-    "ra ra riot": "Alternative", "panda bear": "Experimental",
+    "radiohead": "Rock", "big thief": "Rock",
+    "khruangbin": "Rock", "night beats": "Rock", "la lom": "Rock",
+    "tijuana panthers": "Rock", "chastity belt": "Rock",
+    "built to spill": "Rock", "stereolab": "Jazz",
+    "cocteau twins": "Rock", "clinic": "Rock", "can": "Jazz",
+    "beak_": "Jazz", "haley heynderickx": "Country",
+    "atlas sound": "Rock", "destroyer": "Rock",
+    "ra ra riot": "Rock", "panda bear": "Jazz",
     "the lazy eyes": "Rock", "great grandpa": "Rock", "coral grief": "Rock",
-    "roswit": "Alternative", "saya gray": "Alternative", "cool sounds": "Rock",
-    "daniel romano": "Folk", "mereba": "Alternative", "dehd": "Alternative",
-    "deftones": "Rock", "work money death": "Alternative",
-    "healing gems": "Alternative", "hataalii": "Alternative", "iji": "Alternative",
+    "roswit": "Rock", "saya gray": "Rock", "cool sounds": "Rock",
+    "daniel romano": "Country", "mereba": "Rock", "dehd": "Rock",
+    "deftones": "Rock", "work money death": "Rock",
+    "healing gems": "Rock", "hataalii": "Rock", "iji": "Rock",
     "abracadabra": "Rock", "unknown mortal orchestra": "Rock",
     # Reggae
-    "bob marley": "Reggae", "chronixx": "Reggae", "ernest ranglin": "Reggae",
+    "bob marley": "Soul", "chronixx": "Soul", "ernest ranglin": "Soul",
     # Funk
-    "yin yin": "Funk", "the pro-teens": "Funk", "cymande": "Funk",
-    "ocote soul Sounds": "Funk", "adrian younge": "Soul", "l'eclair": "Funk",
+    "yin yin": "Soul", "the pro-teens": "Soul", "cymande": "Soul",
+    "ocote soul Sounds": "Soul", "adrian younge": "Soul", "l'eclair": "Soul",
     # Experimental / Other
-    "ela minus": "Experimental", "the avalanches": "Experimental",
-    "depth charge": "Experimental", "confidence man": "Alternative",
-    "tv girl": "Alternative", "george clanton": "Alternative",
-    "sven wunder": "Alternative", "speaker louis": "Experimental",
-    "charlie hilton": "Alternative", "bubble love": "Alternative",
-    "bon iver": "Alternative", "billie eilish": "Alternative",
-    "benee": "Alternative", "nilüfer yanya": "Alternative",
-    "cindy lee": "Experimental", "suburban architecture": "Alternative",
-    "art feynman": "Alternative", "chediak": "Experimental",
-    "chrystal": "Alternative", "brien & ffolliott": "Alternative",
-    "balthvs": "Alternative", "dan the automator": "Hip-Hop",
-    "blade": "Classical", "ata records": "Experimental",
-    "takeshi terauchi": "Experimental", "ape escape": "Experimental",
-    "the natural yogurt band": "Experimental", "bob marley & the wailers": "Reggae",
-    "zeds dead": "Experimental", "damedame_": "R&B", "a_s_l": "R&B",
+    "ela minus": "Jazz", "the avalanches": "Jazz",
+    "depth charge": "Jazz", "confidence man": "Rock",
+    "tv girl": "Rock", "george clanton": "Rock",
+    "sven wunder": "Rock", "speaker louis": "Jazz",
+    "charlie hilton": "Rock", "bubble love": "Rock",
+    "bon iver": "Rock", "billie eilish": "Rock",
+    "benee": "Rock", "nilüfer yanya": "Rock",
+    "cindy lee": "Jazz", "suburban architecture": "Rock",
+    "art feynman": "Rock", "chediak": "Jazz",
+    "chrystal": "Rock", "brien & ffolliott": "Rock",
+    "balthvs": "Rock", "dan the automator": "Hip-Hop",
+    "blade": "Classical", "ata records": "Jazz",
+    "takeshi terauchi": "Jazz", "ape escape": "Jazz",
+    "the natural yogurt band": "Jazz", "bob marley & the wailers": "Soul",
+    "zeds dead": "Jazz", "damedame_": "R&B", "a_s_l": "R&B",
 }
 
 def known_artist_genre(artist):
@@ -126,41 +146,41 @@ def known_artist_genre(artist):
 
 # ── Tag → genre rules ─────────────────────────────────────────────────────
 TAG_RULES = [
-    ("drum and bass", "Drum & Bass"), ("drum & bass", "Drum & Bass"),
-    ("liquid dnb", "Drum & Bass"), ("neurofunk", "Drum & Bass"),
-    ("jungle", "Drum & Bass"), ("dnb", "Drum & Bass"),
-    ("uk garage", "UK Garage"), ("2-step", "UK Garage"), ("2 step", "UK Garage"),
-    ("speed garage", "UK Garage"),
+    ("drum and bass", "Drum and Bass"), ("drum & bass", "Drum and Bass"),
+    ("liquid dnb", "Drum and Bass"), ("neurofunk", "Drum and Bass"),
+    ("jungle", "Drum and Bass"), ("dnb", "Drum and Bass"),
+    ("uk garage", "House"), ("2-step", "House"), ("2 step", "House"),
+    ("speed garage", "House"),
     ("deep house", "House"), ("bass house", "House"), ("tech house", "House"),
     ("chicago house", "House"), ("progressive house", "House"), ("house", "House"),
-    ("techno", "Techno"),
+    ("techno", "House"),
     ("hip-hop", "Hip-Hop"), ("hip hop", "Hip-Hop"), ("rap", "Hip-Hop"),
     ("boom bap", "Hip-Hop"), ("trap", "Hip-Hop"), ("grime", "Hip-Hop"),
     ("neo soul", "Soul"), ("soul", "Soul"),
     ("rhythm and blues", "R&B"), ("r&b", "R&B"),
     ("acid jazz", "Jazz"), ("jazz funk", "Jazz"), ("nu jazz", "Jazz"),
     ("jazz", "Jazz"),
-    ("blues", "Blues"),
-    ("funk", "Funk"),
-    ("dancehall", "Reggae"), ("reggae", "Reggae"), ("dub reggae", "Reggae"),
-    ("ska", "Reggae"),
+    ("blues", "Jazz"),
+    ("funk", "Soul"),
+    ("dancehall", "Soul"), ("reggae", "Soul"), ("dub reggae", "Soul"),
+    ("ska", "Soul"),
     ("heavy metal", "Metal"), ("metal", "Metal"), ("hardcore", "Metal"),
-    ("americana", "Folk"), ("folk", "Folk"), ("country", "Folk"),
+    ("americana", "Country"), ("folk", "Country"), ("country", "Country"),
     ("classical", "Classical"), ("orchestral", "Classical"),
-    ("ambient", "Ambient"), ("downtempo", "Ambient"), ("drone", "Ambient"),
-    ("chillout", "Ambient"), ("chillwave", "Ambient"), ("new age", "Ambient"),
-    ("trip-hop", "Experimental"), ("trip hop", "Experimental"),
-    ("broken beat", "Experimental"), ("breakbeat", "Experimental"),
-    ("krautrock", "Experimental"), ("noise", "Experimental"),
-    ("electronica", "Experimental"), ("experimental", "Experimental"),
+    ("ambient", "House"), ("downtempo", "House"), ("drone", "House"),
+    ("chillout", "House"), ("chillwave", "House"), ("new age", "House"),
+    ("trip-hop", "Jazz"), ("trip hop", "Jazz"),
+    ("broken beat", "Jazz"), ("breakbeat", "Jazz"),
+    ("krautrock", "Jazz"), ("noise", "Jazz"),
+    ("electronica", "Jazz"), ("experimental", "Jazz"),
     ("garage rock", "Rock"), ("psychedelic rock", "Rock"), ("art rock", "Rock"),
     ("punk", "Rock"), ("grunge", "Rock"), ("rock", "Rock"),
-    ("indie pop", "Alternative"), ("indie rock", "Alternative"),
-    ("indie", "Alternative"), ("alternative", "Alternative"),
-    ("synth-pop", "Alternative"), ("synthpop", "Alternative"),
-    ("electropop", "Alternative"), ("art pop", "Alternative"),
-    ("shoegaze", "Alternative"), ("post-punk", "Alternative"), ("pop", "Alternative"),
-    ("electronic", "Experimental"), ("electro", "Experimental"),
+    ("indie pop", "Rock"), ("indie rock", "Rock"),
+    ("indie", "Rock"), ("alternative", "Rock"),
+    ("synth-pop", "Rock"), ("synthpop", "Rock"),
+    ("electropop", "Rock"), ("art pop", "Rock"),
+    ("shoegaze", "Rock"), ("post-punk", "Rock"), ("pop", "Rock"),
+    ("electronic", "Jazz"), ("electro", "Jazz"),
 ]
 
 BAD_TAGS = {'other','[unknown]','n;a','','data & other','1–4 wochen',
@@ -264,40 +284,40 @@ DGH = {"Authorization": f"Discogs token={DISCOGS_TOKEN}",
        "User-Agent": "CrateApp/1.0"}
 
 DISCOGS_GENRE_MAP = {
-    "electronic": "Experimental", "hip hop": "Hip-Hop", "hip-hop": "Hip-Hop",
-    "soul": "Soul", "r&b": "R&B", "funk": "Funk", "jazz": "Jazz",
-    "blues": "Blues", "reggae": "Reggae", "rock": "Rock", "pop": "Alternative",
-    "classical": "Classical", "folk": "Folk", "country": "Folk",
-    "latin": "Experimental", "world": "Experimental", "children's": "Alternative",
-    "stage & screen": "Alternative", "brass & military": "Classical",
-    "non-music": "Experimental",
+    "electronic": "Jazz", "hip hop": "Hip-Hop", "hip-hop": "Hip-Hop",
+    "soul": "Soul", "r&b": "R&B", "funk": "Soul", "jazz": "Jazz",
+    "blues": "Jazz", "reggae": "Soul", "rock": "Rock", "pop": "Rock",
+    "classical": "Classical", "folk": "Country", "country": "Country",
+    "latin": "Jazz", "world": "Jazz", "children's": "Rock",
+    "stage & screen": "Rock", "brass & military": "Classical",
+    "non-music": "Jazz",
 }
 
 DISCOGS_STYLE_MAP = {
-    "drum n bass": "Drum & Bass", "drum & bass": "Drum & Bass",
-    "dnb": "Drum & Bass", "jungle": "Drum & Bass", "neurofunk": "Drum & Bass",
-    "liquid funk": "Drum & Bass", "liquid dnb": "Drum & Bass",
-    "uk garage": "UK Garage", "2-step": "UK Garage", "garage": "UK Garage",
+    "drum n bass": "Drum and Bass", "drum & bass": "Drum and Bass",
+    "dnb": "Drum and Bass", "jungle": "Drum and Bass", "neurofunk": "Drum and Bass",
+    "liquid funk": "Drum and Bass", "liquid dnb": "Drum and Bass",
+    "uk garage": "House", "2-step": "House", "garage": "House",
     "house": "House", "deep house": "House", "tech house": "House",
-    "techno": "Techno", "minimal techno": "Techno",
+    "techno": "House", "minimal techno": "House",
     "hip-hop": "Hip-Hop", "rap": "Hip-Hop", "trap": "Hip-Hop",
     "boom bap": "Hip-Hop", "grime": "Hip-Hop",
     "soul": "Soul", "neo soul": "Soul",
     "r&b": "R&B", "contemporary r&b": "R&B",
     "jazz": "Jazz", "acid jazz": "Jazz", "nu jazz": "Jazz",
-    "blues": "Blues",
-    "funk": "Funk",
-    "reggae": "Reggae", "dub": "Reggae", "dancehall": "Reggae", "ska": "Reggae",
+    "blues": "Jazz",
+    "funk": "Soul",
+    "reggae": "Soul", "dub": "Soul", "dancehall": "Soul", "ska": "Soul",
     "metal": "Metal", "heavy metal": "Metal", "hardcore": "Metal",
-    "folk": "Folk", "americana": "Folk",
+    "folk": "Country", "americana": "Country",
     "classical": "Classical",
-    "ambient": "Ambient", "downtempo": "Ambient", "drone": "Ambient",
-    "trip hop": "Experimental", "trip-hop": "Experimental",
-    "breakbeat": "Experimental", "experimental": "Experimental",
-    "electronica": "Experimental", "electro": "Experimental",
-    "indie rock": "Alternative", "indie pop": "Alternative",
-    "alternative rock": "Alternative", "shoegaze": "Alternative",
-    "post-punk": "Alternative", "synth-pop": "Alternative",
+    "ambient": "House", "downtempo": "House", "drone": "House",
+    "trip hop": "Jazz", "trip-hop": "Jazz",
+    "breakbeat": "Jazz", "experimental": "Jazz",
+    "electronica": "Jazz", "electro": "Jazz",
+    "indie rock": "Rock", "indie pop": "Rock",
+    "alternative rock": "Rock", "shoegaze": "Rock",
+    "post-punk": "Rock", "synth-pop": "Rock",
     "punk": "Rock", "grunge": "Rock",
 }
 
@@ -427,9 +447,9 @@ for i, row in enumerate(rows):
         if genre: source = "lastfm"
         time.sleep(0.3)
 
-    # 6. Experimental fallback
+    # 6. Fallback — leave blank rather than invent a banned genre
     if not genre:
-        genre  = "Experimental"
+        genre  = ""
         source = "fallback"
 
     flag = "⚠️ " if source == "fallback" else "✓  "
@@ -454,7 +474,7 @@ for res in results:
             if len(key) > 8 and key[:20] in fk:
                 doc_ids = fids; break
     if doc_ids:
-        db.collection("tracks").document(doc_ids[0]).update({"genre": res['genre']})
+        db.collection("tracks").document(doc_ids[0]).update({"genre": to_canonical(res['genre'])})
         updated += 1
     else:
         no_match += 1

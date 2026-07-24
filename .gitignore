@@ -6,6 +6,7 @@ build.zip
 audio/
 covers/
 titles-review.csv
+genres-review.csv
 *.csv
 .env
 .env.*
