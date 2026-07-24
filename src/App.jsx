@@ -27,12 +27,12 @@ const injectStyles = () => {
     body { font-family: var(--font); background: var(--canvas); color: var(--ink); }
     ::-webkit-scrollbar { width: 4px; height: 4px; }
     ::-webkit-scrollbar-track { background: transparent; }
-    ::-webkit-scrollbar-thumb { background: rgba(242,240,235,0.14); border-radius: 4px; }
+    ::-webkit-scrollbar-thumb { background: rgba(232,236,240,0.14); border-radius: 4px; }
     button { transition: opacity ${motion.fast}, background ${motion.base}, transform ${motion.fast}; font-family: var(--font); }
     button:active { opacity: 0.72; }
     button:focus-visible, input:focus-visible { outline: 2px solid ${color.accent}; outline-offset: 2px; }
     input:focus { outline: none; }
-    input[type="range"] { -webkit-appearance: none; height: 3px; background: rgba(242,240,235,0.12); border-radius: 2px; outline: none; cursor: pointer; }
+    input[type="range"] { -webkit-appearance: none; height: 3px; background: rgba(232,236,240,0.12); border-radius: 2px; outline: none; cursor: pointer; }
     input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; border-radius: 50%; background: ${color.accent}; border: none; cursor: pointer; }
     input[type="range"]::-moz-range-thumb { width: 14px; height: 14px; border-radius: 50%; background: ${color.accent}; border: none; cursor: pointer; }
     .hide-scroll { -ms-overflow-style: none; scrollbar-width: none; }
@@ -62,7 +62,7 @@ function EnergyBar({ level, size="sm" }) {
         <div key={i} style={{
           width: size==="lg"?4:2.5, height:ht,
           borderRadius:2,
-          background: i < level ? color.accent : "rgba(242,240,235,0.12)",
+          background: i < level ? color.accent : "rgba(232,236,240,0.12)",
           transition:"background 0.2s",
         }}/>
       ))}
@@ -176,8 +176,8 @@ function DeepCutsCard({ onPlay, onTogglePlay, currentTrack, isPlaying, isRadioMo
       <div aria-hidden="true" style={{
         position:"absolute", inset:0,
         background: cover
-          ? "linear-gradient(135deg, rgba(9,9,11,0.55) 0%, rgba(9,9,11,0.82) 100%)"
-          : "linear-gradient(145deg, #16120E 0%, #0E0E10 48%, #0A0A0C 100%)",
+          ? "linear-gradient(135deg, rgba(9,11,13,0.55) 0%, rgba(9,11,13,0.82) 100%)"
+          : "linear-gradient(145deg, #141A22 0%, #0C0F12 48%, #090B0D 100%)",
       }}/>
       <div aria-hidden="true" style={{
         position:"absolute", top:-40, right:-20, width:180, height:180, borderRadius:"50%",
@@ -189,18 +189,18 @@ function DeepCutsCard({ onPlay, onTogglePlay, currentTrack, isPlaying, isRadioMo
           <div style={{ display:"flex", alignItems:"center", gap:8 }}>
             <div style={{
               width:7, height:7, borderRadius:"50%",
-              background: live && isPlaying ? color.accent : "rgba(242,240,235,0.28)",
+              background: live && isPlaying ? color.accent : "rgba(232,236,240,0.28)",
               animation: live && isPlaying ? "breathe 2s ease-in-out infinite" : "none",
             }}/>
             <span style={{
               fontSize:11, fontWeight:700, letterSpacing:1.8,
-              color: live && isPlaying ? color.accent : "rgba(242,240,235,0.4)",
+              color: live && isPlaying ? color.accent : "rgba(232,236,240,0.4)",
               textTransform:"uppercase", fontFamily: fontDisplay,
             }}>
               {live && isPlaying ? "On Air" : "Radio"}
             </span>
           </div>
-          <span style={{ fontSize:12, fontWeight:500, color:"rgba(242,240,235,0.4)" }}>{currentTrack?.genre || timeLabel}</span>
+          <span style={{ fontSize:12, fontWeight:500, color:"rgba(232,236,240,0.4)" }}>{currentTrack?.genre || timeLabel}</span>
         </div>
 
         {live ? (
@@ -211,7 +211,7 @@ function DeepCutsCard({ onPlay, onTogglePlay, currentTrack, isPlaying, isRadioMo
               </div>
               <div style={{ flex:1, minWidth:0 }}>
                 <div style={{ fontSize:20, fontWeight:700, color: color.onDark, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap", letterSpacing:-0.5, fontFamily: fontDisplay }}>{currentTrack.title}</div>
-                <div style={{ fontSize:14, color:"rgba(242,240,235,0.5)", marginTop:4 }}>{currentTrack.artist}</div>
+                <div style={{ fontSize:14, color:"rgba(232,236,240,0.5)", marginTop:4 }}>{currentTrack.artist}</div>
               </div>
             </div>
             <div style={{ display:"flex", alignItems:"center", gap:12 }}>
@@ -219,11 +219,11 @@ function DeepCutsCard({ onPlay, onTogglePlay, currentTrack, isPlaying, isRadioMo
                 style={{ width:44, height:44, borderRadius:"50%", background: color.accent, border:"none", display:"flex", alignItems:"center", justifyContent:"center", color: color.onAccent, cursor:"pointer" }}>
                 <Icon name={isPlaying?"pause":"play"} size={17}/>
               </button>
-              <div style={{ fontSize:12, color:"rgba(242,240,235,0.42)" }}>{timeLabel}{signalLabel ? ` · ${signalLabel}` : ""}</div>
+              <div style={{ fontSize:12, color:"rgba(232,236,240,0.42)" }}>{timeLabel}{signalLabel ? ` · ${signalLabel}` : ""}</div>
               <div style={{ flex:1 }}/>
               <div style={{ display:"flex", gap:2.5, alignItems:"flex-end" }} aria-hidden="true">
                 {[1,2,3,4,5,6,7,8,9,10].map(i => (
-                  <div key={i} style={{ width:2.5, height: 3 + i * 1.5, borderRadius:1, background: i <= energyLevel ? color.accent : "rgba(242,240,235,0.12)" }}/>
+                  <div key={i} style={{ width:2.5, height: 3 + i * 1.5, borderRadius:1, background: i <= energyLevel ? color.accent : "rgba(232,236,240,0.12)" }}/>
                 ))}
               </div>
             </div>
@@ -231,7 +231,7 @@ function DeepCutsCard({ onPlay, onTogglePlay, currentTrack, isPlaying, isRadioMo
         ) : (
           <div>
             <div style={{ fontSize:28, fontWeight:750, letterSpacing:-0.8, color: color.onDark, marginBottom:8, fontFamily: fontDisplay, lineHeight:1.05 }}>{timeLabel}</div>
-            <div style={{ fontSize:14, color:"rgba(242,240,235,0.45)", marginBottom:22, lineHeight:1.45, maxWidth:280 }}>
+            <div style={{ fontSize:14, color:"rgba(232,236,240,0.45)", marginBottom:22, lineHeight:1.45, maxWidth:280 }}>
               A session shaped for this hour — keys, energy, and the room you’re in.
             </div>
             <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between" }}>
@@ -252,7 +252,7 @@ function DeepCutsCard({ onPlay, onTogglePlay, currentTrack, isPlaying, isRadioMo
               </div>
               <div style={{ display:"flex", gap:2.5, alignItems:"flex-end" }} aria-hidden="true">
                 {[1,2,3,4,5,6,7,8,9,10].map(i => (
-                  <div key={i} style={{ width:2.5, height: 3 + i * 1.5, borderRadius:1, background: (i >= eMin && i <= eMax) ? "rgba(226,168,58,0.55)" : "rgba(242,240,235,0.1)" }}/>
+                  <div key={i} style={{ width:2.5, height: 3 + i * 1.5, borderRadius:1, background: (i >= eMin && i <= eMax) ? "rgba(122,145,164,0.55)" : "rgba(232,236,240,0.1)" }}/>
                 ))}
               </div>
             </div>
@@ -1418,7 +1418,7 @@ function HomeScreen({ tracks, onPlayRadio, onTogglePlay, onPlayTrack, currentTra
               <div key={t.id} onClick={()=>onPlayTrack(t, mixtapes)}
                 style={{ display:"flex", alignItems:"center", gap:14, padding:"10px 12px", borderRadius:14, cursor:"pointer",
                   background: currentTrack?.id===t.id ? color.accentSoft : color.surface,
-                  border: `1px solid ${currentTrack?.id===t.id ? "rgba(226,168,58,0.28)" : color.line}`,
+                  border: `1px solid ${currentTrack?.id===t.id ? "rgba(122,145,164,0.35)" : color.line}`,
                   transition:"all 0.2s" }}>
                 <div style={{ width:52, height:52, borderRadius:10, overflow:"hidden", flexShrink:0 }}>
                   <AlbumArt track={t} size={52} borderRadius={0}/>
@@ -1534,14 +1534,14 @@ function FavoritesScreen({ tracks, onPlay, onLike, currentTrack, isPlaying, user
 
   // Mood system — curated late-night house contexts (purged from 16 noisy chips)
   const MOOD_DEFS = [
-    { id:"nocturnal",  label:"Nocturnal",  desc:"Late & locked in",     tone:"#1A2433", filter: t => (t.energy||5) >= 3 && (t.energy||5) <= 6 && ["Electronic","Techno","House","Ambient","Experimental"].includes(t.genre) },
-    { id:"deep",       label:"Deep",       desc:"Low lights, long builds", tone:"#1C1814", filter: t => (t.energy||5) <= 4 && ["House","Techno","Ambient","Electronic","Soul"].includes(t.genre) },
-    { id:"groovy",     label:"Groovy",     desc:"Locked pocket",        tone:"#241C14", filter: t => (t.energy||5) >= 4 && (t.energy||5) <= 7 && ["Funk","R&B","Soul","House","Disco","Afrobeat"].includes(t.genre) },
-    { id:"driving",    label:"Driving",    desc:"Forward motion",       tone:"#1A1E24", filter: t => (t.energy||5) >= 6 && (t.energy||5) <= 8 && (t.bpm||120) >= 115 },
-    { id:"euphoric",   label:"Peak",       desc:"Hands up, eyes closed", tone:"#2A2010", filter: t => (t.energy||5) >= 7 && ["House","Techno","Electronic","Afrobeat"].includes(t.genre) },
-    { id:"warm",       label:"Warm",       desc:"Golden afterhours",    tone:"#261E16", filter: t => (t.energy||5) >= 3 && (t.energy||5) <= 5 && ["Soul","R&B","Jazz","Folk","World"].includes(t.genre) },
-    { id:"melancholy", label:"Melancholy", desc:"Reflective & deep",    tone:"#181C22", filter: t => (t.energy||5) <= 3 && ["Soul","Jazz","Blues","Classical","Ambient","Folk"].includes(t.genre) },
-    { id:"raw",        label:"Raw",        desc:"Gritty & unpolished",  tone:"#201816", filter: t => (t.energy||5) >= 5 && ["Rock","Alternative","Hip-Hop","Indie","Experimental","Techno"].includes(t.genre) },
+    { id:"nocturnal",  label:"Nocturnal",  desc:"Late & locked in",     tone:"#141C28", filter: t => (t.energy||5) >= 3 && (t.energy||5) <= 6 && ["Electronic","Techno","House","Ambient","Experimental"].includes(t.genre) },
+    { id:"deep",       label:"Deep",       desc:"Low lights, long builds", tone:"#121820", filter: t => (t.energy||5) <= 4 && ["House","Techno","Ambient","Electronic","Soul"].includes(t.genre) },
+    { id:"groovy",     label:"Groovy",     desc:"Locked pocket",        tone:"#161E24", filter: t => (t.energy||5) >= 4 && (t.energy||5) <= 7 && ["Funk","R&B","Soul","House","Disco","Afrobeat"].includes(t.genre) },
+    { id:"driving",    label:"Driving",    desc:"Forward motion",       tone:"#151C26", filter: t => (t.energy||5) >= 6 && (t.energy||5) <= 8 && (t.bpm||120) >= 115 },
+    { id:"euphoric",   label:"Peak",       desc:"Hands up, eyes closed", tone:"#1A222C", filter: t => (t.energy||5) >= 7 && ["House","Techno","Electronic","Afrobeat"].includes(t.genre) },
+    { id:"warm",       label:"Warm",       desc:"Afterhours hush",      tone:"#181E24", filter: t => (t.energy||5) >= 3 && (t.energy||5) <= 5 && ["Soul","R&B","Jazz","Folk","World"].includes(t.genre) },
+    { id:"melancholy", label:"Melancholy", desc:"Reflective & deep",    tone:"#141820", filter: t => (t.energy||5) <= 3 && ["Soul","Jazz","Blues","Classical","Ambient","Folk"].includes(t.genre) },
+    { id:"raw",        label:"Raw",        desc:"Gritty & unpolished",  tone:"#1A1C20", filter: t => (t.energy||5) >= 5 && ["Rock","Alternative","Hip-Hop","Indie","Experimental","Techno"].includes(t.genre) },
   ];
 
   const moods = {};
@@ -1606,14 +1606,14 @@ function FavoritesScreen({ tracks, onPlay, onLike, currentTrack, isPlaying, user
   );
 
   const GENRE_TONES = {
-    House:"#2A2014", Techno:"#141820", Soul:"#241814", "R&B":"#22161A", Jazz:"#1A1820",
-    Disco:"#261C10", Funk:"#221810", Ambient:"#14181C", Electronic:"#181820", Afrobeat:"#241810",
+    House:"#182028", Techno:"#141820", Soul:"#1A1E24", "R&B":"#1A1C22", Jazz:"#161A22",
+    Disco:"#1A2026", Funk:"#181C22", Ambient:"#14181C", Electronic:"#161A20", Afrobeat:"#1A1E24",
   };
 
   return (
     <div style={{ overflowY:"auto", height:"100%", minHeight:"calc(100vh - 112px)" }}>
       {/* Tab bar */}
-      <div style={{ position:"sticky", top:0, zIndex:10, padding:"14px 16px 10px", background:"rgba(9,9,11,0.88)", backdropFilter:"blur(16px)" }}>
+      <div style={{ position:"sticky", top:0, zIndex:10, padding:"14px 16px 10px", background:"rgba(9,11,13,0.88)", backdropFilter:"blur(16px)" }}>
         <div style={{
           background: color.surfaceSolid,
           border: `1px solid ${color.line}`,
@@ -1662,7 +1662,7 @@ function FavoritesScreen({ tracks, onPlay, onLike, currentTrack, isPlaying, user
                       {i === 0 && (
                         <div style={{
                           position:"absolute", inset:0,
-                          background:"linear-gradient(180deg, transparent 45%, rgba(9,9,11,0.85) 100%)",
+                          background:"linear-gradient(180deg, transparent 45%, rgba(9,11,13,0.85) 100%)",
                           display:"flex", alignItems:"flex-end", padding:14,
                         }}>
                           <div>
@@ -1732,11 +1732,11 @@ function FavoritesScreen({ tracks, onPlay, onLike, currentTrack, isPlaying, user
                     )}
                     <div style={{
                       position:"absolute", inset:0,
-                      background:"linear-gradient(160deg, rgba(9,9,11,0.15) 0%, rgba(9,9,11,0.72) 100%)",
+                      background:"linear-gradient(160deg, rgba(9,11,13,0.15) 0%, rgba(9,11,13,0.72) 100%)",
                     }}/>
                     <div style={{ position:"relative", zIndex:1, padding:"16px 14px", display:"flex", flexDirection:"column", justifyContent:"flex-end", minHeight:108 }}>
                       <div style={{ fontSize:16, fontWeight:700, color: color.ink, fontFamily: fontDisplay, letterSpacing:-0.3 }}>{mood}</div>
-                      <div style={{ fontSize:11, color:"rgba(242,240,235,0.55)", marginTop:3 }}>{meta?.desc}</div>
+                      <div style={{ fontSize:11, color:"rgba(232,236,240,0.55)", marginTop:3 }}>{meta?.desc}</div>
                       <div style={{ fontSize:10, color: color.accent, marginTop:8, fontWeight:600 }}>{moods[mood].length} tracks</div>
                     </div>
                   </div>
@@ -1968,7 +1968,7 @@ function ProfileScreen({ user, setUser, tracks, onLogout }) {
         <div style={{ display:"flex", gap:4, alignItems:"flex-end", height:60 }}>
           {energyDist.map((count, i) => (
             <div key={i} style={{ flex:1, display:"flex", flexDirection:"column", alignItems:"center", gap:4 }}>
-              <div style={{ width:"100%", height: Math.max(2, (count / maxEDist) * 52), borderRadius:4, background: count > 0 ? color.accent : "rgba(242,240,235,0.06)", transition:"height 0.3s", opacity: count > 0 ? 0.15 + (count/maxEDist) * 0.85 : 0.3 }}/>
+              <div style={{ width:"100%", height: Math.max(2, (count / maxEDist) * 52), borderRadius:4, background: count > 0 ? color.accent : "rgba(232,236,240,0.06)", transition:"height 0.3s", opacity: count > 0 ? 0.15 + (count/maxEDist) * 0.85 : 0.3 }}/>
               <div style={{ fontSize:8, color: color.muted, fontWeight:500 }}>{i+1}</div>
             </div>
           ))}
@@ -2051,7 +2051,7 @@ function AnalyticsRow({ rank, track, value, label, max, color: trackColor, accen
       </div>
       <div style={{ flex:1, minWidth:0 }}>
         <div style={{ fontSize:14, fontWeight:600, color: color.ink, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{track.title}</div>
-        <div style={{ marginTop:5, background: "rgba(242,240,235,0.08)", borderRadius:2, height:3, overflow:"hidden" }}>
+        <div style={{ marginTop:5, background: "rgba(232,236,240,0.08)", borderRadius:2, height:3, overflow:"hidden" }}>
           <div style={{ height:"100%", width:`${pct}%`, borderRadius:3, background: accent || trackColor || color.accent, transition:"width 0.4s ease" }}/>
         </div>
       </div>
@@ -2528,7 +2528,7 @@ function NowPlayingBar({ track, isPlaying, progress, duration, onTogglePlay, onS
             {track.title}
           </div>
           <div style={{ fontSize:11, color: color.muted }}>{track.artist}</div>
-          <div style={{ marginTop:5, background: "rgba(242,240,235,0.1)", borderRadius:1, height:2 }}>
+          <div style={{ marginTop:5, background: "rgba(232,236,240,0.1)", borderRadius:1, height:2 }}>
             <div style={{ width:`${pct}%`, background: color.accent, height:"100%", borderRadius:1, transition:"width 1s linear" }}/>
           </div>
         </div>
@@ -2558,7 +2558,7 @@ function BottomNav({ screen, setScreen, showAdmin = false }) {
   return (
     <nav aria-label="Main" style={{
       position:"fixed", bottom:0, left:0, right:0, height:56,
-      background: "rgba(9,9,11,0.92)", backdropFilter:"blur(20px)",
+      background: "rgba(9,11,13,0.92)", backdropFilter:"blur(20px)",
       borderTop: `1px solid ${color.line}`, display:"flex", zIndex:85,
     }}>
       {items.map(({id,icon,label})=>(
@@ -3326,7 +3326,7 @@ export default function App() {
                 <button onClick={e=>{e.stopPropagation();handleSkip();}} style={{ background:"none",border:"none",cursor:"pointer",color: color.muted,padding:4 }}><Icon name="skip" size={16}/></button>
               </div>
               {/* Full-width progress bar — color-tinted ambient strip */}
-              <div style={{ height:3, background:"rgba(242,240,235,0.08)", width:"100%" }}>
+              <div style={{ height:3, background:"rgba(232,236,240,0.08)", width:"100%" }}>
                 <div style={{ height:"100%", width:`${duration?((progress/duration)*100):0}%`, background: color.accent, borderRadius:"0 2px 2px 0", transition:"width 1s linear" }}/>
               </div>
             </div>
@@ -3347,7 +3347,7 @@ export default function App() {
               <img src={currentTrack.albumCover||"/covers/default.jpg"} alt="" style={{ width:"100%", height:"100%", objectFit:"cover" }} onError={e=>{e.target.src="/covers/default.jpg";}}/>
             </div>
             {/* Progress bar under art */}
-            <div style={{ height:3, background:"rgba(242,240,235,0.08)", borderRadius:2, marginBottom:12, overflow:"hidden" }}>
+            <div style={{ height:3, background:"rgba(232,236,240,0.08)", borderRadius:2, marginBottom:12, overflow:"hidden" }}>
               <div style={{ height:"100%", width:`${duration?((progress/duration)*100):0}%`, background: color.accent, borderRadius:2, transition:"width 1s linear" }}/>
             </div>
             {/* Track info */}
@@ -3432,7 +3432,7 @@ export default function App() {
               <div key={t.id}
                 style={{ display:"flex", alignItems:"center", gap:8, padding:"6px 8px", borderRadius:10,
                   background: currentTrack?.id===t.id ? color.accentSoft : color.surface,
-                  border: currentTrack?.id===t.id ? "1px solid rgba(226,168,58,0.25)" : `1px solid ${color.line}`,
+                  border: currentTrack?.id===t.id ? "1px solid rgba(122,145,164,0.35)" : `1px solid ${color.line}`,
                   transition:"all 0.2s" }}>
 
                 <div style={{ width:16, fontSize:10, fontWeight:500, color: color.faint, textAlign:"center", flexShrink:0 }}>{i+1}</div>
