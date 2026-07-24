@@ -5,13 +5,15 @@ html, body, #root {
   min-height: 100%;
 }
 body {
-  font-family: -apple-system, "SF Pro Display", "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
+  font-family: "DM Sans", "Avenir Next", "Segoe UI", sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background: #F4F5F7;
-  color: #14161C;
+  background: #09090B;
+  color: #F2F0EB;
 }
-code { font-family: "SF Mono", "Menlo", "Monaco", "Courier New", monospace; }
+code {
+  font-family: "IBM Plex Mono", "SF Mono", "Menlo", "Monaco", "Courier New", monospace;
+}
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.01ms !important;
