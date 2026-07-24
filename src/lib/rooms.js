@@ -327,6 +327,13 @@ export const KIND_LABELS = {
   memory: "Memories",
 };
 
+/** Resolve a human room label from an id (for titles, share, chrome). */
+export function roomLabelForId(id) {
+  if (!id) return null;
+  const hit = allDestinationRooms().find((r) => r.id === id);
+  return hit?.label || null;
+}
+
 /** Atmosphere → soft background gradient hints (CSS-ready). */
 export function atmosphereGradient(atmosphere, accent = "#A8926A") {
   return roomPosterStyle(atmosphere).gradient;
