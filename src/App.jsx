@@ -24,8 +24,12 @@ import { parsePath, buildPath, documentTitleFor } from "./lib/routes";
 import { digLeadStory, explainPick, SEARCH_PROMPTS } from "./lib/explain";
 import { buildHomeCollections, livedInRooms, rediscoveredTracks } from "./lib/homeCollections";
 import { atmosphereGradient } from "./lib/rooms";
+import { slugify, findArtist, findAlbum, searchEntities } from "./lib/catalog";
 import RoomsScreen from "./components/rooms/RoomsScreen";
 import OnboardingRitual from "./components/onboarding/OnboardingRitual";
+import ArtistPage, { AlbumPage } from "./components/catalog/ArtistPage";
+import LinerNotesSheet from "./components/catalog/LinerNotesSheet";
+import PathsScreen from "./components/paths/PathsScreen";
 
 const injectStyles = () => {
   if (document.getElementById("verse-app-global-styles")) return;
@@ -584,6 +588,32 @@ function TrackActionsMenu({ track, playlistCtx, activePlaylistId, x, y, onClose 
           >
             {track.liked ? "Remove from Saved" : "Save track"}
           </button>
+        </>
+      )}
+
+      {(ctx.onOpenArtist || ctx.onOpenAlbum) && (
+        <>
+          <div style={{ height: 1, background: color.line, margin: "4px 14px" }} />
+          {ctx.onOpenArtist && track.artist && (
+            <button
+              type="button"
+              role="menuitem"
+              onClick={() => { ctx.onOpenArtist(track.artist); onClose(); }}
+              style={{ display: "block", width: "100%", textAlign: "left", background: "none", border: "none", color: color.ink, fontSize: 14, padding: "10px 14px", cursor: "pointer" }}
+            >
+              View artist
+            </button>
+          )}
+          {ctx.onOpenAlbum && track.album && (
+            <button
+              type="button"
+              role="menuitem"
+              onClick={() => { ctx.onOpenAlbum(track); onClose(); }}
+              style={{ display: "block", width: "100%", textAlign: "left", background: "none", border: "none", color: color.ink, fontSize: 14, padding: "10px 14px", cursor: "pointer" }}
+            >
+              View album
+            </button>
+          )}
         </>
       )}
 
@@ -1516,6 +1546,7 @@ function ImmersivePlayer({
   signalState, progress = 0, duration = 0, onSeek, onLike,
   volume = 1, onVolumeChange, onHypno, onHypnoRadio, onShowQueue,
   sessionArc = null, isRadioMode = false, hypnoPocket = false,
+  roomLabel = null, onOpenRoom, onOpenLiner, onOpenArtist,
 }) {
   const [showUI, setShowUI] = useState(true);
   const [artLoaded, setArtLoaded] = useState(false);
@@ -1634,8 +1665,30 @@ function ImmersivePlayer({
           {currentTrack.title}
         </div>
         <div style={{ fontSize:16, color: color.body, marginTop:10, letterSpacing:-0.2 }}>
-          {currentTrack.artist}
+          {onOpenArtist ? (
+            <button
+              type="button"
+              onClick={(e) => { e.stopPropagation(); onOpenArtist(currentTrack.artist); }}
+              style={{ background:"none", border:"none", padding:0, color: color.body, fontSize:16, cursor:"pointer", letterSpacing:-0.2 }}
+            >
+              {currentTrack.artist}
+            </button>
+          ) : currentTrack.artist}
         </div>
+        {roomLabel && (
+          <button
+            type="button"
+            onClick={(e) => { e.stopPropagation(); onOpenRoom?.(); }}
+            style={{
+              marginTop:12, background:"none", border:`1px solid ${color.lineStrong}`,
+              borderRadius: radius.sm, padding:"8px 12px", color: color.accent,
+              fontSize:11, fontWeight:700, letterSpacing:1.2, fontFamily: fontMono,
+              textTransform:"uppercase", cursor: onOpenRoom ? "pointer" : "default",
+            }}
+          >
+            Playing in {roomLabel}
+          </button>
+        )}
         <div style={{ marginTop:18 }}>
           <BoothHud track={currentTrack} size="lg"/>
         </div>
@@ -1739,6 +1792,16 @@ function ImmersivePlayer({
           Back
         </button>
         <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+          {onOpenLiner && (
+            <button type="button" onClick={(e)=>{ e.stopPropagation(); onOpenLiner(currentTrack); }} aria-label="Liner notes"
+              style={{
+                display:"flex", alignItems:"center", gap:6, background:"rgba(9,11,13,0.55)",
+                border:`1px solid ${color.lineStrong}`, borderRadius: radius.sm, padding:"10px 12px",
+                color: color.ink, cursor:"pointer", fontSize:12, fontWeight:600,
+              }}>
+              Notes
+            </button>
+          )}
           {onHypno && (
             <button type="button" onClick={(e)=>{ e.stopPropagation(); onHypno(currentTrack); }} aria-label="Hypno Vision"
               style={{
@@ -2118,20 +2181,20 @@ function HomeScreen({
 }
 
 // ─── SEARCH ───────────────────────────────────────────────────────────────────
-function SearchScreen({ query, setQuery, results, onPlay, onLike, currentTrack, isPlaying, playlistCtx, onOpenRoom }) {
+function SearchScreen({ query, setQuery, results, onPlay, onLike, currentTrack, isPlaying, playlistCtx, onOpenRoom, entityHits, onOpenArtist, onOpenAlbum }) {
   return (
     <div style={{ padding:"28px 16px 16px" }}>
       <div style={{ marginBottom:8 }}>
         <div style={{ fontSize:11, fontWeight:700, letterSpacing:1.8, color: color.accent, fontFamily: fontMono, textTransform:"uppercase", marginBottom:8 }}>Search</div>
         <div style={{ fontSize:22, fontWeight:750, fontFamily: fontDisplay, letterSpacing:-0.5, color: color.ink, marginBottom:6 }}>Dig the crates</div>
         <div style={{ fontSize:13, color: color.muted, marginBottom:18, lineHeight:1.45 }}>
-          Tracks, artists, Camelot keys, BPM — or wander by feeling.
+          Tracks, artists, albums, Camelot keys, BPM — or wander by feeling.
         </div>
       </div>
       <div style={{ position:"relative", marginBottom:20 }}>
         <div style={{ position:"absolute", left:14, top:"50%", transform:"translateY(-50%)", color: color.faint }}><Icon name="search" size={16}/></div>
         <input
-          placeholder="Track, artist, key, energy…"
+          placeholder="Track, artist, album, key…"
           aria-label="Search"
           style={{...INPUT_ST, paddingLeft:42}}
           value={query}
@@ -2149,7 +2212,57 @@ function SearchScreen({ query, setQuery, results, onPlay, onLike, currentTrack, 
           ))}
         </div>
       )}
-      {query.length>1&&!results.length&&(
+      {query.length > 1 && entityHits?.artists?.length > 0 && (
+        <div style={{ marginBottom: 20 }}>
+          <div style={{ fontSize:12, fontWeight:650, fontFamily: fontDisplay, color: color.muted, marginBottom:10 }}>Artists</div>
+          {entityHits.artists.map((a) => (
+            <button
+              key={a.slug}
+              type="button"
+              onClick={() => onOpenArtist?.(a.slug)}
+              style={{
+                display:"flex", alignItems:"center", gap:12, width:"100%", padding:"10px 4px",
+                background:"none", border:"none", borderBottom:`1px solid ${color.line}`,
+                cursor:"pointer", textAlign:"left", color: color.ink,
+              }}
+            >
+              <div style={{ width:44, height:44, overflow:"hidden", flexShrink:0, background: color.surfaceRaised }}>
+                {a.coverTrack && <AlbumArt track={a.coverTrack} size={44} borderRadius={0}/>}
+              </div>
+              <div style={{ minWidth:0 }}>
+                <div style={{ fontSize:14, fontWeight:650, fontFamily: fontDisplay }}>{a.name}</div>
+                <div style={{ fontSize:12, color: color.muted }}>{a.story}</div>
+              </div>
+            </button>
+          ))}
+        </div>
+      )}
+      {query.length > 1 && entityHits?.albums?.length > 0 && (
+        <div style={{ marginBottom: 20 }}>
+          <div style={{ fontSize:12, fontWeight:650, fontFamily: fontDisplay, color: color.muted, marginBottom:10 }}>Albums</div>
+          {entityHits.albums.map((a) => (
+            <button
+              key={a.slug}
+              type="button"
+              onClick={() => onOpenAlbum?.(a.slug)}
+              style={{
+                display:"flex", alignItems:"center", gap:12, width:"100%", padding:"10px 4px",
+                background:"none", border:"none", borderBottom:`1px solid ${color.line}`,
+                cursor:"pointer", textAlign:"left", color: color.ink,
+              }}
+            >
+              <div style={{ width:44, height:44, overflow:"hidden", flexShrink:0, background: color.surfaceRaised }}>
+                {a.coverTrack && <AlbumArt track={a.coverTrack} size={44} borderRadius={0}/>}
+              </div>
+              <div style={{ minWidth:0 }}>
+                <div style={{ fontSize:14, fontWeight:650, fontFamily: fontDisplay }}>{a.title}</div>
+                <div style={{ fontSize:12, color: color.muted }}>{a.artist} · {a.count} tracks</div>
+              </div>
+            </button>
+          ))}
+        </div>
+      )}
+      {query.length>1&&!results.length&&!(entityHits?.artists?.length || entityHits?.albums?.length)&&(
         <div style={{ textAlign:"center", padding:"56px 0" }}>
           <div style={{ color: color.ink, fontSize:15, fontWeight:650, fontFamily: fontDisplay, marginBottom:8 }}>Nothing filed under “{query}”</div>
           <div style={{ color: color.muted, fontSize:13, lineHeight:1.5, maxWidth:260, margin:"0 auto" }}>
@@ -2162,6 +2275,9 @@ function SearchScreen({ query, setQuery, results, onPlay, onLike, currentTrack, 
             }}>Browse rooms</button>
           )}
         </div>
+      )}
+      {results.length > 0 && query.length > 1 && (
+        <div style={{ fontSize:12, fontWeight:650, fontFamily: fontDisplay, color: color.muted, marginBottom:10 }}>Tracks</div>
       )}
       {results.map(t=>(
         <TrackRow key={t.id} track={t} onPlay={()=>onPlay(t)} active={currentTrack?.id===t.id} isPlaying={isPlaying} onLike={onLike} playlistCtx={playlistCtx}/>
@@ -2205,7 +2321,7 @@ function EnergySparkline({ tracks, width=120, height=24 }) {
 }
 
 // ─── LIBRARY ─────────────────────────────────────────────────────────────────
-function FavoritesScreen({ tracks, preferredGenres = [], onPlay, onLike, currentTrack, isPlaying, userPlaylists, onCreatePlaylist, onAddToPlaylist, onRemoveFromPlaylist, onDeletePlaylist, playlistCtx }) {
+function FavoritesScreen({ tracks, preferredGenres = [], onPlay, onLike, currentTrack, isPlaying, userPlaylists, onCreatePlaylist, onAddToPlaylist, onRemoveFromPlaylist, onDeletePlaylist, playlistCtx, onOpenPaths }) {
   const [view, setView] = useState("discover"); // "discover" | "liked" | "genres" | "playlists" | playlist id
   const [showNewInput, setShowNewInput] = useState(false);
   const [newName, setNewName] = useState("");
@@ -2436,6 +2552,32 @@ function FavoritesScreen({ tracks, preferredGenres = [], onPlay, onLike, current
                   </div>
                 ))}
               </div>
+            </div>
+          )}
+
+          {onOpenPaths && (
+            <div style={{ padding:"0 20px 32px" }}>
+              <button
+                type="button"
+                onClick={onOpenPaths}
+                style={{
+                  width:"100%", display:"flex", alignItems:"center", justifyContent:"space-between",
+                  gap:16, padding:"18px 0", background:"none", border:"none",
+                  borderBottom:`1px solid ${color.lineStrong}`, cursor:"pointer", textAlign:"left", color: color.ink,
+                }}
+              >
+                <div>
+                  <div style={{ fontSize:11, fontWeight:700, letterSpacing:1.8, color: color.accent, fontFamily: fontMono, textTransform:"uppercase", marginBottom:6 }}>Journeys</div>
+                  <div style={{ fontSize:18, fontWeight:750, fontFamily: fontDisplay, letterSpacing:-0.4 }}>Walk a path</div>
+                  <div style={{ fontSize:13, color: color.muted, marginTop:4 }}>Rooms connected into listening journeys</div>
+                </div>
+                <div style={{
+                  width:40, height:40, borderRadius: radius.sm, background: color.accentSoft,
+                  display:"flex", alignItems:"center", justifyContent:"center", color: color.accent, flexShrink:0,
+                }}>
+                  <Icon name="drift" size={16}/>
+                </div>
+              </button>
             </div>
           )}
 
@@ -3430,12 +3572,27 @@ export default function App() {
   // ── URL ↔ screen ─────────────────────────────────────────────────────────
   const navigate = useNavigate();
   const location = useLocation();
-  const { screen, roomId: routeRoomId } = parsePath(location.pathname);
-  const setScreen = useCallback((id, roomId = null) => {
-    navigate(buildPath(id, roomId));
+  const { screen, roomId: routeRoomId, artistSlug, albumSlug, pathId: routePathId } = parsePath(location.pathname);
+  const setScreen = useCallback((id, param = null) => {
+    navigate(buildPath(id, param));
   }, [navigate]);
   const setRoomRoute = useCallback((id) => {
     navigate(buildPath("rooms", id || null));
+  }, [navigate]);
+  const openArtist = useCallback((nameOrSlug) => {
+    navigate(buildPath("artist", { artistSlug: slugify(nameOrSlug) }));
+  }, [navigate]);
+  const openAlbum = useCallback((trackOrSlug) => {
+    if (typeof trackOrSlug === "string") {
+      navigate(buildPath("album", { albumSlug: trackOrSlug }));
+      return;
+    }
+    const artist = trackOrSlug?.artist || "Unknown";
+    const album = trackOrSlug?.album || "Singles & Unknown";
+    navigate(buildPath("album", { albumSlug: `${slugify(artist)}__${slugify(album)}` }));
+  }, [navigate]);
+  const openPath = useCallback((id) => {
+    navigate(buildPath("paths", id ? { pathId: id } : null));
   }, [navigate]);
 
   // Legacy: Drift was removed as a tab — bounce any stale screen id to Rooms
@@ -3474,6 +3631,8 @@ export default function App() {
   const [volume, setVolume] = useState(1);
   const [hypnoSeed, setHypnoSeed] = useState(null); // pocket-mode seed track
   const [onboardingDismissed, setOnboardingDismissed] = useState(false);
+  const [listeningRoom, setListeningRoom] = useState(null); // { id, label } while playing from a Room/path
+  const [linerTrack, setLinerTrack] = useState(null);
   const volumeRef = useRef(1);
   useEffect(() => { volumeRef.current = volume; }, [volume]);
 
@@ -3597,8 +3756,13 @@ export default function App() {
   // Check if a track was played recently (within hours)
 
   useEffect(() => {
-    document.title = documentTitleFor(screen);
-  }, [screen, routeRoomId]);
+    let label = null;
+    if (screen === "artist" && artistSlug) label = findArtist(tracks, artistSlug)?.name;
+    if (screen === "album" && albumSlug) label = findAlbum(tracks, albumSlug)?.title;
+    if (screen === "rooms" && routeRoomId) label = routeRoomId;
+    if (screen === "paths" && routePathId) label = routePathId;
+    document.title = documentTitleFor(screen, label);
+  }, [screen, routeRoomId, artistSlug, albumSlug, routePathId, tracks]);
 
   // ── Anticipatory Queue — pre-generate when tracks load ──
   const anticipatoryBuilt = useRef(false);
@@ -3830,10 +3994,20 @@ export default function App() {
     setCurrent(track); setIsPlaying(true); setProgress(0); setIsRadioMode(false);
     if (!opts.keepSession) setSessionMeta(null);
     if (!opts.keepHypno) setHypnoSeed(null);
+    if (opts.room) setListeningRoom(opts.room);
+    else if (!opts.keepRoom) setListeningRoom(null);
     if (openImmersive) setImmersive(true);
     if (q) setQueue(q.filter(t => t.id !== track.id));
     logTrackPlay(track);
     if (firebaseUser) recordPlay(track.id, profile?.recentTracks || []).catch(()=>{});
+  };
+
+  const playPath = (path) => {
+    if (!path?.playlist?.length) return;
+    const first = path.playlist[0];
+    setListeningRoom({ id: path.id, label: path.title });
+    playTrack(first, path.playlist, { immersive: true, keepRoom: true, room: { id: path.id, label: path.title } });
+    showToast(`Walking “${path.title}”`);
   };
 
   const playRadio = (seed = null) => {
@@ -4071,6 +4245,8 @@ export default function App() {
     onResonance: (t) => setResonanceTrack(t),
     onHypnoRadio: (t) => playHypnoRadio(t),
     onLike: (id) => toggleLike(id),
+    onOpenArtist: (name) => openArtist(name),
+    onOpenAlbum: (track) => openAlbum(track),
   };
 
   // ── Search ───────────────────────────────────────────────────────────────
@@ -4093,6 +4269,7 @@ export default function App() {
         return tracks.filter(t => [t.title, t.artist, t.genre, t.album || "", String(t.bpm || "")].some(v => String(v || "").toLowerCase().includes(q)));
       })()
     : [];
+  const entityHits = searchQuery.length > 1 ? searchEntities(tracks, searchQuery) : { artists: [], albums: [] };
 
   // ── Loading states ────────────────────────────────────────────────────────
   // Show nothing while we check if someone is already logged in
@@ -4205,6 +4382,23 @@ export default function App() {
       {showRouteBuilder && (
         <RouteBuilderModal tracks={tracks} onClose={() => setShowRouteBuilder(false)} onPlayRoute={playRoute}/>
       )}
+      {linerTrack && (
+        <LinerNotesSheet
+          track={linerTrack}
+          roomLabel={listeningRoom?.label}
+          onClose={() => setLinerTrack(null)}
+          onOpenArtist={(name) => openArtist(name)}
+          onOpenAlbum={(t) => openAlbum(t)}
+          onOpenRoom={listeningRoom?.id ? () => {
+            if (listeningRoom.id.includes("-") && !listeningRoom.id.startsWith("pl")) {
+              // path ids vs room ids — prefer rooms route when it matches a room
+              setRoomRoute(listeningRoom.id);
+            } else {
+              setRoomRoute(listeningRoom.id);
+            }
+          } : null}
+        />
+      )}
     </>
   );
 
@@ -4229,6 +4423,10 @@ export default function App() {
       sessionArc={sessionArc}
       isRadioMode={isRadioMode}
       hypnoPocket={!!hypnoSeed}
+      roomLabel={listeningRoom?.label || null}
+      onOpenRoom={listeningRoom?.id ? () => setRoomRoute(listeningRoom.id) : null}
+      onOpenLiner={(t) => setLinerTrack(t)}
+      onOpenArtist={(name) => { setImmersive(false); openArtist(name); }}
     />
   ) : null;
 
@@ -4251,7 +4449,7 @@ export default function App() {
             onPlayRoom={(t, room) => {
               setIsRadioMode(false);
               const pool = (room?.featured?.length ? room.featured : room?.tracks) || tracks;
-              playTrack(t, pool);
+              playTrack(t, pool, { room: { id: room.id, label: room.label } });
             }}
             currentTrack={currentTrack}
             isPlaying={isPlaying}
@@ -4264,8 +4462,47 @@ export default function App() {
           />
         )}
         {screen==="home"      && !tracksLoading && <HomeScreen tracks={tracks} onPlayRadio={playRadio} onTogglePlay={()=>setIsPlaying(p=>!p)} onPlayTrack={playTrack} currentTrack={currentTrack} isPlaying={isPlaying} onLike={toggleLike} isRadioMode={isRadioMode} playlistCtx={playlistCtx} signalLabel={signalState?.label} setPrev={setPrev} setNext={setNext} onBuildNight={()=>setShowRouteBuilder(true)} doorsSoundOn={doorsSoundOn} onToggleDoorsSound={toggleDoorsSound} homeRooms={homeRooms} onOpenRoom={(id)=>setRoomRoute(id)} onOpenRooms={()=>setScreen("rooms")} userName={user.name}/>}
-        {screen==="search"    && <SearchScreen query={searchQuery} setQuery={setSearch} results={searchResults} onPlay={t=>playTrack(t,tracks)} onLike={toggleLike} currentTrack={currentTrack} isPlaying={isPlaying} playlistCtx={playlistCtx} onOpenRoom={()=>setScreen("rooms")}/>}
-        {screen==="favorites" && <FavoritesScreen tracks={tracks} preferredGenres={user.genres} onPlay={t=>{setIsRadioMode(false);playTrack(t,tracks);}} onLike={toggleLike} currentTrack={currentTrack} isPlaying={isPlaying} userPlaylists={userPlaylists} onCreatePlaylist={createPlaylist} onAddToPlaylist={addToPlaylist} onRemoveFromPlaylist={removeFromPlaylist} onDeletePlaylist={deletePlaylist} playlistCtx={playlistCtx}/>}
+        {screen==="search"    && <SearchScreen query={searchQuery} setQuery={setSearch} results={searchResults} onPlay={t=>playTrack(t,tracks)} onLike={toggleLike} currentTrack={currentTrack} isPlaying={isPlaying} playlistCtx={playlistCtx} onOpenRoom={()=>setScreen("rooms")} entityHits={entityHits} onOpenArtist={openArtist} onOpenAlbum={(slug)=>openAlbum(slug)}/>}
+        {screen==="favorites" && <FavoritesScreen tracks={tracks} preferredGenres={user.genres} onPlay={t=>{setIsRadioMode(false);playTrack(t,tracks);}} onLike={toggleLike} currentTrack={currentTrack} isPlaying={isPlaying} userPlaylists={userPlaylists} onCreatePlaylist={createPlaylist} onAddToPlaylist={addToPlaylist} onRemoveFromPlaylist={removeFromPlaylist} onDeletePlaylist={deletePlaylist} playlistCtx={playlistCtx} onOpenPaths={()=>openPath(null)}/>}
+        {screen==="paths"     && !tracksLoading && (
+          <PathsScreen
+            tracks={tracks}
+            pathId={routePathId}
+            onOpenPath={openPath}
+            onPlayPath={playPath}
+            onOpenRoom={(id)=>setRoomRoute(id)}
+            seedTrack={currentTrack || tracks.find(t=>t.liked)}
+            preferredGenres={user.genres}
+          />
+        )}
+        {screen==="artist"    && !tracksLoading && (
+          <ArtistPage
+            artist={findArtist(tracks, artistSlug)}
+            onBack={() => setScreen("search")}
+            onPlay={(t, pool) => playTrack(t, pool)}
+            onOpenAlbum={(slug) => openAlbum(slug)}
+            currentTrack={currentTrack}
+            isPlaying={isPlaying}
+            onLike={toggleLike}
+            AlbumArt={AlbumArt}
+            TrackRow={TrackRow}
+            playlistCtx={playlistCtx}
+          />
+        )}
+        {screen==="album"     && !tracksLoading && (
+          <AlbumPage
+            album={findAlbum(tracks, albumSlug)}
+            onBack={() => setScreen("search")}
+            onPlay={(t, pool) => playTrack(t, pool)}
+            onOpenArtist={(slug) => openArtist(slug)}
+            currentTrack={currentTrack}
+            isPlaying={isPlaying}
+            onLike={toggleLike}
+            AlbumArt={AlbumArt}
+            TrackRow={TrackRow}
+            playlistCtx={playlistCtx}
+          />
+        )}
         {screen==="profile"   && <ProfileScreen user={user} setUser={setUser} tracks={tracks} onLogout={logOut}/>}
         {screen==="map"       && <HarmonicMap tracks={tracks} onPlay={t=>playTrack(t,tracks)} currentTrack={currentTrack}/>}
         {screen==="admin"     && <AdminScreen tracks={tracks} setTracks={setTracks} tab={adminTab} setTab={setAdminTab} editTrack={editTrack} setEditTrack={setEditTrack} showToast={showToast}/>}
@@ -4292,6 +4529,7 @@ export default function App() {
     { id:"rooms",     icon:"drift",  label:"Rooms" },
     { id:"home",      icon:"home",   label:"Home" },
     { id:"favorites", icon:"grid",   label:"Discover" },
+    { id:"paths",     icon:"hypno",  label:"Paths" },
   ];
   const NAV_BOTTOM = [
     { id:"map",       icon:"grid",   label:"Map" },
@@ -4385,9 +4623,9 @@ export default function App() {
         {currentTrack && <div style={{ position:"absolute", top:0, right:0, width:"40%", height:"30%", background:`radial-gradient(ellipse at 80% 0%, rgba(${glowRgb},0.07) 0%, transparent 70%)`, pointerEvents:"none", zIndex:0 }}/>}
         <div style={{
           position:"relative", zIndex:1,
-          maxWidth: (screen==="home" || screen==="favorites" || screen==="rooms") ? "none" : 960,
+          maxWidth: (screen==="home" || screen==="favorites" || screen==="rooms" || screen==="paths" || screen==="artist" || screen==="album") ? "none" : 960,
           margin:"0 auto",
-          padding: (screen==="home" || screen==="favorites" || screen==="rooms")
+          padding: (screen==="home" || screen==="favorites" || screen==="rooms" || screen==="paths" || screen==="artist" || screen==="album")
             ? `0 0 ${currentTrack?120:24}px`
             : `24px 32px ${currentTrack?120:24}px`,
         }}>
@@ -4408,7 +4646,7 @@ export default function App() {
                   onPlayRoom={(t, room) => {
                     setIsRadioMode(false);
                     const pool = (room?.featured?.length ? room.featured : room?.tracks) || tracks;
-                    playTrack(t, pool);
+                    playTrack(t, pool, { room: { id: room.id, label: room.label } });
                   }}
                   currentTrack={currentTrack}
                   isPlaying={isPlaying}
@@ -4421,8 +4659,47 @@ export default function App() {
                 />
               )}
               {screen==="home"      && <HomeScreen tracks={tracks} onPlayRadio={playRadio} onTogglePlay={()=>setIsPlaying(p=>!p)} onPlayTrack={playTrack} currentTrack={currentTrack} isPlaying={isPlaying} onLike={toggleLike} isRadioMode={isRadioMode} playlistCtx={playlistCtx} signalLabel={signalState?.label} setPrev={setPrev} setNext={setNext} onBuildNight={()=>setShowRouteBuilder(true)} doorsSoundOn={doorsSoundOn} onToggleDoorsSound={toggleDoorsSound} homeRooms={homeRooms} onOpenRoom={(id)=>setRoomRoute(id)} onOpenRooms={()=>setScreen("rooms")} userName={user.name}/>}
-              {screen==="search"    && <SearchScreen query={searchQuery} setQuery={setSearch} results={searchResults} onPlay={t=>playTrack(t,tracks)} onLike={toggleLike} currentTrack={currentTrack} isPlaying={isPlaying} playlistCtx={playlistCtx} onOpenRoom={()=>setScreen("rooms")}/>}
-              {screen==="favorites" && <FavoritesScreen tracks={tracks} preferredGenres={user.genres} onPlay={t=>{setIsRadioMode(false);playTrack(t,tracks);}} onLike={toggleLike} currentTrack={currentTrack} isPlaying={isPlaying} userPlaylists={userPlaylists} onCreatePlaylist={createPlaylist} onAddToPlaylist={addToPlaylist} onRemoveFromPlaylist={removeFromPlaylist} onDeletePlaylist={deletePlaylist} playlistCtx={playlistCtx}/>}
+              {screen==="search"    && <SearchScreen query={searchQuery} setQuery={setSearch} results={searchResults} onPlay={t=>playTrack(t,tracks)} onLike={toggleLike} currentTrack={currentTrack} isPlaying={isPlaying} playlistCtx={playlistCtx} onOpenRoom={()=>setScreen("rooms")} entityHits={entityHits} onOpenArtist={openArtist} onOpenAlbum={(slug)=>openAlbum(slug)}/>}
+              {screen==="favorites" && <FavoritesScreen tracks={tracks} preferredGenres={user.genres} onPlay={t=>{setIsRadioMode(false);playTrack(t,tracks);}} onLike={toggleLike} currentTrack={currentTrack} isPlaying={isPlaying} userPlaylists={userPlaylists} onCreatePlaylist={createPlaylist} onAddToPlaylist={addToPlaylist} onRemoveFromPlaylist={removeFromPlaylist} onDeletePlaylist={deletePlaylist} playlistCtx={playlistCtx} onOpenPaths={()=>openPath(null)}/>}
+              {screen==="paths"     && (
+                <PathsScreen
+                  tracks={tracks}
+                  pathId={routePathId}
+                  onOpenPath={openPath}
+                  onPlayPath={playPath}
+                  onOpenRoom={(id)=>setRoomRoute(id)}
+                  seedTrack={currentTrack || tracks.find(t=>t.liked)}
+                  preferredGenres={user.genres}
+                />
+              )}
+              {screen==="artist"    && (
+                <ArtistPage
+                  artist={findArtist(tracks, artistSlug)}
+                  onBack={() => setScreen("search")}
+                  onPlay={(t, pool) => playTrack(t, pool)}
+                  onOpenAlbum={(slug) => openAlbum(slug)}
+                  currentTrack={currentTrack}
+                  isPlaying={isPlaying}
+                  onLike={toggleLike}
+                  AlbumArt={AlbumArt}
+                  TrackRow={TrackRow}
+                  playlistCtx={playlistCtx}
+                />
+              )}
+              {screen==="album"     && (
+                <AlbumPage
+                  album={findAlbum(tracks, albumSlug)}
+                  onBack={() => setScreen("search")}
+                  onPlay={(t, pool) => playTrack(t, pool)}
+                  onOpenArtist={(slug) => openArtist(slug)}
+                  currentTrack={currentTrack}
+                  isPlaying={isPlaying}
+                  onLike={toggleLike}
+                  AlbumArt={AlbumArt}
+                  TrackRow={TrackRow}
+                  playlistCtx={playlistCtx}
+                />
+              )}
               {screen==="profile"   && <ProfileScreen user={user} setUser={setUser} tracks={tracks} onLogout={logOut}/>}
               {screen==="map"       && <HarmonicMap tracks={tracks} onPlay={t=>playTrack(t,tracks)} currentTrack={currentTrack}/>}
               {screen==="admin"     && <AdminScreen tracks={tracks} setTracks={setTracks} tab={adminTab} setTab={setAdminTab} editTrack={editTrack} setEditTrack={setEditTrack} showToast={showToast}/>}
