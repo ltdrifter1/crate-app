@@ -1,4 +1,5 @@
 import { normalizeGenre } from "./genres";
+import { displaySceneLabel, inferScene } from "./scenes";
 import { getFloorPhase } from "./club";
 
 /**
@@ -32,8 +33,8 @@ export function storyForRoomTrack(track, room) {
   else if ((track.playCount || 0) === 0) parts.push("fresh ink");
   else if ((track._signal?.pull || 0) >= 6) parts.push("keeps pulling you back");
   else if ((track.playCount || 0) < 2) parts.push("quiet favourite");
-  const g = normalizeGenre(track.genre);
-  if (g && parts.length < 2) parts.push(g);
+  const scene = displaySceneLabel(track);
+  if (scene && parts.length < 2) parts.push(scene);
   return parts.join(" · ") || "In this room";
 }
 
@@ -45,6 +46,8 @@ export function digLeadStory(roomLabel, floor, track) {
   bits.push(hourPhrase());
   if (track?.liked) bits.push("saved by you");
   else if (track && (track.playCount || 0) === 0) bits.push("unheard here");
+  const scene = displaySceneLabel(track);
+  if (scene) bits.push(scene);
   return {
     eyebrow: bits.join(" · "),
     body: phase,
@@ -56,6 +59,8 @@ export function explainPick(track, { room, signalLabel, preferredGenres = [] } =
   if (!track) return "The floor is choosing";
   const reasons = [];
   if (room?.label) reasons.push(`fits ${room.label}`);
+  const scene = inferScene(track);
+  if (scene) reasons.push(`${scene.label} lane`);
   if (signalLabel) reasons.push(`session feels like ${signalLabel}`);
   const g = normalizeGenre(track.genre);
   if (g && preferredGenres.includes(g)) reasons.push(`${g} you keep near`);
@@ -69,16 +74,21 @@ export function explainPick(track, { room, signalLabel, preferredGenres = [] } =
 
 /** Search empty-state curiosity prompts. */
 export const SEARCH_PROMPTS = [
+  { q: "UK Garage", label: "UK Garage", hint: "2-step & skip" },
+  { q: "Techno", label: "Techno", hint: "Detroit → Berlin" },
+  { q: "Ambient", label: "Ambient", hint: "Atmosphere as form" },
+  { q: "Jungle", label: "Jungle", hint: "Chopped breaks" },
   { q: "e7", label: "Key e7", hint: "Harmonic neighbours" },
   { q: "120bpm", label: "120 BPM", hint: "Walking tempo" },
-  { q: "Soul", label: "Soul", hint: "Warm crates" },
-  { q: "8A", label: "Camelot 8A", hint: "Compatible lanes" },
-  { q: "House", label: "House", hint: "Floor pressure" },
-  { q: "Jazz", label: "Jazz", hint: "Low light tables" },
+  { q: "Neo-Soul", label: "Neo-Soul", hint: "Quiet storm crates" },
+  { q: "Amapiano", label: "Amapiano", hint: "Log drum Sundays" },
 ];
 
 /** Hypno / similar framing. */
 export function hypnoStory(sourceTrack) {
   if (!sourceTrack) return "Sounds in the same pocket";
-  return `Sounds like “${sourceTrack.title}” — same grip, different door`;
+  const scene = displaySceneLabel(sourceTrack);
+  return scene
+    ? `Sounds like “${sourceTrack.title}” — still in ${scene}`
+    : `Sounds like “${sourceTrack.title}” — same grip, different door`;
 }
