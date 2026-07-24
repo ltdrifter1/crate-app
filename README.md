@@ -1,7 +1,12 @@
-# 4AM
+# ROOMS
 
-Late-night house listening for diggers, DJs, and everyday heads.
-Harmonic (Camelot) mixing, energy-aware radio, sessions, and a quiet modern UI.
+Music you inhabit.
+
+Living destinations for discovering, collecting, and experiencing music — not another streaming feed.
+
+**Product vision & full audit:** [`docs/ROOMS_PRODUCT_VISION.md`](docs/ROOMS_PRODUCT_VISION.md)
+
+Legacy listening core (harmonic radio, sessions, Hypno, floor phases) remains; Rooms are becoming first-class destinations.
 
 ## Stack
 

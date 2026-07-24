@@ -7,6 +7,7 @@ import { db }                                       from "./firebase";
 import {
   font, fontDisplay, fontMono, color, radius, motion, timeOfDayGradient,
   APP_STYLE, INPUT_ST, BTN_PRIMARY, BTN_SECONDARY, CTRL_BTN, ADMIN_UID,
+  BRAND_NAME, BRAND_TAGLINE,
 } from "./theme";
 import { camelotCompatible, getEnergyRangeForHour, fmtTime, hexToRgbStr } from "./lib/harmony";
 import {
@@ -18,6 +19,7 @@ import {
   getFloorPhase, CLUB_ROOMS, roomForFloorPhase,
   getArrivalSoundEnabled, setArrivalSoundEnabled, playArrivalSound,
 } from "./lib/club";
+import RoomsScreen from "./components/rooms/RoomsScreen";
 
 const injectStyles = () => {
   if (document.getElementById("verse-app-global-styles")) return;
@@ -29,6 +31,7 @@ const injectStyles = () => {
       --font: ${font}; --font-display: ${fontDisplay};
       --ink: ${color.ink}; --muted: ${color.muted}; --faint: ${color.faint};
       --line: ${color.line}; --canvas: ${color.canvas}; --accent: ${color.accent};
+      --body: ${color.body}; --surface-raised: ${color.surfaceRaised};
     }
     body { font-family: var(--font); background: var(--canvas); color: var(--ink); }
     ::-webkit-scrollbar { width: 4px; height: 4px; }
@@ -263,7 +266,7 @@ function DeepCutsCard({
           color: color.onDark, fontFamily: fontDisplay,
           marginBottom: live ? 20 : 14,
         }}>
-          4AM
+          {BRAND_NAME}
         </div>
 
         <div style={{
@@ -344,7 +347,7 @@ function DeepCutsCard({
               style={{
                 width:56, height:56, borderRadius: radius.sm, background: color.accent, border:"none",
                 display:"flex", alignItems:"center", justifyContent:"center", color: color.onAccent,
-                cursor:"pointer", boxShadow:"0 10px 28px rgba(122,145,164,0.28)",
+                cursor:"pointer", boxShadow:`0 10px 28px ${color.accentGlow}`,
               }}>
               <Icon name={isPlaying?"pause":"play"} size={20}/>
             </button>
@@ -363,7 +366,7 @@ function DeepCutsCard({
                   padding:"14px 20px 14px 14px", borderRadius: radius.sm,
                   background: color.accent, border:"none", color: color.onAccent,
                   cursor:"pointer", fontSize:14, fontWeight:650, letterSpacing:-0.2,
-                  boxShadow:"0 12px 32px rgba(122,145,164,0.28)",
+                  boxShadow:`0 12px 32px ${color.accentGlow}`,
                 }}>
                 <span style={{
                   width:32, height:32, borderRadius: radius.sm, background:"rgba(9,11,13,0.18)",
@@ -720,16 +723,17 @@ const SectionLabel = ({ children, style={} }) => (
 // ─── LOGIN ────────────────────────────────────────────────────────────────────
 
 function BrandGlyph({ size=84, light=false }) {
+  const compact = size < 40;
   return (
-    <div aria-label="4AM" style={{
-      fontSize: Math.max(14, Math.round(size * 0.42)),
+    <div aria-label={BRAND_NAME} style={{
+      fontSize: Math.max(11, Math.round(size * (compact ? 0.32 : 0.28))),
       fontWeight: 800,
-      letterSpacing: size >= 48 ? -1.8 : -0.9,
+      letterSpacing: size >= 48 ? -1.2 : -0.6,
       color: light ? color.onDark : color.ink,
       lineHeight: 1,
       fontFamily: fontDisplay,
       userSelect: "none",
-    }}>4AM</div>
+    }}>{BRAND_NAME}</div>
   );
 }
 
@@ -867,7 +871,7 @@ function LoginScreen({ onSignUp, onLogIn, onGoogleSignIn, onPhoneOTP, onVerifyOT
           <div style={{ margin:"0 auto 18px" }}>
             <BrandGlyph size={96} />
           </div>
-          <div style={{ fontSize:14, color: color.muted, letterSpacing:0.2 }}>House music for late nights</div>
+          <div style={{ fontSize:14, color: color.muted, letterSpacing:0.2 }}>{BRAND_TAGLINE}</div>
         </div>
 
         <div style={{ width:"100%", display:"flex", flexDirection:"column", gap:12, padding:22, borderRadius: radius.xl, background: color.surfaceSolid, border:`1px solid ${color.line}` }}>
@@ -1670,7 +1674,7 @@ function ImmersivePlayer({
           <div style={{
             position:"absolute", top:"50%", left:`${pct}%`, transform:"translate(-50%,-50%)",
             width:12, height:12, borderRadius:"50%", background: color.accent,
-            boxShadow:"0 0 0 3px rgba(122,145,164,0.25)",
+            boxShadow:`0 0 0 3px ${color.accentSoft}`,
           }}/>
         </div>
       </div>
@@ -1696,7 +1700,7 @@ function ImmersivePlayer({
           background: color.accent, border:"none",
           color: color.onAccent, cursor:"pointer",
           display:"flex", alignItems:"center", justifyContent:"center",
-          boxShadow:"0 12px 32px rgba(122,145,164,0.35)",
+          boxShadow:`0 12px 32px ${color.accentGlow}`,
         }}>
           <Icon name={isPlaying?"pause":"play"} size={22}/>
         </button>
@@ -1773,7 +1777,7 @@ function ImmersivePlayer({
               </div>
             )}
           </div>
-          <div style={{ fontSize:15, fontWeight:800, letterSpacing:-0.6, color: color.ink, fontFamily: fontDisplay, marginLeft:4 }}>4AM</div>
+          <div style={{ fontSize:13, fontWeight:800, letterSpacing:-0.4, color: color.ink, fontFamily: fontDisplay, marginLeft:4 }}>{BRAND_NAME}</div>
         </div>
       </div>
     </div>
@@ -1814,7 +1818,7 @@ function QueueSheet({ queue, currentTrack, onPlay, onClose, onClear, onShuffle, 
         </div>
         <div className="hide-scroll" style={{ overflowY:"auto", padding:"4px 12px 28px" }}>
           {currentTrack && (
-            <div style={{ display:"flex", alignItems:"center", gap:10, padding:"10px 8px", marginBottom:6, borderRadius:10, background: color.accentSoft, border:`1px solid rgba(122,145,164,0.3)` }}>
+            <div style={{ display:"flex", alignItems:"center", gap:10, padding:"10px 8px", marginBottom:6, borderRadius:10, background: color.accentSoft, border:`1px solid ${color.accentSoft}` }}>
               <div style={{ width:40, height:40, overflow:"hidden", flexShrink:0 }}><AlbumArt track={currentTrack} size={40} borderRadius={0}/></div>
               <div style={{ flex:1, minWidth:0 }}>
                 <div style={{ fontSize:10, fontWeight:700, letterSpacing:1, color: color.accent, textTransform:"uppercase", marginBottom:2 }}>Now</div>
@@ -3252,10 +3256,12 @@ function MetaChip({ children }) {
 
 // ─── BOTTOM NAV ───────────────────────────────────────────────────────────────
 function BottomNav({ screen, setScreen, showAdmin = false, hasPlayer = false }) {
+  // IA: Rooms (destinations) · Home (personal) · Discover · Search · You
   const items = [
+    {id:"rooms",label:"Rooms",icon:"drift"},
     {id:"home",label:"Home",icon:"home"},
-    {id:"search",label:"Search",icon:"search"},
     {id:"favorites",label:"Discover",icon:"grid"},
+    {id:"search",label:"Search",icon:"search"},
     {id:"profile",label:"You",icon:"profile"},
   ];
   if (showAdmin) items.push({id:"admin",label:"Admin",icon:"settings"});
@@ -3325,9 +3331,9 @@ export default function App() {
   const { firebaseUser, profile, setProfile, loading: authLoading, signUp, logIn, logOut, signInWithGoogle, sendPhoneOTP, verifyPhoneOTP, resetPassword } = useAuth();
 
   // ── App state ────────────────────────────────────────────────────────────
-  const [screen, setScreen]           = useState("home");
-  // Legacy: Drift was removed as a tab — bounce any stale screen id home
-  useEffect(() => { if (screen === "drift") setScreen("home"); }, [screen]);
+  const [screen, setScreen]           = useState("rooms");
+  // Legacy: Drift was removed as a tab — bounce any stale screen id to Rooms
+  useEffect(() => { if (screen === "drift") setScreen("rooms"); }, [screen]);
   const [tracks, setTracks]           = useState([]);          // loaded from Firestore
   const [tracksLoading, setTracksLoading] = useState(true);
   const [currentTrack, setCurrent]    = useState(null);
@@ -3481,7 +3487,7 @@ export default function App() {
 
   // Check if a track was played recently (within hours)
 
-  useEffect(() => { document.title = '4AM'; }, []);
+  useEffect(() => { document.title = BRAND_NAME; }, []);
 
   // ── Anticipatory Queue — pre-generate when tracks load ──
   const anticipatoryBuilt = useRef(false);
@@ -4090,6 +4096,23 @@ export default function App() {
         </div>
       )}
       <div style={{ flex:1, overflow:"auto", paddingBottom:currentTrack?120:56, zIndex:1, position:"relative" }}>
+        {screen==="rooms"     && !tracksLoading && (
+          <RoomsScreen
+            tracks={tracks}
+            onPlay={(t) => { setIsRadioMode(false); playTrack(t, tracks); }}
+            onPlayRoom={(t, room) => {
+              setIsRadioMode(false);
+              const pool = (room?.featured?.length ? room.featured : room?.tracks) || tracks;
+              playTrack(t, pool);
+            }}
+            currentTrack={currentTrack}
+            isPlaying={isPlaying}
+            onLike={toggleLike}
+            playlistCtx={playlistCtx}
+            AlbumArt={AlbumArt}
+            TrackRow={TrackRow}
+          />
+        )}
         {screen==="home"      && !tracksLoading && <HomeScreen tracks={tracks} onPlayRadio={playRadio} onTogglePlay={()=>setIsPlaying(p=>!p)} onPlayTrack={playTrack} currentTrack={currentTrack} isPlaying={isPlaying} onLike={toggleLike} isRadioMode={isRadioMode} playlistCtx={playlistCtx} signalLabel={signalState?.label} setPrev={setPrev} setNext={setNext} onBuildNight={()=>setShowRouteBuilder(true)} doorsSoundOn={doorsSoundOn} onToggleDoorsSound={toggleDoorsSound}/>}
         {screen==="search"    && <SearchScreen query={searchQuery} setQuery={setSearch} results={searchResults} onPlay={t=>playTrack(t,tracks)} onLike={toggleLike} currentTrack={currentTrack} isPlaying={isPlaying} playlistCtx={playlistCtx}/>}
         {screen==="favorites" && <FavoritesScreen tracks={tracks} preferredGenres={user.genres} onPlay={t=>{setIsRadioMode(false);playTrack(t,tracks);}} onLike={toggleLike} currentTrack={currentTrack} isPlaying={isPlaying} userPlaylists={userPlaylists} onCreatePlaylist={createPlaylist} onAddToPlaylist={addToPlaylist} onRemoveFromPlaylist={removeFromPlaylist} onDeletePlaylist={deletePlaylist} playlistCtx={playlistCtx}/>}
@@ -4116,6 +4139,7 @@ export default function App() {
 
   // ── Desktop: 3-column shell ───────────────────────────────────────────────
   const NAV_TOP = [
+    { id:"rooms",     icon:"drift",  label:"Rooms" },
     { id:"home",      icon:"home",   label:"Home" },
     { id:"favorites", icon:"grid",   label:"Discover" },
   ];
@@ -4211,9 +4235,9 @@ export default function App() {
         {currentTrack && <div style={{ position:"absolute", top:0, right:0, width:"40%", height:"30%", background:`radial-gradient(ellipse at 80% 0%, rgba(${glowRgb},0.07) 0%, transparent 70%)`, pointerEvents:"none", zIndex:0 }}/>}
         <div style={{
           position:"relative", zIndex:1,
-          maxWidth: (screen==="home" || screen==="favorites") ? "none" : 960,
+          maxWidth: (screen==="home" || screen==="favorites" || screen==="rooms") ? "none" : 960,
           margin:"0 auto",
-          padding: (screen==="home" || screen==="favorites")
+          padding: (screen==="home" || screen==="favorites" || screen==="rooms")
             ? `0 0 ${currentTrack?120:24}px`
             : `24px 32px ${currentTrack?120:24}px`,
         }}>
@@ -4227,6 +4251,23 @@ export default function App() {
             </div>
           ) : (
             <>
+              {screen==="rooms"     && (
+                <RoomsScreen
+                  tracks={tracks}
+                  onPlay={(t) => { setIsRadioMode(false); playTrack(t, tracks); }}
+                  onPlayRoom={(t, room) => {
+                    setIsRadioMode(false);
+                    const pool = (room?.featured?.length ? room.featured : room?.tracks) || tracks;
+                    playTrack(t, pool);
+                  }}
+                  currentTrack={currentTrack}
+                  isPlaying={isPlaying}
+                  onLike={toggleLike}
+                  playlistCtx={playlistCtx}
+                  AlbumArt={AlbumArt}
+                  TrackRow={TrackRow}
+                />
+              )}
               {screen==="home"      && <HomeScreen tracks={tracks} onPlayRadio={playRadio} onTogglePlay={()=>setIsPlaying(p=>!p)} onPlayTrack={playTrack} currentTrack={currentTrack} isPlaying={isPlaying} onLike={toggleLike} isRadioMode={isRadioMode} playlistCtx={playlistCtx} signalLabel={signalState?.label} setPrev={setPrev} setNext={setNext} onBuildNight={()=>setShowRouteBuilder(true)} doorsSoundOn={doorsSoundOn} onToggleDoorsSound={toggleDoorsSound}/>}
               {screen==="search"    && <SearchScreen query={searchQuery} setQuery={setSearch} results={searchResults} onPlay={t=>playTrack(t,tracks)} onLike={toggleLike} currentTrack={currentTrack} isPlaying={isPlaying} playlistCtx={playlistCtx}/>}
               {screen==="favorites" && <FavoritesScreen tracks={tracks} preferredGenres={user.genres} onPlay={t=>{setIsRadioMode(false);playTrack(t,tracks);}} onLike={toggleLike} currentTrack={currentTrack} isPlaying={isPlaying} userPlaylists={userPlaylists} onCreatePlaylist={createPlaylist} onAddToPlaylist={addToPlaylist} onRemoveFromPlaylist={removeFromPlaylist} onDeletePlaylist={deletePlaylist} playlistCtx={playlistCtx}/>}
@@ -4380,7 +4421,7 @@ export default function App() {
               <div key={t.id}
                 style={{ display:"flex", alignItems:"center", gap:8, padding:"6px 8px", borderRadius:10,
                   background: currentTrack?.id===t.id ? color.accentSoft : color.surface,
-                  border: currentTrack?.id===t.id ? "1px solid rgba(122,145,164,0.35)" : `1px solid ${color.line}`,
+                  border: currentTrack?.id===t.id ? `1px solid ${color.accentSoft}` : `1px solid ${color.line}`,
                   transition:"all 0.2s" }}>
 
                 <div style={{ width:16, fontSize:10, fontWeight:500, color: color.faint, textAlign:"center", flexShrink:0 }}>{i+1}</div>

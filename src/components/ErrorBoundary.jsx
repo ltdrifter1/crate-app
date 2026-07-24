@@ -12,7 +12,7 @@ export default class ErrorBoundary extends React.Component {
   }
 
   componentDidCatch(error, info) {
-    console.error("4AM crashed:", error, info);
+    console.error("ROOMS crashed:", error, info);
   }
 
   render() {
@@ -43,7 +43,7 @@ export default class ErrorBoundary extends React.Component {
             color: color.faint,
           }}
         >
-          4AM
+          ROOMS
         </div>
         <div style={{ fontSize: 20, fontWeight: 600, letterSpacing: -0.3 }}>
           Something skipped.
@@ -66,8 +66,8 @@ export default class ErrorBoundary extends React.Component {
             padding: "12px 24px",
             borderRadius: radius.md,
             border: "none",
-            background: color.ink,
-            color: color.onDark,
+            background: color.accent,
+            color: color.onAccent,
             fontSize: 14,
             fontWeight: 600,
             cursor: "pointer",

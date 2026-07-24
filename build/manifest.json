@@ -1,6 +1,6 @@
 {
-  "short_name": "4AM",
-  "name": "4AM",
+  "short_name": "ROOMS",
+  "name": "ROOMS",
   "icons": [
     {
       "src": "favicon1.ico",
@@ -10,6 +10,6 @@
   ],
   "start_url": ".",
   "display": "standalone",
-  "theme_color": "#090B0D",
-  "background_color": "#090B0D"
+  "theme_color": "#0C0B0A",
+  "background_color": "#0C0B0A"
 }
