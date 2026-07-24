@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 280 64" fill="none" role="img" aria-label="ROOMS">
+  <defs>
+    <linearGradient id="brass" x1="8" y1="6" x2="56" y2="58" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#D4C09A"/>
+      <stop offset="0.45" stop-color="#A8926A"/>
+      <stop offset="1" stop-color="#8A734F"/>
+    </linearGradient>
+    <radialGradient id="threshold" cx="32" cy="54" r="20" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#A8926A" stop-opacity="0.32"/>
+      <stop offset="1" stop-color="#A8926A" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <!-- Mark -->
+  <rect x="0" y="0" width="64" height="64" rx="14" fill="#0C0B0A"/>
+  <ellipse cx="32" cy="54" rx="16" ry="9" fill="url(#threshold)"/>
+  <path
+    d="M16 52V22c0-6.627 5.373-12 12-12h8c6.627 0 12 5.373 12 12v30"
+    stroke="url(#brass)"
+    stroke-width="3.25"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+  <path
+    d="M24 52V28c0-4.418 3.582-8 8-8s8 3.582 8 8v24"
+    stroke="url(#brass)"
+    stroke-width="2.75"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    opacity="0.92"
+  />
+  <!-- Wordmark -->
+  <text
+    x="84"
+    y="42"
+    fill="#EDE8E1"
+    font-family="Syne, Avenir Next, Segoe UI, sans-serif"
+    font-size="28"
+    font-weight="700"
+    letter-spacing="-1.2"
+  >ROOMS</text>
+</svg>

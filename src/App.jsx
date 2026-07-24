@@ -30,6 +30,7 @@ import OnboardingRitual from "./components/onboarding/OnboardingRitual";
 import ArtistPage, { AlbumPage } from "./components/catalog/ArtistPage";
 import LinerNotesSheet from "./components/catalog/LinerNotesSheet";
 import PathsScreen from "./components/paths/PathsScreen";
+import BrandGlyph from "./components/BrandGlyph";
 
 const injectStyles = () => {
   if (document.getElementById("verse-app-global-styles")) return;
@@ -759,21 +760,6 @@ const SectionLabel = ({ children, style={} }) => (
 );
 
 // ─── LOGIN ────────────────────────────────────────────────────────────────────
-
-function BrandGlyph({ size=84, light=false }) {
-  const compact = size < 40;
-  return (
-    <div aria-label={BRAND_NAME} style={{
-      fontSize: Math.max(11, Math.round(size * (compact ? 0.32 : 0.28))),
-      fontWeight: 800,
-      letterSpacing: size >= 48 ? -1.2 : -0.6,
-      color: light ? color.onDark : color.ink,
-      lineHeight: 1,
-      fontFamily: fontDisplay,
-      userSelect: "none",
-    }}>{BRAND_NAME}</div>
-  );
-}
 
 // ─── LOGIN SCREEN — wired to real Firebase auth ───────────────────────────────
 function LoginScreen({ onSignUp, onLogIn, onGoogleSignIn, onPhoneOTP, onVerifyOTP, onResetPassword }) {
@@ -4177,7 +4163,7 @@ export default function App() {
   // Show nothing while we check if someone is already logged in
   if (authLoading) return (
     <div style={{...APP_STYLE, alignItems:"center", justifyContent:"center"}}>
-      <BrandGlyph size={40}/>
+      <BrandGlyph size={56} markOnly />
       <div style={{ fontSize:13, color: color.muted, marginTop:14 }}>Loading…</div>
     </div>
   );
@@ -4339,7 +4325,7 @@ export default function App() {
       {toast && <ToastEl msg={toast}/>}
       {tracksLoading && (
         <div style={{ position:"absolute", top:"50%", left:"50%", transform:"translate(-50%,-50%)", zIndex:50, textAlign:"center" }}>
-          <div style={{ width:56, height:56, borderRadius:14, background: color.surfaceRaised, border:`1px solid ${color.line}`, display:"flex", alignItems:"center", justifyContent:"center", margin:"0 auto 12px", overflow:"hidden" }}><BrandGlyph size={40}/></div>
+          <div style={{ width:56, height:56, borderRadius:14, overflow:"hidden", margin:"0 auto 12px" }}><BrandGlyph size={56} markOnly /></div>
           <div style={{ fontSize:14, color: color.muted }}>Loading your collection…</div>
         </div>
       )}
@@ -4538,7 +4524,7 @@ export default function App() {
           {toast && <ToastEl msg={toast}/>}
           {tracksLoading ? (
             <div style={{ textAlign:"center", paddingTop:120 }}>
-              <BrandGlyph size={40}/>
+              <div style={{ display:"inline-block", marginBottom:12 }}><BrandGlyph size={56} markOnly /></div>
               <div style={{ fontSize:14, color: color.muted, marginTop:12 }}>Loading…</div>
             </div>
           ) : (
