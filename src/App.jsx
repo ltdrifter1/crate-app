@@ -35,6 +35,7 @@ const injectStyles = () => {
     ::-webkit-scrollbar-thumb { background: rgba(232,236,240,0.14); border-radius: 4px; }
     button { transition: opacity ${motion.fast}, background ${motion.base}, transform ${motion.fast}; font-family: var(--font); }
     button:active { opacity: 0.72; }
+    button.play-primary:active { transform: scale(0.96); opacity: 0.9; }
     button:focus-visible, input:focus-visible { outline: 2px solid ${color.accent}; outline-offset: 2px; }
     input:focus { outline: none; }
     input[type="range"] { -webkit-appearance: none; height: 3px; background: rgba(232,236,240,0.12); border-radius: 2px; outline: none; cursor: pointer; }
@@ -222,7 +223,7 @@ function DeepCutsCard({
         display: "flex",
         flexDirection: "column",
         justifyContent: "flex-end",
-        padding: "48px 22px 36px",
+        padding: "48px 20px 36px",
         background: color.canvas,
         animation: "stationIn 0.75s cubic-bezier(0.22,1,0.36,1) both",
       }}
@@ -278,13 +279,17 @@ function DeepCutsCard({
                 boxShadow: isPlaying ? `0 0 0 4px ${color.accentSoft}` : "none",
               }}/>
               <span style={{
-                fontSize:11, fontWeight:700, letterSpacing:2,
+                fontSize:11, fontWeight:700, letterSpacing:1.8,
                 color: isPlaying ? color.accent : color.muted,
-                textTransform:"uppercase", fontFamily: fontDisplay,
+                textTransform:"uppercase", fontFamily: fontMono,
               }}>
                 {isPlaying ? "On Air" : "Floor"}
               </span>
-              {signalLabel && <span style={{ fontSize:12, color: color.faint }}>· {signalLabel}</span>}
+              {signalLabel && (
+                <span style={{ fontSize:10, color: color.faint, fontFamily: fontMono, letterSpacing:0.8, textTransform:"uppercase" }}>
+                  · {signalLabel}
+                </span>
+              )}
             </div>
             <div style={{ display:"flex", gap:16, alignItems:"center", marginBottom:18 }}>
               <div style={{
@@ -302,46 +307,38 @@ function DeepCutsCard({
                 <div style={{ fontSize:14, color: color.body, marginTop:6 }}>{currentTrack.artist}</div>
               </div>
             </div>
-            <div style={{ marginBottom:22 }}>
+            <div style={{ marginBottom:18 }}>
               <BoothHud track={currentTrack} size="md"/>
             </div>
 
-            {/* Set arc: last → now → next */}
+            {/* Set timeline — mono booth strip, not cards */}
             {arc.length > 1 && (
-              <div style={{ marginBottom:22 }} onClick={e=>e.stopPropagation()}>
-                <div style={{
-                  fontSize:10, fontWeight:700, letterSpacing:1.8, color: color.faint,
-                  textTransform:"uppercase", fontFamily: fontMono, marginBottom:10,
-                }}>The set</div>
-                <div style={{ display:"flex", alignItems:"stretch", gap:8 }}>
-                  {arc.map(({ track, role }) => (
-                    <div key={`${role}-${track.id}`} style={{
-                      flex: role === "now" ? 1.35 : 1, minWidth:0,
-                      padding:"10px 10px",
-                      borderTop: role === "now" ? `2px solid ${color.accent}` : `1px solid ${color.lineStrong}`,
-                      background: role === "now" ? color.accentSoft : "rgba(255,255,255,0.02)",
-                    }}>
-                      <div style={{
-                        fontSize:9, letterSpacing:1.2, color: role === "now" ? color.accent : color.faint,
-                        fontFamily: fontMono, textTransform:"uppercase", marginBottom:4,
-                      }}>{role === "prev" ? "Was" : role === "now" ? "Now" : "Next"}</div>
-                      <div style={{
-                        fontSize:12, fontWeight:600, color: color.ink,
-                        overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap",
-                      }}>{track.title}</div>
-                      <div style={{
-                        fontSize:10, color: color.muted, marginTop:2,
-                        overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap",
-                      }}>{track.artist}</div>
-                    </div>
-                  ))}
-                </div>
+              <div
+                style={{
+                  marginBottom:22, paddingTop:14,
+                  borderTop:`1px solid ${color.lineStrong}`,
+                  fontFamily: fontMono, fontSize:11, letterSpacing:0.4,
+                  color: color.faint, lineHeight:1.45,
+                  overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap",
+                }}
+                onClick={e=>e.stopPropagation()}
+              >
+                {arc.map(({ track, role }, i) => (
+                  <span key={`${role}-${track.id}`}>
+                    {i > 0 && <span style={{ color: color.faint }}>  ·  </span>}
+                    <span style={{ color: role === "now" ? color.accent : color.faint, fontWeight:700, letterSpacing:1.2 }}>
+                      {role === "prev" ? "WAS" : role === "now" ? "NOW" : "NEXT"}
+                    </span>
+                    {" "}
+                    <span style={{ color: role === "now" ? color.ink : color.muted }}>{track.title}</span>
+                  </span>
+                ))}
               </div>
             )}
 
-            <button type="button" aria-label={isPlaying?"Pause":"Play"} onClick={e=>{e.stopPropagation();onTogglePlay();}}
+            <button type="button" className="play-primary" aria-label={isPlaying?"Pause":"Play"} onClick={e=>{e.stopPropagation();onTogglePlay();}}
               style={{
-                width:56, height:56, borderRadius:"50%", background: color.accent, border:"none",
+                width:56, height:56, borderRadius: radius.sm, background: color.accent, border:"none",
                 display:"flex", alignItems:"center", justifyContent:"center", color: color.onAccent,
                 cursor:"pointer", boxShadow:"0 10px 28px rgba(122,145,164,0.28)",
               }}>
@@ -355,17 +352,17 @@ function DeepCutsCard({
             }}>
               {floor.blurb}
             </div>
-            <div style={{ display:"flex", alignItems:"center", gap:14, flexWrap:"wrap" }}>
-              <button type="button" aria-label="Open the floor" onClick={e=>{e.stopPropagation();onPlay();}}
+            <div style={{ display:"flex", alignItems:"center", gap:12, flexWrap:"wrap" }}>
+              <button type="button" className="play-primary" aria-label="Open the floor" onClick={e=>{e.stopPropagation();onPlay();}}
                 style={{
                   display:"inline-flex", alignItems:"center", gap:12,
-                  padding:"14px 22px 14px 16px", borderRadius:999,
+                  padding:"14px 20px 14px 14px", borderRadius: radius.sm,
                   background: color.accent, border:"none", color: color.onAccent,
                   cursor:"pointer", fontSize:14, fontWeight:650, letterSpacing:-0.2,
                   boxShadow:"0 12px 32px rgba(122,145,164,0.28)",
                 }}>
                 <span style={{
-                  width:32, height:32, borderRadius:"50%", background:"rgba(9,11,13,0.18)",
+                  width:32, height:32, borderRadius: radius.sm, background:"rgba(9,11,13,0.18)",
                   display:"flex", alignItems:"center", justifyContent:"center",
                 }}>
                   <Icon name="play" size={16}/>
@@ -381,7 +378,7 @@ function DeepCutsCard({
                   style={{
                     background:"none", border:`1px solid ${color.lineStrong}`,
                     color: doorsSoundOn ? color.accent : color.faint,
-                    padding:"10px 14px", borderRadius:999, cursor:"pointer",
+                    padding:"12px 14px", borderRadius: radius.sm, cursor:"pointer",
                     fontSize:11, fontWeight:650, letterSpacing:1, fontFamily: fontMono,
                     textTransform:"uppercase",
                   }}
@@ -1156,10 +1153,11 @@ function AfterglowOverlay({ data, onClose, onSavePlaylist }) {
 }
 
 // ─── DRIFT — immersive cinematic playback ─────────────────────────────────────
-function ImmersivePlayer({ currentTrack, isPlaying, onTogglePlay, onSkip, onPrev, onClose, signalState }) {
+function ImmersivePlayer({ currentTrack, isPlaying, onTogglePlay, onSkip, onPrev, onClose, signalState, progress = 0, duration = 0 }) {
   const [showUI, setShowUI] = useState(true);
   const [artLoaded, setArtLoaded] = useState(false);
   const hideTimer = useRef(null);
+  const pct = duration > 0 ? (progress / duration) * 100 : 0;
 
   // Auto-hide controls after 3 seconds of no interaction
   const resetHide = useCallback(() => {
@@ -1223,12 +1221,16 @@ function ImmersivePlayer({ currentTrack, isPlaying, onTogglePlay, onSkip, onPrev
       }}/>
 
       {/* Track info + booth HUD */}
-      <div style={{
-        position:"absolute", bottom:118, left:24, right:24,
-        opacity: showUI ? 1 : 0.55,
-        transition:"opacity 0.5s ease",
-        maxWidth:520,
-      }}>
+      <div
+        key={currentTrack.id}
+        style={{
+          position:"absolute", bottom:118, left:20, right:20,
+          opacity: showUI ? 1 : 0.55,
+          transition:"opacity 0.5s ease",
+          maxWidth:520,
+          animation: "fadeIn 0.35s ease both",
+        }}
+      >
         <div style={{
           fontSize:"clamp(28px, 7vw, 42px)", fontWeight:750, color: color.onDark,
           letterSpacing:-1, lineHeight:1.05, fontFamily: fontDisplay,
@@ -1252,7 +1254,7 @@ function ImmersivePlayer({ currentTrack, isPlaying, onTogglePlay, onSkip, onPrev
 
       {/* Controls — accent station language */}
       <div style={{
-        position:"absolute", bottom:32, left:24, right:24,
+        position:"absolute", bottom:32, left:20, right:20,
         display:"flex", alignItems:"center", justifyContent:"center", gap:28,
         opacity: showUI ? 1 : 0,
         transition:"opacity 0.5s ease",
@@ -1262,8 +1264,8 @@ function ImmersivePlayer({ currentTrack, isPlaying, onTogglePlay, onSkip, onPrev
           style={{ background:"none", border:"none", cursor:"pointer", color: color.body, padding:8 }}>
           <Icon name="prev" size={20}/>
         </button>
-        <button type="button" onClick={onTogglePlay} aria-label={isPlaying?"Pause":"Play"} style={{
-          width:58, height:58, borderRadius:"50%",
+        <button type="button" className="play-primary" onClick={onTogglePlay} aria-label={isPlaying?"Pause":"Play"} style={{
+          width:58, height:58, borderRadius: radius.sm,
           background: color.accent, border:"none",
           color: color.onAccent, cursor:"pointer",
           display:"flex", alignItems:"center", justifyContent:"center",
@@ -1277,6 +1279,11 @@ function ImmersivePlayer({ currentTrack, isPlaying, onTogglePlay, onSkip, onPrev
         </button>
       </div>
 
+      {/* Progress edge — same language as now-playing bar */}
+      <div aria-hidden="true" style={{ position:"absolute", bottom:0, left:0, right:0, height:2, background:"rgba(232,236,240,0.08)", zIndex:3 }}>
+        <div style={{ width:`${pct}%`, background: color.accent, height:"100%", transition:"width 1s linear" }}/>
+      </div>
+
       {/* Top chrome */}
       <div style={{
         position:"absolute", top:20, left:20, right:20,
@@ -1288,8 +1295,8 @@ function ImmersivePlayer({ currentTrack, isPlaying, onTogglePlay, onSkip, onPrev
       }}>
         <button type="button" onClick={onClose} aria-label="Back"
           style={{
-            display:"flex", alignItems:"center", gap:8, background:"rgba(9,11,13,0.45)",
-            border:`1px solid ${color.lineStrong}`, borderRadius:999, padding:"10px 14px",
+            display:"flex", alignItems:"center", gap:8, background:"rgba(9,11,13,0.55)",
+            border:`1px solid ${color.lineStrong}`, borderRadius: radius.sm, padding:"10px 14px",
             color: color.ink, cursor:"pointer", fontSize:13, fontWeight:600,
           }}>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><path d="M6 9l6 6 6-6"/></svg>
@@ -1342,14 +1349,15 @@ function HomeScreen({
 
       {/* Build a night — club session entry */}
       {onBuildNight && (
-        <div style={{ padding:"0 16px 28px", animation:"rise 0.55s cubic-bezier(0.22,1,0.36,1) 0.04s both" }}>
+        <div style={{ padding:"0 20px 28px", animation:"rise 0.55s cubic-bezier(0.22,1,0.36,1) 0.04s both" }}>
           <button
             type="button"
             onClick={onBuildNight}
             style={{
               width:"100%", display:"flex", alignItems:"center", justifyContent:"space-between",
-              gap:16, padding:"18px 20px",
-              background: color.surfaceSolid, border:`1px solid ${color.lineStrong}`,
+              gap:16, padding:"18px 0",
+              background: "none", border:"none",
+              borderBottom:`1px solid ${color.lineStrong}`,
               cursor:"pointer", textAlign:"left", color: color.ink,
             }}
           >
@@ -1359,7 +1367,7 @@ function HomeScreen({
               <div style={{ fontSize:13, color: color.muted, marginTop:4 }}>Warmup → peak → afterhours → close</div>
             </div>
             <div style={{
-              width:40, height:40, borderRadius:"50%", background: color.accentSoft,
+              width:40, height:40, borderRadius: radius.sm, background: color.accentSoft,
               display:"flex", alignItems:"center", justifyContent:"center", color: color.accent, flexShrink:0,
             }}>
               <Icon name="play" size={16}/>
@@ -1371,14 +1379,7 @@ function HomeScreen({
       {/* 2 — Top played (yields to the set when On Air) */}
       {!isRadioMode && topTracks.length > 0 && (
         <HomeSection label="Top played" count={topTracks.length} delay={0.05}>
-          <div style={{
-            margin:"0 16px",
-            borderRadius:22,
-            background: color.surfaceSolid,
-            border:`1px solid ${color.line}`,
-            overflow:"hidden",
-            boxShadow:"0 1px 0 rgba(255,255,255,0.03) inset",
-          }}>
+          <div style={{ padding:"0 20px" }}>
             {topTracks.map((t, i) => {
               const active = activeId === t.id;
               const plays = t.playCount || 0;
@@ -1390,21 +1391,21 @@ function HomeScreen({
                   onClick={() => onPlayTrack(t, tracks)}
                   onKeyDown={e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onPlayTrack(t, tracks); } }}
                   style={{
-                    display:"flex", alignItems:"center", gap:14, padding:"14px 16px",
+                    display:"flex", alignItems:"center", gap:14, padding:"14px 0",
                     cursor:"pointer",
-                    background: active ? color.accentSoft : "transparent",
-                    borderTop: i === 0 ? "none" : `1px solid ${color.line}`,
+                    background: "transparent",
+                    borderBottom: `1px solid ${color.line}`,
                     transition:"background 0.18s",
                   }}
                 >
                   <div style={{
                     width:26, flexShrink:0, textAlign:"center",
-                    fontSize:14, fontWeight:700, fontFamily: fontDisplay, fontVariantNumeric:"tabular-nums",
+                    fontSize:14, fontWeight:700, fontFamily: fontMono, fontVariantNumeric:"tabular-nums",
                     color: i < 3 ? color.accent : color.faint,
                   }}>{String(i + 1).padStart(2, "0")}</div>
                   <div style={{
-                    width:56, height:56, borderRadius:12, overflow:"hidden", flexShrink:0, position:"relative",
-                    boxShadow: active ? `0 0 0 2px ${color.accent}` : "0 8px 20px rgba(0,0,0,0.35)",
+                    width:56, height:56, overflow:"hidden", flexShrink:0, position:"relative",
+                    boxShadow: active ? `0 0 0 2px ${color.accent}` : "none",
                   }}>
                     <AlbumArt track={t} size={56} borderRadius={0}/>
                     {active && isPlaying && (
@@ -1415,7 +1416,7 @@ function HomeScreen({
                   </div>
                   <div style={{ flex:1, minWidth:0 }}>
                     <div style={{
-                      fontSize:15, fontWeight: active ? 650 : 550, letterSpacing:-0.3,
+                      fontSize:15, fontWeight: active ? 650 : 500, letterSpacing:-0.3,
                       color: active ? color.accent : color.ink,
                       overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap",
                     }}>{t.title}</div>
@@ -1424,7 +1425,7 @@ function HomeScreen({
                     </div>
                   </div>
                   <div style={{ flexShrink:0, textAlign:"right" }}>
-                    <div style={{ fontSize:11, color: color.faint, fontVariantNumeric:"tabular-nums" }}>{plays > 0 ? `${plays}×` : "—"}</div>
+                    <div style={{ fontSize:11, color: color.faint, fontVariantNumeric:"tabular-nums", fontFamily: fontMono }}>{plays > 0 ? `${plays}×` : "—"}</div>
                   </div>
                   {onLike && (
                     <button
@@ -1446,7 +1447,7 @@ function HomeScreen({
       {/* 3 — Recently saved */}
       {recentlySaved.length > 0 && (
         <HomeSection label="Recently saved" count={recentlySaved.length} delay={0.1}>
-          <div className="hide-scroll" style={{ display:"flex", gap:16, overflowX:"auto", padding:"0 16px 10px" }}>
+          <div className="hide-scroll" style={{ display:"flex", gap:14, overflowX:"auto", padding:"0 20px 10px" }}>
             {recentlySaved.map((t, i) => {
               const active = activeId === t.id;
               return (
@@ -1454,17 +1455,17 @@ function HomeScreen({
                   key={t.id}
                   onClick={() => onPlayTrack(t, tracks)}
                   style={{
-                    flexShrink:0, width:160, cursor:"pointer",
+                    flexShrink:0, width:148, cursor:"pointer",
                     animation:`rise 0.55s cubic-bezier(0.22,1,0.36,1) ${0.08 + i * 0.03}s both`,
                   }}
                 >
                   <div style={{
-                    width:160, height:160, borderRadius:18, overflow:"hidden", marginBottom:12, position:"relative",
-                    boxShadow: active ? `0 0 0 2px ${color.accent}` : "0 16px 40px rgba(0,0,0,0.42)",
-                    transform: active ? "translateY(-3px)" : "none",
+                    width:148, height:148, overflow:"hidden", marginBottom:12, position:"relative",
+                    boxShadow: active ? `0 0 0 2px ${color.accent}` : "0 12px 32px rgba(0,0,0,0.4)",
+                    transform: active ? "translateY(-2px)" : "none",
                     transition:"box-shadow 0.25s, transform 0.25s",
                   }}>
-                    <AlbumArt track={t} size={160} borderRadius={0}/>
+                    <AlbumArt track={t} size={148} borderRadius={0}/>
                     <div aria-hidden="true" style={{
                       position:"absolute", inset:0,
                       background:"linear-gradient(180deg, transparent 55%, rgba(9,11,13,0.55) 100%)",
@@ -1473,7 +1474,7 @@ function HomeScreen({
                     }}/>
                   </div>
                   <div style={{
-                    fontSize:14, fontWeight: active ? 650 : 560, letterSpacing:-0.25,
+                    fontSize:14, fontWeight: active ? 650 : 500, letterSpacing:-0.25,
                     color: active ? color.accent : color.ink,
                     overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap",
                   }}>{t.title}</div>
@@ -1635,7 +1636,7 @@ function FavoritesScreen({ tracks, onPlay, onLike, currentTrack, isPlaying, user
 
   const SectionHead = ({children, sub}) => (
     <div style={{ marginBottom:14 }}>
-      <div style={{ fontSize:18, fontWeight:700, letterSpacing:-0.4, color: color.ink, fontFamily: fontDisplay }}>{children}</div>
+      <div style={{ fontSize:20, fontWeight:750, letterSpacing:-0.5, color: color.ink, fontFamily: fontDisplay }}>{children}</div>
       {sub && <div style={{ fontSize:12, color: color.muted, marginTop:4 }}>{sub}</div>}
     </div>
   );
@@ -1644,7 +1645,7 @@ function FavoritesScreen({ tracks, onPlay, onLike, currentTrack, isPlaying, user
     <div style={{ overflowY:"auto", height:"100%", minHeight:"calc(100vh - 112px)" }}>
       {/* Quiet mode switcher — not a streaming segment control */}
       <div style={{
-        position:"sticky", top:0, zIndex:10, padding:"12px 18px 8px",
+        position:"sticky", top:0, zIndex:10, padding:"12px 20px 8px",
         background:"rgba(9,11,13,0.92)", borderBottom:`1px solid ${color.line}`,
         display:"flex", gap:18, overflowX:"auto",
       }} className="hide-scroll">
@@ -1691,7 +1692,7 @@ function FavoritesScreen({ tracks, onPlay, onLike, currentTrack, isPlaying, user
                 minHeight: "min(52vh, 420px)",
                 display:"flex", flexDirection:"column", justifyContent:"flex-end",
                 padding:"40px 20px 28px",
-                marginBottom:32,
+                marginBottom:28,
                 animation:"stationIn 0.7s cubic-bezier(0.22,1,0.36,1) both",
               }}
             >
@@ -1730,10 +1731,10 @@ function FavoritesScreen({ tracks, onPlay, onLike, currentTrack, isPlaying, user
 
           {digLane.length > 0 && (
             <div style={{ marginBottom:36 }}>
-              <div style={{ padding:"0 18px" }}>
+              <div style={{ padding:"0 20px" }}>
                 <SectionHead sub={`From the ${activeRoomLabel.toLowerCase()} room`}>More from the room</SectionHead>
               </div>
-              <div className="hide-scroll" style={{ display:"flex", gap:12, overflowX:"auto", padding:"0 18px 4px" }}>
+              <div className="hide-scroll" style={{ display:"flex", gap:12, overflowX:"auto", padding:"0 20px 4px" }}>
                 {digLane.map((t, i) => (
                   <div key={t.id} onClick={()=>onPlay(t)} style={{
                     flexShrink:0, width:132, cursor:"pointer",
@@ -1755,7 +1756,7 @@ function FavoritesScreen({ tracks, onPlay, onLike, currentTrack, isPlaying, user
 
           {/* Tonight's rooms */}
           {roomKeys.length > 0 && (
-          <div style={{ marginBottom:32, padding:"0 18px" }}>
+          <div style={{ marginBottom:32, padding:"0 20px" }}>
             <SectionHead sub="Dig by room energy — not genre shelves">Tonight’s rooms</SectionHead>
             <div style={{ display:"flex", flexDirection:"column", gap:2 }}>
               {roomKeys.map(room => {
@@ -1790,7 +1791,7 @@ function FavoritesScreen({ tracks, onPlay, onLike, currentTrack, isPlaying, user
           )}
 
           {/* Genres buried */}
-          <div style={{ padding:"0 18px" }}>
+          <div style={{ padding:"0 20px" }}>
             <SectionHead sub="If you still want lanes">Genres</SectionHead>
             <div style={{ display:"flex", flexDirection:"column", gap:2 }}>
             {genres.map(g => (
@@ -2546,6 +2547,9 @@ function AdminScreen({ tracks, setTracks, tab, setTab, editTrack, setEditTrack, 
 // ─── NOW PLAYING BAR — flat station strip ─────────────────────────────────────
 function NowPlayingBar({ track, isPlaying, progress, duration, onTogglePlay, onSkip, onPrev, onLike, onSeek, repeat, setRepeat, isRadioMode, onOpen }) {
   const pct = duration > 0 ? (progress/duration)*100 : 0;
+  const bpm = track.bpm ? String(track.bpm) : "—";
+  const key = track.camelot || "—";
+  const energy = track.energy != null ? String(track.energy) : "—";
   return (
     <div style={{ position:"fixed", bottom:56, left:0, right:0, zIndex:80 }}>
       <div
@@ -2557,9 +2561,11 @@ function NowPlayingBar({ track, isPlaying, progress, duration, onTogglePlay, onS
         style={{
           background: color.station,
           borderTop: `1px solid ${color.lineStrong}`,
-          padding:"10px 12px 12px",
+          borderBottom: "none",
+          padding:"10px 12px 11px",
           display:"flex", alignItems:"center", gap:12, cursor:"pointer",
           position:"relative",
+          borderLeft: isRadioMode ? `2px solid ${color.accent}` : "2px solid transparent",
         }}
       >
         {/* Progress as tactile top edge */}
@@ -2567,7 +2573,7 @@ function NowPlayingBar({ track, isPlaying, progress, duration, onTogglePlay, onS
           <div style={{ width:`${pct}%`, background: color.accent, height:"100%", transition:"width 1s linear" }}/>
         </div>
         <div style={{ width:42, height:42, overflow:"hidden", flexShrink:0 }}><AlbumArt track={track} size={42} borderRadius={0}/></div>
-        <div style={{ flex:1, minWidth:0 }}>
+        <div key={track.id} style={{ flex:1, minWidth:0, animation:"fadeIn 0.3s ease both" }}>
           <div style={{ fontSize:13, fontWeight:650, color: color.ink, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap", fontFamily: fontDisplay, letterSpacing:-0.2 }}>
             {isRadioMode && (
               <span style={{
@@ -2579,15 +2585,21 @@ function NowPlayingBar({ track, isPlaying, progress, duration, onTogglePlay, onS
             )}
             {track.title}
           </div>
-          <div style={{ fontSize:11, color: color.muted, marginTop:2, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
-            {isRadioMode ? `On air · ${track.artist}` : track.artist}
-          </div>
-          <div style={{ marginTop:6 }}>
-            <BoothHud track={track} size="sm"/>
+          <div style={{
+            fontSize:10, color: color.muted, marginTop:4, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap",
+            fontFamily: fontMono, fontVariantNumeric:"tabular-nums", letterSpacing:0.3,
+          }}>
+            {track.artist}
+            <span style={{ color: color.faint }}>  ·  </span>
+            <span style={{ color: color.accent }}>{bpm}</span>
+            <span style={{ color: color.faint }}> BPM · </span>
+            <span style={{ color: color.accent }}>{key}</span>
+            <span style={{ color: color.faint }}> · E</span>
+            <span style={{ color: color.accent }}>{energy}</span>
           </div>
         </div>
         <button type="button" aria-label={track.liked?"Unlike":"Like"} onClick={e=>{e.stopPropagation();onLike();}} style={{ background:"none",border:"none",cursor:"pointer",color:track.liked?color.accent:color.faint,padding:4 }}><Icon name={track.liked?"heart":"heartempty"} size={16}/></button>
-        <button type="button" aria-label={isPlaying?"Pause":"Play"} onClick={e=>{e.stopPropagation();onTogglePlay();}} style={{ background: color.accent, border:"none", borderRadius:"50%", width:36, height:36, cursor:"pointer", color: color.onAccent, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
+        <button type="button" className="play-primary" aria-label={isPlaying?"Pause":"Play"} onClick={e=>{e.stopPropagation();onTogglePlay();}} style={{ background: color.accent, border:"none", borderRadius: radius.sm, width:36, height:36, cursor:"pointer", color: color.onAccent, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
           <Icon name={isPlaying?"pause":"play"} size={16}/>
         </button>
         <button type="button" aria-label="Next" onClick={e=>{e.stopPropagation();onSkip();}} style={{ background:"none",border:"none",cursor:"pointer",color: color.muted, padding:4 }}><Icon name="skip" size={16}/></button>
@@ -2601,7 +2613,7 @@ function MetaChip({ children }) {
 }
 
 // ─── BOTTOM NAV ───────────────────────────────────────────────────────────────
-function BottomNav({ screen, setScreen, showAdmin = false }) {
+function BottomNav({ screen, setScreen, showAdmin = false, hasPlayer = false }) {
   const items = [
     {id:"home",label:"Home",icon:"home"},
     {id:"search",label:"Search",icon:"search"},
@@ -2613,20 +2625,29 @@ function BottomNav({ screen, setScreen, showAdmin = false }) {
     <nav aria-label="Main" style={{
       position:"fixed", bottom:0, left:0, right:0, height:56,
       background: color.canvas,
-      borderTop: `1px solid ${color.line}`, display:"flex", zIndex:85,
+      borderTop: hasPlayer ? "none" : `1px solid ${color.line}`,
+      display:"flex", zIndex:85,
     }}>
-      {items.map(({id,icon,label})=>(
-        <button key={id} type="button" aria-label={label} aria-current={screen===id?"page":undefined}
-          onClick={()=>setScreen(id)}
-          style={{
-            flex:1, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", gap:3,
-            background:"none", border:"none", cursor:"pointer",
-            color: screen===id ? color.accent : color.faint,
-          }}>
-          <Icon name={icon} size={18}/>
-          <span style={{ fontSize:9, fontWeight: screen===id ? 650 : 500, letterSpacing:0.2 }}>{label}</span>
-        </button>
-      ))}
+      {items.map(({id,icon,label})=>{
+        const active = screen === id;
+        return (
+          <button key={id} type="button" aria-label={label} aria-current={active?"page":undefined}
+            onClick={()=>setScreen(id)}
+            style={{
+              flex:1, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", gap:3,
+              background:"none", border:"none", cursor:"pointer", position:"relative",
+              color: active ? color.accent : color.faint,
+            }}>
+            {active && (
+              <span aria-hidden="true" style={{
+                position:"absolute", top:0, left:"28%", right:"28%", height:2, background: color.accent,
+              }}/>
+            )}
+            <Icon name={icon} size={18}/>
+            <span style={{ fontSize:10, fontWeight: active ? 650 : 500, letterSpacing:0.2 }}>{label}</span>
+          </button>
+        );
+      })}
     </nav>
   );
 }
@@ -3241,7 +3262,7 @@ export default function App() {
           repeat={repeat} setRepeat={setRepeat} isRadioMode={isRadioMode}
           onOpen={()=>setImmersive(true)}/>
       )}
-      <BottomNav screen={screen} setScreen={setScreen} showAdmin={firebaseUser?.uid === ADMIN_UID}/>
+      <BottomNav screen={screen} setScreen={setScreen} showAdmin={firebaseUser?.uid === ADMIN_UID} hasPlayer={!!currentTrack && !immersive}/>
       {immersive && currentTrack && (
         <ImmersivePlayer
           currentTrack={currentTrack}
@@ -3251,6 +3272,8 @@ export default function App() {
           onPrev={handlePrev}
           onClose={()=>setImmersive(false)}
           signalState={signalState}
+          progress={progress}
+          duration={duration}
         />
       )}
       {showRouteBuilder && <RouteBuilderModal tracks={tracks} onClose={()=>setShowRouteBuilder(false)} onPlayRoute={playRoute}/>}
@@ -3418,7 +3441,7 @@ export default function App() {
                 </div>
                 <span style={{ fontSize:10, color: color.faint, fontVariantNumeric:"tabular-nums", flexShrink:0 }}>{fmtTime(progress)}</span>
                 <button onClick={e=>{e.stopPropagation();onLikeToggle();}} style={{ background:"none",border:"none",cursor:"pointer",color:currentTrack.liked?color.accent:color.faint,padding:4 }}><Icon name={currentTrack.liked?"heart":"heartempty"} size={16}/></button>
-                <button onClick={e=>{e.stopPropagation();setIsPlaying(p=>!p);}} style={{ background: color.accent,border:"none",borderRadius:"50%",width:36,height:36,cursor:"pointer",color: color.onAccent,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0 }}>
+                <button className="play-primary" onClick={e=>{e.stopPropagation();setIsPlaying(p=>!p);}} style={{ background: color.accent,border:"none",borderRadius: radius.sm,width:36,height:36,cursor:"pointer",color: color.onAccent,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0 }}>
                   <Icon name={isPlaying?"pause":"play"} size={15}/>
                 </button>
                 <button onClick={e=>{e.stopPropagation();handleSkip();}} style={{ background:"none",border:"none",cursor:"pointer",color: color.muted,padding:4 }}><Icon name="skip" size={16}/></button>
@@ -3587,6 +3610,8 @@ export default function App() {
           onPrev={handlePrev}
           onClose={()=>setImmersive(false)}
           signalState={signalState}
+          progress={progress}
+          duration={duration}
         />
       )}
     </div>
