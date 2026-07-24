@@ -992,10 +992,15 @@ function DriftMode({ tracks, currentTrack, isPlaying, onTogglePlay, onSkip, onPr
   useEffect(() => { setArtLoaded(false); }, [currentTrack?.id]);
 
   if (!currentTrack) return (
-    <div style={{ height:"100%", display:"flex", alignItems:"center", justifyContent:"center", background:"#0A0A0C" }}>
-      <div style={{ textAlign:"center" }}>
-        <div style={{ fontSize:28, fontWeight:700, color:"rgba(255,255,255,0.15)", letterSpacing:-0.5 }}>Drift</div>
-        <div style={{ fontSize:13, color:"rgba(255,255,255,0.08)", marginTop:8 }}>Play something to enter</div>
+    <div style={{ height:"100%", display:"flex", alignItems:"center", justifyContent:"center", background:"#0A0A0C", padding:32 }}>
+      <div style={{ textAlign:"center", maxWidth:300 }}>
+        <div style={{ fontSize:28, fontWeight:650, color:"rgba(255,255,255,0.85)", letterSpacing:-0.5 }}>Drift</div>
+        <div style={{ fontSize:14, color:"rgba(255,255,255,0.45)", marginTop:12, lineHeight:1.5 }}>
+          A quiet full-screen mode for just listening — artwork up, chrome down.
+        </div>
+        <div style={{ fontSize:13, color:"rgba(255,255,255,0.28)", marginTop:18, lineHeight:1.45 }}>
+          Play any track, then come back here.
+        </div>
       </div>
     </div>
   );
@@ -1148,14 +1153,17 @@ function DriftMode({ tracks, currentTrack, isPlaying, onTogglePlay, onSkip, onPr
         </button>
       </div>
 
-      {/* ── Layer 7: Top bar — V logo + Drift label, always very subtle ── */}
+      {/* ── Top bar — quiet label ── */}
       <div style={{
         position:"absolute", top:24, left:32, right:32,
         display:"flex", justifyContent:"space-between", alignItems:"center",
-        opacity: showUI ? 0.6 : 0,
+        opacity: showUI ? 0.85 : 0,
         transition:"opacity 0.5s ease",
       }}>
-        <div style={{ fontSize:10, fontWeight:700, letterSpacing:2, color:"rgba(255,255,255,0.2)", textTransform:"uppercase" }}>Drift</div>
+        <div>
+          <div style={{ fontSize:10, fontWeight:700, letterSpacing:2, color:"rgba(255,255,255,0.35)", textTransform:"uppercase" }}>Drift</div>
+          <div style={{ fontSize:11, color:"rgba(255,255,255,0.22)", marginTop:4 }}>Lean back and listen</div>
+        </div>
       </div>
     </div>
   );
