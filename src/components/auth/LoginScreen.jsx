@@ -255,14 +255,14 @@ export default function LoginScreen({
                 padding: "14px 20px",
                 borderRadius: 980,
                 border: "none",
-                background: "#fff",
+                background: color.accent,
                 cursor: loading ? "wait" : "pointer",
                 opacity: loading ? 0.7 : 1,
                 marginBottom: 12,
               }}
             >
               <GoogleMark />
-              <span style={{ fontSize: 16, fontWeight: 600, color: "#1c1c1e" }}>
+              <span style={{ fontSize: 16, fontWeight: 600, color: color.onAccent }}>
                 {loading ? "Connecting…" : "Continue with Google"}
               </span>
             </button>
@@ -381,13 +381,13 @@ export default function LoginScreen({
               padding: "14px 20px",
               borderRadius: 980,
               border: `1px solid ${color.lineStrong}`,
-              background: "#fff",
+              background: color.accent,
               cursor: loading ? "wait" : "pointer",
               opacity: loading ? 0.7 : 1,
             }}
           >
             <GoogleMark />
-            <span style={{ fontSize: 16, fontWeight: 600, color: "#1c1c1e" }}>
+            <span style={{ fontSize: 16, fontWeight: 600, color: color.onAccent }}>
               {loading && notice?.includes("Google") ? "Connecting…" : "Continue with Google"}
             </span>
           </button>

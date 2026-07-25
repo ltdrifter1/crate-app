@@ -335,7 +335,7 @@ export function roomLabelForId(id) {
 }
 
 /** Atmosphere → soft background gradient hints (CSS-ready). */
-export function atmosphereGradient(atmosphere, accent = "#A8926A") {
+export function atmosphereGradient(atmosphere, accent = "#EAE7DC") {
   return roomPosterStyle(atmosphere).gradient;
 }
 
@@ -365,7 +365,7 @@ export function roomPosterStyle(atmosphereOrRoom) {
       right: "-6%",
       left: "auto",
       size: 320,
-      color: "rgba(168,146,106,0.16)",
+      color: "rgba(234,231,220,0.14)",
     },
     coverBlur: 36,
     coverSat: 115,
@@ -392,7 +392,7 @@ export function roomPosterStyle(atmosphereOrRoom) {
   const concrete =
     "repeating-linear-gradient(90deg, rgba(237,232,225,0.04) 0 1px, transparent 1px 18px), repeating-linear-gradient(0deg, rgba(237,232,225,0.025) 0 1px, transparent 1px 22px)";
   const heat =
-    "repeating-linear-gradient(180deg, rgba(220,170,100,0.05) 0 2px, transparent 2px 10px)";
+    "repeating-linear-gradient(180deg, rgba(234,231,220,0.04) 0 2px, transparent 2px 10px)";
   const snow =
     "radial-gradient(circle at 20% 30%, rgba(220,230,240,0.08) 0 1px, transparent 1.5px), radial-gradient(circle at 70% 55%, rgba(220,230,240,0.06) 0 1px, transparent 1.5px)";
 
@@ -401,7 +401,7 @@ export function roomPosterStyle(atmosphereOrRoom) {
       gradient: `radial-gradient(ellipse at 28% 0%, #2A2218 0%, #16120E 42%, #0C0B0A 100%)`,
       overlay:
         "linear-gradient(180deg, rgba(12,11,10,0.12) 0%, rgba(18,14,10,0.45) 40%, rgba(12,11,10,0.96) 100%)",
-      wash: { top: "-6%", left: "8%", right: "auto", size: 420, color: "rgba(212,176,120,0.22)" },
+      wash: { top: "-6%", left: "8%", right: "auto", size: 420, color: "rgba(234,231,220,0.16)" },
       coverBlur: 44,
       coverSat: 108,
       coverBright: 0.52,
@@ -432,7 +432,7 @@ export function roomPosterStyle(atmosphereOrRoom) {
       gradient: `radial-gradient(ellipse at 72% 18%, #1A1612 0%, #0E0C0A 55%, #090808 100%)`,
       overlay:
         "linear-gradient(165deg, rgba(12,11,10,0.4) 0%, rgba(12,11,10,0.7) 50%, rgba(12,11,10,0.98) 100%)",
-      wash: { top: "30%", left: "-8%", right: "auto", size: 260, color: "rgba(168,146,106,0.1)" },
+      wash: { top: "30%", left: "-8%", right: "auto", size: 260, color: "rgba(234,231,220,0.09)" },
       coverBlur: 28,
       coverBright: 0.38,
       coverScale: 1.08,
@@ -448,7 +448,7 @@ export function roomPosterStyle(atmosphereOrRoom) {
       gradient: `radial-gradient(ellipse at 18% 0%, #241C14 0%, #120F0C 50%, #0C0B0A 100%)`,
       overlay:
         "linear-gradient(180deg, rgba(12,11,10,0.18) 0%, rgba(12,11,10,0.55) 48%, rgba(12,11,10,0.96) 100%)",
-      wash: { top: "-10%", left: "20%", right: "auto", size: 340, color: "rgba(200,160,100,0.18)" },
+      wash: { top: "-10%", left: "20%", right: "auto", size: 340, color: "rgba(234,231,220,0.13)" },
       coverBlur: 32,
       coverBright: 0.48,
       coverSat: 120,
@@ -481,7 +481,7 @@ export function roomPosterStyle(atmosphereOrRoom) {
       gradient: `radial-gradient(ellipse at 38% -5%, #2C2216 0%, #14100C 48%, #0C0B0A 100%)`,
       overlay:
         "linear-gradient(180deg, rgba(12,11,10,0.15) 0%, rgba(20,14,8,0.5) 45%, rgba(12,11,10,0.96) 100%)",
-      wash: { top: "-4%", left: "30%", right: "auto", size: 400, color: "rgba(220,160,80,0.2)" },
+      wash: { top: "-4%", left: "30%", right: "auto", size: 400, color: "rgba(234,231,220,0.14)" },
       coverBlur: 38,
       coverBright: 0.46,
       coverSat: 125,
@@ -514,7 +514,7 @@ export function roomPosterStyle(atmosphereOrRoom) {
       gradient: `radial-gradient(ellipse at 82% 8%, #2A1E14 0%, #14100C 45%, #0C0B0A 100%)`,
       overlay:
         "linear-gradient(200deg, rgba(12,11,10,0.1) 0%, rgba(24,16,10,0.5) 42%, rgba(12,11,10,0.96) 100%)",
-      wash: { top: "-15%", right: "0%", left: "auto", size: 440, color: "rgba(230,160,70,0.22)" },
+      wash: { top: "-15%", right: "0%", left: "auto", size: 440, color: "rgba(234,231,220,0.15)" },
       coverBlur: 30,
       coverBright: 0.5,
       coverSat: 130,
@@ -529,7 +529,7 @@ export function roomPosterStyle(atmosphereOrRoom) {
       gradient: `radial-gradient(ellipse at 8% 28%, #1A1C28 0%, #101218 50%, #0C0B0A 100%)`,
       overlay:
         "linear-gradient(135deg, rgba(12,11,10,0.25) 0%, rgba(12,11,10,0.6) 50%, rgba(12,11,10,0.97) 100%)",
-      wash: { top: "40%", left: "-5%", right: "auto", size: 300, color: "rgba(168,146,106,0.14)" },
+      wash: { top: "40%", left: "-5%", right: "auto", size: 300, color: "rgba(234,231,220,0.12)" },
       coverBlur: 26,
       coverBright: 0.4,
       coverSat: 118,
@@ -543,7 +543,7 @@ export function roomPosterStyle(atmosphereOrRoom) {
       gradient: `radial-gradient(ellipse at 70% 0%, #22181C 0%, #120E10 48%, #0C0B0A 100%)`,
       overlay:
         "linear-gradient(180deg, rgba(12,11,10,0.35) 0%, rgba(12,11,10,0.68) 45%, rgba(12,11,10,0.98) 100%)",
-      wash: { top: "-8%", right: "5%", left: "auto", size: 320, color: "rgba(180,100,90,0.12)" },
+      wash: { top: "-8%", right: "5%", left: "auto", size: 320, color: "rgba(200,196,184,0.10)" },
       coverBlur: 18,
       coverBright: 0.34,
       coverSat: 105,
@@ -587,7 +587,7 @@ export function roomPosterStyle(atmosphereOrRoom) {
       gradient: `radial-gradient(ellipse at 50% -10%, #221C28 0%, #121018 42%, #0C0B0A 100%)`,
       overlay:
         "linear-gradient(180deg, rgba(12,11,10,0.28) 0%, rgba(12,11,10,0.6) 40%, rgba(12,11,10,0.97) 100%)",
-      wash: { top: "-18%", right: "-4%", left: "auto", size: 380, color: "rgba(168,146,106,0.18)" },
+      wash: { top: "-18%", right: "-4%", left: "auto", size: 380, color: "rgba(234,231,220,0.13)" },
       coverBlur: 22,
       coverBright: 0.4,
       coverSat: 120,
@@ -612,7 +612,7 @@ export function roomPosterStyle(atmosphereOrRoom) {
       gradient: `radial-gradient(ellipse at 30% 10%, #1C1814 0%, #120E0C 48%, #0C0B0A 100%)`,
       overlay:
         "linear-gradient(180deg, rgba(12,11,10,0.25) 0%, rgba(12,11,10,0.62) 50%, rgba(12,11,10,0.97) 100%)",
-      wash: { top: "5%", left: "10%", right: "auto", size: 340, color: "rgba(168,146,106,0.12)" },
+      wash: { top: "5%", left: "10%", right: "auto", size: 340, color: "rgba(234,231,220,0.10)" },
       coverBlur: 42,
       coverBright: 0.36,
       titleSize: "clamp(40px, 11vw, 56px)",
@@ -625,7 +625,7 @@ export function roomPosterStyle(atmosphereOrRoom) {
       gradient: `radial-gradient(ellipse at 40% 0%, #1E1A16 0%, #120F0C 48%, #0C0B0A 100%)`,
       overlay:
         "linear-gradient(180deg, rgba(12,11,10,0.2) 0%, rgba(12,11,10,0.55) 48%, rgba(12,11,10,0.96) 100%)",
-      wash: { top: "-8%", left: "35%", right: "auto", size: 360, color: "rgba(190,160,110,0.16)" },
+      wash: { top: "-8%", left: "35%", right: "auto", size: 360, color: "rgba(234,231,220,0.12)" },
       coverBlur: 34,
       coverBright: 0.44,
       titleSize: "clamp(44px, 12vw, 62px)",

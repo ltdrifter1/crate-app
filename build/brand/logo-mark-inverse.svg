@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="ROOMS">
+  <title>ROOMS</title>
+  <rect width="512" height="512" rx="112" fill="#000000"/>
+  <circle cx="256" cy="256" r="180" fill="#EAE7DC"/>
+  <circle cx="256" cy="256" r="164" fill="none" stroke="#000000" stroke-width="6"/>
+  <!-- Geometric R -->
+  <path fill="#000000" d="
+    M178 148
+    H286
+    C338 148 372 180 372 228
+    C372 268 348 294 312 302
+    L372 364
+    H318
+    L266 308
+    H234
+    V364
+    H178
+    Z
+    M234 200
+    V256
+    H282
+    C304 256 318 244 318 228
+    C318 212 304 200 282 200
+    Z
+  "/>
+</svg>
