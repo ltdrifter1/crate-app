@@ -21,7 +21,12 @@ import { parsePath, buildPath, documentTitleFor } from "./lib/routes";
 import { explainPick, SEARCH_PROMPTS } from "./lib/explain";
 import { buildHomeCollections, savedTracks } from "./lib/homeCollections";
 import { slugify, findArtist, findAlbum, searchEntities } from "./lib/catalog";
-import { enrichTracksWithScenes } from "./lib/scenes";
+import {
+  enrichTracksWithScenes,
+  displaySceneLabel,
+  trackMatchesScene,
+  matchSceneFromText,
+} from "./lib/scenes";
 import ArtistPage, { AlbumPage } from "./components/catalog/ArtistPage";
 import LinerNotesSheet from "./components/catalog/LinerNotesSheet";
 import LoginScreen from "./components/auth/LoginScreen";
