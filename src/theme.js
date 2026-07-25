@@ -49,7 +49,7 @@ export const glass = {
 /** Home rhythm — wider section breaks, consistent gutters. */
 export const homeSpace = {
   gutter: 22,
-  bandPadY: 44,
+  bandPadY: 48,
   sectionPadTop: 60,
   sectionPadBottom: 56,
   /** First shelf after a prior band/rule — keep tight; the break lives above. */

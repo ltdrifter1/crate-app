@@ -79,6 +79,14 @@ const injectStyles = () => {
     @keyframes stationIn { from{opacity:0;transform:translateY(18px) scale(0.985)} to{opacity:1;transform:none} }
     @keyframes roomEnter { from{opacity:0;transform:translateY(14px)} to{opacity:1;transform:none} }
     @keyframes trackSwap { from{opacity:0;transform:translateY(4px)} to{opacity:1;transform:none} }
+    @keyframes dialArc {
+      from { stroke-dashoffset: 92; opacity: 0.55; }
+      to { stroke-dashoffset: 28; opacity: 1; }
+    }
+    @keyframes markIn {
+      from { opacity: 0; transform: scale(0.92); }
+      to { opacity: 1; transform: none; }
+    }
     @media (prefers-reduced-motion: reduce) {
       *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
     }
@@ -141,9 +149,39 @@ const Icon = ({ name, size=18 }) => {
     queue:      <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M4 6h16M4 12h16M4 18h10"/><circle cx="18" cy="18" r="2" fill="currentColor" stroke="none"/></svg>,
     volume:     <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor"><path d="M3 10v4h4l5 5V5L7 10H3zm13.5 2c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"/></svg>,
     hypno:      <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.5" fill="currentColor" stroke="none"/></svg>,
+    // Session Dial — length (arc) + vibe (playlist bars). Key feature mark.
+    timedmix:   <TimedMixMark size={size} />,
   };
   return icons[name] || null;
 };
+
+/** Custom mark for timed playlist builder — duration dial + track bars. */
+function TimedMixMark({ size = 28, accent = color.accent }) {
+  const r = 9.2;
+  const c = 2 * Math.PI * r;
+  const arc = c * 0.72;
+  return (
+    <svg width={size} height={size} viewBox="0 0 32 32" fill="none" aria-hidden="true">
+      {/* Quiet dial track */}
+      <circle cx="16" cy="16" r={r} stroke="rgba(255,255,255,0.16)" strokeWidth="1.6"/>
+      {/* Length arc — accent segment */}
+      <circle
+        cx="16" cy="16" r={r}
+        stroke={accent}
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeDasharray={`${arc} ${c}`}
+        strokeDashoffset={28}
+        transform="rotate(-95 16 16)"
+        style={{ animation: "dialArc 1.1s cubic-bezier(0.22,1,0.36,1) both" }}
+      />
+      {/* Vibe bars — a short playlist inside the dial */}
+      <rect x="10.2" y="12.1" width="11.6" height="1.7" rx="0.85" fill="rgba(255,255,255,0.88)"/>
+      <rect x="10.2" y="15.15" width="8.4" height="1.7" rx="0.85" fill="rgba(255,255,255,0.55)"/>
+      <rect x="10.2" y="18.2" width="5.6" height="1.7" rx="0.85" fill={accent}/>
+    </svg>
+  );
+}
 
 // ─── ALBUM ART ────────────────────────────────────────────────────────────────
 function AlbumArt({ track, size=300, borderRadius=0 }) {
@@ -1561,6 +1599,141 @@ function QueueSheet({ queue, currentTrack, onPlay, onClose, onClear, onShuffle, 
   );
 }
 
+// ── Key feature: timed playlist CTA ───────────────────────────────────────────
+// Concept: Session Dial — duration arc + playlist bars. Not a generic “+”.
+function MakePlaylistFeature({ onClick }) {
+  return (
+    <button
+      type="button"
+      className="glass-control"
+      onClick={onClick}
+      aria-label="Make a playlist — choose a length and vibe"
+      style={{
+        width: "100%",
+        position: "relative",
+        overflow: "hidden",
+        display: "block",
+        padding: 0,
+        borderRadius: radius.xl,
+        border: `1px solid ${glass.border}`,
+        background: `
+          linear-gradient(135deg, rgba(250,36,60,0.14) 0%, rgba(250,36,60,0.03) 38%, transparent 62%),
+          linear-gradient(180deg, rgba(255,255,255,0.10) 0%, rgba(255,255,255,0.04) 100%)
+        `,
+        boxShadow: `
+          inset 0 1px 0 ${glass.highlight},
+          inset 0 0 0 0.5px ${glass.borderFaint},
+          0 18px 48px rgba(0,0,0,0.38)
+        `,
+        backdropFilter: glass.blur,
+        WebkitBackdropFilter: glass.blur,
+        cursor: "pointer",
+        textAlign: "left",
+        color: color.ink,
+        animation: "rise 0.55s cubic-bezier(0.22,1,0.36,1) both",
+      }}
+    >
+      {/* Soft specular edge */}
+      <div aria-hidden="true" style={{
+        position: "absolute", inset: 0, pointerEvents: "none",
+        background: "radial-gradient(ellipse at 12% 0%, rgba(255,255,255,0.14) 0%, transparent 42%)",
+      }}/>
+
+      <div style={{
+        position: "relative",
+        display: "flex",
+        alignItems: "center",
+        gap: 18,
+        padding: "22px 18px 18px",
+      }}>
+        {/* Session Dial mark */}
+        <div style={{
+          width: 72, height: 72, borderRadius: 20, flexShrink: 0,
+          display: "flex", alignItems: "center", justifyContent: "center",
+          background: `
+            radial-gradient(circle at 35% 28%, rgba(255,255,255,0.16) 0%, transparent 45%),
+            linear-gradient(160deg, rgba(250,36,60,0.28) 0%, rgba(28,28,30,0.92) 55%, rgba(12,12,14,0.98) 100%)
+          `,
+          border: `1px solid ${glass.border}`,
+          boxShadow: `
+            inset 0 1px 0 ${glass.highlight},
+            0 10px 28px rgba(0,0,0,0.35)
+          `,
+          animation: "markIn 0.65s cubic-bezier(0.22,1,0.36,1) both",
+        }}>
+          <TimedMixMark size={34} />
+        </div>
+
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{
+            fontSize: 11, fontWeight: 650, letterSpacing: 1.2,
+            textTransform: "uppercase", color: color.accent,
+            marginBottom: 6,
+          }}>
+            Timed mix
+          </div>
+          <div style={{
+            fontSize: 22, fontWeight: 700, fontFamily: fontDisplay,
+            letterSpacing: -0.55, lineHeight: 1.1, marginBottom: 6,
+          }}>
+            Make a playlist
+          </div>
+          <div style={{
+            fontSize: 14, color: color.body, lineHeight: 1.4,
+            maxWidth: 240,
+          }}>
+            Set a length and vibe — we build the set.
+          </div>
+        </div>
+
+        <div style={{
+          width: 44, height: 44, borderRadius: 980, flexShrink: 0,
+          display: "flex", alignItems: "center", justifyContent: "center",
+          background: color.accent,
+          color: color.onAccent,
+          boxShadow: "0 10px 24px rgba(0,0,0,0.35)",
+        }} aria-hidden="true">
+          <Icon name="play" size={16}/>
+        </div>
+      </div>
+
+      {/* Quiet length preview — feature promise, not a control cluster */}
+      <div style={{
+        position: "relative",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        gap: 12,
+        margin: "0 14px 14px",
+        padding: "12px 14px",
+        borderRadius: radius.md,
+        background: "rgba(0,0,0,0.28)",
+        border: `1px solid ${glass.borderFaint}`,
+        boxShadow: `inset 0 1px 0 ${glass.borderFaint}`,
+      }}>
+        <div style={{
+          fontSize: 12, color: color.muted, fontWeight: 500,
+          letterSpacing: 0.1, fontVariantNumeric: "tabular-nums",
+        }}>
+          <span style={{ color: color.ink }}>30m</span>
+          <span style={{ color: color.faint }}>  ·  </span>
+          <span style={{ color: color.ink }}>1h</span>
+          <span style={{ color: color.faint }}>  ·  </span>
+          <span style={{ color: color.ink }}>2h</span>
+          <span style={{ color: color.faint }}>  ·  </span>
+          <span style={{ color: color.ink }}>All night</span>
+        </div>
+        <div style={{
+          fontSize: 12, fontWeight: 650, color: color.accent,
+          letterSpacing: -0.1, flexShrink: 0,
+        }}>
+          Start
+        </div>
+      </div>
+    </button>
+  );
+}
+
 // ── Horizontal cover shelf (Apple Music–style) ───────────────────────────────
 function CoverShelf({ tracks, onPlayTrack, activeId, isPlaying }) {
   if (!tracks?.length) return null;
@@ -1766,57 +1939,12 @@ function HomeScreen({
           ${color.canvas}
         `,
       }}>
-        {/* Action band — glass control, wide break from hero */}
+        {/* Key feature — timed playlist builder */}
         {onMakePlaylist && (
           <div style={{
             padding: `${homeSpace.bandPadY}px ${homeSpace.gutter}px ${Math.round(homeSpace.bandPadY * 0.55)}px`,
           }}>
-            <button
-              type="button"
-              className="glass-control"
-              onClick={onMakePlaylist}
-              style={{
-                width: "100%",
-                display: "flex",
-                alignItems: "center",
-                gap: 16,
-                padding: "20px 18px",
-                borderRadius: radius.lg,
-                ...glassControl,
-                cursor: "pointer",
-                textAlign: "left",
-                color: color.ink,
-              }}
-            >
-              <div style={{
-                width: 46, height: 46, borderRadius: radius.md, flexShrink: 0,
-                background: color.accentSoft,
-                border: `1px solid ${glass.borderSoft}`,
-                boxShadow: `inset 0 1px 0 ${glass.highlight}`,
-                display: "flex", alignItems: "center", justifyContent: "center",
-                color: color.accent,
-              }}>
-                <Icon name="plus" size={18}/>
-              </div>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{
-                  fontSize: 17, fontWeight: 700, fontFamily: fontDisplay,
-                  letterSpacing: -0.3, marginBottom: 3,
-                }}>
-                  Make a playlist
-                </div>
-                <div style={{ fontSize: 13, color: color.muted, lineHeight: 1.35 }}>
-                  Choose a length and vibe
-                </div>
-              </div>
-              <div style={{
-                width: 28, height: 28, borderRadius: 980,
-                display: "flex", alignItems: "center", justifyContent: "center",
-                background: glass.fillQuiet,
-                border: `1px solid ${glass.borderFaint}`,
-                color: color.body, fontSize: 18, fontWeight: 300, lineHeight: 1,
-              }} aria-hidden="true">›</div>
-            </button>
+            <MakePlaylistFeature onClick={onMakePlaylist} />
           </div>
         )}
 
