@@ -8,6 +8,8 @@ import {
   GoogleAuthProvider,
   OAuthProvider,
   signInWithPopup,
+  signInWithRedirect,
+  getRedirectResult,
   RecaptchaVerifier,
   signInWithPhoneNumber,
   sendPasswordResetEmail,
@@ -18,6 +20,8 @@ import {
 } from "firebase/firestore";
 import { auth, db } from "./firebase";
 import { normalizePhoneE164 } from "./lib/phone";
+
+const REDIRECT_ERROR_KEY = "rooms.auth.redirectError";
 
 async function createProfile(uid, fields = {}) {
   const displayName = fields.displayName || fields.username || "Listener";
@@ -37,6 +41,39 @@ async function createProfile(uid, fields = {}) {
   };
   await setDoc(doc(db, "users", uid), profile);
   return profile;
+}
+
+function ephemeralProfile(fbUser) {
+  return {
+    uid: fbUser.uid,
+    username: fbUser.displayName || "Listener",
+    email: fbUser.email || "",
+    phone: fbUser.phoneNumber || "",
+    displayName: fbUser.displayName || "Listener",
+    profileImage: fbUser.photoURL || "",
+    genres: [],
+    likedTracks: [],
+    recentTracks: [],
+    onboarded: true,
+    settings: { repeat: false },
+  };
+}
+
+function shouldFallbackToRedirect(err) {
+  const code = err?.code || "";
+  return [
+    "auth/popup-blocked",
+    "auth/operation-not-supported-in-this-environment",
+  ].includes(code)
+    || (code === "auth/internal-error" && /popup|storage|cookie|third.?party/i.test(err?.message || ""));
+}
+
+function googleProvider() {
+  const provider = new GoogleAuthProvider();
+  provider.setCustomParameters({ prompt: "select_account" });
+  provider.addScope("profile");
+  provider.addScope("email");
+  return provider;
 }
 
 function clearRecaptcha() {
@@ -68,7 +105,6 @@ async function buildRecaptcha(containerId, size = "invisible") {
     },
   });
   window.recaptchaVerifier = verifier;
-  // render() ensures the widget is ready before signInWithPhoneNumber
   try {
     await verifier.render();
   } catch (e) {
@@ -77,27 +113,96 @@ async function buildRecaptcha(containerId, size = "invisible") {
   return verifier;
 }
 
+function readStoredAuthError() {
+  try {
+    const raw = sessionStorage.getItem(REDIRECT_ERROR_KEY);
+    if (!raw) return null;
+    sessionStorage.removeItem(REDIRECT_ERROR_KEY);
+    return JSON.parse(raw);
+  } catch {
+    return null;
+  }
+}
+
+function storeAuthError(err) {
+  try {
+    sessionStorage.setItem(
+      REDIRECT_ERROR_KEY,
+      JSON.stringify({ code: err?.code || "", message: err?.message || "Sign-in failed" })
+    );
+  } catch {
+    /* ignore quota / private mode */
+  }
+}
+
 export function useAuth() {
   const [firebaseUser, setFirebaseUser] = useState(null);
   const [profile,      setProfile]      = useState(null);
   const [loading,      setLoading]      = useState(true);
+  const [authError,    setAuthError]    = useState(() => readStoredAuthError());
+
+  async function ensureProfile(fbUser) {
+    if (!fbUser) return null;
+    try {
+      const snap = await getDoc(doc(db, "users", fbUser.uid));
+      if (snap.exists()) {
+        const data = snap.data();
+        setProfile(data);
+        return data;
+      }
+      const created = await createProfile(fbUser.uid, {
+        email: fbUser.email || "",
+        displayName: fbUser.displayName || "Listener",
+        username: fbUser.displayName || "Listener",
+        profileImage: fbUser.photoURL || "",
+        phone: fbUser.phoneNumber || "",
+      });
+      setProfile(created);
+      return created;
+    } catch (e) {
+      // Auth succeeded — never strand the user because Firestore write failed
+      console.warn("Profile sync failed; continuing with local profile", e);
+      const local = ephemeralProfile(fbUser);
+      setProfile(local);
+      return local;
+    }
+  }
 
   useEffect(() => {
+    let cancelled = false;
+
+    // Finish Google/Apple redirect sign-in before trusting auth state alone
+    getRedirectResult(auth)
+      .then(async (result) => {
+        if (cancelled || !result?.user) return;
+        await ensureProfile(result.user);
+      })
+      .catch((err) => {
+        if (cancelled) return;
+        console.error("OAuth redirect failed", err);
+        storeAuthError(err);
+        setAuthError({ code: err?.code || "", message: err?.message || "Sign-in failed" });
+      });
+
     const unsub = onAuthStateChanged(auth, async (fbUser) => {
       if (fbUser) {
         setFirebaseUser(fbUser);
-        const snap = await getDoc(doc(db, "users", fbUser.uid));
-        setProfile(snap.exists() ? snap.data() : null);
+        await ensureProfile(fbUser);
       } else {
         setFirebaseUser(null);
         setProfile(null);
       }
-      setLoading(false);
+      if (!cancelled) setLoading(false);
     });
-    return unsub;
+
+    return () => {
+      cancelled = true;
+      unsub();
+    };
   }, []);
 
   async function signUp(email, password, username) {
+    setAuthError(null);
     const cleanEmail = String(email || "").trim();
     const cleanName = String(username || "").trim();
     if (!cleanEmail) {
@@ -121,16 +226,24 @@ export function useAuth() {
     } catch {
       /* non-fatal */
     }
-    const profile = await createProfile(cred.user.uid, {
-      email: cleanEmail,
-      username: cleanName,
-      displayName: cleanName,
-    });
-    setProfile(profile);
+    // Fresh email signup — write profile with the chosen name (don’t race getDoc)
+    try {
+      const created = await createProfile(cred.user.uid, {
+        email: cleanEmail,
+        username: cleanName,
+        displayName: cleanName,
+      });
+      setProfile(created);
+    } catch (e) {
+      console.warn("Profile create failed after signup", e);
+      await ensureProfile(cred.user);
+      setProfile((p) => ({ ...(p || {}), displayName: cleanName, username: cleanName }));
+    }
     return cred.user;
   }
 
   async function logIn(email, password) {
+    setAuthError(null);
     const cleanEmail = String(email || "").trim();
     if (!cleanEmail) {
       const err = new Error("Enter an email address.");
@@ -143,46 +256,47 @@ export function useAuth() {
       throw err;
     }
     const cred = await signInWithEmailAndPassword(auth, cleanEmail, password);
-    const snap = await getDoc(doc(db, "users", cred.user.uid));
-    if (snap.exists()) setProfile(snap.data());
+    await ensureProfile(cred.user);
     return cred.user;
   }
 
+  /**
+   * Google sign-in: popup first (desktop), redirect fallback when popups are blocked
+   * or unsupported (mobile Safari, in-app browsers, strict COOP).
+   */
   async function signInWithGoogle() {
-    const provider = new GoogleAuthProvider();
-    const cred     = await signInWithPopup(auth, provider);
-    const snap     = await getDoc(doc(db, "users", cred.user.uid));
-    if (snap.exists()) {
-      setProfile(snap.data());
-    } else {
-      const profile = await createProfile(cred.user.uid, {
-        email:        cred.user.email,
-        displayName:  cred.user.displayName || "Listener",
-        username:     cred.user.displayName || "Listener",
-        profileImage: cred.user.photoURL || "",
-      });
-      setProfile(profile);
+    setAuthError(null);
+    const provider = googleProvider();
+
+    try {
+      const cred = await signInWithPopup(auth, provider);
+      await ensureProfile(cred.user);
+      return cred.user;
+    } catch (e) {
+      if (e?.code === "auth/popup-closed-by-user") throw e;
+      if (!shouldFallbackToRedirect(e)) throw e;
+
+      // Full-page redirect — more reliable on Pages / mobile
+      await signInWithRedirect(auth, provider);
+      return null;
     }
-    return cred.user;
   }
 
   async function signInWithApple() {
+    setAuthError(null);
     const provider = new OAuthProvider("apple.com");
     provider.addScope("email");
     provider.addScope("name");
-    const cred = await signInWithPopup(auth, provider);
-    const snap = await getDoc(doc(db, "users", cred.user.uid));
-    if (snap.exists()) {
-      setProfile(snap.data());
-    } else {
-      const profile = await createProfile(cred.user.uid, {
-        email:       cred.user.email,
-        displayName: cred.user.displayName || "Listener",
-        username:    cred.user.displayName || "Listener",
-      });
-      setProfile(profile);
+    try {
+      const cred = await signInWithPopup(auth, provider);
+      await ensureProfile(cred.user);
+      return cred.user;
+    } catch (e) {
+      if (e?.code === "auth/popup-closed-by-user") throw e;
+      if (!shouldFallbackToRedirect(e)) throw e;
+      await signInWithRedirect(auth, provider);
+      return null;
     }
-    return cred.user;
   }
 
   /**
@@ -190,6 +304,7 @@ export function useAuth() {
    * Tries invisible reCAPTCHA, then falls back to a visible widget once.
    */
   async function sendPhoneOTP(phoneNumber, recaptchaContainerId = "recaptcha-container") {
+    setAuthError(null);
     const e164 = normalizePhoneE164(phoneNumber);
     if (!e164) {
       const err = new Error("Enter a valid mobile number.");
@@ -214,7 +329,6 @@ export function useAuth() {
         clearRecaptcha();
         throw e;
       }
-      // Visible widget — more reliable when invisible fails (ad blockers, domain config)
       try {
         return await attempt("normal");
       } catch (e2) {
@@ -225,6 +339,7 @@ export function useAuth() {
   }
 
   async function verifyPhoneOTP(confirmationResult, code) {
+    setAuthError(null);
     const clean = String(code || "").replace(/\s/g, "");
     if (!/^\d{6}$/.test(clean)) {
       const err = new Error("Enter the 6-digit code.");
@@ -238,22 +353,12 @@ export function useAuth() {
     }
     const cred = await confirmationResult.confirm(clean);
     clearRecaptcha();
-    const snap = await getDoc(doc(db, "users", cred.user.uid));
-    if (snap.exists()) {
-      setProfile(snap.data());
-    } else {
-      const phone = cred.user.phoneNumber || "";
-      const profile = await createProfile(cred.user.uid, {
-        displayName: "Listener",
-        username: "Listener",
-        phone,
-      });
-      setProfile(profile);
-    }
+    await ensureProfile(cred.user);
     return cred.user;
   }
 
   async function resetPassword(email) {
+    setAuthError(null);
     const cleanEmail = String(email || "").trim();
     if (!cleanEmail) {
       const err = new Error("Enter your email first.");
@@ -265,13 +370,19 @@ export function useAuth() {
 
   async function logOut() {
     clearRecaptcha();
+    setAuthError(null);
     await signOut(auth);
     setFirebaseUser(null);
     setProfile(null);
   }
 
+  function clearAuthError() {
+    setAuthError(null);
+    try { sessionStorage.removeItem(REDIRECT_ERROR_KEY); } catch { /* ignore */ }
+  }
+
   return {
-    firebaseUser, profile, setProfile, loading,
+    firebaseUser, profile, setProfile, loading, authError, clearAuthError,
     signUp, logIn, logOut,
     signInWithGoogle, signInWithApple,
     sendPhoneOTP, verifyPhoneOTP, resetPassword,
