@@ -1078,7 +1078,7 @@ function HarmonicMap({ tracks, onPlay, currentTrack }) {
             borderRadius:8, padding:"6px 10px", pointerEvents:"none",
             whiteSpace:"nowrap", zIndex:20,
           }}>
-            <div style={{ fontSize:11, fontWeight:600, color:"#FFF" }}>{hover.title}</div>
+            <div style={{ fontSize:11, fontWeight:600, color: color.ink }}>{hover.title}</div>
             <div style={{ fontSize:9, color:"rgba(255,255,255,0.5)" }}>{hover.artist} · {hover.camelot} · E{hover.energy}</div>
           </div>
         )}
@@ -1617,8 +1617,8 @@ function MakePlaylistFeature({ onClick }) {
         borderRadius: radius.xl,
         border: `1px solid ${glass.border}`,
         background: `
-          linear-gradient(135deg, rgba(250,36,60,0.14) 0%, rgba(250,36,60,0.03) 38%, transparent 62%),
-          linear-gradient(180deg, rgba(255,255,255,0.10) 0%, rgba(255,255,255,0.04) 100%)
+          linear-gradient(135deg, rgba(234,231,220,0.14) 0%, rgba(234,231,220,0.03) 38%, transparent 62%),
+          linear-gradient(180deg, rgba(234,231,220,0.10) 0%, rgba(234,231,220,0.04) 100%)
         `,
         boxShadow: `
           inset 0 1px 0 ${glass.highlight},
@@ -1652,7 +1652,7 @@ function MakePlaylistFeature({ onClick }) {
           display: "flex", alignItems: "center", justifyContent: "center",
           background: `
             radial-gradient(circle at 35% 28%, rgba(255,255,255,0.16) 0%, transparent 45%),
-            linear-gradient(160deg, rgba(250,36,60,0.28) 0%, rgba(28,28,30,0.92) 55%, rgba(12,12,14,0.98) 100%)
+            linear-gradient(160deg, rgba(234,231,220,0.22) 0%, rgba(28,28,26,0.92) 55%, rgba(12,12,12,0.98) 100%)
           `,
           border: `1px solid ${glass.border}`,
           boxShadow: `
@@ -2537,7 +2537,7 @@ function AdminScreen({ tracks, setTracks, tab, setTab, editTrack, setEditTrack, 
     });
 
     let updated = 0, created = 0, errors = 0, skipped = 0;
-    const cols = ["#A8926A","#8A7A5C","#B8A078","#6E6250","#C4B08A","#9A8A6E","#7A6E58"];
+    const cols = ["#EAE7DC","#C4BFB0","#B8B4A8","#8E8A80","#D8D4C8","#A8A498","#6E6A60"];
 
     function fieldUpdates(r) {
       const updates = {};
@@ -2641,7 +2641,7 @@ function AdminScreen({ tracks, setTracks, tab, setTab, editTrack, setEditTrack, 
   }
   const addTrack = () => {
     if (!nt.title||!nt.artist) { showToast("Title and artist required"); return; }
-    const cols = ["#A8926A","#8A7A5C","#B8A078","#6E6250","#C4B08A","#9A8A6E","#7A6E58"];
+    const cols = ["#EAE7DC","#C4BFB0","#B8B4A8","#8E8A80","#D8D4C8","#A8A498","#6E6A60"];
     setTracks(ts=>[...ts,{ id:Date.now(),...nt,energy:parseInt(nt.energy)||5,bpm:parseInt(nt.bpm)||null,liked:false,color:cols[Math.floor(Math.random()*cols.length)] }]);
     setNt(EMPTY); showToast("Track added");
   };
@@ -2783,7 +2783,7 @@ function AdminScreen({ tracks, setTracks, tab, setTab, editTrack, setEditTrack, 
           {/* Export / Import */}
           <SectionLabel>Export & Import</SectionLabel>
           <div style={{ display:"flex", gap:8, marginBottom:20 }}>
-            <button onClick={exportCSV} style={{ flex:1, padding:"14px", borderRadius:14, background: color.accent, color:"#FFF", border:"none", fontSize:14, fontWeight:600, cursor:"pointer" }}>
+            <button onClick={exportCSV} style={{ flex:1, padding:"14px", borderRadius:14, background: color.accent, color: color.onAccent, border:"none", fontSize:14, fontWeight:600, cursor:"pointer" }}>
               Export CSV ({tracks.length} tracks)
             </button>
             <button onClick={()=>fileInputRef.current?.click()} disabled={importing}
@@ -2857,10 +2857,10 @@ function AdminScreen({ tracks, setTracks, tab, setTab, editTrack, setEditTrack, 
                     const pct = total ? Math.round(has/total*100) : 0;
                     return (
                       <div key={label} style={{ padding:"14px 12px", background:"rgba(255,255,255,0.1)", backdropFilter:"blur(32px)", borderRadius:14, border:"1px solid rgba(255,255,255,0.14)" }}>
-                        <div style={{ fontSize:11, fontWeight:600, color:"#FFFFFF", letterSpacing:0.5, marginBottom:8, textTransform:"uppercase" }}>{label}</div>
+                        <div style={{ fontSize:11, fontWeight:600, color: color.ink, letterSpacing:0.5, marginBottom:8, textTransform:"uppercase" }}>{label}</div>
                         <div style={{ fontSize:28, fontWeight:700, color: color.ink }}>{has}<span style={{ fontSize:14, color: color.muted }}>/{total}</span></div>
                         <div style={{ height:4, background:"rgba(0,0,0,0.06)", borderRadius:2, marginTop:8, overflow:"hidden" }}>
-                          <div style={{ width:`${pct}%`, height:"100%", background: pct === 100 ? "#A8926A" : pct > 50 ? "#181512" : "#E5484D", borderRadius:2, transition:"width 0.5s" }}/>
+                          <div style={{ width:`${pct}%`, height:"100%", background: pct === 100 ? color.accent : pct > 50 ? color.surfaceRaised : color.faint, borderRadius:2, transition:"width 0.5s" }}/>
                         </div>
                         <div style={{ fontSize:10, color: color.muted, marginTop:4 }}>{pct}% covered</div>
                       </div>
@@ -2893,7 +2893,7 @@ function AdminScreen({ tracks, setTracks, tab, setTab, editTrack, setEditTrack, 
                       <div style={{ fontSize:12, color: color.ink, fontWeight:600, marginBottom:4 }}>{withoutKey.length} tracks missing keys</div>
                       <div style={{ fontSize:11, color: color.muted, lineHeight:1.5, marginBottom:12 }}>You can batch-assign estimated keys based on BPM and genre. These are rough estimates — for accurate keys, use DJ software like Mixed In Key or Rekordbox to analyze audio.</div>
                       <button onClick={batchAssign} disabled={assigning}
-                        style={{ width:"100%", background:assigning?"#817870":"#181512", color:"#FFF", border:"none", borderRadius:12, padding:"12px", fontSize:14, fontWeight:600, cursor:assigning?"wait":"pointer", transition:"all 0.2s" }}>
+                        style={{ width:"100%", background:assigning? color.muted: color.surfaceRaised, color: color.ink, border:"none", borderRadius:12, padding:"12px", fontSize:14, fontWeight:600, cursor:assigning?"wait":"pointer", transition:"all 0.2s" }}>
                         {assigning ? `Assigning... ${assigned}/${withoutKey.length}` : `Batch assign ${withoutKey.length} keys`}
                       </button>
                     </div>
