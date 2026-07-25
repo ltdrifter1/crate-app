@@ -273,7 +273,7 @@ function DeepCutsCard({
         minHeight: "min(72vh, 580px)",
         display: "flex", flexDirection: "column",
         justifyContent: "flex-end",
-        padding: "28px 20px 36px",
+        padding: "32px 22px 52px",
         maxWidth: 520,
       }}>
         <div style={{
@@ -1533,14 +1533,15 @@ function QueueSheet({ queue, currentTrack, onPlay, onClose, onClear, onShuffle, 
 // ── Horizontal cover shelf (Apple Music–style) ───────────────────────────────
 function CoverShelf({ tracks, onPlayTrack, activeId, isPlaying }) {
   if (!tracks?.length) return null;
+  const tile = 148;
   return (
     <div
       className="hide-scroll"
       style={{
         display: "flex",
-        gap: 14,
+        gap: 16,
         overflowX: "auto",
-        padding: "0 20px 4px",
+        padding: "0 22px 8px",
         scrollSnapType: "x mandatory",
         WebkitOverflowScrolling: "touch",
       }}
@@ -1554,7 +1555,7 @@ function CoverShelf({ tracks, onPlayTrack, activeId, isPlaying }) {
             onClick={() => onPlayTrack(t, tracks)}
             style={{
               flex: "0 0 auto",
-              width: 132,
+              width: tile,
               background: "none",
               border: "none",
               padding: 0,
@@ -1565,11 +1566,11 @@ function CoverShelf({ tracks, onPlayTrack, activeId, isPlaying }) {
             }}
           >
             <div style={{
-              width: 132, height: 132, borderRadius: 10, overflow: "hidden",
-              marginBottom: 10, position: "relative",
-              boxShadow: active ? `0 0 0 2px ${color.accent}` : "0 10px 28px rgba(0,0,0,0.35)",
+              width: tile, height: tile, borderRadius: 12, overflow: "hidden",
+              marginBottom: 12, position: "relative",
+              boxShadow: active ? `0 0 0 2px ${color.accent}` : "0 12px 32px rgba(0,0,0,0.4)",
             }}>
-              <AlbumArt track={t} size={132} borderRadius={10}/>
+              <AlbumArt track={t} size={tile} borderRadius={12}/>
               {active && isPlaying && (
                 <div style={{
                   position: "absolute", inset: 0, background: "rgba(0,0,0,0.35)",
@@ -1599,11 +1600,38 @@ function CoverShelf({ tracks, onPlayTrack, activeId, isPlaying }) {
 }
 
 // ── Home — three acts only ────────────────────────────────────────────────────
-const HomeSection = ({ label, count, children, delay = 0 }) => (
-  <section style={{ margin:"0 0 40px", animation:`rise 0.6s cubic-bezier(0.22,1,0.36,1) ${delay}s both` }}>
-    <div style={{ padding:"0 20px 14px", display:"flex", alignItems:"baseline", gap:10 }}>
-      <h2 style={{ margin:0, fontSize:22, fontWeight:700, letterSpacing:-0.5, color: color.ink, fontFamily: fontDisplay }}>{label}</h2>
-      {count != null && <span style={{ fontSize:13, color: color.faint, fontVariantNumeric:"tabular-nums" }}>{count}</span>}
+const HomeSection = ({ label, count, children, delay = 0, first = false }) => (
+  <section
+    style={{
+      margin: 0,
+      padding: first ? "32px 0 44px" : "40px 0 44px",
+      borderTop: first ? "none" : `1px solid ${color.lineStrong}`,
+      animation: `rise 0.55s cubic-bezier(0.22,1,0.36,1) ${delay}s both`,
+    }}
+  >
+    <div style={{
+      padding: "0 22px 20px",
+      display: "flex",
+      alignItems: "baseline",
+      justifyContent: "space-between",
+      gap: 12,
+    }}>
+      <h2 style={{
+        margin: 0,
+        fontSize: 24,
+        fontWeight: 700,
+        letterSpacing: -0.6,
+        color: color.ink,
+        fontFamily: fontDisplay,
+      }}>{label}</h2>
+      {count != null && (
+        <span style={{
+          fontSize: 13,
+          color: color.faint,
+          fontVariantNumeric: "tabular-nums",
+          fontWeight: 500,
+        }}>{count}</span>
+      )}
     </div>
     {children}
   </section>
@@ -1677,168 +1705,206 @@ function HomeScreen({
         featuredTrack={featuredTrack}
       />
 
-      <div style={{ paddingTop: 28 }}>
+      <div>
+        {/* Action band — clear break from hero; reads as a control, not a header */}
         {onMakePlaylist && (
-          <div style={{ padding: "0 20px 28px" }}>
+          <div style={{
+            padding: "32px 22px 36px",
+            background: "linear-gradient(180deg, #121214 0%, #000000 100%)",
+            borderTop: `1px solid ${color.line}`,
+            borderBottom: `1px solid ${color.lineStrong}`,
+          }}>
             <button
               type="button"
               onClick={onMakePlaylist}
               style={{
-                background: "none",
-                border: "none",
-                borderBottom: `1px solid ${color.line}`,
-                padding: "4px 0 18px",
                 width: "100%",
+                display: "flex",
+                alignItems: "center",
+                gap: 16,
+                padding: "18px 18px",
+                borderRadius: 16,
+                border: `1px solid ${color.lineStrong}`,
+                background: color.surfaceSolid,
+                boxShadow: "0 8px 28px rgba(0,0,0,0.35)",
                 cursor: "pointer",
                 textAlign: "left",
                 color: color.ink,
-              }}
-            >
-              <div style={{ fontSize: 22, fontWeight: 700, fontFamily: fontDisplay, letterSpacing: -0.5, marginBottom: 4 }}>
-                Make a playlist
-              </div>
-              <div style={{ fontSize: 14, color: color.muted }}>
-                Choose a length and vibe
-              </div>
-            </button>
-          </div>
-        )}
-
-        {saved.length > 0 && (
-          <HomeSection label="Liked Songs" count={saved.length} delay={0.04}>
-            <CoverShelf
-              tracks={saved}
-              onPlayTrack={onPlayTrack}
-              activeId={activeId}
-              isPlaying={isPlaying}
-            />
-          </HomeSection>
-        )}
-
-        <HomeSection label="Playlists" count={userPlaylists.length || undefined} delay={0.06}>
-          <div
-            className="hide-scroll"
-            style={{
-              display: "flex",
-              gap: 14,
-              overflowX: "auto",
-              padding: "0 20px 4px",
-              scrollSnapType: "x mandatory",
-              WebkitOverflowScrolling: "touch",
-            }}
-          >
-            {userPlaylists.map((pl) => {
-              const plTracks = (pl.trackIds || []).map((id) => tracks.find((t) => t.id === id)).filter(Boolean);
-              const covers = plTracks.filter((t) => t.albumCover).slice(0, 4);
-              return (
-                <button
-                  key={pl.id}
-                  type="button"
-                  onClick={() => setOpenPlaylistId(pl.id)}
-                  style={{
-                    flex: "0 0 auto",
-                    width: 132,
-                    background: "none",
-                    border: "none",
-                    padding: 0,
-                    cursor: "pointer",
-                    textAlign: "left",
-                    color: color.ink,
-                    scrollSnapAlign: "start",
-                  }}
-                >
-                  <div style={{
-                    width: 132, height: 132, borderRadius: 10, overflow: "hidden",
-                    marginBottom: 10, background: color.surfaceRaised,
-                    display: "grid",
-                    gridTemplateColumns: covers.length > 1 ? "1fr 1fr" : "1fr",
-                    gridTemplateRows: covers.length > 1 ? "1fr 1fr" : "1fr",
-                  }}>
-                    {covers.length === 0 ? (
-                      <div style={{
-                        display: "flex", alignItems: "center", justifyContent: "center",
-                        color: color.faint, fontSize: 28, fontFamily: fontDisplay, fontWeight: 700,
-                      }}>♪</div>
-                    ) : covers.length === 1 ? (
-                      <AlbumArt track={covers[0]} size={132} borderRadius={10}/>
-                    ) : (
-                      <>
-                        {[0, 1, 2, 3].map((i) => (
-                          <div key={i} style={{ overflow: "hidden", background: color.surfaceSolid }}>
-                            {covers[i] ? <AlbumArt track={covers[i]} size={66} borderRadius={0}/> : null}
-                          </div>
-                        ))}
-                      </>
-                    )}
-                  </div>
-                  <div style={{
-                    fontSize: 14, fontWeight: 600, letterSpacing: -0.2,
-                    overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
-                  }}>{pl.name}</div>
-                  <div style={{ fontSize: 12, color: color.muted, marginTop: 3 }}>
-                    {plTracks.length} songs
-                  </div>
-                </button>
-              );
-            })}
-            <button
-              type="button"
-              onClick={() => setShowNewInput(true)}
-              style={{
-                flex: "0 0 auto",
-                width: 132,
-                background: "none",
-                border: "none",
-                padding: 0,
-                cursor: "pointer",
-                textAlign: "left",
-                color: color.ink,
-                scrollSnapAlign: "start",
               }}
             >
               <div style={{
-                width: 132, height: 132, borderRadius: 10, marginBottom: 10,
-                background: color.surfaceSolid, border: `1px dashed ${color.lineStrong}`,
+                width: 44, height: 44, borderRadius: 12, flexShrink: 0,
+                background: color.accentSoft,
                 display: "flex", alignItems: "center", justifyContent: "center",
-                color: color.muted, fontSize: 32, fontWeight: 300,
-              }}>+</div>
-              <div style={{ fontSize: 14, fontWeight: 600, color: color.accent }}>New Playlist</div>
+                color: color.accent,
+              }}>
+                <Icon name="plus" size={18}/>
+              </div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{
+                  fontSize: 17, fontWeight: 700, fontFamily: fontDisplay,
+                  letterSpacing: -0.3, marginBottom: 3,
+                }}>
+                  Make a playlist
+                </div>
+                <div style={{ fontSize: 13, color: color.muted, lineHeight: 1.35 }}>
+                  Choose a length and vibe
+                </div>
+              </div>
+              <div style={{
+                color: color.faint, fontSize: 22, fontWeight: 300, lineHeight: 1, paddingRight: 2,
+              }} aria-hidden="true">›</div>
             </button>
           </div>
-          {showNewInput && (
-            <div style={{ display: "flex", gap: 8, alignItems: "center", padding: "14px 20px 0" }}>
-              <input autoFocus value={newName} onChange={(e) => setNewName(e.target.value)}
-                onKeyDown={(e) => { if (e.key === "Enter") handleCreate(); if (e.key === "Escape") { setShowNewInput(false); setNewName(""); } }}
-                placeholder="Playlist name…" style={{ flex: 1, ...INPUT_ST, padding: "10px 12px", fontSize: 15 }}/>
-              <button type="button" onClick={handleCreate} style={{
-                background: color.accent, border: "none", borderRadius: 980, color: color.onAccent,
-                fontSize: 15, fontWeight: 600, padding: "10px 16px", cursor: "pointer",
-              }}>Create</button>
+        )}
+
+        {/* Library shelves — hairline + generous padding between each */}
+        <div style={{ paddingTop: onMakePlaylist ? 0 : 8 }}>
+          {saved.length > 0 && (
+            <HomeSection label="Liked Songs" count={saved.length} delay={0.04} first>
+              <CoverShelf
+                tracks={saved}
+                onPlayTrack={onPlayTrack}
+                activeId={activeId}
+                isPlaying={isPlaying}
+              />
+            </HomeSection>
+          )}
+
+          <HomeSection label="Playlists" count={userPlaylists.length || undefined} delay={0.06} first={saved.length === 0}>
+            <div
+              className="hide-scroll"
+              style={{
+                display: "flex",
+                gap: 16,
+                overflowX: "auto",
+                padding: "0 22px 8px",
+                scrollSnapType: "x mandatory",
+                WebkitOverflowScrolling: "touch",
+              }}
+            >
+              {userPlaylists.map((pl) => {
+                const plTracks = (pl.trackIds || []).map((id) => tracks.find((t) => t.id === id)).filter(Boolean);
+                const covers = plTracks.filter((t) => t.albumCover).slice(0, 4);
+                return (
+                  <button
+                    key={pl.id}
+                    type="button"
+                    onClick={() => setOpenPlaylistId(pl.id)}
+                    style={{
+                      flex: "0 0 auto",
+                      width: 148,
+                      background: "none",
+                      border: "none",
+                      padding: 0,
+                      cursor: "pointer",
+                      textAlign: "left",
+                      color: color.ink,
+                      scrollSnapAlign: "start",
+                    }}
+                  >
+                    <div style={{
+                      width: 148, height: 148, borderRadius: 12, overflow: "hidden",
+                      marginBottom: 12, background: color.surfaceRaised,
+                      display: "grid",
+                      gridTemplateColumns: covers.length > 1 ? "1fr 1fr" : "1fr",
+                      gridTemplateRows: covers.length > 1 ? "1fr 1fr" : "1fr",
+                      boxShadow: "0 12px 32px rgba(0,0,0,0.4)",
+                    }}>
+                      {covers.length === 0 ? (
+                        <div style={{
+                          display: "flex", alignItems: "center", justifyContent: "center",
+                          color: color.faint, fontSize: 28, fontFamily: fontDisplay, fontWeight: 700,
+                        }}>♪</div>
+                      ) : covers.length === 1 ? (
+                        <AlbumArt track={covers[0]} size={148} borderRadius={12}/>
+                      ) : (
+                        <>
+                          {[0, 1, 2, 3].map((i) => (
+                            <div key={i} style={{ overflow: "hidden", background: color.surfaceSolid }}>
+                              {covers[i] ? <AlbumArt track={covers[i]} size={74} borderRadius={0}/> : null}
+                            </div>
+                          ))}
+                        </>
+                      )}
+                    </div>
+                    <div style={{
+                      fontSize: 14, fontWeight: 600, letterSpacing: -0.2,
+                      overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+                    }}>{pl.name}</div>
+                    <div style={{ fontSize: 12, color: color.muted, marginTop: 3 }}>
+                      {plTracks.length} songs
+                    </div>
+                  </button>
+                );
+              })}
+              <button
+                type="button"
+                onClick={() => setShowNewInput(true)}
+                style={{
+                  flex: "0 0 auto",
+                  width: 148,
+                  background: "none",
+                  border: "none",
+                  padding: 0,
+                  cursor: "pointer",
+                  textAlign: "left",
+                  color: color.ink,
+                  scrollSnapAlign: "start",
+                }}
+              >
+                <div style={{
+                  width: 148, height: 148, borderRadius: 12, marginBottom: 12,
+                  background: color.surfaceSolid, border: `1px solid ${color.lineStrong}`,
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  color: color.muted, fontSize: 36, fontWeight: 300,
+                }}>+</div>
+                <div style={{ fontSize: 14, fontWeight: 600, color: color.accent }}>New Playlist</div>
+              </button>
+            </div>
+            {showNewInput && (
+              <div style={{ display: "flex", gap: 8, alignItems: "center", padding: "14px 22px 0" }}>
+                <input autoFocus value={newName} onChange={(e) => setNewName(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === "Enter") handleCreate(); if (e.key === "Escape") { setShowNewInput(false); setNewName(""); } }}
+                  placeholder="Playlist name…" style={{ flex: 1, ...INPUT_ST, padding: "10px 12px", fontSize: 15 }}/>
+                <button type="button" onClick={handleCreate} style={{
+                  background: color.accent, border: "none", borderRadius: 980, color: color.onAccent,
+                  fontSize: 15, fontWeight: 600, padding: "10px 16px", cursor: "pointer",
+                }}>Create</button>
+              </div>
+            )}
+          </HomeSection>
+
+          {collections.map((col, ci) => (
+            <HomeSection
+              key={col.id}
+              label={col.label}
+              count={col.tracks.length}
+              delay={0.08 + ci * 0.03}
+            >
+              <CoverShelf
+                tracks={col.tracks}
+                onPlayTrack={onPlayTrack}
+                activeId={activeId}
+                isPlaying={isPlaying}
+              />
+            </HomeSection>
+          ))}
+
+          {saved.length === 0 && collections.length === 0 && userPlaylists.length === 0 && (
+            <div style={{
+              padding: "36px 22px 48px",
+              borderTop: `1px solid ${color.lineStrong}`,
+            }}>
+              <div style={{ fontSize: 22, fontWeight: 700, fontFamily: fontDisplay, color: color.ink, marginBottom: 8, letterSpacing: -0.4 }}>
+                Nothing here yet
+              </div>
+              <div style={{ fontSize: 15, color: color.muted, lineHeight: 1.5, maxWidth: 280 }}>
+                Tap Play above, or like a song — Home fills in as you listen.
+              </div>
             </div>
           )}
-        </HomeSection>
-
-        {collections.map((col, ci) => (
-          <HomeSection key={col.id} label={col.label} count={col.tracks.length} delay={0.08 + ci * 0.03}>
-            <CoverShelf
-              tracks={col.tracks}
-              onPlayTrack={onPlayTrack}
-              activeId={activeId}
-              isPlaying={isPlaying}
-            />
-          </HomeSection>
-        ))}
-
-        {saved.length === 0 && collections.length === 0 && userPlaylists.length === 0 && (
-          <div style={{ padding: "24px 20px 8px" }}>
-            <div style={{ fontSize: 20, fontWeight: 700, fontFamily: fontDisplay, color: color.ink, marginBottom: 8, letterSpacing: -0.4 }}>
-              Nothing here yet
-            </div>
-            <div style={{ fontSize: 15, color: color.muted, lineHeight: 1.5, maxWidth: 280 }}>
-              Tap Play above, or like a song — Home fills in as you listen.
-            </div>
-          </div>
-        )}
+        </div>
       </div>
 
       {menu && (
