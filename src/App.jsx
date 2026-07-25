@@ -222,16 +222,15 @@ function BoothHud({ track, size = "md", align = "left" }) {
   );
 }
 
-// ─── RADIO — full-bleed club floor ────────────────────────────────────────────
+// ─── RADIO — Listen Now hero (one composition) ────────────────────────────────
 function DeepCutsCard({
   onPlay, onTogglePlay, currentTrack, isPlaying, isRadioMode, signalLabel,
-  setPrev = [], setNext = null,
+  featuredTrack = null,
 }) {
   const floor = getFloorPhase();
   const live = isRadioMode && currentTrack;
-  const arc = live
-    ? [...setPrev.slice(-2).map(t => ({ track: t, role: "prev" })), { track: currentTrack, role: "now" }, ...(setNext ? [{ track: setNext, role: "next" }] : [])]
-    : [];
+  const artTrack = live ? currentTrack : (featuredTrack || currentTrack);
+  const cover = artTrack?.albumCover;
 
   return (
     <div
@@ -239,109 +238,83 @@ function DeepCutsCard({
       role={live ? undefined : "button"}
       style={{
         position: "relative",
-        minHeight: live ? "min(70vh, 560px)" : "min(62vh, 480px)",
-        padding: "56px 20px 40px",
+        minHeight: "min(72vh, 580px)",
+        padding: "0",
         cursor: live ? "default" : "pointer",
-        background: timeOfDayGradient(),
+        background: color.canvas,
         overflow: "hidden",
         animation: "stationIn 0.75s cubic-bezier(0.22,1,0.36,1) both",
       }}
     >
-      {currentTrack?.albumCover && (
-        <div aria-hidden="true" style={{
-          position: "absolute", inset: 0, opacity: 0.28,
-          backgroundImage: `url(${currentTrack.albumCover})`,
-          backgroundSize: "cover", backgroundPosition: "center",
-          filter: "blur(40px) saturate(1.1)", transform: "scale(1.1)",
-        }}/>
-      )}
-      <div aria-hidden="true" style={{
-        position: "absolute", inset: 0,
-        background: "linear-gradient(180deg, rgba(0,0,0,0.15) 0%, rgba(0,0,0,0.72) 70%, #000 100%)",
-      }}/>
-      <div style={{ position: "relative", maxWidth: 460, zIndex: 1 }}>
+      {/* Full-bleed artwork plane */}
+      <div aria-hidden="true" style={{ position: "absolute", inset: 0 }}>
+        {cover ? (
+          <img
+            src={cover}
+            alt=""
+            style={{
+              width: "100%", height: "100%", objectFit: "cover",
+              transform: "scale(1.04)",
+              filter: live ? "saturate(1.05)" : "saturate(1.08) brightness(0.92)",
+            }}
+            onError={(e) => { e.currentTarget.style.display = "none"; }}
+          />
+        ) : (
+          <div style={{ width: "100%", height: "100%", background: timeOfDayGradient() }} />
+        )}
         <div style={{
-          fontSize: 13, fontWeight: 600, letterSpacing: -0.1,
-          color: color.muted, marginBottom: 10, fontFamily: font,
+          position: "absolute", inset: 0,
+          background: "linear-gradient(180deg, rgba(0,0,0,0.28) 0%, rgba(0,0,0,0.45) 38%, rgba(0,0,0,0.88) 78%, #000 100%)",
+        }}/>
+      </div>
+
+      <div style={{
+        position: "relative", zIndex: 1,
+        minHeight: "min(72vh, 580px)",
+        display: "flex", flexDirection: "column",
+        justifyContent: "flex-end",
+        padding: "28px 20px 36px",
+        maxWidth: 520,
+      }}>
+        <div style={{
+          fontSize: "clamp(42px, 11vw, 56px)",
+          fontWeight: 700, letterSpacing: -1.8, lineHeight: 0.95,
+          color: color.onDark, fontFamily: fontDisplay,
+          marginBottom: 10,
         }}>
           {BRAND_NAME}
         </div>
         <div style={{
-          fontSize: "clamp(40px, 12vw, 56px)",
-          fontWeight: 700, letterSpacing: -1.6, lineHeight: 1.05,
-          color: color.onDark, fontFamily: fontDisplay,
-          marginBottom: 10,
-        }}>
-          {live ? "Now Playing" : "Listen Now"}
-        </div>
-        <div style={{
-          fontSize: 15, color: color.body, marginBottom: live ? 22 : 28,
-          lineHeight: 1.45, maxWidth: 320,
+          fontSize: 16, color: "rgba(245,245,247,0.78)", marginBottom: 22,
+          lineHeight: 1.4, maxWidth: 300, fontWeight: 400,
         }}>
           {live
-            ? (signalLabel ? signalLabel : floor.label)
-            : floor.blurb || "Your music, simply."}
+            ? `${currentTrack.title} · ${currentTrack.artist}`
+            : (floor.blurb || "Your music, simply.")}
         </div>
 
         {live ? (
-          <>
-            <div style={{ display:"flex", gap:16, alignItems:"center", marginBottom:20 }}>
-              <div style={{
-                width:96, height:96, overflow:"hidden", flexShrink:0, borderRadius: 8,
-                boxShadow:"0 18px 40px rgba(0,0,0,0.45)",
-              }}>
-                <AlbumArt track={currentTrack} size={96} borderRadius={8}/>
-              </div>
-              <div style={{ flex:1, minWidth:0 }}>
-                <div style={{
-                  fontSize:24, fontWeight:700, color: color.onDark,
-                  overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap",
-                  letterSpacing:-0.6, fontFamily: fontDisplay, lineHeight:1.15,
-                }}>{currentTrack.title}</div>
-                <div style={{ fontSize:15, color: color.body, marginTop:6 }}>{currentTrack.artist}</div>
-              </div>
-            </div>
-
-            {arc.length > 1 && (
-              <div
-                style={{
-                  marginBottom:22, paddingTop:14,
-                  borderTop:`1px solid ${color.lineStrong}`,
-                  fontSize:12, letterSpacing:0.2,
-                  color: color.faint, lineHeight:1.45,
-                  overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap",
-                }}
-                onClick={e=>e.stopPropagation()}
-              >
-                {arc.map(({ track, role }, i) => (
-                  <span key={`${role}-${track.id}`}>
-                    {i > 0 && <span style={{ color: color.faint }}>  ·  </span>}
-                    <span style={{ color: role === "now" ? color.accent : color.faint, fontWeight:600 }}>
-                      {role === "prev" ? "Was" : role === "now" ? "Now" : "Next"}
-                    </span>
-                    {" "}
-                    <span style={{ color: role === "now" ? color.ink : color.muted }}>{track.title}</span>
-                  </span>
-                ))}
-              </div>
-            )}
-
-            <button type="button" className="play-primary" aria-label={isPlaying?"Pause":"Play"} onClick={e=>{e.stopPropagation();onTogglePlay();}}
+          <div style={{ display: "flex", alignItems: "center", gap: 14 }} onClick={(e) => e.stopPropagation()}>
+            <button type="button" className="play-primary" aria-label={isPlaying ? "Pause" : "Play"}
+              onClick={onTogglePlay}
               style={{
-                width:56, height:56, borderRadius: 28, background: color.accent, border:"none",
-                display:"flex", alignItems:"center", justifyContent:"center", color: color.onAccent,
-                cursor:"pointer",
+                width: 56, height: 56, borderRadius: 28, background: color.accent, border: "none",
+                display: "flex", alignItems: "center", justifyContent: "center", color: color.onAccent,
+                cursor: "pointer", flexShrink: 0,
               }}>
-              <Icon name={isPlaying?"pause":"play"} size={20}/>
+              <Icon name={isPlaying ? "pause" : "play"} size={20}/>
             </button>
-          </>
+            {signalLabel && (
+              <div style={{ fontSize: 13, color: color.muted, fontWeight: 500 }}>{signalLabel}</div>
+            )}
+          </div>
         ) : (
-          <button type="button" className="play-primary" aria-label="Play" onClick={e=>{e.stopPropagation();onPlay();}}
+          <button type="button" className="play-primary" aria-label="Play" onClick={(e) => { e.stopPropagation(); onPlay(); }}
             style={{
-              display:"inline-flex", alignItems:"center", gap:10,
-              padding:"14px 22px", borderRadius: 980,
-              background: color.accent, border:"none", color: color.onAccent,
-              cursor:"pointer", fontSize:16, fontWeight:600, letterSpacing:-0.2,
+              display: "inline-flex", alignItems: "center", gap: 10, alignSelf: "flex-start",
+              padding: "14px 26px", borderRadius: 980,
+              background: color.accent, border: "none", color: color.onAccent,
+              cursor: "pointer", fontSize: 17, fontWeight: 600, letterSpacing: -0.2,
             }}>
             <Icon name="play" size={16}/>
             Play
@@ -1557,6 +1530,74 @@ function QueueSheet({ queue, currentTrack, onPlay, onClose, onClear, onShuffle, 
   );
 }
 
+// ── Horizontal cover shelf (Apple Music–style) ───────────────────────────────
+function CoverShelf({ tracks, onPlayTrack, activeId, isPlaying }) {
+  if (!tracks?.length) return null;
+  return (
+    <div
+      className="hide-scroll"
+      style={{
+        display: "flex",
+        gap: 14,
+        overflowX: "auto",
+        padding: "0 20px 4px",
+        scrollSnapType: "x mandatory",
+        WebkitOverflowScrolling: "touch",
+      }}
+    >
+      {tracks.slice(0, 16).map((t) => {
+        const active = activeId === t.id;
+        return (
+          <button
+            key={t.id}
+            type="button"
+            onClick={() => onPlayTrack(t, tracks)}
+            style={{
+              flex: "0 0 auto",
+              width: 132,
+              background: "none",
+              border: "none",
+              padding: 0,
+              cursor: "pointer",
+              textAlign: "left",
+              color: color.ink,
+              scrollSnapAlign: "start",
+            }}
+          >
+            <div style={{
+              width: 132, height: 132, borderRadius: 10, overflow: "hidden",
+              marginBottom: 10, position: "relative",
+              boxShadow: active ? `0 0 0 2px ${color.accent}` : "0 10px 28px rgba(0,0,0,0.35)",
+            }}>
+              <AlbumArt track={t} size={132} borderRadius={10}/>
+              {active && isPlaying && (
+                <div style={{
+                  position: "absolute", inset: 0, background: "rgba(0,0,0,0.35)",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                }}>
+                  <div style={{
+                    width: 8, height: 8, borderRadius: "50%", background: color.accent,
+                    animation: "pulse 1.2s ease-in-out infinite",
+                  }}/>
+                </div>
+              )}
+            </div>
+            <div style={{
+              fontSize: 14, fontWeight: 600, letterSpacing: -0.2,
+              overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+              color: active ? color.accent : color.ink,
+            }}>{t.title}</div>
+            <div style={{
+              fontSize: 12, color: color.muted, marginTop: 3,
+              overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+            }}>{t.artist}</div>
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
 // ── Home — three acts only ────────────────────────────────────────────────────
 const HomeSection = ({ label, count, children, delay = 0 }) => (
   <section style={{ margin:"0 0 40px", animation:`rise 0.6s cubic-bezier(0.22,1,0.36,1) ${delay}s both` }}>
@@ -1570,8 +1611,7 @@ const HomeSection = ({ label, count, children, delay = 0 }) => (
 
 function HomeScreen({
   tracks, onPlayRadio, onTogglePlay, onPlayTrack, currentTrack, isPlaying, onLike,
-  isRadioMode, playlistCtx, signalLabel, setPrev, setNext,
-  userName = "there",
+  isRadioMode, playlistCtx, signalLabel,
   userPlaylists = [], onCreatePlaylist, onDeletePlaylist,
   onMakePlaylist,
 }) {
@@ -1619,156 +1659,187 @@ function HomeScreen({
     );
   }
 
+  const featuredTrack = currentTrack
+    || saved[0]
+    || collections[0]?.tracks?.[0]
+    || tracks.find((t) => t.albumCover && (t.duration || 0) <= 900)
+    || null;
+
   return (
-    <div style={{ position: "relative", paddingBottom: 36 }}>
-      <div style={{ position: "relative", marginBottom: isRadioMode ? 20 : 8 }}>
-        <DeepCutsCard
-          onPlay={onPlayRadio}
-          onTogglePlay={onTogglePlay}
-          currentTrack={currentTrack}
-          isPlaying={isPlaying}
-          isRadioMode={isRadioMode}
-          signalLabel={signalLabel}
-          setPrev={setPrev}
-          setNext={setNext}
-        />
-      </div>
+    <div style={{ position: "relative", paddingBottom: 40 }}>
+      <DeepCutsCard
+        onPlay={onPlayRadio}
+        onTogglePlay={onTogglePlay}
+        currentTrack={currentTrack}
+        isPlaying={isPlaying}
+        isRadioMode={isRadioMode}
+        signalLabel={signalLabel}
+        featuredTrack={featuredTrack}
+      />
 
-      {!isRadioMode && (
-        <div style={{ padding: "8px 20px 28px", maxWidth: 420 }}>
-          <div style={{ fontSize: 22, fontWeight: 700, letterSpacing: -0.5, color: color.ink, fontFamily: fontDisplay, marginBottom: 6 }}>
-            Good {new Date().getHours() < 12 ? "morning" : new Date().getHours() < 18 ? "afternoon" : "evening"}, {userName.split(" ")[0]}
-          </div>
-          <div style={{ fontSize: 15, color: color.body, lineHeight: 1.45 }}>
-            Saved songs and playlists, ready when you are.
-          </div>
-        </div>
-      )}
-
-      {onMakePlaylist && (
-        <div style={{ padding: "0 20px 28px" }}>
-          <button
-            type="button"
-            onClick={onMakePlaylist}
-            style={{
-              width: "100%",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              gap: 16,
-              padding: "18px 18px",
-              borderRadius: 16,
-              border: "none",
-              background: color.surfaceSolid,
-              cursor: "pointer",
-              textAlign: "left",
-              color: color.ink,
-            }}
-          >
-            <div>
-              <div style={{ fontSize: 17, fontWeight: 700, fontFamily: fontDisplay, letterSpacing: -0.3, marginBottom: 4 }}>
+      <div style={{ paddingTop: 28 }}>
+        {onMakePlaylist && (
+          <div style={{ padding: "0 20px 28px" }}>
+            <button
+              type="button"
+              onClick={onMakePlaylist}
+              style={{
+                background: "none",
+                border: "none",
+                borderBottom: `1px solid ${color.line}`,
+                padding: "4px 0 18px",
+                width: "100%",
+                cursor: "pointer",
+                textAlign: "left",
+                color: color.ink,
+              }}
+            >
+              <div style={{ fontSize: 22, fontWeight: 700, fontFamily: fontDisplay, letterSpacing: -0.5, marginBottom: 4 }}>
                 Make a playlist
               </div>
-              <div style={{ fontSize: 13, color: color.muted, lineHeight: 1.4 }}>
-                Pick a length and vibe — we’ll build the set
+              <div style={{ fontSize: 14, color: color.muted }}>
+                Choose a length and vibe
               </div>
-            </div>
-            <div style={{
-              width: 40, height: 40, borderRadius: 980, background: color.accent,
-              display: "flex", alignItems: "center", justifyContent: "center",
-              color: color.onAccent, flexShrink: 0,
-            }}>
-              <Icon name="play" size={16}/>
-            </div>
-          </button>
-        </div>
-      )}
-
-      {saved.length > 0 && (
-        <HomeSection label="Liked Songs" count={saved.length} delay={0.04}>
-          <div style={{ padding: "0 16px" }}>
-            {saved.slice(0, 12).map(t => (
-              <TrackRow key={t.id} track={t} onPlay={() => onPlayTrack(t, saved)} active={activeId === t.id} isPlaying={isPlaying} onLike={onLike} playlistCtx={playlistCtx}/>
-            ))}
+            </button>
           </div>
-        </HomeSection>
-      )}
+        )}
 
-      <HomeSection label="Playlists" count={userPlaylists.length || undefined} delay={0.06}>
-        <div style={{ padding: "0 16px" }}>
-          <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-            {userPlaylists.map(pl => {
-              const plTracks = (pl.trackIds || []).map(id => tracks.find(t => t.id === id)).filter(Boolean);
+        {saved.length > 0 && (
+          <HomeSection label="Liked Songs" count={saved.length} delay={0.04}>
+            <CoverShelf
+              tracks={saved}
+              onPlayTrack={onPlayTrack}
+              activeId={activeId}
+              isPlaying={isPlaying}
+            />
+          </HomeSection>
+        )}
+
+        <HomeSection label="Playlists" count={userPlaylists.length || undefined} delay={0.06}>
+          <div
+            className="hide-scroll"
+            style={{
+              display: "flex",
+              gap: 14,
+              overflowX: "auto",
+              padding: "0 20px 4px",
+              scrollSnapType: "x mandatory",
+              WebkitOverflowScrolling: "touch",
+            }}
+          >
+            {userPlaylists.map((pl) => {
+              const plTracks = (pl.trackIds || []).map((id) => tracks.find((t) => t.id === id)).filter(Boolean);
+              const covers = plTracks.filter((t) => t.albumCover).slice(0, 4);
               return (
-                <div key={pl.id} onClick={() => setOpenPlaylistId(pl.id)}
+                <button
+                  key={pl.id}
+                  type="button"
+                  onClick={() => setOpenPlaylistId(pl.id)}
                   style={{
-                    display: "flex", alignItems: "center", gap: 12, padding: "14px 4px",
-                    borderBottom: `1px solid ${color.line}`, cursor: "pointer",
+                    flex: "0 0 auto",
+                    width: 132,
+                    background: "none",
+                    border: "none",
+                    padding: 0,
+                    cursor: "pointer",
+                    textAlign: "left",
+                    color: color.ink,
+                    scrollSnapAlign: "start",
+                  }}
+                >
+                  <div style={{
+                    width: 132, height: 132, borderRadius: 10, overflow: "hidden",
+                    marginBottom: 10, background: color.surfaceRaised,
+                    display: "grid",
+                    gridTemplateColumns: covers.length > 1 ? "1fr 1fr" : "1fr",
+                    gridTemplateRows: covers.length > 1 ? "1fr 1fr" : "1fr",
                   }}>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: 17, fontWeight: 600, color: color.ink, fontFamily: fontDisplay, letterSpacing: -0.2 }}>{pl.name}</div>
-                    <div style={{ fontSize: 13, color: color.muted, marginTop: 2 }}>{plTracks.length} songs</div>
+                    {covers.length === 0 ? (
+                      <div style={{
+                        display: "flex", alignItems: "center", justifyContent: "center",
+                        color: color.faint, fontSize: 28, fontFamily: fontDisplay, fontWeight: 700,
+                      }}>♪</div>
+                    ) : covers.length === 1 ? (
+                      <AlbumArt track={covers[0]} size={132} borderRadius={10}/>
+                    ) : (
+                      <>
+                        {[0, 1, 2, 3].map((i) => (
+                          <div key={i} style={{ overflow: "hidden", background: color.surfaceSolid }}>
+                            {covers[i] ? <AlbumArt track={covers[i]} size={66} borderRadius={0}/> : null}
+                          </div>
+                        ))}
+                      </>
+                    )}
                   </div>
-                  {onDeletePlaylist && (
-                    <button type="button" onClick={e => { e.stopPropagation(); onDeletePlaylist(pl.id); }}
-                      style={{ background: "none", border: "none", color: color.faint, cursor: "pointer", padding: 4, fontSize: 18 }}>×</button>
-                  )}
-                </div>
+                  <div style={{
+                    fontSize: 14, fontWeight: 600, letterSpacing: -0.2,
+                    overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+                  }}>{pl.name}</div>
+                  <div style={{ fontSize: 12, color: color.muted, marginTop: 3 }}>
+                    {plTracks.length} songs
+                  </div>
+                </button>
               );
             })}
-          </div>
-          <div style={{ marginTop: 12 }}>
-            {showNewInput ? (
-              <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-                <input autoFocus value={newName} onChange={e => setNewName(e.target.value)}
-                  onKeyDown={e => { if (e.key === "Enter") handleCreate(); if (e.key === "Escape") { setShowNewInput(false); setNewName(""); } }}
-                  placeholder="Playlist name…" style={{ flex: 1, ...INPUT_ST, padding: "10px 12px", fontSize: 15 }}/>
-                <button type="button" onClick={handleCreate} style={{
-                  background: color.accent, border: "none", borderRadius: 980, color: color.onAccent,
-                  fontSize: 15, fontWeight: 600, padding: "10px 16px", cursor: "pointer",
-                }}>Create</button>
-              </div>
-            ) : (
-              <button type="button" onClick={() => setShowNewInput(true)} style={{
-                width: "100%", padding: "14px 4px", background: "none",
+            <button
+              type="button"
+              onClick={() => setShowNewInput(true)}
+              style={{
+                flex: "0 0 auto",
+                width: 132,
+                background: "none",
                 border: "none",
-                color: color.accent, fontSize: 15, cursor: "pointer", textAlign: "left", fontWeight: 600,
-              }}>
-                New Playlist
-              </button>
-            )}
+                padding: 0,
+                cursor: "pointer",
+                textAlign: "left",
+                color: color.ink,
+                scrollSnapAlign: "start",
+              }}
+            >
+              <div style={{
+                width: 132, height: 132, borderRadius: 10, marginBottom: 10,
+                background: color.surfaceSolid, border: `1px dashed ${color.lineStrong}`,
+                display: "flex", alignItems: "center", justifyContent: "center",
+                color: color.muted, fontSize: 32, fontWeight: 300,
+              }}>+</div>
+              <div style={{ fontSize: 14, fontWeight: 600, color: color.accent }}>New Playlist</div>
+            </button>
           </div>
-        </div>
-      </HomeSection>
-
-      {collections.map((col, ci) => (
-        <HomeSection key={col.id} label={col.label} count={col.tracks.length} delay={0.08 + ci * 0.03}>
-          <div style={{ padding: "0 16px" }}>
-            {col.tracks.slice(0, 8).map((t) => (
-              <TrackRow
-                key={t.id}
-                track={t}
-                onPlay={() => onPlayTrack(t, col.tracks)}
-                active={activeId === t.id}
-                isPlaying={isPlaying}
-                onLike={onLike}
-                playlistCtx={playlistCtx}
-              />
-            ))}
-          </div>
+          {showNewInput && (
+            <div style={{ display: "flex", gap: 8, alignItems: "center", padding: "14px 20px 0" }}>
+              <input autoFocus value={newName} onChange={(e) => setNewName(e.target.value)}
+                onKeyDown={(e) => { if (e.key === "Enter") handleCreate(); if (e.key === "Escape") { setShowNewInput(false); setNewName(""); } }}
+                placeholder="Playlist name…" style={{ flex: 1, ...INPUT_ST, padding: "10px 12px", fontSize: 15 }}/>
+              <button type="button" onClick={handleCreate} style={{
+                background: color.accent, border: "none", borderRadius: 980, color: color.onAccent,
+                fontSize: 15, fontWeight: 600, padding: "10px 16px", cursor: "pointer",
+              }}>Create</button>
+            </div>
+          )}
         </HomeSection>
-      ))}
 
-      {saved.length === 0 && collections.length === 0 && userPlaylists.length === 0 && (
-        <div style={{ padding: "40px 20px", textAlign: "center" }}>
-          <div style={{ fontSize: 20, fontWeight: 700, fontFamily: fontDisplay, color: color.ink, marginBottom: 8, letterSpacing: -0.4 }}>
-            Nothing here yet
+        {collections.map((col, ci) => (
+          <HomeSection key={col.id} label={col.label} count={col.tracks.length} delay={0.08 + ci * 0.03}>
+            <CoverShelf
+              tracks={col.tracks}
+              onPlayTrack={onPlayTrack}
+              activeId={activeId}
+              isPlaying={isPlaying}
+            />
+          </HomeSection>
+        ))}
+
+        {saved.length === 0 && collections.length === 0 && userPlaylists.length === 0 && (
+          <div style={{ padding: "24px 20px 8px" }}>
+            <div style={{ fontSize: 20, fontWeight: 700, fontFamily: fontDisplay, color: color.ink, marginBottom: 8, letterSpacing: -0.4 }}>
+              Nothing here yet
+            </div>
+            <div style={{ fontSize: 15, color: color.muted, lineHeight: 1.5, maxWidth: 280 }}>
+              Tap Play above, or like a song — Home fills in as you listen.
+            </div>
           </div>
-          <div style={{ fontSize: 15, color: color.muted, lineHeight: 1.5, maxWidth: 280, margin: "0 auto" }}>
-            Like a song or start listening — your home fills in as you go.
-          </div>
-        </div>
-      )}
+        )}
+      </div>
 
       {menu && (
         <TrackActionsMenu
@@ -3610,7 +3681,7 @@ export default function App() {
         </div>
       )}
       <div style={{ flex:1, overflow:"auto", paddingBottom:currentTrack?120:56, zIndex:1, position:"relative" }}>
-        {screen==="home"      && !tracksLoading && <HomeScreen tracks={tracks} onPlayRadio={playRadio} onTogglePlay={()=>setIsPlaying(p=>!p)} onPlayTrack={playTrack} currentTrack={currentTrack} isPlaying={isPlaying} onLike={toggleLike} isRadioMode={isRadioMode} playlistCtx={playlistCtx} signalLabel={signalState?.label} setPrev={setPrev} setNext={setNext} userName={user.name} userPlaylists={userPlaylists} onCreatePlaylist={createPlaylist} onDeletePlaylist={deletePlaylist} onMakePlaylist={()=>setShowRouteBuilder(true)}/>}
+        {screen==="home"      && !tracksLoading && <HomeScreen tracks={tracks} onPlayRadio={playRadio} onTogglePlay={()=>setIsPlaying(p=>!p)} onPlayTrack={playTrack} currentTrack={currentTrack} isPlaying={isPlaying} onLike={toggleLike} isRadioMode={isRadioMode} playlistCtx={playlistCtx} signalLabel={signalState?.label} userPlaylists={userPlaylists} onCreatePlaylist={createPlaylist} onDeletePlaylist={deletePlaylist} onMakePlaylist={()=>setShowRouteBuilder(true)}/>}
         {screen==="search"    && <SearchScreen query={searchQuery} setQuery={setSearch} results={searchResults} onPlay={t=>playTrack(t,tracks)} onLike={toggleLike} currentTrack={currentTrack} isPlaying={isPlaying} playlistCtx={playlistCtx} entityHits={entityHits} onOpenArtist={openArtist} onOpenAlbum={(slug)=>openAlbum(slug)}/>}
         {screen==="favorites" && <FavoritesScreen tracks={tracks} preferredGenres={user.genres} onPlay={t=>{setIsRadioMode(false);playTrack(t,tracks);}} onLike={toggleLike} currentTrack={currentTrack} isPlaying={isPlaying} playlistCtx={playlistCtx}/>}
         {screen==="artist"    && !tracksLoading && (
@@ -3764,7 +3835,7 @@ export default function App() {
             </div>
           ) : (
             <>
-              {screen==="home"      && <HomeScreen tracks={tracks} onPlayRadio={playRadio} onTogglePlay={()=>setIsPlaying(p=>!p)} onPlayTrack={playTrack} currentTrack={currentTrack} isPlaying={isPlaying} onLike={toggleLike} isRadioMode={isRadioMode} playlistCtx={playlistCtx} signalLabel={signalState?.label} setPrev={setPrev} setNext={setNext} userName={user.name} userPlaylists={userPlaylists} onCreatePlaylist={createPlaylist} onDeletePlaylist={deletePlaylist} onMakePlaylist={()=>setShowRouteBuilder(true)}/>}
+              {screen==="home"      && <HomeScreen tracks={tracks} onPlayRadio={playRadio} onTogglePlay={()=>setIsPlaying(p=>!p)} onPlayTrack={playTrack} currentTrack={currentTrack} isPlaying={isPlaying} onLike={toggleLike} isRadioMode={isRadioMode} playlistCtx={playlistCtx} signalLabel={signalState?.label} userPlaylists={userPlaylists} onCreatePlaylist={createPlaylist} onDeletePlaylist={deletePlaylist} onMakePlaylist={()=>setShowRouteBuilder(true)}/>}
               {screen==="search"    && <SearchScreen query={searchQuery} setQuery={setSearch} results={searchResults} onPlay={t=>playTrack(t,tracks)} onLike={toggleLike} currentTrack={currentTrack} isPlaying={isPlaying} playlistCtx={playlistCtx} entityHits={entityHits} onOpenArtist={openArtist} onOpenAlbum={(slug)=>openAlbum(slug)}/>}
               {screen==="favorites" && <FavoritesScreen tracks={tracks} preferredGenres={user.genres} onPlay={t=>{setIsRadioMode(false);playTrack(t,tracks);}} onLike={toggleLike} currentTrack={currentTrack} isPlaying={isPlaying} playlistCtx={playlistCtx}/>}
               {screen==="artist"    && (
