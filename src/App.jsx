@@ -576,7 +576,7 @@ function TrackActionsMenu({ track, playlistCtx, activePlaylistId, x, y, onClose 
           onClick={() => { ctx.onHypnoRadio(track); onClose(); }}
           style={{ display: "block", width: "100%", textAlign: "left", background: "none", border: "none", color: color.ink, fontSize: 14, padding: "10px 14px", cursor: "pointer" }}
         >
-          Stay in this pocket
+          Play similar mix
         </button>
       )}
 
@@ -703,46 +703,21 @@ function BrandGlyph({ size = 40, light = false, showWordmark }) {
   return <BrandMark size={size} light={light} showWordmark={withWord} />;
 }
 
-// ─── ROUTE BUILDER MODAL — Build a night + A→B harmonic path ──────────────────
-function RouteBuilderModal({ tracks, onClose, onPlayRoute }) {
-  const [mode, setMode] = useState(null); // null | "night" | "path"
-  const [step, setStep] = useState(1);
+// ─── SESSION BUILDER — pick a length + vibe → get a playlist ─────────────────
+function SessionBuilderModal({ tracks, onClose, onPlayRoute }) {
+  const [step, setStep] = useState(1); // 1 duration · 2 vibe · 3 preview
   const [duration, setDuration] = useState(60);
   const [activity, setActivity] = useState(null);
   const [session, setSession] = useState(null);
-  const [pathStart, setPathStart] = useState(null);
-  const [pathEnd, setPathEnd] = useState(null);
-  const [pathQuery, setPathQuery] = useState("");
-  const [pathPick, setPathPick] = useState("start"); // which end we're picking
 
   const activities = Object.entries(SESSION_PROFILES);
-  const singles = tracks.filter(t => (t.duration || 0) <= 900);
+  const profile = activity ? SESSION_PROFILES[activity] : null;
+  const totalMins = session ? Math.round(session.reduce((s, t) => s + (t.duration || 210), 0) / 60) : 0;
 
-  function handleGenerate(act) {
-    setActivity(act);
-    const built = buildSession(tracks, duration, act);
-    setSession(built);
-    setStep(3);
-  }
-
-  function handleRegenerate() {
-    if (activity) {
-      const built = buildSession(tracks, duration, activity);
-      setSession(built);
-    }
-  }
-
-  function buildPath() {
-    if (!pathStart || !pathEnd) return;
-    const route = buildRoute(tracks, pathStart, pathEnd);
-    setSession(route);
-    setStep(3);
-  }
-
-  const phases = session && mode === "night" ? (() => {
+  const phases = session ? (() => {
     const groups = [];
     let current = null;
-    session.forEach(t => {
+    session.forEach((t) => {
       if (!current || current.name !== t._phase) {
         current = { name: t._phase, tracks: [] };
         groups.push(current);
@@ -752,263 +727,216 @@ function RouteBuilderModal({ tracks, onClose, onPlayRoute }) {
     return groups;
   })() : [];
 
-  const profile = activity ? SESSION_PROFILES[activity] : null;
-  const totalMins = session ? Math.round(session.reduce((s,t)=>s+(t.duration||210),0)/60) : 0;
-  const pathResults = pathQuery.trim().length > 0
-    ? singles.filter(t => {
-        const q = pathQuery.toLowerCase();
-        return [t.title, t.artist, t.genre].some(v => String(v || "").toLowerCase().includes(q));
-      }).slice(0, 24)
-    : singles.slice(0, 24);
-
-  function handleBack() {
-    if (mode && step === 1) { setMode(null); return; }
-    if (step > 1) {
-      setStep(step - 1);
-      if (step === 3) setSession(null);
-    }
+  function handleGenerate(act) {
+    setActivity(act);
+    setSession(buildSession(tracks, duration, act));
+    setStep(3);
   }
 
-  const headerLabel = !mode ? "Session" : mode === "night" ? "Build a night" : "Plot a route";
+  function handleRegenerate() {
+    if (!activity) return;
+    setSession(buildSession(tracks, duration, activity));
+  }
+
+  const durationLabel = duration < 60 ? `${duration} min` : duration === 60 ? "1 hour" : `${duration / 60} hours`;
 
   return (
-    <div style={{ position:"fixed", inset:0, zIndex:100, overflow:"hidden" }}>
-      <div style={{ position:"absolute", inset:0, background:"linear-gradient(180deg, rgba(12,12,16,0.95) 0%, rgba(8,8,12,0.98) 100%)" }}/>
-      <BgMist color={session?.[0]?.color || pathStart?.color || "#A8926A"}/>
-      <div style={{ position:"absolute", inset:0, background:"rgba(6,6,10,0.4)" }}/>
+    <div style={{ position: "fixed", inset: 0, zIndex: 100, overflow: "hidden" }}>
+      <div style={{
+        position: "absolute", inset: 0,
+        background: "linear-gradient(180deg, #0A0A0A 0%, #000 55%, #000 100%)",
+      }}/>
+      {session?.[0]?.albumCover && (
+        <div aria-hidden="true" style={{
+          position: "absolute", inset: 0, opacity: 0.22,
+          backgroundImage: `url(${session[0].albumCover})`,
+          backgroundSize: "cover", backgroundPosition: "center",
+          filter: "blur(48px) saturate(1.15)", transform: "scale(1.08)",
+        }}/>
+      )}
+      <div aria-hidden="true" style={{
+        position: "absolute", inset: 0,
+        background: "linear-gradient(180deg, rgba(0,0,0,0.35) 0%, rgba(0,0,0,0.82) 55%, #000 100%)",
+      }}/>
 
-      <div className="hide-scroll" style={{ position:"relative", zIndex:1, height:"100%", overflowY:"auto", display:"flex", flexDirection:"column" }}>
-        <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"20px 24px", flexShrink:0 }}>
-          <div style={{ display:"flex", alignItems:"center", gap:12 }}>
-            {(mode || step > 1) && (
-              <button type="button" onClick={handleBack}
-                style={{ background: color.surface, border:`1px solid ${color.lineStrong}`, borderRadius:10, padding:"8px 14px", fontSize:12, fontWeight:500, color: color.body, cursor:"pointer" }}>Back</button>
+      <div className="hide-scroll" style={{
+        position: "relative", zIndex: 1, height: "100%", overflowY: "auto",
+        display: "flex", flexDirection: "column",
+      }}>
+        <div style={{
+          display: "flex", justifyContent: "space-between", alignItems: "center",
+          padding: "20px 20px 8px", flexShrink: 0,
+        }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            {step > 1 && (
+              <button type="button" onClick={() => {
+                if (step === 3) { setSession(null); setStep(2); }
+                else setStep(1);
+              }} style={{
+                background: "none", border: "none", color: color.accent,
+                fontSize: 17, fontWeight: 500, cursor: "pointer", padding: "6px 0",
+              }}>‹ Back</button>
             )}
-            <div style={{ fontSize:11, fontWeight:600, letterSpacing:2, color: color.faint, textTransform:"uppercase" }}>{headerLabel}</div>
           </div>
-          <button type="button" onClick={onClose} style={{ background: color.surface, border:`1px solid ${color.line}`, borderRadius:"50%", width:36, height:36, cursor:"pointer", color: color.muted, display:"flex", alignItems:"center", justifyContent:"center" }}>
+          <button type="button" onClick={onClose} aria-label="Close" style={{
+            background: color.surfaceRaised, border: "none", borderRadius: 980,
+            width: 36, height: 36, cursor: "pointer", color: color.muted,
+            display: "flex", alignItems: "center", justifyContent: "center",
+          }}>
             <Icon name="x" size={16}/>
           </button>
         </div>
 
-        <div style={{ flex:1, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:"0 32px 40px", maxWidth:560, margin:"0 auto", width:"100%" }}>
+        <div style={{
+          flex: 1, display: "flex", flexDirection: "column",
+          alignItems: "center", justifyContent: step === 3 ? "flex-start" : "center",
+          padding: "12px 20px 40px", maxWidth: 520, margin: "0 auto", width: "100%",
+        }}>
 
-          {/* Mode picker */}
-          {!mode && (
-            <div style={{ width:"100%", textAlign:"center", animation:"rise 0.45s cubic-bezier(0.22,1,0.36,1) both" }}>
-              <div style={{ fontSize:32, fontWeight:700, color: color.ink, letterSpacing:-0.5, marginBottom:8, fontFamily: fontDisplay }}>How do you want to listen?</div>
-              <div style={{ fontSize:14, color: color.muted, marginBottom:36 }}>Shape a night, or plot a harmonic path.</div>
-              <div style={{ display:"grid", gap:12 }}>
-                <button type="button" onClick={()=>{ setMode("night"); setStep(1); }}
-                  style={{ padding:"22px 24px", borderRadius:16, border:`1px solid ${color.lineStrong}`, background: color.surface, textAlign:"left", cursor:"pointer" }}>
-                  <div style={{ fontSize:18, fontWeight:700, color: color.ink, fontFamily: fontDisplay, marginBottom:6 }}>Build a night</div>
-                  <div style={{ fontSize:13, color: color.muted }}>Duration + activity → phased energy arc</div>
-                </button>
-                <button type="button" onClick={()=>{ setMode("path"); setStep(1); setPathPick("start"); }}
-                  style={{ padding:"22px 24px", borderRadius:16, border:`1px solid ${color.lineStrong}`, background: color.surface, textAlign:"left", cursor:"pointer" }}>
-                  <div style={{ fontSize:18, fontWeight:700, color: color.ink, fontFamily: fontDisplay, marginBottom:6 }}>Plot a route</div>
-                  <div style={{ fontSize:13, color: color.muted }}>A → B through Camelot-compatible steps</div>
-                </button>
+          {step === 1 && (
+            <div style={{ width: "100%", textAlign: "center", animation: "rise 0.45s cubic-bezier(0.22,1,0.36,1) both" }}>
+              <div style={{
+                fontSize: 34, fontWeight: 700, color: color.ink, letterSpacing: -1,
+                marginBottom: 10, fontFamily: fontDisplay,
+              }}>How long?</div>
+              <div style={{ fontSize: 16, color: color.body, marginBottom: 36, lineHeight: 1.45 }}>
+                We’ll build a playlist that fits the time.
               </div>
-            </div>
-          )}
-
-          {/* Night step 1: Duration */}
-          {mode === "night" && step === 1 && (
-            <div style={{ width:"100%", textAlign:"center" }}>
-              <div style={{ fontSize:32, fontWeight:700, color: color.ink, letterSpacing:-0.5, marginBottom:8, fontFamily: fontDisplay }}>How long is the night?</div>
-              <div style={{ fontSize:14, color: color.muted, marginBottom:40 }}>Pick a runtime. We’ll shape the arc.</div>
-              <div style={{ display:"flex", gap:10, justifyContent:"center", marginBottom:48, flexWrap:"wrap" }}>
-                {[30,60,120,240,480].map(m => (
-                  <button type="button" key={m} onClick={()=>setDuration(m)} style={{
-                    width:64, height:64, borderRadius:16, border: duration===m ? `${"1px solid "}${color.accent}` : `${"1px solid "}${color.line}`,
-                    background: duration===m ? color.accent : color.surface, color: duration===m ? color.onAccent : color.muted,
-                    fontSize:16, fontWeight:600, cursor:"pointer", transition:"all 0.25s",
-                    display:"flex", alignItems:"center", justifyContent:"center",
+              <div style={{ display: "flex", gap: 10, justifyContent: "center", marginBottom: 40, flexWrap: "wrap" }}>
+                {[
+                  { m: 30, label: "30 min" },
+                  { m: 60, label: "1 hour" },
+                  { m: 120, label: "2 hours" },
+                  { m: 240, label: "4 hours" },
+                  { m: 480, label: "All night" },
+                ].map(({ m, label }) => (
+                  <button type="button" key={m} onClick={() => setDuration(m)} style={{
+                    minWidth: 88, height: 56, padding: "0 16px", borderRadius: 980,
+                    border: duration === m ? "none" : `1px solid ${color.lineStrong}`,
+                    background: duration === m ? color.accent : "transparent",
+                    color: duration === m ? color.onAccent : color.body,
+                    fontSize: 15, fontWeight: 600, cursor: "pointer",
                   }}>
-                    {m < 60 ? `${m}m` : `${m/60}h`}
+                    {label}
                   </button>
                 ))}
               </div>
-              <button type="button" onClick={()=>setStep(2)} style={{ padding:"16px 48px", borderRadius:16, background: color.accentSoft, border:`1px solid ${color.lineStrong}`, color: color.ink, fontSize:16, fontWeight:600, cursor:"pointer" }}>
+              <button type="button" onClick={() => setStep(2)} style={{
+                ...BTN_PRIMARY, width: "auto", minWidth: 200, borderRadius: 980, padding: "16px 36px",
+              }}>
                 Continue
               </button>
             </div>
           )}
 
-          {/* Night step 2: Activity */}
-          {mode === "night" && step === 2 && (
-            <div style={{ width:"100%", textAlign:"center" }}>
-              <div style={{ fontSize:32, fontWeight:700, color: color.ink, letterSpacing:-0.5, marginBottom:8, fontFamily: fontDisplay }}>Shape the night</div>
-              <div style={{ fontSize:14, color: color.muted, marginBottom:32 }}>{duration < 60 ? `${duration} minute` : `${Math.round(duration/60)} hour`} set</div>
-              <div style={{ display:"grid", gridTemplateColumns:"repeat(2, 1fr)", gap:10, textAlign:"left" }}>
+          {step === 2 && (
+            <div style={{ width: "100%", textAlign: "center", animation: "rise 0.45s cubic-bezier(0.22,1,0.36,1) both" }}>
+              <div style={{
+                fontSize: 34, fontWeight: 700, color: color.ink, letterSpacing: -1,
+                marginBottom: 8, fontFamily: fontDisplay,
+              }}>What’s the vibe?</div>
+              <div style={{ fontSize: 16, color: color.body, marginBottom: 28 }}>
+                {durationLabel} playlist
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 10, textAlign: "left" }}>
                 {activities.map(([id, prof]) => (
-                  <button type="button" key={id} onClick={()=>handleGenerate(id)}
-                    style={{ padding:"16px 18px", borderRadius:16, border:`1px solid ${color.line}`, background: color.surface, cursor:"pointer", textAlign:"left" }}>
-                    <div style={{ fontSize:16, fontWeight:600, color: color.ink, letterSpacing:-0.2, marginBottom:10 }}>{prof.label}</div>
-                    <div style={{ display:"flex", gap:2, alignItems:"flex-end", marginBottom:8 }}>
-                      {prof.phases.map((ph,i) => (
-                        <div key={i} style={{ flex:ph.p, height: 2 + ph.e * 2, borderRadius:2, background: color.accentSoft }}/>
-                      ))}
-                    </div>
-                    <div style={{ fontSize:10, color: color.faint, letterSpacing:0.3 }}>{prof.phases.map(p=>p.name).join(" · ")}</div>
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Path step 1–2: pick start/end */}
-          {mode === "path" && step < 3 && (
-            <div style={{ width:"100%" }}>
-              <div style={{ textAlign:"center", marginBottom:24 }}>
-                <div style={{ fontSize:28, fontWeight:700, color: color.ink, letterSpacing:-0.5, marginBottom:8, fontFamily: fontDisplay }}>
-                  {pathPick === "start" ? "Where do we start?" : "Where do we land?"}
-                </div>
-                <div style={{ fontSize:13, color: color.muted, marginBottom:16 }}>
-                  Harmonic steps from A to B · Camelot + energy
-                </div>
-                <div style={{ display:"flex", gap:8, justifyContent:"center", marginBottom:20 }}>
-                  <button type="button" onClick={()=>setPathPick("start")} style={{
-                    padding:"8px 14px", borderRadius:10, border: pathPick==="start" ? `${"1px solid "}${color.accent}` : `${"1px solid "}${color.line}`,
-                    background: pathPick==="start" ? color.accentSoft : "transparent", color: pathStart ? color.ink : color.muted, fontSize:12, cursor:"pointer", maxWidth:180, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap",
-                  }}>{pathStart ? pathStart.title : "Start"}</button>
-                  <span style={{ color: color.faint, alignSelf:"center", fontSize:12 }}>→</span>
-                  <button type="button" onClick={()=>setPathPick("end")} style={{
-                    padding:"8px 14px", borderRadius:10, border: pathPick==="end" ? `${"1px solid "}${color.accent}` : `${"1px solid "}${color.line}`,
-                    background: pathPick==="end" ? color.accentSoft : "transparent", color: pathEnd ? color.ink : color.muted, fontSize:12, cursor:"pointer", maxWidth:180, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap",
-                  }}>{pathEnd ? pathEnd.title : "End"}</button>
-                </div>
-                <input
-                  value={pathQuery}
-                  onChange={e=>setPathQuery(e.target.value)}
-                  placeholder="Search tracks…"
-                  style={{ width:"100%", padding:"12px 14px", borderRadius:12, border:`1px solid ${color.lineStrong}`, background: color.surface, color: color.ink, fontSize:14, marginBottom:14, outline:"none" }}
-                />
-              </div>
-              <div style={{ maxHeight:280, overflowY:"auto", borderRadius:14, border:`${"1px solid "}${color.line}`, background:color.surface, marginBottom:20 }}>
-                {pathResults.map(t => (
-                  <button type="button" key={t.id} onClick={() => {
-                    if (pathPick === "start") {
-                      setPathStart(t);
-                      setPathPick("end");
-                      setPathQuery("");
-                    } else {
-                      setPathEnd(t);
-                      setPathQuery("");
-                    }
-                  }} style={{
-                    display:"flex", alignItems:"center", gap:10, width:"100%", padding:"10px 14px",
-                    background: (pathStart?.id===t.id || pathEnd?.id===t.id) ? color.surface : "transparent",
-                    border:"none", borderBottom:`${"1px solid "}${color.line}`, cursor:"pointer", textAlign:"left",
+                  <button type="button" key={id} onClick={() => handleGenerate(id)} style={{
+                    padding: "16px 16px", borderRadius: 16,
+                    border: `1px solid ${color.line}`,
+                    background: color.surfaceSolid, cursor: "pointer", textAlign: "left",
                   }}>
-                    <div style={{ width:36, height:36, borderRadius:6, overflow:"hidden", flexShrink:0 }}><AlbumArt track={t} size={36} borderRadius={0}/></div>
-                    <div style={{ flex:1, minWidth:0 }}>
-                      <div style={{ fontSize:13, fontWeight:550, color: color.ink, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{t.title}</div>
-                      <div style={{ fontSize:11, color: color.muted }}>{t.artist} · {t.camelot || "—"} · E{t.energy ?? "—"}</div>
+                    <div style={{
+                      fontSize: 17, fontWeight: 650, color: color.ink,
+                      letterSpacing: -0.2, marginBottom: 6, fontFamily: fontDisplay,
+                    }}>{prof.label}</div>
+                    <div style={{ fontSize: 12, color: color.muted, lineHeight: 1.4 }}>
+                      {prof.blurb}
                     </div>
                   </button>
                 ))}
               </div>
-              <button type="button" disabled={!pathStart || !pathEnd}
-                onClick={buildPath}
-                style={{
-                  width:"100%", padding:"16px", borderRadius:16,
-                  background: pathStart && pathEnd ? color.accent : color.surface,
-                  border:`${"1px solid "}${color.lineStrong}`, color: pathStart && pathEnd ? color.onAccent : color.faint,
-                  fontSize:15, fontWeight:600, cursor: pathStart && pathEnd ? "pointer" : "default",
-                }}>
-                Build route
-              </button>
             </div>
           )}
 
-          {/* Preview (night or path) */}
-          {step === 3 && session && (mode === "path" || profile) && (
-            <div style={{ width:"100%" }}>
-              <div style={{ textAlign:"center", marginBottom:32 }}>
-                <div style={{ fontSize:11, fontWeight:600, letterSpacing:2, color: color.faint, textTransform:"uppercase", marginBottom:8 }}>
-                  {mode === "path"
-                    ? `Route · ${pathStart?.camelot || "?"} → ${pathEnd?.camelot || "?"}`
-                    : `${profile.label} · ${duration < 60 ? `${duration}min` : `${Math.round(duration/60)}h`}`}
+          {step === 3 && session && profile && (
+            <div style={{ width: "100%", animation: "rise 0.45s cubic-bezier(0.22,1,0.36,1) both" }}>
+              <div style={{ textAlign: "center", marginBottom: 28, paddingTop: 8 }}>
+                <div style={{
+                  fontSize: 13, fontWeight: 600, color: color.accent, marginBottom: 8,
+                }}>
+                  {profile.label} · {durationLabel}
                 </div>
-                <div style={{ fontSize:36, fontWeight:700, color: color.ink, letterSpacing:-0.5, marginBottom:4, fontFamily: fontDisplay }}>
-                  {mode === "path" ? "Path is ready" : "Tonight’s set is ready"}
+                <div style={{
+                  fontSize: 32, fontWeight: 700, color: color.ink, letterSpacing: -0.8,
+                  marginBottom: 6, fontFamily: fontDisplay,
+                }}>
+                  Your playlist is ready
                 </div>
-                <div style={{ fontSize:14, color: color.muted }}>{session.length} tracks · ~{totalMins} minutes</div>
+                <div style={{ fontSize: 15, color: color.body }}>
+                  {session.length} songs · about {totalMins} minutes
+                </div>
               </div>
 
-              {mode === "night" && profile && (
-                <div style={{ marginBottom:32, padding:"0 8px" }}>
-                  <div style={{ display:"flex", borderRadius:12, overflow:"hidden", height:8, marginBottom:8, background: color.surface }}>
-                    {profile.phases.map((ph,i) => (
-                      <div key={i} style={{ flex:ph.p, background: color.accentSoft }}/>
-                    ))}
-                  </div>
-                  <div style={{ display:"flex" }}>
-                    {profile.phases.map((ph,i) => (
-                      <div key={i} style={{ flex:ph.p, textAlign:"center" }}>
-                        <div style={{ fontSize:9, fontWeight:600, color: color.faint, textTransform:"uppercase", letterSpacing:0.5 }}>{ph.name}</div>
-                      </div>
-                    ))}
-                  </div>
+              <div style={{ marginBottom: 24, padding: "0 4px" }}>
+                <div style={{ display: "flex", borderRadius: 8, overflow: "hidden", height: 6, marginBottom: 8, background: color.surface }}>
+                  {profile.phases.map((ph, i) => (
+                    <div key={i} style={{ flex: ph.p, background: i % 2 ? color.accent : color.accentSoft }}/>
+                  ))}
                 </div>
-              )}
-
-              {mode === "path" && (
-                <div style={{ marginBottom:24, height:48 }}>
-                  <svg width="100%" height="48" viewBox="0 0 320 48" preserveAspectRatio="none">
-                    {(() => {
-                      const energies = session.map(t => t.energy || 5);
-                      const stepX = 320 / Math.max(energies.length - 1, 1);
-                      const pts = energies.map((e, i) => `${i * stepX},${48 - ((e - 1) / 9) * 40}`).join(" ");
-                      return <polyline points={pts} fill="none" stroke={color.body} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>;
-                    })()}
-                  </svg>
+                <div style={{ display: "flex" }}>
+                  {profile.phases.map((ph, i) => (
+                    <div key={i} style={{ flex: ph.p, textAlign: "center" }}>
+                      <div style={{ fontSize: 10, fontWeight: 600, color: color.faint }}>{ph.name}</div>
+                    </div>
+                  ))}
                 </div>
-              )}
+              </div>
 
-              <div style={{ maxHeight:320, overflowY:"auto", marginBottom:32, borderRadius:16, background:color.surface, border:`${"1px solid "}${color.line}`, padding:"8px 0" }}>
-                {mode === "night" ? phases.map((phase, pi) => (
+              <div style={{
+                maxHeight: "42vh", overflowY: "auto", marginBottom: 24, borderRadius: 16,
+                background: color.surfaceSolid, border: `1px solid ${color.line}`, padding: "8px 0",
+              }}>
+                {phases.map((phase, pi) => (
                   <div key={pi}>
-                    <div style={{ fontSize:9, fontWeight:700, letterSpacing:1.5, color: color.faint, textTransform:"uppercase", padding:"12px 16px 6px" }}>{phase.name}</div>
+                    <div style={{
+                      fontSize: 11, fontWeight: 700, letterSpacing: 0.4, color: color.faint,
+                      textTransform: "uppercase", padding: "12px 16px 6px",
+                    }}>{phase.name}</div>
                     {phase.tracks.map((t) => (
-                      <div key={t.id} style={{ display:"flex", alignItems:"center", gap:10, padding:"6px 16px" }}>
-                        <div style={{ width:32, height:32, borderRadius:6, overflow:"hidden", flexShrink:0 }}><AlbumArt track={t} size={32} borderRadius={0}/></div>
-                        <div style={{ flex:1, minWidth:0 }}>
-                          <div style={{ fontSize:13, fontWeight:500, color: color.ink, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{t.title}</div>
-                          <div style={{ fontSize:11, color: color.muted }}>{t.artist}</div>
+                      <div key={t.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "6px 16px" }}>
+                        <div style={{ width: 36, height: 36, borderRadius: 6, overflow: "hidden", flexShrink: 0 }}>
+                          <AlbumArt track={t} size={36} borderRadius={6}/>
+                        </div>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{
+                            fontSize: 14, fontWeight: 550, color: color.ink,
+                            overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+                          }}>{t.title}</div>
+                          <div style={{ fontSize: 12, color: color.muted }}>{t.artist}</div>
                         </div>
                       </div>
                     ))}
                   </div>
-                )) : session.map((t, i) => (
-                  <div key={t.id} style={{ display:"flex", alignItems:"center", gap:10, padding:"6px 16px" }}>
-                    <div style={{ width:18, fontSize:10, color: color.faint, fontVariantNumeric:"tabular-nums" }}>{i + 1}</div>
-                    <div style={{ width:32, height:32, borderRadius:6, overflow:"hidden", flexShrink:0 }}><AlbumArt track={t} size={32} borderRadius={0}/></div>
-                    <div style={{ flex:1, minWidth:0 }}>
-                      <div style={{ fontSize:13, fontWeight:500, color: color.ink, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{t.title}</div>
-                      <div style={{ fontSize:11, color: color.muted }}>{t.artist} · {t.camelot || "—"} · E{t.energy ?? "—"}</div>
-                    </div>
-                  </div>
                 ))}
               </div>
 
-              <div style={{ display:"flex", gap:10, justifyContent:"center" }}>
-                <button type="button" onClick={()=>{
-                  const cleaned = session.map(t => { const {_phase, ...rest} = t; return rest; });
-                  onPlayRoute(cleaned, mode === "night" ? "night" : "path");
+              <div style={{ display: "flex", gap: 10, justifyContent: "center" }}>
+                <button type="button" onClick={() => {
+                  const cleaned = session.map((t) => { const { _phase, ...rest } = t; return rest; });
+                  onPlayRoute(cleaned, "night");
                   onClose();
-                }}
-                  style={{ flex:1, maxWidth:280, padding:"16px 32px", borderRadius:16, background: color.accentSoft, border:`1px solid ${color.lineStrong}`, color: color.ink, fontSize:16, fontWeight:600, cursor:"pointer" }}>
-                  Open session
+                }} style={{
+                  ...BTN_PRIMARY, flex: 1, maxWidth: 280, borderRadius: 980, padding: "16px 28px",
+                }}>
+                  Start listening
                 </button>
-                {mode === "night" && (
-                  <button type="button" onClick={handleRegenerate}
-                    style={{ width:52, height:52, borderRadius:16, background: color.surface, border:`1px solid ${color.line}`, color: color.muted, fontSize:16, cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center" }}>
-                    ↻
-                  </button>
-                )}
+                <button type="button" onClick={handleRegenerate} aria-label="Shuffle again" style={{
+                  width: 52, height: 52, borderRadius: 980, background: color.surfaceRaised,
+                  border: "none", color: color.body, fontSize: 18, cursor: "pointer",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                }}>
+                  ↻
+                </button>
               </div>
             </div>
           )}
@@ -1134,7 +1062,7 @@ function HypnoVisionOverlay({ sourceTrack, tracks, onPlay, onClose }) {
             <AlbumArt track={sourceTrack} size={72} borderRadius={0}/>
           </div>
           <div style={{ flex:1, minWidth:0 }}>
-            <div style={{ fontSize:10, fontWeight:700, letterSpacing:2, color: color.accent, fontFamily: fontMono, textTransform:"uppercase", marginBottom:6 }}>Same pocket</div>
+            <div style={{ fontSize:12, fontWeight:700, letterSpacing:0.4, color: color.accent, marginBottom:6 }}>Similar songs</div>
             <div style={{ fontSize:20, fontWeight:750, color: color.ink, letterSpacing:-0.4, fontFamily: fontDisplay, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{sourceTrack.title}</div>
             <div style={{ fontSize:13, color: color.muted, marginTop:4 }}>{sourceTrack.artist} · tracks that feel like this</div>
           </div>
@@ -1199,7 +1127,7 @@ function AfterglowOverlay({ data, onClose, onSavePlaylist }) {
     <div style={{ position:"fixed", inset:0, zIndex:95, display:"flex", alignItems:"center", justifyContent:"center", padding:32 }}>
       <div style={{ position:"absolute", inset:0, background:"rgba(12,11,10,0.88)" }} onClick={onClose}/>
       <div style={{ position:"relative", zIndex:1, maxWidth:420, width:"100%", textAlign:"center", animation:"rise 0.45s cubic-bezier(0.22,1,0.36,1) both" }}>
-        <div style={{ fontSize:10, fontWeight:700, letterSpacing:2, color: color.accent, fontFamily: fontMono, textTransform:"uppercase", marginBottom:12 }}>Afterglow</div>
+        <div style={{ fontSize:12, fontWeight:700, letterSpacing:0.4, color: color.accent, marginBottom:12 }}>Session summary</div>
         <div style={{ fontSize:36, fontWeight:800, color: color.ink, letterSpacing:-1, marginBottom:8, fontFamily: fontDisplay }}>{data.durationMins} minutes</div>
         <div style={{ fontSize:14, color: color.muted, marginBottom:32 }}>{tracks.length} tracks · {genres.length} scenes · energy {avgEnergy}</div>
 
@@ -1405,7 +1333,7 @@ function ImmersivePlayer({
         {(normalizeGenre(currentTrack.genre) || stateLabel || hypnoPocket || isRadioMode) && (
           <div style={{ fontSize:11, color: color.faint, marginTop:12, letterSpacing:0.4, fontFamily: fontMono, textTransform:"uppercase" }}>
             {[
-              hypnoPocket ? "Pocket" : (isRadioMode ? "On Air" : null),
+              hypnoPocket ? "Similar mix" : (isRadioMode ? "Radio" : null),
               displaySceneLabel(currentTrack) || normalizeGenre(currentTrack.genre),
               stateLabel,
             ].filter(Boolean).join("  ·  ")}
@@ -1531,13 +1459,13 @@ function ImmersivePlayer({
               {onHypno && (
                 <button type="button" onClick={() => { setShowMore(false); onHypno(currentTrack); }}
                   style={{ display:"block", width:"100%", textAlign:"left", padding:"12px 16px", background:"none", border:"none", color: color.ink, fontSize:13, fontWeight:600, cursor:"pointer" }}>
-                  Same pocket
+                  Similar songs
                 </button>
               )}
               {onHypnoRadio && (
                 <button type="button" onClick={() => { setShowMore(false); onHypnoRadio(currentTrack); }}
                   style={{ display:"block", width:"100%", textAlign:"left", padding:"12px 16px", background:"none", border:"none", color: hypnoPocket ? color.accent : color.ink, fontSize:13, fontWeight:600, cursor:"pointer" }}>
-                  {hypnoPocket ? "Pocket on" : "Stay in pocket"}
+                  {hypnoPocket ? "Similar mix on" : "Play similar mix"}
                 </button>
               )}
               <div style={{ height:1, background: color.line, margin:"4px 0" }}/>
@@ -1574,7 +1502,7 @@ function QueueSheet({ queue, currentTrack, onPlay, onClose, onClear, onShuffle, 
             <div style={{ fontSize:16, fontWeight:750, color: color.ink, fontFamily: fontDisplay, letterSpacing:-0.3 }}>Up Next</div>
             {isRadioMode && (
               <div style={{ fontSize:11, color: color.muted, marginTop:2 }}>
-                {radioHint || "Floor is choosing · Camelot + energy"}
+                {radioHint || "Choosing the next song…"}
               </div>
             )}
           </div>
@@ -1645,6 +1573,7 @@ function HomeScreen({
   isRadioMode, playlistCtx, signalLabel, setPrev, setNext,
   userName = "there",
   userPlaylists = [], onCreatePlaylist, onDeletePlaylist,
+  onMakePlaylist,
 }) {
   const saved = savedTracks(tracks, 24);
   const collections = buildHomeCollections(tracks);
@@ -1713,6 +1642,45 @@ function HomeScreen({
           <div style={{ fontSize: 15, color: color.body, lineHeight: 1.45 }}>
             Saved songs and playlists, ready when you are.
           </div>
+        </div>
+      )}
+
+      {onMakePlaylist && (
+        <div style={{ padding: "0 20px 28px" }}>
+          <button
+            type="button"
+            onClick={onMakePlaylist}
+            style={{
+              width: "100%",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              gap: 16,
+              padding: "18px 18px",
+              borderRadius: 16,
+              border: "none",
+              background: color.surfaceSolid,
+              cursor: "pointer",
+              textAlign: "left",
+              color: color.ink,
+            }}
+          >
+            <div>
+              <div style={{ fontSize: 17, fontWeight: 700, fontFamily: fontDisplay, letterSpacing: -0.3, marginBottom: 4 }}>
+                Make a playlist
+              </div>
+              <div style={{ fontSize: 13, color: color.muted, lineHeight: 1.4 }}>
+                Pick a length and vibe — we’ll build the set
+              </div>
+            </div>
+            <div style={{
+              width: 40, height: 40, borderRadius: 980, background: color.accent,
+              display: "flex", alignItems: "center", justifyContent: "center",
+              color: color.onAccent, flexShrink: 0,
+            }}>
+              <Icon name="play" size={16}/>
+            </div>
+          </button>
         </div>
       )}
 
@@ -2671,7 +2639,7 @@ function NowPlayingBar({ track, isPlaying, progress, duration, onTogglePlay, onS
             fontSize:10, color: color.muted, marginTop:4, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap",
             fontFamily: fontMono, fontVariantNumeric:"tabular-nums", letterSpacing:0.3,
           }}>
-            {hypnoPocket ? "Pocket" : isRadioMode ? "On air" : track.artist}
+            {hypnoPocket ? "Similar mix" : isRadioMode ? "Radio" : track.artist}
             <span style={{ color: color.faint }}>  ·  </span>
             <span style={{ color: color.accent }}>{bpm}</span>
             <span style={{ color: color.faint }}> BPM · </span>
@@ -2853,7 +2821,7 @@ export default function App() {
   const recentlyPlayedRef = useRef([]); // [{id, genre, energy, timestamp}]
   const playHistoryRef = useRef([]); // previous tracks for "prev" button
   const sessionStartRef = useRef(null);
-  const [signalState, setSignalState] = useState({ intensity:0.5, openness:0.5, momentum:0, depth:0, direction:0, label:"arrival" });
+  const [signalState, setSignalState] = useState({ intensity:0.5, openness:0.5, momentum:0, depth:0, direction:0, label:"Just started" });
 
   // Set arc for On Air floor (last 2 → now → next)
   const radioPickOpts = () => ({
@@ -3266,10 +3234,10 @@ export default function App() {
       tracks: routeTracks,
       startTime: now,
       kind,
-      label: kind === "path" ? "Route" : "Tonight",
+      label: "Your playlist",
     });
     logTrackPlay(first);
-    showToast(kind === "path" ? `Route · ${routeTracks.length} steps` : `Session · ${routeTracks.length} tracks`);
+    showToast(`Playing ${routeTracks.length} songs`);
     if (firebaseUser) recordPlay(first.id, profile?.recentTracks || []).catch(()=>{});
   };
 
@@ -3531,7 +3499,7 @@ export default function App() {
       }
     : (recentlyPlayedRef.current.length > 2
       ? {
-          label: signalState?.label ? `Flow · ${signalState.label}` : "Flow",
+          label: signalState?.label || "Listening",
           energies: recentlyPlayedRef.current.slice(0, 12).reverse().map(p => p.energy || 5),
           index: Math.min(11, recentlyPlayedRef.current.slice(0, 12).length - 1),
         }
@@ -3563,7 +3531,7 @@ export default function App() {
           currentTrack={currentTrack}
           isRadioMode={isRadioMode}
           radioHint={hypnoSeed
-            ? `Pocket · ${hypnoSeed.title}`
+            ? `Similar to ${hypnoSeed.title}`
             : explainPick(setNext || currentTrack, {
                 signalLabel: signalState?.label,
                 preferredGenres: profile?.genres || [],
@@ -3580,6 +3548,13 @@ export default function App() {
           tracks={tracks}
           onPlay={(t) => playTrack(t, tracks)}
           onClose={() => setResonanceTrack(null)}
+        />
+      )}
+      {showRouteBuilder && (
+        <SessionBuilderModal
+          tracks={tracks}
+          onClose={() => setShowRouteBuilder(false)}
+          onPlayRoute={playRoute}
         />
       )}
       {linerTrack && (
@@ -3635,7 +3610,7 @@ export default function App() {
         </div>
       )}
       <div style={{ flex:1, overflow:"auto", paddingBottom:currentTrack?120:56, zIndex:1, position:"relative" }}>
-        {screen==="home"      && !tracksLoading && <HomeScreen tracks={tracks} onPlayRadio={playRadio} onTogglePlay={()=>setIsPlaying(p=>!p)} onPlayTrack={playTrack} currentTrack={currentTrack} isPlaying={isPlaying} onLike={toggleLike} isRadioMode={isRadioMode} playlistCtx={playlistCtx} signalLabel={signalState?.label} setPrev={setPrev} setNext={setNext} userName={user.name} userPlaylists={userPlaylists} onCreatePlaylist={createPlaylist} onDeletePlaylist={deletePlaylist}/>}
+        {screen==="home"      && !tracksLoading && <HomeScreen tracks={tracks} onPlayRadio={playRadio} onTogglePlay={()=>setIsPlaying(p=>!p)} onPlayTrack={playTrack} currentTrack={currentTrack} isPlaying={isPlaying} onLike={toggleLike} isRadioMode={isRadioMode} playlistCtx={playlistCtx} signalLabel={signalState?.label} setPrev={setPrev} setNext={setNext} userName={user.name} userPlaylists={userPlaylists} onCreatePlaylist={createPlaylist} onDeletePlaylist={deletePlaylist} onMakePlaylist={()=>setShowRouteBuilder(true)}/>}
         {screen==="search"    && <SearchScreen query={searchQuery} setQuery={setSearch} results={searchResults} onPlay={t=>playTrack(t,tracks)} onLike={toggleLike} currentTrack={currentTrack} isPlaying={isPlaying} playlistCtx={playlistCtx} entityHits={entityHits} onOpenArtist={openArtist} onOpenAlbum={(slug)=>openAlbum(slug)}/>}
         {screen==="favorites" && <FavoritesScreen tracks={tracks} preferredGenres={user.genres} onPlay={t=>{setIsRadioMode(false);playTrack(t,tracks);}} onLike={toggleLike} currentTrack={currentTrack} isPlaying={isPlaying} playlistCtx={playlistCtx}/>}
         {screen==="artist"    && !tracksLoading && (
@@ -3789,7 +3764,7 @@ export default function App() {
             </div>
           ) : (
             <>
-              {screen==="home"      && <HomeScreen tracks={tracks} onPlayRadio={playRadio} onTogglePlay={()=>setIsPlaying(p=>!p)} onPlayTrack={playTrack} currentTrack={currentTrack} isPlaying={isPlaying} onLike={toggleLike} isRadioMode={isRadioMode} playlistCtx={playlistCtx} signalLabel={signalState?.label} setPrev={setPrev} setNext={setNext} userName={user.name} userPlaylists={userPlaylists} onCreatePlaylist={createPlaylist} onDeletePlaylist={deletePlaylist}/>}
+              {screen==="home"      && <HomeScreen tracks={tracks} onPlayRadio={playRadio} onTogglePlay={()=>setIsPlaying(p=>!p)} onPlayTrack={playTrack} currentTrack={currentTrack} isPlaying={isPlaying} onLike={toggleLike} isRadioMode={isRadioMode} playlistCtx={playlistCtx} signalLabel={signalState?.label} setPrev={setPrev} setNext={setNext} userName={user.name} userPlaylists={userPlaylists} onCreatePlaylist={createPlaylist} onDeletePlaylist={deletePlaylist} onMakePlaylist={()=>setShowRouteBuilder(true)}/>}
               {screen==="search"    && <SearchScreen query={searchQuery} setQuery={setSearch} results={searchResults} onPlay={t=>playTrack(t,tracks)} onLike={toggleLike} currentTrack={currentTrack} isPlaying={isPlaying} playlistCtx={playlistCtx} entityHits={entityHits} onOpenArtist={openArtist} onOpenAlbum={(slug)=>openAlbum(slug)}/>}
               {screen==="favorites" && <FavoritesScreen tracks={tracks} preferredGenres={user.genres} onPlay={t=>{setIsRadioMode(false);playTrack(t,tracks);}} onLike={toggleLike} currentTrack={currentTrack} isPlaying={isPlaying} playlistCtx={playlistCtx}/>}
               {screen==="artist"    && (

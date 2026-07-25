@@ -56,39 +56,38 @@ export function digLeadStory(roomLabel, floor, track) {
 
 /** Explain a radio / engine pick. */
 export function explainPick(track, { room, signalLabel, preferredGenres = [] } = {}) {
-  if (!track) return "The floor is choosing";
+  if (!track) return "Picking the next song…";
   const reasons = [];
   if (room?.label) reasons.push(`fits ${room.label}`);
   const scene = inferScene(track);
-  if (scene) reasons.push(`${scene.label} lane`);
-  if (signalLabel) reasons.push(`session feels like ${signalLabel}`);
+  if (scene) reasons.push(scene.label);
+  if (signalLabel) reasons.push(signalLabel);
   const g = normalizeGenre(track.genre);
-  if (g && preferredGenres.includes(g)) reasons.push(`${g} you keep near`);
-  if (track.camelot) reasons.push(`key ${track.camelot}`);
-  if (track.energy != null) reasons.push(`energy ${track.energy}`);
+  if (g && preferredGenres.includes(g)) reasons.push(`your ${g}`);
+  if (track.bpm) reasons.push(`${track.bpm} BPM`);
   if (!reasons.length) {
-    return `Picked for ${hourPhrase()} — like a clerk handing you a record`;
+    return `A good pick for ${hourPhrase()}`;
   }
   return reasons.slice(0, 3).join(" · ");
 }
 
 /** Search empty-state curiosity prompts. */
 export const SEARCH_PROMPTS = [
-  { q: "UK Garage", label: "UK Garage", hint: "2-step & skip" },
-  { q: "Techno", label: "Techno", hint: "Detroit → Berlin" },
-  { q: "Ambient", label: "Ambient", hint: "Atmosphere as form" },
-  { q: "Jungle", label: "Jungle", hint: "Chopped breaks" },
-  { q: "e7", label: "Key e7", hint: "Harmonic neighbours" },
-  { q: "120bpm", label: "120 BPM", hint: "Walking tempo" },
-  { q: "Neo-Soul", label: "Neo-Soul", hint: "Quiet storm crates" },
-  { q: "Amapiano", label: "Amapiano", hint: "Log drum Sundays" },
+  { q: "UK Garage", label: "UK Garage", hint: "Skippy, late-night energy" },
+  { q: "Techno", label: "Techno", hint: "Driving club beats" },
+  { q: "Ambient", label: "Ambient", hint: "Calm atmosphere" },
+  { q: "Jungle", label: "Jungle", hint: "Fast breakbeats" },
+  { q: "e7", label: "Key E7", hint: "Songs in a nearby key" },
+  { q: "120bpm", label: "120 BPM", hint: "A walking pace" },
+  { q: "Neo-Soul", label: "Neo-Soul", hint: "Warm and smooth" },
+  { q: "Amapiano", label: "Amapiano", hint: "Piano house grooves" },
 ];
 
-/** Hypno / similar framing. */
+/** Similar-track framing. */
 export function hypnoStory(sourceTrack) {
-  if (!sourceTrack) return "Sounds in the same pocket";
+  if (!sourceTrack) return "Songs that feel similar";
   const scene = displaySceneLabel(sourceTrack);
   return scene
-    ? `Sounds like “${sourceTrack.title}” — still in ${scene}`
-    : `Sounds like “${sourceTrack.title}” — same grip, different door`;
+    ? `More like “${sourceTrack.title}” · ${scene}`
+    : `More like “${sourceTrack.title}”`;
 }

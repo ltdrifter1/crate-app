@@ -56,14 +56,14 @@ export function buildHomeCollections(tracks = []) {
   const candidates = [
     {
       id: "rediscovered",
-      label: "Rediscovered",
-      story: "Heard before — waiting again",
+      label: "Played before",
+      story: "Songs you’ve heard — worth another listen",
       tracks: rediscoveredTracks(singles),
     },
     {
       id: "soft-evening",
-      label: "Soft evening",
-      story: "Low light, unhurried",
+      label: "Easy listening",
+      story: "Calm, low-energy tracks",
       tracks: softEvening(singles),
     },
   ];

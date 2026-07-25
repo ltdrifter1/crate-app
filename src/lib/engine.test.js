@@ -16,9 +16,9 @@ const mkTrack = (over = {}) => ({
 });
 
 describe("computeHumanState", () => {
-  test("returns a neutral 'warming up' state with no history", () => {
+  test("returns a neutral 'just started' state with no history", () => {
     const s = computeHumanState([], null);
-    expect(s.label).toBe("arrival");
+    expect(s.label).toBe("Just started");
     expect(s.intensity).toBeCloseTo(0.5);
   });
 
