@@ -76,8 +76,19 @@ export function authErrorMessage(err, fallback = "Something went wrong — pleas
     "auth/session-expired": "Session expired. Request a new code.",
     "auth/popup-closed-by-user": "Sign-in window closed before finishing.",
     "auth/cancelled-popup-request": "Sign-in was interrupted — try again.",
-    "auth/popup-blocked": "Popup blocked. Allow popups for this site, or use email.",
-    "auth/argument-error": "Couldn’t start phone verification. Refresh and try again.",
+    "auth/popup-blocked": "Popup blocked — retrying with a full-page Google sign-in…",
+    "auth/operation-not-supported-in-this-environment": "This browser blocks popups. Continuing with Google redirect…",
+    "auth/unauthorized-domain": "This site isn’t on Firebase’s authorized domains yet. Add this hostname in Firebase Console → Authentication → Settings → Authorized domains.",
+    "auth/account-exists-with-different-credential": "An account already exists with this email using a different sign-in method. Try email login.",
+    "auth/internal-error": "Google sign-in hit a browser block (often third-party cookies). Try again, or use email.",
+    "auth/argument-error": "Couldn’t start verification. Refresh and try again.",
   };
-  return map[code] || err?.message || fallback;
+  // Prefer our copy; fall back to Firebase message only when useful
+  if (map[code]) return map[code];
+  if (err?.message && !/^Firebase:/i.test(err.message)) return err.message;
+  if (err?.message) {
+    const cleaned = err.message.replace(/^Firebase:\s*/i, "").replace(/\s*\([^)]*\)\.?\s*$/, "").trim();
+    if (cleaned) return cleaned;
+  }
+  return fallback;
 }

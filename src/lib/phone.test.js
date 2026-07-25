@@ -34,6 +34,8 @@ describe("authErrorMessage", () => {
   test("maps known codes", () => {
     expect(authErrorMessage({ code: "auth/invalid-phone-number" })).toMatch(/mobile/i);
     expect(authErrorMessage({ code: "auth/email-already-in-use" })).toMatch(/logging in/i);
+    expect(authErrorMessage({ code: "auth/unauthorized-domain" })).toMatch(/authorized domains/i);
+    expect(authErrorMessage({ code: "auth/popup-blocked" })).toMatch(/full-page|redirect/i);
   });
 
   test("falls back gracefully", () => {
