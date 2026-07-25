@@ -2778,7 +2778,7 @@ const ToastEl = ({msg}) => (
 // ─── ROOT APP — Firebase wired ────────────────────────────────────────────────
 export default function App() {
   // ── Auth (login/signup/logout + user profile) ───────────────────────────
-  const { firebaseUser, profile, setProfile, loading: authLoading, signUp, logIn, logOut, signInWithGoogle, sendPhoneOTP, verifyPhoneOTP, resetPassword } = useAuth();
+  const { firebaseUser, profile, setProfile, loading: authLoading, authError, clearAuthError, signUp, logIn, logOut, signInWithGoogle, sendPhoneOTP, verifyPhoneOTP, resetPassword } = useAuth();
 
   // ── URL ↔ screen ─────────────────────────────────────────────────────────
   const navigate = useNavigate();
@@ -3505,7 +3505,18 @@ export default function App() {
   );
 
   // Not logged in — show login screen
-  if (!firebaseUser) return <LoginScreen onSignUp={signUp} onLogIn={logIn} onGoogleSignIn={signInWithGoogle} onPhoneOTP={sendPhoneOTP} onVerifyOTP={verifyPhoneOTP} onResetPassword={resetPassword}/>;
+  if (!firebaseUser) return (
+    <LoginScreen
+      onSignUp={signUp}
+      onLogIn={logIn}
+      onGoogleSignIn={signInWithGoogle}
+      onPhoneOTP={sendPhoneOTP}
+      onVerifyOTP={verifyPhoneOTP}
+      onResetPassword={resetPassword}
+      authError={authError}
+      onClearAuthError={clearAuthError}
+    />
+  );
 
   const sessionArc = sessionMeta?.tracks?.length
     ? {

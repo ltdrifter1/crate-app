@@ -1,8 +1,7 @@
 /**
- * Threshold entry — invite first, then a calm auth sheet.
- * Email signup and phone OTP fixed for real human input.
+ * Auth entry — Google first (popup → redirect fallback), then email / phone.
  */
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   font, fontDisplay, fontMono, color, radius,
   APP_STYLE, INPUT_ST, BTN_PRIMARY, BTN_SECONDARY,
@@ -18,12 +17,11 @@ const methodTab = (active) => ({
   border: "none",
   cursor: "pointer",
   padding: "6px 0",
-  fontSize: 12,
-  fontWeight: active ? 700 : 500,
+  fontSize: 13,
+  fontWeight: active ? 600 : 500,
   color: active ? color.accent : color.faint,
-  fontFamily: fontMono,
-  letterSpacing: 0.6,
-  textTransform: "uppercase",
+  fontFamily: font,
+  letterSpacing: 0.2,
 });
 
 export default function LoginScreen({
@@ -33,8 +31,11 @@ export default function LoginScreen({
   onPhoneOTP,
   onVerifyOTP,
   onResetPassword,
+  authError = null,
+  onClearAuthError,
 }) {
-  const [gate, setGate] = useState("invite");
+  // Skip invite friction when a redirect error needs to be shown
+  const [gate, setGate] = useState(authError ? "auth" : "invite");
   const [method, setMethod] = useState("email"); // email | phone
   const [mode, setMode] = useState("login"); // login | signup (email only)
   const [name, setName] = useState("");
@@ -53,10 +54,16 @@ export default function LoginScreen({
   const floor = getFloorPhase();
   const thresholdAtmosphere = floor?.id || "warmup";
   const e164Preview = phoneHint(phone);
+  const displayError = error || (authError ? authErrorMessage(authError) : "");
+
+  useEffect(() => {
+    if (authError) setGate("auth");
+  }, [authError]);
 
   function resetMessages() {
     setError("");
     setNotice("");
+    onClearAuthError?.();
   }
 
   function switchMethod(next) {
@@ -70,11 +77,19 @@ export default function LoginScreen({
   async function handleGoogleSignIn() {
     resetMessages();
     setLoading(true);
+    setNotice("Connecting to Google…");
     try {
-      await onGoogleSignIn();
+      const user = await onGoogleSignIn();
+      // null ⇒ redirect started; page is navigating away
+      if (user == null) {
+        setNotice("Redirecting to Google…");
+        return;
+      }
+      setNotice("");
     } catch (e) {
-      if (e?.code !== "auth/popup-closed-by-user" && e?.code !== "auth/cancelled-popup-request") {
-        setError(authErrorMessage(e, "Google sign-in failed"));
+      setNotice("");
+      if (e?.code !== "auth/popup-closed-by-user") {
+        setError(authErrorMessage(e, "Google sign-in failed. Try email, or add this site to Firebase authorized domains."));
       }
     }
     setLoading(false);
@@ -228,20 +243,62 @@ export default function LoginScreen({
             </p>
             <button
               type="button"
-              className="play-primary"
-              onClick={() => setGate("auth")}
+              onClick={handleGoogleSignIn}
+              disabled={loading}
               style={{
-                ...BTN_PRIMARY,
-                width: "auto",
-                display: "inline-flex",
+                display: "flex",
                 alignItems: "center",
-                gap: 12,
-                padding: "15px 22px",
+                justifyContent: "center",
+                gap: 10,
+                width: "100%",
+                maxWidth: 320,
+                padding: "14px 20px",
                 borderRadius: 980,
+                border: "none",
+                background: "#fff",
+                cursor: loading ? "wait" : "pointer",
+                opacity: loading ? 0.7 : 1,
+                marginBottom: 12,
               }}
             >
-              Continue
+              <GoogleMark />
+              <span style={{ fontSize: 16, fontWeight: 600, color: "#1c1c1e" }}>
+                {loading ? "Connecting…" : "Continue with Google"}
+              </span>
             </button>
+            <button
+              type="button"
+              onClick={() => { resetMessages(); setGate("auth"); }}
+              style={{
+                background: "none",
+                border: "none",
+                color: color.body,
+                fontSize: 15,
+                fontWeight: 500,
+                cursor: "pointer",
+                padding: "10px 4px",
+              }}
+            >
+              Use email or phone
+            </button>
+            {(displayError || notice) && (
+              <div
+                role={displayError ? "alert" : "status"}
+                style={{
+                  marginTop: 16,
+                  fontSize: 13,
+                  color: displayError ? color.alert : color.body,
+                  background: displayError ? "rgba(255,69,58,0.12)" : "rgba(0,0,0,0.35)",
+                  border: `1px solid ${displayError ? "rgba(255,69,58,0.35)" : color.line}`,
+                  borderRadius: radius.md,
+                  padding: "12px 14px",
+                  lineHeight: 1.45,
+                  maxWidth: 320,
+                }}
+              >
+                {displayError || notice}
+              </div>
+            )}
           </div>
         </RoomPosterBackdrop>
       </div>
@@ -310,7 +367,7 @@ export default function LoginScreen({
             border: `1px solid ${color.line}`,
           }}
         >
-          {/* Google first — highest success path */}
+          {/* Google first — popup with redirect fallback */}
           <button
             type="button"
             onClick={handleGoogleSignIn}
@@ -321,22 +378,41 @@ export default function LoginScreen({
               justifyContent: "center",
               gap: 10,
               width: "100%",
-              padding: "13px 20px",
-              borderRadius: radius.md,
+              padding: "14px 20px",
+              borderRadius: 980,
               border: `1px solid ${color.lineStrong}`,
-              background: color.surface,
-              cursor: "pointer",
-              opacity: loading ? 0.6 : 1,
+              background: "#fff",
+              cursor: loading ? "wait" : "pointer",
+              opacity: loading ? 0.7 : 1,
             }}
           >
             <GoogleMark />
-            <span style={{ fontSize: 14, fontWeight: 600, color: color.ink }}>Continue with Google</span>
+            <span style={{ fontSize: 16, fontWeight: 600, color: "#1c1c1e" }}>
+              {loading && notice?.includes("Google") ? "Connecting…" : "Continue with Google"}
+            </span>
           </button>
+
+          {(displayError || notice) && (
+            <div
+              role={displayError ? "alert" : "status"}
+              style={{
+                fontSize: 13,
+                color: displayError ? color.alert : color.body,
+                background: displayError ? "rgba(255,69,58,0.08)" : color.canvas,
+                border: `1px solid ${displayError ? "rgba(255,69,58,0.25)" : color.line}`,
+                borderRadius: radius.md,
+                padding: "12px 14px",
+                lineHeight: 1.45,
+              }}
+            >
+              {displayError || notice}
+            </div>
+          )}
 
           <div style={{ display: "flex", alignItems: "center", gap: 10, margin: "2px 0" }}>
             <div style={{ flex: 1, height: 1, background: color.line }} />
-            <span style={{ fontSize: 11, color: color.faint, fontFamily: fontMono, letterSpacing: 0.4 }}>
-              OR ENTER WITH
+            <span style={{ fontSize: 12, color: color.faint, letterSpacing: 0.2 }}>
+              or
             </span>
             <div style={{ flex: 1, height: 1, background: color.line }} />
           </div>
@@ -605,38 +681,6 @@ export default function LoginScreen({
             }}
           />
 
-          {error && (
-            <div
-              role="alert"
-              style={{
-                fontSize: 13,
-                color: color.alert,
-                background: "rgba(229,72,77,0.06)",
-                border: `1px solid rgba(229,72,77,0.15)`,
-                borderRadius: radius.sm,
-                padding: "12px 14px",
-                lineHeight: 1.45,
-              }}
-            >
-              {error}
-            </div>
-          )}
-          {notice && (
-            <div
-              role="status"
-              style={{
-                fontSize: 13,
-                color: color.body,
-                background: color.canvas,
-                border: `1px solid ${color.line}`,
-                borderRadius: radius.sm,
-                padding: "12px 14px",
-                lineHeight: 1.45,
-              }}
-            >
-              {notice}
-            </div>
-          )}
         </div>
       </div>
     </div>
