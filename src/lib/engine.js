@@ -2,7 +2,7 @@
 import { camelotCompatible, getEnergyRangeForHour } from "./harmony";
 
 export function computeHumanState(recentPlays, sessionStartTime) {
-  if (!recentPlays.length) return { intensity: 0.5, openness: 0.5, momentum: 0, depth: 0, direction: 0, label: "arrival" };
+  if (!recentPlays.length) return { intensity: 0.5, openness: 0.5, momentum: 0, depth: 0, direction: 0, label: "Just started" };
 
   const now = Date.now();
   const recent = recentPlays.slice(0, 10);
@@ -34,16 +34,17 @@ export function computeHumanState(recentPlays, sessionStartTime) {
   const momentum = Math.max(0, Math.min(1, 1 - (avgGap - 60000) / 600000));
 
   // State label based on signals
-  let label = "arrival";
-  if (sessionMins < 3) label = "arrival";
-  else if (sessionMins < 8 && Math.abs(direction) < 0.2) label = "grounding";
-  else if (direction > 0.3 && intensity < 0.7) label = "ignition";
-  else if (intensity > 0.6 && direction > 0.1) label = "momentum";
-  else if (depth > 0.5 && Math.abs(direction) < 0.15) label = "immersion";
-  else if (direction > 0.3 && openness > 0.5) label = "expansion";
-  else if (direction < -0.2) label = "release";
-  else if (intensity < 0.3 && depth > 0.4) label = "restoration";
-  else if (sessionMins > 5) label = "grounding";
+  // Plain labels shown in the player — easy for anyone to read
+  let label = "Just started";
+  if (sessionMins < 3) label = "Just started";
+  else if (sessionMins < 8 && Math.abs(direction) < 0.2) label = "Settling in";
+  else if (direction > 0.3 && intensity < 0.7) label = "Picking up";
+  else if (intensity > 0.6 && direction > 0.1) label = "In the groove";
+  else if (depth > 0.5 && Math.abs(direction) < 0.15) label = "Deep in it";
+  else if (direction > 0.3 && openness > 0.5) label = "Opening up";
+  else if (direction < -0.2) label = "Winding down";
+  else if (intensity < 0.3 && depth > 0.4) label = "Cooling off";
+  else if (sessionMins > 5) label = "Settling in";
 
   return { intensity, openness, momentum, depth, direction, label };
 }
@@ -136,8 +137,8 @@ export function computeSignalTraits(tracks, recentPlays = []) {
 
     // Map dominant trait to a user-facing label
     const LABELS = {
-      grip: "opener", hold: "anchor", pull: "favorite",
-      gravity: "opener", lift: "build", descent: "closer"
+      grip: "Opener", hold: "Steady", pull: "Favorite",
+      gravity: "Opener", lift: "Build-up", descent: "Closer"
     };
     const signalLabel = LABELS[dominant] || "track";
 
@@ -169,14 +170,14 @@ export function pickNextTrack(allTracks, currentTrack, memory = null, options = 
   if (signalState) {
     const label = signalState.label || "";
     const dir = signalState.direction || 0;
-    if (label === "release" || label === "restoration" || dir < -0.25) {
+    if (label === "Winding down" || label === "Cooling off" || dir < -0.25) {
       eMin = Math.max(1, eMin - 2);
       eMax = Math.max(eMin + 1, eMax - 1);
-    } else if (label === "ignition" || label === "momentum" || label === "expansion" || dir > 0.25) {
+    } else if (label === "Picking up" || label === "In the groove" || label === "Opening up" || dir > 0.25) {
       eMin = Math.min(9, eMin + 1);
       eMax = Math.min(10, Math.max(eMin + 1, eMax + 1));
-    } else if (label === "immersion") {
-      // Hold the pocket — tighten around current energy
+    } else if (label === "Deep in it") {
+      // Stay near the current energy
       const curE = currentTrack?.energy || Math.round((eMin + eMax) / 2);
       eMin = Math.max(1, curE - 1);
       eMax = Math.min(10, curE + 1);
@@ -223,9 +224,9 @@ export function pickNextTrack(allTracks, currentTrack, memory = null, options = 
       if (t._signal) {
         if (t._signal.grip >= 7) w += 1;
         if (t._signal.pull >= 7) w += 1;
-        if (signalState?.label === "immersion" && t._signal.hold >= 7) w += 2;
-        if ((signalState?.label === "ignition" || signalState?.label === "momentum") && t._signal.lift >= 7) w += 2;
-        if ((signalState?.label === "release" || signalState?.label === "restoration") && t._signal.descent >= 7) w += 2;
+        if (signalState?.label === "Deep in it" && t._signal.hold >= 7) w += 2;
+        if ((signalState?.label === "Picking up" || signalState?.label === "In the groove") && t._signal.lift >= 7) w += 2;
+        if ((signalState?.label === "Winding down" || signalState?.label === "Cooling off") && t._signal.descent >= 7) w += 2;
       }
       // Hypno pocket — reward aura proximity + Camelot adjacency to seed
       if (seedTrack?._signal && t._signal) {
@@ -302,17 +303,17 @@ export function buildRoute(allTracks, startTrack, endTrack, maxSteps = 12) {
 // ─── SESSION ENGINE ──────────────────────────────────────────────────────────
 // Activity-based energy arc profiles. Each phase has a proportion (0-1) and target energy.
 export const SESSION_PROFILES = {
-  night:      { label:"Club Night",  phases:[{name:"Warmup",p:0.2,e:5},{name:"Peak",p:0.4,e:9},{name:"Afterhours",p:0.25,e:4},{name:"Closing",p:0.15,e:2}] },
-  party:      { label:"Party",       phases:[{name:"Warm Up",p:0.15,e:4},{name:"Build",p:0.2,e:6},{name:"Peak",p:0.35,e:9},{name:"Sustain",p:0.2,e:8},{name:"Wind Down",p:0.1,e:5}] },
-  predrinks:  { label:"Pre-drinks",  phases:[{name:"Ease In",p:0.2,e:4},{name:"Lift",p:0.35,e:6},{name:"Buzz",p:0.3,e:7},{name:"Ready",p:0.15,e:8}] },
-  drive:      { label:"Late Drive",  phases:[{name:"Depart",p:0.15,e:5},{name:"Cruise",p:0.5,e:6},{name:"Deep",p:0.25,e:4},{name:"Arrive",p:0.1,e:3}] },
-  chill:      { label:"Chill",       phases:[{name:"Drift",p:0.3,e:3},{name:"Float",p:0.4,e:2},{name:"Settle",p:0.3,e:3}] },
-  recovery:   { label:"Recovery",    phases:[{name:"Ground",p:0.2,e:2},{name:"Restore",p:0.5,e:1},{name:"Ease Up",p:0.3,e:3}] },
-  run:        { label:"Run",         phases:[{name:"Pace Up",p:0.1,e:6},{name:"Stride",p:0.4,e:8},{name:"Push",p:0.35,e:9},{name:"Cool",p:0.15,e:5}] },
-  workout:    { label:"Workout",     phases:[{name:"Warm Up",p:0.12,e:5},{name:"Build",p:0.2,e:7},{name:"Peak",p:0.4,e:9},{name:"Push",p:0.18,e:8},{name:"Stretch",p:0.1,e:3}] },
-  focus:      { label:"Focus",       phases:[{name:"Settle In",p:0.15,e:4},{name:"Flow",p:0.6,e:3},{name:"Sustain",p:0.2,e:4},{name:"Ease Out",p:0.05,e:3}] },
-  dinner:     { label:"Dinner",      phases:[{name:"Arrival",p:0.2,e:4},{name:"Conversation",p:0.5,e:3},{name:"Linger",p:0.3,e:4}] },
-  study:      { label:"Study",       phases:[{name:"Settle",p:0.1,e:3},{name:"Deep Work",p:0.7,e:2},{name:"Break",p:0.1,e:4},{name:"Close",p:0.1,e:2}] },
+  night:      { label: "Night out",     blurb: "Builds up, peaks, then eases down", phases: [{ name: "Warm up", p: 0.2, e: 5 }, { name: "Peak", p: 0.4, e: 9 }, { name: "Late", p: 0.25, e: 4 }, { name: "Wind down", p: 0.15, e: 2 }] },
+  party:      { label: "Party",         blurb: "High energy from start to finish", phases: [{ name: "Warm up", p: 0.15, e: 4 }, { name: "Build", p: 0.2, e: 6 }, { name: "Peak", p: 0.35, e: 9 }, { name: "Keep going", p: 0.2, e: 8 }, { name: "Wind down", p: 0.1, e: 5 }] },
+  predrinks:  { label: "Getting ready", blurb: "Starts easy, gets livelier", phases: [{ name: "Ease in", p: 0.2, e: 4 }, { name: "Lift", p: 0.35, e: 6 }, { name: "Buzz", p: 0.3, e: 7 }, { name: "Ready", p: 0.15, e: 8 }] },
+  drive:      { label: "Drive",         blurb: "Steady music for the road", phases: [{ name: "Leave", p: 0.15, e: 5 }, { name: "Cruise", p: 0.5, e: 6 }, { name: "Deep", p: 0.25, e: 4 }, { name: "Arrive", p: 0.1, e: 3 }] },
+  chill:      { label: "Chill",         blurb: "Calm and unhurried", phases: [{ name: "Ease in", p: 0.3, e: 3 }, { name: "Float", p: 0.4, e: 2 }, { name: "Settle", p: 0.3, e: 3 }] },
+  recovery:   { label: "Rest",          blurb: "Soft and restorative", phases: [{ name: "Slow down", p: 0.2, e: 2 }, { name: "Rest", p: 0.5, e: 1 }, { name: "Ease up", p: 0.3, e: 3 }] },
+  run:        { label: "Run",           blurb: "Keeps you moving", phases: [{ name: "Pace up", p: 0.1, e: 6 }, { name: "Stride", p: 0.4, e: 8 }, { name: "Push", p: 0.35, e: 9 }, { name: "Cool down", p: 0.15, e: 5 }] },
+  workout:    { label: "Workout",       blurb: "Warm up, push, then stretch", phases: [{ name: "Warm up", p: 0.12, e: 5 }, { name: "Build", p: 0.2, e: 7 }, { name: "Peak", p: 0.4, e: 9 }, { name: "Push", p: 0.18, e: 8 }, { name: "Stretch", p: 0.1, e: 3 }] },
+  focus:      { label: "Focus",         blurb: "Steady background for work", phases: [{ name: "Settle in", p: 0.15, e: 4 }, { name: "Focus", p: 0.6, e: 3 }, { name: "Keep going", p: 0.2, e: 4 }, { name: "Ease out", p: 0.05, e: 3 }] },
+  dinner:     { label: "Dinner",        blurb: "Good company, good volume", phases: [{ name: "Arrive", p: 0.2, e: 4 }, { name: "Talk", p: 0.5, e: 3 }, { name: "Linger", p: 0.3, e: 4 }] },
+  study:      { label: "Study",         blurb: "Quiet focus with soft breaks", phases: [{ name: "Settle", p: 0.1, e: 3 }, { name: "Deep work", p: 0.7, e: 2 }, { name: "Break", p: 0.1, e: 4 }, { name: "Close", p: 0.1, e: 2 }] },
 };
 
 export function buildSession(allTracks, durationMins, activityId) {

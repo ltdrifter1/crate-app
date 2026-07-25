@@ -1,20 +1,20 @@
 // Club / floor helpers — pure (except optional Web Audio arrival cue).
 
-/** Night-of phases for the radio floor. */
+/** Time-of-day mood for the radio hero. */
 export function getFloorPhase(hour = new Date().getHours()) {
   if (hour >= 21 || hour <= 1) {
-    return { id: "peak", label: "PEAK", blurb: "Hands up. The room is open." };
+    return { id: "peak", label: "Tonight", blurb: "High energy for the night." };
   }
   if (hour >= 2 && hour <= 5) {
-    return { id: "afterhours", label: "AFTERHOURS", blurb: "Lights down. Keep it moving." };
+    return { id: "afterhours", label: "Late night", blurb: "Keep it going — slower and deeper." };
   }
   if (hour >= 6 && hour <= 9) {
-    return { id: "closing", label: "CLOSING", blurb: "Last dances. Soft exit." };
+    return { id: "closing", label: "Morning", blurb: "Ease into the day." };
   }
   if (hour >= 17 && hour <= 20) {
-    return { id: "warmup", label: "WARMUP", blurb: "Doors cracked. Build the floor." };
+    return { id: "warmup", label: "Evening", blurb: "Warming up for the night." };
   }
-  return { id: "floor", label: "FLOOR OPEN", blurb: "The hour shapes the set." };
+  return { id: "floor", label: "Daytime", blurb: "Music for right now." };
 }
 
 /** Tonight's rooms — Discover dig model (energy-first, not genre-first). */
