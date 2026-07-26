@@ -1,6 +1,7 @@
 {
-  "short_name": "ROOMS",
-  "name": "ROOMS",
+  "short_name": "Planet MP3",
+  "name": "Planet MP3",
+  "description": "YOUR WORLD, YOUR MUSIC.",
   "icons": [
     {
       "src": "favicon.svg",

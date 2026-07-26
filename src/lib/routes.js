@@ -1,4 +1,5 @@
 /** Path ↔ screen mapping for shareable URLs. Home is the start page. */
+import { BRAND_NAME } from "../theme";
 
 export const SCREEN_TO_PATH = {
   home: "/home",
@@ -94,7 +95,7 @@ function normalizeParam(param) {
 }
 
 export function documentTitleFor(screen, label) {
-  if (label) return `${label} · ${"ROOMS"}`;
+  if (label) return `${label} · ${BRAND_NAME}`;
   const labels = {
     home: "Home",
     favorites: "Browse",
@@ -104,5 +105,5 @@ export function documentTitleFor(screen, label) {
     artist: "Artist",
     album: "Album",
   };
-  return labels[screen] ? `${labels[screen]} · ROOMS` : "ROOMS";
+  return labels[screen] ? `${labels[screen]} · ${BRAND_NAME}` : BRAND_NAME;
 }
