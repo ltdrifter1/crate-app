@@ -26,6 +26,8 @@ describe("routes", () => {
 
   test("documentTitleFor", () => {
     expect(documentTitleFor("home")).toContain("Home");
+    expect(documentTitleFor("favorites")).toContain("Library");
+    expect(documentTitleFor("profile")).toContain("You");
     expect(documentTitleFor("search")).toContain("Search");
     expect(documentTitleFor("artist", "Nina")).toContain("Nina");
   });
