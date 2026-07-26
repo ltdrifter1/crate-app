@@ -188,7 +188,7 @@ export const CTRL_BTN = {
 
 /** Product brand. */
 export const BRAND_NAME = "ROOMS";
-export const BRAND_TAGLINE = "Listen";
+export const BRAND_TAGLINE = "YOUR WORLD, YOUR MUSIC.";
 
 /** Admin UID — keep in sync with firestore.rules until custom claims exist. */
 export const ADMIN_UID = "5lPAI9N1jkMbVkUyIqLTqBvBf1t1";

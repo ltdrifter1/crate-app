@@ -239,7 +239,7 @@ export default function LoginScreen({
                 marginBottom: 28,
               }}
             >
-              {BRAND_TAGLINE}. Your music, simply.
+              {BRAND_TAGLINE}
             </p>
             <button
               type="button"
@@ -398,8 +398,8 @@ export default function LoginScreen({
               style={{
                 fontSize: 13,
                 color: displayError ? color.alert : color.body,
-                background: displayError ? "rgba(255,69,58,0.08)" : color.canvas,
-                border: `1px solid ${displayError ? "rgba(255,69,58,0.25)" : color.line}`,
+                background: displayError ? "rgba(234,231,220,0.08)" : color.canvas,
+                border: `1px solid ${displayError ? color.lineStrong : color.line}`,
                 borderRadius: radius.md,
                 padding: "12px 14px",
                 lineHeight: 1.45,

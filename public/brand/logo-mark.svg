@@ -1,10 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="ROOMS">
   <title>ROOMS</title>
-  <rect width="512" height="512" rx="112" fill="#000000"/>
-  <!-- Concentric seal rings -->
   <circle cx="256" cy="256" r="172" fill="none" stroke="#EAE7DC" stroke-width="7"/>
   <circle cx="256" cy="256" r="152" fill="none" stroke="#EAE7DC" stroke-width="4.5"/>
-  <!-- Geometric R -->
   <path fill="#EAE7DC" d="
     M178 148
     H286
