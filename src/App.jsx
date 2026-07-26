@@ -9,7 +9,7 @@ import {
   font, fontDisplay, fontMono, color, radius, motion,
   glass, glassControl, homeSpace, dock, sectionRule,
   APP_STYLE, INPUT_ST, BTN_PRIMARY, BTN_SECONDARY, CTRL_BTN, ADMIN_UID,
-  BRAND_NAME, BRAND_TAGLINE, brandStoragePrefix,
+  BRAND_NAME, brandStoragePrefix,
 } from "./theme";
 import { camelotCompatible, getEnergyRangeForHour, fmtTime, hexToRgbStr } from "./lib/harmony";
 import {
@@ -34,7 +34,6 @@ import ArtistPage, { AlbumPage } from "./components/catalog/ArtistPage";
 import LinerNotesSheet from "./components/catalog/LinerNotesSheet";
 import LoginScreen from "./components/auth/LoginScreen";
 import BrandMark, { BrandGlyph as DoorGlyph } from "./components/brand/BrandMark";
-import BrandTagline from "./components/brand/BrandTagline";
 
 const injectStyles = () => {
   if (document.getElementById("rooms-app-global-styles")) return;
@@ -97,6 +96,26 @@ const injectStyles = () => {
     @keyframes dockRise {
       from { opacity: 0; transform: translateY(12px) scale(0.98); }
       to { opacity: 1; transform: none; }
+    }
+    @keyframes planetRing {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+    @keyframes planetTiltSpin {
+      from { transform: rotateX(66deg) rotateZ(0deg); }
+      to { transform: rotateX(66deg) rotateZ(360deg); }
+    }
+    @keyframes planetBreathe {
+      0%, 100% { transform: scale(1); opacity: 0.92; }
+      50% { transform: scale(1.03); opacity: 1; }
+    }
+    @keyframes orbitPulse {
+      0%, 100% { opacity: 0.55; box-shadow: 0 0 8px rgba(242,243,245,0.35); }
+      50% { opacity: 1; box-shadow: 0 0 16px rgba(242,243,245,0.7); }
+    }
+    @keyframes playGlow {
+      0%, 100% { box-shadow: 0 0 0 1px rgba(242,243,245,0.14), 0 16px 40px rgba(0,0,0,0.5), 0 0 28px rgba(242,243,245,0.18); }
+      50% { box-shadow: 0 0 0 1px rgba(242,243,245,0.22), 0 18px 48px rgba(0,0,0,0.55), 0 0 42px rgba(242,243,245,0.32); }
     }
     .glass-dock {
       background: rgba(12, 12, 14, 0.78);
@@ -307,7 +326,7 @@ function BoothHud({ track, size = "md", align = "left" }) {
 }
 
 // ─── RADIO — Listen Now hero (one composition) ────────────────────────────────
-/** Segmented mix selector — one connected control. */
+/** Segmented mix selector — glass capsule for the radio deck. */
 function MixLanePicker({ mixLane, onMixLaneChange, disabled = false }) {
   return (
     <div
@@ -318,15 +337,14 @@ function MixLanePicker({ mixLane, onMixLaneChange, disabled = false }) {
       style={{
         display: "inline-flex",
         alignItems: "center",
-        gap: 4,
-        padding: 4,
+        gap: 3,
+        padding: 3,
         borderRadius: 980,
-        border: `1px solid ${glass.borderSoft}`,
-        background: "rgba(255,255,255,0.045)",
+        border: `1px solid ${glass.border}`,
+        background: "rgba(0,0,0,0.42)",
         backdropFilter: glass.blur,
         WebkitBackdropFilter: glass.blur,
-        boxShadow: `inset 0 1px 0 ${glass.borderFaint}`,
-        marginBottom: 28,
+        boxShadow: `inset 0 1px 0 ${glass.highlight}, ${glass.shadowSoft}`,
         maxWidth: "100%",
         overflowX: "auto",
       }}
@@ -342,7 +360,7 @@ function MixLanePicker({ mixLane, onMixLaneChange, disabled = false }) {
             disabled={disabled}
             onClick={() => onMixLaneChange(lane.id)}
             style={{
-              padding: "9px 16px",
+              padding: "10px 15px",
               borderRadius: 980,
               border: "none",
               background: on ? color.accent : "transparent",
@@ -354,7 +372,7 @@ function MixLanePicker({ mixLane, onMixLaneChange, disabled = false }) {
               letterSpacing: 0.1,
               whiteSpace: "nowrap",
               transition: `background ${motion.base} ${motion.ease}, color ${motion.base} ${motion.ease}`,
-              opacity: disabled && !on ? 0.5 : 1,
+              opacity: disabled && !on ? 0.45 : 1,
             }}
           >
             {lane.label}
@@ -365,74 +383,132 @@ function MixLanePicker({ mixLane, onMixLaneChange, disabled = false }) {
   );
 }
 
-/** Brand-first atmosphere — planet arc + orbit lines, no artwork. */
-function HeroAtmosphere() {
+/**
+ * Animated planet mark — looping ring + satellite (GIF-like via CSS).
+ * Hero brand signal — sits in the background behind controls.
+ * Fills its parent; pass playing to quicken the breath.
+ */
+function OrbitingPlanet({ playing = false }) {
+  return (
+    <div
+      aria-hidden="true"
+      style={{
+        position: "relative",
+        width: "100%",
+        height: "100%",
+        perspective: 900,
+        animation: playing
+          ? "planetBreathe 3.6s ease-in-out infinite"
+          : "planetBreathe 5.5s ease-in-out infinite",
+      }}
+    >
+      <div style={{
+        position: "absolute",
+        inset: "8%",
+        borderRadius: "50%",
+        background: `
+          radial-gradient(circle at 38% 32%, rgba(242,243,245,0.22) 0%, transparent 42%),
+          radial-gradient(circle at 50% 50%, rgba(242,243,245,0.08) 0%, transparent 68%)
+        `,
+        filter: "blur(2px)",
+      }}/>
+
+      <div style={{
+        position: "absolute",
+        left: "50%",
+        top: "50%",
+        width: "42%",
+        height: "42%",
+        transform: "translate(-50%, -50%)",
+        borderRadius: "50%",
+        background: `
+          radial-gradient(circle at 34% 28%, #3A3A40 0%, #16161A 48%, #050506 100%)
+        `,
+        boxShadow: `
+          inset -10px -14px 28px rgba(0,0,0,0.65),
+          inset 8px 10px 18px rgba(242,243,245,0.12),
+          0 0 40px rgba(242,243,245,0.12),
+          0 0 80px rgba(242,243,245,0.06)
+        `,
+      }}>
+        <div style={{
+          position: "absolute",
+          left: "12%", right: "12%", top: "42%",
+          height: "14%",
+          borderRadius: "50%",
+          background: "linear-gradient(90deg, transparent, rgba(242,243,245,0.1), transparent)",
+          opacity: 0.7,
+        }}/>
+      </div>
+
+      <div style={{
+        position: "absolute",
+        left: "4%",
+        top: "33%",
+        width: "92%",
+        height: "34%",
+        transformStyle: "preserve-3d",
+        animation: "planetTiltSpin 18s linear infinite",
+      }}>
+        <div style={{
+          position: "absolute",
+          inset: 0,
+          borderRadius: "50%",
+          border: "1.5px solid rgba(242,243,245,0.55)",
+          boxShadow: `
+            0 0 12px rgba(242,243,245,0.2),
+            inset 0 0 12px rgba(242,243,245,0.08)
+          `,
+        }}/>
+        <div style={{
+          position: "absolute",
+          left: "6%", right: "6%", top: "18%", bottom: "18%",
+          borderRadius: "50%",
+          border: "1px solid rgba(242,243,245,0.18)",
+        }}/>
+        <div style={{
+          position: "absolute",
+          top: "50%",
+          left: 0,
+          width: 7,
+          height: 7,
+          marginTop: -3.5,
+          marginLeft: -3.5,
+          borderRadius: "50%",
+          background: color.accent,
+          animation: "orbitPulse 2.4s ease-in-out infinite",
+        }}/>
+      </div>
+
+      <div style={{
+        position: "absolute",
+        left: "50%",
+        top: "50%",
+        width: "108%",
+        height: "108%",
+        marginLeft: "-54%",
+        marginTop: "-54%",
+        borderRadius: "50%",
+        border: "1px dashed rgba(242,243,245,0.08)",
+        animation: "planetRing 90s linear infinite",
+      }}/>
+    </div>
+  );
+}
+
+/** Brand atmosphere — animated planet as the dominant visual plane. */
+function HeroAtmosphere({ playing = false }) {
   return (
     <div aria-hidden="true" style={{ position: "absolute", inset: 0, overflow: "hidden" }}>
-      {/* Deep space base */}
       <div style={{
         position: "absolute", inset: 0,
         background: `
-          radial-gradient(ellipse 120% 90% at 82% -20%, rgba(242,243,245,0.07) 0%, transparent 52%),
-          radial-gradient(ellipse 90% 70% at 12% 118%, rgba(242,243,245,0.05) 0%, transparent 48%),
+          radial-gradient(ellipse 100% 80% at 70% 35%, rgba(242,243,245,0.06) 0%, transparent 55%),
+          radial-gradient(ellipse 70% 50% at 20% 90%, rgba(242,243,245,0.04) 0%, transparent 50%),
           #000000
         `,
       }}/>
-      {/* Planet horizon — huge arc cresting the bottom */}
-      <div style={{
-        position: "absolute",
-        left: "50%",
-        bottom: "-82vw",
-        width: "160vw",
-        height: "160vw",
-        minWidth: 900,
-        minHeight: 900,
-        transform: "translateX(-50%)",
-        borderRadius: "50%",
-        background: "radial-gradient(circle at 50% 18%, #17171B 0%, #0B0B0D 42%, #000 78%)",
-        boxShadow: `
-          0 -1px 0 rgba(242,243,245,0.28),
-          0 -18px 60px rgba(242,243,245,0.10),
-          0 -60px 160px rgba(242,243,245,0.05)
-        `,
-      }}/>
-      {/* Orbit ring — slow drift, echoes the logo */}
-      <div style={{
-        position: "absolute",
-        left: "50%",
-        bottom: "-86vw",
-        width: "172vw",
-        height: "172vw",
-        minWidth: 980,
-        minHeight: 980,
-        transform: "translateX(-50%)",
-        borderRadius: "50%",
-        border: "1px solid rgba(242,243,245,0.14)",
-        animation: "spin 240s linear infinite",
-      }}>
-        {/* Satellite node on the ring */}
-        <div style={{
-          position: "absolute", top: "1.2%", left: "50%",
-          width: 7, height: 7, borderRadius: "50%",
-          transform: "translateX(-50%)",
-          background: color.accent,
-          boxShadow: `0 0 12px ${color.accentGlow}, 0 0 4px ${color.accent}`,
-        }}/>
-      </div>
-      {/* Second, fainter orbit */}
-      <div style={{
-        position: "absolute",
-        left: "50%",
-        bottom: "-92vw",
-        width: "184vw",
-        height: "184vw",
-        minWidth: 1060,
-        minHeight: 1060,
-        transform: "translateX(-50%)",
-        borderRadius: "50%",
-        border: "1px dashed rgba(242,243,245,0.06)",
-      }}/>
-      {/* Starfield — sparse pinpoints */}
+
       <div style={{
         position: "absolute", inset: 0,
         backgroundImage: `
@@ -441,14 +517,40 @@ function HeroAtmosphere() {
           radial-gradient(circle at 62% 34%, rgba(242,243,245,0.28) 0 0.8px, transparent 1.2px),
           radial-gradient(circle at 32% 8%, rgba(242,243,245,0.32) 0 0.8px, transparent 1.2px),
           radial-gradient(circle at 90% 42%, rgba(242,243,245,0.22) 0 0.8px, transparent 1.2px),
-          radial-gradient(circle at 45% 22%, rgba(242,243,245,0.18) 0 0.7px, transparent 1px)
+          radial-gradient(circle at 45% 22%, rgba(242,243,245,0.18) 0 0.7px, transparent 1px),
+          radial-gradient(circle at 18% 55%, rgba(242,243,245,0.2) 0 0.7px, transparent 1px),
+          radial-gradient(circle at 88% 68%, rgba(242,243,245,0.16) 0 0.7px, transparent 1px)
         `,
-        opacity: 0.9,
+        opacity: 0.85,
       }}/>
-      {/* Foot fade into the library plane */}
+
       <div style={{
-        position: "absolute", left: 0, right: 0, bottom: 0, height: 110,
-        background: "linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.72) 70%, #000 100%)",
+        position: "absolute",
+        right: "-8%",
+        top: "50%",
+        transform: "translateY(-58%)",
+        width: "min(92vw, 520px)",
+        height: "min(92vw, 520px)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        opacity: 0.95,
+        pointerEvents: "none",
+      }}>
+        <OrbitingPlanet playing={playing} />
+      </div>
+
+      <div style={{
+        position: "absolute", inset: 0,
+        background: `
+          linear-gradient(90deg, rgba(0,0,0,0.72) 0%, rgba(0,0,0,0.35) 42%, transparent 72%),
+          linear-gradient(180deg, rgba(0,0,0,0.25) 0%, transparent 28%, transparent 55%, rgba(0,0,0,0.85) 100%)
+        `,
+      }}/>
+
+      <div style={{
+        position: "absolute", left: 0, right: 0, bottom: 0, height: 120,
+        background: "linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.8) 70%, #000 100%)",
       }}/>
     </div>
   );
@@ -461,139 +563,174 @@ function DeepCutsCard({
   const live = isRadioMode && currentTrack;
   const canStart = !playDisabled;
   const lane = mixLaneById(mixLane);
+  const playingVisual = !!(live && isPlaying);
 
   return (
     <div
       style={{
         position: "relative",
-        minHeight: "min(68vh, 560px)",
+        minHeight: "min(72vh, 580px)",
         background: color.canvas,
         overflow: "hidden",
         animation: "stationIn 0.75s cubic-bezier(0.22,1,0.36,1) both",
       }}
     >
-      <HeroAtmosphere />
+      <HeroAtmosphere playing={playingVisual} />
 
+      {/* Overlay — radio deck only (brand = animated planet, no wordmark) */}
       <div style={{
         position: "relative", zIndex: 1,
-        minHeight: "min(68vh, 560px)",
+        minHeight: "min(72vh, 580px)",
         display: "flex", flexDirection: "column",
         justifyContent: "flex-end",
-        padding: `48px ${homeSpace.gutter}px 56px`,
-        maxWidth: 640,
+        padding: `40px ${homeSpace.gutter}px 52px`,
+        maxWidth: 560,
       }}>
-        {/* Eyebrow — glyph + live status */}
-        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 20 }}>
-          <BrandGlyph size={26} title="" />
+        <div style={{ marginBottom: 18 }}>
           {live ? (
             <div style={{
-              display: "inline-flex", alignItems: "center", gap: 7,
-              padding: "5px 12px", borderRadius: 980,
-              border: `1px solid ${glass.borderSoft}`,
-              background: "rgba(255,255,255,0.05)",
+              display: "inline-flex", alignItems: "center", gap: 8,
+              padding: "6px 12px 6px 10px", borderRadius: 980,
+              border: `1px solid ${glass.border}`,
+              background: "rgba(0,0,0,0.45)",
               backdropFilter: glass.blurSoft,
               WebkitBackdropFilter: glass.blurSoft,
+              boxShadow: `inset 0 1px 0 ${glass.highlight}`,
             }}>
               <span style={{
-                width: 6, height: 6, borderRadius: "50%",
+                width: 7, height: 7, borderRadius: "50%",
                 background: color.accent,
-                animation: "pulse 1.4s ease-in-out infinite",
+                animation: isPlaying ? "pulse 1.4s ease-in-out infinite" : "none",
+                boxShadow: `0 0 10px ${color.accentGlow}`,
               }}/>
               <span style={{
-                fontSize: 11, fontWeight: 700, letterSpacing: 1.4,
+                fontSize: 11, fontWeight: 700, letterSpacing: 1.5,
                 textTransform: "uppercase", color: color.ink, fontFamily: fontMono,
               }}>
                 On air · {lane.label}
               </span>
             </div>
           ) : (
-            <span style={{
-              fontSize: 11, fontWeight: 700, letterSpacing: 1.8,
-              textTransform: "uppercase", color: color.faint, fontFamily: fontMono,
+            <div style={{
+              display: "inline-flex", alignItems: "center", gap: 8,
+              padding: "6px 12px", borderRadius: 980,
+              border: `1px solid ${glass.borderFaint}`,
+              background: "rgba(255,255,255,0.04)",
             }}>
-              {signalLabel || "Live radio"}
-            </span>
+              <span style={{
+                width: 6, height: 6, borderRadius: "50%",
+                background: color.faint,
+              }}/>
+              <span style={{
+                fontSize: 11, fontWeight: 650, letterSpacing: 1.6,
+                textTransform: "uppercase", color: color.faint, fontFamily: fontMono,
+              }}>
+                {signalLabel || "Ready"}
+              </span>
+            </div>
           )}
         </div>
 
-        {/* Wordmark */}
-        <h1 style={{
-          margin: 0,
-          fontSize: "clamp(40px, 10vw, 64px)",
-          fontWeight: 800, letterSpacing: -2, lineHeight: 0.98,
-          color: color.onDark, fontFamily: fontDisplay,
-          marginBottom: 10,
-        }}>
-          {BRAND_NAME}
-        </h1>
-
-        {/* Tagline / now playing */}
-        {live ? (
+        {live && (
           <div style={{
-            fontSize: 16, color: color.onDarkMuted, marginBottom: 26,
-            lineHeight: 1.45, maxWidth: 380, fontWeight: 500,
+            marginBottom: 28,
             animation: "trackSwap 0.4s ease both",
+            maxWidth: 420,
           }}>
-            <span style={{ color: color.ink, fontWeight: 650 }}>{currentTrack.title}</span>
-            <span style={{ color: color.faint }}>  ·  {currentTrack.artist}</span>
-          </div>
-        ) : (
-          <BrandTagline light style={{ marginBottom: 26 }} />
-        )}
-
-        {/* Mix selector — one segmented control */}
-        <MixLanePicker
-          mixLane={mixLane}
-          onMixLaneChange={onMixLaneChange}
-          disabled={live}
-        />
-
-        {/* Primary action row */}
-        {live ? (
-          <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-            <button type="button" className="play-primary" aria-label={isPlaying ? "Pause" : "Play"}
-              onClick={onTogglePlay}
-              style={{
-                width: 60, height: 60, borderRadius: "50%",
-                background: color.accent, border: "none",
-                display: "flex", alignItems: "center", justifyContent: "center",
-                color: color.onAccent, cursor: "pointer", flexShrink: 0,
-                boxShadow: `0 0 0 1px rgba(242,243,245,0.12), 0 14px 36px rgba(0,0,0,0.5), 0 0 32px ${color.accentGlow}`,
-              }}>
-              <Icon name={isPlaying ? "pause" : "play"} size={22}/>
-            </button>
-            <div style={{ fontSize: 13, color: color.faint, fontWeight: 500, letterSpacing: 0.2 }}>
-              {isPlaying ? "Playing your orbit" : "Paused"}
+            <div style={{
+              fontSize: "clamp(26px, 6.5vw, 36px)",
+              fontWeight: 750, letterSpacing: -1.1, lineHeight: 1.08,
+              color: color.onDark, fontFamily: fontDisplay,
+              marginBottom: 8,
+            }}>
+              {currentTrack.title}
+            </div>
+            <div style={{
+              fontSize: 15, color: color.onDarkMuted, fontWeight: 500,
+              letterSpacing: -0.1,
+            }}>
+              {currentTrack.artist}
             </div>
           </div>
-        ) : (
-          <button type="button" className="play-primary" aria-label={`Play ${lane.label} mix`} disabled={!canStart}
-            onClick={() => { if (canStart) onPlay(); }}
-            style={{
-              display: "inline-flex", alignItems: "center", gap: 12, alignSelf: "flex-start",
-              padding: "16px 30px 16px 22px", borderRadius: 980,
-              background: canStart ? color.accent : color.surfaceRaised,
-              border: "none",
-              color: canStart ? color.onAccent : color.faint,
-              cursor: canStart ? "pointer" : "not-allowed",
-              fontSize: 17, fontWeight: 700, letterSpacing: -0.2,
-              fontFamily: fontDisplay,
-              boxShadow: canStart
-                ? `0 0 0 1px rgba(242,243,245,0.14), 0 16px 40px rgba(0,0,0,0.5), 0 0 40px ${color.accentGlow}`
-                : "none",
-              transition: `transform ${motion.fast} ${motion.ease}, box-shadow ${motion.base} ${motion.ease}`,
-            }}>
-            <span style={{
-              width: 34, height: 34, borderRadius: "50%",
-              display: "inline-flex", alignItems: "center", justifyContent: "center",
-              background: canStart ? "rgba(0,0,0,0.14)" : "rgba(255,255,255,0.05)",
-              flexShrink: 0,
-            }}>
-              <Icon name="play" size={15}/>
-            </span>
-            {canStart ? `Play ${lane.label}` : "Library unavailable"}
-          </button>
         )}
+
+        <div style={{
+          display: "flex",
+          flexDirection: "column",
+          gap: 18,
+          alignItems: "flex-start",
+        }}>
+          <MixLanePicker
+            mixLane={mixLane}
+            onMixLaneChange={onMixLaneChange}
+            disabled={live}
+          />
+
+          <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+            {live ? (
+              <button
+                type="button"
+                className="play-primary"
+                aria-label={isPlaying ? "Pause" : "Play"}
+                onClick={onTogglePlay}
+                style={{
+                  width: 68, height: 68, borderRadius: "50%",
+                  background: color.accent, border: "none",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  color: color.onAccent, cursor: "pointer", flexShrink: 0,
+                  animation: isPlaying ? "playGlow 2.8s ease-in-out infinite" : "none",
+                  boxShadow: `0 0 0 1px rgba(242,243,245,0.14), 0 16px 40px rgba(0,0,0,0.5), 0 0 28px ${color.accentGlow}`,
+                  transition: `transform ${motion.fast} ${motion.ease}`,
+                }}
+              >
+                <Icon name={isPlaying ? "pause" : "play"} size={24}/>
+              </button>
+            ) : (
+              <button
+                type="button"
+                className="play-primary"
+                aria-label={`Play ${lane.label}`}
+                disabled={!canStart}
+                onClick={() => { if (canStart) onPlay(); }}
+                style={{
+                  width: 68, height: 68, borderRadius: "50%",
+                  background: canStart ? color.accent : color.surfaceRaised,
+                  border: "none",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  color: canStart ? color.onAccent : color.faint,
+                  cursor: canStart ? "pointer" : "not-allowed",
+                  flexShrink: 0,
+                  boxShadow: canStart
+                    ? `0 0 0 1px rgba(242,243,245,0.16), 0 18px 44px rgba(0,0,0,0.55), 0 0 36px ${color.accentGlow}`
+                    : "none",
+                  transition: `transform ${motion.fast} ${motion.ease}, box-shadow ${motion.base} ${motion.ease}`,
+                }}
+              >
+                <Icon name="play" size={24}/>
+              </button>
+            )}
+
+            <div style={{ minWidth: 0 }}>
+              <div style={{
+                fontSize: 17, fontWeight: 700, letterSpacing: -0.3,
+                color: canStart || live ? color.ink : color.faint,
+                fontFamily: fontDisplay, lineHeight: 1.15,
+              }}>
+                {live
+                  ? (isPlaying ? "Listening" : "Paused")
+                  : (canStart ? "Listen" : "Unavailable")}
+              </div>
+              <div style={{
+                fontSize: 13, color: color.muted, marginTop: 4,
+                fontWeight: 500, letterSpacing: 0.1,
+              }}>
+                {live
+                  ? `${lane.label} · tap to ${isPlaying ? "pause" : "resume"}`
+                  : (canStart ? `${lane.label} radio` : "Library unavailable")}
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
