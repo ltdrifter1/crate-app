@@ -1,31 +1,150 @@
 /**
- * Auth entry — Google first, then email. Single screen (no invite gate).
+ * Auth entry — premium glass threshold. Google first, then email.
  */
 import { useState } from "react";
 import {
-  font, fontDisplay, color, radius,
-  APP_STYLE, INPUT_ST, BTN_PRIMARY, BTN_SECONDARY,
+  font, fontDisplay, fontMono, color, radius,
+  APP_STYLE,
 } from "../../theme";
-import { getFloorPhase } from "../../lib/club";
 import { authErrorMessage } from "../../lib/phone";
-import BrandMark from "../brand/BrandMark";
+import { BrandGlyph } from "../brand/BrandMark";
 import BrandTagline from "../brand/BrandTagline";
-import RoomPosterBackdrop from "../brand/RoomPosterBackdrop";
+import { BRAND_NAME } from "../../theme";
 
 /** Re-enable when Firebase phone + reCAPTCHA are configured for production. */
 const ENABLE_PHONE_SIGN_IN = false;
 
-const methodTab = (active) => ({
-  background: "none",
-  border: "none",
+// ── Glass system for the threshold ─────────────────────────────────────────
+const GLASS_PANEL = {
+  background: "linear-gradient(180deg, rgba(255,255,255,0.085) 0%, rgba(255,255,255,0.035) 100%)",
+  border: "1px solid rgba(255,255,255,0.14)",
+  borderRadius: 26,
+  backdropFilter: "blur(36px) saturate(1.25)",
+  WebkitBackdropFilter: "blur(36px) saturate(1.25)",
+  boxShadow: `
+    inset 0 1px 0 rgba(255,255,255,0.18),
+    inset 0 0 0 0.5px rgba(255,255,255,0.05),
+    0 32px 90px rgba(0,0,0,0.65)
+  `,
+};
+
+const GLASS_BTN = {
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  gap: 10,
+  width: "100%",
+  padding: "15px 20px",
+  borderRadius: 980,
+  border: "1px solid rgba(255,255,255,0.22)",
+  background: "linear-gradient(180deg, rgba(255,255,255,0.17) 0%, rgba(255,255,255,0.07) 100%)",
+  backdropFilter: "blur(24px) saturate(1.3)",
+  WebkitBackdropFilter: "blur(24px) saturate(1.3)",
+  boxShadow: "inset 0 1px 0 rgba(255,255,255,0.3), 0 14px 36px rgba(0,0,0,0.45)",
+  color: color.ink,
+  fontSize: 16,
+  fontWeight: 650,
+  fontFamily: fontDisplay,
+  letterSpacing: -0.2,
   cursor: "pointer",
-  padding: "6px 0",
-  fontSize: 13,
-  fontWeight: active ? 600 : 500,
-  color: active ? color.accent : color.faint,
+  transition: "background 0.2s ease, box-shadow 0.25s ease, transform 0.12s ease",
+};
+
+const GLASS_BTN_QUIET = {
+  ...GLASS_BTN,
+  background: "linear-gradient(180deg, rgba(255,255,255,0.09) 0%, rgba(255,255,255,0.03) 100%)",
+  border: "1px solid rgba(255,255,255,0.13)",
+  boxShadow: "inset 0 1px 0 rgba(255,255,255,0.16), 0 10px 26px rgba(0,0,0,0.35)",
+  fontWeight: 600,
+};
+
+const GLASS_INPUT = {
+  width: "100%",
+  padding: "15px 16px",
+  borderRadius: 16,
+  border: "1px solid rgba(255,255,255,0.12)",
+  background: "rgba(0,0,0,0.3)",
+  color: color.ink,
+  fontSize: 16,
   fontFamily: font,
-  letterSpacing: 0.2,
-});
+  backdropFilter: "blur(16px)",
+  WebkitBackdropFilter: "blur(16px)",
+  boxShadow: "inset 0 1px 0 rgba(255,255,255,0.07)",
+  outline: "none",
+};
+
+/** Planet horizon + orbit — the same world as the Home hero. */
+function ThresholdAtmosphere() {
+  return (
+    <div aria-hidden="true" style={{ position: "absolute", inset: 0, overflow: "hidden" }}>
+      <div style={{
+        position: "absolute", inset: 0,
+        background: `
+          radial-gradient(ellipse 130% 90% at 78% -25%, rgba(242,243,245,0.075) 0%, transparent 55%),
+          radial-gradient(ellipse 100% 70% at 15% 115%, rgba(242,243,245,0.05) 0%, transparent 50%),
+          #000000
+        `,
+      }}/>
+      {/* Planet crest at the foot */}
+      <div style={{
+        position: "absolute",
+        left: "50%",
+        bottom: "-88vw",
+        width: "170vw",
+        height: "170vw",
+        minWidth: 950,
+        minHeight: 950,
+        transform: "translateX(-50%)",
+        borderRadius: "50%",
+        background: "radial-gradient(circle at 50% 16%, #16161A 0%, #0A0A0C 44%, #000 78%)",
+        boxShadow: `
+          0 -1px 0 rgba(242,243,245,0.26),
+          0 -20px 70px rgba(242,243,245,0.09),
+          0 -70px 180px rgba(242,243,245,0.045)
+        `,
+      }}/>
+      {/* Orbit ring drifting slowly */}
+      <div style={{
+        position: "absolute",
+        left: "50%",
+        bottom: "-92vw",
+        width: "182vw",
+        height: "182vw",
+        minWidth: 1030,
+        minHeight: 1030,
+        transform: "translateX(-50%)",
+        borderRadius: "50%",
+        border: "1px solid rgba(242,243,245,0.12)",
+        animation: "spin 260s linear infinite",
+      }}>
+        <div style={{
+          position: "absolute", top: "1.4%", left: "50%",
+          width: 6, height: 6, borderRadius: "50%",
+          transform: "translateX(-50%)",
+          background: color.accent,
+          boxShadow: `0 0 12px ${color.accentGlow}, 0 0 4px ${color.accent}`,
+        }}/>
+      </div>
+      {/* Starfield */}
+      <div style={{
+        position: "absolute", inset: 0,
+        backgroundImage: `
+          radial-gradient(circle at 12% 16%, rgba(242,243,245,0.5) 0 1px, transparent 1.4px),
+          radial-gradient(circle at 80% 10%, rgba(242,243,245,0.4) 0 1px, transparent 1.4px),
+          radial-gradient(circle at 64% 30%, rgba(242,243,245,0.26) 0 0.8px, transparent 1.2px),
+          radial-gradient(circle at 30% 6%, rgba(242,243,245,0.3) 0 0.8px, transparent 1.2px),
+          radial-gradient(circle at 92% 38%, rgba(242,243,245,0.2) 0 0.8px, transparent 1.2px),
+          radial-gradient(circle at 6% 44%, rgba(242,243,245,0.16) 0 0.7px, transparent 1px)
+        `,
+      }}/>
+      {/* Foot vignette */}
+      <div style={{
+        position: "absolute", left: 0, right: 0, bottom: 0, height: 160,
+        background: "linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.6) 70%, #000 100%)",
+      }}/>
+    </div>
+  );
+}
 
 export default function LoginScreen({
   onSignUp,
@@ -37,7 +156,7 @@ export default function LoginScreen({
   authError = null,
   onClearAuthError,
 }) {
-  const [method, setMethod] = useState("email");
+  const [method] = useState("email");
   const [mode, setMode] = useState("login");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -51,24 +170,14 @@ export default function LoginScreen({
   const [confirmResult, setConfirmResult] = useState(null);
   const [phoneStep, setPhoneStep] = useState("enter");
   const [showPass, setShowPass] = useState(false);
+  const [showEmail, setShowEmail] = useState(false);
 
-  const floor = getFloorPhase();
-  const thresholdAtmosphere = floor?.id || "warmup";
   const displayError = error || (authError ? authErrorMessage(authError) : "");
 
   function resetMessages() {
     setError("");
     setNotice("");
     onClearAuthError?.();
-  }
-
-  function switchMethod(next) {
-    if (!ENABLE_PHONE_SIGN_IN && next === "phone") return;
-    setMethod(next);
-    resetMessages();
-    setPhoneStep("enter");
-    setOtp("");
-    setConfirmResult(null);
   }
 
   async function handleGoogleSignIn() {
@@ -179,73 +288,69 @@ export default function LoginScreen({
   }
 
   return (
-    <div style={{ ...APP_STYLE, position: "relative", justifyContent: "flex-end" }}>
-      <RoomPosterBackdrop
-        atmosphere={thresholdAtmosphere}
-        minHeight="100%"
-        style={{ position: "absolute", inset: 0, minHeight: "100%" }}
-      />
+    <div style={{ ...APP_STYLE, position: "relative", justifyContent: "center", minHeight: "100vh" }}>
+      <ThresholdAtmosphere />
+
       <div
         style={{
           position: "relative",
           zIndex: 1,
           width: "100%",
-          maxWidth: 420,
+          maxWidth: 400,
           margin: "0 auto",
-          padding: "48px 20px 40px",
+          padding: "44px 20px 48px",
           display: "flex",
           flexDirection: "column",
-          gap: 18,
-          animation: "stationIn 0.55s cubic-bezier(0.22,1,0.36,1) both",
+          alignItems: "center",
+          gap: 26,
+          animation: "stationIn 0.7s cubic-bezier(0.22,1,0.36,1) both",
           fontFamily: font,
         }}
       >
-        <div>
-          <div style={{ marginBottom: 10 }}>
-            <BrandMark size={48} light layout="stack" />
+        {/* Brand moment */}
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 14, textAlign: "center" }}>
+          <div style={{
+            width: 84, height: 84, borderRadius: "50%",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            background: "linear-gradient(180deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.03) 100%)",
+            border: "1px solid rgba(255,255,255,0.16)",
+            backdropFilter: "blur(24px)",
+            WebkitBackdropFilter: "blur(24px)",
+            boxShadow: `inset 0 1px 0 rgba(255,255,255,0.22), 0 18px 50px rgba(0,0,0,0.5), 0 0 60px ${color.accentGlow}`,
+            position: "relative",
+          }}>
+            <BrandGlyph size={44} title="" />
           </div>
-          <BrandTagline light size={12} style={{ color: color.onDarkMuted, marginBottom: 8 }} />
-          <div style={{ fontSize: 15, color: color.body, lineHeight: 1.5, maxWidth: 320 }}>
-            {mode === "signup"
-              ? "Create an account to start listening."
-              : "Sign in to continue."}
+          <div>
+            <div style={{
+              fontSize: "clamp(34px, 9vw, 44px)",
+              fontWeight: 800,
+              letterSpacing: -1.4,
+              lineHeight: 1,
+              color: color.ink,
+              fontFamily: fontDisplay,
+              marginBottom: 10,
+            }}>
+              {BRAND_NAME}
+            </div>
+            <BrandTagline light size={11} style={{ textAlign: "center", maxWidth: "none", color: color.onDarkMuted }} />
           </div>
         </div>
 
-        <div
-          style={{
-            width: "100%",
-            display: "flex",
-            flexDirection: "column",
-            gap: 12,
-            padding: "18px 16px 16px",
-            background: color.surfaceSolid,
-            border: `1px solid ${color.line}`,
-            borderRadius: radius.lg,
-          }}
-        >
+        {/* Glass threshold card */}
+        <div style={{ ...GLASS_PANEL, width: "100%", padding: "22px 18px 20px", display: "flex", flexDirection: "column", gap: 12 }}>
           <button
             type="button"
             onClick={handleGoogleSignIn}
             disabled={loading}
             style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: 10,
-              width: "100%",
-              padding: "14px 20px",
-              borderRadius: 980,
-              border: "none",
-              background: color.accent,
-              cursor: loading ? "wait" : "pointer",
+              ...GLASS_BTN,
               opacity: loading ? 0.7 : 1,
+              cursor: loading ? "wait" : "pointer",
             }}
           >
             <GoogleMark />
-            <span style={{ fontSize: 16, fontWeight: 600, color: color.onAccent }}>
-              {loading && notice?.includes("Google") ? "Connecting…" : "Continue with Google"}
-            </span>
+            {loading && notice?.includes("Google") ? "Connecting…" : "Continue with Google"}
           </button>
 
           {(displayError || notice) && (
@@ -253,73 +358,39 @@ export default function LoginScreen({
               role={displayError ? "alert" : "status"}
               style={{
                 fontSize: 13,
-                color: displayError ? color.alert : color.body,
-                background: displayError ? "rgba(234,231,220,0.08)" : color.canvas,
-                border: `1px solid ${displayError ? color.lineStrong : color.line}`,
+                color: displayError ? color.ink : color.body,
+                background: displayError ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.3)",
+                border: `1px solid ${displayError ? "rgba(255,255,255,0.2)" : "rgba(255,255,255,0.09)"}`,
                 borderRadius: radius.md,
                 padding: "12px 14px",
                 lineHeight: 1.45,
+                backdropFilter: "blur(12px)",
+                WebkitBackdropFilter: "blur(12px)",
               }}
             >
               {displayError || notice}
             </div>
           )}
 
-          <div style={{ display: "flex", alignItems: "center", gap: 10, margin: "2px 0" }}>
-            <div style={{ flex: 1, height: 1, background: color.line }} />
-            <span style={{ fontSize: 12, color: color.faint, letterSpacing: 0.2 }}>or email</span>
-            <div style={{ flex: 1, height: 1, background: color.line }} />
-          </div>
-
-          {ENABLE_PHONE_SIGN_IN && (
-            <div style={{ display: "flex", gap: 18 }}>
-              {[
-                { id: "email", label: "Email" },
-                { id: "phone", label: "Phone" },
-              ].map((item) => (
-                <button
-                  key={item.id}
-                  type="button"
-                  onClick={() => switchMethod(item.id)}
-                  style={methodTab(method === item.id)}
-                >
-                  {item.label}
-                </button>
-              ))}
-            </div>
-          )}
-
-          {method === "email" && (
+          {!showEmail ? (
+            <button
+              type="button"
+              onClick={() => { resetMessages(); setShowEmail(true); }}
+              style={GLASS_BTN_QUIET}
+            >
+              Continue with email
+            </button>
+          ) : (
             <>
-              <div style={{ display: "flex", gap: 16, borderBottom: `1px solid ${color.line}` }}>
-                {[
-                  { id: "login", label: "Log in" },
-                  { id: "signup", label: "Create account" },
-                ].map((m) => (
-                  <button
-                    key={m.id}
-                    type="button"
-                    onClick={() => {
-                      setMode(m.id);
-                      resetMessages();
-                      setPass2("");
-                    }}
-                    style={{
-                      background: "none",
-                      border: "none",
-                      cursor: "pointer",
-                      padding: "8px 0 10px",
-                      fontSize: 14,
-                      fontWeight: mode === m.id ? 700 : 500,
-                      fontFamily: fontDisplay,
-                      letterSpacing: -0.2,
-                      color: mode === m.id ? color.ink : color.faint,
-                      borderBottom: mode === m.id ? `2px solid ${color.accent}` : "2px solid transparent",
-                    }}
-                  >
-                    {m.label}
-                  </button>
-                ))}
+              <div style={{ display: "flex", alignItems: "center", gap: 10, margin: "4px 0 2px" }}>
+                <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.1)" }} />
+                <span style={{
+                  fontSize: 10, color: color.faint, letterSpacing: 1.6,
+                  fontFamily: fontMono, textTransform: "uppercase",
+                }}>
+                  {mode === "signup" ? "Create account" : "Sign in with email"}
+                </span>
+                <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.1)" }} />
               </div>
 
               {mode === "signup" && (
@@ -327,7 +398,7 @@ export default function LoginScreen({
                   placeholder="Display name"
                   aria-label="Display name"
                   autoComplete="nickname"
-                  style={INPUT_ST}
+                  style={GLASS_INPUT}
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                 />
@@ -337,7 +408,7 @@ export default function LoginScreen({
                 type="email"
                 aria-label="Email"
                 autoComplete="email"
-                style={INPUT_ST}
+                style={GLASS_INPUT}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
               />
@@ -347,7 +418,7 @@ export default function LoginScreen({
                   type={showPass ? "text" : "password"}
                   aria-label="Password"
                   autoComplete={mode === "signup" ? "new-password" : "current-password"}
-                  style={{ ...INPUT_ST, paddingRight: 72 }}
+                  style={{ ...GLASS_INPUT, paddingRight: 72 }}
                   value={pass}
                   onChange={(e) => setPass(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && mode === "login" && handleEmailSubmit()}
@@ -357,7 +428,7 @@ export default function LoginScreen({
                   onClick={() => setShowPass((v) => !v)}
                   style={{
                     position: "absolute",
-                    right: 12,
+                    right: 14,
                     top: "50%",
                     transform: "translateY(-50%)",
                     background: "none",
@@ -377,49 +448,69 @@ export default function LoginScreen({
                   type={showPass ? "text" : "password"}
                   aria-label="Confirm password"
                   autoComplete="new-password"
-                  style={INPUT_ST}
+                  style={GLASS_INPUT}
                   value={pass2}
                   onChange={(e) => setPass2(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && handleEmailSubmit()}
                 />
               )}
-              {mode === "login" && (
-                <button
-                  type="button"
-                  onClick={handleForgotPassword}
-                  disabled={loading}
-                  style={{
-                    alignSelf: "flex-end",
-                    marginTop: -4,
-                    background: "none",
-                    border: "none",
-                    cursor: "pointer",
-                    color: color.muted,
-                    fontWeight: 600,
-                    fontSize: 12,
-                  }}
-                >
-                  Forgot password?
-                </button>
-              )}
+
               <button
                 type="button"
                 onClick={handleEmailSubmit}
                 disabled={loading}
-                style={{ ...BTN_SECONDARY, opacity: loading ? 0.7 : 1 }}
+                style={{ ...GLASS_BTN, opacity: loading ? 0.7 : 1 }}
               >
                 {loading
                   ? "Please wait…"
                   : mode === "login"
-                    ? "Sign in with email"
+                    ? "Sign in"
                     : "Create account"}
               </button>
+
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "2px 4px 0" }}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMode(mode === "login" ? "signup" : "login");
+                    resetMessages();
+                    setPass2("");
+                  }}
+                  style={{
+                    background: "none", border: "none", cursor: "pointer",
+                    color: color.body, fontWeight: 600, fontSize: 12.5,
+                  }}
+                >
+                  {mode === "login" ? "New here? Create account" : "Have an account? Sign in"}
+                </button>
+                {mode === "login" && (
+                  <button
+                    type="button"
+                    onClick={handleForgotPassword}
+                    disabled={loading}
+                    style={{
+                      background: "none", border: "none", cursor: "pointer",
+                      color: color.faint, fontWeight: 600, fontSize: 12.5,
+                    }}
+                  >
+                    Forgot password?
+                  </button>
+                )}
+              </div>
             </>
           )}
 
           {ENABLE_PHONE_SIGN_IN && method === "phone" && (
             <div id="recaptcha-container" aria-hidden="true" />
           )}
+        </div>
+
+        {/* Quiet footer */}
+        <div style={{
+          fontSize: 10.5, color: color.faint, letterSpacing: 1.4,
+          fontFamily: fontMono, textTransform: "uppercase", textAlign: "center",
+        }}>
+          Ad-free listening · Curated by humans
         </div>
       </div>
     </div>
