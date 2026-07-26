@@ -5,11 +5,12 @@ import { useEffect, useState } from "react";
 import {
   font, fontDisplay, fontMono, color, radius,
   APP_STYLE, INPUT_ST, BTN_PRIMARY, BTN_SECONDARY,
-  BRAND_NAME, BRAND_TAGLINE,
+  BRAND_NAME,
 } from "../../theme";
 import { getFloorPhase } from "../../lib/club";
 import { authErrorMessage, normalizePhoneE164, phoneHint } from "../../lib/phone";
 import BrandMark, { BrandGlyph as DoorGlyph } from "../brand/BrandMark";
+import BrandTagline from "../brand/BrandTagline";
 import RoomPosterBackdrop from "../brand/RoomPosterBackdrop";
 
 const methodTab = (active) => ({
@@ -230,17 +231,7 @@ export default function LoginScreen({
                 {BRAND_NAME}
               </div>
             </div>
-            <p
-              style={{
-                fontSize: 17,
-                color: color.body,
-                lineHeight: 1.5,
-                maxWidth: 300,
-                marginBottom: 28,
-              }}
-            >
-              {BRAND_TAGLINE}
-            </p>
+            <BrandTagline light size={12} style={{ color: color.onDarkMuted, marginBottom: 28 }} />
             <button
               type="button"
               onClick={handleGoogleSignIn}

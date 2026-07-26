@@ -33,6 +33,7 @@ import ArtistPage, { AlbumPage } from "./components/catalog/ArtistPage";
 import LinerNotesSheet from "./components/catalog/LinerNotesSheet";
 import LoginScreen from "./components/auth/LoginScreen";
 import BrandMark, { BrandGlyph as DoorGlyph } from "./components/brand/BrandMark";
+import BrandTagline from "./components/brand/BrandTagline";
 
 const injectStyles = () => {
   if (document.getElementById("rooms-app-global-styles")) return;
@@ -392,16 +393,16 @@ function DeepCutsCard({
         }}>
           {BRAND_NAME}
         </div>
-        <div style={{
-          fontSize: 16, color: "rgba(234,231,220,0.78)", marginBottom: 16,
-          lineHeight: 1.45, maxWidth: 320, fontWeight: 500,
-          letterSpacing: 0.6,
-          textTransform: "uppercase",
-        }}>
-          {live
-            ? `${currentTrack.title} · ${currentTrack.artist}`
-            : BRAND_TAGLINE}
-        </div>
+        {!live ? (
+          <BrandTagline light style={{ marginBottom: 16 }} />
+        ) : (
+          <div style={{
+            fontSize: 16, color: color.onDarkMuted, marginBottom: 16,
+            lineHeight: 1.45, maxWidth: 320, fontWeight: 500,
+          }}>
+            {`${currentTrack.title} · ${currentTrack.artist}`}
+          </div>
+        )}
 
         <MixLanePicker
           mixLane={mixLane}

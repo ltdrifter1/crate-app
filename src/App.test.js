@@ -2,7 +2,7 @@ import { color, font, fontDisplay, ADMIN_UID, timeOfDayGradient, BRAND_TAGLINE }
 
 test('theme exports core tokens', () => {
   expect(color.ink).toBeTruthy();
-  expect(color.accent).toMatch(/#EAE7DC/i);
+  expect(color.accent).toMatch(/#F2F3F5/i);
   expect(color.onAccent).toMatch(/#000000/i);
   expect(color.canvas).toMatch(/#0/);
   expect(color.alert).not.toMatch(/#FF|#FA24|#E54/i);

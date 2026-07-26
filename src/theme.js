@@ -8,40 +8,38 @@ export const font =
 export const fontMono =
   '"SF Mono", ui-monospace, Menlo, Monaco, "Courier New", monospace';
 
-/** Brand palette — black + bone cream */
+/** Brand palette — OLED black + cool ice (digital premium) */
 export const color = {
-  ink: "#EAE7DC",
-  body: "#B8B4A8",
-  muted: "#8E8A80",
-  faint: "#5C5952",
-  line: "rgba(234, 231, 220, 0.10)",
-  lineStrong: "rgba(234, 231, 220, 0.18)",
-  surface: "rgba(234, 231, 220, 0.045)",
-  surfaceSolid: "#141412",
-  surfaceRaised: "#1C1C1A",
+  ink: "#F2F3F5",
+  body: "#B4B8C0",
+  muted: "#8A8F98",
+  faint: "#565A62",
+  line: "rgba(255, 255, 255, 0.08)",
+  lineStrong: "rgba(255, 255, 255, 0.16)",
+  surface: "rgba(255, 255, 255, 0.04)",
+  surfaceSolid: "#0D0D0F",
+  surfaceRaised: "#16161A",
   canvas: "#000000",
-  canvasEdge: "#0A0A0A",
-  // Bone cream — singular neutral accent (logo foreground)
-  accent: "#EAE7DC",
-  accentSoft: "rgba(234, 231, 220, 0.14)",
-  accentGlow: "rgba(234, 231, 220, 0.22)",
+  canvasEdge: "#050506",
+  accent: "#F2F3F5",
+  accentSoft: "rgba(242, 243, 245, 0.12)",
+  accentGlow: "rgba(242, 243, 245, 0.2)",
   onAccent: "#000000",
-  onDark: "#EAE7DC",
-  onDarkMuted: "rgba(234,231,220,0.55)",
-  // Neutral alert — no red
-  alert: "#C4BFB0",
-  station: "#0A0A0A",
+  onDark: "#F2F3F5",
+  onDarkMuted: "rgba(242,243,245,0.58)",
+  alert: "#B8BCC4",
+  station: "#0A0A0C",
 };
 
-/** Subtle glass — translucent fills, soft bone edge. */
+/** Subtle glass — cool digital edge. */
 export const glass = {
-  fill: "rgba(234, 231, 220, 0.055)",
-  fillStrong: "rgba(234, 231, 220, 0.09)",
-  fillQuiet: "rgba(234, 231, 220, 0.035)",
-  border: "rgba(234, 231, 220, 0.16)",
-  borderSoft: "rgba(234, 231, 220, 0.10)",
-  borderFaint: "rgba(234, 231, 220, 0.06)",
-  highlight: "rgba(234, 231, 220, 0.20)",
+  fill: "rgba(255, 255, 255, 0.05)",
+  fillStrong: "rgba(255, 255, 255, 0.085)",
+  fillQuiet: "rgba(255, 255, 255, 0.03)",
+  border: "rgba(255, 255, 255, 0.14)",
+  borderSoft: "rgba(255, 255, 255, 0.09)",
+  borderFaint: "rgba(255, 255, 255, 0.05)",
+  highlight: "rgba(255, 255, 255, 0.22)",
   blur: "blur(24px) saturate(1.15)",
   blurSoft: "blur(16px) saturate(1.1)",
   shadow: "0 12px 40px rgba(0, 0, 0, 0.32)",
@@ -94,7 +92,7 @@ export function sectionRule(inset = homeSpace.gutter) {
     margin: `0 ${inset}px`,
     border: "none",
     background:
-      "linear-gradient(90deg, transparent 0%, rgba(234,231,220,0.12) 18%, rgba(234,231,220,0.16) 50%, rgba(234,231,220,0.12) 82%, transparent 100%)",
+      "linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.1) 18%, rgba(255,255,255,0.14) 50%, rgba(255,255,255,0.1) 82%, transparent 100%)",
   };
 }
 
@@ -186,9 +184,9 @@ export const CTRL_BTN = {
   justifyContent: "center",
 };
 
-/** Product brand. */
+/** Product brand — tagline + name. */
+export { BRAND_TAGLINE, ACTIVE_BRAND_DIRECTION } from "./brand/identity";
 export const BRAND_NAME = "ROOMS";
-export const BRAND_TAGLINE = "YOUR WORLD, YOUR MUSIC.";
 
 /** Admin UID — keep in sync with firestore.rules until custom claims exist. */
 export const ADMIN_UID = "5lPAI9N1jkMbVkUyIqLTqBvBf1t1";
