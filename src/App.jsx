@@ -9,7 +9,7 @@ import {
   font, fontDisplay, fontMono, color, radius, motion, timeOfDayGradient,
   glass, glassControl, homeSpace, sectionRule,
   APP_STYLE, INPUT_ST, BTN_PRIMARY, BTN_SECONDARY, CTRL_BTN, ADMIN_UID,
-  BRAND_NAME, BRAND_TAGLINE,
+  BRAND_NAME, BRAND_TAGLINE, brandStoragePrefix,
 } from "./theme";
 import { camelotCompatible, getEnergyRangeForHour, fmtTime, hexToRgbStr } from "./lib/harmony";
 import {
@@ -3200,7 +3200,7 @@ export default function App() {
   const [linerTrack, setLinerTrack] = useState(null);
   const [mixLane, setMixLane] = useState(() => {
     try {
-      const saved = localStorage.getItem("rooms.mixLane");
+      const saved = localStorage.getItem(`${brandStoragePrefix()}.mixLane`);
       return mixLaneById(saved).id;
     } catch {
       return "main";
@@ -3209,7 +3209,7 @@ export default function App() {
   const volumeRef = useRef(1);
   useEffect(() => { volumeRef.current = volume; }, [volume]);
   useEffect(() => {
-    try { localStorage.setItem("rooms.mixLane", mixLane); } catch { /* ignore */ }
+    try { localStorage.setItem(`${brandStoragePrefix()}.mixLane`, mixLane); } catch { /* ignore */ }
   }, [mixLane]);
 
   const radioPool = useCallback(() => {

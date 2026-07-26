@@ -1,16 +1,16 @@
 /**
- * Brand lockup — direction-aware digital mark + ROOMS wordmark.
+ * Brand lockup — direction-aware digital mark + product wordmark.
  */
 import { fontDisplay, color, BRAND_NAME } from "../../theme";
-import { ACTIVE_BRAND_DIRECTION, activeBrandDirection } from "../../brand/identity";
+import { ACTIVE_BRAND_DIRECTION, activeBrandDirection, activeBrandName } from "../../brand/identity";
 import { BrandGlyphByDirection } from "./BrandGlyphs";
+import { LumenGlyph } from "./BrandGlyphs";
 
 export function BrandGlyph({
   size = 28,
   color: stroke = color.accent,
   title = BRAND_NAME,
   direction = ACTIVE_BRAND_DIRECTION,
-  /** @deprecated use direction — legacy inverse unused in digital set */
   variant,
   filled,
   fill,
@@ -18,12 +18,16 @@ export function BrandGlyph({
   void variant;
   void filled;
   void fill;
+  const name = activeBrandName();
+  if (name.mark === "letter-r") {
+    return <LumenGlyph size={size} stroke={stroke} title={title || name.name} />;
+  }
   return (
     <BrandGlyphByDirection
       direction={direction}
       size={size}
       stroke={stroke}
-      title={title}
+      title={title || name.name}
     />
   );
 }

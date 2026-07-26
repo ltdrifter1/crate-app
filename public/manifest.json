@@ -1,6 +1,7 @@
 {
-  "short_name": "ROOMS",
-  "name": "ROOMS",
+  "short_name": "RESONANCE",
+  "name": "RESONANCE",
+  "description": "YOUR WORLD, YOUR MUSIC.",
   "icons": [
     {
       "src": "favicon.svg",

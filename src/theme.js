@@ -184,9 +184,15 @@ export const CTRL_BTN = {
   justifyContent: "center",
 };
 
-/** Product brand — tagline + name. */
-export { BRAND_TAGLINE, ACTIVE_BRAND_DIRECTION } from "./brand/identity";
-export const BRAND_NAME = "ROOMS";
+/** Product brand — name + tagline from identity config. */
+export {
+  BRAND_NAME,
+  BRAND_TAGLINE,
+  ACTIVE_BRAND_NAME_KEY,
+  BRAND_NAME_OPTIONS,
+  activeBrandName,
+  brandStoragePrefix,
+} from "./brand/identity";
 
 /** Admin UID — keep in sync with firestore.rules until custom claims exist. */
 export const ADMIN_UID = "5lPAI9N1jkMbVkUyIqLTqBvBf1t1";
