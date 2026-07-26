@@ -6,7 +6,7 @@ import { toggleLike as fbToggleLike, recordPlay, completeOnboarding } from "./us
 import { collection, getDocs, addDoc, query, orderBy, doc, updateDoc, setDoc } from "firebase/firestore";
 import { db }                                       from "./firebase";
 import {
-  font, fontDisplay, fontMono, color, radius, motion, timeOfDayGradient,
+  font, fontDisplay, fontMono, color, radius, motion,
   glass, glassControl, homeSpace, sectionRule,
   APP_STYLE, INPUT_ST, BTN_PRIMARY, BTN_SECONDARY, CTRL_BTN, ADMIN_UID,
   BRAND_NAME, BRAND_TAGLINE, brandStoragePrefix,
@@ -282,17 +282,28 @@ function BoothHud({ track, size = "md", align = "left" }) {
 }
 
 // ─── RADIO — Listen Now hero (one composition) ────────────────────────────────
+/** Segmented mix selector — one connected control. */
 function MixLanePicker({ mixLane, onMixLaneChange, disabled = false }) {
   return (
     <div
       role="radiogroup"
       aria-label="Choose a mix"
       onClick={(e) => e.stopPropagation()}
+      className="hide-scroll"
       style={{
-        display: "flex",
-        flexWrap: "wrap",
-        gap: 8,
-        marginBottom: 18,
+        display: "inline-flex",
+        alignItems: "center",
+        gap: 4,
+        padding: 4,
+        borderRadius: 980,
+        border: `1px solid ${glass.borderSoft}`,
+        background: "rgba(255,255,255,0.045)",
+        backdropFilter: glass.blur,
+        WebkitBackdropFilter: glass.blur,
+        boxShadow: `inset 0 1px 0 ${glass.borderFaint}`,
+        marginBottom: 28,
+        maxWidth: "100%",
+        overflowX: "auto",
       }}
     >
       {MIX_LANES.map((lane) => {
@@ -306,18 +317,19 @@ function MixLanePicker({ mixLane, onMixLaneChange, disabled = false }) {
             disabled={disabled}
             onClick={() => onMixLaneChange(lane.id)}
             style={{
-              padding: "8px 14px",
+              padding: "9px 16px",
               borderRadius: 980,
-              border: `1px solid ${on ? color.accent : color.line}`,
-              background: on ? color.accentSoft : "rgba(0,0,0,0.35)",
-              color: on ? color.accent : color.onDarkMuted,
+              border: "none",
+              background: on ? color.accent : "transparent",
+              color: on ? color.onAccent : color.onDarkMuted,
               fontSize: 13,
-              fontWeight: on ? 650 : 500,
+              fontWeight: on ? 700 : 500,
               cursor: disabled ? "default" : "pointer",
               fontFamily: font,
-              letterSpacing: 0.2,
-              backdropFilter: "blur(12px)",
-              WebkitBackdropFilter: "blur(12px)",
+              letterSpacing: 0.1,
+              whiteSpace: "nowrap",
+              transition: `background ${motion.base} ${motion.ease}, color ${motion.base} ${motion.ease}`,
+              opacity: disabled && !on ? 0.5 : 1,
             }}
           >
             {lane.label}
@@ -328,130 +340,233 @@ function MixLanePicker({ mixLane, onMixLaneChange, disabled = false }) {
   );
 }
 
+/** Brand-first atmosphere — planet arc + orbit lines, no artwork. */
+function HeroAtmosphere() {
+  return (
+    <div aria-hidden="true" style={{ position: "absolute", inset: 0, overflow: "hidden" }}>
+      {/* Deep space base */}
+      <div style={{
+        position: "absolute", inset: 0,
+        background: `
+          radial-gradient(ellipse 120% 90% at 82% -20%, rgba(242,243,245,0.07) 0%, transparent 52%),
+          radial-gradient(ellipse 90% 70% at 12% 118%, rgba(242,243,245,0.05) 0%, transparent 48%),
+          #000000
+        `,
+      }}/>
+      {/* Planet horizon — huge arc cresting the bottom */}
+      <div style={{
+        position: "absolute",
+        left: "50%",
+        bottom: "-82vw",
+        width: "160vw",
+        height: "160vw",
+        minWidth: 900,
+        minHeight: 900,
+        transform: "translateX(-50%)",
+        borderRadius: "50%",
+        background: "radial-gradient(circle at 50% 18%, #17171B 0%, #0B0B0D 42%, #000 78%)",
+        boxShadow: `
+          0 -1px 0 rgba(242,243,245,0.28),
+          0 -18px 60px rgba(242,243,245,0.10),
+          0 -60px 160px rgba(242,243,245,0.05)
+        `,
+      }}/>
+      {/* Orbit ring — slow drift, echoes the logo */}
+      <div style={{
+        position: "absolute",
+        left: "50%",
+        bottom: "-86vw",
+        width: "172vw",
+        height: "172vw",
+        minWidth: 980,
+        minHeight: 980,
+        transform: "translateX(-50%)",
+        borderRadius: "50%",
+        border: "1px solid rgba(242,243,245,0.14)",
+        animation: "spin 240s linear infinite",
+      }}>
+        {/* Satellite node on the ring */}
+        <div style={{
+          position: "absolute", top: "1.2%", left: "50%",
+          width: 7, height: 7, borderRadius: "50%",
+          transform: "translateX(-50%)",
+          background: color.accent,
+          boxShadow: `0 0 12px ${color.accentGlow}, 0 0 4px ${color.accent}`,
+        }}/>
+      </div>
+      {/* Second, fainter orbit */}
+      <div style={{
+        position: "absolute",
+        left: "50%",
+        bottom: "-92vw",
+        width: "184vw",
+        height: "184vw",
+        minWidth: 1060,
+        minHeight: 1060,
+        transform: "translateX(-50%)",
+        borderRadius: "50%",
+        border: "1px dashed rgba(242,243,245,0.06)",
+      }}/>
+      {/* Starfield — sparse pinpoints */}
+      <div style={{
+        position: "absolute", inset: 0,
+        backgroundImage: `
+          radial-gradient(circle at 12% 18%, rgba(242,243,245,0.5) 0 1px, transparent 1.4px),
+          radial-gradient(circle at 78% 12%, rgba(242,243,245,0.4) 0 1px, transparent 1.4px),
+          radial-gradient(circle at 62% 34%, rgba(242,243,245,0.28) 0 0.8px, transparent 1.2px),
+          radial-gradient(circle at 32% 8%, rgba(242,243,245,0.32) 0 0.8px, transparent 1.2px),
+          radial-gradient(circle at 90% 42%, rgba(242,243,245,0.22) 0 0.8px, transparent 1.2px),
+          radial-gradient(circle at 45% 22%, rgba(242,243,245,0.18) 0 0.7px, transparent 1px)
+        `,
+        opacity: 0.9,
+      }}/>
+      {/* Foot fade into the library plane */}
+      <div style={{
+        position: "absolute", left: 0, right: 0, bottom: 0, height: 110,
+        background: "linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.72) 70%, #000 100%)",
+      }}/>
+    </div>
+  );
+}
+
 function DeepCutsCard({
   onPlay, onTogglePlay, currentTrack, isPlaying, isRadioMode, signalLabel,
   featuredTrack = null, mixLane, onMixLaneChange, playDisabled = false,
 }) {
   const live = isRadioMode && currentTrack;
-  const artTrack = live ? currentTrack : (featuredTrack || currentTrack);
-  const cover = artTrack?.albumCover;
   const canStart = !playDisabled;
+  const lane = mixLaneById(mixLane);
 
   return (
     <div
-      onClick={live || !canStart ? undefined : onPlay}
-      role={live || !canStart ? undefined : "button"}
       style={{
         position: "relative",
-        minHeight: "min(72vh, 580px)",
-        padding: "0",
-        cursor: live || !canStart ? "default" : "pointer",
+        minHeight: "min(68vh, 560px)",
         background: color.canvas,
         overflow: "hidden",
         animation: "stationIn 0.75s cubic-bezier(0.22,1,0.36,1) both",
       }}
     >
-      {/* Full-bleed artwork plane */}
-      <div aria-hidden="true" style={{ position: "absolute", inset: 0 }}>
-        {cover ? (
-          <img
-            src={cover}
-            alt=""
-            style={{
-              width: "100%", height: "100%", objectFit: "cover",
-              transform: "scale(1.04)",
-              filter: live ? "saturate(1.05)" : "saturate(1.08) brightness(0.92)",
-            }}
-            onError={(e) => { e.currentTarget.style.display = "none"; }}
-          />
-        ) : (
-          <div style={{ width: "100%", height: "100%", background: timeOfDayGradient() }} />
-        )}
-        <div style={{
-          position: "absolute", inset: 0,
-          background: "linear-gradient(180deg, rgba(0,0,0,0.22) 0%, rgba(0,0,0,0.42) 36%, rgba(0,0,0,0.82) 72%, #000 100%)",
-        }}/>
-        {/* Soft glass veil at the hero foot — bridges into the library plane */}
-        <div aria-hidden="true" style={{
-          position: "absolute", left: 0, right: 0, bottom: 0, height: 120,
-          background: "linear-gradient(180deg, transparent 0%, rgba(255,255,255,0.03) 55%, rgba(0,0,0,0.55) 100%)",
-          borderBottom: `1px solid ${glass.borderFaint}`,
-        }}/>
-      </div>
+      <HeroAtmosphere />
 
       <div style={{
         position: "relative", zIndex: 1,
-        minHeight: "min(72vh, 580px)",
+        minHeight: "min(68vh, 560px)",
         display: "flex", flexDirection: "column",
         justifyContent: "flex-end",
-        padding: `36px ${homeSpace.gutter}px 64px`,
-        maxWidth: 520,
+        padding: `48px ${homeSpace.gutter}px 56px`,
+        maxWidth: 640,
       }}>
-        <div style={{
-          fontSize: "clamp(34px, 9vw, 48px)",
-          fontWeight: 700, letterSpacing: -1.2, lineHeight: 1,
+        {/* Eyebrow — glyph + live status */}
+        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 20 }}>
+          <BrandGlyph size={26} title="" />
+          {live ? (
+            <div style={{
+              display: "inline-flex", alignItems: "center", gap: 7,
+              padding: "5px 12px", borderRadius: 980,
+              border: `1px solid ${glass.borderSoft}`,
+              background: "rgba(255,255,255,0.05)",
+              backdropFilter: glass.blurSoft,
+              WebkitBackdropFilter: glass.blurSoft,
+            }}>
+              <span style={{
+                width: 6, height: 6, borderRadius: "50%",
+                background: color.accent,
+                animation: "pulse 1.4s ease-in-out infinite",
+              }}/>
+              <span style={{
+                fontSize: 11, fontWeight: 700, letterSpacing: 1.4,
+                textTransform: "uppercase", color: color.ink, fontFamily: fontMono,
+              }}>
+                On air · {lane.label}
+              </span>
+            </div>
+          ) : (
+            <span style={{
+              fontSize: 11, fontWeight: 700, letterSpacing: 1.8,
+              textTransform: "uppercase", color: color.faint, fontFamily: fontMono,
+            }}>
+              {signalLabel || "Live radio"}
+            </span>
+          )}
+        </div>
+
+        {/* Wordmark */}
+        <h1 style={{
+          margin: 0,
+          fontSize: "clamp(40px, 10vw, 64px)",
+          fontWeight: 800, letterSpacing: -2, lineHeight: 0.98,
           color: color.onDark, fontFamily: fontDisplay,
-          marginBottom: 12,
+          marginBottom: 10,
         }}>
           {BRAND_NAME}
-        </div>
-        {!live ? (
-          <BrandTagline light style={{ marginBottom: 16 }} />
-        ) : (
+        </h1>
+
+        {/* Tagline / now playing */}
+        {live ? (
           <div style={{
-            fontSize: 16, color: color.onDarkMuted, marginBottom: 16,
-            lineHeight: 1.45, maxWidth: 320, fontWeight: 500,
+            fontSize: 16, color: color.onDarkMuted, marginBottom: 26,
+            lineHeight: 1.45, maxWidth: 380, fontWeight: 500,
+            animation: "trackSwap 0.4s ease both",
           }}>
-            {`${currentTrack.title} · ${currentTrack.artist}`}
+            <span style={{ color: color.ink, fontWeight: 650 }}>{currentTrack.title}</span>
+            <span style={{ color: color.faint }}>  ·  {currentTrack.artist}</span>
           </div>
+        ) : (
+          <BrandTagline light style={{ marginBottom: 26 }} />
         )}
 
+        {/* Mix selector — one segmented control */}
         <MixLanePicker
           mixLane={mixLane}
           onMixLaneChange={onMixLaneChange}
           disabled={live}
         />
 
+        {/* Primary action row */}
         {live ? (
-          <div style={{ display: "flex", alignItems: "center", gap: 14 }} onClick={(e) => e.stopPropagation()}>
+          <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
             <button type="button" className="play-primary" aria-label={isPlaying ? "Pause" : "Play"}
               onClick={onTogglePlay}
               style={{
-                width: 56, height: 56, borderRadius: 28, background: color.accent, border: "none",
-                display: "flex", alignItems: "center", justifyContent: "center", color: color.onAccent,
-                cursor: "pointer", flexShrink: 0,
-                boxShadow: "0 10px 28px rgba(0,0,0,0.35)",
+                width: 60, height: 60, borderRadius: "50%",
+                background: color.accent, border: "none",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                color: color.onAccent, cursor: "pointer", flexShrink: 0,
+                boxShadow: `0 0 0 1px rgba(242,243,245,0.12), 0 14px 36px rgba(0,0,0,0.5), 0 0 32px ${color.accentGlow}`,
               }}>
-              <Icon name={isPlaying ? "pause" : "play"} size={20}/>
+              <Icon name={isPlaying ? "pause" : "play"} size={22}/>
             </button>
-            {signalLabel && (
-              <div className="glass-surface" style={{
-                fontSize: 13, color: color.ink, fontWeight: 500,
-                padding: "8px 12px", borderRadius: 980,
-              }}>{signalLabel}</div>
-            )}
-            <div className="glass-surface" style={{
-              fontSize: 12, color: color.body, fontWeight: 600,
-              padding: "8px 12px", borderRadius: 980, letterSpacing: 0.3,
-            }}>
-              {mixLaneById(mixLane).label} mix
+            <div style={{ fontSize: 13, color: color.faint, fontWeight: 500, letterSpacing: 0.2 }}>
+              {isPlaying ? "Playing your orbit" : "Paused"}
             </div>
           </div>
         ) : (
-          <button type="button" className="play-primary" aria-label="Play" disabled={!canStart}
-            onClick={(e) => { e.stopPropagation(); if (canStart) onPlay(); }}
+          <button type="button" className="play-primary" aria-label={`Play ${lane.label} mix`} disabled={!canStart}
+            onClick={() => { if (canStart) onPlay(); }}
             style={{
-              display: "inline-flex", alignItems: "center", gap: 10, alignSelf: "flex-start",
-              padding: "14px 26px", borderRadius: 980,
+              display: "inline-flex", alignItems: "center", gap: 12, alignSelf: "flex-start",
+              padding: "16px 30px 16px 22px", borderRadius: 980,
               background: canStart ? color.accent : color.surfaceRaised,
-              border: "none", color: canStart ? color.onAccent : color.faint,
+              border: "none",
+              color: canStart ? color.onAccent : color.faint,
               cursor: canStart ? "pointer" : "not-allowed",
-              fontSize: 17, fontWeight: 600, letterSpacing: -0.2,
-              boxShadow: canStart ? "0 10px 28px rgba(0,0,0,0.35)" : "none",
-              opacity: canStart ? 1 : 0.85,
+              fontSize: 17, fontWeight: 700, letterSpacing: -0.2,
+              fontFamily: fontDisplay,
+              boxShadow: canStart
+                ? `0 0 0 1px rgba(242,243,245,0.14), 0 16px 40px rgba(0,0,0,0.5), 0 0 40px ${color.accentGlow}`
+                : "none",
+              transition: `transform ${motion.fast} ${motion.ease}, box-shadow ${motion.base} ${motion.ease}`,
             }}>
-            <Icon name="play" size={16}/>
-            {canStart ? `Play ${mixLaneById(mixLane).label}` : "Library unavailable"}
+            <span style={{
+              width: 34, height: 34, borderRadius: "50%",
+              display: "inline-flex", alignItems: "center", justifyContent: "center",
+              background: canStart ? "rgba(0,0,0,0.14)" : "rgba(255,255,255,0.05)",
+              flexShrink: 0,
+            }}>
+              <Icon name="play" size={15}/>
+            </span>
+            {canStart ? `Play ${lane.label}` : "Library unavailable"}
           </button>
         )}
       </div>
