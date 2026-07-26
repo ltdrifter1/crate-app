@@ -9,15 +9,15 @@ export function BrandGlyph({
   size = 28,
   color: stroke = color.accent,
   title = BRAND_NAME,
-  filled = true,
-  fill = color.canvas,
+  filled = false,
+  fill = "transparent",
   variant = "mark",
 }) {
   const s = Math.max(12, size);
   const ink = stroke;
   const disc = variant === "inverse" ? color.accent : "none";
-  const letter = variant === "inverse" ? fill : ink;
-  const ring = variant === "inverse" ? fill : ink;
+  const letter = variant === "inverse" ? color.onAccent : ink;
+  const ring = variant === "inverse" ? color.onAccent : ink;
 
   return (
     <svg
@@ -30,7 +30,9 @@ export function BrandGlyph({
       aria-label={title || undefined}
     >
       {title ? <title>{title}</title> : null}
-      {filled && <rect width="32" height="32" rx="8" fill={fill} />}
+      {filled && fill !== "transparent" && (
+        <rect width="32" height="32" rx="8" fill={fill} />
+      )}
       {variant === "inverse" ? (
         <>
           <circle cx="16" cy="16" r="11" fill={disc} />

@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { createPortal }                             from "react-dom";
 import { useNavigate, useLocation }                 from "react-router-dom";
 import { useAuth }                                  from "./useAuth";
-import { toggleLike as fbToggleLike, recordPlay, saveGenres, completeOnboarding } from "./useUserData";
+import { toggleLike as fbToggleLike, recordPlay, completeOnboarding } from "./useUserData";
 import { collection, getDocs, addDoc, query, orderBy, doc, updateDoc, setDoc } from "firebase/firestore";
 import { db }                                       from "./firebase";
 import {
@@ -16,6 +16,7 @@ import {
   computeHumanState, findResonant, computeSignalTraits, pickNextTrack,
   buildSession, buildRoute, SESSION_PROFILES,
 } from "./lib/engine";
+import { tracksForMixLane, mixLaneById, MIX_LANES } from "./lib/mixLanes";
 import { CANONICAL_GENRES, normalizeGenre } from "./lib/genres";
 import { getFloorPhase } from "./lib/club";
 import { parsePath, buildPath, documentTitleFor } from "./lib/routes";
@@ -279,11 +280,56 @@ function BoothHud({ track, size = "md", align = "left" }) {
 }
 
 // ─── RADIO — Listen Now hero (one composition) ────────────────────────────────
+function MixLanePicker({ mixLane, onMixLaneChange, disabled = false }) {
+  return (
+    <div
+      role="radiogroup"
+      aria-label="Choose a mix"
+      onClick={(e) => e.stopPropagation()}
+      style={{
+        display: "flex",
+        flexWrap: "wrap",
+        gap: 8,
+        marginBottom: 18,
+      }}
+    >
+      {MIX_LANES.map((lane) => {
+        const on = mixLane === lane.id;
+        return (
+          <button
+            key={lane.id}
+            type="button"
+            role="radio"
+            aria-checked={on}
+            disabled={disabled}
+            onClick={() => onMixLaneChange(lane.id)}
+            style={{
+              padding: "8px 14px",
+              borderRadius: 980,
+              border: `1px solid ${on ? color.accent : color.line}`,
+              background: on ? color.accentSoft : "rgba(0,0,0,0.35)",
+              color: on ? color.accent : color.onDarkMuted,
+              fontSize: 13,
+              fontWeight: on ? 650 : 500,
+              cursor: disabled ? "default" : "pointer",
+              fontFamily: font,
+              letterSpacing: 0.2,
+              backdropFilter: "blur(12px)",
+              WebkitBackdropFilter: "blur(12px)",
+            }}
+          >
+            {lane.label}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
 function DeepCutsCard({
   onPlay, onTogglePlay, currentTrack, isPlaying, isRadioMode, signalLabel,
-  featuredTrack = null,
+  featuredTrack = null, mixLane, onMixLaneChange,
 }) {
-  const floor = getFloorPhase();
   const live = isRadioMode && currentTrack;
   const artTrack = live ? currentTrack : (featuredTrack || currentTrack);
   const cover = artTrack?.albumCover;
@@ -347,13 +393,21 @@ function DeepCutsCard({
           {BRAND_NAME}
         </div>
         <div style={{
-          fontSize: 16, color: "rgba(245,245,247,0.78)", marginBottom: 24,
-          lineHeight: 1.4, maxWidth: 300, fontWeight: 400,
+          fontSize: 16, color: "rgba(234,231,220,0.78)", marginBottom: 16,
+          lineHeight: 1.45, maxWidth: 320, fontWeight: 500,
+          letterSpacing: 0.6,
+          textTransform: "uppercase",
         }}>
           {live
             ? `${currentTrack.title} · ${currentTrack.artist}`
-            : (floor.blurb || "Your music, simply.")}
+            : BRAND_TAGLINE}
         </div>
+
+        <MixLanePicker
+          mixLane={mixLane}
+          onMixLaneChange={onMixLaneChange}
+          disabled={live}
+        />
 
         {live ? (
           <div style={{ display: "flex", alignItems: "center", gap: 14 }} onClick={(e) => e.stopPropagation()}>
@@ -373,6 +427,12 @@ function DeepCutsCard({
                 padding: "8px 12px", borderRadius: 980,
               }}>{signalLabel}</div>
             )}
+            <div className="glass-surface" style={{
+              fontSize: 12, color: color.body, fontWeight: 600,
+              padding: "8px 12px", borderRadius: 980, letterSpacing: 0.3,
+            }}>
+              {mixLaneById(mixLane).label} mix
+            </div>
           </div>
         ) : (
           <button type="button" className="play-primary" aria-label="Play" onClick={(e) => { e.stopPropagation(); onPlay(); }}
@@ -384,7 +444,7 @@ function DeepCutsCard({
               boxShadow: "0 10px 28px rgba(0,0,0,0.35)",
             }}>
             <Icon name="play" size={16}/>
-            Play
+            Play {mixLaneById(mixLane).label}
           </button>
         )}
       </div>
@@ -1863,7 +1923,7 @@ function HomeScreen({
   tracks, onPlayRadio, onTogglePlay, onPlayTrack, currentTrack, isPlaying, onLike,
   isRadioMode, playlistCtx, signalLabel,
   userPlaylists = [], onCreatePlaylist, onDeletePlaylist,
-  onMakePlaylist,
+  onMakePlaylist, mixLane, onMixLaneChange,
 }) {
   const saved = savedTracks(tracks, 24);
   const collections = buildHomeCollections(tracks);
@@ -1928,6 +1988,8 @@ function HomeScreen({
         isRadioMode={isRadioMode}
         signalLabel={signalLabel}
         featuredTrack={featuredTrack}
+        mixLane={mixLane}
+        onMixLaneChange={onMixLaneChange}
       />
 
       {/* Library plane — soft glass atmosphere under the hero */}
@@ -2369,9 +2431,7 @@ function FavoritesScreen({
 }
 
 // ─── PROFILE ─────────────────────────────────────────────────────────────────
-const ALL_GENRES = CANONICAL_GENRES;
-
-function ProfileScreen({ user, setUser, tracks, onLogout }) {
+function ProfileScreen({ user, tracks, onLogout }) {
   const liked = tracks.filter(t => t.liked);
   const initial = (user.name || "R").trim().charAt(0).toUpperCase();
 
@@ -2407,40 +2467,6 @@ function ProfileScreen({ user, setUser, tracks, onLogout }) {
             {liked.length} liked songs
           </div>
         </div>
-      </div>
-
-      <div style={{
-        fontSize: 13, fontWeight: 600, letterSpacing: 0.4, color: color.muted,
-        textTransform: "uppercase", marginBottom: 12,
-      }}>
-        Preferred Genres
-      </div>
-      <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 36 }}>
-        {ALL_GENRES.map((g) => {
-          const on = user.genres.includes(g);
-          return (
-            <button
-              key={g}
-              type="button"
-              onClick={() => setUser((u) => ({
-                ...u,
-                genres: on ? u.genres.filter((x) => x !== g) : [...u.genres, g],
-              }))}
-              style={{
-                padding: "8px 14px",
-                borderRadius: 980,
-                fontSize: 14,
-                fontWeight: on ? 600 : 500,
-                cursor: "pointer",
-                background: on ? color.accent : "transparent",
-                color: on ? color.onAccent : color.body,
-                border: `1px solid ${on ? "transparent" : color.line}`,
-              }}
-            >
-              {g}
-            </button>
-          );
-        })}
       </div>
 
       <button type="button" onClick={onLogout} style={{ ...BTN_SECONDARY, width: "100%", borderRadius: 980 }}>
@@ -3171,8 +3197,27 @@ export default function App() {
   const [onboardingDismissed, setOnboardingDismissed] = useState(false);
   const [listeningRoom, setListeningRoom] = useState(null);
   const [linerTrack, setLinerTrack] = useState(null);
+  const [mixLane, setMixLane] = useState(() => {
+    try {
+      const saved = localStorage.getItem("rooms.mixLane");
+      return mixLaneById(saved).id;
+    } catch {
+      return "main";
+    }
+  });
   const volumeRef = useRef(1);
   useEffect(() => { volumeRef.current = volume; }, [volume]);
+  useEffect(() => {
+    try { localStorage.setItem("rooms.mixLane", mixLane); } catch { /* ignore */ }
+  }, [mixLane]);
+
+  const radioPool = useCallback(() => {
+    const pool = tracksForMixLane(tracks, mixLane);
+    if (pool.length) return pool;
+    return tracks.filter((t) => (t.duration || 0) <= 900);
+  }, [tracks, mixLane]);
+  const mixLaneRef = useRef(mixLane);
+  useEffect(() => { mixLaneRef.current = mixLane; }, [mixLane]);
 
   // ── Listening Memory — tracks recently played with timestamps ──
   const recentlyPlayedRef = useRef([]); // [{id, genre, energy, timestamp}]
@@ -3182,7 +3227,7 @@ export default function App() {
 
   // Set arc for On Air floor (last 2 → now → next)
   const radioPickOpts = () => ({
-    preferredGenres: profile?.genres || [],
+    preferredGenres: [],
     signalState,
     seedTrack: hypnoSeed,
   });
@@ -3190,7 +3235,7 @@ export default function App() {
     ? playHistoryRef.current.filter(t => t && t.id !== currentTrack.id).slice(0, 2).reverse()
     : [];
   const setNext = isRadioMode && currentTrack
-    ? pickNextTrack(tracks, currentTrack, recentlyPlayedRef.current, radioPickOpts())
+    ? pickNextTrack(radioPool(), currentTrack, recentlyPlayedRef.current, radioPickOpts())
     : null;
 
   function logTrackPlay(track) {
@@ -3445,8 +3490,12 @@ export default function App() {
     if (isCrossfading.current) return;
     isCrossfading.current = true;
 
-    const next = pickNextTrack(tracksRef.current, currentRef.current, recentlyPlayedRef.current, {
-      preferredGenres: profile?.genres || [],
+    const pool = tracksForMixLane(tracksRef.current, mixLaneRef.current);
+    const library = pool.length
+      ? pool
+      : tracksRef.current.filter((t) => (t.duration || 0) <= 900);
+    const next = pickNextTrack(library, currentRef.current, recentlyPlayedRef.current, {
+      preferredGenres: [],
       signalState,
       seedTrack: hypnoSeed,
     });
@@ -3561,20 +3610,21 @@ export default function App() {
   };
 
   const playRadio = (seed = null) => {
-    if (!tracks.length) return;
+    const pool = radioPool();
+    if (!pool.length) return;
     const seedTrack = seed || null;
     setHypnoSeed(seedTrack);
-    const first = pickNextTrack(tracks, null, recentlyPlayedRef.current, {
-      preferredGenres: profile?.genres || [],
+    const first = pickNextTrack(pool, null, recentlyPlayedRef.current, {
+      preferredGenres: [],
       signalState,
       seedTrack,
-    }) || tracks.find(t => (t.duration || 0) <= 900) || tracks[0];
+    }) || pool.find(t => (t.duration || 0) <= 900) || pool[0];
     if (currentTrack) playHistoryRef.current = [currentTrack, ...playHistoryRef.current].slice(0, 50);
     setCurrent(first); setIsPlaying(true); setProgress(0); setIsRadioMode(true); setQueue([]); setImmersive(true);
     setSessionMeta(null);
     if (!sessionStartRef.current) sessionStartRef.current = Date.now();
     logTrackPlay(first);
-    showToast(seedTrack ? "Radio on" : "Playing");
+    showToast(seedTrack ? "Similar mix" : `${mixLaneById(mixLane).label} mix`);
     if (firebaseUser) recordPlay(first.id, profile?.recentTracks || []).catch(()=>{});
   };
 
@@ -3621,7 +3671,7 @@ export default function App() {
     }
     if (currentTrack) playHistoryRef.current = [currentTrack, ...playHistoryRef.current].slice(0, 50);
     if (isRadioMode) {
-      const next = pickNextTrack(tracks, currentTrack, recentlyPlayedRef.current, radioPickOpts());
+      const next = pickNextTrack(radioPool(), currentTrack, recentlyPlayedRef.current, radioPickOpts());
       if (next) {
         setCurrent(next); setProgress(0); setIsPlaying(true);
         logTrackPlay(next);
@@ -3724,15 +3774,7 @@ export default function App() {
     }
   };
 
-  // ── Genre preferences ────────────────────────────────────────────────────
-  const setUser = (updater) => {
-    // updater might be a function or an object (ProfileScreen uses both)
-    const updated = typeof updater === "function" ? updater(user) : updater;
-    if (updated.genres && firebaseUser) {
-      setProfile(p => ({ ...p, genres: updated.genres }));
-      saveGenres(updated.genres).catch(() => showToast("Couldn't save genres"));
-    }
-  };
+  // ── Genre preferences (removed from profile UI) ───────────────────────────
 
   // ── Playlist handlers ────────────────────────────────────────────────────
   // Playlists are stored per-user in Firestore users/{uid}.playlists
@@ -3967,7 +4009,7 @@ export default function App() {
         </div>
       )}
       <div style={{ flex:1, overflow:"auto", paddingBottom:currentTrack?120:56, zIndex:1, position:"relative" }}>
-        {screen==="home"      && !tracksLoading && <HomeScreen tracks={tracks} onPlayRadio={playRadio} onTogglePlay={()=>setIsPlaying(p=>!p)} onPlayTrack={playTrack} currentTrack={currentTrack} isPlaying={isPlaying} onLike={toggleLike} isRadioMode={isRadioMode} playlistCtx={playlistCtx} signalLabel={signalState?.label} userPlaylists={userPlaylists} onCreatePlaylist={createPlaylist} onDeletePlaylist={deletePlaylist} onMakePlaylist={()=>setShowRouteBuilder(true)}/>}
+        {screen==="home"      && !tracksLoading && <HomeScreen tracks={tracks} onPlayRadio={playRadio} onTogglePlay={()=>setIsPlaying(p=>!p)} onPlayTrack={playTrack} currentTrack={currentTrack} isPlaying={isPlaying} onLike={toggleLike} isRadioMode={isRadioMode} playlistCtx={playlistCtx} signalLabel={signalState?.label} userPlaylists={userPlaylists} onCreatePlaylist={createPlaylist} onDeletePlaylist={deletePlaylist} onMakePlaylist={()=>setShowRouteBuilder(true)} mixLane={mixLane} onMixLaneChange={setMixLane}/>}
         {screen==="search"    && <SearchScreen query={searchQuery} setQuery={setSearch} results={searchResults} onPlay={t=>playTrack(t,tracks)} onLike={toggleLike} currentTrack={currentTrack} isPlaying={isPlaying} playlistCtx={playlistCtx} entityHits={entityHits} onOpenArtist={openArtist} onOpenAlbum={(slug)=>openAlbum(slug)}/>}
         {screen==="favorites" && <FavoritesScreen tracks={tracks} preferredGenres={user.genres} onPlay={t=>{setIsRadioMode(false);playTrack(t,tracks);}} onLike={toggleLike} currentTrack={currentTrack} isPlaying={isPlaying} playlistCtx={playlistCtx}/>}
         {screen==="artist"    && !tracksLoading && (
@@ -3998,7 +4040,7 @@ export default function App() {
             playlistCtx={playlistCtx}
           />
         )}
-        {screen==="profile"   && <ProfileScreen user={user} setUser={setUser} tracks={tracks} onLogout={logOut}/>}
+        {screen==="profile"   && <ProfileScreen user={user} tracks={tracks} onLogout={logOut}/>}
         {screen==="admin"     && <AdminScreen tracks={tracks} setTracks={setTracks} tab={adminTab} setTab={setAdminTab} editTrack={editTrack} setEditTrack={setEditTrack} showToast={showToast}/>}
       </div>
       {currentTrack && !immersive && (
@@ -4038,7 +4080,7 @@ export default function App() {
     : queueSource.slice(0, 8);
 
   // Accent glow color from current track
-  const glowRgb = currentTrack ? hexToRgbStr(currentTrack.color) : "250,36,60";
+  const glowRgb = currentTrack ? hexToRgbStr(currentTrack.color) : "234,231,220";
 
   return (
     <div style={{ display:"flex", height:"100vh", background: color.canvas, overflow:"hidden", fontFamily: font }}>
@@ -4121,7 +4163,7 @@ export default function App() {
             </div>
           ) : (
             <>
-              {screen==="home"      && <HomeScreen tracks={tracks} onPlayRadio={playRadio} onTogglePlay={()=>setIsPlaying(p=>!p)} onPlayTrack={playTrack} currentTrack={currentTrack} isPlaying={isPlaying} onLike={toggleLike} isRadioMode={isRadioMode} playlistCtx={playlistCtx} signalLabel={signalState?.label} userPlaylists={userPlaylists} onCreatePlaylist={createPlaylist} onDeletePlaylist={deletePlaylist} onMakePlaylist={()=>setShowRouteBuilder(true)}/>}
+              {screen==="home"      && <HomeScreen tracks={tracks} onPlayRadio={playRadio} onTogglePlay={()=>setIsPlaying(p=>!p)} onPlayTrack={playTrack} currentTrack={currentTrack} isPlaying={isPlaying} onLike={toggleLike} isRadioMode={isRadioMode} playlistCtx={playlistCtx} signalLabel={signalState?.label} userPlaylists={userPlaylists} onCreatePlaylist={createPlaylist} onDeletePlaylist={deletePlaylist} onMakePlaylist={()=>setShowRouteBuilder(true)} mixLane={mixLane} onMixLaneChange={setMixLane}/>}
               {screen==="search"    && <SearchScreen query={searchQuery} setQuery={setSearch} results={searchResults} onPlay={t=>playTrack(t,tracks)} onLike={toggleLike} currentTrack={currentTrack} isPlaying={isPlaying} playlistCtx={playlistCtx} entityHits={entityHits} onOpenArtist={openArtist} onOpenAlbum={(slug)=>openAlbum(slug)}/>}
               {screen==="favorites" && <FavoritesScreen tracks={tracks} preferredGenres={user.genres} onPlay={t=>{setIsRadioMode(false);playTrack(t,tracks);}} onLike={toggleLike} currentTrack={currentTrack} isPlaying={isPlaying} playlistCtx={playlistCtx}/>}
               {screen==="artist"    && (
@@ -4152,7 +4194,7 @@ export default function App() {
                   playlistCtx={playlistCtx}
                 />
               )}
-              {screen==="profile"   && <ProfileScreen user={user} setUser={setUser} tracks={tracks} onLogout={logOut}/>}
+              {screen==="profile"   && <ProfileScreen user={user} tracks={tracks} onLogout={logOut}/>}
                             {screen==="admin"     && <AdminScreen tracks={tracks} setTracks={setTracks} tab={adminTab} setTab={setAdminTab} editTrack={editTrack} setEditTrack={setEditTrack} showToast={showToast}/>}
             </>
           )}
