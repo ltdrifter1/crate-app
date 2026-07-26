@@ -1,4 +1,4 @@
-import { color, font, fontDisplay, ADMIN_UID, timeOfDayGradient, BRAND_TAGLINE, BRAND_NAME } from './theme';
+import { color, font, fontDisplay, ADMIN_UID, timeOfDayGradient, BRAND_TAGLINE, BRAND_NAME, dock } from './theme';
 
 test('theme exports core tokens', () => {
   expect(color.ink).toBeTruthy();
@@ -12,4 +12,6 @@ test('theme exports core tokens', () => {
   expect(fontDisplay).toMatch(/SF Pro|apple-system|BlinkMacSystemFont/);
   expect(ADMIN_UID).toHaveLength(28);
   expect(timeOfDayGradient()).toMatch(/gradient/);
+  expect(dock.clearPlayer).toBeGreaterThan(dock.clearTabs);
+  expect(dock.radius).toBeGreaterThan(0);
 });

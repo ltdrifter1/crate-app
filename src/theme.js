@@ -58,6 +58,18 @@ export const homeSpace = {
   tile: 152,
 };
 
+/** Floating glass dock — inset shell for mini-player + tabs. */
+export const dock = {
+  insetX: 12,
+  insetBottom: 10,
+  radius: 22,
+  tabH: 54,
+  playerH: 62,
+  /** Content clearances (tabs only / with player), excluding safe-area. */
+  clearTabs: 88,
+  clearPlayer: 168,
+};
+
 export const radius = { sm: 10, md: 12, lg: 16, xl: 22 };
 
 export const space = (n) => n * 4;
