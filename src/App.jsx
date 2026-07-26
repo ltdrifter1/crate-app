@@ -7,7 +7,7 @@ import { collection, getDocs, addDoc, query, orderBy, doc, updateDoc, setDoc } f
 import { db }                                       from "./firebase";
 import {
   font, fontDisplay, fontMono, color, radius, motion,
-  glass, glassControl, homeSpace, sectionRule,
+  glass, glassControl, homeSpace, dock, sectionRule,
   APP_STYLE, INPUT_ST, BTN_PRIMARY, BTN_SECONDARY, CTRL_BTN, ADMIN_UID,
   BRAND_NAME, BRAND_TAGLINE, brandStoragePrefix,
 } from "./theme";
@@ -90,11 +90,36 @@ const injectStyles = () => {
       from { opacity: 0; transform: scale(0.92); }
       to { opacity: 1; transform: none; }
     }
+    @keyframes screenIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: none; }
+    }
+    @keyframes dockRise {
+      from { opacity: 0; transform: translateY(12px) scale(0.98); }
+      to { opacity: 1; transform: none; }
+    }
+    .glass-dock {
+      background: rgba(12, 12, 14, 0.78);
+      border: 1px solid ${glass.border};
+      box-shadow:
+        inset 0 1px 0 ${glass.highlight},
+        0 18px 48px rgba(0, 0, 0, 0.45),
+        0 2px 8px rgba(0, 0, 0, 0.28);
+      -webkit-backdrop-filter: ${glass.blur};
+      backdrop-filter: ${glass.blur};
+    }
+    .nav-rail-btn {
+      transition: background ${motion.base} ${motion.ease}, color ${motion.base} ${motion.ease}, transform ${motion.fast};
+    }
+    .nav-rail-btn:hover {
+      background: ${color.accentSoft} !important;
+      color: ${color.ink} !important;
+    }
     @media (prefers-reduced-motion: reduce) {
       *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
     }
     @media (prefers-reduced-transparency: reduce) {
-      .glass-surface, .glass-control {
+      .glass-surface, .glass-control, .glass-dock {
         backdrop-filter: none !important;
         -webkit-backdrop-filter: none !important;
         background: ${color.surfaceSolid} !important;
@@ -925,6 +950,112 @@ function BrandGlyph({ size = 40, light = false, showWordmark }) {
   // Compact chrome: door glyph only. Larger moments keep the wordmark.
   const withWord = showWordmark ?? size >= 36;
   return <BrandMark size={size} light={light} showWordmark={withWord} />;
+}
+
+/** Soft enter for tab / route changes — respects reduced-motion via global CSS.
+ *  Put `key={screen}` on the call site so React remounts and replays the animation. */
+function ScreenPane({ children }) {
+  return (
+    <div
+      style={{
+        minHeight: "100%",
+        animation: `screenIn 0.38s ${motion.ease} both`,
+      }}
+    >
+      {children}
+    </div>
+  );
+}
+
+/**
+ * Large title that collapses into a sticky compact bar on scroll.
+ * Finds the nearest overflow scroll parent so it works in mobile + desktop shells.
+ */
+function CollapsingHeader({ title, subtitle }) {
+  const sentinelRef = useRef(null);
+  const [compact, setCompact] = useState(false);
+
+  useEffect(() => {
+    const sentinel = sentinelRef.current;
+    if (!sentinel) return;
+
+    let root = sentinel.parentElement;
+    while (root && root !== document.body) {
+      const { overflowY } = window.getComputedStyle(root);
+      if (overflowY === "auto" || overflowY === "scroll") break;
+      root = root.parentElement;
+    }
+    if (!root || root === document.body) root = null;
+
+    const io = new IntersectionObserver(
+      ([entry]) => setCompact(!entry.isIntersecting),
+      { root, threshold: 0, rootMargin: "-8px 0px 0px 0px" }
+    );
+    io.observe(sentinel);
+    return () => io.disconnect();
+  }, []);
+
+  return (
+    <>
+      <div
+        aria-hidden={!compact}
+        style={{
+          position: "sticky",
+          top: 0,
+          zIndex: 40,
+          height: compact ? 48 : 0,
+          opacity: compact ? 1 : 0,
+          overflow: "hidden",
+          pointerEvents: compact ? "auto" : "none",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          background: "rgba(0,0,0,0.72)",
+          WebkitBackdropFilter: glass.blurSoft,
+          backdropFilter: glass.blurSoft,
+          borderBottom: compact ? `1px solid ${glass.borderFaint}` : "none",
+          boxShadow: compact ? `inset 0 1px 0 ${glass.highlight}` : "none",
+          transition: `height ${motion.settle} ${motion.ease}, opacity ${motion.base} ${motion.ease}`,
+        }}
+      >
+        <div style={{
+          fontSize: 16, fontWeight: 650, letterSpacing: -0.3,
+          color: color.ink, fontFamily: fontDisplay,
+        }}>
+          {title}
+        </div>
+      </div>
+      <div ref={sentinelRef} aria-hidden="true" style={{ height: 1, marginTop: -1 }} />
+      <div style={{ padding: "28px 16px 8px" }}>
+        <h1 style={{
+          margin: 0,
+          fontSize: 34,
+          fontWeight: 700,
+          fontFamily: fontDisplay,
+          letterSpacing: -1,
+          color: color.ink,
+          lineHeight: 1.05,
+        }}>
+          {title}
+        </h1>
+        {subtitle ? (
+          <p style={{
+            margin: "10px 0 0",
+            fontSize: 15,
+            color: color.body,
+            lineHeight: 1.45,
+          }}>
+            {subtitle}
+          </p>
+        ) : null}
+      </div>
+    </>
+  );
+}
+
+function contentPadBottom(hasPlayer) {
+  const base = hasPlayer ? dock.clearPlayer : dock.clearTabs;
+  return `calc(${base}px + env(safe-area-inset-bottom, 0px))`;
 }
 
 // ─── SESSION BUILDER — pick a length + vibe → get a playlist ─────────────────
@@ -2402,10 +2533,9 @@ function HomeScreen({
 // ─── SEARCH ───────────────────────────────────────────────────────────────────
 function SearchScreen({ query, setQuery, results, onPlay, onLike, currentTrack, isPlaying, playlistCtx, entityHits, onOpenArtist, onOpenAlbum }) {
   return (
-    <div style={{ padding:"28px 16px 16px" }}>
-      <div style={{ marginBottom:18 }}>
-        <div style={{ fontSize:34, fontWeight:700, fontFamily: fontDisplay, letterSpacing:-1, color: color.ink, marginBottom:16 }}>Search</div>
-      </div>
+    <div style={{ padding: "0 0 16px" }}>
+      <CollapsingHeader title="Search" subtitle="Find artists, songs, and albums." />
+      <div style={{ padding: "10px 16px 0" }}>
       <div style={{ position:"relative", marginBottom:20 }}>
         <div style={{ position:"absolute", left:14, top:"50%", transform:"translateY(-50%)", color: color.faint }}><Icon name="search" size={16}/></div>
         <input
@@ -2510,6 +2640,7 @@ function SearchScreen({ query, setQuery, results, onPlay, onLike, currentTrack, 
           </div>
         </div>
       )}
+      </div>
     </div>
   );
 }
@@ -2569,12 +2700,8 @@ function FavoritesScreen({
 
   return (
     <div style={{ overflowY: "auto", height: "100%", minHeight: "calc(100vh - 112px)" }}>
-      <div style={{ padding: "28px 16px 32px" }}>
-        <div style={{ fontSize:34, fontWeight:700, fontFamily: fontDisplay, letterSpacing:-1, color: color.ink, marginBottom:8 }}>Browse</div>
-        <div style={{ fontSize:15, color: color.body, marginBottom:28, lineHeight:1.45 }}>
-          Fresh picks for right now.
-        </div>
-
+      <CollapsingHeader title="Browse" subtitle="Fresh picks for right now." />
+      <div style={{ padding: "20px 16px 32px" }}>
         {digLead && (
           <button
             type="button"
@@ -2638,7 +2765,12 @@ function ProfileScreen({ user, tracks, onLogout }) {
   const initial = (user.name || "R").trim().charAt(0).toUpperCase();
 
   return (
-    <div style={{ padding: "36px 20px 24px" }}>
+    <div style={{ padding: "0 0 24px" }}>
+      <CollapsingHeader
+        title="Library"
+        subtitle={`${liked.length} liked song${liked.length === 1 ? "" : "s"}`}
+      />
+      <div style={{ padding: "20px 20px 0" }}>
       <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 36 }}>
         <div
           aria-hidden="true"
@@ -2666,7 +2798,7 @@ function ProfileScreen({ user, tracks, onLogout }) {
             {user.name}
           </div>
           <div style={{ fontSize: 15, color: color.muted, marginTop: 6 }}>
-            {liked.length} liked songs
+            Your listening library
           </div>
         </div>
       </div>
@@ -2674,6 +2806,7 @@ function ProfileScreen({ user, tracks, onLogout }) {
       <button type="button" onClick={onLogout} style={{ ...BTN_SECONDARY, width: "100%", borderRadius: 980 }}>
         Sign Out
       </button>
+      </div>
     </div>
   );
 }
@@ -3152,13 +3285,51 @@ function AdminScreen({ tracks, setTracks, tab, setTab, editTrack, setEditTrack, 
 }
 
 // ─── NOW PLAYING BAR — flat station strip ─────────────────────────────────────
-function NowPlayingBar({ track, isPlaying, progress, duration, onTogglePlay, onSkip, onPrev, onLike, onSeek, repeat, setRepeat, isRadioMode, onOpen, playlistCtx, onShowQueue, hypnoPocket }) {
-  const pct = duration > 0 ? (progress/duration)*100 : 0;
-  const bpm = track.bpm ? String(track.bpm) : "—";
-  const key = track.camelot || "—";
-  const energy = track.energy != null ? String(track.energy) : "—";
+function MetaChip({ children }) {
+  return <span style={{ fontSize:10, padding:"4px 8px", borderRadius:6, background:"rgba(255,255,255,0.08)", color:"rgba(255,255,255,0.45)", fontVariantNumeric:"tabular-nums" }}>{children}</span>;
+}
+
+// ─── FLOATING GLASS DOCK — mini-player + tabs as one surface ──────────────────
+function GlassDock({
+  screen, setScreen, showAdmin = false,
+  track, isPlaying, progress, duration,
+  onTogglePlay, onSkip, onLike, onSeek,
+  isRadioMode, onOpen, playlistCtx, onShowQueue, hypnoPocket,
+}) {
+  const items = [
+    { id: "home", label: "Home", icon: "home" },
+    { id: "favorites", label: "Browse", icon: "dig" },
+    { id: "search", label: "Search", icon: "search" },
+    { id: "profile", label: "Library", icon: "profile" },
+  ];
+  if (showAdmin) items.push({ id: "admin", label: "Admin", icon: "settings" });
+
+  const hasPlayer = !!track;
+  const pct = duration > 0 ? (progress / duration) * 100 : 0;
+  const bpm = track?.bpm ? String(track.bpm) : "—";
+  const key = track?.camelot || "—";
+  const energy = track?.energy != null ? String(track.energy) : "—";
   const { menu, openFromButton, openFromContext, close } = useTrackMenu();
   const scrubRef = useRef(null);
+  const tabRowRef = useRef(null);
+  const tabRefs = useRef({});
+  const [indicator, setIndicator] = useState({ left: 0, width: 0 });
+
+  const activeTab = items.some((i) => i.id === screen)
+    ? screen
+    : (screen === "artist" || screen === "album" ? "search" : "home");
+
+  useEffect(() => {
+    const el = tabRefs.current[activeTab];
+    const row = tabRowRef.current;
+    if (!el || !row) return;
+    const rowBox = row.getBoundingClientRect();
+    const box = el.getBoundingClientRect();
+    setIndicator({
+      left: box.left - rowBox.left + box.width * 0.28,
+      width: box.width * 0.44,
+    });
+  }, [activeTab, items.length, hasPlayer]);
 
   function seekFromClientX(clientX) {
     if (!scrubRef.current || !duration || !onSeek) return;
@@ -3168,80 +3339,200 @@ function NowPlayingBar({ track, isPlaying, progress, duration, onTogglePlay, onS
   }
 
   return (
-    <div style={{ position:"fixed", bottom:56, left:0, right:0, zIndex:80 }}>
+    <div
+      style={{
+        position: "fixed",
+        left: dock.insetX,
+        right: dock.insetX,
+        bottom: `calc(${dock.insetBottom}px + env(safe-area-inset-bottom, 0px))`,
+        zIndex: 85,
+        animation: `dockRise 0.45s ${motion.ease} both`,
+        pointerEvents: "none",
+      }}
+    >
       <div
-        role="button"
-        tabIndex={0}
-        onClick={onOpen}
-        onContextMenu={(e) => openFromContext(e, track)}
-        onKeyDown={e=>{ if(e.key==="Enter") onOpen?.(); }}
-        aria-label="Open now playing"
+        className="glass-dock"
         style={{
-          background: "rgba(10,10,10,0.78)",
-          backdropFilter: glass.blurSoft,
-          WebkitBackdropFilter: glass.blurSoft,
-          borderTop: `1px solid ${glass.border}`,
-          borderBottom: "none",
-          boxShadow: `inset 0 1px 0 ${glass.highlight}`,
-          padding:"10px 12px 11px",
-          display:"flex", alignItems:"center", gap:12, cursor:"pointer",
-          position:"relative",
-          borderLeft: isRadioMode ? `2px solid ${color.accent}` : "2px solid transparent",
+          borderRadius: dock.radius,
+          overflow: "hidden",
+          pointerEvents: "auto",
         }}
       >
-        {/* Seekable progress edge */}
-        <div
-          ref={scrubRef}
-          role="slider"
-          aria-label="Seek"
-          aria-valuemin={0}
-          aria-valuemax={duration || 0}
-          aria-valuenow={progress}
-          onClick={e=>{ e.stopPropagation(); seekFromClientX(e.clientX); }}
-          style={{ position:"absolute", top:0, left:0, right:0, height:8, cursor:"pointer", zIndex:2 }}
-        >
-          <div aria-hidden="true" style={{ position:"absolute", top:0, left:0, right:0, height:2, background:"rgba(232,236,240,0.08)" }}>
-            <div style={{ width:`${pct}%`, background: color.accent, height:"100%", transition:"width 0.25s linear" }}/>
-          </div>
-        </div>
-        <div style={{ width:42, height:42, overflow:"hidden", flexShrink:0 }}><AlbumArt track={track} size={42} borderRadius={0}/></div>
-        <div key={track.id} style={{ flex:1, minWidth:0, animation:"fadeIn 0.3s ease both" }}>
-          <div style={{ fontSize:13, fontWeight:650, color: color.ink, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap", fontFamily: fontDisplay, letterSpacing:-0.2 }}>
-            {(isRadioMode || hypnoPocket) && (
-              <span style={{
-                display:"inline-block", width:6, height:6, borderRadius:"50%",
-                background: color.accent, marginRight:8, verticalAlign:"middle",
-                boxShadow: isPlaying ? `0 0 0 3px ${color.accentSoft}` : "none",
-                animation: isPlaying ? "breathe 2s ease-in-out infinite" : "none",
-              }}/>
+        {hasPlayer && (
+          <div
+            role="button"
+            tabIndex={0}
+            onClick={onOpen}
+            onContextMenu={(e) => openFromContext(e, track)}
+            onKeyDown={(e) => { if (e.key === "Enter") onOpen?.(); }}
+            aria-label="Open now playing"
+            style={{
+              position: "relative",
+              height: dock.playerH,
+              padding: "10px 12px 10px",
+              display: "flex",
+              alignItems: "center",
+              gap: 12,
+              cursor: "pointer",
+              borderBottom: `1px solid ${glass.borderFaint}`,
+              boxShadow: isRadioMode || hypnoPocket
+                ? `inset 2px 0 0 ${color.accent}`
+                : "none",
+            }}
+          >
+            <div
+              ref={scrubRef}
+              role="slider"
+              aria-label="Seek"
+              aria-valuemin={0}
+              aria-valuemax={duration || 0}
+              aria-valuenow={progress}
+              onClick={(e) => { e.stopPropagation(); seekFromClientX(e.clientX); }}
+              style={{ position: "absolute", top: 0, left: 0, right: 0, height: 10, cursor: "pointer", zIndex: 2 }}
+            >
+              <div aria-hidden="true" style={{ position: "absolute", top: 0, left: 0, right: 0, height: 2, background: "rgba(232,236,240,0.08)" }}>
+                <div style={{
+                  width: `${pct}%`,
+                  background: color.accent,
+                  height: "100%",
+                  transition: "width 0.25s linear",
+                  boxShadow: `0 0 8px ${color.accentGlow}`,
+                }}/>
+              </div>
+            </div>
+
+            <div style={{
+              width: 40, height: 40, overflow: "hidden", flexShrink: 0,
+              borderRadius: 8,
+              boxShadow: `0 0 0 1px ${glass.borderSoft}`,
+            }}>
+              <AlbumArt track={track} size={40} borderRadius={8}/>
+            </div>
+
+            <div key={track.id} style={{ flex: 1, minWidth: 0, animation: "fadeIn 0.3s ease both" }}>
+              <div style={{
+                fontSize: 13, fontWeight: 650, color: color.ink,
+                overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+                fontFamily: fontDisplay, letterSpacing: -0.2,
+              }}>
+                {(isRadioMode || hypnoPocket) && (
+                  <span style={{
+                    display: "inline-block", width: 6, height: 6, borderRadius: "50%",
+                    background: color.accent, marginRight: 8, verticalAlign: "middle",
+                    boxShadow: isPlaying ? `0 0 0 3px ${color.accentSoft}` : "none",
+                    animation: isPlaying ? "breathe 2s ease-in-out infinite" : "none",
+                  }}/>
+                )}
+                {track.title}
+              </div>
+              <div style={{
+                fontSize: 10, color: color.muted, marginTop: 3,
+                overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+                fontFamily: fontMono, fontVariantNumeric: "tabular-nums", letterSpacing: 0.3,
+              }}>
+                {hypnoPocket ? "Similar mix" : isRadioMode ? "Radio" : track.artist}
+                <span style={{ color: color.faint }}>  ·  </span>
+                <span style={{ color: color.accent }}>{bpm}</span>
+                <span style={{ color: color.faint }}> BPM · </span>
+                <span style={{ color: color.accent }}>{key}</span>
+                <span style={{ color: color.faint }}> · E</span>
+                <span style={{ color: color.accent }}>{energy}</span>
+              </div>
+            </div>
+
+            <button type="button" aria-label={track.liked ? "Unlike" : "Like"}
+              onClick={(e) => { e.stopPropagation(); onLike(); }}
+              style={{ background: "none", border: "none", cursor: "pointer", color: track.liked ? color.accent : color.faint, padding: 4 }}>
+              <Icon name={track.liked ? "heart" : "heartempty"} size={16}/>
+            </button>
+            {onShowQueue && (
+              <button type="button" aria-label="Up Next"
+                onClick={(e) => { e.stopPropagation(); onShowQueue(); }}
+                style={{ background: "none", border: "none", cursor: "pointer", color: color.faint, padding: 4 }}>
+                <Icon name="queue" size={16}/>
+              </button>
             )}
-            {track.title}
+            <TrackMoreButton onClick={(e) => openFromButton(e, track)} />
+            <button type="button" className="play-primary" aria-label={isPlaying ? "Pause" : "Play"}
+              onClick={(e) => { e.stopPropagation(); onTogglePlay(); }}
+              style={{
+                background: color.accent, border: "none", borderRadius: radius.sm,
+                width: 34, height: 34, cursor: "pointer", color: color.onAccent,
+                display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
+              }}>
+              <Icon name={isPlaying ? "pause" : "play"} size={15}/>
+            </button>
+            <button type="button" aria-label="Next"
+              onClick={(e) => { e.stopPropagation(); onSkip(); }}
+              style={{ background: "none", border: "none", cursor: "pointer", color: color.muted, padding: 4 }}>
+              <Icon name="skip" size={16}/>
+            </button>
           </div>
-          <div style={{
-            fontSize:10, color: color.muted, marginTop:4, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap",
-            fontFamily: fontMono, fontVariantNumeric:"tabular-nums", letterSpacing:0.3,
-          }}>
-            {hypnoPocket ? "Similar mix" : isRadioMode ? "Radio" : track.artist}
-            <span style={{ color: color.faint }}>  ·  </span>
-            <span style={{ color: color.accent }}>{bpm}</span>
-            <span style={{ color: color.faint }}> BPM · </span>
-            <span style={{ color: color.accent }}>{key}</span>
-            <span style={{ color: color.faint }}> · E</span>
-            <span style={{ color: color.accent }}>{energy}</span>
-          </div>
-        </div>
-        <button type="button" aria-label={track.liked?"Unlike":"Like"} onClick={e=>{e.stopPropagation();onLike();}} style={{ background:"none",border:"none",cursor:"pointer",color:track.liked?color.accent:color.faint,padding:4 }}><Icon name={track.liked?"heart":"heartempty"} size={16}/></button>
-        {onShowQueue && (
-          <button type="button" aria-label="Up Next" onClick={e=>{e.stopPropagation();onShowQueue();}} style={{ background:"none",border:"none",cursor:"pointer",color: color.faint,padding:4 }}>
-            <Icon name="queue" size={16}/>
-          </button>
         )}
-        <TrackMoreButton onClick={(e) => openFromButton(e, track)} />
-        <button type="button" className="play-primary" aria-label={isPlaying?"Pause":"Play"} onClick={e=>{e.stopPropagation();onTogglePlay();}} style={{ background: color.accent, border:"none", borderRadius: radius.sm, width:36, height:36, cursor:"pointer", color: color.onAccent, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
-          <Icon name={isPlaying?"pause":"play"} size={16}/>
-        </button>
-        <button type="button" aria-label="Next" onClick={e=>{e.stopPropagation();onSkip();}} style={{ background:"none",border:"none",cursor:"pointer",color: color.muted, padding:4 }}><Icon name="skip" size={16}/></button>
+
+        <nav aria-label="Main" ref={tabRowRef} style={{
+          position: "relative",
+          height: dock.tabH,
+          display: "flex",
+        }}>
+          <span
+            aria-hidden="true"
+            style={{
+              position: "absolute",
+              top: 0,
+              left: indicator.left,
+              width: indicator.width,
+              height: 2,
+              borderRadius: 2,
+              background: color.accent,
+              boxShadow: `0 0 10px ${color.accentGlow}`,
+              transition: `left ${motion.settle} ${motion.ease}, width ${motion.settle} ${motion.ease}`,
+            }}
+          />
+          {items.map(({ id, icon, label }) => {
+            const active = activeTab === id;
+            return (
+              <button
+                key={id}
+                ref={(el) => { tabRefs.current[id] = el; }}
+                type="button"
+                aria-label={label}
+                aria-current={active ? "page" : undefined}
+                onClick={() => setScreen(id)}
+                style={{
+                  flex: 1,
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: 3,
+                  background: "none",
+                  border: "none",
+                  cursor: "pointer",
+                  color: active ? color.accent : color.faint,
+                  transition: `color ${motion.base} ${motion.ease}`,
+                }}
+              >
+                <span style={{
+                  display: "flex",
+                  transform: active ? "translateY(-1px)" : "none",
+                  transition: `transform ${motion.settle} ${motion.ease}`,
+                }}>
+                  <Icon name={icon} size={18}/>
+                </span>
+                <span style={{
+                  fontSize: 10,
+                  fontWeight: active ? 650 : 500,
+                  letterSpacing: 0.2,
+                }}>
+                  {label}
+                </span>
+              </button>
+            );
+          })}
+        </nav>
       </div>
+
       {menu && (
         <TrackActionsMenu
           track={menu.track}
@@ -3253,54 +3544,6 @@ function NowPlayingBar({ track, isPlaying, progress, duration, onTogglePlay, onS
         />
       )}
     </div>
-  );
-}
-
-function MetaChip({ children }) {
-  return <span style={{ fontSize:10, padding:"4px 8px", borderRadius:6, background:"rgba(255,255,255,0.08)", color:"rgba(255,255,255,0.45)", fontVariantNumeric:"tabular-nums" }}>{children}</span>;
-}
-
-// ─── BOTTOM NAV ───────────────────────────────────────────────────────────────
-function BottomNav({ screen, setScreen, showAdmin = false, hasPlayer = false }) {
-  // IA: Home · Browse · Search · Library
-  const items = [
-    {id:"home",label:"Home",icon:"home"},
-    {id:"favorites",label:"Browse",icon:"dig"},
-    {id:"search",label:"Search",icon:"search"},
-    {id:"profile",label:"Library",icon:"profile"},
-  ];
-  if (showAdmin) items.push({id:"admin",label:"Admin",icon:"settings"});
-  return (
-    <nav aria-label="Main" style={{
-      position:"fixed", bottom:0, left:0, right:0, height:56,
-      background: "rgba(0,0,0,0.82)",
-      backdropFilter: glass.blurSoft,
-      WebkitBackdropFilter: glass.blurSoft,
-      borderTop: hasPlayer ? "none" : `1px solid ${glass.borderSoft}`,
-      boxShadow: hasPlayer ? "none" : `inset 0 1px 0 ${glass.highlight}`,
-      display:"flex", zIndex:85,
-    }}>
-      {items.map(({id,icon,label})=>{
-        const active = screen === id;
-        return (
-          <button key={id} type="button" aria-label={label} aria-current={active?"page":undefined}
-            onClick={()=>setScreen(id)}
-            style={{
-              flex:1, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", gap:3,
-              background:"none", border:"none", cursor:"pointer", position:"relative",
-              color: active ? color.accent : color.faint,
-            }}>
-            {active && (
-              <span aria-hidden="true" style={{
-                position:"absolute", top:0, left:"28%", right:"28%", height:2, background: color.accent,
-              }}/>
-            )}
-            <Icon name={icon} size={18}/>
-            <span style={{ fontSize:10, fontWeight: active ? 650 : 500, letterSpacing:0.2 }}>{label}</span>
-          </button>
-        );
-      })}
-    </nav>
   );
 }
 
@@ -3324,7 +3567,9 @@ function BgMist({ color: mistColor = "#909090" }) {
 
 const ToastEl = ({msg}) => (
   <div role="status" style={{
-    position:"fixed", bottom:120, left:"50%", transform:"translateX(-50%)",
+    position:"fixed",
+    bottom: `calc(${dock.clearPlayer + 16}px + env(safe-area-inset-bottom, 0px))`,
+    left:"50%", transform:"translateX(-50%)",
     background: color.surfaceRaised, color: color.ink, padding:"10px 18px", borderRadius: radius.md,
     fontSize:13, zIndex:200, whiteSpace:"nowrap", fontWeight:550,
     border:`1px solid ${color.lineStrong}`, boxShadow:"0 12px 32px rgba(0,0,0,0.4)",
@@ -3357,6 +3602,14 @@ export default function App() {
     const album = trackOrSlug?.album || "Singles & Unknown";
     navigate(buildPath("album", { albumSlug: `${slugify(artist)}__${slugify(album)}` }));
   }, [navigate]);
+  /** History-aware back — prefer in-app history, else Search hub. */
+  const goBack = useCallback(() => {
+    if (location.key && location.key !== "default") {
+      navigate(-1);
+      return;
+    }
+    navigate(buildPath("search"));
+  }, [navigate, location.key]);
 
   // Retired surfaces → Home
   useEffect(() => {
@@ -4210,14 +4463,15 @@ export default function App() {
           <div style={{ fontSize:14, color: color.muted }}>Loading your collection…</div>
         </div>
       )}
-      <div style={{ flex:1, overflow:"auto", paddingBottom:currentTrack?120:56, zIndex:1, position:"relative" }}>
+      <div style={{ flex:1, overflow:"auto", paddingBottom: contentPadBottom(!!currentTrack && !immersive), zIndex:1, position:"relative" }}>
+        <ScreenPane key={screen === "artist" ? `artist:${artistSlug}` : screen === "album" ? `album:${albumSlug}` : screen}>
         {screen==="home"      && !tracksLoading && <HomeScreen tracks={tracks} onPlayRadio={playRadio} onTogglePlay={()=>setIsPlaying(p=>!p)} onPlayTrack={playTrack} currentTrack={currentTrack} isPlaying={isPlaying} onLike={toggleLike} isRadioMode={isRadioMode} playlistCtx={playlistCtx} signalLabel={signalState?.label} userPlaylists={userPlaylists} onCreatePlaylist={createPlaylist} onDeletePlaylist={deletePlaylist} onMakePlaylist={()=>setShowRouteBuilder(true)} mixLane={mixLane} onMixLaneChange={setMixLane} catalogError={tracksLoadError} onRetryCatalog={reloadCatalog}/>}
         {screen==="search"    && <SearchScreen query={searchQuery} setQuery={setSearch} results={searchResults} onPlay={t=>playTrack(t,tracks)} onLike={toggleLike} currentTrack={currentTrack} isPlaying={isPlaying} playlistCtx={playlistCtx} entityHits={entityHits} onOpenArtist={openArtist} onOpenAlbum={(slug)=>openAlbum(slug)}/>}
         {screen==="favorites" && <FavoritesScreen tracks={tracks} preferredGenres={user.genres} onPlay={t=>{setIsRadioMode(false);playTrack(t,tracks);}} onLike={toggleLike} currentTrack={currentTrack} isPlaying={isPlaying} playlistCtx={playlistCtx}/>}
         {screen==="artist"    && !tracksLoading && (
           <ArtistPage
             artist={findArtist(tracks, artistSlug)}
-            onBack={() => setScreen("search")}
+            onBack={goBack}
             onPlay={(t, pool) => playTrack(t, pool)}
             onOpenAlbum={(slug) => openAlbum(slug)}
             currentTrack={currentTrack}
@@ -4231,7 +4485,7 @@ export default function App() {
         {screen==="album"     && !tracksLoading && (
           <AlbumPage
             album={findAlbum(tracks, albumSlug)}
-            onBack={() => setScreen("search")}
+            onBack={goBack}
             onPlay={(t, pool) => playTrack(t, pool)}
             onOpenArtist={(slug) => openArtist(slug)}
             currentTrack={currentTrack}
@@ -4244,16 +4498,28 @@ export default function App() {
         )}
         {screen==="profile"   && <ProfileScreen user={user} tracks={tracks} onLogout={logOut}/>}
         {screen==="admin"     && <AdminScreen tracks={tracks} setTracks={setTracks} tab={adminTab} setTab={setAdminTab} editTrack={editTrack} setEditTrack={setEditTrack} showToast={showToast}/>}
+        </ScreenPane>
       </div>
-      {currentTrack && !immersive && (
-        <NowPlayingBar track={currentTrack} isPlaying={isPlaying} progress={progress} duration={duration}
-          onTogglePlay={()=>setIsPlaying(p=>!p)} onSkip={handleSkip} onPrev={handlePrev}
-          onLike={()=>toggleLike(currentTrack.id)} onSeek={handleSeek}
-          repeat={repeat} setRepeat={setRepeat} isRadioMode={isRadioMode}
+      {!immersive && (
+        <GlassDock
+          screen={screen}
+          setScreen={setScreen}
+          showAdmin={firebaseUser?.uid === ADMIN_UID}
+          track={currentTrack}
+          isPlaying={isPlaying}
+          progress={progress}
+          duration={duration}
+          onTogglePlay={() => setIsPlaying((p) => !p)}
+          onSkip={handleSkip}
+          onLike={() => currentTrack && toggleLike(currentTrack.id)}
+          onSeek={handleSeek}
+          isRadioMode={isRadioMode}
           hypnoPocket={!!hypnoSeed}
-          onOpen={()=>setImmersive(true)} onShowQueue={()=>setShowQueue(true)} playlistCtx={playlistCtx}/>
+          onOpen={() => setImmersive(true)}
+          onShowQueue={() => setShowQueue(true)}
+          playlistCtx={playlistCtx}
+        />
       )}
-      <BottomNav screen={screen} setScreen={setScreen} showAdmin={firebaseUser?.uid === ADMIN_UID} hasPlayer={!!currentTrack && !immersive}/>
       {boothPlayer}
       {listeningOverlays}
     </div>
@@ -4288,57 +4554,111 @@ export default function App() {
     <div style={{ display:"flex", height:"100vh", background: color.canvas, overflow:"hidden", fontFamily: font }}>
 
       {/* ── LEFT NAV RAIL ─────────────────────────────────────────────── */}
-      <div style={{ width:72, flexShrink:0, background: color.surfaceSolid, borderRight:`1px solid ${color.line}`, display:"flex", flexDirection:"column", alignItems:"center", padding:"16px 0 16px" }}>
-        {/* Logo */}
-        <div style={{ marginBottom:16 }}>
+      <div style={{
+        width: 76, flexShrink: 0,
+        background: "rgba(8,8,10,0.92)",
+        borderRight: `1px solid ${glass.borderFaint}`,
+        boxShadow: `inset -1px 0 0 ${glass.highlight}`,
+        display: "flex", flexDirection: "column", alignItems: "center",
+        padding: "18px 0 16px",
+      }}>
+        <div style={{ marginBottom: 18 }}>
           <BrandGlyph size={28}/>
         </div>
 
-        {/* Top nav: Home, Discover, Session */}
-        <div style={{ display:"flex", flexDirection:"column", gap:4, alignItems:"center" }}>
-          {NAV_TOP.map(item => (
-            <button key={item.id} onClick={()=>setScreen(item.id)} title={item.label} style={{
-              width:44, height:44, borderRadius:12,
-              background:screen===item.id? color.accentSoft:"none",
-              border:"none", color:screen===item.id? color.accent: color.faint,
-              cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center",
-              transition:"all 0.2s",
-            }}>
-              <Icon name={item.icon} size={20}/>
-            </button>
-          ))}
+        <div style={{ display: "flex", flexDirection: "column", gap: 6, alignItems: "center" }}>
+          {NAV_TOP.map((item) => {
+            const active = screen === item.id || ((screen === "artist" || screen === "album") && item.id === "search");
+            return (
+              <button
+                key={item.id}
+                type="button"
+                className="nav-rail-btn"
+                onClick={() => setScreen(item.id)}
+                title={item.label}
+                aria-label={item.label}
+                aria-current={active ? "page" : undefined}
+                style={{
+                  width: 48, height: 48, borderRadius: 14,
+                  background: active ? color.accentSoft : "transparent",
+                  border: active ? `1px solid ${glass.borderSoft}` : "1px solid transparent",
+                  color: active ? color.accent : color.faint,
+                  cursor: "pointer",
+                  display: "flex", flexDirection: "column",
+                  alignItems: "center", justifyContent: "center", gap: 2,
+                  boxShadow: active ? `inset 0 1px 0 ${glass.highlight}` : "none",
+                }}
+              >
+                <Icon name={item.icon} size={20}/>
+                <span style={{
+                  fontSize: 8, fontWeight: active ? 650 : 500,
+                  letterSpacing: 0.2, lineHeight: 1,
+                }}>
+                  {item.label}
+                </span>
+              </button>
+            );
+          })}
         </div>
 
-        {/* Spacer */}
-        <div style={{ flex:1 }}/>
+        <div style={{ flex: 1 }}/>
 
-        {/* Bottom nav: Search, Admin, Avatar */}
-        <div style={{ display:"flex", flexDirection:"column", gap:4, alignItems:"center" }}>
-          {NAV_BOTTOM.map(item => (
-            <button key={item.id} onClick={()=>setScreen(item.id)} title={item.label} style={{
-              width:44, height:44, borderRadius:12,
-              background:screen===item.id? color.accentSoft:"none",
-              border:"none", color:screen===item.id? color.accent: color.faint,
-              cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center",
-              transition:"all 0.2s",
-            }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: 6, alignItems: "center" }}>
+          {NAV_BOTTOM.map((item) => (
+            <button
+              key={item.id}
+              type="button"
+              className="nav-rail-btn"
+              onClick={() => setScreen(item.id)}
+              title={item.label}
+              style={{
+                width: 48, height: 48, borderRadius: 14,
+                background: screen === item.id ? color.accentSoft : "transparent",
+                border: "none",
+                color: screen === item.id ? color.accent : color.faint,
+                cursor: "pointer",
+                display: "flex", alignItems: "center", justifyContent: "center",
+              }}
+            >
               <Icon name={item.icon} size={20}/>
             </button>
           ))}
           {firebaseUser?.uid === ADMIN_UID && (
-            <button onClick={()=>setScreen("admin")} title="Admin" style={{
-              width:44, height:44, borderRadius:12,
-              background:screen==="admin"? color.accentSoft:"none",
-              border:"none", color:screen==="admin"? color.accent: color.faint,
-              cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center",
-              transition:"all 0.2s",
-            }}>
+            <button
+              type="button"
+              className="nav-rail-btn"
+              onClick={() => setScreen("admin")}
+              title="Admin"
+              aria-label="Admin"
+              style={{
+                width: 48, height: 48, borderRadius: 14,
+                background: screen === "admin" ? color.accentSoft : "transparent",
+                border: "none",
+                color: screen === "admin" ? color.accent : color.faint,
+                cursor: "pointer",
+                display: "flex", alignItems: "center", justifyContent: "center",
+              }}
+            >
               <Icon name="settings" size={20}/>
             </button>
           )}
-          <div style={{ width:32, height:32, borderRadius:"50%", background: color.surfaceRaised, border:`1px solid ${color.line}`, display:"flex", alignItems:"center", justifyContent:"center", fontSize:14, cursor:"pointer", marginTop:4 }} onClick={()=>setScreen("profile")} title={user.name}>
-            {user.image}
-          </div>
+          <button
+            type="button"
+            className="nav-rail-btn"
+            onClick={() => setScreen("profile")}
+            title={user.name}
+            aria-label="Library"
+            aria-current={screen === "profile" ? "page" : undefined}
+            style={{
+              width: 36, height: 36, borderRadius: "50%",
+              background: screen === "profile" ? color.accentSoft : color.surfaceRaised,
+              border: `1px solid ${screen === "profile" ? glass.border : color.line}`,
+              display: "flex", alignItems: "center", justifyContent: "center",
+              fontSize: 14, cursor: "pointer", marginTop: 4, color: color.ink,
+            }}
+          >
+            {user.image || (user.name || "R").trim().charAt(0).toUpperCase()}
+          </button>
         </div>
       </div>
 
@@ -4364,14 +4684,14 @@ export default function App() {
               <div style={{ fontSize:14, color: color.muted, marginTop:12 }}>Loading…</div>
             </div>
           ) : (
-            <>
+            <ScreenPane key={screen === "artist" ? `artist:${artistSlug}` : screen === "album" ? `album:${albumSlug}` : screen}>
               {screen==="home"      && <HomeScreen tracks={tracks} onPlayRadio={playRadio} onTogglePlay={()=>setIsPlaying(p=>!p)} onPlayTrack={playTrack} currentTrack={currentTrack} isPlaying={isPlaying} onLike={toggleLike} isRadioMode={isRadioMode} playlistCtx={playlistCtx} signalLabel={signalState?.label} userPlaylists={userPlaylists} onCreatePlaylist={createPlaylist} onDeletePlaylist={deletePlaylist} onMakePlaylist={()=>setShowRouteBuilder(true)} mixLane={mixLane} onMixLaneChange={setMixLane} catalogError={tracksLoadError} onRetryCatalog={reloadCatalog}/>}
               {screen==="search"    && <SearchScreen query={searchQuery} setQuery={setSearch} results={searchResults} onPlay={t=>playTrack(t,tracks)} onLike={toggleLike} currentTrack={currentTrack} isPlaying={isPlaying} playlistCtx={playlistCtx} entityHits={entityHits} onOpenArtist={openArtist} onOpenAlbum={(slug)=>openAlbum(slug)}/>}
               {screen==="favorites" && <FavoritesScreen tracks={tracks} preferredGenres={user.genres} onPlay={t=>{setIsRadioMode(false);playTrack(t,tracks);}} onLike={toggleLike} currentTrack={currentTrack} isPlaying={isPlaying} playlistCtx={playlistCtx}/>}
               {screen==="artist"    && (
                 <ArtistPage
                   artist={findArtist(tracks, artistSlug)}
-                  onBack={() => setScreen("search")}
+                  onBack={goBack}
                   onPlay={(t, pool) => playTrack(t, pool)}
                   onOpenAlbum={(slug) => openAlbum(slug)}
                   currentTrack={currentTrack}
@@ -4385,7 +4705,7 @@ export default function App() {
               {screen==="album"     && (
                 <AlbumPage
                   album={findAlbum(tracks, albumSlug)}
-                  onBack={() => setScreen("search")}
+                  onBack={goBack}
                   onPlay={(t, pool) => playTrack(t, pool)}
                   onOpenArtist={(slug) => openArtist(slug)}
                   currentTrack={currentTrack}
@@ -4397,25 +4717,25 @@ export default function App() {
                 />
               )}
               {screen==="profile"   && <ProfileScreen user={user} tracks={tracks} onLogout={logOut}/>}
-                            {screen==="admin"     && <AdminScreen tracks={tracks} setTracks={setTracks} tab={adminTab} setTab={setAdminTab} editTrack={editTrack} setEditTrack={setEditTrack} showToast={showToast}/>}
-            </>
+              {screen==="admin"     && <AdminScreen tracks={tracks} setTracks={setTracks} tab={adminTab} setTab={setAdminTab} editTrack={editTrack} setEditTrack={setEditTrack} showToast={showToast}/>}
+            </ScreenPane>
           )}
         </div>
         </>
-        {/* Desktop mini-player — flat station strip */}
+        {/* Desktop mini-player — glass station strip */}
         {currentTrack && !immersive && (
-          <div style={{ position:"fixed", bottom:0, left:72, right:320, zIndex:80 }}>
-            <div onClick={()=>setImmersive(true)} style={{
-              background: color.station,
-              borderTop:`1px solid ${color.lineStrong}`,
+          <div style={{ position:"fixed", bottom:12, left:88, right:332, zIndex:80 }}>
+            <div onClick={()=>setImmersive(true)} className="glass-dock" style={{
+              borderRadius: dock.radius,
               display:"flex", flexDirection:"column",
               cursor:"pointer", overflow:"hidden", position:"relative",
+              animation: `dockRise 0.4s ${motion.ease} both`,
             }}>
               <div aria-hidden="true" style={{ height:2, background:"rgba(232,236,240,0.08)", width:"100%" }}>
-                <div style={{ height:"100%", width:`${duration?((progress/duration)*100):0}%`, background: color.accent, transition:"width 1s linear" }}/>
+                <div style={{ height:"100%", width:`${duration?((progress/duration)*100):0}%`, background: color.accent, transition:"width 1s linear", boxShadow: `0 0 8px ${color.accentGlow}` }}/>
               </div>
               <div style={{ display:"flex", alignItems:"center", gap:12, padding:"12px 18px" }}>
-                <div style={{ width:44, height:44, overflow:"hidden", flexShrink:0 }}><AlbumArt track={currentTrack} size={44} borderRadius={0}/></div>
+                <div style={{ width:44, height:44, overflow:"hidden", flexShrink:0, borderRadius:8 }}><AlbumArt track={currentTrack} size={44} borderRadius={8}/></div>
                 <div style={{ flex:1, minWidth:0 }}>
                   <div style={{ fontSize:14, fontWeight:650, color: color.ink, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap", letterSpacing:-0.2, fontFamily: fontDisplay }}>
                     {isRadioMode && (
