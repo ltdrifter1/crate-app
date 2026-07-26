@@ -22,6 +22,7 @@ import { getFloorPhase } from "./lib/club";
 import { parsePath, buildPath, documentTitleFor } from "./lib/routes";
 import { explainPick, SEARCH_PROMPTS } from "./lib/explain";
 import { buildHomeCollections, savedTracks } from "./lib/homeCollections";
+import { fetchCatalogTracks, countPlayableTracks } from "./lib/catalogLoad";
 import { slugify, findArtist, findAlbum, searchEntities } from "./lib/catalog";
 import {
   enrichTracksWithScenes,
@@ -329,21 +330,22 @@ function MixLanePicker({ mixLane, onMixLaneChange, disabled = false }) {
 
 function DeepCutsCard({
   onPlay, onTogglePlay, currentTrack, isPlaying, isRadioMode, signalLabel,
-  featuredTrack = null, mixLane, onMixLaneChange,
+  featuredTrack = null, mixLane, onMixLaneChange, playDisabled = false,
 }) {
   const live = isRadioMode && currentTrack;
   const artTrack = live ? currentTrack : (featuredTrack || currentTrack);
   const cover = artTrack?.albumCover;
+  const canStart = !playDisabled;
 
   return (
     <div
-      onClick={live ? undefined : onPlay}
-      role={live ? undefined : "button"}
+      onClick={live || !canStart ? undefined : onPlay}
+      role={live || !canStart ? undefined : "button"}
       style={{
         position: "relative",
         minHeight: "min(72vh, 580px)",
         padding: "0",
-        cursor: live ? "default" : "pointer",
+        cursor: live || !canStart ? "default" : "pointer",
         background: color.canvas,
         overflow: "hidden",
         animation: "stationIn 0.75s cubic-bezier(0.22,1,0.36,1) both",
@@ -436,16 +438,20 @@ function DeepCutsCard({
             </div>
           </div>
         ) : (
-          <button type="button" className="play-primary" aria-label="Play" onClick={(e) => { e.stopPropagation(); onPlay(); }}
+          <button type="button" className="play-primary" aria-label="Play" disabled={!canStart}
+            onClick={(e) => { e.stopPropagation(); if (canStart) onPlay(); }}
             style={{
               display: "inline-flex", alignItems: "center", gap: 10, alignSelf: "flex-start",
               padding: "14px 26px", borderRadius: 980,
-              background: color.accent, border: "none", color: color.onAccent,
-              cursor: "pointer", fontSize: 17, fontWeight: 600, letterSpacing: -0.2,
-              boxShadow: "0 10px 28px rgba(0,0,0,0.35)",
+              background: canStart ? color.accent : color.surfaceRaised,
+              border: "none", color: canStart ? color.onAccent : color.faint,
+              cursor: canStart ? "pointer" : "not-allowed",
+              fontSize: 17, fontWeight: 600, letterSpacing: -0.2,
+              boxShadow: canStart ? "0 10px 28px rgba(0,0,0,0.35)" : "none",
+              opacity: canStart ? 1 : 0.85,
             }}>
             <Icon name="play" size={16}/>
-            Play {mixLaneById(mixLane).label}
+            {canStart ? `Play ${mixLaneById(mixLane).label}` : "Library unavailable"}
           </button>
         )}
       </div>
@@ -1920,11 +1926,77 @@ const HomeSection = ({ label, count, children, delay = 0, first = false }) => (
   </section>
 );
 
+function HomeCatalogStatus({ error, isEmpty, playableCount, totalCount, onRetry }) {
+  if (!error && !isEmpty) return null;
+  return (
+    <div
+      role={error ? "alert" : "status"}
+      style={{
+        margin: `0 ${homeSpace.gutter}px ${homeSpace.sectionPadTopFirst}px`,
+        padding: "16px 18px",
+        borderRadius: radius.lg,
+        border: `1px solid ${error ? color.lineStrong : color.line}`,
+        background: glass.fillStrong,
+        backdropFilter: glass.blurSoft,
+        WebkitBackdropFilter: glass.blurSoft,
+      }}
+    >
+      {error ? (
+        <>
+          <div style={{ fontSize: 15, fontWeight: 650, color: color.ink, marginBottom: 6 }}>
+            Couldn&apos;t load the library
+          </div>
+          <div style={{ fontSize: 13, color: color.body, lineHeight: 1.45, marginBottom: 12 }}>
+            Check your connection and try again. If this keeps happening, the catalog may need a moment to sync.
+          </div>
+          <button
+            type="button"
+            onClick={onRetry}
+            style={{
+              ...BTN_PRIMARY,
+              width: "auto",
+              padding: "10px 18px",
+              fontSize: 14,
+            }}
+          >
+            Retry
+          </button>
+        </>
+      ) : (
+        <>
+          <div style={{ fontSize: 15, fontWeight: 650, color: color.ink, marginBottom: 6 }}>
+            No tracks in your library yet
+          </div>
+          <div style={{ fontSize: 13, color: color.body, lineHeight: 1.45 }}>
+            {totalCount > 0 && playableCount === 0
+              ? `${totalCount} catalog entries are missing audio — add audioUrl in admin or re-upload tracks.`
+              : "Once tracks are added to the catalog, they will show up here. Pull to refresh by tapping Retry."}
+          </div>
+          <button
+            type="button"
+            onClick={onRetry}
+            style={{
+              ...BTN_SECONDARY,
+              width: "auto",
+              marginTop: 12,
+              padding: "10px 18px",
+              fontSize: 14,
+            }}
+          >
+            Retry
+          </button>
+        </>
+      )}
+    </div>
+  );
+}
+
 function HomeScreen({
   tracks, onPlayRadio, onTogglePlay, onPlayTrack, currentTrack, isPlaying, onLike,
   isRadioMode, playlistCtx, signalLabel,
   userPlaylists = [], onCreatePlaylist, onDeletePlaylist,
   onMakePlaylist, mixLane, onMixLaneChange,
+  catalogError = null, onRetryCatalog,
 }) {
   const saved = savedTracks(tracks, 24);
   const collections = buildHomeCollections(tracks);
@@ -1978,6 +2050,9 @@ function HomeScreen({
 
   const tile = homeSpace.tile;
   const mosaic = Math.round(tile / 2);
+  const playableCount = countPlayableTracks(tracks);
+  const catalogEmpty = !catalogError && tracks.length === 0;
+  const catalogDepleted = !catalogError && tracks.length > 0 && playableCount === 0;
 
   return (
     <div style={{ position: "relative", paddingBottom: 48 }}>
@@ -1991,7 +2066,18 @@ function HomeScreen({
         featuredTrack={featuredTrack}
         mixLane={mixLane}
         onMixLaneChange={onMixLaneChange}
+        playDisabled={catalogEmpty || catalogDepleted || !!catalogError}
       />
+
+      {(catalogError || catalogEmpty || catalogDepleted) && (
+        <HomeCatalogStatus
+          error={catalogError}
+          isEmpty={catalogEmpty || catalogDepleted}
+          playableCount={playableCount}
+          totalCount={tracks.length}
+          onRetry={onRetryCatalog}
+        />
+      )}
 
       {/* Library plane — soft glass atmosphere under the hero */}
       <div style={{
@@ -3167,6 +3253,7 @@ export default function App() {
   // ── App state ────────────────────────────────────────────────────────────
   const [tracks, setTracks]           = useState([]);          // loaded from Firestore
   const [tracksLoading, setTracksLoading] = useState(true);
+  const [tracksLoadError, setTracksLoadError] = useState(null);
   const [currentTrack, setCurrent]    = useState(null);
   const [isPlaying, setIsPlaying]     = useState(false);
   const [progress, setProgress]       = useState(0);
@@ -3213,9 +3300,10 @@ export default function App() {
   }, [mixLane]);
 
   const radioPool = useCallback(() => {
-    const pool = tracksForMixLane(tracks, mixLane);
+    const withAudio = (list) => list.filter((t) => String(t.audioUrl || "").trim());
+    const pool = withAudio(tracksForMixLane(tracks, mixLane));
     if (pool.length) return pool;
-    return tracks.filter((t) => (t.duration || 0) <= 900);
+    return withAudio(tracks.filter((t) => (t.duration || 0) <= 900));
   }, [tracks, mixLane]);
   const mixLaneRef = useRef(mixLane);
   useEffect(() => { mixLaneRef.current = mixLane; }, [mixLane]);
@@ -3360,26 +3448,24 @@ export default function App() {
   }, [tracks]);
   const showToast = (msg) => { setToast(msg); setTimeout(()=>setToast(null),2200); };
 
+  const reloadCatalog = useCallback(async () => {
+    setTracksLoading(true);
+    setTracksLoadError(null);
+    try {
+      const loaded = await fetchCatalogTracks(db);
+      setTracks(computeSignalTraits(loaded));
+    } catch (err) {
+      console.error("Failed to load tracks:", err);
+      setTracksLoadError("We couldn't reach the music catalog. Check your connection and try again.");
+      showToast("Couldn't load tracks — tap Retry on Home");
+    }
+    setTracksLoading(false);
+  }, []);
+
   // ── Load tracks from Firestore once on mount ────────────────────────────
   useEffect(() => {
-    async function loadTracks() {
-      try {
-        const q    = query(collection(db, "tracks"), orderBy("createdAt", "desc"));
-        const snap = await getDocs(q);
-        const loaded = snap.docs.map(d => ({
-          ...d.data(),          // spread data first
-          id:    d.id,          // then override with real Firestore doc ID (never overwritten)
-          liked: false,         // default; will be overridden from profile below
-        }));
-        setTracks(computeSignalTraits(loaded));
-      } catch (err) {
-        console.error("Failed to load tracks:", err);
-        showToast("Couldn't load tracks — check your connection");
-      }
-      setTracksLoading(false);
-    }
-    loadTracks();
-  }, []);
+    reloadCatalog();
+  }, [reloadCatalog]);
 
   // ── Once profile loads, merge liked status + playlists into state ─────────
   useEffect(() => {
@@ -4010,7 +4096,7 @@ export default function App() {
         </div>
       )}
       <div style={{ flex:1, overflow:"auto", paddingBottom:currentTrack?120:56, zIndex:1, position:"relative" }}>
-        {screen==="home"      && !tracksLoading && <HomeScreen tracks={tracks} onPlayRadio={playRadio} onTogglePlay={()=>setIsPlaying(p=>!p)} onPlayTrack={playTrack} currentTrack={currentTrack} isPlaying={isPlaying} onLike={toggleLike} isRadioMode={isRadioMode} playlistCtx={playlistCtx} signalLabel={signalState?.label} userPlaylists={userPlaylists} onCreatePlaylist={createPlaylist} onDeletePlaylist={deletePlaylist} onMakePlaylist={()=>setShowRouteBuilder(true)} mixLane={mixLane} onMixLaneChange={setMixLane}/>}
+        {screen==="home"      && !tracksLoading && <HomeScreen tracks={tracks} onPlayRadio={playRadio} onTogglePlay={()=>setIsPlaying(p=>!p)} onPlayTrack={playTrack} currentTrack={currentTrack} isPlaying={isPlaying} onLike={toggleLike} isRadioMode={isRadioMode} playlistCtx={playlistCtx} signalLabel={signalState?.label} userPlaylists={userPlaylists} onCreatePlaylist={createPlaylist} onDeletePlaylist={deletePlaylist} onMakePlaylist={()=>setShowRouteBuilder(true)} mixLane={mixLane} onMixLaneChange={setMixLane} catalogError={tracksLoadError} onRetryCatalog={reloadCatalog}/>}
         {screen==="search"    && <SearchScreen query={searchQuery} setQuery={setSearch} results={searchResults} onPlay={t=>playTrack(t,tracks)} onLike={toggleLike} currentTrack={currentTrack} isPlaying={isPlaying} playlistCtx={playlistCtx} entityHits={entityHits} onOpenArtist={openArtist} onOpenAlbum={(slug)=>openAlbum(slug)}/>}
         {screen==="favorites" && <FavoritesScreen tracks={tracks} preferredGenres={user.genres} onPlay={t=>{setIsRadioMode(false);playTrack(t,tracks);}} onLike={toggleLike} currentTrack={currentTrack} isPlaying={isPlaying} playlistCtx={playlistCtx}/>}
         {screen==="artist"    && !tracksLoading && (
@@ -4164,7 +4250,7 @@ export default function App() {
             </div>
           ) : (
             <>
-              {screen==="home"      && <HomeScreen tracks={tracks} onPlayRadio={playRadio} onTogglePlay={()=>setIsPlaying(p=>!p)} onPlayTrack={playTrack} currentTrack={currentTrack} isPlaying={isPlaying} onLike={toggleLike} isRadioMode={isRadioMode} playlistCtx={playlistCtx} signalLabel={signalState?.label} userPlaylists={userPlaylists} onCreatePlaylist={createPlaylist} onDeletePlaylist={deletePlaylist} onMakePlaylist={()=>setShowRouteBuilder(true)} mixLane={mixLane} onMixLaneChange={setMixLane}/>}
+              {screen==="home"      && <HomeScreen tracks={tracks} onPlayRadio={playRadio} onTogglePlay={()=>setIsPlaying(p=>!p)} onPlayTrack={playTrack} currentTrack={currentTrack} isPlaying={isPlaying} onLike={toggleLike} isRadioMode={isRadioMode} playlistCtx={playlistCtx} signalLabel={signalState?.label} userPlaylists={userPlaylists} onCreatePlaylist={createPlaylist} onDeletePlaylist={deletePlaylist} onMakePlaylist={()=>setShowRouteBuilder(true)} mixLane={mixLane} onMixLaneChange={setMixLane} catalogError={tracksLoadError} onRetryCatalog={reloadCatalog}/>}
               {screen==="search"    && <SearchScreen query={searchQuery} setQuery={setSearch} results={searchResults} onPlay={t=>playTrack(t,tracks)} onLike={toggleLike} currentTrack={currentTrack} isPlaying={isPlaying} playlistCtx={playlistCtx} entityHits={entityHits} onOpenArtist={openArtist} onOpenAlbum={(slug)=>openAlbum(slug)}/>}
               {screen==="favorites" && <FavoritesScreen tracks={tracks} preferredGenres={user.genres} onPlay={t=>{setIsRadioMode(false);playTrack(t,tracks);}} onLike={toggleLike} currentTrack={currentTrack} isPlaying={isPlaying} playlistCtx={playlistCtx}/>}
               {screen==="artist"    && (
