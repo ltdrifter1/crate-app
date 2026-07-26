@@ -1,5 +1,5 @@
 import { font, fontMono, color } from "../../theme";
-import { activeBrandDirection, BRAND_TAGLINE } from "../../brand/identity";
+import { brandTaglineStyle, BRAND_TAGLINE } from "../../brand/identity";
 
 /** Shared tagline lockup — YOUR WORLD, YOUR MUSIC. */
 export default function BrandTagline({
@@ -8,10 +8,10 @@ export default function BrandTagline({
   style = {},
   size,
 }) {
-  const dir = activeBrandDirection();
+  const dir = brandTaglineStyle;
   const ink = light ? color.onDarkMuted : color.body;
-  const fs = size || dir.tagline.size;
-  const family = dir.tagline.font === "mono" ? fontMono : font;
+  const fs = size || dir.size;
+  const family = dir.font === "mono" ? fontMono : font;
 
   return (
     <p
@@ -22,8 +22,8 @@ export default function BrandTagline({
         color: ink,
         fontFamily: family,
         fontWeight: 600,
-        letterSpacing: dir.tagline.letterSpacing,
-        textTransform: dir.tagline.transform,
+        letterSpacing: dir.letterSpacing,
+        textTransform: dir.transform,
         maxWidth: 360,
         ...style,
       }}

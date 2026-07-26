@@ -1,6 +1,8 @@
-# ROOMS
+# Planet MP3
 
 Music you inhabit.
+
+**Tagline:** YOUR WORLD, YOUR MUSIC.
 
 Living destinations for discovering, collecting, and experiencing music — not another streaming feed.
 

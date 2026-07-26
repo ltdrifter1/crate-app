@@ -386,8 +386,8 @@ function DeepCutsCard({
         maxWidth: 520,
       }}>
         <div style={{
-          fontSize: "clamp(42px, 11vw, 56px)",
-          fontWeight: 700, letterSpacing: -1.8, lineHeight: 0.95,
+          fontSize: "clamp(34px, 9vw, 48px)",
+          fontWeight: 700, letterSpacing: -1.2, lineHeight: 1,
           color: color.onDark, fontFamily: fontDisplay,
           marginBottom: 12,
         }}>

@@ -187,9 +187,8 @@ export const CTRL_BTN = {
 /** Product brand — name + tagline from identity config. */
 export {
   BRAND_NAME,
+  BRAND_NAME_SHORT,
   BRAND_TAGLINE,
-  ACTIVE_BRAND_NAME_KEY,
-  BRAND_NAME_OPTIONS,
   activeBrandName,
   brandStoragePrefix,
 } from "./brand/identity";
