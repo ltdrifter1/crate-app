@@ -17,6 +17,7 @@ import {
   buildSession, buildRoute, SESSION_PROFILES,
 } from "./lib/engine";
 import { tracksForMixLane, mixLaneById, MIX_LANES } from "./lib/mixLanes";
+import { saveListeningState, loadListeningState, clearListeningState } from "./lib/continuity";
 import { CANONICAL_GENRES, normalizeGenre } from "./lib/genres";
 import { getFloorPhase } from "./lib/club";
 import { parsePath, buildPath, documentTitleFor } from "./lib/routes";
@@ -82,6 +83,8 @@ const injectStyles = () => {
     @keyframes stationIn { from{opacity:0;transform:translateY(18px) scale(0.985)} to{opacity:1;transform:none} }
     @keyframes roomEnter { from{opacity:0;transform:translateY(14px)} to{opacity:1;transform:none} }
     @keyframes trackSwap { from{opacity:0;transform:translateY(4px)} to{opacity:1;transform:none} }
+    @keyframes orbitPulse { 0%,100%{transform:scale(1);opacity:0.45} 50%{transform:scale(1.03);opacity:0.9} }
+    @keyframes planetBreathe { 0%,100%{transform:translate(-50%,-50%) scale(1)} 50%{transform:translate(-50%,-50%) scale(1.015)} }
     @keyframes dialArc {
       from { stroke-dashoffset: 92; opacity: 0.55; }
       to { stroke-dashoffset: 28; opacity: 1; }
@@ -432,10 +435,12 @@ function HeroAtmosphere() {
 function DeepCutsCard({
   onPlay, onTogglePlay, currentTrack, isPlaying, isRadioMode, signalLabel,
   featuredTrack = null, mixLane, onMixLaneChange, playDisabled = false,
+  resumeTrack = null, onResume, onDismissResume,
 }) {
   const live = isRadioMode && currentTrack;
   const canStart = !playDisabled;
   const lane = mixLaneById(mixLane);
+  const showResume = !live && !currentTrack && canStart && !!resumeTrack;
 
   return (
     <div
@@ -486,7 +491,7 @@ function DeepCutsCard({
               fontSize: 11, fontWeight: 700, letterSpacing: 1.8,
               textTransform: "uppercase", color: color.faint, fontFamily: fontMono,
             }}>
-              {signalLabel || "Live radio"}
+              {showResume ? "Welcome back" : (signalLabel || "Live radio")}
             </span>
           )}
         </div>
@@ -539,6 +544,51 @@ function DeepCutsCard({
             </button>
             <div style={{ fontSize: 13, color: color.faint, fontWeight: 500, letterSpacing: 0.2 }}>
               {isPlaying ? "Playing your orbit" : "Paused"}
+            </div>
+          </div>
+        ) : showResume ? (
+          <div style={{ animation: "rise 0.5s cubic-bezier(0.22,1,0.36,1) both" }}>
+            <div style={{
+              fontSize: 12, color: color.faint, fontFamily: fontMono,
+              letterSpacing: 0.6, textTransform: "uppercase", marginBottom: 12,
+            }}>
+              Continue · <span style={{ color: color.body }}>{resumeTrack.title}</span>
+              <span style={{ color: color.faint }}> — {resumeTrack.artist}</span>
+            </div>
+            <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+              <button type="button" className="play-primary" aria-label={`Resume ${resumeTrack.title}`}
+                onClick={onResume}
+                style={{
+                  display: "inline-flex", alignItems: "center", gap: 12,
+                  padding: "16px 30px 16px 22px", borderRadius: 980,
+                  background: color.accent, border: "none", color: color.onAccent,
+                  cursor: "pointer", fontSize: 17, fontWeight: 700, letterSpacing: -0.2,
+                  fontFamily: fontDisplay,
+                  boxShadow: `0 0 0 1px rgba(242,243,245,0.14), 0 16px 40px rgba(0,0,0,0.5), 0 0 40px ${color.accentGlow}`,
+                }}>
+                <span style={{
+                  width: 34, height: 34, borderRadius: "50%",
+                  display: "inline-flex", alignItems: "center", justifyContent: "center",
+                  background: "rgba(0,0,0,0.14)", flexShrink: 0,
+                }}>
+                  <Icon name="play" size={15}/>
+                </span>
+                Resume
+              </button>
+              <button type="button" aria-label={`Start a fresh ${lane.label} mix`}
+                onClick={() => { onDismissResume?.(); onPlay(); }}
+                style={{
+                  padding: "15px 24px", borderRadius: 980,
+                  background: "rgba(255,255,255,0.05)",
+                  border: `1px solid ${glass.borderSoft}`,
+                  color: color.body, cursor: "pointer",
+                  fontSize: 15, fontWeight: 600, letterSpacing: -0.1,
+                  fontFamily: fontDisplay,
+                  backdropFilter: glass.blurSoft,
+                  WebkitBackdropFilter: glass.blurSoft,
+                }}>
+                Start fresh
+              </button>
             </div>
           </div>
         ) : (
@@ -1402,6 +1452,107 @@ function AfterglowOverlay({ data, onClose, onSavePlaylist }) {
 }
 
 // ─── DRIFT — immersive cinematic playback (Booth instrument) ─────────────────
+/**
+ * Orbit visualizer — the signature Planet MP3 player backdrop.
+ * A planet tinted by the track's color; the orbit ring breathes in time
+ * with the BPM and the system's glow scales with track energy.
+ */
+function OrbitVisualizer({ track, isPlaying }) {
+  const rgb = hexToRgbStr(track?.color) || "242,243,245";
+  const bpm = Number(track?.bpm) > 0 ? Math.min(200, Math.max(56, Number(track.bpm))) : 96;
+  const energy = Math.max(1, Math.min(10, Number(track?.energy) || 5));
+  const beat = 60 / bpm;
+  const pulseDur = `${(beat * 2).toFixed(3)}s`;      // ring breathes every 2 beats
+  const orbitDur = `${(beat * 64).toFixed(2)}s`;     // satellite revolution = 64 beats
+  const playState = isPlaying ? "running" : "paused";
+  const glow = 0.10 + energy * 0.028;                // energy drives atmosphere
+  const planet = `min(${46 + energy * 2.4}vmin, 620px)`;
+  const ring = `min(${64 + energy * 2.6}vmin, 800px)`;
+  const ringOuter = `min(${78 + energy * 2.6}vmin, 940px)`;
+
+  return (
+    <div aria-hidden="true" style={{ position: "absolute", inset: 0, overflow: "hidden", background: "#000" }}>
+      {/* Color atmosphere — morphs across crossfades */}
+      <div style={{
+        position: "absolute", inset: 0,
+        background: `
+          radial-gradient(ellipse 110% 80% at 50% 118%, rgba(${rgb},${glow}) 0%, transparent 60%),
+          radial-gradient(ellipse 80% 60% at 82% -12%, rgba(${rgb},${(glow * 0.45).toFixed(3)}) 0%, transparent 55%),
+          #000
+        `,
+        transition: "background 2.5s ease",
+      }}/>
+      {/* Starfield */}
+      <div style={{
+        position: "absolute", inset: 0,
+        backgroundImage: `
+          radial-gradient(circle at 14% 22%, rgba(242,243,245,0.5) 0 1px, transparent 1.4px),
+          radial-gradient(circle at 76% 14%, rgba(242,243,245,0.38) 0 1px, transparent 1.4px),
+          radial-gradient(circle at 60% 38%, rgba(242,243,245,0.26) 0 0.8px, transparent 1.2px),
+          radial-gradient(circle at 30% 10%, rgba(242,243,245,0.3) 0 0.8px, transparent 1.2px),
+          radial-gradient(circle at 88% 48%, rgba(242,243,245,0.2) 0 0.8px, transparent 1.2px),
+          radial-gradient(circle at 8% 56%, rgba(242,243,245,0.18) 0 0.7px, transparent 1px)
+        `,
+      }}/>
+      {/* Planet — tinted by track color, gentle breathe */}
+      <div style={{
+        position: "absolute", top: "42%", left: "50%",
+        width: planet, height: planet,
+        transform: "translate(-50%,-50%)",
+        borderRadius: "50%",
+        background: `
+          radial-gradient(circle at 34% 30%, rgba(${rgb},0.5) 0%, rgba(${rgb},0.16) 38%, rgba(8,8,10,0.9) 78%),
+          radial-gradient(circle at 50% 50%, #121216 0%, #08080A 100%)
+        `,
+        boxShadow: `
+          inset -18px -24px 80px rgba(0,0,0,0.7),
+          0 0 60px rgba(${rgb},${(glow * 1.2).toFixed(3)}),
+          0 0 160px rgba(${rgb},${(glow * 0.55).toFixed(3)})
+        `,
+        animation: `planetBreathe ${(beat * 8).toFixed(2)}s ease-in-out infinite`,
+        animationPlayState: playState,
+        transition: "box-shadow 2.5s ease, background 2.5s ease",
+      }}/>
+      {/* BPM ring — breathes on the beat */}
+      <div style={{
+        position: "absolute", top: "42%", left: "50%",
+        width: ring, height: ring,
+        marginLeft: `calc(${ring} / -2)`, marginTop: `calc(${ring} / -2)`,
+        borderRadius: "50%",
+        border: `1px solid rgba(${rgb},0.55)`,
+        boxShadow: `0 0 24px rgba(${rgb},0.25), inset 0 0 24px rgba(${rgb},0.12)`,
+        animation: `orbitPulse ${pulseDur} ease-in-out infinite`,
+        animationPlayState: playState,
+        transition: "border-color 2.5s ease, box-shadow 2.5s ease",
+      }}/>
+      {/* Outer orbit + satellite — one revolution per 64 beats */}
+      <div style={{
+        position: "absolute", top: "42%", left: "50%",
+        width: ringOuter, height: ringOuter,
+        marginLeft: `calc(${ringOuter} / -2)`, marginTop: `calc(${ringOuter} / -2)`,
+        borderRadius: "50%",
+        border: "1px solid rgba(242,243,245,0.10)",
+        animation: `spin ${orbitDur} linear infinite`,
+        animationPlayState: playState,
+      }}>
+        <div style={{
+          position: "absolute", top: "-3px", left: "50%",
+          width: 7, height: 7, borderRadius: "50%",
+          transform: "translateX(-50%)",
+          background: `rgb(${rgb})`,
+          boxShadow: `0 0 14px rgba(${rgb},0.9), 0 0 4px rgba(${rgb},1)`,
+          transition: "background 2.5s ease, box-shadow 2.5s ease",
+        }}/>
+      </div>
+      {/* Legibility vignette */}
+      <div style={{
+        position: "absolute", inset: 0,
+        background: "linear-gradient(180deg, rgba(0,0,0,0.4) 0%, rgba(0,0,0,0.1) 34%, rgba(0,0,0,0.68) 72%, rgba(0,0,0,0.94) 100%)",
+      }}/>
+    </div>
+  );
+}
+
 function ImmersivePlayer({
   currentTrack, isPlaying, onTogglePlay, onSkip, onPrev, onClose,
   signalState, progress = 0, duration = 0, onSeek, onLike,
@@ -1410,7 +1561,6 @@ function ImmersivePlayer({
   roomLabel = null, onOpenRoom, onOpenLiner, onOpenArtist,
 }) {
   const [showUI, setShowUI] = useState(true);
-  const [artLoaded, setArtLoaded] = useState(false);
   const [showMore, setShowMore] = useState(false);
   const hideTimer = useRef(null);
   const scrubRef = useRef(null);
@@ -1428,12 +1578,12 @@ function ImmersivePlayer({
     return () => clearTimeout(hideTimer.current);
   }, [currentTrack?.id, resetHide]);
 
-  useEffect(() => { setArtLoaded(false); }, [currentTrack?.id]);
-
   if (!currentTrack) return null;
 
-  const rgb = hexToRgbStr(currentTrack.color);
   const stateLabel = signalState?.label || "";
+  const pickWhy = isRadioMode || hypnoPocket
+    ? explainPick(currentTrack, { signalLabel: stateLabel })
+    : "";
 
   function seekFromClientX(clientX) {
     if (!scrubRef.current || !duration || !onSeek) return;
@@ -1448,35 +1598,8 @@ function ImmersivePlayer({
       onClick={resetHide}
       style={{ position:"fixed", inset:0, zIndex:100, overflow:"hidden", background: color.canvas, cursor: showUI ? "default" : "none" }}>
 
-      <div style={{
-        position:"absolute", inset:0,
-        backgroundImage: currentTrack.albumCover ? `url(${currentTrack.albumCover})` : "none",
-        backgroundSize:"cover", backgroundPosition:"center",
-        transform: artLoaded ? "scale(1.02)" : "scale(1.08)",
-        transition:"transform 8s cubic-bezier(0.22,1,0.36,1), opacity 0.8s ease",
-        opacity: artLoaded ? 1 : 0.4,
-      }}>
-        {currentTrack.albumCover && (
-          <img src={currentTrack.albumCover} alt="" onLoad={()=>setArtLoaded(true)}
-            style={{ position:"absolute", width:1, height:1, opacity:0, pointerEvents:"none" }}/>
-        )}
-      </div>
-      {!currentTrack.albumCover && (
-        <div style={{
-          position:"absolute", inset:0,
-          background:`linear-gradient(160deg, rgba(${rgb},0.35) 0%, ${color.canvas} 70%)`,
-          display:"flex", alignItems:"center", justifyContent:"center",
-        }}>
-          <div style={{ fontSize:120, fontWeight:800, color:`rgba(${rgb},0.25)`, letterSpacing:-6, fontFamily: fontDisplay }}>
-            {(currentTrack.title||"4")[0]}
-          </div>
-        </div>
-      )}
-
-      <div aria-hidden="true" style={{
-        position:"absolute", inset:0,
-        background:"linear-gradient(180deg, rgba(12,11,10,0.25) 0%, rgba(12,11,10,0.15) 35%, rgba(12,11,10,0.78) 72%, rgba(12,11,10,0.96) 100%)",
-      }}/>
+      {/* Signature orbit visualizer — planet + BPM ring tinted by the track */}
+      <OrbitVisualizer track={currentTrack} isPlaying={isPlaying} />
 
       {/* Live session / flow arc */}
       {sessionArc?.energies?.length > 1 && (
@@ -1554,13 +1677,14 @@ function ImmersivePlayer({
         <div style={{ marginTop:18 }}>
           <BoothHud track={currentTrack} size="lg"/>
         </div>
-        {(normalizeGenre(currentTrack.genre) || stateLabel || hypnoPocket || isRadioMode) && (
+        {(pickWhy || normalizeGenre(currentTrack.genre) || stateLabel) && (
           <div style={{ fontSize:11, color: color.faint, marginTop:12, letterSpacing:0.4, fontFamily: fontMono, textTransform:"uppercase" }}>
-            {[
-              hypnoPocket ? "Similar mix" : (isRadioMode ? "Radio" : null),
-              displaySceneLabel(currentTrack) || normalizeGenre(currentTrack.genre),
-              stateLabel,
-            ].filter(Boolean).join("  ·  ")}
+            {pickWhy
+              ? [hypnoPocket ? "Similar mix" : "Radio", pickWhy].filter(Boolean).join("  ·  ")
+              : [
+                  displaySceneLabel(currentTrack) || normalizeGenre(currentTrack.genre),
+                  stateLabel,
+                ].filter(Boolean).join("  ·  ")}
           </div>
         )}
       </div>
@@ -2112,6 +2236,7 @@ function HomeScreen({
   userPlaylists = [], onCreatePlaylist, onDeletePlaylist,
   onMakePlaylist, mixLane, onMixLaneChange,
   catalogError = null, onRetryCatalog,
+  resumeTrack = null, onResume, onDismissResume,
 }) {
   const saved = savedTracks(tracks, 24);
   const collections = buildHomeCollections(tracks);
@@ -2182,6 +2307,9 @@ function HomeScreen({
         mixLane={mixLane}
         onMixLaneChange={onMixLaneChange}
         playDisabled={catalogEmpty || catalogDepleted || !!catalogError}
+        resumeTrack={resumeTrack}
+        onResume={onResume}
+        onDismissResume={onDismissResume}
       />
 
       {(catalogError || catalogEmpty || catalogDepleted) && (
@@ -3423,6 +3551,10 @@ export default function App() {
   const mixLaneRef = useRef(mixLane);
   useEffect(() => { mixLaneRef.current = mixLane; }, [mixLane]);
 
+  // ── Listening continuity — saved session offered as Resume on Home ───────
+  const [resumePrompt, setResumePrompt] = useState(() => loadListeningState(brandStoragePrefix()));
+  const pendingSeekRef = useRef(null); // seconds to seek once audio metadata loads
+
   // ── Listening Memory — tracks recently played with timestamps ──
   const recentlyPlayedRef = useRef([]); // [{id, genre, energy, timestamp}]
   const playHistoryRef = useRef([]); // previous tracks for "prev" button
@@ -3656,6 +3788,13 @@ export default function App() {
 
     const onLoadedMetadata = () => {
       setDuration(Math.floor(audio.duration || 0));
+      // Continuity: apply a pending resume-seek once the media is ready
+      if (pendingSeekRef.current != null) {
+        const target = Math.max(0, Math.min(pendingSeekRef.current, Math.max(0, (audio.duration || 2) - 2)));
+        try { audio.currentTime = target; } catch { /* not seekable yet */ }
+        setProgress(Math.floor(target));
+        pendingSeekRef.current = null;
+      }
     };
 
     const onEnded = () => {
@@ -3785,6 +3924,50 @@ export default function App() {
     // nextAudioRef volume is managed during crossfade
   }, [volume]);
 
+  // ── Continuity: persist the session so a return visit can resume ─────────
+  const progressRef = useRef(0);
+  const queueRef = useRef([]);
+  useEffect(() => { progressRef.current = progress; }, [progress]);
+  useEffect(() => { queueRef.current = queue; }, [queue]);
+
+  const snapshotListening = useCallback(() => {
+    const track = currentRef.current;
+    if (!track?.id) return;
+    saveListeningState(brandStoragePrefix(), {
+      trackId: track.id,
+      position: progressRef.current,
+      queueIds: queueRef.current.map((t) => t.id),
+      isRadioMode: isRadioModeRef.current,
+      mixLane: mixLaneRef.current,
+    });
+  }, []);
+
+  // Save on structural changes (track / mode / queue)
+  useEffect(() => {
+    if (!currentTrack?.id) return;
+    snapshotListening();
+  }, [currentTrack?.id, isRadioMode, queue.length, snapshotListening]);
+
+  // Save position every ~5 seconds while playing
+  const lastPosSaveRef = useRef(0);
+  useEffect(() => {
+    if (!currentTrack?.id || !isPlaying) return;
+    if (Math.abs(progress - lastPosSaveRef.current) < 5) return;
+    lastPosSaveRef.current = progress;
+    snapshotListening();
+  }, [progress, currentTrack?.id, isPlaying, snapshotListening]);
+
+  // Save on tab close / navigation away
+  useEffect(() => {
+    const handler = () => snapshotListening();
+    window.addEventListener("beforeunload", handler);
+    document.addEventListener("visibilitychange", handler);
+    return () => {
+      window.removeEventListener("beforeunload", handler);
+      document.removeEventListener("visibilitychange", handler);
+    };
+  }, [snapshotListening]);
+
   // ── Playback actions ─────────────────────────────────────────────────────
   const playTrack = (track, q = null, opts = {}) => {
     if (currentTrack && currentTrack.id !== track.id) {
@@ -3828,6 +4011,38 @@ export default function App() {
     logTrackPlay(first);
     showToast(seedTrack ? "Similar mix" : `${mixLaneById(mixLane).label} mix`);
     if (firebaseUser) recordPlay(first.id, profile?.recentTracks || []).catch(()=>{});
+  };
+
+  // ── Continuity: resume the saved session from the Home hero ──────────────
+  const resumeTrack = !currentTrack && resumePrompt
+    ? tracks.find((t) => t.id === resumePrompt.trackId && String(t.audioUrl || "").trim()) || null
+    : null;
+
+  const resumeListening = () => {
+    if (!resumePrompt || !resumeTrack) return;
+    const restoredQueue = (resumePrompt.queueIds || [])
+      .map((id) => tracks.find((t) => t.id === id))
+      .filter(Boolean)
+      .filter((t) => t.id !== resumeTrack.id);
+    pendingSeekRef.current = resumePrompt.position || 0;
+    setHypnoSeed(null);
+    setSessionMeta(null);
+    setCurrent(resumeTrack);
+    setIsPlaying(true);
+    setProgress(resumePrompt.position || 0);
+    setQueue(restoredQueue);
+    setIsRadioMode(!!resumePrompt.isRadioMode);
+    if (resumePrompt.mixLane) setMixLane(mixLaneById(resumePrompt.mixLane).id);
+    if (!sessionStartRef.current) sessionStartRef.current = Date.now();
+    logTrackPlay(resumeTrack);
+    setResumePrompt(null);
+    showToast("Resuming where you left off");
+    if (firebaseUser) recordPlay(resumeTrack.id, profile?.recentTracks || []).catch(()=>{});
+  };
+
+  const dismissResume = () => {
+    clearListeningState(brandStoragePrefix());
+    setResumePrompt(null);
   };
 
   // Play a generated route / night as a queue — session ritual
