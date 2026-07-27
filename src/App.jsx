@@ -181,6 +181,7 @@ const Icon = ({ name, size=18 }) => {
     home:       <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>,
     profile:    <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>,
     repeat:     <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor"><path d="M7 7h10v3l4-4-4-4v3H5v6h2V7zm10 10H7v-3l-4 4 4 4v-3h12v-6h-2v4z"/></svg>,
+    shuffle:    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 3h5v5"/><path d="M4 20L21 3"/><path d="M21 16v5h-5"/><path d="M15 15l6 6"/><path d="M4 4l5 5"/></svg>,
     settings:   <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor"><path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.07-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.74,8.87C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.07,0.94l-2.03,1.58c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.47-0.12-0.61L19.14,12.94zM12,15.6c-1.98,0-3.6-1.62-3.6-3.6s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z"/></svg>,
     plus:       <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>,
     door:       <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="square" strokeLinejoin="miter"><path d="M6 4h12v16H6z"/><path d="M9 7h5.2l1.3 10H9z"/><circle cx="13.2" cy="12" r="0.9" fill="currentColor" stroke="none"/></svg>,
@@ -329,9 +330,13 @@ function BoothHud({ track, size = "md", align = "left" }) {
 /**
  * Animated planet mark — looping ring + satellite (GIF-like via CSS).
  * Hero brand signal — sits in the background behind controls.
- * Fills its parent; pass playing to quicken the breath.
+ * Fills its parent; `night` warms the palette, `playing` quickens the breath.
  */
-function OrbitingPlanet({ playing = false }) {
+function OrbitingPlanet({ playing = false, night = false }) {
+  // Nighttime warms toward lamp-light; daytime stays cool ice.
+  const glowRgb = night ? "255,214,170" : "242,243,245";
+  const ringAlpha = night ? 0.45 : 0.55;
+
   return (
     <div
       aria-hidden="true"
@@ -350,10 +355,11 @@ function OrbitingPlanet({ playing = false }) {
         inset: "8%",
         borderRadius: "50%",
         background: `
-          radial-gradient(circle at 38% 32%, rgba(242,243,245,0.22) 0%, transparent 42%),
-          radial-gradient(circle at 50% 50%, rgba(242,243,245,0.08) 0%, transparent 68%)
+          radial-gradient(circle at 38% 32%, rgba(${glowRgb},${night ? 0.16 : 0.22}) 0%, transparent 42%),
+          radial-gradient(circle at 50% 50%, rgba(${glowRgb},0.08) 0%, transparent 68%)
         `,
         filter: "blur(2px)",
+        transition: "background 1.5s ease",
       }}/>
 
       <div style={{
@@ -364,22 +370,23 @@ function OrbitingPlanet({ playing = false }) {
         height: "42%",
         transform: "translate(-50%, -50%)",
         borderRadius: "50%",
-        background: `
-          radial-gradient(circle at 34% 28%, #3A3A40 0%, #16161A 48%, #050506 100%)
-        `,
+        background: night
+          ? `radial-gradient(circle at 34% 28%, #2E2A26 0%, #14120F 48%, #050403 100%)`
+          : `radial-gradient(circle at 30% 24%, #4A4A52 0%, #1C1C22 46%, #08080A 100%)`,
         boxShadow: `
           inset -10px -14px 28px rgba(0,0,0,0.65),
-          inset 8px 10px 18px rgba(242,243,245,0.12),
-          0 0 40px rgba(242,243,245,0.12),
-          0 0 80px rgba(242,243,245,0.06)
+          inset 8px 10px 18px rgba(${glowRgb},${night ? 0.1 : 0.14}),
+          0 0 40px rgba(${glowRgb},0.12),
+          0 0 80px rgba(${glowRgb},0.06)
         `,
+        transition: "background 1.5s ease, box-shadow 1.5s ease",
       }}>
         <div style={{
           position: "absolute",
           left: "12%", right: "12%", top: "42%",
           height: "14%",
           borderRadius: "50%",
-          background: "linear-gradient(90deg, transparent, rgba(242,243,245,0.1), transparent)",
+          background: `linear-gradient(90deg, transparent, rgba(${glowRgb},0.1), transparent)`,
           opacity: 0.7,
         }}/>
       </div>
@@ -397,17 +404,18 @@ function OrbitingPlanet({ playing = false }) {
           position: "absolute",
           inset: 0,
           borderRadius: "50%",
-          border: "1.5px solid rgba(242,243,245,0.55)",
+          border: `1.5px solid rgba(${glowRgb},${ringAlpha})`,
           boxShadow: `
-            0 0 12px rgba(242,243,245,0.2),
-            inset 0 0 12px rgba(242,243,245,0.08)
+            0 0 12px rgba(${glowRgb},0.2),
+            inset 0 0 12px rgba(${glowRgb},0.08)
           `,
+          transition: "border-color 1.5s ease, box-shadow 1.5s ease",
         }}/>
         <div style={{
           position: "absolute",
           left: "6%", right: "6%", top: "18%", bottom: "18%",
           borderRadius: "50%",
-          border: "1px solid rgba(242,243,245,0.18)",
+          border: `1px solid rgba(${glowRgb},0.18)`,
         }}/>
         <div style={{
           position: "absolute",
@@ -418,7 +426,7 @@ function OrbitingPlanet({ playing = false }) {
           marginTop: -3.5,
           marginLeft: -3.5,
           borderRadius: "50%",
-          background: color.accent,
+          background: night ? "#FFD6AA" : color.accent,
           animation: "orbitPulse 2.4s ease-in-out infinite",
         }}/>
       </div>
@@ -432,26 +440,42 @@ function OrbitingPlanet({ playing = false }) {
         marginLeft: "-54%",
         marginTop: "-54%",
         borderRadius: "50%",
-        border: "1px dashed rgba(242,243,245,0.08)",
+        border: `1px dashed rgba(${glowRgb},0.08)`,
         animation: "planetRing 90s linear infinite",
       }}/>
     </div>
   );
 }
 
-/** Brand atmosphere — animated planet as the dominant visual plane. */
-function HeroAtmosphere({ playing = false }) {
+/**
+ * Brand atmosphere — animated planet as the dominant visual plane.
+ * Shifts with the daypart: Daytime is a brighter, cooler sky;
+ * Nighttime is deeper black with warm lamp-light on the planet.
+ */
+function HeroAtmosphere({ playing = false, daypart = "daytime" }) {
+  const night = daypart === "nighttime";
+
   return (
     <div aria-hidden="true" style={{ position: "absolute", inset: 0, overflow: "hidden" }}>
+      {/* Sky base — day gets a lifted horizon, night goes deep */}
       <div style={{
         position: "absolute", inset: 0,
-        background: `
-          radial-gradient(ellipse 100% 80% at 70% 35%, rgba(242,243,245,0.06) 0%, transparent 55%),
-          radial-gradient(ellipse 70% 50% at 20% 90%, rgba(242,243,245,0.04) 0%, transparent 50%),
-          #000000
-        `,
+        background: night
+          ? `
+            radial-gradient(ellipse 100% 80% at 70% 35%, rgba(255,214,170,0.05) 0%, transparent 52%),
+            radial-gradient(ellipse 70% 50% at 20% 90%, rgba(242,243,245,0.03) 0%, transparent 50%),
+            #000000
+          `
+          : `
+            radial-gradient(ellipse 120% 70% at 50% -10%, rgba(242,243,245,0.1) 0%, transparent 58%),
+            radial-gradient(ellipse 100% 80% at 70% 35%, rgba(242,243,245,0.07) 0%, transparent 55%),
+            radial-gradient(ellipse 70% 50% at 20% 90%, rgba(242,243,245,0.05) 0%, transparent 50%),
+            #020203
+          `,
+        transition: "background 1.5s ease",
       }}/>
 
+      {/* Starfield — dense at night, sparse by day */}
       <div style={{
         position: "absolute", inset: 0,
         backgroundImage: `
@@ -464,7 +488,8 @@ function HeroAtmosphere({ playing = false }) {
           radial-gradient(circle at 18% 55%, rgba(242,243,245,0.2) 0 0.7px, transparent 1px),
           radial-gradient(circle at 88% 68%, rgba(242,243,245,0.16) 0 0.7px, transparent 1px)
         `,
-        opacity: 0.85,
+        opacity: night ? 0.95 : 0.35,
+        transition: "opacity 1.5s ease",
       }}/>
 
       <div style={{
@@ -480,7 +505,7 @@ function HeroAtmosphere({ playing = false }) {
         opacity: 0.95,
         pointerEvents: "none",
       }}>
-        <OrbitingPlanet playing={playing} />
+        <OrbitingPlanet playing={playing} night={night} />
       </div>
 
       <div style={{
@@ -518,7 +543,7 @@ function DeepCutsCard({
         animation: "stationIn 0.75s cubic-bezier(0.22,1,0.36,1) both",
       }}
     >
-      <HeroAtmosphere playing={playingVisual} />
+      <HeroAtmosphere playing={playingVisual} daypart={lane.id} />
 
       {/* Overlay — radio deck only (brand = animated planet, no wordmark) */}
       <div style={{
@@ -1613,6 +1638,9 @@ function ImmersivePlayer({
   volume = 1, onVolumeChange, onHypno, onHypnoRadio, onShowQueue,
   sessionArc = null, isRadioMode = false, hypnoPocket = false,
   roomLabel = null, onOpenRoom, onOpenLiner, onOpenArtist,
+  shuffle = false, onToggleShuffle,
+  repeat = "off", onCycleRepeat,
+  crossfadeOn = true, onToggleCrossfade,
 }) {
   const [showUI, setShowUI] = useState(true);
   const [artLoaded, setArtLoaded] = useState(false);
@@ -1808,7 +1836,7 @@ function ImmersivePlayer({
       {/* Controls */}
       <div style={{
         position:"absolute", bottom:36, left:20, right:20,
-        display:"flex", alignItems:"center", justifyContent:"center", gap:18,
+        display:"flex", alignItems:"center", justifyContent:"center", gap:14,
         opacity: showUI ? 1 : 0,
         transition:"opacity 0.5s ease",
         pointerEvents: showUI ? "auto" : "none",
@@ -1817,6 +1845,13 @@ function ImmersivePlayer({
           style={{ background:"none", border:"none", cursor:"pointer", color: currentTrack.liked ? color.accent : color.body, padding:8 }}>
           <Icon name={currentTrack.liked?"heart":"heartempty"} size={18}/>
         </button>
+        {!isRadioMode && onToggleShuffle && (
+          <button type="button" onClick={(e)=>{ e.stopPropagation(); onToggleShuffle(); }} aria-label={shuffle ? "Shuffle off" : "Shuffle on"} aria-pressed={shuffle}
+            style={{ background:"none", border:"none", cursor:"pointer", color: shuffle ? color.accent : color.body, padding:8, position:"relative" }}>
+            <Icon name="shuffle" size={17}/>
+            {shuffle && <span aria-hidden="true" style={{ position:"absolute", bottom:2, left:"50%", transform:"translateX(-50%)", width:4, height:4, borderRadius:"50%", background: color.accent }}/>}
+          </button>
+        )}
         <button type="button" onClick={(e)=>{ e.stopPropagation(); onPrev(); }} aria-label="Previous"
           style={{ background:"none", border:"none", cursor:"pointer", color: color.body, padding:8 }}>
           <Icon name="prev" size={20}/>
@@ -1834,6 +1869,21 @@ function ImmersivePlayer({
           style={{ background:"none", border:"none", cursor:"pointer", color: color.body, padding:8 }}>
           <Icon name="skip" size={20}/>
         </button>
+        {!isRadioMode && onCycleRepeat && (
+          <button type="button" onClick={(e)=>{ e.stopPropagation(); onCycleRepeat(); }}
+            aria-label={repeat === "off" ? "Repeat all" : repeat === "all" ? "Repeat one" : "Repeat off"}
+            style={{ background:"none", border:"none", cursor:"pointer", color: repeat !== "off" ? color.accent : color.body, padding:8, position:"relative" }}>
+            <Icon name="repeat" size={18}/>
+            {repeat === "one" && (
+              <span aria-hidden="true" style={{
+                position:"absolute", top:3, right:1, fontSize:8, fontWeight:800,
+                color: color.onAccent, background: color.accent, borderRadius:"50%",
+                width:11, height:11, display:"flex", alignItems:"center", justifyContent:"center",
+              }}>1</span>
+            )}
+            {repeat === "all" && <span aria-hidden="true" style={{ position:"absolute", bottom:2, left:"50%", transform:"translateX(-50%)", width:4, height:4, borderRadius:"50%", background: color.accent }}/>}
+          </button>
+        )}
         <button type="button" onClick={(e)=>{ e.stopPropagation(); onShowQueue?.(); }} aria-label="Up Next"
           style={{ background:"none", border:"none", cursor:"pointer", color: color.body, padding:8 }}>
           <Icon name="queue" size={18}/>
@@ -1860,7 +1910,7 @@ function ImmersivePlayer({
         </button>
         <div style={{ display:"flex", alignItems:"center", gap:10, position:"relative" }}>
           <div style={{ fontSize:13, fontWeight:800, letterSpacing:-0.4, color: color.ink, fontFamily: fontDisplay }}>{BRAND_NAME}</div>
-          <button type="button" onClick={(e)=>{ e.stopPropagation(); setShowVol(false); setShowMore(m => !m); }} aria-label="More"
+          <button type="button" onClick={(e)=>{ e.stopPropagation(); setShowMore(m => !m); }} aria-label="More"
             aria-expanded={showMore}
             style={{
               background:"rgba(12,11,10,0.55)", border:`1px solid ${color.lineStrong}`,
@@ -1898,6 +1948,25 @@ function ImmersivePlayer({
                 </button>
               )}
               <div style={{ height:1, background: color.line, margin:"4px 0" }}/>
+              {onToggleCrossfade && (
+                <button type="button" onClick={() => onToggleCrossfade()}
+                  role="switch" aria-checked={crossfadeOn}
+                  style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:12, width:"100%", textAlign:"left", padding:"12px 16px", background:"none", border:"none", color: color.ink, fontSize:13, fontWeight:600, cursor:"pointer" }}>
+                  <span>Crossfade</span>
+                  <span aria-hidden="true" style={{
+                    width:34, height:20, borderRadius:980, flexShrink:0, position:"relative",
+                    background: crossfadeOn ? color.accent : "rgba(255,255,255,0.14)",
+                    transition:`background ${motion.base} ${motion.ease}`,
+                  }}>
+                    <span style={{
+                      position:"absolute", top:2, left: crossfadeOn ? 16 : 2,
+                      width:16, height:16, borderRadius:"50%",
+                      background: crossfadeOn ? color.onAccent : color.ink,
+                      transition:`left ${motion.base} ${motion.ease}`,
+                    }}/>
+                  </span>
+                </button>
+              )}
               <div style={{ padding:"10px 16px 14px" }}>
                 <div style={{ fontSize:10, fontWeight:700, letterSpacing:1.2, color: color.faint, fontFamily: fontMono, textTransform:"uppercase", marginBottom:8 }}>Volume</div>
                 <input
@@ -2331,6 +2400,12 @@ function HomeScreen({
     limit: 10,
     excludeIds: trending.slice(0, 3).map((t) => t.id),
   });
+  // Listening history → art shelf (most recent first, dedup by id)
+  const recentlyPlayed = [...new Set(recentTrackIds)]
+    .map((id) => tracks.find((t) => t.id === id))
+    .filter(Boolean)
+    .slice(0, 12);
+  const hasRecent = recentlyPlayed.length >= 3;
 
   return (
     <div style={{ position: "relative", paddingBottom: 48 }}>
@@ -2363,8 +2438,19 @@ function HomeScreen({
           ${color.canvas}
         `,
       }}>
+        {hasRecent && (
+          <HomeSection label="Recently played" delay={0.02} first>
+            <CoverShelf
+              tracks={recentlyPlayed}
+              onPlayTrack={onPlayTrack}
+              activeId={activeId}
+              isPlaying={isPlaying}
+            />
+          </HomeSection>
+        )}
+
         {trending.length > 0 && (
-          <HomeSection label="Trending" count={trending.length} delay={0.04} first>
+          <HomeSection label="Trending" count={trending.length} delay={0.04} first={!hasRecent}>
             <div style={{ padding: `0 ${homeSpace.gutter}px` }}>
               {trending.map((t) => (
                 <TrackRow
@@ -2382,7 +2468,7 @@ function HomeScreen({
         )}
 
         {recommended.length > 0 && (
-          <HomeSection label="Recommended" count={recommended.length} delay={0.08} first={trending.length === 0}>
+          <HomeSection label="Recommended" count={recommended.length} delay={0.08} first={!hasRecent && trending.length === 0}>
             <div style={{ padding: `0 ${homeSpace.gutter}px` }}>
               {recommended.map((t) => (
                 <TrackRow
@@ -3323,7 +3409,7 @@ function MetaChip({ children }) {
 function GlassDock({
   screen, setScreen, showAdmin = false,
   track, isPlaying, progress, duration,
-  onTogglePlay, onSkip, onLike, onSeek,
+  onTogglePlay, onSkip, onPrev, onLike, onSeek,
   isRadioMode, onOpen, playlistCtx, onShowQueue, hypnoPocket,
 }) {
   const items = [
@@ -3483,6 +3569,11 @@ function GlassDock({
               </button>
             )}
             <TrackMoreButton onClick={(e) => openFromButton(e, track)} />
+            <button type="button" aria-label="Previous"
+              onClick={(e) => { e.stopPropagation(); onPrev?.(); }}
+              style={{ background: "none", border: "none", cursor: "pointer", color: color.muted, padding: 4 }}>
+              <Icon name="prev" size={16}/>
+            </button>
             <button type="button" className="play-primary" aria-label={isPlaying ? "Pause" : "Play"}
               onClick={(e) => { e.stopPropagation(); onTogglePlay(); }}
               style={{
@@ -3656,7 +3747,17 @@ export default function App() {
   const [isPlaying, setIsPlaying]     = useState(false);
   const [progress, setProgress]       = useState(0);
   const [duration, setDuration]       = useState(0);
-  const [repeat, setRepeat]           = useState(false);
+  // Repeat: "off" | "all" | "one" · Shuffle: boolean
+  const [repeat, setRepeat]           = useState("off");
+  const [shuffle, setShuffle]         = useState(false);
+  const [crossfadeOn, setCrossfadeOn] = useState(() => {
+    try { return localStorage.getItem(`${brandStoragePrefix()}.crossfade`) !== "off"; }
+    catch { return true; }
+  });
+  useEffect(() => {
+    try { localStorage.setItem(`${brandStoragePrefix()}.crossfade`, crossfadeOn ? "on" : "off"); }
+    catch { /* ignore */ }
+  }, [crossfadeOn]);
   const [queue, setQueue]             = useState([]);
   const [isRadioMode, setIsRadioMode] = useState(false);
   const [searchQuery, setSearch]      = useState("");
@@ -3714,7 +3815,7 @@ export default function App() {
 
   // Set arc for On Air floor (last 2 → now → next)
   const radioPickOpts = () => ({
-    preferredGenres: [],
+    preferredGenres: profile?.genres || [],
     signalState,
     seedTrack: hypnoSeed,
   });
@@ -3909,19 +4010,29 @@ export default function App() {
   const nextAudioRef   = useRef(null);
   const crossfadeRef   = useRef(null); // interval for the crossfade ramp
   const isCrossfading  = useRef(false);
-  const CROSSFADE_SECS = 15; // start crossfade this many seconds before track ends
+  const RADIO_CROSSFADE_SECS = 15; // long, on-air blend
+  const QUEUE_CROSSFADE_SECS = 6;  // tighter blend for playlists / sessions
 
   // Keep a ref to isRadioMode so audio listeners can read the latest value
   const isRadioModeRef = useRef(false);
   useEffect(() => { isRadioModeRef.current = isRadioMode; }, [isRadioMode]);
 
-  // Keep refs to tracks/currentTrack for use inside closures
+  // Refs so audio listeners (bound once) always see current playback state
   const tracksRef      = useRef([]);
   const currentRef     = useRef(null);
+  const queueRef       = useRef([]);
+  const repeatRef      = useRef("off");
+  const shuffleRef     = useRef(false);
+  const crossfadeOnRef = useRef(true);
   useEffect(() => { tracksRef.current = tracks; }, [tracks]);
   useEffect(() => { currentRef.current = currentTrack; }, [currentTrack]);
+  useEffect(() => { queueRef.current = queue; }, [queue]);
+  useEffect(() => { repeatRef.current = repeat; }, [repeat]);
+  useEffect(() => { shuffleRef.current = shuffle; }, [shuffle]);
+  useEffect(() => { crossfadeOnRef.current = crossfadeOn; }, [crossfadeOn]);
 
   const handleSkipRef = useRef(null);
+  const startCrossfadeRef = useRef(null);
   const primaryAudioCleanupRef = useRef(() => {});
 
   const bindPrimaryAudio = useCallback((audio) => {
@@ -3929,11 +4040,17 @@ export default function App() {
 
     const onTimeUpdate = () => {
       setProgress(Math.floor(audio.currentTime));
-      if (isRadioModeRef.current && audio.duration && !isCrossfading.current) {
-        const remaining = audio.duration - audio.currentTime;
-        if (remaining <= CROSSFADE_SECS && remaining > 0) {
-          startCrossfade();
-        }
+      if (!audio.duration || isCrossfading.current) return;
+      const radio = isRadioModeRef.current;
+      const wantsQueueFade = !radio
+        && crossfadeOnRef.current
+        && repeatRef.current !== "one"
+        && queueRef.current.length > 0;
+      if (!radio && !wantsQueueFade) return;
+      const fadeSecs = radio ? RADIO_CROSSFADE_SECS : QUEUE_CROSSFADE_SECS;
+      const remaining = audio.duration - audio.currentTime;
+      if (remaining <= fadeSecs && remaining > 0) {
+        startCrossfadeRef.current?.();
       }
     };
 
@@ -3942,7 +4059,14 @@ export default function App() {
     };
 
     const onEnded = () => {
-      if (!isRadioModeRef.current) handleSkipRef.current?.();
+      if (isRadioModeRef.current) return;
+      if (repeatRef.current === "one") {
+        audio.currentTime = 0;
+        setProgress(0);
+        audio.play().catch(() => {});
+        return;
+      }
+      handleSkipRef.current?.();
     };
 
     audio.addEventListener("timeupdate", onTimeUpdate);
@@ -3957,7 +4081,7 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    const a = new Audio(); a.volume = 1;
+    const a = new Audio(); a.volume = volumeRef.current;
     const b = new Audio(); b.volume = 0;
     audioRef.current     = a;
     nextAudioRef.current = b;
@@ -3975,19 +4099,31 @@ export default function App() {
     if (isCrossfading.current) return;
     isCrossfading.current = true;
 
-    const pool = tracksForMixLane(tracksRef.current, mixLaneRef.current);
-    const library = pool.length
-      ? pool
-      : tracksRef.current.filter((t) => (t.duration || 0) <= 900);
-    const next = pickNextTrack(library, currentRef.current, recentlyPlayedRef.current, {
-      preferredGenres: [],
-      signalState,
-      seedTrack: hypnoSeed,
-    });
+    const radio = isRadioModeRef.current;
+    let next = null;
+    if (radio) {
+      const pool = tracksForMixLane(tracksRef.current, mixLaneRef.current);
+      const library = pool.length
+        ? pool
+        : tracksRef.current.filter((t) => (t.duration || 0) <= 900);
+      next = pickNextTrack(library, currentRef.current, recentlyPlayedRef.current, {
+        preferredGenres: profile?.genres || [],
+        signalState,
+        seedTrack: hypnoSeed,
+      });
+    } else {
+      const q = queueRef.current;
+      if (!q.length) { isCrossfading.current = false; return; }
+      next = shuffleRef.current
+        ? q[Math.floor(Math.random() * q.length)]
+        : q[0];
+    }
     if (!next?.audioUrl) { isCrossfading.current = false; return; }
 
+    const outgoing = currentRef.current;
     const fadeOut = audioRef.current;
     const fadeIn  = nextAudioRef.current;
+    const fadeSecs = radio ? RADIO_CROSSFADE_SECS : QUEUE_CROSSFADE_SECS;
 
     // Load and start the next track silently
     fadeIn.src    = next.audioUrl;
@@ -4001,8 +4137,8 @@ export default function App() {
       setDuration(Math.floor(fadeIn.duration || 0));
     }, { once: true });
 
-    // Ramp volumes over CROSSFADE_SECS
-    const steps    = CROSSFADE_SECS * 20; // 20 steps per second
+    // Ramp volumes over the crossfade window
+    const steps    = fadeSecs * 20; // 20 steps per second
     const interval = 1000 / 20;
     let   step     = 0;
 
@@ -4025,9 +4161,19 @@ export default function App() {
         nextAudioRef.current = fadeOut;
         bindPrimaryAudio(fadeIn);
 
+        // Advance the queue for playlist/session playback
+        if (!radio) {
+          setQueue((prev) => {
+            const rest = prev.filter((t2) => t2.id !== next.id);
+            return repeatRef.current === "all" && outgoing
+              ? [...rest, outgoing]
+              : rest;
+          });
+        }
+
         setCurrent(next);
-        if (currentRef.current) {
-          playHistoryRef.current = [currentRef.current, ...playHistoryRef.current].slice(0, 50);
+        if (outgoing) {
+          playHistoryRef.current = [outgoing, ...playHistoryRef.current].slice(0, 50);
         }
         logTrackPlay(next);
         // Delay clearing the crossfade flag so the currentTrack useEffect
@@ -4036,6 +4182,7 @@ export default function App() {
       }
     }, interval);
   }
+  startCrossfadeRef.current = startCrossfade;
 
   // When track changes (non-crossfade — manual play), load fresh
   useEffect(() => {
@@ -4046,7 +4193,7 @@ export default function App() {
     clearInterval(crossfadeRef.current);
     if (currentTrack.audioUrl) {
       audio.src = currentTrack.audioUrl;
-      audio.volume = 1;
+      audio.volume = volumeRef.current;
       audio.load();
       if (isPlaying) audio.play().catch(() => {});
     } else {
@@ -4100,7 +4247,7 @@ export default function App() {
     const seedTrack = seed || null;
     setHypnoSeed(seedTrack);
     const first = pickNextTrack(pool, null, recentlyPlayedRef.current, {
-      preferredGenres: [],
+      preferredGenres: profile?.genres || [],
       signalState,
       seedTrack,
     }) || pool.find(t => (t.duration || 0) <= 900) || pool[0];
@@ -4165,6 +4312,11 @@ export default function App() {
       return;
     }
     if (!queue.length) {
+      if (repeat === "one" && currentTrack) {
+        handleSeek(0);
+        setIsPlaying(true);
+        return;
+      }
       setIsPlaying(false);
       if (sessionMeta) {
         endSessionWithAfterglow(true);
@@ -4172,8 +4324,10 @@ export default function App() {
       }
       return;
     }
-    const next = queue[0];
-    setQueue(repeat ? [...queue.filter(t=>t.id!==next.id), currentTrack] : queue.filter(t=>t.id!==next.id));
+    const next = shuffle
+      ? queue[Math.floor(Math.random() * queue.length)]
+      : queue[0];
+    setQueue(repeat === "all" ? [...queue.filter(t=>t.id!==next.id), currentTrack] : queue.filter(t=>t.id!==next.id));
     setCurrent(next); setProgress(0); setIsPlaying(true);
     logTrackPlay(next);
   };
@@ -4451,6 +4605,13 @@ export default function App() {
           onOpenRoom={null}
         />
       )}
+      {afterglow && (
+        <AfterglowOverlay
+          data={afterglow}
+          onClose={() => setAfterglow(null)}
+          onSavePlaylist={(name, trackIds) => createPlaylist(name, trackIds)}
+        />
+      )}
     </>
   );
 
@@ -4469,6 +4630,12 @@ export default function App() {
       onLike={toggleLike}
       volume={volume}
       onVolumeChange={handleVolume}
+      shuffle={shuffle}
+      onToggleShuffle={() => setShuffle(s => !s)}
+      repeat={repeat}
+      onCycleRepeat={() => setRepeat(r => (r === "off" ? "all" : r === "all" ? "one" : "off"))}
+      crossfadeOn={crossfadeOn}
+      onToggleCrossfade={() => setCrossfadeOn(c => !c)}
       onHypno={(t) => setResonanceTrack(t)}
       onHypnoRadio={playHypnoRadio}
       onShowQueue={() => setShowQueue(true)}
@@ -4541,6 +4708,7 @@ export default function App() {
           duration={duration}
           onTogglePlay={() => setIsPlaying((p) => !p)}
           onSkip={handleSkip}
+          onPrev={handlePrev}
           onLike={() => currentTrack && toggleLike(currentTrack.id)}
           onSeek={handleSeek}
           isRadioMode={isRadioMode}
