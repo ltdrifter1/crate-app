@@ -4,6 +4,7 @@ import {
   rediscoveredTracks,
   trendingTracks,
   recommendedTracks,
+  recommendedPicks,
 } from "./homeCollections";
 
 describe("homeCollections", () => {
@@ -47,5 +48,28 @@ describe("homeCollections", () => {
     ];
     const recs = recommendedTracks(cold, { limit: 2 });
     expect(recs).toHaveLength(2);
+  });
+
+  test("recommendedPicks marks cold start and labels fresh picks", () => {
+    const cold = [
+      { id: "a", title: "A", genre: "Rock", duration: 180 },
+      { id: "b", title: "B", genre: "Pop", duration: 180 },
+    ];
+    const { picks, coldStart } = recommendedPicks(cold, { limit: 2 });
+    expect(coldStart).toBe(true);
+    expect(picks.every((p) => p.reason === "Fresh pick")).toBe(true);
+  });
+
+  test("recommendedPicks explains picks when history exists", () => {
+    const { picks, coldStart } = recommendedPicks(tracks, { preferredGenres: ["Jazz"], limit: 4 });
+    expect(coldStart).toBe(false);
+    expect(picks.every((p) => typeof p.reason === "string" && p.reason.length > 0)).toBe(true);
+    const likedPick = picks.find((p) => p.track.liked);
+    if (likedPick) expect(likedPick.reason).toBe("In your likes");
+  });
+
+  test("recommendedPicks honors excludeIds", () => {
+    const { picks } = recommendedPicks(tracks, { preferredGenres: ["Jazz"], excludeIds: ["1", "2"], limit: 10 });
+    expect(picks.some((p) => p.track.id === "1" || p.track.id === "2")).toBe(false);
   });
 });
