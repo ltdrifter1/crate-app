@@ -727,10 +727,9 @@ function OrbitingPlanet({ playing = false, night = false, progress = 0, tintRgb 
 }
 
 /**
- * Brand atmosphere — animated planet as the dominant visual plane.
- * Shifts with the daypart: Daytime is a brighter, cooler sky;
- * Nighttime is deeper black with warm lamp-light on the planet.
- * Live listening tints the sky from the track color and paints progress on the orbit.
+ * Static brand atmosphere. The planet image is deliberately isolated as a
+ * replaceable asset (`/assets/premium-planet-placeholder.png`) so the final
+ * logo can take its place without changing the Home composition.
  */
 function HeroAtmosphere({ playing = false, daypart = "daytime", progress = 0, tintRgb = null }) {
   const night = daypart === "nighttime";
@@ -738,76 +737,36 @@ function HeroAtmosphere({ playing = false, daypart = "daytime", progress = 0, ti
 
   return (
     <div aria-hidden="true" style={{ position: "absolute", inset: 0, overflow: "hidden" }}>
-      {/* Sky base — day gets a lifted horizon, night goes deep */}
       <div style={{
-        position: "absolute", inset: 0,
-        background: night
-          ? `
-            radial-gradient(ellipse 100% 80% at 70% 35%, rgba(${wash},0.08) 0%, transparent 52%),
-            radial-gradient(ellipse 70% 50% at 20% 90%, rgba(242,243,245,0.03) 0%, transparent 50%),
-            #000000
-          `
-          : `
-            radial-gradient(ellipse 120% 70% at 50% -10%, rgba(242,243,245,0.1) 0%, transparent 58%),
-            radial-gradient(ellipse 100% 80% at 70% 35%, rgba(${wash},0.09) 0%, transparent 55%),
-            radial-gradient(ellipse 70% 50% at 20% 90%, rgba(242,243,245,0.05) 0%, transparent 50%),
-            #020203
-          `,
-        transition: "background 1.5s ease",
+        position: "absolute",
+        inset: 0,
+        backgroundImage: "url(/assets/premium-planet-placeholder.png)",
+        backgroundSize: "cover",
+        backgroundPosition: "center right",
+        backgroundRepeat: "no-repeat",
+        filter: night ? "brightness(0.82) contrast(1.08)" : "brightness(0.94) contrast(1.06)",
       }}/>
 
-      {/* Track-color bloom behind the planet when on air */}
+      {/* A quiet track-color wash keeps playback state alive without moving the mark. */}
       {tintRgb && (
         <div style={{
           position: "absolute",
-          right: "-4%",
-          top: "28%",
-          width: "70%",
-          height: "60%",
-          background: `radial-gradient(ellipse at 60% 45%, rgba(${tintRgb},0.18) 0%, transparent 62%)`,
+          inset: 0,
+          background: `
+            radial-gradient(ellipse 70% 80% at 82% 45%, rgba(${tintRgb},0.14) 0%, transparent 62%),
+            linear-gradient(90deg, transparent 42%, rgba(${tintRgb},0.035) 100%)
+          `,
           transition: "background 0.8s ease",
           pointerEvents: "none",
         }}/>
       )}
 
-      {/* Starfield — dense at night, sparse by day */}
-      <div style={{
-        position: "absolute", inset: 0,
-        backgroundImage: `
-          radial-gradient(circle at 12% 18%, rgba(242,243,245,0.5) 0 1px, transparent 1.4px),
-          radial-gradient(circle at 78% 12%, rgba(242,243,245,0.4) 0 1px, transparent 1.4px),
-          radial-gradient(circle at 62% 34%, rgba(242,243,245,0.28) 0 0.8px, transparent 1.2px),
-          radial-gradient(circle at 32% 8%, rgba(242,243,245,0.32) 0 0.8px, transparent 1.2px),
-          radial-gradient(circle at 90% 42%, rgba(242,243,245,0.22) 0 0.8px, transparent 1.2px),
-          radial-gradient(circle at 45% 22%, rgba(242,243,245,0.18) 0 0.7px, transparent 1px),
-          radial-gradient(circle at 18% 55%, rgba(242,243,245,0.2) 0 0.7px, transparent 1px),
-          radial-gradient(circle at 88% 68%, rgba(242,243,245,0.16) 0 0.7px, transparent 1px)
-        `,
-        opacity: night ? 0.95 : 0.35,
-        transition: "opacity 1.5s ease",
-      }}/>
-
-      <div style={{
-        position: "absolute",
-        right: "-8%",
-        top: "50%",
-        transform: "translateY(-58%)",
-        width: "min(92vw, 520px)",
-        height: "min(92vw, 520px)",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        opacity: 0.95,
-        pointerEvents: "none",
-      }}>
-        <OrbitingPlanet playing={playing} night={night} progress={progress} tintRgb={tintRgb} />
-      </div>
-
       <div style={{
         position: "absolute", inset: 0,
         background: `
-          linear-gradient(90deg, rgba(0,0,0,0.72) 0%, rgba(0,0,0,0.35) 42%, transparent 72%),
-          linear-gradient(180deg, rgba(0,0,0,0.25) 0%, transparent 28%, transparent 55%, rgba(0,0,0,0.85) 100%)
+          linear-gradient(90deg, rgba(0,0,0,0.82) 0%, rgba(0,0,0,0.52) 40%, rgba(0,0,0,0.08) 78%),
+          linear-gradient(180deg, rgba(0,0,0,0.18) 0%, transparent 38%, rgba(0,0,0,0.88) 100%),
+          radial-gradient(ellipse 120% 60% at 45% 110%, rgba(${wash},0.035) 0%, transparent 58%)
         `,
       }}/>
 
@@ -1463,13 +1422,19 @@ function CollapsingHeader({ title, subtitle }) {
 
   return (
     <>
+      {/* Keep the observer outside the sticky header. The sticky layer has
+          constant geometry, so compact mode cannot move this sentinel and
+          create an IntersectionObserver feedback loop. */}
+      <div ref={sentinelRef} aria-hidden="true" style={{ height: 1 }} />
       <div
         aria-hidden={!compact}
         style={{
           position: "sticky",
           top: 0,
           zIndex: 40,
-          height: compact ? 48 : 0,
+          height: 48,
+          marginTop: -1,
+          marginBottom: -48,
           opacity: compact ? 1 : 0,
           overflow: "hidden",
           pointerEvents: compact ? "auto" : "none",
@@ -1481,7 +1446,7 @@ function CollapsingHeader({ title, subtitle }) {
           backdropFilter: glass.blurSoft,
           borderBottom: compact ? `1px solid ${glass.borderFaint}` : "none",
           boxShadow: compact ? `inset 0 1px 0 ${glass.highlight}` : "none",
-          transition: `height ${motion.settle} ${motion.ease}, opacity ${motion.base} ${motion.ease}`,
+          transition: `opacity ${motion.base} ${motion.ease}`,
         }}
       >
         <div style={{
@@ -1491,7 +1456,6 @@ function CollapsingHeader({ title, subtitle }) {
           {title}
         </div>
       </div>
-      <div ref={sentinelRef} aria-hidden="true" style={{ height: 1, marginTop: -1 }} />
       <div style={{ padding: "28px 16px 8px" }}>
         <h1 style={{
           margin: 0,
@@ -3264,12 +3228,66 @@ function FavoritesScreen({
 
   return (
     <div style={{ position: "relative", paddingBottom: 48 }}>
-      <CollapsingHeader title="Library" subtitle="Playlists, timed mixes, and saved songs." />
+      <CollapsingHeader
+        title="Library"
+        subtitle="Your playlists, timed mixes, and saved music in one place."
+      />
 
       <div style={{
         position: "relative",
         background: color.canvas,
       }}>
+        <div style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+          gap: 10,
+          padding: `16px ${homeSpace.gutter}px 4px`,
+        }}>
+          {[
+            { value: userPlaylists.length, label: "Playlists" },
+            { value: saved.length, label: "Liked songs" },
+          ].map((item) => (
+            <div
+              key={item.label}
+              className="glass-surface"
+              style={{
+                minHeight: 88,
+                borderRadius: radius.lg,
+                padding: "16px 17px",
+                display: "flex",
+                flexDirection: "column",
+                justifyContent: "space-between",
+                background: `
+                  linear-gradient(145deg, rgba(255,255,255,0.07), rgba(255,255,255,0.025)),
+                  ${color.canvas}
+                `,
+              }}
+            >
+              <span style={{
+                fontSize: 26,
+                lineHeight: 1,
+                fontWeight: 720,
+                letterSpacing: -0.8,
+                color: color.ink,
+                fontFamily: fontDisplay,
+                fontVariantNumeric: "tabular-nums",
+              }}>
+                {item.value}
+              </span>
+              <span style={{
+                marginTop: 14,
+                fontSize: 11,
+                color: color.muted,
+                fontFamily: fontMono,
+                letterSpacing: 0.8,
+                textTransform: "uppercase",
+              }}>
+                {item.label}
+              </span>
+            </div>
+          ))}
+        </div>
+
         {onMakePlaylist && (
           <div style={{
             padding: `${Math.round(homeSpace.bandPadY * 0.55)}px ${homeSpace.gutter}px ${Math.round(homeSpace.bandPadY * 0.4)}px`,
@@ -3402,19 +3420,15 @@ function FavoritesScreen({
 
         {saved.length > 0 && (
           <HomeSection label="Liked Songs" count={saved.length} delay={0.08}>
-            <div style={{ padding: `0 ${homeSpace.gutter}px` }}>
-              {saved.map((t) => (
-                <TrackRow
-                  key={t.id}
-                  track={t}
-                  onPlay={() => playTrackFn(t, saved)}
-                  active={activeId === t.id}
-                  isPlaying={isPlaying}
-                  onLike={onLike}
-                  playlistCtx={playlistCtx}
-                />
-              ))}
-            </div>
+            <CoverShelf
+              tracks={saved}
+              onPlayTrack={playTrackFn}
+              activeId={activeId}
+              isPlaying={isPlaying}
+              onLike={onLike}
+              playlistCtx={playlistCtx}
+              tileSize={132}
+            />
           </HomeSection>
         )}
       </div>
