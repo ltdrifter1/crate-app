@@ -2283,10 +2283,10 @@ function MakePlaylistFeature({ onClick }) {
  * Art-led horizontal shelf. Optional per-track `reasons` map (id → copy) turns
  * it into a "because…" recommendation rail. Like + ⋯ menu match TrackRow.
  */
-function CoverShelf({ tracks, onPlayTrack, activeId, isPlaying, onLike, playlistCtx, reasons = null }) {
+function CoverShelf({ tracks, onPlayTrack, activeId, isPlaying, onLike, playlistCtx, reasons = null, tileSize = null }) {
   const { menu, openFromButton, openFromContext, close } = useTrackMenu();
   if (!tracks?.length) return null;
-  const tile = homeSpace.tile;
+  const tile = tileSize || homeSpace.tile;
   return (
     <div
       className="hide-scroll"
@@ -2413,7 +2413,7 @@ function CoverShelf({ tracks, onPlayTrack, activeId, isPlaying, onLike, playlist
 }
 
 // ── Home — three acts only ────────────────────────────────────────────────────
-const HomeSection = ({ label, count, children, delay = 0, first = false }) => (
+const HomeSection = ({ label, count, subtitle, children, delay = 0, first = false }) => (
   <section
     style={{
       margin: 0,
@@ -2430,7 +2430,7 @@ const HomeSection = ({ label, count, children, delay = 0, first = false }) => (
     )}
     {first && <div style={{ height: homeSpace.sectionPadTopFirst }} aria-hidden="true"/>}
     <div style={{
-      padding: `0 ${homeSpace.gutter}px 22px`,
+      padding: `0 ${homeSpace.gutter}px ${subtitle ? 10 : 22}px`,
       display: "flex",
       alignItems: "center",
       justifyContent: "space-between",
@@ -2456,6 +2456,15 @@ const HomeSection = ({ label, count, children, delay = 0, first = false }) => (
         }}>{count}</span>
       )}
     </div>
+    {subtitle ? (
+      <p style={{
+        margin: `0 ${homeSpace.gutter}px 18px`,
+        fontSize: 14,
+        color: color.muted,
+        lineHeight: 1.4,
+        letterSpacing: -0.1,
+      }}>{subtitle}</p>
+    ) : null}
     {children}
   </section>
 );
@@ -2525,6 +2534,156 @@ function HomeCatalogStatus({ error, isEmpty, playableCount, totalCount, onRetry 
   );
 }
 
+/**
+ * Made-for-you editorial block — one oversized lead card carrying the
+ * reason as a real sentence, then a tighter rail of the remaining picks.
+ */
+function ForYouEditorial({
+  picks = [],
+  coldStart = false,
+  onPlayTrack,
+  activeId,
+  isPlaying,
+  onLike,
+  playlistCtx,
+  first = false,
+}) {
+  if (!picks.length) return null;
+  const [lead, ...rest] = picks;
+  const leadTrack = lead.track;
+  const leadActive = activeId === leadTrack.id;
+  const pool = picks.map((p) => p.track);
+  const restReasons = Object.fromEntries(rest.map((p) => [p.track.id, p.reason]));
+  const tasteLine = coldStart
+    ? "A starting set while we learn what you like."
+    : "Based on your likes and recent listening.";
+
+  return (
+    <HomeSection
+      label={coldStart ? "Fresh picks" : "Made for you"}
+      subtitle={tasteLine}
+      delay={0.08}
+      first={first}
+    >
+      {/* Lead card */}
+      <button
+        type="button"
+        onClick={() => onPlayTrack(leadTrack, pool)}
+        aria-label={`Play ${leadTrack.title}`}
+        style={{
+          display: "flex",
+          alignItems: "stretch",
+          gap: 16,
+          width: `calc(100% - ${homeSpace.gutter * 2}px)`,
+          margin: `0 ${homeSpace.gutter}px 22px`,
+          padding: 0,
+          background: "none",
+          border: "none",
+          cursor: "pointer",
+          textAlign: "left",
+          color: color.ink,
+        }}
+      >
+        <div style={{
+          width: 148, height: 148, borderRadius: radius.lg, overflow: "hidden",
+          flexShrink: 0, position: "relative",
+          boxShadow: leadActive
+            ? `0 0 0 1.5px ${color.accent}, 0 20px 48px rgba(0,0,0,0.5)`
+            : `0 0 0 1px ${glass.borderSoft}, 0 20px 48px rgba(0,0,0,0.45)`,
+        }}>
+          <AlbumArt track={leadTrack} size={148} borderRadius={radius.lg}/>
+          <div aria-hidden="true" style={{
+            pointerEvents: "none", position: "absolute", inset: 0, borderRadius: radius.lg,
+            boxShadow: `inset 0 1px 0 ${glass.highlight}`,
+          }}/>
+          {leadActive && isPlaying && (
+            <div style={{
+              position: "absolute", inset: 0, background: "rgba(0,0,0,0.35)",
+              display: "flex", alignItems: "center", justifyContent: "center",
+            }}>
+              <div style={{
+                width: 10, height: 10, borderRadius: "50%", background: color.accent,
+                animation: "pulse 1.2s ease-in-out infinite",
+              }}/>
+            </div>
+          )}
+        </div>
+
+        <div style={{
+          flex: 1, minWidth: 0,
+          display: "flex", flexDirection: "column", justifyContent: "center",
+          padding: "4px 0",
+        }}>
+          <div style={{
+            fontSize: 11, fontWeight: 650, letterSpacing: 1.2,
+            textTransform: "uppercase", color: color.accent,
+            fontFamily: fontMono, marginBottom: 8,
+          }}>
+            {coldStart ? "Start here" : "Top pick"}
+          </div>
+          <div style={{
+            fontSize: "clamp(20px, 5.2vw, 26px)",
+            fontWeight: 750, letterSpacing: -0.7, lineHeight: 1.12,
+            fontFamily: fontDisplay,
+            color: leadActive ? color.accent : color.ink,
+            marginBottom: 6,
+            overflow: "hidden", textOverflow: "ellipsis",
+            display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical",
+          }}>
+            {leadTrack.title}
+          </div>
+          <div style={{
+            fontSize: 14, color: color.muted, marginBottom: 12,
+            overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+          }}>
+            {leadTrack.artist}
+          </div>
+          <div style={{
+            fontSize: 14, color: color.body, lineHeight: 1.4,
+            letterSpacing: -0.1, maxWidth: 280,
+          }}>
+            {lead.reason}
+            {lead.reason && !lead.reason.endsWith(".") ? "." : ""}
+          </div>
+          <div style={{
+            marginTop: 16,
+            display: "inline-flex", alignItems: "center", gap: 8,
+            alignSelf: "flex-start",
+            padding: "8px 14px 8px 10px",
+            borderRadius: 980,
+            background: color.accent,
+            color: color.onAccent,
+            fontSize: 13, fontWeight: 700, letterSpacing: -0.1,
+            boxShadow: `0 10px 24px rgba(0,0,0,0.35)`,
+          }}>
+            <span style={{
+              width: 22, height: 22, borderRadius: "50%",
+              background: "rgba(0,0,0,0.14)",
+              display: "inline-flex", alignItems: "center", justifyContent: "center",
+            }}>
+              <Icon name={leadActive && isPlaying ? "pause" : "play"} size={11}/>
+            </span>
+            {leadActive && isPlaying ? "Playing" : "Play"}
+          </div>
+        </div>
+      </button>
+
+      {rest.length > 0 && (
+        <CoverShelf
+          tracks={rest.map((p) => p.track)}
+          onPlayTrack={(t) => onPlayTrack(t, pool)}
+          activeId={activeId}
+          isPlaying={isPlaying}
+          onLike={onLike}
+          playlistCtx={playlistCtx}
+          reasons={restReasons}
+          tileSize={118}
+        />
+      )}
+    </HomeSection>
+  );
+}
+
 function HomeScreen({
   tracks, onPlayRadio, onTogglePlay, onPlayTrack, currentTrack, isPlaying, onLike,
   isRadioMode, playlistCtx, signalLabel,
@@ -2556,11 +2715,6 @@ function HomeScreen({
       ...recentlyPlayed.map((t) => t.id),
     ],
   });
-  const recommendedTracksOnly = recommended.map((p) => p.track);
-  const recommendedReasons = Object.fromEntries(
-    recommended.map((p) => [p.track.id, p.reason])
-  );
-
   return (
     <div style={{ position: "relative", paddingBottom: 48 }}>
       <DeepCutsCard
@@ -2627,25 +2781,20 @@ function HomeScreen({
           </HomeSection>
         )}
 
-        {recommendedTracksOnly.length > 0 && (
-          <HomeSection
-            label={coldStart ? "Fresh picks" : "Made for you"}
-            delay={0.08}
+        {recommended.length > 0 && (
+          <ForYouEditorial
+            picks={recommended}
+            coldStart={coldStart}
+            onPlayTrack={onPlayTrack}
+            activeId={activeId}
+            isPlaying={isPlaying}
+            onLike={onLike}
+            playlistCtx={playlistCtx}
             first={!hasRecent && trending.length === 0}
-          >
-            <CoverShelf
-              tracks={recommendedTracksOnly}
-              onPlayTrack={onPlayTrack}
-              activeId={activeId}
-              isPlaying={isPlaying}
-              onLike={onLike}
-              playlistCtx={playlistCtx}
-              reasons={recommendedReasons}
-            />
-          </HomeSection>
+          />
         )}
 
-        {!catalogError && !catalogEmpty && trending.length === 0 && recommendedTracksOnly.length === 0 && (
+        {!catalogError && !catalogEmpty && trending.length === 0 && recommended.length === 0 && (
           <div style={{ padding: `28px ${homeSpace.gutter}px 56px` }}>
             <div className="glass-surface" style={{ padding: "28px 22px", borderRadius: radius.lg }}>
               <div style={{ fontSize: 22, fontWeight: 700, fontFamily: fontDisplay, color: color.ink, marginBottom: 8, letterSpacing: -0.4 }}>
@@ -3560,6 +3709,7 @@ function GlassDock({
   track, isPlaying, progress, duration,
   onTogglePlay, onSkip, onPrev, onLike, onSeek,
   isRadioMode, onOpen, playlistCtx, onShowQueue, hypnoPocket,
+  hidePlayer = false,
 }) {
   const items = [
     { id: "home", label: "Home", icon: "home" },
@@ -3569,7 +3719,8 @@ function GlassDock({
   ];
   if (showAdmin) items.push({ id: "admin", label: "Admin", icon: "settings" });
 
-  const hasPlayer = !!track;
+  // When Home radio owns the transport, dock collapses to tabs only.
+  const hasPlayer = !!track && !hidePlayer;
   const pct = duration > 0 ? (progress / duration) * 100 : 0;
   const bpm = track?.bpm ? String(track.bpm) : "—";
   const key = track?.camelot || "—";
@@ -4814,6 +4965,9 @@ export default function App() {
     />
   ) : null;
 
+  // On Home radio the hero owns transport — collapse dock to tabs only.
+  const hideDockPlayer = screen === "home" && isRadioMode && !!currentTrack && !immersive;
+
   // ── Inner app (shared between mobile + desktop phone column) ─────────────
   const innerApp = (
     <div style={{ ...APP_STYLE, position:"relative" }}>
@@ -4825,9 +4979,9 @@ export default function App() {
           <div style={{ fontSize:14, color: color.muted }}>Loading your collection…</div>
         </div>
       )}
-      <div style={{ flex:1, overflow:"auto", paddingBottom: contentPadBottom(!!currentTrack && !immersive), zIndex:1, position:"relative" }}>
+      <div style={{ flex:1, overflow:"auto", paddingBottom: contentPadBottom(!!currentTrack && !immersive && !hideDockPlayer), zIndex:1, position:"relative" }}>
         <ScreenPane key={screen === "artist" ? `artist:${artistSlug}` : screen === "album" ? `album:${albumSlug}` : screen}>
-        {screen==="home"      && !tracksLoading && <HomeScreen tracks={tracks} onPlayRadio={playRadio} onTogglePlay={()=>setIsPlaying(p=>!p)} onPlayTrack={playTrack} currentTrack={currentTrack} isPlaying={isPlaying} onLike={toggleLike} isRadioMode={isRadioMode} playlistCtx={playlistCtx} signalLabel={signalState?.label} mixLane={mixLane} catalogError={tracksLoadError} onRetryCatalog={reloadCatalog} preferredGenres={user.genres} recentTrackIds={(profile?.recentTracks||[]).map(r=>r.trackId||r)}/>}
+        {screen==="home"      && !tracksLoading && <HomeScreen tracks={tracks} onPlayRadio={playRadio} onTogglePlay={()=>setIsPlaying(p=>!p)} onPlayTrack={playTrack} currentTrack={currentTrack} isPlaying={isPlaying} onLike={toggleLike} isRadioMode={isRadioMode} playlistCtx={playlistCtx} signalLabel={signalState?.label} mixLane={mixLane} radioPreview={heroPreview} radioNext={setNext} onSkipRadio={handleSkip} catalogError={tracksLoadError} onRetryCatalog={reloadCatalog} preferredGenres={user.genres} recentTrackIds={(profile?.recentTracks||[]).map(r=>r.trackId||r)}/>}
         {screen==="search"    && <SearchScreen query={searchQuery} setQuery={setSearch} results={searchResults} onPlay={t=>playTrack(t,tracks)} onLike={toggleLike} currentTrack={currentTrack} isPlaying={isPlaying} playlistCtx={playlistCtx} entityHits={entityHits} onOpenArtist={openArtist} onOpenAlbum={(slug)=>openAlbum(slug)}/>}
         {screen==="favorites" && <FavoritesScreen tracks={tracks} onPlay={t=>{setIsRadioMode(false);playTrack(t,tracks);}} onPlayTrack={(t,pool)=>{setIsRadioMode(false);playTrack(t,pool||tracks);}} onLike={toggleLike} currentTrack={currentTrack} isPlaying={isPlaying} playlistCtx={playlistCtx} userPlaylists={userPlaylists} onCreatePlaylist={createPlaylist} onDeletePlaylist={deletePlaylist} onMakePlaylist={()=>setShowRouteBuilder(true)}/>}
         {screen==="artist"    && !tracksLoading && (
@@ -4881,6 +5035,7 @@ export default function App() {
           onOpen={() => setImmersive(true)}
           onShowQueue={() => setShowQueue(true)}
           playlistCtx={playlistCtx}
+          hidePlayer={hideDockPlayer}
         />
       )}
       {boothPlayer}
@@ -5035,8 +5190,8 @@ export default function App() {
           maxWidth: (screen==="home" || screen==="favorites" || screen==="artist" || screen==="album") ? "none" : 960,
           margin:"0 auto",
           padding: (screen==="home" || screen==="favorites" || screen==="artist" || screen==="album")
-            ? `0 0 ${currentTrack?120:24}px`
-            : `24px 32px ${currentTrack?120:24}px`,
+            ? `0 0 ${currentTrack && !(screen === "home" && isRadioMode) ? 120 : 24}px`
+            : `24px 32px ${currentTrack && !(screen === "home" && isRadioMode) ? 120 : 24}px`,
         }}>
           <BgMist color={currentTrack?.color}/>
           <Pulse track={currentTrack} isPlaying={isPlaying}/>
@@ -5048,7 +5203,7 @@ export default function App() {
             </div>
           ) : (
             <ScreenPane key={screen === "artist" ? `artist:${artistSlug}` : screen === "album" ? `album:${albumSlug}` : screen}>
-              {screen==="home"      && <HomeScreen tracks={tracks} onPlayRadio={playRadio} onTogglePlay={()=>setIsPlaying(p=>!p)} onPlayTrack={playTrack} currentTrack={currentTrack} isPlaying={isPlaying} onLike={toggleLike} isRadioMode={isRadioMode} playlistCtx={playlistCtx} signalLabel={signalState?.label} mixLane={mixLane} catalogError={tracksLoadError} onRetryCatalog={reloadCatalog} preferredGenres={user.genres} recentTrackIds={(profile?.recentTracks||[]).map(r=>r.trackId||r)}/>}
+              {screen==="home"      && <HomeScreen tracks={tracks} onPlayRadio={playRadio} onTogglePlay={()=>setIsPlaying(p=>!p)} onPlayTrack={playTrack} currentTrack={currentTrack} isPlaying={isPlaying} onLike={toggleLike} isRadioMode={isRadioMode} playlistCtx={playlistCtx} signalLabel={signalState?.label} mixLane={mixLane} radioPreview={heroPreview} radioNext={setNext} onSkipRadio={handleSkip} catalogError={tracksLoadError} onRetryCatalog={reloadCatalog} preferredGenres={user.genres} recentTrackIds={(profile?.recentTracks||[]).map(r=>r.trackId||r)}/>}
               {screen==="search"    && <SearchScreen query={searchQuery} setQuery={setSearch} results={searchResults} onPlay={t=>playTrack(t,tracks)} onLike={toggleLike} currentTrack={currentTrack} isPlaying={isPlaying} playlistCtx={playlistCtx} entityHits={entityHits} onOpenArtist={openArtist} onOpenAlbum={(slug)=>openAlbum(slug)}/>}
               {screen==="favorites" && <FavoritesScreen tracks={tracks} onPlay={t=>{setIsRadioMode(false);playTrack(t,tracks);}} onPlayTrack={(t,pool)=>{setIsRadioMode(false);playTrack(t,pool||tracks);}} onLike={toggleLike} currentTrack={currentTrack} isPlaying={isPlaying} playlistCtx={playlistCtx} userPlaylists={userPlaylists} onCreatePlaylist={createPlaylist} onDeletePlaylist={deletePlaylist} onMakePlaylist={()=>setShowRouteBuilder(true)}/>}
               {screen==="artist"    && (
@@ -5085,8 +5240,8 @@ export default function App() {
           )}
         </div>
         </>
-        {/* Desktop mini-player — glass station strip */}
-        {currentTrack && !immersive && (
+        {/* Desktop mini-player — glass station strip (hidden on Home radio; hero owns transport) */}
+        {currentTrack && !immersive && !(screen === "home" && isRadioMode) && (
           <div style={{ position:"fixed", bottom:12, left:88, right:332, zIndex:80 }}>
             <div onClick={()=>setImmersive(true)} className="glass-dock" style={{
               borderRadius: dock.radius,
