@@ -3,7 +3,7 @@ import { createPortal }                             from "react-dom";
 import { useNavigate, useLocation }                 from "react-router-dom";
 import { useAuth }                                  from "./useAuth";
 import { toggleLike as fbToggleLike, recordPlay, completeOnboarding } from "./useUserData";
-import { collection, getDocs, addDoc, query, orderBy, doc, updateDoc, setDoc } from "firebase/firestore";
+import { collection, getDocs, addDoc, query, orderBy, doc, updateDoc, setDoc, deleteDoc } from "firebase/firestore";
 import { db }                                       from "./firebase";
 import {
   font, fontDisplay, fontMono, color, radius, motion,
@@ -3507,6 +3507,15 @@ function AnalyticsRow({ rank, track, value, label, max, color: trackColor, accen
 }
 
 // ─── ADMIN ────────────────────────────────────────────────────────────────────
+function trackMissingArtwork(track) {
+  const c = String(track?.albumCover || "").trim();
+  if (!c) return true;
+  if (!/^https?:\/\//i.test(c)) return true;
+  if (/\/covers\/default\.(avif|jpg|jpeg|png|webp)(\?|$)/i.test(c)) return true;
+  if (/test\.png/i.test(c)) return true;
+  return false;
+}
+
 function AdminScreen({ tracks, setTracks, tab, setTab, editTrack, setEditTrack, showToast }) {
   const EMPTY = { title:"",artist:"",album:"",genre:"",energy:"",camelot:"",bpm:"",albumCover:"" };
   const [nt, setNt] = useState(EMPTY);
@@ -3514,7 +3523,37 @@ function AdminScreen({ tracks, setTracks, tab, setTab, editTrack, setEditTrack, 
   const [assigned, setAssigned] = useState(0);
   const [importing, setImporting] = useState(false);
   const [importProgress, setImportProgress] = useState("");
+  const [purgingCovers, setPurgingCovers] = useState(false);
   const fileInputRef = useRef(null);
+  const missingArtTracks = tracks.filter(trackMissingArtwork);
+
+  async function deleteTrackDoc(track) {
+    await deleteDoc(doc(db, "tracks", track.id));
+    setTracks((ts) => ts.filter((tr) => tr.id !== track.id));
+  }
+
+  async function purgeMissingArtwork() {
+    if (!missingArtTracks.length || purgingCovers) return;
+    const ok = window.confirm(
+      `Delete ${missingArtTracks.length} track${missingArtTracks.length === 1 ? "" : "s"} with missing artwork from Firestore? This cannot be undone.`
+    );
+    if (!ok) return;
+    setPurgingCovers(true);
+    let deleted = 0;
+    let failed = 0;
+    for (const track of missingArtTracks) {
+      try {
+        await deleteTrackDoc(track);
+        deleted += 1;
+      } catch (e) {
+        console.error("Delete missing-art track failed:", track.id, e);
+        failed += 1;
+      }
+    }
+    setPurgingCovers(false);
+    if (failed) showToast(`Removed ${deleted}, ${failed} failed`);
+    else showToast(`Removed ${deleted} tracks without artwork`);
+  }
 
   // ── CSV EXPORT ──
   function exportCSV() {
@@ -3726,13 +3765,49 @@ function AdminScreen({ tracks, setTracks, tab, setTab, editTrack, setEditTrack, 
             <input key={k} placeholder={p} value={nt[k]||""} onChange={e=>setNt(n=>({...n,[k]:e.target.value}))} style={{...INPUT_ST,marginBottom:8}}/>
           ))}
           <button onClick={addTrack} style={{...BTN_PRIMARY,width:"100%",marginBottom:24,display:"flex",alignItems:"center",justifyContent:"center",gap:8}}><Icon name="plus" size={16}/> Add Track</button>
+          {missingArtTracks.length > 0 && (
+            <div style={{
+              marginBottom: 16,
+              padding: "14px 16px",
+              borderRadius: 14,
+              border: `1px solid ${color.lineStrong}`,
+              background: color.surfaceSolid,
+              display: "flex",
+              alignItems: "center",
+              gap: 12,
+              justifyContent: "space-between",
+            }}>
+              <div style={{ minWidth: 0 }}>
+                <div style={{ fontSize: 14, fontWeight: 650, color: color.ink, marginBottom: 4 }}>
+                  {missingArtTracks.length} track{missingArtTracks.length === 1 ? "" : "s"} missing artwork
+                </div>
+                <div style={{ fontSize: 12, color: color.muted, lineHeight: 1.4 }}>
+                  Empty covers or default placeholders. Removes them from Firestore.
+                </div>
+              </div>
+              <button
+                type="button"
+                disabled={purgingCovers}
+                onClick={purgeMissingArtwork}
+                style={{
+                  ...BTN_SECONDARY,
+                  width: "auto",
+                  flexShrink: 0,
+                  padding: "10px 14px",
+                  opacity: purgingCovers ? 0.6 : 1,
+                }}
+              >
+                {purgingCovers ? "Removing…" : "Delete all"}
+              </button>
+            </div>
+          )}
           <SectionLabel>Library ({tracks.length})</SectionLabel>
           {tracks.map(t=>(
             <div key={t.id} style={{ display:"flex", alignItems:"center", gap:10, padding:"10px 12px", background:"rgba(255,255,255,0.15)", backdropFilter:"blur(32px)", borderRadius:10, marginBottom:4, border:"1px solid rgba(255,255,255,0.16)" }}>
               <div style={{ width:36, height:36, borderRadius:7, overflow:"hidden", flexShrink:0 }}><AlbumArt track={t} size={36} borderRadius={0}/></div>
               <div style={{ flex:1, minWidth:0 }}>
                 <div style={{ fontSize:14, fontWeight:500, color: color.ink, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{t.title}</div>
-                <div style={{ fontSize:12, color: color.muted }}>{t.artist}</div>
+                <div style={{ fontSize:12, color: color.muted }}>{t.artist}{trackMissingArtwork(t) ? " · no art" : ""}</div>
               </div>
               <div style={{ display:"flex", gap:4, flexShrink:0, flexWrap:"wrap", justifyContent:"flex-end", maxWidth:180 }}>
                 {t.genre&&<span style={{ fontSize:10, fontWeight:500, padding:"2px 8px", borderRadius:6, background:"rgba(26,29,38,0.06)", color: color.ink }}>{t.genre}</span>}
@@ -3741,7 +3816,20 @@ function AdminScreen({ tracks, setTracks, tab, setTab, editTrack, setEditTrack, 
                 {t.energy&&<span style={{ fontSize:10, fontWeight:500, padding:"2px 8px", borderRadius:6, background:"rgba(0,0,0,0.04)", color: color.muted }}>E{t.energy}</span>}
               </div>
               <button onClick={()=>setEditTrack(t)} style={{ background:"none",border:"none",cursor:"pointer",color: color.muted,padding:6 }}><Icon name="edit" size={14}/></button>
-              <button onClick={()=>{setTracks(ts=>ts.filter(tr=>tr.id!==t.id));showToast("Deleted");}} style={{ background:"none",border:"none",cursor:"pointer",color: color.alert,padding:6 }}><Icon name="trash" size={14}/></button>
+              <button
+                onClick={async () => {
+                  try {
+                    await deleteTrackDoc(t);
+                    showToast("Deleted");
+                  } catch (e) {
+                    console.error("Admin delete error:", e);
+                    showToast("Delete failed: " + (e.code || e.message || "unknown error"));
+                  }
+                }}
+                style={{ background:"none",border:"none",cursor:"pointer",color: color.alert,padding:6 }}
+              >
+                <Icon name="trash" size={14}/>
+              </button>
             </div>
           ))}
         </div>

@@ -19,7 +19,9 @@
     "catalog:clean-titles": "node clean-titles.js",
     "catalog:clean-titles:apply": "node clean-titles.js --apply",
     "catalog:normalize-genres": "node normalize-genres.js",
-    "catalog:normalize-genres:apply": "node normalize-genres.js --apply"
+    "catalog:normalize-genres:apply": "node normalize-genres.js --apply",
+    "catalog:delete-missing-covers": "node delete-missing-covers.js",
+    "catalog:delete-missing-covers:apply": "node delete-missing-covers.js --apply"
   },
   "browserslist": {
     "production": [
