@@ -727,289 +727,301 @@ function OrbitingPlanet({ playing = false, night = false, progress = 0, tintRgb 
 }
 
 /**
- * Static brand atmosphere. The planet image is deliberately isolated as a
- * replaceable asset (`/assets/premium-planet-placeholder.png`) so the final
- * logo can take its place without changing the Home composition.
+ * Cover Stage atmosphere — soft art wash when listening, otherwise a quiet
+ * semi-transparent logo watermark. No chrome, no motion, no deck.
  */
-function HeroAtmosphere({ playing = false, daypart = "daytime", progress = 0, tintRgb = null }) {
-  const night = daypart === "nighttime";
-  const wash = tintRgb || (night ? "255,214,170" : "242,243,245");
+function CoverStageAtmosphere({ track = null, playing = false }) {
+  const tintRgb = track?.color ? hexToRgbStr(track.color) : null;
+  const hasArt = !!track?.albumCover;
 
   return (
     <div aria-hidden="true" style={{ position: "absolute", inset: 0, overflow: "hidden" }}>
-      <div style={{
-        position: "absolute",
-        inset: 0,
-        backgroundImage: "url(/assets/premium-planet-placeholder.png)",
-        backgroundSize: "cover",
-        backgroundPosition: "center right",
-        backgroundRepeat: "no-repeat",
-        filter: night ? "brightness(0.82) contrast(1.08)" : "brightness(0.94) contrast(1.06)",
-      }}/>
+      <div style={{ position: "absolute", inset: 0, background: color.canvas }} />
 
-      {/* A quiet track-color wash keeps playback state alive without moving the mark. */}
+      {/* Soft cover wash — the room, not a card */}
+      {hasArt && (
+        <div style={{
+          position: "absolute",
+          inset: "-12%",
+          backgroundImage: `url(${track.albumCover})`,
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+          filter: "blur(48px) saturate(1.15) brightness(0.55)",
+          opacity: playing ? 0.72 : 0.48,
+          transform: "scale(1.08)",
+          transition: "opacity 0.8s ease",
+        }}/>
+      )}
+
       {tintRgb && (
         <div style={{
           position: "absolute",
           inset: 0,
-          background: `
-            radial-gradient(ellipse 70% 80% at 82% 45%, rgba(${tintRgb},0.14) 0%, transparent 62%),
-            linear-gradient(90deg, transparent 42%, rgba(${tintRgb},0.035) 100%)
-          `,
+          background: `radial-gradient(ellipse 90% 70% at 50% 35%, rgba(${tintRgb},0.22) 0%, transparent 68%)`,
           transition: "background 0.8s ease",
-          pointerEvents: "none",
         }}/>
       )}
 
+      {/* Semi-transparent logo watermark — replaceable brand asset */}
       <div style={{
-        position: "absolute", inset: 0,
-        background: `
-          linear-gradient(90deg, rgba(0,0,0,0.82) 0%, rgba(0,0,0,0.52) 40%, rgba(0,0,0,0.08) 78%),
-          linear-gradient(180deg, rgba(0,0,0,0.18) 0%, transparent 38%, rgba(0,0,0,0.88) 100%),
-          radial-gradient(ellipse 120% 60% at 45% 110%, rgba(${wash},0.035) 0%, transparent 58%)
-        `,
+        position: "absolute",
+        left: "50%",
+        top: "42%",
+        width: "min(78vw, 420px)",
+        height: "min(78vw, 420px)",
+        transform: "translate(-50%, -54%)",
+        backgroundImage: "url(/assets/premium-planet-placeholder.png)",
+        backgroundSize: "contain",
+        backgroundPosition: "center",
+        backgroundRepeat: "no-repeat",
+        opacity: hasArt ? 0.08 : 0.18,
+        transition: "opacity 0.8s ease",
+        pointerEvents: "none",
       }}/>
 
       <div style={{
-        position: "absolute", left: 0, right: 0, bottom: 0, height: 120,
-        background: "linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.8) 70%, #000 100%)",
+        position: "absolute",
+        inset: 0,
+        background: `
+          radial-gradient(ellipse 80% 55% at 50% 28%, transparent 0%, rgba(0,0,0,0.35) 72%, rgba(0,0,0,0.78) 100%),
+          linear-gradient(180deg, rgba(0,0,0,0.28) 0%, transparent 30%, transparent 48%, rgba(0,0,0,0.92) 100%)
+        `,
       }}/>
     </div>
   );
 }
 
-function DeepCutsCard({
-  onPlay, onTogglePlay, onSkip, currentTrack, isPlaying, isRadioMode, signalLabel,
-  previewTrack = null, nextTrack = null, mixLane, playDisabled = false,
+/**
+ * Home Cover Stage — Home *is* the player.
+ * Full-bleed listening surface: watermark logo, huge title, minimal instrument.
+ */
+function CoverStage({
+  onPlay, onTogglePlay, onSkip, onPrev, onOpen,
+  currentTrack, isPlaying, isRadioMode,
+  previewTrack = null, mixLane, playDisabled = false,
   progress = 0, duration = 0,
 }) {
-  const live = isRadioMode && currentTrack;
+  const live = !!currentTrack;
   const canStart = !playDisabled;
   const lane = mixLaneById(mixLane);
+  const stageTrack = currentTrack || previewTrack;
   const playingVisual = !!(live && isPlaying);
-  const tintRgb = live && currentTrack?.color ? hexToRgbStr(currentTrack.color) : null;
-  const orbitPct = live && duration > 0 ? progress / duration : 0;
+  const pct = duration > 0 ? Math.max(0, Math.min(100, (progress / duration) * 100)) : 0;
 
   const primaryAction = () => {
     if (live) onTogglePlay();
     else if (canStart) onPlay();
   };
 
+  const openImmersive = (e) => {
+    e?.stopPropagation?.();
+    if (live && onOpen) onOpen();
+  };
+
   return (
     <div
+      role="button"
+      tabIndex={0}
+      aria-label={live ? (isPlaying ? "Pause" : "Play") : `Start ${lane.label}`}
+      onClick={primaryAction}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          primaryAction();
+        }
+      }}
       style={{
         position: "relative",
-        minHeight: "min(72vh, 580px)",
+        minHeight: "min(100dvh - 96px, 720px)",
+        height: "min(100dvh - 96px, 720px)",
         background: color.canvas,
         overflow: "hidden",
-        animation: "stationIn 0.75s cubic-bezier(0.22,1,0.36,1) both",
+        cursor: (live || canStart) ? "pointer" : "default",
+        animation: "stationIn 0.85s cubic-bezier(0.22,1,0.36,1) both",
+        outline: "none",
       }}
     >
-      <HeroAtmosphere
-        playing={playingVisual}
-        daypart={lane.id}
-        progress={orbitPct}
-        tintRgb={tintRgb}
-      />
+      <CoverStageAtmosphere track={stageTrack} playing={playingVisual} />
 
-      {/* Overlay — radio deck (brand = animated planet, no wordmark) */}
+      {/* Center title */}
       <div style={{
-        position: "relative", zIndex: 1,
-        minHeight: "min(72vh, 580px)",
-        display: "flex", flexDirection: "column",
-        justifyContent: "flex-end",
-        padding: `40px ${homeSpace.gutter}px 48px`,
-        maxWidth: 560,
+        position: "relative",
+        zIndex: 1,
+        height: "100%",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: `0 ${homeSpace.gutter}px 108px`,
+        textAlign: "center",
       }}>
-        <div style={{ marginBottom: 14 }}>
-          {live ? (
-            <div style={{
-              display: "inline-flex", alignItems: "center", gap: 8,
-              padding: "6px 12px 6px 10px", borderRadius: 980,
-              border: `1px solid ${glass.border}`,
-              background: "rgba(0,0,0,0.45)",
-              backdropFilter: glass.blurSoft,
-              WebkitBackdropFilter: glass.blurSoft,
-              boxShadow: `inset 0 1px 0 ${glass.highlight}`,
-            }}>
-              <span style={{
-                width: 7, height: 7, borderRadius: "50%",
-                background: color.accent,
-                animation: isPlaying ? "pulse 1.4s ease-in-out infinite" : "none",
-                boxShadow: `0 0 10px ${color.accentGlow}`,
-              }}/>
-              <span style={{
-                fontSize: 11, fontWeight: 700, letterSpacing: 1.5,
-                textTransform: "uppercase", color: color.ink, fontFamily: fontMono,
-              }}>
-                On air · {lane.label}
-              </span>
-            </div>
-          ) : (
-            <div style={{
-              display: "inline-flex", alignItems: "center", gap: 8,
-              padding: "6px 12px", borderRadius: 980,
-              border: `1px solid ${glass.borderFaint}`,
-              background: "rgba(255,255,255,0.04)",
-            }}>
-              <span style={{
-                width: 6, height: 6, borderRadius: "50%",
-                background: color.faint,
-              }}/>
-              <span style={{
-                fontSize: 11, fontWeight: 650, letterSpacing: 1.6,
-                textTransform: "uppercase", color: color.faint, fontFamily: fontMono,
-              }}>
-                {signalLabel || lane.label}
-              </span>
-            </div>
-          )}
+        <div
+          key={stageTrack?.id || "idle"}
+          onClick={openImmersive}
+          style={{
+            maxWidth: 520,
+            width: "100%",
+            animation: "trackSwap 0.45s cubic-bezier(0.22,1,0.36,1) both",
+          }}
+        >
+          <div style={{
+            fontSize: 11,
+            fontWeight: 650,
+            letterSpacing: 2.2,
+            textTransform: "uppercase",
+            color: live && isPlaying ? color.accent : color.faint,
+            fontFamily: fontMono,
+            marginBottom: 18,
+          }}>
+            {live
+              ? (isRadioMode ? lane.label : "Now playing")
+              : (canStart ? lane.label : "Unavailable")}
+          </div>
+
+          <h1 style={{
+            margin: 0,
+            fontSize: "clamp(34px, 9vw, 56px)",
+            fontWeight: 720,
+            letterSpacing: -1.6,
+            lineHeight: 1.02,
+            color: color.onDark,
+            fontFamily: fontDisplay,
+            overflow: "hidden",
+            display: "-webkit-box",
+            WebkitLineClamp: 3,
+            WebkitBoxOrient: "vertical",
+          }}>
+            {stageTrack?.title || (canStart ? "Press play" : "Nothing here yet")}
+          </h1>
+
+          <div style={{
+            marginTop: 14,
+            fontSize: 16,
+            fontWeight: 450,
+            letterSpacing: -0.15,
+            color: "rgba(242,243,245,0.58)",
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            whiteSpace: "nowrap",
+          }}>
+            {stageTrack?.artist || (canStart ? "Your daypart radio is ready" : "Add tracks to begin")}
+          </div>
+        </div>
+      </div>
+
+      {/* Bottom instrument — quiet, typographic */}
+      <div
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          position: "absolute",
+          left: 0,
+          right: 0,
+          bottom: 0,
+          zIndex: 2,
+          padding: `0 ${homeSpace.gutter}px calc(28px + env(safe-area-inset-bottom, 0px))`,
+        }}
+      >
+        {/* Whisper progress */}
+        <div
+          aria-hidden="true"
+          style={{
+            height: 1,
+            marginBottom: 22,
+            background: "rgba(255,255,255,0.08)",
+            overflow: "hidden",
+          }}
+        >
+          <div style={{
+            height: "100%",
+            width: `${live ? pct : 0}%`,
+            background: color.accent,
+            transition: "width 0.25s linear",
+            boxShadow: live ? `0 0 12px ${color.accentGlow}` : "none",
+          }}/>
         </div>
 
-        {/* Live: secondary title/artist — planet owns the visual.
-            Idle: compact Up-first preview. */}
-        {live ? (
-          <div
-            key={currentTrack.id}
+        <div style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          gap: 28,
+        }}>
+          <button
+            type="button"
+            aria-label="Previous"
+            disabled={!live}
+            onClick={(e) => { e.stopPropagation(); onPrev?.(); }}
             style={{
-              marginBottom: 22,
-              maxWidth: 420,
-              animation: "trackSwap 0.4s ease both",
+              background: "none",
+              border: "none",
+              padding: 8,
+              color: live ? color.body : color.faint,
+              cursor: live ? "pointer" : "default",
+              opacity: live ? 1 : 0.35,
             }}
           >
-            <div style={{
-              fontSize: "clamp(18px, 4.6vw, 24px)",
-              fontWeight: 650, letterSpacing: -0.5, lineHeight: 1.18,
-              color: color.onDark, fontFamily: fontDisplay,
-              marginBottom: 6,
-              overflow: "hidden", textOverflow: "ellipsis",
-              display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical",
-            }}>
-              {currentTrack.title}
-            </div>
-            <div style={{
-              fontSize: 14, color: color.onDarkMuted, fontWeight: 500,
-              letterSpacing: -0.1,
-              overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
-            }}>
-              {currentTrack.artist}
-            </div>
-          </div>
-        ) : (previewTrack && canStart && (
-          <div
-            key={previewTrack.id}
-            style={{
-              display: "flex", alignItems: "center", gap: 12,
-              marginBottom: 24,
-              animation: "trackSwap 0.4s ease both",
-              maxWidth: 420,
-            }}
-          >
-            <div style={{
-              width: 52, height: 52, borderRadius: radius.sm, overflow: "hidden",
-              flexShrink: 0,
-              boxShadow: `0 0 0 1px ${glass.borderSoft}, 0 12px 28px rgba(0,0,0,0.45)`,
-            }}>
-              <AlbumArt track={previewTrack} size={52} borderRadius={radius.sm}/>
-            </div>
-            <div style={{ minWidth: 0 }}>
-              <div style={{
-                fontSize: 10, fontWeight: 700, letterSpacing: 1.4,
-                textTransform: "uppercase", color: color.faint, fontFamily: fontMono,
-                marginBottom: 4,
-              }}>
-                Up first
-              </div>
-              <div style={{
-                fontSize: 15, fontWeight: 650, color: color.ink,
-                letterSpacing: -0.2, fontFamily: fontDisplay,
-                overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
-              }}>
-                {previewTrack.title}
-                <span style={{ color: color.muted, fontWeight: 500 }}>  ·  {previewTrack.artist}</span>
-              </div>
-            </div>
-          </div>
-        ))}
-
-        {/* Transport — ice orb + skip + status */}
-        <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-          <IceOrbPlay
-            isPlaying={!!(live && isPlaying)}
-            onClick={primaryAction}
-            size={68}
-            iconSize={24}
-            disabled={!live && !canStart}
-            glowing={playingVisual}
-            ariaLabel={live ? (isPlaying ? "Pause" : "Play") : `Play ${lane.label}`}
-          />
-
-          {live && onSkip && (
-            <button
-              type="button"
-              aria-label="Next"
-              onClick={onSkip}
-              className="glass-control"
-              style={{
-                width: 48, height: 48, borderRadius: "50%",
-                ...glassControl,
-                display: "flex", alignItems: "center", justifyContent: "center",
-                color: color.ink, cursor: "pointer", flexShrink: 0,
-              }}
-            >
-              <Icon name="skip" size={18}/>
-            </button>
-          )}
+            <Icon name="prev" size={22}/>
+          </button>
 
           <button
             type="button"
-            onClick={primaryAction}
+            className="play-primary"
+            aria-label={live ? (isPlaying ? "Pause" : "Play") : `Start ${lane.label}`}
             disabled={!live && !canStart}
-            aria-hidden="true"
-            tabIndex={-1}
+            onClick={(e) => { e.stopPropagation(); primaryAction(); }}
             style={{
-              minWidth: 0, background: "none", border: "none", padding: 0,
-              textAlign: "left", cursor: (live || canStart) ? "pointer" : "default",
+              width: 64,
+              height: 64,
+              borderRadius: "50%",
+              border: "none",
+              background: (live || canStart) ? color.accent : color.surfaceRaised,
+              color: (live || canStart) ? color.onAccent : color.faint,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              cursor: (live || canStart) ? "pointer" : "not-allowed",
+              boxShadow: (live || canStart)
+                ? `0 0 0 1px rgba(242,243,245,0.12), 0 18px 40px rgba(0,0,0,0.45)`
+                : "none",
+              transition: `transform ${motion.fast} ${motion.ease}`,
             }}
           >
-            <div style={{
-              fontSize: 17, fontWeight: 700, letterSpacing: -0.3,
-              color: canStart || live ? color.ink : color.faint,
-              fontFamily: fontDisplay, lineHeight: 1.15,
-            }}>
-              {live
-                ? (isPlaying ? "Listening" : "Paused")
-                : (canStart ? "Listen" : "Unavailable")}
-            </div>
-            <div style={{
-              fontSize: 13, color: color.muted, marginTop: 4,
-              fontWeight: 500, letterSpacing: 0.1,
-            }}>
-              {live
-                ? `${lane.label} · tap to ${isPlaying ? "pause" : "resume"}`
-                : (canStart ? `${lane.label} radio` : "Library unavailable")}
-            </div>
+            <Icon name={live && isPlaying ? "pause" : "play"} size={22}/>
+          </button>
+
+          <button
+            type="button"
+            aria-label="Next"
+            disabled={!live}
+            onClick={(e) => { e.stopPropagation(); onSkip?.(); }}
+            style={{
+              background: "none",
+              border: "none",
+              padding: 8,
+              color: live ? color.body : color.faint,
+              cursor: live ? "pointer" : "default",
+              opacity: live ? 1 : 0.35,
+            }}
+          >
+            <Icon name="skip" size={22}/>
           </button>
         </div>
 
-        {/* Next up teaser — on air only */}
-        {live && nextTrack && (
-          <div style={{
-            display: "flex", alignItems: "center", gap: 8,
-            marginTop: 18,
-            fontSize: 12, color: color.faint,
-            fontFamily: fontMono, letterSpacing: 0.3,
-          }}>
-            <span style={{ textTransform: "uppercase", fontWeight: 700, fontSize: 10, letterSpacing: 1.2 }}>Next</span>
-            <span style={{
-              color: color.muted,
-              overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
-              maxWidth: 320,
-            }}>
-              {nextTrack.title} · {nextTrack.artist}
-            </span>
-          </div>
-        )}
+        <div style={{
+          marginTop: 14,
+          display: "flex",
+          justifyContent: "center",
+          gap: 10,
+          fontSize: 11,
+          fontFamily: fontMono,
+          fontVariantNumeric: "tabular-nums",
+          letterSpacing: 0.4,
+          color: color.faint,
+        }}>
+          <span>{live ? fmtTime(progress) : "0:00"}</span>
+          <span style={{ opacity: 0.4 }}>·</span>
+          <span>{live && duration ? fmtTime(duration) : "—:—"}</span>
+        </div>
       </div>
     </div>
   );
@@ -2761,149 +2773,139 @@ function HomeCatalogStatus({ error, isEmpty, playableCount, totalCount, onRetry 
 }
 
 /**
- * Made-for-you editorial block — one oversized lead card carrying the
- * reason as a real sentence, then a tighter rail of the remaining picks.
+ * One continuous For you river — lead editorial pick + art rail.
+ * Replaces separate Recently / Trending / Made-for-you shelves.
  */
-function ForYouEditorial({
+function ForYouRiver({
   picks = [],
+  railTracks = [],
   coldStart = false,
   onPlayTrack,
   activeId,
   isPlaying,
   onLike,
   playlistCtx,
-  first = false,
 }) {
-  if (!picks.length) return null;
-  const [lead, ...rest] = picks;
-  const leadTrack = lead.track;
-  const leadActive = activeId === leadTrack.id;
-  const pool = picks.map((p) => p.track);
-  const restReasons = Object.fromEntries(rest.map((p) => [p.track.id, p.reason]));
+  if (!picks.length && !railTracks.length) return null;
+  const lead = picks[0] || null;
+  const leadTrack = lead?.track || null;
+  const leadActive = leadTrack && activeId === leadTrack.id;
+  const pool = [
+    ...picks.map((p) => p.track),
+    ...railTracks,
+  ].filter((t, i, arr) => arr.findIndex((x) => x.id === t.id) === i);
+  const rail = railTracks.length
+    ? railTracks
+    : picks.slice(1).map((p) => p.track);
+  const reasons = Object.fromEntries(
+    picks.filter((p) => !leadTrack || p.track.id !== leadTrack.id).map((p) => [p.track.id, p.reason])
+  );
   const tasteLine = coldStart
     ? "A starting set while we learn what you like."
-    : "Based on your likes and recent listening.";
+    : "Recent listens, rising tracks, and picks shaped by your taste.";
 
   return (
     <HomeSection
-      label={coldStart ? "Fresh picks" : "Made for you"}
+      label={coldStart ? "Fresh picks" : "For you"}
       subtitle={tasteLine}
-      delay={0.08}
-      first={first}
+      delay={0.06}
+      first
     >
-      {/* Lead card */}
-      <button
-        type="button"
-        onClick={() => onPlayTrack(leadTrack, pool)}
-        aria-label={`Play ${leadTrack.title}`}
-        style={{
-          display: "flex",
-          alignItems: "stretch",
-          gap: 16,
-          width: `calc(100% - ${homeSpace.gutter * 2}px)`,
-          margin: `0 ${homeSpace.gutter}px 22px`,
-          padding: 0,
-          background: "none",
-          border: "none",
-          cursor: "pointer",
-          textAlign: "left",
-          color: color.ink,
-        }}
-      >
-        <div style={{
-          width: 148, height: 148, borderRadius: radius.lg, overflow: "hidden",
-          flexShrink: 0, position: "relative",
-          boxShadow: leadActive
-            ? `0 0 0 1.5px ${color.accent}, 0 20px 48px rgba(0,0,0,0.5)`
-            : `0 0 0 1px ${glass.borderSoft}, 0 20px 48px rgba(0,0,0,0.45)`,
-        }}>
-          <AlbumArt track={leadTrack} size={148} borderRadius={radius.lg}/>
-          <div aria-hidden="true" style={{
-            pointerEvents: "none", position: "absolute", inset: 0, borderRadius: radius.lg,
-            boxShadow: `inset 0 1px 0 ${glass.highlight}`,
-          }}/>
-          {leadActive && isPlaying && (
-            <div style={{
-              position: "absolute", inset: 0, background: "rgba(0,0,0,0.35)",
-              display: "flex", alignItems: "center", justifyContent: "center",
-            }}>
+      {leadTrack && (
+        <button
+          type="button"
+          onClick={() => onPlayTrack(leadTrack, pool)}
+          aria-label={`Play ${leadTrack.title}`}
+          style={{
+            display: "flex",
+            alignItems: "stretch",
+            gap: 16,
+            width: `calc(100% - ${homeSpace.gutter * 2}px)`,
+            margin: `0 ${homeSpace.gutter}px 26px`,
+            padding: 0,
+            background: "none",
+            border: "none",
+            cursor: "pointer",
+            textAlign: "left",
+            color: color.ink,
+          }}
+        >
+          <div style={{
+            width: 156, height: 156, borderRadius: radius.lg, overflow: "hidden",
+            flexShrink: 0, position: "relative",
+            boxShadow: leadActive
+              ? `0 0 0 1.5px ${color.accent}, 0 24px 56px rgba(0,0,0,0.5)`
+              : `0 0 0 1px ${glass.borderSoft}, 0 24px 56px rgba(0,0,0,0.45)`,
+          }}>
+            <AlbumArt track={leadTrack} size={156} borderRadius={radius.lg}/>
+            <div aria-hidden="true" style={{
+              pointerEvents: "none", position: "absolute", inset: 0, borderRadius: radius.lg,
+              boxShadow: `inset 0 1px 0 ${glass.highlight}`,
+            }}/>
+            {leadActive && isPlaying && (
               <div style={{
-                width: 10, height: 10, borderRadius: "50%", background: color.accent,
-                animation: "pulse 1.2s ease-in-out infinite",
-              }}/>
-            </div>
-          )}
-        </div>
+                position: "absolute", inset: 0, background: "rgba(0,0,0,0.35)",
+                display: "flex", alignItems: "center", justifyContent: "center",
+              }}>
+                <div style={{
+                  width: 10, height: 10, borderRadius: "50%", background: color.accent,
+                  animation: "pulse 1.2s ease-in-out infinite",
+                }}/>
+              </div>
+            )}
+          </div>
 
-        <div style={{
-          flex: 1, minWidth: 0,
-          display: "flex", flexDirection: "column", justifyContent: "center",
-          padding: "4px 0",
-        }}>
           <div style={{
-            fontSize: 11, fontWeight: 650, letterSpacing: 1.2,
-            textTransform: "uppercase", color: color.accent,
-            fontFamily: fontMono, marginBottom: 8,
+            flex: 1, minWidth: 0,
+            display: "flex", flexDirection: "column", justifyContent: "center",
+            padding: "6px 0",
           }}>
-            {coldStart ? "Start here" : "Top pick"}
-          </div>
-          <div style={{
-            fontSize: "clamp(20px, 5.2vw, 26px)",
-            fontWeight: 750, letterSpacing: -0.7, lineHeight: 1.12,
-            fontFamily: fontDisplay,
-            color: leadActive ? color.accent : color.ink,
-            marginBottom: 6,
-            overflow: "hidden", textOverflow: "ellipsis",
-            display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical",
-          }}>
-            {leadTrack.title}
-          </div>
-          <div style={{
-            fontSize: 14, color: color.muted, marginBottom: 12,
-            overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
-          }}>
-            {leadTrack.artist}
-          </div>
-          <div style={{
-            fontSize: 14, color: color.body, lineHeight: 1.4,
-            letterSpacing: -0.1, maxWidth: 280,
-          }}>
-            {lead.reason}
-            {lead.reason && !lead.reason.endsWith(".") ? "." : ""}
-          </div>
-          <div style={{
-            marginTop: 16,
-            display: "inline-flex", alignItems: "center", gap: 8,
-            alignSelf: "flex-start",
-            padding: "8px 14px 8px 10px",
-            borderRadius: 980,
-            background: color.accent,
-            color: color.onAccent,
-            fontSize: 13, fontWeight: 700, letterSpacing: -0.1,
-            boxShadow: `0 10px 24px rgba(0,0,0,0.35)`,
-          }}>
-            <span style={{
-              width: 22, height: 22, borderRadius: "50%",
-              background: "rgba(0,0,0,0.14)",
-              display: "inline-flex", alignItems: "center", justifyContent: "center",
+            <div style={{
+              fontSize: 11, fontWeight: 650, letterSpacing: 1.4,
+              textTransform: "uppercase", color: color.accent,
+              fontFamily: fontMono, marginBottom: 10,
             }}>
-              <Icon name={leadActive && isPlaying ? "pause" : "play"} size={11}/>
-            </span>
-            {leadActive && isPlaying ? "Playing" : "Play"}
+              {coldStart ? "Start here" : "Top pick"}
+            </div>
+            <div style={{
+              fontSize: "clamp(22px, 5.4vw, 28px)",
+              fontWeight: 750, letterSpacing: -0.8, lineHeight: 1.1,
+              fontFamily: fontDisplay,
+              color: leadActive ? color.accent : color.ink,
+              marginBottom: 8,
+              overflow: "hidden", textOverflow: "ellipsis",
+              display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical",
+            }}>
+              {leadTrack.title}
+            </div>
+            <div style={{
+              fontSize: 14, color: color.muted, marginBottom: 12,
+              overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+            }}>
+              {leadTrack.artist}
+            </div>
+            {lead.reason && (
+              <div style={{
+                fontSize: 14, color: color.body, lineHeight: 1.45,
+                letterSpacing: -0.1, maxWidth: 300,
+              }}>
+                {lead.reason}{lead.reason.endsWith(".") ? "" : "."}
+              </div>
+            )}
           </div>
-        </div>
-      </button>
+        </button>
+      )}
 
-      {rest.length > 0 && (
+      {rail.length > 0 && (
         <CoverShelf
-          tracks={rest.map((p) => p.track)}
-          onPlayTrack={(t) => onPlayTrack(t, pool)}
+          tracks={rail}
+          onPlayTrack={(t) => onPlayTrack(t, pool.length ? pool : rail)}
           activeId={activeId}
           isPlaying={isPlaying}
           onLike={onLike}
           playlistCtx={playlistCtx}
-          reasons={restReasons}
-          tileSize={118}
+          reasons={reasons}
+          tileSize={124}
         />
       )}
     </HomeSection>
@@ -2913,47 +2915,57 @@ function ForYouEditorial({
 function HomeScreen({
   tracks, onPlayRadio, onTogglePlay, onPlayTrack, currentTrack, isPlaying, onLike,
   isRadioMode, playlistCtx, signalLabel,
-  mixLane, radioPreview = null, radioNext = null, onSkipRadio,
+  mixLane, radioPreview = null, radioNext = null, onSkipRadio, onPrevRadio,
   catalogError = null, onRetryCatalog,
   preferredGenres = [], recentTrackIds = [],
-  progress = 0, duration = 0,
+  progress = 0, duration = 0, onOpenPlayer,
 }) {
   const activeId = currentTrack?.id;
   const playableCount = countPlayableTracks(tracks);
   const catalogEmpty = !catalogError && tracks.length === 0;
   const catalogDepleted = !catalogError && tracks.length > 0 && playableCount === 0;
 
-  // Listening history → art shelf (most recent first, dedup by id)
   const recentlyPlayed = [...new Set(recentTrackIds)]
     .map((id) => tracks.find((t) => t.id === id))
     .filter(Boolean)
     .slice(0, 12);
-  const hasRecent = recentlyPlayed.length >= 1;
 
   const trending = trendingTracks(tracks, 10);
 
-  // Recommended never repeats Trending or Recently played
   const { picks: recommended, coldStart } = recommendedPicks(tracks, {
     preferredGenres,
     recentTrackIds,
-    limit: 10,
-    excludeIds: [
-      ...trending.map((t) => t.id),
-      ...recentlyPlayed.map((t) => t.id),
-    ],
+    limit: 8,
+    excludeIds: [],
   });
+
+  // One river: recommended lead + deduped blend of trending / recent / more picks
+  const seen = new Set(recommended[0] ? [recommended[0].track.id] : []);
+  const riverRail = [];
+  const pushUnique = (list) => {
+    for (const t of list) {
+      if (!t?.id || seen.has(t.id)) continue;
+      seen.add(t.id);
+      riverRail.push(t);
+      if (riverRail.length >= 14) return;
+    }
+  };
+  pushUnique(recommended.slice(1).map((p) => p.track));
+  pushUnique(trending);
+  pushUnique(recentlyPlayed);
+
   return (
     <div style={{ position: "relative", paddingBottom: 48 }}>
-      <DeepCutsCard
+      <CoverStage
         onPlay={onPlayRadio}
         onTogglePlay={onTogglePlay}
         onSkip={onSkipRadio}
+        onPrev={onPrevRadio}
+        onOpen={onOpenPlayer}
         currentTrack={currentTrack}
         isPlaying={isPlaying}
         isRadioMode={isRadioMode}
-        signalLabel={signalLabel}
         previewTrack={radioPreview}
-        nextTrack={radioNext}
         mixLane={mixLane}
         playDisabled={catalogEmpty || catalogDepleted || !!catalogError}
         progress={progress}
@@ -2973,52 +2985,24 @@ function HomeScreen({
       <div style={{
         position: "relative",
         background: `
-          linear-gradient(180deg, rgba(255,255,255,0.035) 0%, transparent 140px),
-          radial-gradient(ellipse at 50% 0%, rgba(255,255,255,0.04) 0%, transparent 55%),
+          linear-gradient(180deg, rgba(255,255,255,0.03) 0%, transparent 120px),
           ${color.canvas}
         `,
       }}>
-        {hasRecent && (
-          <HomeSection label="Recently played" delay={0.02} first>
-            <CoverShelf
-              tracks={recentlyPlayed}
-              onPlayTrack={onPlayTrack}
-              activeId={activeId}
-              isPlaying={isPlaying}
-              onLike={onLike}
-              playlistCtx={playlistCtx}
-            />
-          </HomeSection>
-        )}
-
-        {trending.length > 0 && (
-          <HomeSection label="Trending" delay={0.04} first={!hasRecent}>
-            <CoverShelf
-              tracks={trending}
-              onPlayTrack={onPlayTrack}
-              activeId={activeId}
-              isPlaying={isPlaying}
-              onLike={onLike}
-              playlistCtx={playlistCtx}
-              showRanks
-            />
-          </HomeSection>
-        )}
-
-        {recommended.length > 0 && (
-          <ForYouEditorial
+        {(recommended.length > 0 || riverRail.length > 0) && (
+          <ForYouRiver
             picks={recommended}
+            railTracks={riverRail}
             coldStart={coldStart}
             onPlayTrack={onPlayTrack}
             activeId={activeId}
             isPlaying={isPlaying}
             onLike={onLike}
             playlistCtx={playlistCtx}
-            first={!hasRecent && trending.length === 0}
           />
         )}
 
-        {!catalogError && !catalogEmpty && trending.length === 0 && recommended.length === 0 && (
+        {!catalogError && !catalogEmpty && recommended.length === 0 && riverRail.length === 0 && (
           <div style={{ padding: `28px ${homeSpace.gutter}px 56px` }}>
             <div className="glass-surface" style={{ padding: "28px 22px", borderRadius: radius.lg }}>
               <div style={{ fontSize: 22, fontWeight: 700, fontFamily: fontDisplay, color: color.ink, marginBottom: 8, letterSpacing: -0.4 }}>
@@ -5200,8 +5184,8 @@ export default function App() {
     />
   ) : null;
 
-  // On Home radio the hero owns transport — collapse dock to tabs only.
-  const hideDockPlayer = screen === "home" && isRadioMode && !!currentTrack && !immersive;
+  // Cover Stage owns transport on Home — dock collapses to tabs only.
+  const hideDockPlayer = screen === "home" && !!currentTrack && !immersive;
 
   // ── Inner app (shared between mobile + desktop phone column) ─────────────
   const innerApp = (
@@ -5216,7 +5200,7 @@ export default function App() {
       )}
       <div style={{ flex:1, overflow:"auto", paddingBottom: contentPadBottom(!!currentTrack && !immersive && !hideDockPlayer), zIndex:1, position:"relative" }}>
         <ScreenPane key={screen === "artist" ? `artist:${artistSlug}` : screen === "album" ? `album:${albumSlug}` : screen}>
-        {screen==="home"      && !tracksLoading && <HomeScreen tracks={tracks} onPlayRadio={playRadio} onTogglePlay={()=>setIsPlaying(p=>!p)} onPlayTrack={playTrack} currentTrack={currentTrack} isPlaying={isPlaying} onLike={toggleLike} isRadioMode={isRadioMode} playlistCtx={playlistCtx} signalLabel={signalState?.label} mixLane={mixLane} radioPreview={heroPreview} radioNext={setNext} onSkipRadio={handleSkip} catalogError={tracksLoadError} onRetryCatalog={reloadCatalog} preferredGenres={user.genres} recentTrackIds={(profile?.recentTracks||[]).map(r=>r.trackId||r)} progress={progress} duration={duration}/>}
+        {screen==="home"      && !tracksLoading && <HomeScreen tracks={tracks} onPlayRadio={playRadio} onTogglePlay={()=>setIsPlaying(p=>!p)} onPlayTrack={playTrack} currentTrack={currentTrack} isPlaying={isPlaying} onLike={toggleLike} isRadioMode={isRadioMode} playlistCtx={playlistCtx} signalLabel={signalState?.label} mixLane={mixLane} radioPreview={heroPreview} radioNext={setNext} onSkipRadio={handleSkip} onPrevRadio={handlePrev} onOpenPlayer={()=>setImmersive(true)} catalogError={tracksLoadError} onRetryCatalog={reloadCatalog} preferredGenres={user.genres} recentTrackIds={(profile?.recentTracks||[]).map(r=>r.trackId||r)} progress={progress} duration={duration}/>}
         {screen==="search"    && <SearchScreen query={searchQuery} setQuery={setSearch} results={searchResults} onPlay={t=>playTrack(t,tracks)} onLike={toggleLike} currentTrack={currentTrack} isPlaying={isPlaying} playlistCtx={playlistCtx} entityHits={entityHits} onOpenArtist={openArtist} onOpenAlbum={(slug)=>openAlbum(slug)}/>}
         {screen==="favorites" && <FavoritesScreen tracks={tracks} onPlay={t=>{setIsRadioMode(false);playTrack(t,tracks);}} onPlayTrack={(t,pool)=>{setIsRadioMode(false);playTrack(t,pool||tracks);}} onLike={toggleLike} currentTrack={currentTrack} isPlaying={isPlaying} playlistCtx={playlistCtx} userPlaylists={userPlaylists} onCreatePlaylist={createPlaylist} onDeletePlaylist={deletePlaylist} onMakePlaylist={()=>setShowRouteBuilder(true)}/>}
         {screen==="artist"    && !tracksLoading && (
@@ -5425,8 +5409,8 @@ export default function App() {
           maxWidth: (screen==="home" || screen==="favorites" || screen==="artist" || screen==="album") ? "none" : 960,
           margin:"0 auto",
           padding: (screen==="home" || screen==="favorites" || screen==="artist" || screen==="album")
-            ? `0 0 ${currentTrack && !(screen === "home" && isRadioMode) ? 120 : 24}px`
-            : `24px 32px ${currentTrack && !(screen === "home" && isRadioMode) ? 120 : 24}px`,
+            ? `0 0 ${currentTrack && screen !== "home" ? 120 : 24}px`
+            : `24px 32px ${currentTrack && screen !== "home" ? 120 : 24}px`,
         }}>
           <BgMist color={currentTrack?.color}/>
           <Pulse track={currentTrack} isPlaying={isPlaying}/>
@@ -5438,7 +5422,7 @@ export default function App() {
             </div>
           ) : (
             <ScreenPane key={screen === "artist" ? `artist:${artistSlug}` : screen === "album" ? `album:${albumSlug}` : screen}>
-              {screen==="home"      && <HomeScreen tracks={tracks} onPlayRadio={playRadio} onTogglePlay={()=>setIsPlaying(p=>!p)} onPlayTrack={playTrack} currentTrack={currentTrack} isPlaying={isPlaying} onLike={toggleLike} isRadioMode={isRadioMode} playlistCtx={playlistCtx} signalLabel={signalState?.label} mixLane={mixLane} radioPreview={heroPreview} radioNext={setNext} onSkipRadio={handleSkip} catalogError={tracksLoadError} onRetryCatalog={reloadCatalog} preferredGenres={user.genres} recentTrackIds={(profile?.recentTracks||[]).map(r=>r.trackId||r)} progress={progress} duration={duration}/>}
+              {screen==="home"      && <HomeScreen tracks={tracks} onPlayRadio={playRadio} onTogglePlay={()=>setIsPlaying(p=>!p)} onPlayTrack={playTrack} currentTrack={currentTrack} isPlaying={isPlaying} onLike={toggleLike} isRadioMode={isRadioMode} playlistCtx={playlistCtx} signalLabel={signalState?.label} mixLane={mixLane} radioPreview={heroPreview} radioNext={setNext} onSkipRadio={handleSkip} onPrevRadio={handlePrev} onOpenPlayer={()=>setImmersive(true)} catalogError={tracksLoadError} onRetryCatalog={reloadCatalog} preferredGenres={user.genres} recentTrackIds={(profile?.recentTracks||[]).map(r=>r.trackId||r)} progress={progress} duration={duration}/>}
               {screen==="search"    && <SearchScreen query={searchQuery} setQuery={setSearch} results={searchResults} onPlay={t=>playTrack(t,tracks)} onLike={toggleLike} currentTrack={currentTrack} isPlaying={isPlaying} playlistCtx={playlistCtx} entityHits={entityHits} onOpenArtist={openArtist} onOpenAlbum={(slug)=>openAlbum(slug)}/>}
               {screen==="favorites" && <FavoritesScreen tracks={tracks} onPlay={t=>{setIsRadioMode(false);playTrack(t,tracks);}} onPlayTrack={(t,pool)=>{setIsRadioMode(false);playTrack(t,pool||tracks);}} onLike={toggleLike} currentTrack={currentTrack} isPlaying={isPlaying} playlistCtx={playlistCtx} userPlaylists={userPlaylists} onCreatePlaylist={createPlaylist} onDeletePlaylist={deletePlaylist} onMakePlaylist={()=>setShowRouteBuilder(true)}/>}
               {screen==="artist"    && (
@@ -5475,8 +5459,8 @@ export default function App() {
           )}
         </div>
         </>
-        {/* Desktop mini-player — glass station strip (hidden on Home radio; hero owns transport) */}
-        {currentTrack && !immersive && !(screen === "home" && isRadioMode) && (
+        {/* Desktop mini-player — hidden on Home; Cover Stage owns transport */}
+        {currentTrack && !immersive && screen !== "home" && (
           <div style={{ position:"fixed", bottom:12, left:88, right:332, zIndex:80 }}>
             <div onClick={()=>setImmersive(true)} className="glass-dock" style={{
               borderRadius: dock.radius,
