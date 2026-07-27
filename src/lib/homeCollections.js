@@ -108,11 +108,12 @@ export function trendingTracks(tracks = [], limit = 10) {
 }
 
 /**
- * Top recommended from listening history.
+ * Top recommended from listening history, with a human-readable reason per pick.
  * Uses likes, play counts, preferred genres, and optional recent track ids.
- * Falls back to a shuffled sample when there is no history.
+ * Falls back to a shuffled sample when there is no history (coldStart: true).
+ * Returns { picks: [{ track, reason }], coldStart }.
  */
-export function recommendedTracks(
+export function recommendedPicks(
   tracks = [],
   { preferredGenres = [], recentTrackIds = [], limit = 10, excludeIds = [] } = {}
 ) {
@@ -138,25 +139,51 @@ export function recommendedTracks(
     preferredSet.size > 0;
 
   if (!hasHistory) {
-    return shuffleCopy(pool).slice(0, limit);
+    return {
+      coldStart: true,
+      picks: shuffleCopy(pool)
+        .slice(0, limit)
+        .map((t) => ({ track: t, reason: "Fresh pick" })),
+    };
   }
 
   const scored = pool
     .map((t) => {
       let score = 0;
       const genre = normalizeGenre(t.genre);
+      const inTaste = tasteGenres.has(genre);
       if (t.liked) score += 8;
       if (recentSet.has(t.id)) score += 10;
-      if (tasteGenres.has(genre)) score += 6;
+      if (inTaste) score += 6;
       if (preferredSet.has(genre)) score += 4;
       score += Math.min(12, (t.playCount || 0) * 1.5);
       score += (t._signal?.pull || 0) * 0.6;
       score += (t._signal?.grip || 0) * 0.4;
       // Prefer unplayed-but-on-taste for discovery
-      if (!t.liked && (t.playCount || 0) === 0 && tasteGenres.has(genre)) score += 3;
-      return { t, score };
+      const discovery = !t.liked && (t.playCount || 0) === 0 && inTaste;
+      if (discovery) score += 3;
+
+      let reason;
+      if (t.liked) reason = "In your likes";
+      else if (recentSet.has(t.id)) reason = "You played this recently";
+      else if (discovery) reason = genre ? `New for you · ${genre}` : "New for you";
+      else if (inTaste) reason = genre ? `Because you like ${genre}` : "Matches your taste";
+      else if ((t.playCount || 0) > 0) reason = "Heard before · worth a return";
+      else reason = "Popular right now";
+
+      return { track: t, reason, score };
     })
     .sort((a, b) => b.score - a.score || Math.random() - 0.5);
 
-  return scored.slice(0, limit).map((s) => s.t);
+  return {
+    coldStart: false,
+    picks: scored.slice(0, limit).map(({ track, reason }) => ({ track, reason })),
+  };
+}
+
+/**
+ * Top recommended tracks (no reasons) — thin wrapper over recommendedPicks.
+ */
+export function recommendedTracks(tracks = [], opts = {}) {
+  return recommendedPicks(tracks, opts).picks.map((p) => p.track);
 }
