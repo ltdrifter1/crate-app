@@ -126,6 +126,7 @@ const injectStyles = () => {
         0 2px 8px rgba(0, 0, 0, 0.28);
       -webkit-backdrop-filter: ${glass.blur};
       backdrop-filter: ${glass.blur};
+      transition: background 0.6s ease;
     }
     .nav-rail-btn {
       transition: background ${motion.base} ${motion.ease}, color ${motion.base} ${motion.ease}, transform ${motion.fast};
@@ -326,16 +327,259 @@ function BoothHud({ track, size = "md", align = "left" }) {
   );
 }
 
+// ─── Shared transport primitives (ice orb + orbital progress) ─────────────────
+/** Circular ice primary play — shared by hero, dock, immersive, desktop. */
+function IceOrbPlay({
+  isPlaying = false,
+  onClick,
+  size = 58,
+  iconSize = null,
+  disabled = false,
+  glowing = false,
+  ariaLabel,
+  stopPropagation = false,
+}) {
+  const iSize = iconSize ?? Math.round(size * 0.38);
+  return (
+    <button
+      type="button"
+      className="play-primary"
+      aria-label={ariaLabel || (isPlaying ? "Pause" : "Play")}
+      disabled={disabled}
+      onClick={(e) => {
+        if (stopPropagation) e.stopPropagation();
+        onClick?.(e);
+      }}
+      style={{
+        width: size,
+        height: size,
+        borderRadius: "50%",
+        background: disabled ? color.surfaceRaised : color.accent,
+        border: "none",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        color: disabled ? color.faint : color.onAccent,
+        cursor: disabled ? "not-allowed" : "pointer",
+        flexShrink: 0,
+        animation: glowing && !disabled ? "playGlow 2.8s ease-in-out infinite" : "none",
+        boxShadow: disabled
+          ? "none"
+          : `0 0 0 1px rgba(242,243,245,0.16), 0 12px 32px rgba(0,0,0,0.45), 0 0 28px ${color.accentGlow}`,
+        transition: `transform ${motion.fast} ${motion.ease}, box-shadow ${motion.base} ${motion.ease}`,
+      }}
+    >
+      <Icon name={isPlaying ? "pause" : "play"} size={iSize} />
+    </button>
+  );
+}
+
+/**
+ * Album art wrapped in an orbital progress ring — dock / desktop scrub language.
+ */
+function OrbitalArtRing({
+  track,
+  progress = 0,
+  duration = 0,
+  size = 40,
+  onSeek,
+  artRadius = 8,
+}) {
+  const scrubRef = useRef(null);
+  const pct = duration > 0 ? Math.max(0, Math.min(1, progress / duration)) : 0;
+  const stroke = 2.4;
+  const pad = 6;
+  const svgSize = size + pad * 2;
+  const r = (svgSize - stroke) / 2 - 0.5;
+  const circ = 2 * Math.PI * r;
+  const dash = pct * circ;
+
+  function seekFromPoint(clientX, clientY) {
+    if (!duration || !onSeek || !scrubRef.current) return;
+    const rect = scrubRef.current.getBoundingClientRect();
+    const cx = rect.left + rect.width / 2;
+    const cy = rect.top + rect.height / 2;
+    let deg = (Math.atan2(clientY - cy, clientX - cx) * 180) / Math.PI + 90;
+    if (deg < 0) deg += 360;
+    onSeek(Math.floor((deg / 360) * duration));
+  }
+
+  return (
+    <div
+      ref={scrubRef}
+      role={onSeek ? "slider" : undefined}
+      aria-label={onSeek ? "Seek" : undefined}
+      aria-valuemin={onSeek ? 0 : undefined}
+      aria-valuemax={onSeek ? duration || 0 : undefined}
+      aria-valuenow={onSeek ? progress : undefined}
+      onClick={(e) => {
+        e.stopPropagation();
+        seekFromPoint(e.clientX, e.clientY);
+      }}
+      style={{
+        position: "relative",
+        width: svgSize,
+        height: svgSize,
+        flexShrink: 0,
+        cursor: onSeek ? "pointer" : "default",
+      }}
+    >
+      <svg
+        width={svgSize}
+        height={svgSize}
+        aria-hidden="true"
+        style={{ position: "absolute", inset: 0, transform: "rotate(-90deg)" }}
+      >
+        <circle
+          cx={svgSize / 2}
+          cy={svgSize / 2}
+          r={r}
+          fill="none"
+          stroke="rgba(242,243,245,0.12)"
+          strokeWidth={stroke}
+        />
+        <circle
+          cx={svgSize / 2}
+          cy={svgSize / 2}
+          r={r}
+          fill="none"
+          stroke={color.accent}
+          strokeWidth={stroke}
+          strokeLinecap="round"
+          strokeDasharray={`${dash} ${Math.max(0, circ - dash)}`}
+          style={{ transition: "stroke-dasharray 0.25s linear" }}
+        />
+      </svg>
+      <div style={{
+        position: "absolute",
+        left: pad,
+        top: pad,
+        width: size,
+        height: size,
+        borderRadius: artRadius,
+        overflow: "hidden",
+        boxShadow: `0 0 0 1px ${glass.borderSoft}`,
+      }}>
+        <AlbumArt track={track} size={size} borderRadius={artRadius} />
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Play orb with orbital seek ring — immersive / full-player transport.
+ */
+function OrbitalPlayControl({
+  isPlaying,
+  onToggle,
+  progress = 0,
+  duration = 0,
+  onSeek,
+  size = 64,
+}) {
+  const scrubRef = useRef(null);
+  const pct = duration > 0 ? Math.max(0, Math.min(1, progress / duration)) : 0;
+  const ring = size + 18;
+  const stroke = 2.6;
+  const r = (ring - stroke) / 2 - 1;
+  const circ = 2 * Math.PI * r;
+  const dash = pct * circ;
+
+  function seekFromPoint(clientX, clientY) {
+    if (!duration || !onSeek || !scrubRef.current) return;
+    const rect = scrubRef.current.getBoundingClientRect();
+    const cx = rect.left + rect.width / 2;
+    const cy = rect.top + rect.height / 2;
+    let deg = (Math.atan2(clientY - cy, clientX - cx) * 180) / Math.PI + 90;
+    if (deg < 0) deg += 360;
+    onSeek(Math.floor((deg / 360) * duration));
+  }
+
+  return (
+    <div
+      ref={scrubRef}
+      style={{
+        position: "relative",
+        width: ring,
+        height: ring,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        flexShrink: 0,
+      }}
+    >
+      <svg
+        width={ring}
+        height={ring}
+        aria-hidden="true"
+        style={{ position: "absolute", inset: 0, transform: "rotate(-90deg)", pointerEvents: "none" }}
+      >
+        <circle cx={ring / 2} cy={ring / 2} r={r} fill="none" stroke="rgba(242,243,245,0.14)" strokeWidth={stroke} />
+        <circle
+          cx={ring / 2}
+          cy={ring / 2}
+          r={r}
+          fill="none"
+          stroke={color.accent}
+          strokeWidth={stroke}
+          strokeLinecap="round"
+          strokeDasharray={`${dash} ${Math.max(0, circ - dash)}`}
+          style={{ transition: "stroke-dasharray 0.2s linear" }}
+        />
+      </svg>
+      <button
+        type="button"
+        aria-label="Seek"
+        onClick={(e) => {
+          e.stopPropagation();
+          seekFromPoint(e.clientX, e.clientY);
+        }}
+        style={{
+          position: "absolute",
+          inset: 0,
+          background: "none",
+          border: "none",
+          cursor: onSeek ? "pointer" : "default",
+          borderRadius: "50%",
+        }}
+      />
+      <div style={{ position: "relative", zIndex: 1 }}>
+        <IceOrbPlay
+          isPlaying={isPlaying}
+          onClick={onToggle}
+          size={size}
+          stopPropagation
+        />
+      </div>
+    </div>
+  );
+}
+
+function dockTintStyle(track) {
+  if (!track?.color) return undefined;
+  const rgb = hexToRgbStr(track.color);
+  return {
+    background: `
+      linear-gradient(165deg, rgba(${rgb},0.22) 0%, rgba(${rgb},0.06) 42%, rgba(12,12,14,0.88) 78%),
+      rgba(12,12,14,0.78)
+    `,
+  };
+}
+
 // ─── RADIO — Listen Now hero (one composition) ────────────────────────────────
 /**
  * Animated planet mark — looping ring + satellite (GIF-like via CSS).
  * Hero brand signal — sits in the background behind controls.
  * Fills its parent; `night` warms the palette, `playing` quickens the breath.
+ * Optional `progress` (0–1) paints an ice arc on the outer orbit; `tintRgb`
+ * softly colors the glow from the current track.
  */
-function OrbitingPlanet({ playing = false, night = false }) {
-  // Nighttime warms toward lamp-light; daytime stays cool ice.
-  const glowRgb = night ? "255,214,170" : "242,243,245";
+function OrbitingPlanet({ playing = false, night = false, progress = 0, tintRgb = null }) {
+  // Nighttime warms toward lamp-light; daytime stays cool ice — track tint blends in when live.
+  const baseRgb = night ? "255,214,170" : "242,243,245";
+  const glowRgb = tintRgb || baseRgb;
   const ringAlpha = night ? 0.45 : 0.55;
+  const pct = Math.max(0, Math.min(1, progress || 0));
 
   return (
     <div
@@ -355,8 +599,8 @@ function OrbitingPlanet({ playing = false, night = false }) {
         inset: "8%",
         borderRadius: "50%",
         background: `
-          radial-gradient(circle at 38% 32%, rgba(${glowRgb},${night ? 0.16 : 0.22}) 0%, transparent 42%),
-          radial-gradient(circle at 50% 50%, rgba(${glowRgb},0.08) 0%, transparent 68%)
+          radial-gradient(circle at 38% 32%, rgba(${glowRgb},${night ? 0.18 : 0.24}) 0%, transparent 42%),
+          radial-gradient(circle at 50% 50%, rgba(${glowRgb},0.1) 0%, transparent 68%)
         `,
         filter: "blur(2px)",
         transition: "background 1.5s ease",
@@ -375,9 +619,9 @@ function OrbitingPlanet({ playing = false, night = false }) {
           : `radial-gradient(circle at 30% 24%, #4A4A52 0%, #1C1C22 46%, #08080A 100%)`,
         boxShadow: `
           inset -10px -14px 28px rgba(0,0,0,0.65),
-          inset 8px 10px 18px rgba(${glowRgb},${night ? 0.1 : 0.14}),
-          0 0 40px rgba(${glowRgb},0.12),
-          0 0 80px rgba(${glowRgb},0.06)
+          inset 8px 10px 18px rgba(${glowRgb},${night ? 0.12 : 0.16}),
+          0 0 40px rgba(${glowRgb},0.14),
+          0 0 80px rgba(${glowRgb},0.08)
         `,
         transition: "background 1.5s ease, box-shadow 1.5s ease",
       }}>
@@ -386,7 +630,7 @@ function OrbitingPlanet({ playing = false, night = false }) {
           left: "12%", right: "12%", top: "42%",
           height: "14%",
           borderRadius: "50%",
-          background: `linear-gradient(90deg, transparent, rgba(${glowRgb},0.1), transparent)`,
+          background: `linear-gradient(90deg, transparent, rgba(${glowRgb},0.12), transparent)`,
           opacity: 0.7,
         }}/>
       </div>
@@ -406,7 +650,7 @@ function OrbitingPlanet({ playing = false, night = false }) {
           borderRadius: "50%",
           border: `1.5px solid rgba(${glowRgb},${ringAlpha})`,
           boxShadow: `
-            0 0 12px rgba(${glowRgb},0.2),
+            0 0 12px rgba(${glowRgb},0.22),
             inset 0 0 12px rgba(${glowRgb},0.08)
           `,
           transition: "border-color 1.5s ease, box-shadow 1.5s ease",
@@ -426,8 +670,9 @@ function OrbitingPlanet({ playing = false, night = false }) {
           marginTop: -3.5,
           marginLeft: -3.5,
           borderRadius: "50%",
-          background: night ? "#FFD6AA" : color.accent,
+          background: night && !tintRgb ? "#FFD6AA" : color.accent,
           animation: "orbitPulse 2.4s ease-in-out infinite",
+          boxShadow: tintRgb ? `0 0 12px rgba(${glowRgb},0.55)` : undefined,
         }}/>
       </div>
 
@@ -443,6 +688,40 @@ function OrbitingPlanet({ playing = false, night = false }) {
         border: `1px dashed rgba(${glowRgb},0.08)`,
         animation: "planetRing 90s linear infinite",
       }}/>
+
+      {/* Track progress arc on the outer orbit — listening lives in the planet */}
+      {pct > 0 && (
+        <svg
+          viewBox="0 0 100 100"
+          style={{
+            position: "absolute",
+            left: "50%",
+            top: "50%",
+            width: "112%",
+            height: "112%",
+            marginLeft: "-56%",
+            marginTop: "-56%",
+            transform: "rotate(-90deg)",
+            pointerEvents: "none",
+          }}
+        >
+          <circle
+            cx="50" cy="50" r="46"
+            fill="none"
+            stroke={`rgba(${glowRgb},0.12)`}
+            strokeWidth="1.2"
+          />
+          <circle
+            cx="50" cy="50" r="46"
+            fill="none"
+            stroke={color.accent}
+            strokeWidth="1.6"
+            strokeLinecap="round"
+            strokeDasharray={`${pct * 289} ${289}`}
+            style={{ transition: "stroke-dasharray 0.35s linear" }}
+          />
+        </svg>
+      )}
     </div>
   );
 }
@@ -451,9 +730,11 @@ function OrbitingPlanet({ playing = false, night = false }) {
  * Brand atmosphere — animated planet as the dominant visual plane.
  * Shifts with the daypart: Daytime is a brighter, cooler sky;
  * Nighttime is deeper black with warm lamp-light on the planet.
+ * Live listening tints the sky from the track color and paints progress on the orbit.
  */
-function HeroAtmosphere({ playing = false, daypart = "daytime" }) {
+function HeroAtmosphere({ playing = false, daypart = "daytime", progress = 0, tintRgb = null }) {
   const night = daypart === "nighttime";
+  const wash = tintRgb || (night ? "255,214,170" : "242,243,245");
 
   return (
     <div aria-hidden="true" style={{ position: "absolute", inset: 0, overflow: "hidden" }}>
@@ -462,18 +743,32 @@ function HeroAtmosphere({ playing = false, daypart = "daytime" }) {
         position: "absolute", inset: 0,
         background: night
           ? `
-            radial-gradient(ellipse 100% 80% at 70% 35%, rgba(255,214,170,0.05) 0%, transparent 52%),
+            radial-gradient(ellipse 100% 80% at 70% 35%, rgba(${wash},0.08) 0%, transparent 52%),
             radial-gradient(ellipse 70% 50% at 20% 90%, rgba(242,243,245,0.03) 0%, transparent 50%),
             #000000
           `
           : `
             radial-gradient(ellipse 120% 70% at 50% -10%, rgba(242,243,245,0.1) 0%, transparent 58%),
-            radial-gradient(ellipse 100% 80% at 70% 35%, rgba(242,243,245,0.07) 0%, transparent 55%),
+            radial-gradient(ellipse 100% 80% at 70% 35%, rgba(${wash},0.09) 0%, transparent 55%),
             radial-gradient(ellipse 70% 50% at 20% 90%, rgba(242,243,245,0.05) 0%, transparent 50%),
             #020203
           `,
         transition: "background 1.5s ease",
       }}/>
+
+      {/* Track-color bloom behind the planet when on air */}
+      {tintRgb && (
+        <div style={{
+          position: "absolute",
+          right: "-4%",
+          top: "28%",
+          width: "70%",
+          height: "60%",
+          background: `radial-gradient(ellipse at 60% 45%, rgba(${tintRgb},0.18) 0%, transparent 62%)`,
+          transition: "background 0.8s ease",
+          pointerEvents: "none",
+        }}/>
+      )}
 
       {/* Starfield — dense at night, sparse by day */}
       <div style={{
@@ -505,7 +800,7 @@ function HeroAtmosphere({ playing = false, daypart = "daytime" }) {
         opacity: 0.95,
         pointerEvents: "none",
       }}>
-        <OrbitingPlanet playing={playing} night={night} />
+        <OrbitingPlanet playing={playing} night={night} progress={progress} tintRgb={tintRgb} />
       </div>
 
       <div style={{
@@ -527,12 +822,14 @@ function HeroAtmosphere({ playing = false, daypart = "daytime" }) {
 function DeepCutsCard({
   onPlay, onTogglePlay, onSkip, currentTrack, isPlaying, isRadioMode, signalLabel,
   previewTrack = null, nextTrack = null, mixLane, playDisabled = false,
+  progress = 0, duration = 0,
 }) {
   const live = isRadioMode && currentTrack;
   const canStart = !playDisabled;
   const lane = mixLaneById(mixLane);
   const playingVisual = !!(live && isPlaying);
-  const heroArt = live ? currentTrack : previewTrack;
+  const tintRgb = live && currentTrack?.color ? hexToRgbStr(currentTrack.color) : null;
+  const orbitPct = live && duration > 0 ? progress / duration : 0;
 
   const primaryAction = () => {
     if (live) onTogglePlay();
@@ -549,7 +846,12 @@ function DeepCutsCard({
         animation: "stationIn 0.75s cubic-bezier(0.22,1,0.36,1) both",
       }}
     >
-      <HeroAtmosphere playing={playingVisual} daypart={lane.id} />
+      <HeroAtmosphere
+        playing={playingVisual}
+        daypart={lane.id}
+        progress={orbitPct}
+        tintRgb={tintRgb}
+      />
 
       {/* Overlay — radio deck (brand = animated planet, no wordmark) */}
       <div style={{
@@ -560,7 +862,7 @@ function DeepCutsCard({
         padding: `40px ${homeSpace.gutter}px 48px`,
         maxWidth: 560,
       }}>
-        <div style={{ marginBottom: 16 }}>
+        <div style={{ marginBottom: 14 }}>
           {live ? (
             <div style={{
               display: "inline-flex", alignItems: "center", gap: 8,
@@ -605,42 +907,33 @@ function DeepCutsCard({
           )}
         </div>
 
-        {/* Live: art + track headline · Idle: Up-first preview */}
+        {/* Live: secondary title/artist — planet owns the visual.
+            Idle: compact Up-first preview. */}
         {live ? (
           <div
             key={currentTrack.id}
             style={{
-              display: "flex", alignItems: "center", gap: 16,
-              marginBottom: 24,
+              marginBottom: 22,
+              maxWidth: 420,
               animation: "trackSwap 0.4s ease both",
-              maxWidth: 460,
             }}
           >
             <div style={{
-              width: 72, height: 72, borderRadius: radius.md, overflow: "hidden",
-              flexShrink: 0,
-              boxShadow: `0 0 0 1px ${glass.borderSoft}, 0 16px 40px rgba(0,0,0,0.5)`,
+              fontSize: "clamp(18px, 4.6vw, 24px)",
+              fontWeight: 650, letterSpacing: -0.5, lineHeight: 1.18,
+              color: color.onDark, fontFamily: fontDisplay,
+              marginBottom: 6,
+              overflow: "hidden", textOverflow: "ellipsis",
+              display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical",
             }}>
-              <AlbumArt track={currentTrack} size={72} borderRadius={radius.md}/>
+              {currentTrack.title}
             </div>
-            <div style={{ minWidth: 0 }}>
-              <div style={{
-                fontSize: "clamp(24px, 6vw, 32px)",
-                fontWeight: 750, letterSpacing: -1, lineHeight: 1.08,
-                color: color.onDark, fontFamily: fontDisplay,
-                marginBottom: 6,
-                overflow: "hidden", textOverflow: "ellipsis",
-                display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical",
-              }}>
-                {currentTrack.title}
-              </div>
-              <div style={{
-                fontSize: 15, color: color.onDarkMuted, fontWeight: 500,
-                letterSpacing: -0.1,
-                overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
-              }}>
-                {currentTrack.artist}
-              </div>
+            <div style={{
+              fontSize: 14, color: color.onDarkMuted, fontWeight: 500,
+              letterSpacing: -0.1,
+              overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+            }}>
+              {currentTrack.artist}
             </div>
           </div>
         ) : (previewTrack && canStart && (
@@ -680,31 +973,17 @@ function DeepCutsCard({
           </div>
         ))}
 
-        {/* Transport — play/pause + skip + tappable label */}
+        {/* Transport — ice orb + skip + status */}
         <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-          <button
-            type="button"
-            className="play-primary"
-            aria-label={live ? (isPlaying ? "Pause" : "Play") : `Play ${lane.label}`}
-            disabled={!live && !canStart}
+          <IceOrbPlay
+            isPlaying={!!(live && isPlaying)}
             onClick={primaryAction}
-            style={{
-              width: 68, height: 68, borderRadius: "50%",
-              background: (live || canStart) ? color.accent : color.surfaceRaised,
-              border: "none",
-              display: "flex", alignItems: "center", justifyContent: "center",
-              color: (live || canStart) ? color.onAccent : color.faint,
-              cursor: (live || canStart) ? "pointer" : "not-allowed",
-              flexShrink: 0,
-              animation: playingVisual ? "playGlow 2.8s ease-in-out infinite" : "none",
-              boxShadow: (live || canStart)
-                ? `0 0 0 1px rgba(242,243,245,0.16), 0 18px 44px rgba(0,0,0,0.55), 0 0 36px ${color.accentGlow}`
-                : "none",
-              transition: `transform ${motion.fast} ${motion.ease}, box-shadow ${motion.base} ${motion.ease}`,
-            }}
-          >
-            <Icon name={live && isPlaying ? "pause" : "play"} size={24}/>
-          </button>
+            size={68}
+            iconSize={24}
+            disabled={!live && !canStart}
+            glowing={playingVisual}
+            ariaLabel={live ? (isPlaying ? "Pause" : "Play") : `Play ${lane.label}`}
+          />
 
           {live && onSkip && (
             <button
@@ -1734,8 +2013,6 @@ function ImmersivePlayer({
   const [artLoaded, setArtLoaded] = useState(false);
   const [showMore, setShowMore] = useState(false);
   const hideTimer = useRef(null);
-  const scrubRef = useRef(null);
-  const pct = duration > 0 ? (progress / duration) * 100 : 0;
 
   const resetHide = useCallback(() => {
     setShowUI(true);
@@ -1755,13 +2032,6 @@ function ImmersivePlayer({
 
   const rgb = hexToRgbStr(currentTrack.color);
   const stateLabel = signalState?.label || "";
-
-  function seekFromClientX(clientX) {
-    if (!scrubRef.current || !duration || !onSeek) return;
-    const rect = scrubRef.current.getBoundingClientRect();
-    const ratio = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
-    onSeek(Math.floor(ratio * duration));
-  }
 
   return (
     <div
@@ -1886,39 +2156,16 @@ function ImmersivePlayer({
         )}
       </div>
 
-      {/* Seekable progress */}
-      <div
-        ref={scrubRef}
-        role="slider"
-        aria-label="Seek"
-        aria-valuemin={0}
-        aria-valuemax={duration || 0}
-        aria-valuenow={progress}
-        tabIndex={0}
-        onClick={(e) => { e.stopPropagation(); seekFromClientX(e.clientX); resetHide(); }}
-        onKeyDown={(e) => {
-          if (!onSeek || !duration) return;
-          if (e.key === "ArrowRight") onSeek(Math.min(duration, progress + 5));
-          if (e.key === "ArrowLeft") onSeek(Math.max(0, progress - 5));
-        }}
-        style={{
-          position:"absolute", bottom:128, left:20, right:20, maxWidth:520,
-          opacity: showUI ? 1 : 0, transition:"opacity 0.45s ease",
-          pointerEvents: showUI ? "auto" : "none", cursor:"pointer",
-        }}
-      >
-        <div style={{ display:"flex", justifyContent:"space-between", marginBottom:6, fontSize:10, color: color.faint, fontFamily: fontMono, fontVariantNumeric:"tabular-nums" }}>
-          <span>{fmtTime(progress)}</span>
-          <span>{fmtTime(duration)}</span>
-        </div>
-        <div style={{ height:4, background:"rgba(237,232,225,0.12)", borderRadius:2, position:"relative" }}>
-          <div style={{ width:`${pct}%`, background: color.accent, height:"100%", borderRadius:2, transition:"width 0.2s linear" }}/>
-          <div style={{
-            position:"absolute", top:"50%", left:`${pct}%`, transform:"translate(-50%,-50%)",
-            width:12, height:12, borderRadius:"50%", background: color.accent,
-            boxShadow:`0 0 0 3px ${color.accentSoft}`,
-          }}/>
-        </div>
+      {/* Time readout — seek lives on the orbital play ring */}
+      <div style={{
+        position:"absolute", bottom:128, left:20, right:20, maxWidth:520,
+        opacity: showUI ? 1 : 0, transition:"opacity 0.45s ease",
+        pointerEvents: "none",
+        display:"flex", justifyContent:"space-between",
+        fontSize:10, color: color.faint, fontFamily: fontMono, fontVariantNumeric:"tabular-nums",
+      }}>
+        <span>{fmtTime(progress)}</span>
+        <span>{fmtTime(duration)}</span>
       </div>
 
       {/* Controls */}
@@ -1944,15 +2191,14 @@ function ImmersivePlayer({
           style={{ background:"none", border:"none", cursor:"pointer", color: color.body, padding:8 }}>
           <Icon name="prev" size={20}/>
         </button>
-        <button type="button" className="play-primary" onClick={(e)=>{ e.stopPropagation(); onTogglePlay(); }} aria-label={isPlaying?"Pause":"Play"} style={{
-          width:58, height:58, borderRadius: radius.sm,
-          background: color.accent, border:"none",
-          color: color.onAccent, cursor:"pointer",
-          display:"flex", alignItems:"center", justifyContent:"center",
-          boxShadow:`0 12px 32px ${color.accentGlow}`,
-        }}>
-          <Icon name={isPlaying?"pause":"play"} size={22}/>
-        </button>
+        <OrbitalPlayControl
+          isPlaying={isPlaying}
+          onToggle={(e) => { e?.stopPropagation?.(); onTogglePlay(); }}
+          progress={progress}
+          duration={duration}
+          onSeek={(t) => { onSeek?.(t); resetHide(); }}
+          size={58}
+        />
         <button type="button" onClick={(e)=>{ e.stopPropagation(); onSkip(); }} aria-label="Next"
           style={{ background:"none", border:"none", cursor:"pointer", color: color.body, padding:8 }}>
           <Icon name="skip" size={20}/>
@@ -2283,7 +2529,7 @@ function MakePlaylistFeature({ onClick }) {
  * Art-led horizontal shelf. Optional per-track `reasons` map (id → copy) turns
  * it into a "because…" recommendation rail. Like + ⋯ menu match TrackRow.
  */
-function CoverShelf({ tracks, onPlayTrack, activeId, isPlaying, onLike, playlistCtx, reasons = null, tileSize = null }) {
+function CoverShelf({ tracks, onPlayTrack, activeId, isPlaying, onLike, playlistCtx, reasons = null, tileSize = null, showRanks = false }) {
   const { menu, openFromButton, openFromContext, close } = useTrackMenu();
   if (!tracks?.length) return null;
   const tile = tileSize || homeSpace.tile;
@@ -2299,7 +2545,7 @@ function CoverShelf({ tracks, onPlayTrack, activeId, isPlaying, onLike, playlist
         WebkitOverflowScrolling: "touch",
       }}
     >
-      {tracks.slice(0, 16).map((t) => {
+      {tracks.slice(0, 16).map((t, i) => {
         const active = activeId === t.id;
         const reason = reasons?.[t.id];
         return (
@@ -2340,6 +2586,22 @@ function CoverShelf({ tracks, onPlayTrack, activeId, isPlaying, onLike, playlist
                   pointerEvents: "none", position: "absolute", inset: 0, borderRadius: radius.md,
                   boxShadow: `inset 0 1px 0 ${glass.highlight}`,
                 }}/>
+                {showRanks && (
+                  <div aria-hidden="true" style={{
+                    position: "absolute", left: 8, top: 8,
+                    minWidth: 26, height: 26, padding: "0 7px",
+                    borderRadius: 980,
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    background: "rgba(0,0,0,0.62)",
+                    border: `1px solid ${glass.borderSoft}`,
+                    backdropFilter: "blur(8px)",
+                    WebkitBackdropFilter: "blur(8px)",
+                    fontFamily: fontMono, fontSize: 11, fontWeight: 700,
+                    letterSpacing: 0.4, color: color.ink,
+                  }}>
+                    {i + 1}
+                  </div>
+                )}
                 {active && isPlaying && (
                   <div style={{
                     position: "absolute", inset: 0, background: "rgba(0,0,0,0.35)",
@@ -2690,6 +2952,7 @@ function HomeScreen({
   mixLane, radioPreview = null, radioNext = null, onSkipRadio,
   catalogError = null, onRetryCatalog,
   preferredGenres = [], recentTrackIds = [],
+  progress = 0, duration = 0,
 }) {
   const activeId = currentTrack?.id;
   const playableCount = countPlayableTracks(tracks);
@@ -2729,6 +2992,8 @@ function HomeScreen({
         nextTrack={radioNext}
         mixLane={mixLane}
         playDisabled={catalogEmpty || catalogDepleted || !!catalogError}
+        progress={progress}
+        duration={duration}
       />
 
       {(catalogError || catalogEmpty || catalogDepleted) && (
@@ -2764,20 +3029,15 @@ function HomeScreen({
 
         {trending.length > 0 && (
           <HomeSection label="Trending" delay={0.04} first={!hasRecent}>
-            <div style={{ padding: `0 ${homeSpace.gutter}px` }}>
-              {trending.map((t, i) => (
-                <TrackRow
-                  key={t.id}
-                  track={t}
-                  rank={i + 1}
-                  onPlay={() => onPlayTrack(t, trending)}
-                  active={activeId === t.id}
-                  isPlaying={isPlaying}
-                  onLike={onLike}
-                  playlistCtx={playlistCtx}
-                />
-              ))}
-            </div>
+            <CoverShelf
+              tracks={trending}
+              onPlayTrack={onPlayTrack}
+              activeId={activeId}
+              isPlaying={isPlaying}
+              onLike={onLike}
+              playlistCtx={playlistCtx}
+              showRanks
+            />
           </HomeSection>
         )}
 
@@ -3721,15 +3981,11 @@ function GlassDock({
 
   // When Home radio owns the transport, dock collapses to tabs only.
   const hasPlayer = !!track && !hidePlayer;
-  const pct = duration > 0 ? (progress / duration) * 100 : 0;
-  const bpm = track?.bpm ? String(track.bpm) : "—";
-  const key = track?.camelot || "—";
-  const energy = track?.energy != null ? String(track.energy) : "—";
   const { menu, openFromButton, openFromContext, close } = useTrackMenu();
-  const scrubRef = useRef(null);
   const tabRowRef = useRef(null);
   const tabRefs = useRef({});
   const [indicator, setIndicator] = useState({ left: 0, width: 0 });
+  const tint = dockTintStyle(track);
 
   const activeTab = items.some((i) => i.id === screen)
     ? screen
@@ -3746,13 +4002,6 @@ function GlassDock({
       width: box.width * 0.44,
     });
   }, [activeTab, items.length, hasPlayer]);
-
-  function seekFromClientX(clientX) {
-    if (!scrubRef.current || !duration || !onSeek) return;
-    const rect = scrubRef.current.getBoundingClientRect();
-    const ratio = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
-    onSeek(Math.floor(ratio * duration));
-  }
 
   return (
     <div
@@ -3772,6 +4021,7 @@ function GlassDock({
           borderRadius: dock.radius,
           overflow: "hidden",
           pointerEvents: "auto",
+          ...tint,
         }}
       >
         {hasPlayer && (
@@ -3785,10 +4035,10 @@ function GlassDock({
             style={{
               position: "relative",
               height: dock.playerH,
-              padding: "10px 12px 10px",
+              padding: "8px 12px 8px 10px",
               display: "flex",
               alignItems: "center",
-              gap: 12,
+              gap: 10,
               cursor: "pointer",
               borderBottom: `1px solid ${glass.borderFaint}`,
               boxShadow: isRadioMode || hypnoPocket
@@ -3796,34 +4046,14 @@ function GlassDock({
                 : "none",
             }}
           >
-            <div
-              ref={scrubRef}
-              role="slider"
-              aria-label="Seek"
-              aria-valuemin={0}
-              aria-valuemax={duration || 0}
-              aria-valuenow={progress}
-              onClick={(e) => { e.stopPropagation(); seekFromClientX(e.clientX); }}
-              style={{ position: "absolute", top: 0, left: 0, right: 0, height: 10, cursor: "pointer", zIndex: 2 }}
-            >
-              <div aria-hidden="true" style={{ position: "absolute", top: 0, left: 0, right: 0, height: 2, background: "rgba(232,236,240,0.08)" }}>
-                <div style={{
-                  width: `${pct}%`,
-                  background: color.accent,
-                  height: "100%",
-                  transition: "width 0.25s linear",
-                  boxShadow: `0 0 8px ${color.accentGlow}`,
-                }}/>
-              </div>
-            </div>
-
-            <div style={{
-              width: 40, height: 40, overflow: "hidden", flexShrink: 0,
-              borderRadius: 8,
-              boxShadow: `0 0 0 1px ${glass.borderSoft}`,
-            }}>
-              <AlbumArt track={track} size={40} borderRadius={8}/>
-            </div>
+            <OrbitalArtRing
+              track={track}
+              progress={progress}
+              duration={duration}
+              size={40}
+              onSeek={onSeek}
+              artRadius={8}
+            />
 
             <div key={track.id} style={{ flex: 1, minWidth: 0, animation: "fadeIn 0.3s ease both" }}>
               <div style={{
@@ -3842,17 +4072,10 @@ function GlassDock({
                 {track.title}
               </div>
               <div style={{
-                fontSize: 10, color: color.muted, marginTop: 3,
+                fontSize: 11, color: color.muted, marginTop: 3,
                 overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
-                fontFamily: fontMono, fontVariantNumeric: "tabular-nums", letterSpacing: 0.3,
               }}>
                 {hypnoPocket ? "Similar mix" : isRadioMode ? "Radio" : track.artist}
-                <span style={{ color: color.faint }}>  ·  </span>
-                <span style={{ color: color.accent }}>{bpm}</span>
-                <span style={{ color: color.faint }}> BPM · </span>
-                <span style={{ color: color.accent }}>{key}</span>
-                <span style={{ color: color.faint }}> · E</span>
-                <span style={{ color: color.accent }}>{energy}</span>
               </div>
             </div>
 
@@ -3874,15 +4097,13 @@ function GlassDock({
               style={{ background: "none", border: "none", cursor: "pointer", color: color.muted, padding: 4 }}>
               <Icon name="prev" size={16}/>
             </button>
-            <button type="button" className="play-primary" aria-label={isPlaying ? "Pause" : "Play"}
-              onClick={(e) => { e.stopPropagation(); onTogglePlay(); }}
-              style={{
-                background: color.accent, border: "none", borderRadius: radius.sm,
-                width: 34, height: 34, cursor: "pointer", color: color.onAccent,
-                display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
-              }}>
-              <Icon name={isPlaying ? "pause" : "play"} size={15}/>
-            </button>
+            <IceOrbPlay
+              isPlaying={isPlaying}
+              onClick={onTogglePlay}
+              size={34}
+              iconSize={14}
+              stopPropagation
+            />
             <button type="button" aria-label="Next"
               onClick={(e) => { e.stopPropagation(); onSkip(); }}
               style={{ background: "none", border: "none", cursor: "pointer", color: color.muted, padding: 4 }}>
@@ -4981,7 +5202,7 @@ export default function App() {
       )}
       <div style={{ flex:1, overflow:"auto", paddingBottom: contentPadBottom(!!currentTrack && !immersive && !hideDockPlayer), zIndex:1, position:"relative" }}>
         <ScreenPane key={screen === "artist" ? `artist:${artistSlug}` : screen === "album" ? `album:${albumSlug}` : screen}>
-        {screen==="home"      && !tracksLoading && <HomeScreen tracks={tracks} onPlayRadio={playRadio} onTogglePlay={()=>setIsPlaying(p=>!p)} onPlayTrack={playTrack} currentTrack={currentTrack} isPlaying={isPlaying} onLike={toggleLike} isRadioMode={isRadioMode} playlistCtx={playlistCtx} signalLabel={signalState?.label} mixLane={mixLane} radioPreview={heroPreview} radioNext={setNext} onSkipRadio={handleSkip} catalogError={tracksLoadError} onRetryCatalog={reloadCatalog} preferredGenres={user.genres} recentTrackIds={(profile?.recentTracks||[]).map(r=>r.trackId||r)}/>}
+        {screen==="home"      && !tracksLoading && <HomeScreen tracks={tracks} onPlayRadio={playRadio} onTogglePlay={()=>setIsPlaying(p=>!p)} onPlayTrack={playTrack} currentTrack={currentTrack} isPlaying={isPlaying} onLike={toggleLike} isRadioMode={isRadioMode} playlistCtx={playlistCtx} signalLabel={signalState?.label} mixLane={mixLane} radioPreview={heroPreview} radioNext={setNext} onSkipRadio={handleSkip} catalogError={tracksLoadError} onRetryCatalog={reloadCatalog} preferredGenres={user.genres} recentTrackIds={(profile?.recentTracks||[]).map(r=>r.trackId||r)} progress={progress} duration={duration}/>}
         {screen==="search"    && <SearchScreen query={searchQuery} setQuery={setSearch} results={searchResults} onPlay={t=>playTrack(t,tracks)} onLike={toggleLike} currentTrack={currentTrack} isPlaying={isPlaying} playlistCtx={playlistCtx} entityHits={entityHits} onOpenArtist={openArtist} onOpenAlbum={(slug)=>openAlbum(slug)}/>}
         {screen==="favorites" && <FavoritesScreen tracks={tracks} onPlay={t=>{setIsRadioMode(false);playTrack(t,tracks);}} onPlayTrack={(t,pool)=>{setIsRadioMode(false);playTrack(t,pool||tracks);}} onLike={toggleLike} currentTrack={currentTrack} isPlaying={isPlaying} playlistCtx={playlistCtx} userPlaylists={userPlaylists} onCreatePlaylist={createPlaylist} onDeletePlaylist={deletePlaylist} onMakePlaylist={()=>setShowRouteBuilder(true)}/>}
         {screen==="artist"    && !tracksLoading && (
@@ -5203,7 +5424,7 @@ export default function App() {
             </div>
           ) : (
             <ScreenPane key={screen === "artist" ? `artist:${artistSlug}` : screen === "album" ? `album:${albumSlug}` : screen}>
-              {screen==="home"      && <HomeScreen tracks={tracks} onPlayRadio={playRadio} onTogglePlay={()=>setIsPlaying(p=>!p)} onPlayTrack={playTrack} currentTrack={currentTrack} isPlaying={isPlaying} onLike={toggleLike} isRadioMode={isRadioMode} playlistCtx={playlistCtx} signalLabel={signalState?.label} mixLane={mixLane} radioPreview={heroPreview} radioNext={setNext} onSkipRadio={handleSkip} catalogError={tracksLoadError} onRetryCatalog={reloadCatalog} preferredGenres={user.genres} recentTrackIds={(profile?.recentTracks||[]).map(r=>r.trackId||r)}/>}
+              {screen==="home"      && <HomeScreen tracks={tracks} onPlayRadio={playRadio} onTogglePlay={()=>setIsPlaying(p=>!p)} onPlayTrack={playTrack} currentTrack={currentTrack} isPlaying={isPlaying} onLike={toggleLike} isRadioMode={isRadioMode} playlistCtx={playlistCtx} signalLabel={signalState?.label} mixLane={mixLane} radioPreview={heroPreview} radioNext={setNext} onSkipRadio={handleSkip} catalogError={tracksLoadError} onRetryCatalog={reloadCatalog} preferredGenres={user.genres} recentTrackIds={(profile?.recentTracks||[]).map(r=>r.trackId||r)} progress={progress} duration={duration}/>}
               {screen==="search"    && <SearchScreen query={searchQuery} setQuery={setSearch} results={searchResults} onPlay={t=>playTrack(t,tracks)} onLike={toggleLike} currentTrack={currentTrack} isPlaying={isPlaying} playlistCtx={playlistCtx} entityHits={entityHits} onOpenArtist={openArtist} onOpenAlbum={(slug)=>openAlbum(slug)}/>}
               {screen==="favorites" && <FavoritesScreen tracks={tracks} onPlay={t=>{setIsRadioMode(false);playTrack(t,tracks);}} onPlayTrack={(t,pool)=>{setIsRadioMode(false);playTrack(t,pool||tracks);}} onLike={toggleLike} currentTrack={currentTrack} isPlaying={isPlaying} playlistCtx={playlistCtx} userPlaylists={userPlaylists} onCreatePlaylist={createPlaylist} onDeletePlaylist={deletePlaylist} onMakePlaylist={()=>setShowRouteBuilder(true)}/>}
               {screen==="artist"    && (
@@ -5245,41 +5466,46 @@ export default function App() {
           <div style={{ position:"fixed", bottom:12, left:88, right:332, zIndex:80 }}>
             <div onClick={()=>setImmersive(true)} className="glass-dock" style={{
               borderRadius: dock.radius,
-              display:"flex", flexDirection:"column",
+              display:"flex", alignItems:"center", gap:12,
               cursor:"pointer", overflow:"hidden", position:"relative",
               animation: `dockRise 0.4s ${motion.ease} both`,
+              padding: "10px 16px",
+              ...dockTintStyle(currentTrack),
             }}>
-              <div aria-hidden="true" style={{ height:2, background:"rgba(232,236,240,0.08)", width:"100%" }}>
-                <div style={{ height:"100%", width:`${duration?((progress/duration)*100):0}%`, background: color.accent, transition:"width 1s linear", boxShadow: `0 0 8px ${color.accentGlow}` }}/>
-              </div>
-              <div style={{ display:"flex", alignItems:"center", gap:12, padding:"12px 18px" }}>
-                <div style={{ width:44, height:44, overflow:"hidden", flexShrink:0, borderRadius:8 }}><AlbumArt track={currentTrack} size={44} borderRadius={8}/></div>
-                <div style={{ flex:1, minWidth:0 }}>
-                  <div style={{ fontSize:14, fontWeight:650, color: color.ink, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap", letterSpacing:-0.2, fontFamily: fontDisplay }}>
-                    {isRadioMode && (
-                      <span style={{
-                        display:"inline-block", width:6, height:6, borderRadius:"50%",
-                        background: color.accent, marginRight:8, verticalAlign:"middle",
-                        boxShadow: isPlaying ? `0 0 0 3px ${color.accentSoft}` : "none",
-                        animation: isPlaying ? "breathe 2s ease-in-out infinite" : "none",
-                      }}/>
-                    )}
-                    {currentTrack.title}
-                  </div>
-                  <div style={{ fontSize:11, color: color.muted, marginTop:2 }}>
-                    {isRadioMode ? `On air · ${currentTrack.artist}` : currentTrack.artist}
-                  </div>
-                  <div style={{ marginTop:5 }}>
-                    <BoothHud track={currentTrack} size="sm"/>
-                  </div>
+              <OrbitalArtRing
+                track={currentTrack}
+                progress={progress}
+                duration={duration}
+                size={44}
+                onSeek={handleSeek}
+                artRadius={8}
+              />
+              <div style={{ flex:1, minWidth:0 }}>
+                <div style={{ fontSize:14, fontWeight:650, color: color.ink, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap", letterSpacing:-0.2, fontFamily: fontDisplay }}>
+                  {isRadioMode && (
+                    <span style={{
+                      display:"inline-block", width:6, height:6, borderRadius:"50%",
+                      background: color.accent, marginRight:8, verticalAlign:"middle",
+                      boxShadow: isPlaying ? `0 0 0 3px ${color.accentSoft}` : "none",
+                      animation: isPlaying ? "breathe 2s ease-in-out infinite" : "none",
+                    }}/>
+                  )}
+                  {currentTrack.title}
                 </div>
-                <span style={{ fontSize:10, color: color.faint, fontVariantNumeric:"tabular-nums", flexShrink:0 }}>{fmtTime(progress)}</span>
-                <button onClick={e=>{e.stopPropagation();onLikeToggle();}} style={{ background:"none",border:"none",cursor:"pointer",color:currentTrack.liked?color.accent:color.faint,padding:4 }}><Icon name={currentTrack.liked?"heart":"heartempty"} size={16}/></button>
-                <button className="play-primary" onClick={e=>{e.stopPropagation();setIsPlaying(p=>!p);}} style={{ background: color.accent,border:"none",borderRadius: radius.sm,width:36,height:36,cursor:"pointer",color: color.onAccent,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0 }}>
-                  <Icon name={isPlaying?"pause":"play"} size={15}/>
-                </button>
-                <button onClick={e=>{e.stopPropagation();handleSkip();}} style={{ background:"none",border:"none",cursor:"pointer",color: color.muted,padding:4 }}><Icon name="skip" size={16}/></button>
+                <div style={{ fontSize:11, color: color.muted, marginTop:2 }}>
+                  {isRadioMode ? `On air · ${currentTrack.artist}` : currentTrack.artist}
+                </div>
               </div>
+              <span style={{ fontSize:10, color: color.faint, fontVariantNumeric:"tabular-nums", flexShrink:0 }}>{fmtTime(progress)}</span>
+              <button onClick={e=>{e.stopPropagation();onLikeToggle();}} style={{ background:"none",border:"none",cursor:"pointer",color:currentTrack.liked?color.accent:color.faint,padding:4 }}><Icon name={currentTrack.liked?"heart":"heartempty"} size={16}/></button>
+              <IceOrbPlay
+                isPlaying={isPlaying}
+                onClick={() => setIsPlaying((p) => !p)}
+                size={36}
+                iconSize={15}
+                stopPropagation
+              />
+              <button onClick={e=>{e.stopPropagation();handleSkip();}} style={{ background:"none",border:"none",cursor:"pointer",color: color.muted,padding:4 }}><Icon name="skip" size={16}/></button>
             </div>
           </div>
         )}
