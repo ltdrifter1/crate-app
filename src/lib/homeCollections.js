@@ -76,3 +76,87 @@ export function savedTracks(tracks = [], limit = 24) {
     .filter((t) => (t.duration || 0) <= 900 && t.liked)
     .slice(0, limit);
 }
+
+function singlesOnly(tracks = []) {
+  return tracks.filter((t) => (t.duration || 0) <= 900);
+}
+
+/** Fisher–Yates shuffle — copy, never mutate. */
+function shuffleCopy(list) {
+  const out = [...list];
+  for (let i = out.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [out[i], out[j]] = [out[j], out[i]];
+  }
+  return out;
+}
+
+/**
+ * Top trending — global play heat, then likes, then signal pull.
+ */
+export function trendingTracks(tracks = [], limit = 10) {
+  return singlesOnly(tracks)
+    .slice()
+    .sort((a, b) => {
+      const plays = (b.playCount || 0) - (a.playCount || 0);
+      if (plays !== 0) return plays;
+      const likes = (b.likeCount || 0) - (a.likeCount || 0);
+      if (likes !== 0) return likes;
+      return (b._signal?.pull || 0) - (a._signal?.pull || 0);
+    })
+    .slice(0, limit);
+}
+
+/**
+ * Top recommended from listening history.
+ * Uses likes, play counts, preferred genres, and optional recent track ids.
+ * Falls back to a shuffled sample when there is no history.
+ */
+export function recommendedTracks(
+  tracks = [],
+  { preferredGenres = [], recentTrackIds = [], limit = 10, excludeIds = [] } = {}
+) {
+  const singles = singlesOnly(tracks);
+  const exclude = new Set(excludeIds);
+  const pool = singles.filter((t) => !exclude.has(t.id));
+
+  const liked = pool.filter((t) => t.liked);
+  const played = pool.filter((t) => (t.playCount || 0) > 0);
+  const recentSet = new Set(recentTrackIds || []);
+  const preferredSet = new Set(
+    (preferredGenres || []).map((g) => normalizeGenre(g)).filter(Boolean)
+  );
+  const tasteGenres = new Set([
+    ...liked.map((t) => normalizeGenre(t.genre)).filter(Boolean),
+    ...preferredSet,
+  ]);
+
+  const hasHistory =
+    liked.length > 0 ||
+    played.length > 0 ||
+    recentSet.size > 0 ||
+    preferredSet.size > 0;
+
+  if (!hasHistory) {
+    return shuffleCopy(pool).slice(0, limit);
+  }
+
+  const scored = pool
+    .map((t) => {
+      let score = 0;
+      const genre = normalizeGenre(t.genre);
+      if (t.liked) score += 8;
+      if (recentSet.has(t.id)) score += 10;
+      if (tasteGenres.has(genre)) score += 6;
+      if (preferredSet.has(genre)) score += 4;
+      score += Math.min(12, (t.playCount || 0) * 1.5);
+      score += (t._signal?.pull || 0) * 0.6;
+      score += (t._signal?.grip || 0) * 0.4;
+      // Prefer unplayed-but-on-taste for discovery
+      if (!t.liked && (t.playCount || 0) === 0 && tasteGenres.has(genre)) score += 3;
+      return { t, score };
+    })
+    .sort((a, b) => b.score - a.score || Math.random() - 0.5);
+
+  return scored.slice(0, limit).map((s) => s.t);
+}

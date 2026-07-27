@@ -9,7 +9,7 @@ import {
   font, fontDisplay, fontMono, color, radius, motion,
   glass, glassControl, homeSpace, dock, sectionRule,
   APP_STYLE, INPUT_ST, BTN_PRIMARY, BTN_SECONDARY, CTRL_BTN, ADMIN_UID,
-  BRAND_NAME, BRAND_TAGLINE, brandStoragePrefix,
+  BRAND_NAME, brandStoragePrefix,
 } from "./theme";
 import { camelotCompatible, getEnergyRangeForHour, fmtTime, hexToRgbStr } from "./lib/harmony";
 import {
@@ -21,7 +21,7 @@ import { CANONICAL_GENRES, normalizeGenre } from "./lib/genres";
 import { getFloorPhase } from "./lib/club";
 import { parsePath, buildPath, documentTitleFor } from "./lib/routes";
 import { explainPick, SEARCH_PROMPTS } from "./lib/explain";
-import { buildHomeCollections, savedTracks } from "./lib/homeCollections";
+import { savedTracks, trendingTracks, recommendedTracks } from "./lib/homeCollections";
 import { fetchCatalogTracks, countPlayableTracks } from "./lib/catalogLoad";
 import { slugify, findArtist, findAlbum, searchEntities } from "./lib/catalog";
 import {
@@ -34,7 +34,6 @@ import ArtistPage, { AlbumPage } from "./components/catalog/ArtistPage";
 import LinerNotesSheet from "./components/catalog/LinerNotesSheet";
 import LoginScreen from "./components/auth/LoginScreen";
 import BrandMark, { BrandGlyph as DoorGlyph } from "./components/brand/BrandMark";
-import BrandTagline from "./components/brand/BrandTagline";
 
 const injectStyles = () => {
   if (document.getElementById("rooms-app-global-styles")) return;
@@ -97,6 +96,26 @@ const injectStyles = () => {
     @keyframes dockRise {
       from { opacity: 0; transform: translateY(12px) scale(0.98); }
       to { opacity: 1; transform: none; }
+    }
+    @keyframes planetRing {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+    @keyframes planetTiltSpin {
+      from { transform: rotateX(66deg) rotateZ(0deg); }
+      to { transform: rotateX(66deg) rotateZ(360deg); }
+    }
+    @keyframes planetBreathe {
+      0%, 100% { transform: scale(1); opacity: 0.92; }
+      50% { transform: scale(1.03); opacity: 1; }
+    }
+    @keyframes orbitPulse {
+      0%, 100% { opacity: 0.55; box-shadow: 0 0 8px rgba(242,243,245,0.35); }
+      50% { opacity: 1; box-shadow: 0 0 16px rgba(242,243,245,0.7); }
+    }
+    @keyframes playGlow {
+      0%, 100% { box-shadow: 0 0 0 1px rgba(242,243,245,0.14), 0 16px 40px rgba(0,0,0,0.5), 0 0 28px rgba(242,243,245,0.18); }
+      50% { box-shadow: 0 0 0 1px rgba(242,243,245,0.22), 0 18px 48px rgba(0,0,0,0.55), 0 0 42px rgba(242,243,245,0.32); }
     }
     .glass-dock {
       background: rgba(12, 12, 14, 0.78);
@@ -307,7 +326,7 @@ function BoothHud({ track, size = "md", align = "left" }) {
 }
 
 // ─── RADIO — Listen Now hero (one composition) ────────────────────────────────
-/** Segmented mix selector — one connected control. */
+/** Segmented mix selector — glass capsule for the radio deck. */
 function MixLanePicker({ mixLane, onMixLaneChange, disabled = false }) {
   return (
     <div
@@ -318,15 +337,14 @@ function MixLanePicker({ mixLane, onMixLaneChange, disabled = false }) {
       style={{
         display: "inline-flex",
         alignItems: "center",
-        gap: 4,
-        padding: 4,
+        gap: 3,
+        padding: 3,
         borderRadius: 980,
-        border: `1px solid ${glass.borderSoft}`,
-        background: "rgba(255,255,255,0.045)",
+        border: `1px solid ${glass.border}`,
+        background: "rgba(0,0,0,0.42)",
         backdropFilter: glass.blur,
         WebkitBackdropFilter: glass.blur,
-        boxShadow: `inset 0 1px 0 ${glass.borderFaint}`,
-        marginBottom: 28,
+        boxShadow: `inset 0 1px 0 ${glass.highlight}, ${glass.shadowSoft}`,
         maxWidth: "100%",
         overflowX: "auto",
       }}
@@ -342,7 +360,7 @@ function MixLanePicker({ mixLane, onMixLaneChange, disabled = false }) {
             disabled={disabled}
             onClick={() => onMixLaneChange(lane.id)}
             style={{
-              padding: "9px 16px",
+              padding: "10px 15px",
               borderRadius: 980,
               border: "none",
               background: on ? color.accent : "transparent",
@@ -354,7 +372,7 @@ function MixLanePicker({ mixLane, onMixLaneChange, disabled = false }) {
               letterSpacing: 0.1,
               whiteSpace: "nowrap",
               transition: `background ${motion.base} ${motion.ease}, color ${motion.base} ${motion.ease}`,
-              opacity: disabled && !on ? 0.5 : 1,
+              opacity: disabled && !on ? 0.45 : 1,
             }}
           >
             {lane.label}
@@ -365,74 +383,132 @@ function MixLanePicker({ mixLane, onMixLaneChange, disabled = false }) {
   );
 }
 
-/** Brand-first atmosphere — planet arc + orbit lines, no artwork. */
-function HeroAtmosphere() {
+/**
+ * Animated planet mark — looping ring + satellite (GIF-like via CSS).
+ * Hero brand signal — sits in the background behind controls.
+ * Fills its parent; pass playing to quicken the breath.
+ */
+function OrbitingPlanet({ playing = false }) {
+  return (
+    <div
+      aria-hidden="true"
+      style={{
+        position: "relative",
+        width: "100%",
+        height: "100%",
+        perspective: 900,
+        animation: playing
+          ? "planetBreathe 3.6s ease-in-out infinite"
+          : "planetBreathe 5.5s ease-in-out infinite",
+      }}
+    >
+      <div style={{
+        position: "absolute",
+        inset: "8%",
+        borderRadius: "50%",
+        background: `
+          radial-gradient(circle at 38% 32%, rgba(242,243,245,0.22) 0%, transparent 42%),
+          radial-gradient(circle at 50% 50%, rgba(242,243,245,0.08) 0%, transparent 68%)
+        `,
+        filter: "blur(2px)",
+      }}/>
+
+      <div style={{
+        position: "absolute",
+        left: "50%",
+        top: "50%",
+        width: "42%",
+        height: "42%",
+        transform: "translate(-50%, -50%)",
+        borderRadius: "50%",
+        background: `
+          radial-gradient(circle at 34% 28%, #3A3A40 0%, #16161A 48%, #050506 100%)
+        `,
+        boxShadow: `
+          inset -10px -14px 28px rgba(0,0,0,0.65),
+          inset 8px 10px 18px rgba(242,243,245,0.12),
+          0 0 40px rgba(242,243,245,0.12),
+          0 0 80px rgba(242,243,245,0.06)
+        `,
+      }}>
+        <div style={{
+          position: "absolute",
+          left: "12%", right: "12%", top: "42%",
+          height: "14%",
+          borderRadius: "50%",
+          background: "linear-gradient(90deg, transparent, rgba(242,243,245,0.1), transparent)",
+          opacity: 0.7,
+        }}/>
+      </div>
+
+      <div style={{
+        position: "absolute",
+        left: "4%",
+        top: "33%",
+        width: "92%",
+        height: "34%",
+        transformStyle: "preserve-3d",
+        animation: "planetTiltSpin 18s linear infinite",
+      }}>
+        <div style={{
+          position: "absolute",
+          inset: 0,
+          borderRadius: "50%",
+          border: "1.5px solid rgba(242,243,245,0.55)",
+          boxShadow: `
+            0 0 12px rgba(242,243,245,0.2),
+            inset 0 0 12px rgba(242,243,245,0.08)
+          `,
+        }}/>
+        <div style={{
+          position: "absolute",
+          left: "6%", right: "6%", top: "18%", bottom: "18%",
+          borderRadius: "50%",
+          border: "1px solid rgba(242,243,245,0.18)",
+        }}/>
+        <div style={{
+          position: "absolute",
+          top: "50%",
+          left: 0,
+          width: 7,
+          height: 7,
+          marginTop: -3.5,
+          marginLeft: -3.5,
+          borderRadius: "50%",
+          background: color.accent,
+          animation: "orbitPulse 2.4s ease-in-out infinite",
+        }}/>
+      </div>
+
+      <div style={{
+        position: "absolute",
+        left: "50%",
+        top: "50%",
+        width: "108%",
+        height: "108%",
+        marginLeft: "-54%",
+        marginTop: "-54%",
+        borderRadius: "50%",
+        border: "1px dashed rgba(242,243,245,0.08)",
+        animation: "planetRing 90s linear infinite",
+      }}/>
+    </div>
+  );
+}
+
+/** Brand atmosphere — animated planet as the dominant visual plane. */
+function HeroAtmosphere({ playing = false }) {
   return (
     <div aria-hidden="true" style={{ position: "absolute", inset: 0, overflow: "hidden" }}>
-      {/* Deep space base */}
       <div style={{
         position: "absolute", inset: 0,
         background: `
-          radial-gradient(ellipse 120% 90% at 82% -20%, rgba(242,243,245,0.07) 0%, transparent 52%),
-          radial-gradient(ellipse 90% 70% at 12% 118%, rgba(242,243,245,0.05) 0%, transparent 48%),
+          radial-gradient(ellipse 100% 80% at 70% 35%, rgba(242,243,245,0.06) 0%, transparent 55%),
+          radial-gradient(ellipse 70% 50% at 20% 90%, rgba(242,243,245,0.04) 0%, transparent 50%),
           #000000
         `,
       }}/>
-      {/* Planet horizon — huge arc cresting the bottom */}
-      <div style={{
-        position: "absolute",
-        left: "50%",
-        bottom: "-82vw",
-        width: "160vw",
-        height: "160vw",
-        minWidth: 900,
-        minHeight: 900,
-        transform: "translateX(-50%)",
-        borderRadius: "50%",
-        background: "radial-gradient(circle at 50% 18%, #17171B 0%, #0B0B0D 42%, #000 78%)",
-        boxShadow: `
-          0 -1px 0 rgba(242,243,245,0.28),
-          0 -18px 60px rgba(242,243,245,0.10),
-          0 -60px 160px rgba(242,243,245,0.05)
-        `,
-      }}/>
-      {/* Orbit ring — slow drift, echoes the logo */}
-      <div style={{
-        position: "absolute",
-        left: "50%",
-        bottom: "-86vw",
-        width: "172vw",
-        height: "172vw",
-        minWidth: 980,
-        minHeight: 980,
-        transform: "translateX(-50%)",
-        borderRadius: "50%",
-        border: "1px solid rgba(242,243,245,0.14)",
-        animation: "spin 240s linear infinite",
-      }}>
-        {/* Satellite node on the ring */}
-        <div style={{
-          position: "absolute", top: "1.2%", left: "50%",
-          width: 7, height: 7, borderRadius: "50%",
-          transform: "translateX(-50%)",
-          background: color.accent,
-          boxShadow: `0 0 12px ${color.accentGlow}, 0 0 4px ${color.accent}`,
-        }}/>
-      </div>
-      {/* Second, fainter orbit */}
-      <div style={{
-        position: "absolute",
-        left: "50%",
-        bottom: "-92vw",
-        width: "184vw",
-        height: "184vw",
-        minWidth: 1060,
-        minHeight: 1060,
-        transform: "translateX(-50%)",
-        borderRadius: "50%",
-        border: "1px dashed rgba(242,243,245,0.06)",
-      }}/>
-      {/* Starfield — sparse pinpoints */}
+
       <div style={{
         position: "absolute", inset: 0,
         backgroundImage: `
@@ -441,14 +517,40 @@ function HeroAtmosphere() {
           radial-gradient(circle at 62% 34%, rgba(242,243,245,0.28) 0 0.8px, transparent 1.2px),
           radial-gradient(circle at 32% 8%, rgba(242,243,245,0.32) 0 0.8px, transparent 1.2px),
           radial-gradient(circle at 90% 42%, rgba(242,243,245,0.22) 0 0.8px, transparent 1.2px),
-          radial-gradient(circle at 45% 22%, rgba(242,243,245,0.18) 0 0.7px, transparent 1px)
+          radial-gradient(circle at 45% 22%, rgba(242,243,245,0.18) 0 0.7px, transparent 1px),
+          radial-gradient(circle at 18% 55%, rgba(242,243,245,0.2) 0 0.7px, transparent 1px),
+          radial-gradient(circle at 88% 68%, rgba(242,243,245,0.16) 0 0.7px, transparent 1px)
         `,
-        opacity: 0.9,
+        opacity: 0.85,
       }}/>
-      {/* Foot fade into the library plane */}
+
       <div style={{
-        position: "absolute", left: 0, right: 0, bottom: 0, height: 110,
-        background: "linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.72) 70%, #000 100%)",
+        position: "absolute",
+        right: "-8%",
+        top: "50%",
+        transform: "translateY(-58%)",
+        width: "min(92vw, 520px)",
+        height: "min(92vw, 520px)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        opacity: 0.95,
+        pointerEvents: "none",
+      }}>
+        <OrbitingPlanet playing={playing} />
+      </div>
+
+      <div style={{
+        position: "absolute", inset: 0,
+        background: `
+          linear-gradient(90deg, rgba(0,0,0,0.72) 0%, rgba(0,0,0,0.35) 42%, transparent 72%),
+          linear-gradient(180deg, rgba(0,0,0,0.25) 0%, transparent 28%, transparent 55%, rgba(0,0,0,0.85) 100%)
+        `,
+      }}/>
+
+      <div style={{
+        position: "absolute", left: 0, right: 0, bottom: 0, height: 120,
+        background: "linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.8) 70%, #000 100%)",
       }}/>
     </div>
   );
@@ -461,139 +563,174 @@ function DeepCutsCard({
   const live = isRadioMode && currentTrack;
   const canStart = !playDisabled;
   const lane = mixLaneById(mixLane);
+  const playingVisual = !!(live && isPlaying);
 
   return (
     <div
       style={{
         position: "relative",
-        minHeight: "min(68vh, 560px)",
+        minHeight: "min(72vh, 580px)",
         background: color.canvas,
         overflow: "hidden",
         animation: "stationIn 0.75s cubic-bezier(0.22,1,0.36,1) both",
       }}
     >
-      <HeroAtmosphere />
+      <HeroAtmosphere playing={playingVisual} />
 
+      {/* Overlay — radio deck only (brand = animated planet, no wordmark) */}
       <div style={{
         position: "relative", zIndex: 1,
-        minHeight: "min(68vh, 560px)",
+        minHeight: "min(72vh, 580px)",
         display: "flex", flexDirection: "column",
         justifyContent: "flex-end",
-        padding: `48px ${homeSpace.gutter}px 56px`,
-        maxWidth: 640,
+        padding: `40px ${homeSpace.gutter}px 52px`,
+        maxWidth: 560,
       }}>
-        {/* Eyebrow — glyph + live status */}
-        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 20 }}>
-          <BrandGlyph size={26} title="" />
+        <div style={{ marginBottom: 18 }}>
           {live ? (
             <div style={{
-              display: "inline-flex", alignItems: "center", gap: 7,
-              padding: "5px 12px", borderRadius: 980,
-              border: `1px solid ${glass.borderSoft}`,
-              background: "rgba(255,255,255,0.05)",
+              display: "inline-flex", alignItems: "center", gap: 8,
+              padding: "6px 12px 6px 10px", borderRadius: 980,
+              border: `1px solid ${glass.border}`,
+              background: "rgba(0,0,0,0.45)",
               backdropFilter: glass.blurSoft,
               WebkitBackdropFilter: glass.blurSoft,
+              boxShadow: `inset 0 1px 0 ${glass.highlight}`,
             }}>
               <span style={{
-                width: 6, height: 6, borderRadius: "50%",
+                width: 7, height: 7, borderRadius: "50%",
                 background: color.accent,
-                animation: "pulse 1.4s ease-in-out infinite",
+                animation: isPlaying ? "pulse 1.4s ease-in-out infinite" : "none",
+                boxShadow: `0 0 10px ${color.accentGlow}`,
               }}/>
               <span style={{
-                fontSize: 11, fontWeight: 700, letterSpacing: 1.4,
+                fontSize: 11, fontWeight: 700, letterSpacing: 1.5,
                 textTransform: "uppercase", color: color.ink, fontFamily: fontMono,
               }}>
                 On air · {lane.label}
               </span>
             </div>
           ) : (
-            <span style={{
-              fontSize: 11, fontWeight: 700, letterSpacing: 1.8,
-              textTransform: "uppercase", color: color.faint, fontFamily: fontMono,
+            <div style={{
+              display: "inline-flex", alignItems: "center", gap: 8,
+              padding: "6px 12px", borderRadius: 980,
+              border: `1px solid ${glass.borderFaint}`,
+              background: "rgba(255,255,255,0.04)",
             }}>
-              {signalLabel || "Live radio"}
-            </span>
+              <span style={{
+                width: 6, height: 6, borderRadius: "50%",
+                background: color.faint,
+              }}/>
+              <span style={{
+                fontSize: 11, fontWeight: 650, letterSpacing: 1.6,
+                textTransform: "uppercase", color: color.faint, fontFamily: fontMono,
+              }}>
+                {signalLabel || "Ready"}
+              </span>
+            </div>
           )}
         </div>
 
-        {/* Wordmark */}
-        <h1 style={{
-          margin: 0,
-          fontSize: "clamp(40px, 10vw, 64px)",
-          fontWeight: 800, letterSpacing: -2, lineHeight: 0.98,
-          color: color.onDark, fontFamily: fontDisplay,
-          marginBottom: 10,
-        }}>
-          {BRAND_NAME}
-        </h1>
-
-        {/* Tagline / now playing */}
-        {live ? (
+        {live && (
           <div style={{
-            fontSize: 16, color: color.onDarkMuted, marginBottom: 26,
-            lineHeight: 1.45, maxWidth: 380, fontWeight: 500,
+            marginBottom: 28,
             animation: "trackSwap 0.4s ease both",
+            maxWidth: 420,
           }}>
-            <span style={{ color: color.ink, fontWeight: 650 }}>{currentTrack.title}</span>
-            <span style={{ color: color.faint }}>  ·  {currentTrack.artist}</span>
-          </div>
-        ) : (
-          <BrandTagline light style={{ marginBottom: 26 }} />
-        )}
-
-        {/* Mix selector — one segmented control */}
-        <MixLanePicker
-          mixLane={mixLane}
-          onMixLaneChange={onMixLaneChange}
-          disabled={live}
-        />
-
-        {/* Primary action row */}
-        {live ? (
-          <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-            <button type="button" className="play-primary" aria-label={isPlaying ? "Pause" : "Play"}
-              onClick={onTogglePlay}
-              style={{
-                width: 60, height: 60, borderRadius: "50%",
-                background: color.accent, border: "none",
-                display: "flex", alignItems: "center", justifyContent: "center",
-                color: color.onAccent, cursor: "pointer", flexShrink: 0,
-                boxShadow: `0 0 0 1px rgba(242,243,245,0.12), 0 14px 36px rgba(0,0,0,0.5), 0 0 32px ${color.accentGlow}`,
-              }}>
-              <Icon name={isPlaying ? "pause" : "play"} size={22}/>
-            </button>
-            <div style={{ fontSize: 13, color: color.faint, fontWeight: 500, letterSpacing: 0.2 }}>
-              {isPlaying ? "Playing your orbit" : "Paused"}
+            <div style={{
+              fontSize: "clamp(26px, 6.5vw, 36px)",
+              fontWeight: 750, letterSpacing: -1.1, lineHeight: 1.08,
+              color: color.onDark, fontFamily: fontDisplay,
+              marginBottom: 8,
+            }}>
+              {currentTrack.title}
+            </div>
+            <div style={{
+              fontSize: 15, color: color.onDarkMuted, fontWeight: 500,
+              letterSpacing: -0.1,
+            }}>
+              {currentTrack.artist}
             </div>
           </div>
-        ) : (
-          <button type="button" className="play-primary" aria-label={`Play ${lane.label} mix`} disabled={!canStart}
-            onClick={() => { if (canStart) onPlay(); }}
-            style={{
-              display: "inline-flex", alignItems: "center", gap: 12, alignSelf: "flex-start",
-              padding: "16px 30px 16px 22px", borderRadius: 980,
-              background: canStart ? color.accent : color.surfaceRaised,
-              border: "none",
-              color: canStart ? color.onAccent : color.faint,
-              cursor: canStart ? "pointer" : "not-allowed",
-              fontSize: 17, fontWeight: 700, letterSpacing: -0.2,
-              fontFamily: fontDisplay,
-              boxShadow: canStart
-                ? `0 0 0 1px rgba(242,243,245,0.14), 0 16px 40px rgba(0,0,0,0.5), 0 0 40px ${color.accentGlow}`
-                : "none",
-              transition: `transform ${motion.fast} ${motion.ease}, box-shadow ${motion.base} ${motion.ease}`,
-            }}>
-            <span style={{
-              width: 34, height: 34, borderRadius: "50%",
-              display: "inline-flex", alignItems: "center", justifyContent: "center",
-              background: canStart ? "rgba(0,0,0,0.14)" : "rgba(255,255,255,0.05)",
-              flexShrink: 0,
-            }}>
-              <Icon name="play" size={15}/>
-            </span>
-            {canStart ? `Play ${lane.label}` : "Library unavailable"}
-          </button>
         )}
+
+        <div style={{
+          display: "flex",
+          flexDirection: "column",
+          gap: 18,
+          alignItems: "flex-start",
+        }}>
+          <MixLanePicker
+            mixLane={mixLane}
+            onMixLaneChange={onMixLaneChange}
+            disabled={live}
+          />
+
+          <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+            {live ? (
+              <button
+                type="button"
+                className="play-primary"
+                aria-label={isPlaying ? "Pause" : "Play"}
+                onClick={onTogglePlay}
+                style={{
+                  width: 68, height: 68, borderRadius: "50%",
+                  background: color.accent, border: "none",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  color: color.onAccent, cursor: "pointer", flexShrink: 0,
+                  animation: isPlaying ? "playGlow 2.8s ease-in-out infinite" : "none",
+                  boxShadow: `0 0 0 1px rgba(242,243,245,0.14), 0 16px 40px rgba(0,0,0,0.5), 0 0 28px ${color.accentGlow}`,
+                  transition: `transform ${motion.fast} ${motion.ease}`,
+                }}
+              >
+                <Icon name={isPlaying ? "pause" : "play"} size={24}/>
+              </button>
+            ) : (
+              <button
+                type="button"
+                className="play-primary"
+                aria-label={`Play ${lane.label}`}
+                disabled={!canStart}
+                onClick={() => { if (canStart) onPlay(); }}
+                style={{
+                  width: 68, height: 68, borderRadius: "50%",
+                  background: canStart ? color.accent : color.surfaceRaised,
+                  border: "none",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  color: canStart ? color.onAccent : color.faint,
+                  cursor: canStart ? "pointer" : "not-allowed",
+                  flexShrink: 0,
+                  boxShadow: canStart
+                    ? `0 0 0 1px rgba(242,243,245,0.16), 0 18px 44px rgba(0,0,0,0.55), 0 0 36px ${color.accentGlow}`
+                    : "none",
+                  transition: `transform ${motion.fast} ${motion.ease}, box-shadow ${motion.base} ${motion.ease}`,
+                }}
+              >
+                <Icon name="play" size={24}/>
+              </button>
+            )}
+
+            <div style={{ minWidth: 0 }}>
+              <div style={{
+                fontSize: 17, fontWeight: 700, letterSpacing: -0.3,
+                color: canStart || live ? color.ink : color.faint,
+                fontFamily: fontDisplay, lineHeight: 1.15,
+              }}>
+                {live
+                  ? (isPlaying ? "Listening" : "Paused")
+                  : (canStart ? "Listen" : "Unavailable")}
+              </div>
+              <div style={{
+                fontSize: 13, color: color.muted, marginTop: 4,
+                fontWeight: 500, letterSpacing: 0.1,
+              }}>
+                {live
+                  ? `${lane.label} · tap to ${isPlaying ? "pause" : "resume"}`
+                  : (canStart ? `${lane.label} radio` : "Library unavailable")}
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -2240,65 +2377,23 @@ function HomeCatalogStatus({ error, isEmpty, playableCount, totalCount, onRetry 
 function HomeScreen({
   tracks, onPlayRadio, onTogglePlay, onPlayTrack, currentTrack, isPlaying, onLike,
   isRadioMode, playlistCtx, signalLabel,
-  userPlaylists = [], onCreatePlaylist, onDeletePlaylist,
-  onMakePlaylist, mixLane, onMixLaneChange,
+  mixLane, onMixLaneChange,
   catalogError = null, onRetryCatalog,
+  preferredGenres = [], recentTrackIds = [],
 }) {
-  const saved = savedTracks(tracks, 24);
-  const collections = buildHomeCollections(tracks);
   const activeId = currentTrack?.id;
-  const { menu, openFromButton, openFromContext, close } = useTrackMenu();
-  const [showNewInput, setShowNewInput] = useState(false);
-  const [newName, setNewName] = useState("");
-  const [openPlaylistId, setOpenPlaylistId] = useState(null);
-
-  function handleCreate() {
-    if (!newName.trim() || !onCreatePlaylist) return;
-    onCreatePlaylist(newName.trim());
-    setNewName("");
-    setShowNewInput(false);
-  }
-
-  const openPlaylist = openPlaylistId
-    ? userPlaylists.find(p => p.id === openPlaylistId)
-    : null;
-  const openPlaylistTracks = openPlaylist
-    ? (openPlaylist.trackIds || []).map(id => tracks.find(t => t.id === id)).filter(Boolean)
-    : [];
-
-  if (openPlaylist) {
-    return (
-      <div style={{ padding: "24px 16px 36px" }}>
-        <button type="button" onClick={() => setOpenPlaylistId(null)} style={{
-          background: "none", border: "none", color: color.accent, fontSize: 17, cursor: "pointer", fontWeight: 400, marginBottom: 16,
-        }}>‹ Home</button>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 18 }}>
-          <div style={{ fontSize: 28, fontWeight: 700, color: color.ink, fontFamily: fontDisplay, letterSpacing: -0.8 }}>{openPlaylist.name}</div>
-          <span style={{ fontSize: 13, color: color.muted }}>{openPlaylistTracks.length}</span>
-        </div>
-        {openPlaylistTracks.length === 0 ? (
-          <div style={{ fontSize: 15, color: color.faint, paddingTop: 32, textAlign: "center" }}>No songs yet — add tracks with ⋯</div>
-        ) : openPlaylistTracks.map(t => (
-          <TrackRow key={t.id} track={t} onPlay={() => onPlayTrack(t, openPlaylistTracks)} active={activeId === t.id} isPlaying={isPlaying} onLike={onLike} playlistCtx={playlistCtx} activePlaylistId={openPlaylist.id}/>
-        ))}
-        {menu && (
-          <TrackActionsMenu track={menu.track} playlistCtx={playlistCtx} activePlaylistId={menu.activePlaylistId} x={menu.x} y={menu.y} onClose={close}/>
-        )}
-      </div>
-    );
-  }
-
-  const featuredTrack = currentTrack
-    || saved[0]
-    || collections[0]?.tracks?.[0]
-    || tracks.find((t) => t.albumCover && (t.duration || 0) <= 900)
-    || null;
-
-  const tile = homeSpace.tile;
-  const mosaic = Math.round(tile / 2);
+  const { menu, close } = useTrackMenu();
   const playableCount = countPlayableTracks(tracks);
   const catalogEmpty = !catalogError && tracks.length === 0;
   const catalogDepleted = !catalogError && tracks.length > 0 && playableCount === 0;
+
+  const trending = trendingTracks(tracks, 10);
+  const recommended = recommendedTracks(tracks, {
+    preferredGenres,
+    recentTrackIds,
+    limit: 10,
+    excludeIds: trending.slice(0, 3).map((t) => t.id),
+  });
 
   return (
     <div style={{ position: "relative", paddingBottom: 48 }}>
@@ -2309,7 +2404,6 @@ function HomeScreen({
         isPlaying={isPlaying}
         isRadioMode={isRadioMode}
         signalLabel={signalLabel}
-        featuredTrack={featuredTrack}
         mixLane={mixLane}
         onMixLaneChange={onMixLaneChange}
         playDisabled={catalogEmpty || catalogDepleted || !!catalogError}
@@ -2325,7 +2419,6 @@ function HomeScreen({
         />
       )}
 
-      {/* Library plane — soft glass atmosphere under the hero */}
       <div style={{
         position: "relative",
         background: `
@@ -2334,186 +2427,54 @@ function HomeScreen({
           ${color.canvas}
         `,
       }}>
-        {/* Key feature — timed playlist builder */}
-        {onMakePlaylist && (
-          <div style={{
-            padding: `${homeSpace.bandPadY}px ${homeSpace.gutter}px ${Math.round(homeSpace.bandPadY * 0.55)}px`,
-          }}>
-            <MakePlaylistFeature onClick={onMakePlaylist} />
-          </div>
-        )}
-
-        {/* Wide break + faded rule between action and first shelf */}
-        {onMakePlaylist && (
-          <div aria-hidden="true" style={{
-            padding: `${Math.round(homeSpace.sectionPadTop * 0.4)}px 0 ${Math.round(homeSpace.sectionPadTop * 0.45)}px`,
-          }}>
-            <div style={sectionRule(homeSpace.gutter)}/>
-          </div>
-        )}
-
-        {/* Library shelves — faded rules + wide vertical rhythm */}
-        <div>
-          {saved.length > 0 && (
-            <HomeSection label="Liked Songs" count={saved.length} delay={0.04} first>
-              <CoverShelf
-                tracks={saved}
-                onPlayTrack={onPlayTrack}
-                activeId={activeId}
-                isPlaying={isPlaying}
-              />
-            </HomeSection>
-          )}
-
-          <HomeSection
-            label="Playlists"
-            count={userPlaylists.length || undefined}
-            delay={0.06}
-            first={saved.length === 0}
-          >
-            <div
-              className="hide-scroll"
-              style={{
-                display: "flex",
-                gap: homeSpace.shelfGap,
-                overflowX: "auto",
-                padding: `0 ${homeSpace.gutter}px 10px`,
-                scrollSnapType: "x mandatory",
-                WebkitOverflowScrolling: "touch",
-              }}
-            >
-              {userPlaylists.map((pl) => {
-                const plTracks = (pl.trackIds || []).map((id) => tracks.find((t) => t.id === id)).filter(Boolean);
-                const covers = plTracks.filter((t) => t.albumCover).slice(0, 4);
-                return (
-                  <button
-                    key={pl.id}
-                    type="button"
-                    onClick={() => setOpenPlaylistId(pl.id)}
-                    style={{
-                      flex: "0 0 auto",
-                      width: tile,
-                      background: "none",
-                      border: "none",
-                      padding: 0,
-                      cursor: "pointer",
-                      textAlign: "left",
-                      color: color.ink,
-                      scrollSnapAlign: "start",
-                    }}
-                  >
-                    <div style={{
-                      width: tile, height: tile, borderRadius: radius.md, overflow: "hidden",
-                      marginBottom: 12, background: color.surfaceRaised,
-                      display: "grid",
-                      gridTemplateColumns: covers.length > 1 ? "1fr 1fr" : "1fr",
-                      gridTemplateRows: covers.length > 1 ? "1fr 1fr" : "1fr",
-                      boxShadow: `0 0 0 1px ${glass.borderSoft}, 0 16px 40px rgba(0,0,0,0.42)`,
-                      position: "relative",
-                    }}>
-                      {covers.length === 0 ? (
-                        <div style={{
-                          display: "flex", alignItems: "center", justifyContent: "center",
-                          color: color.faint, fontSize: 28, fontFamily: fontDisplay, fontWeight: 700,
-                          background: glass.fillQuiet,
-                        }}>♪</div>
-                      ) : covers.length === 1 ? (
-                        <AlbumArt track={covers[0]} size={tile} borderRadius={radius.md}/>
-                      ) : (
-                        <>
-                          {[0, 1, 2, 3].map((i) => (
-                            <div key={i} style={{ overflow: "hidden", background: color.surfaceSolid }}>
-                              {covers[i] ? <AlbumArt track={covers[i]} size={mosaic} borderRadius={0}/> : null}
-                            </div>
-                          ))}
-                        </>
-                      )}
-                      <div aria-hidden="true" style={{
-                        pointerEvents: "none", position: "absolute", inset: 0, borderRadius: radius.md,
-                        boxShadow: `inset 0 1px 0 ${glass.highlight}`,
-                      }}/>
-                    </div>
-                    <div style={{
-                      fontSize: 14, fontWeight: 600, letterSpacing: -0.2,
-                      overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
-                    }}>{pl.name}</div>
-                    <div style={{ fontSize: 12, color: color.muted, marginTop: 3 }}>
-                      {plTracks.length} songs
-                    </div>
-                  </button>
-                );
-              })}
-              <button
-                type="button"
-                onClick={() => setShowNewInput(true)}
-                style={{
-                  flex: "0 0 auto",
-                  width: tile,
-                  background: "none",
-                  border: "none",
-                  padding: 0,
-                  cursor: "pointer",
-                  textAlign: "left",
-                  color: color.ink,
-                  scrollSnapAlign: "start",
-                }}
-              >
-                <div className="glass-surface" style={{
-                  width: tile, height: tile, borderRadius: radius.md, marginBottom: 12,
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                  color: color.body, fontSize: 36, fontWeight: 300,
-                }}>+</div>
-                <div style={{ fontSize: 14, fontWeight: 600, color: color.accent }}>New Playlist</div>
-              </button>
+        {trending.length > 0 && (
+          <HomeSection label="Trending" count={trending.length} delay={0.04} first>
+            <div style={{ padding: `0 ${homeSpace.gutter}px` }}>
+              {trending.map((t) => (
+                <TrackRow
+                  key={t.id}
+                  track={t}
+                  onPlay={() => onPlayTrack(t, trending)}
+                  active={activeId === t.id}
+                  isPlaying={isPlaying}
+                  onLike={onLike}
+                  playlistCtx={playlistCtx}
+                />
+              ))}
             </div>
-            {showNewInput && (
-              <div style={{ display: "flex", gap: 8, alignItems: "center", padding: `16px ${homeSpace.gutter}px 0` }}>
-                <input autoFocus value={newName} onChange={(e) => setNewName(e.target.value)}
-                  onKeyDown={(e) => { if (e.key === "Enter") handleCreate(); if (e.key === "Escape") { setShowNewInput(false); setNewName(""); } }}
-                  placeholder="Playlist name…" style={{ flex: 1, ...INPUT_ST, padding: "10px 12px", fontSize: 15 }}/>
-                <button type="button" onClick={handleCreate} style={{
-                  background: color.accent, border: "none", borderRadius: 980, color: color.onAccent,
-                  fontSize: 15, fontWeight: 600, padding: "10px 16px", cursor: "pointer",
-                }}>Create</button>
-              </div>
-            )}
           </HomeSection>
+        )}
 
-          {collections.map((col, ci) => (
-            <HomeSection
-              key={col.id}
-              label={col.label}
-              count={col.tracks.length}
-              delay={0.08 + ci * 0.03}
-            >
-              <CoverShelf
-                tracks={col.tracks}
-                onPlayTrack={onPlayTrack}
-                activeId={activeId}
-                isPlaying={isPlaying}
-              />
-            </HomeSection>
-          ))}
+        {recommended.length > 0 && (
+          <HomeSection label="Recommended" count={recommended.length} delay={0.08} first={trending.length === 0}>
+            <div style={{ padding: `0 ${homeSpace.gutter}px` }}>
+              {recommended.map((t) => (
+                <TrackRow
+                  key={t.id}
+                  track={t}
+                  onPlay={() => onPlayTrack(t, recommended)}
+                  active={activeId === t.id}
+                  isPlaying={isPlaying}
+                  onLike={onLike}
+                  playlistCtx={playlistCtx}
+                />
+              ))}
+            </div>
+          </HomeSection>
+        )}
 
-          {saved.length === 0 && collections.length === 0 && userPlaylists.length === 0 && (
-            <div style={{ padding: `20px ${homeSpace.gutter}px 56px` }}>
-              {!onMakePlaylist && (
-                <div aria-hidden="true" style={{ ...sectionRule(0), marginBottom: 36 }}/>
-              )}
-              <div className="glass-surface" style={{
-                padding: "28px 22px",
-                borderRadius: radius.lg,
-              }}>
-                <div style={{ fontSize: 22, fontWeight: 700, fontFamily: fontDisplay, color: color.ink, marginBottom: 8, letterSpacing: -0.4 }}>
-                  Nothing here yet
-                </div>
-                <div style={{ fontSize: 15, color: color.muted, lineHeight: 1.5, maxWidth: 280 }}>
-                  Tap Play above, or like a song — Home fills in as you listen.
-                </div>
+        {!catalogError && !catalogEmpty && trending.length === 0 && recommended.length === 0 && (
+          <div style={{ padding: `28px ${homeSpace.gutter}px 56px` }}>
+            <div className="glass-surface" style={{ padding: "28px 22px", borderRadius: radius.lg }}>
+              <div style={{ fontSize: 22, fontWeight: 700, fontFamily: fontDisplay, color: color.ink, marginBottom: 8, letterSpacing: -0.4 }}>
+                Nothing to play yet
+              </div>
+              <div style={{ fontSize: 15, color: color.muted, lineHeight: 1.5, maxWidth: 280 }}>
+                Add tracks to the catalog and they will show up here.
               </div>
             </div>
-          )}
-        </div>
+          </div>
+        )}
       </div>
 
       {menu && (
@@ -2661,87 +2622,220 @@ function EnergySparkline({ tracks, width=120, height=24 }) {
 
 // ─── DIG (Discover) ───────────────────────────────────────────────────────────
 function FavoritesScreen({
-  tracks, preferredGenres = [], onPlay, onLike, currentTrack, isPlaying, playlistCtx,
+  tracks, onPlay, onLike, currentTrack, isPlaying, playlistCtx,
+  userPlaylists = [], onCreatePlaylist, onDeletePlaylist, onMakePlaylist,
+  onPlayTrack,
 }) {
   const { menu, close } = useTrackMenu();
-  const singles = tracks.filter(t => (t.duration || 0) <= 900);
-  const likedTracks = tracks.filter(t => t.liked);
-  const hour = new Date().getHours();
-  const [eMin, eMax] = getEnergyRangeForHour(hour);
+  const activeId = currentTrack?.id;
+  const saved = savedTracks(tracks, 40);
+  const [showNewInput, setShowNewInput] = useState(false);
+  const [newName, setNewName] = useState("");
+  const [openPlaylistId, setOpenPlaylistId] = useState(null);
 
-  const [forYou, setForYou] = useState([]);
-  const forYouInitRef = useRef(null);
-  useEffect(() => {
-    const preferredKey = (preferredGenres || []).join(",");
-    const key = tracks.length + ":" + likedTracks.length + ":" + preferredKey;
-    if (forYouInitRef.current === key) return;
-    forYouInitRef.current = key;
-    const likedG = [...new Set([
-      ...likedTracks.map(t => t.genre).filter(Boolean),
-      ...(preferredGenres || []),
-    ])];
-    const candidates = likedG.length > 0
-      ? singles.filter(t => likedG.includes(t.genre) && (t.energy || 5) >= eMin && (t.energy || 5) <= eMax && !t.liked)
-      : singles.filter(t => (t.energy || 5) >= eMin && (t.energy || 5) <= eMax);
-    const preferredSet = new Set(preferredGenres || []);
-    const ranked = [...candidates].sort((a, b) => {
-      const ap = preferredSet.has(a.genre) ? 1 : 0;
-      const bp = preferredSet.has(b.genre) ? 1 : 0;
-      if (ap !== bp) return bp - ap;
-      return Math.random() - 0.5;
-    }).slice(0, 24);
-    setForYou(ranked);
-  }, [tracks.length, likedTracks.length, preferredGenres]);
+  const tile = homeSpace.tile;
+  const mosaic = Math.round(tile / 2);
+  const playTrackFn = onPlayTrack || ((t, pool) => onPlay(t));
 
-  const timeRecs = singles.filter(t => (t.energy || 5) >= eMin && (t.energy || 5) <= eMax);
-  const digPool = forYou.length > 0 ? forYou : (timeRecs.length > 0 ? timeRecs : singles);
-  const digLead = digPool[0];
-  const digLane = digPool.filter(t => t.id !== digLead?.id).slice(0, 16);
+  function handleCreate() {
+    if (!newName.trim() || !onCreatePlaylist) return;
+    onCreatePlaylist(newName.trim());
+    setNewName("");
+    setShowNewInput(false);
+  }
+
+  const openPlaylist = openPlaylistId
+    ? userPlaylists.find((p) => p.id === openPlaylistId)
+    : null;
+  const openPlaylistTracks = openPlaylist
+    ? (openPlaylist.trackIds || []).map((id) => tracks.find((t) => t.id === id)).filter(Boolean)
+    : [];
+
+  if (openPlaylist) {
+    return (
+      <div style={{ padding: "24px 16px 36px" }}>
+        <button type="button" onClick={() => setOpenPlaylistId(null)} style={{
+          background: "none", border: "none", color: color.accent, fontSize: 17, cursor: "pointer", fontWeight: 400, marginBottom: 16,
+        }}>‹ Library</button>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 18 }}>
+          <div style={{ fontSize: 28, fontWeight: 700, color: color.ink, fontFamily: fontDisplay, letterSpacing: -0.8 }}>{openPlaylist.name}</div>
+          <span style={{ fontSize: 13, color: color.muted }}>{openPlaylistTracks.length}</span>
+        </div>
+        {openPlaylistTracks.length === 0 ? (
+          <div style={{ fontSize: 15, color: color.faint, paddingTop: 32, textAlign: "center" }}>No songs yet — add tracks with ⋯</div>
+        ) : openPlaylistTracks.map((t) => (
+          <TrackRow
+            key={t.id}
+            track={t}
+            onPlay={() => playTrackFn(t, openPlaylistTracks)}
+            active={activeId === t.id}
+            isPlaying={isPlaying}
+            onLike={onLike}
+            playlistCtx={playlistCtx}
+            activePlaylistId={openPlaylist.id}
+          />
+        ))}
+        {menu && (
+          <TrackActionsMenu track={menu.track} playlistCtx={playlistCtx} activePlaylistId={menu.activePlaylistId} x={menu.x} y={menu.y} onClose={close}/>
+        )}
+      </div>
+    );
+  }
 
   return (
-    <div style={{ overflowY: "auto", height: "100%", minHeight: "calc(100vh - 112px)" }}>
-      <CollapsingHeader title="Browse" subtitle="Fresh picks for right now." />
-      <div style={{ padding: "20px 16px 32px" }}>
-        {digLead && (
-          <button
-            type="button"
-            onClick={() => onPlay(digLead)}
-            style={{
-              display: "flex", alignItems: "center", gap: 16, width: "100%",
-              padding: "0 0 28px", background: "none", border: "none",
-              cursor: "pointer", textAlign: "left", color: color.ink,
-            }}
-          >
-            <div style={{ width: 120, height: 120, borderRadius: 10, overflow: "hidden", flexShrink: 0, boxShadow: "0 12px 32px rgba(0,0,0,0.45)" }}>
-              <AlbumArt track={digLead} size={120} borderRadius={10}/>
-            </div>
-            <div style={{ minWidth: 0, flex: 1 }}>
-              <div style={{ fontSize: 12, fontWeight: 600, color: color.accent, marginBottom: 6, letterSpacing: 0.2 }}>Featured</div>
-              <div style={{ fontSize: 22, fontWeight: 700, fontFamily: fontDisplay, letterSpacing: -0.5, lineHeight: 1.15, marginBottom: 6 }}>
-                {digLead.title}
-              </div>
-              <div style={{ fontSize: 15, color: color.muted }}>{digLead.artist}</div>
-            </div>
-          </button>
+    <div style={{ position: "relative", paddingBottom: 48 }}>
+      <CollapsingHeader title="Library" subtitle="Playlists, timed mixes, and saved songs." />
+
+      <div style={{
+        position: "relative",
+        background: color.canvas,
+      }}>
+        {onMakePlaylist && (
+          <div style={{
+            padding: `${Math.round(homeSpace.bandPadY * 0.55)}px ${homeSpace.gutter}px ${Math.round(homeSpace.bandPadY * 0.4)}px`,
+          }}>
+            <MakePlaylistFeature onClick={onMakePlaylist} />
+          </div>
         )}
 
-        {digLane.length > 0 && (
-          <div>
-            <div style={{ fontSize: 22, fontWeight: 700, letterSpacing: -0.4, color: color.ink, fontFamily: fontDisplay, marginBottom: 14 }}>
-              Recommended for You
-            </div>
-            {digLane.map((t) => (
-              <TrackRow
-                key={t.id}
-                track={t}
-                onPlay={() => onPlay(t)}
-                active={currentTrack?.id === t.id}
-                isPlaying={isPlaying}
-                onLike={onLike}
-                playlistCtx={playlistCtx}
-              />
-            ))}
+        {onMakePlaylist && (
+          <div aria-hidden="true" style={{
+            padding: `${Math.round(homeSpace.sectionPadTop * 0.35)}px 0 ${Math.round(homeSpace.sectionPadTop * 0.4)}px`,
+          }}>
+            <div style={sectionRule(homeSpace.gutter)}/>
           </div>
+        )}
+
+        <HomeSection
+          label="Playlists"
+          count={userPlaylists.length || undefined}
+          delay={0.04}
+          first={!onMakePlaylist}
+        >
+          <div
+            className="hide-scroll"
+            style={{
+              display: "flex",
+              gap: homeSpace.shelfGap,
+              overflowX: "auto",
+              padding: `0 ${homeSpace.gutter}px 10px`,
+              scrollSnapType: "x mandatory",
+              WebkitOverflowScrolling: "touch",
+            }}
+          >
+            {userPlaylists.map((pl) => {
+              const plTracks = (pl.trackIds || []).map((id) => tracks.find((t) => t.id === id)).filter(Boolean);
+              const covers = plTracks.filter((t) => t.albumCover).slice(0, 4);
+              return (
+                <button
+                  key={pl.id}
+                  type="button"
+                  onClick={() => setOpenPlaylistId(pl.id)}
+                  style={{
+                    flex: "0 0 auto",
+                    width: tile,
+                    background: "none",
+                    border: "none",
+                    padding: 0,
+                    cursor: "pointer",
+                    textAlign: "left",
+                    color: color.ink,
+                    scrollSnapAlign: "start",
+                  }}
+                >
+                  <div style={{
+                    width: tile, height: tile, borderRadius: radius.md, overflow: "hidden",
+                    marginBottom: 12, background: color.surfaceRaised,
+                    display: "grid",
+                    gridTemplateColumns: covers.length > 1 ? "1fr 1fr" : "1fr",
+                    gridTemplateRows: covers.length > 1 ? "1fr 1fr" : "1fr",
+                    boxShadow: `0 0 0 1px ${glass.borderSoft}, 0 16px 40px rgba(0,0,0,0.42)`,
+                    position: "relative",
+                  }}>
+                    {covers.length === 0 ? (
+                      <div style={{
+                        display: "flex", alignItems: "center", justifyContent: "center",
+                        color: color.faint, fontSize: 28, fontFamily: fontDisplay, fontWeight: 700,
+                        background: glass.fillQuiet,
+                      }}>♪</div>
+                    ) : covers.length === 1 ? (
+                      <AlbumArt track={covers[0]} size={tile} borderRadius={radius.md}/>
+                    ) : (
+                      <>
+                        {[0, 1, 2, 3].map((i) => (
+                          <div key={i} style={{ overflow: "hidden", background: color.surfaceSolid }}>
+                            {covers[i] ? <AlbumArt track={covers[i]} size={mosaic} borderRadius={0}/> : null}
+                          </div>
+                        ))}
+                      </>
+                    )}
+                    <div aria-hidden="true" style={{
+                      pointerEvents: "none", position: "absolute", inset: 0, borderRadius: radius.md,
+                      boxShadow: `inset 0 1px 0 ${glass.highlight}`,
+                    }}/>
+                  </div>
+                  <div style={{
+                    fontSize: 14, fontWeight: 600, letterSpacing: -0.2,
+                    overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+                  }}>{pl.name}</div>
+                  <div style={{ fontSize: 12, color: color.muted, marginTop: 3 }}>
+                    {plTracks.length} songs
+                  </div>
+                </button>
+              );
+            })}
+            <button
+              type="button"
+              onClick={() => setShowNewInput(true)}
+              style={{
+                flex: "0 0 auto",
+                width: tile,
+                background: "none",
+                border: "none",
+                padding: 0,
+                cursor: "pointer",
+                textAlign: "left",
+                color: color.ink,
+                scrollSnapAlign: "start",
+              }}
+            >
+              <div className="glass-surface" style={{
+                width: tile, height: tile, borderRadius: radius.md, marginBottom: 12,
+                display: "flex", alignItems: "center", justifyContent: "center",
+                color: color.body, fontSize: 36, fontWeight: 300,
+              }}>+</div>
+              <div style={{ fontSize: 14, fontWeight: 600, color: color.accent }}>New Playlist</div>
+            </button>
+          </div>
+          {showNewInput && (
+            <div style={{ display: "flex", gap: 8, alignItems: "center", padding: `16px ${homeSpace.gutter}px 0` }}>
+              <input autoFocus value={newName} onChange={(e) => setNewName(e.target.value)}
+                onKeyDown={(e) => { if (e.key === "Enter") handleCreate(); if (e.key === "Escape") { setShowNewInput(false); setNewName(""); } }}
+                placeholder="Playlist name…" style={{ flex: 1, ...INPUT_ST, padding: "10px 12px", fontSize: 15 }}/>
+              <button type="button" onClick={handleCreate} style={{
+                background: color.accent, border: "none", borderRadius: 980, color: color.onAccent,
+                fontSize: 15, fontWeight: 600, padding: "10px 16px", cursor: "pointer",
+              }}>Create</button>
+            </div>
+          )}
+        </HomeSection>
+
+        {saved.length > 0 && (
+          <HomeSection label="Liked Songs" count={saved.length} delay={0.08}>
+            <div style={{ padding: `0 ${homeSpace.gutter}px` }}>
+              {saved.map((t) => (
+                <TrackRow
+                  key={t.id}
+                  track={t}
+                  onPlay={() => playTrackFn(t, saved)}
+                  active={activeId === t.id}
+                  isPlaying={isPlaying}
+                  onLike={onLike}
+                  playlistCtx={playlistCtx}
+                />
+              ))}
+            </div>
+          </HomeSection>
         )}
       </div>
 
@@ -2767,7 +2861,7 @@ function ProfileScreen({ user, tracks, onLogout }) {
   return (
     <div style={{ padding: "0 0 24px" }}>
       <CollapsingHeader
-        title="Library"
+        title="You"
         subtitle={`${liked.length} liked song${liked.length === 1 ? "" : "s"}`}
       />
       <div style={{ padding: "20px 20px 0" }}>
@@ -3298,9 +3392,9 @@ function GlassDock({
 }) {
   const items = [
     { id: "home", label: "Home", icon: "home" },
-    { id: "favorites", label: "Browse", icon: "dig" },
+    { id: "favorites", label: "Library", icon: "dig" },
     { id: "search", label: "Search", icon: "search" },
-    { id: "profile", label: "Library", icon: "profile" },
+    { id: "profile", label: "You", icon: "profile" },
   ];
   if (showAdmin) items.push({ id: "admin", label: "Admin", icon: "settings" });
 
@@ -4465,9 +4559,9 @@ export default function App() {
       )}
       <div style={{ flex:1, overflow:"auto", paddingBottom: contentPadBottom(!!currentTrack && !immersive), zIndex:1, position:"relative" }}>
         <ScreenPane key={screen === "artist" ? `artist:${artistSlug}` : screen === "album" ? `album:${albumSlug}` : screen}>
-        {screen==="home"      && !tracksLoading && <HomeScreen tracks={tracks} onPlayRadio={playRadio} onTogglePlay={()=>setIsPlaying(p=>!p)} onPlayTrack={playTrack} currentTrack={currentTrack} isPlaying={isPlaying} onLike={toggleLike} isRadioMode={isRadioMode} playlistCtx={playlistCtx} signalLabel={signalState?.label} userPlaylists={userPlaylists} onCreatePlaylist={createPlaylist} onDeletePlaylist={deletePlaylist} onMakePlaylist={()=>setShowRouteBuilder(true)} mixLane={mixLane} onMixLaneChange={setMixLane} catalogError={tracksLoadError} onRetryCatalog={reloadCatalog}/>}
+        {screen==="home"      && !tracksLoading && <HomeScreen tracks={tracks} onPlayRadio={playRadio} onTogglePlay={()=>setIsPlaying(p=>!p)} onPlayTrack={playTrack} currentTrack={currentTrack} isPlaying={isPlaying} onLike={toggleLike} isRadioMode={isRadioMode} playlistCtx={playlistCtx} signalLabel={signalState?.label} mixLane={mixLane} onMixLaneChange={setMixLane} catalogError={tracksLoadError} onRetryCatalog={reloadCatalog} preferredGenres={user.genres} recentTrackIds={(profile?.recentTracks||[]).map(r=>r.trackId||r)}/>}
         {screen==="search"    && <SearchScreen query={searchQuery} setQuery={setSearch} results={searchResults} onPlay={t=>playTrack(t,tracks)} onLike={toggleLike} currentTrack={currentTrack} isPlaying={isPlaying} playlistCtx={playlistCtx} entityHits={entityHits} onOpenArtist={openArtist} onOpenAlbum={(slug)=>openAlbum(slug)}/>}
-        {screen==="favorites" && <FavoritesScreen tracks={tracks} preferredGenres={user.genres} onPlay={t=>{setIsRadioMode(false);playTrack(t,tracks);}} onLike={toggleLike} currentTrack={currentTrack} isPlaying={isPlaying} playlistCtx={playlistCtx}/>}
+        {screen==="favorites" && <FavoritesScreen tracks={tracks} onPlay={t=>{setIsRadioMode(false);playTrack(t,tracks);}} onPlayTrack={(t,pool)=>{setIsRadioMode(false);playTrack(t,pool||tracks);}} onLike={toggleLike} currentTrack={currentTrack} isPlaying={isPlaying} playlistCtx={playlistCtx} userPlaylists={userPlaylists} onCreatePlaylist={createPlaylist} onDeletePlaylist={deletePlaylist} onMakePlaylist={()=>setShowRouteBuilder(true)}/>}
         {screen==="artist"    && !tracksLoading && (
           <ArtistPage
             artist={findArtist(tracks, artistSlug)}
@@ -4531,7 +4625,7 @@ export default function App() {
   // ── Desktop: 3-column shell ───────────────────────────────────────────────
   const NAV_TOP = [
     { id:"home",      icon:"home",   label:"Home" },
-    { id:"favorites", icon:"dig",    label:"Browse" },
+    { id:"favorites", icon:"dig",    label:"Library" },
     { id:"search",    icon:"search", label:"Search" },
   ];
   const NAV_BOTTOM = [];
@@ -4647,7 +4741,7 @@ export default function App() {
             className="nav-rail-btn"
             onClick={() => setScreen("profile")}
             title={user.name}
-            aria-label="Library"
+            aria-label="You"
             aria-current={screen === "profile" ? "page" : undefined}
             style={{
               width: 36, height: 36, borderRadius: "50%",
@@ -4685,9 +4779,9 @@ export default function App() {
             </div>
           ) : (
             <ScreenPane key={screen === "artist" ? `artist:${artistSlug}` : screen === "album" ? `album:${albumSlug}` : screen}>
-              {screen==="home"      && <HomeScreen tracks={tracks} onPlayRadio={playRadio} onTogglePlay={()=>setIsPlaying(p=>!p)} onPlayTrack={playTrack} currentTrack={currentTrack} isPlaying={isPlaying} onLike={toggleLike} isRadioMode={isRadioMode} playlistCtx={playlistCtx} signalLabel={signalState?.label} userPlaylists={userPlaylists} onCreatePlaylist={createPlaylist} onDeletePlaylist={deletePlaylist} onMakePlaylist={()=>setShowRouteBuilder(true)} mixLane={mixLane} onMixLaneChange={setMixLane} catalogError={tracksLoadError} onRetryCatalog={reloadCatalog}/>}
+              {screen==="home"      && <HomeScreen tracks={tracks} onPlayRadio={playRadio} onTogglePlay={()=>setIsPlaying(p=>!p)} onPlayTrack={playTrack} currentTrack={currentTrack} isPlaying={isPlaying} onLike={toggleLike} isRadioMode={isRadioMode} playlistCtx={playlistCtx} signalLabel={signalState?.label} mixLane={mixLane} onMixLaneChange={setMixLane} catalogError={tracksLoadError} onRetryCatalog={reloadCatalog} preferredGenres={user.genres} recentTrackIds={(profile?.recentTracks||[]).map(r=>r.trackId||r)}/>}
               {screen==="search"    && <SearchScreen query={searchQuery} setQuery={setSearch} results={searchResults} onPlay={t=>playTrack(t,tracks)} onLike={toggleLike} currentTrack={currentTrack} isPlaying={isPlaying} playlistCtx={playlistCtx} entityHits={entityHits} onOpenArtist={openArtist} onOpenAlbum={(slug)=>openAlbum(slug)}/>}
-              {screen==="favorites" && <FavoritesScreen tracks={tracks} preferredGenres={user.genres} onPlay={t=>{setIsRadioMode(false);playTrack(t,tracks);}} onLike={toggleLike} currentTrack={currentTrack} isPlaying={isPlaying} playlistCtx={playlistCtx}/>}
+              {screen==="favorites" && <FavoritesScreen tracks={tracks} onPlay={t=>{setIsRadioMode(false);playTrack(t,tracks);}} onPlayTrack={(t,pool)=>{setIsRadioMode(false);playTrack(t,pool||tracks);}} onLike={toggleLike} currentTrack={currentTrack} isPlaying={isPlaying} playlistCtx={playlistCtx} userPlaylists={userPlaylists} onCreatePlaylist={createPlaylist} onDeletePlaylist={deletePlaylist} onMakePlaylist={()=>setShowRouteBuilder(true)}/>}
               {screen==="artist"    && (
                 <ArtistPage
                   artist={findArtist(tracks, artistSlug)}

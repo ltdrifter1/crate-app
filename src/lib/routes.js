@@ -98,9 +98,9 @@ export function documentTitleFor(screen, label) {
   if (label) return `${label} · ${BRAND_NAME}`;
   const labels = {
     home: "Home",
-    favorites: "Browse",
+    favorites: "Library",
     search: "Search",
-    profile: "Library",
+    profile: "You",
     admin: "Admin",
     artist: "Artist",
     album: "Album",
