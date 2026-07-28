@@ -1,5 +1,6 @@
 // Recommendation + session engine. Pure functions (no React / Firebase / DOM).
 import { camelotCompatible, getEnergyRangeForHour } from "./harmony";
+import { normalizeGenre } from "./genres";
 
 export function computeHumanState(recentPlays, sessionStartTime) {
   if (!recentPlays.length) return { intensity: 0.5, openness: 0.5, momentum: 0, depth: 0, direction: 0, label: "Just started" };
@@ -149,22 +150,27 @@ export function computeSignalTraits(tracks, recentPlays = []) {
 // ─── WEIGHTED RADIO PICK ──────────────────────────────────────────────────────
 // All tracks eligible; liked tracks get 3× weight
 // Priority: camelot+energy → camelot → energy → anything
-// options: { preferredGenres, signalState, seedTrack }
-//   preferredGenres — profile tastes get a weight boost
+// options: { preferredGenres, signalState, seedTrack, scopedPool }
+//   preferredGenres — profile tastes get a weight boost (normalized)
 //   signalState     — human-state vector steers energy (lift / release / immersion)
 //   seedTrack       — Hypno pocket mode: stay near this track's aura + key
+//   scopedPool      — pool already daypart/scene filtered; skip hour energy gate
 export function pickNextTrack(allTracks, currentTrack, memory = null, options = {}) {
   if (!allTracks.length) return null;
   const preferredGenres = Array.isArray(options.preferredGenres)
     ? options.preferredGenres.filter(Boolean)
     : [];
-  const preferredSet = new Set(preferredGenres);
+  const preferredSet = new Set(
+    preferredGenres.map((g) => normalizeGenre(g) || g).filter(Boolean)
+  );
   const signalState = options.signalState || null;
   const seedTrack = options.seedTrack || null;
   const anchor = seedTrack || currentTrack;
+  const scopedPool = !!options.scopedPool;
 
   const hour = new Date().getHours();
-  let [eMin, eMax] = getEnergyRangeForHour(hour);
+  // When resolveListenPool already scoped the catalog, don't re-slice by clock hour.
+  let [eMin, eMax] = scopedPool ? [1, 10] : getEnergyRangeForHour(hour);
 
   // Human-state energy steer — the Floor moves with you
   if (signalState) {
@@ -219,7 +225,7 @@ export function pickNextTrack(allTracks, currentTrack, memory = null, options = 
       // Genre momentum — 2× boost for tracks matching the streak
       if (momentumGenre && t.genre === momentumGenre) w *= 2;
       // Preferred genres from profile — living Floor taste
-      if (preferredSet.size && preferredSet.has(t.genre)) w = Math.round(w * 2.5);
+      if (preferredSet.size && preferredSet.has(normalizeGenre(t.genre) || t.genre)) w = Math.round(w * 2.5);
       // Aura trait boost: high grip after a skip, high hold in deep sessions
       if (t._signal) {
         if (t._signal.grip >= 7) w += 1;

@@ -71,18 +71,6 @@ export function explainPick(track, { room, signalLabel, preferredGenres = [] } =
   return reasons.slice(0, 3).join(" · ");
 }
 
-/** Search empty-state curiosity prompts. */
-export const SEARCH_PROMPTS = [
-  { q: "UK Garage", label: "UK Garage", hint: "Skippy, late-night energy" },
-  { q: "Techno", label: "Techno", hint: "Driving club beats" },
-  { q: "Ambient", label: "Ambient", hint: "Calm atmosphere" },
-  { q: "Jungle", label: "Jungle", hint: "Fast breakbeats" },
-  { q: "e7", label: "Key E7", hint: "Songs in a nearby key" },
-  { q: "120bpm", label: "120 BPM", hint: "A walking pace" },
-  { q: "Neo-Soul", label: "Neo-Soul", hint: "Warm and smooth" },
-  { q: "Amapiano", label: "Amapiano", hint: "Piano house grooves" },
-];
-
 /** Similar-track framing. */
 export function hypnoStory(sourceTrack) {
   if (!sourceTrack) return "Songs that feel similar";
