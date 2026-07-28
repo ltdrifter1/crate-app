@@ -1,17 +1,10 @@
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { fontDisplay, fontMono, color } from "../../theme";
-import {
-  genreBrowseRows,
-  scenesForLane,
-  tracksForGenreLane,
-  tracksForScenePool,
-  genreStory,
-} from "../../lib/browse";
-import { getScene } from "../../lib/scenes";
+import { genreBrowseRows, tracksForGenreLane, genreStory } from "../../lib/browse";
 
 /**
- * Genre → Scene browse map for Search empty state.
- * Play CTAs set Listen for… intent (scene/genre) rather than a third queue mode.
+ * Genre-only browse for Search empty state.
+ * Scenes / dayparts stay in the background — user picks a genre to listen.
  */
 export default function GenreSceneBrowse({
   tracks = [],
@@ -22,48 +15,24 @@ export default function GenreSceneBrowse({
   TrackRow,
   onLike,
   playlistCtx,
+  activeGenre = null,
 }) {
-  const [lane, setLane] = useState(null);
-  const [sceneId, setSceneId] = useState(null);
-
   const rows = useMemo(() => genreBrowseRows(tracks), [tracks]);
-  const scenes = useMemo(() => (lane ? scenesForLane(lane) : []), [lane]);
-  const scene = sceneId ? getScene(sceneId) : null;
 
-  const pool = useMemo(() => {
-    if (sceneId) return tracksForScenePool(tracks, sceneId);
-    if (lane) return tracksForGenreLane(tracks, lane);
-    return [];
-  }, [tracks, lane, sceneId]);
-
-  const playIntent = (focus) => {
+  const playGenre = (lane) => {
     if (onListenIntent) {
-      onListenIntent(focus);
+      onListenIntent({ genre: lane, scene: null });
       return;
     }
-    if (!pool.length || !onPlayPool) return;
-    onPlayPool(pool[0], pool);
+    const pool = tracksForGenreLane(tracks, lane);
+    if (pool.length) onPlayPool?.(pool[0], pool);
   };
 
-  if (scene) {
+  // Optional: show tracks for the active listening genre
+  if (activeGenre) {
+    const pool = tracksForGenreLane(tracks, activeGenre);
     return (
       <div style={{ paddingTop: 8, animation: "rise 0.4s cubic-bezier(0.22,1,0.36,1) both" }}>
-        <button
-          type="button"
-          onClick={() => setSceneId(null)}
-          style={{
-            background: "none",
-            border: "none",
-            color: color.accent,
-            fontSize: 15,
-            fontWeight: 500,
-            cursor: "pointer",
-            padding: "4px 0 16px",
-          }}
-        >
-          ‹ {lane}
-        </button>
-
         <div style={{ marginBottom: 18 }}>
           <div style={{
             fontSize: 11,
@@ -74,7 +43,7 @@ export default function GenreSceneBrowse({
             fontFamily: fontMono,
             marginBottom: 8,
           }}>
-            Scene · {lane}
+            Listening
           </div>
           <div style={{
             fontSize: 28,
@@ -84,40 +53,15 @@ export default function GenreSceneBrowse({
             fontFamily: fontDisplay,
             marginBottom: 8,
           }}>
-            {scene.label}
+            {activeGenre}
           </div>
-          <div style={{ fontSize: 14, color: color.body, lineHeight: 1.45, maxWidth: 340, marginBottom: 14 }}>
-            {scene.story}
+          <div style={{ fontSize: 14, color: color.body, lineHeight: 1.45, marginBottom: 14 }}>
+            {genreStory(activeGenre)}
           </div>
-          <div style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 12,
-            flexWrap: "wrap",
-          }}>
-            <button
-              type="button"
-              onClick={() => playIntent({ scene: scene.id, genre: null })}
-              disabled={!pool.length}
-              style={{
-                padding: "12px 20px",
-                borderRadius: 980,
-                border: "none",
-                background: pool.length ? color.accent : color.surfaceRaised,
-                color: pool.length ? color.onAccent : color.faint,
-                fontWeight: 650,
-                fontSize: 14,
-                cursor: pool.length ? "pointer" : "default",
-              }}
-            >
-              Listen · {scene.label}
-            </button>
-            <span style={{ fontSize: 13, color: color.muted }}>
-              {pool.length} {pool.length === 1 ? "song" : "songs"}
-            </span>
+          <div style={{ fontSize: 13, color: color.muted, marginBottom: 12 }}>
+            {pool.length} songs in this genre
           </div>
         </div>
-
         {pool.map((t) => (
           <TrackRow
             key={t.id}
@@ -129,131 +73,6 @@ export default function GenreSceneBrowse({
             playlistCtx={playlistCtx}
           />
         ))}
-        {!pool.length && (
-          <div style={{ padding: "32px 0", textAlign: "center", color: color.muted, fontSize: 14 }}>
-            No songs match this scene yet.
-          </div>
-        )}
-      </div>
-    );
-  }
-
-  if (lane) {
-    const lanePool = tracksForGenreLane(tracks, lane);
-    return (
-      <div style={{ paddingTop: 8, animation: "rise 0.4s cubic-bezier(0.22,1,0.36,1) both" }}>
-        <button
-          type="button"
-          onClick={() => { setLane(null); setSceneId(null); }}
-          style={{
-            background: "none",
-            border: "none",
-            color: color.accent,
-            fontSize: 15,
-            fontWeight: 500,
-            cursor: "pointer",
-            padding: "4px 0 16px",
-          }}
-        >
-          ‹ Browse
-        </button>
-
-        <div style={{ marginBottom: 20 }}>
-          <div style={{
-            fontSize: 28,
-            fontWeight: 700,
-            letterSpacing: -0.7,
-            color: color.ink,
-            fontFamily: fontDisplay,
-            marginBottom: 8,
-          }}>
-            {lane}
-          </div>
-          <div style={{ fontSize: 14, color: color.body, lineHeight: 1.45, maxWidth: 320, marginBottom: 14 }}>
-            {genreStory(lane)}
-          </div>
-          <button
-            type="button"
-            onClick={() => playIntent({ genre: lane, scene: null })}
-            disabled={!lanePool.length}
-            style={{
-              padding: "12px 20px",
-              borderRadius: 980,
-              border: "none",
-              background: lanePool.length ? color.accent : color.surfaceRaised,
-              color: lanePool.length ? color.onAccent : color.faint,
-              fontWeight: 650,
-              fontSize: 14,
-              cursor: lanePool.length ? "pointer" : "default",
-              marginBottom: 8,
-            }}
-          >
-            Listen · {lane}
-          </button>
-          <div style={{ fontSize: 13, color: color.muted }}>
-            {lanePool.length} songs · pick a scene to go deeper
-          </div>
-        </div>
-
-        <div style={{
-          fontSize: 13,
-          fontWeight: 600,
-          color: color.muted,
-          marginBottom: 8,
-          textTransform: "uppercase",
-          letterSpacing: 0.4,
-        }}>
-          Scenes
-        </div>
-        <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
-          {scenes.map((s) => {
-            const count = tracksForScenePool(tracks, s.id).length;
-            return (
-              <button
-                key={s.id}
-                type="button"
-                onClick={() => setSceneId(s.id)}
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  gap: 12,
-                  padding: "14px 4px",
-                  background: "none",
-                  border: "none",
-                  borderBottom: `1px solid ${color.line}`,
-                  cursor: "pointer",
-                  textAlign: "left",
-                  color: color.ink,
-                }}
-              >
-                <div style={{ minWidth: 0 }}>
-                  <div style={{ fontSize: 17, fontWeight: 600, fontFamily: fontDisplay }}>
-                    {s.label}
-                  </div>
-                  <div style={{
-                    fontSize: 13,
-                    color: color.muted,
-                    marginTop: 2,
-                    overflow: "hidden",
-                    textOverflow: "ellipsis",
-                    whiteSpace: "nowrap",
-                  }}>
-                    {s.story.split("—")[0].trim()}
-                  </div>
-                </div>
-                <span style={{
-                  fontSize: 12,
-                  color: color.faint,
-                  fontFamily: fontMono,
-                  flexShrink: 0,
-                }}>
-                  {count || "·"}
-                </span>
-              </button>
-            );
-          })}
-        </div>
       </div>
     );
   }
@@ -268,17 +87,17 @@ export default function GenreSceneBrowse({
         marginBottom: 6,
         fontFamily: fontDisplay,
       }}>
-        Browse
+        Genres
       </div>
       <div style={{ fontSize: 14, color: color.muted, marginBottom: 14, lineHeight: 1.4 }}>
-        Start with a genre, then open its scenes — Play joins Listen for…
+        Pick a genre to listen. Daypart and energy run quietly in the background.
       </div>
       <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
         {rows.map((row) => (
           <button
             key={row.lane}
             type="button"
-            onClick={() => setLane(row.lane)}
+            onClick={() => playGenre(row.lane)}
             style={{
               display: "flex",
               justifyContent: "space-between",

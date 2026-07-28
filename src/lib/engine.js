@@ -1,6 +1,7 @@
 // Recommendation + session engine. Pure functions (no React / Firebase / DOM).
 import { camelotCompatible, getEnergyRangeForHour } from "./harmony";
 import { normalizeGenre } from "./genres";
+import { tasteCandidatePool } from "./taste";
 
 export function computeHumanState(recentPlays, sessionStartTime) {
   if (!recentPlays.length) return { intensity: 0.5, openness: 0.5, momentum: 0, depth: 0, direction: 0, label: "Just started" };
@@ -150,8 +151,9 @@ export function computeSignalTraits(tracks, recentPlays = []) {
 // ─── WEIGHTED RADIO PICK ──────────────────────────────────────────────────────
 // All tracks eligible; liked tracks get 3× weight
 // Priority: camelot+energy → camelot → energy → anything
-// options: { preferredGenres, signalState, seedTrack, scopedPool }
-//   preferredGenres — profile tastes get a weight boost (normalized)
+// options: { preferredGenres, signalState, seedTrack, scopedPool, tasteBlend }
+//   preferredGenres — profile tastes
+//   tasteBlend      — 95% in-taste / 5% out when preferredGenres set
 //   signalState     — human-state vector steers energy (lift / release / immersion)
 //   seedTrack       — Hypno pocket mode: stay near this track's aura + key
 //   scopedPool      — pool already daypart/scene filtered; skip hour energy gate
@@ -167,6 +169,13 @@ export function pickNextTrack(allTracks, currentTrack, memory = null, options = 
   const seedTrack = options.seedTrack || null;
   const anchor = seedTrack || currentTrack;
   const scopedPool = !!options.scopedPool;
+
+  // 95/5 taste blend — genres are the user lever; rest is background
+  let sourceTracks = allTracks;
+  if (options.tasteBlend && preferredSet.size) {
+    sourceTracks = tasteCandidatePool(allTracks, preferredGenres).tracks;
+    if (!sourceTracks.length) sourceTracks = allTracks;
+  }
 
   const hour = new Date().getHours();
   // When resolveListenPool already scoped the catalog, don't re-slice by clock hour.
@@ -206,12 +215,15 @@ export function pickNextTrack(allTracks, currentTrack, memory = null, options = 
   const momentumGenre = recentGenres.length >= 2 && recentGenres[0] === recentGenres[1] ? recentGenres[0] : null;
 
   const excludeIds = new Set([currentTrack?.id, seedTrack?.id].filter(Boolean));
-  const pool = allTracks.filter(t => !excludeIds.has(t.id) && (t.duration||0) <= 900 && !recentIds.has(t.id));
+  const pool = sourceTracks.filter(t => !excludeIds.has(t.id) && (t.duration||0) <= 900 && !recentIds.has(t.id));
   if (!pool.length) {
-    // Fallback: if recency filter emptied the pool, ignore it
-    const fallback = allTracks.filter(t => t.id !== currentTrack?.id && (t.duration||0) <= 900);
-    if (!fallback.length) return allTracks[0];
-    return fallback[Math.floor(Math.random() * fallback.length)];
+    // Fallback: if recency/taste emptied the pool, widen to source then all
+    const fallback = sourceTracks.filter(t => t.id !== currentTrack?.id && (t.duration||0) <= 900);
+    const wide = fallback.length
+      ? fallback
+      : allTracks.filter(t => t.id !== currentTrack?.id && (t.duration||0) <= 900);
+    if (!wide.length) return allTracks[0];
+    return wide[Math.floor(Math.random() * wide.length)];
   }
 
   function weightedPick(candidates) {
@@ -224,8 +236,10 @@ export function pickNextTrack(allTracks, currentTrack, memory = null, options = 
       else if (skips > 3) w = Math.max(1, Math.round(w * 0.6));
       // Genre momentum — 2× boost for tracks matching the streak
       if (momentumGenre && t.genre === momentumGenre) w *= 2;
-      // Preferred genres from profile — living Floor taste
-      if (preferredSet.size && preferredSet.has(normalizeGenre(t.genre) || t.genre)) w = Math.round(w * 2.5);
+      // Soft preferred boost only when not already taste-blending (blend owns the ratio)
+      if (!options.tasteBlend && preferredSet.size && preferredSet.has(normalizeGenre(t.genre) || t.genre)) {
+        w = Math.round(w * 2.5);
+      }
       // Aura trait boost: high grip after a skip, high hold in deep sessions
       if (t._signal) {
         if (t._signal.grip >= 7) w += 1;
