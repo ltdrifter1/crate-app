@@ -34,6 +34,8 @@ Copy `.env.example` for local ingest scripts. Never commit API keys or `serviceA
 | `npm test` | Unit tests |
 | `npm run build` | Production build |
 | `node upload-tracks.js` | Bulk add audio → Storage + Firestore (deduped) |
+| `npm run catalog:normalize-genres` | Dry-run genre remap → `genres-review.csv` |
+| `npm run catalog:normalize-genres:apply` | Write 11 canonical genres to Firestore |
 | `node clean-titles.js` | Dry-run title/artist cleanup → `titles-review.csv` |
 | `node clean-titles.js --apply` | Write cleaned titles/artists to Firestore |
 
@@ -73,19 +75,20 @@ If you already ran `firebase deploy --only firestore:rules,storage` successfully
 2. `node clean-titles.js` → review `titles-review.csv`  
 3. `node clean-titles.js --apply`
 
-### C. Normalize genres (canonical set only)
+### C. Normalize genres (11 taste lanes)
 
-Only these genres are shown in the app:
+User-facing genres in the app:
 
-`Rock, R&B, Country, Hip-Hop, House, Drum and Bass, Soul, Jazz, Classical, Metal`
+`Electronic, Hip-Hop, R&B & Soul, Pop, Rock, Metal, Jazz, Classical, Country & Folk, Reggae, Latin`
+
+Store **specific culture labels** on each track (`Techno`, `UK Garage`, `Soul`, etc.) in `genre` when you can — they map into the 11 automatically. See **[`docs/NEW_UPLOAD_PREP.md`](docs/NEW_UPLOAD_PREP.md)** and **`tracks.template.csv`**.
 
 ```bash
-cd ~/crate-app
-node normalize-genres.js          # writes genres-review.csv
-node normalize-genres.js --apply  # updates Firestore
+npm run catalog:normalize-genres        # dry-run → genres-review.csv
+npm run catalog:normalize-genres:apply  # updates Firestore
 ```
 
-Legacy labels (Techno, Ambient, Funk, etc.) are remapped; unknown genres are cleared.
+Legacy labels (House, Drum and Bass, Funk, etc.) remap via `src/lib/genre-normalize.shared.cjs`; unknown genres are cleared.
 
 ### D. Add a lot more tracks
 
@@ -102,7 +105,7 @@ Legacy labels (Techno, Ambient, Funk, etc.) are remapped; unknown genres are cle
 |---|---|
 | `serviceAccountKey.json` | Firebase Console → Project Settings → Service Accounts → Generate new private key |
 | `audio/` + `covers/` | Your library / playlist builder |
-| `tracks.csv` | Playlist builder or hand-written |
+| `tracks.csv` | Copy from `tracks.template.csv` — see [`docs/NEW_UPLOAD_PREP.md`](docs/NEW_UPLOAD_PREP.md) |
 | `.env` | Copy `.env.example` for Discogs/Last.fm |
 
 ---
