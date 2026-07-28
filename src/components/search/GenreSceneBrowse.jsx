@@ -11,11 +11,12 @@ import { getScene } from "../../lib/scenes";
 
 /**
  * Genre → Scene browse map for Search empty state.
- * Drill: genres → scenes for that lane → filtered pool (play, not query-only).
+ * Play CTAs set Listen for… intent (scene/genre) rather than a third queue mode.
  */
 export default function GenreSceneBrowse({
   tracks = [],
   onPlayPool,
+  onListenIntent,
   currentTrack,
   isPlaying,
   TrackRow,
@@ -35,7 +36,11 @@ export default function GenreSceneBrowse({
     return [];
   }, [tracks, lane, sceneId]);
 
-  const playPool = () => {
+  const playIntent = (focus) => {
+    if (onListenIntent) {
+      onListenIntent(focus);
+      return;
+    }
     if (!pool.length || !onPlayPool) return;
     onPlayPool(pool[0], pool);
   };
@@ -92,7 +97,7 @@ export default function GenreSceneBrowse({
           }}>
             <button
               type="button"
-              onClick={playPool}
+              onClick={() => playIntent({ scene: scene.id, genre: null })}
               disabled={!pool.length}
               style={{
                 padding: "12px 20px",
@@ -105,7 +110,7 @@ export default function GenreSceneBrowse({
                 cursor: pool.length ? "pointer" : "default",
               }}
             >
-              Play scene
+              Listen · {scene.label}
             </button>
             <span style={{ fontSize: 13, color: color.muted }}>
               {pool.length} {pool.length === 1 ? "song" : "songs"}
@@ -169,7 +174,7 @@ export default function GenreSceneBrowse({
           </div>
           <button
             type="button"
-            onClick={() => onPlayPool?.(lanePool[0], lanePool)}
+            onClick={() => playIntent({ genre: lane, scene: null })}
             disabled={!lanePool.length}
             style={{
               padding: "12px 20px",
@@ -183,7 +188,7 @@ export default function GenreSceneBrowse({
               marginBottom: 8,
             }}
           >
-            Play all {lane}
+            Listen · {lane}
           </button>
           <div style={{ fontSize: 13, color: color.muted }}>
             {lanePool.length} songs · pick a scene to go deeper
@@ -266,7 +271,7 @@ export default function GenreSceneBrowse({
         Browse
       </div>
       <div style={{ fontSize: 14, color: color.muted, marginBottom: 14, lineHeight: 1.4 }}>
-        Start with a genre, then open its scenes.
+        Start with a genre, then open its scenes — Play joins Listen for…
       </div>
       <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
         {rows.map((row) => (

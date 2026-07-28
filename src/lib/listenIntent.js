@@ -1,9 +1,24 @@
 /**
- * Unified "Listen for…" intents — daypart radio + timed-mix vibes.
+ * Unified "Listen for…" intents — daypart radio + timed-mix vibes + browse focus.
  */
 
 import { MIX_LANES, mixLaneById, mixLaneForDate } from "./mixLanes";
 import { SESSION_PROFILES } from "./engine";
+import {
+  createListenIntent,
+  resolveListenPool,
+  listenPoolLabel,
+  listenFocusLabel,
+  resolveDaypart,
+} from "./listenPool";
+
+export {
+  createListenIntent,
+  resolveListenPool,
+  listenPoolLabel,
+  listenFocusLabel,
+  resolveDaypart,
+};
 
 /** Clock dayparts as radio intents. */
 export function daypartIntents() {

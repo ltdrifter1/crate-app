@@ -1,16 +1,25 @@
 import { fontDisplay, fontMono, color } from "../../theme";
-import { daypartIntents, vibeIntents, suggestedDaypart } from "../../lib/listenIntent";
+import {
+  daypartIntents,
+  vibeIntents,
+  suggestedDaypart,
+  listenFocusLabel,
+} from "../../lib/listenIntent";
 import { mixLaneById } from "../../lib/mixLanes";
 
 /**
- * Unified Listen for… sheet — daypart radio + timed-mix vibes in one intent family.
+ * Unified Listen for… sheet — daypart + vibe + optional browse focus.
+ * All starts resolve through the same listen pool.
  */
 export default function ListenForSheet({
   onClose,
   mixLane,
   mixLaneLocked = false,
+  listenFocus = null,
+  intentLabel = "",
   onSelectDaypart,
   onFollowClock,
+  onClearFocus,
   onSelectVibe,
   onStartRadio,
 }) {
@@ -18,6 +27,7 @@ export default function ListenForSheet({
   const dayparts = daypartIntents();
   const vibes = vibeIntents();
   const active = mixLaneById(mixLane);
+  const focusLabel = listenFocusLabel(listenFocus || {});
 
   return (
     <div style={{ position: "fixed", inset: 0, zIndex: 100, overflow: "hidden" }}>
@@ -106,16 +116,64 @@ export default function ListenForSheet({
             What are you here for?
           </h2>
           <p style={{
-            margin: "0 0 28px",
+            margin: "0 0 20px",
             fontSize: 15,
             color: color.body,
             lineHeight: 1.45,
             maxWidth: 340,
           }}>
-            Daypart radio for right now, or a timed mix for a stretch of time.
+            One pool for radio and timed mixes — daypart, vibe, and browse focus stack together.
           </p>
 
-          {/* Right now — dayparts */}
+          {focusLabel && (
+            <div style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              gap: 12,
+              marginBottom: 28,
+              padding: "12px 0",
+              borderTop: `1px solid ${color.line}`,
+              borderBottom: `1px solid ${color.line}`,
+            }}>
+              <div>
+                <div style={{
+                  fontSize: 11,
+                  fontWeight: 650,
+                  letterSpacing: 1.2,
+                  textTransform: "uppercase",
+                  color: color.faint,
+                  fontFamily: fontMono,
+                  marginBottom: 4,
+                }}>
+                  Focus
+                </div>
+                <div style={{ fontSize: 17, fontWeight: 650, fontFamily: fontDisplay, color: color.ink }}>
+                  {focusLabel}
+                </div>
+              </div>
+              {onClearFocus && (
+                <button
+                  type="button"
+                  onClick={onClearFocus}
+                  style={{
+                    padding: "8px 14px",
+                    borderRadius: 980,
+                    border: `1px solid ${color.lineStrong}`,
+                    background: "transparent",
+                    color: color.body,
+                    fontSize: 13,
+                    fontWeight: 600,
+                    cursor: "pointer",
+                    flexShrink: 0,
+                  }}
+                >
+                  Clear
+                </button>
+              )}
+            </div>
+          )}
+
           <div style={{
             fontSize: 12,
             fontWeight: 650,
@@ -132,7 +190,7 @@ export default function ListenForSheet({
             fontSize: 13,
             color: color.muted,
           }}>
-            Playing {active.label}
+            {intentLabel || `Playing ${active.label}`}
             {mixLaneLocked ? " · locked" : ` · clock says ${clock.label}`}
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: 0, marginBottom: 12 }}>
@@ -222,12 +280,11 @@ export default function ListenForSheet({
                   cursor: "pointer",
                 }}
               >
-                Start {active.label} radio
+                Start {intentLabel || `${active.label} radio`}
               </button>
             )}
           </div>
 
-          {/* For a while — vibes */}
           <div style={{
             fontSize: 12,
             fontWeight: 650,
@@ -245,7 +302,8 @@ export default function ListenForSheet({
             color: color.muted,
             lineHeight: 1.4,
           }}>
-            Timed mixes with an energy arc — pick a vibe, then a length.
+            Timed mixes with an energy arc
+            {focusLabel ? ` · stays in ${focusLabel}` : ""}.
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
             {vibes.map((v) => (
