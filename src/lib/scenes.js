@@ -1,5 +1,5 @@
 /**
- * Scene taxonomy — culture-first labels that survive the coarse 10-genre store.
+ * Scene taxonomy — culture-first labels that survive the coarse 11-genre store.
  *
  * `normalizeGenre()` still collapses for admin/Firestore compatibility.
  * Scenes restore UK Garage, Techno, Ambient, Jungle, etc. for discovery UX.
@@ -56,7 +56,7 @@ export const SCENES = [
     id: "house",
     label: "House",
     familyId: "dancefloor",
-    lane: "House",
+    lane: "Electronic",
     story: "The wide floor — Chicago inheritance, still moving.",
     atmosphere: "warmup",
     energy: [4, 8],
@@ -70,7 +70,7 @@ export const SCENES = [
     id: "deep-house",
     label: "Deep House",
     familyId: "dancefloor",
-    lane: "House",
+    lane: "Electronic",
     story: "Warm pads, patient drums — the afterglow of the floor.",
     atmosphere: "night-fog",
     energy: [3, 6],
@@ -84,7 +84,7 @@ export const SCENES = [
     id: "tech-house",
     label: "Tech House",
     familyId: "dancefloor",
-    lane: "House",
+    lane: "Electronic",
     story: "House bones with techno muscle.",
     atmosphere: "concrete",
     energy: [6, 9],
@@ -98,7 +98,7 @@ export const SCENES = [
     id: "techno",
     label: "Techno",
     familyId: "dancefloor",
-    lane: "House",
+    lane: "Electronic",
     story: "Machines with intent — Detroit to Berlin lineage.",
     atmosphere: "factory-glow",
     energy: [6, 10],
@@ -112,7 +112,7 @@ export const SCENES = [
     id: "minimal",
     label: "Minimal",
     familyId: "dancefloor",
-    lane: "House",
+    lane: "Electronic",
     story: "Reduction as drama — space between the hits.",
     atmosphere: "dark",
     energy: [4, 7],
@@ -126,7 +126,7 @@ export const SCENES = [
     id: "disco",
     label: "Disco",
     familyId: "dancefloor",
-    lane: "House",
+    lane: "Electronic",
     story: "Strings, four-on-the-floor joy, mirrorball inheritance.",
     atmosphere: "heat-haze",
     energy: [5, 8],
@@ -140,7 +140,7 @@ export const SCENES = [
     id: "progressive",
     label: "Progressive",
     familyId: "dancefloor",
-    lane: "House",
+    lane: "Electronic",
     story: "Long arcs — builds that refuse to rush the drop.",
     atmosphere: "peak",
     energy: [5, 8],
@@ -154,7 +154,7 @@ export const SCENES = [
     id: "trance",
     label: "Trance",
     familyId: "dancefloor",
-    lane: "House",
+    lane: "Electronic",
     story: "Uplift as architecture — long melodies, bigger rooms.",
     atmosphere: "peak",
     energy: [6, 9],
@@ -168,7 +168,7 @@ export const SCENES = [
     id: "acid",
     label: "Acid",
     familyId: "dancefloor",
-    lane: "House",
+    lane: "Electronic",
     story: "303 squelch — Chicago inheritance that never went quiet.",
     atmosphere: "factory-glow",
     energy: [5, 9],
@@ -182,7 +182,7 @@ export const SCENES = [
     id: "amapiano",
     label: "Amapiano",
     familyId: "dancefloor",
-    lane: "House",
+    lane: "Electronic",
     story: "Log drums and patience — South African Sunday pressure.",
     atmosphere: "heat-haze",
     energy: [4, 7],
@@ -196,7 +196,7 @@ export const SCENES = [
     id: "footwork",
     label: "Footwork / Juke",
     familyId: "dancefloor",
-    lane: "House",
+    lane: "Electronic",
     story: "Chicago double-time — feet as the lead instrument.",
     atmosphere: "concrete",
     energy: [7, 10],
@@ -210,7 +210,7 @@ export const SCENES = [
     id: "industrial",
     label: "Industrial",
     familyId: "dancefloor",
-    lane: "House",
+    lane: "Electronic",
     story: "Metal on metal — warehouse severity without apology.",
     atmosphere: "factory-glow",
     energy: [7, 10],
@@ -226,7 +226,7 @@ export const SCENES = [
     id: "drum-and-bass",
     label: "Drum and Bass",
     familyId: "bass",
-    lane: "Drum and Bass",
+    lane: "Electronic",
     story: "Break science at velocity — London's long shadow.",
     atmosphere: "tube-hum",
     energy: [7, 10],
@@ -240,7 +240,7 @@ export const SCENES = [
     id: "jungle",
     label: "Jungle",
     familyId: "bass",
-    lane: "Drum and Bass",
+    lane: "Electronic",
     story: "Chopped breaks, ragga toast, pirate heat.",
     atmosphere: "neon-damp",
     energy: [7, 10],
@@ -254,7 +254,7 @@ export const SCENES = [
     id: "liquid",
     label: "Liquid",
     familyId: "bass",
-    lane: "Drum and Bass",
+    lane: "Electronic",
     story: "Rolling drums, soft pads — DnB that still breathes.",
     atmosphere: "night-fog",
     energy: [5, 8],
@@ -268,7 +268,7 @@ export const SCENES = [
     id: "uk-garage",
     label: "UK Garage",
     familyId: "bass",
-    lane: "House",
+    lane: "Electronic",
     story: "Skip, shuffle, late bus home — 2-step and beyond.",
     atmosphere: "neon-damp",
     energy: [5, 8],
@@ -282,7 +282,7 @@ export const SCENES = [
     id: "broken-beat",
     label: "Broken Beat",
     familyId: "bass",
-    lane: "House",
+    lane: "Electronic",
     story: "Off-grid swing — West London's secret handshake.",
     atmosphere: "amber-lamp",
     energy: [4, 7],
@@ -296,7 +296,7 @@ export const SCENES = [
     id: "dubstep",
     label: "Dubstep",
     familyId: "bass",
-    lane: "Drum and Bass",
+    lane: "Electronic",
     story: "Half-time weight — Croydon inheritance, global mutation.",
     atmosphere: "dark",
     energy: [5, 9],
@@ -324,7 +324,7 @@ export const SCENES = [
     id: "breakbeat",
     label: "Breakbeat",
     familyId: "bass",
-    lane: "Drum and Bass",
+    lane: "Electronic",
     story: "Broken drums without the DnB ceiling.",
     atmosphere: "concrete",
     energy: [5, 8],
@@ -340,7 +340,7 @@ export const SCENES = [
     id: "ambient",
     label: "Ambient",
     familyId: "afterhours",
-    lane: "House",
+    lane: "Electronic",
     story: "Atmosphere as composition — no rush to arrive.",
     atmosphere: "rain-glass",
     energy: [1, 3],
@@ -354,7 +354,7 @@ export const SCENES = [
     id: "downtempo",
     label: "Downtempo",
     familyId: "afterhours",
-    lane: "House",
+    lane: "Electronic",
     story: "Head-nod pace — trip-hop cousins and late listening.",
     atmosphere: "dawn-haze",
     energy: [2, 5],
@@ -384,7 +384,7 @@ export const SCENES = [
     id: "soul",
     label: "Soul",
     familyId: "soul-continuum",
-    lane: "Soul",
+    lane: "R&B & Soul",
     story: "The voice as instrument — Motown heat to quiet storm.",
     atmosphere: "amber-lamp",
     energy: [3, 7],
@@ -398,7 +398,7 @@ export const SCENES = [
     id: "funk",
     label: "Funk",
     familyId: "soul-continuum",
-    lane: "Soul",
+    lane: "R&B & Soul",
     story: "The one — pocket first, everything else second.",
     atmosphere: "heat-haze",
     energy: [5, 8],
@@ -412,7 +412,7 @@ export const SCENES = [
     id: "neo-soul",
     label: "Neo-Soul",
     familyId: "soul-continuum",
-    lane: "Soul",
+    lane: "R&B & Soul",
     story: "Hip-hop era soul — live drums meeting sampler memory.",
     atmosphere: "amber-lamp",
     energy: [3, 6],
@@ -426,7 +426,7 @@ export const SCENES = [
     id: "rnb",
     label: "R&B",
     familyId: "soul-continuum",
-    lane: "R&B",
+    lane: "R&B & Soul",
     story: "Contemporary voice craft — from quiet storm to 808 gloss.",
     atmosphere: "night-fog",
     energy: [3, 7],
@@ -440,7 +440,7 @@ export const SCENES = [
     id: "gospel",
     label: "Gospel",
     familyId: "soul-continuum",
-    lane: "Soul",
+    lane: "R&B & Soul",
     story: "Testimony and choir — the root under so much floor music.",
     atmosphere: "dawn-haze",
     energy: [4, 8],
@@ -470,13 +470,13 @@ export const SCENES = [
     id: "afrobeat",
     label: "Afrobeat",
     familyId: "jazz-world",
-    lane: "Soul",
+    lane: "Pop",
     story: "Polyrhythm as politics — Lagos to the world stage.",
     atmosphere: "heat-haze",
     energy: [5, 8],
     bpm: [100, 130],
-    aliases: ["afrobeat", "afrobeats", "afro house", "afro-house"],
-    keywords: ["afrobeat", "afrobeats", "fela", "afro house"],
+    aliases: ["afrobeat", "afrobeats"],
+    keywords: ["afrobeat", "afrobeats", "fela"],
     related: ["funk", "house", "jazz"],
     cities: ["Lagos", "London", "Accra"],
   },
@@ -484,7 +484,7 @@ export const SCENES = [
     id: "reggae",
     label: "Reggae",
     familyId: "jazz-world",
-    lane: "Soul",
+    lane: "Reggae",
     story: "One drop and spiritual bass — Kingston as mother city.",
     atmosphere: "heat-haze",
     energy: [3, 6],
@@ -498,7 +498,7 @@ export const SCENES = [
     id: "dub",
     label: "Dub",
     familyId: "jazz-world",
-    lane: "Soul",
+    lane: "Reggae",
     story: "Space as instrument — delay, drop-out, version culture.",
     atmosphere: "night-fog",
     energy: [2, 5],
@@ -512,7 +512,7 @@ export const SCENES = [
     id: "dancehall",
     label: "Dancehall",
     familyId: "jazz-world",
-    lane: "Soul",
+    lane: "Reggae",
     story: "Slackness and toasting — the sound system as stage.",
     atmosphere: "heat-haze",
     energy: [5, 8],
@@ -526,7 +526,7 @@ export const SCENES = [
     id: "latin",
     label: "Latin",
     familyId: "jazz-world",
-    lane: "Jazz",
+    lane: "Latin",
     story: "Clave, montuno, and diaspora floor music.",
     atmosphere: "heat-haze",
     energy: [4, 8],
@@ -586,7 +586,7 @@ export const SCENES = [
     id: "folk",
     label: "Folk / Americana",
     familyId: "rock-roots",
-    lane: "Country",
+    lane: "Country & Folk",
     story: "Songs that travel by road and porch.",
     atmosphere: "dawn-haze",
     energy: [2, 5],
@@ -676,20 +676,22 @@ function inBand(value, band, fallback = true) {
 
 /**
  * Infer primary scene for a track.
- * Works even when genre was collapsed to a coarse lane (e.g. House).
+ * Works even when genre was collapsed to a coarse lane (e.g. Electronic / legacy House).
  */
 export function inferScene(track) {
   if (!track) return null;
 
   const BROAD_SCENE_IDS = new Set([
-    "house", "hip-hop", "rock", "soul", "jazz", "rnb", "metal", "classical", "drum-and-bass", "folk",
+    "house", "hip-hop", "rock", "soul", "jazz", "rnb", "metal", "classical",
+    "drum-and-bass", "folk", "reggae", "latin",
   ]);
 
   const fromGenre = matchSceneFromText(track.genre);
   const lane = normalizeGenre(track.genre);
+  const rawGenre = String(track.genre || "").trim().toLowerCase();
   const genreIsCoarse =
     !track.genre ||
-    CANONICAL_SET_LOCAL.has(String(track.genre).trim().toLowerCase()) ||
+    CANONICAL_SET_LOCAL.has(rawGenre) ||
     (fromGenre && BROAD_SCENE_IDS.has(fromGenre.id));
 
   // Specific genre strings (UK Garage, Techno, Ambient…) win immediately
@@ -701,21 +703,20 @@ export function inferScene(track) {
   const bpm = track.bpm;
   const energy = track.energy ?? 5;
 
-  if (lane === "House" || (!lane && genreIsCoarse)) {
+  if (lane === "Electronic" || (!lane && genreIsCoarse)) {
+    // DnB / jungle first when tempo is clearly break-science
+    if (bpm && bpm >= 155) {
+      if (bpm < 165) return getScene("jungle");
+      return getScene("drum-and-bass");
+    }
     if (bpm && bpm >= 128 && energy >= 7) return getScene("techno");
     if (bpm && bpm >= 130 && bpm <= 136 && energy >= 5 && energy <= 8) return getScene("uk-garage");
     if (bpm && bpm >= 128 && bpm <= 138 && energy >= 6) return getScene("tech-house");
-    // Soft House in house BPM → deep; only drop to ambient when tempo is slow
+    // Soft house BPM → deep; only drop to ambient when tempo is slow
     if (energy <= 5 && bpm && bpm >= 110 && bpm <= 126) return getScene("deep-house");
     if (energy <= 3 && (!bpm || bpm <= 105)) return getScene("ambient");
     if (energy <= 5 && !bpm) return getScene("deep-house");
     if (bpm && bpm < 118 && energy >= 5) return getScene("disco");
-  }
-
-  if (lane === "Drum and Bass") {
-    if (bpm && bpm < 165) return getScene("jungle");
-    // Soft keywords for liquid live in keyword pass; default to DnB
-    return getScene("drum-and-bass");
   }
 
   if (lane === "Hip-Hop") {
@@ -723,18 +724,23 @@ export function inferScene(track) {
     return getScene("hip-hop");
   }
 
-  if (lane === "Soul") {
+  if (lane === "R&B & Soul") {
+    if (rawGenre.includes("r&b") || rawGenre.includes("rnb") || rawGenre === "r and b") {
+      return getScene("rnb");
+    }
     if (energy >= 6) return getScene("funk");
     if (energy <= 4) return getScene("neo-soul");
     return getScene("soul");
   }
 
-  if (lane === "R&B") return getScene("rnb");
   if (lane === "Jazz") return getScene("jazz");
   if (lane === "Classical") return getScene("classical");
   if (lane === "Metal") return getScene("metal");
   if (lane === "Rock") return getScene("rock");
-  if (lane === "Country") return getScene("folk");
+  if (lane === "Country & Folk") return getScene("folk");
+  if (lane === "Reggae") return getScene("reggae");
+  if (lane === "Latin") return getScene("latin");
+  if (lane === "Pop") return fromGenre || null;
 
   // Keyword scoring — ignore the broad lane name echoing itself
   const scored = SCENES.map((scene) => {
@@ -743,7 +749,7 @@ export function inferScene(track) {
     (scene.keywords || []).forEach((k) => {
       const key = k.toLowerCase();
       // Don't let genre:"House" crown the House scene via its own keyword
-      if (BROAD_SCENE_IDS.has(scene.id) && key === String(track.genre || "").toLowerCase()) return;
+      if (BROAD_SCENE_IDS.has(scene.id) && key === rawGenre) return;
       if (blob.includes(key)) score += 3;
     });
     if (lane && scene.lane === lane) score += 0.5;
@@ -756,13 +762,16 @@ export function inferScene(track) {
 
   if (scored[0]) return scored[0].scene;
   if (fromGenre) return fromGenre;
-  if (lane === "House") return getScene("house");
+  if (lane === "Electronic") return getScene("house");
   return null;
 }
 
-// Local set mirroring canonical genres for coarse detection (avoid circular import churn)
+// Local set mirroring canonical + legacy store values for coarse detection
 const CANONICAL_SET_LOCAL = new Set([
-  "rock", "r&b", "country", "hip-hop", "house", "drum and bass", "soul", "jazz", "classical", "metal",
+  "electronic", "hip-hop", "r&b & soul", "pop", "rock", "metal", "jazz", "classical",
+  "country & folk", "reggae", "latin",
+  // legacy store values still in Firestore
+  "house", "drum and bass", "soul", "r&b", "country",
 ]);
 
 /** Secondary scene tags (related + weaker keyword hits). */

@@ -36,7 +36,7 @@ describe("mixLanes", () => {
     expect(pool.some((t) => t.id === "5")).toBe(false);
   });
 
-  test("House and Hip-Hop fit both dayparts", () => {
+  test("Electronic and Hip-Hop fit both dayparts", () => {
     const house = tracks.find((t) => t.id === "2");
     const hip = tracks.find((t) => t.id === "4");
     expect(trackFitsDaytime(house)).toBe(true);

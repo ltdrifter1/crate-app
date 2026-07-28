@@ -87,7 +87,7 @@ describe("pickNextTrack", () => {
     const lib = [cur, house, rock];
     const counts = { house: 0, rock: 0 };
     for (let i = 0; i < 80; i++) {
-      const next = pickNextTrack(lib, cur, null, { preferredGenres: ["House"] });
+      const next = pickNextTrack(lib, cur, null, { preferredGenres: ["Electronic"] });
       counts[next.id] += 1;
     }
     expect(counts.house).toBeGreaterThan(counts.rock);

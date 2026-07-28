@@ -22,9 +22,9 @@ export function mixLaneForDate(dateOrHour = new Date()) {
 }
 
 /** Genres that fit both dayparts. */
-const BOTH_GENRES = new Set(["House", "Hip-Hop", "R&B", "Soul"]);
+const BOTH_GENRES = new Set(["Electronic", "Hip-Hop", "R&B & Soul", "Pop", "Reggae", "Latin"]);
 /** Day-leaning genres — still allowed at night when energy is soft enough. */
-const DAY_LEAN_GENRES = new Set(["Rock", "Metal", "Drum and Bass", "Country"]);
+const DAY_LEAN_GENRES = new Set(["Rock", "Metal", "Country & Folk"]);
 /** Night-leaning genres — still allowed by day when energy is bright enough. */
 const NIGHT_LEAN_GENRES = new Set(["Jazz", "Classical"]);
 

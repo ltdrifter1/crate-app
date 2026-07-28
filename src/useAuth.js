@@ -20,6 +20,7 @@ import {
 } from "firebase/firestore";
 import { auth, db } from "./firebase";
 import { normalizePhoneE164 } from "./lib/phone";
+import { migratePreferredGenres } from "./lib/genres";
 
 const REDIRECT_ERROR_KEY = "rooms.auth.redirectError";
 
@@ -147,8 +148,9 @@ export function useAuth() {
       const snap = await getDoc(doc(db, "users", fbUser.uid));
       if (snap.exists()) {
         const data = snap.data();
-        setProfile(data);
-        return data;
+        const genres = migratePreferredGenres(data.genres);
+        setProfile({ ...data, genres });
+        return { ...data, genres };
       }
       const created = await createProfile(fbUser.uid, {
         email: fbUser.email || "",

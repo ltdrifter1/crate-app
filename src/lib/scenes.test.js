@@ -31,12 +31,12 @@ describe("scene taxonomy", () => {
     expect(matchSceneFromText("DnB")?.id).toBe("drum-and-bass");
   });
 
-  test("inferScene recovers techno from House + high energy/bpm", () => {
+  test("inferScene recovers techno from Electronic/House + high energy/bpm", () => {
     const t = { genre: "House", energy: 9, bpm: 132, title: "Pulse", artist: "X" };
     expect(inferScene(t)?.id).toBe("techno");
   });
 
-  test("inferScene recovers deep house from soft House", () => {
+  test("inferScene recovers deep house from soft Electronic", () => {
     const t = { genre: "House", energy: 3, bpm: 120, title: "Warm", artist: "Y" };
     expect(inferScene(t)?.id).toBe("deep-house");
   });
@@ -44,6 +44,17 @@ describe("scene taxonomy", () => {
   test("inferScene uses keywords even when genre is coarse", () => {
     const t = { genre: "House", energy: 6, bpm: 132, artist: "DJ EZ", title: "Garage Set", album: "UKG" };
     expect(inferScene(t)?.id).toBe("uk-garage");
+  });
+
+  test("inferScene maps DnB tempo under Electronic", () => {
+    expect(inferScene({ genre: "Electronic", bpm: 174, energy: 8 })?.id).toBe("drum-and-bass");
+    expect(inferScene({ genre: "Drum and Bass", bpm: 160, energy: 7 })?.id).toBe("jungle");
+  });
+
+  test("inferScene maps R&B & Soul and Country & Folk", () => {
+    expect(inferScene({ genre: "Soul", energy: 5 })?.id).toBe("soul");
+    expect(inferScene({ genre: "R&B", energy: 5 })?.id).toBe("rnb");
+    expect(inferScene({ genre: "Country" })?.id).toBe("folk");
   });
 
   test("enrichTracksWithScenes attaches _scene", () => {

@@ -176,7 +176,7 @@ export function suggestPath(tracks = [], { preferredGenres = [], seedTrack = nul
     return paths.find((p) => p.id === "detroit-berlin") || paths[0];
   }
   const houseLean = preferredGenres.some((g) =>
-    ["House", "Drum and Bass"].includes(normalizeGenre(g) || g)
+    normalizeGenre(g) === "Electronic" || g === "Electronic"
   );
   if (houseLean) {
     return paths.find((p) => p.id === "hidden-to-peak") || paths[0];
