@@ -17,7 +17,8 @@ const catalog = [
 
 describe("resolveListenPool", () => {
   test("createListenIntent normalizes genre", () => {
-    expect(createListenIntent({ genre: "techno" }).genre).toBe("House");
+    expect(createListenIntent({ genre: "techno" }).genre).toBe("Electronic");
+    expect(createListenIntent({ genre: "House" }).genre).toBe("Electronic");
     expect(createListenIntent({ scene: "uk-garage" }).scene).toBe("uk-garage");
   });
 
@@ -37,10 +38,10 @@ describe("resolveListenPool", () => {
     expect(label).toMatch(/UK Garage/);
   });
 
-  test("genre focus keeps House lane including techno storage", () => {
+  test("genre focus keeps Electronic lane including techno/house storage", () => {
     const { tracks } = resolveListenPool(catalog, {
       daypart: "nighttime",
-      genre: "House",
+      genre: "Electronic",
     }, { applyDaypart: false });
     expect(tracks.map((t) => t.id).sort()).toEqual(["1", "3", "5"]);
   });
@@ -65,7 +66,7 @@ describe("resolveListenPool", () => {
   });
 
   test("requireAudio drops silent tracks", () => {
-    const { tracks } = resolveListenPool(catalog, { genre: "House" }, {
+    const { tracks } = resolveListenPool(catalog, { genre: "Electronic" }, {
       requireAudio: true,
       applyDaypart: false,
     });
@@ -81,7 +82,7 @@ describe("resolveListenPool", () => {
   test("listenPoolLabel composes focus + daypart or vibe", () => {
     expect(listenPoolLabel({ daypart: "daytime" })).toBe("Daytime");
     expect(listenPoolLabel({ daypart: "nighttime", scene: "techno" })).toBe("Techno · Nighttime");
-    expect(listenPoolLabel({ vibe: "drive", genre: "Soul" })).toBe("Soul · Drive");
+    expect(listenPoolLabel({ vibe: "drive", genre: "Soul" })).toBe("R&B & Soul · Drive");
     expect(listenFocusLabel({ scene: "ambient" })).toBe("Ambient");
     expect(listenFocusLabel({})).toBeNull();
   });

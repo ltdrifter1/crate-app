@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { CANONICAL_GENRES } from "../../lib/genres";
+import { CANONICAL_GENRES, migratePreferredGenres } from "../../lib/genres";
 import { font, fontDisplay, fontMono, color, BTN_PRIMARY } from "../../theme";
 import BrandMark from "../brand/BrandMark";
 
@@ -16,7 +16,7 @@ export default function GenreTasteOnboarding({
   allowSkip = true,
 }) {
   const [selected, setSelected] = useState(() =>
-    (initialGenres || []).filter((g) => CANONICAL_GENRES.includes(g))
+    migratePreferredGenres(initialGenres)
   );
 
   function toggle(g) {

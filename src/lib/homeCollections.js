@@ -25,7 +25,7 @@ export function softEvening(tracks = [], limit = 12) {
     .filter((t) => {
       const e = t.energy || 5;
       const g = normalizeGenre(t.genre);
-      return e <= 4 && ["Soul", "Jazz", "R&B", "Classical"].includes(g);
+      return e <= 4 && ["R&B & Soul", "Jazz", "Classical"].includes(g);
     })
     .slice(0, limit);
 }

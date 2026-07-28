@@ -36,7 +36,7 @@ export const CULTURE_ROOMS = [
     filter: (t) => {
       const e = t.energy || 5;
       const g = normalizeGenre(t.genre);
-      return e <= 4 && ["Soul", "Jazz", "R&B", "Classical"].includes(g);
+      return e <= 4 && ["R&B & Soul", "Jazz", "Classical"].includes(g);
     },
   },
   {
@@ -85,7 +85,7 @@ export const CULTURE_ROOMS = [
       const e = t.energy || 5;
       const g = normalizeGenre(t.genre);
       return e >= 6 && (
-        ["House", "Drum and Bass", "Hip-Hop"].includes(g) ||
+        ["Electronic", "Hip-Hop"].includes(g) ||
         trackMatchesScene(t, "techno") ||
         trackMatchesScene(t, "tech-house")
       );
@@ -100,7 +100,7 @@ export const CULTURE_ROOMS = [
     atmosphere: "amber-lamp",
     filter: (t) => {
       const g = normalizeGenre(t.genre);
-      return g === "Jazz" || (g === "Soul" && (t.energy || 5) <= 5);
+      return g === "Jazz" || (g === "R&B & Soul" && (t.energy || 5) <= 5);
     },
   },
   {
@@ -113,7 +113,7 @@ export const CULTURE_ROOMS = [
     filter: (t) => {
       const e = t.energy || 5;
       const g = normalizeGenre(t.genre);
-      return e <= 5 && ["Soul", "Jazz", "R&B", "Classical", "Rock"].includes(g);
+      return e <= 5 && ["R&B & Soul", "Jazz", "Classical", "Rock"].includes(g);
     },
   },
   {
@@ -126,7 +126,7 @@ export const CULTURE_ROOMS = [
     filter: (t) => {
       const e = t.energy || 5;
       const g = normalizeGenre(t.genre);
-      return e >= 5 && ["House", "Soul", "R&B", "Hip-Hop", "Rock"].includes(g);
+      return e >= 5 && ["Electronic", "R&B & Soul", "Hip-Hop", "Rock", "Pop", "Latin", "Reggae"].includes(g);
     },
   },
   {
@@ -153,7 +153,7 @@ export const CULTURE_ROOMS = [
         scene?.id === "techno" ||
         a.includes("detroit") ||
         al.includes("detroit") ||
-        (normalizeGenre(t.genre) === "House" && (t.energy || 5) >= 6)
+        (normalizeGenre(t.genre) === "Electronic" && (t.energy || 5) >= 6)
       );
     },
   },
@@ -167,7 +167,7 @@ export const CULTURE_ROOMS = [
     filter: (t) => {
       const scene = inferScene(t);
       return ["uk-garage", "drum-and-bass", "jungle", "grime", "broken-beat", "dubstep"].includes(scene?.id) ||
-        ["Drum and Bass", "Hip-Hop"].includes(normalizeGenre(t.genre));
+        ["Electronic", "Hip-Hop"].includes(normalizeGenre(t.genre));
     },
   },
   {
@@ -180,7 +180,7 @@ export const CULTURE_ROOMS = [
     filter: (t) => {
       const scene = inferScene(t);
       return ["house", "deep-house", "jazz", "soul", "ambient"].includes(scene?.id) ||
-        ["Jazz", "Soul"].includes(normalizeGenre(t.genre));
+        ["Jazz", "R&B & Soul"].includes(normalizeGenre(t.genre));
     },
   },
 ];

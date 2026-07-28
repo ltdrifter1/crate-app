@@ -12,19 +12,21 @@ const catalog = [
   { id: "2", genre: "Jazz", duration: 190 },
   { id: "3", genre: "House", duration: 200 },
   { id: "4", genre: "Rock", duration: 210 },
-  { id: "5", genre: "Techno", duration: 220 }, // → House
+  { id: "5", genre: "Techno", duration: 220 }, // → Electronic
 ];
 
 describe("taste blend", () => {
   test("splitTastePool groups by preferred genres", () => {
-    const { inTaste, outTaste } = splitTastePool(catalog, ["Jazz", "House"]);
+    const { inTaste, outTaste } = splitTastePool(catalog, ["Jazz", "Electronic"]);
     expect(inTaste.map((t) => t.id).sort()).toEqual(["1", "2", "3", "5"]);
     expect(outTaste.map((t) => t.id)).toEqual(["4"]);
   });
 
   test("trackInTaste normalizes aliases", () => {
-    expect(trackInTaste({ genre: "Techno" }, ["House"])).toBe(true);
-    expect(trackInTaste({ genre: "Rock" }, ["House"])).toBe(false);
+    expect(trackInTaste({ genre: "Techno" }, ["Electronic"])).toBe(true);
+    expect(trackInTaste({ genre: "House" }, ["Electronic"])).toBe(true);
+    expect(trackInTaste({ genre: "Rock" }, ["Electronic"])).toBe(false);
+    expect(trackInTaste({ genre: "Techno" }, ["House"])).toBe(true); // legacy pref
   });
 
   test("tasteCandidatePool hits in-taste at ~95%", () => {

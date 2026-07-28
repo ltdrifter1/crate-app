@@ -1,97 +1,195 @@
-// Canonical genre set for ROOMS — nothing outside this list is shown or stored after normalize.
+// Canonical genre set — 11 taste lanes. Scenes/styles live in the background.
 
 export const CANONICAL_GENRES = [
-  "Rock",
-  "R&B",
-  "Country",
+  "Electronic",
   "Hip-Hop",
-  "House",
-  "Drum and Bass",
-  "Soul",
+  "R&B & Soul",
+  "Pop",
+  "Rock",
+  "Metal",
   "Jazz",
   "Classical",
-  "Metal",
+  "Country & Folk",
+  "Reggae",
+  "Latin",
 ];
 
 const CANONICAL_SET = new Set(CANONICAL_GENRES.map((g) => g.toLowerCase()));
 
 /** Alias / legacy → canonical. Keys are lowercased. */
 export const GENRE_ALIASES = {
-  // exact canonical
-  rock: "Rock",
-  "r&b": "R&B",
-  rnb: "R&B",
-  "r and b": "R&B",
-  "r n b": "R&B",
-  country: "Country",
+  // exact / near-exact canonical
+  electronic: "Electronic",
   "hip-hop": "Hip-Hop",
   "hip hop": "Hip-Hop",
   hiphop: "Hip-Hop",
-  rap: "Hip-Hop",
-  house: "House",
-  "drum and bass": "Drum and Bass",
-  "drum & bass": "Drum and Bass",
-  "drum&bass": "Drum and Bass",
-  dnb: "Drum and Bass",
-  "d&b": "Drum and Bass",
-  "d & b": "Drum and Bass",
-  jungle: "Drum and Bass",
-  soul: "Soul",
+  "r&b & soul": "R&B & Soul",
+  "rnb & soul": "R&B & Soul",
+  "r and b and soul": "R&B & Soul",
+  pop: "Pop",
+  rock: "Rock",
+  metal: "Metal",
   jazz: "Jazz",
   classical: "Classical",
-  metal: "Metal",
-  "heavy metal": "Metal",
+  "country & folk": "Country & Folk",
+  "country and folk": "Country & Folk",
+  reggae: "Reggae",
+  latin: "Latin",
 
-  // electronic → House
-  techno: "House",
-  electronic: "House",
-  electronica: "House",
-  ambient: "House",
-  disco: "House",
-  garage: "House",
-  "uk garage": "House",
-  "ukg": "House",
-  "deep house": "House",
-  "tech house": "House",
-  "progressive house": "House",
-  breakbeat: "Drum and Bass",
-  breaks: "Drum and Bass",
+  // ── Electronic (was House / DnB) ───────────────────────────────────────
+  house: "Electronic",
+  techno: "Electronic",
+  electronica: "Electronic",
+  edm: "Electronic",
+  electro: "Electronic",
+  ambient: "Electronic",
+  disco: "Electronic",
+  garage: "Electronic",
+  "uk garage": "Electronic",
+  ukg: "Electronic",
+  "deep house": "Electronic",
+  "tech house": "Electronic",
+  "progressive house": "Electronic",
+  trance: "Electronic",
+  acid: "Electronic",
+  "acid house": "Electronic",
+  minimal: "Electronic",
+  amapiano: "Electronic",
+  footwork: "Electronic",
+  juke: "Electronic",
+  industrial: "Electronic",
+  downtempo: "Electronic",
+  "drum and bass": "Electronic",
+  "drum & bass": "Electronic",
+  "drum&bass": "Electronic",
+  dnb: "Electronic",
+  "d&b": "Electronic",
+  "d & b": "Electronic",
+  jungle: "Electronic",
+  liquid: "Electronic",
+  "liquid dnb": "Electronic",
+  dubstep: "Electronic",
+  breakbeat: "Electronic",
+  breaks: "Electronic",
+  "afro house": "Electronic",
 
-  // adjacent → Soul / R&B / Jazz
-  funk: "Soul",
-  blues: "Jazz",
-  neo: "Soul",
-  "neo-soul": "Soul",
-  "neo soul": "Soul",
-  gospel: "Soul",
-  motown: "Soul",
-  pop: "R&B",
-  "indie pop": "R&B",
+  // ── Hip-Hop ────────────────────────────────────────────────────────────
+  rap: "Hip-Hop",
+  trap: "Hip-Hop",
+  "boom bap": "Hip-Hop",
+  drill: "Hip-Hop",
+  grime: "Hip-Hop",
+  "lo-fi hip-hop": "Hip-Hop",
+  "lofi hip-hop": "Hip-Hop",
+  "lofi hip hop": "Hip-Hop",
 
-  // rock family
+  // ── R&B & Soul (legacy R&B + Soul) ─────────────────────────────────────
+  "r&b": "R&B & Soul",
+  rnb: "R&B & Soul",
+  "r and b": "R&B & Soul",
+  "r n b": "R&B & Soul",
+  soul: "R&B & Soul",
+  funk: "R&B & Soul",
+  "neo-soul": "R&B & Soul",
+  "neo soul": "R&B & Soul",
+  neosoul: "R&B & Soul",
+  neo: "R&B & Soul",
+  gospel: "R&B & Soul",
+  motown: "R&B & Soul",
+  "quiet storm": "R&B & Soul",
+  "contemporary r&b": "R&B & Soul",
+  christian: "R&B & Soul",
+  "christian music": "R&B & Soul",
+
+  // ── Pop ────────────────────────────────────────────────────────────────
+  "indie pop": "Pop",
+  "synth-pop": "Pop",
+  "synth pop": "Pop",
+  synthpop: "Pop",
+  "dance pop": "Pop",
+  hyperpop: "Pop",
+  "k-pop": "Pop",
+  kpop: "Pop",
+  afrobeats: "Pop",
+  afrobeat: "Pop",
+
+  // ── Rock ───────────────────────────────────────────────────────────────
   alternative: "Rock",
   alt: "Rock",
   indie: "Rock",
   "indie rock": "Rock",
   punk: "Rock",
+  "post-punk": "Rock",
+  "post punk": "Rock",
   "hard rock": "Rock",
   grunge: "Rock",
-  folk: "Country",
-  americana: "Country",
-  bluegrass: "Country",
+  "classic rock": "Rock",
+  "folk rock": "Rock",
 
-  // world-ish → closest lane
-  reggae: "Soul",
-  dancehall: "Soul",
-  afrobeat: "Soul",
-  afrobeats: "Soul",
-  latin: "Jazz",
-  world: "Jazz",
-  experimental: "Jazz",
+  // ── Metal ──────────────────────────────────────────────────────────────
+  "heavy metal": "Metal",
+  thrash: "Metal",
+  doom: "Metal",
+  "death metal": "Metal",
+  "black metal": "Metal",
+  metalcore: "Metal",
+
+  // ── Jazz ───────────────────────────────────────────────────────────────
+  blues: "Jazz",
+  bebop: "Jazz",
+  "cool jazz": "Jazz",
+  "spiritual jazz": "Jazz",
+  fusion: "Jazz",
+  "jazz fusion": "Jazz",
+
+  // ── Classical ──────────────────────────────────────────────────────────
+  orchestra: "Classical",
+  chamber: "Classical",
+  baroque: "Classical",
+  "contemporary classical": "Classical",
+  soundtrack: "Classical",
+  score: "Classical",
+  "film music": "Classical",
+  "film score": "Classical",
+  opera: "Classical",
+
+  // ── Country & Folk (legacy Country) ────────────────────────────────────
+  country: "Country & Folk",
+  folk: "Country & Folk",
+  americana: "Country & Folk",
+  bluegrass: "Country & Folk",
+  "singer-songwriter": "Country & Folk",
+  "singer songwriter": "Country & Folk",
+  "alt-country": "Country & Folk",
+  "alt country": "Country & Folk",
+
+  // ── Reggae ─────────────────────────────────────────────────────────────
+  dancehall: "Reggae",
+  dub: "Reggae",
+  rocksteady: "Reggae",
+  ska: "Reggae",
+  roots: "Reggae",
+  "roots reggae": "Reggae",
+  ragga: "Reggae",
+
+  // ── Latin ──────────────────────────────────────────────────────────────
+  salsa: "Latin",
+  bachata: "Latin",
+  reggaeton: "Latin",
+  "latin pop": "Latin",
+  "latin jazz": "Latin",
+  "regional mexican": "Latin",
+  tropical: "Latin",
+  cumbia: "Latin",
+  "bossa nova": "Latin",
+  bossanova: "Latin",
+  mambo: "Latin",
+  world: "Latin",
 };
 
 /**
  * Map any free-text genre to the canonical set, or "" if unknown/empty.
+ * Legacy store values (House, Soul, Country…) normalize into the 11.
  */
 export function normalizeGenre(raw) {
   if (raw == null) return "";
@@ -104,32 +202,71 @@ export function normalizeGenre(raw) {
   }
   if (GENRE_ALIASES[lower]) return GENRE_ALIASES[lower];
 
-  // soft contains checks
-  if (lower.includes("drum") && lower.includes("bass")) return "Drum and Bass";
+  // soft contains checks (order matters — more specific first)
+  if (lower.includes("drum") && lower.includes("bass")) return "Electronic";
   if (lower.includes("hip") && lower.includes("hop")) return "Hip-Hop";
-  if (lower.includes("r&b") || lower.includes("rnb")) return "R&B";
-  if (lower.includes("house") || lower.includes("techno") || lower.includes("electronic")) return "House";
+  if (lower.includes("reggaeton") || lower.includes("salsa") || lower.includes("bachata")) return "Latin";
+  if (lower.includes("reggae") || lower.includes("dancehall") || lower.includes("dub")) return "Reggae";
+  if (lower.includes("country") || lower.includes("bluegrass") || lower.includes("americana")) {
+    return "Country & Folk";
+  }
+  if (lower.includes("folk") && !lower.includes("folk metal")) return "Country & Folk";
+  if (lower.includes("k-pop") || lower.includes("kpop") || lower.includes("afrobeats")) return "Pop";
+  if (lower.includes("r&b") || lower.includes("rnb") || lower.includes("soul") || lower.includes("funk") || lower.includes("gospel")) {
+    return "R&B & Soul";
+  }
+  if (
+    lower.includes("house") ||
+    lower.includes("techno") ||
+    lower.includes("electronic") ||
+    lower.includes("trance") ||
+    lower.includes("ambient") ||
+    lower.includes("dnb") ||
+    lower.includes("jungle") ||
+    lower.includes("garage")
+  ) {
+    return "Electronic";
+  }
   if (lower.includes("metal")) return "Metal";
-  if (lower.includes("country") || lower.includes("folk")) return "Country";
-  if (lower.includes("jazz")) return "Jazz";
-  if (lower.includes("soul") || lower.includes("funk")) return "Soul";
-  if (lower.includes("classical") || lower.includes("orchestra")) return "Classical";
-  if (lower.includes("rock") || lower.includes("punk") || lower.includes("indie")) return "Rock";
-  if (lower.includes("rap")) return "Hip-Hop";
+  if (lower.includes("jazz") || lower.includes("blues")) return "Jazz";
+  if (lower.includes("classical") || lower.includes("orchestra") || lower.includes("soundtrack") || lower.includes("score")) {
+    return "Classical";
+  }
+  if (lower.includes("latin") || lower.includes("cumbia") || lower.includes("mambo")) return "Latin";
+  if (lower.includes("pop") && !lower.includes("popular")) return "Pop";
+  if (lower.includes("rock") || lower.includes("punk") || lower.includes("indie") || lower.includes("grunge")) {
+    return "Rock";
+  }
+  if (lower.includes("rap") || lower.includes("trap") || lower.includes("grime")) return "Hip-Hop";
 
   return "";
 }
 
+/** Map a list of preferred genres (possibly legacy) onto the current 11. */
+export function migratePreferredGenres(genres = []) {
+  const out = [];
+  const seen = new Set();
+  (genres || []).forEach((g) => {
+    const n = normalizeGenre(g);
+    if (n && !seen.has(n)) {
+      seen.add(n);
+      out.push(n);
+    }
+  });
+  return out;
+}
+
 /** Warm charcoal tones for genre tiles — only canonical keys. */
 export const GENRE_TONES = {
-  Rock: "#1A1614",
-  "R&B": "#1A1816",
-  Country: "#1A1814",
+  Electronic: "#1A1612",
   "Hip-Hop": "#181614",
-  House: "#1A1612",
-  "Drum and Bass": "#161412",
-  Soul: "#1C1814",
+  "R&B & Soul": "#1C1814",
+  Pop: "#1A1816",
+  Rock: "#1A1614",
+  Metal: "#141210",
   Jazz: "#1A1612",
   Classical: "#181614",
-  Metal: "#141210",
+  "Country & Folk": "#1A1814",
+  Reggae: "#1A1812",
+  Latin: "#1A1614",
 };

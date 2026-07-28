@@ -17,13 +17,13 @@ describe("genre → scene browse", () => {
     });
   });
 
-  test("scenesForLane returns House culture scenes", () => {
-    const house = scenesForLane("House");
-    expect(house.length).toBeGreaterThan(5);
-    expect(house.map((s) => s.id)).toEqual(
+  test("scenesForLane returns Electronic culture scenes", () => {
+    const electronic = scenesForLane("Electronic");
+    expect(electronic.length).toBeGreaterThan(5);
+    expect(electronic.map((s) => s.id)).toEqual(
       expect.arrayContaining(["techno", "deep-house", "uk-garage"])
     );
-    expect(house.every((s) => s.lane === "House")).toBe(true);
+    expect(electronic.every((s) => s.lane === "Electronic")).toBe(true);
   });
 
   test("tracksForGenreLane filters by normalized genre", () => {
@@ -33,7 +33,7 @@ describe("genre → scene browse", () => {
       { id: "3", genre: "House", duration: 190 },
       { id: "4", genre: "House", duration: 1200 },
     ];
-    const pool = tracksForGenreLane(tracks, "House");
+    const pool = tracksForGenreLane(tracks, "Electronic");
     expect(pool.map((t) => t.id).sort()).toEqual(["1", "3"]);
   });
 
@@ -53,7 +53,7 @@ describe("genre → scene browse", () => {
     ];
     const rows = genreBrowseRows(tracks);
     expect(rows.every((r) => r.trackCount > 0)).toBe(true);
-    expect(rows.map((r) => r.lane)).toEqual(expect.arrayContaining(["Jazz", "Soul"]));
+    expect(rows.map((r) => r.lane)).toEqual(expect.arrayContaining(["Jazz", "R&B & Soul"]));
     expect(rows.find((r) => r.lane === "Metal")).toBeUndefined();
   });
 
@@ -65,8 +65,8 @@ describe("genre → scene browse", () => {
   });
 
   test("normalize aliases still map into browseable lanes", () => {
-    expect(normalizeGenre("techno")).toBe("House");
-    expect(GENRE_ALIASES.techno).toBe("House");
+    expect(normalizeGenre("techno")).toBe("Electronic");
+    expect(GENRE_ALIASES.techno).toBe("Electronic");
     expect(scenesForLane(normalizeGenre("techno")).some((s) => s.id === "techno")).toBe(true);
   });
 });

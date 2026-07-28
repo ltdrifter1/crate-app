@@ -6,18 +6,19 @@
 import { CANONICAL_GENRES, normalizeGenre } from "./genres";
 import { SCENES, trackMatchesScene } from "./scenes";
 
-/** Short editorial lines for the 10 store lanes. */
+/** Short editorial lines for the 11 taste lanes. */
 export const GENRE_STORIES = {
-  Rock: "Guitars, dirt, and the long road.",
-  "R&B": "Voice craft — quiet storm to gloss.",
-  Country: "Songs that travel by porch and highway.",
+  Electronic: "Four-to-the-floor, breaks, and the wider dance floor.",
   "Hip-Hop": "Sample archaeology and voice as drum.",
-  House: "Four-to-the-floor pressure and its cousins.",
-  "Drum and Bass": "Break science at velocity.",
-  Soul: "Gospel heat, funk pocket, late-night warmth.",
+  "R&B & Soul": "Gospel heat, funk pocket, quiet storm to gloss.",
+  Pop: "Hooks built for the room — local and global.",
+  Rock: "Guitars, dirt, and the long road.",
+  Metal: "Distortion as cathedral.",
   Jazz: "Improvisation as architecture.",
   Classical: "Composed weight — hall to cinema.",
-  Metal: "Distortion as cathedral.",
+  "Country & Folk": "Songs that travel by porch and highway.",
+  Reggae: "One drop, dub space, sound-system heat.",
+  Latin: "Clave, montuno, and diaspora floor music.",
 };
 
 export function genreStory(lane) {
@@ -27,7 +28,8 @@ export function genreStory(lane) {
 /** Scenes that store under a canonical genre lane. */
 export function scenesForLane(lane) {
   if (!lane) return [];
-  return SCENES.filter((s) => s.lane === lane);
+  const g = normalizeGenre(lane) || lane;
+  return SCENES.filter((s) => s.lane === g);
 }
 
 function playable(tracks = []) {

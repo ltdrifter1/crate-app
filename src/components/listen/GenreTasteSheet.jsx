@@ -3,7 +3,7 @@
  * Daypart / vibes / scenes stay automatic.
  */
 import { fontDisplay, fontMono, color } from "../../theme";
-import { CANONICAL_GENRES } from "../../lib/genres";
+import { CANONICAL_GENRES, migratePreferredGenres } from "../../lib/genres";
 
 export default function GenreTasteSheet({
   onClose,
@@ -13,7 +13,7 @@ export default function GenreTasteSheet({
   genreFocus = null,
   onBuildSet = null,
 }) {
-  const selected = new Set(selectedGenres || []);
+  const selected = new Set(migratePreferredGenres(selectedGenres));
 
   return (
     <div style={{ position: "fixed", inset: 0, zIndex: 100, overflow: "hidden" }}>
