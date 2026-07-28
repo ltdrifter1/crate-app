@@ -8,6 +8,7 @@ covers/
 titles-review.csv
 genres-review.csv
 *.csv
+!tracks.template.csv
 .env
 .env.*
 !.env.example
