@@ -22,18 +22,24 @@ import os
 DISCOGS_TOKEN = os.getenv("DISCOGS_TOKEN", "").strip()
 LASTFM_KEY    = os.getenv("LASTFM_KEY", "").strip()
 
-# ── Allowed genres ────────────────────────────────────────────────────────
+# ── Allowed genres (11 taste lanes — keep in sync with src/lib/genre-normalize.shared.cjs) ──
 ALLOWED = [
-    "Rock", "R&B", "Country", "Hip-Hop", "House",
-    "Drum and Bass", "Soul", "Jazz", "Classical", "Metal",
+    "Electronic", "Hip-Hop", "R&B & Soul", "Pop", "Rock", "Metal",
+    "Jazz", "Classical", "Country & Folk", "Reggae", "Latin",
 ]
 
 LEGACY_TO_CANONICAL = {
-    "Techno": "House", "Ambient": "House", "Electronic": "House", "Disco": "House",
-    "UK Garage": "House", "Uk Garage": "House", "Funk": "Soul", "Blues": "Jazz",
-    "Drum & Bass": "Drum and Bass", "Alternative": "Rock", "Indie": "Rock",
-    "Folk": "Country", "Reggae": "Soul", "Afrobeat": "Soul", "Experimental": "Jazz",
-    "Latin": "Jazz", "World": "Jazz", "Pop": "R&B", "Rap": "Hip-Hop",
+    # legacy 10-bucket script output → 11
+    "House": "Electronic", "Drum and Bass": "Electronic", "Drum & Bass": "Electronic",
+    "Techno": "Electronic", "Ambient": "Electronic", "Electronic": "Electronic",
+    "Disco": "Electronic", "UK Garage": "Electronic", "Uk Garage": "Electronic",
+    "Funk": "R&B & Soul", "Soul": "R&B & Soul", "R&B": "R&B & Soul",
+    "Blues": "Jazz", "Alternative": "Rock", "Indie": "Rock",
+    "Folk": "Country & Folk", "Country": "Country & Folk",
+    "Reggae": "Reggae", "Dancehall": "Reggae", "Dub": "Reggae",
+    "Afrobeat": "Pop", "Afrobeats": "Pop", "Pop": "Pop",
+    "Latin": "Latin", "World": "Latin",
+    "Rap": "Hip-Hop", "Experimental": "Jazz",
 }
 
 def to_canonical(g):

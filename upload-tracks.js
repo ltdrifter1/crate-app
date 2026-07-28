@@ -9,6 +9,7 @@
 const admin = require("firebase-admin");
 const fs    = require("fs");
 const path  = require("path");
+const { normalizeGenre } = require("./src/lib/genre-normalize.shared.cjs");
 
 // ── Startup checks ────────────────────────────────────────────────────────
 if (!fs.existsSync(path.join(__dirname, "serviceAccountKey.json"))) {
@@ -201,7 +202,7 @@ async function uploadTracks() {
         title:      row.title,
         artist:     row.artist      || "",
         album:      row.album       || "",
-        genre:      row.genre       || "",
+        genre:      normalizeGenre(row.genre) || row.genre || "",
         energy:     parseInt(row.energy, 10) || 5,
         camelot:    row.camelot     || null,
         bpm:        parseInt(row.bpm, 10)    || null,
