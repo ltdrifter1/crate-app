@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { createPortal }                             from "react-dom";
 import { useNavigate, useLocation }                 from "react-router-dom";
 import { useAuth }                                  from "./useAuth";
-import { toggleLike as fbToggleLike, recordPlay, completeOnboarding } from "./useUserData";
+import { toggleLike as fbToggleLike, recordPlay, completeOnboarding, saveGenres } from "./useUserData";
 import { collection, getDocs, addDoc, query, orderBy, doc, updateDoc, setDoc } from "firebase/firestore";
 import { db }                                       from "./firebase";
 import {
@@ -40,7 +40,9 @@ import LinerNotesSheet from "./components/catalog/LinerNotesSheet";
 import LoginScreen from "./components/auth/LoginScreen";
 import BrandMark, { BrandGlyph as DoorGlyph } from "./components/brand/BrandMark";
 import GenreSceneBrowse from "./components/search/GenreSceneBrowse";
-import ListenForSheet from "./components/listen/ListenForSheet";
+import GenreTasteSheet from "./components/listen/GenreTasteSheet";
+import GenreTasteOnboarding from "./components/onboarding/GenreTasteOnboarding";
+import { vibeForDaypart, blendPoolForSession } from "./lib/taste";
 
 const injectStyles = () => {
   if (document.getElementById("rooms-app-global-styles")) return;
@@ -893,7 +895,7 @@ function CoverStage({
               color: live && isPlaying ? color.accent : color.faint,
               fontFamily: fontMono,
             }}
-            aria-label={onListenFor ? "Listen for — change daypart, focus, or open a timed mix" : undefined}
+            aria-label={onListenFor ? "Your genres — change what we play most" : undefined}
           >
             {live
               ? (isRadioMode ? stageLabel : "Now playing")
@@ -926,7 +928,7 @@ function CoverStage({
             textOverflow: "ellipsis",
             whiteSpace: "nowrap",
           }}>
-            {stageTrack?.artist || (canStart ? "Your daypart radio is ready" : "Add tracks to begin")}
+            {stageTrack?.artist || (canStart ? "Press play when you’re ready" : "Add tracks to begin")}
           </div>
         </div>
       </div>
@@ -1522,17 +1524,18 @@ function contentPadBottom(hasPlayer) {
   return `calc(${base}px + env(safe-area-inset-bottom, 0px))`;
 }
 
-// ─── SESSION BUILDER — pick a length + vibe → get a playlist ─────────────────
+// ─── BUILD A SET — pick a length → energy arc runs in the background ─────────
 function SessionBuilderModal({ tracks, onClose, onPlayRoute, initialActivity = null, intentLabel = null }) {
-  const [step, setStep] = useState(1); // 1 duration · 2 vibe · 3 preview
+  const [step, setStep] = useState(1); // 1 duration · 2 preview
   const [duration, setDuration] = useState(60);
-  const [activity, setActivity] = useState(initialActivity);
+  const autoActivity = initialActivity && SESSION_PROFILES[initialActivity]
+    ? initialActivity
+    : "drive";
+  const [activity, setActivity] = useState(autoActivity);
   const [session, setSession] = useState(null);
 
-  const activities = Object.entries(SESSION_PROFILES);
-  const profile = activity ? SESSION_PROFILES[activity] : null;
+  const profile = SESSION_PROFILES[activity] || SESSION_PROFILES.drive;
   const totalMins = session ? Math.round(session.reduce((s, t) => s + (t.duration || 210), 0) / 60) : 0;
-  const skipVibeStep = !!(initialActivity && SESSION_PROFILES[initialActivity]);
 
   const phases = session ? (() => {
     const groups = [];
@@ -1547,23 +1550,15 @@ function SessionBuilderModal({ tracks, onClose, onPlayRoute, initialActivity = n
     return groups;
   })() : [];
 
-  function handleGenerate(act) {
+  function handleGenerate() {
+    const act = autoActivity;
     setActivity(act);
     setSession(buildSession(tracks, duration, act));
-    setStep(3);
+    setStep(2);
   }
 
   function handleRegenerate() {
-    if (!activity) return;
-    setSession(buildSession(tracks, duration, activity));
-  }
-
-  function handleDurationContinue() {
-    if (skipVibeStep) {
-      handleGenerate(initialActivity);
-      return;
-    }
-    setStep(2);
+    setSession(buildSession(tracks, duration, activity || autoActivity));
   }
 
   const durationLabel = duration < 60 ? `${duration} min` : duration === 60 ? "1 hour" : `${duration / 60} hours`;
@@ -1598,8 +1593,7 @@ function SessionBuilderModal({ tracks, onClose, onPlayRoute, initialActivity = n
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
             {step > 1 && (
               <button type="button" onClick={() => {
-                if (step === 3) { setSession(null); setStep(skipVibeStep ? 1 : 2); }
-                else setStep(1);
+                setSession(null); setStep(1);
               }} style={{
                 background: "none", border: "none", color: color.accent,
                 fontSize: 17, fontWeight: 500, cursor: "pointer", padding: "6px 0",
@@ -1617,18 +1611,24 @@ function SessionBuilderModal({ tracks, onClose, onPlayRoute, initialActivity = n
 
         <div style={{
           flex: 1, display: "flex", flexDirection: "column",
-          alignItems: "center", justifyContent: step === 3 ? "flex-start" : "center",
+          alignItems: "center", justifyContent: step === 2 ? "flex-start" : "center",
           padding: "12px 20px 40px", maxWidth: 520, margin: "0 auto", width: "100%",
         }}>
 
           {step === 1 && (
             <div style={{ width: "100%", textAlign: "center", animation: "rise 0.45s cubic-bezier(0.22,1,0.36,1) both" }}>
               <div style={{
+                fontSize: 11, fontWeight: 650, letterSpacing: 1.6, textTransform: "uppercase",
+                color: color.accent, fontFamily: fontMono, marginBottom: 12,
+              }}>
+                Build a set
+              </div>
+              <div style={{
                 fontSize: 34, fontWeight: 700, color: color.ink, letterSpacing: -1,
                 marginBottom: 10, fontFamily: fontDisplay,
-              }}>How long?</div>
+              }}>How long are you listening?</div>
               <div style={{ fontSize: 16, color: color.body, marginBottom: 36, lineHeight: 1.45 }}>
-                We’ll build a playlist that fits the time
+                We’ll build a set that fits the time and shapes the energy for you
                 {intentLabel ? ` · ${intentLabel}` : ""}.
               </div>
               <div style={{ display: "flex", gap: 10, justifyContent: "center", marginBottom: 40, flexWrap: "wrap" }}>
@@ -1650,63 +1650,27 @@ function SessionBuilderModal({ tracks, onClose, onPlayRoute, initialActivity = n
                   </button>
                 ))}
               </div>
-              <button type="button" onClick={handleDurationContinue} style={{
+              <button type="button" onClick={handleGenerate} style={{
                 ...BTN_PRIMARY, width: "auto", minWidth: 200, borderRadius: 980, padding: "16px 36px",
               }}>
-                {skipVibeStep
-                  ? `Build ${SESSION_PROFILES[initialActivity]?.label || "mix"}`
-                  : "Continue"}
+                Build my set
               </button>
-              {skipVibeStep && (
-                <div style={{ marginTop: 14, fontSize: 13, color: color.muted }}>
-                  {SESSION_PROFILES[initialActivity]?.blurb}
-                </div>
-              )}
             </div>
           )}
 
-          {step === 2 && (
-            <div style={{ width: "100%", textAlign: "center", animation: "rise 0.45s cubic-bezier(0.22,1,0.36,1) both" }}>
-              <div style={{
-                fontSize: 34, fontWeight: 700, color: color.ink, letterSpacing: -1,
-                marginBottom: 8, fontFamily: fontDisplay,
-              }}>What’s the vibe?</div>
-              <div style={{ fontSize: 16, color: color.body, marginBottom: 28 }}>
-                {durationLabel} playlist
-              </div>
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 10, textAlign: "left" }}>
-                {activities.map(([id, prof]) => (
-                  <button type="button" key={id} onClick={() => handleGenerate(id)} style={{
-                    padding: "16px 16px", borderRadius: 16,
-                    border: `1px solid ${color.line}`,
-                    background: color.surfaceSolid, cursor: "pointer", textAlign: "left",
-                  }}>
-                    <div style={{
-                      fontSize: 17, fontWeight: 650, color: color.ink,
-                      letterSpacing: -0.2, marginBottom: 6, fontFamily: fontDisplay,
-                    }}>{prof.label}</div>
-                    <div style={{ fontSize: 12, color: color.muted, lineHeight: 1.4 }}>
-                      {prof.blurb}
-                    </div>
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {step === 3 && session && profile && (
+          {step === 2 && session && profile && (
             <div style={{ width: "100%", animation: "rise 0.45s cubic-bezier(0.22,1,0.36,1) both" }}>
               <div style={{ textAlign: "center", marginBottom: 28, paddingTop: 8 }}>
                 <div style={{
                   fontSize: 13, fontWeight: 600, color: color.accent, marginBottom: 8,
                 }}>
-                  {profile.label} · {durationLabel}
+                  {durationLabel} set
                 </div>
                 <div style={{
                   fontSize: 32, fontWeight: 700, color: color.ink, letterSpacing: -0.8,
                   marginBottom: 6, fontFamily: fontDisplay,
                 }}>
-                  Your playlist is ready
+                  Your set is ready
                 </div>
                 <div style={{ fontSize: 15, color: color.body }}>
                   {session.length} songs · about {totalMins} minutes
@@ -1759,7 +1723,7 @@ function SessionBuilderModal({ tracks, onClose, onPlayRoute, initialActivity = n
               <div style={{ display: "flex", gap: 10, justifyContent: "center" }}>
                 <button type="button" onClick={() => {
                   const cleaned = session.map((t) => { const { _phase, ...rest } = t; return rest; });
-                  onPlayRoute(cleaned, "night");
+                  onPlayRoute(cleaned, "set");
                   onClose();
                 }} style={{
                   ...BTN_PRIMARY, flex: 1, maxWidth: 280, borderRadius: 980, padding: "16px 28px",
@@ -2406,13 +2370,13 @@ function QueueSheet({ queue, currentTrack, onPlay, onClose, onClear, onShuffle, 
 
 // ── Key feature: timed playlist CTA ───────────────────────────────────────────
 // Concept: Session Dial — duration arc + playlist bars. Not a generic “+”.
-function ListenForFeature({ onClick }) {
+function BuildASetFeature({ onClick }) {
   return (
     <button
       type="button"
       className="glass-control"
       onClick={onClick}
-      aria-label="Listen for — daypart radio or a timed mix"
+      aria-label="Build a set — choose how long you’re listening"
       style={{
         width: "100%",
         position: "relative",
@@ -2473,19 +2437,19 @@ function ListenForFeature({ onClick }) {
             textTransform: "uppercase", color: color.accent,
             marginBottom: 6,
           }}>
-            Listen for…
+            Build a set
           </div>
           <div style={{
             fontSize: 22, fontWeight: 700, fontFamily: fontDisplay,
             letterSpacing: -0.55, lineHeight: 1.1, marginBottom: 6,
           }}>
-            Daypart or timed mix
+            Music for the time you have
           </div>
           <div style={{
             fontSize: 14, color: color.body, lineHeight: 1.4,
             maxWidth: 260,
           }}>
-            Daytime and Nighttime radio, or a vibe-built set for a stretch of time.
+            Choose how long you’re listening — we shape the energy from start to finish.
           </div>
         </div>
 
@@ -2517,19 +2481,19 @@ function ListenForFeature({ onClick }) {
           fontSize: 12, color: color.muted, fontWeight: 500,
           letterSpacing: 0.1,
         }}>
-          <span style={{ color: color.ink }}>Daytime</span>
+          <span style={{ color: color.ink }}>30m</span>
           <span style={{ color: color.faint }}>  ·  </span>
-          <span style={{ color: color.ink }}>Nighttime</span>
+          <span style={{ color: color.ink }}>1h</span>
           <span style={{ color: color.faint }}>  ·  </span>
-          <span style={{ color: color.ink }}>Drive</span>
+          <span style={{ color: color.ink }}>2h</span>
           <span style={{ color: color.faint }}>  ·  </span>
-          <span style={{ color: color.ink }}>Focus</span>
+          <span style={{ color: color.ink }}>All night</span>
         </div>
         <div style={{
           fontSize: 12, fontWeight: 650, color: color.accent,
           letterSpacing: -0.1, flexShrink: 0,
         }}>
-          Open
+          Start
         </div>
       </div>
     </button>
@@ -3239,7 +3203,7 @@ function FavoritesScreen({
     <div style={{ position: "relative", paddingBottom: 48 }}>
       <CollapsingHeader
         title="Library"
-        subtitle="Your playlists, listening intents, and saved music in one place."
+        subtitle="Your playlists, sets, and saved music in one place."
       />
 
       <div style={{
@@ -3301,7 +3265,7 @@ function FavoritesScreen({
           <div style={{
             padding: `${Math.round(homeSpace.bandPadY * 0.55)}px ${homeSpace.gutter}px ${Math.round(homeSpace.bandPadY * 0.4)}px`,
           }}>
-            <ListenForFeature onClick={onListenFor || onMakePlaylist} />
+            <BuildASetFeature onClick={onListenFor || onMakePlaylist} />
           </div>
         )}
 
@@ -3457,9 +3421,10 @@ function FavoritesScreen({
 }
 
 // ─── PROFILE ─────────────────────────────────────────────────────────────────
-function ProfileScreen({ user, tracks, onLogout }) {
+function ProfileScreen({ user, tracks, onLogout, onEditGenres = null }) {
   const liked = tracks.filter(t => t.liked);
   const initial = (user.name || "R").trim().charAt(0).toUpperCase();
+  const genres = user.genres || [];
 
   return (
     <div style={{ padding: "0 0 24px" }}>
@@ -3468,7 +3433,7 @@ function ProfileScreen({ user, tracks, onLogout }) {
         subtitle={`${liked.length} liked song${liked.length === 1 ? "" : "s"}`}
       />
       <div style={{ padding: "20px 20px 0" }}>
-      <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 36 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 28 }}>
         <div
           aria-hidden="true"
           style={{
@@ -3498,6 +3463,34 @@ function ProfileScreen({ user, tracks, onLogout }) {
             Your listening library
           </div>
         </div>
+      </div>
+
+      <div style={{ marginBottom: 28 }}>
+        <div style={{
+          fontSize: 13, fontWeight: 600, color: color.muted,
+          textTransform: "uppercase", letterSpacing: 0.4, marginBottom: 10,
+        }}>
+          Your genres
+        </div>
+        <div style={{ fontSize: 15, color: color.body, lineHeight: 1.45, marginBottom: 14 }}>
+          {genres.length
+            ? `${genres.join(" · ")} — about 95% of what we play.`
+            : "Not set yet — we’ll play across the catalog."}
+        </div>
+        {onEditGenres && (
+          <button
+            type="button"
+            onClick={onEditGenres}
+            style={{
+              ...BTN_SECONDARY,
+              width: "100%",
+              borderRadius: 980,
+              marginBottom: 12,
+            }}
+          >
+            Edit genres
+          </button>
+        )}
       </div>
 
       <button type="button" onClick={onLogout} style={{ ...BTN_SECONDARY, width: "100%", borderRadius: 980 }}>
@@ -4328,15 +4321,13 @@ export default function App() {
   const [onboardingDismissed, setOnboardingDismissed] = useState(false);
   const [listeningRoom, setListeningRoom] = useState(null);
   const [linerTrack, setLinerTrack] = useState(null);
-  // Daypart radio — clock by default; lock when user picks from Listen for…
-  // Browse focus (genre/scene) stacks on the same resolveListenPool pipeline.
+  // Daypart radio follows the clock in the background.
+  // Genre focus (from Search) is the only manual listen filter; taste prefs drive 95/5.
   const [mixLane, setMixLane] = useState(() => mixLaneForDate().id);
-  const [mixLaneLocked, setMixLaneLocked] = useState(false);
   const [listenFocus, setListenFocus] = useState({ genre: null, scene: null });
-  const [showListenFor, setShowListenFor] = useState(false);
+  const [showGenreTaste, setShowGenreTaste] = useState(false);
   const [sessionInitialActivity, setSessionInitialActivity] = useState(null);
   useEffect(() => {
-    if (mixLaneLocked) return undefined;
     const sync = () => {
       const next = mixLaneForDate().id;
       setMixLane((prev) => (prev === next ? prev : next));
@@ -4344,7 +4335,7 @@ export default function App() {
     sync();
     const id = setInterval(sync, 60 * 1000);
     return () => clearInterval(id);
-  }, [mixLaneLocked]);
+  }, []);
   const volumeRef = useRef(1);
   useEffect(() => { volumeRef.current = volume; }, [volume]);
 
@@ -4378,6 +4369,7 @@ export default function App() {
       return pickNextTrack(pool, null, recentlyPlayedRef.current, {
         preferredGenres: profile?.genres || [],
         scopedPool: true,
+        tasteBlend: !listenFocus.genre,
       }) || pool[0];
     });
   }, [radioPool, profile?.genres]);
@@ -4394,6 +4386,8 @@ export default function App() {
     signalState,
     seedTrack: hypnoSeed,
     scopedPool: true,
+    // Hard genre focus = play that lane; otherwise 95/5 taste blend
+    tasteBlend: !listenFocus.genre,
   });
   const setPrev = isRadioMode && currentTrack
     ? playHistoryRef.current.filter(t => t && t.id !== currentTrack.id).slice(0, 2).reverse()
@@ -4564,21 +4558,19 @@ export default function App() {
   };
   const needsOnboarding = !!firebaseUser && profile && profile.onboarded === false && !onboardingDismissed && !tracksLoading;
 
-  // Skip room-picking onboarding — land on Home
-  useEffect(() => {
-    if (!needsOnboarding) return;
-    let cancelled = false;
-    (async () => {
-      try {
-        await completeOnboarding({ homeRooms: [] });
-        if (!cancelled) {
-          setProfile((p) => ({ ...(p || {}), onboarded: true, homeRooms: [] }));
-        }
-      } catch (e) { /* local dismiss still */ }
-      if (!cancelled) setOnboardingDismissed(true);
-    })();
-    return () => { cancelled = true; };
-  }, [needsOnboarding, setProfile]);
+  // Genre taste intake — only user choice; daypart/energy stay automatic
+  const finishOnboarding = async (genres = []) => {
+    try {
+      await completeOnboarding({ homeRooms: [], genres: genres.length ? genres : null });
+      setProfile((p) => ({
+        ...(p || {}),
+        onboarded: true,
+        homeRooms: [],
+        genres: genres.length ? genres : (p?.genres || []),
+      }));
+    } catch (e) { /* local dismiss still */ }
+    setOnboardingDismissed(true);
+  };
 
   // ── Crossfade audio engine ───────────────────────────────────────────────
   // Two audio elements — A and B. We alternate between them for crossfade.
@@ -4692,6 +4684,7 @@ export default function App() {
         signalState,
         seedTrack: hypnoSeed,
         scopedPool: true,
+        tasteBlend: !(listenFocusRef.current?.genre),
       });
     } else {
       const q = queueRef.current;
@@ -4839,6 +4832,7 @@ export default function App() {
           signalState,
           seedTrack,
           scopedPool: true,
+          tasteBlend: !(intentOverride?.genre || listenFocus.genre),
         }) || pool.find(t => (t.duration || 0) <= 900) || pool[0];
     if (currentTrack) playHistoryRef.current = [currentTrack, ...playHistoryRef.current].slice(0, 50);
     setCurrent(first); setIsPlaying(true); setProgress(0); setIsRadioMode(true); setQueue([]); setImmersive(true);
@@ -5118,6 +5112,16 @@ export default function App() {
     />
   );
 
+  if (needsOnboarding) {
+    return (
+      <GenreTasteOnboarding
+        initialGenres={profile?.genres || []}
+        onComplete={(genres) => finishOnboarding(genres)}
+        onSkip={() => finishOnboarding([])}
+      />
+    );
+  }
+
   const sessionArc = sessionMeta?.tracks?.length
     ? {
         label: sessionMeta.label || "Session arc",
@@ -5177,50 +5181,43 @@ export default function App() {
           onClose={() => setResonanceTrack(null)}
         />
       )}
-      {showListenFor && (
-        <ListenForSheet
-          mixLane={mixLane}
-          mixLaneLocked={mixLaneLocked}
-          listenFocus={listenFocus}
-          intentLabel={radioIntentLabel}
-          onClose={() => setShowListenFor(false)}
-          onSelectDaypart={(id) => {
-            setMixLane(id);
-            setMixLaneLocked(true);
-            showToast(listenPoolLabel({ daypart: id, ...listenFocus }));
-          }}
-          onFollowClock={() => {
-            setMixLaneLocked(false);
-            setMixLane(mixLaneForDate().id);
-            showToast(`Following clock · ${mixLaneForDate().label}`);
-          }}
-          onClearFocus={() => {
+      {showGenreTaste && (
+        <GenreTasteSheet
+          selectedGenres={profile?.genres || []}
+          genreFocus={listenFocus.genre}
+          onClose={() => setShowGenreTaste(false)}
+          onClearGenreFocus={() => {
             setListenFocus({ genre: null, scene: null });
-            showToast("Focus cleared");
+            showToast("Back to your usual mix");
           }}
-          onSelectVibe={(activityId) => {
-            setShowListenFor(false);
-            setSessionInitialActivity(activityId);
+          onSave={async (genres) => {
+            try {
+              await saveGenres(genres);
+              setProfile((p) => ({ ...(p || {}), genres }));
+              showToast(genres.length ? "Genres saved" : "Genres cleared");
+            } catch (e) {
+              showToast("Couldn’t save genres");
+            }
+          }}
+          onBuildSet={() => {
+            setShowGenreTaste(false);
+            setSessionInitialActivity(vibeForDaypart(mixLane));
             setShowRouteBuilder(true);
-          }}
-          onStartRadio={() => {
-            setShowListenFor(false);
-            playRadio();
           }}
         />
       )}
       {showRouteBuilder && (
         <SessionBuilderModal
-          tracks={resolveListenPool(
-            tracks,
-            activeListenIntent({ vibe: sessionInitialActivity }),
-            {
-              requireAudio: false,
-              applyDaypart: !!(listenFocus.scene || listenFocus.genre),
-            }
-          ).tracks}
-          initialActivity={sessionInitialActivity}
-          intentLabel={listenPoolLabel(activeListenIntent({ vibe: sessionInitialActivity }))}
+          tracks={blendPoolForSession(
+            resolveListenPool(
+              tracks,
+              activeListenIntent({ vibe: sessionInitialActivity || vibeForDaypart(mixLane) }),
+              { requireAudio: false, applyDaypart: false }
+            ).tracks,
+            listenFocus.genre ? [listenFocus.genre] : (profile?.genres || [])
+          )}
+          initialActivity={sessionInitialActivity || vibeForDaypart(mixLane)}
+          intentLabel={listenFocus.genre || (profile?.genres?.length ? "Your genres" : null)}
           onClose={() => {
             setShowRouteBuilder(false);
             setSessionInitialActivity(null);
@@ -5298,9 +5295,9 @@ export default function App() {
       )}
       <div style={{ flex:1, overflow:"auto", paddingBottom: contentPadBottom(!!currentTrack && !immersive && !hideDockPlayer), zIndex:1, position:"relative" }}>
         <ScreenPane key={screen === "artist" ? `artist:${artistSlug}` : screen === "album" ? `album:${albumSlug}` : screen}>
-        {screen==="home"      && !tracksLoading && <HomeScreen tracks={tracks} onPlayRadio={playRadio} onTogglePlay={()=>setIsPlaying(p=>!p)} onPlayTrack={playTrack} currentTrack={currentTrack} isPlaying={isPlaying} onLike={toggleLike} isRadioMode={isRadioMode} playlistCtx={playlistCtx} signalLabel={signalState?.label} mixLane={mixLane} radioPreview={heroPreview} radioNext={setNext} onSkipRadio={handleSkip} onPrevRadio={handlePrev} onOpenPlayer={()=>setImmersive(true)} onListenFor={()=>setShowListenFor(true)} intentLabel={radioIntentLabel} catalogError={tracksLoadError} onRetryCatalog={reloadCatalog} preferredGenres={user.genres} recentTrackIds={(profile?.recentTracks||[]).map(r=>r.trackId||r)} progress={progress} duration={duration}/>}
-        {screen==="search"    && <SearchScreen query={searchQuery} setQuery={setSearch} results={searchResults} tracks={tracks} onPlay={(t,pool)=>playTrack(t,pool||tracks)} onListenIntent={(focus)=>{ setListenFocus({ genre: focus.genre || null, scene: focus.scene || null }); playRadio(); }} onLike={toggleLike} currentTrack={currentTrack} isPlaying={isPlaying} playlistCtx={playlistCtx} entityHits={entityHits} onOpenArtist={openArtist} onOpenAlbum={(slug)=>openAlbum(slug)}/>}
-        {screen==="favorites" && <FavoritesScreen tracks={tracks} onPlay={t=>{setIsRadioMode(false);playTrack(t,tracks);}} onPlayTrack={(t,pool)=>{setIsRadioMode(false);playTrack(t,pool||tracks);}} onLike={toggleLike} currentTrack={currentTrack} isPlaying={isPlaying} playlistCtx={playlistCtx} userPlaylists={userPlaylists} onCreatePlaylist={createPlaylist} onDeletePlaylist={deletePlaylist} onListenFor={()=>setShowListenFor(true)}/>}
+        {screen==="home"      && !tracksLoading && <HomeScreen tracks={tracks} onPlayRadio={playRadio} onTogglePlay={()=>setIsPlaying(p=>!p)} onPlayTrack={playTrack} currentTrack={currentTrack} isPlaying={isPlaying} onLike={toggleLike} isRadioMode={isRadioMode} playlistCtx={playlistCtx} signalLabel={signalState?.label} mixLane={mixLane} radioPreview={heroPreview} radioNext={setNext} onSkipRadio={handleSkip} onPrevRadio={handlePrev} onOpenPlayer={()=>setImmersive(true)} onListenFor={()=>setShowGenreTaste(true)} intentLabel={radioIntentLabel} catalogError={tracksLoadError} onRetryCatalog={reloadCatalog} preferredGenres={user.genres} recentTrackIds={(profile?.recentTracks||[]).map(r=>r.trackId||r)} progress={progress} duration={duration}/>}
+        {screen==="search"    && <SearchScreen query={searchQuery} setQuery={setSearch} results={searchResults} tracks={tracks} onPlay={(t,pool)=>playTrack(t,pool||tracks)} onListenIntent={(focus)=>{ const next={ genre: focus.genre || null, scene: null }; setListenFocus(next); playRadio(null, createListenIntent({ daypart: mixLane, ...next })); }} onLike={toggleLike} currentTrack={currentTrack} isPlaying={isPlaying} playlistCtx={playlistCtx} entityHits={entityHits} onOpenArtist={openArtist} onOpenAlbum={(slug)=>openAlbum(slug)}/>}
+        {screen==="favorites" && <FavoritesScreen tracks={tracks} onPlay={t=>{setIsRadioMode(false);playTrack(t,tracks);}} onPlayTrack={(t,pool)=>{setIsRadioMode(false);playTrack(t,pool||tracks);}} onLike={toggleLike} currentTrack={currentTrack} isPlaying={isPlaying} playlistCtx={playlistCtx} userPlaylists={userPlaylists} onCreatePlaylist={createPlaylist} onDeletePlaylist={deletePlaylist} onListenFor={()=>{ setSessionInitialActivity(vibeForDaypart(mixLane)); setShowRouteBuilder(true); }}/>}
         {screen==="artist"    && !tracksLoading && (
           <ArtistPage
             artist={findArtist(tracks, artistSlug)}
@@ -5520,9 +5517,9 @@ export default function App() {
             </div>
           ) : (
             <ScreenPane key={screen === "artist" ? `artist:${artistSlug}` : screen === "album" ? `album:${albumSlug}` : screen}>
-              {screen==="home"      && <HomeScreen tracks={tracks} onPlayRadio={playRadio} onTogglePlay={()=>setIsPlaying(p=>!p)} onPlayTrack={playTrack} currentTrack={currentTrack} isPlaying={isPlaying} onLike={toggleLike} isRadioMode={isRadioMode} playlistCtx={playlistCtx} signalLabel={signalState?.label} mixLane={mixLane} radioPreview={heroPreview} radioNext={setNext} onSkipRadio={handleSkip} onPrevRadio={handlePrev} onOpenPlayer={()=>setImmersive(true)} onListenFor={()=>setShowListenFor(true)} intentLabel={radioIntentLabel} catalogError={tracksLoadError} onRetryCatalog={reloadCatalog} preferredGenres={user.genres} recentTrackIds={(profile?.recentTracks||[]).map(r=>r.trackId||r)} progress={progress} duration={duration}/>}
-              {screen==="search"    && <SearchScreen query={searchQuery} setQuery={setSearch} results={searchResults} tracks={tracks} onPlay={(t,pool)=>playTrack(t,pool||tracks)} onListenIntent={(focus)=>{ setListenFocus({ genre: focus.genre || null, scene: focus.scene || null }); playRadio(); }} onLike={toggleLike} currentTrack={currentTrack} isPlaying={isPlaying} playlistCtx={playlistCtx} entityHits={entityHits} onOpenArtist={openArtist} onOpenAlbum={(slug)=>openAlbum(slug)}/>}
-              {screen==="favorites" && <FavoritesScreen tracks={tracks} onPlay={t=>{setIsRadioMode(false);playTrack(t,tracks);}} onPlayTrack={(t,pool)=>{setIsRadioMode(false);playTrack(t,pool||tracks);}} onLike={toggleLike} currentTrack={currentTrack} isPlaying={isPlaying} playlistCtx={playlistCtx} userPlaylists={userPlaylists} onCreatePlaylist={createPlaylist} onDeletePlaylist={deletePlaylist} onListenFor={()=>setShowListenFor(true)}/>}
+              {screen==="home"      && <HomeScreen tracks={tracks} onPlayRadio={playRadio} onTogglePlay={()=>setIsPlaying(p=>!p)} onPlayTrack={playTrack} currentTrack={currentTrack} isPlaying={isPlaying} onLike={toggleLike} isRadioMode={isRadioMode} playlistCtx={playlistCtx} signalLabel={signalState?.label} mixLane={mixLane} radioPreview={heroPreview} radioNext={setNext} onSkipRadio={handleSkip} onPrevRadio={handlePrev} onOpenPlayer={()=>setImmersive(true)} onListenFor={()=>setShowGenreTaste(true)} intentLabel={radioIntentLabel} catalogError={tracksLoadError} onRetryCatalog={reloadCatalog} preferredGenres={user.genres} recentTrackIds={(profile?.recentTracks||[]).map(r=>r.trackId||r)} progress={progress} duration={duration}/>}
+              {screen==="search"    && <SearchScreen query={searchQuery} setQuery={setSearch} results={searchResults} tracks={tracks} onPlay={(t,pool)=>playTrack(t,pool||tracks)} onListenIntent={(focus)=>{ const next={ genre: focus.genre || null, scene: null }; setListenFocus(next); playRadio(null, createListenIntent({ daypart: mixLane, ...next })); }} onLike={toggleLike} currentTrack={currentTrack} isPlaying={isPlaying} playlistCtx={playlistCtx} entityHits={entityHits} onOpenArtist={openArtist} onOpenAlbum={(slug)=>openAlbum(slug)}/>}
+              {screen==="favorites" && <FavoritesScreen tracks={tracks} onPlay={t=>{setIsRadioMode(false);playTrack(t,tracks);}} onPlayTrack={(t,pool)=>{setIsRadioMode(false);playTrack(t,pool||tracks);}} onLike={toggleLike} currentTrack={currentTrack} isPlaying={isPlaying} playlistCtx={playlistCtx} userPlaylists={userPlaylists} onCreatePlaylist={createPlaylist} onDeletePlaylist={deletePlaylist} onListenFor={()=>{ setSessionInitialActivity(vibeForDaypart(mixLane)); setShowRouteBuilder(true); }}/>}
               {screen==="artist"    && (
                 <ArtistPage
                   artist={findArtist(tracks, artistSlug)}
