@@ -160,13 +160,13 @@ const injectStyles = () => {
       background: ${color.accentSoft} !important;
       color: ${color.ink} !important;
     }
-    .make-a-list {
+    .custom-mix {
       transition: background ${motion.base} ${motion.ease}, transform ${motion.fast} ${motion.ease};
     }
-    .make-a-list:hover {
+    .custom-mix:hover {
       background: rgba(255,255,255,0.03) !important;
     }
-    .make-a-list:active {
+    .custom-mix:active {
       transform: scale(0.995);
     }
     .sidebar-queue-row {
@@ -2472,14 +2472,14 @@ function QueueSheet({ queue, currentTrack, onPlay, onClose, onClear, onShuffle, 
   );
 }
 
-// ── Key feature: Make a list — duration session builder entry ────────────────
-function MakeAListFeature({ onClick }) {
+// ── Key feature: Custom Mix — duration session builder entry ─────────────────
+function CustomMixFeature({ onClick }) {
   return (
     <button
       type="button"
-      className="make-a-list"
+      className="custom-mix"
       onClick={onClick}
-      aria-label="Make a list"
+      aria-label="Custom Mix"
       style={{
         width: "100%",
         position: "relative",
@@ -2560,7 +2560,7 @@ function MakeAListFeature({ onClick }) {
           letterSpacing: -1.1,
           lineHeight: 1.05,
         }}>
-          Make a list
+          Custom Mix
         </div>
       </div>
 
@@ -2595,7 +2595,7 @@ function MakeAListFeature({ onClick }) {
  * Art-led horizontal shelf. Optional per-track `reasons` map (id → copy) turns
  * it into a "because…" recommendation rail. Like + ⋯ menu match TrackRow.
  */
-function CoverShelf({ tracks, onPlayTrack, activeId, isPlaying, onLike, playlistCtx, reasons = null, tileSize = null, showRanks = false, compactCaptions = false }) {
+function CoverShelf({ tracks, onPlayTrack, activeId, isPlaying, onLike, playlistCtx, reasons = null, tileSize = null, showRanks = false, compactCaptions = false, limit = 12 }) {
   const { menu, openFromButton, openFromContext, close } = useTrackMenu();
   if (!tracks?.length) return null;
   const tile = tileSize || homeSpace.tile;
@@ -2613,7 +2613,7 @@ function CoverShelf({ tracks, onPlayTrack, activeId, isPlaying, onLike, playlist
         overscrollBehaviorX: "contain",
       }}
     >
-      {tracks.slice(0, 12).map((t, i) => {
+      {tracks.slice(0, limit).map((t, i) => {
         const active = activeId === t.id;
         const reason = reasons?.[t.id];
         return (
@@ -2869,12 +2869,10 @@ function HomeCatalogStatus({ error, isEmpty, playableCount, totalCount, onRetry 
 }
 
 /**
- * One continuous For you river — lead editorial pick + art rail.
- * Replaces separate Recently / Trending / Made-for-you shelves.
+ * For you — one horizontal scrolling row of recommended tracks.
  */
 function ForYouRiver({
-  picks = [],
-  railTracks = [],
+  tracks = [],
   coldStart = false,
   onPlayTrack,
   activeId,
@@ -2882,17 +2880,7 @@ function ForYouRiver({
   onLike,
   playlistCtx,
 }) {
-  if (!picks.length && !railTracks.length) return null;
-  const lead = picks[0] || null;
-  const leadTrack = lead?.track || null;
-  const leadActive = leadTrack && activeId === leadTrack.id;
-  const pool = [
-    ...picks.map((p) => p.track),
-    ...railTracks,
-  ].filter((t, i, arr) => arr.findIndex((x) => x.id === t.id) === i);
-  const rail = railTracks.length
-    ? railTracks
-    : picks.slice(1).map((p) => p.track);
+  if (!tracks.length) return null;
   const tasteLine = coldStart
     ? "A starting set while we learn what you like."
     : "Recent listens, rising tracks, and picks shaped by your taste.";
@@ -2904,115 +2892,17 @@ function ForYouRiver({
       delay={0.06}
       first
     >
-      <div
-        className="glass-surface"
-        style={{
-          margin: `0 ${homeSpace.gutter}px`,
-          padding: "22px 0 8px",
-          borderRadius: radius.xl,
-          boxShadow: `${glass.shadowSoft}, inset 0 1px 0 ${glass.highlight}`,
-        }}
-      >
-      {leadTrack && (
-        <button
-          type="button"
-          onClick={() => onPlayTrack(leadTrack, pool)}
-          aria-label={`Play ${leadTrack.title}`}
-          style={{
-            display: "flex",
-            alignItems: "stretch",
-            gap: 18,
-            width: "100%",
-            margin: "0 0 24px",
-            padding: "0 20px",
-            background: "none",
-            border: "none",
-            cursor: "pointer",
-            textAlign: "left",
-            color: color.ink,
-          }}
-        >
-          <div style={{
-            width: 148, height: 148, borderRadius: radius.lg, overflow: "hidden",
-            flexShrink: 0, position: "relative",
-            boxShadow: leadActive
-              ? `0 0 0 1.5px ${color.accent}, 0 24px 56px rgba(0,0,0,0.5)`
-              : `0 0 0 1px ${glass.borderSoft}, 0 20px 48px rgba(0,0,0,0.4)`,
-          }}>
-            <AlbumArt track={leadTrack} size={156} borderRadius={radius.lg}/>
-            <div aria-hidden="true" style={{
-              pointerEvents: "none", position: "absolute", inset: 0, borderRadius: radius.lg,
-              boxShadow: `inset 0 1px 0 ${glass.highlight}`,
-            }}/>
-            {leadActive && isPlaying && (
-              <div style={{
-                position: "absolute", inset: 0, background: "rgba(0,0,0,0.35)",
-                display: "flex", alignItems: "center", justifyContent: "center",
-              }}>
-                <div style={{
-                  width: 10, height: 10, borderRadius: "50%", background: color.accent,
-                  animation: "pulse 1.2s ease-in-out infinite",
-                }}/>
-              </div>
-            )}
-          </div>
-
-          <div style={{
-            flex: 1, minWidth: 0,
-            display: "flex", flexDirection: "column", justifyContent: "center",
-            padding: "6px 0",
-          }}>
-            <div style={{
-              fontSize: 11, fontWeight: 650, letterSpacing: 1.4,
-              textTransform: "uppercase", color: color.accent,
-              fontFamily: fontMono, marginBottom: 10,
-            }}>
-              {coldStart ? "Start here" : "Top pick"}
-            </div>
-            <div style={{
-              fontSize: "clamp(22px, 5.4vw, 28px)",
-              fontWeight: 750, letterSpacing: -0.8, lineHeight: 1.1,
-              fontFamily: fontDisplay,
-              color: leadActive ? color.accent : color.ink,
-              marginBottom: 8,
-              overflow: "hidden", textOverflow: "ellipsis",
-              display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical",
-            }}>
-              {leadTrack.title}
-            </div>
-            <div style={{
-              fontSize: 14, color: color.muted, marginBottom: 12,
-              overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
-            }}>
-              {leadTrack.artist}
-            </div>
-            {lead.reason && (
-              <div style={{
-                fontSize: 13, color: color.body, lineHeight: 1.45,
-                letterSpacing: -0.1,
-                display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical",
-                overflow: "hidden",
-              }}>
-                {lead.reason}{lead.reason.endsWith(".") ? "" : "."}
-              </div>
-            )}
-          </div>
-        </button>
-      )}
-
-      {rail.length > 0 && (
-        <CoverShelf
-          tracks={rail}
-          onPlayTrack={(t) => onPlayTrack(t, pool.length ? pool : rail)}
-          activeId={activeId}
-          isPlaying={isPlaying}
-          onLike={onLike}
-          playlistCtx={playlistCtx}
-          tileSize={132}
-          compactCaptions
-        />
-      )}
-      </div>
+      <CoverShelf
+        tracks={tracks}
+        onPlayTrack={(t) => onPlayTrack(t, tracks)}
+        activeId={activeId}
+        isPlaying={isPlaying}
+        onLike={onLike}
+        playlistCtx={playlistCtx}
+        tileSize={132}
+        compactCaptions
+        limit={25}
+      />
     </HomeSection>
   );
 }
@@ -3024,7 +2914,7 @@ function HomeScreen({
   catalogError = null, onRetryCatalog,
   preferredGenres = [], recentTrackIds = [],
   progress = 0, duration = 0, onOpenPlayer, onListenFor = null,
-  intentLabel = null,
+  intentLabel = null, onCustomMix = null,
 }) {
   const activeId = currentTrack?.id;
   const playableCount = countPlayableTracks(tracks);
@@ -3039,38 +2929,39 @@ function HomeScreen({
     () => [...new Set(recentTrackIds)]
       .map((id) => tracks.find((t) => t.id === id))
       .filter(Boolean)
-      .slice(0, 12),
+      .slice(0, 25),
     [tracks, recentKey]
   );
 
-  const trending = useMemo(() => trendingTracks(tracks, 10), [tracks, catalogKey]);
+  const trending = useMemo(() => trendingTracks(tracks, 25), [tracks, catalogKey]);
 
   const { picks: recommended, coldStart } = useMemo(
     () => recommendedPicks(tracks, {
       preferredGenres,
       recentTrackIds,
-      limit: 8,
+      limit: 25,
       excludeIds: [],
     }),
     [tracks, catalogKey, tasteKey, recentKey]
   );
 
-  const riverRail = useMemo(() => {
-    const seen = new Set(recommended[0] ? [recommended[0].track.id] : []);
+  const forYouTracks = useMemo(() => {
+    const seen = new Set();
     const rail = [];
     const pushUnique = (list) => {
       for (const t of list) {
         if (!t?.id || seen.has(t.id)) continue;
         seen.add(t.id);
         rail.push(t);
-        if (rail.length >= 10) return;
+        if (rail.length >= 25) return;
       }
     };
-    pushUnique(recommended.slice(1).map((p) => p.track));
+    pushUnique(recommended.map((p) => p.track));
     pushUnique(trending);
     pushUnique(recentlyPlayed);
+    pushUnique(tracks);
     return rail;
-  }, [recommended, trending, recentlyPlayed]);
+  }, [recommended, trending, recentlyPlayed, tracks]);
 
   return (
     <div style={{ position: "relative", paddingBottom: 48 }}>
@@ -3109,10 +3000,9 @@ function HomeScreen({
           ${color.canvas}
         `,
       }}>
-        {(recommended.length > 0 || riverRail.length > 0) && (
+        {forYouTracks.length > 0 && (
           <ForYouRiver
-            picks={recommended}
-            railTracks={riverRail}
+            tracks={forYouTracks}
             coldStart={coldStart}
             onPlayTrack={onPlayTrack}
             activeId={activeId}
@@ -3122,7 +3012,7 @@ function HomeScreen({
           />
         )}
 
-        {!catalogError && !catalogEmpty && recommended.length === 0 && riverRail.length === 0 && (
+        {!catalogError && !catalogEmpty && forYouTracks.length === 0 && (
           <div style={{ padding: `28px ${homeSpace.gutter}px 56px` }}>
             <div className="glass-surface" style={{ padding: "28px 22px", borderRadius: radius.lg }}>
               <div style={{ fontSize: 22, fontWeight: 700, fontFamily: fontDisplay, color: color.ink, marginBottom: 8, letterSpacing: -0.4 }}>
@@ -3132,6 +3022,12 @@ function HomeScreen({
                 Add tracks to the catalog and they will show up here.
               </div>
             </div>
+          </div>
+        )}
+
+        {onCustomMix && (
+          <div style={{ padding: "8px 0 24px" }}>
+            <CustomMixFeature onClick={onCustomMix} />
           </div>
         )}
       </div>
@@ -3257,8 +3153,8 @@ function EnergySparkline({ tracks, width=120, height=24 }) {
 // ─── DIG (Discover) ───────────────────────────────────────────────────────────
 function FavoritesScreen({
   tracks, onPlay, onLike, currentTrack, isPlaying, playlistCtx,
-  userPlaylists = [], onCreatePlaylist, onDeletePlaylist, onMakePlaylist,
-  onPlayTrack, onListenFor = null,
+  userPlaylists = [], onCreatePlaylist, onDeletePlaylist,
+  onPlayTrack,
 }) {
   const { menu, close } = useTrackMenu();
   const activeId = currentTrack?.id;
@@ -3327,17 +3223,11 @@ function FavoritesScreen({
         position: "relative",
         background: color.canvas,
       }}>
-        {(onListenFor || onMakePlaylist) && (
-          <div style={{ padding: "12px 0 8px" }}>
-            <MakeAListFeature onClick={onListenFor || onMakePlaylist} />
-          </div>
-        )}
-
         <HomeSection
           label="Playlists"
           subtitle="Collections you keep returning to."
           delay={0.04}
-          first={!(onListenFor || onMakePlaylist)}
+          first
         >
           <div
             className="hide-scroll"
@@ -5441,9 +5331,9 @@ export default function App() {
       )}
       <div style={{ flex:1, overflow:"auto", paddingBottom: contentPadBottom(!!currentTrack && !immersive && !hideDockPlayer), zIndex:1, position:"relative" }}>
         <ScreenPane key={screen === "artist" ? `artist:${artistSlug}` : screen === "album" ? `album:${albumSlug}` : screen}>
-        {screen==="home"      && !tracksLoading && <HomeScreen tracks={tracks} onPlayRadio={playRadio} onTogglePlay={()=>setIsPlaying(p=>!p)} onPlayTrack={playTrack} currentTrack={currentTrack} isPlaying={isPlaying} onLike={toggleLike} isRadioMode={isRadioMode} playlistCtx={playlistCtx} signalLabel={signalState?.label} mixLane={mixLane} radioPreview={heroPreview} radioNext={setNext} onSkipRadio={handleSkip} onPrevRadio={handlePrev} onOpenPlayer={()=>setImmersive(true)} onListenFor={()=>setShowGenreTaste(true)} intentLabel={radioIntentLabel} catalogError={tracksLoadError} onRetryCatalog={reloadCatalog} preferredGenres={user.genres} recentTrackIds={(profile?.recentTracks||[]).map(r=>r.trackId||r)} progress={progress} duration={duration}/>}
+        {screen==="home"      && !tracksLoading && <HomeScreen tracks={tracks} onPlayRadio={playRadio} onTogglePlay={()=>setIsPlaying(p=>!p)} onPlayTrack={playTrack} currentTrack={currentTrack} isPlaying={isPlaying} onLike={toggleLike} isRadioMode={isRadioMode} playlistCtx={playlistCtx} signalLabel={signalState?.label} mixLane={mixLane} radioPreview={heroPreview} radioNext={setNext} onSkipRadio={handleSkip} onPrevRadio={handlePrev} onOpenPlayer={()=>setImmersive(true)} onListenFor={()=>setShowGenreTaste(true)} intentLabel={radioIntentLabel} catalogError={tracksLoadError} onRetryCatalog={reloadCatalog} preferredGenres={user.genres} recentTrackIds={(profile?.recentTracks||[]).map(r=>r.trackId||r)} progress={progress} duration={duration} onCustomMix={()=>{ setSessionInitialActivity(vibeForDaypart(mixLane)); setShowRouteBuilder(true); }}/>}
         {screen==="search"    && <SearchScreen query={searchQuery} setQuery={setSearch} results={searchResults} tracks={tracks} onPlay={(t,pool)=>playTrack(t,pool||tracks)} onListenIntent={(focus)=>{ const next={ genre: focus.genre || null, scene: null }; setListenFocus(next); playRadio(null, createListenIntent({ daypart: mixLane, ...next })); }} onLike={toggleLike} currentTrack={currentTrack} isPlaying={isPlaying} playlistCtx={playlistCtx} entityHits={entityHits} onOpenArtist={openArtist} onOpenAlbum={(slug)=>openAlbum(slug)}/>}
-        {screen==="favorites" && <FavoritesScreen tracks={tracks} onPlay={t=>{setIsRadioMode(false);playTrack(t,tracks);}} onPlayTrack={(t,pool)=>{setIsRadioMode(false);playTrack(t,pool||tracks);}} onLike={toggleLike} currentTrack={currentTrack} isPlaying={isPlaying} playlistCtx={playlistCtx} userPlaylists={userPlaylists} onCreatePlaylist={createPlaylist} onDeletePlaylist={deletePlaylist} onListenFor={()=>{ setSessionInitialActivity(vibeForDaypart(mixLane)); setShowRouteBuilder(true); }}/>}
+        {screen==="favorites" && <FavoritesScreen tracks={tracks} onPlay={t=>{setIsRadioMode(false);playTrack(t,tracks);}} onPlayTrack={(t,pool)=>{setIsRadioMode(false);playTrack(t,pool||tracks);}} onLike={toggleLike} currentTrack={currentTrack} isPlaying={isPlaying} playlistCtx={playlistCtx} userPlaylists={userPlaylists} onCreatePlaylist={createPlaylist} onDeletePlaylist={deletePlaylist}/>}
         {screen==="artist"    && !tracksLoading && (
           <ArtistPage
             artist={findArtist(tracks, artistSlug)}
@@ -5663,9 +5553,9 @@ export default function App() {
             </div>
           ) : (
             <ScreenPane key={screen === "artist" ? `artist:${artistSlug}` : screen === "album" ? `album:${albumSlug}` : screen}>
-              {screen==="home"      && <HomeScreen tracks={tracks} onPlayRadio={playRadio} onTogglePlay={()=>setIsPlaying(p=>!p)} onPlayTrack={playTrack} currentTrack={currentTrack} isPlaying={isPlaying} onLike={toggleLike} isRadioMode={isRadioMode} playlistCtx={playlistCtx} signalLabel={signalState?.label} mixLane={mixLane} radioPreview={heroPreview} radioNext={setNext} onSkipRadio={handleSkip} onPrevRadio={handlePrev} onOpenPlayer={()=>setImmersive(true)} onListenFor={()=>setShowGenreTaste(true)} intentLabel={radioIntentLabel} catalogError={tracksLoadError} onRetryCatalog={reloadCatalog} preferredGenres={user.genres} recentTrackIds={(profile?.recentTracks||[]).map(r=>r.trackId||r)} progress={progress} duration={duration}/>}
+              {screen==="home"      && <HomeScreen tracks={tracks} onPlayRadio={playRadio} onTogglePlay={()=>setIsPlaying(p=>!p)} onPlayTrack={playTrack} currentTrack={currentTrack} isPlaying={isPlaying} onLike={toggleLike} isRadioMode={isRadioMode} playlistCtx={playlistCtx} signalLabel={signalState?.label} mixLane={mixLane} radioPreview={heroPreview} radioNext={setNext} onSkipRadio={handleSkip} onPrevRadio={handlePrev} onOpenPlayer={()=>setImmersive(true)} onListenFor={()=>setShowGenreTaste(true)} intentLabel={radioIntentLabel} catalogError={tracksLoadError} onRetryCatalog={reloadCatalog} preferredGenres={user.genres} recentTrackIds={(profile?.recentTracks||[]).map(r=>r.trackId||r)} progress={progress} duration={duration} onCustomMix={()=>{ setSessionInitialActivity(vibeForDaypart(mixLane)); setShowRouteBuilder(true); }}/>}
               {screen==="search"    && <SearchScreen query={searchQuery} setQuery={setSearch} results={searchResults} tracks={tracks} onPlay={(t,pool)=>playTrack(t,pool||tracks)} onListenIntent={(focus)=>{ const next={ genre: focus.genre || null, scene: null }; setListenFocus(next); playRadio(null, createListenIntent({ daypart: mixLane, ...next })); }} onLike={toggleLike} currentTrack={currentTrack} isPlaying={isPlaying} playlistCtx={playlistCtx} entityHits={entityHits} onOpenArtist={openArtist} onOpenAlbum={(slug)=>openAlbum(slug)}/>}
-              {screen==="favorites" && <FavoritesScreen tracks={tracks} onPlay={t=>{setIsRadioMode(false);playTrack(t,tracks);}} onPlayTrack={(t,pool)=>{setIsRadioMode(false);playTrack(t,pool||tracks);}} onLike={toggleLike} currentTrack={currentTrack} isPlaying={isPlaying} playlistCtx={playlistCtx} userPlaylists={userPlaylists} onCreatePlaylist={createPlaylist} onDeletePlaylist={deletePlaylist} onListenFor={()=>{ setSessionInitialActivity(vibeForDaypart(mixLane)); setShowRouteBuilder(true); }}/>}
+              {screen==="favorites" && <FavoritesScreen tracks={tracks} onPlay={t=>{setIsRadioMode(false);playTrack(t,tracks);}} onPlayTrack={(t,pool)=>{setIsRadioMode(false);playTrack(t,pool||tracks);}} onLike={toggleLike} currentTrack={currentTrack} isPlaying={isPlaying} playlistCtx={playlistCtx} userPlaylists={userPlaylists} onCreatePlaylist={createPlaylist} onDeletePlaylist={deletePlaylist}/>}
               {screen==="artist"    && (
                 <ArtistPage
                   artist={findArtist(tracks, artistSlug)}
