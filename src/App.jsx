@@ -811,20 +811,20 @@ function CoverStageAtmosphere({ track = null, playing = false }) {
         transition: "background 0.8s ease",
       }}/>
 
-      {/* Upgrade 1 — living planet centerpiece */}
+      {/* Brand lockup — large, faded PLANET MP3 logo */}
       <div style={{
         position: "absolute",
         left: "50%",
-        top: "36%",
-        width: "min(72vw, 460px)",
-        height: "min(72vw, 460px)",
+        top: "38%",
+        width: "min(118vw, 760px)",
+        height: "min(118vw, 760px)",
         transform: "translate(-50%, -50%)",
-        backgroundImage: "url(/assets/premium-planet-placeholder.png)",
+        backgroundImage: "url(/brand/planet-mp3-lockup.png)",
         backgroundSize: "contain",
         backgroundPosition: "center",
         backgroundRepeat: "no-repeat",
-        opacity: hasArt ? (playing ? 0.16 : 0.11) : (playing ? 0.28 : 0.2),
-        filter: playing ? "saturate(1.05) brightness(1.05)" : "none",
+        opacity: hasArt ? (playing ? 0.14 : 0.09) : (playing ? 0.22 : 0.16),
+        filter: playing ? "brightness(1.08)" : "none",
         animation: playing ? "stagePlanetBreathe 5.5s ease-in-out infinite" : "none",
         transition: "opacity 0.8s ease, filter 0.8s ease",
         pointerEvents: "none",
@@ -835,9 +835,9 @@ function CoverStageAtmosphere({ track = null, playing = false }) {
         <div style={{
           position: "absolute",
           left: "50%",
-          top: "36%",
-          width: "min(58vw, 360px)",
-          height: "min(58vw, 360px)",
+          top: "38%",
+          width: "min(88vw, 560px)",
+          height: "min(88vw, 560px)",
           transform: "translate(-50%, -50%)",
           borderRadius: "50%",
           border: `1px solid rgba(${tintRgb || "242,243,245"},0.12)`,
@@ -861,7 +861,7 @@ function CoverStageAtmosphere({ track = null, playing = false }) {
 
 /**
  * Home Cover Stage — Home *is* the player.
- * Full-bleed listening surface: living planet centerpiece + compact
+ * Full-bleed listening surface: faded PLANET MP3 lockup + compact
  * bottom-left listening rack (meta, progress, transport).
  */
 function CoverStage({
