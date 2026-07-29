@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { createPortal }                             from "react-dom";
 import { useNavigate, useLocation }                 from "react-router-dom";
 import { useAuth }                                  from "./useAuth";
@@ -2505,7 +2505,7 @@ function BuildASetFeature({ onClick }) {
  * Art-led horizontal shelf. Optional per-track `reasons` map (id → copy) turns
  * it into a "because…" recommendation rail. Like + ⋯ menu match TrackRow.
  */
-function CoverShelf({ tracks, onPlayTrack, activeId, isPlaying, onLike, playlistCtx, reasons = null, tileSize = null, showRanks = false }) {
+function CoverShelf({ tracks, onPlayTrack, activeId, isPlaying, onLike, playlistCtx, reasons = null, tileSize = null, showRanks = false, compactCaptions = false }) {
   const { menu, openFromButton, openFromContext, close } = useTrackMenu();
   if (!tracks?.length) return null;
   const tile = tileSize || homeSpace.tile;
@@ -2516,12 +2516,14 @@ function CoverShelf({ tracks, onPlayTrack, activeId, isPlaying, onLike, playlist
         display: "flex",
         gap: homeSpace.shelfGap,
         overflowX: "auto",
-        padding: `0 ${homeSpace.gutter}px 10px`,
-        scrollSnapType: "x mandatory",
+        overflowY: "hidden",
+        padding: `4px ${homeSpace.gutter}px 14px`,
+        scrollSnapType: "x proximity",
         WebkitOverflowScrolling: "touch",
+        overscrollBehaviorX: "contain",
       }}
     >
-      {tracks.slice(0, 16).map((t, i) => {
+      {tracks.slice(0, 12).map((t, i) => {
         const active = activeId === t.id;
         const reason = reasons?.[t.id];
         return (
@@ -2604,15 +2606,19 @@ function CoverShelf({ tracks, onPlayTrack, activeId, isPlaying, onLike, playlist
                 }}
               >
                 <div style={{
-                  fontSize: 14, fontWeight: 600, letterSpacing: -0.2,
-                  overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+                  fontSize: compactCaptions ? 13 : 14,
+                  fontWeight: 600,
+                  letterSpacing: -0.2,
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  whiteSpace: "nowrap",
                   color: active ? color.accent : color.ink,
                 }}>{t.title}</div>
                 <div style={{
                   fontSize: 12, color: color.muted, marginTop: 3,
                   overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
                 }}>{t.artist}</div>
-                {reason && (
+                {reason && !compactCaptions && (
                   <div style={{
                     fontSize: 10, color: color.faint, marginTop: 5,
                     fontFamily: fontMono, letterSpacing: 0.3, textTransform: "uppercase",
@@ -2666,7 +2672,7 @@ const HomeSection = ({ label, count, subtitle, children, delay = 0, first = fals
         <div style={sectionRule(homeSpace.gutter)}/>
       </div>
     )}
-    {first && <div style={{ height: homeSpace.sectionPadTopFirst }} aria-hidden="true"/>}
+    {first && <div style={{ height: homeSpace.sectionPadTopFirst + 12 }} aria-hidden="true"/>}
     <div style={{
       padding: `0 ${homeSpace.gutter}px ${subtitle ? 10 : 22}px`,
       display: "flex",
@@ -2797,9 +2803,6 @@ function ForYouRiver({
   const rail = railTracks.length
     ? railTracks
     : picks.slice(1).map((p) => p.track);
-  const reasons = Object.fromEntries(
-    picks.filter((p) => !leadTrack || p.track.id !== leadTrack.id).map((p) => [p.track.id, p.reason])
-  );
   const tasteLine = coldStart
     ? "A starting set while we learn what you like."
     : "Recent listens, rising tracks, and picks shaped by your taste.";
@@ -2811,6 +2814,15 @@ function ForYouRiver({
       delay={0.06}
       first
     >
+      <div
+        className="glass-surface"
+        style={{
+          margin: `0 ${homeSpace.gutter}px`,
+          padding: "22px 0 8px",
+          borderRadius: radius.xl,
+          boxShadow: `${glass.shadowSoft}, inset 0 1px 0 ${glass.highlight}`,
+        }}
+      >
       {leadTrack && (
         <button
           type="button"
@@ -2819,10 +2831,10 @@ function ForYouRiver({
           style={{
             display: "flex",
             alignItems: "stretch",
-            gap: 16,
-            width: `calc(100% - ${homeSpace.gutter * 2}px)`,
-            margin: `0 ${homeSpace.gutter}px 26px`,
-            padding: 0,
+            gap: 18,
+            width: "100%",
+            margin: "0 0 24px",
+            padding: "0 20px",
             background: "none",
             border: "none",
             cursor: "pointer",
@@ -2831,11 +2843,11 @@ function ForYouRiver({
           }}
         >
           <div style={{
-            width: 156, height: 156, borderRadius: radius.lg, overflow: "hidden",
+            width: 148, height: 148, borderRadius: radius.lg, overflow: "hidden",
             flexShrink: 0, position: "relative",
             boxShadow: leadActive
               ? `0 0 0 1.5px ${color.accent}, 0 24px 56px rgba(0,0,0,0.5)`
-              : `0 0 0 1px ${glass.borderSoft}, 0 24px 56px rgba(0,0,0,0.45)`,
+              : `0 0 0 1px ${glass.borderSoft}, 0 20px 48px rgba(0,0,0,0.4)`,
           }}>
             <AlbumArt track={leadTrack} size={156} borderRadius={radius.lg}/>
             <div aria-hidden="true" style={{
@@ -2886,8 +2898,10 @@ function ForYouRiver({
             </div>
             {lead.reason && (
               <div style={{
-                fontSize: 14, color: color.body, lineHeight: 1.45,
-                letterSpacing: -0.1, maxWidth: 300,
+                fontSize: 13, color: color.body, lineHeight: 1.45,
+                letterSpacing: -0.1,
+                display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical",
+                overflow: "hidden",
               }}>
                 {lead.reason}{lead.reason.endsWith(".") ? "" : "."}
               </div>
@@ -2904,10 +2918,11 @@ function ForYouRiver({
           isPlaying={isPlaying}
           onLike={onLike}
           playlistCtx={playlistCtx}
-          reasons={reasons}
-          tileSize={124}
+          tileSize={132}
+          compactCaptions
         />
       )}
+      </div>
     </HomeSection>
   );
 }
@@ -2926,34 +2941,46 @@ function HomeScreen({
   const catalogEmpty = !catalogError && tracks.length === 0;
   const catalogDepleted = !catalogError && tracks.length > 0 && playableCount === 0;
 
-  const recentlyPlayed = [...new Set(recentTrackIds)]
-    .map((id) => tracks.find((t) => t.id === id))
-    .filter(Boolean)
-    .slice(0, 12);
+  const tasteKey = (preferredGenres || []).join("\u0001");
+  const recentKey = (recentTrackIds || []).join("\u0001");
+  const catalogKey = tracks.length;
 
-  const trending = trendingTracks(tracks, 10);
+  const recentlyPlayed = useMemo(
+    () => [...new Set(recentTrackIds)]
+      .map((id) => tracks.find((t) => t.id === id))
+      .filter(Boolean)
+      .slice(0, 12),
+    [tracks, recentKey]
+  );
 
-  const { picks: recommended, coldStart } = recommendedPicks(tracks, {
-    preferredGenres,
-    recentTrackIds,
-    limit: 8,
-    excludeIds: [],
-  });
+  const trending = useMemo(() => trendingTracks(tracks, 10), [tracks, catalogKey]);
 
-  // One river: recommended lead + deduped blend of trending / recent / more picks
-  const seen = new Set(recommended[0] ? [recommended[0].track.id] : []);
-  const riverRail = [];
-  const pushUnique = (list) => {
-    for (const t of list) {
-      if (!t?.id || seen.has(t.id)) continue;
-      seen.add(t.id);
-      riverRail.push(t);
-      if (riverRail.length >= 14) return;
-    }
-  };
-  pushUnique(recommended.slice(1).map((p) => p.track));
-  pushUnique(trending);
-  pushUnique(recentlyPlayed);
+  const { picks: recommended, coldStart } = useMemo(
+    () => recommendedPicks(tracks, {
+      preferredGenres,
+      recentTrackIds,
+      limit: 8,
+      excludeIds: [],
+    }),
+    [tracks, catalogKey, tasteKey, recentKey]
+  );
+
+  const riverRail = useMemo(() => {
+    const seen = new Set(recommended[0] ? [recommended[0].track.id] : []);
+    const rail = [];
+    const pushUnique = (list) => {
+      for (const t of list) {
+        if (!t?.id || seen.has(t.id)) continue;
+        seen.add(t.id);
+        rail.push(t);
+        if (rail.length >= 10) return;
+      }
+    };
+    pushUnique(recommended.slice(1).map((p) => p.track));
+    pushUnique(trending);
+    pushUnique(recentlyPlayed);
+    return rail;
+  }, [recommended, trending, recentlyPlayed]);
 
   return (
     <div style={{ position: "relative", paddingBottom: 48 }}>

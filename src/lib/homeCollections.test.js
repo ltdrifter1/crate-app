@@ -40,14 +40,16 @@ describe("homeCollections", () => {
     expect(recs.some((t) => t.genre === "Jazz" || t.liked)).toBe(true);
   });
 
-  test("recommendedTracks falls back to random sample with no history", () => {
+  test("recommendedTracks falls back to stable sample with no history", () => {
     const cold = [
-      { id: "a", title: "A", genre: "Rock", duration: 180 },
-      { id: "b", title: "B", genre: "Pop", duration: 180 },
+      { id: "a", title: "A", genre: "Rock", duration: 180, playCount: 2 },
+      { id: "b", title: "B", genre: "Pop", duration: 180, playCount: 0 },
       { id: "c", title: "C", genre: "Soul", duration: 180 },
     ];
     const recs = recommendedTracks(cold, { limit: 2 });
     expect(recs).toHaveLength(2);
+    const again = recommendedTracks(cold, { limit: 2 });
+    expect(again.map((t) => t.id)).toEqual(recs.map((t) => t.id));
   });
 
   test("recommendedPicks marks cold start and labels fresh picks", () => {
