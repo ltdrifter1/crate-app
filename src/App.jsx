@@ -122,6 +122,10 @@ const injectStyles = () => {
       0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.92; }
       50% { transform: translate(-50%, -50%) scale(1.035); opacity: 1; }
     }
+    @keyframes brandLockupBreathe {
+      0%, 100% { transform: scale(1); filter: drop-shadow(0 18px 40px rgba(0,0,0,0.45)); }
+      50% { transform: scale(1.028); filter: drop-shadow(0 22px 48px rgba(0,0,0,0.5)); }
+    }
     @keyframes stageBloom {
       0%, 100% { opacity: 0.55; }
       50% { opacity: 0.9; }
