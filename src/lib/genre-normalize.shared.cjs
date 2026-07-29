@@ -1,7 +1,7 @@
 /**
- * Single source of truth for the 11-genre taste lanes + alias table.
- * Used by src/lib/genres.js (app) and Node catalog scripts (normalize-genres, upload-tracks).
- * Scenes / micro-styles stay in scenes.js — not here.
+ * Node/catalog scripts only (normalize-genres.js, upload-tracks.js).
+ * The React app imports src/lib/genres.js (ESM) — keep both files in sync.
+ * genres-script-sync.test.js guards parity.
  */
 
 const CANONICAL_GENRES = [
