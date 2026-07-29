@@ -16,16 +16,18 @@ import {
   updateProfile,
 } from "firebase/auth";
 import {
-  doc, setDoc, getDoc, serverTimestamp,
+  doc, setDoc, getDoc, updateDoc, serverTimestamp,
 } from "firebase/firestore";
 import { auth, db } from "./firebase";
 import { normalizePhoneE164 } from "./lib/phone";
 import { migratePreferredGenres } from "./lib/genres";
+import { buildTrialFields, needsTrialBackfill } from "./lib/entitlements";
 
 const REDIRECT_ERROR_KEY = "rooms.auth.redirectError";
 
 async function createProfile(uid, fields = {}) {
   const displayName = fields.displayName || fields.username || "Listener";
+  const trial = buildTrialFields();
   const profile = {
     uid,
     username:     fields.username     || displayName,
@@ -39,6 +41,7 @@ async function createProfile(uid, fields = {}) {
     recentTracks: [],
     onboarded:    false,
     settings:     { repeat: false },
+    ...trial,
   };
   await setDoc(doc(db, "users", uid), profile);
   return profile;
@@ -57,7 +60,20 @@ function ephemeralProfile(fbUser) {
     recentTracks: [],
     onboarded: true,
     settings: { repeat: false },
+    ...buildTrialFields(),
   };
+}
+
+/** One-time backfill so existing accounts get a fresh 30-day trial. */
+async function backfillTrialIfNeeded(uid, data) {
+  if (!needsTrialBackfill(data)) return data;
+  const trial = buildTrialFields();
+  try {
+    await updateDoc(doc(db, "users", uid), trial);
+  } catch (e) {
+    console.warn("Trial backfill failed; using local trial fields", e);
+  }
+  return { ...data, ...trial };
 }
 
 function shouldFallbackToRedirect(err) {
@@ -147,10 +163,11 @@ export function useAuth() {
     try {
       const snap = await getDoc(doc(db, "users", fbUser.uid));
       if (snap.exists()) {
-        const data = snap.data();
+        const data = await backfillTrialIfNeeded(fbUser.uid, snap.data());
         const genres = migratePreferredGenres(data.genres);
-        setProfile({ ...data, genres });
-        return { ...data, genres };
+        const next = { ...data, genres };
+        setProfile(next);
+        return next;
       }
       const created = await createProfile(fbUser.uid, {
         email: fbUser.email || "",
@@ -168,6 +185,13 @@ export function useAuth() {
       setProfile(local);
       return local;
     }
+  }
+
+  /** Re-read profile from Firestore (e.g. after Stripe checkout). */
+  async function refreshProfile() {
+    const fbUser = auth.currentUser;
+    if (!fbUser) return null;
+    return ensureProfile(fbUser);
   }
 
   useEffect(() => {
@@ -385,7 +409,7 @@ export function useAuth() {
 
   return {
     firebaseUser, profile, setProfile, loading, authError, clearAuthError,
-    signUp, logIn, logOut,
+    signUp, logIn, logOut, refreshProfile,
     signInWithGoogle, signInWithApple,
     sendPhoneOTP, verifyPhoneOTP, resetPassword,
   };
