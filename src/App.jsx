@@ -156,6 +156,15 @@ const injectStyles = () => {
       background: ${color.accentSoft} !important;
       color: ${color.ink} !important;
     }
+    .make-a-list {
+      transition: background ${motion.base} ${motion.ease}, transform ${motion.fast} ${motion.ease};
+    }
+    .make-a-list:hover {
+      background: rgba(255,255,255,0.03) !important;
+    }
+    .make-a-list:active {
+      transform: scale(0.995);
+    }
     .sidebar-queue-row {
       transition: background ${motion.base} ${motion.ease};
     }
@@ -1535,7 +1544,7 @@ function CollapsingHeader({ title, subtitle }) {
 
     const io = new IntersectionObserver(
       ([entry]) => setCompact(!entry.isIntersecting),
-      { root, threshold: 0, rootMargin: "-8px 0px 0px 0px" }
+      { root, threshold: 0, rootMargin: "-56px 0px 0px 0px" }
     );
     io.observe(sentinel);
     return () => io.disconnect();
@@ -1577,7 +1586,13 @@ function CollapsingHeader({ title, subtitle }) {
           {title}
         </div>
       </div>
-      <div style={{ padding: "28px 16px 8px" }}>
+      <div style={{
+        padding: "32px 16px 12px",
+        opacity: compact ? 0 : 1,
+        transform: compact ? "translateY(-6px)" : "none",
+        transition: `opacity ${motion.base} ${motion.ease}, transform ${motion.base} ${motion.ease}`,
+        pointerEvents: compact ? "none" : "auto",
+      }}>
         <h1 style={{
           margin: 0,
           fontSize: 34,
@@ -2453,133 +2468,119 @@ function QueueSheet({ queue, currentTrack, onPlay, onClose, onClear, onShuffle, 
   );
 }
 
-// ── Key feature: timed playlist CTA ───────────────────────────────────────────
-// Concept: Session Dial — duration arc + playlist bars. Not a generic “+”.
-function BuildASetFeature({ onClick }) {
+// ── Key feature: Make a list — duration session builder entry ────────────────
+function MakeAListFeature({ onClick }) {
   return (
     <button
       type="button"
-      className="glass-control"
+      className="make-a-list"
       onClick={onClick}
-      aria-label="Build a set — choose how long you’re listening"
+      aria-label="Make a list"
       style={{
         width: "100%",
         position: "relative",
         overflow: "hidden",
-        display: "block",
-        padding: 0,
-        borderRadius: radius.xl,
-        border: `1px solid ${glass.border}`,
-        background: `
-          linear-gradient(135deg, rgba(234,231,220,0.14) 0%, rgba(234,231,220,0.03) 38%, transparent 62%),
-          linear-gradient(180deg, rgba(234,231,220,0.10) 0%, rgba(234,231,220,0.04) 100%)
-        `,
-        boxShadow: `
-          inset 0 1px 0 ${glass.highlight},
-          inset 0 0 0 0.5px ${glass.borderFaint},
-          0 18px 48px rgba(0,0,0,0.38)
-        `,
-        backdropFilter: glass.blur,
-        WebkitBackdropFilter: glass.blur,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        gap: 20,
+        minHeight: 148,
+        padding: "36px 28px",
+        border: "none",
+        borderRadius: 0,
+        background: color.canvas,
         cursor: "pointer",
         textAlign: "left",
         color: color.ink,
         animation: "rise 0.55s cubic-bezier(0.22,1,0.36,1) both",
       }}
     >
+      {/* Atmosphere */}
       <div aria-hidden="true" style={{
-        position: "absolute", inset: 0, pointerEvents: "none",
-        background: "radial-gradient(ellipse at 12% 0%, rgba(255,255,255,0.14) 0%, transparent 42%)",
+        position: "absolute",
+        inset: 0,
+        pointerEvents: "none",
+        background: `
+          radial-gradient(ellipse 70% 120% at 8% 50%, rgba(255,255,255,0.07) 0%, transparent 58%),
+          linear-gradient(180deg, rgba(255,255,255,0.035) 0%, transparent 42%, rgba(255,255,255,0.02) 100%)
+        `,
+      }}/>
+      <div aria-hidden="true" style={{
+        position: "absolute",
+        left: 0,
+        right: 0,
+        top: 0,
+        height: 1,
+        background: "linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.14) 18%, rgba(255,255,255,0.18) 50%, rgba(255,255,255,0.14) 82%, transparent 100%)",
+      }}/>
+      <div aria-hidden="true" style={{
+        position: "absolute",
+        left: 0,
+        right: 0,
+        bottom: 0,
+        height: 1,
+        background: "linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.1) 20%, rgba(255,255,255,0.12) 50%, rgba(255,255,255,0.1) 80%, transparent 100%)",
       }}/>
 
-      <div style={{
-        position: "relative",
+      {/* Quiet list motif — suggests tracks without copy */}
+      <div aria-hidden="true" style={{
+        position: "absolute",
+        right: "22%",
+        top: "50%",
+        transform: "translateY(-50%)",
+        width: 88,
         display: "flex",
-        alignItems: "center",
-        gap: 18,
-        padding: "22px 18px 18px",
+        flexDirection: "column",
+        gap: 7,
+        opacity: 0.22,
+        pointerEvents: "none",
       }}>
+        {[1, 0.72, 0.9, 0.55, 0.68].map((w, i) => (
+          <div
+            key={i}
+            style={{
+              height: 1.5,
+              width: `${w * 100}%`,
+              borderRadius: 1,
+              background: color.ink,
+            }}
+          />
+        ))}
+      </div>
+
+      <div style={{ position: "relative", zIndex: 1, minWidth: 0 }}>
         <div style={{
-          width: 72, height: 72, borderRadius: 20, flexShrink: 0,
-          display: "flex", alignItems: "center", justifyContent: "center",
-          background: `
-            radial-gradient(circle at 35% 28%, rgba(255,255,255,0.16) 0%, transparent 45%),
-            linear-gradient(160deg, rgba(234,231,220,0.22) 0%, rgba(28,28,26,0.92) 55%, rgba(12,12,12,0.98) 100%)
-          `,
-          border: `1px solid ${glass.border}`,
-          boxShadow: `
-            inset 0 1px 0 ${glass.highlight},
-            0 10px 28px rgba(0,0,0,0.35)
-          `,
-          animation: "markIn 0.65s cubic-bezier(0.22,1,0.36,1) both",
+          fontSize: "clamp(28px, 6vw, 36px)",
+          fontWeight: 650,
+          fontFamily: fontDisplay,
+          letterSpacing: -1.1,
+          lineHeight: 1.05,
         }}>
-          <TimedMixMark size={34} />
-        </div>
-
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{
-            fontSize: 11, fontWeight: 650, letterSpacing: 1.2,
-            textTransform: "uppercase", color: color.accent,
-            marginBottom: 6,
-          }}>
-            Build a set
-          </div>
-          <div style={{
-            fontSize: 22, fontWeight: 700, fontFamily: fontDisplay,
-            letterSpacing: -0.55, lineHeight: 1.1, marginBottom: 6,
-          }}>
-            Music for the time you have
-          </div>
-          <div style={{
-            fontSize: 14, color: color.body, lineHeight: 1.4,
-            maxWidth: 260,
-          }}>
-            Choose how long you’re listening — we shape the energy from start to finish.
-          </div>
-        </div>
-
-        <div style={{
-          width: 44, height: 44, borderRadius: 980, flexShrink: 0,
-          display: "flex", alignItems: "center", justifyContent: "center",
-          background: color.accent,
-          color: color.onAccent,
-          boxShadow: "0 10px 24px rgba(0,0,0,0.35)",
-        }} aria-hidden="true">
-          <Icon name="play" size={16}/>
+          Make a list
         </div>
       </div>
 
-      <div style={{
-        position: "relative",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "space-between",
-        gap: 12,
-        margin: "0 14px 14px",
-        padding: "12px 14px",
-        borderRadius: radius.md,
-        background: "rgba(0,0,0,0.28)",
-        border: `1px solid ${glass.borderFaint}`,
-        boxShadow: `inset 0 1px 0 ${glass.borderFaint}`,
-      }}>
-        <div style={{
-          fontSize: 12, color: color.muted, fontWeight: 500,
-          letterSpacing: 0.1,
-        }}>
-          <span style={{ color: color.ink }}>30m</span>
-          <span style={{ color: color.faint }}>  ·  </span>
-          <span style={{ color: color.ink }}>1h</span>
-          <span style={{ color: color.faint }}>  ·  </span>
-          <span style={{ color: color.ink }}>2h</span>
-          <span style={{ color: color.faint }}>  ·  </span>
-          <span style={{ color: color.ink }}>All night</span>
-        </div>
-        <div style={{
-          fontSize: 12, fontWeight: 650, color: color.accent,
-          letterSpacing: -0.1, flexShrink: 0,
-        }}>
-          Start
-        </div>
+      <div
+        aria-hidden="true"
+        style={{
+          position: "relative",
+          zIndex: 1,
+          width: 52,
+          height: 52,
+          borderRadius: "50%",
+          flexShrink: 0,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          background: color.accent,
+          color: color.onAccent,
+          boxShadow: `
+            0 0 0 1px rgba(255,255,255,0.08),
+            0 14px 36px rgba(0,0,0,0.45)
+          `,
+        }}
+      >
+        <Icon name="play" size={16}/>
       </div>
     </button>
   );
@@ -3315,83 +3316,22 @@ function FavoritesScreen({
     <div style={{ position: "relative", paddingBottom: 48 }}>
       <CollapsingHeader
         title="Library"
-        subtitle="Your playlists, sets, and saved music in one place."
+        subtitle="Playlists and saved music."
       />
 
       <div style={{
         position: "relative",
         background: color.canvas,
       }}>
-        <div style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
-          gap: 10,
-          padding: `16px ${homeSpace.gutter}px 4px`,
-        }}>
-          {[
-            { value: userPlaylists.length, label: "Playlists" },
-            { value: saved.length, label: "Liked songs" },
-          ].map((item) => (
-            <div
-              key={item.label}
-              className="glass-surface"
-              style={{
-                minHeight: 88,
-                borderRadius: radius.lg,
-                padding: "16px 17px",
-                display: "flex",
-                flexDirection: "column",
-                justifyContent: "space-between",
-                background: `
-                  linear-gradient(145deg, rgba(255,255,255,0.07), rgba(255,255,255,0.025)),
-                  ${color.canvas}
-                `,
-              }}
-            >
-              <span style={{
-                fontSize: 26,
-                lineHeight: 1,
-                fontWeight: 720,
-                letterSpacing: -0.8,
-                color: color.ink,
-                fontFamily: fontDisplay,
-                fontVariantNumeric: "tabular-nums",
-              }}>
-                {item.value}
-              </span>
-              <span style={{
-                marginTop: 14,
-                fontSize: 11,
-                color: color.muted,
-                fontFamily: fontMono,
-                letterSpacing: 0.8,
-                textTransform: "uppercase",
-              }}>
-                {item.label}
-              </span>
-            </div>
-          ))}
-        </div>
-
         {(onListenFor || onMakePlaylist) && (
-          <div style={{
-            padding: `${Math.round(homeSpace.bandPadY * 0.55)}px ${homeSpace.gutter}px ${Math.round(homeSpace.bandPadY * 0.4)}px`,
-          }}>
-            <BuildASetFeature onClick={onListenFor || onMakePlaylist} />
-          </div>
-        )}
-
-        {(onListenFor || onMakePlaylist) && (
-          <div aria-hidden="true" style={{
-            padding: `${Math.round(homeSpace.sectionPadTop * 0.35)}px 0 ${Math.round(homeSpace.sectionPadTop * 0.4)}px`,
-          }}>
-            <div style={sectionRule(homeSpace.gutter)}/>
+          <div style={{ padding: "12px 0 8px" }}>
+            <MakeAListFeature onClick={onListenFor || onMakePlaylist} />
           </div>
         )}
 
         <HomeSection
           label="Playlists"
-          count={userPlaylists.length || undefined}
+          subtitle="Collections you keep returning to."
           delay={0.04}
           first={!(onListenFor || onMakePlaylist)}
         >
@@ -3399,7 +3339,7 @@ function FavoritesScreen({
             className="hide-scroll"
             style={{
               display: "flex",
-              gap: homeSpace.shelfGap,
+              gap: 16,
               overflowX: "auto",
               padding: `0 ${homeSpace.gutter}px 10px`,
               scrollSnapType: "x mandatory",
@@ -3427,22 +3367,41 @@ function FavoritesScreen({
                   }}
                 >
                   <div style={{
-                    width: tile, height: tile, borderRadius: radius.md, overflow: "hidden",
-                    marginBottom: 12, background: color.surfaceRaised,
+                    width: tile,
+                    height: tile,
+                    borderRadius: 8,
+                    overflow: "hidden",
+                    marginBottom: 12,
+                    background: color.surfaceRaised,
                     display: "grid",
                     gridTemplateColumns: covers.length > 1 ? "1fr 1fr" : "1fr",
                     gridTemplateRows: covers.length > 1 ? "1fr 1fr" : "1fr",
-                    boxShadow: `0 0 0 1px ${glass.borderSoft}, 0 16px 40px rgba(0,0,0,0.42)`,
+                    boxShadow: `
+                      0 0 0 1px rgba(255,255,255,0.06),
+                      0 18px 40px rgba(0,0,0,0.4)
+                    `,
                     position: "relative",
                   }}>
                     {covers.length === 0 ? (
                       <div style={{
-                        display: "flex", alignItems: "center", justifyContent: "center",
-                        color: color.faint, fontSize: 28, fontFamily: fontDisplay, fontWeight: 700,
-                        background: glass.fillQuiet,
-                      }}>♪</div>
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        color: color.faint,
+                        fontSize: 13,
+                        fontFamily: fontMono,
+                        fontWeight: 650,
+                        letterSpacing: 1.4,
+                        textTransform: "uppercase",
+                        background: `
+                          linear-gradient(160deg, rgba(255,255,255,0.05) 0%, transparent 55%),
+                          ${color.surfaceRaised}
+                        `,
+                      }}>
+                        Set
+                      </div>
                     ) : covers.length === 1 ? (
-                      <AlbumArt track={covers[0]} size={tile} borderRadius={radius.md}/>
+                      <AlbumArt track={covers[0]} size={tile} borderRadius={8}/>
                     ) : (
                       <>
                         {[0, 1, 2, 3].map((i) => (
@@ -3453,16 +3412,34 @@ function FavoritesScreen({
                       </>
                     )}
                     <div aria-hidden="true" style={{
-                      pointerEvents: "none", position: "absolute", inset: 0, borderRadius: radius.md,
-                      boxShadow: `inset 0 1px 0 ${glass.highlight}`,
+                      pointerEvents: "none",
+                      position: "absolute",
+                      inset: 0,
+                      borderRadius: 8,
+                      boxShadow: `inset 0 1px 0 rgba(255,255,255,0.1)`,
                     }}/>
                   </div>
                   <div style={{
-                    fontSize: 14, fontWeight: 600, letterSpacing: -0.2,
-                    overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
-                  }}>{pl.name}</div>
-                  <div style={{ fontSize: 12, color: color.muted, marginTop: 3 }}>
-                    {plTracks.length} songs
+                    fontSize: 14,
+                    fontWeight: 600,
+                    letterSpacing: -0.25,
+                    fontFamily: fontDisplay,
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
+                  }}>
+                    {pl.name}
+                  </div>
+                  <div style={{
+                    fontSize: 11,
+                    color: color.faint,
+                    marginTop: 4,
+                    fontFamily: fontMono,
+                    letterSpacing: 0.3,
+                  }}>
+                    {plTracks.length === 0
+                      ? "Empty"
+                      : `${plTracks.length} track${plTracks.length === 1 ? "" : "s"}`}
                   </div>
                 </button>
               );
@@ -3482,38 +3459,91 @@ function FavoritesScreen({
                 scrollSnapAlign: "start",
               }}
             >
-              <div className="glass-surface" style={{
-                width: tile, height: tile, borderRadius: radius.md, marginBottom: 12,
-                display: "flex", alignItems: "center", justifyContent: "center",
-                color: color.body, fontSize: 36, fontWeight: 300,
-              }}>+</div>
-              <div style={{ fontSize: 14, fontWeight: 600, color: color.accent }}>New Playlist</div>
+              <div style={{
+                width: tile,
+                height: tile,
+                borderRadius: 8,
+                marginBottom: 12,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                color: color.muted,
+                fontSize: 28,
+                fontWeight: 300,
+                letterSpacing: 0,
+                border: `1px dashed ${glass.border}`,
+                background: "rgba(255,255,255,0.02)",
+              }}>
+                +
+              </div>
+              <div style={{
+                fontSize: 14,
+                fontWeight: 600,
+                letterSpacing: -0.2,
+                fontFamily: fontDisplay,
+                color: color.body,
+              }}>
+                New playlist
+              </div>
             </button>
           </div>
           {showNewInput && (
-            <div style={{ display: "flex", gap: 8, alignItems: "center", padding: `16px ${homeSpace.gutter}px 0` }}>
-              <input autoFocus value={newName} onChange={(e) => setNewName(e.target.value)}
-                onKeyDown={(e) => { if (e.key === "Enter") handleCreate(); if (e.key === "Escape") { setShowNewInput(false); setNewName(""); } }}
-                placeholder="Playlist name…" style={{ flex: 1, ...INPUT_ST, padding: "10px 12px", fontSize: 15 }}/>
-              <button type="button" onClick={handleCreate} style={{
-                background: color.accent, border: "none", borderRadius: 980, color: color.onAccent,
-                fontSize: 15, fontWeight: 600, padding: "10px 16px", cursor: "pointer",
-              }}>Create</button>
+            <div style={{
+              display: "flex",
+              gap: 8,
+              alignItems: "center",
+              padding: `16px ${homeSpace.gutter}px 0`,
+            }}>
+              <input
+                autoFocus
+                value={newName}
+                onChange={(e) => setNewName(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") handleCreate();
+                  if (e.key === "Escape") { setShowNewInput(false); setNewName(""); }
+                }}
+                placeholder="Playlist name…"
+                style={{ flex: 1, ...INPUT_ST, padding: "10px 12px", fontSize: 15 }}
+              />
+              <button
+                type="button"
+                onClick={handleCreate}
+                style={{
+                  background: color.accent,
+                  border: "none",
+                  borderRadius: 980,
+                  color: color.onAccent,
+                  fontSize: 15,
+                  fontWeight: 600,
+                  padding: "10px 16px",
+                  cursor: "pointer",
+                }}
+              >
+                Create
+              </button>
             </div>
           )}
         </HomeSection>
 
         {saved.length > 0 && (
-          <HomeSection label="Liked Songs" count={saved.length} delay={0.08}>
-            <CoverShelf
-              tracks={saved}
-              onPlayTrack={playTrackFn}
-              activeId={activeId}
-              isPlaying={isPlaying}
-              onLike={onLike}
-              playlistCtx={playlistCtx}
-              tileSize={132}
-            />
+          <HomeSection
+            label="Liked Songs"
+            subtitle="Saved for later — title, artist, and room to browse."
+            delay={0.08}
+          >
+            <div style={{ padding: `0 ${Math.max(0, homeSpace.gutter - 8)}px` }}>
+              {saved.map((t) => (
+                <TrackRow
+                  key={t.id}
+                  track={t}
+                  onPlay={() => playTrackFn(t, saved)}
+                  active={activeId === t.id}
+                  isPlaying={isPlaying}
+                  onLike={onLike}
+                  playlistCtx={playlistCtx}
+                />
+              ))}
+            </div>
           </HomeSection>
         )}
       </div>
