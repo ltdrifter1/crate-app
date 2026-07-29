@@ -144,6 +144,22 @@ const injectStyles = () => {
       background: ${color.accentSoft} !important;
       color: ${color.ink} !important;
     }
+    .sidebar-queue-row {
+      transition: background ${motion.base} ${motion.ease};
+    }
+    .sidebar-queue-row:hover {
+      background: rgba(255,255,255,0.045) !important;
+    }
+    .sidebar-queue-row:hover .sidebar-queue-actions {
+      opacity: 1 !important;
+    }
+    .sidebar-ghost-btn {
+      transition: color ${motion.fast} ${motion.ease}, opacity ${motion.fast};
+    }
+    .sidebar-ghost-btn:hover {
+      color: ${color.ink} !important;
+      opacity: 1 !important;
+    }
     @media (prefers-reduced-motion: reduce) {
       *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
     }
@@ -775,15 +791,15 @@ function CoverStageAtmosphere({ track = null, playing = false }) {
       <div style={{
         position: "absolute",
         left: "50%",
-        top: "42%",
-        width: "min(78vw, 420px)",
-        height: "min(78vw, 420px)",
-        transform: "translate(-50%, -54%)",
+        top: "38%",
+        width: "min(78vw, 440px)",
+        height: "min(78vw, 440px)",
+        transform: "translate(-50%, -50%)",
         backgroundImage: "url(/assets/premium-planet-placeholder.png)",
         backgroundSize: "contain",
         backgroundPosition: "center",
         backgroundRepeat: "no-repeat",
-        opacity: hasArt ? 0.08 : 0.18,
+        opacity: hasArt ? 0.1 : 0.2,
         transition: "opacity 0.8s ease",
         pointerEvents: "none",
       }}/>
@@ -792,8 +808,8 @@ function CoverStageAtmosphere({ track = null, playing = false }) {
         position: "absolute",
         inset: 0,
         background: `
-          radial-gradient(ellipse 80% 55% at 50% 28%, transparent 0%, rgba(0,0,0,0.35) 72%, rgba(0,0,0,0.78) 100%),
-          linear-gradient(180deg, rgba(0,0,0,0.28) 0%, transparent 30%, transparent 48%, rgba(0,0,0,0.92) 100%)
+          radial-gradient(ellipse 85% 60% at 50% 32%, transparent 0%, rgba(0,0,0,0.28) 70%, rgba(0,0,0,0.72) 100%),
+          linear-gradient(180deg, rgba(0,0,0,0.22) 0%, transparent 28%, transparent 42%, rgba(0,0,0,0.94) 100%)
         `,
       }}/>
     </div>
@@ -802,7 +818,7 @@ function CoverStageAtmosphere({ track = null, playing = false }) {
 
 /**
  * Home Cover Stage — Home *is* the player.
- * Full-bleed listening surface: watermark logo, huge title, minimal instrument.
+ * Full-bleed listening surface: watermark logo, compact bottom-left title, minimal instrument.
  */
 function CoverStage({
   onPlay, onTogglePlay, onSkip, onPrev, onOpen,
@@ -854,25 +870,28 @@ function CoverStage({
     >
       <CoverStageAtmosphere track={stageTrack} playing={playingVisual} />
 
-      {/* Center title */}
-      <div style={{
-        position: "relative",
-        zIndex: 1,
-        height: "100%",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
-        padding: `0 ${homeSpace.gutter}px 108px`,
-        textAlign: "center",
-      }}>
+      {/* Bottom-left title + instrument */}
+      <div
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          position: "absolute",
+          left: 0,
+          right: 0,
+          bottom: 0,
+          zIndex: 2,
+          padding: `0 ${homeSpace.gutter}px calc(28px + env(safe-area-inset-bottom, 0px))`,
+        }}
+      >
         <div
           key={stageTrack?.id || "idle"}
           onClick={openImmersive}
           style={{
-            maxWidth: 520,
+            maxWidth: 380,
             width: "100%",
+            marginBottom: 28,
+            textAlign: "left",
             animation: "trackSwap 0.45s cubic-bezier(0.22,1,0.36,1) both",
+            cursor: live && onOpen ? "pointer" : "inherit",
           }}
         >
           <button
@@ -886,11 +905,11 @@ function CoverStage({
               background: "none",
               border: "none",
               padding: 0,
-              marginBottom: 18,
+              marginBottom: 10,
               cursor: onListenFor ? "pointer" : "default",
-              fontSize: 11,
+              fontSize: 10,
               fontWeight: 650,
-              letterSpacing: 2.2,
+              letterSpacing: 1.8,
               textTransform: "uppercase",
               color: live && isPlaying ? color.accent : color.faint,
               fontFamily: fontMono,
@@ -904,26 +923,26 @@ function CoverStage({
 
           <h1 style={{
             margin: 0,
-            fontSize: "clamp(34px, 9vw, 56px)",
-            fontWeight: 720,
-            letterSpacing: -1.6,
-            lineHeight: 1.02,
+            fontSize: "clamp(22px, 4.2vw, 30px)",
+            fontWeight: 650,
+            letterSpacing: -0.8,
+            lineHeight: 1.12,
             color: color.onDark,
             fontFamily: fontDisplay,
             overflow: "hidden",
             display: "-webkit-box",
-            WebkitLineClamp: 3,
+            WebkitLineClamp: 2,
             WebkitBoxOrient: "vertical",
           }}>
             {stageTrack?.title || (canStart ? "Press play" : "Nothing here yet")}
           </h1>
 
           <div style={{
-            marginTop: 14,
-            fontSize: 16,
+            marginTop: 8,
+            fontSize: 13,
             fontWeight: 450,
-            letterSpacing: -0.15,
-            color: "rgba(242,243,245,0.58)",
+            letterSpacing: -0.1,
+            color: "rgba(242,243,245,0.55)",
             overflow: "hidden",
             textOverflow: "ellipsis",
             whiteSpace: "nowrap",
@@ -931,20 +950,7 @@ function CoverStage({
             {stageTrack?.artist || (canStart ? "Press play when you’re ready" : "Add tracks to begin")}
           </div>
         </div>
-      </div>
 
-      {/* Bottom instrument — quiet, typographic */}
-      <div
-        onClick={(e) => e.stopPropagation()}
-        style={{
-          position: "absolute",
-          left: 0,
-          right: 0,
-          bottom: 0,
-          zIndex: 2,
-          padding: `0 ${homeSpace.gutter}px calc(28px + env(safe-area-inset-bottom, 0px))`,
-        }}
-      >
         {/* Whisper progress */}
         <div
           aria-hidden="true"
@@ -5632,110 +5638,472 @@ export default function App() {
       </div>
 
       {/* ── RIGHT PANEL ─────────────────────────────────────────────── */}
-      <div className="hide-scroll" style={{ width:320, flexShrink:0, background: color.surfaceSolid, borderLeft:`1px solid ${color.line}`, display:"flex", flexDirection:"column", overflowY:"auto" }}>
+      <div className="hide-scroll" style={{
+        width: 336,
+        flexShrink: 0,
+        background: `linear-gradient(180deg, #101012 0%, ${color.surfaceSolid} 28%, #0A0A0C 100%)`,
+        borderLeft: `1px solid ${glass.borderFaint}`,
+        display: "flex",
+        flexDirection: "column",
+        overflowY: "auto",
+        position: "relative",
+      }}>
+        {/* Soft top sheen */}
+        <div aria-hidden="true" style={{
+          position: "absolute",
+          top: 0,
+          left: 0,
+          right: 0,
+          height: 1,
+          background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.14), transparent)",
+          pointerEvents: "none",
+          zIndex: 2,
+        }}/>
 
         {/* Now Playing */}
         {currentTrack ? (
-          <div style={{ padding:"16px 16px 12px", position:"relative" }}>
+          <div style={{ padding: "22px 20px 18px", position: "relative" }}>
             {/* Ambient color wash behind art */}
-            <div style={{ position:"absolute", top:0, left:0, right:0, height:"70%", background:`radial-gradient(ellipse at 50% 30%, rgba(${glowRgb},0.12) 0%, transparent 70%)`, pointerEvents:"none" }}/>
-            {/* Album art */}
-            <div style={{ position:"relative", width:"100%", aspectRatio:"1", overflow:"hidden", marginBottom:4, boxShadow:`0 16px 40px rgba(0,0,0,0.4)` }}>
-              <img src={currentTrack.albumCover||"/covers/default.jpg"} alt="" style={{ width:"100%", height:"100%", objectFit:"cover" }} onError={e=>{e.target.src="/covers/default.jpg";}}/>
+            <div style={{
+              position: "absolute",
+              top: 0,
+              left: 0,
+              right: 0,
+              height: "78%",
+              background: `radial-gradient(ellipse at 50% 18%, rgba(${glowRgb},0.2) 0%, transparent 68%)`,
+              pointerEvents: "none",
+            }}/>
+
+            {/* Album art — framed, luminous */}
+            <div style={{
+              position: "relative",
+              width: "100%",
+              aspectRatio: "1",
+              overflow: "hidden",
+              marginBottom: 18,
+              borderRadius: 4,
+              boxShadow: `
+                0 0 0 1px rgba(255,255,255,0.08),
+                0 24px 56px rgba(0,0,0,0.55),
+                0 8px 20px rgba(${glowRgb},0.12)
+              `,
+            }}>
+              <img
+                src={currentTrack.albumCover || "/covers/default.jpg"}
+                alt=""
+                style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+                onError={(e) => { e.target.src = "/covers/default.jpg"; }}
+              />
+              <div aria-hidden="true" style={{
+                position: "absolute",
+                inset: 0,
+                boxShadow: "inset 0 1px 0 rgba(255,255,255,0.12), inset 0 -40px 48px rgba(0,0,0,0.28)",
+                pointerEvents: "none",
+              }}/>
             </div>
-            {/* Progress bar under art */}
-            <div style={{ height:3, background: color.line, borderRadius:2, marginBottom:12, overflow:"hidden" }}>
-              <div style={{ height:"100%", width:`${duration?((progress/duration)*100):0}%`, background: color.accent, borderRadius:2, transition:"width 1s linear" }}/>
+
+            {/* Progress — whisper hairline under art */}
+            <div style={{
+              height: 1.5,
+              background: "rgba(255,255,255,0.06)",
+              marginBottom: 16,
+              overflow: "hidden",
+              position: "relative",
+            }}>
+              <div style={{
+                height: "100%",
+                width: `${duration ? ((progress / duration) * 100) : 0}%`,
+                background: color.accent,
+                transition: "width 1s linear",
+                boxShadow: `0 0 10px ${color.accentGlow}`,
+              }}/>
             </div>
+
             {/* Track info */}
-            <div key={currentTrack.id} style={{ position:"relative", animation: "trackSwap 0.35s cubic-bezier(0.22,1,0.36,1) both" }}>
-              <div style={{ fontSize:15, fontWeight:650, color: color.ink, letterSpacing:-0.3, marginBottom:2, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap", fontFamily: fontDisplay }}>{currentTrack.title}</div>
-              <div style={{ fontSize:12, color: color.muted, marginBottom:10, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{currentTrack.artist}</div>
+            <div key={currentTrack.id} style={{
+              position: "relative",
+              animation: "trackSwap 0.35s cubic-bezier(0.22,1,0.36,1) both",
+            }}>
+              <div style={{
+                fontSize: 17,
+                fontWeight: 650,
+                color: color.ink,
+                letterSpacing: -0.35,
+                lineHeight: 1.25,
+                marginBottom: 4,
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                whiteSpace: "nowrap",
+                fontFamily: fontDisplay,
+              }}>
+                {currentTrack.title}
+              </div>
+              <div style={{
+                fontSize: 13,
+                color: color.muted,
+                marginBottom: 14,
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                whiteSpace: "nowrap",
+                letterSpacing: -0.1,
+              }}>
+                {currentTrack.artist}
+              </div>
               <BoothHud track={currentTrack} size="sm"/>
               {signalState?.label && (
-                <div style={{ marginTop:10, fontSize:10, fontWeight:700, letterSpacing:1.2, color: color.faint, textTransform:"uppercase", fontFamily: fontMono }}>
+                <div style={{
+                  marginTop: 14,
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 8,
+                  fontSize: 9,
+                  fontWeight: 700,
+                  letterSpacing: 1.6,
+                  color: color.faint,
+                  textTransform: "uppercase",
+                  fontFamily: fontMono,
+                }}>
+                  <span style={{
+                    width: 4,
+                    height: 4,
+                    borderRadius: "50%",
+                    background: isPlaying ? color.accent : color.faint,
+                    boxShadow: isPlaying ? `0 0 0 3px ${color.accentSoft}` : "none",
+                    animation: isPlaying ? "breathe 2s ease-in-out infinite" : "none",
+                  }}/>
                   {signalState.label}
                 </div>
               )}
             </div>
           </div>
         ) : (
-          <div style={{ padding:"60px 16px", textAlign:"center" }}>
+          <div style={{
+            padding: "72px 20px",
+            textAlign: "center",
+            opacity: 0.55,
+          }}>
             <BrandGlyph size={28}/>
+            <div style={{
+              marginTop: 14,
+              fontSize: 11,
+              letterSpacing: 1.4,
+              textTransform: "uppercase",
+              color: color.faint,
+              fontFamily: fontMono,
+            }}>
+              Nothing playing
+            </div>
           </div>
         )}
 
-
-        {/* Divider */}
-        <div style={{ height:1, background: color.line, margin:"0 16px" }}/>
+        {/* Faded rule */}
+        <div style={{
+          height: 1,
+          margin: "4px 20px 0",
+          background: "linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.1) 20%, rgba(255,255,255,0.12) 50%, rgba(255,255,255,0.1) 80%, transparent 100%)",
+        }}/>
 
         {/* Up Next */}
-        <div style={{ flex:1, padding:"12px 12px 16px" }}>
-          {/* Header with actions */}
-          <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"4px 4px 10px" }}>
-            <div style={{ fontSize:12, fontWeight:700, letterSpacing:-0.2, color: color.ink, fontFamily: fontDisplay }}>Up Next</div>
-            <div style={{ display:"flex", gap:4 }}>
-              <button onClick={()=>{const pool=tracks.filter(t=>t.id!==currentTrack?.id&&(t.duration||0)<=900);const shuffled=[...pool];for(let i=shuffled.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[shuffled[i],shuffled[j]]=[shuffled[j],shuffled[i]];}setQueue(shuffled.slice(0,8));}}
-                style={{ background: color.surface, border:"none", borderRadius:6, padding:"4px 8px", cursor:"pointer", color: color.muted, fontSize:9, fontWeight:600, letterSpacing:0.3, transition:"all 0.15s" }}>
+        <div style={{ flex: 1, padding: "18px 12px 24px", display: "flex", flexDirection: "column" }}>
+          <div style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "baseline",
+            padding: "0 8px 14px",
+          }}>
+            <div>
+              <div style={{
+                fontSize: 10,
+                fontWeight: 700,
+                letterSpacing: 1.8,
+                textTransform: "uppercase",
+                color: color.faint,
+                fontFamily: fontMono,
+                marginBottom: 4,
+              }}>
+                Queue
+              </div>
+              <div style={{
+                fontSize: 14,
+                fontWeight: 650,
+                letterSpacing: -0.25,
+                color: color.ink,
+                fontFamily: fontDisplay,
+              }}>
+                Up Next
+              </div>
+            </div>
+            <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
+              <button
+                type="button"
+                className="sidebar-ghost-btn"
+                onClick={() => {
+                  const pool = tracks.filter((t) => t.id !== currentTrack?.id && (t.duration || 0) <= 900);
+                  const shuffled = [...pool];
+                  for (let i = shuffled.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+                  }
+                  setQueue(shuffled.slice(0, 8));
+                }}
+                style={{
+                  background: "none",
+                  border: "none",
+                  padding: 0,
+                  cursor: "pointer",
+                  color: color.muted,
+                  fontSize: 10,
+                  fontWeight: 600,
+                  letterSpacing: 0.8,
+                  textTransform: "uppercase",
+                  fontFamily: fontMono,
+                }}
+              >
                 Shuffle
               </button>
               {queue.length > 0 && (
-                <button onClick={()=>setQueue([])}
-                  style={{ background: color.surface, border:"none", borderRadius:6, padding:"4px 8px", cursor:"pointer", color: color.muted, fontSize:9, fontWeight:600, letterSpacing:0.3 }}>
+                <button
+                  type="button"
+                  className="sidebar-ghost-btn"
+                  onClick={() => setQueue([])}
+                  style={{
+                    background: "none",
+                    border: "none",
+                    padding: 0,
+                    cursor: "pointer",
+                    color: color.muted,
+                    fontSize: 10,
+                    fontWeight: 600,
+                    letterSpacing: 0.8,
+                    textTransform: "uppercase",
+                    fontFamily: fontMono,
+                  }}
+                >
                   Clear
                 </button>
               )}
             </div>
           </div>
 
-          {/* Track list */}
-          <div style={{ display:"flex", flexDirection:"column", gap:2 }}>
-            {nextUpTracks.map((t,i) => (
-              <div key={t.id}
-                style={{ display:"flex", alignItems:"center", gap:8, padding:"6px 8px", borderRadius:10,
-                  background: currentTrack?.id===t.id ? color.accentSoft : color.surface,
-                  border: currentTrack?.id===t.id ? `1px solid ${color.accentSoft}` : `1px solid ${color.line}`,
-                  transition:"all 0.2s" }}>
+          {/* Continuous premium list — no boxed cards */}
+          <div style={{ display: "flex", flexDirection: "column" }}>
+            {nextUpTracks.map((t, i) => {
+              const active = currentTrack?.id === t.id;
+              return (
+                <div
+                  key={t.id}
+                  className="sidebar-queue-row"
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 10,
+                    padding: "10px 8px",
+                    borderRadius: 8,
+                    background: active ? "rgba(255,255,255,0.05)" : "transparent",
+                    position: "relative",
+                  }}
+                >
+                  {active && (
+                    <div aria-hidden="true" style={{
+                      position: "absolute",
+                      left: 0,
+                      top: 10,
+                      bottom: 10,
+                      width: 2,
+                      borderRadius: 1,
+                      background: color.accent,
+                    }}/>
+                  )}
 
-                <div style={{ width:16, fontSize:10, fontWeight:500, color: color.faint, textAlign:"center", flexShrink:0 }}>{i+1}</div>
-
-                <div onClick={()=>playTrack(t,tracks)} style={{ display:"flex", alignItems:"center", gap:8, flex:1, minWidth:0, cursor:"pointer" }}>
-                  <div style={{ width:36, height:36, borderRadius:8, overflow:"hidden", flexShrink:0 }}>
-                    <img src={t.albumCover||"/covers/default.jpg"} alt="" style={{ width:"100%", height:"100%", objectFit:"cover" }} onError={e=>{e.target.src="/covers/default.jpg";}}/>
+                  <div style={{
+                    width: 18,
+                    fontSize: 10,
+                    fontWeight: 500,
+                    color: active ? color.ink : color.faint,
+                    textAlign: "center",
+                    flexShrink: 0,
+                    fontFamily: fontMono,
+                    fontVariantNumeric: "tabular-nums",
+                  }}>
+                    {String(i + 1).padStart(2, "0")}
                   </div>
-                  <div style={{ flex:1, minWidth:0 }}>
-                    <div style={{ fontSize:12, fontWeight:500, color: color.ink, letterSpacing:-0.1, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{t.title}</div>
-                    <div style={{ fontSize:10, color: color.muted, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{t.artist}</div>
+
+                  <div
+                    onClick={() => playTrack(t, tracks)}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 11,
+                      flex: 1,
+                      minWidth: 0,
+                      cursor: "pointer",
+                    }}
+                  >
+                    <div style={{
+                      width: 40,
+                      height: 40,
+                      borderRadius: 5,
+                      overflow: "hidden",
+                      flexShrink: 0,
+                      boxShadow: "0 4px 14px rgba(0,0,0,0.35)",
+                      outline: active ? `1px solid rgba(255,255,255,0.18)` : "1px solid transparent",
+                    }}>
+                      <img
+                        src={t.albumCover || "/covers/default.jpg"}
+                        alt=""
+                        style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+                        onError={(e) => { e.target.src = "/covers/default.jpg"; }}
+                      />
+                    </div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{
+                        fontSize: 12.5,
+                        fontWeight: active ? 600 : 500,
+                        color: color.ink,
+                        letterSpacing: -0.15,
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                        fontFamily: fontDisplay,
+                      }}>
+                        {t.title}
+                      </div>
+                      <div style={{
+                        marginTop: 2,
+                        fontSize: 11,
+                        color: color.muted,
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 6,
+                      }}>
+                        <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                          {t.artist}
+                        </span>
+                        {t._signal?.label && (
+                          <>
+                            <span style={{ opacity: 0.35, flexShrink: 0 }}>·</span>
+                            <span style={{
+                              flexShrink: 0,
+                              fontSize: 9,
+                              fontWeight: 650,
+                              letterSpacing: 0.9,
+                              textTransform: "uppercase",
+                              color: color.faint,
+                              fontFamily: fontMono,
+                            }}>
+                              {t._signal.label}
+                            </span>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div
+                    className="sidebar-queue-actions"
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 2,
+                      flexShrink: 0,
+                      opacity: 0.28,
+                      transition: `opacity ${motion.base} ${motion.ease}`,
+                    }}
+                  >
+                    {!isRadioMode && (
+                      <>
+                        <button
+                          type="button"
+                          aria-label="Move up"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (i > 0) {
+                              const nq = [...nextUpTracks];
+                              [nq[i - 1], nq[i]] = [nq[i], nq[i - 1]];
+                              setQueue(nq);
+                            }
+                          }}
+                          style={{
+                            background: "none",
+                            border: "none",
+                            cursor: i > 0 ? "pointer" : "default",
+                            padding: 3,
+                            opacity: i > 0 ? 1 : 0,
+                          }}
+                        >
+                          <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke={color.ink} strokeWidth="1.5" strokeLinecap="round"><path d="M3 7L6 4L9 7"/></svg>
+                        </button>
+                        <button
+                          type="button"
+                          aria-label="Move down"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (i < nextUpTracks.length - 1) {
+                              const nq = [...nextUpTracks];
+                              [nq[i], nq[i + 1]] = [nq[i + 1], nq[i]];
+                              setQueue(nq);
+                            }
+                          }}
+                          style={{
+                            background: "none",
+                            border: "none",
+                            cursor: i < nextUpTracks.length - 1 ? "pointer" : "default",
+                            padding: 3,
+                            opacity: i < nextUpTracks.length - 1 ? 1 : 0,
+                          }}
+                        >
+                          <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke={color.ink} strokeWidth="1.5" strokeLinecap="round"><path d="M3 5L6 8L9 5"/></svg>
+                        </button>
+                      </>
+                    )}
+                    <button
+                      type="button"
+                      aria-label="Remove from queue"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setQueue(() => {
+                          const nq = [...nextUpTracks];
+                          nq.splice(i, 1);
+                          return nq;
+                        });
+                      }}
+                      style={{
+                        background: "none",
+                        border: "none",
+                        cursor: "pointer",
+                        padding: 3,
+                      }}
+                    >
+                      <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke={color.ink} strokeWidth="1.5" strokeLinecap="round"><path d="M2.5 2.5L7.5 7.5M7.5 2.5L2.5 7.5"/></svg>
+                    </button>
                   </div>
                 </div>
-
-                {t._signal?.label && (
-                  <span style={{ fontSize:8, fontWeight:600, padding:"2px 6px", borderRadius:4, background: color.surfaceRaised, color: color.faint, flexShrink:0, letterSpacing:0.3, textTransform:"uppercase" }}>{t._signal.label}</span>
-                )}
-
-                {!isRadioMode && (
-                  <div style={{ display:"flex", alignItems:"center", gap:2, flexShrink:0 }}>
-                    <button onClick={e=>{e.stopPropagation(); if(i>0){const nq=[...nextUpTracks];[nq[i-1],nq[i]]=[nq[i],nq[i-1]];setQueue(nq);}}}
-                      style={{ background:"none", border:"none", cursor:i>0?"pointer":"default", padding:"2px", opacity:i>0?0.4:0, transition:"opacity 0.15s" }}>
-                      <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke={color.ink} strokeWidth="1.5" strokeLinecap="round"><path d="M3 7L6 4L9 7"/></svg>
-                    </button>
-                    <button onClick={e=>{e.stopPropagation(); if(i<nextUpTracks.length-1){const nq=[...nextUpTracks];[nq[i],nq[i+1]]=[nq[i+1],nq[i]];setQueue(nq);}}}
-                      style={{ background:"none", border:"none", cursor:i<nextUpTracks.length-1?"pointer":"default", padding:"2px", opacity:i<nextUpTracks.length-1?0.4:0, transition:"opacity 0.15s" }}>
-                      <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke={color.ink} strokeWidth="1.5" strokeLinecap="round"><path d="M3 5L6 8L9 5"/></svg>
-                    </button>
-                  </div>
-                )}
-                <button onClick={e=>{e.stopPropagation();setQueue(prev=>{const nq=[...nextUpTracks];nq.splice(i,1);return nq;});}}
-                  style={{ background:"none", border:"none", cursor:"pointer", padding:"2px", opacity:0.35, transition:"opacity 0.15s", flexShrink:0 }}>
-                  <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke={color.ink} strokeWidth="1.5" strokeLinecap="round"><path d="M2.5 2.5L7.5 7.5M7.5 2.5L2.5 7.5"/></svg>
-                </button>
-              </div>
-            ))}
+              );
+            })}
           </div>
 
           {nextUpTracks.length === 0 && (
-            <div style={{ textAlign:"center", padding:"32px 0", color: color.faint, fontSize:12 }}>
-              No tracks queued
+            <div style={{
+              textAlign: "center",
+              padding: "40px 12px",
+              color: color.faint,
+              fontSize: 12,
+              letterSpacing: -0.1,
+            }}>
+              Queue is empty
+              <div style={{
+                marginTop: 6,
+                fontSize: 10,
+                letterSpacing: 0.6,
+                textTransform: "uppercase",
+                fontFamily: fontMono,
+                opacity: 0.7,
+              }}>
+                Shuffle to fill it
+              </div>
             </div>
           )}
         </div>
