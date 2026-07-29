@@ -81,7 +81,7 @@ function singlesOnly(tracks = []) {
   return tracks.filter((t) => (t.duration || 0) <= 900);
 }
 
-/** Fisher–Yates shuffle — copy, never mutate. */
+/** Fisher–Yates shuffle — copy, never mutate. (Tests / one-off tools only.) */
 function shuffleCopy(list) {
   const out = [...list];
   for (let i = out.length - 1; i > 0; i--) {
@@ -139,12 +139,18 @@ export function recommendedPicks(
     preferredSet.size > 0;
 
   if (!hasHistory) {
-    return {
-      coldStart: true,
-      picks: shuffleCopy(pool)
-        .slice(0, limit)
-        .map((t) => ({ track: t, reason: "Fresh pick" })),
-    };
+    const picks = pool
+      .slice()
+      .sort((a, b) => {
+        const heat = (b.playCount || 0) - (a.playCount || 0);
+        if (heat !== 0) return heat;
+        const pull = (b._signal?.pull || 0) - (a._signal?.pull || 0);
+        if (pull !== 0) return pull;
+        return String(a.id).localeCompare(String(b.id));
+      })
+      .slice(0, limit)
+      .map((t) => ({ track: t, reason: "Fresh pick" }));
+    return { coldStart: true, picks };
   }
 
   const scored = pool
@@ -173,7 +179,7 @@ export function recommendedPicks(
 
       return { track: t, reason, score };
     })
-    .sort((a, b) => b.score - a.score || Math.random() - 0.5);
+    .sort((a, b) => b.score - a.score || String(a.track.id).localeCompare(String(b.track.id)));
 
   return {
     coldStart: false,
