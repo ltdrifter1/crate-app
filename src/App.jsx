@@ -118,6 +118,18 @@ const injectStyles = () => {
       0%, 100% { transform: scale(1); opacity: 0.92; }
       50% { transform: scale(1.03); opacity: 1; }
     }
+    @keyframes stagePlanetBreathe {
+      0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.92; }
+      50% { transform: translate(-50%, -50%) scale(1.035); opacity: 1; }
+    }
+    @keyframes stageBloom {
+      0%, 100% { opacity: 0.55; }
+      50% { opacity: 0.9; }
+    }
+    @keyframes stageLiveDot {
+      0%, 100% { opacity: 0.45; transform: scale(1); }
+      50% { opacity: 1; transform: scale(1.15); }
+    }
     @keyframes orbitPulse {
       0%, 100% { opacity: 0.55; box-shadow: 0 0 8px rgba(242,243,245,0.35); }
       50% { opacity: 1; box-shadow: 0 0 16px rgba(242,243,245,0.7); }
@@ -753,7 +765,8 @@ function OrbitingPlanet({ playing = false, night = false, progress = 0, tintRgb 
 
 /**
  * Cover Stage atmosphere — soft art wash when listening, otherwise a quiet
- * semi-transparent logo watermark. No chrome, no motion, no deck.
+ * semi-transparent logo watermark. Planet becomes the centerpiece once title
+ * sits bottom-left; bloom + breathe respond to play state.
  */
 function CoverStageAtmosphere({ track = null, playing = false }) {
   const tintRgb = track?.color ? hexToRgbStr(track.color) : null;
@@ -772,44 +785,65 @@ function CoverStageAtmosphere({ track = null, playing = false }) {
           backgroundSize: "cover",
           backgroundPosition: "center",
           filter: "blur(48px) saturate(1.15) brightness(0.55)",
-          opacity: playing ? 0.72 : 0.48,
+          opacity: playing ? 0.78 : 0.48,
           transform: "scale(1.08)",
           transition: "opacity 0.8s ease",
         }}/>
       )}
 
-      {tintRgb && (
-        <div style={{
-          position: "absolute",
-          inset: 0,
-          background: `radial-gradient(ellipse 90% 70% at 50% 35%, rgba(${tintRgb},0.22) 0%, transparent 68%)`,
-          transition: "background 0.8s ease",
-        }}/>
-      )}
+      {/* Upgrade 3 — track-color listening bloom */}
+      <div style={{
+        position: "absolute",
+        inset: 0,
+        background: tintRgb
+          ? `radial-gradient(ellipse 70% 55% at 50% 36%, rgba(${tintRgb},${playing ? 0.32 : 0.16}) 0%, transparent 68%)`
+          : `radial-gradient(ellipse 70% 55% at 50% 36%, rgba(242,243,245,${playing ? 0.08 : 0.04}) 0%, transparent 68%)`,
+        animation: playing ? "stageBloom 4.5s ease-in-out infinite" : "none",
+        transition: "background 0.8s ease",
+      }}/>
 
-      {/* Semi-transparent logo watermark — replaceable brand asset */}
+      {/* Upgrade 1 — living planet centerpiece */}
       <div style={{
         position: "absolute",
         left: "50%",
-        top: "38%",
-        width: "min(78vw, 440px)",
-        height: "min(78vw, 440px)",
+        top: "36%",
+        width: "min(72vw, 460px)",
+        height: "min(72vw, 460px)",
         transform: "translate(-50%, -50%)",
         backgroundImage: "url(/assets/premium-planet-placeholder.png)",
         backgroundSize: "contain",
         backgroundPosition: "center",
         backgroundRepeat: "no-repeat",
-        opacity: hasArt ? 0.1 : 0.2,
-        transition: "opacity 0.8s ease",
+        opacity: hasArt ? (playing ? 0.16 : 0.11) : (playing ? 0.28 : 0.2),
+        filter: playing ? "saturate(1.05) brightness(1.05)" : "none",
+        animation: playing ? "stagePlanetBreathe 5.5s ease-in-out infinite" : "none",
+        transition: "opacity 0.8s ease, filter 0.8s ease",
         pointerEvents: "none",
       }}/>
+
+      {/* Soft orbital halo — only while playing */}
+      {playing && (
+        <div style={{
+          position: "absolute",
+          left: "50%",
+          top: "36%",
+          width: "min(58vw, 360px)",
+          height: "min(58vw, 360px)",
+          transform: "translate(-50%, -50%)",
+          borderRadius: "50%",
+          border: `1px solid rgba(${tintRgb || "242,243,245"},0.12)`,
+          boxShadow: `0 0 60px rgba(${tintRgb || "242,243,245"},0.08)`,
+          pointerEvents: "none",
+          animation: "stageBloom 5.5s ease-in-out infinite",
+        }}/>
+      )}
 
       <div style={{
         position: "absolute",
         inset: 0,
         background: `
-          radial-gradient(ellipse 85% 60% at 50% 32%, transparent 0%, rgba(0,0,0,0.28) 70%, rgba(0,0,0,0.72) 100%),
-          linear-gradient(180deg, rgba(0,0,0,0.22) 0%, transparent 28%, transparent 42%, rgba(0,0,0,0.94) 100%)
+          radial-gradient(ellipse 90% 65% at 50% 30%, transparent 0%, rgba(0,0,0,0.22) 72%, rgba(0,0,0,0.7) 100%),
+          linear-gradient(180deg, rgba(0,0,0,0.2) 0%, transparent 26%, transparent 48%, rgba(0,0,0,0.96) 100%)
         `,
       }}/>
     </div>
@@ -818,7 +852,8 @@ function CoverStageAtmosphere({ track = null, playing = false }) {
 
 /**
  * Home Cover Stage — Home *is* the player.
- * Full-bleed listening surface: watermark logo, compact bottom-left title, minimal instrument.
+ * Full-bleed listening surface: living planet centerpiece + compact
+ * bottom-left listening rack (meta, progress, transport).
  */
 function CoverStage({
   onPlay, onTogglePlay, onSkip, onPrev, onOpen,
@@ -870,111 +905,171 @@ function CoverStage({
     >
       <CoverStageAtmosphere track={stageTrack} playing={playingVisual} />
 
-      {/* Bottom-left title + instrument */}
+      {/* Upgrade 2 — unified bottom-left listening rack */}
       <div
         onClick={(e) => e.stopPropagation()}
         style={{
           position: "absolute",
           left: 0,
-          right: 0,
           bottom: 0,
           zIndex: 2,
-          padding: `0 ${homeSpace.gutter}px calc(28px + env(safe-area-inset-bottom, 0px))`,
+          width: "min(100%, 440px)",
+          padding: `0 ${homeSpace.gutter}px calc(26px + env(safe-area-inset-bottom, 0px))`,
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "flex-start",
+          boxSizing: "border-box",
         }}
       >
         <div
           key={stageTrack?.id || "idle"}
           onClick={openImmersive}
           style={{
-            maxWidth: 380,
+            display: "flex",
+            alignItems: "flex-end",
+            gap: 14,
             width: "100%",
-            marginBottom: 28,
+            marginBottom: 20,
             textAlign: "left",
             animation: "trackSwap 0.45s cubic-bezier(0.22,1,0.36,1) both",
             cursor: live && onOpen ? "pointer" : "inherit",
           }}
         >
-          <button
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              if (onListenFor) onListenFor();
-            }}
-            style={{
-              display: "inline-block",
-              background: "none",
-              border: "none",
-              padding: 0,
-              marginBottom: 10,
-              cursor: onListenFor ? "pointer" : "default",
-              fontSize: 10,
+          {stageTrack?.albumCover && (
+            <div style={{
+              width: 52,
+              height: 52,
+              flexShrink: 0,
+              borderRadius: 6,
+              overflow: "hidden",
+              boxShadow: `
+                0 0 0 1px rgba(255,255,255,0.1),
+                0 12px 28px rgba(0,0,0,0.45)
+              `,
+            }}>
+              <img
+                src={stageTrack.albumCover}
+                alt=""
+                style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+                onError={(e) => { e.target.style.display = "none"; }}
+              />
+            </div>
+          )}
+
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                if (onListenFor) onListenFor();
+              }}
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 7,
+                background: "none",
+                border: "none",
+                padding: 0,
+                marginBottom: 8,
+                cursor: onListenFor ? "pointer" : "default",
+                fontSize: 9,
+                fontWeight: 650,
+                letterSpacing: 1.7,
+                textTransform: "uppercase",
+                color: live && isPlaying ? color.accent : color.faint,
+                fontFamily: fontMono,
+              }}
+              aria-label={onListenFor ? "Your genres — change what we play most" : undefined}
+            >
+              {live && isPlaying && (
+                <span
+                  aria-hidden="true"
+                  style={{
+                    width: 5,
+                    height: 5,
+                    borderRadius: "50%",
+                    background: color.accent,
+                    boxShadow: `0 0 0 3px ${color.accentSoft}`,
+                    animation: "stageLiveDot 1.8s ease-in-out infinite",
+                  }}
+                />
+              )}
+              {live
+                ? (isRadioMode ? stageLabel : "Now playing")
+                : (canStart ? stageLabel : "Unavailable")}
+            </button>
+
+            <h1 style={{
+              margin: 0,
+              fontSize: "clamp(18px, 3.4vw, 24px)",
               fontWeight: 650,
-              letterSpacing: 1.8,
-              textTransform: "uppercase",
-              color: live && isPlaying ? color.accent : color.faint,
-              fontFamily: fontMono,
-            }}
-            aria-label={onListenFor ? "Your genres — change what we play most" : undefined}
-          >
-            {live
-              ? (isRadioMode ? stageLabel : "Now playing")
-              : (canStart ? stageLabel : "Unavailable")}
-          </button>
+              letterSpacing: -0.55,
+              lineHeight: 1.15,
+              color: color.onDark,
+              fontFamily: fontDisplay,
+              overflow: "hidden",
+              display: "-webkit-box",
+              WebkitLineClamp: 2,
+              WebkitBoxOrient: "vertical",
+            }}>
+              {stageTrack?.title || (canStart ? "Press play" : "Nothing here yet")}
+            </h1>
 
-          <h1 style={{
-            margin: 0,
-            fontSize: "clamp(22px, 4.2vw, 30px)",
-            fontWeight: 650,
-            letterSpacing: -0.8,
-            lineHeight: 1.12,
-            color: color.onDark,
-            fontFamily: fontDisplay,
-            overflow: "hidden",
-            display: "-webkit-box",
-            WebkitLineClamp: 2,
-            WebkitBoxOrient: "vertical",
-          }}>
-            {stageTrack?.title || (canStart ? "Press play" : "Nothing here yet")}
-          </h1>
-
-          <div style={{
-            marginTop: 8,
-            fontSize: 13,
-            fontWeight: 450,
-            letterSpacing: -0.1,
-            color: "rgba(242,243,245,0.55)",
-            overflow: "hidden",
-            textOverflow: "ellipsis",
-            whiteSpace: "nowrap",
-          }}>
-            {stageTrack?.artist || (canStart ? "Press play when you’re ready" : "Add tracks to begin")}
+            <div style={{
+              marginTop: 6,
+              fontSize: 12,
+              fontWeight: 450,
+              letterSpacing: -0.05,
+              color: "rgba(242,243,245,0.52)",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              whiteSpace: "nowrap",
+            }}>
+              {stageTrack?.artist || (canStart ? "Press play when you’re ready" : "Add tracks to begin")}
+            </div>
           </div>
         </div>
 
-        {/* Whisper progress */}
-        <div
-          aria-hidden="true"
-          style={{
-            height: 1,
-            marginBottom: 22,
-            background: "rgba(255,255,255,0.08)",
-            overflow: "hidden",
-          }}
-        >
+        {/* Whisper progress + times */}
+        <div style={{ width: "100%", marginBottom: 18 }}>
+          <div
+            aria-hidden="true"
+            style={{
+              height: 1.5,
+              background: "rgba(255,255,255,0.08)",
+              overflow: "hidden",
+              borderRadius: 1,
+            }}
+          >
+            <div style={{
+              height: "100%",
+              width: `${live ? pct : 0}%`,
+              background: color.accent,
+              transition: "width 0.25s linear",
+              boxShadow: live ? `0 0 12px ${color.accentGlow}` : "none",
+            }}/>
+          </div>
           <div style={{
-            height: "100%",
-            width: `${live ? pct : 0}%`,
-            background: color.accent,
-            transition: "width 0.25s linear",
-            boxShadow: live ? `0 0 12px ${color.accentGlow}` : "none",
-          }}/>
+            marginTop: 8,
+            display: "flex",
+            justifyContent: "space-between",
+            fontSize: 10,
+            fontFamily: fontMono,
+            fontVariantNumeric: "tabular-nums",
+            letterSpacing: 0.4,
+            color: color.faint,
+          }}>
+            <span>{live ? fmtTime(progress) : "0:00"}</span>
+            <span>{live && duration ? fmtTime(duration) : "—:—"}</span>
+          </div>
         </div>
 
+        {/* Compact left-aligned transport */}
         <div style={{
           display: "flex",
           alignItems: "center",
-          justifyContent: "center",
-          gap: 28,
+          justifyContent: "flex-start",
+          gap: 18,
         }}>
           <button
             type="button"
@@ -984,13 +1079,13 @@ function CoverStage({
             style={{
               background: "none",
               border: "none",
-              padding: 8,
+              padding: 6,
               color: live ? color.body : color.faint,
               cursor: live ? "pointer" : "default",
               opacity: live ? 1 : 0.35,
             }}
           >
-            <Icon name="prev" size={22}/>
+            <Icon name="prev" size={18}/>
           </button>
 
           <button
@@ -1000,8 +1095,8 @@ function CoverStage({
             disabled={!live && !canStart}
             onClick={(e) => { e.stopPropagation(); primaryAction(); }}
             style={{
-              width: 64,
-              height: 64,
+              width: 52,
+              height: 52,
               borderRadius: "50%",
               border: "none",
               background: (live || canStart) ? color.accent : color.surfaceRaised,
@@ -1011,12 +1106,12 @@ function CoverStage({
               justifyContent: "center",
               cursor: (live || canStart) ? "pointer" : "not-allowed",
               boxShadow: (live || canStart)
-                ? `0 0 0 1px rgba(242,243,245,0.12), 0 18px 40px rgba(0,0,0,0.45)`
+                ? `0 0 0 1px rgba(242,243,245,0.12), 0 14px 32px rgba(0,0,0,0.45)`
                 : "none",
               transition: `transform ${motion.fast} ${motion.ease}`,
             }}
           >
-            <Icon name={live && isPlaying ? "pause" : "play"} size={22}/>
+            <Icon name={live && isPlaying ? "pause" : "play"} size={18}/>
           </button>
 
           <button
@@ -1027,30 +1122,14 @@ function CoverStage({
             style={{
               background: "none",
               border: "none",
-              padding: 8,
+              padding: 6,
               color: live ? color.body : color.faint,
               cursor: live ? "pointer" : "default",
               opacity: live ? 1 : 0.35,
             }}
           >
-            <Icon name="skip" size={22}/>
+            <Icon name="skip" size={18}/>
           </button>
-        </div>
-
-        <div style={{
-          marginTop: 14,
-          display: "flex",
-          justifyContent: "center",
-          gap: 10,
-          fontSize: 11,
-          fontFamily: fontMono,
-          fontVariantNumeric: "tabular-nums",
-          letterSpacing: 0.4,
-          color: color.faint,
-        }}>
-          <span>{live ? fmtTime(progress) : "0:00"}</span>
-          <span style={{ opacity: 0.4 }}>·</span>
-          <span>{live && duration ? fmtTime(duration) : "—:—"}</span>
         </div>
       </div>
     </div>
