@@ -255,7 +255,7 @@ export default function LoginScreen({
           />
           <div style={{ fontSize: 15, color: color.body, lineHeight: 1.5, maxWidth: 280 }}>
             {mode === "signup"
-              ? "Create an account to start listening."
+              ? "Create an account — first month free, then $2.99/mo."
               : "Sign in to continue."}
           </div>
         </div>

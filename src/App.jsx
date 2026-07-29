@@ -38,6 +38,13 @@ import {
 import ArtistPage, { AlbumPage } from "./components/catalog/ArtistPage";
 import LinerNotesSheet from "./components/catalog/LinerNotesSheet";
 import LoginScreen from "./components/auth/LoginScreen";
+import PaywallScreen from "./components/billing/PaywallScreen";
+import {
+  getAccessState,
+  membershipSummary,
+  openStripeCheckout,
+  formatPriceMonthly,
+} from "./lib/entitlements";
 import BrandMark, { BrandGlyph as DoorGlyph } from "./components/brand/BrandMark";
 import GenreSceneBrowse from "./components/search/GenreSceneBrowse";
 import GenreTasteSheet from "./components/listen/GenreTasteSheet";
@@ -3457,10 +3464,14 @@ function FavoritesScreen({
 }
 
 // ─── PROFILE ─────────────────────────────────────────────────────────────────
-function ProfileScreen({ user, tracks, onLogout, onEditGenres = null }) {
+function ProfileScreen({ user, tracks, onLogout, onEditGenres = null, access = null, onSubscribe = null }) {
   const liked = tracks.filter(t => t.liked);
   const initial = (user.name || "R").trim().charAt(0).toUpperCase();
   const genres = user.genres || [];
+  const memberLine = membershipSummary(access);
+  const price = formatPriceMonthly();
+  const showSubscribe = access && !access.allowed;
+  const onTrial = access?.reason === "trial";
 
   return (
     <div style={{ padding: "0 0 24px" }}>
@@ -3499,6 +3510,41 @@ function ProfileScreen({ user, tracks, onLogout, onEditGenres = null }) {
             Your listening library
           </div>
         </div>
+      </div>
+
+      <div style={{ marginBottom: 28 }}>
+        <div style={{
+          fontSize: 13, fontWeight: 600, color: color.muted,
+          textTransform: "uppercase", letterSpacing: 0.4, marginBottom: 10,
+        }}>
+          Membership
+        </div>
+        <div style={{ fontSize: 15, color: color.body, lineHeight: 1.45, marginBottom: 6 }}>
+          {memberLine}
+        </div>
+        <div style={{ fontSize: 14, color: color.muted, lineHeight: 1.45, marginBottom: 14 }}>
+          {access?.reason === "subscribed"
+            ? `Full access · ${price}/month.`
+            : onTrial
+              ? `Free for your first month, then ${price}/month.`
+              : access?.reason === "admin"
+                ? "Admin — full access."
+                : `Subscribe for ${price}/month to keep listening.`}
+        </div>
+        {(showSubscribe || onTrial) && onSubscribe && (
+          <button
+            type="button"
+            onClick={onSubscribe}
+            style={{
+              ...(showSubscribe ? BTN_PRIMARY : BTN_SECONDARY),
+              width: "100%",
+              borderRadius: 980,
+              marginBottom: 12,
+            }}
+          >
+            {showSubscribe ? `Subscribe — ${price}/mo` : `Subscribe early — ${price}/mo`}
+          </button>
+        )}
       </div>
 
       <div style={{ marginBottom: 28 }}>
@@ -4275,7 +4321,8 @@ const ToastEl = ({msg}) => (
 // ─── ROOT APP — Firebase wired ────────────────────────────────────────────────
 export default function App() {
   // ── Auth (login/signup/logout + user profile) ───────────────────────────
-  const { firebaseUser, profile, setProfile, loading: authLoading, authError, clearAuthError, signUp, logIn, logOut, signInWithGoogle, sendPhoneOTP, verifyPhoneOTP, resetPassword } = useAuth();
+  const { firebaseUser, profile, setProfile, loading: authLoading, authError, clearAuthError, signUp, logIn, logOut, refreshProfile, signInWithGoogle, sendPhoneOTP, verifyPhoneOTP, resetPassword } = useAuth();
+  const [billingRefreshing, setBillingRefreshing] = useState(false);
 
   // ── URL ↔ screen ─────────────────────────────────────────────────────────
   const navigate = useNavigate();
@@ -4593,6 +4640,27 @@ export default function App() {
     genres: profile?.genres || [],
   };
   const needsOnboarding = !!firebaseUser && profile && profile.onboarded === false && !onboardingDismissed && !tracksLoading;
+  const isAdminUser = !!firebaseUser && firebaseUser.uid === ADMIN_UID;
+  const access = useMemo(
+    () => getAccessState(profile, { isAdmin: isAdminUser }),
+    // Recompute when trial/sub fields change
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [profile?.trialEndsAt, profile?.subscriptionStatus, profile?.plan, isAdminUser]
+  );
+  const needsPaywall = !!firebaseUser && !!profile && !needsOnboarding && !access.allowed;
+
+  const handleSubscribe = useCallback(() => {
+    openStripeCheckout(access.stripePaymentLink);
+  }, [access.stripePaymentLink]);
+
+  const handleBillingRefresh = useCallback(async () => {
+    setBillingRefreshing(true);
+    try {
+      await refreshProfile();
+    } finally {
+      setBillingRefreshing(false);
+    }
+  }, [refreshProfile]);
 
   // Genre taste intake — only user choice; daypart/energy stay automatic
   const finishOnboarding = async (genres = []) => {
@@ -5158,6 +5226,18 @@ export default function App() {
     );
   }
 
+  if (needsPaywall) {
+    return (
+      <PaywallScreen
+        access={access}
+        onSubscribe={handleSubscribe}
+        onRefresh={handleBillingRefresh}
+        onLogout={logOut}
+        refreshing={billingRefreshing}
+      />
+    );
+  }
+
   const sessionArc = sessionMeta?.tracks?.length
     ? {
         label: sessionMeta.label || "Session arc",
@@ -5362,7 +5442,7 @@ export default function App() {
             playlistCtx={playlistCtx}
           />
         )}
-        {screen==="profile"   && <ProfileScreen user={user} tracks={tracks} onLogout={logOut}/>}
+        {screen==="profile"   && <ProfileScreen user={user} tracks={tracks} onLogout={logOut} access={access} onSubscribe={handleSubscribe}/>}
         {screen==="admin"     && <AdminScreen tracks={tracks} setTracks={setTracks} tab={adminTab} setTab={setAdminTab} editTrack={editTrack} setEditTrack={setEditTrack} showToast={showToast}/>}
         </ScreenPane>
       </div>
@@ -5584,7 +5664,7 @@ export default function App() {
                   playlistCtx={playlistCtx}
                 />
               )}
-              {screen==="profile"   && <ProfileScreen user={user} tracks={tracks} onLogout={logOut}/>}
+              {screen==="profile"   && <ProfileScreen user={user} tracks={tracks} onLogout={logOut} access={access} onSubscribe={handleSubscribe}/>}
               {screen==="admin"     && <AdminScreen tracks={tracks} setTracks={setTracks} tab={adminTab} setTab={setAdminTab} editTrack={editTrack} setEditTrack={setEditTrack} showToast={showToast}/>}
             </ScreenPane>
           )}

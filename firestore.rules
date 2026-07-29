@@ -7,6 +7,8 @@ rules_version = '2';
 // Signed-in users may only nudge popularity counters on tracks.
 // Admin (custom claim or known UID) may create/update/delete tracks.
 // Sessions are private to the creating user.
+// Billing/subscription fields: clients may start a trial; paid status is admin-only
+// until a Stripe webhook (Admin SDK) writes active subscriptions.
 
 service cloud.firestore {
   match /databases/{database}/documents {
@@ -22,8 +24,51 @@ service cloud.firestore {
       );
     }
 
+    function isOwner(uid) {
+      return isSignedIn() && request.auth.uid == uid;
+    }
+
+    // Paid / Stripe-managed fields — only Admin SDK or admin UID may set these
+    // to privileged values. Clients may write trialing defaults on create/backfill.
+    function billingKeysTouched() {
+      return request.resource.data.diff(resource.data).affectedKeys()
+        .hasAny(['subscriptionStatus', 'plan', 'stripeCustomerId', 'stripeSubscriptionId', 'trialEndsAt', 'trialStartedAt']);
+    }
+
+    function isTrialingWrite() {
+      let status = request.resource.data.get('subscriptionStatus', '');
+      let plan = request.resource.data.get('plan', '');
+      return status == 'trialing' && plan == 'trial'
+        && request.resource.data.get('stripeCustomerId', null) == null
+        && request.resource.data.get('stripeSubscriptionId', null) == null;
+    }
+
+    function isPaidStatus() {
+      let status = request.resource.data.get('subscriptionStatus', '');
+      return status in ['active', 'past_due', 'canceled', 'unpaid'];
+    }
+
     match /users/{uid} {
-      allow read, write: if isSignedIn() && request.auth.uid == uid;
+      allow read: if isOwner(uid);
+
+      allow create: if isOwner(uid) && (
+        !('subscriptionStatus' in request.resource.data)
+        || isTrialingWrite()
+        || isAdmin()
+      );
+
+      allow update: if isOwner(uid) && (
+        isAdmin()
+        || !billingKeysTouched()
+        || (
+          // One-time trial backfill when billing fields were never set
+          !('trialEndsAt' in resource.data)
+          && isTrialingWrite()
+          && !isPaidStatus()
+        )
+      );
+
+      allow delete: if isOwner(uid) || isAdmin();
     }
 
     match /tracks/{trackId} {
