@@ -39,12 +39,31 @@ import ArtistPage, { AlbumPage } from "./components/catalog/ArtistPage";
 import LinerNotesSheet from "./components/catalog/LinerNotesSheet";
 import LoginScreen from "./components/auth/LoginScreen";
 import PaywallScreen from "./components/billing/PaywallScreen";
+import MixScreen from "./components/club/MixScreen";
+import CommunityMixBanner from "./components/club/CommunityMixBanner";
 import {
   getAccessState,
   membershipSummary,
   openStripeCheckout,
   formatPriceMonthly,
 } from "./lib/entitlements";
+import { collectionStats } from "./lib/collectionStats";
+import {
+  CLUB_NAME,
+  formatJoinedMonth,
+  memberNumberLabel,
+} from "./lib/memberNumber";
+import {
+  buildCommunityMix,
+  buildMixFromPlaylist,
+  communityMixId,
+  communityPlaylistStub,
+  formatMonthLabel,
+  isCommunityPlaylist,
+  monthKey,
+  COMMUNITY_MIX_TITLE,
+} from "./lib/mixes";
+import { absoluteAppUrl, shareOrCopy } from "./lib/share";
 import BrandMark, { BrandGlyph as DoorGlyph } from "./components/brand/BrandMark";
 import GenreSceneBrowse from "./components/search/GenreSceneBrowse";
 import GenreTasteSheet from "./components/listen/GenreTasteSheet";
@@ -2922,6 +2941,7 @@ function HomeScreen({
   preferredGenres = [], recentTrackIds = [],
   progress = 0, duration = 0, onOpenPlayer, onListenFor = null,
   intentLabel = null, onCustomMix = null,
+  communityMix = null, onOpenCommunityMix = null,
 }) {
   const activeId = currentTrack?.id;
   const playableCount = countPlayableTracks(tracks);
@@ -3016,6 +3036,19 @@ function HomeScreen({
             isPlaying={isPlaying}
             onLike={onLike}
             playlistCtx={playlistCtx}
+          />
+        )}
+
+        {communityMix && onOpenCommunityMix && (
+          <CommunityMixBanner
+            mix={communityMix}
+            onOpen={onOpenCommunityMix}
+            onPlay={() => {
+              const pool = (communityMix.trackIds || [])
+                .map((id) => tracks.find((t) => t.id === id))
+                .filter(Boolean);
+              if (pool[0]) onPlayTrack(pool[0], pool);
+            }}
           />
         )}
 
@@ -3161,7 +3194,8 @@ function EnergySparkline({ tracks, width=120, height=24 }) {
 function FavoritesScreen({
   tracks, onPlay, onLike, currentTrack, isPlaying, playlistCtx,
   userPlaylists = [], onCreatePlaylist, onDeletePlaylist,
-  onPlayTrack,
+  onPlayTrack, onSharePlaylist = null, onOpenMix = null,
+  communityMix = null,
 }) {
   const { menu, close } = useTrackMenu();
   const activeId = currentTrack?.id;
@@ -3189,14 +3223,40 @@ function FavoritesScreen({
     : [];
 
   if (openPlaylist) {
+    const community = isCommunityPlaylist(openPlaylist);
     return (
       <div style={{ padding: "24px 16px 36px" }}>
         <button type="button" onClick={() => setOpenPlaylistId(null)} style={{
           background: "none", border: "none", color: color.accent, fontSize: 17, cursor: "pointer", fontWeight: 400, marginBottom: 16,
         }}>‹ Library</button>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 18 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 8, gap: 12 }}>
           <div style={{ fontSize: 28, fontWeight: 700, color: color.ink, fontFamily: fontDisplay, letterSpacing: -0.8 }}>{openPlaylist.name}</div>
           <span style={{ fontSize: 13, color: color.muted }}>{openPlaylistTracks.length}</span>
+        </div>
+        {community && openPlaylist.curatorName && (
+          <div style={{ fontSize: 14, color: color.muted, marginBottom: 12 }}>
+            Curated by {openPlaylist.curatorName}
+          </div>
+        )}
+        <div style={{ display: "flex", gap: 10, marginBottom: 18, flexWrap: "wrap" }}>
+          {onSharePlaylist && (
+            <button
+              type="button"
+              onClick={() => onSharePlaylist(openPlaylist)}
+              style={{ ...BTN_SECONDARY, borderRadius: 980, padding: "10px 16px", fontSize: 14 }}
+            >
+              {community ? "Share Community Mix" : "Share to Mixtape Club"}
+            </button>
+          )}
+          {!community && onDeletePlaylist && (
+            <button
+              type="button"
+              onClick={() => { onDeletePlaylist(openPlaylist.id); setOpenPlaylistId(null); }}
+              style={{ ...BTN_SECONDARY, borderRadius: 980, padding: "10px 16px", fontSize: 14 }}
+            >
+              Delete
+            </button>
+          )}
         </div>
         {openPlaylistTracks.length === 0 ? (
           <div style={{ fontSize: 15, color: color.faint, paddingTop: 32, textAlign: "center" }}>No songs yet — add tracks with ⋯</div>
@@ -3223,18 +3283,50 @@ function FavoritesScreen({
     <div style={{ position: "relative", paddingBottom: 48 }}>
       <CollapsingHeader
         title="Library"
-        subtitle="Playlists and saved music."
+        subtitle="Playlists, mixtapes, and saved music."
       />
 
       <div style={{
         position: "relative",
         background: color.canvas,
       }}>
+        {communityMix && onOpenMix && (
+          <div style={{ padding: `12px ${homeSpace.gutter}px 4px` }}>
+            <button
+              type="button"
+              onClick={onOpenMix}
+              style={{
+                width: "100%",
+                textAlign: "left",
+                padding: "16px 18px",
+                borderRadius: radius.lg,
+                border: `1px solid ${glass.borderSoft}`,
+                background: glass.fill,
+                cursor: "pointer",
+                color: color.ink,
+              }}
+            >
+              <div style={{
+                fontSize: 11, fontWeight: 650, letterSpacing: 1.4, textTransform: "uppercase",
+                color: color.muted, fontFamily: fontMono, marginBottom: 6,
+              }}>
+                Mixtape Club
+              </div>
+              <div style={{ fontSize: 18, fontWeight: 700, fontFamily: fontDisplay, letterSpacing: -0.4 }}>
+                {communityMix.title || "The Community Mix"}
+              </div>
+              <div style={{ fontSize: 13, color: color.muted, marginTop: 4 }}>
+                Everyone gets it · open this month’s pick
+              </div>
+            </button>
+          </div>
+        )}
+
         <HomeSection
           label="Playlists"
-          subtitle="Collections you keep returning to."
+          subtitle="Build a mixtape. Share it to Mixtape Club."
           delay={0.04}
-          first
+          first={!communityMix}
         >
           <div
             className="hide-scroll"
@@ -3463,54 +3555,149 @@ function FavoritesScreen({
   );
 }
 
-// ─── PROFILE ─────────────────────────────────────────────────────────────────
-function ProfileScreen({ user, tracks, onLogout, onEditGenres = null, access = null, onSubscribe = null }) {
+// ─── PROFILE — Digital Record Club membership card ───────────────────────────
+function ProfileScreen({
+  user, tracks, onLogout, onEditGenres = null, access = null, onSubscribe = null,
+  profile = null, onOpenMix = null,
+}) {
   const liked = tracks.filter(t => t.liked);
-  const initial = (user.name || "R").trim().charAt(0).toUpperCase();
   const genres = user.genres || [];
   const memberLine = membershipSummary(access);
   const price = formatPriceMonthly();
   const showSubscribe = access && !access.allowed;
   const onTrial = access?.reason === "trial";
+  const stats = useMemo(() => collectionStats(liked), [liked]);
+  const memberNo = profile?.memberNumber ?? user.memberNumber;
+  const joined = formatJoinedMonth(profile?.createdAt || profile?.clubJoinedAt);
+  const curatorBadge = profile?.featuredCuratorMonth || null;
 
   return (
     <div style={{ padding: "0 0 24px" }}>
       <CollapsingHeader
         title="You"
-        subtitle={`${liked.length} liked song${liked.length === 1 ? "" : "s"}`}
+        subtitle="Digital Record Club"
       />
-      <div style={{ padding: "20px 20px 0" }}>
-      <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 28 }}>
+      <div style={{ padding: "12px 20px 0" }}>
+        {/* Collectible membership card */}
         <div
-          aria-hidden="true"
           style={{
-            width: 72, height: 72, borderRadius: 36,
-            background: color.surfaceRaised,
-            display: "flex", alignItems: "center", justifyContent: "center",
-            flexShrink: 0,
+            position: "relative",
+            overflow: "hidden",
+            borderRadius: radius.lg,
+            padding: "28px 24px 26px",
+            marginBottom: 28,
+            border: `1px solid ${glass.border}`,
+            background: `
+              radial-gradient(ellipse 90% 80% at 0% 0%, rgba(255,255,255,0.09) 0%, transparent 55%),
+              radial-gradient(ellipse 60% 70% at 100% 100%, rgba(255,255,255,0.04) 0%, transparent 50%),
+              linear-gradient(165deg, #141418 0%, #0A0A0C 48%, #050506 100%)
+            `,
+            boxShadow: `
+              inset 0 1px 0 ${glass.highlight},
+              0 24px 56px rgba(0,0,0,0.45)
+            `,
+            animation: "rise 0.55s cubic-bezier(0.22,1,0.36,1) both",
           }}
         >
-          {user.image ? (
-            <span style={{ fontSize: 28 }}>{user.image}</span>
-          ) : (
-            <span style={{
-              fontSize: 28, fontWeight: 700, fontFamily: fontDisplay,
-              color: color.ink, letterSpacing: -1,
-            }}>{initial}</span>
-          )}
-        </div>
-        <div style={{ minWidth: 0 }}>
+          <div aria-hidden="true" style={{
+            position: "absolute",
+            right: -20,
+            top: -30,
+            width: 160,
+            height: 160,
+            borderRadius: "50%",
+            border: "1px solid rgba(255,255,255,0.06)",
+            pointerEvents: "none",
+          }}/>
           <div style={{
-            fontSize: 28, fontWeight: 700, letterSpacing: -0.8,
-            fontFamily: fontDisplay, color: color.ink, lineHeight: 1.1,
+            fontSize: 12,
+            fontWeight: 700,
+            letterSpacing: 2.4,
+            textTransform: "uppercase",
+            color: color.ink,
+            fontFamily: fontMono,
+            marginBottom: 18,
+          }}>
+            {CLUB_NAME}
+          </div>
+          <div style={{
+            fontSize: "clamp(28px, 7vw, 36px)",
+            fontWeight: 700,
+            letterSpacing: -1,
+            fontFamily: fontDisplay,
+            color: color.ink,
+            lineHeight: 1.05,
+            marginBottom: 6,
           }}>
             {user.name}
           </div>
-          <div style={{ fontSize: 15, color: color.muted, marginTop: 6 }}>
-            Your listening library
+          <div style={{
+            fontSize: 18,
+            fontWeight: 600,
+            letterSpacing: 0.4,
+            fontFamily: fontMono,
+            color: color.accent,
+            marginBottom: 22,
+          }}>
+            {memberNumberLabel(memberNo || 0)}
           </div>
+
+          <div style={{
+            display: "grid",
+            gridTemplateColumns: "1fr 1fr",
+            gap: 18,
+            paddingTop: 18,
+            borderTop: `1px solid ${glass.borderSoft}`,
+          }}>
+            <div>
+              <div style={{
+                fontSize: 11,
+                fontWeight: 650,
+                letterSpacing: 1.2,
+                textTransform: "uppercase",
+                color: color.muted,
+                fontFamily: fontMono,
+                marginBottom: 6,
+              }}>
+                Joined
+              </div>
+              <div style={{ fontSize: 16, fontWeight: 600, color: color.ink, fontFamily: fontDisplay }}>
+                {joined}
+              </div>
+            </div>
+            <div>
+              <div style={{
+                fontSize: 11,
+                fontWeight: 650,
+                letterSpacing: 1.2,
+                textTransform: "uppercase",
+                color: color.muted,
+                fontFamily: fontMono,
+                marginBottom: 6,
+              }}>
+                Collection
+              </div>
+              <div style={{ fontSize: 15, fontWeight: 600, color: color.ink, lineHeight: 1.35 }}>
+                <div>{stats.albums} Album{stats.albums === 1 ? "" : "s"}</div>
+                <div>{stats.eps} EP{stats.eps === 1 ? "" : "s"}</div>
+                <div>{stats.singles} Single{stats.singles === 1 ? "" : "s"}</div>
+              </div>
+            </div>
+          </div>
+
+          {curatorBadge && (
+            <div style={{
+              marginTop: 18,
+              paddingTop: 14,
+              borderTop: `1px solid ${glass.borderSoft}`,
+              fontSize: 13,
+              color: color.body,
+              lineHeight: 1.4,
+            }}>
+              Featured curator · {formatMonthLabel(curatorBadge)}
+            </div>
+          )}
         </div>
-      </div>
 
       <div style={{ marginBottom: 28 }}>
         <div style={{
@@ -3573,6 +3760,20 @@ function ProfileScreen({ user, tracks, onLogout, onEditGenres = null, access = n
             Edit genres
           </button>
         )}
+        {onOpenMix && (
+          <button
+            type="button"
+            onClick={onOpenMix}
+            style={{
+              ...BTN_SECONDARY,
+              width: "100%",
+              borderRadius: 980,
+              marginBottom: 12,
+            }}
+          >
+            This month’s Community Mix
+          </button>
+        )}
       </div>
 
       <button type="button" onClick={onLogout} style={{ ...BTN_SECONDARY, width: "100%", borderRadius: 980 }}>
@@ -3607,7 +3808,10 @@ function AnalyticsRow({ rank, track, value, label, max, color: trackColor, accen
 }
 
 // ─── ADMIN ────────────────────────────────────────────────────────────────────
-function AdminScreen({ tracks, setTracks, tab, setTab, editTrack, setEditTrack, showToast }) {
+function AdminScreen({
+  tracks, setTracks, tab, setTab, editTrack, setEditTrack, showToast,
+  userPlaylists = [], communityMix = null, onPublishCommunityMix = null,
+}) {
   const EMPTY = { title:"",artist:"",album:"",genre:"",energy:"",camelot:"",bpm:"",albumCover:"" };
   const [nt, setNt] = useState(EMPTY);
   const [assigning, setAssigning] = useState(false);
@@ -3615,6 +3819,8 @@ function AdminScreen({ tracks, setTracks, tab, setTab, editTrack, setEditTrack, 
   const [importing, setImporting] = useState(false);
   const [importProgress, setImportProgress] = useState("");
   const fileInputRef = useRef(null);
+  const [clubCurator, setClubCurator] = useState("");
+  const publishable = (userPlaylists || []).filter((p) => !isCommunityPlaylist(p) && (p.trackIds || []).length > 0);
 
   // ── CSV EXPORT ──
   function exportCSV() {
@@ -3785,7 +3991,7 @@ function AdminScreen({ tracks, setTracks, tab, setTab, editTrack, setEditTrack, 
         <div style={{ fontSize:28, fontWeight:700, letterSpacing:-0.5, color: color.ink, fontFamily: fontDisplay }}>Admin</div>
       </div>
       <div style={{ display:"flex", gap:6, marginBottom:20, background: color.surfaceSolid, borderRadius:12, padding:3, border:`1px solid ${color.line}` }}>
-        {["tracks","analytics","audit"].map(t=>(
+        {["tracks","analytics","audit","club"].map(t=>(
           <button key={t} onClick={()=>setTab(t)} style={{ flex:1, padding:"8px 0", borderRadius:10, border:"none", cursor:"pointer", fontSize:13, fontWeight:600, textTransform:"capitalize", background:tab===t? color.accent:"transparent", color:tab===t? color.onAccent: color.muted, boxShadow:"none" }}>
             {t.charAt(0).toUpperCase()+t.slice(1)}
           </button>
@@ -4050,6 +4256,71 @@ function AdminScreen({ tracks, setTracks, tab, setTab, editTrack, setEditTrack, 
               </>
             );
           })()}
+        </div>
+      )}
+      {tab==="club"&&(
+        <div>
+          <SectionLabel>Mixtape Club · Community Mix</SectionLabel>
+          <div style={{ fontSize:14, color: color.muted, lineHeight:1.5, marginBottom:16 }}>
+            Pick a member playlist to publish as this month’s Community Mix. Everyone gets it in their Library. Featured curator gets recognition (and prizes offline).
+          </div>
+          {communityMix ? (
+            <div style={{
+              padding: "14px 16px", borderRadius: 14, marginBottom: 18,
+              background: color.surfaceSolid, border: `1px solid ${color.line}`,
+            }}>
+              <div style={{ fontSize:12, color: color.muted, marginBottom: 4, textTransform: "uppercase", letterSpacing: 0.4 }}>Live now</div>
+              <div style={{ fontSize:18, fontWeight:700, fontFamily: fontDisplay, color: color.ink }}>
+                {communityMix.title || COMMUNITY_MIX_TITLE}
+              </div>
+              <div style={{ fontSize:13, color: color.body, marginTop: 4 }}>
+                {(communityMix.featuredCurator?.displayName || communityMix.ownerName || "Curator")}
+                {" · "}
+                {(communityMix.trackIds || []).length} tracks
+                {communityMix.monthKey ? ` · ${formatMonthLabel(communityMix.monthKey)}` : ""}
+              </div>
+            </div>
+          ) : (
+            <div style={{ fontSize:13, color: color.faint, marginBottom: 16 }}>No Community Mix published this month yet.</div>
+          )}
+          <input
+            placeholder="Featured curator name (optional)"
+            value={clubCurator}
+            onChange={(e)=>setClubCurator(e.target.value)}
+            style={{ ...INPUT_ST, marginBottom: 14 }}
+          />
+          {publishable.length === 0 ? (
+            <div style={{ fontSize:13, color: color.muted }}>
+              Create a playlist in Library first, then publish it here.
+            </div>
+          ) : publishable.map((pl) => (
+            <div
+              key={pl.id}
+              style={{
+                display: "flex", alignItems: "center", gap: 10,
+                padding: "12px 14px", marginBottom: 6, borderRadius: 12,
+                background: color.surfaceSolid, border: `1px solid ${color.line}`,
+              }}
+            >
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize:15, fontWeight:600, color: color.ink }}>{pl.name}</div>
+                <div style={{ fontSize:12, color: color.muted }}>{(pl.trackIds || []).length} tracks</div>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  if (!onPublishCommunityMix) return;
+                  onPublishCommunityMix({
+                    ...pl,
+                    ownerName: clubCurator.trim() || pl.ownerName || undefined,
+                  });
+                }}
+                style={{ ...BTN_PRIMARY, borderRadius: 980, padding: "10px 14px", fontSize: 13 }}
+              >
+                Make Community Mix
+              </button>
+            </div>
+          ))}
         </div>
       )}
     </div>
@@ -4327,7 +4598,7 @@ export default function App() {
   // ── URL ↔ screen ─────────────────────────────────────────────────────────
   const navigate = useNavigate();
   const location = useLocation();
-  const { screen, artistSlug, albumSlug } = parsePath(location.pathname);
+  const { screen, artistSlug, albumSlug, mixId } = parsePath(location.pathname);
   const setScreen = useCallback((id, param = null) => {
     navigate(buildPath(id, param));
   }, [navigate]);
@@ -4342,6 +4613,10 @@ export default function App() {
     const artist = trackOrSlug?.artist || "Unknown";
     const album = trackOrSlug?.album || "Singles & Unknown";
     navigate(buildPath("album", { albumSlug: `${slugify(artist)}__${slugify(album)}` }));
+  }, [navigate]);
+  const openMix = useCallback((id) => {
+    if (!id) return;
+    navigate(buildPath("mix", { mixId: id }));
   }, [navigate]);
   /** History-aware back — prefer in-app history, else Search hub. */
   const goBack = useCallback(() => {
@@ -4394,6 +4669,9 @@ export default function App() {
     return () => window.removeEventListener("resize", handle);
   }, []);
   const [userPlaylists, setUserPlaylists] = useState([]); // [{id, name, trackIds:[]}]
+  const [communityMix, setCommunityMix] = useState(null);
+  const [activeMix, setActiveMix] = useState(null);
+  const [mixLoading, setMixLoading] = useState(false);
   const [showRouteBuilder, setShowRouteBuilder] = useState(false);
   const [afterglow, setAfterglow] = useState(null);
   const [resonanceTrack, setResonanceTrack] = useState(null); // Hypno Vision source
@@ -4576,8 +4854,61 @@ export default function App() {
     let label = null;
     if (screen === "artist" && artistSlug) label = findArtist(tracks, artistSlug)?.name;
     if (screen === "album" && albumSlug) label = findAlbum(tracks, albumSlug)?.title;
+    if (screen === "mix" && activeMix?.title) label = activeMix.title;
     document.title = documentTitleFor(screen, label);
-  }, [screen, artistSlug, albumSlug, tracks]);
+  }, [screen, artistSlug, albumSlug, tracks, activeMix?.title]);
+
+  // ── Load this month's Community Mix ──────────────────────────────────────
+  useEffect(() => {
+    if (!firebaseUser) {
+      setCommunityMix(null);
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      try {
+        const { doc: fdoc, getDoc: fget } = await import("firebase/firestore");
+        const id = communityMixId(monthKey());
+        const snap = await fget(fdoc(db, "mixes", id));
+        if (cancelled) return;
+        setCommunityMix(snap.exists() ? { id: snap.id, ...snap.data() } : null);
+      } catch (e) {
+        if (!cancelled) setCommunityMix(null);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [firebaseUser?.uid]);
+
+  // Deep-link mix detail
+  useEffect(() => {
+    if (screen !== "mix" || !mixId) {
+      setActiveMix(null);
+      setMixLoading(false);
+      return;
+    }
+    let cancelled = false;
+    setMixLoading(true);
+    (async () => {
+      try {
+        if (communityMix && communityMix.id === mixId) {
+          if (!cancelled) {
+            setActiveMix(communityMix);
+            setMixLoading(false);
+          }
+          return;
+        }
+        const { doc: fdoc, getDoc: fget } = await import("firebase/firestore");
+        const snap = await fget(fdoc(db, "mixes", mixId));
+        if (cancelled) return;
+        setActiveMix(snap.exists() ? { id: snap.id, ...snap.data() } : null);
+      } catch {
+        if (!cancelled) setActiveMix(null);
+      } finally {
+        if (!cancelled) setMixLoading(false);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [screen, mixId, communityMix]);
 
   // ── Anticipatory Queue — pre-generate when tracks load ──
   const anticipatoryBuilt = useRef(false);
@@ -4638,7 +4969,16 @@ export default function App() {
     name:   profile?.displayName || "Listener",
     image:  profile?.profileImage || "",
     genres: profile?.genres || [],
+    memberNumber: profile?.memberNumber,
   };
+
+  // Library playlists = user mixes + this month's Community Mix (everyone gets it)
+  const libraryPlaylists = useMemo(() => {
+    const stub = communityPlaylistStub(communityMix);
+    const own = (userPlaylists || []).filter((p) => !isCommunityPlaylist(p));
+    if (!stub) return own;
+    return [stub, ...own.filter((p) => p.id !== stub.id)];
+  }, [userPlaylists, communityMix]);
   const needsOnboarding = !!firebaseUser && profile && profile.onboarded === false && !onboardingDismissed && !tracksLoading;
   const isAdminUser = !!firebaseUser && firebaseUser.uid === ADMIN_UID;
   const access = useMemo(
@@ -5105,11 +5445,12 @@ export default function App() {
   // ── Playlist handlers ────────────────────────────────────────────────────
   // Playlists are stored per-user in Firestore users/{uid}.playlists
   const savePlaylists = async (updated) => {
-    setUserPlaylists(updated);
+    const ownOnly = (updated || []).filter((p) => !isCommunityPlaylist(p));
+    setUserPlaylists(ownOnly);
     if (firebaseUser) {
       try {
         const { doc: fdoc, updateDoc: fupdate } = await import("firebase/firestore");
-        await fupdate(fdoc(db, "users", firebaseUser.uid), { playlists: updated });
+        await fupdate(fdoc(db, "users", firebaseUser.uid), { playlists: ownOnly });
       } catch(e) {}
     }
   };
@@ -5125,6 +5466,10 @@ export default function App() {
   };
 
   const addToPlaylist = (trackId, playlistId) => {
+    if (String(playlistId || "").startsWith("community-")) {
+      showToast("Community Mix is curated — make your own mixtape to edit");
+      return;
+    }
     const pl = userPlaylists.find(p => p.id === playlistId);
     if (!pl) return;
     if ((pl.trackIds || []).includes(trackId)) {
@@ -5139,6 +5484,10 @@ export default function App() {
   };
 
   const removeFromPlaylist = (trackId, playlistId) => {
+    if (String(playlistId || "").startsWith("community-")) {
+      showToast("Community Mix can’t be edited");
+      return;
+    }
     const pl = userPlaylists.find(p => p.id === playlistId);
     const updated = userPlaylists.map(p =>
       p.id === playlistId ? { ...p, trackIds: (p.trackIds || []).filter(id => id !== trackId) } : p
@@ -5148,13 +5497,90 @@ export default function App() {
   };
 
   const deletePlaylist = (playlistId) => {
+    if (isCommunityPlaylist({ id: playlistId })) {
+      showToast("Community Mix stays in every member’s library");
+      return;
+    }
     savePlaylists(userPlaylists.filter(pl => pl.id !== playlistId));
     showToast("Playlist deleted");
   };
 
+  const sharePlaylistToClub = async (playlist) => {
+    if (!playlist || !firebaseUser) return;
+    if (isCommunityPlaylist(playlist) || playlist.id === communityMix?.id) {
+      const url = absoluteAppUrl(buildPath("mix", { mixId: playlist.id || communityMix?.id }));
+      const result = await shareOrCopy({
+        title: playlist.name || COMMUNITY_MIX_TITLE,
+        text: "This month’s Community Mix on Planet MP3",
+        url,
+      });
+      if (result.ok) showToast(result.method === "clipboard" ? "Link copied" : "Shared");
+      return;
+    }
+    if (!(playlist.trackIds || []).length) {
+      showToast("Add tracks before sharing");
+      return;
+    }
+    try {
+      const mix = buildMixFromPlaylist(playlist, {
+        ownerUid: firebaseUser.uid,
+        ownerName: profile?.displayName || user.name,
+        visibility: "public",
+      });
+      const { doc: fdoc, setDoc: fset } = await import("firebase/firestore");
+      await fset(fdoc(db, "mixes", mix.id), mix, { merge: true });
+      const url = absoluteAppUrl(buildPath("mix", { mixId: mix.id }));
+      const result = await shareOrCopy({
+        title: mix.title,
+        text: `${mix.title} — a mixtape on Planet MP3`,
+        url,
+      });
+      showToast(result.ok
+        ? (result.method === "clipboard" ? "Shared to Mixtape Club · link copied" : "Shared to Mixtape Club")
+        : "Shared to Mixtape Club");
+    } catch (e) {
+      console.warn("Share mix failed", e);
+      showToast("Couldn’t share — try again");
+    }
+  };
+
+  const publishCommunityMixFromPlaylist = async (playlist) => {
+    if (!isAdminUser || !playlist) return;
+    if (!(playlist.trackIds || []).length) {
+      showToast("Playlist needs tracks");
+      return;
+    }
+    try {
+      const curatorName = playlist.ownerName || profile?.displayName || "Member";
+      const mix = buildCommunityMix({
+        trackIds: playlist.trackIds,
+        curatorUid: playlist.ownerUid || firebaseUser.uid,
+        curatorName,
+        sourceMixId: playlist.id,
+      });
+      const { doc: fdoc, setDoc: fset } = await import("firebase/firestore");
+      await fset(fdoc(db, "mixes", mix.id), mix, { merge: true });
+      setCommunityMix(mix);
+      // Stamp featured curator on the admin profile for club badge
+      if (firebaseUser) {
+        try {
+          await fset(fdoc(db, "users", firebaseUser.uid), {
+            featuredCuratorMonth: mix.monthKey,
+          }, { merge: true });
+          setProfile((p) => ({ ...(p || {}), featuredCuratorMonth: mix.monthKey }));
+        } catch { /* non-fatal */ }
+      }
+      showToast(`${COMMUNITY_MIX_TITLE} published`);
+      openMix(mix.id);
+    } catch (e) {
+      console.warn("Publish community mix failed", e);
+      showToast("Couldn’t publish Community Mix");
+    }
+  };
+
   // ── Playlist context — ⋯ / right-click menu on every track surface
   const playlistCtx = {
-    playlists: userPlaylists,
+    playlists: libraryPlaylists.filter((p) => !isCommunityPlaylist(p)),
     onCreate:  createPlaylist,
     onAdd:     addToPlaylist,
     onRemove:  removeFromPlaylist,
@@ -5410,10 +5836,30 @@ export default function App() {
         </div>
       )}
       <div style={{ flex:1, overflow:"auto", paddingBottom: contentPadBottom(!!currentTrack && !immersive && !hideDockPlayer), zIndex:1, position:"relative" }}>
-        <ScreenPane key={screen === "artist" ? `artist:${artistSlug}` : screen === "album" ? `album:${albumSlug}` : screen}>
-        {screen==="home"      && !tracksLoading && <HomeScreen tracks={tracks} onPlayRadio={playRadio} onTogglePlay={()=>setIsPlaying(p=>!p)} onPlayTrack={playTrack} currentTrack={currentTrack} isPlaying={isPlaying} onLike={toggleLike} isRadioMode={isRadioMode} playlistCtx={playlistCtx} signalLabel={signalState?.label} mixLane={mixLane} radioPreview={heroPreview} radioNext={setNext} onSkipRadio={handleSkip} onPrevRadio={handlePrev} onOpenPlayer={()=>setImmersive(true)} onListenFor={()=>setShowGenreTaste(true)} intentLabel={radioIntentLabel} catalogError={tracksLoadError} onRetryCatalog={reloadCatalog} preferredGenres={user.genres} recentTrackIds={(profile?.recentTracks||[]).map(r=>r.trackId||r)} progress={progress} duration={duration} onCustomMix={()=>{ setSessionInitialActivity(vibeForDaypart(mixLane)); setShowRouteBuilder(true); }}/>}
+        <ScreenPane key={screen === "artist" ? `artist:${artistSlug}` : screen === "album" ? `album:${albumSlug}` : screen === "mix" ? `mix:${mixId}` : screen}>
+        {screen==="home"      && !tracksLoading && <HomeScreen tracks={tracks} onPlayRadio={playRadio} onTogglePlay={()=>setIsPlaying(p=>!p)} onPlayTrack={playTrack} currentTrack={currentTrack} isPlaying={isPlaying} onLike={toggleLike} isRadioMode={isRadioMode} playlistCtx={playlistCtx} signalLabel={signalState?.label} mixLane={mixLane} radioPreview={heroPreview} radioNext={setNext} onSkipRadio={handleSkip} onPrevRadio={handlePrev} onOpenPlayer={()=>setImmersive(true)} onListenFor={()=>setShowGenreTaste(true)} intentLabel={radioIntentLabel} catalogError={tracksLoadError} onRetryCatalog={reloadCatalog} preferredGenres={user.genres} recentTrackIds={(profile?.recentTracks||[]).map(r=>r.trackId||r)} progress={progress} duration={duration} onCustomMix={()=>{ setSessionInitialActivity(vibeForDaypart(mixLane)); setShowRouteBuilder(true); }} communityMix={communityMix} onOpenCommunityMix={()=>communityMix && openMix(communityMix.id)}/>}
         {screen==="search"    && <SearchScreen query={searchQuery} setQuery={setSearch} results={searchResults} tracks={tracks} onPlay={(t,pool)=>playTrack(t,pool||tracks)} onListenIntent={(focus)=>{ const next={ genre: focus.genre || null, scene: null }; setListenFocus(next); playRadio(null, createListenIntent({ daypart: mixLane, ...next })); }} onLike={toggleLike} currentTrack={currentTrack} isPlaying={isPlaying} playlistCtx={playlistCtx} entityHits={entityHits} onOpenArtist={openArtist} onOpenAlbum={(slug)=>openAlbum(slug)}/>}
-        {screen==="favorites" && <FavoritesScreen tracks={tracks} onPlay={t=>{setIsRadioMode(false);playTrack(t,tracks);}} onPlayTrack={(t,pool)=>{setIsRadioMode(false);playTrack(t,pool||tracks);}} onLike={toggleLike} currentTrack={currentTrack} isPlaying={isPlaying} playlistCtx={playlistCtx} userPlaylists={userPlaylists} onCreatePlaylist={createPlaylist} onDeletePlaylist={deletePlaylist}/>}
+        {screen==="favorites" && <FavoritesScreen tracks={tracks} onPlay={t=>{setIsRadioMode(false);playTrack(t,tracks);}} onPlayTrack={(t,pool)=>{setIsRadioMode(false);playTrack(t,pool||tracks);}} onLike={toggleLike} currentTrack={currentTrack} isPlaying={isPlaying} playlistCtx={playlistCtx} userPlaylists={libraryPlaylists} onCreatePlaylist={createPlaylist} onDeletePlaylist={deletePlaylist} onSharePlaylist={sharePlaylistToClub} communityMix={communityMix} onOpenMix={()=>communityMix && openMix(communityMix.id)}/>}
+        {screen==="mix"       && (
+          <MixScreen
+            mix={activeMix}
+            tracks={tracks}
+            loading={mixLoading}
+            notFound={!mixLoading && !activeMix}
+            currentTrack={currentTrack}
+            isPlaying={isPlaying}
+            onPlayTrack={(t, pool)=>{ setIsRadioMode(false); playTrack(t, pool||tracks); }}
+            onBack={goBack}
+            onShare={()=>activeMix && sharePlaylistToClub(activeMix)}
+            onSaveToLibrary={()=>{
+              if (!activeMix) return;
+              createPlaylist(activeMix.title || "Saved mix", activeMix.trackIds || []);
+            }}
+            TrackRow={TrackRow}
+            playlistCtx={playlistCtx}
+            onLike={toggleLike}
+          />
+        )}
         {screen==="artist"    && !tracksLoading && (
           <ArtistPage
             artist={findArtist(tracks, artistSlug)}
@@ -5442,8 +5888,8 @@ export default function App() {
             playlistCtx={playlistCtx}
           />
         )}
-        {screen==="profile"   && <ProfileScreen user={user} tracks={tracks} onLogout={logOut} access={access} onSubscribe={handleSubscribe}/>}
-        {screen==="admin"     && <AdminScreen tracks={tracks} setTracks={setTracks} tab={adminTab} setTab={setAdminTab} editTrack={editTrack} setEditTrack={setEditTrack} showToast={showToast}/>}
+        {screen==="profile"   && <ProfileScreen user={user} tracks={tracks} onLogout={logOut} access={access} onSubscribe={handleSubscribe} profile={profile} onOpenMix={communityMix ? ()=>openMix(communityMix.id) : null}/>}
+        {screen==="admin"     && <AdminScreen tracks={tracks} setTracks={setTracks} tab={adminTab} setTab={setAdminTab} editTrack={editTrack} setEditTrack={setEditTrack} showToast={showToast} userPlaylists={userPlaylists} communityMix={communityMix} onPublishCommunityMix={publishCommunityMixFromPlaylist}/>}
         </ScreenPane>
       </div>
       {!immersive && (
@@ -5632,10 +6078,30 @@ export default function App() {
               <div style={{ fontSize:14, color: color.muted, marginTop:12 }}>Loading…</div>
             </div>
           ) : (
-            <ScreenPane key={screen === "artist" ? `artist:${artistSlug}` : screen === "album" ? `album:${albumSlug}` : screen}>
-              {screen==="home"      && <HomeScreen tracks={tracks} onPlayRadio={playRadio} onTogglePlay={()=>setIsPlaying(p=>!p)} onPlayTrack={playTrack} currentTrack={currentTrack} isPlaying={isPlaying} onLike={toggleLike} isRadioMode={isRadioMode} playlistCtx={playlistCtx} signalLabel={signalState?.label} mixLane={mixLane} radioPreview={heroPreview} radioNext={setNext} onSkipRadio={handleSkip} onPrevRadio={handlePrev} onOpenPlayer={()=>setImmersive(true)} onListenFor={()=>setShowGenreTaste(true)} intentLabel={radioIntentLabel} catalogError={tracksLoadError} onRetryCatalog={reloadCatalog} preferredGenres={user.genres} recentTrackIds={(profile?.recentTracks||[]).map(r=>r.trackId||r)} progress={progress} duration={duration} onCustomMix={()=>{ setSessionInitialActivity(vibeForDaypart(mixLane)); setShowRouteBuilder(true); }}/>}
+            <ScreenPane key={screen === "artist" ? `artist:${artistSlug}` : screen === "album" ? `album:${albumSlug}` : screen === "mix" ? `mix:${mixId}` : screen}>
+              {screen==="home"      && <HomeScreen tracks={tracks} onPlayRadio={playRadio} onTogglePlay={()=>setIsPlaying(p=>!p)} onPlayTrack={playTrack} currentTrack={currentTrack} isPlaying={isPlaying} onLike={toggleLike} isRadioMode={isRadioMode} playlistCtx={playlistCtx} signalLabel={signalState?.label} mixLane={mixLane} radioPreview={heroPreview} radioNext={setNext} onSkipRadio={handleSkip} onPrevRadio={handlePrev} onOpenPlayer={()=>setImmersive(true)} onListenFor={()=>setShowGenreTaste(true)} intentLabel={radioIntentLabel} catalogError={tracksLoadError} onRetryCatalog={reloadCatalog} preferredGenres={user.genres} recentTrackIds={(profile?.recentTracks||[]).map(r=>r.trackId||r)} progress={progress} duration={duration} onCustomMix={()=>{ setSessionInitialActivity(vibeForDaypart(mixLane)); setShowRouteBuilder(true); }} communityMix={communityMix} onOpenCommunityMix={()=>communityMix && openMix(communityMix.id)}/>}
               {screen==="search"    && <SearchScreen query={searchQuery} setQuery={setSearch} results={searchResults} tracks={tracks} onPlay={(t,pool)=>playTrack(t,pool||tracks)} onListenIntent={(focus)=>{ const next={ genre: focus.genre || null, scene: null }; setListenFocus(next); playRadio(null, createListenIntent({ daypart: mixLane, ...next })); }} onLike={toggleLike} currentTrack={currentTrack} isPlaying={isPlaying} playlistCtx={playlistCtx} entityHits={entityHits} onOpenArtist={openArtist} onOpenAlbum={(slug)=>openAlbum(slug)}/>}
-              {screen==="favorites" && <FavoritesScreen tracks={tracks} onPlay={t=>{setIsRadioMode(false);playTrack(t,tracks);}} onPlayTrack={(t,pool)=>{setIsRadioMode(false);playTrack(t,pool||tracks);}} onLike={toggleLike} currentTrack={currentTrack} isPlaying={isPlaying} playlistCtx={playlistCtx} userPlaylists={userPlaylists} onCreatePlaylist={createPlaylist} onDeletePlaylist={deletePlaylist}/>}
+              {screen==="favorites" && <FavoritesScreen tracks={tracks} onPlay={t=>{setIsRadioMode(false);playTrack(t,tracks);}} onPlayTrack={(t,pool)=>{setIsRadioMode(false);playTrack(t,pool||tracks);}} onLike={toggleLike} currentTrack={currentTrack} isPlaying={isPlaying} playlistCtx={playlistCtx} userPlaylists={libraryPlaylists} onCreatePlaylist={createPlaylist} onDeletePlaylist={deletePlaylist} onSharePlaylist={sharePlaylistToClub} communityMix={communityMix} onOpenMix={()=>communityMix && openMix(communityMix.id)}/>}
+              {screen==="mix"       && (
+                <MixScreen
+                  mix={activeMix}
+                  tracks={tracks}
+                  loading={mixLoading}
+                  notFound={!mixLoading && !activeMix}
+                  currentTrack={currentTrack}
+                  isPlaying={isPlaying}
+                  onPlayTrack={(t, pool)=>{ setIsRadioMode(false); playTrack(t, pool||tracks); }}
+                  onBack={goBack}
+                  onShare={()=>activeMix && sharePlaylistToClub(activeMix)}
+                  onSaveToLibrary={()=>{
+                    if (!activeMix) return;
+                    createPlaylist(activeMix.title || "Saved mix", activeMix.trackIds || []);
+                  }}
+                  TrackRow={TrackRow}
+                  playlistCtx={playlistCtx}
+                  onLike={toggleLike}
+                />
+              )}
               {screen==="artist"    && (
                 <ArtistPage
                   artist={findArtist(tracks, artistSlug)}
@@ -5664,8 +6130,8 @@ export default function App() {
                   playlistCtx={playlistCtx}
                 />
               )}
-              {screen==="profile"   && <ProfileScreen user={user} tracks={tracks} onLogout={logOut} access={access} onSubscribe={handleSubscribe}/>}
-              {screen==="admin"     && <AdminScreen tracks={tracks} setTracks={setTracks} tab={adminTab} setTab={setAdminTab} editTrack={editTrack} setEditTrack={setEditTrack} showToast={showToast}/>}
+              {screen==="profile"   && <ProfileScreen user={user} tracks={tracks} onLogout={logOut} access={access} onSubscribe={handleSubscribe} profile={profile} onOpenMix={communityMix ? ()=>openMix(communityMix.id) : null}/>}
+              {screen==="admin"     && <AdminScreen tracks={tracks} setTracks={setTracks} tab={adminTab} setTab={setAdminTab} editTrack={editTrack} setEditTrack={setEditTrack} showToast={showToast} userPlaylists={userPlaylists} communityMix={communityMix} onPublishCommunityMix={publishCommunityMixFromPlaylist}/>}
             </ScreenPane>
           )}
         </div>

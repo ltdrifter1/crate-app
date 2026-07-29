@@ -9,6 +9,7 @@ export const SCREEN_TO_PATH = {
   admin: "/admin",
   artist: "/artist",
   album: "/album",
+  mix: "/mix",
 };
 
 export const PATH_TO_SCREEN = {
@@ -28,7 +29,7 @@ export const PATH_TO_SCREEN = {
 
 /**
  * Parse location.pathname → route state.
- * { screen, roomId, artistSlug, albumSlug, pathId }
+ * { screen, roomId, artistSlug, albumSlug, pathId, mixId }
  */
 export function parsePath(pathname = "/") {
   const path = (pathname || "/").replace(/\/+$/, "") || "/";
@@ -48,6 +49,11 @@ export function parsePath(pathname = "/") {
     return emptyExtras({ screen: "album", albumSlug: decodeURIComponent(albumMatch[1]) });
   }
 
+  const mixMatch = path.match(/^\/mix\/([^/]+)$/);
+  if (mixMatch) {
+    return emptyExtras({ screen: "mix", mixId: decodeURIComponent(mixMatch[1]) });
+  }
+
   const screen = PATH_TO_SCREEN[path] || PATH_TO_SCREEN["/"];
   return emptyExtras({ screen });
 }
@@ -58,13 +64,14 @@ function emptyExtras(base) {
     artistSlug: null,
     albumSlug: null,
     pathId: null,
+    mixId: null,
     ...base,
   };
 }
 
 /**
  * Build path for a screen.
- * param: string id OR { roomId | artistSlug | albumSlug | pathId }
+ * param: string id OR { roomId | artistSlug | albumSlug | pathId | mixId }
  */
 export function buildPath(screen, param = null) {
   const p = normalizeParam(param);
@@ -75,8 +82,12 @@ export function buildPath(screen, param = null) {
   if (screen === "album" && p.albumSlug) {
     return `/album/${encodeURIComponent(p.albumSlug)}`;
   }
+  if (screen === "mix" && p.mixId) {
+    return `/mix/${encodeURIComponent(p.mixId)}`;
+  }
   if (screen === "artist") return "/search";
   if (screen === "album") return "/search";
+  if (screen === "mix") return "/discover";
 
   // Retired screens land on Home
   if (screen === "rooms" || screen === "paths" || screen === "map" || screen === "drift") {
@@ -89,7 +100,7 @@ export function buildPath(screen, param = null) {
 function normalizeParam(param) {
   if (param == null) return {};
   if (typeof param === "string") {
-    return { roomId: param, artistSlug: param, albumSlug: param, pathId: param };
+    return { roomId: param, artistSlug: param, albumSlug: param, pathId: param, mixId: param };
   }
   return param;
 }
@@ -104,6 +115,7 @@ export function documentTitleFor(screen, label) {
     admin: "Admin",
     artist: "Artist",
     album: "Album",
+    mix: "Mixtape",
   };
   return labels[screen] ? `${labels[screen]} · ${BRAND_NAME}` : BRAND_NAME;
 }

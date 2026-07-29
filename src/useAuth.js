@@ -16,18 +16,33 @@ import {
   updateProfile,
 } from "firebase/auth";
 import {
-  doc, setDoc, getDoc, updateDoc, serverTimestamp,
+  doc, setDoc, getDoc, updateDoc, serverTimestamp, runTransaction,
 } from "firebase/firestore";
 import { auth, db } from "./firebase";
 import { normalizePhoneE164 } from "./lib/phone";
 import { migratePreferredGenres } from "./lib/genres";
 import { buildTrialFields, needsTrialBackfill } from "./lib/entitlements";
+import {
+  assignMemberNumber,
+  provisionalMemberNumber,
+} from "./lib/memberNumber";
 
 const REDIRECT_ERROR_KEY = "rooms.auth.redirectError";
+
+async function resolveMemberNumber(uid, preferred = null) {
+  if (preferred != null && Number(preferred) > 0) return Number(preferred);
+  try {
+    return await assignMemberNumber(db, { doc, runTransaction });
+  } catch (e) {
+    console.warn("Member number counter failed; using provisional", e);
+    return provisionalMemberNumber(uid);
+  }
+}
 
 async function createProfile(uid, fields = {}) {
   const displayName = fields.displayName || fields.username || "Listener";
   const trial = buildTrialFields();
+  const memberNumber = await resolveMemberNumber(uid, fields.memberNumber);
   const profile = {
     uid,
     username:     fields.username     || displayName,
@@ -41,6 +56,7 @@ async function createProfile(uid, fields = {}) {
     recentTracks: [],
     onboarded:    false,
     settings:     { repeat: false },
+    memberNumber,
     ...trial,
   };
   await setDoc(doc(db, "users", uid), profile);
@@ -60,6 +76,7 @@ function ephemeralProfile(fbUser) {
     recentTracks: [],
     onboarded: true,
     settings: { repeat: false },
+    memberNumber: provisionalMemberNumber(fbUser.uid),
     ...buildTrialFields(),
   };
 }
@@ -74,6 +91,18 @@ async function backfillTrialIfNeeded(uid, data) {
     console.warn("Trial backfill failed; using local trial fields", e);
   }
   return { ...data, ...trial };
+}
+
+/** Assign a Planet Club member number if the profile is missing one. */
+async function backfillMemberNumberIfNeeded(uid, data) {
+  if (data?.memberNumber != null && Number(data.memberNumber) > 0) return data;
+  const memberNumber = await resolveMemberNumber(uid);
+  try {
+    await updateDoc(doc(db, "users", uid), { memberNumber });
+  } catch (e) {
+    console.warn("Member number backfill failed; using local", e);
+  }
+  return { ...data, memberNumber };
 }
 
 function shouldFallbackToRedirect(err) {
@@ -163,7 +192,8 @@ export function useAuth() {
     try {
       const snap = await getDoc(doc(db, "users", fbUser.uid));
       if (snap.exists()) {
-        const data = await backfillTrialIfNeeded(fbUser.uid, snap.data());
+        let data = await backfillTrialIfNeeded(fbUser.uid, snap.data());
+        data = await backfillMemberNumberIfNeeded(fbUser.uid, data);
         const genres = migratePreferredGenres(data.genres);
         const next = { ...data, genres };
         setProfile(next);

@@ -9,6 +9,9 @@ rules_version = '2';
 // Sessions are private to the creating user.
 // Billing/subscription fields: clients may start a trial; paid status is admin-only
 // until a Stripe webhook (Admin SDK) writes active subscriptions.
+// Mixtape Club: public mixes readable by anyone; owners write their mixes;
+// community monthly mixes are admin-only writes.
+// Member counter: signed-in users may increment counters/members.next by 1.
 
 service cloud.firestore {
   match /databases/{database}/documents {
@@ -85,6 +88,53 @@ service cloud.firestore {
       allow read: if isSignedIn() && resource.data.uid == request.auth.uid;
       allow create: if isSignedIn() && request.resource.data.uid == request.auth.uid;
       allow update, delete: if false;
+    }
+
+    // Global member number counter
+    match /counters/{id} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() && id == 'members'
+        && request.resource.data.keys().hasOnly(['next'])
+        && request.resource.data.next is int
+        && request.resource.data.next >= 2;
+      allow update: if isSignedIn() && id == 'members'
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['next'])
+        && request.resource.data.next is int
+        && request.resource.data.next == resource.data.next + 1;
+    }
+
+    // Mixtape Club — shareable mixes + monthly Community Mix
+    match /mixes/{mixId} {
+      allow read: if resource.data.visibility in ['public', 'unlisted']
+        || (isSignedIn() && resource.data.ownerUid == request.auth.uid)
+        || isAdmin();
+
+      allow create: if isSignedIn() && (
+        (
+          request.resource.data.ownerUid == request.auth.uid
+          && request.resource.data.kind == 'user'
+          && request.resource.data.visibility in ['public', 'unlisted', 'private']
+        )
+        || (
+          isAdmin()
+          && request.resource.data.kind == 'community_monthly'
+        )
+      );
+
+      allow update: if isSignedIn() && (
+        (
+          resource.data.ownerUid == request.auth.uid
+          && request.resource.data.ownerUid == request.auth.uid
+          && resource.data.kind == 'user'
+          && request.resource.data.kind == 'user'
+        )
+        || isAdmin()
+      );
+
+      allow delete: if isSignedIn() && (
+        resource.data.ownerUid == request.auth.uid
+        || isAdmin()
+      );
     }
 
     match /{document=**} {

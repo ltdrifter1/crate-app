@@ -24,6 +24,14 @@ describe("routes", () => {
     expect(parsePath(buildPath("favorites")).screen).toBe("favorites");
   });
 
+  test("mix deep links", () => {
+    expect(parsePath("/mix/community-2026-09")).toEqual(
+      expect.objectContaining({ screen: "mix", mixId: "community-2026-09" })
+    );
+    expect(buildPath("mix", { mixId: "pl_1" })).toBe("/mix/pl_1");
+    expect(documentTitleFor("mix", "Late Drive")).toContain("Late Drive");
+  });
+
   test("documentTitleFor", () => {
     expect(documentTitleFor("home")).toContain("Home");
     expect(documentTitleFor("favorites")).toContain("Library");
