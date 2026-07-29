@@ -8,9 +8,10 @@ import {
 } from "../../theme";
 import { getFloorPhase } from "../../lib/club";
 import { authErrorMessage } from "../../lib/phone";
-import BrandMark from "../brand/BrandMark";
 import BrandTagline from "../brand/BrandTagline";
 import RoomPosterBackdrop from "../brand/RoomPosterBackdrop";
+
+const LOCKUP_SRC = "/brand/planet-mp3-lockup.png";
 
 /** Re-enable when Firebase phone + reCAPTCHA are configured for production. */
 const ENABLE_PHONE_SIGN_IN = false;
@@ -185,6 +186,25 @@ export default function LoginScreen({
         minHeight="100%"
         style={{ position: "absolute", inset: 0, minHeight: "100%" }}
       />
+      {/* Soft brand wash — large lockup, barely there */}
+      <div
+        aria-hidden="true"
+        style={{
+          position: "absolute",
+          left: "50%",
+          top: "18%",
+          width: "min(132vw, 720px)",
+          height: "min(132vw, 720px)",
+          transform: "translate(-50%, -50%)",
+          backgroundImage: `url(${LOCKUP_SRC})`,
+          backgroundSize: "contain",
+          backgroundPosition: "center",
+          backgroundRepeat: "no-repeat",
+          opacity: 0.08,
+          pointerEvents: "none",
+          filter: "blur(0.2px)",
+        }}
+      />
       <div
         style={{
           position: "relative",
@@ -192,20 +212,48 @@ export default function LoginScreen({
           width: "100%",
           maxWidth: 420,
           margin: "0 auto",
-          padding: "48px 20px 40px",
+          padding: "36px 20px 40px",
           display: "flex",
           flexDirection: "column",
-          gap: 18,
+          gap: 22,
           animation: "stationIn 0.55s cubic-bezier(0.22,1,0.36,1) both",
           fontFamily: font,
         }}
       >
-        <div>
-          <div style={{ marginBottom: 10 }}>
-            <BrandMark size={48} light layout="stack" />
-          </div>
-          <BrandTagline light size={12} style={{ color: color.onDarkMuted, marginBottom: 8 }} />
-          <div style={{ fontSize: 15, color: color.body, lineHeight: 1.5, maxWidth: 320 }}>
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            textAlign: "center",
+            gap: 14,
+            paddingTop: 8,
+          }}
+        >
+          <img
+            src={LOCKUP_SRC}
+            alt="Planet MP3"
+            width={188}
+            height={188}
+            draggable={false}
+            style={{
+              width: "min(46vw, 188px)",
+              height: "auto",
+              display: "block",
+              userSelect: "none",
+              animation: "brandLockupBreathe 6.5s ease-in-out infinite",
+            }}
+          />
+          <BrandTagline
+            light
+            size={11}
+            style={{
+              color: color.onDarkMuted,
+              letterSpacing: 0.16,
+              margin: 0,
+            }}
+          />
+          <div style={{ fontSize: 15, color: color.body, lineHeight: 1.5, maxWidth: 280 }}>
             {mode === "signup"
               ? "Create an account to start listening."
               : "Sign in to continue."}
@@ -222,6 +270,7 @@ export default function LoginScreen({
             background: color.surfaceSolid,
             border: `1px solid ${color.line}`,
             borderRadius: radius.lg,
+            boxShadow: "0 24px 64px rgba(0,0,0,0.35)",
           }}
         >
           <button
