@@ -156,6 +156,15 @@ const injectStyles = () => {
       background: ${color.accentSoft} !important;
       color: ${color.ink} !important;
     }
+    .make-a-list {
+      transition: background ${motion.base} ${motion.ease}, transform ${motion.fast} ${motion.ease};
+    }
+    .make-a-list:hover {
+      background: rgba(255,255,255,0.03) !important;
+    }
+    .make-a-list:active {
+      transform: scale(0.995);
+    }
     .sidebar-queue-row {
       transition: background ${motion.base} ${motion.ease};
     }
@@ -2459,85 +2468,105 @@ function QueueSheet({ queue, currentTrack, onPlay, onClose, onClear, onShuffle, 
   );
 }
 
-// ── Key feature: timed playlist CTA ───────────────────────────────────────────
-// Concept: Session Dial — duration arc + playlist bars. Not a generic “+”.
-function BuildASetFeature({ onClick }) {
-  const spans = ["30m", "1h", "2h", "All night"];
+// ── Key feature: Make a list — duration session builder entry ────────────────
+function MakeAListFeature({ onClick }) {
   return (
     <button
       type="button"
+      className="make-a-list"
       onClick={onClick}
-      aria-label="Choose a listening length — we build a set to fit"
+      aria-label="Make a list"
       style={{
         width: "100%",
         position: "relative",
         overflow: "hidden",
-        display: "block",
-        padding: "26px 22px 20px",
-        borderRadius: 0,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        gap: 20,
+        minHeight: 148,
+        padding: "36px 28px",
         border: "none",
-        borderTop: `1px solid ${glass.borderFaint}`,
-        borderBottom: `1px solid ${glass.borderFaint}`,
-        background: `
-          linear-gradient(180deg, rgba(255,255,255,0.045) 0%, rgba(255,255,255,0.015) 100%)
-        `,
+        borderRadius: 0,
+        background: color.canvas,
         cursor: "pointer",
         textAlign: "left",
         color: color.ink,
         animation: "rise 0.55s cubic-bezier(0.22,1,0.36,1) both",
       }}
     >
+      {/* Atmosphere */}
       <div aria-hidden="true" style={{
         position: "absolute",
         inset: 0,
         pointerEvents: "none",
-        background: "radial-gradient(ellipse 80% 90% at 0% 50%, rgba(255,255,255,0.06) 0%, transparent 55%)",
+        background: `
+          radial-gradient(ellipse 70% 120% at 8% 50%, rgba(255,255,255,0.07) 0%, transparent 58%),
+          linear-gradient(180deg, rgba(255,255,255,0.035) 0%, transparent 42%, rgba(255,255,255,0.02) 100%)
+        `,
+      }}/>
+      <div aria-hidden="true" style={{
+        position: "absolute",
+        left: 0,
+        right: 0,
+        top: 0,
+        height: 1,
+        background: "linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.14) 18%, rgba(255,255,255,0.18) 50%, rgba(255,255,255,0.14) 82%, transparent 100%)",
+      }}/>
+      <div aria-hidden="true" style={{
+        position: "absolute",
+        left: 0,
+        right: 0,
+        bottom: 0,
+        height: 1,
+        background: "linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.1) 20%, rgba(255,255,255,0.12) 50%, rgba(255,255,255,0.1) 80%, transparent 100%)",
       }}/>
 
-      <div style={{
-        position: "relative",
+      {/* Quiet list motif — suggests tracks without copy */}
+      <div aria-hidden="true" style={{
+        position: "absolute",
+        right: "22%",
+        top: "50%",
+        transform: "translateY(-50%)",
+        width: 88,
         display: "flex",
-        alignItems: "flex-start",
-        justifyContent: "space-between",
-        gap: 16,
-        marginBottom: 22,
+        flexDirection: "column",
+        gap: 7,
+        opacity: 0.22,
+        pointerEvents: "none",
       }}>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{
-            fontSize: 10,
-            fontWeight: 650,
-            letterSpacing: 1.8,
-            textTransform: "uppercase",
-            color: color.faint,
-            fontFamily: fontMono,
-            marginBottom: 10,
-          }}>
-            Timed set
-          </div>
-          <div style={{
-            fontSize: 26,
-            fontWeight: 650,
-            fontFamily: fontDisplay,
-            letterSpacing: -0.7,
-            lineHeight: 1.12,
-            marginBottom: 8,
-          }}>
-            How long do you have?
-          </div>
-          <div style={{
-            fontSize: 14,
-            color: color.muted,
-            lineHeight: 1.45,
-            maxWidth: 280,
-            letterSpacing: -0.1,
-          }}>
-            We shape a continuous set to fit the window.
-          </div>
-        </div>
+        {[1, 0.72, 0.9, 0.55, 0.68].map((w, i) => (
+          <div
+            key={i}
+            style={{
+              height: 1.5,
+              width: `${w * 100}%`,
+              borderRadius: 1,
+              background: color.ink,
+            }}
+          />
+        ))}
+      </div>
 
+      <div style={{ position: "relative", zIndex: 1, minWidth: 0 }}>
         <div style={{
-          width: 40,
-          height: 40,
+          fontSize: "clamp(28px, 6vw, 36px)",
+          fontWeight: 650,
+          fontFamily: fontDisplay,
+          letterSpacing: -1.1,
+          lineHeight: 1.05,
+        }}>
+          Make a list
+        </div>
+      </div>
+
+      <div
+        aria-hidden="true"
+        style={{
+          position: "relative",
+          zIndex: 1,
+          width: 52,
+          height: 52,
           borderRadius: "50%",
           flexShrink: 0,
           display: "flex",
@@ -2545,52 +2574,13 @@ function BuildASetFeature({ onClick }) {
           justifyContent: "center",
           background: color.accent,
           color: color.onAccent,
-          marginTop: 4,
-          boxShadow: "0 8px 22px rgba(0,0,0,0.35)",
-        }} aria-hidden="true">
-          <Icon name="play" size={14}/>
-        </div>
-      </div>
-
-      <div style={{
-        position: "relative",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "space-between",
-        gap: 12,
-        paddingTop: 16,
-        borderTop: `1px solid ${glass.borderFaint}`,
-      }}>
-        <div style={{
-          display: "flex",
-          alignItems: "center",
-          gap: 0,
-          fontSize: 12,
-          fontWeight: 500,
-          fontFamily: fontMono,
-          letterSpacing: 0.2,
-          color: color.body,
-        }}>
-          {spans.map((span, i) => (
-            <span key={span} style={{ display: "inline-flex", alignItems: "center" }}>
-              {i > 0 && (
-                <span style={{ color: color.faint, margin: "0 8px", opacity: 0.5 }}>·</span>
-              )}
-              <span style={{ color: color.ink }}>{span}</span>
-            </span>
-          ))}
-        </div>
-        <div style={{
-          fontSize: 11,
-          fontWeight: 650,
-          letterSpacing: 1.2,
-          textTransform: "uppercase",
-          color: color.ink,
-          fontFamily: fontMono,
-          flexShrink: 0,
-        }}>
-          Begin
-        </div>
+          boxShadow: `
+            0 0 0 1px rgba(255,255,255,0.08),
+            0 14px 36px rgba(0,0,0,0.45)
+          `,
+        }}
+      >
+        <Icon name="play" size={16}/>
       </div>
     </button>
   );
@@ -3334,10 +3324,8 @@ function FavoritesScreen({
         background: color.canvas,
       }}>
         {(onListenFor || onMakePlaylist) && (
-          <div style={{
-            padding: `${Math.round(homeSpace.bandPadY * 0.45)}px 0 ${Math.round(homeSpace.bandPadY * 0.35)}px`,
-          }}>
-            <BuildASetFeature onClick={onListenFor || onMakePlaylist} />
+          <div style={{ padding: "12px 0 8px" }}>
+            <MakeAListFeature onClick={onListenFor || onMakePlaylist} />
           </div>
         )}
 
