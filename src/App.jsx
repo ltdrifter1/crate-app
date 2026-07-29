@@ -911,14 +911,14 @@ function CoverStage({
         style={{
           position: "absolute",
           left: 0,
-          right: 0,
           bottom: 0,
           zIndex: 2,
+          width: "min(100%, 440px)",
           padding: `0 ${homeSpace.gutter}px calc(26px + env(safe-area-inset-bottom, 0px))`,
           display: "flex",
           flexDirection: "column",
           alignItems: "flex-start",
-          maxWidth: 440,
+          boxSizing: "border-box",
         }}
       >
         <div
