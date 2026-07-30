@@ -2599,10 +2599,10 @@ function CustomMixFeature({ onClick }) {
           fontSize: 14,
           color: color.body,
           lineHeight: 1.45,
-          maxWidth: 280,
+          maxWidth: 300,
           letterSpacing: -0.1,
         }}>
-          Pick a length — we shape the set around your taste.
+          Choose a length — we build the set around what you love.
         </div>
       </div>
 
@@ -3295,7 +3295,7 @@ function FavoritesScreen({
     <div style={{ position: "relative", paddingBottom: 48 }}>
       <CollapsingHeader
         title="Library"
-        subtitle="Playlists, mixtapes, and saved music."
+        subtitle="Your crates, keeps, and custom sessions."
       />
 
       <div style={{
@@ -3303,9 +3303,17 @@ function FavoritesScreen({
         background: color.canvas,
       }}>
         {onCustomMix && (
-          <div style={{ padding: "4px 0 18px" }}>
+          <section
+            aria-label="Build a Custom Mix"
+            style={{
+              margin: 0,
+              paddingTop: homeSpace.sectionPadTopFirst + 12,
+              paddingBottom: homeSpace.sectionPadBottom,
+              animation: `rise 0.55s ${motion.ease} both`,
+            }}
+          >
             <CustomMixFeature onClick={onCustomMix} />
-          </div>
+          </section>
         )}
 
         {communityMix && onOpenMix && (
@@ -3342,7 +3350,7 @@ function FavoritesScreen({
 
         <HomeSection
           label="Playlists"
-          subtitle="Build a mixtape. Share it to Mixtape Club."
+          subtitle="Hand-built sets worth returning to — and sharing with the club."
           delay={0.04}
           first={!communityMix && !onCustomMix}
         >
@@ -3539,6 +3547,7 @@ function FavoritesScreen({
         {saved.length > 0 && (
           <HomeSection
             label="Liked Songs"
+            subtitle="Every track you’ve claimed — browse at your own pace."
             delay={0.08}
           >
             <div style={{ padding: `0 ${Math.max(0, homeSpace.gutter - 8)}px` }}>
