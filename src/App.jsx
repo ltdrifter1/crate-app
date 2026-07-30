@@ -1635,7 +1635,7 @@ function CollapsingHeader({ title, subtitle }) {
         </div>
       </div>
       <div style={{
-        padding: "32px 16px 12px",
+        padding: subtitle ? "32px 16px 12px" : "36px 22px 22px",
         opacity: compact ? 0 : 1,
         transform: compact ? "translateY(-6px)" : "none",
         transition: `opacity ${motion.base} ${motion.ease}, transform ${motion.base} ${motion.ease}`,
@@ -1643,12 +1643,12 @@ function CollapsingHeader({ title, subtitle }) {
       }}>
         <h1 style={{
           margin: 0,
-          fontSize: 34,
+          fontSize: 36,
           fontWeight: 700,
           fontFamily: fontDisplay,
-          letterSpacing: -1,
+          letterSpacing: -1.2,
           color: color.ink,
-          lineHeight: 1.05,
+          lineHeight: 1.02,
         }}>
           {title}
         </h1>
@@ -2530,21 +2530,21 @@ function CustomMixFeature({ onClick }) {
         display: "flex",
         alignItems: "center",
         justifyContent: "space-between",
-        gap: 22,
-        minHeight: 168,
+        gap: 20,
+        minHeight: 132,
         margin: `0 ${homeSpace.gutter}px`,
         width: `calc(100% - ${homeSpace.gutter * 2}px)`,
-        padding: "32px 28px",
+        padding: "28px 26px",
         border: `1px solid ${glass.borderSoft}`,
         borderRadius: radius.xl,
         background: `
-          radial-gradient(ellipse 85% 120% at 0% 50%, rgba(255,255,255,0.09) 0%, transparent 55%),
-          radial-gradient(ellipse 50% 80% at 100% 80%, rgba(255,255,255,0.035) 0%, transparent 50%),
-          linear-gradient(145deg, rgba(22,22,26,0.95) 0%, rgba(8,8,10,0.98) 55%, #050506 100%)
+          radial-gradient(ellipse 90% 130% at 0% 40%, rgba(255,255,255,0.1) 0%, transparent 52%),
+          radial-gradient(ellipse 45% 70% at 100% 100%, rgba(255,255,255,0.03) 0%, transparent 48%),
+          linear-gradient(152deg, rgba(24,24,28,0.96) 0%, rgba(8,8,10,0.99) 58%, #050506 100%)
         `,
         boxShadow: `
           inset 0 1px 0 ${glass.highlight},
-          0 20px 56px rgba(0,0,0,0.4)
+          0 24px 60px rgba(0,0,0,0.45)
         `,
         cursor: "pointer",
         textAlign: "left",
@@ -2552,57 +2552,45 @@ function CustomMixFeature({ onClick }) {
         animation: "rise 0.55s cubic-bezier(0.22,1,0.36,1) both",
       }}
     >
-      {/* Soft sheen */}
       <div aria-hidden="true" style={{
         position: "absolute",
         inset: 0,
         pointerEvents: "none",
-        background: "linear-gradient(180deg, rgba(255,255,255,0.045) 0%, transparent 38%)",
+        background: "linear-gradient(180deg, rgba(255,255,255,0.05) 0%, transparent 42%)",
       }}/>
 
-      {/* Dial motif */}
       <div aria-hidden="true" style={{
         position: "absolute",
-        right: "18%",
+        right: "16%",
         top: "50%",
         transform: "translateY(-50%)",
-        opacity: 0.14,
+        opacity: 0.12,
         pointerEvents: "none",
         color: color.ink,
       }}>
-        <TimedMixMark size={92} />
+        <TimedMixMark size={86} />
       </div>
 
       <div style={{ position: "relative", zIndex: 1, minWidth: 0, flex: 1 }}>
         <div style={{
           fontSize: 11,
           fontWeight: 650,
-          letterSpacing: 1.8,
+          letterSpacing: 2,
           textTransform: "uppercase",
           color: color.muted,
           fontFamily: fontMono,
-          marginBottom: 12,
+          marginBottom: 10,
         }}>
           Session builder
         </div>
         <div style={{
-          fontSize: "clamp(26px, 5.8vw, 34px)",
+          fontSize: "clamp(24px, 5.4vw, 32px)",
           fontWeight: 700,
           fontFamily: fontDisplay,
-          letterSpacing: -1.05,
-          lineHeight: 1.05,
-          marginBottom: 10,
+          letterSpacing: -1.1,
+          lineHeight: 1.02,
         }}>
           Build a Custom Mix
-        </div>
-        <div style={{
-          fontSize: 14,
-          color: color.body,
-          lineHeight: 1.45,
-          maxWidth: 300,
-          letterSpacing: -0.1,
-        }}>
-          Choose a length — we build the set around what you love.
         </div>
       </div>
 
@@ -2612,8 +2600,8 @@ function CustomMixFeature({ onClick }) {
         style={{
           position: "relative",
           zIndex: 1,
-          width: 56,
-          height: 56,
+          width: 52,
+          height: 52,
           borderRadius: "50%",
           flexShrink: 0,
           display: "flex",
@@ -2622,13 +2610,13 @@ function CustomMixFeature({ onClick }) {
           background: color.accent,
           color: color.onAccent,
           boxShadow: `
-            0 0 0 1px rgba(255,255,255,0.1),
-            0 14px 36px rgba(0,0,0,0.45),
-            0 0 28px rgba(242,243,245,0.12)
+            0 0 0 1px rgba(255,255,255,0.12),
+            0 12px 32px rgba(0,0,0,0.5),
+            0 0 24px rgba(242,243,245,0.1)
           `,
         }}
       >
-        <Icon name="play" size={17}/>
+        <Icon name="play" size={16}/>
       </div>
     </button>
   );
@@ -3292,11 +3280,8 @@ function FavoritesScreen({
   }
 
   return (
-    <div style={{ position: "relative", paddingBottom: 48 }}>
-      <CollapsingHeader
-        title="Library"
-        subtitle="Your crates, keeps, and custom sessions."
-      />
+    <div style={{ position: "relative", paddingBottom: 56 }}>
+      <CollapsingHeader title="Library" />
 
       <div style={{
         position: "relative",
@@ -3307,8 +3292,8 @@ function FavoritesScreen({
             aria-label="Build a Custom Mix"
             style={{
               margin: 0,
-              paddingTop: homeSpace.sectionPadTopFirst + 12,
-              paddingBottom: homeSpace.sectionPadBottom,
+              paddingTop: homeSpace.sectionPadTopFirst + 8,
+              paddingBottom: 36,
               animation: `rise 0.55s ${motion.ease} both`,
             }}
           >
@@ -3317,40 +3302,59 @@ function FavoritesScreen({
         )}
 
         {communityMix && onOpenMix && (
-          <div style={{ padding: `12px ${homeSpace.gutter}px 4px` }}>
+          <div style={{ padding: `4px ${homeSpace.gutter}px 28px` }}>
             <button
               type="button"
               onClick={onOpenMix}
               style={{
                 width: "100%",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                gap: 16,
                 textAlign: "left",
-                padding: "16px 18px",
-                borderRadius: radius.lg,
+                padding: "20px 22px",
+                borderRadius: radius.xl,
                 border: `1px solid ${glass.borderSoft}`,
-                background: glass.fill,
+                background: `
+                  linear-gradient(160deg, rgba(255,255,255,0.07) 0%, rgba(255,255,255,0.025) 100%)
+                `,
+                boxShadow: `inset 0 1px 0 ${glass.highlight}`,
                 cursor: "pointer",
                 color: color.ink,
               }}
             >
-              <div style={{
-                fontSize: 11, fontWeight: 650, letterSpacing: 1.4, textTransform: "uppercase",
-                color: color.muted, fontFamily: fontMono, marginBottom: 6,
-              }}>
-                Mixtape Club
+              <div style={{ minWidth: 0 }}>
+                <div style={{
+                  fontSize: 11, fontWeight: 650, letterSpacing: 1.8, textTransform: "uppercase",
+                  color: color.muted, fontFamily: fontMono, marginBottom: 8,
+                }}>
+                  Mixtape Club
+                </div>
+                <div style={{
+                  fontSize: 20,
+                  fontWeight: 700,
+                  fontFamily: fontDisplay,
+                  letterSpacing: -0.55,
+                  lineHeight: 1.1,
+                }}>
+                  {communityMix.title || "The Community Mix"}
+                </div>
               </div>
-              <div style={{ fontSize: 18, fontWeight: 700, fontFamily: fontDisplay, letterSpacing: -0.4 }}>
-                {communityMix.title || "The Community Mix"}
-              </div>
-              <div style={{ fontSize: 13, color: color.muted, marginTop: 4 }}>
-                Everyone gets it · open this month’s pick
-              </div>
+              <span aria-hidden="true" style={{
+                flexShrink: 0,
+                color: color.faint,
+                fontSize: 22,
+                fontWeight: 300,
+                lineHeight: 1,
+              }}>›</span>
             </button>
           </div>
         )}
 
         <HomeSection
           label="Playlists"
-          subtitle="Hand-built sets worth returning to — and sharing with the club."
+          count={userPlaylists.length || undefined}
           delay={0.04}
           first={!communityMix && !onCustomMix}
         >
@@ -3388,16 +3392,16 @@ function FavoritesScreen({
                   <div style={{
                     width: tile,
                     height: tile,
-                    borderRadius: 8,
+                    borderRadius: radius.md,
                     overflow: "hidden",
-                    marginBottom: 12,
+                    marginBottom: 14,
                     background: color.surfaceRaised,
                     display: "grid",
                     gridTemplateColumns: covers.length > 1 ? "1fr 1fr" : "1fr",
                     gridTemplateRows: covers.length > 1 ? "1fr 1fr" : "1fr",
                     boxShadow: `
-                      0 0 0 1px rgba(255,255,255,0.06),
-                      0 18px 40px rgba(0,0,0,0.4)
+                      0 0 0 1px rgba(255,255,255,0.07),
+                      0 20px 44px rgba(0,0,0,0.42)
                     `,
                     position: "relative",
                   }}>
@@ -3407,20 +3411,20 @@ function FavoritesScreen({
                         alignItems: "center",
                         justifyContent: "center",
                         color: color.faint,
-                        fontSize: 13,
+                        fontSize: 12,
                         fontFamily: fontMono,
                         fontWeight: 650,
-                        letterSpacing: 1.4,
+                        letterSpacing: 1.6,
                         textTransform: "uppercase",
                         background: `
-                          linear-gradient(160deg, rgba(255,255,255,0.05) 0%, transparent 55%),
+                          linear-gradient(160deg, rgba(255,255,255,0.06) 0%, transparent 55%),
                           ${color.surfaceRaised}
                         `,
                       }}>
                         Set
                       </div>
                     ) : covers.length === 1 ? (
-                      <AlbumArt track={covers[0]} size={tile} borderRadius={8}/>
+                      <AlbumArt track={covers[0]} size={tile} borderRadius={radius.md}/>
                     ) : (
                       <>
                         {[0, 1, 2, 3].map((i) => (
@@ -3434,14 +3438,14 @@ function FavoritesScreen({
                       pointerEvents: "none",
                       position: "absolute",
                       inset: 0,
-                      borderRadius: 8,
-                      boxShadow: `inset 0 1px 0 rgba(255,255,255,0.1)`,
+                      borderRadius: radius.md,
+                      boxShadow: `inset 0 1px 0 rgba(255,255,255,0.12)`,
                     }}/>
                   </div>
                   <div style={{
-                    fontSize: 14,
-                    fontWeight: 600,
-                    letterSpacing: -0.25,
+                    fontSize: 15,
+                    fontWeight: 650,
+                    letterSpacing: -0.3,
                     fontFamily: fontDisplay,
                     overflow: "hidden",
                     textOverflow: "ellipsis",
@@ -3452,9 +3456,10 @@ function FavoritesScreen({
                   <div style={{
                     fontSize: 11,
                     color: color.faint,
-                    marginTop: 4,
+                    marginTop: 5,
                     fontFamily: fontMono,
-                    letterSpacing: 0.3,
+                    letterSpacing: 0.4,
+                    fontVariantNumeric: "tabular-nums",
                   }}>
                     {plTracks.length === 0
                       ? "Empty"
@@ -3481,24 +3486,28 @@ function FavoritesScreen({
               <div style={{
                 width: tile,
                 height: tile,
-                borderRadius: 8,
-                marginBottom: 12,
+                borderRadius: radius.md,
+                marginBottom: 14,
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
                 color: color.muted,
-                fontSize: 28,
-                fontWeight: 300,
+                fontSize: 30,
+                fontWeight: 200,
                 letterSpacing: 0,
-                border: `1px dashed ${glass.border}`,
-                background: "rgba(255,255,255,0.02)",
+                border: `1px solid ${glass.borderFaint}`,
+                background: `
+                  linear-gradient(160deg, rgba(255,255,255,0.04) 0%, transparent 60%),
+                  rgba(255,255,255,0.02)
+                `,
+                boxShadow: `inset 0 1px 0 rgba(255,255,255,0.06)`,
               }}>
                 +
               </div>
               <div style={{
-                fontSize: 14,
-                fontWeight: 600,
-                letterSpacing: -0.2,
+                fontSize: 15,
+                fontWeight: 650,
+                letterSpacing: -0.25,
                 fontFamily: fontDisplay,
                 color: color.body,
               }}>
@@ -3547,7 +3556,7 @@ function FavoritesScreen({
         {saved.length > 0 && (
           <HomeSection
             label="Liked Songs"
-            subtitle="Every track you’ve claimed — browse at your own pace."
+            count={saved.length}
             delay={0.08}
           >
             <div style={{ padding: `0 ${Math.max(0, homeSpace.gutter - 8)}px` }}>
