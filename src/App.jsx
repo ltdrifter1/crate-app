@@ -290,6 +290,7 @@ const Icon = ({ name, size=18 }) => {
     chev_up:    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M18 15l-6-6-6 6"/></svg>,
     chev_down:  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M6 9l6 6 6-6"/></svg>,
     queue:      <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M4 6h16M4 12h16M4 18h10"/><circle cx="18" cy="18" r="2" fill="currentColor" stroke="none"/></svg>,
+    share:      <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="18" cy="5" r="2.4"/><circle cx="6" cy="12" r="2.4"/><circle cx="18" cy="19" r="2.4"/><path d="M8.3 13.1l7.4 4.2M15.7 6.7l-7.4 4.2"/></svg>,
     volume:     <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor"><path d="M3 10v4h4l5 5V5L7 10H3zm13.5 2c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"/></svg>,
     hypno:      <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.5" fill="currentColor" stroke="none"/></svg>,
     // Session Dial — length (arc) + vibe (playlist bars). Key feature mark.
@@ -3236,35 +3237,101 @@ function FavoritesScreen({
 
   if (openPlaylist) {
     const community = isCommunityPlaylist(openPlaylist);
+    const canShare = !!onSharePlaylist && (community || openPlaylistTracks.length > 0);
     return (
       <div style={{ padding: "24px 16px 36px" }}>
         <button type="button" onClick={() => setOpenPlaylistId(null)} style={{
           background: "none", border: "none", color: color.accent, fontSize: 17, cursor: "pointer", fontWeight: 400, marginBottom: 16,
         }}>‹ Library</button>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 8, gap: 12 }}>
-          <div style={{ fontSize: 28, fontWeight: 700, color: color.ink, fontFamily: fontDisplay, letterSpacing: -0.8 }}>{openPlaylist.name}</div>
-          <span style={{ fontSize: 13, color: color.muted }}>{openPlaylistTracks.length}</span>
-        </div>
-        {community && openPlaylist.curatorName && (
-          <div style={{ fontSize: 14, color: color.muted, marginBottom: 12 }}>
-            Curated by {openPlaylist.curatorName}
+
+        <div style={{
+          padding: "22px 20px",
+          borderRadius: radius.lg,
+          marginBottom: 16,
+          background: `
+            radial-gradient(ellipse 80% 90% at 0% 0%, rgba(255,255,255,0.07) 0%, transparent 55%),
+            ${glass.fill}
+          `,
+          border: `1px solid ${glass.borderSoft}`,
+          boxShadow: `inset 0 1px 0 ${glass.highlight}`,
+        }}>
+          <div style={{
+            fontSize: 11,
+            fontWeight: 650,
+            letterSpacing: 1.6,
+            textTransform: "uppercase",
+            color: color.muted,
+            fontFamily: fontMono,
+            marginBottom: 10,
+          }}>
+            {community ? "Digital Record Club · Community" : "Digital Record Club"}
           </div>
-        )}
+          <div style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "baseline",
+            gap: 12,
+            marginBottom: 8,
+          }}>
+            <div style={{
+              fontSize: "clamp(26px, 6vw, 32px)",
+              fontWeight: 700,
+              color: color.ink,
+              fontFamily: fontDisplay,
+              letterSpacing: -0.85,
+              lineHeight: 1.08,
+            }}>
+              {openPlaylist.name}
+            </div>
+            <span style={{
+              fontSize: 12,
+              color: color.muted,
+              fontFamily: fontMono,
+              letterSpacing: 0.3,
+              flexShrink: 0,
+            }}>
+              {openPlaylistTracks.length}
+            </span>
+          </div>
+          <div style={{ fontSize: 14, color: color.body, lineHeight: 1.45 }}>
+            {community
+              ? (openPlaylist.curatorName
+                ? `Curated by ${openPlaylist.curatorName} · this month’s club pick`
+                : "This month’s club pick for every member")
+              : openPlaylistTracks.length === 0
+                ? "Add tracks, then share it with the club."
+                : "Share this set with Digital Record Club members."}
+          </div>
+        </div>
+
         <div style={{ display: "flex", gap: 10, marginBottom: 18, flexWrap: "wrap" }}>
           {onSharePlaylist && (
             <button
               type="button"
               onClick={() => onSharePlaylist(openPlaylist)}
-              style={{ ...BTN_SECONDARY, borderRadius: 980, padding: "10px 16px", fontSize: 14 }}
+              disabled={!canShare}
+              style={{
+                ...(canShare ? BTN_PRIMARY : BTN_SECONDARY),
+                borderRadius: 980,
+                padding: "12px 18px",
+                fontSize: 14,
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 8,
+                opacity: canShare ? 1 : 0.45,
+                cursor: canShare ? "pointer" : "not-allowed",
+                flex: "1 1 180px",
+              }}
             >
-              {community ? "Share Community Mix" : "Share to Mixtape Club"}
+              <Icon name="share" size={15} />
+              {community ? "Share Community Mix" : "Share with the Club"}
             </button>
           )}
           {!community && onDeletePlaylist && (
             <button
               type="button"
               onClick={() => { onDeletePlaylist(openPlaylist.id); setOpenPlaylistId(null); }}
-              style={{ ...BTN_SECONDARY, borderRadius: 980, padding: "10px 16px", fontSize: 14 }}
+              style={{ ...BTN_SECONDARY, borderRadius: 980, padding: "12px 16px", fontSize: 14 }}
             >
               Delete
             </button>
@@ -3336,13 +3403,13 @@ function FavoritesScreen({
                 fontSize: 11, fontWeight: 650, letterSpacing: 1.4, textTransform: "uppercase",
                 color: color.muted, fontFamily: fontMono, marginBottom: 6,
               }}>
-                Mixtape Club
+                Digital Record Club
               </div>
               <div style={{ fontSize: 18, fontWeight: 700, fontFamily: fontDisplay, letterSpacing: -0.4 }}>
                 {communityMix.title || "The Community Mix"}
               </div>
               <div style={{ fontSize: 13, color: color.muted, marginTop: 4 }}>
-                Everyone gets it · open this month’s pick
+                Everyone gets it · this month’s shared pick
               </div>
             </button>
           </div>
@@ -3350,7 +3417,7 @@ function FavoritesScreen({
 
         <HomeSection
           label="Playlists"
-          subtitle="Hand-built sets worth returning to — and sharing with the club."
+          subtitle="Build a set, then share it with Digital Record Club."
           delay={0.04}
           first={!communityMix && !onCustomMix}
         >
@@ -3368,99 +3435,148 @@ function FavoritesScreen({
             {userPlaylists.map((pl) => {
               const plTracks = (pl.trackIds || []).map((id) => tracks.find((t) => t.id === id)).filter(Boolean);
               const covers = plTracks.filter((t) => t.albumCover).slice(0, 4);
+              const community = isCommunityPlaylist(pl);
+              const canShare = !!onSharePlaylist && (community || plTracks.length > 0);
               return (
-                <button
+                <div
                   key={pl.id}
-                  type="button"
-                  onClick={() => setOpenPlaylistId(pl.id)}
                   style={{
                     flex: "0 0 auto",
                     width: tile,
-                    background: "none",
-                    border: "none",
-                    padding: 0,
-                    cursor: "pointer",
-                    textAlign: "left",
-                    color: color.ink,
                     scrollSnapAlign: "start",
+                    color: color.ink,
                   }}
                 >
-                  <div style={{
-                    width: tile,
-                    height: tile,
-                    borderRadius: 8,
-                    overflow: "hidden",
-                    marginBottom: 12,
-                    background: color.surfaceRaised,
-                    display: "grid",
-                    gridTemplateColumns: covers.length > 1 ? "1fr 1fr" : "1fr",
-                    gridTemplateRows: covers.length > 1 ? "1fr 1fr" : "1fr",
-                    boxShadow: `
-                      0 0 0 1px rgba(255,255,255,0.06),
-                      0 18px 40px rgba(0,0,0,0.4)
-                    `,
-                    position: "relative",
-                  }}>
-                    {covers.length === 0 ? (
-                      <div style={{
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        color: color.faint,
-                        fontSize: 13,
-                        fontFamily: fontMono,
-                        fontWeight: 650,
-                        letterSpacing: 1.4,
-                        textTransform: "uppercase",
-                        background: `
-                          linear-gradient(160deg, rgba(255,255,255,0.05) 0%, transparent 55%),
-                          ${color.surfaceRaised}
-                        `,
-                      }}>
-                        Set
-                      </div>
-                    ) : covers.length === 1 ? (
-                      <AlbumArt track={covers[0]} size={tile} borderRadius={8}/>
-                    ) : (
-                      <>
-                        {[0, 1, 2, 3].map((i) => (
-                          <div key={i} style={{ overflow: "hidden", background: color.surfaceSolid }}>
-                            {covers[i] ? <AlbumArt track={covers[i]} size={mosaic} borderRadius={0}/> : null}
-                          </div>
-                        ))}
-                      </>
-                    )}
-                    <div aria-hidden="true" style={{
-                      pointerEvents: "none",
-                      position: "absolute",
-                      inset: 0,
+                  <button
+                    type="button"
+                    onClick={() => setOpenPlaylistId(pl.id)}
+                    style={{
+                      width: "100%",
+                      background: "none",
+                      border: "none",
+                      padding: 0,
+                      cursor: "pointer",
+                      textAlign: "left",
+                      color: "inherit",
+                    }}
+                  >
+                    <div style={{
+                      width: tile,
+                      height: tile,
                       borderRadius: 8,
-                      boxShadow: `inset 0 1px 0 rgba(255,255,255,0.1)`,
-                    }}/>
-                  </div>
+                      overflow: "hidden",
+                      marginBottom: 12,
+                      background: color.surfaceRaised,
+                      display: "grid",
+                      gridTemplateColumns: covers.length > 1 ? "1fr 1fr" : "1fr",
+                      gridTemplateRows: covers.length > 1 ? "1fr 1fr" : "1fr",
+                      boxShadow: `
+                        0 0 0 1px rgba(255,255,255,0.06),
+                        0 18px 40px rgba(0,0,0,0.4)
+                      `,
+                      position: "relative",
+                    }}>
+                      {covers.length === 0 ? (
+                        <div style={{
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          color: color.faint,
+                          fontSize: 13,
+                          fontFamily: fontMono,
+                          fontWeight: 650,
+                          letterSpacing: 1.4,
+                          textTransform: "uppercase",
+                          background: `
+                            linear-gradient(160deg, rgba(255,255,255,0.05) 0%, transparent 55%),
+                            ${color.surfaceRaised}
+                          `,
+                        }}>
+                          Set
+                        </div>
+                      ) : covers.length === 1 ? (
+                        <AlbumArt track={covers[0]} size={tile} borderRadius={8}/>
+                      ) : (
+                        <>
+                          {[0, 1, 2, 3].map((i) => (
+                            <div key={i} style={{ overflow: "hidden", background: color.surfaceSolid }}>
+                              {covers[i] ? <AlbumArt track={covers[i]} size={mosaic} borderRadius={0}/> : null}
+                            </div>
+                          ))}
+                        </>
+                      )}
+                      <div aria-hidden="true" style={{
+                        pointerEvents: "none",
+                        position: "absolute",
+                        inset: 0,
+                        borderRadius: 8,
+                        boxShadow: `inset 0 1px 0 rgba(255,255,255,0.1)`,
+                      }}/>
+                    </div>
+                    <div style={{
+                      fontSize: 14,
+                      fontWeight: 600,
+                      letterSpacing: -0.25,
+                      fontFamily: fontDisplay,
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      whiteSpace: "nowrap",
+                    }}>
+                      {pl.name}
+                    </div>
+                  </button>
                   <div style={{
-                    fontSize: 14,
-                    fontWeight: 600,
-                    letterSpacing: -0.25,
-                    fontFamily: fontDisplay,
-                    overflow: "hidden",
-                    textOverflow: "ellipsis",
-                    whiteSpace: "nowrap",
-                  }}>
-                    {pl.name}
-                  </div>
-                  <div style={{
-                    fontSize: 11,
-                    color: color.faint,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    gap: 8,
                     marginTop: 4,
-                    fontFamily: fontMono,
-                    letterSpacing: 0.3,
                   }}>
-                    {plTracks.length === 0
-                      ? "Empty"
-                      : `${plTracks.length} track${plTracks.length === 1 ? "" : "s"}`}
+                    <div style={{
+                      fontSize: 11,
+                      color: color.faint,
+                      fontFamily: fontMono,
+                      letterSpacing: 0.3,
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      whiteSpace: "nowrap",
+                    }}>
+                      {community
+                        ? "Club mix"
+                        : plTracks.length === 0
+                          ? "Add tracks to share"
+                          : `${plTracks.length} track${plTracks.length === 1 ? "" : "s"}`}
+                    </div>
+                    {onSharePlaylist && (
+                      <button
+                        type="button"
+                        aria-label={community ? `Share ${pl.name}` : `Share ${pl.name} with Digital Record Club`}
+                        disabled={!canShare}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (canShare) onSharePlaylist(pl);
+                        }}
+                        style={{
+                          flexShrink: 0,
+                          width: 28,
+                          height: 28,
+                          borderRadius: "50%",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          border: `1px solid ${canShare ? glass.border : glass.borderFaint}`,
+                          background: canShare ? glass.fill : "transparent",
+                          color: canShare ? color.ink : color.faint,
+                          cursor: canShare ? "pointer" : "not-allowed",
+                          opacity: canShare ? 1 : 0.4,
+                          padding: 0,
+                        }}
+                      >
+                        <Icon name="share" size={12} />
+                      </button>
+                    )}
                   </div>
-                </button>
+                </div>
               );
             })}
             <button
@@ -3503,6 +3619,15 @@ function FavoritesScreen({
                 color: color.body,
               }}>
                 New playlist
+              </div>
+              <div style={{
+                fontSize: 11,
+                color: color.faint,
+                marginTop: 4,
+                fontFamily: fontMono,
+                letterSpacing: 0.3,
+              }}>
+                For the club
               </div>
             </button>
           </div>
@@ -5605,14 +5730,14 @@ export default function App() {
       const url = absoluteAppUrl(buildPath("mix", { mixId: playlist.id || communityMix?.id }));
       const result = await shareOrCopy({
         title: playlist.name || COMMUNITY_MIX_TITLE,
-        text: "This month’s Community Mix on Planet MP3",
+        text: "This month’s Community Mix from Digital Record Club",
         url,
       });
       if (result.ok) showToast(result.method === "clipboard" ? "Link copied" : "Shared");
       return;
     }
     if (!(playlist.trackIds || []).length) {
-      showToast("Add tracks before sharing");
+      showToast("Add tracks before sharing with the club");
       return;
     }
     try {
@@ -5626,12 +5751,12 @@ export default function App() {
       const url = absoluteAppUrl(buildPath("mix", { mixId: mix.id }));
       const result = await shareOrCopy({
         title: mix.title,
-        text: `${mix.title} — a mixtape on Planet MP3`,
+        text: `${mix.title} — shared with Digital Record Club on Planet MP3`,
         url,
       });
       showToast(result.ok
-        ? (result.method === "clipboard" ? "Shared to Mixtape Club · link copied" : "Shared to Mixtape Club")
-        : "Shared to Mixtape Club");
+        ? (result.method === "clipboard" ? "Shared with the Club · link copied" : "Shared with Digital Record Club")
+        : "Shared with Digital Record Club");
     } catch (e) {
       console.warn("Share mix failed", e);
       showToast("Couldn’t share — try again");
