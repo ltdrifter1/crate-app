@@ -239,8 +239,10 @@ export default function LoginScreen({
             style={{
               width: "min(46vw, 188px)",
               height: "auto",
+              aspectRatio: "1 / 1",
               display: "block",
               userSelect: "none",
+              borderRadius: "22%",
               animation: "brandLockupBreathe 6.5s ease-in-out infinite",
             }}
           />
