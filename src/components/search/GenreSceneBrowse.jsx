@@ -4,7 +4,7 @@ import { genreBrowseRows, tracksForGenreLane, genreStory } from "../../lib/brows
 
 /**
  * Genre-only browse for Search empty state.
- * Scenes / dayparts stay in the background — user picks a genre to listen.
+ * Scenes stay in the background — user picks a genre to listen.
  */
 export default function GenreSceneBrowse({
   tracks = [],
@@ -90,7 +90,7 @@ export default function GenreSceneBrowse({
         Genres
       </div>
       <div style={{ fontSize: 14, color: color.muted, marginBottom: 14, lineHeight: 1.4 }}>
-        Pick a genre to listen. Daypart and energy run quietly in the background.
+        Pick a genre to listen.
       </div>
       <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
         {rows.map((row) => (

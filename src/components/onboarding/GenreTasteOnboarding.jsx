@@ -4,7 +4,7 @@ import { font, fontDisplay, fontMono, color, BTN_PRIMARY } from "../../theme";
 import BrandMark from "../brand/BrandMark";
 
 /**
- * First-visit intake — genres only. Everything else (daypart, energy, scenes) is background.
+ * First-visit intake — genres only. Everything else (mix lane, energy, scenes) is background.
  */
 export default function GenreTasteOnboarding({
   initialGenres = [],

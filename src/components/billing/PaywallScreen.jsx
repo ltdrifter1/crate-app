@@ -83,7 +83,7 @@ export default function PaywallScreen({
           color: color.body,
           maxWidth: 340,
         }}>
-          Your free month is over. Subscribe for {price}/month to keep your radio, library, and Custom Mix.
+          Your free month is over. Subscribe for {price}/month to keep your radio, library, and custom mixes.
         </p>
 
         <div

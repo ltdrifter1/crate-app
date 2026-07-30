@@ -156,7 +156,7 @@ export function computeSignalTraits(tracks, recentPlays = []) {
 //   tasteBlend      — 95% in-taste / 5% out when preferredGenres set
 //   signalState     — human-state vector steers energy (lift / release / immersion)
 //   seedTrack       — Hypno pocket mode: stay near this track's aura + key
-//   scopedPool      — pool already daypart/scene filtered; skip hour energy gate
+//   scopedPool      — pool already mix-lane/scene filtered; skip hour energy gate
 export function pickNextTrack(allTracks, currentTrack, memory = null, options = {}) {
   if (!allTracks.length) return null;
   const preferredGenres = Array.isArray(options.preferredGenres)

@@ -1,7 +1,7 @@
 /**
  * One intent → one pool.
  *
- * Listen for… (daypart / vibe) and Search Browse (genre / scene) share this
+ * Listen focus (genre / scene / vibe) and clock mix lanes share this
  * resolver so labels match what actually plays.
  */
 
@@ -13,16 +13,16 @@ import { SESSION_PROFILES } from "./engine";
 /** Normalize partial intent into a stable shape. */
 export function createListenIntent(partial = {}) {
   return {
-    daypart: partial.daypart ?? null, // null → resolve from clock when applied
+    mixLane: partial.mixLane ?? null, // null → resolve from clock when applied
     vibe: partial.vibe ?? null,
     genre: partial.genre ? (normalizeGenre(partial.genre) || partial.genre) : null,
     scene: partial.scene ?? null,
   };
 }
 
-export function resolveDaypart(intent = {}, dateOrHour = new Date()) {
-  if (intent?.daypart && ["daytime", "nighttime"].includes(intent.daypart)) {
-    return intent.daypart;
+export function resolveMixLane(intent = {}, dateOrHour = new Date()) {
+  if (intent?.mixLane && ["daytime", "nighttime"].includes(intent.mixLane)) {
+    return intent.mixLane;
   }
   return mixLaneForDate(dateOrHour).id;
 }
@@ -38,18 +38,18 @@ function withAudio(tracks = []) {
 /**
  * Resolve a listening pool from catalog + intent.
  *
- * Filter order: playable → (scene | genre) → daypart (soft) → audio (optional).
- * Daypart is skipped when it would empty an already-focused scene/genre pool.
+ * Filter order: playable → (scene | genre) → mix lane (soft) → audio (optional).
+ * Mix lane is skipped when it would empty an already-focused scene/genre pool.
  */
 export function resolveListenPool(catalog = [], intentPartial = {}, options = {}) {
   const {
     requireAudio = false,
-    applyDaypart = true,
+    applyMixLane = true,
     dateOrHour = new Date(),
   } = options;
 
   const intent = createListenIntent(intentPartial);
-  const daypart = resolveDaypart(intent, dateOrHour);
+  const mixLane = resolveMixLane(intent, dateOrHour);
   const applied = [];
 
   let pool = playableSingles(catalog);
@@ -62,20 +62,20 @@ export function resolveListenPool(catalog = [], intentPartial = {}, options = {}
     applied.push("genre");
   }
 
-  let daypartApplied = false;
-  let daypartSkipped = false;
-  if (applyDaypart) {
-    const dayFiltered = pool.filter((t) => trackFitsMixLane(t, daypart));
-    if (dayFiltered.length) {
-      pool = dayFiltered;
-      daypartApplied = true;
-      applied.push("daypart");
+  let mixLaneApplied = false;
+  let mixLaneSkipped = false;
+  if (applyMixLane) {
+    const laneFiltered = pool.filter((t) => trackFitsMixLane(t, mixLane));
+    if (laneFiltered.length) {
+      pool = laneFiltered;
+      mixLaneApplied = true;
+      applied.push("mixLane");
     } else if (intent.scene || intent.genre) {
-      // Keep focus pool — daypart would erase the user's browse choice
-      daypartSkipped = true;
+      // Keep focus pool — mix lane would erase the user's browse choice
+      mixLaneSkipped = true;
     } else {
-      // Unfocused empty daypart → fall back to all playable
-      daypartSkipped = true;
+      // Unfocused empty lane → fall back to all playable
+      mixLaneSkipped = true;
     }
   }
 
@@ -93,18 +93,18 @@ export function resolveListenPool(catalog = [], intentPartial = {}, options = {}
   return {
     tracks: pool,
     intent,
-    daypart,
-    daypartApplied,
-    daypartSkipped,
+    mixLane,
+    mixLaneApplied,
+    mixLaneSkipped,
     applied,
-    label: listenPoolLabel(intent, { daypart, dateOrHour }),
+    label: listenPoolLabel(intent, { mixLane, dateOrHour }),
   };
 }
 
-/** Human label for Cover Stage / toasts / Listen for sheet. */
+/** Human label for Cover Stage / toasts. */
 export function listenPoolLabel(intentPartial = {}, opts = {}) {
   const intent = createListenIntent(intentPartial);
-  const daypart = opts.daypart || resolveDaypart(intent, opts.dateOrHour);
+  const mixLane = opts.mixLane || resolveMixLane(intent, opts.dateOrHour);
   const parts = [];
 
   if (intent.scene) {
@@ -116,7 +116,7 @@ export function listenPoolLabel(intentPartial = {}, opts = {}) {
   if (intent.vibe && SESSION_PROFILES[intent.vibe]) {
     parts.push(SESSION_PROFILES[intent.vibe].label);
   } else {
-    parts.push(mixLaneById(daypart).label);
+    parts.push(mixLaneById(mixLane).label);
   }
 
   return parts.join(" · ");

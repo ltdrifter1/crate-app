@@ -22,7 +22,7 @@ describe("mixLanes", () => {
     expect(MIX_LANES.map((m) => m.id)).toEqual(["daytime", "nighttime"]);
   });
 
-  test("mixLaneForDate maps hours to dayparts", () => {
+  test("mixLaneForDate maps hours to mix lanes", () => {
     expect(mixLaneForDate(9).id).toBe("daytime");
     expect(mixLaneForDate(12).id).toBe("daytime");
     expect(mixLaneForDate(17).id).toBe("daytime");
@@ -36,7 +36,7 @@ describe("mixLanes", () => {
     expect(pool.some((t) => t.id === "5")).toBe(false);
   });
 
-  test("Electronic and Hip-Hop fit both dayparts", () => {
+  test("Electronic and Hip-Hop fit both mix lanes", () => {
     const house = tracks.find((t) => t.id === "2");
     const hip = tracks.find((t) => t.id === "4");
     expect(trackFitsDaytime(house)).toBe(true);
@@ -63,7 +63,7 @@ describe("mixLanes", () => {
     expect(mixLaneById("unknown").id).toBe("daytime");
   });
 
-  test("legacy lane ids resolve via current daypart", () => {
+  test("legacy lane ids resolve via current mix lane", () => {
     const pool = tracksForMixLane(tracks, "main");
     expect(pool.length).toBeGreaterThan(0);
   });

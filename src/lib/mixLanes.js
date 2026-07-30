@@ -1,6 +1,6 @@
 import { normalizeGenre } from "./genres";
 
-/** Home radio dayparts — auto-selected from the clock, not a manual picker. */
+/** Home radio mix lanes — auto-selected from the clock, not a manual picker. */
 export const MIX_LANES = [
   { id: "daytime", label: "Daytime", blurb: "Bright, open, and moving with the day." },
   { id: "nighttime", label: "Nighttime", blurb: "Deep, late, and low-lit." },
@@ -21,7 +21,7 @@ export function mixLaneForDate(dateOrHour = new Date()) {
   return mixLaneById(hour >= 6 && hour < 18 ? "daytime" : "nighttime");
 }
 
-/** Genres that fit both dayparts. */
+/** Genres that fit both mix lanes. */
 const BOTH_GENRES = new Set(["Electronic", "Hip-Hop", "R&B & Soul", "Pop", "Reggae", "Latin"]);
 /** Day-leaning genres — still allowed at night when energy is soft enough. */
 const DAY_LEAN_GENRES = new Set(["Rock", "Metal", "Country & Folk"]);
@@ -67,8 +67,8 @@ export function trackFitsMixLane(track, laneId = "daytime") {
 }
 
 /**
- * Filter catalog for a daypart. Falls back to all playable singles if empty.
- * Legacy ids (main/mellow/…) map to the current clock daypart.
+ * Filter catalog for a mix lane. Falls back to all playable singles if empty.
+ * Legacy ids (main/mellow/…) map to the current clock mix lane.
  */
 export function tracksForMixLane(tracks = [], laneId = "daytime") {
   const singles = playableSingles(tracks);

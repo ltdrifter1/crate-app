@@ -3,7 +3,7 @@ import {
   trackInTaste,
   splitTastePool,
   tasteCandidatePool,
-  vibeForDaypart,
+  vibeForMixLane,
   blendPoolForSession,
 } from "./taste";
 
@@ -55,9 +55,9 @@ describe("taste blend", () => {
     expect(tracks).toHaveLength(catalog.length);
   });
 
-  test("vibeForDaypart maps clock quietly", () => {
-    expect(vibeForDaypart("daytime")).toBe("drive");
-    expect(vibeForDaypart("nighttime")).toBe("night");
+  test("vibeForMixLane maps clock quietly", () => {
+    expect(vibeForMixLane("daytime")).toBe("drive");
+    expect(vibeForMixLane("nighttime")).toBe("night");
   });
 
   test("blendPoolForSession keeps ~95% in-taste", () => {
