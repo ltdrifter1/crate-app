@@ -1,6 +1,6 @@
 /**
  * Taste blend — preferred genres lead (95%), with a small open mix (5%).
- * Daypart / scene / energy stay background; genres are the user lever.
+ * Clock mix lane / scene / energy stay background; genres are the user lever.
  */
 
 import { normalizeGenre } from "./genres";
@@ -74,7 +74,7 @@ export function blendPoolForSession(tracks = [], preferredGenres = [], inRatio =
   return [...inTaste, ...outSlice];
 }
 
-/** Auto session energy shape from daypart — not a user picker. */
-export function vibeForDaypart(daypart = "daytime") {
-  return daypart === "nighttime" ? "night" : "drive";
+/** Auto session energy shape from the clock mix lane — not a user picker. */
+export function vibeForMixLane(mixLane = "daytime") {
+  return mixLane === "nighttime" ? "night" : "drive";
 }

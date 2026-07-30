@@ -1,5 +1,5 @@
 /**
- * Unified "Listen for…" intents — daypart radio + timed-mix vibes + browse focus.
+ * Unified listen intents — clock mix lanes + timed-mix vibes + browse focus.
  */
 
 import { MIX_LANES, mixLaneById, mixLaneForDate } from "./mixLanes";
@@ -9,7 +9,7 @@ import {
   resolveListenPool,
   listenPoolLabel,
   listenFocusLabel,
-  resolveDaypart,
+  resolveMixLane,
 } from "./listenPool";
 
 export {
@@ -17,14 +17,14 @@ export {
   resolveListenPool,
   listenPoolLabel,
   listenFocusLabel,
-  resolveDaypart,
+  resolveMixLane,
 };
 
-/** Clock dayparts as radio intents. */
-export function daypartIntents() {
+/** Clock mix lanes as radio intents. */
+export function mixLaneIntents() {
   return MIX_LANES.map((m) => ({
     id: m.id,
-    kind: "daypart",
+    kind: "mixLane",
     label: m.label,
     blurb: m.blurb,
   }));
@@ -41,16 +41,16 @@ export function vibeIntents() {
 }
 
 export function listenIntentById(id) {
-  const day = mixLaneById(id);
+  const lane = mixLaneById(id);
   if (MIX_LANES.some((m) => m.id === id)) {
-    return { id: day.id, kind: "daypart", label: day.label, blurb: day.blurb };
+    return { id: lane.id, kind: "mixLane", label: lane.label, blurb: lane.blurb };
   }
   const vibe = SESSION_PROFILES[id];
   if (vibe) return { id, kind: "vibe", label: vibe.label, blurb: vibe.blurb };
   return null;
 }
 
-/** Suggested daypart from the clock (for "Follow clock" UI). */
-export function suggestedDaypart(dateOrHour = new Date()) {
+/** Suggested mix lane from the clock. */
+export function suggestedMixLane(dateOrHour = new Date()) {
   return mixLaneForDate(dateOrHour);
 }

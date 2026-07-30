@@ -1,6 +1,6 @@
 /**
  * Your genres — the only user-facing listen control.
- * Daypart / vibes / scenes stay automatic.
+ * Clock mix lane / vibes / scenes stay automatic.
  */
 import { fontDisplay, fontMono, color } from "../../theme";
 import { CANONICAL_GENRES, migratePreferredGenres } from "../../lib/genres";
