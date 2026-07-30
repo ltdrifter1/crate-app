@@ -3,7 +3,7 @@ import { createPortal }                             from "react-dom";
 import { useNavigate, useLocation }                 from "react-router-dom";
 import { useAuth }                                  from "./useAuth";
 import { toggleLike as fbToggleLike, recordPlay, completeOnboarding, saveGenres } from "./useUserData";
-import { collection, getDocs, addDoc, query, orderBy, doc, updateDoc, setDoc } from "firebase/firestore";
+import { collection, getDocs, addDoc, query, orderBy, doc, updateDoc, setDoc, deleteDoc } from "firebase/firestore";
 import { db }                                       from "./firebase";
 import {
   font, fontDisplay, fontMono, color, radius, motion,
@@ -3818,9 +3818,58 @@ function AdminScreen({
   const [assigned, setAssigned] = useState(0);
   const [importing, setImporting] = useState(false);
   const [importProgress, setImportProgress] = useState("");
+  const [deletingUnknown, setDeletingUnknown] = useState(false);
   const fileInputRef = useRef(null);
   const [clubCurator, setClubCurator] = useState("");
   const publishable = (userPlaylists || []).filter((p) => !isCommunityPlaylist(p) && (p.trackIds || []).length > 0);
+
+  function isUnknownArtist(artist) {
+    const a = String(artist ?? "").trim().toLowerCase();
+    return !a || a === "unknown" || a === "unknown artist" || a === "n/a" || a === "na" || a === "-" || a === "none";
+  }
+
+  const unknownArtistTracks = useMemo(
+    () => tracks.filter((t) => isUnknownArtist(t.artist)),
+    [tracks]
+  );
+
+  async function deleteTrackDoc(trackId) {
+    await deleteDoc(doc(db, "tracks", trackId));
+    setTracks((ts) => ts.filter((tr) => tr.id !== trackId));
+  }
+
+  async function handleDeleteTrack(t) {
+    if (!t?.id) return;
+    if (!window.confirm(`Delete “${t.title || t.id}” permanently?`)) return;
+    try {
+      await deleteTrackDoc(t.id);
+      showToast("Deleted");
+    } catch (e) {
+      console.error("Delete failed", e);
+      showToast("Delete failed: " + (e.code || e.message || "unknown error"));
+    }
+  }
+
+  async function handleDeleteUnknownArtists() {
+    if (!unknownArtistTracks.length || deletingUnknown) return;
+    if (!window.confirm(`Permanently delete ${unknownArtistTracks.length} track${unknownArtistTracks.length === 1 ? "" : "s"} with Unknown artist?`)) return;
+    setDeletingUnknown(true);
+    let deleted = 0;
+    let errors = 0;
+    for (const t of unknownArtistTracks) {
+      try {
+        await deleteTrackDoc(t.id);
+        deleted += 1;
+      } catch (e) {
+        console.error("Delete unknown failed", t.id, e);
+        errors += 1;
+      }
+    }
+    setDeletingUnknown(false);
+    showToast(errors
+      ? `Deleted ${deleted}, ${errors} failed`
+      : `Deleted ${deleted} unknown-artist track${deleted === 1 ? "" : "s"}`);
+  }
 
   // ── CSV EXPORT ──
   function exportCSV() {
@@ -4031,14 +4080,33 @@ function AdminScreen({
           {[["title","Title *"],["artist","Artist *"],["album","Album"],["genre","Genre"],["energy","Energy (1–10)"],["camelot","Camelot Key (e.g. 8A)"],["bpm","BPM"],["albumCover","Cover URL"]].map(([k,p])=>(
             <input key={k} placeholder={p} value={nt[k]||""} onChange={e=>setNt(n=>({...n,[k]:e.target.value}))} style={{...INPUT_ST,marginBottom:8}}/>
           ))}
-          <button onClick={addTrack} style={{...BTN_PRIMARY,width:"100%",marginBottom:24,display:"flex",alignItems:"center",justifyContent:"center",gap:8}}><Icon name="plus" size={16}/> Add Track</button>
+          <button onClick={addTrack} style={{...BTN_PRIMARY,width:"100%",marginBottom:16,display:"flex",alignItems:"center",justifyContent:"center",gap:8}}><Icon name="plus" size={16}/> Add Track</button>
+          {unknownArtistTracks.length > 0 && (
+            <button
+              type="button"
+              onClick={handleDeleteUnknownArtists}
+              disabled={deletingUnknown}
+              style={{
+                ...BTN_SECONDARY,
+                width: "100%",
+                marginBottom: 20,
+                borderColor: "rgba(224,100,100,0.35)",
+                color: "#E8A0A0",
+                opacity: deletingUnknown ? 0.6 : 1,
+              }}
+            >
+              {deletingUnknown
+                ? "Deleting…"
+                : `Delete ${unknownArtistTracks.length} Unknown artist track${unknownArtistTracks.length === 1 ? "" : "s"}`}
+            </button>
+          )}
           <SectionLabel>Library ({tracks.length})</SectionLabel>
           {tracks.map(t=>(
             <div key={t.id} style={{ display:"flex", alignItems:"center", gap:10, padding:"10px 12px", background:"rgba(255,255,255,0.15)", backdropFilter:"blur(32px)", borderRadius:10, marginBottom:4, border:"1px solid rgba(255,255,255,0.16)" }}>
               <div style={{ width:36, height:36, borderRadius:7, overflow:"hidden", flexShrink:0 }}><AlbumArt track={t} size={36} borderRadius={0}/></div>
               <div style={{ flex:1, minWidth:0 }}>
                 <div style={{ fontSize:14, fontWeight:500, color: color.ink, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{t.title}</div>
-                <div style={{ fontSize:12, color: color.muted }}>{t.artist}</div>
+                <div style={{ fontSize:12, color: isUnknownArtist(t.artist) ? "#E8A0A0" : color.muted }}>{t.artist || "Unknown"}</div>
               </div>
               <div style={{ display:"flex", gap:4, flexShrink:0, flexWrap:"wrap", justifyContent:"flex-end", maxWidth:180 }}>
                 {t.genre&&<span style={{ fontSize:10, fontWeight:500, padding:"2px 8px", borderRadius:6, background:"rgba(26,29,38,0.06)", color: color.ink }}>{t.genre}</span>}
@@ -4047,7 +4115,7 @@ function AdminScreen({
                 {t.energy&&<span style={{ fontSize:10, fontWeight:500, padding:"2px 8px", borderRadius:6, background:"rgba(0,0,0,0.04)", color: color.muted }}>E{t.energy}</span>}
               </div>
               <button onClick={()=>setEditTrack(t)} style={{ background:"none",border:"none",cursor:"pointer",color: color.muted,padding:6 }}><Icon name="edit" size={14}/></button>
-              <button onClick={()=>{setTracks(ts=>ts.filter(tr=>tr.id!==t.id));showToast("Deleted");}} style={{ background:"none",border:"none",cursor:"pointer",color: color.alert,padding:6 }}><Icon name="trash" size={14}/></button>
+              <button onClick={()=>handleDeleteTrack(t)} style={{ background:"none",border:"none",cursor:"pointer",color: color.alert,padding:6 }}><Icon name="trash" size={14}/></button>
             </div>
           ))}
         </div>
