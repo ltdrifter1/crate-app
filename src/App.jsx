@@ -87,14 +87,14 @@ const injectStyles = () => {
     body { font-family: var(--font); background: var(--canvas); color: var(--ink); }
     ::-webkit-scrollbar { width: 4px; height: 4px; }
     ::-webkit-scrollbar-track { background: transparent; }
-    ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.14); border-radius: 4px; }
+    ::-webkit-scrollbar-thumb { background: rgba(36,33,29,0.14); border-radius: 4px; }
     button { transition: opacity ${motion.fast}, background ${motion.base}, transform ${motion.fast}, box-shadow ${motion.base}; font-family: var(--font); }
     button:active { opacity: 0.72; }
     button.play-primary:active { transform: scale(0.96); opacity: 0.9; }
     button.glass-control:hover { background: ${glass.fillStrong}; border-color: ${glass.border}; }
     button:focus-visible, input:focus-visible { outline: 2px solid ${color.accent}; outline-offset: 2px; }
     input:focus { outline: none; }
-    input[type="range"] { -webkit-appearance: none; height: 3px; background: rgba(255,255,255,0.12); border-radius: 2px; outline: none; cursor: pointer; }
+    input[type="range"] { -webkit-appearance: none; height: 3px; background: rgba(36,33,29,0.12); border-radius: 2px; outline: none; cursor: pointer; }
     input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; border-radius: 50%; background: ${color.accent}; border: none; cursor: pointer; }
     input[type="range"]::-moz-range-thumb { width: 14px; height: 14px; border-radius: 50%; background: ${color.accent}; border: none; cursor: pointer; }
     .hide-scroll { -ms-overflow-style: none; scrollbar-width: none; }
@@ -161,12 +161,12 @@ const injectStyles = () => {
       50% { opacity: 1; transform: scale(1.15); }
     }
     @keyframes orbitPulse {
-      0%, 100% { opacity: 0.55; box-shadow: 0 0 8px rgba(242,243,245,0.35); }
-      50% { opacity: 1; box-shadow: 0 0 16px rgba(242,243,245,0.7); }
+      0%, 100% { opacity: 0.55; box-shadow: 0 0 8px rgba(36,33,29,0.35); }
+      50% { opacity: 1; box-shadow: 0 0 16px rgba(36,33,29,0.7); }
     }
     @keyframes playGlow {
-      0%, 100% { box-shadow: 0 0 0 1px rgba(242,243,245,0.14), 0 16px 40px rgba(0,0,0,0.5), 0 0 28px rgba(242,243,245,0.18); }
-      50% { box-shadow: 0 0 0 1px rgba(242,243,245,0.22), 0 18px 48px rgba(0,0,0,0.55), 0 0 42px rgba(242,243,245,0.32); }
+      0%, 100% { box-shadow: 0 0 0 1px rgba(36,33,29,0.14), 0 16px 40px rgba(0,0,0,0.5), 0 0 28px rgba(36,33,29,0.18); }
+      50% { box-shadow: 0 0 0 1px rgba(36,33,29,0.22), 0 18px 48px rgba(0,0,0,0.55), 0 0 42px rgba(36,33,29,0.32); }
     }
     .glass-dock {
       background: rgba(12, 12, 14, 0.78);
@@ -194,18 +194,18 @@ const injectStyles = () => {
         box-shadow ${motion.base} ${motion.ease};
     }
     .custom-mix:hover {
-      background: rgba(255,255,255,0.045) !important;
-      border-color: rgba(255,255,255,0.18) !important;
+      background: rgba(36,33,29,0.045) !important;
+      border-color: rgba(36,33,29,0.18) !important;
       box-shadow:
-        inset 0 1px 0 rgba(255,255,255,0.14),
+        inset 0 1px 0 rgba(36,33,29,0.14),
         0 18px 48px rgba(0,0,0,0.35) !important;
     }
     .custom-mix:hover .custom-mix-play {
       transform: scale(1.04);
       box-shadow:
-        0 0 0 1px rgba(255,255,255,0.16),
+        0 0 0 1px rgba(36,33,29,0.16),
         0 16px 40px rgba(0,0,0,0.5),
-        0 0 36px rgba(242,243,245,0.22) !important;
+        0 0 36px rgba(36,33,29,0.22) !important;
     }
     .custom-mix:active {
       transform: scale(0.992);
@@ -217,7 +217,7 @@ const injectStyles = () => {
       transition: background ${motion.base} ${motion.ease};
     }
     .sidebar-queue-row:hover {
-      background: rgba(255,255,255,0.045) !important;
+      background: rgba(36,33,29,0.045) !important;
     }
     .sidebar-queue-row:hover .sidebar-queue-actions {
       opacity: 1 !important;
@@ -240,6 +240,19 @@ const injectStyles = () => {
       }
     }
   `;
+    s.textContent += `
+      /* Library edition: structured, airy, artwork-first. */
+      .glass-surface, .glass-dock {
+        background: rgba(255,255,255,0.88) !important;
+        border-color: rgba(36,33,29,0.12) !important;
+        box-shadow: 0 10px 30px rgba(54,45,34,0.09), inset 0 1px 0 rgba(255,255,255,0.92) !important;
+      }
+      .nav-rail-btn { border-radius: 8px !important; }
+      .nav-rail-btn:hover { background: rgba(61,96,125,0.1) !important; color: #25445F !important; }
+      button { border-radius: 7px; }
+      img { transition: transform 260ms cubic-bezier(.22,1,.36,1), box-shadow 260ms cubic-bezier(.22,1,.36,1); }
+      [role="button"]:hover img, button:hover img { transform: scale(1.018); }
+    `;
   document.head.appendChild(s);
 };
 injectStyles();
@@ -255,7 +268,7 @@ function EnergyBar({ level, size="sm" }) {
         <div key={i} style={{
           width: size==="lg"?4:2.5, height:ht,
           borderRadius:2,
-          background: i < level ? color.accent : "rgba(255,255,255,0.12)",
+          background: i < level ? color.accent : "rgba(36,33,29,0.12)",
           transition:"background 0.2s",
         }}/>
       ))}
@@ -306,7 +319,7 @@ function TimedMixMark({ size = 28, accent = color.accent }) {
   return (
     <svg width={size} height={size} viewBox="0 0 32 32" fill="none" aria-hidden="true">
       {/* Quiet dial track */}
-      <circle cx="16" cy="16" r={r} stroke="rgba(255,255,255,0.16)" strokeWidth="1.6"/>
+      <circle cx="16" cy="16" r={r} stroke="rgba(36,33,29,0.16)" strokeWidth="1.6"/>
       {/* Length arc — accent segment */}
       <circle
         cx="16" cy="16" r={r}
@@ -319,8 +332,8 @@ function TimedMixMark({ size = 28, accent = color.accent }) {
         style={{ animation: "dialArc 1.1s cubic-bezier(0.22,1,0.36,1) both" }}
       />
       {/* Vibe bars — a short playlist inside the dial */}
-      <rect x="10.2" y="12.1" width="11.6" height="1.7" rx="0.85" fill="rgba(255,255,255,0.88)"/>
-      <rect x="10.2" y="15.15" width="8.4" height="1.7" rx="0.85" fill="rgba(255,255,255,0.55)"/>
+      <rect x="10.2" y="12.1" width="11.6" height="1.7" rx="0.85" fill="rgba(36,33,29,0.88)"/>
+      <rect x="10.2" y="15.15" width="8.4" height="1.7" rx="0.85" fill="rgba(36,33,29,0.55)"/>
       <rect x="10.2" y="18.2" width="5.6" height="1.7" rx="0.85" fill={accent}/>
     </svg>
   );
@@ -459,7 +472,7 @@ function IceOrbPlay({
         animation: glowing && !disabled ? "playGlow 2.8s ease-in-out infinite" : "none",
         boxShadow: disabled
           ? "none"
-          : `0 0 0 1px rgba(242,243,245,0.16), 0 12px 32px rgba(0,0,0,0.45), 0 0 28px ${color.accentGlow}`,
+          : `0 0 0 1px rgba(36,33,29,0.16), 0 12px 32px rgba(0,0,0,0.45), 0 0 28px ${color.accentGlow}`,
         transition: `transform ${motion.fast} ${motion.ease}, box-shadow ${motion.base} ${motion.ease}`,
       }}
     >
@@ -529,7 +542,7 @@ function OrbitalArtRing({
           cy={svgSize / 2}
           r={r}
           fill="none"
-          stroke="rgba(242,243,245,0.12)"
+          stroke="rgba(36,33,29,0.12)"
           strokeWidth={stroke}
         />
         <circle
@@ -608,7 +621,7 @@ function OrbitalPlayControl({
         aria-hidden="true"
         style={{ position: "absolute", inset: 0, transform: "rotate(-90deg)", pointerEvents: "none" }}
       >
-        <circle cx={ring / 2} cy={ring / 2} r={r} fill="none" stroke="rgba(242,243,245,0.14)" strokeWidth={stroke} />
+        <circle cx={ring / 2} cy={ring / 2} r={r} fill="none" stroke="rgba(36,33,29,0.14)" strokeWidth={stroke} />
         <circle
           cx={ring / 2}
           cy={ring / 2}
@@ -854,7 +867,7 @@ function CoverStageAtmosphere({ track = null, playing = false }) {
         inset: 0,
         background: tintRgb
           ? `radial-gradient(ellipse 70% 55% at 50% 36%, rgba(${tintRgb},${playing ? 0.32 : 0.16}) 0%, transparent 68%)`
-          : `radial-gradient(ellipse 70% 55% at 50% 36%, rgba(242,243,245,${playing ? 0.08 : 0.04}) 0%, transparent 68%)`,
+          : `radial-gradient(ellipse 70% 55% at 50% 36%, rgba(36,33,29,${playing ? 0.08 : 0.04}) 0%, transparent 68%)`,
         animation: playing ? "stageBloom 4.5s ease-in-out infinite" : "none",
         transition: "background 0.8s ease",
       }}/>
@@ -1000,7 +1013,7 @@ function CoverStage({
               borderRadius: 6,
               overflow: "hidden",
               boxShadow: `
-                0 0 0 1px rgba(255,255,255,0.1),
+                0 0 0 1px rgba(36,33,29,0.1),
                 0 12px 28px rgba(0,0,0,0.45)
               `,
             }}>
@@ -1077,7 +1090,7 @@ function CoverStage({
               fontSize: 12,
               fontWeight: 450,
               letterSpacing: -0.05,
-              color: "rgba(242,243,245,0.52)",
+              color: "rgba(36,33,29,0.52)",
               overflow: "hidden",
               textOverflow: "ellipsis",
               whiteSpace: "nowrap",
@@ -1093,7 +1106,7 @@ function CoverStage({
             aria-hidden="true"
             style={{
               height: 1.5,
-              background: "rgba(255,255,255,0.08)",
+              background: "rgba(36,33,29,0.08)",
               overflow: "hidden",
               borderRadius: 1,
             }}
@@ -1163,7 +1176,7 @@ function CoverStage({
               justifyContent: "center",
               cursor: (live || canStart) ? "pointer" : "not-allowed",
               boxShadow: (live || canStart)
-                ? `0 0 0 1px rgba(242,243,245,0.12), 0 14px 32px rgba(0,0,0,0.45)`
+                ? `0 0 0 1px rgba(36,33,29,0.12), 0 14px 32px rgba(0,0,0,0.45)`
                 : "none",
               transition: `transform ${motion.fast} ${motion.ease}`,
             }}
@@ -1715,7 +1728,7 @@ function SessionBuilderModal({ tracks, onClose, onPlayRoute, initialActivity = n
     <div style={{ position: "fixed", inset: 0, zIndex: 100, overflow: "hidden" }}>
       <div style={{
         position: "absolute", inset: 0,
-        background: "linear-gradient(180deg, #0A0A0A 0%, #000 55%, #000 100%)",
+        background: "linear-gradient(180deg, #F4F2ED 0%, #000 55%, #000 100%)",
       }}/>
       {session?.[0]?.albumCover && (
         <div aria-hidden="true" style={{
@@ -1965,7 +1978,7 @@ function HarmonicMap({ tracks, onPlay, currentTrack }) {
               height: n.active ? 14 : 8,
               borderRadius:"50%",
               background: n.active ? color.accent : `rgba(${hexToRgbStr(n.color)},0.6)`,
-              border: n.active ? "2px solid #FFFFFF" : "1px solid rgba(255,255,255,0.5)",
+              border: n.active ? "2px solid #FFFFFF" : "1px solid rgba(36,33,29,0.5)",
               boxShadow: n.active ? `0 0 12px rgba(${hexToRgbStr(n.color)},0.4)` : "none",
               transition:"all 0.2s",
               cursor:"pointer",
@@ -1985,7 +1998,7 @@ function HarmonicMap({ tracks, onPlay, currentTrack }) {
             whiteSpace:"nowrap", zIndex:20,
           }}>
             <div style={{ fontSize:11, fontWeight:600, color: color.ink }}>{hover.title}</div>
-            <div style={{ fontSize:9, color:"rgba(255,255,255,0.5)" }}>{hover.artist} · {hover.camelot} · E{hover.energy}</div>
+            <div style={{ fontSize:9, color:"rgba(36,33,29,0.5)" }}>{hover.artist} · {hover.camelot} · E{hover.energy}</div>
           </div>
         )}
       </div>
@@ -2416,7 +2429,7 @@ function ImmersivePlayer({
                   <span>Crossfade</span>
                   <span aria-hidden="true" style={{
                     width:34, height:20, borderRadius:980, flexShrink:0, position:"relative",
-                    background: crossfadeOn ? color.accent : "rgba(255,255,255,0.14)",
+                    background: crossfadeOn ? color.accent : "rgba(36,33,29,0.14)",
                     transition:`background ${motion.base} ${motion.ease}`,
                   }}>
                     <span style={{
@@ -2538,8 +2551,8 @@ function CustomMixFeature({ onClick }) {
         border: `1px solid ${glass.borderSoft}`,
         borderRadius: radius.xl,
         background: `
-          radial-gradient(ellipse 90% 130% at 0% 40%, rgba(255,255,255,0.1) 0%, transparent 52%),
-          radial-gradient(ellipse 45% 70% at 100% 100%, rgba(255,255,255,0.03) 0%, transparent 48%),
+          radial-gradient(ellipse 90% 130% at 0% 40%, rgba(36,33,29,0.1) 0%, transparent 52%),
+          radial-gradient(ellipse 45% 70% at 100% 100%, rgba(36,33,29,0.03) 0%, transparent 48%),
           linear-gradient(152deg, rgba(24,24,28,0.96) 0%, rgba(8,8,10,0.99) 58%, #050506 100%)
         `,
         boxShadow: `
@@ -2556,7 +2569,7 @@ function CustomMixFeature({ onClick }) {
         position: "absolute",
         inset: 0,
         pointerEvents: "none",
-        background: "linear-gradient(180deg, rgba(255,255,255,0.05) 0%, transparent 42%)",
+        background: "linear-gradient(180deg, rgba(36,33,29,0.05) 0%, transparent 42%)",
       }}/>
 
       <div aria-hidden="true" style={{
@@ -2610,9 +2623,9 @@ function CustomMixFeature({ onClick }) {
           background: color.accent,
           color: color.onAccent,
           boxShadow: `
-            0 0 0 1px rgba(255,255,255,0.12),
+            0 0 0 1px rgba(36,33,29,0.12),
             0 12px 32px rgba(0,0,0,0.5),
-            0 0 24px rgba(242,243,245,0.1)
+            0 0 24px rgba(36,33,29,0.1)
           `,
         }}
       >
@@ -3029,7 +3042,7 @@ function HomeScreen({
       <div style={{
         position: "relative",
         background: `
-          linear-gradient(180deg, rgba(255,255,255,0.03) 0%, transparent 120px),
+          linear-gradient(180deg, rgba(36,33,29,0.03) 0%, transparent 120px),
           ${color.canvas}
         `,
       }}>
@@ -3317,7 +3330,7 @@ function FavoritesScreen({
                 borderRadius: radius.xl,
                 border: `1px solid ${glass.borderSoft}`,
                 background: `
-                  linear-gradient(160deg, rgba(255,255,255,0.07) 0%, rgba(255,255,255,0.025) 100%)
+                  linear-gradient(160deg, rgba(36,33,29,0.07) 0%, rgba(36,33,29,0.025) 100%)
                 `,
                 boxShadow: `inset 0 1px 0 ${glass.highlight}`,
                 cursor: "pointer",
@@ -3400,7 +3413,7 @@ function FavoritesScreen({
                     gridTemplateColumns: covers.length > 1 ? "1fr 1fr" : "1fr",
                     gridTemplateRows: covers.length > 1 ? "1fr 1fr" : "1fr",
                     boxShadow: `
-                      0 0 0 1px rgba(255,255,255,0.07),
+                      0 0 0 1px rgba(36,33,29,0.07),
                       0 20px 44px rgba(0,0,0,0.42)
                     `,
                     position: "relative",
@@ -3417,7 +3430,7 @@ function FavoritesScreen({
                         letterSpacing: 1.6,
                         textTransform: "uppercase",
                         background: `
-                          linear-gradient(160deg, rgba(255,255,255,0.06) 0%, transparent 55%),
+                          linear-gradient(160deg, rgba(36,33,29,0.06) 0%, transparent 55%),
                           ${color.surfaceRaised}
                         `,
                       }}>
@@ -3439,7 +3452,7 @@ function FavoritesScreen({
                       position: "absolute",
                       inset: 0,
                       borderRadius: radius.md,
-                      boxShadow: `inset 0 1px 0 rgba(255,255,255,0.12)`,
+                      boxShadow: `inset 0 1px 0 rgba(36,33,29,0.12)`,
                     }}/>
                   </div>
                   <div style={{
@@ -3497,10 +3510,10 @@ function FavoritesScreen({
                 letterSpacing: 0,
                 border: `1px solid ${glass.borderFaint}`,
                 background: `
-                  linear-gradient(160deg, rgba(255,255,255,0.04) 0%, transparent 60%),
-                  rgba(255,255,255,0.02)
+                  linear-gradient(160deg, rgba(36,33,29,0.04) 0%, transparent 60%),
+                  rgba(36,33,29,0.02)
                 `,
-                boxShadow: `inset 0 1px 0 rgba(255,255,255,0.06)`,
+                boxShadow: `inset 0 1px 0 rgba(36,33,29,0.06)`,
               }}>
                 +
               </div>
@@ -3623,8 +3636,8 @@ function ProfileScreen({
             marginBottom: 28,
             border: `1px solid ${glass.border}`,
             background: `
-              radial-gradient(ellipse 90% 80% at 0% 0%, rgba(255,255,255,0.09) 0%, transparent 55%),
-              radial-gradient(ellipse 60% 70% at 100% 100%, rgba(255,255,255,0.04) 0%, transparent 50%),
+              radial-gradient(ellipse 90% 80% at 0% 0%, rgba(36,33,29,0.09) 0%, transparent 55%),
+              radial-gradient(ellipse 60% 70% at 100% 100%, rgba(36,33,29,0.04) 0%, transparent 50%),
               linear-gradient(165deg, #141418 0%, #0A0A0C 48%, #050506 100%)
             `,
             boxShadow: `
@@ -3641,7 +3654,7 @@ function ProfileScreen({
             width: 160,
             height: 160,
             borderRadius: "50%",
-            border: "1px solid rgba(255,255,255,0.06)",
+            border: "1px solid rgba(36,33,29,0.06)",
             pointerEvents: "none",
           }}/>
           <div style={{
@@ -4137,7 +4150,7 @@ function AdminScreen({
           )}
           <SectionLabel>Library ({tracks.length})</SectionLabel>
           {tracks.map(t=>(
-            <div key={t.id} style={{ display:"flex", alignItems:"center", gap:10, padding:"10px 12px", background:"rgba(255,255,255,0.15)", backdropFilter:"blur(32px)", borderRadius:10, marginBottom:4, border:"1px solid rgba(255,255,255,0.16)" }}>
+            <div key={t.id} style={{ display:"flex", alignItems:"center", gap:10, padding:"10px 12px", background:"rgba(36,33,29,0.15)", backdropFilter:"blur(32px)", borderRadius:10, marginBottom:4, border:"1px solid rgba(36,33,29,0.16)" }}>
               <div style={{ width:36, height:36, borderRadius:7, overflow:"hidden", flexShrink:0 }}><AlbumArt track={t} size={36} borderRadius={0}/></div>
               <div style={{ flex:1, minWidth:0 }}>
                 <div style={{ fontSize:14, fontWeight:500, color: color.ink, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{t.title}</div>
@@ -4229,18 +4242,18 @@ function AdminScreen({
               Export CSV ({tracks.length} tracks)
             </button>
             <button onClick={()=>fileInputRef.current?.click()} disabled={importing}
-              style={{ flex:1, padding:"14px", borderRadius:14, background:"rgba(255,255,255,0.12)", backdropFilter:"blur(32px)", color: color.ink, border:"1px solid rgba(255,255,255,0.18)", fontSize:14, fontWeight:600, cursor:importing?"wait":"pointer" }}>
+              style={{ flex:1, padding:"14px", borderRadius:14, background:"rgba(36,33,29,0.12)", backdropFilter:"blur(32px)", color: color.ink, border:"1px solid rgba(36,33,29,0.18)", fontSize:14, fontWeight:600, cursor:importing?"wait":"pointer" }}>
               {importing ? "Importing..." : "Import CSV"}
             </button>
             <input ref={fileInputRef} type="file" accept=".csv" style={{ display:"none" }}
               onChange={e => { if(e.target.files[0]) importCSV(e.target.files[0]); e.target.value=""; }}/>
           </div>
           {importProgress && (
-            <div style={{ padding:"10px 14px", borderRadius:10, background:"rgba(255,255,255,0.08)", border:"1px solid rgba(255,255,255,0.12)", marginBottom:16, fontSize:12, color: color.muted }}>
+            <div style={{ padding:"10px 14px", borderRadius:10, background:"rgba(36,33,29,0.08)", border:"1px solid rgba(36,33,29,0.12)", marginBottom:16, fontSize:12, color: color.muted }}>
               {importProgress}
             </div>
           )}
-          <div style={{ padding:"10px 14px", borderRadius:10, background:"rgba(255,255,255,0.06)", border:"1px solid rgba(255,255,255,0.1)", marginBottom:24, fontSize:11, color: color.muted, lineHeight:1.6 }}>
+          <div style={{ padding:"10px 14px", borderRadius:10, background:"rgba(36,33,29,0.06)", border:"1px solid rgba(36,33,29,0.1)", marginBottom:24, fontSize:11, color: color.muted, lineHeight:1.6 }}>
             <strong style={{ color: color.muted }}>How it works:</strong> Export downloads all tracks as CSV (keep the <code>id</code> column). Edit titles/artists/genres/BPM/Camelot in Sheets, then Import. Matching is by <strong>id first</strong> so renames stick; title+artist is only a fallback when id is blank. New rows without id are created. Columns: id, title, artist, album, genre, energy, camelot, bpm, audioUrl, albumCover, color, duration.
           </div>
           {(() => {
@@ -4298,7 +4311,7 @@ function AdminScreen({
                   ].map(([label, has, total]) => {
                     const pct = total ? Math.round(has/total*100) : 0;
                     return (
-                      <div key={label} style={{ padding:"14px 12px", background:"rgba(255,255,255,0.1)", backdropFilter:"blur(32px)", borderRadius:14, border:"1px solid rgba(255,255,255,0.14)" }}>
+                      <div key={label} style={{ padding:"14px 12px", background:"rgba(36,33,29,0.1)", backdropFilter:"blur(32px)", borderRadius:14, border:"1px solid rgba(36,33,29,0.14)" }}>
                         <div style={{ fontSize:11, fontWeight:600, color: color.ink, letterSpacing:0.5, marginBottom:8, textTransform:"uppercase" }}>{label}</div>
                         <div style={{ fontSize:28, fontWeight:700, color: color.ink }}>{has}<span style={{ fontSize:14, color: color.muted }}>/{total}</span></div>
                         <div style={{ height:4, background:"rgba(0,0,0,0.06)", borderRadius:2, marginTop:8, overflow:"hidden" }}>
@@ -4316,7 +4329,7 @@ function AdminScreen({
                     <SectionLabel>Key Distribution</SectionLabel>
                     <div style={{ display:"flex", flexWrap:"wrap", gap:6, marginBottom:24 }}>
                       {sortedKeys.map(([key, count]) => (
-                        <div key={key} style={{ padding:"6px 12px", borderRadius:8, background:"rgba(255,255,255,0.1)", border:"1px solid rgba(255,255,255,0.14)", fontSize:12 }}>
+                        <div key={key} style={{ padding:"6px 12px", borderRadius:8, background:"rgba(36,33,29,0.1)", border:"1px solid rgba(36,33,29,0.14)", fontSize:12 }}>
                           <span style={{ fontWeight:700, color: color.ink, marginRight:4 }}>{key}</span>
                           <span style={{ color: color.muted }}>{count}</span>
                         </div>
@@ -4331,7 +4344,7 @@ function AdminScreen({
                   <div style={{ padding:"24px 0", textAlign:"center", color: color.muted, fontSize:13 }}>All tracks have Camelot keys assigned</div>
                 ) : (
                   <>
-                    <div style={{ padding:"12px 14px", borderRadius:14, background:"rgba(255,255,255,0.08)", border:"1px solid rgba(255,255,255,0.12)", marginBottom:12 }}>
+                    <div style={{ padding:"12px 14px", borderRadius:14, background:"rgba(36,33,29,0.08)", border:"1px solid rgba(36,33,29,0.12)", marginBottom:12 }}>
                       <div style={{ fontSize:12, color: color.ink, fontWeight:600, marginBottom:4 }}>{withoutKey.length} tracks missing keys</div>
                       <div style={{ fontSize:11, color: color.muted, lineHeight:1.5, marginBottom:12 }}>You can batch-assign estimated keys based on BPM and genre. These are rough estimates — for accurate keys, use DJ software like Mixed In Key or Rekordbox to analyze audio.</div>
                       <button onClick={batchAssign} disabled={assigning}
@@ -4432,7 +4445,7 @@ function AdminScreen({
 
 // ─── NOW PLAYING BAR — flat station strip ─────────────────────────────────────
 function MetaChip({ children }) {
-  return <span style={{ fontSize:10, padding:"4px 8px", borderRadius:6, background:"rgba(255,255,255,0.08)", color:"rgba(255,255,255,0.45)", fontVariantNumeric:"tabular-nums" }}>{children}</span>;
+  return <span style={{ fontSize:10, padding:"4px 8px", borderRadius:6, background:"rgba(36,33,29,0.08)", color:"rgba(36,33,29,0.45)", fontVariantNumeric:"tabular-nums" }}>{children}</span>;
 }
 
 // ─── FLOATING GLASS DOCK — mini-player + tabs as one surface ──────────────────
@@ -6307,7 +6320,7 @@ export default function App() {
           left: 0,
           right: 0,
           height: 1,
-          background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.14), transparent)",
+          background: "linear-gradient(90deg, transparent, rgba(36,33,29,0.14), transparent)",
           pointerEvents: "none",
           zIndex: 2,
         }}/>
@@ -6335,7 +6348,7 @@ export default function App() {
               marginBottom: 18,
               borderRadius: 4,
               boxShadow: `
-                0 0 0 1px rgba(255,255,255,0.08),
+                0 0 0 1px rgba(36,33,29,0.08),
                 0 24px 56px rgba(0,0,0,0.55),
                 0 8px 20px rgba(${glowRgb},0.12)
               `,
@@ -6349,7 +6362,7 @@ export default function App() {
               <div aria-hidden="true" style={{
                 position: "absolute",
                 inset: 0,
-                boxShadow: "inset 0 1px 0 rgba(255,255,255,0.12), inset 0 -40px 48px rgba(0,0,0,0.28)",
+                boxShadow: "inset 0 1px 0 rgba(36,33,29,0.12), inset 0 -40px 48px rgba(0,0,0,0.28)",
                 pointerEvents: "none",
               }}/>
             </div>
@@ -6357,7 +6370,7 @@ export default function App() {
             {/* Progress — whisper hairline under art */}
             <div style={{
               height: 1.5,
-              background: "rgba(255,255,255,0.06)",
+              background: "rgba(36,33,29,0.06)",
               marginBottom: 16,
               overflow: "hidden",
               position: "relative",
@@ -6452,7 +6465,7 @@ export default function App() {
         <div style={{
           height: 1,
           margin: "4px 20px 0",
-          background: "linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.1) 20%, rgba(255,255,255,0.12) 50%, rgba(255,255,255,0.1) 80%, transparent 100%)",
+          background: "linear-gradient(90deg, transparent 0%, rgba(36,33,29,0.1) 20%, rgba(36,33,29,0.12) 50%, rgba(36,33,29,0.1) 80%, transparent 100%)",
         }}/>
 
         {/* Up Next */}
@@ -6551,7 +6564,7 @@ export default function App() {
                     gap: 10,
                     padding: "10px 8px",
                     borderRadius: 8,
-                    background: active ? "rgba(255,255,255,0.05)" : "transparent",
+                    background: active ? "rgba(36,33,29,0.05)" : "transparent",
                     position: "relative",
                   }}
                 >
@@ -6598,7 +6611,7 @@ export default function App() {
                       overflow: "hidden",
                       flexShrink: 0,
                       boxShadow: "0 4px 14px rgba(0,0,0,0.35)",
-                      outline: active ? `1px solid rgba(255,255,255,0.18)` : "1px solid transparent",
+                      outline: active ? `1px solid rgba(36,33,29,0.18)` : "1px solid transparent",
                     }}>
                       <img
                         src={t.albumCover || "/covers/default.jpg"}
