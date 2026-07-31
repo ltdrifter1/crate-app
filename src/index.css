@@ -8,12 +8,11 @@ body {
   font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Helvetica Neue", Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background: #000000;
-  color: #F2F3F5;
+  background: #F4F2ED;
+  color: #1D1D1F;
 }
-code {
-  font-family: "SF Mono", ui-monospace, Menlo, Monaco, "Courier New", monospace;
-}
+code { font-family: "SF Mono", ui-monospace, Menlo, Monaco, "Courier New", monospace; }
+::selection { background: rgba(61, 96, 125, 0.2); color: #1D1D1F; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.01ms !important;
