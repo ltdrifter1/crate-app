@@ -6155,12 +6155,8 @@ export default function App() {
   // ── Global keyboard shortcuts ─────────────────────────────────────────────
   // Space play/pause · ←/→ seek ±10s · ↑/↓ volume · M mute · L like ·
   // Q queue · F player · / search · Esc close overlays
+  // keyCtxRef is filled after toggleLike is declared (below) to avoid TDZ.
   const keyCtxRef = useRef({});
-  keyCtxRef.current = {
-    togglePlay, handleSkip, handlePrev, handleSeek, toggleLike, setVolume,
-    currentTrack, progress, duration, volume, immersive, showQueue,
-    setShowQueue, setImmersive, setScreen,
-  };
   useEffect(() => {
     const isTypingTarget = (el) =>
       el && (el.tagName === "INPUT" || el.tagName === "TEXTAREA" || el.tagName === "SELECT" || el.isContentEditable);
@@ -6286,6 +6282,13 @@ export default function App() {
         showToast("Couldn't save — check your connection");
       }
     }
+  };
+
+  // Keep shortcut handlers current each render — after toggleLike exists.
+  keyCtxRef.current = {
+    togglePlay, handleSkip, handlePrev, handleSeek, toggleLike, setVolume,
+    currentTrack, progress, duration, volume, immersive, showQueue,
+    setShowQueue, setImmersive, setScreen,
   };
 
   // ── Genre preferences (removed from profile UI) ───────────────────────────
