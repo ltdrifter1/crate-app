@@ -1083,10 +1083,10 @@ function CoverStage({
                 : "none",
               animation: `rise 0.65s ${motion.ease} 0.14s both`,
             }}
-            aria-label={canStart ? `Listen — ${stageLabel}` : "Unavailable"}
+            aria-label={canStart ? `Go on air — ${stageLabel}` : "Unavailable"}
           >
             <Icon name="play" size={14} />
-            {canStart ? "Listen" : "Unavailable"}
+            {canStart ? "Go on air" : "Unavailable"}
           </button>
           {canStart && (
             <div style={{
@@ -1337,7 +1337,7 @@ function TrackActionsMenu({ track, playlistCtx, activePlaylistId, x, y, onClose 
       </div>
 
       <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 1.2, color: color.faint, padding: "10px 14px 4px", textTransform: "uppercase", fontFamily: fontMono }}>
-        Add to playlist
+        Add to a stack
       </div>
 
       {ctx.playlists.length === 0 && !showNewPl && (
@@ -1383,7 +1383,7 @@ function TrackActionsMenu({ track, playlistCtx, activePlaylistId, x, y, onClose 
               if (e.key === "Enter") handleCreateAndAdd();
               if (e.key === "Escape") setShowNewPl(false);
             }}
-            placeholder="Playlist name…"
+            placeholder="Stack name…"
             style={{ ...INPUT_ST, marginBottom: 6, padding: "8px 10px", fontSize: 16 }}
           />
           <div style={{ display: "flex", gap: 6 }}>
@@ -1402,7 +1402,7 @@ function TrackActionsMenu({ track, playlistCtx, activePlaylistId, x, y, onClose 
           onClick={() => setShowNewPl(true)}
           style={{ display: "flex", alignItems: "center", gap: 8, width: "100%", textAlign: "left", background: "none", border: "none", color: color.ink, fontSize: 14, padding: "10px 14px", cursor: "pointer", fontWeight: 500 }}
         >
-          <Icon name="plus" size={14} /> New playlist
+          <Icon name="plus" size={14} /> New stack
         </button>
       )}
 
@@ -1830,9 +1830,9 @@ function SessionBuilderModal({ tracks, onClose, onPlayRoute, initialActivity = n
               <div style={{
                 fontSize: 34, fontWeight: 700, color: color.ink, letterSpacing: -1,
                 marginBottom: 10, fontFamily: fontDisplay,
-              }}>How long are you listening?</div>
+              }}>How long is this set?</div>
               <div style={{ fontSize: 16, color: color.body, marginBottom: 36, lineHeight: 1.45 }}>
-                We’ll build a set that fits the time and shapes the energy for you
+                We press a set to the clock. Energy rides with it
                 {intentLabel ? ` · ${intentLabel}` : ""}.
               </div>
               <div style={{ display: "flex", gap: 10, justifyContent: "center", marginBottom: 40, flexWrap: "wrap" }}>
@@ -1875,10 +1875,10 @@ function SessionBuilderModal({ tracks, onClose, onPlayRoute, initialActivity = n
                   fontSize: 32, fontWeight: 700, color: color.ink, letterSpacing: -0.8,
                   marginBottom: 6, fontFamily: fontDisplay,
                 }}>
-                  Your set is ready
+                  Set pressed
                 </div>
                 <div style={{ fontSize: 15, color: color.body }}>
-                  {session.length} songs · about {totalMins} minutes
+                  {session.length} cuts · about {totalMins} minutes
                 </div>
               </div>
 
@@ -1933,7 +1933,7 @@ function SessionBuilderModal({ tracks, onClose, onPlayRoute, initialActivity = n
                 }} style={{
                   ...BTN_PRIMARY, flex: 1, maxWidth: 280, borderRadius: 980, padding: "16px 28px",
                 }}>
-                  Start listening
+                  Take it on air
                 </button>
                 <button type="button" onClick={handleRegenerate} aria-label="Shuffle again" style={{
                   width: 52, height: 52, borderRadius: 980, background: color.surfaceRaised,
@@ -2067,7 +2067,7 @@ function HypnoVisionOverlay({ sourceTrack, tracks, onPlay, onClose }) {
             <AlbumArt track={sourceTrack} size={72} borderRadius={0}/>
           </div>
           <div style={{ flex:1, minWidth:0 }}>
-            <div style={{ fontSize:12, fontWeight:700, letterSpacing:0.4, color: color.accent, marginBottom:6 }}>Similar songs</div>
+            <div style={{ fontSize:12, fontWeight:700, letterSpacing:0.4, color: color.accent, marginBottom:6 }}>Near this</div>
             <div style={{ fontSize:20, fontWeight:750, color: color.ink, letterSpacing:-0.4, fontFamily: fontDisplay, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{sourceTrack.title}</div>
             <div style={{ fontSize:13, color: color.muted, marginTop:4 }}>{sourceTrack.artist} · tracks that feel like this</div>
           </div>
@@ -2140,7 +2140,7 @@ function AfterglowOverlay({ data, onClose, onSavePlaylist }) {
         padding: "28px 24px",
         boxShadow: `inset 0 1px 0 ${glass.highlight}, 0 20px 48px rgba(26,29,36,0.16)`,
       }}>
-        <div style={{ fontSize:12, fontWeight:700, letterSpacing:0.4, color: color.accent, marginBottom:12 }}>Session summary</div>
+        <div style={{ fontSize:12, fontWeight:700, letterSpacing:0.4, color: color.accent, marginBottom:12 }}>Set rundown</div>
         <div style={{ fontSize:36, fontWeight:800, color: color.ink, letterSpacing:-1, marginBottom:8, fontFamily: fontDisplay }}>{data.durationMins} minutes</div>
         <div style={{ fontSize:14, color: color.muted, marginBottom:32 }}>{tracks.length} tracks · {genres.length} scenes · energy {avgEnergy}</div>
 
@@ -2178,7 +2178,7 @@ function AfterglowOverlay({ data, onClose, onSavePlaylist }) {
             padding:"14px 24px", borderRadius: radius.sm,
             background: color.accent, border:"none",
             color: color.onAccent, fontSize:14, fontWeight:650, cursor:"pointer",
-          }}>Save as playlist</button>
+          }}>Keep this set</button>
           <button type="button" onClick={onClose} style={{
             padding:"14px 24px", borderRadius: radius.sm,
             background:"none", border:`1px solid ${color.lineStrong}`,
@@ -2302,7 +2302,7 @@ function ImmersivePlayer({
               {onHypno && (
                 <button type="button" onClick={() => { setShowMore(false); onHypno(currentTrack); }}
                   style={{ display: "block", width: "100%", textAlign: "left", padding: "12px 16px", background: "none", border: "none", color: color.ink, fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
-                  Similar songs
+                  Near this
                 </button>
               )}
               {!isRadioMode && onToggleShuffle && (
@@ -2603,7 +2603,7 @@ function QueueSheet({ queue, currentTrack, onPlay, onClose, onClear, onShuffle, 
           )}
           {queue.length === 0 && (
             <div style={{ textAlign:"center", padding:"36px 12px", color: color.faint, fontSize:13 }}>
-              {isRadioMode ? "Next pick lands after the crossfade" : "Queue is empty"}
+              {isRadioMode ? "Next pick lands after the crossfade" : "Nothing on deck"}
             </div>
           )}
           {queue.map((t, i) => (
@@ -2629,14 +2629,14 @@ function QueueSheet({ queue, currentTrack, onPlay, onClose, onClear, onShuffle, 
   );
 }
 
-// ── Key feature: Build a Custom Mix — duration session builder entry ─────────
+// ── Key feature: Press a timed set — duration session builder entry ─────────
 function CustomMixFeature({ onClick }) {
   return (
     <button
       type="button"
       className="custom-mix"
       onClick={onClick}
-      aria-label="Build a Custom Mix"
+      aria-label="Press a timed set"
       style={{
         position: "relative",
         overflow: "hidden",
@@ -2693,7 +2693,7 @@ function CustomMixFeature({ onClick }) {
           fontFamily: fontMono,
           marginBottom: 10,
         }}>
-          Session builder
+          Set length
         </div>
         <div style={{
           fontSize: "clamp(18px, 4vw, 22px)",
@@ -2702,7 +2702,7 @@ function CustomMixFeature({ onClick }) {
           letterSpacing: -0.5,
           lineHeight: 1.1,
         }}>
-          Build a Custom Mix
+          Press a timed set
         </div>
       </div>
 
@@ -2974,7 +2974,7 @@ function HomeCatalogStatus({ error, isEmpty, playableCount, totalCount, onRetry 
       {error ? (
         <>
           <div style={{ fontSize: 15, fontWeight: 650, color: color.ink, marginBottom: 6 }}>
-            Couldn&apos;t load the library
+            Couldn&apos;t pull the shelf
           </div>
           <div style={{ fontSize: 13, color: color.body, lineHeight: 1.45, marginBottom: 12 }}>
             Check your connection and try again. If this keeps happening, the catalog may need a moment to sync.
@@ -2995,12 +2995,12 @@ function HomeCatalogStatus({ error, isEmpty, playableCount, totalCount, onRetry 
       ) : (
         <>
           <div style={{ fontSize: 15, fontWeight: 650, color: color.ink, marginBottom: 6 }}>
-            No tracks in your library yet
+            Crate’s empty
           </div>
           <div style={{ fontSize: 13, color: color.body, lineHeight: 1.45 }}>
             {totalCount > 0 && playableCount === 0
               ? `${totalCount} catalog entries are missing audio — add audioUrl in admin or re-upload tracks.`
-              : "Once tracks are added to the catalog, they will show up here. Pull to refresh by tapping Retry."}
+              : "Once cuts land in the catalog, they show up here. Tap Retry to pull the shelf again."}
           </div>
           <button
             type="button"
@@ -3033,7 +3033,7 @@ function ForYouRiver({
 }) {
   if (!tracks.length) return null;
   const tasteLine = coldStart
-    ? "A starting stack while we learn your taste."
+    ? "First pull. Dig in."
     : "Fresh presses and cuts already in your rotation.";
 
   return (
@@ -3181,10 +3181,10 @@ function HomeScreen({
           <div style={{ padding: `28px ${homeSpace.gutter}px 56px` }}>
             <div className="glass-surface" style={{ padding: "28px 22px", borderRadius: radius.lg }}>
               <div style={{ fontSize: 22, fontWeight: 700, fontFamily: fontDisplay, color: color.ink, marginBottom: 8, letterSpacing: -0.4 }}>
-                Nothing to play yet
+                Nothing on the shelf
               </div>
               <div style={{ fontSize: 15, color: color.muted, lineHeight: 1.5, maxWidth: 280 }}>
-                Add tracks to the catalog and they will show up here.
+                Add cuts to the catalog and they land here.
               </div>
             </div>
           </div>
@@ -3206,7 +3206,7 @@ function SearchScreen({
       <div style={{ position:"relative", marginBottom:20 }}>
         <div style={{ position:"absolute", left:14, top:"50%", transform:"translateY(-50%)", color: color.faint }}><Icon name="search" size={16}/></div>
         <input
-          placeholder="Artists, songs, albums…"
+          placeholder="Artist, cut, record…"
           aria-label="Search"
           style={{...INPUT_ST, paddingLeft:42, background: color.surfaceRaised, border: "none"}}
           value={query}
@@ -3273,7 +3273,7 @@ function SearchScreen({
         </div>
       )}
       {results.length > 0 && query.length > 1 && (
-        <div style={{ fontSize:13, fontWeight:600, color: color.muted, marginBottom:10, textTransform:"uppercase", letterSpacing:0.4 }}>Songs</div>
+        <div style={{ fontSize:13, fontWeight:600, color: color.muted, marginBottom:10, textTransform:"uppercase", letterSpacing:0.4 }}>Cuts</div>
       )}
       {results.map(t=>(
         <TrackRow key={t.id} track={t} onPlay={()=>onPlay(t)} active={currentTrack?.id===t.id} isPlaying={isPlaying} onLike={onLike} playlistCtx={playlistCtx}/>
@@ -3378,7 +3378,7 @@ function FavoritesScreen({
           )}
         </div>
         {openPlaylistTracks.length === 0 ? (
-          <div style={{ fontSize: 15, color: color.faint, paddingTop: 32, textAlign: "center" }}>No songs yet — add tracks with ⋯</div>
+          <div style={{ fontSize: 15, color: color.faint, paddingTop: 32, textAlign: "center" }}>Stack’s empty — press ⋯ to file cuts</div>
         ) : openPlaylistTracks.map((t) => (
           <TrackRow
             key={t.id}
@@ -3428,7 +3428,7 @@ function FavoritesScreen({
         )}
 
         <HomeSection
-          label="Playlists"
+          label="Stacks"
           count={userPlaylists.length || undefined}
           delay={0.06}
           first={saved.length === 0}
@@ -3526,8 +3526,8 @@ function FavoritesScreen({
                     fontVariantNumeric: "tabular-nums",
                   }}>
                     {plTracks.length === 0
-                      ? "Empty"
-                      : `${plTracks.length} track${plTracks.length === 1 ? "" : "s"}`}
+                      ? "No cuts"
+                      : `${plTracks.length} cut${plTracks.length === 1 ? "" : "s"}`}
                   </div>
                 </button>
               );
@@ -3573,7 +3573,7 @@ function FavoritesScreen({
                 fontFamily: fontDisplay,
                 color: color.body,
               }}>
-                New playlist
+                New stack
               </div>
             </button>
           </div>
@@ -3592,8 +3592,8 @@ function FavoritesScreen({
                   if (e.key === "Enter") handleCreate();
                   if (e.key === "Escape") { setShowNewInput(false); setNewName(""); }
                 }}
-                placeholder="Playlist name…"
-                style={{ flex: 1, ...INPUT_ST, padding: "10px 12px", fontSize: 15 }}
+                placeholder="Stack name…"
+                style={{ flex: 1, ...INPUT_ST, padding: "10px 12px", fontSize: 16 }}
               />
               <button
                 type="button"
@@ -3635,7 +3635,7 @@ function FavoritesScreen({
 
         {onCustomMix && (
           <section
-            aria-label="Build a Custom Mix"
+            aria-label="Press a timed set"
             style={{
               margin: 0,
               paddingTop: 8,
@@ -3682,7 +3682,7 @@ function ProfileScreen({
   return (
     <div style={{ padding: "0 0 24px" }}>
       <CollapsingHeader
-        title="You"
+        title="Club"
         subtitle="Digital Record Club"
       />
       <div style={{ padding: "12px 20px 0" }}>
@@ -3718,15 +3718,22 @@ function ProfileScreen({
             pointerEvents: "none",
           }}/>
           <div style={{
-            fontSize: 12,
-            fontWeight: 700,
-            letterSpacing: 2.4,
-            textTransform: "uppercase",
-            color: color.ink,
-            fontFamily: fontMono,
+            display: "flex",
+            alignItems: "center",
+            gap: 10,
             marginBottom: 18,
           }}>
-            {CLUB_NAME}
+            <DoorGlyph size={28} title="Planet MP3" />
+            <div style={{
+              fontSize: 12,
+              fontWeight: 700,
+              letterSpacing: 2.4,
+              textTransform: "uppercase",
+              color: color.ink,
+              fontFamily: fontMono,
+            }}>
+              {CLUB_NAME}
+            </div>
           </div>
           <div style={{
             fontSize: "clamp(28px, 7vw, 36px)",
@@ -3847,12 +3854,12 @@ function ProfileScreen({
           fontSize: 13, fontWeight: 600, color: color.muted,
           textTransform: "uppercase", letterSpacing: 0.4, marginBottom: 10,
         }}>
-          Your genres
+          Your lanes
         </div>
         <div style={{ fontSize: 15, color: color.body, lineHeight: 1.45, marginBottom: 14 }}>
           {genres.length
-            ? `${genres.join(" · ")} — about 95% of what we play.`
-            : "Not set yet — we’ll play across the catalog."}
+            ? `${genres.join(" · ")} — we stay here most of the time.`
+            : "Not set yet — we’ll dig across the catalog."}
         </div>
         {onEditGenres && (
           <button
@@ -3865,7 +3872,7 @@ function ProfileScreen({
               marginBottom: 12,
             }}
           >
-            Edit genres
+            Edit lanes
           </button>
         )}
         {onOpenMix && (
@@ -4520,7 +4527,7 @@ function GlassDock({
     { id: "home", label: "Home", icon: "home" },
     { id: "favorites", label: "Library", icon: "dig" },
     { id: "search", label: "Search", icon: "search" },
-    { id: "profile", label: "You", icon: "profile" },
+    { id: "profile", label: "Club", icon: "profile" },
   ];
   if (showAdmin) items.push({ id: "admin", label: "Admin", icon: "settings" });
 
@@ -5909,7 +5916,7 @@ export default function App() {
   if (authLoading) return (
     <div style={{...APP_STYLE, alignItems:"center", justifyContent:"center"}}>
       <BrandMark size={44} />
-      <div style={{ fontSize:13, color: color.muted, marginTop:14 }}>Loading…</div>
+      <div style={{ fontSize:13, color: color.muted, marginTop:14 }}>Unlocking the booth…</div>
     </div>
   );
 
@@ -6021,9 +6028,9 @@ export default function App() {
             try {
               await saveGenres(genres);
               setProfile((p) => ({ ...(p || {}), genres }));
-              showToast(genres.length ? "Genres saved" : "Genres cleared");
+              showToast(genres.length ? "Lanes saved" : "Lanes cleared");
             } catch (e) {
-              showToast("Couldn’t save genres");
+              showToast("Couldn’t save lanes");
             }
           }}
           onBuildSet={() => {
@@ -6044,7 +6051,7 @@ export default function App() {
             listenFocus.genre ? [listenFocus.genre] : (profile?.genres || [])
           )}
           initialActivity={sessionInitialActivity || vibeForMixLane(mixLane)}
-          intentLabel={listenFocus.genre || (profile?.genres?.length ? "Your genres" : null)}
+          intentLabel={listenFocus.genre || (profile?.genres?.length ? "Your lanes" : null)}
           onClose={() => {
             setShowRouteBuilder(false);
             setSessionInitialActivity(null);
@@ -6341,7 +6348,7 @@ export default function App() {
             className="nav-rail-btn"
             onClick={() => setScreen("profile")}
             title={user.name}
-            aria-label="You"
+            aria-label="Club"
             aria-current={screen === "profile" ? "page" : undefined}
             style={{
               width: "100%", height: 40, borderRadius: radius.sm,
@@ -6386,7 +6393,7 @@ export default function App() {
           {tracksLoading ? (
             <div style={{ textAlign:"center", paddingTop:120 }}>
               <BrandGlyph size={40}/>
-              <div style={{ fontSize:14, color: color.muted, marginTop:12 }}>Loading…</div>
+              <div style={{ fontSize:14, color: color.muted, marginTop:12 }}>Pulling records from the shelf…</div>
             </div>
           ) : (
             <ScreenPane key={screen === "artist" ? `artist:${artistSlug}` : screen === "album" ? `album:${albumSlug}` : screen === "mix" ? `mix:${mixId}` : screen}>
@@ -6959,7 +6966,7 @@ export default function App() {
               fontSize: 12,
               letterSpacing: -0.1,
             }}>
-              Queue is empty
+              Queue is clear
               <div style={{
                 marginTop: 6,
                 fontSize: 10,

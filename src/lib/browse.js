@@ -16,7 +16,7 @@ export const GENRE_STORIES = {
   Metal: "Distortion as cathedral.",
   Jazz: "Improvisation as architecture.",
   Classical: "Composed weight — hall to cinema.",
-  "Country & Folk": "Songs that travel by porch and highway.",
+  "Country & Folk": "Cuts that travel by porch and highway.",
   Reggae: "One drop, dub space, sound-system heat.",
   Latin: "Clave, montuno, and diaspora floor music.",
 };

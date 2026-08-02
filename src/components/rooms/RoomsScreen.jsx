@@ -161,7 +161,7 @@ function RoomHero({ room, onEnter, onPlay }) {
               fontWeight: 600,
             }}
           >
-            Explore · {room.count}
+            Dig · {room.count}
           </button>
         </div>
       </div>

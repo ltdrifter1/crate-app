@@ -48,7 +48,7 @@ export default class ErrorBoundary extends React.Component {
           Something went wrong
         </div>
         <div style={{ fontSize: 22, fontWeight: 700, letterSpacing: -0.4 }}>
-          Couldn’t load the app
+          Booth hit a snag
         </div>
         <div
           style={{
@@ -58,7 +58,7 @@ export default class ErrorBoundary extends React.Component {
             lineHeight: 1.5,
           }}
         >
-          Reload to try again. If this keeps happening, sign out and back in.
+          Reload and dig again. If it sticks, sign out and back in.
         </div>
         {this.state.message ? (
           <div
