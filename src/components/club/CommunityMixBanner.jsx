@@ -72,8 +72,8 @@ export default function CommunityMixBanner({
         </div>
         <div style={{ fontSize: 14, color: color.body, lineHeight: 1.45, marginBottom: 16 }}>
           {curator
-            ? `Curated by ${curator} · ${count} track${count === 1 ? "" : "s"} · everyone gets it`
-            : `${count} track${count === 1 ? "" : "s"} · everyone gets it`}
+            ? `Curated by ${curator} · ${count} track${count === 1 ? "" : "s"} · pressed for every member`
+            : `${count} track${count === 1 ? "" : "s"} · pressed for every member`}
         </div>
         <div style={{ display: "flex", gap: 10 }}>
           <span

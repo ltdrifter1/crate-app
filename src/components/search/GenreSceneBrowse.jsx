@@ -90,7 +90,7 @@ export default function GenreSceneBrowse({
         Genres
       </div>
       <div style={{ fontSize: 14, color: color.muted, marginBottom: 14, lineHeight: 1.4 }}>
-        Pick a genre to listen.
+        Pick a lane and drop in.
       </div>
       <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
         {rows.map((row) => (
