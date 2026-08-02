@@ -2233,25 +2233,29 @@ function ImmersivePlayer({
         display: "flex", flexDirection: "column",
       }}
     >
-      {/* Soft aluminum + cover wash */}
+      {/* Soft aluminum + full-bleed sleeve (Cover Flow theater) */}
       <div aria-hidden="true" style={{ position: "absolute", inset: 0, background: aluminumGradient() }} />
       {currentTrack.albumCover && (
         <div aria-hidden="true" style={{
-          position: "absolute", inset: "-10%",
+          position: "absolute", inset: 0,
           backgroundImage: `url(${currentTrack.albumCover})`,
           backgroundSize: "cover", backgroundPosition: "center",
-          filter: "blur(64px) saturate(1.05) brightness(1.18)",
-          opacity: artLoaded ? 0.22 : 0.08,
-          transform: "scale(1.05)",
-          transition: "opacity 0.8s ease",
+          opacity: artLoaded ? 1 : 0.2,
+          transform: isPlaying ? "scale(1.03)" : "scale(1)",
+          transition: "opacity 0.7s ease, transform 8s ease",
         }}/>
       )}
       <div aria-hidden="true" style={{
         position: "absolute", inset: 0,
-        background: `
-          radial-gradient(ellipse 70% 50% at 50% 18%, rgba(${rgb},0.12) 0%, transparent 62%),
-          linear-gradient(180deg, rgba(230,233,239,0.15) 0%, transparent 30%, rgba(230,233,239,0.88) 100%)
-        `,
+        background: currentTrack.albumCover
+          ? `
+            linear-gradient(180deg, rgba(230,233,239,0.72) 0%, rgba(230,233,239,0.2) 28%, rgba(230,233,239,0.1) 48%, rgba(230,233,239,0.88) 78%, rgba(230,233,239,0.97) 100%),
+            radial-gradient(ellipse 70% 50% at 50% 18%, rgba(${rgb},0.1) 0%, transparent 62%)
+          `
+          : `
+            radial-gradient(ellipse 70% 50% at 50% 18%, rgba(${rgb},0.12) 0%, transparent 62%),
+            linear-gradient(180deg, rgba(230,233,239,0.15) 0%, transparent 30%, rgba(230,233,239,0.88) 100%)
+          `,
       }}/>
 
       {/* Top chrome */}
@@ -2297,10 +2301,20 @@ function ImmersivePlayer({
                   Similar songs
                 </button>
               )}
-              {onHypnoRadio && (
-                <button type="button" onClick={() => { setShowMore(false); onHypnoRadio(currentTrack); }}
-                  style={{ display: "block", width: "100%", textAlign: "left", padding: "12px 16px", background: "none", border: "none", color: hypnoPocket ? color.accent : color.ink, fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
-                  {hypnoPocket ? "Near this — on" : "Play near this"}
+              {!isRadioMode && onToggleShuffle && (
+                <button type="button" onClick={() => onToggleShuffle()}
+                  style={{ display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%", textAlign: "left", padding: "12px 16px", background: "none", border: "none", color: color.ink, fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
+                  <span>Shuffle</span>
+                  <span style={{ color: shuffle ? color.accent : color.faint }}>{shuffle ? "On" : "Off"}</span>
+                </button>
+              )}
+              {!isRadioMode && onCycleRepeat && (
+                <button type="button" onClick={() => onCycleRepeat()}
+                  style={{ display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%", textAlign: "left", padding: "12px 16px", background: "none", border: "none", color: color.ink, fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
+                  <span>Repeat</span>
+                  <span style={{ color: repeat !== "off" ? color.accent : color.faint }}>
+                    {repeat === "one" ? "One" : repeat === "all" ? "All" : "Off"}
+                  </span>
                 </button>
               )}
               <div style={{ height: 1, background: color.line, margin: "4px 0" }}/>
@@ -2374,9 +2388,9 @@ function ImmersivePlayer({
           key={currentTrack.id}
           className="cover-tile"
           style={{
-            width: "min(68vw, 300px)",
+            width: "min(78vw, 360px)",
             aspectRatio: "1 / 1",
-            borderRadius: 12,
+            borderRadius: 14,
             overflow: "hidden",
             background: color.surfaceRaised,
             boxShadow: isPlaying ? artShadow.raised : artShadow.quiet,
@@ -2384,7 +2398,7 @@ function ImmersivePlayer({
             animation: isPlaying
               ? `coverFloat 5.5s ease-in-out infinite, trackSwap 0.4s ${motion.ease} both`
               : `trackSwap 0.4s ${motion.ease} both`,
-            marginBottom: 28,
+            marginBottom: 24,
           }}
         >
           {currentTrack.albumCover ? (
@@ -2441,8 +2455,34 @@ function ImmersivePlayer({
               Playing in {roomLabel}
             </button>
           )}
-          <div style={{ marginTop: 14, display: "flex", justifyContent: "center" }}>
+          <div style={{ marginTop: 14, display: "flex", justifyContent: "center", gap: 10, flexWrap: "wrap" }}>
             <BoothHud track={currentTrack} size="md" />
+            {onHypnoRadio && (
+              <button
+                type="button"
+                onClick={() => onHypnoRadio(currentTrack)}
+                aria-pressed={hypnoPocket}
+                style={{
+                  display: "inline-flex", alignItems: "center", gap: 7,
+                  background: hypnoPocket ? color.ink : glass.fillStrong,
+                  border: `1px solid ${glass.border}`,
+                  borderRadius: radius.sm,
+                  padding: "8px 12px",
+                  color: hypnoPocket ? color.onDark : color.ink,
+                  cursor: "pointer",
+                  fontSize: 11,
+                  fontWeight: 700,
+                  letterSpacing: 0.8,
+                  textTransform: "uppercase",
+                  fontFamily: fontMono,
+                  boxShadow: `inset 0 1px 0 ${glass.highlight}`,
+                  backdropFilter: glass.blurSoft,
+                  WebkitBackdropFilter: glass.blurSoft,
+                }}
+              >
+                {hypnoPocket ? "Near this · on" : "Near this"}
+              </button>
+            )}
           </div>
           {(normalizeGenre(currentTrack.genre) || stateLabel || hypnoPocket || isRadioMode) && (
             <div style={{ fontSize: 11, color: color.faint, marginTop: 10, letterSpacing: 0.4, fontFamily: fontMono, textTransform: "uppercase" }}>
@@ -2488,13 +2528,6 @@ function ImmersivePlayer({
             style={{ background: "none", border: "none", cursor: "pointer", color: currentTrack.liked ? color.accent : color.faint, padding: 8 }}>
             <Icon name={currentTrack.liked ? "heart" : "heartempty"} size={18}/>
           </button>
-          {!isRadioMode && onToggleShuffle && (
-            <button type="button" onClick={onToggleShuffle} aria-label={shuffle ? "Shuffle off" : "Shuffle on"} aria-pressed={shuffle}
-              style={{ background: "none", border: "none", cursor: "pointer", color: shuffle ? color.accent : color.faint, padding: 8, position: "relative" }}>
-              <Icon name="shuffle" size={17}/>
-              {shuffle && <span aria-hidden="true" style={{ position: "absolute", bottom: 2, left: "50%", transform: "translateX(-50%)", width: 4, height: 4, borderRadius: "50%", background: color.accent }}/>}
-            </button>
-          )}
           <EnergyShiftButton direction="down" size={36} stopPropagation={false} />
           <button type="button" onClick={onPrev} aria-label="Previous"
             style={{ background: "none", border: "none", cursor: "pointer", color: color.ink, padding: 8 }}>
@@ -2503,7 +2536,7 @@ function ImmersivePlayer({
           <IceOrbPlay
             isPlaying={isPlaying}
             onClick={onTogglePlay}
-            size={58}
+            size={64}
             glowing={isPlaying}
           />
           <button type="button" onClick={onSkip} aria-label="Next"
@@ -2511,21 +2544,6 @@ function ImmersivePlayer({
             <Icon name="skip" size={20}/>
           </button>
           <EnergyShiftButton direction="up" size={36} stopPropagation={false} />
-          {!isRadioMode && onCycleRepeat && (
-            <button type="button" onClick={onCycleRepeat}
-              aria-label={repeat === "off" ? "Repeat all" : repeat === "all" ? "Repeat one" : "Repeat off"}
-              style={{ background: "none", border: "none", cursor: "pointer", color: repeat !== "off" ? color.accent : color.faint, padding: 8, position: "relative" }}>
-              <Icon name="repeat" size={18}/>
-              {repeat === "one" && (
-                <span aria-hidden="true" style={{
-                  position: "absolute", top: 3, right: 1, fontSize: 8, fontWeight: 800,
-                  color: color.onAccent, background: color.accent, borderRadius: "50%",
-                  width: 11, height: 11, display: "flex", alignItems: "center", justifyContent: "center",
-                }}>1</span>
-              )}
-              {repeat === "all" && <span aria-hidden="true" style={{ position: "absolute", bottom: 2, left: "50%", transform: "translateX(-50%)", width: 4, height: 4, borderRadius: "50%", background: color.accent }}/>}
-            </button>
-          )}
           <button type="button" onClick={() => onShowQueue?.()} aria-label="Up Next"
             style={{ background: "none", border: "none", cursor: "pointer", color: color.faint, padding: 8 }}>
             <Icon name="queue" size={18}/>
@@ -2622,10 +2640,10 @@ function CustomMixFeature({ onClick }) {
         alignItems: "center",
         justifyContent: "space-between",
         gap: 20,
-        minHeight: 124,
+        minHeight: 88,
         margin: `0 ${homeSpace.gutter}px`,
         width: `calc(100% - ${homeSpace.gutter * 2}px)`,
-        padding: "26px 24px",
+        padding: "18px 20px",
         border: `1px solid ${glass.border}`,
         borderRadius: radius.lg,
         background: `
@@ -2674,11 +2692,11 @@ function CustomMixFeature({ onClick }) {
           Session builder
         </div>
         <div style={{
-          fontSize: "clamp(22px, 5vw, 30px)",
+          fontSize: "clamp(18px, 4vw, 22px)",
           fontWeight: 700,
           fontFamily: fontDisplay,
-          letterSpacing: -0.9,
-          lineHeight: 1.05,
+          letterSpacing: -0.5,
+          lineHeight: 1.1,
         }}>
           Build a Custom Mix
         </div>
@@ -3147,6 +3165,10 @@ function HomeScreen({
           <CommunityMixBanner
             mix={communityMix}
             onOpen={onOpenCommunityMix}
+            coverTracks={(communityMix.trackIds || [])
+              .map((id) => tracks.find((t) => t.id === id))
+              .filter(Boolean)
+              .slice(0, 4)}
             onPlay={() => {
               const pool = (communityMix.trackIds || [])
                 .map((id) => tracks.find((t) => t.id === id))
@@ -3288,7 +3310,7 @@ function EnergySparkline({ tracks, width=120, height=24 }) {
   );
 }
 
-// ─── DIG (Discover) ───────────────────────────────────────────────────────────
+// ─── LIBRARY — Cover Flow collection ─────────────────────────────────────────
 function FavoritesScreen({
   tracks, onPlay, onLike, currentTrack, isPlaying, playlistCtx,
   userPlaylists = [], onCreatePlaylist, onDeletePlaylist,
@@ -3385,76 +3407,36 @@ function FavoritesScreen({
         position: "relative",
         background: color.canvas,
       }}>
-        {onCustomMix && (
-          <section
-            aria-label="Build a Custom Mix"
-            style={{
-              margin: 0,
-              paddingTop: homeSpace.sectionPadTopFirst + 8,
-              paddingBottom: 36,
-              animation: `rise 0.55s ${motion.ease} both`,
-            }}
+        {/* Art-led collection first — Cover Flow crate */}
+        {saved.length > 0 && (
+          <HomeSection
+            label="Saved cuts"
+            count={saved.length}
+            subtitle="Your pressed favourites, cover-first."
+            delay={0.04}
+            first
+            eyebrow="In the crate"
           >
-            <CustomMixFeature onClick={onCustomMix} />
-          </section>
-        )}
-
-        {communityMix && onOpenMix && (
-          <div style={{ padding: `4px ${homeSpace.gutter}px 28px` }}>
-            <button
-              type="button"
-              onClick={onOpenMix}
-              style={{
-                width: "100%",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                gap: 16,
-                textAlign: "left",
-                padding: "20px 22px",
-                borderRadius: radius.xl,
-                border: `1px solid ${glass.borderSoft}`,
-                background: `
-                  linear-gradient(160deg, rgba(255,255,255,0.92) 0%, rgba(255,255,255,0.55) 100%)
-                `,
-                boxShadow: `inset 0 1px 0 ${glass.highlight}, ${glass.shadowSoft}`,
-                cursor: "pointer",
-                color: color.ink,
-              }}
-            >
-              <div style={{ minWidth: 0 }}>
-                <div style={{
-                  fontSize: 11, fontWeight: 650, letterSpacing: 1.8, textTransform: "uppercase",
-                  color: color.muted, fontFamily: fontMono, marginBottom: 8,
-                }}>
-                  Mixtape Club
-                </div>
-                <div style={{
-                  fontSize: 20,
-                  fontWeight: 700,
-                  fontFamily: fontDisplay,
-                  letterSpacing: -0.55,
-                  lineHeight: 1.1,
-                }}>
-                  {communityMix.title || "The Community Mix"}
-                </div>
-              </div>
-              <span aria-hidden="true" style={{
-                flexShrink: 0,
-                color: color.faint,
-                fontSize: 22,
-                fontWeight: 300,
-                lineHeight: 1,
-              }}>›</span>
-            </button>
-          </div>
+            <CoverShelf
+              tracks={saved}
+              onPlayTrack={(t) => playTrackFn(t, saved)}
+              activeId={activeId}
+              isPlaying={isPlaying}
+              onLike={onLike}
+              playlistCtx={playlistCtx}
+              tileSize={156}
+              compactCaptions
+              limit={40}
+            />
+          </HomeSection>
         )}
 
         <HomeSection
           label="Playlists"
           count={userPlaylists.length || undefined}
-          delay={0.04}
-          first={!communityMix && !onCustomMix}
+          delay={0.06}
+          first={saved.length === 0}
+          eyebrow={saved.length === 0 ? "In the crate" : null}
         >
           <div
             className="hide-scroll"
@@ -3493,28 +3475,21 @@ function FavoritesScreen({
                     borderRadius: radius.md,
                     overflow: "hidden",
                     marginBottom: 14,
-                    background: color.surfaceRaised,
-                    display: "grid",
-                    gridTemplateColumns: covers.length > 1 ? "1fr 1fr" : "1fr",
-                    gridTemplateRows: covers.length > 1 ? "1fr 1fr" : "1fr",
-                    boxShadow: artShadow.quiet,
-                    border: `1px solid ${glass.borderSoft}`,
                     position: "relative",
+                    display: "grid",
+                    gridTemplateColumns: covers.length <= 1 ? "1fr" : "1fr 1fr",
+                    gridTemplateRows: covers.length <= 1 ? "1fr" : "1fr 1fr",
+                    background: color.surfaceRaised,
+                    border: `1px solid ${glass.borderSoft}`,
+                    boxShadow: artShadow.quiet,
                   }}>
                     {covers.length === 0 ? (
                       <div style={{
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        color: color.faint,
-                        fontSize: 12,
-                        fontFamily: fontMono,
-                        fontWeight: 650,
-                        letterSpacing: 1.6,
-                        textTransform: "uppercase",
-                        background: aluminumGradient(),
+                        gridColumn: "1 / -1", gridRow: "1 / -1",
+                        display: "flex", alignItems: "center", justifyContent: "center",
+                        color: color.faint, fontFamily: fontDisplay, fontSize: 28, fontWeight: 700,
                       }}>
-                        Set
+                        {(pl.name || "P")[0]}
                       </div>
                     ) : covers.length === 1 ? (
                       <AlbumArt track={covers[0]} size={tile} borderRadius={radius.md}/>
@@ -3587,7 +3562,6 @@ function FavoritesScreen({
                 color: color.muted,
                 fontSize: 30,
                 fontWeight: 200,
-                letterSpacing: 0,
                 border: `1px solid ${glass.border}`,
                 background: `
                   linear-gradient(160deg, rgba(255,255,255,0.9) 0%, rgba(242,244,247,0.7) 100%)
@@ -3631,7 +3605,7 @@ function FavoritesScreen({
                 style={{
                   background: color.accent,
                   border: "none",
-                  borderRadius: 980,
+                  borderRadius: radius.md,
                   color: color.onAccent,
                   fontSize: 15,
                   fontWeight: 600,
@@ -3645,26 +3619,36 @@ function FavoritesScreen({
           )}
         </HomeSection>
 
-        {saved.length > 0 && (
-          <HomeSection
-            label="Liked Songs"
-            count={saved.length}
-            delay={0.08}
+        {communityMix && onOpenMix && (
+          <CommunityMixBanner
+            mix={communityMix}
+            onOpen={onOpenMix}
+            coverTracks={(communityMix.trackIds || [])
+              .map((id) => tracks.find((t) => t.id === id))
+              .filter(Boolean)
+              .slice(0, 4)}
+            onPlay={() => {
+              const pool = (communityMix.trackIds || [])
+                .map((id) => tracks.find((t) => t.id === id))
+                .filter(Boolean);
+              if (pool[0]) playTrackFn(pool[0], pool);
+            }}
+            delay={0.1}
+          />
+        )}
+
+        {onCustomMix && (
+          <section
+            aria-label="Build a Custom Mix"
+            style={{
+              margin: 0,
+              paddingTop: 8,
+              paddingBottom: 36,
+              animation: `rise 0.55s ${motion.ease} 0.12s both`,
+            }}
           >
-            <div style={{ padding: `0 ${Math.max(0, homeSpace.gutter - 8)}px` }}>
-              {saved.map((t) => (
-                <TrackRow
-                  key={t.id}
-                  track={t}
-                  onPlay={() => playTrackFn(t, saved)}
-                  active={activeId === t.id}
-                  isPlaying={isPlaying}
-                  onLike={onLike}
-                  playlistCtx={playlistCtx}
-                />
-              ))}
-            </div>
-          </HomeSection>
+            <CustomMixFeature onClick={onCustomMix} />
+          </section>
         )}
       </div>
 
@@ -3681,6 +3665,7 @@ function FavoritesScreen({
     </div>
   );
 }
+
 
 // ─── PROFILE — Digital Record Club membership card ───────────────────────────
 function ProfileScreen({
