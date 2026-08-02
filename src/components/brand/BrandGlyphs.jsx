@@ -1,47 +1,71 @@
-/** Placeholder planet mark — replace with final logo later. */
-import { color } from "../../theme";
+/**
+ * Planet MP3 brand marks — the exact lockup / mark assets in /public/brand.
+ * No placeholder glyphs; the Y2K dithered planet is the brand.
+ */
 
-export function PlaceholderPlanetGlyph({
+export const BRAND_LOCKUP_SRC = "/brand/planet-mp3-lockup.png";
+export const BRAND_MARK_SRC = "/brand/logo-mark.png";
+export const BRAND_MARK_INVERSE_SRC = "/brand/logo-mark-inverse.png";
+
+/**
+ * Square app-icon mark (planet + ring + PLANET MP3).
+ * Prefer this in chrome; use BrandLockup for hero moments.
+ */
+export function BrandGlyph({
   size = 28,
-  color: stroke = color.accent,
   title = "Planet MP3",
+  inverse = false,
+  rounded = true,
 }) {
   const s = Math.max(12, size);
   return (
-    <svg
+    <img
+      src={inverse ? BRAND_MARK_INVERSE_SRC : BRAND_MARK_SRC}
+      alt={title || ""}
       width={s}
       height={s}
-      viewBox="0 0 32 32"
-      fill="none"
-      aria-hidden={title ? undefined : true}
-      role={title ? "img" : undefined}
-      aria-label={title || undefined}
-    >
-      {title ? <title>{title}</title> : null}
-      <ellipse
-        cx="16"
-        cy="16"
-        rx="12"
-        ry="4.2"
-        stroke={stroke}
-        strokeWidth="1.1"
-        opacity="0.85"
-      />
-      <circle cx="16" cy="16" r="6.5" fill={stroke} />
-      <path
-        d="M10 14.5c2-1.2 4.5-1.8 6-1.8s4 .6 6 1.8"
-        stroke={color.canvas}
-        strokeWidth="0.9"
-        opacity="0.35"
-      />
-    </svg>
+      draggable={false}
+      style={{
+        width: s,
+        height: s,
+        display: "block",
+        objectFit: "contain",
+        borderRadius: rounded ? Math.round(s * 0.22) : 0,
+        flexShrink: 0,
+        userSelect: "none",
+      }}
+    />
   );
 }
 
-export function BrandGlyph({
-  size = 28,
-  color: stroke = color.accent,
+/** Full square lockup — hero / watermark / splash. */
+export function BrandLockup({
+  size = 240,
   title = "Planet MP3",
+  opacity = 1,
 }) {
-  return <PlaceholderPlanetGlyph size={size} stroke={stroke} title={title} />;
+  return (
+    <img
+      src={BRAND_LOCKUP_SRC}
+      alt={title || ""}
+      draggable={false}
+      style={{
+        width: "100%",
+        maxWidth: size,
+        height: "auto",
+        aspectRatio: "1 / 1",
+        display: "block",
+        objectFit: "contain",
+        opacity,
+        margin: "0 auto",
+        userSelect: "none",
+        filter: "drop-shadow(0 18px 40px rgba(26,29,36,0.18))",
+      }}
+    />
+  );
+}
+
+/** @deprecated alias kept for old imports */
+export function PlaceholderPlanetGlyph(props) {
+  return <BrandGlyph size={props.size} title={props.title} />;
 }
