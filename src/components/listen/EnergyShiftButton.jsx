@@ -3,14 +3,13 @@
 // the background; the UI only dispatches increaseEnergy() / decreaseEnergy().
 
 import React, { useEffect, useRef, useState } from "react";
-import { color, glass, fontMono, brandStoragePrefix } from "../../theme";
+import { color, glass, fontMono } from "../../theme";
 import { useEnergyQueue } from "../../useEnergyQueue";
 
 const PRESS_EASE = "cubic-bezier(0.34, 1.4, 0.64, 1)";
 const LONG_PRESS_MS = 450;
 const PILL_MS = 1500;
 const CHIP_MS = 3200;
-const COACH_KEY = () => `${brandStoragePrefix()}:energyCoachSeen`;
 
 function haptic(pattern = 8) {
   try {
@@ -49,7 +48,9 @@ export function EnergyShiftButton({ direction = "up", size = 30, stopPropagation
   const { increaseEnergy, decreaseEnergy, energyShift } = useEnergyQueue();
   const [pressed, setPressed] = useState(false);
   const [hovered, setHovered] = useState(false);
+  const [focused, setFocused] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const showTip = (hovered || focused) && !menuOpen && !pressed;
   const longPressRef = useRef(null);
   const firedLongPress = useRef(false);
 
@@ -57,7 +58,6 @@ export function EnergyShiftButton({ direction = "up", size = 30, stopPropagation
 
   const dispatch = (bpmStep) => {
     haptic(up ? 8 : [6, 30, 6]);
-    try { localStorage.setItem(COACH_KEY(), "1"); } catch (e) {}
     if (up) increaseEnergy(bpmStep); else decreaseEnergy(bpmStep);
   };
 
@@ -92,13 +92,14 @@ export function EnergyShiftButton({ direction = "up", size = 30, stopPropagation
     <span style={{ position: "relative", display: "inline-flex" }}>
       <button
         type="button"
-        aria-label={up ? "Increase energy" : "Decrease energy"}
+        aria-label={up ? "Energy shift — lift the pace" : "Energy shift — ease the pace"}
         aria-pressed={activeHere}
-        title={up ? "Pick up the pace" : "Slow things down"}
         onPointerDown={startPress}
         onPointerUp={endPress}
         onPointerLeave={(e) => { if (pressed) endPress(e, true); setHovered(false); }}
-        onPointerEnter={() => setHovered(true)}
+        onPointerEnter={(e) => { if (e.pointerType !== "touch") setHovered(true); }}
+        onFocus={() => setFocused(true)}
+        onBlur={() => setFocused(false)}
         onContextMenu={(e) => e.preventDefault()}
         onClick={(e) => { if (stopPropagation) e.stopPropagation(); }}
         onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); dispatch(10); } }}
@@ -128,6 +129,41 @@ export function EnergyShiftButton({ direction = "up", size = 30, stopPropagation
       >
         {up ? <RabbitIcon size={Math.round(size * 0.52)} /> : <TurtleIcon size={Math.round(size * 0.52)} />}
       </button>
+
+      {showTip && (
+        <span
+          role="tooltip"
+          style={{
+            position: "absolute",
+            bottom: "calc(100% + 8px)",
+            left: "50%",
+            transform: "translateX(-50%)",
+            display: "flex",
+            alignItems: "baseline",
+            gap: 6,
+            whiteSpace: "nowrap",
+            padding: "6px 11px",
+            borderRadius: 999,
+            background: "rgba(255,255,255,0.95)",
+            border: `1px solid ${glass.border}`,
+            boxShadow: `inset 0 1px 0 ${glass.highlight}, 0 8px 22px rgba(26,29,36,0.14)`,
+            backdropFilter: glass.blurSoft,
+            WebkitBackdropFilter: glass.blurSoft,
+            color: color.ink,
+            fontSize: 11.5,
+            fontWeight: 650,
+            letterSpacing: -0.1,
+            pointerEvents: "none",
+            zIndex: 40,
+            animation: `energyPillIn 0.18s ${PRESS_EASE} both`,
+          }}
+        >
+          Energy shift
+          <span style={{ fontFamily: fontMono, fontSize: 10, fontWeight: 700, letterSpacing: 0.6, textTransform: "uppercase", color: color.muted }}>
+            {up ? "Lift" : "Ease"}
+          </span>
+        </span>
+      )}
 
       {menuOpen && (
         <div
@@ -180,26 +216,18 @@ export function EnergyShiftButton({ direction = "up", size = 30, stopPropagation
 }
 
 /**
- * Floating feedback above the player + one-time coachmark.
- * Mono glass only — no emoji, no purple.
+ * Floating feedback above the player after an energy shift.
+ * Mono glass only — no emoji, no purple. (Discovery lives in the buttons'
+ * own hover tooltip — no persistent coachmark.)
  */
 export function EnergyShiftFeedback({ bottom = "calc(100% + 12px)" }) {
   const { energyShift } = useEnergyQueue();
   const { lastAction } = energyShift;
   const [pillVisible, setPillVisible] = useState(false);
   const [chipVisible, setChipVisible] = useState(false);
-  const [coach, setCoach] = useState(false);
-
-  useEffect(() => {
-    try {
-      if (!localStorage.getItem(COACH_KEY())) setCoach(true);
-    } catch (e) {}
-  }, []);
 
   useEffect(() => {
     if (!lastAction) return;
-    setCoach(false);
-    try { localStorage.setItem(COACH_KEY(), "1"); } catch (e) {}
     setPillVisible(true);
     setChipVisible(true);
     const p = setTimeout(() => setPillVisible(false), PILL_MS);
@@ -207,8 +235,8 @@ export function EnergyShiftFeedback({ bottom = "calc(100% + 12px)" }) {
     return () => { clearTimeout(p); clearTimeout(c); };
   }, [lastAction]);
 
-  if (!coach && (!lastAction || (!pillVisible && !chipVisible))) return null;
-  const up = lastAction ? lastAction.direction > 0 : true;
+  if (!lastAction || (!pillVisible && !chipVisible)) return null;
+  const up = lastAction.direction > 0;
 
   return (
     <div aria-live="polite" style={{
@@ -216,18 +244,6 @@ export function EnergyShiftFeedback({ bottom = "calc(100% + 12px)" }) {
       display: "flex", flexDirection: "column", alignItems: "center", gap: 6,
       pointerEvents: "none", zIndex: 30,
     }}>
-      {coach && !pillVisible && (
-        <div style={{
-          padding: "7px 12px", borderRadius: 999,
-          background: "rgba(255,255,255,0.92)",
-          border: `1px solid ${glass.border}`,
-          boxShadow: `inset 0 1px 0 ${glass.highlight}, 0 8px 22px rgba(26,29,36,0.12)`,
-          color: color.body, fontSize: 11.5, fontWeight: 600, letterSpacing: -0.1,
-          animation: `energyPillIn 0.3s ${PRESS_EASE} both`,
-        }}>
-          Turtle eases · Rabbit lifts — tap to shift energy
-        </div>
-      )}
       {pillVisible && (
         <div style={{
           display: "flex", alignItems: "center", gap: 7,
