@@ -1,10 +1,10 @@
-import { useMemo } from "react";
-import { fontDisplay, fontMono, color } from "../../theme";
+import { useMemo, useState } from "react";
+import { fontDisplay, fontMono, color, glass, radius } from "../../theme";
 import { genreBrowseRows, tracksForGenreLane, genreStory } from "../../lib/browse";
 
 /**
- * Genre-only browse for Search empty state.
- * Scenes stay in the background — user picks a genre to listen.
+ * Genre browse for Search empty state.
+ * Dig = open the crate. Listen = start On air in that lane.
  */
 export default function GenreSceneBrowse({
   tracks = [],
@@ -18,8 +18,10 @@ export default function GenreSceneBrowse({
   activeGenre = null,
 }) {
   const rows = useMemo(() => genreBrowseRows(tracks), [tracks]);
+  const [digGenre, setDigGenre] = useState(null);
+  const browsing = activeGenre || digGenre;
 
-  const playGenre = (lane) => {
+  const listenGenre = (lane) => {
     if (onListenIntent) {
       onListenIntent({ genre: lane, scene: null });
       return;
@@ -28,11 +30,22 @@ export default function GenreSceneBrowse({
     if (pool.length) onPlayPool?.(pool[0], pool);
   };
 
-  // Optional: show tracks for the active listening genre
-  if (activeGenre) {
-    const pool = tracksForGenreLane(tracks, activeGenre);
+  if (browsing) {
+    const pool = tracksForGenreLane(tracks, browsing);
     return (
       <div style={{ paddingTop: 8, animation: "rise 0.4s cubic-bezier(0.22,1,0.36,1) both" }}>
+        {!activeGenre && (
+          <button
+            type="button"
+            onClick={() => setDigGenre(null)}
+            style={{
+              background: "none", border: "none", color: color.accent,
+              fontSize: 14, cursor: "pointer", fontWeight: 500, marginBottom: 14, padding: 0,
+            }}
+          >
+            ‹ Genres
+          </button>
+        )}
         <div style={{ marginBottom: 18 }}>
           <div style={{
             fontSize: 11,
@@ -43,7 +56,7 @@ export default function GenreSceneBrowse({
             fontFamily: fontMono,
             marginBottom: 8,
           }}>
-            Listening
+            {activeGenre ? "Listening" : "In the crate"}
           </div>
           <div style={{
             fontSize: 28,
@@ -53,13 +66,37 @@ export default function GenreSceneBrowse({
             fontFamily: fontDisplay,
             marginBottom: 8,
           }}>
-            {activeGenre}
+            {browsing}
           </div>
           <div style={{ fontSize: 14, color: color.body, lineHeight: 1.45, marginBottom: 14 }}>
-            {genreStory(activeGenre)}
+            {genreStory(browsing)}
           </div>
-          <div style={{ fontSize: 13, color: color.muted, marginBottom: 12 }}>
-            {pool.length} songs in this genre
+          <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 14, flexWrap: "wrap" }}>
+            <div style={{ fontSize: 13, color: color.muted }}>
+              {pool.length} cut{pool.length === 1 ? "" : "s"}
+            </div>
+            {onListenIntent && (
+              <button
+                type="button"
+                onClick={() => listenGenre(browsing)}
+                style={{
+                  display: "inline-flex", alignItems: "center", gap: 8,
+                  padding: "8px 14px",
+                  borderRadius: radius.sm,
+                  border: `1px solid ${glass.border}`,
+                  background: glass.fillStrong,
+                  color: color.ink,
+                  fontSize: 12.5,
+                  fontWeight: 650,
+                  cursor: "pointer",
+                  boxShadow: `inset 0 1px 0 ${glass.highlight}`,
+                  backdropFilter: glass.blurSoft,
+                  WebkitBackdropFilter: glass.blurSoft,
+                }}
+              >
+                Listen in this lane
+              </button>
+            )}
           </div>
         </div>
         {pool.map((t) => (
@@ -90,45 +127,79 @@ export default function GenreSceneBrowse({
         Genres
       </div>
       <div style={{ fontSize: 14, color: color.muted, marginBottom: 14, lineHeight: 1.4 }}>
-        Pick a lane and drop in.
+        Dig a lane — or listen On air from here.
       </div>
       <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
         {rows.map((row) => (
-          <button
+          <div
             key={row.lane}
-            type="button"
-            onClick={() => playGenre(row.lane)}
             style={{
               display: "flex",
-              justifyContent: "space-between",
               alignItems: "center",
-              gap: 12,
-              padding: "14px 4px",
-              background: "none",
-              border: "none",
+              gap: 10,
+              padding: "12px 0",
               borderBottom: `1px solid ${color.line}`,
-              cursor: "pointer",
-              textAlign: "left",
-              color: color.ink,
             }}
           >
-            <div style={{ minWidth: 0 }}>
-              <div style={{ fontSize: 17, fontWeight: 600, fontFamily: fontDisplay }}>
-                {row.lane}
+            <button
+              type="button"
+              onClick={() => setDigGenre(row.lane)}
+              style={{
+                flex: 1,
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                gap: 12,
+                padding: "2px 4px",
+                background: "none",
+                border: "none",
+                cursor: "pointer",
+                textAlign: "left",
+                color: color.ink,
+                minWidth: 0,
+              }}
+            >
+              <div style={{ minWidth: 0 }}>
+                <div style={{ fontSize: 17, fontWeight: 600, fontFamily: fontDisplay }}>
+                  {row.lane}
+                </div>
+                <div style={{ fontSize: 13, color: color.muted, marginTop: 2 }}>
+                  {row.story}
+                </div>
               </div>
-              <div style={{ fontSize: 13, color: color.muted, marginTop: 2 }}>
-                {row.story}
-              </div>
-            </div>
-            <span style={{
-              fontSize: 12,
-              color: color.faint,
-              fontFamily: fontMono,
-              flexShrink: 0,
-            }}>
-              {row.trackCount}
-            </span>
-          </button>
+              <span style={{
+                fontSize: 12,
+                color: color.faint,
+                fontFamily: fontMono,
+                flexShrink: 0,
+              }}>
+                {row.trackCount}
+              </span>
+            </button>
+            {onListenIntent && (
+              <button
+                type="button"
+                onClick={() => listenGenre(row.lane)}
+                aria-label={`Listen to ${row.lane}`}
+                style={{
+                  flexShrink: 0,
+                  padding: "8px 12px",
+                  borderRadius: radius.sm,
+                  border: `1px solid ${glass.border}`,
+                  background: glass.fillStrong,
+                  color: color.body,
+                  fontSize: 11.5,
+                  fontWeight: 650,
+                  cursor: "pointer",
+                  fontFamily: fontMono,
+                  letterSpacing: 0.2,
+                  boxShadow: `inset 0 1px 0 ${glass.highlight}`,
+                }}
+              >
+                Listen
+              </button>
+            )}
+          </div>
         ))}
       </div>
     </div>
