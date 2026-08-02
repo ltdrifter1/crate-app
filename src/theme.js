@@ -156,7 +156,7 @@ export const APP_STYLE = {
   fontFamily: font,
   background: color.canvas,
   color: color.ink,
-  minHeight: "100vh",
+  minHeight: "100dvh",
   display: "flex",
   flexDirection: "column",
   position: "relative",
