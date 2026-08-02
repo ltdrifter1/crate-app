@@ -6509,6 +6509,23 @@ export default function App() {
     [tracks, searchQuery]
   );
 
+  // ── Scroll memory — keep your place when switching tabs ──────────────────
+  // NOTE: must stay above the early returns below — hooks after a conditional
+  // return change the hook count between renders (React error #310).
+  const contentScrollRef = useRef(null);
+  const scrollPosRef = useRef({});
+  const screenScrollKeyRef = useRef(screen);
+  screenScrollKeyRef.current = screen;
+  const rememberScroll = useCallback((e) => {
+    scrollPosRef.current[screenScrollKeyRef.current] = e.currentTarget.scrollTop;
+  }, []);
+  useEffect(() => {
+    const el = contentScrollRef.current;
+    if (!el) return;
+    const isTab = screen === "home" || screen === "search" || screen === "favorites" || screen === "profile";
+    el.scrollTop = isTab ? (scrollPosRef.current[screen] || 0) : 0;
+  }, [screen]);
+
   // ── Loading states ────────────────────────────────────────────────────────
   // Show nothing while we check if someone is already logged in
   if (authLoading) return (
@@ -6715,21 +6732,6 @@ export default function App() {
 
   // Cover Stage owns transport on Home — dock collapses to tabs only.
   const hideDockPlayer = screen === "home" && !!currentTrack && !immersive;
-
-  // ── Scroll memory — keep your place when switching tabs ──────────────────
-  const contentScrollRef = useRef(null);
-  const scrollPosRef = useRef({});
-  const screenScrollKeyRef = useRef(screen);
-  screenScrollKeyRef.current = screen;
-  const rememberScroll = useCallback((e) => {
-    scrollPosRef.current[screenScrollKeyRef.current] = e.currentTarget.scrollTop;
-  }, []);
-  useEffect(() => {
-    const el = contentScrollRef.current;
-    if (!el) return;
-    const isTab = screen === "home" || screen === "search" || screen === "favorites" || screen === "profile";
-    el.scrollTop = isTab ? (scrollPosRef.current[screen] || 0) : 0;
-  }, [screen]);
 
   // ── Ambient status — SR announcements, offline banner, buffering pill ────
   const ambientStatus = (
