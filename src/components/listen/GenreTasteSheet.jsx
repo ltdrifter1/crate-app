@@ -2,7 +2,7 @@
  * Your genres — the only user-facing listen control.
  * Clock mix lane / vibes / scenes stay automatic.
  */
-import { fontDisplay, fontMono, color } from "../../theme";
+import { fontDisplay, fontMono, color, radius, glass, aluminumGradient } from "../../theme";
 import { CANONICAL_GENRES, migratePreferredGenres } from "../../lib/genres";
 
 export default function GenreTasteSheet({
@@ -22,7 +22,7 @@ export default function GenreTasteSheet({
         style={{
           position: "absolute",
           inset: 0,
-          background: "linear-gradient(180deg, #0A0A0A 0%, #000 55%, #000 100%)",
+          background: aluminumGradient(),
         }}
       />
       <div
@@ -31,7 +31,7 @@ export default function GenreTasteSheet({
           position: "absolute",
           inset: 0,
           background:
-            "radial-gradient(ellipse at 50% 0%, rgba(242,243,245,0.07) 0%, transparent 48%)",
+            "radial-gradient(ellipse at 50% 0%, rgba(10,124,255,0.08) 0%, transparent 48%)",
         }}
       />
 
@@ -57,15 +57,16 @@ export default function GenreTasteSheet({
             onClick={onClose}
             aria-label="Close"
             style={{
-              background: color.surfaceRaised,
-              border: "none",
-              borderRadius: 980,
+              background: glass.fillStrong,
+              border: `1px solid ${glass.borderSoft}`,
+              borderRadius: radius.md,
               width: 36,
               height: 36,
               cursor: "pointer",
               color: color.muted,
               fontSize: 18,
               lineHeight: 1,
+              boxShadow: `inset 0 1px 0 ${glass.highlight}`,
             }}
           >
             ×
@@ -143,13 +144,14 @@ export default function GenreTasteSheet({
                 onClick={onClearGenreFocus}
                 style={{
                   padding: "8px 14px",
-                  borderRadius: 980,
+                  borderRadius: radius.md,
                   border: `1px solid ${color.lineStrong}`,
-                  background: "transparent",
+                  background: glass.fillStrong,
                   color: color.body,
                   fontSize: 13,
                   fontWeight: 600,
                   cursor: "pointer",
+                  boxShadow: `inset 0 1px 0 ${glass.highlight}`,
                 }}
               >
                 Clear
@@ -175,7 +177,7 @@ export default function GenreTasteSheet({
                 marginTop: 28,
                 width: "100%",
                 padding: "16px 20px",
-                borderRadius: 980,
+                borderRadius: radius.md,
                 border: "none",
                 background: color.accent,
                 color: color.onAccent,
@@ -220,10 +222,12 @@ function GenreToggleList({ selected, onToggle }) {
               justifyContent: "space-between",
               alignItems: "center",
               gap: 12,
-              padding: "14px 4px",
-              background: "none",
+              padding: "14px 10px",
+              margin: "0 -10px",
+              background: on ? color.select : "none",
               border: "none",
               borderBottom: `1px solid ${color.line}`,
+              borderRadius: on ? radius.sm : 0,
               cursor: "pointer",
               textAlign: "left",
               color: color.ink,
@@ -240,7 +244,7 @@ function GenreToggleList({ selected, onToggle }) {
             <span style={{
               width: 22,
               height: 22,
-              borderRadius: 980,
+              borderRadius: radius.sm,
               border: on ? "none" : `1px solid ${color.lineStrong}`,
               background: on ? color.accent : "transparent",
               color: color.onAccent,

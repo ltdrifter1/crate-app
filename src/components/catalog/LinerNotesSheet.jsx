@@ -10,7 +10,7 @@ export default function LinerNotesSheet({ track, roomLabel, onClose, onOpenArtis
     <div style={{ position: "fixed", inset: 0, zIndex: 120 }}>
       <div
         onClick={onClose}
-        style={{ position: "absolute", inset: 0, background: "rgba(12,11,10,0.72)", backdropFilter: "blur(8px)" }}
+        style={{ position: "absolute", inset: 0, background: "rgba(26,29,36,0.38)", backdropFilter: "blur(10px)" }}
       />
       <div
         role="dialog"
