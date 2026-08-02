@@ -1,4 +1,4 @@
-import { createPlayerEnergyStore, ENERGY_PRESETS } from "./playerEnergyStore";
+import { createPlayerEnergyStore, ENERGY_PRESETS, PRESETS_UP, PRESETS_DOWN } from "./playerEnergyStore";
 
 describe("playerEnergyStore", () => {
   let store;
@@ -50,6 +50,12 @@ describe("playerEnergyStore", () => {
     expect(s.active).toBe(true);
     expect(s.direction).toBe(-1);
     expect(s.lastAction.label).toBe("Cool down");
+    expect(s.lastAction.emoji).toBe(ENERGY_PRESETS.coolDown.emoji);
+  });
+
+  test("menu preset lists point the right way", () => {
+    PRESETS_UP.forEach((id) => expect(ENERGY_PRESETS[id].bpm).toBeGreaterThan(0));
+    PRESETS_DOWN.forEach((id) => expect(ENERGY_PRESETS[id].bpm).toBeLessThan(0));
   });
 
   test("subscribe notifies and reset clears", () => {

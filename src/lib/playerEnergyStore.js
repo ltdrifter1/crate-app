@@ -15,15 +15,19 @@ const ENERGY_SETTLE = 0.5;
 
 /** Named shift presets — future modes plug in here without touching the UI. */
 export const ENERGY_PRESETS = {
-  rabbit: { label: "Picking up the pace", bpm: +10, energy: +1.5, camelot: +2 },
-  turtle: { label: "Slowing things down", bpm: -10, energy: -1.5, camelot: -2 },
-  buildUp: { label: "Build up", bpm: +16, energy: +2.5, camelot: +3 },
-  coolDown: { label: "Cool down", bpm: -16, energy: -2.5, camelot: -3 },
-  sunrise: { label: "Sunrise", bpm: +6, energy: +1, camelot: +1 },
-  afterhours: { label: "Afterhours", bpm: -8, energy: -2, camelot: -2 },
-  peakTime: { label: "Peak time", bpm: +20, energy: +3, camelot: +3 },
-  rainyDay: { label: "Rainy day", bpm: -12, energy: -2, camelot: -1 },
+  rabbit: { label: "Picking up the pace", emoji: "\u26A1", bpm: +10, energy: +1.5, camelot: +2 },
+  turtle: { label: "Slowing things down", emoji: "\uD83C\uDF19", bpm: -10, energy: -1.5, camelot: -2 },
+  buildUp: { label: "Build up", blurb: "Steady climb", emoji: "\uD83D\uDD25", bpm: +16, energy: +2.5, camelot: +3 },
+  coolDown: { label: "Cool down", blurb: "Bring it back", emoji: "\u2744\uFE0F", bpm: -16, energy: -2.5, camelot: -3 },
+  sunrise: { label: "Sunrise", blurb: "Gentle lift", emoji: "\uD83C\uDF05", bpm: +6, energy: +1, camelot: +1 },
+  afterhours: { label: "Afterhours", blurb: "Deep and dim", emoji: "\uD83C\uDF03", bpm: -8, energy: -2, camelot: -2 },
+  peakTime: { label: "Peak time", blurb: "Full send", emoji: "\uD83E\uDE69", bpm: +20, energy: +3, camelot: +3 },
+  rainyDay: { label: "Rainy day", blurb: "Soft and moody", emoji: "\uD83C\uDF27\uFE0F", bpm: -12, energy: -2, camelot: -1 },
 };
+
+/** Preset ids surfaced in the long-press menu, per direction. */
+export const PRESETS_UP = ["buildUp", "peakTime", "sunrise"];
+export const PRESETS_DOWN = ["coolDown", "afterhours", "rainyDay"];
 
 function clampMag(value, cap) {
   return Math.max(-cap, Math.min(cap, value));
@@ -56,7 +60,7 @@ function createPlayerEnergyStore() {
   }
 
   /** Nudge the target vector. direction: +1 (rabbit) or -1 (turtle). */
-  function shiftEnergy(direction, bpmStep = 10, label = null) {
+  function shiftEnergy(direction, bpmStep = 10, label = null, emoji = null) {
     const dir = direction >= 0 ? 1 : -1;
     const scale = Math.abs(bpmStep) / 10;
     const bpmDelta = clampMag(state.bpmDelta + dir * Math.abs(bpmStep), BPM_DELTA_CAP);
@@ -70,6 +74,7 @@ function createPlayerEnergyStore() {
         direction: dir,
         bpmStep: dir * Math.abs(bpmStep),
         label: label || (dir > 0 ? ENERGY_PRESETS.rabbit.label : ENERGY_PRESETS.turtle.label),
+        emoji: emoji || (dir > 0 ? ENERGY_PRESETS.rabbit.emoji : ENERGY_PRESETS.turtle.emoji),
         ts: Date.now(),
       },
     });
@@ -79,7 +84,7 @@ function createPlayerEnergyStore() {
   function applyPreset(id) {
     const p = ENERGY_PRESETS[id];
     if (!p) return;
-    shiftEnergy(p.bpm >= 0 ? 1 : -1, Math.abs(p.bpm), p.label);
+    shiftEnergy(p.bpm >= 0 ? 1 : -1, Math.abs(p.bpm), p.label, p.emoji);
   }
 
   /**

@@ -7,6 +7,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { color, glass, fontMono } from "../../theme";
 import { useEnergyQueue } from "../../useEnergyQueue";
+import { ENERGY_PRESETS, PRESETS_UP, PRESETS_DOWN } from "../../lib/playerEnergyStore";
 
 const PRESS_EASE = "cubic-bezier(0.34, 1.4, 0.64, 1)"; // gentle spring, no rubber
 const LONG_PRESS_MS = 450;
@@ -49,7 +50,7 @@ function TurtleIcon({ size = 15 }) {
  */
 export function EnergyShiftButton({ direction = "up", size = 30, stopPropagation = true }) {
   const up = direction === "up";
-  const { increaseEnergy, decreaseEnergy, energyShift } = useEnergyQueue();
+  const { increaseEnergy, decreaseEnergy, applyPreset, energyShift } = useEnergyQueue();
   const [pressed, setPressed] = useState(false);
   const [hovered, setHovered] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -136,47 +137,114 @@ export function EnergyShiftButton({ direction = "up", size = 30, stopPropagation
       {menuOpen && (
         <div
           role="menu"
+          aria-label={up ? "Lift the room" : "Ease the room"}
           onPointerDown={(e) => e.stopPropagation()}
           style={{
             position: "absolute",
-            bottom: "calc(100% + 10px)",
+            bottom: "calc(100% + 12px)",
             left: "50%",
             transform: "translateX(-50%)",
             display: "flex",
             flexDirection: "column",
-            minWidth: 108,
-            padding: 4,
-            borderRadius: 12,
-            background: "rgba(255,255,255,0.94)",
+            width: 216,
+            padding: "10px 8px 8px",
+            borderRadius: 16,
+            background: "rgba(255,255,255,0.95)",
             border: `1px solid ${glass.border}`,
-            boxShadow: `inset 0 1px 0 ${glass.highlight}, 0 14px 34px rgba(26,29,36,0.16)`,
+            boxShadow: `inset 0 1px 0 ${glass.highlight}, 0 18px 44px rgba(26,29,36,0.18)`,
             backdropFilter: glass.blur,
             WebkitBackdropFilter: glass.blur,
-            animation: `energyMenuIn 0.24s ${PRESS_EASE} both`,
+            animation: `energyMenuIn 0.26s ${PRESS_EASE} both`,
             zIndex: 40,
           }}
         >
-          {[5, 10, 20].map((step) => (
-            <button
-              key={step}
-              type="button"
-              role="menuitem"
-              onClick={(e) => { e.stopPropagation(); setMenuOpen(false); dispatch(step); }}
-              style={{
-                display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10,
-                padding: "9px 12px", background: "none", border: "none", borderRadius: 8,
-                cursor: "pointer", color: color.ink, fontSize: 12.5, fontWeight: 650,
-                fontVariantNumeric: "tabular-nums",
-              }}
-              onMouseEnter={(e) => { e.currentTarget.style.background = color.accentSoft; }}
-              onMouseLeave={(e) => { e.currentTarget.style.background = "none"; }}
-            >
-              <span>{up ? "Lift" : "Ease"}</span>
-              <span style={{ fontFamily: fontMono, fontSize: 11, color: color.muted }}>
-                {up ? "+" : "\u2212"}{step} BPM
-              </span>
-            </button>
-          ))}
+          <div style={{
+            display: "flex", alignItems: "center", gap: 6,
+            padding: "0 8px 8px",
+            fontSize: 10, fontWeight: 700, letterSpacing: 1.1, textTransform: "uppercase",
+            color: color.faint, fontFamily: fontMono,
+          }}>
+            <span style={{ color: up ? color.accent : "#6C5CE7", display: "flex" }}>
+              {up ? <RabbitIcon size={12} /> : <TurtleIcon size={12} />}
+            </span>
+            {up ? "Lift the room" : "Ease the room"}
+          </div>
+
+          {/* Nudge row — quick ±5 / ±10 / ±20 chips */}
+          <div style={{ display: "flex", gap: 5, padding: "0 4px 8px" }}>
+            {[5, 10, 20].map((step, i) => (
+              <button
+                key={step}
+                type="button"
+                role="menuitem"
+                onClick={(e) => { e.stopPropagation(); setMenuOpen(false); dispatch(step); }}
+                className="energy-menu-chip"
+                style={{
+                  flex: 1, padding: "8px 0", borderRadius: 10,
+                  background: step === 10 ? (up ? color.accentSoft : "rgba(108,92,231,0.10)") : glass.fillQuiet,
+                  border: `1px solid ${step === 10 ? (up ? "rgba(10,124,255,0.25)" : "rgba(108,92,231,0.25)") : glass.borderSoft}`,
+                  cursor: "pointer",
+                  color: step === 10 ? (up ? color.accent : "#6C5CE7") : color.body,
+                  fontSize: 11.5, fontWeight: 700, fontFamily: fontMono,
+                  fontVariantNumeric: "tabular-nums",
+                  transition: `transform 0.22s ${PRESS_EASE}, background 0.2s ease, border-color 0.2s ease`,
+                  animation: `energyPillIn 0.28s ${PRESS_EASE} both`,
+                  animationDelay: `${0.02 + i * 0.03}s`,
+                }}
+              >
+                {up ? "+" : "\u2212"}{step}
+              </button>
+            ))}
+          </div>
+
+          <div aria-hidden="true" style={{
+            height: 1, margin: "0 6px 6px",
+            background: "linear-gradient(90deg, transparent, rgba(26,29,36,0.1) 30%, rgba(26,29,36,0.1) 70%, transparent)",
+          }} />
+
+          {/* Presets — named sweeps over the same energy vector */}
+          {(up ? PRESETS_UP : PRESETS_DOWN).map((id, i) => {
+            const p = ENERGY_PRESETS[id];
+            return (
+              <button
+                key={id}
+                type="button"
+                role="menuitem"
+                onClick={(e) => { e.stopPropagation(); setMenuOpen(false); haptic(up ? 8 : [6, 30, 6]); applyPreset(id); }}
+                className="energy-menu-row"
+                style={{
+                  display: "flex", alignItems: "center", gap: 10,
+                  padding: "8px 8px", background: "none", border: "none", borderRadius: 10,
+                  cursor: "pointer", textAlign: "left",
+                  transition: "background 0.18s ease",
+                  animation: `energyPillIn 0.3s ${PRESS_EASE} both`,
+                  animationDelay: `${0.08 + i * 0.04}s`,
+                }}
+              >
+                <span aria-hidden="true" style={{
+                  width: 28, height: 28, borderRadius: 9, flexShrink: 0,
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  fontSize: 13, background: glass.fillQuiet,
+                  border: `1px solid ${glass.borderSoft}`,
+                  boxShadow: `inset 0 1px 0 ${glass.highlight}`,
+                }}>{p.emoji}</span>
+                <span style={{ flex: 1, minWidth: 0 }}>
+                  <span style={{ display: "block", fontSize: 12.5, fontWeight: 650, color: color.ink, letterSpacing: -0.1 }}>
+                    {p.label}
+                  </span>
+                  <span style={{ display: "block", fontSize: 10.5, color: color.muted, marginTop: 1 }}>
+                    {p.blurb}
+                  </span>
+                </span>
+                <span style={{
+                  fontFamily: fontMono, fontSize: 10, fontWeight: 700, color: color.faint,
+                  fontVariantNumeric: "tabular-nums", flexShrink: 0,
+                }}>
+                  {p.bpm > 0 ? "+" : "\u2212"}{Math.abs(p.bpm)}
+                </span>
+              </button>
+            );
+          })}
         </div>
       )}
     </span>
@@ -223,8 +291,10 @@ export function EnergyShiftFeedback({ bottom = "calc(100% + 12px)" }) {
           color: color.ink, fontSize: 12.5, fontWeight: 650, letterSpacing: -0.1,
           animation: `energyPillLife ${PILL_MS}ms cubic-bezier(0.22, 1, 0.36, 1) both`,
         }}>
-          <span aria-hidden="true" style={{ fontSize: 13 }}>{up ? "\u26A1" : "\uD83C\uDF19"}</span>
-          {up ? "Picking up the pace\u2026" : "Slowing things down\u2026"}
+          <span aria-hidden="true" style={{ fontSize: 13 }}>
+            {lastAction.emoji || (up ? "\u26A1" : "\uD83C\uDF19")}
+          </span>
+          {lastAction.label || (up ? "Picking up the pace" : "Slowing things down")}{"\u2026"}
         </div>
       )}
       {chipVisible && (

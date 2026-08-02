@@ -182,6 +182,10 @@ const injectStyles = () => {
       100% { opacity:0; transform:translateY(-4px) }
     }
     @keyframes energyPillIn { from{opacity:0;transform:translateY(6px) scale(0.94)} to{opacity:1;transform:none} }
+    .energy-menu-chip:hover { transform: translateY(-1px); }
+    .energy-menu-chip:active { transform: scale(0.94); }
+    .energy-menu-row:hover { background: rgba(26,29,36,0.05) !important; }
+    .energy-menu-row:active { background: rgba(26,29,36,0.08) !important; transform: scale(0.985); }
     @keyframes energyMenuIn { from{opacity:0;transform:translateX(-50%) translateY(6px) scale(0.95)} to{opacity:1;transform:translateX(-50%)} }
     @keyframes shelfReveal {
       from { opacity: 0; transform: translateY(10px) scale(0.985); }
