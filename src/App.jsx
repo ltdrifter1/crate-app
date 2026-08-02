@@ -2526,10 +2526,11 @@ function ImmersivePlayer({
       }}>
         <div style={{ width: "100%", maxWidth: 360, marginBottom: 18 }}>
           <input
-            type="range" min={0} max={duration || 1} step={1} value={progress}
+            type="range" min={0} max={duration || 1} step={0.1} value={progress}
             onChange={(e) => onSeek?.(parseFloat(e.target.value))}
             style={{ width: "100%" }}
             aria-label="Seek"
+            aria-valuetext={`${fmtTime(progress)} of ${fmtTime(duration)}`}
           />
           <div style={{
             marginTop: 6, display: "flex", justifyContent: "space-between",
@@ -3497,6 +3498,8 @@ function FavoritesScreen({
   const [showNewInput, setShowNewInput] = useState(false);
   const [newName, setNewName] = useState("");
   const [openPlaylistId, setOpenPlaylistId] = useState(null);
+  const [showAddCuts, setShowAddCuts] = useState(false);
+  const [addQuery, setAddQuery] = useState("");
 
   // Deep-open request (e.g. desktop sidebar stack click)
   useEffect(() => {
@@ -3504,6 +3507,12 @@ function FavoritesScreen({
     setOpenPlaylistId(openRequestId);
     onConsumeOpenRequest?.();
   }, [openRequestId, onConsumeOpenRequest]);
+
+  // Reset the add-cuts picker when leaving a stack
+  useEffect(() => {
+    setShowAddCuts(false);
+    setAddQuery("");
+  }, [openPlaylistId]);
 
   const tile = homeSpace.tile;
   const mosaic = Math.round(tile / 2);
@@ -3525,6 +3534,16 @@ function FavoritesScreen({
 
   if (openPlaylist) {
     const community = isCommunityPlaylist(openPlaylist);
+    const inStack = new Set(openPlaylist.trackIds || []);
+    const addQ = addQuery.trim().toLowerCase();
+    const addCandidates = showAddCuts
+      ? tracks
+          .filter((t) => !inStack.has(t.id) && (t.duration || 0) <= 900)
+          .filter((t) => !addQ
+            || String(t.title || "").toLowerCase().includes(addQ)
+            || String(t.artist || "").toLowerCase().includes(addQ))
+          .slice(0, 20)
+      : [];
     return (
       <div style={{ padding: "24px 16px 36px" }}>
         <button type="button" onClick={() => setOpenPlaylistId(null)} style={{
@@ -3540,6 +3559,19 @@ function FavoritesScreen({
           </div>
         )}
         <div style={{ display: "flex", gap: 10, marginBottom: 18, flexWrap: "wrap" }}>
+          {!community && playlistCtx?.onAdd && (
+            <button
+              type="button"
+              onClick={() => setShowAddCuts((s) => !s)}
+              aria-expanded={showAddCuts}
+              style={{
+                ...BTN_SECONDARY, borderRadius: 980, padding: "10px 16px", fontSize: 14,
+                ...(showAddCuts ? { background: color.accentSoft, color: color.accent, borderColor: color.accentSoft } : {}),
+              }}
+            >
+              {showAddCuts ? "Done adding" : "Add cuts"}
+            </button>
+          )}
           {onSharePlaylist && (
             <button
               type="button"
@@ -3577,8 +3609,49 @@ function FavoritesScreen({
             </button>
           )}
         </div>
+        {showAddCuts && (
+          <div style={{ marginBottom: 20, padding: 14, borderRadius: radius.lg, background: color.surfaceRaised, border: `1px solid ${glass.borderSoft}` }}>
+            <input
+              autoFocus
+              value={addQuery}
+              onChange={(e) => setAddQuery(e.target.value)}
+              placeholder="Search cuts to add…"
+              aria-label="Search cuts to add"
+              style={{ ...INPUT_ST, padding: "10px 12px", fontSize: 15, marginBottom: 8 }}
+            />
+            {addCandidates.length === 0 ? (
+              <div style={{ fontSize: 13, color: color.faint, padding: "14px 4px", textAlign: "center" }}>
+                {addQ ? "Nothing matches — try another artist or cut" : "Everything's already filed here"}
+              </div>
+            ) : addCandidates.map((t) => (
+              <div key={t.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "7px 2px", borderBottom: `1px solid ${color.line}` }}>
+                <div style={{ width: 36, height: 36, borderRadius: 5, overflow: "hidden", flexShrink: 0 }}>
+                  <AlbumArt track={t} size={36} borderRadius={0}/>
+                </div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontSize: 13.5, fontWeight: 550, color: color.ink, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{t.title}</div>
+                  <div style={{ fontSize: 11.5, color: color.muted, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{t.artist}</div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => playlistCtx.onAdd(t.id, openPlaylist.id)}
+                  aria-label={`Add ${t.title} to ${openPlaylist.name}`}
+                  style={{
+                    background: color.accentSoft, border: "none", borderRadius: 980,
+                    width: 34, height: 34, display: "flex", alignItems: "center", justifyContent: "center",
+                    color: color.accent, cursor: "pointer", flexShrink: 0,
+                  }}
+                >
+                  <Icon name="plus" size={16}/>
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
         {openPlaylistTracks.length === 0 ? (
-          <div style={{ fontSize: 15, color: color.faint, paddingTop: 32, textAlign: "center" }}>Stack’s empty — press ⋯ to file cuts</div>
+          <div style={{ fontSize: 15, color: color.faint, paddingTop: 32, textAlign: "center" }}>
+            {community ? "Stack’s empty" : "Stack’s empty — press “Add cuts” to start filing"}
+          </div>
         ) : openPlaylistTracks.map((t) => (
           <TrackRow
             key={t.id}
@@ -5037,14 +5110,16 @@ function BgMist({ color: mistColor = "#909090" }) {
   );
 }
 
-const ToastEl = ({msg}) => (
-  <div role="status" style={{
+const ToastEl = ({msg, onDismiss = null}) => (
+  <div role="status" onClick={onDismiss || undefined} style={{
     position:"fixed",
     bottom: `calc(${dock.clearPlayer + 16}px + env(safe-area-inset-bottom, 0px))`,
     left:"50%", transform:"translateX(-50%)",
     background: color.surfaceRaised, color: color.ink, padding:"10px 18px", borderRadius: radius.md,
     fontSize:13, zIndex:200, whiteSpace:"nowrap", fontWeight:550,
     border:`1px solid ${color.lineStrong}`, boxShadow:"0 12px 32px rgba(0,0,0,0.4)",
+    cursor: onDismiss ? "pointer" : "default",
+    animation: "rise 0.25s cubic-bezier(0.22,1,0.36,1) both",
   }}>{msg}</div>
 );
 
@@ -6693,7 +6768,7 @@ export default function App() {
     <div style={{ ...APP_STYLE, position:"relative" }}>
       <BgMist color={currentTrack?.color}/>
       {ambientStatus}
-      {toast && <ToastEl msg={toast}/>}
+      {toast && <ToastEl msg={toast} onDismiss={()=>setToast(null)}/>}
       {tracksLoading && (
         <>
           <div className="sr-only" role="status">Loading your catalog…</div>
@@ -7005,7 +7080,7 @@ export default function App() {
           <BgMist color={currentTrack?.color}/>
           <Pulse track={currentTrack} isPlaying={isPlaying}/>
           {ambientStatus}
-          {toast && <ToastEl msg={toast}/>}
+          {toast && <ToastEl msg={toast} onDismiss={()=>setToast(null)}/>}
           {tracksLoading ? (
             <>
               <div className="sr-only" role="status">Loading your catalog…</div>
