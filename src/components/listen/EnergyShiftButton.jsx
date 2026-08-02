@@ -1,25 +1,23 @@
 // Energy Shift transport controls — Rabbit (lift) / Turtle (ease off).
-// First-class glass controls beside play/pause. All the recommendation work
-// stays in the background (playerEnergyStore + EnergyRecommendationEngine);
-// the UI only dispatches increaseEnergy() / decreaseEnergy() and shows a
-// short-lived explanation pill + trend chip.
+// First-class aluminum glass beside play/pause. Recommendation work stays in
+// the background; the UI only dispatches increaseEnergy() / decreaseEnergy().
 
 import React, { useEffect, useRef, useState } from "react";
-import { color, glass, fontMono } from "../../theme";
+import { color, glass, fontMono, brandStoragePrefix } from "../../theme";
 import { useEnergyQueue } from "../../useEnergyQueue";
 
-const PRESS_EASE = "cubic-bezier(0.34, 1.4, 0.64, 1)"; // gentle spring, no rubber
+const PRESS_EASE = "cubic-bezier(0.34, 1.4, 0.64, 1)";
 const LONG_PRESS_MS = 450;
 const PILL_MS = 1500;
 const CHIP_MS = 3200;
+const COACH_KEY = () => `${brandStoragePrefix()}:energyCoachSeen`;
 
 function haptic(pattern = 8) {
   try {
     if (typeof navigator !== "undefined" && navigator.vibrate) navigator.vibrate(pattern);
-  } catch (e) { /* haptics are best-effort */ }
+  } catch (e) { /* best-effort */ }
 }
 
-/** Minimal monochrome rabbit — two ears + body, stroke only. */
 function RabbitIcon({ size = 15 }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -31,7 +29,6 @@ function RabbitIcon({ size = 15 }) {
   );
 }
 
-/** Minimal monochrome turtle — shell + head, stroke only. */
 function TurtleIcon({ size = 15 }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -45,7 +42,7 @@ function TurtleIcon({ size = 15 }) {
 
 /**
  * One energy-shift control. direction: "up" (rabbit) | "down" (turtle).
- * Tap = ±10 BPM nudge · long-press = ±5 / ±10 / ±20 menu.
+ * Tap = ±10 BPM · long-press = ±5 / ±10 / ±20.
  */
 export function EnergyShiftButton({ direction = "up", size = 30, stopPropagation = true }) {
   const up = direction === "up";
@@ -60,6 +57,7 @@ export function EnergyShiftButton({ direction = "up", size = 30, stopPropagation
 
   const dispatch = (bpmStep) => {
     haptic(up ? 8 : [6, 30, 6]);
+    try { localStorage.setItem(COACH_KEY(), "1"); } catch (e) {}
     if (up) increaseEnergy(bpmStep); else decreaseEnergy(bpmStep);
   };
 
@@ -90,8 +88,6 @@ export function EnergyShiftButton({ direction = "up", size = 30, stopPropagation
 
   useEffect(() => () => clearTimeout(longPressRef.current), []);
 
-  const glow = up ? "rgba(10,124,255,0.28)" : "rgba(108,92,231,0.26)";
-
   return (
     <span style={{ position: "relative", display: "inline-flex" }}>
       <button
@@ -114,13 +110,13 @@ export function EnergyShiftButton({ direction = "up", size = 30, stopPropagation
           alignItems: "center",
           justifyContent: "center",
           cursor: "pointer",
-          color: activeHere ? color.accent : color.muted,
+          color: activeHere ? color.ink : color.muted,
           background: glass.fillStrong,
-          border: `1px solid ${activeHere ? "rgba(10,124,255,0.35)" : glass.border}`,
+          border: `1px solid ${activeHere ? color.lineStrong : glass.border}`,
           backdropFilter: glass.blurSoft,
           WebkitBackdropFilter: glass.blurSoft,
           boxShadow: hovered || activeHere
-            ? `inset 0 1px 0 ${glass.highlight}, 0 0 0 4px ${up ? color.accentSoft : "rgba(108,92,231,0.10)"}, 0 4px 14px ${glow}`
+            ? `inset 0 1px 0 ${glass.highlight}, 0 0 0 3px rgba(26,29,36,0.06), 0 4px 14px rgba(26,29,36,0.12)`
             : `inset 0 1px 0 ${glass.highlight}, ${glass.shadowSoft}`,
           transform: pressed ? "scale(0.88)" : hovered ? "scale(1.06)" : "scale(1)",
           transition: `transform 0.28s ${PRESS_EASE}, box-shadow 0.35s ease, color 0.2s ease, border-color 0.2s ease`,
@@ -144,10 +140,10 @@ export function EnergyShiftButton({ direction = "up", size = 30, stopPropagation
             transform: "translateX(-50%)",
             display: "flex",
             flexDirection: "column",
-            minWidth: 108,
+            minWidth: 118,
             padding: 4,
             borderRadius: 12,
-            background: "rgba(255,255,255,0.94)",
+            background: "rgba(255,255,255,0.95)",
             border: `1px solid ${glass.border}`,
             boxShadow: `inset 0 1px 0 ${glass.highlight}, 0 14px 34px rgba(26,29,36,0.16)`,
             backdropFilter: glass.blur,
@@ -168,7 +164,7 @@ export function EnergyShiftButton({ direction = "up", size = 30, stopPropagation
                 cursor: "pointer", color: color.ink, fontSize: 12.5, fontWeight: 650,
                 fontVariantNumeric: "tabular-nums",
               }}
-              onMouseEnter={(e) => { e.currentTarget.style.background = color.accentSoft; }}
+              onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(26,29,36,0.05)"; }}
               onMouseLeave={(e) => { e.currentTarget.style.background = "none"; }}
             >
               <span>{up ? "Lift" : "Ease"}</span>
@@ -184,18 +180,26 @@ export function EnergyShiftButton({ direction = "up", size = 30, stopPropagation
 }
 
 /**
- * Floating feedback above the player: a 1.5s explanation pill on press, and a
- * small trend chip (↑ +10 BPM) that lingers a moment while the sweep runs.
- * Render inside a positioned container (the dock / transport wrapper).
+ * Floating feedback above the player + one-time coachmark.
+ * Mono glass only — no emoji, no purple.
  */
 export function EnergyShiftFeedback({ bottom = "calc(100% + 12px)" }) {
   const { energyShift } = useEnergyQueue();
   const { lastAction } = energyShift;
   const [pillVisible, setPillVisible] = useState(false);
   const [chipVisible, setChipVisible] = useState(false);
+  const [coach, setCoach] = useState(false);
+
+  useEffect(() => {
+    try {
+      if (!localStorage.getItem(COACH_KEY())) setCoach(true);
+    } catch (e) {}
+  }, []);
 
   useEffect(() => {
     if (!lastAction) return;
+    setCoach(false);
+    try { localStorage.setItem(COACH_KEY(), "1"); } catch (e) {}
     setPillVisible(true);
     setChipVisible(true);
     const p = setTimeout(() => setPillVisible(false), PILL_MS);
@@ -203,8 +207,8 @@ export function EnergyShiftFeedback({ bottom = "calc(100% + 12px)" }) {
     return () => { clearTimeout(p); clearTimeout(c); };
   }, [lastAction]);
 
-  if (!lastAction || (!pillVisible && !chipVisible)) return null;
-  const up = lastAction.direction > 0;
+  if (!coach && (!lastAction || (!pillVisible && !chipVisible))) return null;
+  const up = lastAction ? lastAction.direction > 0 : true;
 
   return (
     <div aria-live="polite" style={{
@@ -212,18 +216,29 @@ export function EnergyShiftFeedback({ bottom = "calc(100% + 12px)" }) {
       display: "flex", flexDirection: "column", alignItems: "center", gap: 6,
       pointerEvents: "none", zIndex: 30,
     }}>
+      {coach && !pillVisible && (
+        <div style={{
+          padding: "7px 12px", borderRadius: 999,
+          background: "rgba(255,255,255,0.92)",
+          border: `1px solid ${glass.border}`,
+          boxShadow: `inset 0 1px 0 ${glass.highlight}, 0 8px 22px rgba(26,29,36,0.12)`,
+          color: color.body, fontSize: 11.5, fontWeight: 600, letterSpacing: -0.1,
+          animation: `energyPillIn 0.3s ${PRESS_EASE} both`,
+        }}>
+          Turtle eases · Rabbit lifts — tap to shift energy
+        </div>
+      )}
       {pillVisible && (
         <div style={{
           display: "flex", alignItems: "center", gap: 7,
           padding: "8px 15px", borderRadius: 999,
-          background: "rgba(255,255,255,0.92)",
+          background: "rgba(255,255,255,0.94)",
           border: `1px solid ${glass.border}`,
           boxShadow: `inset 0 1px 0 ${glass.highlight}, 0 10px 28px rgba(26,29,36,0.14)`,
           backdropFilter: glass.blur, WebkitBackdropFilter: glass.blur,
           color: color.ink, fontSize: 12.5, fontWeight: 650, letterSpacing: -0.1,
           animation: `energyPillLife ${PILL_MS}ms cubic-bezier(0.22, 1, 0.36, 1) both`,
         }}>
-          <span aria-hidden="true" style={{ fontSize: 13 }}>{up ? "\u26A1" : "\uD83C\uDF19"}</span>
           {up ? "Picking up the pace\u2026" : "Slowing things down\u2026"}
         </div>
       )}
@@ -231,13 +246,12 @@ export function EnergyShiftFeedback({ bottom = "calc(100% + 12px)" }) {
         <div style={{
           display: "flex", alignItems: "center", gap: 4,
           padding: "3px 9px", borderRadius: 999,
-          background: up ? color.accentSoft : "rgba(108,92,231,0.12)",
-          border: `1px solid ${up ? "rgba(10,124,255,0.22)" : "rgba(108,92,231,0.22)"}`,
-          color: up ? color.accent : "#6C5CE7",
+          background: "rgba(26,29,36,0.06)",
+          border: `1px solid ${glass.borderSoft}`,
+          color: color.ink,
           fontSize: 10.5, fontWeight: 700, fontFamily: fontMono, letterSpacing: 0.3,
           fontVariantNumeric: "tabular-nums",
           animation: `energyPillIn 0.3s ${PRESS_EASE} both`,
-          transition: "opacity 0.5s ease",
         }}>
           <span aria-hidden="true">{up ? "\u2191" : "\u2193"}</span>
           {up ? "+" : "\u2212"}{Math.abs(lastAction.bpmStep)} BPM
