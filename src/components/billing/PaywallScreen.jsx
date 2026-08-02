@@ -73,7 +73,7 @@ export default function PaywallScreen({
           fontFamily: fontDisplay,
           color: color.ink,
         }}>
-          Keep listening on {BRAND_NAME}
+          Stay in the club
         </h1>
 
         <p style={{
@@ -83,7 +83,7 @@ export default function PaywallScreen({
           color: color.body,
           maxWidth: 340,
         }}>
-          Your free month is over. Subscribe for {price}/month to keep your radio, library, and custom mixes.
+          Trial’s pressed. Subscribe for {price}/month to keep On air, the crate, and your sets open on {BRAND_NAME}.
         </p>
 
         <div
@@ -123,7 +123,7 @@ export default function PaywallScreen({
             </div>
           </div>
           <div style={{ fontSize: 14, color: color.muted, lineHeight: 1.45 }}>
-            Cancel anytime. Full catalog access while subscribed.
+            Cancel anytime. Full crate access while subscribed.
           </div>
         </div>
 

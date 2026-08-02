@@ -32,7 +32,7 @@ export default function MixScreen({
   if (loading) {
     return (
       <div style={{ padding: "48px 24px", textAlign: "center", color: color.muted }}>
-        Loading mix…
+        Pulling the plate…
       </div>
     );
   }
@@ -93,11 +93,11 @@ export default function MixScreen({
               ? `${formatMonthLabel(mix.monthKey)} · curated by ${curator || "a member"}`
               : `Shared by ${curator || "a member"}`}
             {" · "}
-            {mixTracks.length} track{mixTracks.length === 1 ? "" : "s"}
+            {mixTracks.length} cut{mixTracks.length === 1 ? "" : "s"}
           </div>
           {isCommunity && (
             <div style={{ fontSize: 13, color: color.muted, marginTop: 10, lineHeight: 1.45 }}>
-              Featured curator gets club recognition — and prizes from Planet.
+              Featured curator — club stamp this month.
             </div>
           )}
         </div>
@@ -109,7 +109,7 @@ export default function MixScreen({
               onClick={() => onPlayTrack(mixTracks[0], mixTracks)}
               style={{ ...BTN_PRIMARY, borderRadius: radius.md, flex: "1 1 140px" }}
             >
-              Play mix
+              Press the plate
             </button>
           )}
           {onShare && (

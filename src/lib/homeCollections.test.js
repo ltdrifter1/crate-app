@@ -67,7 +67,7 @@ describe("homeCollections", () => {
     expect(coldStart).toBe(false);
     expect(picks.every((p) => typeof p.reason === "string" && p.reason.length > 0)).toBe(true);
     const likedPick = picks.find((p) => p.track.liked);
-    if (likedPick) expect(likedPick.reason).toBe("In your likes");
+    if (likedPick) expect(likedPick.reason).toBe("Saved cut");
   });
 
   test("recommendedPicks honors excludeIds", () => {

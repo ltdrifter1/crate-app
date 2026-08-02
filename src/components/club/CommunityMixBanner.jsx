@@ -141,7 +141,7 @@ export default function CommunityMixBanner({
                 border: `1px solid ${glass.border}`,
               }}
             >
-              Play mix
+              Play the press
             </span>
             <span style={{
               fontSize: 13,

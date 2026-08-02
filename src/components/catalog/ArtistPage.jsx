@@ -33,11 +33,11 @@ export default function ArtistPage({
         eyebrow="Artist"
         title={artist.name}
         story={artist.story}
-        meta={`${artist.count} tracks${artist.topGenre ? ` · ${artist.topGenre}` : ""}`}
+        meta={`${artist.count} cut${artist.count === 1 ? "" : "s"}${artist.topGenre ? ` · ${artist.topGenre}` : ""}`}
         coverUrl={cover?.albumCover}
         atmosphere="amber-lamp"
         onPlay={() => cover && onPlay(cover, artist.tracks)}
-        playLabel="Play artist"
+        playLabel="Drop the needle"
       />
 
       {artist.albums?.length > 0 && (
@@ -136,7 +136,7 @@ export function AlbumPage({
         coverUrl={cover?.albumCover}
         atmosphere="vault"
         onPlay={() => cover && onPlay(cover, album.tracks)}
-        playLabel="Play album"
+        playLabel="Play the record"
         subtitle={
           <button
             type="button"

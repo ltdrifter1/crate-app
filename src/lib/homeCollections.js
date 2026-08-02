@@ -57,13 +57,13 @@ export function buildHomeCollections(tracks = []) {
     {
       id: "rediscovered",
       label: "Played before",
-      story: "Songs you’ve heard — worth another listen",
+      story: "Cuts you’ve spun — worth another drop",
       tracks: rediscoveredTracks(singles),
     },
     {
       id: "soft-evening",
-      label: "Easy listening",
-      story: "Calm, low-energy tracks",
+      label: "Late booth",
+      story: "Low lights, slow press",
       tracks: softEvening(singles),
     },
   ];
@@ -170,12 +170,12 @@ export function recommendedPicks(
       if (discovery) score += 3;
 
       let reason;
-      if (t.liked) reason = "In your likes";
-      else if (recentSet.has(t.id)) reason = "You played this recently";
-      else if (discovery) reason = genre ? `New for you · ${genre}` : "New for you";
-      else if (inTaste) reason = genre ? `Because you like ${genre}` : "Matches your taste";
+      if (t.liked) reason = "Saved cut";
+      else if (recentSet.has(t.id)) reason = "Spun recently";
+      else if (discovery) reason = genre ? `Fresh to your crate · ${genre}` : "Fresh to your crate";
+      else if (inTaste) reason = genre ? `In your lane · ${genre}` : "In your lane";
       else if ((t.playCount || 0) > 0) reason = "Heard before · worth a return";
-      else reason = "Popular right now";
+      else reason = "Getting pressed around here";
 
       return { track: t, reason, score };
     })

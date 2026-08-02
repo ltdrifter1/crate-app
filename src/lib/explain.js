@@ -73,9 +73,9 @@ export function explainPick(track, { room, signalLabel, preferredGenres = [] } =
 
 /** Similar-track framing. */
 export function hypnoStory(sourceTrack) {
-  if (!sourceTrack) return "Songs that feel similar";
+  if (!sourceTrack) return "Cuts that sit near this";
   const scene = displaySceneLabel(sourceTrack);
   return scene
-    ? `More like “${sourceTrack.title}” · ${scene}`
-    : `More like “${sourceTrack.title}”`;
+    ? `Near “${sourceTrack.title}” · ${scene}`
+    : `Near “${sourceTrack.title}”`;
 }

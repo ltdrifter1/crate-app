@@ -587,7 +587,7 @@ export const SCENES = [
     label: "Folk / Americana",
     familyId: "rock-roots",
     lane: "Country & Folk",
-    story: "Songs that travel by road and porch.",
+    story: "Cuts that travel by road and porch.",
     atmosphere: "dawn-haze",
     energy: [2, 5],
     bpm: [60, 120],

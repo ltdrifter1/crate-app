@@ -8,8 +8,9 @@ import {
 } from "../../theme";
 import { authErrorMessage } from "../../lib/phone";
 import BrandTagline from "../brand/BrandTagline";
+import { BRAND_LOCKUP_SRC } from "../brand/BrandGlyphs";
 
-const LOCKUP_SRC = "/brand/planet-mp3-lockup.png";
+const LOCKUP_SRC = BRAND_LOCKUP_SRC;
 
 /** Re-enable when Firebase phone + reCAPTCHA are configured for production. */
 const ENABLE_PHONE_SIGN_IN = false;
@@ -265,8 +266,8 @@ export default function LoginScreen({
           />
           <div style={{ fontSize: 15, color: color.body, lineHeight: 1.5, maxWidth: 280 }}>
             {mode === "signup"
-              ? "Create an account — first month free, then $2.99/mo."
-              : "Sign in to continue."}
+              ? "Join the club — first month free, then $2.99/mo."
+              : "Member door. Sign in and dig starts inside."}
           </div>
         </div>
 
