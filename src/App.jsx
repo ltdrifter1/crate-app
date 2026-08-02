@@ -37,6 +37,7 @@ import {
   createListenIntent,
 } from "./lib/listenPool";
 import { EnergyShiftButton, EnergyShiftFeedback } from "./components/listen/EnergyShiftButton";
+import CoverFlow from "./components/listen/CoverFlow";
 import { playerEnergyStore } from "./lib/playerEnergyStore";
 import ArtistPage, { AlbumPage } from "./components/catalog/ArtistPage";
 import LinerNotesSheet from "./components/catalog/LinerNotesSheet";
@@ -254,6 +255,9 @@ const injectStyles = () => {
     }
     .cover-tile:hover {
       transform: translateY(-3px);
+    }
+    .cover-flow-stage .cover-tile:hover {
+      transform: none;
     }
     @media (prefers-reduced-motion: reduce) {
       *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
@@ -3018,7 +3022,7 @@ function HomeCatalogStatus({ error, isEmpty, playableCount, totalCount, onRetry 
 }
 
 /**
- * For you — one horizontal scrolling row of recommended tracks.
+ * For you — Cover Flow crate of recommended tracks.
  */
 function ForYouRiver({
   tracks = [],
@@ -3026,8 +3030,6 @@ function ForYouRiver({
   onPlayTrack,
   activeId,
   isPlaying,
-  onLike,
-  playlistCtx,
 }) {
   if (!tracks.length) return null;
   const tasteLine = coldStart
@@ -3042,15 +3044,12 @@ function ForYouRiver({
       first
       eyebrow="Fresh press"
     >
-      <CoverShelf
+      <CoverFlow
         tracks={tracks}
         onPlayTrack={(t) => onPlayTrack(t, tracks)}
         activeId={activeId}
         isPlaying={isPlaying}
-        onLike={null}
-        playlistCtx={playlistCtx}
-        tileSize={168}
-        compactCaptions
+        size={200}
         limit={25}
       />
     </HomeSection>
@@ -3412,20 +3411,17 @@ function FavoritesScreen({
           <HomeSection
             label="Saved cuts"
             count={saved.length}
-            subtitle="Your pressed favourites, cover-first."
+            subtitle="Flip the crate — cover first."
             delay={0.04}
             first
             eyebrow="In the crate"
           >
-            <CoverShelf
+            <CoverFlow
               tracks={saved}
               onPlayTrack={(t) => playTrackFn(t, saved)}
               activeId={activeId}
               isPlaying={isPlaying}
-              onLike={onLike}
-              playlistCtx={playlistCtx}
-              tileSize={156}
-              compactCaptions
+              size={188}
               limit={40}
             />
           </HomeSection>
