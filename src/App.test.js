@@ -1,17 +1,20 @@
-import { color, font, fontDisplay, ADMIN_UID, timeOfDayGradient, BRAND_TAGLINE, BRAND_NAME, dock } from './theme';
+import { color, font, fontDisplay, ADMIN_UID, timeOfDayGradient, BRAND_TAGLINE, BRAND_NAME, dock, artShadow, aluminumGradient } from './theme';
 
 test('theme exports core tokens', () => {
   expect(color.ink).toBeTruthy();
-  expect(color.accent).toMatch(/#F2F3F5/i);
-  expect(color.onAccent).toMatch(/#000000/i);
-  expect(color.canvas).toMatch(/#0/);
-  expect(color.alert).not.toMatch(/#FF|#FA24|#E54/i);
+  expect(color.accent).toMatch(/#0A7CFF/i);
+  expect(color.onAccent).toMatch(/#FFFFFF/i);
+  expect(color.canvas).toMatch(/#E/i);
+  expect(color.alert).toBeTruthy();
+  expect(color.select).toMatch(/rgba/);
   expect(BRAND_TAGLINE).toMatch(/YOUR WORLD/i);
   expect(BRAND_NAME).toBe("Planet MP3");
-  expect(font).toMatch(/SF Pro|apple-system|BlinkMacSystemFont/);
-  expect(fontDisplay).toMatch(/SF Pro|apple-system|BlinkMacSystemFont/);
+  expect(font).toMatch(/Source Sans/);
+  expect(fontDisplay).toMatch(/Outfit/);
   expect(ADMIN_UID).toHaveLength(28);
   expect(timeOfDayGradient()).toMatch(/gradient/);
+  expect(aluminumGradient()).toMatch(/gradient/);
+  expect(artShadow.quiet).toBeTruthy();
   expect(dock.clearPlayer).toBeGreaterThan(dock.clearTabs);
   expect(dock.radius).toBeGreaterThan(0);
 });

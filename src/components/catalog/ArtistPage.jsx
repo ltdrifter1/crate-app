@@ -1,6 +1,4 @@
-import { font, fontDisplay, fontMono, color, radius } from "../../theme";
-import { roomPosterStyle } from "../../lib/rooms";
-import RoomPosterBackdrop from "../brand/RoomPosterBackdrop";
+import { font, fontDisplay, fontMono, color, radius, glass, aluminumGradient, artShadow } from "../../theme";
 
 /** Artist destination — catalogue as a world, not a discography dump. */
 export default function ArtistPage({
@@ -246,31 +244,57 @@ function EntityHero({
   playLabel,
   subtitle,
 }) {
-  const poster = roomPosterStyle(atmosphere || "vault");
   return (
-    <RoomPosterBackdrop
-      atmosphere={atmosphere || "vault"}
-      coverUrl={coverUrl}
-      minHeight="min(52vh, 420px)"
-      style={{ padding: "20px 20px 32px" }}
+    <div
+      style={{
+        position: "relative",
+        overflow: "hidden",
+        minHeight: "min(48vh, 380px)",
+        padding: "20px 20px 32px",
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "flex-end",
+      }}
     >
+      <div aria-hidden="true" style={{ position: "absolute", inset: 0, background: aluminumGradient() }} />
+      {coverUrl && (
+        <div aria-hidden="true" style={{
+          position: "absolute", inset: "-8%",
+          backgroundImage: `url(${coverUrl})`,
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+          filter: "blur(56px) saturate(1.05) brightness(1.15)",
+          opacity: 0.2,
+          transform: "scale(1.05)",
+        }}/>
+      )}
+      <div aria-hidden="true" style={{
+        position: "absolute", inset: 0,
+        background: "linear-gradient(180deg, rgba(230,233,239,0.2) 0%, transparent 40%, rgba(230,233,239,0.85) 100%)",
+      }}/>
+
       <button
         type="button"
         onClick={onBack}
         style={{
+          position: "relative",
+          zIndex: 1,
           alignSelf: "flex-start",
           marginBottom: 24,
-          background: "none",
-          border: "none",
-          color: color.muted,
+          background: glass.fillStrong,
+          border: `1px solid ${glass.borderSoft}`,
+          borderRadius: radius.sm,
+          color: color.ink,
           fontSize: 13,
           cursor: "pointer",
           fontWeight: 600,
+          padding: "8px 12px",
+          boxShadow: `inset 0 1px 0 ${glass.highlight}`,
         }}
       >
         ← {backLabel}
       </button>
-      <div style={{ maxWidth: 440 }}>
+      <div style={{ position: "relative", zIndex: 1, maxWidth: 440 }}>
         {coverUrl && (
           <div
             style={{
@@ -278,7 +302,9 @@ function EntityHero({
               height: 140,
               overflow: "hidden",
               marginBottom: 20,
-              boxShadow: "0 20px 48px rgba(0,0,0,0.5)",
+              borderRadius: radius.md,
+              border: `1px solid ${glass.borderSoft}`,
+              boxShadow: artShadow.raised,
             }}
           >
             <img src={coverUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
@@ -300,12 +326,12 @@ function EntityHero({
         <h1
           style={{
             margin: 0,
-            fontSize: poster.titleSize,
-            fontWeight: poster.fontWeight,
-            letterSpacing: poster.letterSpacing,
+            fontSize: "clamp(28px, 7vw, 40px)",
+            fontWeight: 700,
+            letterSpacing: -1.1,
             fontFamily: fontDisplay,
-            color: color.onDark,
-            lineHeight: poster.lineHeight,
+            color: color.ink,
+            lineHeight: 1.05,
           }}
         >
           {title}
@@ -330,19 +356,20 @@ function EntityHero({
               alignItems: "center",
               gap: 8,
               padding: "13px 18px",
-              borderRadius: radius.sm,
+              borderRadius: radius.md,
               background: color.accent,
               border: "none",
               color: color.onAccent,
               cursor: "pointer",
               fontSize: 13,
               fontWeight: 650,
+              boxShadow: "0 4px 14px rgba(10,124,255,0.28)",
             }}
           >
             {playLabel}
           </button>
         )}
       </div>
-    </RoomPosterBackdrop>
+    </div>
   );
 }

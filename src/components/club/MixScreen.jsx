@@ -61,11 +61,10 @@ export default function MixScreen({
           padding: "22px 20px",
           borderRadius: radius.lg,
           background: `
-            radial-gradient(ellipse 80% 90% at 0% 0%, rgba(255,255,255,0.07) 0%, transparent 55%),
-            ${glass.fill}
+            linear-gradient(160deg, rgba(255,255,255,0.95) 0%, rgba(242,244,247,0.88) 100%)
           `,
-          border: `1px solid ${glass.borderSoft}`,
-          boxShadow: `inset 0 1px 0 ${glass.highlight}`,
+          border: `1px solid ${glass.border}`,
+          boxShadow: `inset 0 1px 0 ${glass.highlight}, ${glass.shadowSoft}`,
         }}>
           <div style={{
             fontSize: 11,
@@ -108,7 +107,7 @@ export default function MixScreen({
             <button
               type="button"
               onClick={() => onPlayTrack(mixTracks[0], mixTracks)}
-              style={{ ...BTN_PRIMARY, borderRadius: 980, flex: "1 1 140px" }}
+              style={{ ...BTN_PRIMARY, borderRadius: radius.md, flex: "1 1 140px" }}
             >
               Play mix
             </button>
@@ -117,7 +116,7 @@ export default function MixScreen({
             <button
               type="button"
               onClick={onShare}
-              style={{ ...BTN_SECONDARY, borderRadius: 980, flex: "1 1 120px" }}
+              style={{ ...BTN_SECONDARY, borderRadius: radius.md, flex: "1 1 120px" }}
             >
               Share
             </button>
@@ -126,7 +125,7 @@ export default function MixScreen({
             <button
               type="button"
               onClick={onSaveToLibrary}
-              style={{ ...BTN_SECONDARY, borderRadius: 980, flex: "1 1 140px" }}
+              style={{ ...BTN_SECONDARY, borderRadius: radius.md, flex: "1 1 140px" }}
             >
               Save to Library
             </button>

@@ -3,13 +3,11 @@
  */
 import { useState } from "react";
 import {
-  font, fontDisplay, color, radius,
+  font, fontDisplay, color, radius, glass, aluminumGradient,
   APP_STYLE, INPUT_ST, BTN_PRIMARY, BTN_SECONDARY,
 } from "../../theme";
-import { getFloorPhase } from "../../lib/club";
 import { authErrorMessage } from "../../lib/phone";
 import BrandTagline from "../brand/BrandTagline";
-import RoomPosterBackdrop from "../brand/RoomPosterBackdrop";
 
 const LOCKUP_SRC = "/brand/planet-mp3-lockup.png";
 
@@ -53,8 +51,6 @@ export default function LoginScreen({
   const [phoneStep, setPhoneStep] = useState("enter");
   const [showPass, setShowPass] = useState(false);
 
-  const floor = getFloorPhase();
-  const thresholdAtmosphere = floor?.id || "warmup";
   const displayError = error || (authError ? authErrorMessage(authError) : "");
 
   function resetMessages() {
@@ -181,10 +177,22 @@ export default function LoginScreen({
 
   return (
     <div style={{ ...APP_STYLE, position: "relative", justifyContent: "flex-end" }}>
-      <RoomPosterBackdrop
-        atmosphere={thresholdAtmosphere}
-        minHeight="100%"
-        style={{ position: "absolute", inset: 0, minHeight: "100%" }}
+      <div
+        aria-hidden="true"
+        style={{
+          position: "absolute",
+          inset: 0,
+          background: aluminumGradient(),
+        }}
+      />
+      <div
+        aria-hidden="true"
+        style={{
+          position: "absolute",
+          inset: 0,
+          background:
+            "radial-gradient(ellipse 80% 50% at 50% 0%, rgba(10,124,255,0.1) 0%, transparent 55%)",
+        }}
       />
       {/* Soft brand wash — large lockup, barely there */}
       <div
@@ -200,9 +208,9 @@ export default function LoginScreen({
           backgroundSize: "contain",
           backgroundPosition: "center",
           backgroundRepeat: "no-repeat",
-          opacity: 0.08,
+          opacity: 0.06,
           pointerEvents: "none",
-          filter: "blur(0.2px)",
+          filter: "grayscale(0.15)",
         }}
       />
       <div
@@ -244,13 +252,13 @@ export default function LoginScreen({
               userSelect: "none",
               borderRadius: "22%",
               animation: "brandLockupBreathe 6.5s ease-in-out infinite",
+              boxShadow: "0 18px 48px rgba(26,29,36,0.16)",
             }}
           />
           <BrandTagline
-            light
             size={11}
             style={{
-              color: color.onDarkMuted,
+              color: color.muted,
               letterSpacing: 0.16,
               margin: 0,
             }}
@@ -269,10 +277,12 @@ export default function LoginScreen({
             flexDirection: "column",
             gap: 12,
             padding: "18px 16px 16px",
-            background: color.surfaceSolid,
-            border: `1px solid ${color.line}`,
+            background: "rgba(255,255,255,0.88)",
+            border: `1px solid ${glass.border}`,
             borderRadius: radius.lg,
-            boxShadow: "0 24px 64px rgba(0,0,0,0.35)",
+            boxShadow: `inset 0 1px 0 ${glass.highlight}, 0 18px 48px rgba(26,29,36,0.12)`,
+            backdropFilter: glass.blurSoft,
+            WebkitBackdropFilter: glass.blurSoft,
           }}
         >
           <button
@@ -286,7 +296,7 @@ export default function LoginScreen({
               gap: 10,
               width: "100%",
               padding: "14px 20px",
-              borderRadius: 980,
+              borderRadius: radius.md,
               border: "none",
               background: color.accent,
               cursor: loading ? "wait" : "pointer",

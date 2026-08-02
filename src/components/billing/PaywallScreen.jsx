@@ -42,8 +42,8 @@ export default function PaywallScreen({
         justifyContent: "center",
         padding: "48px 28px 40px",
         background: `
-          radial-gradient(ellipse 90% 55% at 50% -10%, rgba(255,255,255,0.08) 0%, transparent 55%),
-          linear-gradient(180deg, #0A0A0C 0%, ${color.canvas} 42%, ${color.canvas} 100%)
+          radial-gradient(ellipse 90% 55% at 50% -10%, rgba(10,124,255,0.1) 0%, transparent 55%),
+          linear-gradient(180deg, #F4F6F9 0%, ${color.canvas} 42%, ${color.canvas} 100%)
         `,
       }}
     >
@@ -133,7 +133,7 @@ export default function PaywallScreen({
           style={{
             ...BTN_PRIMARY,
             width: "100%",
-            borderRadius: 980,
+            borderRadius: radius.md,
             marginBottom: 12,
             fontSize: 17,
           }}
@@ -149,7 +149,7 @@ export default function PaywallScreen({
             style={{
               ...BTN_SECONDARY,
               width: "100%",
-              borderRadius: 980,
+              borderRadius: radius.md,
               marginBottom: 12,
               opacity: refreshing ? 0.6 : 1,
             }}

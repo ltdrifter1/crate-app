@@ -46,10 +46,9 @@ export default function CommunityMixBanner({
           cursor: "pointer",
           color: color.ink,
           background: `
-            radial-gradient(ellipse 70% 100% at 100% 0%, rgba(255,255,255,0.06) 0%, transparent 50%),
-            ${glass.fill}
+            linear-gradient(160deg, rgba(255,255,255,0.95) 0%, rgba(242,244,247,0.9) 100%)
           `,
-          boxShadow: `inset 0 1px 0 ${glass.highlight}`,
+          boxShadow: `inset 0 1px 0 ${glass.highlight}, ${glass.shadowSoft}`,
         }}
       >
         <div style={{
@@ -85,7 +84,7 @@ export default function CommunityMixBanner({
             }}
             style={{
               ...BTN_PRIMARY,
-              borderRadius: 980,
+              borderRadius: radius.md,
               display: "inline-flex",
               alignItems: "center",
               justifyContent: "center",

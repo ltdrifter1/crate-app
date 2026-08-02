@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { CANONICAL_GENRES, migratePreferredGenres } from "../../lib/genres";
-import { font, fontDisplay, fontMono, color, BTN_PRIMARY } from "../../theme";
+import { font, fontDisplay, fontMono, color, radius, BTN_PRIMARY } from "../../theme";
 import BrandMark from "../brand/BrandMark";
 
 /**
@@ -48,7 +48,7 @@ export default function GenreTasteOnboarding({
           right: 0,
           height: "42vh",
           background:
-            "radial-gradient(ellipse at 50% 0%, rgba(242,243,245,0.08) 0%, transparent 55%)",
+            "radial-gradient(ellipse at 50% 0%, rgba(10,124,255,0.1) 0%, transparent 55%)",
           pointerEvents: "none",
         }}
       />
@@ -140,7 +140,7 @@ export default function GenreTasteOnboarding({
                   style={{
                     width: 22,
                     height: 22,
-                    borderRadius: 980,
+                    borderRadius: radius.md,
                     border: on ? `none` : `1px solid ${color.lineStrong}`,
                     background: on ? color.accent : "transparent",
                     color: color.onAccent,
@@ -167,7 +167,7 @@ export default function GenreTasteOnboarding({
             onClick={() => ready && onComplete?.(selected)}
             style={{
               ...BTN_PRIMARY,
-              borderRadius: 980,
+              borderRadius: radius.md,
               padding: "16px 28px",
               opacity: ready ? 1 : 0.4,
               cursor: ready ? "pointer" : "default",
