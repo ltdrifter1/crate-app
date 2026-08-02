@@ -36,6 +36,8 @@ import {
   listenPoolLabel,
   createListenIntent,
 } from "./lib/listenPool";
+import { EnergyShiftButton, EnergyShiftFeedback } from "./components/listen/EnergyShiftButton";
+import { playerEnergyStore } from "./lib/playerEnergyStore";
 import ArtistPage, { AlbumPage } from "./components/catalog/ArtistPage";
 import LinerNotesSheet from "./components/catalog/LinerNotesSheet";
 import LoginScreen from "./components/auth/LoginScreen";
@@ -173,6 +175,14 @@ const injectStyles = () => {
       0%, 100% { transform: translateY(0); }
       50% { transform: translateY(-4px); }
     }
+    @keyframes energyPillLife {
+      0% { opacity:0; transform:translateY(8px) scale(0.96) }
+      14% { opacity:1; transform:none }
+      78% { opacity:1; transform:none }
+      100% { opacity:0; transform:translateY(-4px) }
+    }
+    @keyframes energyPillIn { from{opacity:0;transform:translateY(6px) scale(0.94)} to{opacity:1;transform:none} }
+    @keyframes energyMenuIn { from{opacity:0;transform:translateX(-50%) translateY(6px) scale(0.95)} to{opacity:1;transform:translateX(-50%)} }
     @keyframes shelfReveal {
       from { opacity: 0; transform: translateY(10px) scale(0.985); }
       to { opacity: 1; transform: none; }
@@ -2467,8 +2477,10 @@ function ImmersivePlayer({
         </div>
 
         <div style={{
+          position: "relative",
           display: "flex", alignItems: "center", justifyContent: "center", gap: 14,
         }}>
+          <EnergyShiftFeedback bottom="calc(100% + 16px)" />
           <button type="button" onClick={() => onLike?.(currentTrack.id)} aria-label={currentTrack.liked ? "Unlike" : "Like"}
             style={{ background: "none", border: "none", cursor: "pointer", color: currentTrack.liked ? color.accent : color.faint, padding: 8 }}>
             <Icon name={currentTrack.liked ? "heart" : "heartempty"} size={18}/>
@@ -2480,6 +2492,7 @@ function ImmersivePlayer({
               {shuffle && <span aria-hidden="true" style={{ position: "absolute", bottom: 2, left: "50%", transform: "translateX(-50%)", width: 4, height: 4, borderRadius: "50%", background: color.accent }}/>}
             </button>
           )}
+          <EnergyShiftButton direction="down" size={36} stopPropagation={false} />
           <button type="button" onClick={onPrev} aria-label="Previous"
             style={{ background: "none", border: "none", cursor: "pointer", color: color.ink, padding: 8 }}>
             <Icon name="prev" size={20}/>
@@ -2494,6 +2507,7 @@ function ImmersivePlayer({
             style={{ background: "none", border: "none", cursor: "pointer", color: color.ink, padding: 8 }}>
             <Icon name="skip" size={20}/>
           </button>
+          <EnergyShiftButton direction="up" size={36} stopPropagation={false} />
           {!isRadioMode && onCycleRepeat && (
             <button type="button" onClick={onCycleRepeat}
               aria-label={repeat === "off" ? "Repeat all" : repeat === "all" ? "Repeat one" : "Repeat off"}
@@ -4548,6 +4562,7 @@ function GlassDock({
         pointerEvents: "none",
       }}
     >
+      {hasPlayer && <EnergyShiftFeedback />}
       <div
         className="glass-dock"
         style={{
@@ -4625,6 +4640,7 @@ function GlassDock({
               </button>
             )}
             <TrackMoreButton onClick={(e) => openFromButton(e, track)} />
+            <EnergyShiftButton direction="down" size={28} />
             <button type="button" aria-label="Previous"
               onClick={(e) => { e.stopPropagation(); onPrev?.(); }}
               style={{ background: "none", border: "none", cursor: "pointer", color: color.muted, padding: 4 }}>
@@ -4642,6 +4658,7 @@ function GlassDock({
               style={{ background: "none", border: "none", cursor: "pointer", color: color.muted, padding: 4 }}>
               <Icon name="skip" size={16}/>
             </button>
+            <EnergyShiftButton direction="up" size={28} />
           </div>
         )}
 
@@ -4913,6 +4930,8 @@ export default function App() {
     scopedPool: true,
     // Hard genre focus = play that lane; otherwise 95/5 taste blend
     tasteBlend: !listenFocus.genre,
+    // Rabbit / Turtle sweep — read fresh so picks always see the latest target
+    energyShift: playerEnergyStore.getState(),
   });
   const setPrev = isRadioMode && currentTrack
     ? playHistoryRef.current.filter(t => t && t.id !== currentTrack.id).slice(0, 2).reverse()
@@ -4928,6 +4947,8 @@ export default function App() {
       { id: track.id, genre: track.genre, energy: track.energy || 5, ts: now },
       ...recentlyPlayedRef.current
     ].slice(0, 100);
+    // Advance the Energy Shift lawnmower sweep one step
+    playerEnergyStore.onTrackPlayed(track);
     // Update Aura human state
     setSignalState(computeHumanState(recentlyPlayedRef.current, sessionStartRef.current));
   }
@@ -5293,6 +5314,7 @@ export default function App() {
         seedTrack: hypnoSeed,
         scopedPool: true,
         tasteBlend: !(listenFocusRef.current?.genre),
+        energyShift: playerEnergyStore.getState(),
       });
     } else {
       const q = queueRef.current;
@@ -6329,6 +6351,7 @@ export default function App() {
         {/* Desktop mini-player — hidden on Home; Cover Stage owns transport */}
         {currentTrack && !immersive && screen !== "home" && (
           <div style={{ position:"fixed", bottom:12, left:208, right:348, zIndex:80 }}>
+            <EnergyShiftFeedback />
             <div onClick={()=>setImmersive(true)} className="glass-dock" style={{
               borderRadius: dock.radius,
               display:"flex", alignItems:"center", gap:12,
@@ -6363,6 +6386,7 @@ export default function App() {
               </div>
               <span style={{ fontSize:10, color: color.faint, fontVariantNumeric:"tabular-nums", flexShrink:0 }}>{fmtTime(progress)}</span>
               <button onClick={e=>{e.stopPropagation();onLikeToggle();}} style={{ background:"none",border:"none",cursor:"pointer",color:currentTrack.liked?color.accent:color.faint,padding:4 }}><Icon name={currentTrack.liked?"heart":"heartempty"} size={16}/></button>
+              <EnergyShiftButton direction="down" size={30} />
               <IceOrbPlay
                 isPlaying={isPlaying}
                 onClick={() => setIsPlaying((p) => !p)}
@@ -6371,6 +6395,7 @@ export default function App() {
                 stopPropagation
               />
               <button onClick={e=>{e.stopPropagation();handleSkip();}} style={{ background:"none",border:"none",cursor:"pointer",color: color.muted,padding:4 }}><Icon name="skip" size={16}/></button>
+              <EnergyShiftButton direction="up" size={30} />
             </div>
           </div>
         )}

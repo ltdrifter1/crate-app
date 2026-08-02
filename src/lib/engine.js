@@ -2,6 +2,7 @@
 import { camelotCompatible, getEnergyRangeForHour } from "./harmony";
 import { normalizeGenre } from "./genres";
 import { tasteCandidatePool } from "./taste";
+import { pickEnergyTrack } from "./EnergyRecommendationEngine";
 
 export function computeHumanState(recentPlays, sessionStartTime) {
   if (!recentPlays.length) return { intensity: 0.5, openness: 0.5, momentum: 0, depth: 0, direction: 0, label: "Just started" };
@@ -224,6 +225,14 @@ export function pickNextTrack(allTracks, currentTrack, memory = null, options = 
       : allTracks.filter(t => t.id !== currentTrack?.id && (t.duration||0) <= 900);
     if (!wide.length) return allTracks[0];
     return wide[Math.floor(Math.random() * wide.length)];
+  }
+
+  // Energy Shift (Rabbit / Turtle) — when a sweep is active it owns the pick.
+  // The engine walks the pool toward the pending BPM/Camelot/energy target one
+  // musical step at a time instead of the usual hour/taste pools.
+  if (options.energyShift?.active && currentTrack) {
+    const energyPick = pickEnergyTrack(pool, currentTrack, options.energyShift);
+    if (energyPick) return energyPick;
   }
 
   function weightedPick(candidates) {
