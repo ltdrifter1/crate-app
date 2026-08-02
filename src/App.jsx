@@ -2995,12 +2995,12 @@ function ForYouRiver({
 }) {
   if (!tracks.length) return null;
   const tasteLine = coldStart
-    ? "A starting set while we learn what you like."
-    : "Recent listens, rising tracks, and picks shaped by your taste.";
+    ? "A starting stack while we learn your taste."
+    : "Recent listens, rising cuts, and picks pulled for your rotation.";
 
   return (
     <HomeSection
-      label={coldStart ? "New for you" : "Suggested"}
+      label={coldStart ? "First crate" : "Your rotation"}
       subtitle={tasteLine}
       delay={0.06}
       first
@@ -3163,7 +3163,7 @@ function SearchScreen({
 }) {
   return (
     <div style={{ padding: "0 0 16px" }}>
-      <CollapsingHeader title="Search" subtitle="Find artists, songs, and albums." />
+      <CollapsingHeader title="Search" subtitle="Dig for artists, cuts, and records." />
       <div style={{ padding: "10px 16px 0" }}>
       <div style={{ position:"relative", marginBottom:20 }}>
         <div style={{ position:"absolute", left:14, top:"50%", transform:"translateY(-50%)", color: color.faint }}><Icon name="search" size={16}/></div>
@@ -3228,9 +3228,9 @@ function SearchScreen({
       )}
       {query.length>1&&!results.length&&!(entityHits?.artists?.length || entityHits?.albums?.length)&&(
         <div style={{ textAlign:"center", padding:"56px 0" }}>
-          <div style={{ color: color.ink, fontSize:17, fontWeight:600, fontFamily: fontDisplay, marginBottom:8 }}>No Results for “{query}”</div>
+          <div style={{ color: color.ink, fontSize:17, fontWeight:600, fontFamily: fontDisplay, marginBottom:8 }}>Nothing in the crate for “{query}”</div>
           <div style={{ color: color.muted, fontSize:15, lineHeight:1.5, maxWidth:260, margin:"0 auto" }}>
-            Try another artist, song, or album.
+            Try another artist, cut, or record.
           </div>
         </div>
       )}
@@ -6018,7 +6018,7 @@ export default function App() {
       {tracksLoading && (
         <div style={{ position:"absolute", top:"50%", left:"50%", transform:"translate(-50%,-50%)", zIndex:50, textAlign:"center" }}>
           <div style={{ width:56, height:56, borderRadius:14, background: color.surfaceRaised, border:`1px solid ${color.line}`, display:"flex", alignItems:"center", justifyContent:"center", margin:"0 auto 12px", overflow:"hidden" }}><BrandGlyph size={40} showWordmark={false}/></div>
-          <div style={{ fontSize:14, color: color.muted }}>Loading your collection…</div>
+          <div style={{ fontSize:14, color: color.muted }}>Pulling records from the shelf…</div>
         </div>
       )}
       <div style={{ flex:1, overflow:"auto", paddingBottom: contentPadBottom(!!currentTrack && !immersive && !hideDockPlayer), zIndex:1, position:"relative" }}>
