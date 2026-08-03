@@ -203,7 +203,7 @@ export default function LoginScreen({
           width: "min(148vw, 820px)",
           height: "min(148vw, 820px)",
           transform: "translate(-50%, -50%)",
-          backgroundImage: "url(/brand/planet-mp3-lockup.png)",
+          backgroundImage: "url(/brand/logo-mark.png)",
           backgroundSize: "contain",
           backgroundPosition: "center",
           backgroundRepeat: "no-repeat",

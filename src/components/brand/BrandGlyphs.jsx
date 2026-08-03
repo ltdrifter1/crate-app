@@ -55,7 +55,8 @@ export function BrandLockup({
 }) {
   const face = (
     <img
-      src={onBlack ? BRAND_LOCKUP_ON_BLACK_SRC : BRAND_LOCKUP_SRC}
+      // Light surfaces: exact mark (bright planet + PLANET MP3). Dark plates: on-black lockup.
+      src={onBlack ? BRAND_LOCKUP_ON_BLACK_SRC : BRAND_MARK_SRC}
       alt={title || ""}
       draggable={false}
       style={{

@@ -332,17 +332,19 @@ export function buildRoute(allTracks, startTrack, endTrack, maxSteps = 12) {
 // ─── SESSION ENGINE ──────────────────────────────────────────────────────────
 // Activity-based energy arc profiles. Each phase has a proportion (0-1) and target energy.
 export const SESSION_PROFILES = {
-  night:      { label: "Night out",     blurb: "Builds up, peaks, then eases down", phases: [{ name: "Warm up", p: 0.2, e: 5 }, { name: "Peak", p: 0.4, e: 9 }, { name: "Late", p: 0.25, e: 4 }, { name: "Wind down", p: 0.15, e: 2 }] },
-  party:      { label: "Party",         blurb: "High energy from start to finish", phases: [{ name: "Warm up", p: 0.15, e: 4 }, { name: "Build", p: 0.2, e: 6 }, { name: "Peak", p: 0.35, e: 9 }, { name: "Keep going", p: 0.2, e: 8 }, { name: "Wind down", p: 0.1, e: 5 }] },
-  predrinks:  { label: "Getting ready", blurb: "Starts easy, gets livelier", phases: [{ name: "Ease in", p: 0.2, e: 4 }, { name: "Lift", p: 0.35, e: 6 }, { name: "Buzz", p: 0.3, e: 7 }, { name: "Ready", p: 0.15, e: 8 }] },
-  drive:      { label: "Drive",         blurb: "Steady music for the road", phases: [{ name: "Leave", p: 0.15, e: 5 }, { name: "Cruise", p: 0.5, e: 6 }, { name: "Deep", p: 0.25, e: 4 }, { name: "Arrive", p: 0.1, e: 3 }] },
-  chill:      { label: "Chill",         blurb: "Calm and unhurried", phases: [{ name: "Ease in", p: 0.3, e: 3 }, { name: "Float", p: 0.4, e: 2 }, { name: "Settle", p: 0.3, e: 3 }] },
-  recovery:   { label: "Rest",          blurb: "Soft and restorative", phases: [{ name: "Slow down", p: 0.2, e: 2 }, { name: "Rest", p: 0.5, e: 1 }, { name: "Ease up", p: 0.3, e: 3 }] },
-  run:        { label: "Run",           blurb: "Keeps you moving", phases: [{ name: "Pace up", p: 0.1, e: 6 }, { name: "Stride", p: 0.4, e: 8 }, { name: "Push", p: 0.35, e: 9 }, { name: "Cool down", p: 0.15, e: 5 }] },
-  workout:    { label: "Workout",       blurb: "Warm up, push, then stretch", phases: [{ name: "Warm up", p: 0.12, e: 5 }, { name: "Build", p: 0.2, e: 7 }, { name: "Peak", p: 0.4, e: 9 }, { name: "Push", p: 0.18, e: 8 }, { name: "Stretch", p: 0.1, e: 3 }] },
-  focus:      { label: "Focus",         blurb: "Steady background for work", phases: [{ name: "Settle in", p: 0.15, e: 4 }, { name: "Focus", p: 0.6, e: 3 }, { name: "Keep going", p: 0.2, e: 4 }, { name: "Ease out", p: 0.05, e: 3 }] },
-  dinner:     { label: "Dinner",        blurb: "Good company, good volume", phases: [{ name: "Arrive", p: 0.2, e: 4 }, { name: "Talk", p: 0.5, e: 3 }, { name: "Linger", p: 0.3, e: 4 }] },
-  study:      { label: "Study",         blurb: "Quiet focus with soft breaks", phases: [{ name: "Settle", p: 0.1, e: 3 }, { name: "Deep work", p: 0.7, e: 2 }, { name: "Break", p: 0.1, e: 4 }, { name: "Close", p: 0.1, e: 2 }] },
+  // Arc vocabulary stays simple: Warm up → Peak → Chill out
+  // (+ Cruise only when the vibe needs a steady middle)
+  night:      { label: "Night out",     blurb: "Builds up, peaks, then eases down", phases: [{ name: "Warm up", p: 0.25, e: 5 }, { name: "Peak", p: 0.5, e: 9 }, { name: "Chill out", p: 0.25, e: 3 }] },
+  party:      { label: "Party",         blurb: "High energy from start to finish", phases: [{ name: "Warm up", p: 0.2, e: 5 }, { name: "Peak", p: 0.55, e: 9 }, { name: "Chill out", p: 0.25, e: 5 }] },
+  predrinks:  { label: "Getting ready", blurb: "Starts easy, gets livelier", phases: [{ name: "Warm up", p: 0.3, e: 4 }, { name: "Peak", p: 0.5, e: 7 }, { name: "Chill out", p: 0.2, e: 6 }] },
+  drive:      { label: "Drive",         blurb: "Steady music for the road", phases: [{ name: "Warm up", p: 0.2, e: 5 }, { name: "Cruise", p: 0.55, e: 6 }, { name: "Chill out", p: 0.25, e: 3 }] },
+  chill:      { label: "Chill",         blurb: "Calm and unhurried", phases: [{ name: "Warm up", p: 0.25, e: 3 }, { name: "Cruise", p: 0.5, e: 2 }, { name: "Chill out", p: 0.25, e: 2 }] },
+  recovery:   { label: "Rest",          blurb: "Soft and restorative", phases: [{ name: "Warm up", p: 0.2, e: 2 }, { name: "Cruise", p: 0.55, e: 1 }, { name: "Chill out", p: 0.25, e: 2 }] },
+  run:        { label: "Run",           blurb: "Keeps you moving", phases: [{ name: "Warm up", p: 0.2, e: 6 }, { name: "Peak", p: 0.55, e: 9 }, { name: "Chill out", p: 0.25, e: 4 }] },
+  workout:    { label: "Workout",       blurb: "Warm up, push, then stretch", phases: [{ name: "Warm up", p: 0.2, e: 5 }, { name: "Peak", p: 0.55, e: 9 }, { name: "Chill out", p: 0.25, e: 3 }] },
+  focus:      { label: "Focus",         blurb: "Steady background for work", phases: [{ name: "Warm up", p: 0.15, e: 4 }, { name: "Cruise", p: 0.7, e: 3 }, { name: "Chill out", p: 0.15, e: 3 }] },
+  dinner:     { label: "Dinner",        blurb: "Good company, good volume", phases: [{ name: "Warm up", p: 0.25, e: 4 }, { name: "Cruise", p: 0.5, e: 3 }, { name: "Chill out", p: 0.25, e: 3 }] },
+  study:      { label: "Study",         blurb: "Quiet focus with soft breaks", phases: [{ name: "Warm up", p: 0.15, e: 3 }, { name: "Cruise", p: 0.7, e: 2 }, { name: "Chill out", p: 0.15, e: 2 }] },
 };
 
 export function buildSession(allTracks, durationMins, activityId) {
