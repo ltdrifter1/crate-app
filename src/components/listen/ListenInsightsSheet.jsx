@@ -233,7 +233,7 @@ export default function ListenInsightsSheet({
             lineHeight: 1.05,
             marginBottom: 8,
           }}>
-            Your listening
+            Your interests
           </h1>
           <p style={{
             margin: "0 0 6px",
