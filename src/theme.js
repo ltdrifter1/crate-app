@@ -1,6 +1,5 @@
-// Design tokens — modern premium library UI.
-// Early iTunes memory: aluminum chrome, blue selection, album-first.
-// Cool platinum (not cream), no OLED black, no Spotify green.
+// Design tokens — Y2K chrome library UI.
+// Light grey glass, brushed aluminum, blurred edges — no selection blue.
 
 export const fontDisplay =
   '"Outfit", "Avenir Next", "Segoe UI", "Helvetica Neue", Helvetica, sans-serif';
@@ -9,7 +8,7 @@ export const font =
 export const fontMono =
   '"IBM Plex Mono", "SF Mono", ui-monospace, Menlo, Monaco, "Courier New", monospace';
 
-/** Brand palette — Y2K metallic grey + classic selection blue */
+/** Brand palette — cool platinum + charcoal chrome (no blue accents) */
 export const color = {
   ink: "#16181E",
   body: "#3A404C",
@@ -22,17 +21,18 @@ export const color = {
   surfaceRaised: "#EEF1F5",
   canvas: "#E2E6ED",
   canvasEdge: "#CFD5DF",
-  accent: "#0A7CFF",
-  accentSoft: "rgba(10, 124, 255, 0.12)",
-  accentGlow: "rgba(10, 124, 255, 0.22)",
-  onAccent: "#FFFFFF",
+  /** Charcoal chrome — primary interactive signal */
+  accent: "#2A2E38",
+  accentSoft: "rgba(42, 46, 56, 0.1)",
+  accentGlow: "rgba(42, 46, 56, 0.18)",
+  onAccent: "#F4F6F9",
   onDark: "#F2F4F7",
   onDarkMuted: "rgba(242,244,247,0.62)",
   alert: "#C45C3E",
   station: "#EBEEF3",
-  /** Classic Mac list selection wash */
-  select: "rgba(10, 124, 255, 0.16)",
-  selectStrong: "rgba(10, 124, 255, 0.28)",
+  /** Soft aluminum list selection */
+  select: "rgba(42, 46, 56, 0.1)",
+  selectStrong: "rgba(42, 46, 56, 0.18)",
 };
 
 /** Frosted Y2K aluminum — soft glass edges, cool grey chrome. */
@@ -44,18 +44,21 @@ export const glass = {
   borderSoft: "rgba(22, 24, 30, 0.07)",
   borderFaint: "rgba(22, 24, 30, 0.045)",
   highlight: "rgba(255, 255, 255, 0.88)",
-  blur: "blur(28px) saturate(1.25)",
-  blurSoft: "blur(18px) saturate(1.15)",
-  blurHeavy: "blur(40px) saturate(1.2)",
+  blur: "blur(28px) saturate(1.2)",
+  blurSoft: "blur(18px) saturate(1.12)",
+  blurHeavy: "blur(40px) saturate(1.15)",
   shadow: "0 12px 36px rgba(22, 24, 30, 0.11)",
   shadowSoft: "0 8px 24px rgba(22, 24, 30, 0.08)",
+  /** Specular chrome edge for Y2K control plates */
+  chrome:
+    "linear-gradient(160deg, rgba(255,255,255,0.95) 0%, rgba(236,240,246,0.7) 42%, rgba(210,216,226,0.55) 100%)",
 };
 
 /** Soft jewel-case shadow for album art — Cover Flow memory. */
 export const artShadow = {
   quiet: "0 2px 4px rgba(26,29,36,0.06), 0 10px 24px rgba(26,29,36,0.12)",
   raised: "0 4px 8px rgba(26,29,36,0.08), 0 18px 40px rgba(26,29,36,0.16)",
-  active: `0 0 0 2px ${color.accent}, 0 8px 20px rgba(10,124,255,0.18), 0 18px 40px rgba(26,29,36,0.14)`,
+  active: `0 0 0 2px ${color.ink}, 0 8px 20px rgba(22,24,30,0.14), 0 18px 40px rgba(26,29,36,0.14)`,
 };
 
 /** Home rhythm — wider section breaks, consistent gutters. */
@@ -185,24 +188,31 @@ export const INPUT_ST = {
   padding: "13px 16px",
   borderRadius: radius.md,
   border: `1px solid ${glass.border}`,
-  background: color.surfaceSolid,
+  background: "rgba(255,255,255,0.72)",
   color: color.ink,
   fontSize: 16,
   fontFamily: font,
   boxShadow: `inset 0 1px 0 ${glass.highlight}`,
+  backdropFilter: glass.blurSoft,
+  WebkitBackdropFilter: glass.blurSoft,
 };
 
+/** Primary CTA — charcoal chrome plate, not blue fill. */
 export const BTN_PRIMARY = {
   width: "100%",
   padding: "13px 20px",
   borderRadius: radius.md,
-  border: "none",
-  background: color.accent,
+  border: `1px solid rgba(22, 24, 30, 0.22)`,
+  background: `
+    linear-gradient(180deg, rgba(255,255,255,0.16) 0%, transparent 42%),
+    linear-gradient(165deg, #3A404C 0%, #1A1D24 100%)
+  `,
   color: color.onAccent,
   fontSize: 16,
   fontWeight: 600,
   cursor: "pointer",
   fontFamily: font,
+  boxShadow: `inset 0 1px 0 rgba(255,255,255,0.22), ${glass.shadowSoft}`,
 };
 
 export const BTN_SECONDARY = {
@@ -218,6 +228,7 @@ export const BTN_SECONDARY = {
   fontFamily: font,
   backdropFilter: glass.blurSoft,
   WebkitBackdropFilter: glass.blurSoft,
+  boxShadow: `inset 0 1px 0 ${glass.highlight}`,
 };
 
 export const CTRL_BTN = {

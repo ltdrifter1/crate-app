@@ -2,8 +2,8 @@ import { color, font, fontDisplay, ADMIN_UID, timeOfDayGradient, BRAND_TAGLINE, 
 
 test('theme exports core tokens', () => {
   expect(color.ink).toBeTruthy();
-  expect(color.accent).toMatch(/#0A7CFF/i);
-  expect(color.onAccent).toMatch(/#FFFFFF/i);
+  expect(color.accent).toMatch(/#2A2E38/i);
+  expect(color.onAccent).toMatch(/#F4F6F9/i);
   expect(color.canvas).toMatch(/#E/i);
   expect(color.alert).toBeTruthy();
   expect(color.select).toMatch(/rgba/);
