@@ -72,6 +72,7 @@ import BrandMark, { BrandGlyph as DoorGlyph, BrandLockup } from "./components/br
 import BrandTagline from "./components/brand/BrandTagline";
 import GenreSceneBrowse from "./components/search/GenreSceneBrowse";
 import GenreTasteSheet from "./components/listen/GenreTasteSheet";
+import FlaskTasteButton from "./components/listen/FlaskTasteButton";
 import GenreTasteOnboarding from "./components/onboarding/GenreTasteOnboarding";
 import { vibeForMixLane, blendPoolForSession } from "./lib/taste";
 
@@ -193,6 +194,67 @@ const injectStyles = () => {
       0% { transform: scale(1); }
       40% { transform: scale(1.28); }
       100% { transform: scale(1); }
+    }
+    @keyframes flaskShake {
+      0%, 100% { transform: rotate(0deg) translateY(0); }
+      18% { transform: rotate(-7deg) translateY(0.5px); }
+      36% { transform: rotate(6deg) translateY(-0.5px); }
+      54% { transform: rotate(-4deg) translateY(0.25px); }
+      72% { transform: rotate(3deg); }
+      88% { transform: rotate(-1.5deg); }
+    }
+    @keyframes flaskBubbleRise {
+      0% { transform: translateY(0) scale(0.65); opacity: 0; }
+      18% { opacity: 0.95; }
+      100% { transform: translateY(-8px) scale(1.05); opacity: 0; }
+    }
+    @keyframes flaskSteamRise {
+      0% { transform: translateY(0) scaleX(0.85); opacity: 0; }
+      28% { opacity: 0.7; }
+      100% { transform: translateY(-9px) scaleX(1.35); opacity: 0; }
+    }
+    .flask-taste-btn {
+      position: relative;
+      overflow: visible;
+    }
+    .flask-taste-btn:hover:not(:disabled) {
+      transform: translateY(-1px);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.7), 0 10px 22px rgba(26,29,36,0.16) !important;
+    }
+    .flask-taste-btn:active:not(:disabled) {
+      transform: translateY(0) scale(0.97);
+    }
+    .flask-taste-btn:hover:not(:disabled) .flask-taste-mark {
+      animation: flaskShake 0.58s cubic-bezier(0.36, 0.07, 0.19, 0.97);
+      transform-origin: 50% 78%;
+    }
+    .flask-taste-btn .flask-bubble {
+      transform-box: fill-box;
+      transform-origin: center;
+      animation: flaskBubbleRise 2.4s ease-in-out infinite;
+      animation-play-state: paused;
+    }
+    .flask-taste-btn .flask-bubble-a { animation-delay: 0s; }
+    .flask-taste-btn .flask-bubble-b { animation-delay: 0.55s; }
+    .flask-taste-btn .flask-bubble-c { animation-delay: 1.1s; }
+    .flask-taste-btn .flask-steam {
+      transform-box: fill-box;
+      transform-origin: center bottom;
+      animation: flaskSteamRise 2.1s ease-out infinite;
+      animation-play-state: paused;
+    }
+    .flask-taste-btn .flask-steam-a { animation-delay: 0s; }
+    .flask-taste-btn .flask-steam-b { animation-delay: 0.45s; }
+    .flask-taste-btn .flask-steam-c { animation-delay: 0.9s; }
+    .flask-taste-btn:hover:not(:disabled) .flask-bubble,
+    .flask-taste-btn:hover:not(:disabled) .flask-steam,
+    .flask-taste-btn.is-active .flask-bubble,
+    .flask-taste-btn.is-active .flask-steam {
+      animation-play-state: running;
+    }
+    .flask-taste-btn.is-active .flask-bubble,
+    .flask-taste-btn.is-active .flask-steam {
+      animation-duration: 1.55s;
     }
     .sr-only {
       position: absolute; width: 1px; height: 1px;
@@ -521,11 +583,6 @@ function IceOrbPlay({
       <Icon name={isPlaying ? "pause" : "play"} size={iSize} />
     </button>
   );
-}
-
-/** One listening grammar for chrome labels. */
-function listenModeLabel(_isRadioMode, _hypnoPocket = false) {
-  return "What's in the mix?";
 }
 
 /**
@@ -957,7 +1014,6 @@ function CoverStage({
   const stageTrack = currentTrack || previewTrack;
   const playingVisual = !!(live && isPlaying);
   const pct = duration > 0 ? Math.max(0, Math.min(100, (progress / duration) * 100)) : 0;
-  const modeLabel = listenModeLabel(isRadioMode, hypnoPocket);
 
   useEffect(() => {
     if (!onStageVisibilityChange) return undefined;
@@ -1015,7 +1071,7 @@ function CoverStage({
         />
       )}
 
-      {/* Top chrome — listen mode only (brand lives in the left rail) */}
+      {/* Top chrome — premium flask opens genre taste (brand lives in the left rail) */}
       {live && (
         <div
           style={{
@@ -1028,57 +1084,10 @@ function CoverStage({
             pointerEvents: "none",
           }}
         >
-          <button
-            type="button"
-            onClick={() => onListenFor?.()}
-            style={{
-              pointerEvents: "auto",
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 8,
-              background: glass.fillStrong,
-              border: `1px solid ${glass.border}`,
-              borderRadius: radius.sm,
-              padding: "6px 10px 6px 6px",
-              cursor: onListenFor ? "pointer" : "default",
-              fontSize: 10,
-              fontWeight: 700,
-              letterSpacing: 1.1,
-              textTransform: "uppercase",
-              color: playingVisual ? color.accent : color.body,
-              fontFamily: fontMono,
-              boxShadow: `inset 0 1px 0 ${glass.highlight}, ${glass.shadowSoft}`,
-              backdropFilter: glass.blurSoft,
-              WebkitBackdropFilter: glass.blurSoft,
-            }}
-            aria-label={onListenFor ? `${modeLabel}. Change what we play most` : modeLabel}
-          >
-            <span
-              aria-hidden="true"
-              style={{
-                width: 28,
-                height: 28,
-                borderRadius: 8,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                background: playingVisual ? color.accentSoft : "rgba(26,29,36,0.06)",
-                border: `1px solid ${playingVisual ? color.accentSoft : glass.borderSoft}`,
-                color: playingVisual ? color.accent : color.ink,
-                flexShrink: 0,
-              }}
-            >
-              <Icon name="flask" size={15} />
-            </span>
-            {playingVisual && (
-              <span aria-hidden="true" style={{
-                width: 5, height: 5, borderRadius: "50%", background: color.accent,
-                boxShadow: `0 0 0 3px ${color.accentSoft}`,
-                animation: "stageLiveDot 1.8s ease-in-out infinite",
-              }}/>
-            )}
-            {modeLabel}
-          </button>
+          <FlaskTasteButton
+            onClick={onListenFor || null}
+            active={playingVisual}
+          />
         </div>
       )}
 
