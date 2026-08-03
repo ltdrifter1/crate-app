@@ -8,9 +8,7 @@ import {
 } from "../../theme";
 import { authErrorMessage } from "../../lib/phone";
 import BrandTagline from "../brand/BrandTagline";
-import { BRAND_LOCKUP_SRC } from "../brand/BrandGlyphs";
-
-const LOCKUP_SRC = BRAND_LOCKUP_SRC;
+import { BrandLockup } from "../brand/BrandGlyphs";
 
 /** Re-enable when Firebase phone + reCAPTCHA are configured for production. */
 const ENABLE_PHONE_SIGN_IN = false;
@@ -192,26 +190,26 @@ export default function LoginScreen({
           position: "absolute",
           inset: 0,
           background:
-            "radial-gradient(ellipse 80% 50% at 50% 0%, rgba(10,124,255,0.1) 0%, transparent 55%)",
+            "radial-gradient(ellipse 90% 55% at 50% 8%, rgba(180,190,205,0.35) 0%, transparent 58%), radial-gradient(ellipse 70% 40% at 80% 90%, rgba(10,124,255,0.06) 0%, transparent 55%)",
         }}
       />
-      {/* Soft brand wash — large lockup, barely there */}
+      {/* Soft brand wash — oversized lockup, barely there */}
       <div
         aria-hidden="true"
         style={{
           position: "absolute",
           left: "50%",
-          top: "18%",
-          width: "min(132vw, 720px)",
-          height: "min(132vw, 720px)",
+          top: "16%",
+          width: "min(148vw, 820px)",
+          height: "min(148vw, 820px)",
           transform: "translate(-50%, -50%)",
-          backgroundImage: `url(${LOCKUP_SRC})`,
+          backgroundImage: "url(/brand/planet-mp3-lockup.png)",
           backgroundSize: "contain",
           backgroundPosition: "center",
           backgroundRepeat: "no-repeat",
-          opacity: 0.06,
+          opacity: 0.07,
           pointerEvents: "none",
-          filter: "grayscale(0.15)",
+          filter: "blur(1.5px) grayscale(0.2)",
         }}
       />
       <div
@@ -219,9 +217,9 @@ export default function LoginScreen({
           position: "relative",
           zIndex: 1,
           width: "100%",
-          maxWidth: 420,
+          maxWidth: 440,
           margin: "0 auto",
-          padding: "36px 20px 40px",
+          padding: "28px 20px 40px",
           display: "flex",
           flexDirection: "column",
           gap: 22,
@@ -235,27 +233,18 @@ export default function LoginScreen({
             flexDirection: "column",
             alignItems: "center",
             textAlign: "center",
-            gap: 14,
-            paddingTop: 8,
+            gap: 16,
+            paddingTop: 4,
           }}
         >
-          <img
-            src={LOCKUP_SRC}
-            alt="Planet MP3"
-            width={188}
-            height={188}
-            draggable={false}
+          <div
             style={{
-              width: "min(46vw, 188px)",
-              height: "auto",
-              aspectRatio: "1 / 1",
-              display: "block",
-              userSelect: "none",
-              borderRadius: "22%",
+              width: "min(72vw, 280px)",
               animation: "brandLockupBreathe 6.5s ease-in-out infinite",
-              boxShadow: "0 18px 48px rgba(26,29,36,0.16)",
             }}
-          />
+          >
+            <BrandLockup size={280} glassHalo />
+          </div>
           <BrandTagline
             size={11}
             style={{
@@ -278,12 +267,12 @@ export default function LoginScreen({
             flexDirection: "column",
             gap: 12,
             padding: "18px 16px 16px",
-            background: "rgba(255,255,255,0.88)",
+            background: glass.fillStrong,
             border: `1px solid ${glass.border}`,
-            borderRadius: radius.lg,
-            boxShadow: `inset 0 1px 0 ${glass.highlight}, 0 18px 48px rgba(26,29,36,0.12)`,
-            backdropFilter: glass.blurSoft,
-            WebkitBackdropFilter: glass.blurSoft,
+            borderRadius: radius.xl,
+            boxShadow: `inset 0 1px 0 ${glass.highlight}, 0 22px 56px rgba(22,24,30,0.12)`,
+            backdropFilter: glass.blur,
+            WebkitBackdropFilter: glass.blur,
           }}
         >
           <button

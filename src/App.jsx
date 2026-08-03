@@ -204,12 +204,12 @@ const injectStyles = () => {
       .dock-xtra { display: none !important; }
     }
     .glass-dock {
-      background: rgba(255, 255, 255, 0.78);
+      background: rgba(246, 248, 252, 0.78);
       border: 1px solid ${glass.border};
       box-shadow:
         inset 0 1px 0 ${glass.highlight},
-        0 12px 32px rgba(26, 29, 36, 0.12),
-        0 2px 6px rgba(26, 29, 36, 0.06);
+        0 14px 40px rgba(22, 24, 30, 0.12),
+        0 2px 6px rgba(22, 24, 30, 0.05);
       -webkit-backdrop-filter: ${glass.blur};
       backdrop-filter: ${glass.blur};
       transition: background 0.6s ease;
@@ -920,17 +920,18 @@ function CoverStageAtmosphere({ track = null, playing = false, live = false }) {
         />
       )}
 
-      {/* Soft aluminum veil so chrome stays readable — light, never OLED black */}
+      {/* Soft aluminum veil so chrome stays readable — cool Y2K grey, never OLED */}
       <div style={{
         position: "absolute",
         inset: 0,
         background: hasArt
           ? `
-            linear-gradient(180deg, rgba(230,233,239,0.55) 0%, rgba(230,233,239,0.12) 28%, rgba(230,233,239,0.08) 48%, rgba(230,233,239,0.82) 78%, rgba(230,233,239,0.96) 100%),
-            radial-gradient(ellipse 70% 50% at 50% 18%, rgba(255,255,255,0.2) 0%, transparent 65%)
+            linear-gradient(180deg, rgba(226,230,237,0.58) 0%, rgba(226,230,237,0.12) 28%, rgba(226,230,237,0.08) 48%, rgba(226,230,237,0.84) 78%, rgba(226,230,237,0.97) 100%),
+            radial-gradient(ellipse 70% 50% at 50% 18%, rgba(255,255,255,0.22) 0%, transparent 65%)
           `
           : `
-            linear-gradient(180deg, rgba(230,233,239,0.1) 0%, transparent 30%, transparent 58%, rgba(230,233,239,0.9) 100%)
+            radial-gradient(ellipse 80% 50% at 50% 18%, rgba(190,198,210,0.22) 0%, transparent 60%),
+            linear-gradient(180deg, rgba(226,230,237,0.08) 0%, transparent 30%, transparent 55%, rgba(226,230,237,0.92) 100%)
           `,
       }}/>
     </div>
@@ -1007,7 +1008,7 @@ function CoverStage({
         }}
       >
         <div style={{ pointerEvents: "auto", animation: "markIn 0.55s cubic-bezier(0.22,1,0.36,1) both" }}>
-          <DoorGlyph size={live ? 36 : 42} title="Planet MP3" />
+          <DoorGlyph size={live ? 44 : 52} title="Planet MP3" />
         </div>
         {live && (
           <button
@@ -1065,10 +1066,10 @@ function CoverStage({
         >
           <div style={{
             animation: `markIn 0.7s ${motion.ease} both`,
-            marginBottom: 28,
-            width: "min(72vw, 320px)",
+            marginBottom: 22,
+            width: "min(84vw, 400px)",
           }}>
-            <BrandLockup size={320} />
+            <BrandLockup size={400} glassHalo />
           </div>
           <div style={{ animation: `rise 0.65s ${motion.ease} 0.08s both`, marginBottom: 28 }}>
             <BrandTagline size={12} style={{ letterSpacing: 2.2, textAlign: "center", maxWidth: "none" }} />

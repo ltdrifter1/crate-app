@@ -23,7 +23,7 @@ export default function BrandMark({
   if (variant === "lockup") {
     return (
       <div aria-label={BRAND_NAME} style={{ userSelect: "none" }}>
-        <BrandLockup size={size} />
+        <BrandLockup size={size} glassHalo={size >= 200} />
       </div>
     );
   }
