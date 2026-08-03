@@ -109,7 +109,7 @@ export default function MixScreen({
               onClick={() => onPlayTrack(mixTracks[0], mixTracks)}
               style={{ ...BTN_PRIMARY, borderRadius: radius.md, flex: "1 1 140px" }}
             >
-              Press the plate
+              Play
             </button>
           )}
           {onShare && (
