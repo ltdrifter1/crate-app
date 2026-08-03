@@ -3454,8 +3454,6 @@ function FavoritesScreen({
     setAddQuery("");
   }, [openPlaylistId]);
 
-  const tile = homeSpace.tile;
-  const mosaic = Math.round(tile / 2);
   const playTrackFn = onPlayTrack || ((t, pool) => onPlay(t));
 
   function handleCreate() {
