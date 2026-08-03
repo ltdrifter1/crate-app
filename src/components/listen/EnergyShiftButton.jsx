@@ -336,3 +336,45 @@ export function EnergyShiftFeedback({ bottom = "calc(100% + 12px)" }) {
     </div>
   );
 }
+
+/**
+ * Secondary pace control — tucked above primary transport so the ice orb stays the jewel.
+ */
+export function EnergyShiftCapsule({ stopPropagation = false }) {
+  return (
+    <div
+      role="group"
+      aria-label="Pace — ease or lift upcoming picks"
+      style={{
+        display: "inline-flex",
+        alignItems: "center",
+        gap: 6,
+        padding: "5px 8px",
+        borderRadius: 999,
+        background: "rgba(255,255,255,0.55)",
+        border: `1px solid ${glass.borderSoft}`,
+        boxShadow: `inset 0 1px 0 ${glass.highlight}, ${glass.shadowSoft}`,
+        backdropFilter: glass.blurSoft,
+        WebkitBackdropFilter: glass.blurSoft,
+      }}
+    >
+      <EnergyShiftButton direction="down" size={30} stopPropagation={stopPropagation} />
+      <span
+        aria-hidden="true"
+        style={{
+          fontSize: 9,
+          fontWeight: 700,
+          letterSpacing: 1.1,
+          textTransform: "uppercase",
+          fontFamily: fontMono,
+          color: color.faint,
+          padding: "0 2px",
+          userSelect: "none",
+        }}
+      >
+        Pace
+      </span>
+      <EnergyShiftButton direction="up" size={30} stopPropagation={stopPropagation} />
+    </div>
+  );
+}
