@@ -3746,38 +3746,106 @@ function FavoritesScreen({
     return (
       <div style={{ padding: "24px 16px 36px" }}>
         <button type="button" onClick={() => setOpenPlaylistId(null)} style={{
-          background: "none", border: "none", color: color.accent, fontSize: 17, cursor: "pointer", fontWeight: 400, marginBottom: 16,
+          background: "none", border: "none", color: color.body, fontSize: 17, cursor: "pointer", fontWeight: 500, marginBottom: 16,
         }}>‹ Library</button>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 8, gap: 12 }}>
-          <div style={{ fontSize: 28, fontWeight: 700, color: color.ink, fontFamily: fontDisplay, letterSpacing: -0.8 }}>{openPlaylist.name}</div>
-          <span style={{ fontSize: 13, color: color.muted }}>{openPlaylistTracks.length}</span>
-        </div>
-        {community && openPlaylist.curatorName && (
-          <div style={{ fontSize: 14, color: color.muted, marginBottom: 12 }}>
-            Curated by {openPlaylist.curatorName}
+
+        <div style={{
+          display: "flex",
+          alignItems: "flex-start",
+          justifyContent: "space-between",
+          gap: 16,
+          marginBottom: 8,
+        }}>
+          <div style={{ minWidth: 0, flex: 1 }}>
+            <div style={{
+              fontSize: 28, fontWeight: 700, color: color.ink, fontFamily: fontDisplay,
+              letterSpacing: -0.8, lineHeight: 1.1,
+            }}>
+              {openPlaylist.name}
+            </div>
+            <div style={{ fontSize: 14, color: color.muted, marginTop: 8 }}>
+              {community && openPlaylist.curatorName
+                ? `Curated by ${openPlaylist.curatorName} · ${openPlaylistTracks.length} song${openPlaylistTracks.length === 1 ? "" : "s"}`
+                : `${openPlaylistTracks.length} song${openPlaylistTracks.length === 1 ? "" : "s"}`}
+            </div>
           </div>
-        )}
-        <div style={{ display: "flex", gap: 10, marginBottom: 18, flexWrap: "wrap" }}>
+        </div>
+
+        {/* Best single upgrade: play the whole set without hunting a track */}
+        <div style={{ display: "flex", gap: 10, margin: "18px 0 20px", flexWrap: "wrap", alignItems: "center" }}>
+          <button
+            type="button"
+            disabled={openPlaylistTracks.length === 0}
+            onClick={() => {
+              if (!openPlaylistTracks[0]) return;
+              playTrackFn(openPlaylistTracks[0], openPlaylistTracks);
+            }}
+            aria-label={`Play ${openPlaylist.name}`}
+            style={{
+              ...BTN_PRIMARY,
+              width: "auto",
+              minWidth: 132,
+              borderRadius: radius.md,
+              padding: "12px 20px",
+              fontSize: 15,
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 8,
+              opacity: openPlaylistTracks.length === 0 ? 0.45 : 1,
+              cursor: openPlaylistTracks.length === 0 ? "not-allowed" : "pointer",
+            }}
+          >
+            <Icon name="play" size={14} />
+            Play
+          </button>
+          {openPlaylistTracks.length > 1 && (
+            <button
+              type="button"
+              onClick={() => {
+                const shuffled = [...openPlaylistTracks];
+                for (let i = shuffled.length - 1; i > 0; i--) {
+                  const j = Math.floor(Math.random() * (i + 1));
+                  [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+                }
+                playTrackFn(shuffled[0], shuffled);
+              }}
+              aria-label={`Shuffle ${openPlaylist.name}`}
+              style={{
+                ...BTN_SECONDARY,
+                width: "auto",
+                borderRadius: radius.md,
+                padding: "12px 16px",
+                fontSize: 14,
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 8,
+              }}
+            >
+              <Icon name="shuffle" size={14} />
+              Shuffle
+            </button>
+          )}
           {!community && playlistCtx?.onAdd && (
             <button
               type="button"
               onClick={() => setShowAddCuts((s) => !s)}
               aria-expanded={showAddCuts}
               style={{
-                ...BTN_SECONDARY, borderRadius: 980, padding: "10px 16px", fontSize: 14,
+                ...BTN_SECONDARY, width: "auto", borderRadius: radius.md, padding: "12px 16px", fontSize: 14,
                 ...(showAddCuts ? { background: color.accentSoft, color: color.accent, borderColor: color.accentSoft } : {}),
               }}
             >
-              {showAddCuts ? "Done adding" : "Add Songs"}
+              {showAddCuts ? "Done" : "Add songs"}
             </button>
           )}
           {onSharePlaylist && (
             <button
               type="button"
               onClick={() => onSharePlaylist(openPlaylist)}
-              style={{ ...BTN_SECONDARY, borderRadius: 980, padding: "10px 16px", fontSize: 14 }}
+              style={{ ...BTN_SECONDARY, width: "auto", borderRadius: radius.md, padding: "12px 16px", fontSize: 14 }}
             >
-              {community ? "Share Community Mix" : "Share to Mixtape Club"}
+              Share
             </button>
           )}
           {!community && onRenamePlaylist && (
@@ -3789,7 +3857,7 @@ function FavoritesScreen({
                   onRenamePlaylist(openPlaylist.id, next.trim());
                 }
               }}
-              style={{ ...BTN_SECONDARY, borderRadius: 980, padding: "10px 16px", fontSize: 14 }}
+              style={{ ...BTN_SECONDARY, width: "auto", borderRadius: radius.md, padding: "12px 16px", fontSize: 14 }}
             >
               Rename
             </button>
@@ -3802,7 +3870,7 @@ function FavoritesScreen({
                 onDeletePlaylist(openPlaylist.id);
                 setOpenPlaylistId(null);
               }}
-              style={{ ...BTN_SECONDARY, borderRadius: 980, padding: "10px 16px", fontSize: 14, color: color.alert }}
+              style={{ ...BTN_SECONDARY, width: "auto", borderRadius: radius.md, padding: "12px 16px", fontSize: 14, color: color.alert }}
             >
               Delete
             </button>
@@ -7338,11 +7406,12 @@ export default function App() {
 
   // ── Desktop: 3-column shell (iTunes-style source list) ───────────────────
   const NAV_TOP = [
-    { id: "home",      icon: "home",   label: "Home" },
-    { id: "favorites", icon: "dig",    label: "Library" },
-    { id: "search",    icon: "search", label: "Search" },
+    { id: "home",   icon: "home",   label: "Home" },
+    { id: "search", icon: "search", label: "Search" },
   ];
-  const NAV_BOTTOM = [];
+  const NAV_BOTTOM = [
+    { id: "favorites", icon: "dig", label: "Library" },
+  ];
 
   const recentTracks = [...tracks].slice(0, 6);
 
@@ -7425,26 +7494,38 @@ export default function App() {
         <div style={{ height: 8, flexShrink: 0 }}/>
 
         <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-          {NAV_BOTTOM.map((item) => (
-            <button
-              key={item.id}
-              type="button"
-              className="nav-rail-btn"
-              onClick={() => setScreen(item.id)}
-              title={item.label}
-              style={{
-                width: "100%", height: 38, borderRadius: radius.sm,
-                background: screen === item.id ? color.select : "transparent",
-                border: "none",
-                color: screen === item.id ? color.accent : color.body,
-                cursor: "pointer",
-                display: "flex", alignItems: "center", gap: 10, padding: "0 10px",
-              }}
-            >
-              <Icon name={item.icon} size={17}/>
-              <span style={{ fontSize: 14 }}>{item.label}</span>
-            </button>
-          ))}
+          {NAV_BOTTOM.map((item) => {
+            const active = screen === item.id;
+            return (
+              <button
+                key={item.id}
+                type="button"
+                className="nav-rail-btn"
+                onClick={() => { setStackOpenRequest(null); setScreen(item.id); }}
+                title={item.label}
+                aria-label={item.label}
+                aria-current={active ? "page" : undefined}
+                style={{
+                  width: "100%", minHeight: 38, borderRadius: radius.sm,
+                  background: active ? color.select : "transparent",
+                  border: active ? `1px solid ${color.accentSoft}` : "1px solid transparent",
+                  color: active ? color.accent : color.body,
+                  cursor: "pointer",
+                  display: "flex", alignItems: "center", gap: 10, padding: "8px 10px",
+                  textAlign: "left",
+                  boxShadow: active ? `inset 0 1px 0 ${glass.highlight}` : "none",
+                }}
+              >
+                <Icon name={item.icon} size={16}/>
+                <span style={{
+                  fontSize: 13, fontWeight: active ? 650 : 500,
+                  letterSpacing: -0.1, lineHeight: 1.2,
+                }}>
+                  {item.label}
+                </span>
+              </button>
+            );
+          })}
           {firebaseUser?.uid === ADMIN_UID && (
             <button
               type="button"
