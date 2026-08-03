@@ -203,7 +203,7 @@ export default function LoginScreen({
           width: "min(148vw, 820px)",
           height: "min(148vw, 820px)",
           transform: "translate(-50%, -50%)",
-          backgroundImage: "url(/brand/logo-mark.png)",
+          backgroundImage: "url(/brand/planet-mp3-lockup-on-black.png)",
           backgroundSize: "contain",
           backgroundPosition: "center",
           backgroundRepeat: "no-repeat",
@@ -243,7 +243,7 @@ export default function LoginScreen({
               animation: "brandLockupBreathe 6.5s ease-in-out infinite",
             }}
           >
-            <BrandLockup size={280} />
+            <BrandLockup size={280} onBlack />
           </div>
           <BrandTagline
             size={11}
