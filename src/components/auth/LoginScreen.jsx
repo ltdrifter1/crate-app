@@ -190,7 +190,7 @@ export default function LoginScreen({
           position: "absolute",
           inset: 0,
           background:
-            "radial-gradient(ellipse 90% 55% at 50% 8%, rgba(180,190,205,0.35) 0%, transparent 58%), radial-gradient(ellipse 70% 40% at 80% 90%, rgba(10,124,255,0.06) 0%, transparent 55%)",
+            "radial-gradient(ellipse 90% 55% at 50% 8%, rgba(180,190,205,0.35) 0%, transparent 58%), radial-gradient(ellipse 70% 40% at 80% 90%, rgba(160,170,185,0.18) 0%, transparent 55%)",
         }}
       />
       {/* Soft brand wash — oversized lockup, barely there */}

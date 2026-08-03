@@ -170,8 +170,8 @@ const injectStyles = () => {
       50% { opacity: 1; }
     }
     @keyframes playGlow {
-      0%, 100% { box-shadow: 0 4px 14px rgba(10,124,255,0.28), 0 1px 0 rgba(255,255,255,0.5) inset; }
-      50% { box-shadow: 0 6px 18px rgba(10,124,255,0.36), 0 1px 0 rgba(255,255,255,0.55) inset; }
+      0%, 100% { box-shadow: 0 4px 14px rgba(22,24,30,0.2), 0 1px 0 rgba(255,255,255,0.5) inset; }
+      50% { box-shadow: 0 6px 18px rgba(22,24,30,0.28), 0 1px 0 rgba(255,255,255,0.55) inset; }
     }
     @keyframes coverFloat {
       0%, 100% { transform: translateY(0); }
@@ -229,15 +229,16 @@ const injectStyles = () => {
         box-shadow ${motion.base} ${motion.ease};
     }
     .custom-mix:hover {
-      background: rgba(255,255,255,0.92) !important;
+      background: rgba(255,255,255,0.88) !important;
       border-color: rgba(26,29,36,0.14) !important;
       box-shadow:
-        inset 0 1px 0 rgba(255,255,255,0.9),
-        0 14px 36px rgba(26,29,36,0.1) !important;
+        inset 0 1px 0 rgba(255,255,255,0.95),
+        0 16px 40px rgba(26,29,36,0.12) !important;
+      transform: translateY(-1px);
     }
     .custom-mix:hover .custom-mix-play {
       transform: scale(1.04);
-      box-shadow: 0 6px 18px rgba(10,124,255,0.32) !important;
+      box-shadow: 0 8px 20px rgba(22,24,30,0.22) !important;
     }
     .custom-mix:active {
       transform: scale(0.992);
@@ -249,7 +250,7 @@ const injectStyles = () => {
       transition: background ${motion.base} ${motion.ease};
     }
     .sidebar-queue-row:hover {
-      background: rgba(10,124,255,0.06) !important;
+      background: rgba(22,24,30,0.05) !important;
     }
     .sidebar-queue-row:hover .sidebar-queue-actions {
       opacity: 1 !important;
@@ -262,7 +263,7 @@ const injectStyles = () => {
       opacity: 1 !important;
     }
     .track-row:hover {
-      background: rgba(10,124,255,0.06) !important;
+      background: rgba(22,24,30,0.05) !important;
     }
     .cover-tile {
       transition: transform ${motion.settle} ${motion.ease}, box-shadow ${motion.settle} ${motion.ease};
@@ -729,7 +730,7 @@ function dockTintStyle(track) {
  */
 function OrbitingPlanet({ playing = false, night = false, progress = 0, tintRgb = null }) {
   // Cool platinum daytime; soft amber at night — track tint blends in when live.
-  const baseRgb = night ? "200,170,120" : "10,124,255";
+  const baseRgb = night ? "200,170,120" : "42,46,56";
   const glowRgb = tintRgb || baseRgb;
   const ringAlpha = night ? 0.35 : 0.4;
   const pct = Math.max(0, Math.min(1, progress || 0));
@@ -1746,7 +1747,8 @@ function contentPadBottom(hasPlayer) {
 
 // ─── BUILD A SET — pick a length → energy arc runs in the background ─────────
 function SessionBuilderModal({ tracks, onClose, onPlayRoute, initialActivity = null, intentLabel = null }) {
-  const [step, setStep] = useState(1); // 1 duration · 2 preview
+  // 1 length → 2 vibe → 3 preview
+  const [step, setStep] = useState(1);
   const [duration, setDuration] = useState(60);
   const autoActivity = initialActivity && SESSION_PROFILES[initialActivity]
     ? initialActivity
@@ -1756,6 +1758,7 @@ function SessionBuilderModal({ tracks, onClose, onPlayRoute, initialActivity = n
 
   const profile = SESSION_PROFILES[activity] || SESSION_PROFILES.drive;
   const totalMins = session ? Math.round(session.reduce((s, t) => s + (t.duration || 210), 0) / 60) : 0;
+  const vibeEntries = Object.entries(SESSION_PROFILES);
 
   const phases = session ? (() => {
     const groups = [];
@@ -1770,11 +1773,15 @@ function SessionBuilderModal({ tracks, onClose, onPlayRoute, initialActivity = n
     return groups;
   })() : [];
 
+  function handleContinueFromLength() {
+    setStep(2);
+  }
+
   function handleGenerate() {
-    const act = autoActivity;
+    const act = activity && SESSION_PROFILES[activity] ? activity : autoActivity;
     setActivity(act);
     setSession(buildSession(tracks, duration, act));
-    setStep(2);
+    setStep(3);
   }
 
   function handleRegenerate() {
@@ -1782,6 +1789,23 @@ function SessionBuilderModal({ tracks, onClose, onPlayRoute, initialActivity = n
   }
 
   const durationLabel = duration < 60 ? `${duration} min` : duration === 60 ? "1 hour" : `${duration / 60} hours`;
+  const stepLabel = step === 1 ? "Length" : step === 2 ? "Vibe" : "Preview";
+
+  const chromeChip = (selected) => ({
+    borderRadius: radius.md,
+    border: selected ? `1px solid rgba(22,24,30,0.28)` : `1px solid ${glass.border}`,
+    background: selected
+      ? `linear-gradient(180deg, rgba(255,255,255,0.2) 0%, transparent 45%), linear-gradient(165deg, #3A404C 0%, #1A1D24 100%)`
+      : `linear-gradient(160deg, rgba(255,255,255,0.88) 0%, rgba(236,240,246,0.62) 100%)`,
+    color: selected ? color.onAccent : color.body,
+    boxShadow: selected
+      ? `inset 0 1px 0 rgba(255,255,255,0.2), ${glass.shadowSoft}`
+      : `inset 0 1px 0 ${glass.highlight}`,
+    backdropFilter: selected ? "none" : glass.blurSoft,
+    WebkitBackdropFilter: selected ? "none" : glass.blurSoft,
+    cursor: "pointer",
+    fontWeight: 600,
+  });
 
   return (
     <div style={{ position: "fixed", inset: 0, zIndex: 100, overflow: "hidden" }}>
@@ -1813,18 +1837,27 @@ function SessionBuilderModal({ tracks, onClose, onPlayRoute, initialActivity = n
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
             {step > 1 && (
               <button type="button" onClick={() => {
-                setSession(null); setStep(1);
+                if (step === 3) { setSession(null); setStep(2); }
+                else setStep(1);
               }} style={{
-                background: "none", border: "none", color: color.accent,
+                background: "none", border: "none", color: color.ink,
                 fontSize: 17, fontWeight: 500, cursor: "pointer", padding: "6px 0",
               }}>‹ Back</button>
             )}
+          </div>
+          <div style={{
+            fontSize: 10, fontWeight: 700, letterSpacing: 1.4, textTransform: "uppercase",
+            color: color.faint, fontFamily: fontMono,
+          }}>
+            {step} / 3 · {stepLabel}
           </div>
           <button type="button" onClick={onClose} aria-label="Close" style={{
             background: glass.fillStrong, border: `1px solid ${glass.borderSoft}`, borderRadius: radius.md,
             width: 36, height: 36, cursor: "pointer", color: color.muted,
             display: "flex", alignItems: "center", justifyContent: "center",
             boxShadow: `inset 0 1px 0 ${glass.highlight}`,
+            backdropFilter: glass.blurSoft,
+            WebkitBackdropFilter: glass.blurSoft,
           }}>
             <Icon name="x" size={16}/>
           </button>
@@ -1832,23 +1865,28 @@ function SessionBuilderModal({ tracks, onClose, onPlayRoute, initialActivity = n
 
         <div style={{
           flex: 1, display: "flex", flexDirection: "column",
-          alignItems: "center", justifyContent: step === 2 ? "flex-start" : "center",
-          padding: "12px 20px 40px", maxWidth: 520, margin: "0 auto", width: "100%",
+          alignItems: "center", justifyContent: step === 3 ? "flex-start" : "center",
+          padding: "12px 20px 40px", maxWidth: 560, margin: "0 auto", width: "100%",
         }}>
 
           {step === 1 && (
             <div style={{ width: "100%", textAlign: "center", animation: "rise 0.45s cubic-bezier(0.22,1,0.36,1) both" }}>
               <div style={{
                 fontSize: 11, fontWeight: 650, letterSpacing: 1.6, textTransform: "uppercase",
-                color: color.accent, fontFamily: fontMono, marginBottom: 12,
+                color: color.muted, fontFamily: fontMono, marginBottom: 12,
               }}>
                 Build a custom mix
               </div>
               <div style={{
                 fontSize: 34, fontWeight: 700, color: color.ink, letterSpacing: -1,
-                marginBottom: 36, fontFamily: fontDisplay,
+                marginBottom: 10, fontFamily: fontDisplay,
               }}>How long?</div>
-              <div style={{ display: "flex", gap: 10, justifyContent: "center", marginBottom: 40, flexWrap: "wrap" }}>
+              <p style={{
+                margin: "0 auto 32px", maxWidth: 340, fontSize: 15, color: color.body, lineHeight: 1.45,
+              }}>
+                Pick a length — next you’ll choose the vibe that shapes the energy arc.
+              </p>
+              <div style={{ display: "flex", gap: 10, justifyContent: "center", marginBottom: 36, flexWrap: "wrap" }}>
                 {[
                   { m: 30, label: "30 min" },
                   { m: 60, label: "1 hour" },
@@ -1857,32 +1895,138 @@ function SessionBuilderModal({ tracks, onClose, onPlayRoute, initialActivity = n
                   { m: 480, label: "All night" },
                 ].map(({ m, label }) => (
                   <button type="button" key={m} onClick={() => setDuration(m)} style={{
-                    minWidth: 88, height: 52, padding: "0 16px", borderRadius: radius.md,
-                    border: duration === m ? "none" : `1px solid ${color.lineStrong}`,
-                    background: duration === m ? color.accent : glass.fillStrong,
-                    color: duration === m ? color.onAccent : color.body,
-                    fontSize: 15, fontWeight: 600, cursor: "pointer",
-                    boxShadow: duration === m ? "none" : `inset 0 1px 0 ${glass.highlight}`,
+                    minWidth: 88, height: 52, padding: "0 16px",
+                    fontSize: 15, ...chromeChip(duration === m),
                   }}>
                     {label}
                   </button>
                 ))}
               </div>
-              <button type="button" onClick={handleGenerate} style={{
+              <button type="button" onClick={handleContinueFromLength} style={{
                 ...BTN_PRIMARY, width: "auto", minWidth: 200, borderRadius: radius.md, padding: "16px 36px",
               }}>
-                Continue
+                Choose vibe
               </button>
             </div>
           )}
 
-          {step === 2 && session && profile && (
+          {step === 2 && (
+            <div style={{ width: "100%", animation: "rise 0.45s cubic-bezier(0.22,1,0.36,1) both" }}>
+              <div style={{ textAlign: "center", marginBottom: 22 }}>
+                <div style={{
+                  fontSize: 11, fontWeight: 650, letterSpacing: 1.6, textTransform: "uppercase",
+                  color: color.muted, fontFamily: fontMono, marginBottom: 10,
+                }}>
+                  {durationLabel}
+                </div>
+                <div style={{
+                  fontSize: 32, fontWeight: 700, color: color.ink, letterSpacing: -0.9,
+                  marginBottom: 8, fontFamily: fontDisplay,
+                }}>
+                  What’s the vibe?
+                </div>
+                <p style={{
+                  margin: "0 auto", maxWidth: 360, fontSize: 15, color: color.body, lineHeight: 1.45,
+                }}>
+                  Activity shapes the energy curve — warm-up, peak, cool-down — not just a shuffled list.
+                </p>
+              </div>
+
+              <div style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fill, minmax(148px, 1fr))",
+                gap: 10,
+                marginBottom: 28,
+              }}>
+                {vibeEntries.map(([id, prof]) => {
+                  const selected = activity === id;
+                  return (
+                    <button
+                      key={id}
+                      type="button"
+                      onClick={() => setActivity(id)}
+                      aria-pressed={selected}
+                      style={{
+                        ...chromeChip(selected),
+                        padding: "14px 14px 16px",
+                        textAlign: "left",
+                        minHeight: 96,
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: 6,
+                      }}
+                    >
+                      <span style={{
+                        fontSize: 15, fontWeight: 700, fontFamily: fontDisplay,
+                        letterSpacing: -0.3, lineHeight: 1.15,
+                      }}>
+                        {prof.label}
+                      </span>
+                      <span style={{
+                        fontSize: 12, lineHeight: 1.35, fontWeight: 500,
+                        color: selected ? "rgba(244,246,249,0.72)" : color.muted,
+                      }}>
+                        {prof.blurb}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+
+              {profile && (
+                <div style={{
+                  marginBottom: 24,
+                  padding: "14px 16px",
+                  borderRadius: radius.lg,
+                  border: `1px solid ${glass.borderSoft}`,
+                  background: glass.fillStrong,
+                  boxShadow: `inset 0 1px 0 ${glass.highlight}`,
+                  backdropFilter: glass.blurSoft,
+                  WebkitBackdropFilter: glass.blurSoft,
+                }}>
+                  <div style={{
+                    fontSize: 10, fontWeight: 700, letterSpacing: 1.2, textTransform: "uppercase",
+                    color: color.faint, fontFamily: fontMono, marginBottom: 10,
+                  }}>
+                    Energy arc · {profile.label}
+                  </div>
+                  <div style={{ display: "flex", borderRadius: 8, overflow: "hidden", height: 8, marginBottom: 8, background: "rgba(22,24,30,0.08)" }}>
+                    {profile.phases.map((ph, i) => (
+                      <div key={i} style={{
+                        flex: ph.p,
+                        background: i % 2
+                          ? "rgba(22,24,30,0.45)"
+                          : "rgba(22,24,30,0.22)",
+                      }}/>
+                    ))}
+                  </div>
+                  <div style={{ display: "flex" }}>
+                    {profile.phases.map((ph, i) => (
+                      <div key={i} style={{ flex: ph.p, textAlign: "center" }}>
+                        <div style={{ fontSize: 10, fontWeight: 600, color: color.faint }}>{ph.name}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <div style={{ display: "flex", justifyContent: "center" }}>
+                <button type="button" onClick={handleGenerate} style={{
+                  ...BTN_PRIMARY, width: "auto", minWidth: 220, borderRadius: radius.md, padding: "16px 36px",
+                }}>
+                  Build mix
+                </button>
+              </div>
+            </div>
+          )}
+
+          {step === 3 && session && profile && (
             <div style={{ width: "100%", animation: "rise 0.45s cubic-bezier(0.22,1,0.36,1) both" }}>
               <div style={{ textAlign: "center", marginBottom: 28, paddingTop: 8 }}>
                 <div style={{
-                  fontSize: 13, fontWeight: 600, color: color.accent, marginBottom: 8,
+                  fontSize: 13, fontWeight: 600, color: color.muted, marginBottom: 8,
                 }}>
-                  {durationLabel}
+                  {durationLabel} · {profile.label}
                 </div>
                 <div style={{
                   fontSize: 32, fontWeight: 700, color: color.ink, letterSpacing: -0.8,
@@ -1912,7 +2056,10 @@ function SessionBuilderModal({ tracks, onClose, onPlayRoute, initialActivity = n
 
               <div style={{
                 maxHeight: "42vh", overflowY: "auto", marginBottom: 24, borderRadius: 16,
-                background: color.surfaceSolid, border: `1px solid ${color.line}`, padding: "8px 0",
+                background: "rgba(255,255,255,0.72)", border: `1px solid ${glass.border}`, padding: "8px 0",
+                boxShadow: `inset 0 1px 0 ${glass.highlight}`,
+                backdropFilter: glass.blurSoft,
+                WebkitBackdropFilter: glass.blurSoft,
               }}>
                 {phases.map((phase, pi) => (
                   <div key={pi}>
@@ -1944,14 +2091,19 @@ function SessionBuilderModal({ tracks, onClose, onPlayRoute, initialActivity = n
                   onPlayRoute(cleaned, "set");
                   onClose();
                 }} style={{
-                  ...BTN_PRIMARY, flex: 1, maxWidth: 280, borderRadius: 980, padding: "16px 28px",
+                  ...BTN_PRIMARY, flex: 1, maxWidth: 280, borderRadius: radius.md, padding: "16px 28px",
                 }}>
                   Now playing
                 </button>
                 <button type="button" onClick={handleRegenerate} aria-label="Shuffle again" style={{
-                  width: 52, height: 52, borderRadius: 980, background: color.surfaceRaised,
-                  border: "none", color: color.body, fontSize: 18, cursor: "pointer",
+                  width: 52, height: 52, borderRadius: radius.md,
+                  background: glass.fillStrong,
+                  border: `1px solid ${glass.border}`,
+                  color: color.body, fontSize: 18, cursor: "pointer",
                   display: "flex", alignItems: "center", justifyContent: "center",
+                  boxShadow: `inset 0 1px 0 ${glass.highlight}`,
+                  backdropFilter: glass.blurSoft,
+                  WebkitBackdropFilter: glass.blurSoft,
                 }}>
                   ↻
                 </button>
@@ -2700,91 +2852,189 @@ function QueueSheet({ queue, currentTrack, onPlay, onClose, onClear, onShuffle, 
   );
 }
 
-// ── Key feature: Build a custom mix — duration session builder entry ─────────
+// ── Key feature: Build a custom mix — duration + vibe session builder entry ──
 function CustomMixFeature({ onClick }) {
+  const steps = [
+    { n: "01", label: "Length", hint: "30 min → all night" },
+    { n: "02", label: "Vibe", hint: "Drive, focus, party…" },
+    { n: "03", label: "Arc", hint: "Warm-up → peak → ease" },
+  ];
+
   return (
     <button
       type="button"
       className="custom-mix"
       onClick={onClick}
-      aria-label="Build a custom mix"
+      aria-label="Build a custom mix — pick length, then vibe"
       style={{
         position: "relative",
         overflow: "hidden",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "space-between",
-        gap: 20,
-        minHeight: 88,
+        display: "block",
+        minHeight: 0,
         margin: `0 ${homeSpace.gutter}px`,
         width: `calc(100% - ${homeSpace.gutter * 2}px)`,
-        padding: "18px 20px",
+        padding: "22px 22px 20px",
         border: `1px solid ${glass.border}`,
-        borderRadius: radius.lg,
+        borderRadius: radius.xl,
         background: `
-          linear-gradient(180deg, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.55) 100%),
+          linear-gradient(145deg, rgba(255,255,255,0.82) 0%, rgba(255,255,255,0.42) 48%, rgba(236,240,246,0.55) 100%),
           ${aluminumGradient()}
         `,
         boxShadow: `
           inset 0 1px 0 ${glass.highlight},
+          inset 0 -1px 0 rgba(22,24,30,0.04),
           ${glass.shadow}
         `,
+        backdropFilter: glass.blurSoft,
+        WebkitBackdropFilter: glass.blurSoft,
         cursor: "pointer",
         textAlign: "left",
         color: color.ink,
         animation: "rise 0.55s cubic-bezier(0.22,1,0.36,1) both",
       }}
     >
+      {/* Soft chrome specular */}
       <div aria-hidden="true" style={{
         position: "absolute",
         inset: 0,
         pointerEvents: "none",
-        background: "linear-gradient(115deg, rgba(10,124,255,0.06) 0%, transparent 48%)",
+        background: `
+          radial-gradient(ellipse 70% 80% at 0% 0%, rgba(255,255,255,0.7) 0%, transparent 55%),
+          linear-gradient(115deg, rgba(190,198,210,0.18) 0%, transparent 42%)
+        `,
       }}/>
 
       <div aria-hidden="true" style={{
         position: "absolute",
-        right: "14%",
+        right: "6%",
         top: "50%",
         transform: "translateY(-50%)",
-        opacity: 0.1,
+        opacity: 0.08,
         pointerEvents: "none",
-        color: color.accent,
+        color: color.ink,
       }}>
-        <TimedMixMark size={86} />
+        <TimedMixMark size={108} accent={color.ink} />
       </div>
 
-      <div style={{ position: "relative", zIndex: 1, minWidth: 0, flex: 1 }}>
-        <div style={{
-          fontSize: "clamp(18px, 4vw, 22px)",
-          fontWeight: 700,
-          fontFamily: fontDisplay,
-          letterSpacing: -0.5,
-          lineHeight: 1.1,
-        }}>
-          Build a custom mix
+      <div style={{
+        position: "relative",
+        zIndex: 1,
+        display: "flex",
+        alignItems: "flex-start",
+        justifyContent: "space-between",
+        gap: 18,
+        marginBottom: 18,
+      }}>
+        <div style={{ minWidth: 0, flex: 1 }}>
+          <div style={{
+            fontSize: 10,
+            fontWeight: 700,
+            letterSpacing: 1.6,
+            textTransform: "uppercase",
+            color: color.faint,
+            fontFamily: fontMono,
+            marginBottom: 8,
+          }}>
+            Timed session
+          </div>
+          <div style={{
+            fontSize: "clamp(20px, 4.2vw, 26px)",
+            fontWeight: 700,
+            fontFamily: fontDisplay,
+            letterSpacing: -0.6,
+            lineHeight: 1.08,
+            marginBottom: 8,
+          }}>
+            Build a custom mix
+          </div>
+          <p style={{
+            margin: 0,
+            fontSize: 14,
+            color: color.body,
+            lineHeight: 1.45,
+            maxWidth: 380,
+          }}>
+            Choose how long you’ll listen, then pick an activity vibe. We sequence energy so the set rises and settles with you.
+          </p>
+        </div>
+
+        <div
+          className="custom-mix-play"
+          aria-hidden="true"
+          style={{
+            width: 52,
+            height: 52,
+            borderRadius: "50%",
+            flexShrink: 0,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            background: `
+              linear-gradient(180deg, rgba(255,255,255,0.18) 0%, transparent 45%),
+              linear-gradient(165deg, #3A404C 0%, #1A1D24 100%)
+            `,
+            color: color.onAccent,
+            border: `1px solid rgba(22,24,30,0.22)`,
+            boxShadow: `inset 0 1px 0 rgba(255,255,255,0.22), 0 8px 20px rgba(22,24,30,0.2)`,
+          }}
+        >
+          <Icon name="play" size={16}/>
         </div>
       </div>
 
-      <div
-        className="custom-mix-play"
-        aria-hidden="true"
-        style={{
-          position: "relative",
-          zIndex: 1,
-          width: 50,
-          height: 50,
-          borderRadius: "50%",
-          flexShrink: 0,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          background: color.accent,
-          color: color.onAccent,
-          boxShadow: `0 6px 16px rgba(10,124,255,0.28)`,
-        }}
-      >
-        <Icon name="play" size={16}/>
+      <div style={{
+        position: "relative",
+        zIndex: 1,
+        display: "grid",
+        gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
+        gap: 8,
+      }}>
+        {steps.map((s) => (
+          <div
+            key={s.n}
+            style={{
+              padding: "10px 10px 12px",
+              borderRadius: radius.md,
+              border: `1px solid ${glass.borderSoft}`,
+              background: "rgba(255,255,255,0.45)",
+              boxShadow: `inset 0 1px 0 ${glass.highlight}`,
+              backdropFilter: "blur(10px)",
+              WebkitBackdropFilter: "blur(10px)",
+              minWidth: 0,
+            }}
+          >
+            <div style={{
+              fontSize: 10,
+              fontWeight: 700,
+              letterSpacing: 1.1,
+              color: color.faint,
+              fontFamily: fontMono,
+              marginBottom: 4,
+            }}>
+              {s.n}
+            </div>
+            <div style={{
+              fontSize: 13,
+              fontWeight: 700,
+              fontFamily: fontDisplay,
+              letterSpacing: -0.2,
+              color: color.ink,
+              marginBottom: 2,
+            }}>
+              {s.label}
+            </div>
+            <div style={{
+              fontSize: 11,
+              color: color.muted,
+              lineHeight: 1.3,
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              whiteSpace: "nowrap",
+            }}>
+              {s.hint}
+            </div>
+          </div>
+        ))}
       </div>
     </button>
   );
@@ -3214,8 +3464,8 @@ function HomeScreen({
             aria-label="Build a custom mix"
             style={{
               margin: 0,
-              paddingTop: 10,
-              paddingBottom: 8,
+              paddingTop: 14,
+              paddingBottom: 12,
               animation: `rise 0.55s ${motion.ease} 0.04s both`,
             }}
           >
@@ -4189,7 +4439,7 @@ function ProfileScreen({
             marginBottom: 28,
             border: `1px solid ${glass.border}`,
             background: `
-              radial-gradient(ellipse 90% 80% at 0% 0%, rgba(10,124,255,0.1) 0%, transparent 55%),
+              radial-gradient(ellipse 90% 80% at 0% 0%, rgba(190,198,210,0.35) 0%, transparent 55%),
               radial-gradient(ellipse 60% 70% at 100% 100%, rgba(255,255,255,0.65) 0%, transparent 50%),
               linear-gradient(165deg, #FFFFFF 0%, #EEF1F5 55%, #E2E6ED 100%)
             `,
@@ -7106,7 +7356,7 @@ export default function App() {
     : queueSource.slice(0, 8);
 
   // Accent glow color from current track
-  const glowRgb = currentTrack ? hexToRgbStr(currentTrack.color) : "10,124,255";
+  const glowRgb = currentTrack ? hexToRgbStr(currentTrack.color) : "42,46,56";
 
   return (
     <div style={{ display:"flex", height:"100dvh", background: color.canvas, overflow:"hidden", fontFamily: font }}>
