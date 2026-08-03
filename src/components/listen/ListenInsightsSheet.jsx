@@ -1,6 +1,6 @@
 /**
- * Listening insights dashboard — opened from the Cover Stage flask.
- * Shows current genre lanes (edit in Club) + calm habit infographics.
+ * Listening snapshot — opened from the Cover Stage flask.
+ * Plain-language genres, energy, recent plays, and likes.
  */
 import { useMemo } from "react";
 import {
@@ -75,7 +75,7 @@ function EnergySpark({ series = [] }) {
   if (!series.length) {
     return (
       <div style={{ fontSize: 14, color: color.muted, lineHeight: 1.45 }}>
-        Spin a few tracks — your energy shape shows up here.
+        Play a few tracks — your energy shows up here.
       </div>
     );
   }
@@ -120,8 +120,7 @@ function EnergySpark({ series = [] }) {
   );
 }
 
-function TrackInsightRow({ track, metric, metricLabel, max = 1 }) {
-  const pct = max > 0 ? Math.round((metric / max) * 100) : 0;
+function TrackRow({ track, meta = null }) {
   return (
     <div style={{
       display: "flex",
@@ -143,26 +142,7 @@ function TrackInsightRow({ track, metric, metricLabel, max = 1 }) {
           overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
         }}>
           {track.artist}
-        </div>
-        <div style={{
-          marginTop: 6, height: 3, borderRadius: 2,
-          background: "rgba(22,24,30,0.08)", overflow: "hidden",
-        }}>
-          <div style={{
-            height: "100%", width: `${pct}%`, borderRadius: 2,
-            background: color.ink, transition: "width 0.45s ease",
-          }}/>
-        </div>
-      </div>
-      <div style={{ textAlign: "right", flexShrink: 0 }}>
-        <div style={{
-          fontSize: 16, fontWeight: 700, color: color.ink,
-          fontVariantNumeric: "tabular-nums", letterSpacing: -0.3,
-        }}>
-          {metric}
-        </div>
-        <div style={{ fontSize: 10, color: color.faint, fontFamily: fontMono, fontWeight: 650 }}>
-          {metricLabel}
+          {meta ? ` · ${meta}` : ""}
         </div>
       </div>
     </div>
@@ -183,8 +163,7 @@ export default function ListenInsightsSheet({
     [tracks, genres, recentTracks, signalLabel]
   );
 
-  const playMax = Math.max(1, ...(insight.topPlayed.map((t) => t.playCount || 0)));
-  const saveMax = Math.max(1, ...(insight.topSaved.map((t) => t.likeCount || 1)));
+  const nowLine = insight.signalLabel ? `Right now: ${insight.signalLabel}` : null;
 
   return (
     <div style={{ position: "fixed", inset: 0, zIndex: 100, overflow: "hidden" }}>
@@ -244,17 +223,6 @@ export default function ListenInsightsSheet({
           width: "100%",
           animation: `rise 0.45s ${motion.ease} both`,
         }}>
-          <div style={{
-            fontSize: 12,
-            fontWeight: 700,
-            letterSpacing: 1.4,
-            textTransform: "uppercase",
-            color: color.muted,
-            fontFamily: fontMono,
-            marginBottom: 10,
-          }}>
-            Listening
-          </div>
           <h1 style={{
             margin: 0,
             fontSize: "clamp(28px, 7vw, 36px)",
@@ -265,22 +233,32 @@ export default function ListenInsightsSheet({
             lineHeight: 1.05,
             marginBottom: 8,
           }}>
-            Your signal
+            Your interests
           </h1>
           <p style={{
-            margin: "0 0 22px",
+            margin: "0 0 6px",
             fontSize: 15,
             color: color.body,
             lineHeight: 1.45,
             maxWidth: 360,
           }}>
             {insight.leanLine}
-            {insight.signalLabel ? ` · Right now: ${insight.signalLabel}` : ""}
           </p>
+          {nowLine && (
+            <p style={{
+              margin: "0 0 22px",
+              fontSize: 13,
+              color: color.muted,
+              lineHeight: 1.4,
+            }}>
+              {nowLine}
+            </p>
+          )}
+          {!nowLine && <div style={{ height: 16 }} />}
 
-          {/* Genres / lanes */}
+          {/* Genres */}
           <GlassCard style={{ marginBottom: 14 }}>
-            <SectionLabel>Your lanes</SectionLabel>
+            <SectionLabel>Your genres</SectionLabel>
             {insight.preferred.length ? (
               <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: onEditGenres ? 14 : 0 }}>
                 {insight.preferred.map((g) => (
@@ -305,7 +283,7 @@ export default function ListenInsightsSheet({
               </div>
             ) : (
               <div style={{ fontSize: 14, color: color.muted, marginBottom: onEditGenres ? 14 : 0, lineHeight: 1.45 }}>
-                No interests set yet. Add a few in Club to steer what we play most.
+                No genres yet. Add a few to steer what we play most.
               </div>
             )}
             {onEditGenres && (
@@ -325,15 +303,15 @@ export default function ListenInsightsSheet({
                   boxShadow: `inset 0 1px 0 ${glass.highlight}`,
                 }}
               >
-                Change in Club
+                Edit genres
               </button>
             )}
           </GlassCard>
 
-          {/* Energy fingerprint */}
+          {/* Energy */}
           <GlassCard style={{ marginBottom: 14 }}>
             <div style={{ display: "flex", justifyContent: "space-between", gap: 12, marginBottom: 10 }}>
-              <SectionLabel>Energy shape</SectionLabel>
+              <SectionLabel>Energy</SectionLabel>
               {insight.avgEnergy != null && (
                 <div style={{
                   fontSize: 12, fontWeight: 700, fontFamily: fontMono,
@@ -363,10 +341,10 @@ export default function ListenInsightsSheet({
             </div>
           </GlassCard>
 
-          {/* Taste mix bars */}
+          {/* Genres from likes / recent */}
           {!insight.coldStart && insight.genreMix.length > 0 && (
             <GlassCard style={{ marginBottom: 14 }}>
-              <SectionLabel>Taste mix</SectionLabel>
+              <SectionLabel>What you like</SectionLabel>
               <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                 {insight.genreMix.map((g) => (
                   <div key={g.genre}>
@@ -404,9 +382,9 @@ export default function ListenInsightsSheet({
             marginBottom: 14,
           }}>
             {[
-              { n: insight.likedCount, label: "Saved" },
+              { n: insight.likedCount, label: "Liked" },
               { n: insight.recentCount, label: "Recent" },
-              { n: insight.collection.albums + insight.collection.eps, label: "Releases" },
+              { n: insight.collection.albums + insight.collection.eps, label: "Albums" },
             ].map((s) => (
               <GlassCard key={s.label} style={{ padding: "14px 12px", textAlign: "center" }}>
                 <div style={{
@@ -434,35 +412,30 @@ export default function ListenInsightsSheet({
             </div>
           )}
 
-          {/* Top played */}
-          {insight.topPlayed.length > 0 && (
+          {/* Recently played — personal, honest */}
+          {insight.recent.length > 0 && (
             <GlassCard style={{ marginBottom: 14 }}>
-              <SectionLabel>Most played · your cuts</SectionLabel>
-              {insight.topPlayed.slice(0, 4).map((t) => (
+              <SectionLabel>Recently played</SectionLabel>
+              {insight.recent.slice(0, 5).map((t) => (
                 <button
                   key={t.id}
                   type="button"
-                  onClick={() => onPlayTrack?.(t, insight.topPlayed)}
+                  onClick={() => onPlayTrack?.(t, insight.recent)}
                   style={{
                     display: "block", width: "100%", background: "none", border: "none",
                     padding: 0, cursor: onPlayTrack ? "pointer" : "default", textAlign: "left",
                   }}
                 >
-                  <TrackInsightRow
-                    track={t}
-                    metric={t.playCount || 0}
-                    metricLabel="plays"
-                    max={playMax}
-                  />
+                  <TrackRow track={t} meta={t.genre || null} />
                 </button>
               ))}
             </GlassCard>
           )}
 
-          {/* Top saved */}
+          {/* Liked */}
           {insight.topSaved.length > 0 && (
             <GlassCard style={{ marginBottom: 8 }}>
-              <SectionLabel>Saved · strongest grip</SectionLabel>
+              <SectionLabel>Liked</SectionLabel>
               {insight.topSaved.slice(0, 4).map((t) => (
                 <button
                   key={t.id}
@@ -473,12 +446,7 @@ export default function ListenInsightsSheet({
                     padding: 0, cursor: onPlayTrack ? "pointer" : "default", textAlign: "left",
                   }}
                 >
-                  <TrackInsightRow
-                    track={t}
-                    metric={t.likeCount || 1}
-                    metricLabel="likes"
-                    max={saveMax}
-                  />
+                  <TrackRow track={t} meta={t.genre || null} />
                 </button>
               ))}
             </GlassCard>
@@ -490,10 +458,10 @@ export default function ListenInsightsSheet({
                 fontSize: 18, fontWeight: 700, fontFamily: fontDisplay,
                 letterSpacing: -0.3, color: color.ink, marginBottom: 8,
               }}>
-                Nothing on the board yet
+                Nothing here yet
               </div>
               <div style={{ fontSize: 14, color: color.muted, lineHeight: 1.5 }}>
-                Like a few cuts or press Listen now. Your energy shape, taste mix, and top plays will land here.
+                Like a few tracks or press Listen now. Your energy, genres, and recent plays will show up here.
               </div>
             </GlassCard>
           )}

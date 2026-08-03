@@ -10,11 +10,39 @@ function singles(tracks = []) {
 }
 
 function energyBand(avg) {
-  if (avg == null || Number.isNaN(avg)) return { id: "unknown", label: "Still reading the room", hint: "Play a few cuts and a shape will form." };
-  if (avg < 3.5) return { id: "soft", label: "Soft landing", hint: "You tend toward calmer, lower-energy cuts." };
-  if (avg < 5.5) return { id: "steady", label: "Steady cruise", hint: "Mid-energy sits in your pocket most of the time." };
-  if (avg < 7.5) return { id: "lift", label: "Lifted", hint: "You lean into brighter, pushier tracks." };
-  return { id: "peak", label: "High pressure", hint: "Your likes and recent spins run hot." };
+  if (avg == null || Number.isNaN(avg)) {
+    return {
+      id: "unknown",
+      label: "Not enough yet",
+      hint: "Play or like a few tracks and this fills in.",
+    };
+  }
+  if (avg < 3.5) {
+    return {
+      id: "soft",
+      label: "Calm",
+      hint: "You usually go for quieter tracks.",
+    };
+  }
+  if (avg < 5.5) {
+    return {
+      id: "steady",
+      label: "Mid",
+      hint: "Most of what you like sits in the middle.",
+    };
+  }
+  if (avg < 7.5) {
+    return {
+      id: "lift",
+      label: "Upbeat",
+      hint: "You lean into brighter, pushier tracks.",
+    };
+  }
+  return {
+    id: "peak",
+    label: "High energy",
+    hint: "Your recent listens run hot.",
+  };
 }
 
 function avgOf(list, key = "energy") {
@@ -74,14 +102,14 @@ export function buildListenInsights(tracks = [], opts = {}) {
   const avgEnergy = avgRecentEnergy ?? avgLikedEnergy;
   const band = energyBand(avgEnergy);
 
-  const dominant = genreMix[0]?.genre || preferred[0] || null;
-  const leanLine = dominant
-    ? (preferred.includes(dominant)
-      ? `You lean into ${dominant}`
-      : `Lately you’re into ${dominant}`)
+  const fromListening = genreMix[0]?.genre || null;
+  const leanLine = fromListening
+    ? (preferred.includes(fromListening)
+      ? `You lean into ${fromListening}`
+      : `Lately you’re into ${fromListening}`)
     : (preferred.length
-      ? `Lanes set: ${preferred.slice(0, 3).join(" · ")}`
-      : "Set a few interests in Club to tune the mix");
+      ? `Your genres: ${preferred.slice(0, 3).join(" · ")}`
+      : "Add a few genres to steer what we play");
 
   const collection = collectionStats(liked);
   const recentCount = recent.length;

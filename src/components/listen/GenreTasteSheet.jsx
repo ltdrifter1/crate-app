@@ -109,7 +109,7 @@ export default function GenreTasteSheet({
             lineHeight: 1.45,
             maxWidth: 360,
           }}>
-            You can change these anytime in Club.
+            You can change these anytime.
           </p>
 
           {genreFocus && onClearGenreFocus && (

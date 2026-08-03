@@ -7522,7 +7522,6 @@ export default function App() {
           onClose={() => setShowListenInsights(false)}
           onEditGenres={() => {
             setShowListenInsights(false);
-            setScreen("profile");
             setShowGenreTaste(true);
           }}
           onPlayTrack={(t, pool) => {
@@ -7545,9 +7544,9 @@ export default function App() {
             try {
               await saveGenres(genres);
               setProfile((p) => ({ ...(p || {}), genres }));
-              showToast(genres.length ? "Lanes saved" : "Lanes cleared");
+              showToast(genres.length ? "Genres saved" : "Genres cleared");
             } catch (e) {
-              showToast("Couldn’t save lanes");
+              showToast("Couldn’t save genres");
             }
           }}
           onBuildSet={() => {
