@@ -1,8 +1,8 @@
 import { color, glass, radius, aluminumGradient } from "../../theme";
 
 /**
- * Premium square genre control — icon-only flask with steam, bubbles, and hover shake.
- * Opens genre taste; no label text on the face.
+ * Premium square flask — opens listening insights on the Cover Stage.
+ * Icon-only; steam / bubbles / shake on hover.
  */
 export default function FlaskTasteButton({
   onClick = null,
@@ -17,8 +17,8 @@ export default function FlaskTasteButton({
       className={`flask-taste-btn${active ? " is-active" : ""}`}
       onClick={() => onClick?.()}
       disabled={!enabled}
-      aria-label="Genres — change what we play most"
-      title="Genres"
+      aria-label="Listening insights"
+      title="Your signal"
       style={{
         pointerEvents: "auto",
         width: size,
