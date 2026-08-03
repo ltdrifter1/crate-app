@@ -68,9 +68,9 @@ describe("listenPool", () => {
     expect(tracks.length).toBeGreaterThan(0);
   });
 
-  test("listenPoolLabel composes focus + mix lane or vibe", () => {
-    expect(listenPoolLabel({ mixLane: "daytime" })).toBe("Daytime");
-    expect(listenPoolLabel({ mixLane: "nighttime", scene: "techno" })).toBe("Techno · Nighttime");
+  test("listenPoolLabel uses focus only — never day/night lane names", () => {
+    expect(listenPoolLabel({ mixLane: "daytime" })).toBe("What's in the mix?");
+    expect(listenPoolLabel({ mixLane: "nighttime", scene: "techno" })).toBe("Techno");
   });
 
   test("listenFocusLabel is focus-only", () => {

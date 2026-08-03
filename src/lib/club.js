@@ -14,7 +14,7 @@ export function getFloorPhase(hour = new Date().getHours()) {
   if (hour >= 17 && hour <= 20) {
     return { id: "warmup", label: "Evening", blurb: "Warming up for the night." };
   }
-  return { id: "floor", label: "Daytime", blurb: "Music for right now." };
+  return { id: "floor", label: "Right now", blurb: "Music for right now." };
 }
 
 /** Tonight's rooms — Discover dig model (energy-first, not genre-first). */
