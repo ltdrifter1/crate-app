@@ -6,6 +6,8 @@
 import { glass } from "../../theme";
 
 export const BRAND_LOCKUP_SRC = "/brand/planet-mp3-lockup.png";
+/** Solid black-plate export — icons / dark surfaces that need a filled mark. */
+export const BRAND_LOCKUP_ON_BLACK_SRC = "/brand/planet-mp3-lockup-on-black.png";
 export const BRAND_MARK_SRC = "/brand/logo-mark.png";
 export const BRAND_MARK_INVERSE_SRC = "/brand/logo-mark-inverse.png";
 
@@ -65,10 +67,11 @@ export function BrandLockup({
         opacity,
         margin: glassHalo ? 0 : "0 auto",
         userSelect: "none",
-        borderRadius: "22%",
+        // Transparent lockup — no rounded black plate clip
+        borderRadius: 0,
         filter: glassHalo
-          ? "drop-shadow(0 22px 48px rgba(22,24,30,0.28))"
-          : "drop-shadow(0 18px 40px rgba(22,24,30,0.18))",
+          ? "drop-shadow(0 18px 40px rgba(22,24,30,0.22))"
+          : "drop-shadow(0 14px 32px rgba(22,24,30,0.16))",
       }}
     />
   );
