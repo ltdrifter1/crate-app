@@ -10,9 +10,9 @@ export default function GenreTasteOnboarding({
   initialGenres = [],
   onComplete,
   onSkip,
-  title = "What lanes are you digging?",
-  subtitle = "Mark your lanes. We stay there most of the time — and stray just enough to keep the crate alive.",
-  confirmLabel = "Open the crate",
+  title = "Select your favourite genres",
+  subtitle = "You can change these anytime in Settings.",
+  confirmLabel = "Continue",
   allowSkip = true,
 }) {
   const [selected, setSelected] = useState(() =>
@@ -68,7 +68,7 @@ export default function GenreTasteOnboarding({
             marginBottom: 14,
           }}
         >
-          Your lanes
+          Your interests
         </div>
         <h1
           style={{
@@ -189,7 +189,7 @@ export default function GenreTasteOnboarding({
                 padding: "10px 0",
               }}
             >
-              Wander the catalog
+              Skip
             </button>
           )}
         </div>

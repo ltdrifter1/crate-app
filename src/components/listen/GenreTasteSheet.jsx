@@ -1,5 +1,5 @@
 /**
- * Your lanes — the only user-facing listen control.
+ * Your interests — the only user-facing listen control.
  * Clock mix lane / vibes / scenes stay automatic.
  */
 import { fontDisplay, fontMono, color, radius, glass, aluminumGradient } from "../../theme";
@@ -89,7 +89,7 @@ export default function GenreTasteSheet({
             fontFamily: fontMono,
             marginBottom: 10,
           }}>
-            Your lanes
+            Your interests
           </div>
           <h2 style={{
             margin: 0,
@@ -100,7 +100,7 @@ export default function GenreTasteSheet({
             fontFamily: fontDisplay,
             marginBottom: 10,
           }}>
-            What lanes stay in rotation?
+            Select your favourite genres
           </h2>
           <p style={{
             margin: "0 0 24px",
@@ -109,7 +109,7 @@ export default function GenreTasteSheet({
             lineHeight: 1.45,
             maxWidth: 360,
           }}>
-            We stay on your picks most of the time — and stray just enough. Time of day rides the mood in the background.
+            You can change these anytime in Settings.
           </p>
 
           {genreFocus && onClearGenreFocus && (
@@ -186,19 +186,8 @@ export default function GenreTasteSheet({
                 cursor: "pointer",
               }}
             >
-              Build a set
+              Build a custom mix
             </button>
-          )}
-          {onBuildSet && (
-            <div style={{
-              marginTop: 10,
-              fontSize: 13,
-              color: color.muted,
-              textAlign: "center",
-              lineHeight: 1.4,
-            }}>
-              Set the clock. We press a set — energy rides with it.
-            </div>
           )}
         </div>
       </div>
