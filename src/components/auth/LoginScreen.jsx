@@ -253,11 +253,11 @@ export default function LoginScreen({
               margin: 0,
             }}
           />
-          <div style={{ fontSize: 15, color: color.body, lineHeight: 1.5, maxWidth: 280 }}>
-            {mode === "signup"
-              ? "Join the club — first month free, then $2.99/mo."
-              : "Member door. Sign in and dig starts inside."}
-          </div>
+          {mode === "signup" && (
+            <div style={{ fontSize: 15, color: color.body, lineHeight: 1.5, maxWidth: 280 }}>
+              Join the club — first month free, then $2.99/mo.
+            </div>
+          )}
         </div>
 
         <div
