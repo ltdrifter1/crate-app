@@ -81,14 +81,20 @@ function singlesOnly(tracks = []) {
   return tracks.filter((t) => (t.duration || 0) <= 900);
 }
 
-/** Fisher–Yates shuffle — copy, never mutate. (Tests / one-off tools only.) */
-function shuffleCopy(list) {
-  const out = [...list];
-  for (let i = out.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [out[i], out[j]] = [out[j], out[i]];
+/** UTC calendar day key — stable daily rotation boundary. */
+export function forYouDayKey(date = new Date()) {
+  return date.toISOString().slice(0, 10);
+}
+
+/** FNV-1a style hash → unsigned 32-bit. */
+export function hashSeed(str = "") {
+  let h = 2166136261;
+  const s = String(str);
+  for (let i = 0; i < s.length; i += 1) {
+    h ^= s.charCodeAt(i);
+    h = Math.imul(h, 16777619);
   }
-  return out;
+  return h >>> 0;
 }
 
 /**
@@ -110,16 +116,26 @@ export function trendingTracks(tracks = [], limit = 10) {
 /**
  * Top recommended from listening history, with a human-readable reason per pick.
  * Uses likes, play counts, preferred genres, and optional recent track ids.
- * Falls back to a shuffled sample when there is no history (coldStart: true).
+ * Falls back to a stable catalog sample when there is no history (coldStart: true).
+ * Daily rotation: `userKey` + `dayKey` jitter the order so each listener gets a
+ * fresh Selected for you slate every calendar day without random flicker mid-day.
  * Returns { picks: [{ track, reason }], coldStart }.
  */
 export function recommendedPicks(
   tracks = [],
-  { preferredGenres = [], recentTrackIds = [], limit = 10, excludeIds = [] } = {}
+  {
+    preferredGenres = [],
+    recentTrackIds = [],
+    limit = 10,
+    excludeIds = [],
+    userKey = "",
+    dayKey = forYouDayKey(),
+  } = {}
 ) {
   const singles = singlesOnly(tracks);
   const exclude = new Set(excludeIds);
   const pool = singles.filter((t) => !exclude.has(t.id));
+  const rotateSeed = hashSeed(`${userKey || "guest"}:${dayKey || forYouDayKey()}`);
 
   const liked = pool.filter((t) => t.liked);
   const played = pool.filter((t) => (t.playCount || 0) > 0);
@@ -138,8 +154,25 @@ export function recommendedPicks(
     recentSet.size > 0 ||
     preferredSet.size > 0;
 
+  /** Deterministic shuffle — same user+day always yields the same slate. */
+  const seededShuffle = (list, seed) => {
+    const out = [...list];
+    let s = seed >>> 0;
+    for (let i = out.length - 1; i > 0; i -= 1) {
+      s = (Math.imul(s, 1664525) + 1013904223) >>> 0;
+      const j = s % (i + 1);
+      [out[i], out[j]] = [out[j], out[i]];
+    }
+    return out;
+  };
+
+  const rotateDaily = (ranked) => {
+    const window = Math.min(ranked.length, Math.max(limit * 3, limit));
+    return seededShuffle(ranked.slice(0, window), rotateSeed).slice(0, limit);
+  };
+
   if (!hasHistory) {
-    const picks = pool
+    const ranked = pool
       .slice()
       .sort((a, b) => {
         const heat = (b.playCount || 0) - (a.playCount || 0);
@@ -148,9 +181,8 @@ export function recommendedPicks(
         if (pull !== 0) return pull;
         return String(a.id).localeCompare(String(b.id));
       })
-      .slice(0, limit)
       .map((t) => ({ track: t, reason: "Fresh pick" }));
-    return { coldStart: true, picks };
+    return { coldStart: true, picks: rotateDaily(ranked) };
   }
 
   const scored = pool
@@ -183,7 +215,10 @@ export function recommendedPicks(
 
   return {
     coldStart: false,
-    picks: scored.slice(0, limit).map(({ track, reason }) => ({ track, reason })),
+    picks: rotateDaily(scored).map(({ track, reason }) => ({
+      track,
+      reason: reason || "For you",
+    })),
   };
 }
 
