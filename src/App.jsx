@@ -17,7 +17,7 @@ import {
   computeHumanState, findResonant, computeSignalTraits, pickNextTrack,
   buildSession, buildRoute, SESSION_PROFILES,
 } from "./lib/engine";
-import { mixLaneById, mixLaneForDate } from "./lib/mixLanes";
+import { mixLaneForDate } from "./lib/mixLanes";
 import { normalizeGenre } from "./lib/genres";
 import { getFloorPhase } from "./lib/club";
 import { parsePath, buildPath, documentTitleFor } from "./lib/routes";
@@ -522,9 +522,7 @@ function IceOrbPlay({
 }
 
 /** One listening grammar for chrome labels. */
-function listenModeLabel(isRadioMode, hypnoPocket = false) {
-  if (hypnoPocket) return "Near this";
-  if (isRadioMode) return "On air";
+function listenModeLabel(_isRadioMode, _hypnoPocket = false) {
   return "What's in the mix?";
 }
 
@@ -952,8 +950,6 @@ function CoverStage({
 }) {
   const live = !!currentTrack;
   const canStart = !playDisabled;
-  const lane = mixLaneById(mixLane);
-  const stageLabel = intentLabel || lane.label;
   const stageTrack = currentTrack || previewTrack;
   const playingVisual = !!(live && isPlaying);
   const pct = duration > 0 ? Math.max(0, Math.min(100, (progress / duration) * 100)) : 0;
@@ -1044,7 +1040,6 @@ function CoverStage({
               }}/>
             )}
             {modeLabel}
-            {isRadioMode && stageLabel ? ` · ${stageLabel}` : ""}
           </button>
         )}
       </div>
@@ -1120,7 +1115,6 @@ function CoverStage({
             pointerEvents: "none",
           }}
         >
-          <EnergyShiftFeedback bottom="calc(100% + 14px)" />
           <div
             key={`meta-${currentTrack.id}`}
             role="button"
@@ -1204,6 +1198,7 @@ function CoverStage({
             gap: 14,
             pointerEvents: "auto",
           }}>
+            <EnergyShiftFeedback bottom="calc(100% + 18px)" />
             <EnergyShiftButton direction="down" size={36} stopPropagation={false} />
             <button
               type="button"
@@ -1940,7 +1935,7 @@ function SessionBuilderModal({ tracks, onClose, onPlayRoute, initialActivity = n
                 }} style={{
                   ...BTN_PRIMARY, flex: 1, maxWidth: 280, borderRadius: 980, padding: "16px 28px",
                 }}>
-                  Take it on air
+                  Now playing
                 </button>
                 <button type="button" onClick={handleRegenerate} aria-label="Shuffle again" style={{
                   width: 52, height: 52, borderRadius: 980, background: color.surfaceRaised,
@@ -2220,7 +2215,6 @@ function ImmersivePlayer({
   if (!currentTrack) return null;
 
   const rgb = hexToRgbStr(currentTrack.color);
-  const stateLabel = signalState?.label || "";
   const chromeBtn = {
     display: "flex", alignItems: "center", gap: 8,
     background: glass.fillStrong,
@@ -2467,7 +2461,6 @@ function ImmersivePlayer({
             </button>
           )}
           <div style={{ marginTop: 14, display: "flex", justifyContent: "center", gap: 10, flexWrap: "wrap" }}>
-            <BoothHud track={currentTrack} size="md" />
             {onHypnoRadio && (
               <button
                 type="button"
@@ -2495,15 +2488,6 @@ function ImmersivePlayer({
               </button>
             )}
           </div>
-          {(normalizeGenre(currentTrack.genre) || stateLabel || hypnoPocket || isRadioMode) && (
-            <div style={{ fontSize: 11, color: color.muted, marginTop: 10, letterSpacing: 0.4, fontFamily: fontMono, textTransform: "uppercase" }}>
-              {[
-                hypnoPocket ? "Near this" : (isRadioMode ? "On air" : null),
-                displaySceneLabel(currentTrack) || normalizeGenre(currentTrack.genre),
-                stateLabel,
-              ].filter(Boolean).join("  ·  ")}
-            </div>
-          )}
         </div>
       </div>
 
@@ -4748,7 +4732,6 @@ function GlassDock({
   const activeTab = items.some((i) => i.id === screen)
     ? screen
     : (screen === "artist" || screen === "album" ? "search" : "home");
-  const modeLine = listenModeLabel(isRadioMode, hypnoPocket);
 
   useEffect(() => {
     const el = tabRefs.current[activeTab];
@@ -4835,9 +4818,7 @@ function GlassDock({
                 fontSize: 11, color: color.muted, marginTop: 3,
                 overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
               }}>
-                {modeLine === "What's in the mix?"
-                  ? track.artist
-                  : `${modeLine} · ${track.artist}`}
+                {track.artist}
               </div>
             </div>
 
@@ -5982,7 +5963,7 @@ export default function App() {
     setSessionMeta(null);
     if (!sessionStartRef.current) sessionStartRef.current = Date.now();
     logTrackPlay(first);
-    showToast(seedTrack ? "Near this" : resolved.label);
+    showToast(seedTrack ? "Near this" : "What's in the mix?");
     if (firebaseUser) recordPlay(first.id, profile?.recentTracks || []).catch(()=>{});
   };
 
@@ -6512,7 +6493,7 @@ export default function App() {
       }
     : (recentlyPlayedRef.current.length > 2
       ? {
-          label: signalState?.label || "Listening",
+          label: "Listening",
           energies: recentlyPlayedRef.current.slice(0, 12).reverse().map(p => p.energy || 5),
           index: Math.min(11, recentlyPlayedRef.current.slice(0, 12).length - 1),
         }
@@ -7155,9 +7136,7 @@ export default function App() {
                   {currentTrack.title}
                 </div>
                 <div style={{ fontSize:11, color: color.muted, marginTop:2 }}>
-                  {listenModeLabel(isRadioMode, !!hypnoSeed) === "What's in the mix?"
-                    ? currentTrack.artist
-                    : `${listenModeLabel(isRadioMode, !!hypnoSeed)} · ${currentTrack.artist}`}
+                  {currentTrack.artist}
                 </div>
               </div>
               <span style={{ fontSize:10, color: color.faint, fontVariantNumeric:"tabular-nums", flexShrink:0 }}>{fmtTime(progress)}</span>
@@ -7290,31 +7269,6 @@ export default function App() {
               }}>
                 {currentTrack.artist}
               </div>
-              <BoothHud track={currentTrack} size="sm"/>
-              {signalState?.label && (
-                <div style={{
-                  marginTop: 14,
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: 8,
-                  fontSize: 9,
-                  fontWeight: 700,
-                  letterSpacing: 1.6,
-                  color: color.faint,
-                  textTransform: "uppercase",
-                  fontFamily: fontMono,
-                }}>
-                  <span style={{
-                    width: 4,
-                    height: 4,
-                    borderRadius: "50%",
-                    background: isPlaying ? color.accent : color.faint,
-                    boxShadow: isPlaying ? `0 0 0 3px ${color.accentSoft}` : "none",
-                    animation: isPlaying ? "breathe 2s ease-in-out infinite" : "none",
-                  }}/>
-                  {signalState.label}
-                </div>
-              )}
             </div>
           </div>
         ) : (
@@ -7523,22 +7477,6 @@ export default function App() {
                         <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                           {t.artist}
                         </span>
-                        {t._signal?.label && (
-                          <>
-                            <span style={{ opacity: 0.35, flexShrink: 0 }}>·</span>
-                            <span style={{
-                              flexShrink: 0,
-                              fontSize: 9,
-                              fontWeight: 650,
-                              letterSpacing: 0.9,
-                              textTransform: "uppercase",
-                              color: color.faint,
-                              fontFamily: fontMono,
-                            }}>
-                              {t._signal.label}
-                            </span>
-                          </>
-                        )}
                       </div>
                     </div>
                   </div>

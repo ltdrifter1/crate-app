@@ -2,8 +2,8 @@ import { normalizeGenre } from "./genres";
 
 /** Home radio mix lanes — auto-selected from the clock, not a manual picker. */
 export const MIX_LANES = [
-  { id: "daytime", label: "Daytime", blurb: "Bright, open, and moving with the day." },
-  { id: "nighttime", label: "Nighttime", blurb: "Deep, late, and low-lit." },
+  { id: "daytime", label: "Mix", blurb: "" },
+  { id: "nighttime", label: "Mix", blurb: "" },
 ];
 
 export function mixLaneById(id) {

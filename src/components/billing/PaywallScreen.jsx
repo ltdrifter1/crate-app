@@ -83,7 +83,7 @@ export default function PaywallScreen({
           color: color.body,
           maxWidth: 340,
         }}>
-          Trial’s pressed. Subscribe for {price}/month to keep On air, the crate, and your sets open on {BRAND_NAME}.
+          Trial’s pressed. Subscribe for {price}/month to keep listening, the crate, and your sets open on {BRAND_NAME}.
         </p>
 
         <div
