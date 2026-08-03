@@ -8,8 +8,8 @@ body {
   font-family: "Source Sans 3", "Source Sans Pro", "Avenir Next", "Segoe UI", "Helvetica Neue", Helvetica, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background: #E6E9EF;
-  color: #1A1D24;
+  background: #E2E6ED;
+  color: #16181E;
 }
 code {
   font-family: "IBM Plex Mono", "SF Mono", ui-monospace, Menlo, Monaco, "Courier New", monospace;

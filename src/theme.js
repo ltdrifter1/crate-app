@@ -9,45 +9,46 @@ export const font =
 export const fontMono =
   '"IBM Plex Mono", "SF Mono", ui-monospace, Menlo, Monaco, "Courier New", monospace';
 
-/** Brand palette — platinum library + classic selection blue */
+/** Brand palette — Y2K metallic grey + classic selection blue */
 export const color = {
-  ink: "#1A1D24",
-  body: "#3D4450",
-  muted: "#6B7380",
-  faint: "#9AA1AB",
-  line: "rgba(26, 29, 36, 0.1)",
-  lineStrong: "rgba(26, 29, 36, 0.16)",
-  surface: "rgba(255, 255, 255, 0.62)",
+  ink: "#16181E",
+  body: "#3A404C",
+  muted: "#6A7280",
+  faint: "#959DAA",
+  line: "rgba(22, 24, 30, 0.1)",
+  lineStrong: "rgba(22, 24, 30, 0.16)",
+  surface: "rgba(255, 255, 255, 0.58)",
   surfaceSolid: "#FFFFFF",
-  surfaceRaised: "#F2F4F7",
-  canvas: "#E6E9EF",
-  canvasEdge: "#D5DAE3",
+  surfaceRaised: "#EEF1F5",
+  canvas: "#E2E6ED",
+  canvasEdge: "#CFD5DF",
   accent: "#0A7CFF",
   accentSoft: "rgba(10, 124, 255, 0.12)",
   accentGlow: "rgba(10, 124, 255, 0.22)",
   onAccent: "#FFFFFF",
-  onDark: "#F4F6F9",
-  onDarkMuted: "rgba(244,246,249,0.62)",
+  onDark: "#F2F4F7",
+  onDarkMuted: "rgba(242,244,247,0.62)",
   alert: "#C45C3E",
-  station: "#EEF1F5",
+  station: "#EBEEF3",
   /** Classic Mac list selection wash */
   select: "rgba(10, 124, 255, 0.16)",
   selectStrong: "rgba(10, 124, 255, 0.28)",
 };
 
-/** Frosted aluminum — light chrome, not dark glass. */
+/** Frosted Y2K aluminum — soft glass edges, cool grey chrome. */
 export const glass = {
-  fill: "rgba(255, 255, 255, 0.55)",
-  fillStrong: "rgba(255, 255, 255, 0.78)",
-  fillQuiet: "rgba(255, 255, 255, 0.38)",
-  border: "rgba(26, 29, 36, 0.12)",
-  borderSoft: "rgba(26, 29, 36, 0.08)",
-  borderFaint: "rgba(26, 29, 36, 0.05)",
-  highlight: "rgba(255, 255, 255, 0.85)",
-  blur: "blur(22px) saturate(1.2)",
-  blurSoft: "blur(14px) saturate(1.1)",
-  shadow: "0 10px 28px rgba(26, 29, 36, 0.1)",
-  shadowSoft: "0 6px 18px rgba(26, 29, 36, 0.07)",
+  fill: "rgba(246, 248, 252, 0.52)",
+  fillStrong: "rgba(255, 255, 255, 0.72)",
+  fillQuiet: "rgba(246, 248, 252, 0.34)",
+  border: "rgba(22, 24, 30, 0.11)",
+  borderSoft: "rgba(22, 24, 30, 0.07)",
+  borderFaint: "rgba(22, 24, 30, 0.045)",
+  highlight: "rgba(255, 255, 255, 0.88)",
+  blur: "blur(28px) saturate(1.25)",
+  blurSoft: "blur(18px) saturate(1.15)",
+  blurHeavy: "blur(40px) saturate(1.2)",
+  shadow: "0 12px 36px rgba(22, 24, 30, 0.11)",
+  shadowSoft: "0 8px 24px rgba(22, 24, 30, 0.08)",
 };
 
 /** Soft jewel-case shadow for album art — Cover Flow memory. */
@@ -126,30 +127,46 @@ export const motion = {
   ease: "cubic-bezier(0.22, 1, 0.36, 1)",
 };
 
-/** Soft atmosphere that shifts with the hour — cool platinum, never OLED. */
+/** Soft atmosphere that shifts with the hour — cool Y2K grey, never OLED. */
 export function timeOfDayGradient(date = new Date()) {
   const h = date.getHours();
   const late = h >= 22 || h <= 4;
   const dawn = h >= 5 && h <= 8;
   const day = h >= 9 && h <= 16;
   if (late) {
-    return `radial-gradient(ellipse at 50% -10%, #DDE3EC 0%, #E4E8EF 42%, #E6E9EF 100%)`;
+    return `radial-gradient(ellipse at 50% -10%, #D4DBE6 0%, #DEE3EB 42%, #E2E6ED 100%)`;
   }
   if (dawn) {
-    return `radial-gradient(ellipse at 70% 0%, #E8E4DC 0%, #E6E9EF 48%, #E2E6ED 100%)`;
+    return `radial-gradient(ellipse at 70% 0%, #E2E0DC 0%, #E2E6ED 48%, #D9DEE8 100%)`;
   }
   if (day) {
-    return `radial-gradient(ellipse at 40% -5%, #F0F3F8 0%, #E6E9EF 50%, #E0E4EB 100%)`;
+    return `radial-gradient(ellipse at 40% -5%, #EBEEF4 0%, #E2E6ED 50%, #D6DBE5 100%)`;
   }
-  return `radial-gradient(ellipse at 55% 0%, #E4E8F0 0%, #E6E9EF 45%, #DDE2EA 100%)`;
+  return `radial-gradient(ellipse at 55% 0%, #DCE2EC 0%, #E2E6ED 45%, #D4DAE4 100%)`;
 }
 
-/** Brushed aluminum wash for chrome bands / Cover Stage. */
+/** Brushed aluminum wash for chrome bands / Cover Stage — cooler Y2K grey. */
 export function aluminumGradient() {
   return `
-    linear-gradient(180deg, rgba(255,255,255,0.72) 0%, rgba(255,255,255,0) 42%),
-    linear-gradient(135deg, #F4F6F9 0%, #E6E9EF 48%, #D8DDE6 100%)
+    linear-gradient(180deg, rgba(255,255,255,0.78) 0%, rgba(255,255,255,0) 44%),
+    linear-gradient(135deg, #F0F3F8 0%, #E2E6ED 48%, #CDD4E0 100%)
   `;
+}
+
+/**
+ * Soft glass disc behind the planet lockup — modern blur edge, Y2K grey halo.
+ * size: pixel diameter of the logo face.
+ */
+export function brandGlassHalo(size = 280) {
+  const pad = Math.round(size * 0.14);
+  return {
+    position: "relative",
+    width: size + pad * 2,
+    height: size + pad * 2,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+  };
 }
 
 export const APP_STYLE = {
