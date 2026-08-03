@@ -20,11 +20,22 @@ export function useEnergyQueue() {
     playerEnergyStore.shiftEnergy(-1, bpmStep);
   }, []);
 
+  const setEnergyBias = useCallback((bpm = 0, label = null) => {
+    playerEnergyStore.setEnergyBias(bpm, label);
+  }, []);
+
   const onTrackPlayed = useCallback((track) => {
     playerEnergyStore.onTrackPlayed(track);
   }, []);
 
   const resetEnergyShift = useCallback(() => playerEnergyStore.reset(), []);
 
-  return { energyShift, increaseEnergy, decreaseEnergy, onTrackPlayed, resetEnergyShift };
+  return {
+    energyShift,
+    increaseEnergy,
+    decreaseEnergy,
+    setEnergyBias,
+    onTrackPlayed,
+    resetEnergyShift,
+  };
 }

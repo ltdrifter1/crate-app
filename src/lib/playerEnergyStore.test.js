@@ -61,4 +61,22 @@ describe("playerEnergyStore", () => {
     expect(seen).toEqual([true, false]);
     expect(store.getState().bpmDelta).toBe(0);
   });
+
+  test("setEnergyBias maps the slider middle to neutral", () => {
+    store.setEnergyBias(15);
+    expect(store.getState().active).toBe(true);
+    expect(store.getState().bpmDelta).toBe(15);
+    store.setEnergyBias(0);
+    expect(store.getState().active).toBe(false);
+    expect(store.getState().bpmDelta).toBe(0);
+    expect(store.getState().direction).toBe(0);
+  });
+
+  test("setEnergyBias replaces stacked nudges", () => {
+    store.shiftEnergy(1, 10);
+    store.setEnergyBias(-20);
+    const s = store.getState();
+    expect(s.direction).toBe(-1);
+    expect(s.bpmDelta).toBe(-20);
+  });
 });

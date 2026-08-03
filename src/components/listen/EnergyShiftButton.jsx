@@ -297,6 +297,7 @@ export function EnergyShiftFeedback({ bottom = "calc(100% + 12px)" }) {
 
   if (!lastAction || (!pillVisible && !chipVisible)) return null;
   const up = lastAction.direction > 0;
+  const neutral = lastAction.direction === 0 || lastAction.bpmStep === 0;
 
   return (
     <div aria-live="polite" style={{
@@ -315,10 +316,14 @@ export function EnergyShiftFeedback({ bottom = "calc(100% + 12px)" }) {
           color: color.ink, fontSize: 12.5, fontWeight: 650, letterSpacing: -0.1,
           animation: `energyPillLife ${PILL_MS}ms cubic-bezier(0.22, 1, 0.36, 1) both`,
         }}>
-          {up ? "Next picks get livelier\u2026" : "Next picks slow down\u2026"}
+          {neutral
+            ? "Back to your usual pace"
+            : up
+              ? "Next picks get livelier\u2026"
+              : "Next picks slow down\u2026"}
         </div>
       )}
-      {chipVisible && (
+      {chipVisible && !neutral && (
         <div style={{
           display: "flex", alignItems: "center", gap: 4,
           padding: "3px 9px", borderRadius: 999,
@@ -334,6 +339,229 @@ export function EnergyShiftFeedback({ bottom = "calc(100% + 12px)" }) {
         </div>
       )}
     </div>
+  );
+}
+
+/** Dial icon — energy gauge with a center needle. */
+function EnergyDialIcon({ size = 18 }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path
+        d="M5.2 16.2a7.2 7.2 0 0 1 13.6 0"
+        stroke="currentColor"
+        strokeWidth="1.7"
+        strokeLinecap="round"
+      />
+      <path
+        d="M12 16.2V8.6"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+      />
+      <circle cx="12" cy="16.2" r="1.55" fill="currentColor" />
+      <path d="M7.4 14.2h1.6M15 14.2h1.6" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" opacity="0.45" />
+    </svg>
+  );
+}
+
+/**
+ * Single Energy Shift control — opens a centered slider popup (middle = neutral).
+ * Lives on the right of the transport row.
+ */
+export function EnergyShiftControl({
+  size = 40,
+  stopPropagation = true,
+  labeled = false,
+}) {
+  const { energyShift, setEnergyBias } = useEnergyQueue();
+  const [open, setOpen] = useState(false);
+  const [hovered, setHovered] = useState(false);
+  const [draft, setDraft] = useState(0);
+  const rootRef = useRef(null);
+
+  const active = !!energyShift?.active;
+  const bias = Math.round(energyShift?.bpmDelta || 0);
+
+  useEffect(() => {
+    if (open) setDraft(bias);
+  }, [open, bias]);
+
+  useEffect(() => {
+    if (!open) return undefined;
+    const onDown = (e) => {
+      if (rootRef.current && !rootRef.current.contains(e.target)) setOpen(false);
+    };
+    const onKey = (e) => { if (e.key === "Escape") setOpen(false); };
+    window.addEventListener("pointerdown", onDown);
+    window.addEventListener("keydown", onKey);
+    return () => {
+      window.removeEventListener("pointerdown", onDown);
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [open]);
+
+  const apply = (raw) => {
+    const next = Math.max(-20, Math.min(20, Math.round(Number(raw) || 0)));
+    setDraft(next);
+    haptic(next === 0 ? [6, 20, 6] : 8);
+    setEnergyBias(next);
+  };
+
+  const tone =
+    draft > 0 ? "Lift" : draft < 0 ? "Ease" : "Middle";
+
+  return (
+    <span
+      ref={rootRef}
+      style={{
+        position: "relative",
+        display: "inline-flex",
+        flexDirection: "column",
+        alignItems: "center",
+        gap: labeled ? 4 : 0,
+      }}
+    >
+      <button
+        type="button"
+        aria-label="Energy shift"
+        aria-expanded={open}
+        aria-pressed={active}
+        title="Energy shift — ease or lift upcoming picks"
+        onClick={(e) => {
+          if (stopPropagation) e.stopPropagation();
+          setOpen((v) => !v);
+        }}
+        onPointerEnter={(e) => { if (e.pointerType !== "touch") setHovered(true); }}
+        onPointerLeave={() => setHovered(false)}
+        style={{
+          width: labeled ? "auto" : size,
+          height: labeled ? 40 : size,
+          padding: labeled ? "0 12px 0 8px" : 0,
+          gap: labeled ? 8 : 0,
+          borderRadius: labeled ? 12 : "50%",
+          display: "inline-flex",
+          alignItems: "center",
+          justifyContent: "center",
+          cursor: "pointer",
+          color: active || open ? color.ink : color.muted,
+          background: active || open
+            ? `linear-gradient(180deg, rgba(255,255,255,0.78) 0%, rgba(255,255,255,0.48) 100%)`
+            : glass.fillStrong,
+          border: `1px solid ${active || open ? color.lineStrong : glass.border}`,
+          backdropFilter: glass.blurSoft,
+          WebkitBackdropFilter: glass.blurSoft,
+          boxShadow: hovered || active || open
+            ? `inset 0 1px 0 ${glass.highlight}, 0 0 0 3px rgba(26,29,36,0.06), 0 4px 14px rgba(26,29,36,0.12)`
+            : `inset 0 1px 0 ${glass.highlight}, ${glass.shadowSoft}`,
+          transform: hovered ? "scale(1.04)" : "scale(1)",
+          transition: `transform 0.28s ${PRESS_EASE}, box-shadow 0.35s ease, color 0.2s ease, border-color 0.2s ease`,
+          WebkitTapHighlightColor: "transparent",
+          touchAction: "manipulation",
+          flexShrink: 0,
+        }}
+      >
+        <EnergyDialIcon size={Math.round((labeled ? 40 : size) * 0.46)} />
+        {labeled && (
+          <span style={{
+            fontFamily: fontMono,
+            fontSize: 9,
+            fontWeight: 700,
+            letterSpacing: 0.9,
+            textTransform: "uppercase",
+            lineHeight: 1,
+          }}>
+            Shift
+          </span>
+        )}
+      </button>
+
+      {open && (
+        <div
+          role="dialog"
+          aria-label="Energy shift"
+          onPointerDown={(e) => e.stopPropagation()}
+          style={{
+            position: "absolute",
+            bottom: "calc(100% + 12px)",
+            right: 0,
+            width: 220,
+            padding: "14px 14px 12px",
+            borderRadius: 14,
+            background: "rgba(255,255,255,0.96)",
+            border: `1px solid ${glass.border}`,
+            boxShadow: `inset 0 1px 0 ${glass.highlight}, 0 16px 36px rgba(26,29,36,0.16)`,
+            backdropFilter: glass.blur,
+            WebkitBackdropFilter: glass.blur,
+            animation: `energyMenuIn 0.24s ${PRESS_EASE} both`,
+            zIndex: 50,
+          }}
+        >
+          <div style={{
+            display: "flex",
+            alignItems: "baseline",
+            justifyContent: "space-between",
+            gap: 10,
+            marginBottom: 12,
+          }}>
+            <div style={{
+              fontFamily: fontMono,
+              fontSize: 10,
+              fontWeight: 700,
+              letterSpacing: 1,
+              textTransform: "uppercase",
+              color: color.faint,
+            }}>
+              Energy shift
+            </div>
+            <div style={{
+              fontFamily: fontMono,
+              fontSize: 11,
+              fontWeight: 700,
+              letterSpacing: 0.3,
+              color: color.ink,
+              fontVariantNumeric: "tabular-nums",
+            }}>
+              {draft === 0 ? "0" : `${draft > 0 ? "+" : "\u2212"}${Math.abs(draft)}`} BPM
+            </div>
+          </div>
+
+          <input
+            type="range"
+            min={-20}
+            max={20}
+            step={5}
+            value={draft}
+            aria-valuemin={-20}
+            aria-valuemax={20}
+            aria-valuenow={draft}
+            aria-valuetext={`${tone}, ${draft === 0 ? "middle" : `${Math.abs(draft)} BPM ${draft > 0 ? "lift" : "ease"}`}`}
+            onChange={(e) => apply(e.target.value)}
+            style={{
+              width: "100%",
+              accentColor: color.ink,
+              cursor: "pointer",
+              margin: 0,
+            }}
+          />
+
+          <div style={{
+            display: "flex",
+            justifyContent: "space-between",
+            marginTop: 8,
+            fontFamily: fontMono,
+            fontSize: 9,
+            fontWeight: 700,
+            letterSpacing: 0.8,
+            textTransform: "uppercase",
+            color: color.faint,
+          }}>
+            <span>Ease</span>
+            <span style={{ color: draft === 0 ? color.ink : color.faint }}>Middle</span>
+            <span>Lift</span>
+          </div>
+        </div>
+      )}
+    </span>
   );
 }
 

@@ -126,6 +126,47 @@ function createPlayerEnergyStore() {
     setState({ ...initialState(), lastAction: state.lastAction });
   }
 
+  /**
+   * Absolute bias from the Energy Shift slider (middle = 0).
+   * Replaces stacked nudges so the control maps 1:1 to pending sweep.
+   */
+  function setEnergyBias(bpm = 0, label = null) {
+    const clamped = clampMag(Number(bpm) || 0, BPM_DELTA_CAP);
+    if (Math.abs(clamped) < 1) {
+      setState({
+        active: false,
+        direction: 0,
+        bpmDelta: 0,
+        energyDelta: 0,
+        camelotDelta: 0,
+        lastAction: {
+          direction: 0,
+          bpmStep: 0,
+          label: label || "Neutral",
+          ts: Date.now(),
+        },
+      });
+      return;
+    }
+    const dir = clamped > 0 ? 1 : -1;
+    const scale = Math.abs(clamped) / 10;
+    setState({
+      active: true,
+      direction: dir,
+      bpmDelta: clamped,
+      energyDelta: clampMag(dir * 1.5 * scale, 6),
+      camelotDelta: clampMag(dir * Math.max(1, Math.round(2 * scale)), 6),
+      lastAction: {
+        direction: dir,
+        bpmStep: clamped,
+        label:
+          label ||
+          (dir > 0 ? ENERGY_PRESETS.rabbit.label : ENERGY_PRESETS.turtle.label),
+        ts: Date.now(),
+      },
+    });
+  }
+
   return {
     getState: () => state,
     subscribe(fn) {
@@ -133,6 +174,7 @@ function createPlayerEnergyStore() {
       return () => listeners.delete(fn);
     },
     shiftEnergy,
+    setEnergyBias,
     applyPreset,
     onTrackPlayed,
     reset,

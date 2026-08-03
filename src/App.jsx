@@ -36,7 +36,7 @@ import {
   listenPoolLabel,
   createListenIntent,
 } from "./lib/listenPool";
-import { EnergyShiftButton, EnergyShiftFeedback, EnergyShiftModeChip } from "./components/listen/EnergyShiftButton";
+import { EnergyShiftFeedback, EnergyShiftModeChip, EnergyShiftControl } from "./components/listen/EnergyShiftButton";
 import CoverFlow from "./components/listen/CoverFlow";
 import { playerEnergyStore } from "./lib/playerEnergyStore";
 import ArtistPage, { AlbumPage } from "./components/catalog/ArtistPage";
@@ -1215,58 +1215,71 @@ function CoverStage({
           <EnergyShiftFeedback bottom="calc(100% + 14px)" />
 
           <div style={{
+            position: "relative",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            gap: 10,
             width: "100%",
+            minHeight: 64,
           }}>
-            <EnergyShiftButton direction="down" size={32} stopPropagation={false} />
+            <div style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 14,
+            }}>
+              <button
+                type="button"
+                aria-label="Previous"
+                disabled={!live}
+                onClick={() => onPrev?.()}
+                style={{
+                  background: "none", border: "none", padding: 8,
+                  color: live ? color.ink : color.faint,
+                  cursor: live ? "pointer" : "default",
+                  opacity: live ? 1 : 0.45,
+                }}
+              >
+                <Icon name="prev" size={20}/>
+              </button>
 
-            <button
-              type="button"
-              aria-label="Previous"
-              disabled={!live}
-              onClick={() => onPrev?.()}
-              style={{
-                background: "none", border: "none", padding: 8,
-                color: live ? color.ink : color.faint,
-                cursor: live ? "pointer" : "default",
-                opacity: live ? 1 : 0.45,
-              }}
-            >
-              <Icon name="prev" size={20}/>
-            </button>
+              <OrbitalPlayControl
+                isPlaying={live ? isPlaying : false}
+                onToggle={handlePrimary}
+                progress={live ? progress : 0}
+                duration={live ? duration : 0}
+                onSeek={live ? onSeek : null}
+                size={64}
+                glowing={playingVisual}
+              />
 
-            <OrbitalPlayControl
-              isPlaying={live ? isPlaying : false}
-              onToggle={handlePrimary}
-              progress={live ? progress : 0}
-              duration={live ? duration : 0}
-              onSeek={live ? onSeek : null}
-              size={64}
-              glowing={playingVisual}
-            />
+              <button
+                type="button"
+                aria-label="Next"
+                disabled={!live && !canStart}
+                onClick={() => {
+                  if (live) onSkip?.();
+                  else if (canStart) onPlay?.();
+                }}
+                style={{
+                  background: "none", border: "none", padding: 8,
+                  color: (live || canStart) ? color.ink : color.faint,
+                  cursor: (live || canStart) ? "pointer" : "default",
+                  opacity: (live || canStart) ? 1 : 0.45,
+                }}
+              >
+                <Icon name="skip" size={20}/>
+              </button>
+            </div>
 
-            <button
-              type="button"
-              aria-label="Next"
-              disabled={!live && !canStart}
-              onClick={() => {
-                if (live) onSkip?.();
-                else if (canStart) onPlay?.();
-              }}
-              style={{
-                background: "none", border: "none", padding: 8,
-                color: (live || canStart) ? color.ink : color.faint,
-                cursor: (live || canStart) ? "pointer" : "default",
-                opacity: (live || canStart) ? 1 : 0.45,
-              }}
-            >
-              <Icon name="skip" size={20}/>
-            </button>
-
-            <EnergyShiftButton direction="up" size={32} stopPropagation={false} />
+            <div style={{
+              position: "absolute",
+              right: 0,
+              top: "50%",
+              transform: "translateY(-50%)",
+            }}>
+              <EnergyShiftControl size={40} stopPropagation={false} />
+            </div>
           </div>
 
           <div style={{
@@ -2763,7 +2776,6 @@ function ImmersivePlayer({
               </span>
             </button>
           )}
-          <EnergyShiftButton direction="down" size={36} stopPropagation={false} />
           <button type="button" onClick={onPrev} aria-label="Previous"
             style={{ background: "none", border: "none", cursor: "pointer", color: color.ink, padding: 8 }}>
             <Icon name="prev" size={20}/>
@@ -2778,7 +2790,7 @@ function ImmersivePlayer({
             style={{ background: "none", border: "none", cursor: "pointer", color: color.ink, padding: 8 }}>
             <Icon name="skip" size={20}/>
           </button>
-          <EnergyShiftButton direction="up" size={36} stopPropagation={false} />
+          <EnergyShiftControl size={36} stopPropagation={false} />
           {!isRadioMode && onCycleRepeat ? (
             <button type="button" onClick={onCycleRepeat}
               aria-label={`Repeat: ${repeat === "one" ? "one" : repeat === "all" ? "all" : "off"}`}
@@ -3474,7 +3486,7 @@ function HomeScreen({
 
         {onBrowse && !catalogEmpty && !catalogError && (
           <section
-            aria-label="Browse"
+            aria-label="Browse the library"
             style={{
               padding: `${forYouTracks.length > 0 ? 8 : 22}px ${homeSpace.gutter}px 10px`,
             }}
@@ -3482,7 +3494,7 @@ function HomeScreen({
             <button
               type="button"
               onClick={onBrowse}
-              aria-label="Browse"
+              aria-label="Browse the library"
               style={{
                 width: "100%",
                 display: "flex",
@@ -3521,7 +3533,7 @@ function HomeScreen({
                   letterSpacing: -0.2,
                   color: color.ink,
                 }}>
-                  Browse
+                  Browse the library
                 </div>
               </div>
               <span aria-hidden="true" style={{ color: color.faint, fontSize: 18 }}>→</span>
@@ -5730,9 +5742,6 @@ function GlassDock({
             <span className="dock-xtra" style={{ display: "flex" }}>
               <TrackMoreButton onClick={(e) => openFromButton(e, track)} />
             </span>
-            <span className="dock-xtra" style={{ display: "flex" }}>
-              <EnergyShiftButton direction="down" size={28} />
-            </span>
             <button type="button" aria-label="Previous"
               onClick={(e) => { e.stopPropagation(); onPrev?.(); }}
               style={{ background: "none", border: "none", cursor: "pointer", color: color.muted, padding: 8 }}>
@@ -5751,7 +5760,7 @@ function GlassDock({
               <Icon name="skip" size={16}/>
             </button>
             <span className="dock-xtra" style={{ display: "flex" }}>
-              <EnergyShiftButton direction="up" size={28} />
+              <EnergyShiftControl size={30} />
             </span>
           </div>
         )}
@@ -7986,7 +7995,6 @@ export default function App() {
               </span>
               <button onClick={e=>{e.stopPropagation();onLikeToggle();}} style={{ background:"none",border:"none",cursor:"pointer",color:currentTrack.liked?color.accent:color.faint,padding:4 }}><Icon name={currentTrack.liked?"heart":"heartempty"} size={16}/></button>
               <span style={{ display:"inline-flex", alignItems:"center", gap:4, opacity: 0.85 }}>
-                <EnergyShiftButton direction="down" size={28} />
                 <IceOrbPlay
                   isPlaying={isPlaying}
                   onClick={togglePlay}
@@ -7995,7 +8003,7 @@ export default function App() {
                   stopPropagation
                 />
                 <button onClick={e=>{e.stopPropagation();handleSkip();}} style={{ background:"none",border:"none",cursor:"pointer",color: color.muted,padding:4 }}><Icon name="skip" size={16}/></button>
-                <EnergyShiftButton direction="up" size={28} />
+                <EnergyShiftControl size={30} />
               </span>
             </div>
           </div>
