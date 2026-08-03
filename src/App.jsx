@@ -3684,6 +3684,7 @@ function FavoritesScreen({
   const saved = savedTracks(tracks, 80);
   const [libTab, setLibTab] = useState("playlists"); // playlists | liked
   const [libQuery, setLibQuery] = useState("");
+  const [plSort, setPlSort] = useState("recent"); // recent | name | size
   const [showNewInput, setShowNewInput] = useState(false);
   const [newName, setNewName] = useState("");
   const [openPlaylistId, setOpenPlaylistId] = useState(null);
@@ -3715,9 +3716,19 @@ function FavoritesScreen({
   }
 
   const q = libQuery.trim().toLowerCase();
-  const filteredPlaylists = q
-    ? userPlaylists.filter((p) => String(p.name || "").toLowerCase().includes(q))
-    : userPlaylists;
+  const filteredPlaylists = useMemo(() => {
+    const base = q
+      ? userPlaylists.filter((p) => String(p.name || "").toLowerCase().includes(q))
+      : [...userPlaylists];
+    if (plSort === "name") {
+      return base.sort((a, b) => String(a.name || "").localeCompare(String(b.name || "")));
+    }
+    if (plSort === "size") {
+      return base.sort((a, b) => (b.trackIds?.length || 0) - (a.trackIds?.length || 0));
+    }
+    // recent — keep creation-ish order (ids embed timestamps as pl_*)
+    return base.sort((a, b) => String(b.id || "").localeCompare(String(a.id || "")));
+  }, [userPlaylists, q, plSort]);
   const filteredSaved = q
     ? saved.filter((t) =>
         String(t.title || "").toLowerCase().includes(q)
@@ -4173,96 +4184,126 @@ function FavoritesScreen({
       <div style={{
         position: "relative",
         background: color.canvas,
-        padding: `20px 0 8px`,
+        padding: `16px 0 8px`,
       }}>
-        {/* Library header */}
-        <div style={{ padding: `0 ${homeSpace.gutter}px 18px` }}>
+        {/* Library header — tighter chrome */}
+        <div style={{ padding: `0 ${homeSpace.gutter}px 14px` }}>
           <div style={{
             display: "flex",
-            alignItems: "flex-end",
+            alignItems: "center",
             justifyContent: "space-between",
-            gap: 16,
-            marginBottom: 6,
+            gap: 14,
+            marginBottom: 14,
           }}>
-            <h1 style={{
-              margin: 0,
-              fontSize: 34,
-              fontWeight: 700,
-              letterSpacing: -1,
-              fontFamily: fontDisplay,
-              color: color.ink,
-              lineHeight: 1.05,
-            }}>
-              Library
-            </h1>
-            {libTab === "playlists" && (
-              <button
-                type="button"
-                onClick={() => setShowNewInput(true)}
+            <div style={{ minWidth: 0 }}>
+              <h1 style={{
+                margin: 0,
+                fontSize: 32,
+                fontWeight: 700,
+                letterSpacing: -1,
+                fontFamily: fontDisplay,
+                color: color.ink,
+                lineHeight: 1.05,
+              }}>
+                Library
+              </h1>
+              <div style={{
+                marginTop: 6,
+                fontSize: 12,
+                color: color.faint,
+                fontFamily: fontMono,
+                letterSpacing: 0.2,
+                fontVariantNumeric: "tabular-nums",
+              }}>
+                {userPlaylists.length} playlist{userPlaylists.length === 1 ? "" : "s"}
+                {" · "}
+                {saved.length} liked
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => { setLibTab("playlists"); setShowNewInput(true); }}
+              style={{
+                ...BTN_PRIMARY,
+                width: "auto",
+                borderRadius: radius.md,
+                padding: "10px 14px",
+                fontSize: 13,
+                fontWeight: 650,
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 6,
+                flexShrink: 0,
+              }}
+            >
+              <Icon name="plus" size={14} />
+              New playlist
+            </button>
+          </div>
+
+          {/* Glass control plate — segments + search */}
+          <div style={{
+            borderRadius: radius.lg,
+            border: `1px solid ${glass.border}`,
+            background: `
+              linear-gradient(160deg, rgba(255,255,255,0.82) 0%, rgba(246,248,252,0.55) 100%)
+            `,
+            boxShadow: `inset 0 1px 0 ${glass.highlight}, ${glass.shadowSoft}`,
+            backdropFilter: glass.blurSoft,
+            WebkitBackdropFilter: glass.blurSoft,
+            padding: 8,
+            marginBottom: 12,
+          }}>
+            <div
+              role="tablist"
+              aria-label="Library sections"
+              style={{
+                display: "flex",
+                gap: 4,
+                padding: 2,
+                borderRadius: radius.md,
+                background: "rgba(22,24,30,0.06)",
+                marginBottom: 8,
+              }}
+            >
+              {segmentBtn("playlists", "Playlists", userPlaylists.length)}
+              {segmentBtn("liked", "Liked", saved.length)}
+            </div>
+            <div style={{ position: "relative" }}>
+              <span aria-hidden="true" style={{
+                position: "absolute",
+                left: 12,
+                top: "50%",
+                transform: "translateY(-50%)",
+                color: color.faint,
+                display: "flex",
+                pointerEvents: "none",
+              }}>
+                <Icon name="search" size={15} />
+              </span>
+              <input
+                value={libQuery}
+                onChange={(e) => setLibQuery(e.target.value)}
+                placeholder={libTab === "playlists" ? "Search playlists…" : "Search liked songs…"}
+                aria-label={libTab === "playlists" ? "Search playlists" : "Search liked songs"}
                 style={{
-                  ...BTN_SECONDARY,
-                  borderRadius: radius.sm,
-                  padding: "9px 14px",
-                  fontSize: 13,
-                  fontWeight: 650,
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: 6,
-                  flexShrink: 0,
+                  ...INPUT_ST,
+                  padding: "11px 14px 11px 36px",
+                  fontSize: 15,
+                  borderRadius: radius.md,
+                  background: "rgba(255,255,255,0.72)",
+                  border: `1px solid ${glass.borderSoft}`,
                 }}
-              >
-                <Icon name="plus" size={14} />
-                New
-              </button>
-            )}
-          </div>
-          <p style={{
-            margin: "0 0 18px",
-            fontSize: 14,
-            color: color.muted,
-            lineHeight: 1.4,
-            maxWidth: 420,
-          }}>
-            Your playlists and liked songs — one place to dig back in.
-          </p>
-
-          {/* Segmented control */}
-          <div
-            role="tablist"
-            aria-label="Library sections"
-            style={{
-              display: "flex",
-              gap: 4,
-              padding: 4,
-              borderRadius: radius.md,
-              background: "rgba(26,29,36,0.06)",
-              border: `1px solid ${glass.borderSoft}`,
-              marginBottom: 14,
-            }}
-          >
-            {segmentBtn("playlists", "Playlists", userPlaylists.length)}
-            {segmentBtn("liked", "Liked", saved.length)}
+              />
+            </div>
           </div>
 
-          <input
-            value={libQuery}
-            onChange={(e) => setLibQuery(e.target.value)}
-            placeholder={libTab === "playlists" ? "Filter playlists…" : "Filter liked songs…"}
-            aria-label={libTab === "playlists" ? "Filter playlists" : "Filter liked songs"}
-            style={{
-              ...INPUT_ST,
-              padding: "11px 14px",
-              fontSize: 15,
-              borderRadius: radius.md,
-            }}
-          />
-
-          {showNewInput && libTab === "playlists" && (
+          {showNewInput && (
             <div style={{
               display: "flex",
               gap: 8,
               alignItems: "center",
-              marginTop: 12,
+              marginBottom: 4,
               animation: `rise 0.35s ${motion.ease} both`,
             }}>
               <input
@@ -4281,17 +4322,29 @@ function FavoritesScreen({
                 type="button"
                 onClick={handleCreate}
                 style={{
-                  background: color.accent,
-                  border: "none",
+                  ...BTN_PRIMARY,
+                  width: "auto",
                   borderRadius: radius.md,
-                  color: color.onAccent,
                   fontSize: 15,
                   fontWeight: 600,
                   padding: "10px 16px",
-                  cursor: "pointer",
                 }}
               >
                 Create
+              </button>
+              <button
+                type="button"
+                onClick={() => { setShowNewInput(false); setNewName(""); }}
+                aria-label="Cancel"
+                style={{
+                  ...BTN_SECONDARY,
+                  width: "auto",
+                  borderRadius: radius.md,
+                  padding: "10px 12px",
+                  fontSize: 14,
+                }}
+              >
+                Cancel
               </button>
             </div>
           )}
@@ -4302,6 +4355,70 @@ function FavoritesScreen({
             padding: `4px ${homeSpace.gutter}px 24px`,
             animation: `rise 0.4s ${motion.ease} both`,
           }}>
+            {filteredPlaylists.length > 0 && (
+              <div style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                gap: 12,
+                marginBottom: 14,
+              }}>
+                <div style={{
+                  fontSize: 11,
+                  fontWeight: 700,
+                  letterSpacing: 1.2,
+                  textTransform: "uppercase",
+                  color: color.faint,
+                  fontFamily: fontMono,
+                }}>
+                  Your sets
+                </div>
+                <div
+                  role="group"
+                  aria-label="Sort playlists"
+                  style={{
+                    display: "inline-flex",
+                    gap: 2,
+                    padding: 3,
+                    borderRadius: radius.sm,
+                    background: "rgba(22,24,30,0.06)",
+                    border: `1px solid ${glass.borderSoft}`,
+                  }}
+                >
+                  {[
+                    { id: "recent", label: "Recent" },
+                    { id: "name", label: "A–Z" },
+                    { id: "size", label: "Size" },
+                  ].map((opt) => {
+                    const on = plSort === opt.id;
+                    return (
+                      <button
+                        key={opt.id}
+                        type="button"
+                        onClick={() => setPlSort(opt.id)}
+                        aria-pressed={on}
+                        style={{
+                          border: "none",
+                          borderRadius: 6,
+                          padding: "5px 9px",
+                          fontSize: 11,
+                          fontWeight: on ? 700 : 550,
+                          cursor: "pointer",
+                          background: on ? color.surfaceSolid : "transparent",
+                          color: on ? color.ink : color.muted,
+                          boxShadow: on ? `inset 0 1px 0 ${glass.highlight}, ${glass.shadowSoft}` : "none",
+                          fontFamily: fontMono,
+                          letterSpacing: 0.2,
+                        }}
+                      >
+                        {opt.label}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
             {filteredPlaylists.length === 0 && !q ? (
               <div style={{
                 padding: "36px 18px",
@@ -4309,9 +4426,11 @@ function FavoritesScreen({
                 borderRadius: radius.lg,
                 border: `1px solid ${glass.borderSoft}`,
                 background: `
-                  linear-gradient(165deg, rgba(255,255,255,0.72) 0%, rgba(238,241,245,0.55) 100%)
+                  linear-gradient(165deg, rgba(255,255,255,0.78) 0%, rgba(238,241,245,0.5) 100%)
                 `,
                 boxShadow: `inset 0 1px 0 ${glass.highlight}`,
+                backdropFilter: glass.blurSoft,
+                WebkitBackdropFilter: glass.blurSoft,
               }}>
                 <div style={{
                   fontSize: 18,
@@ -4397,6 +4516,70 @@ function FavoritesScreen({
           <div style={{ animation: `rise 0.4s ${motion.ease} both` }}>
             {filteredSaved.length > 0 ? (
               <>
+                <div style={{
+                  padding: `0 ${homeSpace.gutter}px 12px`,
+                  display: "flex",
+                  gap: 10,
+                  flexWrap: "wrap",
+                  alignItems: "center",
+                }}>
+                  <button
+                    type="button"
+                    onClick={() => playTrackFn(filteredSaved[0], filteredSaved)}
+                    aria-label="Play liked songs"
+                    style={{
+                      ...BTN_PRIMARY,
+                      width: "auto",
+                      minWidth: 120,
+                      borderRadius: radius.md,
+                      padding: "11px 18px",
+                      fontSize: 14,
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: 8,
+                    }}
+                  >
+                    <Icon name="play" size={13} />
+                    Play all
+                  </button>
+                  {filteredSaved.length > 1 && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const shuffled = [...filteredSaved];
+                        for (let i = shuffled.length - 1; i > 0; i--) {
+                          const j = Math.floor(Math.random() * (i + 1));
+                          [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+                        }
+                        playTrackFn(shuffled[0], shuffled);
+                      }}
+                      aria-label="Shuffle liked songs"
+                      style={{
+                        ...BTN_SECONDARY,
+                        width: "auto",
+                        borderRadius: radius.md,
+                        padding: "11px 16px",
+                        fontSize: 14,
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: 8,
+                      }}
+                    >
+                      <Icon name="shuffle" size={13} />
+                      Shuffle
+                    </button>
+                  )}
+                  <span style={{
+                    marginLeft: "auto",
+                    fontSize: 12,
+                    color: color.faint,
+                    fontFamily: fontMono,
+                    fontVariantNumeric: "tabular-nums",
+                  }}>
+                    {filteredSaved.length} song{filteredSaved.length === 1 ? "" : "s"}
+                  </span>
+                </div>
+
                 {!q && (
                   <CoverFlow
                     tracks={filteredSaved}
@@ -4409,13 +4592,13 @@ function FavoritesScreen({
                 )}
                 <div style={{ padding: `8px ${Math.max(0, homeSpace.gutter - 8)}px 24px` }}>
                   <div style={{
-                    fontSize: 12,
-                    fontWeight: 650,
-                    letterSpacing: 1.1,
+                    fontSize: 11,
+                    fontWeight: 700,
+                    letterSpacing: 1.2,
                     textTransform: "uppercase",
                     color: color.faint,
                     fontFamily: fontMono,
-                    margin: q ? "0 8px 10px" : "12px 8px 10px",
+                    margin: q ? "0 8px 10px" : "10px 8px 10px",
                   }}>
                     {q ? "Matches" : "All liked"}
                   </div>
@@ -7406,12 +7589,11 @@ export default function App() {
 
   // ── Desktop: 3-column shell (iTunes-style source list) ───────────────────
   const NAV_TOP = [
-    { id: "home",   icon: "home",   label: "Home" },
-    { id: "search", icon: "search", label: "Search" },
+    { id: "home",      icon: "home",   label: "Home" },
+    { id: "favorites", icon: "dig",    label: "Library" },
+    { id: "search",    icon: "search", label: "Search" },
   ];
-  const NAV_BOTTOM = [
-    { id: "favorites", icon: "dig", label: "Library" },
-  ];
+  const NAV_BOTTOM = [];
 
   const recentTracks = [...tracks].slice(0, 6);
 
@@ -7444,13 +7626,6 @@ export default function App() {
       }}>
         <div style={{ marginBottom: 22, padding: "0 4px" }}>
           <BrandLockup size={88} glassHalo={false} compact />
-        </div>
-
-        <div style={{
-          fontSize: 10, fontWeight: 700, letterSpacing: 1.2, textTransform: "uppercase",
-          color: color.faint, fontFamily: fontMono, padding: "0 10px 8px",
-        }}>
-          Browse
         </div>
 
         <div style={{ display: "flex", flexDirection: "column", gap: 2, flex: 1, minHeight: 0 }}>
