@@ -363,7 +363,7 @@ function EntityHero({
               cursor: "pointer",
               fontSize: 13,
               fontWeight: 650,
-              boxShadow: "0 4px 14px rgba(10,124,255,0.28)",
+              boxShadow: "0 4px 14px rgba(22,24,30,0.22)",
             }}
           >
             {playLabel}

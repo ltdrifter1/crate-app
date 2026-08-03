@@ -29,7 +29,7 @@ function Sleeve({ track, size, active, playing }) {
         borderRadius: radius.md,
         overflow: "hidden",
         background: color.surfaceRaised,
-        border: `1px solid ${active ? "rgba(10,124,255,0.35)" : glass.borderSoft}`,
+        border: `1px solid ${active ? "rgba(22,24,30,0.28)" : glass.borderSoft}`,
         boxShadow: active ? artShadow.raised : artShadow.quiet,
         position: "relative",
       }}

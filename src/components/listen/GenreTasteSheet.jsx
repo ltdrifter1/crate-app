@@ -31,7 +31,7 @@ export default function GenreTasteSheet({
           position: "absolute",
           inset: 0,
           background:
-            "radial-gradient(ellipse at 50% 0%, rgba(10,124,255,0.08) 0%, transparent 48%)",
+            "radial-gradient(ellipse at 50% 0%, rgba(190,198,210,0.28) 0%, transparent 48%)",
         }}
       />
 

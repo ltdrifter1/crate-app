@@ -42,7 +42,7 @@ export default function PaywallScreen({
         justifyContent: "center",
         padding: "48px 28px 40px",
         background: `
-          radial-gradient(ellipse 90% 55% at 50% -10%, rgba(10,124,255,0.1) 0%, transparent 55%),
+          radial-gradient(ellipse 90% 55% at 50% -10%, rgba(190,198,210,0.35) 0%, transparent 55%),
           linear-gradient(180deg, #F4F6F9 0%, ${color.canvas} 42%, ${color.canvas} 100%)
         `,
       }}
