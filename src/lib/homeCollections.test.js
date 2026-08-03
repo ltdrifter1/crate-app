@@ -74,4 +74,35 @@ describe("homeCollections", () => {
     const { picks } = recommendedPicks(tracks, { preferredGenres: ["Jazz"], excludeIds: ["1", "2"], limit: 10 });
     expect(picks.some((p) => p.track.id === "1" || p.track.id === "2")).toBe(false);
   });
+
+  test("recommendedPicks rotates by user and day", () => {
+    const a = recommendedPicks(tracks, {
+      preferredGenres: ["Jazz", "House"],
+      limit: 5,
+      userKey: "user-a",
+      dayKey: "2026-08-03",
+    }).picks.map((p) => p.track.id);
+    const b = recommendedPicks(tracks, {
+      preferredGenres: ["Jazz", "House"],
+      limit: 5,
+      userKey: "user-b",
+      dayKey: "2026-08-03",
+    }).picks.map((p) => p.track.id);
+    const aNextDay = recommendedPicks(tracks, {
+      preferredGenres: ["Jazz", "House"],
+      limit: 5,
+      userKey: "user-a",
+      dayKey: "2026-08-04",
+    }).picks.map((p) => p.track.id);
+    const aAgain = recommendedPicks(tracks, {
+      preferredGenres: ["Jazz", "House"],
+      limit: 5,
+      userKey: "user-a",
+      dayKey: "2026-08-03",
+    }).picks.map((p) => p.track.id);
+
+    expect(aAgain).toEqual(a);
+    expect(a.join(",")).not.toEqual(b.join(","));
+    expect(a.join(",")).not.toEqual(aNextDay.join(","));
+  });
 });
