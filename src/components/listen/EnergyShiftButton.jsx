@@ -42,15 +42,16 @@ function TurtleIcon({ size = 15 }) {
 /**
  * One energy-shift control. direction: "up" (rabbit) | "down" (turtle).
  * Tap = ±10 BPM · long-press = ±5 / ±10 / ±20.
+ * showLabel: tiny Lift/Ease caption under the icon (Cover Stage).
  */
-export function EnergyShiftButton({ direction = "up", size = 30, stopPropagation = true }) {
+export function EnergyShiftButton({ direction = "up", size = 30, stopPropagation = true, showLabel = false }) {
   const up = direction === "up";
   const { increaseEnergy, decreaseEnergy, energyShift } = useEnergyQueue();
   const [pressed, setPressed] = useState(false);
   const [hovered, setHovered] = useState(false);
   const [focused, setFocused] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
-  const showTip = (hovered || focused) && !menuOpen && !pressed;
+  const showTip = (hovered || focused) && !menuOpen && !pressed && !showLabel;
   const longPressRef = useRef(null);
   const firedLongPress = useRef(false);
 
@@ -89,11 +90,12 @@ export function EnergyShiftButton({ direction = "up", size = 30, stopPropagation
   useEffect(() => () => clearTimeout(longPressRef.current), []);
 
   return (
-    <span style={{ position: "relative", display: "inline-flex" }}>
+    <span style={{ position: "relative", display: "inline-flex", flexDirection: "column", alignItems: "center", gap: showLabel ? 4 : 0 }}>
       <button
         type="button"
-        aria-label={up ? "Energy shift — lift the pace" : "Energy shift — ease the pace"}
+        aria-label={up ? "Energy shift — lift the pace of upcoming tracks" : "Energy shift — ease the pace of upcoming tracks"}
         aria-pressed={activeHere}
+        title={up ? "Lift — next picks get livelier" : "Ease — next picks slow down"}
         onPointerDown={startPress}
         onPointerUp={endPress}
         onPointerLeave={(e) => { if (pressed) endPress(e, true); setHovered(false); }}
@@ -112,7 +114,9 @@ export function EnergyShiftButton({ direction = "up", size = 30, stopPropagation
           justifyContent: "center",
           cursor: "pointer",
           color: activeHere ? color.ink : color.muted,
-          background: glass.fillStrong,
+          background: activeHere
+            ? `linear-gradient(180deg, rgba(255,255,255,0.75) 0%, rgba(255,255,255,0.45) 100%)`
+            : glass.fillStrong,
           border: `1px solid ${activeHere ? color.lineStrong : glass.border}`,
           backdropFilter: glass.blurSoft,
           WebkitBackdropFilter: glass.blurSoft,
@@ -129,6 +133,20 @@ export function EnergyShiftButton({ direction = "up", size = 30, stopPropagation
       >
         {up ? <RabbitIcon size={Math.round(size * 0.52)} /> : <TurtleIcon size={Math.round(size * 0.52)} />}
       </button>
+
+      {showLabel && (
+        <span aria-hidden="true" style={{
+          fontSize: 9,
+          fontWeight: 700,
+          letterSpacing: 0.8,
+          textTransform: "uppercase",
+          fontFamily: fontMono,
+          color: activeHere ? color.ink : color.faint,
+          lineHeight: 1,
+        }}>
+          {up ? "Lift" : "Ease"}
+        </span>
+      )}
 
       {showTip && (
         <span
@@ -158,7 +176,7 @@ export function EnergyShiftButton({ direction = "up", size = 30, stopPropagation
             animation: `energyPillIn 0.18s ${PRESS_EASE} both`,
           }}
         >
-          Energy shift
+          Next picks
           <span style={{ fontFamily: fontMono, fontSize: 10, fontWeight: 700, letterSpacing: 0.6, textTransform: "uppercase", color: color.muted }}>
             {up ? "Lift" : "Ease"}
           </span>
@@ -216,9 +234,51 @@ export function EnergyShiftButton({ direction = "up", size = 30, stopPropagation
 }
 
 /**
+ * Persistent chrome chip when Energy Shift is steering upcoming picks.
+ */
+export function EnergyShiftModeChip({ style = null }) {
+  const { energyShift } = useEnergyQueue();
+  if (!energyShift?.active) return null;
+  const up = energyShift.direction > 0;
+  return (
+    <div
+      className="energy-mode-chip"
+      role="status"
+      aria-live="polite"
+      style={{
+        display: "inline-flex",
+        alignItems: "center",
+        gap: 7,
+        padding: "5px 11px",
+        borderRadius: 980,
+        background: "rgba(255,255,255,0.88)",
+        border: `1px solid ${glass.border}`,
+        boxShadow: `inset 0 1px 0 ${glass.highlight}, 0 6px 18px rgba(26,29,36,0.1)`,
+        backdropFilter: glass.blurSoft,
+        WebkitBackdropFilter: glass.blurSoft,
+        color: color.ink,
+        fontSize: 11,
+        fontWeight: 650,
+        letterSpacing: -0.1,
+        animation: `energyModeIn 0.35s ${PRESS_EASE} both`,
+        ...style,
+      }}
+    >
+      <span aria-hidden="true" style={{
+        width: 6, height: 6, borderRadius: "50%", background: color.ink,
+        boxShadow: `0 0 0 3px ${color.accentSoft}`,
+        animation: "breathe 1.6s ease-in-out infinite",
+      }}/>
+      <span style={{ fontFamily: fontMono, fontSize: 10, fontWeight: 700, letterSpacing: 0.7, textTransform: "uppercase", color: color.muted }}>
+        {up ? "Lift" : "Ease"}
+      </span>
+      <span>next picks</span>
+    </div>
+  );
+}
+
+/**
  * Floating feedback above the player after an energy shift.
- * Mono glass only — no emoji, no purple. (Discovery lives in the buttons'
- * own hover tooltip — no persistent coachmark.)
  */
 export function EnergyShiftFeedback({ bottom = "calc(100% + 12px)" }) {
   const { energyShift } = useEnergyQueue();
@@ -255,7 +315,7 @@ export function EnergyShiftFeedback({ bottom = "calc(100% + 12px)" }) {
           color: color.ink, fontSize: 12.5, fontWeight: 650, letterSpacing: -0.1,
           animation: `energyPillLife ${PILL_MS}ms cubic-bezier(0.22, 1, 0.36, 1) both`,
         }}>
-          {up ? "Picking up the pace\u2026" : "Slowing things down\u2026"}
+          {up ? "Next picks get livelier\u2026" : "Next picks slow down\u2026"}
         </div>
       )}
       {chipVisible && (

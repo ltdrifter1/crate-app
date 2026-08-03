@@ -19,6 +19,30 @@ function usePrefersReducedMotion() {
   return reduced;
 }
 
+function SleeveArt({ track, size }) {
+  if (track.albumCover) {
+    return (
+      <img
+        src={track.albumCover}
+        alt=""
+        draggable={false}
+        style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+      />
+    );
+  }
+  return (
+    <div style={{
+      width: "100%", height: "100%",
+      display: "flex", alignItems: "center", justifyContent: "center",
+      fontFamily: fontDisplay, fontSize: size * 0.28, fontWeight: 700,
+      color: color.faint, letterSpacing: -1,
+      background: `linear-gradient(160deg, rgba(255,255,255,0.85), ${color.surfaceRaised})`,
+    }}>
+      {(track.title || "P")[0]}
+    </div>
+  );
+}
+
 function Sleeve({ track, size, active, playing }) {
   return (
     <div
@@ -34,27 +58,11 @@ function Sleeve({ track, size, active, playing }) {
         position: "relative",
       }}
     >
-      {track.albumCover ? (
-        <img
-          src={track.albumCover}
-          alt=""
-          draggable={false}
-          style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
-        />
-      ) : (
-        <div style={{
-          width: "100%", height: "100%",
-          display: "flex", alignItems: "center", justifyContent: "center",
-          fontFamily: fontDisplay, fontSize: size * 0.28, fontWeight: 700,
-          color: color.faint, letterSpacing: -1,
-          background: `linear-gradient(160deg, rgba(255,255,255,0.85), ${color.surfaceRaised})`,
-        }}>
-          {(track.title || "P")[0]}
-        </div>
-      )}
+      <SleeveArt track={track} size={size} />
       <div aria-hidden="true" style={{
         pointerEvents: "none", position: "absolute", inset: 0, borderRadius: radius.md,
         boxShadow: "inset 0 1px 0 rgba(255,255,255,0.35)",
+        background: "linear-gradient(135deg, rgba(255,255,255,0.18) 0%, transparent 42%)",
       }}/>
       {active && playing && (
         <div style={{
@@ -88,12 +96,14 @@ export default function CoverFlow({
   isPlaying = false,
   limit = 25,
   size = 200,
+  reasons = null,
 }) {
   const list = tracks.slice(0, limit);
   const reduced = usePrefersReducedMotion();
   const [focus, setFocus] = useState(0);
   const stageRef = useRef(null);
   const drag = useRef({ active: false, x: 0, moved: false });
+  const reasonFor = (t) => (t?.id && reasons ? reasons[t.id] : null);
 
   // Keep focus on the playing track when it changes from outside.
   useEffect(() => {
@@ -158,7 +168,7 @@ export default function CoverFlow({
         onPointerCancel={() => { drag.current.active = false; }}
         style={{
           position: "relative",
-          height: stageH,
+          height: stageH + (reduced ? 0 : Math.round(size * 0.22)),
           outline: "none",
           cursor: "grab",
           userSelect: "none",
@@ -167,6 +177,25 @@ export default function CoverFlow({
         }}
         className="cover-flow-stage"
       >
+        {/* Glass table / floor bloom — Y2K jewel-case stage */}
+        {!reduced && (
+          <div aria-hidden="true" style={{
+            position: "absolute",
+            left: "12%",
+            right: "12%",
+            bottom: Math.round(size * 0.02),
+            height: Math.round(size * 0.28),
+            borderRadius: "50%",
+            background: `
+              radial-gradient(ellipse at 50% 30%, rgba(255,255,255,0.55) 0%, rgba(255,255,255,0.12) 42%, transparent 72%),
+              linear-gradient(180deg, rgba(190,198,210,0.2) 0%, transparent 100%)
+            `,
+            filter: "blur(2px)",
+            pointerEvents: "none",
+            zIndex: 0,
+          }}/>
+        )}
+
         {/* Perspective stage */}
         <div
           aria-hidden="true"
@@ -174,7 +203,8 @@ export default function CoverFlow({
             position: "absolute",
             inset: 0,
             perspective: reduced ? "none" : 1100,
-            perspectiveOrigin: "50% 45%",
+            perspectiveOrigin: "50% 42%",
+            zIndex: 1,
           }}
         >
           <div style={{
@@ -233,6 +263,34 @@ export default function CoverFlow({
                     active={t.id === activeId}
                     playing={!!isPlaying && t.id === activeId}
                   />
+                  {/* Mirrored jewel-case floor — center sleeve only */}
+                  {isCenter && !reduced && (
+                    <div
+                      className="cover-flow-reflect"
+                      style={{
+                        position: "absolute",
+                        left: 0,
+                        top: size + 4,
+                        width: size,
+                        height: Math.round(size * 0.34),
+                        overflow: "hidden",
+                        borderRadius: `0 0 ${radius.md}px ${radius.md}px`,
+                        opacity: 0.42,
+                        pointerEvents: "none",
+                        maskImage: "linear-gradient(180deg, rgba(0,0,0,0.55) 0%, transparent 88%)",
+                        WebkitMaskImage: "linear-gradient(180deg, rgba(0,0,0,0.55) 0%, transparent 88%)",
+                      }}
+                    >
+                      <div style={{
+                        transform: "scaleY(-1)",
+                        transformOrigin: "center top",
+                        height: size,
+                        filter: "blur(0.4px) saturate(0.85)",
+                      }}>
+                        <SleeveArt track={t} size={size} />
+                      </div>
+                    </div>
+                  )}
                 </button>
               );
             })}
@@ -312,12 +370,30 @@ export default function CoverFlow({
           }}>
             {focused.artist}
           </div>
+          {reasonFor(focused) && (
+            <div style={{
+              marginTop: 8,
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 6,
+              padding: "4px 10px",
+              borderRadius: 980,
+              background: "rgba(255,255,255,0.72)",
+              border: `1px solid ${glass.borderSoft}`,
+              boxShadow: `inset 0 1px 0 ${glass.highlight}`,
+              fontSize: 11,
+              fontWeight: 650,
+              color: color.body,
+              letterSpacing: -0.1,
+            }}>
+              {reasonFor(focused)}
+            </div>
+          )}
           <div style={{
-            marginTop: 8,
-            fontSize: 10,
+            marginTop: reasonFor(focused) ? 8 : 8,
+            fontSize: 11,
             fontWeight: 650,
-            letterSpacing: 1.2,
-            textTransform: "uppercase",
+            letterSpacing: 0.4,
             color: color.faint,
             fontFamily: fontMono,
           }}>
