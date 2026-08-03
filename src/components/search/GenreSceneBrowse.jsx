@@ -1,17 +1,10 @@
 import { useMemo, useState } from "react";
 import { fontDisplay, fontMono, color, glass, radius } from "../../theme";
-import { genreBrowseRows, tracksForGenreLane, genreStory } from "../../lib/browse";
-import { camelotCompatible } from "../../lib/harmony";
-
-/** Camelot wheel order — energetic clockwise walk. */
-const CAMELOT_ORDER = [
-  "1A","1B","2A","2B","3A","3B","4A","4B","5A","5B","6A","6B",
-  "7A","7B","8A","8B","9A","9B","10A","10B","11A","11B","12A","12B",
-];
+import { genreBrowseRows, tracksForGenreLane } from "../../lib/browse";
 
 /**
  * Genre browse for Search empty state.
- * Dig = open the crate. Listen = start On air in that lane.
+ * Only the approved 11 canonical genres — no Camelot Keys as fake lanes.
  */
 export default function GenreSceneBrowse({
   tracks = [],
@@ -26,22 +19,7 @@ export default function GenreSceneBrowse({
 }) {
   const rows = useMemo(() => genreBrowseRows(tracks), [tracks]);
   const [digGenre, setDigGenre] = useState(null);
-  const [digKey, setDigKey] = useState(null);
   const browsing = activeGenre || digGenre;
-
-  const keysInCrate = useMemo(() => {
-    const counts = new Map();
-    for (const t of tracks) {
-      const k = String(t.camelot || "").toUpperCase().trim();
-      if (k) counts.set(k, (counts.get(k) || 0) + 1);
-    }
-    return CAMELOT_ORDER.filter((k) => counts.has(k)).map((k) => ({ key: k, count: counts.get(k) }));
-  }, [tracks]);
-
-  const keyPool = useMemo(() => {
-    if (!digKey) return [];
-    return tracks.filter((t) => t.camelot && camelotCompatible(digKey, t.camelot, 1));
-  }, [tracks, digKey]);
 
   const listenGenre = (lane) => {
     if (onListenIntent) {
@@ -51,54 +29,6 @@ export default function GenreSceneBrowse({
     const pool = tracksForGenreLane(tracks, lane);
     if (pool.length) onPlayPool?.(pool[0], pool);
   };
-
-  if (digKey) {
-    return (
-      <div style={{ paddingTop: 8, animation: "rise 0.4s cubic-bezier(0.22,1,0.36,1) both" }}>
-        <button
-          type="button"
-          onClick={() => setDigKey(null)}
-          style={{
-            background: "none", border: "none", color: color.accent,
-            fontSize: 14, cursor: "pointer", fontWeight: 500, marginBottom: 14, padding: 0,
-          }}
-        >
-          ‹ Keys
-        </button>
-        <div style={{ marginBottom: 18 }}>
-          <div style={{
-            fontSize: 11, fontWeight: 650, letterSpacing: 1.6, textTransform: "uppercase",
-            color: color.muted, fontFamily: fontMono, marginBottom: 8,
-          }}>
-            Harmonic dig
-          </div>
-          <div style={{
-            fontSize: 28, fontWeight: 700, letterSpacing: -0.7,
-            color: color.ink, fontFamily: fontDisplay, marginBottom: 8,
-          }}>
-            {digKey}
-          </div>
-          <div style={{ fontSize: 14, color: color.body, lineHeight: 1.45, marginBottom: 6 }}>
-            Cuts in {digKey} and its neighbors — clean handoffs, no key clash.
-          </div>
-          <div style={{ fontSize: 13, color: color.muted }}>
-            {keyPool.length} cut{keyPool.length === 1 ? "" : "s"}
-          </div>
-        </div>
-        {keyPool.map((t) => (
-          <TrackRow
-            key={t.id}
-            track={t}
-            onPlay={() => onPlayPool?.(t, keyPool)}
-            active={currentTrack?.id === t.id}
-            isPlaying={isPlaying}
-            onLike={onLike}
-            playlistCtx={playlistCtx}
-          />
-        ))}
-      </div>
-    );
-  }
 
   if (browsing) {
     const pool = tracksForGenreLane(tracks, browsing);
@@ -118,17 +48,6 @@ export default function GenreSceneBrowse({
         )}
         <div style={{ marginBottom: 18 }}>
           <div style={{
-            fontSize: 11,
-            fontWeight: 650,
-            letterSpacing: 1.6,
-            textTransform: "uppercase",
-            color: color.faint,
-            fontFamily: fontMono,
-            marginBottom: 8,
-          }}>
-            {activeGenre ? "Listening" : "In the crate"}
-          </div>
-          <div style={{
             fontSize: 28,
             fontWeight: 700,
             letterSpacing: -0.7,
@@ -138,12 +57,9 @@ export default function GenreSceneBrowse({
           }}>
             {browsing}
           </div>
-          <div style={{ fontSize: 14, color: color.body, lineHeight: 1.45, marginBottom: 14 }}>
-            {genreStory(browsing)}
-          </div>
           <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 14, flexWrap: "wrap" }}>
             <div style={{ fontSize: 13, color: color.muted }}>
-              {pool.length} cut{pool.length === 1 ? "" : "s"}
+              {pool.length}
             </div>
             {onListenIntent && (
               <button
@@ -164,7 +80,7 @@ export default function GenreSceneBrowse({
                   WebkitBackdropFilter: glass.blurSoft,
                 }}
               >
-                Listen in this lane
+                Listen
               </button>
             )}
           </div>
@@ -191,13 +107,10 @@ export default function GenreSceneBrowse({
         fontWeight: 700,
         letterSpacing: -0.4,
         color: color.ink,
-        marginBottom: 6,
+        marginBottom: 14,
         fontFamily: fontDisplay,
       }}>
         Genres
-      </div>
-      <div style={{ fontSize: 14, color: color.muted, marginBottom: 14, lineHeight: 1.4 }}>
-        Dig a lane — or listen On air from here.
       </div>
       <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
         {rows.map((row) => (
@@ -229,13 +142,10 @@ export default function GenreSceneBrowse({
                 minWidth: 0,
               }}
             >
-              <div style={{ minWidth: 0 }}>
-                <div style={{ fontSize: 17, fontWeight: 600, fontFamily: fontDisplay }}>
-                  {row.lane}
-                </div>
-                <div style={{ fontSize: 13, color: color.muted, marginTop: 2 }}>
-                  {row.story}
-                </div>
+              <div style={{
+                fontSize: 17, fontWeight: 600, fontFamily: fontDisplay,
+              }}>
+                {row.lane}
               </div>
               <span style={{
                 fontSize: 12,
@@ -272,46 +182,6 @@ export default function GenreSceneBrowse({
           </div>
         ))}
       </div>
-
-      {keysInCrate.length > 0 && (
-        <div style={{ marginTop: 28 }}>
-          <div style={{
-            fontSize: 20, fontWeight: 700, letterSpacing: -0.4,
-            color: color.ink, marginBottom: 6, fontFamily: fontDisplay,
-          }}>
-            Keys
-          </div>
-          <div style={{ fontSize: 14, color: color.muted, marginBottom: 14, lineHeight: 1.4 }}>
-            Dig by Camelot key — each opens the harmonically compatible shelf.
-          </div>
-          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-            {keysInCrate.map(({ key, count }) => (
-              <button
-                key={key}
-                type="button"
-                onClick={() => setDigKey(key)}
-                aria-label={`Browse key ${key}, ${count} cuts`}
-                style={{
-                  display: "inline-flex", alignItems: "baseline", gap: 6,
-                  padding: "9px 13px",
-                  borderRadius: radius.sm,
-                  border: `1px solid ${glass.border}`,
-                  background: glass.fillStrong,
-                  color: color.ink,
-                  fontSize: 13.5,
-                  fontWeight: 700,
-                  cursor: "pointer",
-                  fontFamily: fontMono,
-                  boxShadow: `inset 0 1px 0 ${glass.highlight}`,
-                }}
-              >
-                {key}
-                <span style={{ fontSize: 11, fontWeight: 500, color: color.muted }}>{count}</span>
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
     </div>
   );
 }

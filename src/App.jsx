@@ -1099,22 +1099,11 @@ function CoverStage({
                 : "none",
               animation: `rise 0.65s ${motion.ease} 0.14s both`,
             }}
-            aria-label={canStart ? `Go on air — ${stageLabel}` : "Unavailable"}
+            aria-label={canStart ? "Now playing" : "Unavailable"}
           >
             <Icon name="play" size={14} />
-            {canStart ? "Go on air" : "Unavailable"}
+            {canStart ? "Now playing" : "Unavailable"}
           </button>
-          {canStart && (
-            <div style={{
-              marginTop: 14,
-              fontSize: 12,
-              color: color.muted,
-              letterSpacing: 0.1,
-              animation: `fadeIn 0.8s ${motion.ease} 0.28s both`,
-            }}>
-              {stageLabel}
-            </div>
-          )}
         </div>
       )}
 
@@ -1353,7 +1342,7 @@ function TrackActionsMenu({ track, playlistCtx, activePlaylistId, x, y, onClose 
       </div>
 
       <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 1.2, color: color.faint, padding: "10px 14px 4px", textTransform: "uppercase", fontFamily: fontMono }}>
-        Add to a stack
+        Add to Playlist
       </div>
 
       {ctx.playlists.length === 0 && !showNewPl && (
@@ -1399,7 +1388,7 @@ function TrackActionsMenu({ track, playlistCtx, activePlaylistId, x, y, onClose 
               if (e.key === "Enter") handleCreateAndAdd();
               if (e.key === "Escape") setShowNewPl(false);
             }}
-            placeholder="Stack name…"
+            placeholder="Playlist name…"
             style={{ ...INPUT_ST, marginBottom: 6, padding: "8px 10px", fontSize: 16 }}
           />
           <div style={{ display: "flex", gap: 6 }}>
@@ -1418,7 +1407,7 @@ function TrackActionsMenu({ track, playlistCtx, activePlaylistId, x, y, onClose 
           onClick={() => setShowNewPl(true)}
           style={{ display: "flex", alignItems: "center", gap: 8, width: "100%", textAlign: "left", background: "none", border: "none", color: color.ink, fontSize: 14, padding: "10px 14px", cursor: "pointer", fontWeight: 500 }}
         >
-          <Icon name="plus" size={14} /> New stack
+          <Icon name="plus" size={14} /> New Playlist
         </button>
       )}
 
@@ -2717,14 +2706,14 @@ function QueueSheet({ queue, currentTrack, onPlay, onClose, onClear, onShuffle, 
   );
 }
 
-// ── Key feature: Press a timed set — duration session builder entry ─────────
+// ── Key feature: Build a custom mix — duration session builder entry ─────────
 function CustomMixFeature({ onClick }) {
   return (
     <button
       type="button"
       className="custom-mix"
       onClick={onClick}
-      aria-label="Press a timed set"
+      aria-label="Build a custom mix"
       style={{
         position: "relative",
         overflow: "hidden",
@@ -2773,24 +2762,13 @@ function CustomMixFeature({ onClick }) {
 
       <div style={{ position: "relative", zIndex: 1, minWidth: 0, flex: 1 }}>
         <div style={{
-          fontSize: 11,
-          fontWeight: 650,
-          letterSpacing: 1.6,
-          textTransform: "uppercase",
-          color: color.muted,
-          fontFamily: fontMono,
-          marginBottom: 10,
-        }}>
-          Set length
-        </div>
-        <div style={{
           fontSize: "clamp(18px, 4vw, 22px)",
           fontWeight: 700,
           fontFamily: fontDisplay,
           letterSpacing: -0.5,
           lineHeight: 1.1,
         }}>
-          Press a timed set
+          Build a custom mix
         </div>
       </div>
 
@@ -3120,17 +3098,12 @@ function ForYouRiver({
   isPlaying,
 }) {
   if (!tracks.length) return null;
-  const tasteLine = coldStart
-    ? "First pull. Dig in."
-    : "Fresh presses and cuts already in your rotation.";
 
   return (
     <HomeSection
-      label={coldStart ? "First crate" : "In rotation"}
-      subtitle={tasteLine}
+      label="For you"
       delay={0.06}
       first
-      eyebrow="Fresh press"
     >
       <CoverFlow
         tracks={tracks}
@@ -3278,29 +3251,6 @@ function HomeScreen({
             </div>
           </div>
         )}
-
-        {onBrowse && forYouTracks.length > 0 && (
-          <div style={{ padding: `4px ${homeSpace.gutter}px 40px` }}>
-            <button
-              type="button"
-              onClick={onBrowse}
-              className="glass-control"
-              style={{
-                display: "inline-flex", alignItems: "center", gap: 8,
-                background: glass.fillQuiet,
-                border: `1px solid ${glass.borderSoft}`,
-                borderRadius: 980,
-                padding: "11px 18px",
-                color: color.body,
-                fontSize: 14, fontWeight: 600,
-                cursor: "pointer",
-              }}
-            >
-              Browse the crate — genres & keys
-              <span aria-hidden="true" style={{ color: color.accent }}>→</span>
-            </button>
-          </div>
-        )}
       </div>
     </div>
   );
@@ -3330,12 +3280,12 @@ function SearchScreen({
   };
   return (
     <div style={{ padding: "0 0 16px" }}>
-      <CollapsingHeader title="Search" subtitle="Dig for artists, cuts, and records." />
+      <CollapsingHeader title="Search" />
       <div style={{ padding: "10px 16px 0" }}>
       <div style={{ position:"relative", marginBottom:14 }}>
         <div style={{ position:"absolute", left:14, top:"50%", transform:"translateY(-50%)", color: color.faint }}><Icon name="search" size={16}/></div>
         <input
-          placeholder="Artist, cut, record…"
+          placeholder="Search"
           aria-label="Search"
           style={{...INPUT_ST, paddingLeft:42, paddingRight: query ? 42 : 16, background: color.surfaceRaised, border: "none"}}
           value={query}
@@ -3349,34 +3299,22 @@ function SearchScreen({
           </button>
         )}
       </div>
-      {!query && (
+      {!query && recentSearches.length > 0 && (
         <div style={{ marginBottom: 20 }}>
-          {recentSearches.length > 0 && (
-            <div style={{ marginBottom: 12 }}>
-              <div style={{ display:"flex", alignItems:"baseline", justifyContent:"space-between", marginBottom:8 }}>
-                <div style={{ fontSize:12, fontWeight:650, color: color.muted, textTransform:"uppercase", letterSpacing:0.6 }}>Recent digs</div>
-                {onClearRecent && (
-                  <button type="button" onClick={onClearRecent}
-                    style={{ background:"none", border:"none", cursor:"pointer", color: color.faint, fontSize:12, fontWeight:600, padding:"2px 4px" }}>
-                    Clear
-                  </button>
-                )}
-              </div>
-              <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
-                {recentSearches.map((q) => (
-                  <button key={q} type="button" onClick={() => (onPickRecent || setQuery)(q)}
-                    style={{ ...hintChip, fontFamily: font, letterSpacing: 0 }}>
-                    {q}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-          <div style={{ display:"flex", gap:8, flexWrap:"wrap", alignItems:"center" }}>
-            <span style={{ fontSize:12, color: color.muted }}>Try:</span>
-            {["energy 7", "124 bpm"].map((hint) => (
-              <button key={hint} type="button" onClick={() => setQuery(hint)} style={hintChip}>
-                {hint}
+          <div style={{ display:"flex", alignItems:"baseline", justifyContent:"space-between", marginBottom:8 }}>
+            <div style={{ fontSize:12, fontWeight:650, color: color.muted, textTransform:"uppercase", letterSpacing:0.6 }}>Recent</div>
+            {onClearRecent && (
+              <button type="button" onClick={onClearRecent}
+                style={{ background:"none", border:"none", cursor:"pointer", color: color.faint, fontSize:12, fontWeight:600, padding:"2px 4px" }}>
+                Clear
+              </button>
+            )}
+          </div>
+          <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
+            {recentSearches.map((q) => (
+              <button key={q} type="button" onClick={() => (onPickRecent || setQuery)(q)}
+                style={{ ...hintChip, fontFamily: font, letterSpacing: 0 }}>
+                {q}
               </button>
             ))}
           </div>
@@ -3434,15 +3372,12 @@ function SearchScreen({
       )}
       {query.length>1&&!results.length&&!(entityHits?.artists?.length || entityHits?.albums?.length)&&(
         <div style={{ textAlign:"center", padding:"56px 0" }}>
-          <div style={{ color: color.ink, fontSize:17, fontWeight:600, fontFamily: fontDisplay, marginBottom:8 }}>Nothing in the crate for “{query}”</div>
-          <div style={{ color: color.muted, fontSize:15, lineHeight:1.5, maxWidth:260, margin:"0 auto" }}>
-            Try another artist, cut, or record.
-          </div>
+          <div style={{ color: color.ink, fontSize:17, fontWeight:600, fontFamily: fontDisplay }}>No results for “{query}”</div>
         </div>
       )}
       {results.length > 0 && query.length > 1 && (
         <div style={{ fontSize:13, fontWeight:600, color: color.muted, marginBottom:10, textTransform:"uppercase", letterSpacing:0.4 }}>
-          Cuts{results.length > RESULT_CAP ? ` · ${results.length}` : ""}
+          Songs{results.length > RESULT_CAP ? ` · ${results.length}` : ""}
         </div>
       )}
       {visibleResults.map(t=>(
@@ -3451,7 +3386,7 @@ function SearchScreen({
       {!showAllResults && results.length > RESULT_CAP && (
         <button type="button" onClick={() => setShowAllResults(true)}
           style={{ ...BTN_SECONDARY, marginTop: 12, fontSize: 14, padding: "11px 16px" }}>
-          Show all {results.length} cuts
+          Show all {results.length}
         </button>
       )}
       {!query && (
@@ -3570,7 +3505,7 @@ function FavoritesScreen({
                 ...(showAddCuts ? { background: color.accentSoft, color: color.accent, borderColor: color.accentSoft } : {}),
               }}
             >
-              {showAddCuts ? "Done adding" : "Add cuts"}
+              {showAddCuts ? "Done adding" : "Add Songs"}
             </button>
           )}
           {onSharePlaylist && (
@@ -3586,7 +3521,7 @@ function FavoritesScreen({
             <button
               type="button"
               onClick={() => {
-                const next = window.prompt("Rename this stack", openPlaylist.name || "");
+                const next = window.prompt("Rename this playlist", openPlaylist.name || "");
                 if (next != null && next.trim() && next.trim() !== openPlaylist.name) {
                   onRenamePlaylist(openPlaylist.id, next.trim());
                 }
@@ -3616,13 +3551,13 @@ function FavoritesScreen({
               autoFocus
               value={addQuery}
               onChange={(e) => setAddQuery(e.target.value)}
-              placeholder="Search cuts to add…"
-              aria-label="Search cuts to add"
+              placeholder="Search songs to add…"
+              aria-label="Search songs to add"
               style={{ ...INPUT_ST, padding: "10px 12px", fontSize: 15, marginBottom: 8 }}
             />
             {addCandidates.length === 0 ? (
               <div style={{ fontSize: 13, color: color.faint, padding: "14px 4px", textAlign: "center" }}>
-                {addQ ? "Nothing matches — try another artist or cut" : "Everything's already filed here"}
+                {addQ ? "No matches" : "All songs are already in this playlist"}
               </div>
             ) : addCandidates.map((t) => (
               <div key={t.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "7px 2px", borderBottom: `1px solid ${color.line}` }}>
@@ -3651,7 +3586,7 @@ function FavoritesScreen({
         )}
         {openPlaylistTracks.length === 0 ? (
           <div style={{ fontSize: 15, color: color.faint, paddingTop: 32, textAlign: "center" }}>
-            {community ? "Stack’s empty" : "Stack’s empty — press “Add cuts” to start filing"}
+            {community ? "This playlist is empty" : "This playlist is empty"}
           </div>
         ) : openPlaylistTracks.map((t) => (
           <TrackRow
@@ -3683,12 +3618,10 @@ function FavoritesScreen({
         {/* Art-led collection first — Cover Flow crate */}
         {saved.length > 0 && (
           <HomeSection
-            label="Saved cuts"
+            label="Your Saved Tracks"
             count={saved.length}
-            subtitle="Flip the crate — cover first."
             delay={0.04}
             first
-            eyebrow="In the crate"
           >
             <CoverFlow
               tracks={saved}
@@ -3702,11 +3635,10 @@ function FavoritesScreen({
         )}
 
         <HomeSection
-          label="Stacks"
+          label="Playlists"
           count={userPlaylists.length || undefined}
           delay={0.06}
           first={saved.length === 0}
-          eyebrow={saved.length === 0 ? "In the crate" : null}
         >
           <div
             className="hide-scroll"
@@ -3800,8 +3732,8 @@ function FavoritesScreen({
                     fontVariantNumeric: "tabular-nums",
                   }}>
                     {plTracks.length === 0
-                      ? "No cuts"
-                      : `${plTracks.length} cut${plTracks.length === 1 ? "" : "s"}`}
+                      ? "Empty"
+                      : `${plTracks.length} song${plTracks.length === 1 ? "" : "s"}`}
                   </div>
                 </button>
               );
@@ -3847,7 +3779,7 @@ function FavoritesScreen({
                 fontFamily: fontDisplay,
                 color: color.body,
               }}>
-                New stack
+                New Playlist
               </div>
             </button>
           </div>
@@ -3866,7 +3798,7 @@ function FavoritesScreen({
                   if (e.key === "Enter") handleCreate();
                   if (e.key === "Escape") { setShowNewInput(false); setNewName(""); }
                 }}
-                placeholder="Stack name…"
+                placeholder="Playlist name…"
                 style={{ flex: 1, ...INPUT_ST, padding: "10px 12px", fontSize: 16 }}
               />
               <button
@@ -3909,7 +3841,7 @@ function FavoritesScreen({
 
         {onCustomMix && (
           <section
-            aria-label="Press a timed set"
+            aria-label="Build a custom mix"
             style={{
               margin: 0,
               paddingTop: 8,
@@ -4128,12 +4060,12 @@ function ProfileScreen({
           fontSize: 13, fontWeight: 600, color: color.muted,
           textTransform: "uppercase", letterSpacing: 0.4, marginBottom: 10,
         }}>
-          Your lanes
+          Your interests
         </div>
         <div style={{ fontSize: 15, color: color.body, lineHeight: 1.45, marginBottom: 14 }}>
           {genres.length
-            ? `${genres.join(" · ")} — we stay here most of the time.`
-            : "Not set yet — we’ll dig across the catalog."}
+            ? genres.join(" · ")
+            : "Not set yet. You can change these anytime in Settings."}
         </div>
         {onEditGenres && (
           <button
@@ -4146,7 +4078,7 @@ function ProfileScreen({
               marginBottom: 12,
             }}
           >
-            Edit lanes
+            Edit interests
           </button>
         )}
         {onOpenMix && (
@@ -6669,7 +6601,7 @@ export default function App() {
             listenFocus.genre ? [listenFocus.genre] : (profile?.genres || [])
           )}
           initialActivity={sessionInitialActivity || vibeForMixLane(mixLane)}
-          intentLabel={listenFocus.genre || (profile?.genres?.length ? "Your lanes" : null)}
+          intentLabel={listenFocus.genre || (profile?.genres?.length ? "Your interests" : null)}
           onClose={() => {
             setShowRouteBuilder(false);
             setSessionInitialActivity(null);
@@ -6956,45 +6888,84 @@ export default function App() {
           })}
         </div>
 
-        {libraryPlaylists.length > 0 && (
-          <>
-            <div style={{
-              fontSize: 10, fontWeight: 700, letterSpacing: 1.2, textTransform: "uppercase",
-              color: color.faint, fontFamily: fontMono, padding: "18px 10px 8px",
-            }}>
-              Stacks
-            </div>
-            <div className="hide-scroll" style={{ display: "flex", flexDirection: "column", gap: 1, overflowY: "auto", maxHeight: "38vh" }}>
-              {libraryPlaylists.slice(0, 12).map((pl) => (
-                <button
-                  key={pl.id}
-                  type="button"
-                  className="nav-rail-btn"
-                  onClick={() => { setStackOpenRequest(pl.id); setScreen("favorites"); }}
-                  title={pl.name}
-                  style={{
-                    width: "100%", height: 32, borderRadius: radius.sm,
-                    background: "transparent",
-                    border: "1px solid transparent",
-                    color: color.body,
-                    cursor: "pointer",
-                    display: "flex", alignItems: "center", gap: 8,
-                    padding: "0 10px", textAlign: "left",
-                  }}
-                >
-                  <span aria-hidden="true" style={{ color: color.faint, display: "flex", flexShrink: 0 }}>
-                    <Icon name="queue" size={13}/>
-                  </span>
-                  <span style={{
-                    fontSize: 13, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
-                  }}>
-                    {pl.name}
-                  </span>
-                </button>
-              ))}
-            </div>
-          </>
-        )}
+        <div style={{
+          fontSize: 10, fontWeight: 700, letterSpacing: 1.2, textTransform: "uppercase",
+          color: color.faint, fontFamily: fontMono, padding: "18px 10px 8px",
+          display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8,
+        }}>
+          <span>Playlists</span>
+          <button
+            type="button"
+            onClick={() => {
+              const name = window.prompt("New Playlist", "");
+              if (!name?.trim()) return;
+              const pl = createPlaylist(name.trim());
+              if (pl?.id) setStackOpenRequest(pl.id);
+              setScreen("favorites");
+            }}
+            aria-label="New Playlist"
+            title="New Playlist"
+            style={{
+              background: "none", border: "none", color: color.muted, cursor: "pointer",
+              padding: "2px 4px", fontSize: 16, lineHeight: 1, fontWeight: 400,
+            }}
+          >
+            +
+          </button>
+        </div>
+        <div className="hide-scroll" style={{ display: "flex", flexDirection: "column", gap: 1, overflowY: "auto", minHeight: 0, maxHeight: "42vh" }}>
+          {libraryPlaylists.length === 0 ? (
+            <button
+              type="button"
+              className="nav-rail-btn"
+              onClick={() => {
+                const name = window.prompt("New Playlist", "");
+                if (!name?.trim()) return;
+                const pl = createPlaylist(name.trim());
+                if (pl?.id) setStackOpenRequest(pl.id);
+                setScreen("favorites");
+              }}
+              style={{
+                width: "100%", height: 32, borderRadius: radius.sm,
+                background: "transparent",
+                border: "1px solid transparent",
+                color: color.muted,
+                cursor: "pointer",
+                display: "flex", alignItems: "center", gap: 8,
+                padding: "0 10px", textAlign: "left",
+                fontSize: 13,
+              }}
+            >
+              New Playlist…
+            </button>
+          ) : libraryPlaylists.map((pl) => (
+            <button
+              key={pl.id}
+              type="button"
+              className="nav-rail-btn"
+              onClick={() => { setStackOpenRequest(pl.id); setScreen("favorites"); }}
+              title={pl.name}
+              style={{
+                width: "100%", height: 32, borderRadius: radius.sm,
+                background: "transparent",
+                border: "1px solid transparent",
+                color: color.body,
+                cursor: "pointer",
+                display: "flex", alignItems: "center", gap: 8,
+                padding: "0 10px", textAlign: "left",
+              }}
+            >
+              <span aria-hidden="true" style={{ color: color.faint, display: "flex", flexShrink: 0 }}>
+                <Icon name="queue" size={13}/>
+              </span>
+              <span style={{
+                fontSize: 13, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+              }}>
+                {pl.name}
+              </span>
+            </button>
+          ))}
+        </div>
 
         <div style={{ flex: 1 }}/>
 
