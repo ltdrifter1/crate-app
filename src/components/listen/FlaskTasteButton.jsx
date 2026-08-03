@@ -17,8 +17,8 @@ export default function FlaskTasteButton({
       className={`flask-taste-btn${active ? " is-active" : ""}`}
       onClick={() => onClick?.()}
       disabled={!enabled}
-      aria-label="Listening insights"
-      title="Your signal"
+      aria-label="Your listening"
+      title="Your listening"
       style={{
         pointerEvents: "auto",
         width: size,

@@ -29,10 +29,21 @@ describe("buildListenInsights", () => {
     );
     expect(insight.coldStart).toBe(true);
     expect(insight.topPlayed).toHaveLength(0);
+    expect(insight.leanLine).toMatch(/genres/i);
+    expect(insight.leanLine).not.toMatch(/lane|signal|club/i);
+  });
+
+  test("preferred genres lean line stays plain", () => {
+    const insight = buildListenInsights(
+      [{ id: "x", title: "X", duration: 200 }],
+      { genres: ["Jazz", "Soul"], recentTracks: [] }
+    );
+    expect(insight.leanLine).toMatch(/Your genres:/);
+    expect(insight.leanLine).not.toMatch(/lane|signal|club/i);
   });
 
   test("energyBandLabel maps averages", () => {
-    expect(energyBandLabel(2)).toMatch(/Soft/i);
-    expect(energyBandLabel(9)).toMatch(/High/i);
+    expect(energyBandLabel(2)).toMatch(/Calm/i);
+    expect(energyBandLabel(9)).toMatch(/High energy/i);
   });
 });
