@@ -525,7 +525,7 @@ function IceOrbPlay({
 function listenModeLabel(isRadioMode, hypnoPocket = false) {
   if (hypnoPocket) return "Near this";
   if (isRadioMode) return "On air";
-  return "In the crate";
+  return "What's in the mix?";
 }
 
 /**
@@ -4903,7 +4903,7 @@ function GlassDock({
                 fontSize: 11, color: color.muted, marginTop: 3,
                 overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
               }}>
-                {modeLine === "In the crate"
+                {modeLine === "What's in the mix?"
                   ? track.artist
                   : `${modeLine} · ${track.artist}`}
               </div>
@@ -6532,7 +6532,7 @@ export default function App() {
   if (authLoading) return (
     <div style={{...APP_STYLE, alignItems:"center", justifyContent:"center"}}>
       <BrandMark size={44} />
-      <div style={{ fontSize:13, color: color.muted, marginTop:14 }}>Unlocking the booth…</div>
+      <div style={{ fontSize:13, color: color.muted, marginTop:14 }}>Loading...please wait.</div>
     </div>
   );
 
@@ -7184,7 +7184,7 @@ export default function App() {
                   {currentTrack.title}
                 </div>
                 <div style={{ fontSize:11, color: color.muted, marginTop:2 }}>
-                  {listenModeLabel(isRadioMode, !!hypnoSeed) === "In the crate"
+                  {listenModeLabel(isRadioMode, !!hypnoSeed) === "What's in the mix?"
                     ? currentTrack.artist
                     : `${listenModeLabel(isRadioMode, !!hypnoSeed)} · ${currentTrack.artist}`}
                 </div>
