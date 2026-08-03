@@ -69,6 +69,7 @@ import {
 } from "./lib/mixes";
 import { absoluteAppUrl, shareOrCopy } from "./lib/share";
 import BrandMark, { BrandGlyph as DoorGlyph, BrandLockup } from "./components/brand/BrandMark";
+import PlanetMascot from "./components/brand/PlanetMascot";
 import BrandTagline from "./components/brand/BrandTagline";
 import GenreSceneBrowse from "./components/search/GenreSceneBrowse";
 import GenreTasteSheet from "./components/listen/GenreTasteSheet";
@@ -1120,10 +1121,10 @@ function CoverStage({
         >
           <div style={{
             animation: `markIn 0.7s ${motion.ease} both`,
-            marginBottom: 22,
-            width: "min(84vw, 400px)",
+            marginBottom: 18,
+            width: "min(78vw, 360px)",
           }}>
-            <BrandLockup size={400} onBlack />
+            <PlanetMascot size={360} />
           </div>
           <div style={{ animation: `rise 0.65s ${motion.ease} 0.08s both`, marginBottom: 28 }}>
             <BrandTagline size={12} style={{ letterSpacing: 2.2, textAlign: "center", maxWidth: "none" }} />

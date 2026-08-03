@@ -7,6 +7,7 @@ import { brandWordmark } from "../../brand/identity";
 import { BrandGlyph, BrandLockup } from "./BrandGlyphs";
 
 export { BrandGlyph, BrandLockup };
+export { default as PlanetMascot } from "./PlanetMascot";
 
 export default function BrandMark({
   size = 40,
