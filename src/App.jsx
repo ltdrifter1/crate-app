@@ -36,7 +36,7 @@ import {
   listenPoolLabel,
   createListenIntent,
 } from "./lib/listenPool";
-import { EnergyShiftButton, EnergyShiftFeedback, EnergyShiftModeChip } from "./components/listen/EnergyShiftButton";
+import { EnergyShiftButton, EnergyShiftFeedback, EnergyShiftModeChip, EnergyShiftCapsule } from "./components/listen/EnergyShiftButton";
 import CoverFlow from "./components/listen/CoverFlow";
 import { playerEnergyStore } from "./lib/playerEnergyStore";
 import ArtistPage, { AlbumPage } from "./components/catalog/ArtistPage";
@@ -230,6 +230,9 @@ const injectStyles = () => {
     .flask-taste-btn {
       position: relative;
       overflow: visible;
+    }
+    .flask-taste-btn.is-labeled {
+      overflow: hidden;
     }
     .flask-taste-btn:hover:not(:disabled) {
       transform: translateY(-1px);
@@ -668,7 +671,7 @@ function OrbitalArtRing({
           cy={svgSize / 2}
           r={r}
           fill="none"
-          stroke={color.accent}
+          stroke={color.ink}
           strokeWidth={stroke}
           strokeLinecap="round"
           strokeDasharray={`${dash} ${Math.max(0, circ - dash)}`}
@@ -701,6 +704,7 @@ function OrbitalPlayControl({
   duration = 0,
   onSeek,
   size = 64,
+  glowing = false,
 }) {
   const scrubRef = useRef(null);
   const pct = duration > 0 ? Math.max(0, Math.min(1, progress / duration)) : 0;
@@ -745,7 +749,7 @@ function OrbitalPlayControl({
           cy={ring / 2}
           r={r}
           fill="none"
-          stroke={color.accent}
+          stroke={color.ink}
           strokeWidth={stroke}
           strokeLinecap="round"
           strokeDasharray={`${dash} ${Math.max(0, circ - dash)}`}
@@ -774,6 +778,7 @@ function OrbitalPlayControl({
           onClick={onToggle}
           size={size}
           stopPropagation
+          glowing={glowing}
         />
       </div>
     </div>
@@ -1021,13 +1026,13 @@ function CoverStage({
   progress = 0, duration = 0, onListenFor = null,
   intentLabel = null,
   onStageVisibilityChange = null,
+  onSeek = null,
 }) {
   const stageRef = useRef(null);
   const live = !!currentTrack;
   const canStart = !playDisabled;
   const stageTrack = currentTrack || previewTrack;
   const playingVisual = !!(live && isPlaying);
-  const pct = duration > 0 ? Math.max(0, Math.min(100, (progress / duration) * 100)) : 0;
 
   useEffect(() => {
     if (!onStageVisibilityChange) return undefined;
@@ -1085,7 +1090,7 @@ function CoverStage({
         />
       )}
 
-      {/* Top chrome — premium flask opens genre taste (brand lives in the left rail) */}
+      {/* Top chrome — brand stays present while playing; Interests flask on the right */}
       {live && (
         <div
           style={{
@@ -1094,13 +1099,42 @@ function CoverStage({
             padding: `calc(18px + env(safe-area-inset-top, 0px)) ${homeSpace.gutter}px 0`,
             display: "flex",
             alignItems: "center",
-            justifyContent: "flex-end",
+            justifyContent: "space-between",
+            gap: 12,
             pointerEvents: "none",
           }}
         >
+          <div
+            aria-hidden="true"
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 10,
+              padding: "6px 12px 6px 6px",
+              borderRadius: radius.md,
+              background: "rgba(255,255,255,0.52)",
+              border: `1px solid ${glass.borderSoft}`,
+              boxShadow: `inset 0 1px 0 ${glass.highlight}, ${glass.shadowSoft}`,
+              backdropFilter: glass.blurSoft,
+              WebkitBackdropFilter: glass.blurSoft,
+            }}
+          >
+            <DoorGlyph size={26} title="" />
+            <span style={{
+              fontFamily: fontDisplay,
+              fontWeight: 700,
+              fontSize: 13,
+              letterSpacing: -0.25,
+              color: color.ink,
+              lineHeight: 1,
+            }}>
+              Planet MP3
+            </span>
+          </div>
           <FlaskTasteButton
             onClick={onListenFor || null}
             active={playingVisual}
+            labeled
           />
         </div>
       )}
@@ -1186,7 +1220,7 @@ function CoverStage({
               width: "100%",
               maxWidth: 420,
               textAlign: "center",
-              marginBottom: 18,
+              marginBottom: 16,
               animation: `trackSwap 0.45s ${motion.ease} both`,
               cursor: onOpen ? "pointer" : "inherit",
               pointerEvents: "auto",
@@ -1194,9 +1228,9 @@ function CoverStage({
           >
             <h1 style={{
               margin: 0,
-              fontSize: "clamp(22px, 4.2vw, 32px)",
+              fontSize: "clamp(20px, 3.8vw, 28px)",
               fontWeight: 750,
-              letterSpacing: -0.7,
+              letterSpacing: -0.6,
               lineHeight: 1.12,
               color: color.ink,
               fontFamily: fontDisplay,
@@ -1208,8 +1242,8 @@ function CoverStage({
               {currentTrack.title}
             </h1>
             <div style={{
-              marginTop: 8,
-              fontSize: 15,
+              marginTop: 7,
+              fontSize: 14,
               fontWeight: 500,
               letterSpacing: -0.05,
               color: color.body,
@@ -1221,85 +1255,79 @@ function CoverStage({
             </div>
           </div>
 
-          <div style={{ width: "100%", maxWidth: 380, marginBottom: 18, pointerEvents: "none" }}>
-            <div aria-hidden="true" style={{
-              height: 3,
-              background: "rgba(26,29,36,0.12)",
-              overflow: "hidden",
-              borderRadius: 2,
-            }}>
-              <div style={{
-                height: "100%",
-                width: `${pct}%`,
-                background: color.ink,
-                transition: "width 0.25s linear",
-                borderRadius: 2,
-              }}/>
-            </div>
-            <div style={{
-              marginTop: 8,
-              display: "flex",
-              justifyContent: "space-between",
-              fontSize: 11,
-              fontFamily: fontMono,
-              fontVariantNumeric: "tabular-nums",
-              letterSpacing: 0.3,
-              color: color.faint,
-            }}>
-              <span>{fmtTime(progress)}</span>
-              <span>{duration ? fmtTime(duration) : "—:—"}</span>
-            </div>
-          </div>
-
           <div style={{
             position: "relative",
             display: "flex",
             flexDirection: "column",
             alignItems: "center",
-            gap: 10,
+            gap: 12,
             pointerEvents: "auto",
+            width: "100%",
+            maxWidth: 420,
           }}>
             <EnergyShiftModeChip />
+            <EnergyShiftFeedback bottom="calc(100% + 14px)" />
+
+            {/* Secondary pace — tucked so the ice orb stays the jewel */}
+            <EnergyShiftCapsule stopPropagation={false} />
+
+            {/* Primary transport — orbital play language matches dock / desktop */}
             <div style={{
-              position: "relative",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              gap: 14,
+              gap: 18,
+              width: "100%",
             }}>
-              <EnergyShiftFeedback bottom="calc(100% + 18px)" />
-              <EnergyShiftButton direction="down" size={36} stopPropagation={false} showLabel />
               <button
                 type="button"
                 aria-label="Previous"
                 onClick={() => onPrev?.()}
                 style={{
-                  background: "none", border: "none", padding: 8,
+                  background: "none", border: "none", padding: 10,
                   color: color.ink, cursor: "pointer",
                 }}
               >
-                <Icon name="prev" size={20}/>
+                <Icon name="prev" size={22}/>
               </button>
 
-            <IceOrbPlay
-              isPlaying={isPlaying}
-              onClick={onTogglePlay}
-              size={64}
-              glowing={playingVisual}
-            />
+              <OrbitalPlayControl
+                isPlaying={isPlaying}
+                onToggle={onTogglePlay}
+                progress={progress}
+                duration={duration}
+                onSeek={onSeek}
+                size={64}
+                glowing={playingVisual}
+              />
 
-            <button
-              type="button"
-              aria-label="Next"
-              onClick={() => onSkip?.()}
-              style={{
-                background: "none", border: "none", padding: 8,
-                color: color.ink, cursor: "pointer",
-              }}
-            >
-              <Icon name="skip" size={20}/>
-            </button>
-            <EnergyShiftButton direction="up" size={36} stopPropagation={false} showLabel />
+              <button
+                type="button"
+                aria-label="Next"
+                onClick={() => onSkip?.()}
+                style={{
+                  background: "none", border: "none", padding: 10,
+                  color: color.ink, cursor: "pointer",
+                }}
+              >
+                <Icon name="skip" size={22}/>
+              </button>
+            </div>
+
+            <div style={{
+              display: "flex",
+              justifyContent: "space-between",
+              width: "100%",
+              maxWidth: 200,
+              fontSize: 11,
+              fontFamily: fontMono,
+              fontVariantNumeric: "tabular-nums",
+              letterSpacing: 0.3,
+              color: color.faint,
+              pointerEvents: "none",
+            }}>
+              <span>{fmtTime(progress)}</span>
+              <span>{duration ? fmtTime(duration) : "—:—"}</span>
             </div>
           </div>
         </div>
@@ -2940,14 +2968,9 @@ function QueueSheet({ queue, currentTrack, onPlay, onClose, onClear, onShuffle, 
 
 // ── Key feature: Build a custom mix — duration + vibe session builder entry ──
 function CustomMixFeature({ onClick }) {
-  const steps = [
-    { n: "01", label: "Length", hint: "30 min → all night" },
-    { n: "02", label: "Vibe", hint: "Drive, focus, party…" },
-    { n: "03", label: "Arc", hint: "Warm up → peak → chill" },
-  ];
-  const arcW = 220;
-  const arcH = 44;
-  const arcPath = `M 8 ${arcH - 10} C 48 ${arcH - 6}, 72 10, 110 8 C 148 6, 168 ${arcH - 14}, 212 ${arcH - 12}`;
+  const arcW = 160;
+  const arcH = 36;
+  const arcPath = `M 6 ${arcH - 8} C 36 ${arcH - 5}, 52 8, 80 7 C 108 6, 124 ${arcH - 12}, 154 ${arcH - 10}`;
 
   return (
     <button
@@ -2962,17 +2985,16 @@ function CustomMixFeature({ onClick }) {
         minHeight: 0,
         margin: `0 ${homeSpace.gutter}px`,
         width: `calc(100% - ${homeSpace.gutter * 2}px)`,
-        padding: "22px 22px 20px",
-        border: `1px solid ${glass.border}`,
-        borderRadius: radius.xl,
+        padding: "16px 18px",
+        border: `1px solid ${glass.borderSoft}`,
+        borderRadius: radius.lg,
         background: `
-          linear-gradient(145deg, rgba(255,255,255,0.88) 0%, rgba(255,255,255,0.42) 48%, rgba(236,240,246,0.55) 100%),
+          linear-gradient(145deg, rgba(255,255,255,0.72) 0%, rgba(255,255,255,0.35) 55%, rgba(236,240,246,0.45) 100%),
           ${aluminumGradient()}
         `,
         boxShadow: `
           inset 0 1px 0 ${glass.highlight},
-          inset 0 -1px 0 rgba(22,24,30,0.04),
-          ${glass.shadow}
+          ${glass.shadowSoft}
         `,
         backdropFilter: glass.blurSoft,
         WebkitBackdropFilter: glass.blurSoft,
@@ -2984,158 +3006,67 @@ function CustomMixFeature({ onClick }) {
     >
       <div aria-hidden="true" style={{
         position: "absolute",
-        inset: 0,
+        right: 14,
+        top: 12,
+        width: "min(36%, 160px)",
         pointerEvents: "none",
-        background: `
-          radial-gradient(ellipse 70% 80% at 0% 0%, rgba(255,255,255,0.7) 0%, transparent 55%),
-          linear-gradient(115deg, rgba(190,198,210,0.18) 0%, transparent 42%)
-        `,
-      }}/>
-
-      {/* Future chrome energy deck */}
-      <div aria-hidden="true" style={{
-        position: "absolute",
-        right: 16,
-        top: 16,
-        width: "min(42%, 220px)",
-        pointerEvents: "none",
-        opacity: 0.85,
+        opacity: 0.55,
       }}>
         <svg width="100%" height={arcH} viewBox={`0 0 ${arcW} ${arcH}`} preserveAspectRatio="none" style={{ display: "block" }}>
-          <defs>
-            <linearGradient id="mixArcFill" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="rgba(42,46,56,0.18)" />
-              <stop offset="100%" stopColor="transparent" />
-            </linearGradient>
-          </defs>
-          <path d={`${arcPath} L 212 ${arcH} L 8 ${arcH} Z`} fill="url(#mixArcFill)" />
           <path
             d={arcPath}
             fill="none"
             stroke={color.ink}
-            strokeWidth="2"
+            strokeWidth="1.6"
             strokeLinecap="round"
             style={{ animation: "mixArcPulse 2.8s ease-in-out infinite" }}
           />
-          {[28, 110, 188].map((x, i) => (
-            <circle
-              key={x}
-              cx={x}
-              cy={i === 1 ? 10 : arcH - 12}
-              r="3.2"
-              fill={color.ink}
-              style={{ animation: `mixSeqDot 2.4s ease-in-out ${i * 0.35}s infinite` }}
-            />
-          ))}
         </svg>
+      </div>
+
+      <div style={{ position: "relative", zIndex: 1, maxWidth: "70%" }}>
         <div style={{
-          display: "flex",
-          justifyContent: "space-between",
-          marginTop: 2,
-          padding: "0 4px",
-          fontSize: 9,
+          fontSize: 10,
           fontWeight: 700,
-          letterSpacing: 0.7,
+          letterSpacing: 1.2,
           textTransform: "uppercase",
           fontFamily: fontMono,
           color: color.faint,
+          marginBottom: 6,
         }}>
-          <span>Warm</span>
-          <span>Peak</span>
-          <span>Chill</span>
+          Custom mix
         </div>
-      </div>
-
-      <div style={{
-        position: "relative",
-        zIndex: 1,
-        display: "flex",
-        alignItems: "flex-start",
-        justifyContent: "space-between",
-        gap: 18,
-        marginBottom: 18,
-        maxWidth: "58%",
-      }}>
-        <div style={{ minWidth: 0, flex: 1 }}>
+        <div style={{
+          display: "flex",
+          alignItems: "center",
+          gap: 8,
+          marginBottom: 4,
+        }}>
           <div style={{
-            fontSize: "clamp(20px, 4.2vw, 26px)",
+            fontSize: "clamp(16px, 3.6vw, 19px)",
             fontWeight: 700,
             fontFamily: fontDisplay,
-            letterSpacing: -0.6,
-            lineHeight: 1.08,
-            marginBottom: 8,
+            letterSpacing: -0.35,
+            lineHeight: 1.15,
           }}>
-            Build a custom mix
+            Build a set
           </div>
-          <p style={{
-            margin: 0,
-            fontSize: 14,
-            color: color.body,
-            lineHeight: 1.45,
-            maxWidth: 320,
-          }}>
-            Pick a length and vibe — we sequence energy so the set rises and settles with you.
-          </p>
+          <span aria-hidden="true" style={{ color: color.faint, fontSize: 16, lineHeight: 1 }}>→</span>
         </div>
-      </div>
-
-      <div style={{
-        position: "relative",
-        zIndex: 1,
-        display: "grid",
-        gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
-        gap: 8,
-      }}>
-        {steps.map((s) => (
-          <div
-            key={s.n}
-            style={{
-              padding: "10px 10px 12px",
-              borderRadius: radius.md,
-              border: `1px solid ${glass.borderSoft}`,
-              background: "rgba(255,255,255,0.55)",
-              boxShadow: `inset 0 1px 0 ${glass.highlight}`,
-              backdropFilter: "blur(10px)",
-              WebkitBackdropFilter: "blur(10px)",
-              minWidth: 0,
-            }}
-          >
-            <div style={{
-              fontSize: 10,
-              fontWeight: 700,
-              letterSpacing: 1.1,
-              color: color.faint,
-              fontFamily: fontMono,
-              marginBottom: 4,
-            }}>
-              {s.n}
-            </div>
-            <div style={{
-              fontSize: 13,
-              fontWeight: 700,
-              fontFamily: fontDisplay,
-              letterSpacing: -0.2,
-              color: color.ink,
-              marginBottom: 2,
-            }}>
-              {s.label}
-            </div>
-            <div style={{
-              fontSize: 11,
-              color: color.muted,
-              lineHeight: 1.3,
-              overflow: "hidden",
-              textOverflow: "ellipsis",
-              whiteSpace: "nowrap",
-            }}>
-              {s.hint}
-            </div>
-          </div>
-        ))}
+        <p style={{
+          margin: 0,
+          fontSize: 13,
+          color: color.muted,
+          lineHeight: 1.4,
+          maxWidth: 300,
+        }}>
+          Pick a length and vibe — we shape the energy with you.
+        </p>
       </div>
     </button>
   );
 }
+
 
 // ── Horizontal cover shelf (Apple Music–style) ───────────────────────────────
 /**
@@ -3476,6 +3407,7 @@ function HomeScreen({
   onBrowse = null,
   onCustomMix = null,
   onStageVisibilityChange = null,
+  onSeek = null,
 }) {
   const activeId = currentTrack?.id;
   const playableCount = countPlayableTracks(tracks);
@@ -3552,6 +3484,7 @@ function HomeScreen({
         onListenFor={onListenFor}
         intentLabel={intentLabel}
         onStageVisibilityChange={onStageVisibilityChange}
+        onSeek={onSeek}
       />
 
       {(catalogError || catalogEmpty || catalogDepleted) && (
@@ -3570,21 +3503,33 @@ function HomeScreen({
       }}>
         {onBrowse && !catalogEmpty && !catalogError && (
           <div style={{
-            padding: `18px ${homeSpace.gutter}px 4px`,
+            padding: `22px ${homeSpace.gutter}px 6px`,
             display: "flex",
-            justifyContent: "flex-end",
+            alignItems: "baseline",
+            justifyContent: "space-between",
+            gap: 16,
           }}>
+            <div style={{
+              fontSize: 11,
+              fontWeight: 700,
+              letterSpacing: 1.3,
+              textTransform: "uppercase",
+              color: color.faint,
+              fontFamily: fontMono,
+            }}>
+              Explore
+            </div>
             <button
               type="button"
               onClick={onBrowse}
-              aria-label="Browse the crate"
+              aria-label="Browse"
               style={{
                 background: "none",
                 border: "none",
                 padding: "6px 2px",
                 cursor: "pointer",
-                color: color.body,
-                fontSize: 13,
+                color: color.ink,
+                fontSize: 14,
                 fontWeight: 650,
                 fontFamily: fontDisplay,
                 letterSpacing: -0.2,
@@ -3593,24 +3538,10 @@ function HomeScreen({
                 gap: 6,
               }}
             >
-              Browse the crate
+              Browse
               <span aria-hidden="true" style={{ color: color.faint }}>→</span>
             </button>
           </div>
-        )}
-
-        {onCustomMix && !catalogEmpty && !catalogError && (
-          <section
-            aria-label="Custom mix"
-            style={{
-              margin: 0,
-              paddingTop: onBrowse ? 8 : 14,
-              paddingBottom: 12,
-              animation: `rise 0.55s ${motion.ease} 0.04s both`,
-            }}
-          >
-            <CustomMixFeature onClick={onCustomMix} />
-          </section>
         )}
 
         {forYouTracks.length > 0 && (
@@ -3624,6 +3555,20 @@ function HomeScreen({
             onLike={onLike}
             playlistCtx={playlistCtx}
           />
+        )}
+
+        {onCustomMix && !catalogEmpty && !catalogError && (
+          <section
+            aria-label="Custom mix"
+            style={{
+              margin: 0,
+              paddingTop: forYouTracks.length > 0 ? 4 : 12,
+              paddingBottom: 14,
+              animation: `rise 0.55s ${motion.ease} 0.04s both`,
+            }}
+          >
+            <CustomMixFeature onClick={onCustomMix} />
+          </section>
         )}
 
         {communityMix && onOpenCommunityMix && (
@@ -5776,8 +5721,21 @@ function GlassDock({
               <div style={{
                 fontSize: 11, color: color.muted, marginTop: 3,
                 overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+                display: "flex", alignItems: "center", gap: 8,
               }}>
-                {track.artist}
+                <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                  {track.artist}
+                </span>
+                <span style={{
+                  flexShrink: 0,
+                  fontFamily: fontMono,
+                  fontSize: 10,
+                  fontVariantNumeric: "tabular-nums",
+                  letterSpacing: 0.2,
+                  color: color.faint,
+                }}>
+                  {fmtTime(progress)}{duration ? ` / ${fmtTime(duration)}` : ""}
+                </span>
               </div>
             </div>
 
@@ -8051,18 +8009,22 @@ export default function App() {
                   {currentTrack.artist}
                 </div>
               </div>
-              <span style={{ fontSize:10, color: color.faint, fontVariantNumeric:"tabular-nums", flexShrink:0 }}>{fmtTime(progress)}</span>
+              <span style={{ fontSize:10, color: color.faint, fontFamily: fontMono, fontVariantNumeric:"tabular-nums", flexShrink:0, letterSpacing: 0.2 }}>
+                {fmtTime(progress)}{duration ? ` / ${fmtTime(duration)}` : ""}
+              </span>
               <button onClick={e=>{e.stopPropagation();onLikeToggle();}} style={{ background:"none",border:"none",cursor:"pointer",color:currentTrack.liked?color.accent:color.faint,padding:4 }}><Icon name={currentTrack.liked?"heart":"heartempty"} size={16}/></button>
-              <EnergyShiftButton direction="down" size={30} />
-              <IceOrbPlay
-                isPlaying={isPlaying}
-                onClick={togglePlay}
-                size={36}
-                iconSize={15}
-                stopPropagation
-              />
-              <button onClick={e=>{e.stopPropagation();handleSkip();}} style={{ background:"none",border:"none",cursor:"pointer",color: color.muted,padding:4 }}><Icon name="skip" size={16}/></button>
-              <EnergyShiftButton direction="up" size={30} />
+              <span style={{ display:"inline-flex", alignItems:"center", gap:4, opacity: 0.85 }}>
+                <EnergyShiftButton direction="down" size={28} />
+                <IceOrbPlay
+                  isPlaying={isPlaying}
+                  onClick={togglePlay}
+                  size={36}
+                  iconSize={15}
+                  stopPropagation
+                />
+                <button onClick={e=>{e.stopPropagation();handleSkip();}} style={{ background:"none",border:"none",cursor:"pointer",color: color.muted,padding:4 }}><Icon name="skip" size={16}/></button>
+                <EnergyShiftButton direction="up" size={28} />
+              </span>
             </div>
           </div>
         )}
