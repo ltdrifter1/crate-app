@@ -1,17 +1,17 @@
 /**
  * Planet MP3 brand marks — exact lockup / mark assets in /public/brand.
- * Lockup master is the authentic Y2K stippled planet + PLANET MP3 wordmark.
+ * Lockup master is the authentic Y2K stippled planet + PLANET MP3 wordmark
+ * on the black plate (matches the brand export).
  */
 
 export const BRAND_LOCKUP_SRC = "/brand/planet-mp3-lockup.png";
-/** Solid black-plate export — dark surfaces that need a filled mark. */
+/** Solid black-plate export — same lockup; use for filled dark marks. */
 export const BRAND_LOCKUP_ON_BLACK_SRC = "/brand/planet-mp3-lockup-on-black.png";
 export const BRAND_MARK_SRC = "/brand/logo-mark.png";
 export const BRAND_MARK_INVERSE_SRC = "/brand/logo-mark-inverse.png";
 
 /**
- * Square app-icon mark (planet + ring + PLANET MP3).
- * Prefer this in chrome; use BrandLockup for hero moments.
+ * App-icon mark — uses the exact black-plate lockup so chrome matches the brand.
  */
 export function BrandGlyph({
   size = 28,
@@ -22,7 +22,7 @@ export function BrandGlyph({
   const s = Math.max(12, size);
   return (
     <img
-      src={inverse ? BRAND_MARK_INVERSE_SRC : BRAND_MARK_SRC}
+      src={inverse ? BRAND_LOCKUP_SRC : BRAND_LOCKUP_ON_BLACK_SRC}
       alt={title || ""}
       width={s}
       height={s}
@@ -32,7 +32,7 @@ export function BrandGlyph({
         height: s,
         display: "block",
         objectFit: "contain",
-        borderRadius: rounded ? Math.round(s * 0.22) : 0,
+        borderRadius: rounded ? Math.round(s * 0.18) : 0,
         flexShrink: 0,
         userSelect: "none",
       }}
@@ -41,8 +41,7 @@ export function BrandGlyph({
 }
 
 /**
- * Full lockup — hero / splash. Renders the exact brand asset (no redraws).
- * Prefer no glassHalo so the stippled lockup reads cleanly.
+ * Full lockup — hero / splash / sidebar. Exact black-plate brand asset.
  */
 export function BrandLockup({
   size = 280,
@@ -55,8 +54,7 @@ export function BrandLockup({
 }) {
   const face = (
     <img
-      // Light surfaces: exact mark (bright planet + PLANET MP3). Dark plates: on-black lockup.
-      src={onBlack ? BRAND_LOCKUP_ON_BLACK_SRC : BRAND_MARK_SRC}
+      src={onBlack || compact ? BRAND_LOCKUP_ON_BLACK_SRC : BRAND_LOCKUP_SRC}
       alt={title || ""}
       draggable={false}
       style={{
