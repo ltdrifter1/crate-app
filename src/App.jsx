@@ -1064,7 +1064,7 @@ function CoverStage({
             marginBottom: 22,
             width: "min(84vw, 400px)",
           }}>
-            <BrandLockup size={400} glassHalo />
+            <BrandLockup size={400} />
           </div>
           <div style={{ animation: `rise 0.65s ${motion.ease} 0.08s both`, marginBottom: 28 }}>
             <BrandTagline size={12} style={{ letterSpacing: 2.2, textAlign: "center", maxWidth: "none" }} />

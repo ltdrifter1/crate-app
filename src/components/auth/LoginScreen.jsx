@@ -243,7 +243,7 @@ export default function LoginScreen({
               animation: "brandLockupBreathe 6.5s ease-in-out infinite",
             }}
           >
-            <BrandLockup size={280} glassHalo />
+            <BrandLockup size={280} />
           </div>
           <BrandTagline
             size={11}
