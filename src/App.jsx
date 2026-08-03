@@ -4105,7 +4105,7 @@ function FavoritesScreen({
       <button
         key={id}
         type="button"
-        onClick={() => setLibTab(id)}
+        onClick={() => { setLibTab(id); setLibQuery(""); }}
         aria-pressed={active}
         style={{
           flex: 1,
