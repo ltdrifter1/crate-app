@@ -170,12 +170,12 @@ export function recommendedPicks(
       if (discovery) score += 3;
 
       let reason;
-      if (t.liked) reason = "Saved cut";
-      else if (recentSet.has(t.id)) reason = "Spun recently";
-      else if (discovery) reason = genre ? `Fresh to your crate · ${genre}` : "Fresh to your crate";
-      else if (inTaste) reason = genre ? `In your lane · ${genre}` : "In your lane";
-      else if ((t.playCount || 0) > 0) reason = "Heard before · worth a return";
-      else reason = "Getting pressed around here";
+      if (t.liked) reason = "Saved";
+      else if (recentSet.has(t.id)) reason = "Recent";
+      else if (discovery) reason = genre || "New";
+      else if (inTaste) reason = genre || null;
+      else if ((t.playCount || 0) > 0) reason = null;
+      else reason = null;
 
       return { track: t, reason, score };
     })

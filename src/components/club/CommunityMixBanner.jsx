@@ -94,7 +94,7 @@ export default function CommunityMixBanner({
               fontFamily: fontMono,
               marginBottom: 6,
             }}>
-              {mix.monthKey ? formatMonthLabel(mix.monthKey) : "This month"} · Pressed plate
+              {mix.monthKey ? formatMonthLabel(mix.monthKey) : "This month"}
             </div>
             <div style={{
               fontSize: "clamp(22px, 5vw, 28px)",

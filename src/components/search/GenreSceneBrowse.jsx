@@ -3,8 +3,7 @@ import { fontDisplay, fontMono, color, glass, radius } from "../../theme";
 import { genreBrowseRows, tracksForGenreLane } from "../../lib/browse";
 
 /**
- * Genre browse for Search empty state.
- * Only the approved 11 canonical genres — no Camelot Keys as fake lanes.
+ * Genre browse for Search empty state — names only, no description copy.
  */
 export default function GenreSceneBrowse({
   tracks = [],
@@ -46,44 +45,15 @@ export default function GenreSceneBrowse({
             ‹ Genres
           </button>
         )}
-        <div style={{ marginBottom: 18 }}>
-          <div style={{
-            fontSize: 28,
-            fontWeight: 700,
-            letterSpacing: -0.7,
-            color: color.ink,
-            fontFamily: fontDisplay,
-            marginBottom: 8,
-          }}>
-            {browsing}
-          </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 14, flexWrap: "wrap" }}>
-            <div style={{ fontSize: 13, color: color.muted }}>
-              {pool.length}
-            </div>
-            {onListenIntent && (
-              <button
-                type="button"
-                onClick={() => listenGenre(browsing)}
-                style={{
-                  display: "inline-flex", alignItems: "center", gap: 8,
-                  padding: "8px 14px",
-                  borderRadius: radius.sm,
-                  border: `1px solid ${glass.border}`,
-                  background: glass.fillStrong,
-                  color: color.ink,
-                  fontSize: 12.5,
-                  fontWeight: 650,
-                  cursor: "pointer",
-                  boxShadow: `inset 0 1px 0 ${glass.highlight}`,
-                  backdropFilter: glass.blurSoft,
-                  WebkitBackdropFilter: glass.blurSoft,
-                }}
-              >
-                Listen
-              </button>
-            )}
-          </div>
+        <div style={{
+          fontSize: 28,
+          fontWeight: 700,
+          letterSpacing: -0.7,
+          color: color.ink,
+          fontFamily: fontDisplay,
+          marginBottom: 16,
+        }}>
+          {browsing}
         </div>
         {pool.map((t) => (
           <TrackRow
@@ -96,6 +66,26 @@ export default function GenreSceneBrowse({
             playlistCtx={playlistCtx}
           />
         ))}
+        {onListenIntent && pool.length > 0 && (
+          <button
+            type="button"
+            onClick={() => listenGenre(browsing)}
+            style={{
+              marginTop: 12,
+              width: "100%",
+              padding: "12px 14px",
+              borderRadius: radius.sm,
+              border: `1px solid ${glass.border}`,
+              background: glass.fillStrong,
+              color: color.ink,
+              fontSize: 14,
+              fontWeight: 650,
+              cursor: "pointer",
+            }}
+          >
+            Listen
+          </button>
+        )}
       </div>
     );
   }
@@ -107,79 +97,44 @@ export default function GenreSceneBrowse({
         fontWeight: 700,
         letterSpacing: -0.4,
         color: color.ink,
-        marginBottom: 14,
+        marginBottom: 8,
         fontFamily: fontDisplay,
       }}>
         Genres
       </div>
       <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
         {rows.map((row) => (
-          <div
+          <button
             key={row.lane}
+            type="button"
+            onClick={() => setDigGenre(row.lane)}
             style={{
               display: "flex",
+              justifyContent: "space-between",
               alignItems: "center",
-              gap: 10,
-              padding: "12px 0",
+              gap: 12,
+              padding: "14px 4px",
+              background: "none",
+              border: "none",
               borderBottom: `1px solid ${color.line}`,
+              cursor: "pointer",
+              textAlign: "left",
+              color: color.ink,
+              width: "100%",
             }}
           >
-            <button
-              type="button"
-              onClick={() => setDigGenre(row.lane)}
-              style={{
-                flex: 1,
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                gap: 12,
-                padding: "2px 4px",
-                background: "none",
-                border: "none",
-                cursor: "pointer",
-                textAlign: "left",
-                color: color.ink,
-                minWidth: 0,
-              }}
-            >
-              <div style={{
-                fontSize: 17, fontWeight: 600, fontFamily: fontDisplay,
-              }}>
-                {row.lane}
-              </div>
-              <span style={{
-                fontSize: 12,
-                color: color.faint,
-                fontFamily: fontMono,
-                flexShrink: 0,
-              }}>
-                {row.trackCount}
-              </span>
-            </button>
-            {onListenIntent && (
-              <button
-                type="button"
-                onClick={() => listenGenre(row.lane)}
-                aria-label={`Listen to ${row.lane}`}
-                style={{
-                  flexShrink: 0,
-                  padding: "8px 12px",
-                  borderRadius: radius.sm,
-                  border: `1px solid ${glass.border}`,
-                  background: glass.fillStrong,
-                  color: color.body,
-                  fontSize: 11.5,
-                  fontWeight: 650,
-                  cursor: "pointer",
-                  fontFamily: fontMono,
-                  letterSpacing: 0.2,
-                  boxShadow: `inset 0 1px 0 ${glass.highlight}`,
-                }}
-              >
-                Listen
-              </button>
-            )}
-          </div>
+            <span style={{ fontSize: 17, fontWeight: 600, fontFamily: fontDisplay }}>
+              {row.lane}
+            </span>
+            <span style={{
+              fontSize: 12,
+              color: color.faint,
+              fontFamily: fontMono,
+              flexShrink: 0,
+            }}>
+              {row.trackCount}
+            </span>
+          </button>
         ))}
       </div>
     </div>

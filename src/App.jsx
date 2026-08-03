@@ -1827,16 +1827,12 @@ function SessionBuilderModal({ tracks, onClose, onPlayRoute, initialActivity = n
                 fontSize: 11, fontWeight: 650, letterSpacing: 1.6, textTransform: "uppercase",
                 color: color.accent, fontFamily: fontMono, marginBottom: 12,
               }}>
-                Build a set
+                Build a custom mix
               </div>
               <div style={{
                 fontSize: 34, fontWeight: 700, color: color.ink, letterSpacing: -1,
-                marginBottom: 10, fontFamily: fontDisplay,
-              }}>How long is this set?</div>
-              <div style={{ fontSize: 16, color: color.body, marginBottom: 36, lineHeight: 1.45 }}>
-                We press a set to the clock. Energy rides with it
-                {intentLabel ? ` · ${intentLabel}` : ""}.
-              </div>
+                marginBottom: 36, fontFamily: fontDisplay,
+              }}>How long?</div>
               <div style={{ display: "flex", gap: 10, justifyContent: "center", marginBottom: 40, flexWrap: "wrap" }}>
                 {[
                   { m: 30, label: "30 min" },
@@ -1860,7 +1856,7 @@ function SessionBuilderModal({ tracks, onClose, onPlayRoute, initialActivity = n
               <button type="button" onClick={handleGenerate} style={{
                 ...BTN_PRIMARY, width: "auto", minWidth: 200, borderRadius: radius.md, padding: "16px 36px",
               }}>
-                Build my set
+                Continue
               </button>
             </div>
           )}
@@ -1871,16 +1867,16 @@ function SessionBuilderModal({ tracks, onClose, onPlayRoute, initialActivity = n
                 <div style={{
                   fontSize: 13, fontWeight: 600, color: color.accent, marginBottom: 8,
                 }}>
-                  {durationLabel} set
+                  {durationLabel}
                 </div>
                 <div style={{
                   fontSize: 32, fontWeight: 700, color: color.ink, letterSpacing: -0.8,
                   marginBottom: 6, fontFamily: fontDisplay,
                 }}>
-                  Set pressed
+                  Your custom mix
                 </div>
                 <div style={{ fontSize: 15, color: color.body }}>
-                  {session.length} cuts · about {totalMins} minutes
+                  {session.length} songs · about {totalMins} minutes
                 </div>
               </div>
 
@@ -3045,12 +3041,12 @@ function HomeCatalogStatus({ error, isEmpty, playableCount, totalCount, onRetry 
       ) : (
         <>
           <div style={{ fontSize: 15, fontWeight: 650, color: color.ink, marginBottom: 6 }}>
-            Crate’s empty
+            Nothing here yet
           </div>
           <div style={{ fontSize: 13, color: color.body, lineHeight: 1.45 }}>
             {totalCount > 0 && playableCount === 0
               ? `${totalCount} catalog entries are missing audio — add audioUrl in admin or re-upload tracks.`
-              : "Once cuts land in the catalog, they show up here. Tap Retry to pull the shelf again."}
+              : "Once tracks land in the catalog, they show up here. Tap Retry to load again."}
           </div>
           <button
             type="button"
@@ -3306,7 +3302,6 @@ function SearchScreen({
       )}
       {query.length > 1 && entityHits?.artists?.length > 0 && (
         <div style={{ marginBottom: 20 }}>
-          <div style={{ fontSize:13, fontWeight:600, color: color.muted, marginBottom:10, textTransform:"uppercase", letterSpacing:0.4 }}>Artists</div>
           {entityHits.artists.map((a) => (
             <button
               key={a.slug}
@@ -3321,17 +3316,13 @@ function SearchScreen({
               <div style={{ width:48, height:48, overflow:"hidden", flexShrink:0, background: color.surfaceRaised, borderRadius: 24 }}>
                 {a.coverTrack && <AlbumArt track={a.coverTrack} size={48} borderRadius={24}/>}
               </div>
-              <div style={{ minWidth:0 }}>
-                <div style={{ fontSize:17, fontWeight:600, fontFamily: fontDisplay }}>{a.name}</div>
-                <div style={{ fontSize:13, color: color.muted }}>Artist</div>
-              </div>
+              <div style={{ minWidth:0, fontSize:17, fontWeight:600, fontFamily: fontDisplay }}>{a.name}</div>
             </button>
           ))}
         </div>
       )}
       {query.length > 1 && entityHits?.albums?.length > 0 && (
         <div style={{ marginBottom: 20 }}>
-          <div style={{ fontSize:13, fontWeight:600, color: color.muted, marginBottom:10, textTransform:"uppercase", letterSpacing:0.4 }}>Albums</div>
           {entityHits.albums.map((a) => (
             <button
               key={a.slug}
@@ -3346,22 +3337,14 @@ function SearchScreen({
               <div style={{ width:48, height:48, overflow:"hidden", flexShrink:0, background: color.surfaceRaised, borderRadius: 6 }}>
                 {a.coverTrack && <AlbumArt track={a.coverTrack} size={48} borderRadius={6}/>}
               </div>
-              <div style={{ minWidth:0 }}>
-                <div style={{ fontSize:17, fontWeight:600, fontFamily: fontDisplay }}>{a.title}</div>
-                <div style={{ fontSize:13, color: color.muted }}>{a.artist}</div>
-              </div>
+              <div style={{ minWidth:0, fontSize:17, fontWeight:600, fontFamily: fontDisplay }}>{a.title}</div>
             </button>
           ))}
         </div>
       )}
       {query.length>1&&!results.length&&!(entityHits?.artists?.length || entityHits?.albums?.length)&&(
         <div style={{ textAlign:"center", padding:"56px 0" }}>
-          <div style={{ color: color.ink, fontSize:17, fontWeight:600, fontFamily: fontDisplay }}>No results for “{query}”</div>
-        </div>
-      )}
-      {results.length > 0 && query.length > 1 && (
-        <div style={{ fontSize:13, fontWeight:600, color: color.muted, marginBottom:10, textTransform:"uppercase", letterSpacing:0.4 }}>
-          Songs{results.length > RESULT_CAP ? ` · ${results.length}` : ""}
+          <div style={{ color: color.ink, fontSize:17, fontWeight:600, fontFamily: fontDisplay }}>No results</div>
         </div>
       )}
       {visibleResults.map(t=>(
@@ -3593,20 +3576,20 @@ function FavoritesScreen({
 
   return (
     <div style={{ position: "relative", paddingBottom: 56 }}>
-      <CollapsingHeader title="Library" />
+      <CollapsingHeader title="Your Saved Tracks" />
 
       <div style={{
         position: "relative",
         background: color.canvas,
       }}>
-        {/* Art-led collection first — Cover Flow crate */}
-        {saved.length > 0 && (
-          <HomeSection
-            label="Your Saved Tracks"
-            count={saved.length}
-            delay={0.04}
-            first
-          >
+        {/* Art-led collection first */}
+        <HomeSection
+          label="Your Saved Tracks"
+          count={saved.length || undefined}
+          delay={0.04}
+          first
+        >
+          {saved.length > 0 ? (
             <CoverFlow
               tracks={saved}
               onPlayTrack={(t) => playTrackFn(t, saved)}
@@ -3615,14 +3598,22 @@ function FavoritesScreen({
               size={188}
               limit={40}
             />
-          </HomeSection>
-        )}
+          ) : (
+            <div style={{
+              padding: `8px ${homeSpace.gutter}px 18px`,
+              fontSize: 14,
+              color: color.muted,
+              lineHeight: 1.45,
+            }}>
+              Heart a track anywhere to save it here.
+            </div>
+          )}
+        </HomeSection>
 
         <HomeSection
           label="Playlists"
           count={userPlaylists.length || undefined}
           delay={0.06}
-          first={saved.length === 0}
         >
           <div
             className="hide-scroll"
@@ -5112,9 +5103,9 @@ export default function App() {
   const [immersive, setImmersive]     = useState(false);
   const audioRef                      = useRef(null); // the real HTML5 audio element
   // ── Desktop detection (must be before any early returns) ─────────────────
-  const [isDesktop, setIsDesktop]     = useState(() => window.innerWidth >= 900);
+  const [isDesktop, setIsDesktop]     = useState(() => window.innerWidth >= 768);
   useEffect(() => {
-    const handle = () => setIsDesktop(window.innerWidth >= 900);
+    const handle = () => setIsDesktop(window.innerWidth >= 768);
     window.addEventListener("resize", handle);
     return () => window.removeEventListener("resize", handle);
   }, []);
@@ -6783,11 +6774,11 @@ export default function App() {
   // ── Mobile: render as-is ─────────────────────────────────────────────────
   if (!isDesktop) return innerApp;
 
-  // ── Desktop: 3-column shell ───────────────────────────────────────────────
+  // ── Desktop: 3-column shell (iTunes-style source list) ───────────────────
   const NAV_TOP = [
-    { id:"home",      icon:"home",   label:"Home" },
-    { id:"favorites", icon:"dig",    label:"Library" },
-    { id:"search",    icon:"search", label:"Search" },
+    { id: "home",      icon: "home",   label: "Home" },
+    { id: "favorites", icon: "dig",    label: "Your Saved Tracks" },
+    { id: "search",    icon: "search", label: "Search" },
   ];
   const NAV_BOTTOM = [];
 
@@ -6808,9 +6799,9 @@ export default function App() {
   return (
     <div style={{ display:"flex", height:"100dvh", background: color.canvas, overflow:"hidden", fontFamily: font }}>
 
-      {/* ── LEFT SOURCE LIST ──────────────────────────────────────────── */}
+      {/* ── LEFT SOURCE LIST (iTunes-style) ───────────────────────────── */}
       <div style={{
-        width: 196, flexShrink: 0,
+        width: 220, flexShrink: 0,
         background: `
           linear-gradient(180deg, rgba(255,255,255,0.7) 0%, rgba(255,255,255,0.35) 100%),
           ${color.surfaceRaised}
@@ -6839,12 +6830,12 @@ export default function App() {
                 key={item.id}
                 type="button"
                 className="nav-rail-btn"
-                onClick={() => setScreen(item.id)}
+                onClick={() => { setStackOpenRequest(null); setScreen(item.id); }}
                 title={item.label}
                 aria-label={item.label}
                 aria-current={active ? "page" : undefined}
                 style={{
-                  width: "100%", height: 38, borderRadius: radius.sm,
+                  width: "100%", minHeight: 34, borderRadius: radius.sm,
                   background: active ? color.select : "transparent",
                   border: active ? `1px solid ${color.accentSoft}` : "1px solid transparent",
                   color: active ? color.accent : color.body,
@@ -6852,15 +6843,15 @@ export default function App() {
                   display: "flex",
                   alignItems: "center",
                   gap: 10,
-                  padding: "0 10px",
+                  padding: "6px 10px",
                   textAlign: "left",
                   boxShadow: active ? `inset 0 1px 0 ${glass.highlight}` : "none",
                 }}
               >
-                <Icon name={item.icon} size={17}/>
+                <Icon name={item.icon} size={16}/>
                 <span style={{
-                  fontSize: 14, fontWeight: active ? 650 : 500,
-                  letterSpacing: -0.1, lineHeight: 1,
+                  fontSize: 13, fontWeight: active ? 650 : 500,
+                  letterSpacing: -0.1, lineHeight: 1.2,
                 }}>
                   {item.label}
                 </span>
@@ -6894,7 +6885,7 @@ export default function App() {
             +
           </button>
         </div>
-        <div className="hide-scroll" style={{ display: "flex", flexDirection: "column", gap: 1, overflowY: "auto", minHeight: 0, maxHeight: "42vh" }}>
+        <div className="hide-scroll" style={{ display: "flex", flexDirection: "column", gap: 1, overflowY: "auto", minHeight: 0, flex: 1 }}>
           {libraryPlaylists.length === 0 ? (
             <button
               type="button"
@@ -6948,7 +6939,7 @@ export default function App() {
           ))}
         </div>
 
-        <div style={{ flex: 1 }}/>
+        <div style={{ height: 8, flexShrink: 0 }}/>
 
         <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
           {NAV_BOTTOM.map((item) => (
@@ -7105,7 +7096,7 @@ export default function App() {
         </>
         {/* Desktop mini-player — hidden on Home; Cover Stage owns transport */}
         {currentTrack && !immersive && screen !== "home" && (
-          <div style={{ position:"fixed", bottom:12, left:208, right:348, zIndex:80 }}>
+          <div style={{ position:"fixed", bottom:12, left:232, right:348, zIndex:80 }}>
             <EnergyShiftFeedback />
             <div onClick={()=>setImmersive(true)} className="glass-dock" style={{
               borderRadius: dock.radius,
