@@ -109,7 +109,7 @@ export function documentTitleFor(screen, label) {
   if (label) return `${label} · ${BRAND_NAME}`;
   const labels = {
     home: "Home",
-    favorites: "Library",
+    favorites: "Your Saved Tracks",
     search: "Search",
     profile: "You",
     admin: "Admin",
