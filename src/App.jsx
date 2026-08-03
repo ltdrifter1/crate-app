@@ -338,6 +338,7 @@ const Icon = ({ name, size=18 }) => {
     hypno:      <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.5" fill="currentColor" stroke="none"/></svg>,
     // Session Dial — length (arc) + vibe (playlist bars). Key feature mark.
     timedmix:   <TimedMixMark size={size} />,
+    flask:      <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><path d="M9 3h6"/><path d="M10 3v5.2L5.8 16.2A3.2 3.2 0 0 0 8.6 21h6.8a3.2 3.2 0 0 0 2.8-4.8L14 8.2V3"/><path d="M8.2 14.5h7.6" opacity="0.55"/><circle cx="12" cy="17.2" r="1.1" fill="currentColor" stroke="none" opacity="0.85"/></svg>,
   };
   return icons[name] || null;
 };
@@ -1004,7 +1005,7 @@ function CoverStage({
         }}
       >
         <div style={{ pointerEvents: "auto", animation: "markIn 0.55s cubic-bezier(0.22,1,0.36,1) both" }}>
-          <DoorGlyph size={live ? 44 : 52} title="Planet MP3" />
+          <DoorGlyph size={live ? 40 : 48} title="Planet MP3" rounded />
         </div>
         {live && (
           <button
@@ -1014,15 +1015,15 @@ function CoverStage({
               pointerEvents: "auto",
               display: "inline-flex",
               alignItems: "center",
-              gap: 7,
+              gap: 8,
               background: glass.fillStrong,
               border: `1px solid ${glass.border}`,
               borderRadius: radius.sm,
-              padding: "8px 12px",
+              padding: "6px 10px 6px 6px",
               cursor: onListenFor ? "pointer" : "default",
               fontSize: 10,
               fontWeight: 700,
-              letterSpacing: 1.3,
+              letterSpacing: 1.1,
               textTransform: "uppercase",
               color: playingVisual ? color.accent : color.body,
               fontFamily: fontMono,
@@ -1032,6 +1033,23 @@ function CoverStage({
             }}
             aria-label={onListenFor ? `${modeLabel}. Change what we play most` : modeLabel}
           >
+            <span
+              aria-hidden="true"
+              style={{
+                width: 28,
+                height: 28,
+                borderRadius: 8,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                background: playingVisual ? color.accentSoft : "rgba(26,29,36,0.06)",
+                border: `1px solid ${playingVisual ? color.accentSoft : glass.borderSoft}`,
+                color: playingVisual ? color.accent : color.ink,
+                flexShrink: 0,
+              }}
+            >
+              <Icon name="flask" size={15} />
+            </span>
             {playingVisual && (
               <span aria-hidden="true" style={{
                 width: 5, height: 5, borderRadius: "50%", background: color.accent,
@@ -2271,7 +2289,6 @@ function ImmersivePlayer({
           Back
         </button>
           <div style={{ display: "flex", alignItems: "center", gap: 10, position: "relative" }}>
-          <DoorGlyph size={32} title="Planet MP3" />
           <button type="button" onClick={() => setShowMore((m) => !m)} aria-label="More"
             aria-expanded={showMore}
             style={{ ...chromeBtn, padding: "10px 12px" }}>
@@ -2946,7 +2963,8 @@ const HomeSection = ({ label, count, subtitle, children, delay = 0, first = fals
         <div style={sectionRule(homeSpace.gutter)}/>
       </div>
     )}
-    {first && <div style={{ height: homeSpace.sectionPadTopFirst + 8 }} aria-hidden="true"/>}
+    {first && <div style={{ height: label || eyebrow ? homeSpace.sectionPadTopFirst + 8 : 8 }} aria-hidden="true"/>}
+    {(label || eyebrow) && (
     <div style={{
       padding: `0 ${homeSpace.gutter}px ${subtitle ? 6 : 16}px`,
       display: "flex",
@@ -2968,6 +2986,7 @@ const HomeSection = ({ label, count, subtitle, children, delay = 0, first = fals
             {eyebrow}
           </div>
         )}
+        {label && (
         <h2 style={{
           margin: 0,
           fontSize: 22,
@@ -2976,6 +2995,7 @@ const HomeSection = ({ label, count, subtitle, children, delay = 0, first = fals
           color: color.ink,
           fontFamily: fontDisplay,
         }}>{label}</h2>
+        )}
       </div>
       {count != null && (
         <span style={{
@@ -2988,6 +3008,7 @@ const HomeSection = ({ label, count, subtitle, children, delay = 0, first = fals
         }}>{count}</span>
       )}
     </div>
+    )}
     {subtitle ? (
       <p style={{
         margin: `0 ${homeSpace.gutter}px 16px`,
@@ -3068,7 +3089,7 @@ function HomeCatalogStatus({ error, isEmpty, playableCount, totalCount, onRetry 
 }
 
 /**
- * For you — Cover Flow crate of recommended tracks.
+ * Selected for you — Cover Flow of recommended tracks.
  */
 function ForYouRiver({
   tracks = [],
@@ -3081,9 +3102,9 @@ function ForYouRiver({
 
   return (
     <HomeSection
-      label="For you"
+      label="Selected for you"
       delay={0.06}
-      first
+      first={false}
     >
       <CoverFlow
         tracks={tracks}
@@ -3107,6 +3128,7 @@ function HomeScreen({
   intentLabel = null,
   communityMix = null, onOpenCommunityMix = null,
   onBrowse = null,
+  onCustomMix = null,
 }) {
   const activeId = currentTrack?.id;
   const playableCount = countPlayableTracks(tracks);
@@ -3190,6 +3212,20 @@ function HomeScreen({
         position: "relative",
         background: color.canvas,
       }}>
+        {onCustomMix && (
+          <section
+            aria-label="Build a custom mix"
+            style={{
+              margin: 0,
+              paddingTop: 10,
+              paddingBottom: 8,
+              animation: `rise 0.55s ${motion.ease} 0.04s both`,
+            }}
+          >
+            <CustomMixFeature onClick={onCustomMix} />
+          </section>
+        )}
+
         {forYouTracks.length > 0 && (
           <ForYouRiver
             tracks={forYouTracks}
@@ -3260,8 +3296,9 @@ function SearchScreen({
   };
   return (
     <div style={{ padding: "0 0 16px" }}>
-      <CollapsingHeader title="Search" />
-      <div style={{ padding: "10px 16px 0" }}>
+      <div style={{
+        padding: `calc(14px + env(safe-area-inset-top, 0px)) 16px 0`,
+      }}>
       <div style={{ position:"relative", marginBottom:14 }}>
         <div style={{ position:"absolute", left:14, top:"50%", transform:"translateY(-50%)", color: color.faint }}><Icon name="search" size={16}/></div>
         <input
@@ -3392,7 +3429,7 @@ function FavoritesScreen({
   tracks, onPlay, onLike, currentTrack, isPlaying, playlistCtx,
   userPlaylists = [], onCreatePlaylist, onDeletePlaylist, onRenamePlaylist = null,
   onPlayTrack, onSharePlaylist = null, onOpenMix = null,
-  communityMix = null, onCustomMix = null,
+  communityMix = null,
   openRequestId = null, onConsumeOpenRequest = null,
 }) {
   const { menu, close } = useTrackMenu();
@@ -3576,15 +3613,14 @@ function FavoritesScreen({
 
   return (
     <div style={{ position: "relative", paddingBottom: 56 }}>
-      <CollapsingHeader title="Your Saved Tracks" />
-
       <div style={{
         position: "relative",
         background: color.canvas,
+        paddingTop: 12,
       }}>
-        {/* Art-led collection first */}
+        {/* Saved tracks — page is Library via the tab; no repeated header */}
         <HomeSection
-          label="Your Saved Tracks"
+          label={null}
           count={saved.length || undefined}
           delay={0.04}
           first
@@ -3812,20 +3848,6 @@ function FavoritesScreen({
             }}
             delay={0.1}
           />
-        )}
-
-        {onCustomMix && (
-          <section
-            aria-label="Build a custom mix"
-            style={{
-              margin: 0,
-              paddingTop: 8,
-              paddingBottom: 36,
-              animation: `rise 0.55s ${motion.ease} 0.12s both`,
-            }}
-          >
-            <CustomMixFeature onClick={onCustomMix} />
-          </section>
         )}
       </div>
 
@@ -6689,9 +6711,9 @@ export default function App() {
       )}
       <div ref={contentScrollRef} onScroll={rememberScroll} style={{ flex:1, overflow:"auto", paddingBottom: contentPadBottom(!!currentTrack && !immersive && !hideDockPlayer), zIndex:1, position:"relative" }}>
         <ScreenPane key={screen === "artist" ? `artist:${artistSlug}` : screen === "album" ? `album:${albumSlug}` : screen === "mix" ? `mix:${mixId}` : screen}>
-        {screen==="home"      && !tracksLoading && <HomeScreen tracks={tracks} onPlayRadio={playRadio} onTogglePlay={togglePlay} onPlayTrack={playTrack} currentTrack={currentTrack} isPlaying={isPlaying} onLike={toggleLike} isRadioMode={isRadioMode} hypnoPocket={!!hypnoSeed} playlistCtx={playlistCtx} signalLabel={signalState?.label} mixLane={mixLane} radioPreview={heroPreview} radioNext={setNext} onSkipRadio={handleSkip} onPrevRadio={handlePrev} onOpenPlayer={()=>setImmersive(true)} onListenFor={()=>setShowGenreTaste(true)} intentLabel={radioIntentLabel} catalogError={tracksLoadError} onRetryCatalog={reloadCatalog} preferredGenres={user.genres} recentTrackIds={(profile?.recentTracks||[]).map(r=>r.trackId||r)} progress={progress} duration={duration} communityMix={communityMix} onOpenCommunityMix={()=>communityMix && openMix(communityMix.id)} onBrowse={()=>setScreen("search")}/>}
+        {screen==="home"      && !tracksLoading && <HomeScreen tracks={tracks} onPlayRadio={playRadio} onTogglePlay={togglePlay} onPlayTrack={playTrack} currentTrack={currentTrack} isPlaying={isPlaying} onLike={toggleLike} isRadioMode={isRadioMode} hypnoPocket={!!hypnoSeed} playlistCtx={playlistCtx} signalLabel={signalState?.label} mixLane={mixLane} radioPreview={heroPreview} radioNext={setNext} onSkipRadio={handleSkip} onPrevRadio={handlePrev} onOpenPlayer={()=>setImmersive(true)} onListenFor={()=>setShowGenreTaste(true)} intentLabel={radioIntentLabel} catalogError={tracksLoadError} onRetryCatalog={reloadCatalog} preferredGenres={user.genres} recentTrackIds={(profile?.recentTracks||[]).map(r=>r.trackId||r)} progress={progress} duration={duration} communityMix={communityMix} onOpenCommunityMix={()=>communityMix && openMix(communityMix.id)} onBrowse={()=>setScreen("search")} onCustomMix={()=>{ setSessionInitialActivity(vibeForMixLane(mixLane)); setShowRouteBuilder(true); }}/>}
         {screen==="search"    && <SearchScreen query={searchQuery} setQuery={setSearch} results={searchResults} tracks={tracks} onPlay={(t,pool)=>{ recordRecentSearch(searchQuery); playTrack(t,pool||tracks); }} onListenIntent={(focus)=>{ const next={ genre: focus.genre || null, scene: null }; setListenFocus(next); playRadio(null, createListenIntent({ mixLane, ...next })); }} onLike={toggleLike} currentTrack={currentTrack} isPlaying={isPlaying} playlistCtx={playlistCtx} entityHits={entityHits} onOpenArtist={(slug)=>{ recordRecentSearch(searchQuery); openArtist(slug); }} onOpenAlbum={(slug)=>{ recordRecentSearch(searchQuery); openAlbum(slug); }} recentSearches={recentSearches} onPickRecent={(q)=>setSearch(q)} onClearRecent={clearRecentSearches}/>}
-        {screen==="favorites" && <FavoritesScreen tracks={tracks} onPlay={t=>{setIsRadioMode(false);playTrack(t,tracks);}} onPlayTrack={(t,pool)=>{setIsRadioMode(false);playTrack(t,pool||tracks);}} onLike={toggleLike} currentTrack={currentTrack} isPlaying={isPlaying} playlistCtx={playlistCtx} userPlaylists={libraryPlaylists} onCreatePlaylist={createPlaylist} onDeletePlaylist={deletePlaylist} onRenamePlaylist={renamePlaylist} onSharePlaylist={sharePlaylistToClub} openRequestId={stackOpenRequest} onConsumeOpenRequest={()=>setStackOpenRequest(null)} communityMix={communityMix} onOpenMix={()=>communityMix && openMix(communityMix.id)} onCustomMix={()=>{ setSessionInitialActivity(vibeForMixLane(mixLane)); setShowRouteBuilder(true); }}/>}
+        {screen==="favorites" && <FavoritesScreen tracks={tracks} onPlay={t=>{setIsRadioMode(false);playTrack(t,tracks);}} onPlayTrack={(t,pool)=>{setIsRadioMode(false);playTrack(t,pool||tracks);}} onLike={toggleLike} currentTrack={currentTrack} isPlaying={isPlaying} playlistCtx={playlistCtx} userPlaylists={libraryPlaylists} onCreatePlaylist={createPlaylist} onDeletePlaylist={deletePlaylist} onRenamePlaylist={renamePlaylist} onSharePlaylist={sharePlaylistToClub} openRequestId={stackOpenRequest} onConsumeOpenRequest={()=>setStackOpenRequest(null)} communityMix={communityMix} onOpenMix={()=>communityMix && openMix(communityMix.id)}/>}
         {screen==="mix"       && (
           <MixScreen
             mix={activeMix}
@@ -6777,7 +6799,7 @@ export default function App() {
   // ── Desktop: 3-column shell (iTunes-style source list) ───────────────────
   const NAV_TOP = [
     { id: "home",      icon: "home",   label: "Home" },
-    { id: "favorites", icon: "dig",    label: "Your Saved Tracks" },
+    { id: "favorites", icon: "dig",    label: "Library" },
     { id: "search",    icon: "search", label: "Search" },
   ];
   const NAV_BOTTOM = [];
@@ -7037,9 +7059,9 @@ export default function App() {
             </>
           ) : (
             <ScreenPane key={screen === "artist" ? `artist:${artistSlug}` : screen === "album" ? `album:${albumSlug}` : screen === "mix" ? `mix:${mixId}` : screen}>
-              {screen==="home"      && <HomeScreen tracks={tracks} onPlayRadio={playRadio} onTogglePlay={togglePlay} onPlayTrack={playTrack} currentTrack={currentTrack} isPlaying={isPlaying} onLike={toggleLike} isRadioMode={isRadioMode} hypnoPocket={!!hypnoSeed} playlistCtx={playlistCtx} signalLabel={signalState?.label} mixLane={mixLane} radioPreview={heroPreview} radioNext={setNext} onSkipRadio={handleSkip} onPrevRadio={handlePrev} onOpenPlayer={()=>setImmersive(true)} onListenFor={()=>setShowGenreTaste(true)} intentLabel={radioIntentLabel} catalogError={tracksLoadError} onRetryCatalog={reloadCatalog} preferredGenres={user.genres} recentTrackIds={(profile?.recentTracks||[]).map(r=>r.trackId||r)} progress={progress} duration={duration} communityMix={communityMix} onOpenCommunityMix={()=>communityMix && openMix(communityMix.id)} onBrowse={()=>setScreen("search")}/>}
+              {screen==="home"      && <HomeScreen tracks={tracks} onPlayRadio={playRadio} onTogglePlay={togglePlay} onPlayTrack={playTrack} currentTrack={currentTrack} isPlaying={isPlaying} onLike={toggleLike} isRadioMode={isRadioMode} hypnoPocket={!!hypnoSeed} playlistCtx={playlistCtx} signalLabel={signalState?.label} mixLane={mixLane} radioPreview={heroPreview} radioNext={setNext} onSkipRadio={handleSkip} onPrevRadio={handlePrev} onOpenPlayer={()=>setImmersive(true)} onListenFor={()=>setShowGenreTaste(true)} intentLabel={radioIntentLabel} catalogError={tracksLoadError} onRetryCatalog={reloadCatalog} preferredGenres={user.genres} recentTrackIds={(profile?.recentTracks||[]).map(r=>r.trackId||r)} progress={progress} duration={duration} communityMix={communityMix} onOpenCommunityMix={()=>communityMix && openMix(communityMix.id)} onBrowse={()=>setScreen("search")} onCustomMix={()=>{ setSessionInitialActivity(vibeForMixLane(mixLane)); setShowRouteBuilder(true); }}/>}
               {screen==="search"    && <SearchScreen query={searchQuery} setQuery={setSearch} results={searchResults} tracks={tracks} onPlay={(t,pool)=>{ recordRecentSearch(searchQuery); playTrack(t,pool||tracks); }} onListenIntent={(focus)=>{ const next={ genre: focus.genre || null, scene: null }; setListenFocus(next); playRadio(null, createListenIntent({ mixLane, ...next })); }} onLike={toggleLike} currentTrack={currentTrack} isPlaying={isPlaying} playlistCtx={playlistCtx} entityHits={entityHits} onOpenArtist={(slug)=>{ recordRecentSearch(searchQuery); openArtist(slug); }} onOpenAlbum={(slug)=>{ recordRecentSearch(searchQuery); openAlbum(slug); }} recentSearches={recentSearches} onPickRecent={(q)=>setSearch(q)} onClearRecent={clearRecentSearches}/>}
-              {screen==="favorites" && <FavoritesScreen tracks={tracks} onPlay={t=>{setIsRadioMode(false);playTrack(t,tracks);}} onPlayTrack={(t,pool)=>{setIsRadioMode(false);playTrack(t,pool||tracks);}} onLike={toggleLike} currentTrack={currentTrack} isPlaying={isPlaying} playlistCtx={playlistCtx} userPlaylists={libraryPlaylists} onCreatePlaylist={createPlaylist} onDeletePlaylist={deletePlaylist} onRenamePlaylist={renamePlaylist} onSharePlaylist={sharePlaylistToClub} openRequestId={stackOpenRequest} onConsumeOpenRequest={()=>setStackOpenRequest(null)} communityMix={communityMix} onOpenMix={()=>communityMix && openMix(communityMix.id)} onCustomMix={()=>{ setSessionInitialActivity(vibeForMixLane(mixLane)); setShowRouteBuilder(true); }}/>}
+              {screen==="favorites" && <FavoritesScreen tracks={tracks} onPlay={t=>{setIsRadioMode(false);playTrack(t,tracks);}} onPlayTrack={(t,pool)=>{setIsRadioMode(false);playTrack(t,pool||tracks);}} onLike={toggleLike} currentTrack={currentTrack} isPlaying={isPlaying} playlistCtx={playlistCtx} userPlaylists={libraryPlaylists} onCreatePlaylist={createPlaylist} onDeletePlaylist={deletePlaylist} onRenamePlaylist={renamePlaylist} onSharePlaylist={sharePlaylistToClub} openRequestId={stackOpenRequest} onConsumeOpenRequest={()=>setStackOpenRequest(null)} communityMix={communityMix} onOpenMix={()=>communityMix && openMix(communityMix.id)}/>}
               {screen==="mix"       && (
                 <MixScreen
                   mix={activeMix}
