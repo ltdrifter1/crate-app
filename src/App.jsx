@@ -1928,7 +1928,7 @@ function SessionBuilderModal({ tracks, onClose, onPlayRoute, initialActivity = n
                 <p style={{
                   margin: "0 auto", maxWidth: 360, fontSize: 15, color: color.body, lineHeight: 1.45,
                 }}>
-                  Activity shapes the energy curve — warm-up, peak, cool-down — not just a shuffled list.
+                  Activity shapes the energy curve — warm up, peak, chill out — not just a shuffled list.
                 </p>
               </div>
 
@@ -2857,7 +2857,7 @@ function CustomMixFeature({ onClick }) {
   const steps = [
     { n: "01", label: "Length", hint: "30 min → all night" },
     { n: "02", label: "Vibe", hint: "Drive, focus, party…" },
-    { n: "03", label: "Arc", hint: "Warm-up → peak → ease" },
+    { n: "03", label: "Arc", hint: "Warm up → peak → chill out" },
   ];
 
   return (
@@ -2926,17 +2926,6 @@ function CustomMixFeature({ onClick }) {
         marginBottom: 18,
       }}>
         <div style={{ minWidth: 0, flex: 1 }}>
-          <div style={{
-            fontSize: 10,
-            fontWeight: 700,
-            letterSpacing: 1.6,
-            textTransform: "uppercase",
-            color: color.faint,
-            fontFamily: fontMono,
-            marginBottom: 8,
-          }}>
-            Timed session
-          </div>
           <div style={{
             fontSize: "clamp(20px, 4.2vw, 26px)",
             fontWeight: 700,
