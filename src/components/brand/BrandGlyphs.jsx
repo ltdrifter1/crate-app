@@ -50,6 +50,8 @@ export function BrandLockup({
   opacity = 1,
   glassHalo = false,
   onBlack = false,
+  /** Quieter shadow for chrome / sidebar marks */
+  compact = false,
 }) {
   const face = (
     <img
@@ -66,8 +68,10 @@ export function BrandLockup({
         opacity,
         margin: glassHalo ? 0 : "0 auto",
         userSelect: "none",
-        borderRadius: 0,
-        filter: "drop-shadow(0 12px 28px rgba(22,24,30,0.18))",
+        borderRadius: compact ? Math.round(size * 0.12) : 0,
+        filter: compact
+          ? "drop-shadow(0 4px 12px rgba(22,24,30,0.14))"
+          : "drop-shadow(0 12px 28px rgba(22,24,30,0.18))",
       }}
     />
   );
