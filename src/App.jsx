@@ -2934,9 +2934,11 @@ function QueueSheet({ queue, currentTrack, onPlay, onClose, onClear, onShuffle, 
 
 // ── Key feature: Build a custom mix — duration + vibe session builder entry ──
 function CustomMixFeature({ onClick }) {
-  const arcW = 160;
-  const arcH = 36;
-  const arcPath = `M 6 ${arcH - 8} C 36 ${arcH - 5}, 52 8, 80 7 C 108 6, 124 ${arcH - 12}, 154 ${arcH - 10}`;
+  const steps = [
+    { n: "01", label: "Length", hint: "30 min → night" },
+    { n: "02", label: "Vibe", hint: "Drive, focus…" },
+    { n: "03", label: "Arc", hint: "Warm → peak → chill" },
+  ];
 
   return (
     <button
@@ -2951,16 +2953,17 @@ function CustomMixFeature({ onClick }) {
         minHeight: 0,
         margin: `0 ${homeSpace.gutter}px`,
         width: `calc(100% - ${homeSpace.gutter * 2}px)`,
-        padding: "16px 18px",
-        border: `1px solid ${glass.borderSoft}`,
-        borderRadius: radius.lg,
+        padding: "20px 20px 18px",
+        border: `1px solid ${glass.border}`,
+        borderRadius: radius.xl,
         background: `
-          linear-gradient(145deg, rgba(255,255,255,0.72) 0%, rgba(255,255,255,0.35) 55%, rgba(236,240,246,0.45) 100%),
+          linear-gradient(145deg, rgba(255,255,255,0.88) 0%, rgba(255,255,255,0.42) 48%, rgba(236,240,246,0.55) 100%),
           ${aluminumGradient()}
         `,
         boxShadow: `
           inset 0 1px 0 ${glass.highlight},
-          ${glass.shadowSoft}
+          inset 0 -1px 0 rgba(22,24,30,0.04),
+          ${glass.shadow}
         `,
         backdropFilter: glass.blurSoft,
         WebkitBackdropFilter: glass.blurSoft,
@@ -2972,62 +2975,126 @@ function CustomMixFeature({ onClick }) {
     >
       <div aria-hidden="true" style={{
         position: "absolute",
-        right: 14,
-        top: 12,
-        width: "min(36%, 160px)",
+        inset: 0,
         pointerEvents: "none",
-        opacity: 0.55,
-      }}>
-        <svg width="100%" height={arcH} viewBox={`0 0 ${arcW} ${arcH}`} preserveAspectRatio="none" style={{ display: "block" }}>
-          <path
-            d={arcPath}
-            fill="none"
-            stroke={color.ink}
-            strokeWidth="1.6"
-            strokeLinecap="round"
-            style={{ animation: "mixArcPulse 2.8s ease-in-out infinite" }}
-          />
-        </svg>
-      </div>
+        background: `
+          radial-gradient(ellipse 70% 80% at 0% 0%, rgba(255,255,255,0.7) 0%, transparent 55%),
+          linear-gradient(115deg, rgba(190,198,210,0.16) 0%, transparent 42%)
+        `,
+      }}/>
 
-      <div style={{ position: "relative", zIndex: 1, maxWidth: "70%" }}>
-        <div style={{
-          fontSize: 10,
-          fontWeight: 700,
-          letterSpacing: 1.2,
-          textTransform: "uppercase",
-          fontFamily: fontMono,
-          color: color.faint,
-          marginBottom: 6,
-        }}>
-          Custom mix
-        </div>
+      <div style={{ position: "relative", zIndex: 1 }}>
         <div style={{
           display: "flex",
-          alignItems: "center",
-          gap: 8,
-          marginBottom: 4,
+          alignItems: "flex-start",
+          justifyContent: "space-between",
+          gap: 16,
+          marginBottom: 16,
         }}>
-          <div style={{
-            fontSize: "clamp(16px, 3.6vw, 19px)",
-            fontWeight: 700,
-            fontFamily: fontDisplay,
-            letterSpacing: -0.35,
-            lineHeight: 1.15,
-          }}>
-            Build a set
+          <div style={{ minWidth: 0, flex: 1 }}>
+            <div style={{
+              fontSize: 10,
+              fontWeight: 700,
+              letterSpacing: 1.2,
+              textTransform: "uppercase",
+              fontFamily: fontMono,
+              color: color.faint,
+              marginBottom: 6,
+            }}>
+              Custom mix
+            </div>
+            <div style={{
+              fontSize: "clamp(18px, 4vw, 22px)",
+              fontWeight: 700,
+              fontFamily: fontDisplay,
+              letterSpacing: -0.45,
+              lineHeight: 1.12,
+              marginBottom: 6,
+            }}>
+              Build a set
+            </div>
+            <p style={{
+              margin: 0,
+              fontSize: 13,
+              color: color.muted,
+              lineHeight: 1.4,
+              maxWidth: 320,
+            }}>
+              Pick a length and vibe — we shape the energy with you.
+            </p>
           </div>
-          <span aria-hidden="true" style={{ color: color.faint, fontSize: 16, lineHeight: 1 }}>→</span>
+          <span
+            aria-hidden="true"
+            style={{
+              flexShrink: 0,
+              width: 36,
+              height: 36,
+              borderRadius: "50%",
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+              border: `1px solid ${glass.border}`,
+              background: glass.fillStrong,
+              boxShadow: `inset 0 1px 0 ${glass.highlight}`,
+              color: color.ink,
+              fontSize: 16,
+              fontWeight: 600,
+            }}
+          >
+            →
+          </span>
         </div>
-        <p style={{
-          margin: 0,
-          fontSize: 13,
-          color: color.muted,
-          lineHeight: 1.4,
-          maxWidth: 300,
+
+        <div style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
+          gap: 8,
         }}>
-          Pick a length and vibe — we shape the energy with you.
-        </p>
+          {steps.map((s) => (
+            <div
+              key={s.n}
+              style={{
+                padding: "10px 10px 12px",
+                borderRadius: radius.md,
+                border: `1px solid ${glass.borderSoft}`,
+                background: "rgba(255,255,255,0.55)",
+                boxShadow: `inset 0 1px 0 ${glass.highlight}`,
+                minWidth: 0,
+              }}
+            >
+              <div style={{
+                fontSize: 10,
+                fontWeight: 700,
+                letterSpacing: 1.1,
+                color: color.faint,
+                fontFamily: fontMono,
+                marginBottom: 4,
+              }}>
+                {s.n}
+              </div>
+              <div style={{
+                fontSize: 13,
+                fontWeight: 700,
+                fontFamily: fontDisplay,
+                letterSpacing: -0.2,
+                color: color.ink,
+                marginBottom: 2,
+              }}>
+                {s.label}
+              </div>
+              <div style={{
+                fontSize: 11,
+                color: color.muted,
+                lineHeight: 1.3,
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                whiteSpace: "nowrap",
+              }}>
+                {s.hint}
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     </button>
   );

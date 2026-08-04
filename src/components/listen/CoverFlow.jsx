@@ -4,7 +4,7 @@
  * Digging feels like flipping a crate, not scrolling a stream.
  */
 import { useCallback, useEffect, useRef, useState } from "react";
-import { color, glass, radius, fontDisplay, fontMono, artShadow, motion } from "../../theme";
+import { color, glass, radius, fontDisplay, artShadow, motion } from "../../theme";
 
 function usePrefersReducedMotion() {
   const [reduced, setReduced] = useState(false);
@@ -103,7 +103,6 @@ export default function CoverFlow({
   const [focus, setFocus] = useState(0);
   const stageRef = useRef(null);
   const drag = useRef({ active: false, x: 0, moved: false });
-  const reasonFor = (t) => (t?.id && reasons ? reasons[t.id] : null);
 
   // Keep focus on the playing track when it changes from outside.
   useEffect(() => {
@@ -369,36 +368,6 @@ export default function CoverFlow({
             whiteSpace: "nowrap",
           }}>
             {focused.artist}
-          </div>
-          {reasonFor(focused) && (
-            <div style={{
-              marginTop: 8,
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 6,
-              padding: "4px 10px",
-              borderRadius: 980,
-              background: "rgba(255,255,255,0.72)",
-              border: `1px solid ${glass.borderSoft}`,
-              boxShadow: `inset 0 1px 0 ${glass.highlight}`,
-              fontSize: 11,
-              fontWeight: 650,
-              color: color.body,
-              letterSpacing: -0.1,
-            }}>
-              {reasonFor(focused)}
-            </div>
-          )}
-          <div style={{
-            marginTop: reasonFor(focused) ? 8 : 8,
-            fontSize: 11,
-            fontWeight: 650,
-            letterSpacing: 0.4,
-            color: color.faint,
-            fontFamily: fontMono,
-          }}>
-            {focus + 1} / {list.length}
-            {focused.id === activeId && isPlaying ? " · Playing" : " · Tap to play"}
           </div>
         </div>
       )}
