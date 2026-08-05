@@ -90,9 +90,12 @@ export default function PaywallScreen({
           style={{
             padding: "18px 20px",
             borderRadius: radius.lg,
-            background: glass.fill,
-            border: `1px solid ${glass.borderSoft}`,
+            background: glass.plate,
+            border: `1px solid ${glass.border}`,
             marginBottom: 22,
+            boxShadow: `inset 0 1px 0 ${glass.highlight}, ${glass.shadowSoft}`,
+            backdropFilter: glass.blur,
+            WebkitBackdropFilter: glass.blur,
           }}
         >
           <div style={{
@@ -129,6 +132,7 @@ export default function PaywallScreen({
 
         <button
           type="button"
+          className="btn-primary"
           onClick={handleSubscribe}
           style={{
             ...BTN_PRIMARY,
@@ -144,6 +148,7 @@ export default function PaywallScreen({
         {onRefresh && (
           <button
             type="button"
+            className="btn-secondary"
             onClick={onRefresh}
             disabled={refreshing}
             style={{

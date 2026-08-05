@@ -266,17 +266,18 @@ export default function LoginScreen({
             display: "flex",
             flexDirection: "column",
             gap: 12,
-            padding: "18px 16px 16px",
-            background: glass.fillStrong,
+            padding: "20px 18px 18px",
+            background: glass.plate,
             border: `1px solid ${glass.border}`,
             borderRadius: radius.xl,
-            boxShadow: `inset 0 1px 0 ${glass.highlight}, 0 22px 56px rgba(22,24,30,0.12)`,
-            backdropFilter: glass.blur,
-            WebkitBackdropFilter: glass.blur,
+            boxShadow: `inset 0 1px 0 ${glass.highlight}, ${glass.shadowLift}`,
+            backdropFilter: glass.blurHeavy,
+            WebkitBackdropFilter: glass.blurHeavy,
           }}
         >
           <button
             type="button"
+            className="btn-primary"
             onClick={handleGoogleSignIn}
             disabled={loading}
             style={{
@@ -287,8 +288,12 @@ export default function LoginScreen({
               width: "100%",
               padding: "14px 20px",
               borderRadius: radius.md,
-              border: "none",
-              background: color.accent,
+              border: "1px solid rgba(22,24,30,0.2)",
+              background: `
+                linear-gradient(180deg, rgba(255,255,255,0.2) 0%, transparent 42%),
+                linear-gradient(165deg, #454B58 0%, #1A1D24 100%)
+              `,
+              boxShadow: `inset 0 1px 0 rgba(255,255,255,0.28), ${glass.shadowSoft}`,
               cursor: loading ? "wait" : "pointer",
               opacity: loading ? 0.7 : 1,
             }}
@@ -455,6 +460,7 @@ export default function LoginScreen({
               )}
               <button
                 type="button"
+                className="btn-secondary"
                 onClick={handleEmailSubmit}
                 disabled={loading}
                 style={{ ...BTN_SECONDARY, opacity: loading ? 0.7 : 1 }}

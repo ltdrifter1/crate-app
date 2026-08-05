@@ -90,19 +90,17 @@ export default function ClubScreen({
           style={{
             position: "relative",
             overflow: "hidden",
-            borderRadius: radius.lg,
+            borderRadius: radius.xl,
             padding: "26px 22px 24px",
             marginBottom: 22,
             border: `1px solid ${glass.border}`,
-            background: `
-              radial-gradient(ellipse 100% 90% at 8% -10%, rgba(210,216,226,0.55) 0%, transparent 52%),
-              radial-gradient(ellipse 70% 60% at 100% 110%, rgba(255,255,255,0.9) 0%, transparent 48%),
-              linear-gradient(158deg, #FFFFFF 0%, #F3F5F8 48%, #E4E8EF 100%)
-            `,
+            background: glass.plate,
+            backdropFilter: glass.blur,
+            WebkitBackdropFilter: glass.blur,
             boxShadow: `
               inset 0 1px 0 ${glass.highlight},
               inset 0 -1px 0 rgba(26,29,36,0.04),
-              ${glass.shadow}
+              ${glass.shadowLift}
             `,
             animation: `rise 0.55s ${motion.ease} both`,
           }}
@@ -283,12 +281,12 @@ export default function ClubScreen({
         <div style={{
           marginBottom: 26,
           padding: "14px 16px",
-          borderRadius: radius.md,
+          borderRadius: radius.lg,
           border: `1px solid ${glass.borderSoft}`,
-          background: `
-            linear-gradient(165deg, rgba(255,255,255,0.92) 0%, rgba(240,243,247,0.85) 100%)
-          `,
-          boxShadow: `inset 0 1px 0 ${glass.highlight}`,
+          background: glass.plate,
+          boxShadow: `inset 0 1px 0 ${glass.highlight}, ${glass.shadowSoft}`,
+          backdropFilter: glass.blurSoft,
+          WebkitBackdropFilter: glass.blurSoft,
           animation: `rise 0.55s ${motion.ease} 0.06s both`,
         }}>
           <div style={{

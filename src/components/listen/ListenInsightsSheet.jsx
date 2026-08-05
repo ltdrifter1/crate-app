@@ -57,14 +57,12 @@ function GlassCard({ children, style = null }) {
     <div style={{
       borderRadius: radius.lg,
       border: `1px solid ${glass.border}`,
-      background: `
-        linear-gradient(165deg, rgba(255,255,255,0.82) 0%, rgba(246,248,252,0.55) 100%)
-      `,
+      background: glass.plate,
       boxShadow: `inset 0 1px 0 ${glass.highlight}, ${glass.shadowSoft}`,
-      backdropFilter: glass.blurSoft,
-      WebkitBackdropFilter: glass.blurSoft,
+      backdropFilter: glass.blur,
+      WebkitBackdropFilter: glass.blur,
       padding: "18px 18px 16px",
-      ...style,
+      ...(style || {}),
     }}>
       {children}
     </div>

@@ -60,12 +60,12 @@ export default function MixScreen({
         <div style={{
           marginTop: 18,
           padding: "22px 20px",
-          borderRadius: radius.lg,
-          background: `
-            linear-gradient(160deg, rgba(255,255,255,0.95) 0%, rgba(242,244,247,0.88) 100%)
-          `,
+          borderRadius: radius.xl,
+          background: glass.plate,
           border: `1px solid ${glass.border}`,
-          boxShadow: `inset 0 1px 0 ${glass.highlight}, ${glass.shadowSoft}`,
+          boxShadow: `inset 0 1px 0 ${glass.highlight}, ${glass.shadowLift}`,
+          backdropFilter: glass.blur,
+          WebkitBackdropFilter: glass.blur,
         }}>
           <div style={{
             fontSize: 11,

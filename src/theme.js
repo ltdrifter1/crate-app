@@ -1,5 +1,5 @@
-// Design tokens — Y2K chrome library UI.
-// Light grey glass, brushed aluminum, blurred edges — no selection blue.
+// Design tokens — premium Y2K chrome with glassmorphism.
+// Frosted platinum glass, soft blur edges, brushed aluminum — no selection blue.
 
 export const fontDisplay =
   '"Outfit", "Avenir Next", "Segoe UI", "Helvetica Neue", Helvetica, sans-serif';
@@ -14,51 +14,57 @@ export const color = {
   body: "#3A404C",
   muted: "#6A7280",
   faint: "#959DAA",
-  line: "rgba(22, 24, 30, 0.1)",
-  lineStrong: "rgba(22, 24, 30, 0.16)",
-  surface: "rgba(255, 255, 255, 0.58)",
-  surfaceSolid: "#FFFFFF",
-  surfaceRaised: "#EEF1F5",
+  line: "rgba(22, 24, 30, 0.09)",
+  lineStrong: "rgba(22, 24, 30, 0.14)",
+  surface: "rgba(255, 255, 255, 0.55)",
+  surfaceSolid: "rgba(255, 255, 255, 0.82)",
+  surfaceRaised: "rgba(245, 247, 250, 0.88)",
   canvas: "#E2E6ED",
   canvasEdge: "#CFD5DF",
   /** Charcoal chrome — primary interactive signal */
   accent: "#2A2E38",
   accentSoft: "rgba(42, 46, 56, 0.1)",
-  accentGlow: "rgba(42, 46, 56, 0.18)",
+  accentGlow: "rgba(42, 46, 56, 0.16)",
   onAccent: "#F4F6F9",
   onDark: "#F2F4F7",
   onDarkMuted: "rgba(242,244,247,0.62)",
   alert: "#C45C3E",
   station: "#EBEEF3",
   /** Soft aluminum list selection */
-  select: "rgba(42, 46, 56, 0.1)",
-  selectStrong: "rgba(42, 46, 56, 0.18)",
+  select: "rgba(42, 46, 56, 0.08)",
+  selectStrong: "rgba(42, 46, 56, 0.14)",
 };
 
 /** Frosted Y2K aluminum — soft glass edges, cool grey chrome. */
 export const glass = {
-  fill: "rgba(246, 248, 252, 0.52)",
-  fillStrong: "rgba(255, 255, 255, 0.72)",
-  fillQuiet: "rgba(246, 248, 252, 0.34)",
-  border: "rgba(22, 24, 30, 0.11)",
-  borderSoft: "rgba(22, 24, 30, 0.07)",
-  borderFaint: "rgba(22, 24, 30, 0.045)",
-  highlight: "rgba(255, 255, 255, 0.88)",
-  blur: "blur(28px) saturate(1.2)",
-  blurSoft: "blur(18px) saturate(1.12)",
-  blurHeavy: "blur(40px) saturate(1.15)",
-  shadow: "0 12px 36px rgba(22, 24, 30, 0.11)",
-  shadowSoft: "0 8px 24px rgba(22, 24, 30, 0.08)",
+  fill: "rgba(255, 255, 255, 0.42)",
+  fillStrong: "rgba(255, 255, 255, 0.68)",
+  fillQuiet: "rgba(246, 248, 252, 0.32)",
+  fillHeavy: "rgba(255, 255, 255, 0.82)",
+  border: "rgba(22, 24, 30, 0.1)",
+  borderSoft: "rgba(22, 24, 30, 0.065)",
+  borderFaint: "rgba(22, 24, 30, 0.04)",
+  highlight: "rgba(255, 255, 255, 0.92)",
+  blur: "blur(32px) saturate(1.28)",
+  blurSoft: "blur(20px) saturate(1.18)",
+  blurHeavy: "blur(48px) saturate(1.22)",
+  blurEdge: "blur(24px) saturate(1.2)",
+  shadow: "0 14px 40px rgba(22, 24, 30, 0.1), 0 2px 8px rgba(22, 24, 30, 0.04)",
+  shadowSoft: "0 8px 28px rgba(22, 24, 30, 0.07)",
+  shadowLift: "0 18px 48px rgba(22, 24, 30, 0.12), 0 4px 12px rgba(22, 24, 30, 0.05)",
   /** Specular chrome edge for Y2K control plates */
   chrome:
-    "linear-gradient(160deg, rgba(255,255,255,0.95) 0%, rgba(236,240,246,0.7) 42%, rgba(210,216,226,0.55) 100%)",
+    "linear-gradient(160deg, rgba(255,255,255,0.96) 0%, rgba(236,240,246,0.72) 42%, rgba(210,216,226,0.55) 100%)",
+  /** Soft plate used by sheets / cards */
+  plate:
+    "linear-gradient(165deg, rgba(255,255,255,0.78) 0%, rgba(242,245,249,0.62) 55%, rgba(232,236,242,0.55) 100%)",
 };
 
 /** Soft jewel-case shadow for album art — Cover Flow memory. */
 export const artShadow = {
-  quiet: "0 2px 4px rgba(26,29,36,0.06), 0 10px 24px rgba(26,29,36,0.12)",
-  raised: "0 4px 8px rgba(26,29,36,0.08), 0 18px 40px rgba(26,29,36,0.16)",
-  active: `0 0 0 2px ${color.ink}, 0 8px 20px rgba(22,24,30,0.14), 0 18px 40px rgba(26,29,36,0.14)`,
+  quiet: "0 2px 4px rgba(26,29,36,0.05), 0 12px 28px rgba(26,29,36,0.1)",
+  raised: "0 4px 10px rgba(26,29,36,0.07), 0 20px 44px rgba(26,29,36,0.14)",
+  active: `0 0 0 2px ${color.ink}, 0 8px 20px rgba(22,24,30,0.12), 0 18px 40px rgba(26,29,36,0.12)`,
 };
 
 /** Home rhythm — wider section breaks, consistent gutters. */
@@ -77,39 +83,54 @@ export const homeSpace = {
 export const dock = {
   insetX: 14,
   insetBottom: 12,
-  radius: 16,
+  radius: 18,
   tabH: 54,
-  playerH: 64,
+  playerH: 66,
   /** Content clearances (tabs only / with player), excluding safe-area. */
   clearTabs: 88,
-  clearPlayer: 172,
+  clearPlayer: 176,
 };
 
-export const radius = { sm: 8, md: 10, lg: 14, xl: 18 };
+export const radius = { sm: 10, md: 12, lg: 16, xl: 22, pill: 980 };
 
 export const space = (n) => n * 4;
 
-/** Quiet elevated panel — soft aluminum edge. */
+/** Quiet elevated panel — soft aluminum edge + blur. */
 export const panel = {
-  background: glass.fillStrong,
+  background: glass.plate,
   border: `1px solid ${glass.borderSoft}`,
+  borderRadius: radius.lg,
   boxShadow: `inset 0 1px 0 ${glass.highlight}, ${glass.shadowSoft}`,
-  backdropFilter: glass.blurSoft,
-  WebkitBackdropFilter: glass.blurSoft,
+  backdropFilter: glass.blur,
+  WebkitBackdropFilter: glass.blur,
 };
 
 export const panelQuiet = {
   background: glass.fillQuiet,
   border: `1px solid ${glass.borderFaint}`,
+  borderRadius: radius.md,
+  backdropFilter: glass.blurSoft,
+  WebkitBackdropFilter: glass.blurSoft,
+};
+
+/** Sheet / modal glass surface. */
+export const glassSheet = {
+  background: glass.plate,
+  border: `1px solid ${glass.border}`,
+  borderRadius: `${radius.xl}px ${radius.xl}px 0 0`,
+  boxShadow: `inset 0 1px 0 ${glass.highlight}, ${glass.shadowLift}`,
+  backdropFilter: glass.blurHeavy,
+  WebkitBackdropFilter: glass.blurHeavy,
 };
 
 /** Interactive glass control — playlists, chips, sheets. */
 export const glassControl = {
-  background: glass.fillStrong,
+  background: glass.chrome,
   border: `1px solid ${glass.border}`,
+  borderRadius: radius.md,
   boxShadow: `inset 0 1px 0 ${glass.highlight}, ${glass.shadowSoft}`,
-  backdropFilter: glass.blur,
-  WebkitBackdropFilter: glass.blur,
+  backdropFilter: glass.blurEdge,
+  WebkitBackdropFilter: glass.blurEdge,
 };
 
 /** Soft aluminum section rule. */
@@ -119,7 +140,7 @@ export function sectionRule(inset = homeSpace.gutter) {
     margin: `0 ${inset}px`,
     border: "none",
     background:
-      "linear-gradient(90deg, transparent 0%, rgba(26,29,36,0.08) 18%, rgba(26,29,36,0.14) 50%, rgba(26,29,36,0.08) 82%, transparent 100%)",
+      "linear-gradient(90deg, transparent 0%, rgba(26,29,36,0.06) 18%, rgba(26,29,36,0.12) 50%, rgba(26,29,36,0.06) 82%, transparent 100%)",
   };
 }
 
@@ -151,8 +172,8 @@ export function timeOfDayGradient(date = new Date()) {
 /** Brushed aluminum wash for chrome bands / Cover Stage — cooler Y2K grey. */
 export function aluminumGradient() {
   return `
-    linear-gradient(180deg, rgba(255,255,255,0.78) 0%, rgba(255,255,255,0) 44%),
-    linear-gradient(135deg, #F0F3F8 0%, #E2E6ED 48%, #CDD4E0 100%)
+    linear-gradient(180deg, rgba(255,255,255,0.82) 0%, rgba(255,255,255,0) 44%),
+    linear-gradient(135deg, #F2F5FA 0%, #E2E6ED 48%, #CDD4E0 100%)
   `;
 }
 
@@ -172,9 +193,14 @@ export function brandGlassHalo(size = 280) {
   };
 }
 
+/** App shell — atmospheric canvas, not a flat slab. */
 export const APP_STYLE = {
   fontFamily: font,
-  background: color.canvas,
+  background: `
+    radial-gradient(ellipse 120% 70% at 50% -20%, rgba(255,255,255,0.7) 0%, transparent 55%),
+    radial-gradient(ellipse 80% 50% at 100% 100%, rgba(190,198,210,0.28) 0%, transparent 50%),
+    ${color.canvas}
+  `,
   color: color.ink,
   minHeight: "100dvh",
   display: "flex",
@@ -185,44 +211,69 @@ export const APP_STYLE = {
 
 export const INPUT_ST = {
   width: "100%",
-  padding: "13px 16px",
+  padding: "14px 16px",
   borderRadius: radius.md,
   border: `1px solid ${glass.border}`,
-  background: "rgba(255,255,255,0.72)",
+  background: "rgba(255,255,255,0.58)",
   color: color.ink,
   fontSize: 16,
   fontFamily: font,
-  boxShadow: `inset 0 1px 0 ${glass.highlight}`,
+  boxShadow: `inset 0 1px 0 ${glass.highlight}, inset 0 2px 6px rgba(22,24,30,0.03)`,
   backdropFilter: glass.blurSoft,
   WebkitBackdropFilter: glass.blurSoft,
+  outline: "none",
+  transition: `border-color ${motion.base} ${motion.ease}, box-shadow ${motion.base} ${motion.ease}, background ${motion.base}`,
 };
 
-/** Primary CTA — charcoal chrome plate, not blue fill. */
+/** Primary CTA — charcoal chrome glass plate. */
 export const BTN_PRIMARY = {
   width: "100%",
-  padding: "13px 20px",
+  padding: "14px 22px",
   borderRadius: radius.md,
-  border: `1px solid rgba(22, 24, 30, 0.22)`,
+  border: `1px solid rgba(22, 24, 30, 0.2)`,
   background: `
-    linear-gradient(180deg, rgba(255,255,255,0.16) 0%, transparent 42%),
-    linear-gradient(165deg, #3A404C 0%, #1A1D24 100%)
+    linear-gradient(180deg, rgba(255,255,255,0.2) 0%, transparent 42%),
+    linear-gradient(165deg, #454B58 0%, #1A1D24 100%)
   `,
   color: color.onAccent,
   fontSize: 16,
   fontWeight: 600,
   cursor: "pointer",
   fontFamily: font,
-  boxShadow: `inset 0 1px 0 rgba(255,255,255,0.22), ${glass.shadowSoft}`,
+  letterSpacing: -0.15,
+  boxShadow: `inset 0 1px 0 rgba(255,255,255,0.28), ${glass.shadowSoft}`,
+  backdropFilter: glass.blurSoft,
+  WebkitBackdropFilter: glass.blurSoft,
+  transition: `transform ${motion.fast} ${motion.ease}, box-shadow ${motion.base}, opacity ${motion.fast}`,
 };
 
+/** Secondary CTA — frosted glass plate. */
 export const BTN_SECONDARY = {
   width: "100%",
-  padding: "13px 20px",
+  padding: "14px 22px",
   borderRadius: radius.md,
   border: `1px solid ${glass.border}`,
-  background: glass.fillStrong,
+  background: glass.chrome,
   color: color.body,
   fontSize: 16,
+  fontWeight: 600,
+  cursor: "pointer",
+  fontFamily: font,
+  letterSpacing: -0.15,
+  backdropFilter: glass.blurEdge,
+  WebkitBackdropFilter: glass.blurEdge,
+  boxShadow: `inset 0 1px 0 ${glass.highlight}, ${glass.shadowSoft}`,
+  transition: `transform ${motion.fast} ${motion.ease}, box-shadow ${motion.base}, background ${motion.base}`,
+};
+
+/** Quiet tertiary control — glass chip. */
+export const BTN_GHOST = {
+  padding: "10px 14px",
+  borderRadius: radius.md,
+  border: `1px solid ${glass.borderSoft}`,
+  background: glass.fillQuiet,
+  color: color.muted,
+  fontSize: 13,
   fontWeight: 600,
   cursor: "pointer",
   fontFamily: font,
@@ -232,13 +283,19 @@ export const BTN_SECONDARY = {
 };
 
 export const CTRL_BTN = {
-  background: "none",
-  border: "none",
+  background: glass.fillQuiet,
+  border: `1px solid ${glass.borderFaint}`,
+  borderRadius: radius.sm,
   cursor: "pointer",
-  padding: 4,
+  padding: 8,
   display: "flex",
   alignItems: "center",
   justifyContent: "center",
+  color: color.muted,
+  backdropFilter: glass.blurSoft,
+  WebkitBackdropFilter: glass.blurSoft,
+  boxShadow: `inset 0 1px 0 ${glass.highlight}`,
+  transition: `background ${motion.base}, color ${motion.fast}, transform ${motion.fast}`,
 };
 
 /** Product brand — name + tagline from identity config. */

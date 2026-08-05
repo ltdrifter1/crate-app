@@ -130,18 +130,54 @@ const injectStyles = () => {
       --line: ${color.line}; --canvas: ${color.canvas}; --accent: ${color.accent};
       --body: ${color.body}; --surface-raised: ${color.surfaceRaised};
       --glass-fill: ${glass.fillStrong}; --glass-border: ${glass.border};
-      --glass-blur: ${glass.blur};
+      --glass-blur: ${glass.blur}; --glass-highlight: ${glass.highlight};
     }
-    body { font-family: var(--font); background: var(--canvas); color: var(--ink); }
+    body {
+      font-family: var(--font);
+      background:
+        radial-gradient(ellipse 120% 70% at 50% -18%, rgba(255,255,255,0.72) 0%, transparent 55%),
+        radial-gradient(ellipse 70% 45% at 100% 110%, rgba(190,198,210,0.25) 0%, transparent 50%),
+        var(--canvas);
+      color: var(--ink);
+    }
     ::-webkit-scrollbar { width: 8px; height: 8px; }
     ::-webkit-scrollbar-track { background: transparent; }
-    ::-webkit-scrollbar-thumb { background: rgba(26,29,36,0.18); border-radius: 8px; border: 2px solid transparent; background-clip: padding-box; }
-    button { transition: opacity ${motion.fast}, background ${motion.base}, transform ${motion.fast}, box-shadow ${motion.base}; font-family: var(--font); }
-    button:active { opacity: 0.72; }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(26,29,36,0.14);
+      border-radius: 8px;
+      border: 2px solid transparent;
+      background-clip: padding-box;
+    }
+    button {
+      transition: opacity ${motion.fast}, background ${motion.base}, transform ${motion.fast}, box-shadow ${motion.base}, border-color ${motion.base};
+      font-family: var(--font);
+    }
+    button:active { opacity: 0.78; }
     button.play-primary:active { transform: scale(0.96); opacity: 0.9; }
-    button.glass-control:hover { background: ${glass.fillStrong}; border-color: ${glass.border}; }
-    button:focus-visible, input:focus-visible { outline: 2px solid ${color.accent}; outline-offset: 2px; }
-    input:focus { outline: none; }
+    button.glass-control:hover {
+      background: ${glass.fillHeavy} !important;
+      border-color: ${glass.border} !important;
+      box-shadow: inset 0 1px 0 ${glass.highlight}, ${glass.shadowSoft} !important;
+    }
+    button.btn-primary:hover {
+      transform: translateY(-1px);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.32), ${glass.shadowLift} !important;
+    }
+    button.btn-secondary:hover {
+      background: ${glass.fillHeavy} !important;
+      transform: translateY(-1px);
+      box-shadow: inset 0 1px 0 ${glass.highlight}, ${glass.shadow} !important;
+    }
+    button:focus-visible, input:focus-visible, [role="button"]:focus-visible {
+      outline: 2px solid ${color.accent};
+      outline-offset: 2px;
+    }
+    input:focus {
+      outline: none;
+      border-color: ${glass.border} !important;
+      background: rgba(255,255,255,0.78) !important;
+      box-shadow: inset 0 1px 0 ${glass.highlight}, 0 0 0 3px ${color.accentSoft} !important;
+    }
     input[type="range"] { -webkit-appearance: none; height: 4px; background: rgba(26,29,36,0.12); border-radius: 2px; outline: none; cursor: pointer; }
     input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; border-radius: 50%; background: ${color.accent}; border: 2px solid #fff; box-shadow: 0 1px 4px rgba(26,29,36,0.25); cursor: pointer; }
     input[type="range"]::-moz-range-thumb { width: 14px; height: 14px; border-radius: 50%; background: ${color.accent}; border: 2px solid #fff; box-shadow: 0 1px 4px rgba(26,29,36,0.25); cursor: pointer; }
@@ -166,11 +202,23 @@ const injectStyles = () => {
     .hide-scroll { -ms-overflow-style: none; scrollbar-width: none; }
     .hide-scroll::-webkit-scrollbar { display: none; }
     .glass-surface {
-      background: ${glass.fillStrong};
+      background: ${glass.plate};
       border: 1px solid ${glass.borderSoft};
       box-shadow: inset 0 1px 0 ${glass.highlight}, ${glass.shadowSoft};
       -webkit-backdrop-filter: ${glass.blur};
       backdrop-filter: ${glass.blur};
+    }
+    .glass-card {
+      background: ${glass.plate};
+      border: 1px solid ${glass.borderSoft};
+      border-radius: ${radius.lg}px;
+      box-shadow: inset 0 1px 0 ${glass.highlight}, ${glass.shadowSoft};
+      -webkit-backdrop-filter: ${glass.blur};
+      backdrop-filter: ${glass.blur};
+    }
+    .glass-row:hover {
+      background: rgba(255,255,255,0.55) !important;
+      box-shadow: inset 0 1px 0 ${glass.highlight};
     }
     @keyframes spin { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
     @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.45} }
@@ -362,15 +410,15 @@ const injectStyles = () => {
       .dock-xtra { display: none !important; }
     }
     .glass-dock {
-      background: rgba(246, 248, 252, 0.78);
+      background: rgba(255, 255, 255, 0.62);
       border: 1px solid ${glass.border};
       box-shadow:
         inset 0 1px 0 ${glass.highlight},
-        0 14px 40px rgba(22, 24, 30, 0.12),
-        0 2px 6px rgba(22, 24, 30, 0.05);
-      -webkit-backdrop-filter: ${glass.blur};
-      backdrop-filter: ${glass.blur};
-      transition: background 0.6s ease;
+        0 16px 44px rgba(22, 24, 30, 0.12),
+        0 2px 8px rgba(22, 24, 30, 0.04);
+      -webkit-backdrop-filter: ${glass.blurHeavy};
+      backdrop-filter: ${glass.blurHeavy};
+      transition: background 0.6s ease, box-shadow 0.35s ease;
     }
     .nav-rail-btn {
       transition: background ${motion.base} ${motion.ease}, color ${motion.base} ${motion.ease}, transform ${motion.fast};
@@ -2507,11 +2555,16 @@ function AfterglowOverlay({ data, onClose, onSavePlaylist }) {
 function QueueSheet({ queue, currentTrack, onPlay, onClose, onClear, onShuffle, isRadioMode, radioHint, onRemove = null, onPlayNext = null }) {
   return (
     <div style={{ position:"fixed", inset:0, zIndex:110 }}>
-      <div onClick={onClose} style={{ position:"absolute", inset:0, background:"rgba(26,29,36,0.38)", backdropFilter:"blur(10px)" }}/>
+      <div onClick={onClose} style={{ position:"absolute", inset:0, background:"rgba(22,24,30,0.28)", backdropFilter: glass.blurSoft, WebkitBackdropFilter: glass.blurSoft }}/>
       <div style={{
         position:"absolute", left:0, right:0, bottom:0, maxHeight:"72vh",
-        background: color.surfaceSolid, borderTop:`1px solid ${color.lineStrong}`,
-        borderRadius:"16px 16px 0 0", display:"flex", flexDirection:"column",
+        background: glass.plate,
+        borderTop: `1px solid ${glass.border}`,
+        borderRadius: `${radius.xl}px ${radius.xl}px 0 0`,
+        display:"flex", flexDirection:"column",
+        boxShadow: `inset 0 1px 0 ${glass.highlight}, ${glass.shadowLift}`,
+        backdropFilter: glass.blurHeavy,
+        WebkitBackdropFilter: glass.blurHeavy,
         animation:"rise 0.35s cubic-bezier(0.22,1,0.36,1) both",
       }}>
         <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"16px 18px 10px" }}>
