@@ -5,6 +5,7 @@ import {
   fontDisplay, fontMono, color, radius, glass, homeSpace,
 } from "../../theme";
 import { COMMUNITY_MIX_TITLE, formatMonthLabel } from "../../lib/mixes";
+import { CLUB_NAME, CLUB_TAGLINE } from "../../lib/memberNumber";
 
 export default function CommunityMixBanner({
   mix,
@@ -32,9 +33,17 @@ export default function CommunityMixBanner({
         textTransform: "uppercase",
         color: color.muted,
         fontFamily: fontMono,
-        marginBottom: 12,
+        marginBottom: 4,
       }}>
-        Mixtape Club
+        {CLUB_NAME}
+      </div>
+      <div style={{
+        fontSize: 12,
+        color: color.body,
+        marginBottom: 12,
+        lineHeight: 1.4,
+      }}>
+        {CLUB_TAGLINE} · this month’s pressing
       </div>
       <button
         type="button"
@@ -149,7 +158,7 @@ export default function CommunityMixBanner({
               fontFamily: fontMono,
               letterSpacing: 0.2,
             }}>
-              Open →
+              Open the plate →
             </span>
           </div>
         </div>

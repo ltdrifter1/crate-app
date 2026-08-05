@@ -6,6 +6,7 @@ import {
   BTN_PRIMARY, BTN_SECONDARY, homeSpace,
 } from "../../theme";
 import { formatMonthLabel, isCommunityPlaylist, COMMUNITY_MIX_TITLE } from "../../lib/mixes";
+import { CLUB_NAME } from "../../lib/memberNumber";
 
 export default function MixScreen({
   mix,
@@ -75,7 +76,7 @@ export default function MixScreen({
             fontFamily: fontMono,
             marginBottom: 10,
           }}>
-            {isCommunity ? "Mixtape Club · Community" : "Mixtape Club"}
+            {isCommunity ? `${CLUB_NAME} · Community` : CLUB_NAME}
           </div>
           <div style={{
             fontSize: "clamp(26px, 6vw, 34px)",
