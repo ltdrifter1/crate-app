@@ -111,6 +111,7 @@ import { playbackClock, usePlayerPlayback } from "./usePlayerPlayback";
 import { playerPlaybackStore } from "./lib/playerPlaybackStore";
 import DesktopMiniPlayer from "./components/player/DesktopMiniPlayer";
 import PlaybackProgressHairline from "./components/player/PlaybackProgressHairline";
+import ImmersivePlayer from "./components/player/ImmersivePlayer";
 
 const ClubScreen = lazy(() => import("./components/club/ClubScreen"));
 const LazyMixScreen = lazy(() => import("./components/club/MixScreen"));
@@ -143,6 +144,24 @@ const injectStyles = () => {
     input[type="range"] { -webkit-appearance: none; height: 4px; background: rgba(26,29,36,0.12); border-radius: 2px; outline: none; cursor: pointer; }
     input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; border-radius: 50%; background: ${color.accent}; border: 2px solid #fff; box-shadow: 0 1px 4px rgba(26,29,36,0.25); cursor: pointer; }
     input[type="range"]::-moz-range-thumb { width: 14px; height: 14px; border-radius: 50%; background: ${color.accent}; border: 2px solid #fff; box-shadow: 0 1px 4px rgba(26,29,36,0.25); cursor: pointer; }
+    input.chrome-seek { -webkit-appearance: none; appearance: none; background: transparent !important; height: 28px !important; }
+    input.chrome-seek::-webkit-slider-runnable-track { height: 6px; background: transparent; border: none; }
+    input.chrome-seek::-moz-range-track { height: 6px; background: transparent; border: none; }
+    input.chrome-seek::-webkit-slider-thumb {
+      -webkit-appearance: none; appearance: none; width: 18px; height: 18px; margin-top: -6px;
+      border-radius: 50%;
+      background: linear-gradient(160deg, #FFFFFF 0%, #E8ECF2 45%, #C5CAD3 100%);
+      border: 1px solid rgba(22,24,30,0.16);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.95), 0 2px 6px rgba(22,24,30,0.22);
+      cursor: pointer;
+    }
+    input.chrome-seek::-moz-range-thumb {
+      width: 18px; height: 18px; border-radius: 50%;
+      background: linear-gradient(160deg, #FFFFFF 0%, #E8ECF2 45%, #C5CAD3 100%);
+      border: 1px solid rgba(22,24,30,0.16);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.95), 0 2px 6px rgba(22,24,30,0.22);
+      cursor: pointer;
+    }
     .hide-scroll { -ms-overflow-style: none; scrollbar-width: none; }
     .hide-scroll::-webkit-scrollbar { display: none; }
     .glass-surface {
@@ -638,7 +657,11 @@ function IceOrbPlay({
         width: size,
         height: size,
         borderRadius: "50%",
-        background: disabled ? color.surfaceRaised : glass.fillStrong,
+        background: disabled
+          ? color.surfaceRaised
+          : `
+            linear-gradient(160deg, rgba(255,255,255,0.96) 0%, rgba(236,240,246,0.88) 48%, rgba(214,220,230,0.78) 100%)
+          `,
         border: `1px solid ${disabled ? glass.borderSoft : glass.border}`,
         display: "flex",
         alignItems: "center",
@@ -651,8 +674,8 @@ function IceOrbPlay({
         boxShadow: disabled
           ? "none"
           : glowing
-            ? `inset 0 1px 0 ${glass.highlight}, 0 0 0 4px ${color.accentSoft}, 0 10px 28px rgba(26,29,36,0.14)`
-            : `inset 0 1px 0 ${glass.highlight}, 0 10px 28px rgba(26,29,36,0.14)`,
+            ? `inset 0 1px 0 ${glass.highlight}, inset 0 -1px 0 rgba(22,24,30,0.06), 0 0 0 5px ${color.accentSoft}, 0 12px 32px rgba(26,29,36,0.16)`
+            : `inset 0 1px 0 ${glass.highlight}, inset 0 -1px 0 rgba(22,24,30,0.05), 0 10px 28px rgba(26,29,36,0.14)`,
         transition: `transform ${motion.fast} ${motion.ease}, box-shadow ${motion.base} ${motion.ease}`,
       }}
     >
@@ -2477,463 +2500,7 @@ function AfterglowOverlay({ data, onClose, onSavePlaylist }) {
   );
 }
 
-// ─── Now Playing — Cover Flow window (library instrument) ────────────────────
-function ImmersivePlayer({
-  currentTrack, isPlaying, onTogglePlay, onSkip, onPrev, onClose,
-  signalState, onSeek, onLike,
-  volume = 1, onVolumeChange, onHypno, onHypnoRadio, onShowQueue,
-  sessionArc = null, isRadioMode = false, hypnoPocket = false,
-  roomLabel = null, onOpenRoom, onOpenLiner, onOpenArtist,
-  shuffle = false, onToggleShuffle,
-  repeat = "off", onCycleRepeat,
-  crossfadeOn = true, onToggleCrossfade,
-  upNextTrack = null,
-  countdownRank = null,
-  daypart = null,
-  tickerText = "",
-  onRequest = null,
-  requested = false,
-  onDedicate = null,
-  dedicationFlash = null,
-  onClearDedication = null,
-  liveShow = null,
-}) {
-  const { progress, duration } = usePlayerPlayback();
-  const [artLoaded, setArtLoaded] = useState(false);
-  const [showMore, setShowMore] = useState(false);
-
-  useEffect(() => {
-    setShowMore(false);
-  }, [currentTrack?.id]);
-
-  useEffect(() => { setArtLoaded(false); }, [currentTrack?.id]);
-
-  if (!currentTrack) return null;
-
-  const rgb = hexToRgbStr(currentTrack.color);
-  const chromeBtn = {
-    display: "flex", alignItems: "center", gap: 8,
-    background: glass.fillStrong,
-    border: `1px solid ${glass.border}`,
-    borderRadius: radius.sm,
-    padding: "10px 14px",
-    color: color.ink,
-    cursor: "pointer",
-    fontSize: 13,
-    fontWeight: 600,
-    boxShadow: `inset 0 1px 0 ${glass.highlight}, ${glass.shadowSoft}`,
-    backdropFilter: glass.blurSoft,
-    WebkitBackdropFilter: glass.blurSoft,
-  };
-
-  return (
-    <div
-      style={{
-        position: "fixed", inset: 0, zIndex: 100, overflow: "hidden",
-        background: color.canvas,
-        display: "flex", flexDirection: "column",
-      }}
-    >
-      {/* Soft aluminum + full-bleed sleeve (Cover Flow theater) */}
-      <div aria-hidden="true" style={{ position: "absolute", inset: 0, background: aluminumGradient() }} />
-      {currentTrack.albumCover && (
-        <div aria-hidden="true" style={{
-          position: "absolute", inset: 0,
-          backgroundImage: `url(${currentTrack.albumCover})`,
-          backgroundSize: "cover", backgroundPosition: "center",
-          opacity: artLoaded ? 1 : 0.2,
-          transform: isPlaying ? "scale(1.03)" : "scale(1)",
-          transition: "opacity 0.7s ease, transform 8s ease",
-        }}/>
-      )}
-      <div aria-hidden="true" style={{
-        position: "absolute", inset: 0,
-        background: currentTrack.albumCover
-          ? `
-            linear-gradient(180deg, rgba(230,233,239,0.72) 0%, rgba(230,233,239,0.2) 28%, rgba(230,233,239,0.1) 48%, rgba(230,233,239,0.88) 78%, rgba(230,233,239,0.97) 100%),
-            radial-gradient(ellipse 70% 50% at 50% 18%, rgba(${rgb},0.1) 0%, transparent 62%)
-          `
-          : `
-            radial-gradient(ellipse 70% 50% at 50% 18%, rgba(${rgb},0.12) 0%, transparent 62%),
-            linear-gradient(180deg, rgba(230,233,239,0.15) 0%, transparent 30%, rgba(230,233,239,0.88) 100%)
-          `,
-      }}/>
-
-      <HypnoVisualizer playing={isPlaying && !trackHasVideo(currentTrack)} colorHex={rgb} />
-      {trackHasVideo(currentTrack) && (
-        <VideoStage
-          track={currentTrack}
-          playing={isPlaying}
-          progress={progress}
-          dim={false}
-        />
-      )}
-
-      {/* Top chrome */}
-      <div style={{
-        position: "relative", zIndex: 2,
-        display: "flex", justifyContent: "space-between", alignItems: "center",
-        padding: "calc(14px + env(safe-area-inset-top, 0px)) 20px 0",
-        flexShrink: 0,
-        gap: 10,
-      }}>
-        <button type="button" onClick={onClose} aria-label="Back" style={chromeBtn}>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><path d="M6 9l6 6 6-6"/></svg>
-          Back
-        </button>
-        <OnAirBadge
-          showTitle={liveShow ? (liveShow.shortTitle || liveShow.title) : null}
-          daypartLabel={daypart?.label}
-          compact
-        />
-          <div style={{ display: "flex", alignItems: "center", gap: 10, position: "relative" }}>
-          <button type="button" onClick={() => setShowMore((m) => !m)} aria-label="More"
-            aria-expanded={showMore}
-            style={{ ...chromeBtn, padding: "10px 12px" }}>
-            ···
-          </button>
-          {showMore && (
-            <div
-              onClick={(e) => e.stopPropagation()}
-              style={{
-                position: "absolute", top: "110%", right: 0, minWidth: 168,
-                background: "rgba(255,255,255,0.96)",
-                border: `1px solid ${glass.border}`,
-                borderRadius: radius.md,
-                padding: "6px 0", zIndex: 5,
-                boxShadow: `inset 0 1px 0 ${glass.highlight}, 0 16px 40px rgba(26,29,36,0.14)`,
-                animation: "rise 0.2s cubic-bezier(0.22,1,0.36,1) both",
-              }}
-            >
-              {onOpenLiner && (
-                <button type="button" onClick={() => { setShowMore(false); onOpenLiner(currentTrack); }}
-                  style={{ display: "block", width: "100%", textAlign: "left", padding: "12px 16px", background: "none", border: "none", color: color.ink, fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
-                  Liner notes
-                </button>
-              )}
-              {onHypno && (
-                <button type="button" onClick={() => { setShowMore(false); onHypno(currentTrack); }}
-                  style={{ display: "block", width: "100%", textAlign: "left", padding: "12px 16px", background: "none", border: "none", color: color.ink, fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
-                  Near this
-                </button>
-              )}
-              {!isRadioMode && onToggleShuffle && (
-                <button type="button" onClick={() => onToggleShuffle()}
-                  style={{ display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%", textAlign: "left", padding: "12px 16px", background: "none", border: "none", color: color.ink, fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
-                  <span>Shuffle</span>
-                  <span style={{ color: shuffle ? color.accent : color.faint }}>{shuffle ? "On" : "Off"}</span>
-                </button>
-              )}
-              {!isRadioMode && onCycleRepeat && (
-                <button type="button" onClick={() => onCycleRepeat()}
-                  style={{ display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%", textAlign: "left", padding: "12px 16px", background: "none", border: "none", color: color.ink, fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
-                  <span>Repeat</span>
-                  <span style={{ color: repeat !== "off" ? color.accent : color.faint }}>
-                    {repeat === "one" ? "One" : repeat === "all" ? "All" : "Off"}
-                  </span>
-                </button>
-              )}
-              <div style={{ height: 1, background: color.line, margin: "4px 0" }}/>
-              {onToggleCrossfade && (
-                <button type="button" onClick={() => onToggleCrossfade()}
-                  role="switch" aria-checked={crossfadeOn}
-                  style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, width: "100%", textAlign: "left", padding: "12px 16px", background: "none", border: "none", color: color.ink, fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
-                  <span>Crossfade</span>
-                  <span aria-hidden="true" style={{
-                    width: 34, height: 20, borderRadius: 10, flexShrink: 0, position: "relative",
-                    background: crossfadeOn ? color.accent : "rgba(26,29,36,0.14)",
-                    transition: `background ${motion.base} ${motion.ease}`,
-                  }}>
-                    <span style={{
-                      position: "absolute", top: 2, left: crossfadeOn ? 16 : 2,
-                      width: 16, height: 16, borderRadius: "50%",
-                      background: crossfadeOn ? color.onAccent : color.surfaceSolid,
-                      boxShadow: "0 1px 3px rgba(26,29,36,0.25)",
-                      transition: `left ${motion.base} ${motion.ease}`,
-                    }}/>
-                  </span>
-                </button>
-              )}
-              <div style={{ padding: "10px 16px 14px" }}>
-                <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 1.2, color: color.muted, fontFamily: fontMono, textTransform: "uppercase", marginBottom: 8 }}>Volume</div>
-                <input
-                  type="range" min={0} max={1} step={0.01} value={volume}
-                  onChange={(e) => onVolumeChange?.(parseFloat(e.target.value))}
-                  style={{ width: "100%" }}
-                  aria-label="Volume level"
-                />
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {tickerText && (
-        <div style={{ position: "relative", zIndex: 2, marginTop: 10, flexShrink: 0 }}>
-          <StationTicker text={tickerText} />
-        </div>
-      )}
-
-      {/* Centered jewel-case art + station meta */}
-      <div style={{
-        position: "relative", zIndex: 1, flex: 1,
-        display: "flex", flexDirection: "column",
-        alignItems: "center", justifyContent: "center",
-        padding: "8px 24px 16px",
-        minHeight: 0,
-        gap: 12,
-      }}>
-        {dedicationFlash && (
-          <DedicationFlash dedication={dedicationFlash} onDone={onClearDedication} />
-        )}
-
-        {sessionArc?.energies?.length > 1 && (
-          <div style={{ width: "100%", maxWidth: 360, marginBottom: 4 }}>
-            <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 1.4, color: color.muted, textTransform: "uppercase", marginBottom: 6, textAlign: "center" }}>
-              {sessionArc.label || "Session arc"}
-            </div>
-            <svg width="100%" height="28" viewBox="0 0 320 28" preserveAspectRatio="none">
-              {(() => {
-                const energies = sessionArc.energies;
-                const idx = Math.min(sessionArc.index || 0, energies.length - 1);
-                const stepX = 320 / Math.max(energies.length - 1, 1);
-                const pts = energies.map((e, i) => `${i * stepX},${28 - ((e - 1) / 9) * 22}`).join(" ");
-                const cx = idx * stepX;
-                const cy = 28 - (((energies[idx] || 5) - 1) / 9) * 22;
-                return (
-                  <>
-                    <polyline points={pts} fill="none" stroke="rgba(26,29,36,0.16)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                    <circle cx={cx} cy={cy} r="3.5" fill={color.accent}/>
-                  </>
-                );
-              })()}
-            </svg>
-          </div>
-        )}
-
-        <div
-          key={currentTrack.id}
-          className="cover-tile"
-          style={{
-            width: trackHasVideo(currentTrack) ? "min(42vw, 160px)" : "min(62vw, 280px)",
-            aspectRatio: "1 / 1",
-            borderRadius: 14,
-            overflow: "hidden",
-            background: color.surfaceRaised,
-            boxShadow: isPlaying ? artShadow.raised : artShadow.quiet,
-            border: `1px solid ${glass.borderSoft}`,
-            animation: isPlaying
-              ? `coverFloat 5.5s ease-in-out infinite, trackSwap 0.4s ${motion.ease} both`
-              : `trackSwap 0.4s ${motion.ease} both`,
-            opacity: trackHasVideo(currentTrack) ? 0.92 : 1,
-          }}
-        >
-          {currentTrack.albumCover ? (
-            <img
-              src={currentTrack.albumCover}
-              alt=""
-              onLoad={() => setArtLoaded(true)}
-              style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
-            />
-          ) : (
-            <div style={{
-              width: "100%", height: "100%",
-              display: "flex", alignItems: "center", justifyContent: "center",
-              background: `linear-gradient(160deg, rgba(${rgb},0.35) 0%, ${color.surfaceRaised} 70%)`,
-              fontSize: 72, fontWeight: 800, color: `rgba(${rgb},0.55)`, letterSpacing: -4, fontFamily: fontDisplay,
-            }}>
-              {(currentTrack.title || "P")[0]}
-            </div>
-          )}
-        </div>
-
-        <div style={{ width: "100%", maxWidth: 420, animation: `trackSwap 0.4s ${motion.ease} both` }}>
-          <LowerThird track={currentTrack} rank={countdownRank} daypart={daypart} show={liveShow} />
-          <div style={{ marginTop: 10, display: "flex", justifyContent: "center", gap: 8, flexWrap: "wrap" }}>
-            <VideoBadge track={currentTrack} />
-            {liveShow?.host && <HostCreditChip show={liveShow} />}
-          </div>
-          {onOpenArtist && (
-            <div style={{ textAlign: "center", marginTop: 8 }}>
-              <button
-                type="button"
-                onClick={() => onOpenArtist(currentTrack.artist)}
-                style={{ background: "none", border: "none", padding: 0, color: color.muted, fontSize: 13, cursor: "pointer", fontWeight: 600 }}
-              >
-                Open artist
-              </button>
-            </div>
-          )}
-        </div>
-
-        {upNextTrack && <UpNextBumper track={upNextTrack} />}
-
-        <StationHeatBar
-          track={currentTrack}
-          onRequest={onRequest}
-          requested={requested}
-          onDedicate={onDedicate}
-        />
-
-        {(roomLabel || onHypnoRadio) && (
-          <div style={{ display: "flex", justifyContent: "center", gap: 10, flexWrap: "wrap" }}>
-            {roomLabel && (
-              <button
-                type="button"
-                onClick={() => onOpenRoom?.()}
-                style={{
-                  background: glass.fillStrong, border: `1px solid ${glass.border}`,
-                  borderRadius: radius.sm, padding: "8px 12px", color: color.accent,
-                  fontSize: 11, fontWeight: 700, letterSpacing: 1.2, fontFamily: fontMono,
-                  textTransform: "uppercase", cursor: onOpenRoom ? "pointer" : "default",
-                  boxShadow: `inset 0 1px 0 ${glass.highlight}`,
-                }}
-              >
-                Playing in {roomLabel}
-              </button>
-            )}
-            {onHypnoRadio && (
-              <button
-                type="button"
-                onClick={() => onHypnoRadio(currentTrack)}
-                aria-pressed={hypnoPocket}
-                style={{
-                  display: "inline-flex", alignItems: "center", gap: 7,
-                  background: hypnoPocket ? color.ink : glass.fillStrong,
-                  border: `1px solid ${glass.border}`,
-                  borderRadius: radius.sm,
-                  padding: "8px 12px",
-                  color: hypnoPocket ? color.onDark : color.ink,
-                  cursor: "pointer",
-                  fontSize: 11,
-                  fontWeight: 700,
-                  letterSpacing: 0.8,
-                  textTransform: "uppercase",
-                  fontFamily: fontMono,
-                  boxShadow: `inset 0 1px 0 ${glass.highlight}`,
-                  backdropFilter: glass.blurSoft,
-                  WebkitBackdropFilter: glass.blurSoft,
-                }}
-              >
-                {hypnoPocket ? "Near this · on" : "Near this"}
-              </button>
-            )}
-          </div>
-        )}
-      </div>
-
-      {/* Bottom transport chrome */}
-      <div style={{
-        position: "relative", zIndex: 2,
-        padding: "0 24px calc(28px + env(safe-area-inset-bottom, 0px))",
-        display: "flex", flexDirection: "column", alignItems: "center",
-        flexShrink: 0,
-      }}>
-        <div style={{ width: "100%", maxWidth: 360, marginBottom: 18 }}>
-          <input
-            type="range" min={0} max={duration || 1} step={0.1} value={progress}
-            onChange={(e) => onSeek?.(parseFloat(e.target.value))}
-            style={{ width: "100%" }}
-            aria-label="Seek"
-            aria-valuetext={`${fmtTime(progress)} of ${fmtTime(duration)}`}
-          />
-          <div style={{
-            marginTop: 6, display: "flex", justifyContent: "space-between",
-            fontSize: 11, color: color.muted, fontFamily: fontMono, fontVariantNumeric: "tabular-nums",
-          }}>
-            <span>{fmtTime(progress)}</span>
-            <span>{fmtTime(duration)}</span>
-          </div>
-        </div>
-
-        <div style={{
-          position: "relative",
-          display: "flex", alignItems: "center", justifyContent: "center", gap: 14,
-        }}>
-          <EnergyShiftFeedback bottom="calc(100% + 16px)" />
-          {!isRadioMode && onToggleShuffle ? (
-            <button type="button" onClick={onToggleShuffle} aria-label="Shuffle" aria-pressed={shuffle}
-              style={{ background: "none", border: "none", cursor: "pointer", color: shuffle ? color.accent : color.faint, padding: 8 }}>
-              <Icon name="shuffle" size={16}/>
-            </button>
-          ) : (
-            <button type="button" onClick={() => onLike?.(currentTrack.id)} aria-label={currentTrack.liked ? "Unlike" : "Like"}
-              style={{ background: "none", border: "none", cursor: "pointer", color: currentTrack.liked ? color.accent : color.faint, padding: 8 }}>
-              <span style={{ display: "flex", animation: currentTrack.liked ? "likePop 0.25s ease" : "none" }}>
-                <Icon name={currentTrack.liked ? "heart" : "heartempty"} size={18}/>
-              </span>
-            </button>
-          )}
-          <button type="button" onClick={onPrev} aria-label="Previous"
-            style={{ background: "none", border: "none", cursor: "pointer", color: color.ink, padding: 8 }}>
-            <Icon name="prev" size={20}/>
-          </button>
-          <IceOrbPlay
-            isPlaying={isPlaying}
-            onClick={onTogglePlay}
-            size={64}
-            glowing={isPlaying}
-          />
-          <button type="button" onClick={onSkip} aria-label="Next"
-            style={{ background: "none", border: "none", cursor: "pointer", color: color.ink, padding: 8 }}>
-            <Icon name="skip" size={20}/>
-          </button>
-          <EnergyShiftControl size={36} stopPropagation={false} />
-          {!isRadioMode && onCycleRepeat ? (
-            <button type="button" onClick={onCycleRepeat}
-              aria-label={`Repeat: ${repeat === "one" ? "one" : repeat === "all" ? "all" : "off"}`}
-              style={{ background: "none", border: "none", cursor: "pointer", color: repeat !== "off" ? color.accent : color.faint, padding: 8, position: "relative" }}>
-              <Icon name="repeat" size={16}/>
-              {repeat === "one" && (
-                <span aria-hidden="true" style={{
-                  position: "absolute", top: 2, right: 2, fontSize: 9, fontWeight: 800,
-                  color: color.accent, fontFamily: fontMono,
-                }}>1</span>
-              )}
-            </button>
-          ) : (
-            <button type="button" onClick={() => onShowQueue?.()} aria-label="Up Next"
-              style={{ background: "none", border: "none", cursor: "pointer", color: color.faint, padding: 8 }}>
-              <Icon name="queue" size={18}/>
-            </button>
-          )}
-        </div>
-
-        <div style={{
-          width: "100%", maxWidth: 360, marginTop: 16,
-          display: "flex", alignItems: "center", gap: 12,
-        }}>
-          {!isRadioMode && onToggleShuffle ? (
-            <button type="button" onClick={() => onLike?.(currentTrack.id)} aria-label={currentTrack.liked ? "Unlike" : "Like"}
-              style={{ background: "none", border: "none", cursor: "pointer", color: currentTrack.liked ? color.accent : color.faint, padding: 6, flexShrink: 0 }}>
-              <span style={{ display: "flex", animation: currentTrack.liked ? "likePop 0.25s ease" : "none" }}>
-                <Icon name={currentTrack.liked ? "heart" : "heartempty"} size={16}/>
-              </span>
-            </button>
-          ) : (
-            <span style={{ display: "flex", color: color.faint, padding: 6, flexShrink: 0 }} aria-hidden="true">
-              <Icon name="volume" size={16}/>
-            </span>
-          )}
-          <input
-            type="range" min={0} max={1} step={0.01} value={volume}
-            onChange={(e) => onVolumeChange?.(parseFloat(e.target.value))}
-            style={{ flex: 1 }}
-            aria-label="Volume"
-          />
-          {!isRadioMode && onCycleRepeat ? (
-            <button type="button" onClick={() => onShowQueue?.()} aria-label="Up Next"
-              style={{ background: "none", border: "none", cursor: "pointer", color: color.faint, padding: 6, flexShrink: 0 }}>
-              <Icon name="queue" size={16}/>
-            </button>
-          ) : (
-            <span style={{ width: 28, flexShrink: 0 }} aria-hidden="true"/>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
+// ImmersivePlayer → components/player/ImmersivePlayer.jsx
 
 // ─── UP NEXT SHEET (mobile queue) ─────────────────────────────────────────────
 function QueueSheet({ queue, currentTrack, onPlay, onClose, onClear, onShuffle, isRadioMode, radioHint, onRemove = null, onPlayNext = null }) {
@@ -5668,12 +5235,15 @@ function GlassDock({
             style={{
               position: "relative",
               height: dock.playerH,
-              padding: "8px 12px 8px 10px",
+              padding: "8px 14px 8px 12px",
               display: "flex",
               alignItems: "center",
-              gap: 10,
+              gap: 12,
               cursor: "pointer",
               borderBottom: `1px solid ${glass.borderFaint}`,
+              background: `
+                linear-gradient(180deg, rgba(255,255,255,0.35) 0%, transparent 100%)
+              `,
               boxShadow: isRadioMode || hypnoPocket
                 ? `inset 2px 0 0 ${color.accent}`
                 : "none",
@@ -5681,16 +5251,16 @@ function GlassDock({
           >
             <OrbitalArtRing
               track={track}
-              size={40}
+              size={42}
               onSeek={onSeek}
-              artRadius={8}
+              artRadius={9}
             />
 
             <div key={track.id} style={{ flex: 1, minWidth: 0, animation: "fadeIn 0.3s ease both" }}>
               <div style={{
-                fontSize: 13, fontWeight: 650, color: color.ink,
+                fontSize: 14, fontWeight: 650, color: color.ink,
                 overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
-                fontFamily: fontDisplay, letterSpacing: -0.2,
+                fontFamily: fontDisplay, letterSpacing: -0.25,
               }}>
                 {(isRadioMode || hypnoPocket) && (
                   <span style={{
@@ -7855,6 +7425,8 @@ export default function App() {
       dedicationFlash={dedicationFlash}
       onClearDedication={() => setDedicationFlash(null)}
       liveShow={liveShow || liveAiring?.show || null}
+      Icon={Icon}
+      IceOrbPlay={IceOrbPlay}
     />
   ) : null;
 
