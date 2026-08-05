@@ -11,6 +11,10 @@ import {
   nowPlayingLowerThird,
   stationDaypart,
 } from "../../lib/station";
+import {
+  STATION_CALLSIGN,
+  resolveChannelBug,
+} from "../../lib/mtvChannel";
 
 /** Soft neon kinetic bars — visualizer stand-in when no music video. */
 export function HypnoVisualizer({ playing = false, colorHex = null }) {
@@ -54,64 +58,169 @@ export function HypnoVisualizer({ playing = false, colorHex = null }) {
   );
 }
 
-/** Pulsing ON AIR pill — station identity. */
-export function OnAirBadge({ daypartLabel = null, showTitle = null, compact = false }) {
+/** Pulsing ON AIR plate — hard broadcast edge, not a soft pill. */
+export function OnAirBadge({ daypartLabel = null, showTitle = null, compact = false, callsign = STATION_CALLSIGN }) {
   const secondary = showTitle || daypartLabel;
   return (
     <div
       style={{
         display: "inline-flex",
-        alignItems: "center",
-        gap: compact ? 6 : 8,
-        padding: compact ? "6px 10px" : "8px 12px",
-        borderRadius: 999,
-        background: "rgba(22,24,30,0.88)",
+        alignItems: "stretch",
+        gap: 0,
+        borderRadius: 0,
+        overflow: "hidden",
+        background: "rgba(22,24,30,0.92)",
         border: "1px solid rgba(255,255,255,0.14)",
-        boxShadow: "0 8px 22px rgba(22,24,30,0.22), inset 0 1px 0 rgba(255,255,255,0.12)",
+        boxShadow: "0 8px 22px rgba(22,24,30,0.22)",
         color: color.onDark,
         pointerEvents: "none",
-        maxWidth: compact ? 220 : 280,
+        maxWidth: compact ? 240 : 300,
       }}
     >
-      <span
-        aria-hidden="true"
-        style={{
-          width: compact ? 7 : 8,
-          height: compact ? 7 : 8,
-          borderRadius: "50%",
-          background: "#FF3B4E",
-          boxShadow: "0 0 0 3px rgba(255,59,78,0.28)",
-          animation: "stageLiveDot 1.4s ease-in-out infinite",
-          flexShrink: 0,
-        }}
-      />
-      <span style={{
-        fontFamily: fontMono,
-        fontSize: compact ? 9 : 10,
-        fontWeight: 700,
-        letterSpacing: 1.6,
-        textTransform: "uppercase",
+      <div style={{
+        display: "flex",
+        alignItems: "center",
+        gap: compact ? 6 : 8,
+        padding: compact ? "6px 10px" : "7px 11px",
+        background: "#FF3B4E",
         flexShrink: 0,
       }}>
-        On Air
-      </span>
-      {secondary && (
+        <span
+          aria-hidden="true"
+          style={{
+            width: compact ? 6 : 7,
+            height: compact ? 6 : 7,
+            borderRadius: "50%",
+            background: "#fff",
+            boxShadow: "0 0 0 3px rgba(255,255,255,0.28)",
+            animation: "stageLiveDot 1.4s ease-in-out infinite",
+            flexShrink: 0,
+          }}
+        />
         <span style={{
           fontFamily: fontMono,
-          fontSize: 9,
-          fontWeight: 600,
+          fontSize: compact ? 9 : 10,
+          fontWeight: 800,
+          letterSpacing: 1.6,
+          textTransform: "uppercase",
+          color: "#fff",
+        }}>
+          On Air
+        </span>
+      </div>
+      <div style={{
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "center",
+        padding: compact ? "4px 10px" : "5px 12px",
+        minWidth: 0,
+        gap: 1,
+      }}>
+        <span style={{
+          fontFamily: fontMono,
+          fontSize: 8,
+          fontWeight: 800,
+          letterSpacing: 1.4,
+          textTransform: "uppercase",
+          color: "rgba(242,244,247,0.55)",
+        }}>
+          {callsign}
+        </span>
+        {secondary && (
+          <span style={{
+            fontFamily: fontMono,
+            fontSize: compact ? 9 : 10,
+            fontWeight: 700,
+            letterSpacing: 1.0,
+            textTransform: "uppercase",
+            color: color.onDark,
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            whiteSpace: "nowrap",
+          }}>
+            {secondary}
+          </span>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Persistent channel bug — top-right CH-03 · RAP CITY plate.
+ * MTV corner graphic energy.
+ */
+export function ChannelBug({
+  sceneChannel = null,
+  show = null,
+  daypartLabel = null,
+  compact = false,
+}) {
+  const bug = resolveChannelBug({ sceneChannel, show });
+  return (
+    <div
+      aria-label={`${bug.ch} ${bug.slug}`}
+      style={{
+        display: "inline-flex",
+        alignItems: "stretch",
+        borderRadius: 0,
+        overflow: "hidden",
+        pointerEvents: "none",
+        boxShadow: "0 10px 24px rgba(22,24,30,0.28)",
+        animation: `channelBugIn 0.4s ${motion.ease} both`,
+        maxWidth: compact ? 160 : 200,
+      }}
+    >
+      <div style={{
+        padding: compact ? "6px 8px" : "7px 10px",
+        background: bug.accent || "#FF3B4E",
+        color: "#fff",
+        fontFamily: fontMono,
+        fontSize: compact ? 11 : 12,
+        fontWeight: 900,
+        letterSpacing: 0.6,
+        display: "flex",
+        alignItems: "center",
+        clipPath: "polygon(0 0, 100% 0, calc(100% - 6px) 100%, 0 100%)",
+        paddingRight: compact ? 12 : 14,
+      }}>
+        {bug.ch}
+      </div>
+      <div style={{
+        padding: compact ? "5px 10px" : "6px 12px",
+        background: "rgba(22,24,30,0.94)",
+        border: "1px solid rgba(255,255,255,0.12)",
+        borderLeft: "none",
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "center",
+        gap: 1,
+        minWidth: 0,
+      }}>
+        <span style={{
+          fontFamily: fontMono,
+          fontSize: 8,
+          fontWeight: 800,
+          letterSpacing: 1.3,
+          textTransform: "uppercase",
+          color: "rgba(242,244,247,0.5)",
+        }}>
+          {daypartLabel || STATION_CALLSIGN}
+        </span>
+        <span style={{
+          fontFamily: fontMono,
+          fontSize: compact ? 9 : 10,
+          fontWeight: 800,
           letterSpacing: 1.1,
           textTransform: "uppercase",
-          color: "rgba(242,244,247,0.62)",
-          borderLeft: "1px solid rgba(255,255,255,0.16)",
-          paddingLeft: 8,
+          color: color.onDark,
           overflow: "hidden",
           textOverflow: "ellipsis",
           whiteSpace: "nowrap",
         }}>
-          {secondary}
+          {bug.slug}
         </span>
-      )}
+      </div>
     </div>
   );
 }
@@ -154,7 +263,7 @@ export function StationTicker({ text = "", dense = false }) {
   );
 }
 
-/** MTV-style lower third for now playing. */
+/** MTV-style lower third for now playing — hard rectangles, hot red kicker. */
 export function LowerThird({ track, rank = null, daypart = null, show = null }) {
   const line = useMemo(
     () => nowPlayingLowerThird(track, { rank, daypart, show }),
@@ -166,7 +275,7 @@ export function LowerThird({ track, rank = null, daypart = null, show = null }) 
       key={track?.id || line.title}
       style={{
         pointerEvents: "none",
-        maxWidth: 420,
+        maxWidth: 400,
         width: "100%",
         animation: `stationLowerIn 0.45s ${motion.ease} both`,
       }}
@@ -175,45 +284,48 @@ export function LowerThird({ track, rank = null, daypart = null, show = null }) 
         display: "inline-flex",
         alignItems: "center",
         gap: 8,
-        padding: "5px 10px",
+        padding: "4px 10px 4px 8px",
         background: "#FF3B4E",
         color: "#fff",
         fontFamily: fontMono,
         fontSize: 10,
-        fontWeight: 800,
-        letterSpacing: 1.5,
+        fontWeight: 900,
+        letterSpacing: 1.6,
         textTransform: "uppercase",
-        clipPath: "polygon(0 0, 100% 0, calc(100% - 8px) 100%, 0 100%)",
+        clipPath: "polygon(0 0, 100% 0, calc(100% - 10px) 100%, 0 100%)",
         marginBottom: 0,
+        boxShadow: "4px 0 0 rgba(22,24,30,0.35)",
       }}>
         {line.kicker}
       </div>
       <div style={{
-        background: "rgba(22,24,30,0.9)",
-        border: "1px solid rgba(255,255,255,0.12)",
-        borderLeft: "3px solid #FF3B4E",
-        padding: "10px 14px 12px",
-        boxShadow: "0 12px 28px rgba(22,24,30,0.28)",
+        background: "rgba(12,14,18,0.94)",
+        border: "1px solid rgba(255,255,255,0.1)",
+        borderTop: "none",
+        borderLeft: "4px solid #FF3B4E",
+        padding: "9px 14px 10px",
+        boxShadow: "0 14px 32px rgba(12,14,18,0.4)",
       }}>
         <div style={{
           fontFamily: fontDisplay,
-          fontSize: "clamp(16px, 3.4vw, 22px)",
-          fontWeight: 750,
-          letterSpacing: -0.4,
+          fontSize: "clamp(15px, 3.2vw, 20px)",
+          fontWeight: 800,
+          letterSpacing: -0.35,
           color: color.onDark,
-          lineHeight: 1.15,
+          lineHeight: 1.12,
           overflow: "hidden",
           display: "-webkit-box",
           WebkitLineClamp: 2,
           WebkitBoxOrient: "vertical",
+          textTransform: "uppercase",
         }}>
           {line.title}
         </div>
         <div style={{
-          marginTop: 4,
-          fontSize: 13,
-          fontWeight: 550,
-          color: "rgba(242,244,247,0.78)",
+          marginTop: 3,
+          fontSize: 12,
+          fontWeight: 600,
+          color: "rgba(242,244,247,0.72)",
           overflow: "hidden",
           textOverflow: "ellipsis",
           whiteSpace: "nowrap",
@@ -221,13 +333,13 @@ export function LowerThird({ track, rank = null, daypart = null, show = null }) 
           {line.artist}
         </div>
         <div style={{
-          marginTop: 6,
+          marginTop: 5,
           fontFamily: fontMono,
-          fontSize: 10,
-          fontWeight: 650,
-          letterSpacing: 1.2,
+          fontSize: 9,
+          fontWeight: 700,
+          letterSpacing: 1.3,
           textTransform: "uppercase",
-          color: "rgba(242,244,247,0.5)",
+          color: "rgba(242,244,247,0.45)",
         }}>
           {line.meta}
         </div>
@@ -236,7 +348,7 @@ export function LowerThird({ track, rank = null, daypart = null, show = null }) 
   );
 }
 
-/** Up Next bumper strip. */
+/** Up Next bumper strip — dark broadcast plate, not frosted glass. */
 export function UpNextBumper({ track = null }) {
   if (!track) return null;
   return (
@@ -245,26 +357,32 @@ export function UpNextBumper({ track = null }) {
         display: "flex",
         alignItems: "center",
         gap: 10,
-        maxWidth: 360,
-        padding: "8px 10px",
-        borderRadius: radius.sm,
-        background: "rgba(255,255,255,0.72)",
-        border: `1px solid ${glass.border}`,
-        boxShadow: `inset 0 1px 0 ${glass.highlight}, ${glass.shadowSoft}`,
-        backdropFilter: glass.blurSoft,
-        WebkitBackdropFilter: glass.blurSoft,
+        maxWidth: 340,
+        padding: "6px 8px 6px 0",
+        borderRadius: 0,
+        background: "rgba(12,14,18,0.88)",
+        border: "1px solid rgba(255,255,255,0.1)",
+        boxShadow: "0 8px 20px rgba(12,14,18,0.35)",
         pointerEvents: "none",
         animation: `rise 0.4s ${motion.ease} both`,
+        overflow: "hidden",
       }}
     >
       <div style={{
         fontFamily: fontMono,
-        fontSize: 9,
-        fontWeight: 800,
-        letterSpacing: 1.3,
+        fontSize: 8,
+        fontWeight: 900,
+        letterSpacing: 1.2,
         textTransform: "uppercase",
-        color: "#FF3B4E",
+        color: "#fff",
         flexShrink: 0,
+        background: "#FF3B4E",
+        padding: "10px 8px",
+        alignSelf: "stretch",
+        display: "flex",
+        alignItems: "center",
+        clipPath: "polygon(0 0, 100% 0, calc(100% - 6px) 100%, 0 100%)",
+        paddingRight: 12,
       }}>
         Up Next
       </div>
@@ -272,25 +390,25 @@ export function UpNextBumper({ track = null }) {
         <img
           src={track.albumCover}
           alt=""
-          width={28}
-          height={28}
-          style={{ borderRadius: 4, objectFit: "cover", flexShrink: 0 }}
+          width={26}
+          height={26}
+          style={{ borderRadius: 0, objectFit: "cover", flexShrink: 0 }}
         />
       ) : (
         <div style={{
-          width: 28, height: 28, borderRadius: 4, flexShrink: 0,
-          background: color.surfaceRaised,
+          width: 26, height: 26, borderRadius: 0, flexShrink: 0,
+          background: "rgba(255,255,255,0.12)",
         }} />
       )}
-      <div style={{ minWidth: 0, flex: 1 }}>
+      <div style={{ minWidth: 0, flex: 1, paddingRight: 6 }}>
         <div style={{
-          fontSize: 12, fontWeight: 650, color: color.ink,
+          fontSize: 12, fontWeight: 700, color: color.onDark,
           overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
         }}>
           {track.title}
         </div>
         <div style={{
-          fontSize: 11, color: color.muted,
+          fontSize: 10, color: "rgba(242,244,247,0.55)",
           overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
         }}>
           {track.artist}
@@ -300,16 +418,21 @@ export function UpNextBumper({ track = null }) {
   );
 }
 
-/** Locked-in presence + quick reactions. */
+/**
+ * Compact request line — one slim plate so the lower third stays hero.
+ * Reactions tuck into a secondary row (graphic-pack labels, not emoji parade).
+ */
 export function StationHeatBar({
   track,
   onReact = null,
   onRequest = null,
   requested = false,
   onDedicate = null,
+  compact = true,
 }) {
   const [lockedIn, setLockedIn] = useState(() => estimateLockedIn(track));
   const [burst, setBurst] = useState(null);
+  const [open, setOpen] = useState(false);
   const [reactCounts, setReactCounts] = useState({});
 
   useEffect(() => {
@@ -327,100 +450,73 @@ export function StationHeatBar({
     onReact?.(emoji);
   };
 
+  const REACT_LABELS = { "🔥": "HOT", "💥": "BANG", "🙌": "YES", "📺": "TV", "🕺": "MOVE" };
+
   return (
     <div style={{
       position: "relative",
       display: "flex",
       flexDirection: "column",
-      gap: 8,
+      gap: 6,
       width: "100%",
-      maxWidth: 420,
+      maxWidth: 400,
       pointerEvents: "auto",
     }}>
       <div style={{
         display: "flex",
-        alignItems: "center",
-        justifyContent: "space-between",
-        gap: 10,
-        padding: "8px 12px",
-        borderRadius: radius.md,
-        background: "rgba(22,24,30,0.78)",
+        alignItems: "stretch",
+        gap: 0,
+        background: "rgba(12,14,18,0.9)",
         border: "1px solid rgba(255,255,255,0.1)",
         color: color.onDark,
+        overflow: "hidden",
       }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0 }}>
+        <div style={{
+          display: "flex",
+          alignItems: "center",
+          gap: 7,
+          padding: compact ? "7px 10px" : "8px 12px",
+          minWidth: 0,
+          flex: 1,
+        }}>
           <span aria-hidden="true" style={{
-            width: 8, height: 8, borderRadius: "50%", background: "#5CFF8F",
-            boxShadow: "0 0 0 3px rgba(92,255,143,0.25)",
+            width: 7, height: 7, borderRadius: "50%", background: "#5CFF8F",
+            boxShadow: "0 0 0 3px rgba(92,255,143,0.22)",
             animation: "stageLiveDot 1.6s ease-in-out infinite",
+            flexShrink: 0,
           }} />
           <span style={{
-            fontFamily: fontMono, fontSize: 10, fontWeight: 700,
-            letterSpacing: 1.2, textTransform: "uppercase",
+            fontFamily: fontMono, fontSize: 9, fontWeight: 800,
+            letterSpacing: 1.1, textTransform: "uppercase",
             whiteSpace: "nowrap",
+            overflow: "hidden",
+            textOverflow: "ellipsis",
           }}>
             {lockedIn} locked in
           </span>
         </div>
-        <div style={{ display: "flex", gap: 4 }}>
-          {STATION_REACTIONS.map((emoji) => (
-            <button
-              key={emoji}
-              type="button"
-              aria-label={`React ${emoji}`}
-              onClick={(e) => { e.stopPropagation(); fireReact(emoji); }}
-              style={{
-                background: "rgba(255,255,255,0.08)",
-                border: "1px solid rgba(255,255,255,0.1)",
-                borderRadius: 8,
-                width: 32,
-                height: 28,
-                cursor: "pointer",
-                fontSize: 13,
-                position: "relative",
-              }}
-            >
-              {emoji}
-              {reactCounts[emoji] > 0 && (
-                <span style={{
-                  position: "absolute", top: -6, right: -4,
-                  fontSize: 8, fontFamily: fontMono, fontWeight: 800,
-                  background: "#FF3B4E", color: "#fff",
-                  borderRadius: 8, padding: "1px 4px",
-                }}>
-                  {reactCounts[emoji]}
-                </span>
-              )}
-            </button>
-          ))}
-        </div>
-      </div>
 
-      <div style={{ display: "flex", gap: 8 }}>
         {onRequest && (
           <button
             type="button"
             onClick={(e) => { e.stopPropagation(); onRequest(); }}
             disabled={requested}
             style={{
-              flex: 1,
-              padding: "10px 12px",
-              borderRadius: radius.sm,
-              border: requested ? `1px solid ${glass.border}` : "1px solid rgba(255,59,78,0.45)",
-              background: requested
-                ? glass.fillStrong
-                : "linear-gradient(165deg, #FF5A6A 0%, #D61F33 100%)",
-              color: requested ? color.muted : "#fff",
+              padding: "0 12px",
+              border: "none",
+              borderLeft: "1px solid rgba(255,255,255,0.1)",
+              background: requested ? "rgba(255,255,255,0.06)" : "#FF3B4E",
+              color: requested ? "rgba(242,244,247,0.55)" : "#fff",
               fontFamily: fontMono,
-              fontSize: 11,
-              fontWeight: 800,
-              letterSpacing: 1.2,
+              fontSize: 9,
+              fontWeight: 900,
+              letterSpacing: 1.1,
               textTransform: "uppercase",
               cursor: requested ? "default" : "pointer",
-              boxShadow: requested ? "none" : "0 8px 18px rgba(214,31,51,0.28)",
+              whiteSpace: "nowrap",
             }}
           >
-            {requested ? "Requested ✓" : "Request this"}
+            {requested ? "Queued" : "Request"}
           </button>
         )}
         {onDedicate && (
@@ -428,38 +524,106 @@ export function StationHeatBar({
             type="button"
             onClick={(e) => { e.stopPropagation(); onDedicate(); }}
             style={{
-              flex: 1,
-              padding: "10px 12px",
-              borderRadius: radius.sm,
-              border: `1px solid ${glass.border}`,
-              background: glass.fillStrong,
-              color: color.ink,
+              padding: "0 12px",
+              border: "none",
+              borderLeft: "1px solid rgba(255,255,255,0.1)",
+              background: "rgba(255,255,255,0.06)",
+              color: color.onDark,
               fontFamily: fontMono,
-              fontSize: 11,
+              fontSize: 9,
               fontWeight: 800,
-              letterSpacing: 1.2,
+              letterSpacing: 1.1,
               textTransform: "uppercase",
               cursor: "pointer",
-              boxShadow: `inset 0 1px 0 ${glass.highlight}`,
+              whiteSpace: "nowrap",
             }}
           >
             Dedicate
           </button>
         )}
+        <button
+          type="button"
+          aria-expanded={open}
+          aria-label={open ? "Hide reactions" : "Show reactions"}
+          onClick={(e) => { e.stopPropagation(); setOpen((v) => !v); }}
+          style={{
+            padding: "0 10px",
+            border: "none",
+            borderLeft: "1px solid rgba(255,255,255,0.1)",
+            background: open ? "rgba(255,59,78,0.25)" : "rgba(255,255,255,0.04)",
+            color: color.onDark,
+            fontFamily: fontMono,
+            fontSize: 9,
+            fontWeight: 800,
+            letterSpacing: 1,
+            textTransform: "uppercase",
+            cursor: "pointer",
+          }}
+        >
+          {open ? "−" : "+"}
+        </button>
       </div>
+
+      {open && (
+        <div style={{
+          display: "flex",
+          gap: 4,
+          animation: `rise 0.25s ${motion.ease} both`,
+        }}>
+          {STATION_REACTIONS.map((emoji) => (
+            <button
+              key={emoji}
+              type="button"
+              aria-label={`React ${REACT_LABELS[emoji] || emoji}`}
+              onClick={(e) => { e.stopPropagation(); fireReact(emoji); }}
+              style={{
+                flex: 1,
+                background: "rgba(12,14,18,0.88)",
+                border: "1px solid rgba(255,255,255,0.1)",
+                borderRadius: 0,
+                height: 30,
+                cursor: "pointer",
+                fontFamily: fontMono,
+                fontSize: 9,
+                fontWeight: 800,
+                letterSpacing: 0.8,
+                color: color.onDark,
+                position: "relative",
+              }}
+            >
+              {REACT_LABELS[emoji] || emoji}
+              {reactCounts[emoji] > 0 && (
+                <span style={{
+                  position: "absolute", top: -5, right: 2,
+                  fontSize: 8, fontFamily: fontMono, fontWeight: 800,
+                  background: "#FF3B4E", color: "#fff",
+                  padding: "1px 4px",
+                }}>
+                  {reactCounts[emoji]}
+                </span>
+              )}
+            </button>
+          ))}
+        </div>
+      )}
 
       {burst && (
         <div aria-hidden="true" style={{
           position: "absolute",
           left: "50%",
-          bottom: "42%",
+          bottom: "110%",
           transform: "translateX(-50%)",
-          fontSize: 42,
+          fontFamily: fontMono,
+          fontSize: 18,
+          fontWeight: 900,
+          letterSpacing: 2,
+          color: "#FF3B4E",
+          textShadow: "0 2px 12px rgba(12,14,18,0.6)",
           animation: "stationBurst 0.7s ease forwards",
           pointerEvents: "none",
           zIndex: 6,
         }}>
-          {burst}
+          {REACT_LABELS[burst] || burst}
         </div>
       )}
     </div>

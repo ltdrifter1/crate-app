@@ -3,7 +3,8 @@ import { normalizeGenre } from "./genres";
 import { countdownScore } from "./station";
 
 /**
- * Scene surfing — restrained scene names under the broad genres.
+ * Scene surfing — dial channels under the broad genres.
+ * Numbers map to on-air CH-bugs (CH-02 UK GARAGE …).
  */
 
 function singlesOnly(tracks = []) {
@@ -13,8 +14,10 @@ function singlesOnly(tracks = []) {
 export const SCENE_CHANNELS = [
   {
     id: "ukg-block",
+    num: 2,
     title: "UK Garage",
     shortTitle: "UK Garage",
+    dialSlug: "UK GARAGE",
     tagline: "2-step and garage",
     accent: "#FF5C8A",
     scenes: ["uk-garage", "broken-beat"],
@@ -23,8 +26,10 @@ export const SCENE_CHANNELS = [
   },
   {
     id: "rap-city",
+    num: 3,
     title: "Rap & Grime",
-    shortTitle: "Rap & Grime",
+    shortTitle: "Rap City",
+    dialSlug: "RAP CITY",
     tagline: "Hip-hop and UK grime",
     accent: "#FFB020",
     scenes: ["hip-hop", "grime"],
@@ -33,18 +38,22 @@ export const SCENE_CHANNELS = [
   },
   {
     id: "techno-tunnel",
+    num: 4,
     title: "Techno",
     shortTitle: "Techno",
+    dialSlug: "TECHNO",
     tagline: "Techno and tech house",
-    accent: "#5C8CFF",
+    accent: "#E85D04",
     scenes: ["techno", "minimal", "tech-house", "industrial"],
     genres: ["Electronic"],
     vibe: "Techno",
   },
   {
     id: "bass-weight",
+    num: 5,
     title: "DnB & Jungle",
-    shortTitle: "DnB & Jungle",
+    shortTitle: "Bass Weight",
+    dialSlug: "BASS WT",
     tagline: "Drum & bass, jungle, dubstep",
     accent: "#2ED3A4",
     scenes: ["drum-and-bass", "jungle", "liquid", "dubstep", "breakbeat"],
@@ -53,8 +62,10 @@ export const SCENE_CHANNELS = [
   },
   {
     id: "soul-continuum",
+    num: 6,
     title: "Soul & R&B",
-    shortTitle: "Soul & R&B",
+    shortTitle: "Soul Cont.",
+    dialSlug: "SOUL",
     tagline: "Soul, neo-soul, funk",
     accent: "#C45C3E",
     scenes: ["soul", "neo-soul", "funk", "rnb", "gospel"],
@@ -63,18 +74,22 @@ export const SCENE_CHANNELS = [
   },
   {
     id: "alt-nation",
+    num: 7,
     title: "Rock & Alt",
-    shortTitle: "Rock & Alt",
+    shortTitle: "Alt Nation",
+    dialSlug: "ALT NAT",
     tagline: "Rock, metal, left-field",
-    accent: "#B07CFF",
+    accent: "#16181E",
     scenes: ["rock", "metal", "experimental"],
     genres: ["Rock", "Metal"],
     vibe: "Rock & Alt",
   },
   {
     id: "pop-crash",
+    num: 8,
     title: "Pop & Disco",
-    shortTitle: "Pop & Disco",
+    shortTitle: "Pop Crash",
+    dialSlug: "POP CRASH",
     tagline: "Pop, disco, and house",
     accent: "#FF3B4E",
     scenes: ["disco", "house"],
@@ -83,8 +98,10 @@ export const SCENE_CHANNELS = [
   },
   {
     id: "afterhours-fog",
+    num: 9,
     title: "Ambient & Downtempo",
-    shortTitle: "Ambient",
+    shortTitle: "Afterhours",
+    dialSlug: "AFTER HRS",
     tagline: "Ambient, downtempo, deep house",
     accent: "#7A91A4",
     scenes: ["ambient", "downtempo", "deep-house"],

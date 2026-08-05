@@ -35,10 +35,13 @@ export function pickTrackBumper({
   }
 
   if (sceneChannel && slot === 2) {
+    const ch = sceneChannel.num != null
+      ? `CH-${String(sceneChannel.num).padStart(2, "0")}`
+      : "CHANNEL";
     return {
       id: `scene-${sceneChannel.id}`,
-      kicker: "SCENE SURF",
-      title: sceneChannel.title,
+      kicker: ch,
+      title: sceneChannel.dialSlug || sceneChannel.shortTitle || sceneChannel.title,
       subtitle: sceneChannel.tagline,
       tone: "scene",
       accent: sceneChannel.accent,
