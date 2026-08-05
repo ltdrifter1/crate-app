@@ -66,20 +66,24 @@ export function buildCountdown(tracks = [], limit = 20) {
 }
 
 /** Human lower-third line for the now-playing graphic. */
-export function nowPlayingLowerThird(track, { daypart = null, rank = null } = {}) {
+export function nowPlayingLowerThird(track, { daypart = null, rank = null, show = null } = {}) {
   if (!track) return null;
   const parts = [];
   if (rank != null) parts.push(`#${rank}`);
   parts.push("NOW PLAYING");
   const scene = track.sceneLabel || track.genre || null;
   const year = track.year || track.releaseYear || null;
-  const meta = [scene, year].filter(Boolean).join(" · ");
+  const metaBits = [scene, year].filter(Boolean);
+  if (show?.title) metaBits.unshift(show.shortTitle || show.title);
+  if (show?.host?.name) metaBits.push(`with ${show.host.name}`);
+  const meta = metaBits.join(" · ");
   return {
     kicker: parts.join(" · "),
     title: track.title || "Untitled",
     artist: track.artist || "Unknown",
     meta: meta || (daypart ? daypart.label : "On air"),
     daypart: daypart?.label || null,
+    showTitle: show?.title || null,
   };
 }
 
@@ -214,10 +218,24 @@ export function buildStationTicker({
   daypart = null,
   communityMixTitle = null,
   dedication = null,
+  show = null,
+  nextShow = null,
+  bumper = null,
+  showBits = [],
 } = {}) {
   const bits = [];
   bits.push("PLANET MP3 — ON AIR");
-  if (daypart?.label) bits.push(daypart.label.toUpperCase());
+  if (showBits?.length) bits.push(...showBits);
+  else if (show?.title) {
+    bits.push(`NOW ON AIR — ${String(show.title).toUpperCase()}`);
+    if (show.host?.name) bits.push(`HOSTED BY ${String(show.host.name).toUpperCase()}`);
+    if (nextShow?.title) {
+      bits.push(`UP NEXT — ${String(nextShow.title).toUpperCase()}`);
+    }
+  } else if (daypart?.label) {
+    bits.push(daypart.label.toUpperCase());
+  }
+  if (bumper) bits.push(bumper);
   if (countdown[0]?.track) {
     bits.push(`#1 MOST REQUESTED — ${countdown[0].track.title} · ${countdown[0].track.artist}`);
   }
