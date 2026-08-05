@@ -55,7 +55,8 @@ export function HypnoVisualizer({ playing = false, colorHex = null }) {
 }
 
 /** Pulsing ON AIR pill — station identity. */
-export function OnAirBadge({ daypartLabel = null, compact = false }) {
+export function OnAirBadge({ daypartLabel = null, showTitle = null, compact = false }) {
+  const secondary = showTitle || daypartLabel;
   return (
     <div
       style={{
@@ -69,6 +70,7 @@ export function OnAirBadge({ daypartLabel = null, compact = false }) {
         boxShadow: "0 8px 22px rgba(22,24,30,0.22), inset 0 1px 0 rgba(255,255,255,0.12)",
         color: color.onDark,
         pointerEvents: "none",
+        maxWidth: compact ? 220 : 280,
       }}
     >
       <span
@@ -80,6 +82,7 @@ export function OnAirBadge({ daypartLabel = null, compact = false }) {
           background: "#FF3B4E",
           boxShadow: "0 0 0 3px rgba(255,59,78,0.28)",
           animation: "stageLiveDot 1.4s ease-in-out infinite",
+          flexShrink: 0,
         }}
       />
       <span style={{
@@ -88,10 +91,11 @@ export function OnAirBadge({ daypartLabel = null, compact = false }) {
         fontWeight: 700,
         letterSpacing: 1.6,
         textTransform: "uppercase",
+        flexShrink: 0,
       }}>
         On Air
       </span>
-      {daypartLabel && !compact && (
+      {secondary && (
         <span style={{
           fontFamily: fontMono,
           fontSize: 9,
@@ -101,12 +105,11 @@ export function OnAirBadge({ daypartLabel = null, compact = false }) {
           color: "rgba(242,244,247,0.62)",
           borderLeft: "1px solid rgba(255,255,255,0.16)",
           paddingLeft: 8,
-          maxWidth: 140,
           overflow: "hidden",
           textOverflow: "ellipsis",
           whiteSpace: "nowrap",
         }}>
-          {daypartLabel}
+          {secondary}
         </span>
       )}
     </div>
@@ -152,10 +155,10 @@ export function StationTicker({ text = "", dense = false }) {
 }
 
 /** MTV-style lower third for now playing. */
-export function LowerThird({ track, rank = null, daypart = null }) {
+export function LowerThird({ track, rank = null, daypart = null, show = null }) {
   const line = useMemo(
-    () => nowPlayingLowerThird(track, { rank, daypart }),
-    [track, rank, daypart]
+    () => nowPlayingLowerThird(track, { rank, daypart, show }),
+    [track, rank, daypart, show]
   );
   if (!line) return null;
   return (
@@ -619,7 +622,13 @@ export function DedicateSheet({ track, defaultName = "Listener", onClose, onSubm
 }
 
 /** Hook helper — ticker + daypart + dedications for station surfaces. */
-export function useStationFeed({ countdown = [], communityMixTitle = null } = {}) {
+export function useStationFeed({
+  countdown = [],
+  communityMixTitle = null,
+  show = null,
+  nextShow = null,
+  bumper = null,
+} = {}) {
   const daypart = useMemo(() => stationDaypart(new Date()), []);
   const [dedicationFlash, setDedicationFlash] = useState(null);
   const [dedications, setDedications] = useState(() => listDedications(8));
@@ -630,8 +639,11 @@ export function useStationFeed({ countdown = [], communityMixTitle = null } = {}
       daypart,
       communityMixTitle,
       dedication: dedications[0] || null,
+      show,
+      nextShow,
+      bumper,
     }),
-    [countdown, daypart, communityMixTitle, dedications]
+    [countdown, daypart, communityMixTitle, dedications, show, nextShow, bumper]
   );
 
   const pushDedication = (entry) => {

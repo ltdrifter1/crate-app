@@ -84,6 +84,29 @@ import {
   useStationFeed,
 } from "./components/station/StationChrome";
 import CountdownRail from "./components/station/CountdownRail";
+import {
+  HostCreditChip,
+  NowOnAirCard,
+  ShowGuideRail,
+  useLiveAiring,
+} from "./components/station/ShowGuide";
+import VideoStage, { VideoBadge } from "./components/station/VideoStage";
+import StationBumper from "./components/station/StationBumper";
+import ChartHistoryPanel from "./components/station/ChartHistoryPanel";
+import SceneSurfRail from "./components/station/SceneSurfRail";
+import {
+  buildShowPool,
+  getShowById,
+  pickShowBumper,
+  resolveShowAt,
+} from "./lib/shows";
+import { ensureTodayChart, buildWeeklyReveal } from "./lib/chartHistory";
+import {
+  buildSceneChannelPool,
+  getSceneChannel,
+} from "./lib/sceneChannels";
+import { pickTrackBumper } from "./lib/bumpers";
+import { trackHasVideo } from "./lib/video";
 import { playbackClock, usePlayerPlayback } from "./usePlayerPlayback";
 import { playerPlaybackStore } from "./lib/playerPlaybackStore";
 import DesktopMiniPlayer from "./components/player/DesktopMiniPlayer";
@@ -235,6 +258,10 @@ const injectStyles = () => {
       0% { opacity: 0; transform: translateX(-50%) scale(0.4) translateY(8px); }
       35% { opacity: 1; transform: translateX(-50%) scale(1.15) translateY(-6px); }
       100% { opacity: 0; transform: translateX(-50%) scale(1.4) translateY(-28px); }
+    }
+    @keyframes stationBumperIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
     }
     @keyframes likePop {
       0% { transform: scale(1); }
@@ -1068,6 +1095,7 @@ function CoverStage({
   dedicationFlash = null,
   onClearDedication = null,
   stationMode = false,
+  liveShow = null,
 }) {
   const { progress, duration } = usePlayerPlayback();
   const stageRef = useRef(null);
@@ -1078,6 +1106,7 @@ function CoverStage({
   const displayTrack = currentTrack || previewTrack || null;
   const showStation = !!(live && stationMode);
   const rgb = displayTrack?.color ? hexToRgbStr(displayTrack.color) : "42,46,56";
+  const onAirLabel = liveShow?.shortTitle || liveShow?.title || daypart?.label || (mixLane === "night" ? "Night Crash" : "Daytime Live");
 
   useEffect(() => {
     if (!onStageVisibilityChange) return undefined;
@@ -1121,8 +1150,14 @@ function CoverStage({
     >
       <CoverStageAtmosphere track={stageTrack} playing={playingVisual} live={live} />
 
-      {showStation && (
-        <HypnoVisualizer playing={playingVisual} colorHex={rgb} />
+      {showStation && trackHasVideo(stageTrack) ? (
+        <VideoStage
+          track={stageTrack}
+          playing={playingVisual}
+          progress={progress}
+        />
+      ) : (
+        showStation && <HypnoVisualizer playing={playingVisual} colorHex={rgb} />
       )}
 
       {live && (
@@ -1162,7 +1197,10 @@ function CoverStage({
         }}>
           <div style={{ pointerEvents: "none" }}>
             {(showStation || !live) && (
-              <OnAirBadge daypartLabel={daypart?.label || (mixLane === "night" ? "Night Crash" : "Daytime Live")} />
+              <OnAirBadge
+                showTitle={liveShow ? (liveShow.shortTitle || liveShow.title) : null}
+                daypartLabel={onAirLabel}
+              />
             )}
           </div>
           <div style={{ pointerEvents: "auto" }}>
@@ -1235,7 +1273,11 @@ function CoverStage({
             onKeyDown={(e) => { if (e.key === "Enter") openImmersive(); }}
             style={{ width: "100%", maxWidth: 420, cursor: onOpen ? "pointer" : "default", pointerEvents: "auto" }}
           >
-            <LowerThird track={displayTrack} rank={countdownRank} daypart={daypart} />
+            <LowerThird track={displayTrack} rank={countdownRank} daypart={daypart} show={liveShow} />
+            <div style={{ marginTop: 8, display: "flex", justifyContent: "center", gap: 8, flexWrap: "wrap" }}>
+              <VideoBadge track={displayTrack} dark />
+              {liveShow?.host && <HostCreditChip show={liveShow} compact />}
+            </div>
           </div>
         ) : (
           <div
@@ -2454,6 +2496,7 @@ function ImmersivePlayer({
   onDedicate = null,
   dedicationFlash = null,
   onClearDedication = null,
+  liveShow = null,
 }) {
   const { progress, duration } = usePlayerPlayback();
   const [artLoaded, setArtLoaded] = useState(false);
@@ -2516,7 +2559,15 @@ function ImmersivePlayer({
           `,
       }}/>
 
-      <HypnoVisualizer playing={isPlaying} colorHex={rgb} />
+      <HypnoVisualizer playing={isPlaying && !trackHasVideo(currentTrack)} colorHex={rgb} />
+      {trackHasVideo(currentTrack) && (
+        <VideoStage
+          track={currentTrack}
+          playing={isPlaying}
+          progress={progress}
+          dim={false}
+        />
+      )}
 
       {/* Top chrome */}
       <div style={{
@@ -2530,7 +2581,11 @@ function ImmersivePlayer({
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><path d="M6 9l6 6 6-6"/></svg>
           Back
         </button>
-        <OnAirBadge daypartLabel={daypart?.label} compact />
+        <OnAirBadge
+          showTitle={liveShow ? (liveShow.shortTitle || liveShow.title) : null}
+          daypartLabel={daypart?.label}
+          compact
+        />
           <div style={{ display: "flex", alignItems: "center", gap: 10, position: "relative" }}>
           <button type="button" onClick={() => setShowMore((m) => !m)} aria-label="More"
             aria-expanded={showMore}
@@ -2660,7 +2715,7 @@ function ImmersivePlayer({
           key={currentTrack.id}
           className="cover-tile"
           style={{
-            width: "min(62vw, 280px)",
+            width: trackHasVideo(currentTrack) ? "min(42vw, 160px)" : "min(62vw, 280px)",
             aspectRatio: "1 / 1",
             borderRadius: 14,
             overflow: "hidden",
@@ -2670,6 +2725,7 @@ function ImmersivePlayer({
             animation: isPlaying
               ? `coverFloat 5.5s ease-in-out infinite, trackSwap 0.4s ${motion.ease} both`
               : `trackSwap 0.4s ${motion.ease} both`,
+            opacity: trackHasVideo(currentTrack) ? 0.92 : 1,
           }}
         >
           {currentTrack.albumCover ? (
@@ -2692,7 +2748,11 @@ function ImmersivePlayer({
         </div>
 
         <div style={{ width: "100%", maxWidth: 420, animation: `trackSwap 0.4s ${motion.ease} both` }}>
-          <LowerThird track={currentTrack} rank={countdownRank} daypart={daypart} />
+          <LowerThird track={currentTrack} rank={countdownRank} daypart={daypart} show={liveShow} />
+          <div style={{ marginTop: 10, display: "flex", justifyContent: "center", gap: 8, flexWrap: "wrap" }}>
+            <VideoBadge track={currentTrack} />
+            {liveShow?.host && <HostCreditChip show={liveShow} />}
+          </div>
           {onOpenArtist && (
             <div style={{ textAlign: "center", marginTop: 8 }}>
               <button
@@ -3479,6 +3539,15 @@ function HomeScreen({
   onDedicate = null,
   dedicationFlash = null,
   onClearDedication = null,
+  airing = null,
+  programGuide = [],
+  activeShowId = null,
+  onTuneShow = null,
+  showBumper = null,
+  channelShow = null,
+  sceneChannelsActiveId = null,
+  onTuneSceneChannel = null,
+  onTuneWeeklyReveal = null,
 }) {
   const activeId = currentTrack?.id;
   const playableCount = countPlayableTracks(tracks);
@@ -3573,6 +3642,7 @@ function HomeScreen({
         dedicationFlash={dedicationFlash}
         onClearDedication={onClearDedication}
         stationMode
+        liveShow={channelShow || airing?.show || null}
       />
 
       {(catalogError || catalogEmpty || catalogDepleted) && (
@@ -3589,6 +3659,33 @@ function HomeScreen({
         position: "relative",
         background: color.canvas,
       }}>
+        {airing?.show && !catalogEmpty && !catalogError && (
+          <div style={{ paddingTop: 18, paddingBottom: 4 }}>
+            <NowOnAirCard
+              airing={airing}
+              bumper={showBumper}
+              tuned={activeShowId === airing.show.id && !!currentTrack}
+              onTuneIn={() => onTuneShow?.(airing.show)}
+            />
+          </div>
+        )}
+
+        {programGuide.length > 0 && !catalogEmpty && !catalogError && (
+          <ShowGuideRail
+            guide={programGuide}
+            activeShowId={activeShowId}
+            onSelectShow={(show) => onTuneShow?.(show)}
+          />
+        )}
+
+        {!catalogEmpty && !catalogError && (
+          <SceneSurfRail
+            tracks={tracks}
+            activeChannelId={sceneChannelsActiveId}
+            onTuneChannel={onTuneSceneChannel}
+          />
+        )}
+
         {countdown.length > 0 && !catalogEmpty && !catalogError && (
           <CountdownRail
             entries={countdown}
@@ -3596,6 +3693,15 @@ function HomeScreen({
             onTuneIn={onTuneCountdown}
             activeId={activeId}
             isPlaying={isPlaying}
+          />
+        )}
+
+        {countdown.length > 0 && !catalogEmpty && !catalogError && (
+          <ChartHistoryPanel
+            countdown={countdown}
+            tracks={tracks}
+            onPlayTrack={onPlayTrack}
+            onTuneWeekly={onTuneWeeklyReveal}
           />
         )}
 
@@ -4899,7 +5005,7 @@ function AdminScreen({
   tracks, setTracks, tab, setTab, editTrack, setEditTrack, showToast,
   userPlaylists = [], communityMix = null, onPublishCommunityMix = null,
 }) {
-  const EMPTY = { title:"",artist:"",album:"",genre:"",energy:"",camelot:"",bpm:"",albumCover:"" };
+  const EMPTY = { title:"",artist:"",album:"",genre:"",energy:"",camelot:"",bpm:"",albumCover:"",videoUrl:"" };
   const [nt, setNt] = useState(EMPTY);
   const [assigning, setAssigning] = useState(false);
   const [assigned, setAssigned] = useState(0);
@@ -4960,7 +5066,7 @@ function AdminScreen({
 
   // ── CSV EXPORT ──
   function exportCSV() {
-    const fields = ["id","title","artist","album","genre","energy","camelot","bpm","audioUrl","albumCover","color","duration"];
+    const fields = ["id","title","artist","album","genre","energy","camelot","bpm","audioUrl","albumCover","videoUrl","color","duration"];
     const escape = v => {
       const s = String(v ?? "");
       return s.includes(",") || s.includes('"') || s.includes("\n") ? `"${s.replace(/"/g,'""')}"` : s;
@@ -5139,7 +5245,7 @@ function AdminScreen({
             <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.55)", backdropFilter:"blur(8px)", zIndex:100, display:"flex", alignItems:"center", justifyContent:"center", padding:24 }}>
               <div style={{ background: color.surfaceSolid, borderRadius:20, padding:24, width:"100%", maxWidth:380, boxShadow:"0 16px 64px rgba(0,0,0,0.45)", border:`1px solid ${color.line}` }}>
                 <div style={{ fontSize:18, fontWeight:600, color: color.ink, marginBottom:16 }}>Edit Track</div>
-                {[["title","Title"],["artist","Artist"],["album","Album"],["genre","Genre"],["energy","Energy (1–10)"],["camelot","Camelot Key"],["bpm","BPM"],["albumCover","Cover URL"]].map(([k,p])=>(
+                {[["title","Title"],["artist","Artist"],["album","Album"],["genre","Genre"],["energy","Energy (1–10)"],["camelot","Camelot Key"],["bpm","BPM"],["albumCover","Cover URL"],["videoUrl","Video URL (MP4/WebM)"]].map(([k,p])=>(
                   <input key={k} placeholder={p} value={editTrack[k]||""} onChange={e=>setEditTrack(t=>({...t,[k]:e.target.value}))} style={{...INPUT_ST,marginBottom:8}}/>
                 ))}
                 <div style={{ display:"flex", gap:8, marginTop:8 }}>
@@ -5150,6 +5256,7 @@ function AdminScreen({
                         title:updated.title, artist:updated.artist, album:updated.album,
                         genre:updated.genre, energy:updated.energy, camelot:updated.camelot,
                         bpm:updated.bpm, albumCover:updated.albumCover,
+                        videoUrl: updated.videoUrl || "",
                       });
                       setTracks(ts=>ts.map(tr=>tr.id===editTrack.id?updated:tr));
                       setEditTrack(null); showToast("Saved ✓");
@@ -5980,6 +6087,10 @@ export default function App() {
   const [linerTrack, setLinerTrack] = useState(null);
   const [showDedicate, setShowDedicate] = useState(false);
   const [requestTick, setRequestTick] = useState(0); // re-read local request ledger
+  const [activeShowId, setActiveShowId] = useState(null); // tuned VJ block
+  const [activeSceneChannelId, setActiveSceneChannelId] = useState(null);
+  const [stationBumper, setStationBumper] = useState(null);
+  const lastBumperTrackRef = useRef(null);
   // Clock mix lane follows the time of day in the background.
   // Genre focus (from Search) is the only manual listen filter; taste prefs drive 95/5.
   const [mixLane, setMixLane] = useState(() => mixLaneForDate().id);
@@ -6012,7 +6123,29 @@ export default function App() {
     { requireAudio: true, applyMixLane: true }
   ), [tracks, activeListenIntent]);
 
-  const radioPool = useCallback(() => radioResolved().tracks, [radioResolved]);
+  const activeShowIdRef = useRef(activeShowId);
+  useEffect(() => { activeShowIdRef.current = activeShowId; }, [activeShowId]);
+  const playShowRef = useRef(null);
+
+  const radioPool = useCallback(() => {
+    const showId = activeShowIdRef.current;
+    if (showId) {
+      const show = getShowById(showId);
+      if (show) {
+        const pool = buildShowPool(tracks, show, { countdown: buildCountdown(tracks, 40) });
+        if (pool.length) return pool;
+      }
+    }
+    const sceneId = activeSceneChannelId;
+    if (sceneId) {
+      const channel = getSceneChannel(sceneId);
+      if (channel) {
+        const pool = buildSceneChannelPool(tracks, channel);
+        if (pool.length) return pool;
+      }
+    }
+    return radioResolved().tracks;
+  }, [tracks, radioResolved, activeSceneChannelId]);
   const radioIntentLabel = radioResolved().label;
   const mixLaneRef = useRef(mixLane);
   useEffect(() => { mixLaneRef.current = mixLane; }, [mixLane]);
@@ -6730,6 +6863,8 @@ export default function App() {
     setCurrent(track); setIsPlaying(true); setProgress(0); setIsRadioMode(false);
     if (!opts.keepSession) setSessionMeta(null);
     if (!opts.keepHypno) setHypnoSeed(null);
+    if (!opts.keepShow) setActiveShowId(null);
+    if (!opts.keepScene) setActiveSceneChannelId(null);
     if (opts.room) setListeningRoom(opts.room);
     else if (!opts.keepRoom) setListeningRoom(null);
     if (openImmersive) setImmersive(true);
@@ -6748,6 +6883,12 @@ export default function App() {
 
   const playRadio = (seed = null, intentOverride = null) => {
     unlockAudioElements();
+    const liveBlock = resolveShowAt(new Date()).show;
+    // Default orb = tune the live VJ block (channel, not anonymous shuffle)
+    if (!seed && !intentOverride && liveBlock && !listenFocus.genre && !listenFocus.scene) {
+      playShowRef.current?.(liveBlock);
+      return;
+    }
     const resolved = intentOverride
       ? resolveListenPool(tracks, intentOverride, { requireAudio: true, applyMixLane: true })
       : radioResolved();
@@ -6755,6 +6896,7 @@ export default function App() {
     if (!pool.length) return;
     const seedTrack = seed || null;
     setHypnoSeed(seedTrack);
+    if (liveBlock && !seedTrack) setActiveShowId(liveBlock.id);
     // Honor the hero preview so "Up first" is what actually plays
     const first = (!seedTrack && !intentOverride && heroPreview && pool.some(t => t.id === heroPreview.id))
       ? heroPreview
@@ -6770,7 +6912,7 @@ export default function App() {
     setSessionMeta(null);
     if (!sessionStartRef.current) sessionStartRef.current = Date.now();
     logTrackPlay(first);
-    showToast(seedTrack ? "Near this" : "What's in the mix?");
+    showToast(seedTrack ? "Near this" : (liveBlock?.intro || "What's in the mix?"));
     if (firebaseUser) recordPlay(first.id, profile?.recentTracks || []).catch(()=>{});
   };
 
@@ -7012,8 +7154,21 @@ export default function App() {
     }
   };
 
-  // ── Station: countdown, requests, dedications ────────────────────────────
+  // ── Station: countdown, requests, dedications, VJ shows ──────────────────
   const countdown = useMemo(() => buildCountdown(tracks, 20), [tracks]);
+  const { airing: liveAiring, guide: programGuide } = useLiveAiring(30000);
+  const liveShow = useMemo(() => {
+    if (activeShowId) {
+      const fromGuide = programGuide.find((s) => s.id === activeShowId);
+      if (fromGuide) return fromGuide;
+      return getShowById(activeShowId);
+    }
+    return liveAiring?.show || null;
+  }, [activeShowId, programGuide, liveAiring]);
+  const showBumper = useMemo(
+    () => pickShowBumper(liveShow || liveAiring?.show, new Date()),
+    [liveShow, liveAiring?.show?.id, currentTrack?.id]
+  );
   const stationDaypartLive = useMemo(() => stationDaypart(new Date()), [mixLane, currentTrack?.id]);
   const {
     daypart: feedDaypart,
@@ -7024,6 +7179,9 @@ export default function App() {
   } = useStationFeed({
     countdown,
     communityMixTitle: communityMix?.title || null,
+    show: liveShow || liveAiring?.show || null,
+    nextShow: liveAiring?.nextShow || null,
+    bumper: showBumper,
   });
   const activeDaypart = feedDaypart || stationDaypartLive;
   const currentRequested = useMemo(
@@ -7055,7 +7213,104 @@ export default function App() {
     }
   }, [currentTrack, firebaseUser]);
 
+  const playShow = useCallback((showInput) => {
+    const show = typeof showInput === "string"
+      ? getShowById(showInput)
+      : (showInput || liveAiring?.show);
+    if (!show) {
+      showToast("That block isn’t on the guide");
+      return;
+    }
+    const pool = buildShowPool(tracks, show, { countdown });
+    if (!pool.length) {
+      showToast("Nothing lined up for this block yet");
+      return;
+    }
+    unlockAudioElements();
+    const first = pool[0];
+    setActiveShowId(show.id);
+    setActiveSceneChannelId(null);
+    setHypnoSeed(null);
+    setListeningRoom({ id: `show:${show.id}`, label: show.title });
+    if (currentTrack) playHistoryRef.current = [currentTrack, ...playHistoryRef.current].slice(0, 50);
+    setCurrent(first);
+    setIsPlaying(true);
+    setProgress(0);
+    setIsRadioMode(true);
+    setQueue([]);
+    setImmersive(true);
+    setSessionMeta({
+      tracks: pool.slice(0, 24),
+      startTime: Date.now(),
+      kind: "show",
+      label: show.title,
+    });
+    if (!sessionStartRef.current) sessionStartRef.current = Date.now();
+    logTrackPlay(first);
+    showToast(show.intro || `Tuned into ${show.title}`);
+    if (firebaseUser) recordPlay(first.id, profile?.recentTracks || []).catch(() => {});
+  }, [tracks, countdown, liveAiring, currentTrack, firebaseUser, profile?.recentTracks]);
+
+  // Stable ref so playRadio (defined earlier) can tune a live block without TDZ issues
+  playShowRef.current = playShow;
+
+  const playSceneChannel = useCallback((channelInput) => {
+    const channel = typeof channelInput === "string"
+      ? getSceneChannel(channelInput)
+      : channelInput;
+    if (!channel) return;
+    const pool = buildSceneChannelPool(tracks, channel);
+    if (!pool.length) {
+      showToast("Nothing lined up on that channel yet");
+      return;
+    }
+    unlockAudioElements();
+    const first = pool[0];
+    setActiveSceneChannelId(channel.id);
+    setActiveShowId(null);
+    setHypnoSeed(null);
+    setListeningRoom({ id: `scene:${channel.id}`, label: channel.title });
+    if (currentTrack) playHistoryRef.current = [currentTrack, ...playHistoryRef.current].slice(0, 50);
+    setCurrent(first);
+    setIsPlaying(true);
+    setProgress(0);
+    setIsRadioMode(true);
+    setQueue([]);
+    setImmersive(true);
+    setSessionMeta(null);
+    if (!sessionStartRef.current) sessionStartRef.current = Date.now();
+    logTrackPlay(first);
+    showToast(`${channel.title} — ${channel.tagline}`);
+    if (firebaseUser) recordPlay(first.id, profile?.recentTracks || []).catch(() => {});
+  }, [tracks, currentTrack, firebaseUser, profile?.recentTracks]);
+
+  const playWeeklyReveal = useCallback(() => {
+    const weekly = buildWeeklyReveal(12);
+    const pool = weekly
+      .map((e) => tracks.find((t) => t.id === e.id))
+      .filter(Boolean);
+    if (!pool.length) {
+      showToast("Weekly reveal needs a few days of chart history");
+      return;
+    }
+    setActiveShowId(null);
+    setActiveSceneChannelId(null);
+    playTrack(pool[0], pool, { immersive: true });
+    showToast("Weekly reveal — peak chart cuts");
+  }, [tracks, playTrack]);
+
+  // Snapshot today's chart for history / climbers
+  useEffect(() => {
+    if (!tracks.length) return;
+    try { ensureTodayChart(tracks); } catch { /* ignore */ }
+  }, [tracks]);
+
   const tuneCountdown = useCallback(() => {
+    const liveCountdownShow = getShowById("most-requested-live");
+    if (liveCountdownShow) {
+      playShow(liveCountdownShow);
+      return;
+    }
     const pool = countdown.map((c) => c.track).filter(Boolean);
     if (!pool.length) {
       playRadio();
@@ -7063,7 +7318,7 @@ export default function App() {
     }
     playTrack(pool[0], pool, { immersive: true });
     showToast(`${activeDaypart?.label || "Countdown"} — locked in`);
-  }, [countdown, activeDaypart, playRadio, playTrack]);
+  }, [countdown, activeDaypart, playRadio, playTrack, playShow]);
 
   const countdownRankForCurrent = useMemo(() => {
     if (!currentTrack?.id) return null;
@@ -7071,6 +7326,33 @@ export default function App() {
   }, [countdown, currentTrack?.id]);
 
   const stationUpNext = setNext || (countdown[0]?.track?.id !== currentTrack?.id ? countdown[0]?.track : countdown[1]?.track) || null;
+
+  // Station bumper / ident between cuts while locked to channel or show
+  useEffect(() => {
+    if (!currentTrack?.id || !isPlaying) return;
+    if (lastBumperTrackRef.current === currentTrack.id) return;
+    const prev = lastBumperTrackRef.current;
+    lastBumperTrackRef.current = currentTrack.id;
+    if (!prev) return; // skip first track of session
+    if (!isRadioMode && !activeShowId && !activeSceneChannelId) return;
+    const bumper = pickTrackBumper({
+      show: liveShow,
+      nextTrack: stationUpNext,
+      countdownTop: countdown[0] || null,
+      sceneChannel: activeSceneChannelId ? getSceneChannel(activeSceneChannelId) : null,
+    });
+    setStationBumper(bumper);
+  }, [currentTrack?.id, isPlaying, isRadioMode, activeShowId, activeSceneChannelId, liveShow, stationUpNext, countdown]);
+
+  // When a tuned block ends, roll the channel forward to the new live show
+  useEffect(() => {
+    if (!isRadioMode || !activeShowId || !liveAiring?.show) return;
+    const stillOnGuide = programGuide.some((s) => s.id === activeShowId);
+    if (!stillOnGuide) {
+      setActiveShowId(liveAiring.show.id);
+      showToast(liveAiring.show.intro || `Now: ${liveAiring.show.title}`);
+    }
+  }, [isRadioMode, liveAiring?.show?.id, activeShowId, programGuide]);
 
   // Keep shortcut handlers current each render — after toggleLike exists.
   keyCtxRef.current = {
@@ -7518,6 +7800,12 @@ export default function App() {
           }}
         />
       )}
+      {stationBumper && (
+        <StationBumper
+          bumper={stationBumper}
+          onDone={() => setStationBumper(null)}
+        />
+      )}
       {afterglow && (
         <AfterglowOverlay
           data={afterglow}
@@ -7566,6 +7854,7 @@ export default function App() {
       onDedicate={() => setShowDedicate(true)}
       dedicationFlash={dedicationFlash}
       onClearDedication={() => setDedicationFlash(null)}
+      liveShow={liveShow || liveAiring?.show || null}
     />
   ) : null;
 
@@ -7623,7 +7912,7 @@ export default function App() {
       )}
       <div ref={contentScrollRef} onScroll={rememberScroll} style={{ flex:1, overflow:"auto", paddingBottom: contentPadBottom(!!currentTrack && !immersive && !hideDockPlayer), zIndex:1, position:"relative" }}>
         <ScreenPane key={screen === "artist" ? `artist:${artistSlug}` : screen === "album" ? `album:${albumSlug}` : screen === "mix" ? `mix:${mixId}` : screen}>
-        {screen==="home"      && !tracksLoading && <HomeScreen tracks={tracks} onPlayRadio={playRadio} onTogglePlay={togglePlay} onPlayTrack={playTrack} currentTrack={currentTrack} isPlaying={isPlaying} onLike={toggleLike} isRadioMode={isRadioMode} hypnoPocket={!!hypnoSeed} playlistCtx={playlistCtx} signalLabel={signalState?.label} mixLane={mixLane} radioPreview={heroPreview} radioNext={setNext} onSkipRadio={handleSkip} onPrevRadio={handlePrev} onOpenPlayer={()=>setImmersive(true)} onListenFor={()=>setShowListenInsights(true)} intentLabel={radioIntentLabel} catalogError={tracksLoadError} onRetryCatalog={reloadCatalog} preferredGenres={user.genres} recentTrackIds={(profile?.recentTracks||[]).map(r=>r.trackId||r)} communityMix={communityMix} onOpenCommunityMix={()=>communityMix && openMix(communityMix.id)} onBrowse={()=>setScreen("search")} onCustomMix={()=>{ setSessionInitialActivity(vibeForMixLane(mixLane)); setShowRouteBuilder(true); }} onStageVisibilityChange={onHomeStageVisibilityChange} onSeek={handleSeek} userKey={firebaseUser?.uid || ""} countdown={countdown} onTuneCountdown={tuneCountdown} daypart={activeDaypart} tickerText={stationTicker} onRequest={requestCurrentTrack} requested={currentRequested} onDedicate={()=>setShowDedicate(true)} dedicationFlash={dedicationFlash} onClearDedication={()=>setDedicationFlash(null)}/>}
+        {screen==="home"      && !tracksLoading && <HomeScreen tracks={tracks} onPlayRadio={playRadio} onTogglePlay={togglePlay} onPlayTrack={playTrack} currentTrack={currentTrack} isPlaying={isPlaying} onLike={toggleLike} isRadioMode={isRadioMode} hypnoPocket={!!hypnoSeed} playlistCtx={playlistCtx} signalLabel={signalState?.label} mixLane={mixLane} radioPreview={heroPreview} radioNext={setNext} onSkipRadio={handleSkip} onPrevRadio={handlePrev} onOpenPlayer={()=>setImmersive(true)} onListenFor={()=>setShowListenInsights(true)} intentLabel={radioIntentLabel} catalogError={tracksLoadError} onRetryCatalog={reloadCatalog} preferredGenres={user.genres} recentTrackIds={(profile?.recentTracks||[]).map(r=>r.trackId||r)} communityMix={communityMix} onOpenCommunityMix={()=>communityMix && openMix(communityMix.id)} onBrowse={()=>setScreen("search")} onCustomMix={()=>{ setSessionInitialActivity(vibeForMixLane(mixLane)); setShowRouteBuilder(true); }} onStageVisibilityChange={onHomeStageVisibilityChange} onSeek={handleSeek} userKey={firebaseUser?.uid || ""} countdown={countdown} onTuneCountdown={tuneCountdown} daypart={activeDaypart} tickerText={stationTicker} onRequest={requestCurrentTrack} requested={currentRequested} onDedicate={()=>setShowDedicate(true)} dedicationFlash={dedicationFlash} onClearDedication={()=>setDedicationFlash(null)} airing={liveAiring} programGuide={programGuide} activeShowId={activeShowId} onTuneShow={playShow} showBumper={showBumper} channelShow={liveShow} sceneChannelsActiveId={activeSceneChannelId} onTuneSceneChannel={playSceneChannel} onTuneWeeklyReveal={playWeeklyReveal}/>}
         {screen==="search"    && <SearchScreen query={searchQuery} setQuery={setSearch} results={searchResults} tracks={tracks} onPlay={(t,pool)=>{ recordRecentSearch(searchQuery); playTrack(t,pool||tracks); }} onListenIntent={(focus)=>{ const next={ genre: focus.genre || null, scene: null }; setListenFocus(next); playRadio(null, createListenIntent({ mixLane, ...next })); }} onLike={toggleLike} currentTrack={currentTrack} isPlaying={isPlaying} playlistCtx={playlistCtx} entityHits={entityHits} onOpenArtist={(slug)=>{ recordRecentSearch(searchQuery); openArtist(slug); }} onOpenAlbum={(slug)=>{ recordRecentSearch(searchQuery); openAlbum(slug); }} recentSearches={recentSearches} onPickRecent={(q)=>setSearch(q)} onClearRecent={clearRecentSearches}/>}
         {screen==="favorites" && <FavoritesScreen tracks={tracks} onPlay={t=>{setIsRadioMode(false);playTrack(t,tracks);}} onPlayTrack={(t,pool)=>{setIsRadioMode(false);playTrack(t,pool||tracks);}} onLike={toggleLike} currentTrack={currentTrack} isPlaying={isPlaying} playlistCtx={playlistCtx} userPlaylists={libraryPlaylists} onCreatePlaylist={createPlaylist} onDeletePlaylist={deletePlaylist} onRenamePlaylist={renamePlaylist} onSharePlaylist={sharePlaylistToClub} openRequestId={stackOpenRequest} onConsumeOpenRequest={()=>setStackOpenRequest(null)} communityMix={communityMix} onOpenMix={()=>communityMix && openMix(communityMix.id)} onCustomMix={()=>{ setSessionInitialActivity(vibeForMixLane(mixLane)); setShowRouteBuilder(true); }}/>}
         {screen==="mix"       && (
@@ -7901,7 +8190,7 @@ export default function App() {
             </>
           ) : (
             <ScreenPane key={screen === "artist" ? `artist:${artistSlug}` : screen === "album" ? `album:${albumSlug}` : screen === "mix" ? `mix:${mixId}` : screen}>
-              {screen==="home"      && <HomeScreen tracks={tracks} onPlayRadio={playRadio} onTogglePlay={togglePlay} onPlayTrack={playTrack} currentTrack={currentTrack} isPlaying={isPlaying} onLike={toggleLike} isRadioMode={isRadioMode} hypnoPocket={!!hypnoSeed} playlistCtx={playlistCtx} signalLabel={signalState?.label} mixLane={mixLane} radioPreview={heroPreview} radioNext={setNext} onSkipRadio={handleSkip} onPrevRadio={handlePrev} onOpenPlayer={()=>setImmersive(true)} onListenFor={()=>setShowListenInsights(true)} intentLabel={radioIntentLabel} catalogError={tracksLoadError} onRetryCatalog={reloadCatalog} preferredGenres={user.genres} recentTrackIds={(profile?.recentTracks||[]).map(r=>r.trackId||r)} communityMix={communityMix} onOpenCommunityMix={()=>communityMix && openMix(communityMix.id)} onBrowse={()=>setScreen("search")} onCustomMix={()=>{ setSessionInitialActivity(vibeForMixLane(mixLane)); setShowRouteBuilder(true); }} onStageVisibilityChange={onHomeStageVisibilityChange} onSeek={handleSeek} userKey={firebaseUser?.uid || ""} countdown={countdown} onTuneCountdown={tuneCountdown} daypart={activeDaypart} tickerText={stationTicker} onRequest={requestCurrentTrack} requested={currentRequested} onDedicate={()=>setShowDedicate(true)} dedicationFlash={dedicationFlash} onClearDedication={()=>setDedicationFlash(null)}/>}
+              {screen==="home"      && <HomeScreen tracks={tracks} onPlayRadio={playRadio} onTogglePlay={togglePlay} onPlayTrack={playTrack} currentTrack={currentTrack} isPlaying={isPlaying} onLike={toggleLike} isRadioMode={isRadioMode} hypnoPocket={!!hypnoSeed} playlistCtx={playlistCtx} signalLabel={signalState?.label} mixLane={mixLane} radioPreview={heroPreview} radioNext={setNext} onSkipRadio={handleSkip} onPrevRadio={handlePrev} onOpenPlayer={()=>setImmersive(true)} onListenFor={()=>setShowListenInsights(true)} intentLabel={radioIntentLabel} catalogError={tracksLoadError} onRetryCatalog={reloadCatalog} preferredGenres={user.genres} recentTrackIds={(profile?.recentTracks||[]).map(r=>r.trackId||r)} communityMix={communityMix} onOpenCommunityMix={()=>communityMix && openMix(communityMix.id)} onBrowse={()=>setScreen("search")} onCustomMix={()=>{ setSessionInitialActivity(vibeForMixLane(mixLane)); setShowRouteBuilder(true); }} onStageVisibilityChange={onHomeStageVisibilityChange} onSeek={handleSeek} userKey={firebaseUser?.uid || ""} countdown={countdown} onTuneCountdown={tuneCountdown} daypart={activeDaypart} tickerText={stationTicker} onRequest={requestCurrentTrack} requested={currentRequested} onDedicate={()=>setShowDedicate(true)} dedicationFlash={dedicationFlash} onClearDedication={()=>setDedicationFlash(null)} airing={liveAiring} programGuide={programGuide} activeShowId={activeShowId} onTuneShow={playShow} showBumper={showBumper} channelShow={liveShow} sceneChannelsActiveId={activeSceneChannelId} onTuneSceneChannel={playSceneChannel} onTuneWeeklyReveal={playWeeklyReveal}/>}
               {screen==="search"    && <SearchScreen query={searchQuery} setQuery={setSearch} results={searchResults} tracks={tracks} onPlay={(t,pool)=>{ recordRecentSearch(searchQuery); playTrack(t,pool||tracks); }} onListenIntent={(focus)=>{ const next={ genre: focus.genre || null, scene: null }; setListenFocus(next); playRadio(null, createListenIntent({ mixLane, ...next })); }} onLike={toggleLike} currentTrack={currentTrack} isPlaying={isPlaying} playlistCtx={playlistCtx} entityHits={entityHits} onOpenArtist={(slug)=>{ recordRecentSearch(searchQuery); openArtist(slug); }} onOpenAlbum={(slug)=>{ recordRecentSearch(searchQuery); openAlbum(slug); }} recentSearches={recentSearches} onPickRecent={(q)=>setSearch(q)} onClearRecent={clearRecentSearches}/>}
               {screen==="favorites" && <FavoritesScreen tracks={tracks} onPlay={t=>{setIsRadioMode(false);playTrack(t,tracks);}} onPlayTrack={(t,pool)=>{setIsRadioMode(false);playTrack(t,pool||tracks);}} onLike={toggleLike} currentTrack={currentTrack} isPlaying={isPlaying} playlistCtx={playlistCtx} userPlaylists={libraryPlaylists} onCreatePlaylist={createPlaylist} onDeletePlaylist={deletePlaylist} onRenamePlaylist={renamePlaylist} onSharePlaylist={sharePlaylistToClub} openRequestId={stackOpenRequest} onConsumeOpenRequest={()=>setStackOpenRequest(null)} communityMix={communityMix} onOpenMix={()=>communityMix && openMix(communityMix.id)} onCustomMix={()=>{ setSessionInitialActivity(vibeForMixLane(mixLane)); setShowRouteBuilder(true); }}/>}
               {screen==="mix"       && (
