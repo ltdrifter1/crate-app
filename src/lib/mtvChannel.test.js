@@ -9,6 +9,13 @@ import {
 import { availableSceneChannels, buildSceneChannelPool, getSceneChannel } from "./sceneChannels";
 import { pickTrackBumper, STATION_IDENTS } from "./bumpers";
 import { brandStoragePrefix } from "../brand/identity";
+import {
+  MAIN_CHANNEL,
+  STATION_CALLSIGN,
+  channelBugLine,
+  formatChannelNum,
+  resolveChannelBug,
+} from "./mtvChannel";
 
 describe("video helpers", () => {
   test("detects videoUrl", () => {
@@ -74,8 +81,29 @@ describe("sceneChannels", () => {
       { id: "5", title: "Rock2", genre: "Rock", duration: 180, audioUrl: "u" },
     ];
     const rap = getSceneChannel("rap-city");
+    expect(rap.num).toBe(3);
+    expect(formatChannelNum(rap.num)).toBe("CH-03");
     expect(buildSceneChannelPool(tracks, rap).length).toBeGreaterThanOrEqual(2);
     expect(availableSceneChannels(tracks, 2).some((c) => c.id === "rap-city")).toBe(true);
+  });
+});
+
+describe("mtvChannel", () => {
+  test("formats dial numbers and resolves bugs", () => {
+    expect(STATION_CALLSIGN).toBe("PMP3");
+    expect(formatChannelNum(7)).toBe("CH-07");
+    expect(formatChannelNum(MAIN_CHANNEL.num)).toBe("CH-01");
+
+    const main = resolveChannelBug({});
+    expect(main.ch).toBe("CH-01");
+    expect(main.slug).toBe("LIVE");
+    expect(channelBugLine(main)).toBe("CH-01 · LIVE");
+
+    const scene = resolveChannelBug({
+      sceneChannel: getSceneChannel("rap-city"),
+    });
+    expect(scene.ch).toBe("CH-03");
+    expect(scene.slug).toContain("RAP");
   });
 });
 

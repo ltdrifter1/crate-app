@@ -78,6 +78,7 @@ import {
   DedicationFlash,
   HypnoVisualizer,
   LowerThird,
+  ChannelBug,
   OnAirBadge,
   StationHeatBar,
   StationTicker,
@@ -326,6 +327,16 @@ const injectStyles = () => {
       0% { opacity: 0; transform: translateX(-50%) scale(0.4) translateY(8px); }
       35% { opacity: 1; transform: translateX(-50%) scale(1.15) translateY(-6px); }
       100% { opacity: 0; transform: translateX(-50%) scale(1.4) translateY(-28px); }
+    }
+    @keyframes channelBugIn {
+      from { opacity: 0; transform: translateX(10px) scale(0.96); }
+      to { opacity: 1; transform: none; }
+    }
+    @keyframes channelZap {
+      0% { filter: brightness(1); transform: scale(1); }
+      35% { filter: brightness(1.45) contrast(1.15); transform: scale(0.97); }
+      70% { filter: brightness(0.85); transform: scale(1.02); }
+      100% { filter: none; transform: none; }
     }
     @keyframes stationBumperIn {
       from { opacity: 0; }
@@ -1168,6 +1179,7 @@ function CoverStage({
   onClearDedication = null,
   stationMode = false,
   liveShow = null,
+  sceneChannel = null,
 }) {
   const { progress, duration } = usePlayerPlayback();
   const stageRef = useRef(null);
@@ -1249,12 +1261,12 @@ function CoverStage({
         />
       )}
 
-      {/* Top chrome — On Air + Interests */}
+      {/* Top chrome — On Air callsign + channel bug */}
       <div
         style={{
           position: "absolute",
           top: 0, left: 0, right: 0, zIndex: 3,
-          padding: `calc(14px + env(safe-area-inset-top, 0px)) ${homeSpace.gutter}px 0`,
+          padding: `calc(12px + env(safe-area-inset-top, 0px)) ${homeSpace.gutter}px 0`,
           display: "flex",
           flexDirection: "column",
           gap: 8,
@@ -1263,11 +1275,11 @@ function CoverStage({
       >
         <div style={{
           display: "flex",
-          alignItems: "center",
+          alignItems: "flex-start",
           justifyContent: "space-between",
-          gap: 12,
+          gap: 10,
         }}>
-          <div style={{ pointerEvents: "none" }}>
+          <div style={{ pointerEvents: "none", minWidth: 0 }}>
             {(showStation || !live) && (
               <OnAirBadge
                 showTitle={liveShow ? (liveShow.shortTitle || liveShow.title) : null}
@@ -1275,12 +1287,27 @@ function CoverStage({
               />
             )}
           </div>
-          <div style={{ pointerEvents: "auto" }}>
-            <FlaskTasteButton
-              onClick={onListenFor || null}
-              active={playingVisual}
-              labeled
-            />
+          <div style={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "flex-end",
+            gap: 8,
+            flexShrink: 0,
+          }}>
+            {showStation && (
+              <ChannelBug
+                sceneChannel={sceneChannel}
+                show={sceneChannel ? null : liveShow}
+                daypartLabel={daypart?.label || onAirLabel}
+              />
+            )}
+            <div style={{ pointerEvents: "auto" }}>
+              <FlaskTasteButton
+                onClick={onListenFor || null}
+                active={playingVisual}
+                labeled
+              />
+            </div>
           </div>
         </div>
         {showStation && tickerText && (
@@ -1326,7 +1353,7 @@ function CoverStage({
           alignItems: "center",
           boxSizing: "border-box",
           pointerEvents: "none",
-          gap: 10,
+          gap: 7,
         }}
       >
         {showStation && dedicationFlash && (
@@ -1343,10 +1370,10 @@ function CoverStage({
             tabIndex={0}
             onClick={openImmersive}
             onKeyDown={(e) => { if (e.key === "Enter") openImmersive(); }}
-            style={{ width: "100%", maxWidth: 420, cursor: onOpen ? "pointer" : "default", pointerEvents: "auto" }}
+            style={{ width: "100%", maxWidth: 400, cursor: onOpen ? "pointer" : "default", pointerEvents: "auto" }}
           >
             <LowerThird track={displayTrack} rank={countdownRank} daypart={daypart} show={liveShow} />
-            <div style={{ marginTop: 8, display: "flex", justifyContent: "center", gap: 8, flexWrap: "wrap" }}>
+            <div style={{ marginTop: 6, display: "flex", justifyContent: "flex-start", gap: 6, flexWrap: "wrap" }}>
               <VideoBadge track={displayTrack} dark />
               {liveShow?.host && <HostCreditChip show={liveShow} compact />}
             </div>
@@ -1410,6 +1437,7 @@ function CoverStage({
             onRequest={onRequest}
             requested={requested}
             onDedicate={onDedicate}
+            compact
           />
         )}
 
@@ -3264,6 +3292,7 @@ function HomeScreen({
         onClearDedication={onClearDedication}
         stationMode
         liveShow={channelShow || airing?.show || null}
+        sceneChannel={sceneChannelsActiveId ? getSceneChannel(sceneChannelsActiveId) : null}
       />
 
       {(catalogError || catalogEmpty || catalogDepleted) && (
@@ -3280,25 +3309,66 @@ function HomeScreen({
         position: "relative",
         background: color.canvas,
       }}>
-        {airing?.show && !catalogEmpty && !catalogError && (
-          <div style={{ paddingTop: 18, paddingBottom: 4 }}>
-            <NowOnAirCard
-              airing={airing}
-              bumper={showBumper}
-              tuned={activeShowId === airing.show.id && !!currentTrack}
-              onTuneIn={() => onTuneShow?.(airing.show)}
-            />
-          </div>
+        {/* Tonight's block — appointment TV, not a shelf dashboard */}
+        {!catalogEmpty && !catalogError && (airing?.show || programGuide.length > 0 || countdown.length > 0) && (
+          <section aria-label="Tonight's block" style={{ paddingTop: 20 }}>
+            <div style={{ padding: `0 ${homeSpace.gutter}px 12px` }}>
+              <div style={{
+                fontFamily: fontMono, fontSize: 10, fontWeight: 900,
+                letterSpacing: 1.8, textTransform: "uppercase", color: "#FF3B4E",
+                marginBottom: 4,
+              }}>
+                Tonight’s block
+              </div>
+              <h2 style={{
+                margin: 0,
+                fontFamily: fontDisplay,
+                fontSize: "clamp(22px, 4vw, 28px)",
+                fontWeight: 800,
+                letterSpacing: -0.5,
+                color: color.ink,
+                textTransform: "uppercase",
+                lineHeight: 1.1,
+              }}>
+                Appointment viewing
+              </h2>
+              <p style={{ margin: "6px 0 0", fontSize: 13, color: color.muted, maxWidth: 340, lineHeight: 1.4 }}>
+                What’s on now, what’s next, and the countdown — one schedule.
+              </p>
+            </div>
+
+            {airing?.show && (
+              <div style={{ paddingBottom: 8 }}>
+                <NowOnAirCard
+                  airing={airing}
+                  bumper={showBumper}
+                  tuned={activeShowId === airing.show.id && !!currentTrack}
+                  onTuneIn={() => onTuneShow?.(airing.show)}
+                />
+              </div>
+            )}
+
+            {programGuide.length > 0 && (
+              <ShowGuideRail
+                guide={programGuide}
+                activeShowId={activeShowId}
+                onSelectShow={(show) => onTuneShow?.(show)}
+              />
+            )}
+
+            {countdown.length > 0 && (
+              <CountdownRail
+                entries={countdown}
+                onPlayTrack={onPlayTrack}
+                onTuneIn={onTuneCountdown}
+                activeId={activeId}
+                isPlaying={isPlaying}
+              />
+            )}
+          </section>
         )}
 
-        {programGuide.length > 0 && !catalogEmpty && !catalogError && (
-          <ShowGuideRail
-            guide={programGuide}
-            activeShowId={activeShowId}
-            onSelectShow={(show) => onTuneShow?.(show)}
-          />
-        )}
-
+        {/* Channel dial */}
         {!catalogEmpty && !catalogError && (
           <SceneSurfRail
             tracks={tracks}
@@ -3307,127 +3377,131 @@ function HomeScreen({
           />
         )}
 
-        {countdown.length > 0 && !catalogEmpty && !catalogError && (
-          <CountdownRail
-            entries={countdown}
-            onPlayTrack={onPlayTrack}
-            onTuneIn={onTuneCountdown}
-            activeId={activeId}
-            isPlaying={isPlaying}
-          />
-        )}
-
-        {countdown.length > 0 && !catalogEmpty && !catalogError && (
-          <ChartHistoryPanel
-            countdown={countdown}
-            tracks={tracks}
-            onPlayTrack={onPlayTrack}
-            onTuneWeekly={onTuneWeeklyReveal}
-          />
-        )}
-
-        {forYouTracks.length > 0 && (
-          <ForYouRiver
-            tracks={forYouTracks}
-            reasons={forYouReasons}
-            coldStart={coldStart}
-            onPlayTrack={onPlayTrack}
-            activeId={activeId}
-            isPlaying={isPlaying}
-            onLike={onLike}
-            playlistCtx={playlistCtx}
-          />
-        )}
-
-        {onBrowse && !catalogEmpty && !catalogError && (
-          <section
-            aria-label="Browse the library"
-            style={{
-              padding: `${forYouTracks.length > 0 || countdown.length > 0 ? 8 : 22}px ${homeSpace.gutter}px 10px`,
-            }}
-          >
-            <button
-              type="button"
-              onClick={onBrowse}
-              aria-label="Browse the library"
-              style={{
-                width: "100%",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                gap: 12,
-                padding: "16px 18px",
-                borderRadius: radius.lg,
-                border: `1px solid ${glass.borderSoft}`,
-                background: `
-                  linear-gradient(145deg, rgba(255,255,255,0.7) 0%, rgba(246,248,252,0.45) 100%)
-                `,
-                boxShadow: `inset 0 1px 0 ${glass.highlight}, ${glass.shadowSoft}`,
-                backdropFilter: glass.blurSoft,
-                WebkitBackdropFilter: glass.blurSoft,
-                cursor: "pointer",
-                textAlign: "left",
-              }}
-            >
-              <div>
-                <div style={{
-                  fontSize: 10,
-                  fontWeight: 700,
-                  letterSpacing: 1.2,
-                  textTransform: "uppercase",
-                  fontFamily: fontMono,
-                  color: color.faint,
-                  marginBottom: 4,
-                }}>
-                  Explore
-                </div>
-                <div style={{
-                  fontSize: 15,
-                  fontWeight: 650,
-                  fontFamily: fontDisplay,
-                  letterSpacing: -0.2,
-                  color: color.ink,
-                }}>
-                  Browse the library
-                </div>
+        {/* Secondary shelves — quieter, after the channel jobs */}
+        {!catalogEmpty && !catalogError && (countdown.length > 0 || forYouTracks.length > 0 || onBrowse || onCustomMix || communityMix) && (
+          <div style={{
+            marginTop: 8,
+            paddingTop: 18,
+            borderTop: `1px solid ${glass.borderSoft}`,
+          }}>
+            <div style={{ padding: `0 ${homeSpace.gutter}px 6px` }}>
+              <div style={{
+                fontFamily: fontMono, fontSize: 10, fontWeight: 800,
+                letterSpacing: 1.5, textTransform: "uppercase", color: color.faint,
+              }}>
+                More from the station
               </div>
-              <span aria-hidden="true" style={{ color: color.faint, fontSize: 18 }}>→</span>
-            </button>
-          </section>
+            </div>
+
+            {countdown.length > 0 && (
+              <ChartHistoryPanel
+                countdown={countdown}
+                tracks={tracks}
+                onPlayTrack={onPlayTrack}
+                onTuneWeekly={onTuneWeeklyReveal}
+              />
+            )}
+
+            {forYouTracks.length > 0 && (
+              <ForYouRiver
+                tracks={forYouTracks}
+                reasons={forYouReasons}
+                coldStart={coldStart}
+                onPlayTrack={onPlayTrack}
+                activeId={activeId}
+                isPlaying={isPlaying}
+                onLike={onLike}
+                playlistCtx={playlistCtx}
+              />
+            )}
+
+            {onBrowse && (
+              <section
+                aria-label="Browse the library"
+                style={{
+                  padding: `8px ${homeSpace.gutter}px 10px`,
+                }}
+              >
+                <button
+                  type="button"
+                  onClick={onBrowse}
+                  aria-label="Browse the library"
+                  style={{
+                    width: "100%",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    gap: 12,
+                    padding: "14px 16px",
+                    borderRadius: 0,
+                    border: `1px solid ${glass.borderSoft}`,
+                    background: "rgba(255,255,255,0.55)",
+                    boxShadow: `inset 0 1px 0 ${glass.highlight}`,
+                    cursor: "pointer",
+                    textAlign: "left",
+                  }}
+                >
+                  <div>
+                    <div style={{
+                      fontSize: 10,
+                      fontWeight: 800,
+                      letterSpacing: 1.2,
+                      textTransform: "uppercase",
+                      fontFamily: fontMono,
+                      color: color.faint,
+                      marginBottom: 4,
+                    }}>
+                      Library
+                    </div>
+                    <div style={{
+                      fontSize: 15,
+                      fontWeight: 700,
+                      fontFamily: fontDisplay,
+                      letterSpacing: -0.2,
+                      color: color.ink,
+                    }}>
+                      Browse the catalog
+                    </div>
+                  </div>
+                  <span aria-hidden="true" style={{ color: color.faint, fontSize: 18 }}>→</span>
+                </button>
+              </section>
+            )}
+
+            {onCustomMix && (
+              <section
+                aria-label="Custom mix"
+                style={{
+                  margin: 0,
+                  paddingTop: 4,
+                  paddingBottom: 14,
+                  animation: `rise 0.55s ${motion.ease} 0.04s both`,
+                }}
+              >
+                <CustomMixFeature onClick={onCustomMix} />
+              </section>
+            )}
+
+            {communityMix && onOpenCommunityMix && (
+              <CommunityMixBanner
+                mix={communityMix}
+                onOpen={onOpenCommunityMix}
+                coverTracks={(communityMix.trackIds || [])
+                  .map((id) => tracks.find((t) => t.id === id))
+                  .filter(Boolean)
+                  .slice(0, 4)}
+                onPlay={() => {
+                  const pool = (communityMix.trackIds || [])
+                    .map((id) => tracks.find((t) => t.id === id))
+                    .filter(Boolean);
+                  if (pool[0]) onPlayTrack(pool[0], pool);
+                }}
+              />
+            )}
+          </div>
         )}
 
-        {onCustomMix && !catalogEmpty && !catalogError && (
-          <section
-            aria-label="Custom mix"
-            style={{
-              margin: 0,
-              paddingTop: forYouTracks.length > 0 || countdown.length > 0 ? 4 : 12,
-              paddingBottom: 14,
-              animation: `rise 0.55s ${motion.ease} 0.04s both`,
-            }}
-          >
-            <CustomMixFeature onClick={onCustomMix} />
-          </section>
-        )}
-
-        {communityMix && onOpenCommunityMix && (
-          <CommunityMixBanner
-            mix={communityMix}
-            onOpen={onOpenCommunityMix}
-            coverTracks={(communityMix.trackIds || [])
-              .map((id) => tracks.find((t) => t.id === id))
-              .filter(Boolean)
-              .slice(0, 4)}
-            onPlay={() => {
-              const pool = (communityMix.trackIds || [])
-                .map((id) => tracks.find((t) => t.id === id))
-                .filter(Boolean);
-              if (pool[0]) onPlayTrack(pool[0], pool);
-            }}
-          />
-        )}
-
-        {!catalogError && !catalogEmpty && forYouTracks.length === 0 && countdown.length === 0 && (
+        {!catalogError && !catalogEmpty && forYouTracks.length === 0 && countdown.length === 0 && !airing?.show && (
           <div style={{ padding: `28px ${homeSpace.gutter}px 56px` }}>
             <div className="glass-surface" style={{ padding: "28px 22px", borderRadius: radius.lg }}>
               <div style={{ fontSize: 22, fontWeight: 700, fontFamily: fontDisplay, color: color.ink, marginBottom: 8, letterSpacing: -0.4 }}>

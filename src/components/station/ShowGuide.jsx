@@ -341,7 +341,7 @@ export function ShowGuideRail({
             letterSpacing: -0.3,
             color: color.ink,
           }}>
-            Today on Planet MP3
+            Today’s blocks
           </h3>
         </div>
       </div>

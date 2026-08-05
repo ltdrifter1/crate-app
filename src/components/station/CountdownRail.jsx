@@ -42,16 +42,17 @@ export default function CountdownRail({
             color: "#FF3B4E",
             marginBottom: 6,
           }}>
-            Live countdown · {daypart.label}
+            The countdown · {daypart.label}
           </div>
           <h2 style={{
             margin: 0,
             fontFamily: fontDisplay,
-            fontSize: "clamp(22px, 4vw, 28px)",
-            fontWeight: 750,
-            letterSpacing: -0.5,
+            fontSize: "clamp(20px, 3.6vw, 24px)",
+            fontWeight: 800,
+            letterSpacing: -0.4,
             color: color.ink,
             lineHeight: 1.1,
+            textTransform: "uppercase",
           }}>
             Most Requested
           </h2>
