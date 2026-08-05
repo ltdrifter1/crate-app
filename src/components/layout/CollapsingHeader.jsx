@@ -48,11 +48,11 @@ export default function CollapsingHeader({ title, subtitle }) {
           alignItems: "center",
           justifyContent: "center",
           gap: 8,
-          background: "rgba(255,255,255,0.82)",
+          background: "rgba(255,255,255,0.72)",
           WebkitBackdropFilter: glass.blurSoft,
           backdropFilter: glass.blurSoft,
           borderBottom: compact ? `1px solid ${glass.borderSoft}` : "none",
-          boxShadow: compact ? `inset 0 1px 0 ${glass.highlight}, 0 4px 16px rgba(26,29,36,0.06)` : "none",
+          boxShadow: compact ? `inset 0 1px 0 ${glass.highlight}, 0 8px 24px rgba(26,29,36,0.06)` : "none",
           transition: `opacity ${motion.base} ${motion.ease}`,
         }}
       >

@@ -1,4 +1,4 @@
-import { font, fontDisplay, fontMono, color, radius } from "../../theme";
+import { font, fontDisplay, fontMono, color, radius, glass, glassSheet } from "../../theme";
 import { linerNotesFor } from "../../lib/catalog";
 
 /** Interactive liner notes — credits & listening context for a track. */
@@ -10,7 +10,13 @@ export default function LinerNotesSheet({ track, roomLabel, onClose, onOpenArtis
     <div style={{ position: "fixed", inset: 0, zIndex: 120 }}>
       <div
         onClick={onClose}
-        style={{ position: "absolute", inset: 0, background: "rgba(26,29,36,0.38)", backdropFilter: "blur(10px)" }}
+        style={{
+          position: "absolute",
+          inset: 0,
+          background: "rgba(22,24,30,0.28)",
+          backdropFilter: glass.blurSoft,
+          WebkitBackdropFilter: glass.blurSoft,
+        }}
       />
       <div
         role="dialog"
@@ -21,9 +27,7 @@ export default function LinerNotesSheet({ track, roomLabel, onClose, onOpenArtis
           right: 0,
           bottom: 0,
           maxHeight: "78vh",
-          background: color.surfaceSolid,
-          borderTop: `1px solid ${color.lineStrong}`,
-          borderRadius: "16px 16px 0 0",
+          ...glassSheet,
           display: "flex",
           flexDirection: "column",
           animation: "rise 0.35s cubic-bezier(0.22,1,0.36,1) both",
