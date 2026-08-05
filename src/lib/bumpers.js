@@ -37,7 +37,7 @@ export function pickTrackBumper({
   if (sceneChannel && slot === 2) {
     return {
       id: `scene-${sceneChannel.id}`,
-      kicker: "SCENE SURF",
+      kicker: "CHANNEL",
       title: sceneChannel.title,
       subtitle: sceneChannel.tagline,
       tone: "scene",

@@ -4,7 +4,7 @@ import {
 import { availableSceneChannels } from "../../lib/sceneChannels";
 
 /**
- * Scene surfing rail — flip specialty channels like cable.
+ * Channels rail — pick a style and play.
  */
 export default function SceneSurfRail({
   tracks = [],
@@ -16,7 +16,7 @@ export default function SceneSurfRail({
 
   return (
     <section
-      aria-label="Scene surfing"
+      aria-label="Channels"
       style={{
         padding: `10px 0 6px`,
         animation: `rise 0.55s ${motion.ease} 0.06s both`,
@@ -28,7 +28,7 @@ export default function SceneSurfRail({
           letterSpacing: 1.5, textTransform: "uppercase", color: "#5C8CFF",
           marginBottom: 4,
         }}>
-          Scene surf
+          Browse by sound
         </div>
         <h3 style={{
           margin: 0,
@@ -38,10 +38,10 @@ export default function SceneSurfRail({
           letterSpacing: -0.3,
           color: color.ink,
         }}>
-          Flip the channel
+          Channels
         </h3>
         <p style={{ margin: "4px 0 0", fontSize: 13, color: color.muted }}>
-          UKG, Rap City, Techno Tunnel — specialty blocks on demand.
+          Pick a style and start listening.
         </p>
       </div>
 
@@ -84,7 +84,7 @@ export default function SceneSurfRail({
                 letterSpacing: 1.2, textTransform: "uppercase",
                 color: ch.accent, marginBottom: 8,
               }}>
-                {active ? "Tuned in" : "Surf"}
+                {active ? "Playing" : "Play"}
               </div>
               <div style={{
                 fontFamily: fontDisplay, fontSize: 15, fontWeight: 750,
