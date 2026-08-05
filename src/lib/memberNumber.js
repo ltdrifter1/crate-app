@@ -3,6 +3,8 @@
  */
 
 export const CLUB_NAME = "PLANET CLUB";
+/** Short line under the club wordmark — digital record club identity. */
+export const CLUB_TAGLINE = "Digital Record Club";
 export const MEMBER_NUMBER_DIGITS = 6;
 
 /** Pad an integer member number: 4231 → "004231" */
