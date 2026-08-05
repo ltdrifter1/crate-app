@@ -1,0 +1,135 @@
+/**
+ * SplashScreen — initial auth boot.
+ * Logo only, oversized, transparent background. No copy.
+ *
+ * Lottie slot: drop the final animation at
+ *   public/brand/splash-loader.json
+ * When that file’s `nm` no longer starts with "PLACEHOLDER", it plays
+ * automatically. Until then the static brand lockup is shown.
+ */
+import { useEffect, useState } from "react";
+import Lottie from "lottie-react";
+import { BRAND_NAME } from "../../theme";
+import { BRAND_LOCKUP_SRC } from "./BrandGlyphs";
+import splashPlaceholder from "./splash-loader.json";
+
+const PUBLIC_LOTTIE_URL = "/brand/splash-loader.json";
+
+function usePrefersReducedMotion() {
+  const [reduced, setReduced] = useState(false);
+  useEffect(() => {
+    if (typeof window === "undefined" || !window.matchMedia) return undefined;
+    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const sync = () => setReduced(!!mq.matches);
+    sync();
+    mq.addEventListener?.("change", sync);
+    return () => mq.removeEventListener?.("change", sync);
+  }, []);
+  return reduced;
+}
+
+function isPlaceholderAnimation(data) {
+  if (!data || typeof data !== "object") return true;
+  const nm = String(data.nm || "");
+  return !nm || nm.startsWith("PLACEHOLDER");
+}
+
+/**
+ * @param {object} [props]
+ * @param {number} [props.size=220] — logo edge length (responsive capped)
+ */
+export default function SplashScreen({ size = 220 } = {}) {
+  const reduced = usePrefersReducedMotion();
+  const [animation, setAnimation] = useState(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    // Prefer a drop-in public file so the drawn Lottie can ship without a rebuild.
+    fetch(PUBLIC_LOTTIE_URL, { cache: "no-cache" })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        if (cancelled) return;
+        if (data && !isPlaceholderAnimation(data)) {
+          setAnimation(data);
+          return;
+        }
+        // Bundled stub — still a placeholder until the real file lands.
+        if (!isPlaceholderAnimation(splashPlaceholder)) {
+          setAnimation(splashPlaceholder);
+        }
+      })
+      .catch(() => {
+        if (!cancelled && !isPlaceholderAnimation(splashPlaceholder)) {
+          setAnimation(splashPlaceholder);
+        }
+      });
+    return () => { cancelled = true; };
+  }, []);
+
+  const edge = `min(${size}px, 56vw)`;
+  const playLottie = !!animation && !reduced;
+
+  return (
+    <div
+      role="status"
+      aria-live="polite"
+      aria-label="Loading"
+      style={{
+        minHeight: "100dvh",
+        width: "100%",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        background: "transparent",
+        position: "relative",
+        overflow: "hidden",
+        margin: 0,
+        padding: 0,
+      }}
+    >
+      <div
+        style={{
+          width: edge,
+          height: edge,
+          maxWidth: "100%",
+          position: "relative",
+          flexShrink: 0,
+          userSelect: "none",
+          pointerEvents: "none",
+        }}
+      >
+        {playLottie ? (
+          <Lottie
+            animationData={animation}
+            loop
+            autoplay
+            rendererSettings={{
+              preserveAspectRatio: "xMidYMid meet",
+              clearCanvas: true,
+              progressiveLoad: true,
+              hideOnTransparent: true,
+            }}
+            style={{ width: "100%", height: "100%", background: "transparent" }}
+            aria-hidden
+          />
+        ) : (
+          <img
+            src={BRAND_LOCKUP_SRC}
+            alt={BRAND_NAME}
+            width={size}
+            height={size}
+            draggable={false}
+            style={{
+              width: "100%",
+              height: "100%",
+              display: "block",
+              objectFit: "contain",
+              background: "transparent",
+            }}
+          />
+        )}
+      </div>
+      <span className="sr-only">Loading Planet MP3</span>
+    </div>
+  );
+}

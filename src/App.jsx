@@ -59,6 +59,7 @@ import {
 import { absoluteAppUrl, shareOrCopy } from "./lib/share";
 import BrandMark, { BrandGlyph as DoorGlyph, BrandLockup } from "./components/brand/BrandMark";
 import PlanetMascot from "./components/brand/PlanetMascot";
+import SplashScreen from "./components/brand/SplashScreen";
 import BrandTagline from "./components/brand/BrandTagline";
 import GenreSceneBrowse from "./components/search/GenreSceneBrowse";
 import GenreTasteSheet from "./components/listen/GenreTasteSheet";
@@ -7167,13 +7168,8 @@ export default function App() {
   }, [screen]);
 
   // ── Loading states ────────────────────────────────────────────────────────
-  // Show nothing while we check if someone is already logged in
-  if (authLoading) return (
-    <div style={{...APP_STYLE, alignItems:"center", justifyContent:"center"}}>
-      <BrandMark size={44} />
-      <div style={{ fontSize:13, color: color.muted, marginTop:14 }}>Loading...please wait.</div>
-    </div>
-  );
+  // Auth boot — logo only (Lottie slot at public/brand/splash-loader.json)
+  if (authLoading) return <SplashScreen size={240} />;
 
   // Not logged in — show login screen
   if (!firebaseUser) return (
