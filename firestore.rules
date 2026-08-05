@@ -80,23 +80,8 @@ service cloud.firestore {
       allow update: if isAdmin() || (
         isSignedIn() &&
         request.resource.data.diff(resource.data).affectedKeys()
-          .hasOnly(['playCount', 'skipCount', 'likeCount', 'requestCount'])
+          .hasOnly(['playCount', 'skipCount', 'likeCount'])
       );
-    }
-
-    // Station dedications — short on-air shout-outs (MTV / MuchMusic crawl)
-    match /stationDedications/{dedicationId} {
-      allow read: if true;
-      allow create: if isSignedIn()
-        && request.resource.data.uid == request.auth.uid
-        && request.resource.data.keys().hasOnly(['uid', 'text', 'fromName', 'trackId', 'trackTitle', 'createdAt'])
-        && request.resource.data.text is string
-        && request.resource.data.text.size() > 0
-        && request.resource.data.text.size() <= 80
-        && request.resource.data.fromName is string
-        && request.resource.data.fromName.size() > 0
-        && request.resource.data.fromName.size() <= 24;
-      allow update, delete: if isAdmin();
     }
 
     match /sessions/{sessionId} {
