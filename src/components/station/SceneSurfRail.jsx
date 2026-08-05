@@ -4,7 +4,7 @@ import {
 import { availableSceneChannels } from "../../lib/sceneChannels";
 
 /**
- * Channels rail — pick a style and play.
+ * Scene surfing — style channels named for the scenes underneath.
  */
 export default function SceneSurfRail({
   tracks = [],
@@ -16,7 +16,7 @@ export default function SceneSurfRail({
 
   return (
     <section
-      aria-label="Channels"
+      aria-label="Scene surfing"
       style={{
         padding: `10px 0 6px`,
         animation: `rise 0.55s ${motion.ease} 0.06s both`,
@@ -28,7 +28,7 @@ export default function SceneSurfRail({
           letterSpacing: 1.5, textTransform: "uppercase", color: "#5C8CFF",
           marginBottom: 4,
         }}>
-          Browse by sound
+          Scene surfing
         </div>
         <h3 style={{
           margin: 0,
@@ -38,10 +38,10 @@ export default function SceneSurfRail({
           letterSpacing: -0.3,
           color: color.ink,
         }}>
-          Channels
+          Browse scenes
         </h3>
         <p style={{ margin: "4px 0 0", fontSize: 13, color: color.muted }}>
-          Pick a style and start listening.
+          The scenes under the genres — pick one and play.
         </p>
       </div>
 
