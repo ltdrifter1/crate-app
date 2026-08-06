@@ -1,19 +1,15 @@
 import { color, fontDisplay, fontMono, homeSpace, chrome, glass, radius } from "../../theme";
 import ChartHistoryPanel from "./ChartHistoryPanel";
-import CountdownRail from "./CountdownRail";
 
 /**
- * Charts tab — live countdown + archive (climbers, weekly reveal, #1s, past days).
- * Kept off Home so the station hero stays fast and focused.
+ * Charts tab — climbers, weekly reveal, #1s, past days.
+ * Most Requested countdown lives on Home so it isn’t duplicated here.
  */
 export default function ChartsScreen({
   countdown = [],
   tracks = [],
   onPlayTrack = null,
-  onTuneCountdown = null,
   onTuneWeekly = null,
-  activeId = null,
-  isPlaying = false,
 }) {
   return (
     <div style={{ position: "relative", paddingBottom: 56 }}>
@@ -59,19 +55,11 @@ export default function ChartsScreen({
           maxWidth: 360,
           lineHeight: 1.4,
         }}>
-          Today&apos;s countdown, climbers, weekly reveal, and the archive.
+          Climbers, weekly reveal, and the archive.
         </p>
       </div>
 
-      {countdown.length > 0 ? (
-        <CountdownRail
-          entries={countdown}
-          onPlayTrack={onPlayTrack}
-          onTuneIn={onTuneCountdown}
-          activeId={activeId}
-          isPlaying={isPlaying}
-        />
-      ) : (
+      {countdown.length === 0 && (
         <div style={{
           margin: `12px ${homeSpace.gutter}px 0`,
           padding: "18px 16px",
