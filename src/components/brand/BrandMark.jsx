@@ -7,7 +7,7 @@ import { brandWordmark } from "../../brand/identity";
 import { BrandGlyph, BrandLockup } from "./BrandGlyphs";
 
 export { BrandGlyph, BrandLockup };
-export { default as PlanetMascot } from "./PlanetMascot";
+// PlanetMascot is lazy-loaded by callers — do not re-export here (pulls Lottie into main).
 
 export default function BrandMark({
   size = 40,

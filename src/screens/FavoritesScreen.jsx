@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, memo } from "react";
 import Icon from "../components/ui/Icon";
 import CoverImage from "../components/ui/CoverImage";
 import CoverFlow from "../components/listen/CoverFlow";
@@ -8,7 +8,7 @@ import {
   TrackRow,
   useTrackMenu,
 } from "../components/listen/TrackRow";
-import { useIsPlaying } from "../usePlayerTransport";
+import { useIsPlaying, useCurrentTrack } from "../usePlayerTransport";
 import { savedTracks, trendingTracks, recommendedPicks } from "../lib/homeCollections";
 import { isCommunityPlaylist } from "../lib/mixes";
 import {
@@ -317,8 +317,8 @@ function ForYouRiver({
 }
 
 
-export default function FavoritesScreen({
-  tracks, onPlay, onLike, currentTrack, playlistCtx,
+function FavoritesScreen({
+  tracks, onPlay, onLike, playlistCtx,
   userPlaylists = [], onCreatePlaylist, onDeletePlaylist, onRenamePlaylist = null,
   onPlayTrack, onSharePlaylist = null, onOpenMix = null,
   communityMix = null,
@@ -329,6 +329,7 @@ export default function FavoritesScreen({
   userKey = "",
 }) {
   const { menu, close } = useTrackMenu();
+  const currentTrack = useCurrentTrack();
   const activeId = currentTrack?.id;
   const isPlaying = useIsPlaying();
   const saved = savedTracks(tracks, 80);
@@ -1384,4 +1385,5 @@ export default function FavoritesScreen({
   );
 }
 
+export default memo(FavoritesScreen);
 

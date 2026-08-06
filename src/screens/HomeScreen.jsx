@@ -1,6 +1,4 @@
-import { useMemo } from "react";
-import { motion as Motion, useReducedMotion } from "framer-motion";
-import { duration as motionDuration } from "../motion/tokens";
+import { useMemo, memo } from "react";
 import {
   BTN_PRIMARY,
   BTN_SECONDARY,
@@ -11,6 +9,7 @@ import {
   fontMono,
   glass,
   homeSpace,
+  motion,
   radius,
 } from "../theme";
 import { countPlayableTracks } from "../lib/catalogLoad";
@@ -19,6 +18,7 @@ import CoverStage from "../components/station/CoverStage";
 import CountdownRail from "../components/station/CountdownRail";
 import SceneSurfRail from "../components/station/SceneSurfRail";
 import { NowOnAirCard, ShowGuideRail } from "../components/station/ShowGuide";
+import { useCurrentTrack } from "../usePlayerTransport";
 
 function HomeCatalogStatus({ error, isEmpty, playableCount, totalCount, onRetry }) {
   if (!error && !isEmpty) return null;
@@ -53,18 +53,20 @@ function HomeCatalogStatus({ error, isEmpty, playableCount, totalCount, onRetry 
               fontSize: 14,
             }}
           >
-            Retry
+            Try again
           </button>
         </>
       ) : (
         <>
           <div style={{ fontSize: 15, fontWeight: 650, color: color.ink, marginBottom: 6 }}>
-            Nothing here yet
+            {totalCount > 0 && playableCount === 0
+              ? "Tracks need audio"
+              : "Shelf is empty"}
           </div>
           <div style={{ fontSize: 13, color: color.body, lineHeight: 1.45 }}>
             {totalCount > 0 && playableCount === 0
-              ? `${totalCount} catalog entries are missing audio — add audioUrl in admin or re-upload tracks.`
-              : "Once tracks land in the catalog, they show up here. Tap Retry to load again."}
+              ? "Catalog rows loaded, but none have a playable audio URL yet."
+              : "Add cuts in Admin and they land on the dial."}
           </div>
           <button
             type="button"
@@ -85,9 +87,8 @@ function HomeCatalogStatus({ error, isEmpty, playableCount, totalCount, onRetry 
   );
 }
 
-
-export default function HomeScreen({
-  tracks, onPlayRadio, onTogglePlay, onPlayTrack, currentTrack, onLike,
+function HomeScreen({
+  tracks, onPlayRadio, onTogglePlay, onPlayTrack, onLike,
   isRadioMode, playlistCtx, signalLabel, hypnoPocket = false,
   mixLane, radioPreview = null, radioNext = null, onSkipRadio, onPrevRadio,
   catalogError = null, onRetryCatalog,
@@ -113,22 +114,8 @@ export default function HomeScreen({
   sceneChannelsActiveId = null,
   onTuneSceneChannel = null,
 }) {
+  const currentTrack = useCurrentTrack();
   const activeId = currentTrack?.id;
-  const reduceMotion = useReducedMotion();
-  const bandRise = reduceMotion
-    ? {}
-    : {
-        initial: { opacity: 0, y: 10 },
-        animate: { opacity: 1, y: 0 },
-        transition: { duration: motionDuration.base, ease: [0.22, 1, 0.36, 1] },
-      };
-  const shelfRise = reduceMotion
-    ? {}
-    : {
-        initial: { opacity: 0, y: 8 },
-        animate: { opacity: 1, y: 0 },
-        transition: { duration: motionDuration.settle, delay: 0.06, ease: [0.22, 1, 0.36, 1] },
-      };
   const playableCount = countPlayableTracks(tracks);
   const catalogEmpty = !catalogError && tracks.length === 0;
   const catalogDepleted = !catalogError && tracks.length > 0 && playableCount === 0;
@@ -139,6 +126,10 @@ export default function HomeScreen({
     return hit?.rank ?? null;
   }, [countdown, currentTrack?.id]);
 
+  const riseStyle = (delay = 0) => ({
+    animation: `rise 0.45s ${motion.ease} ${delay}s both`,
+  });
+
   return (
     <div style={{ position: "relative", paddingBottom: 48 }}>
       <CoverStage
@@ -148,7 +139,6 @@ export default function HomeScreen({
         onPrev={onPrevRadio}
         onOpen={onOpenPlayer}
         currentTrack={currentTrack}
-       
         isRadioMode={isRadioMode}
         hypnoPocket={hypnoPocket}
         previewTrack={radioPreview}
@@ -187,13 +177,10 @@ export default function HomeScreen({
           ${color.canvas}
         `,
       }}>
-        {/* Tonight — one schedule + dial composition. CoverStage owns the live
-            ON AIR hero; NowOnAirCard only when that block isn't tuned. */}
         {!catalogEmpty && !catalogError && (airing?.show || programGuide.length > 0 || countdown.length > 0) && (
-          <Motion.section
+          <section
             aria-label="Tonight"
-            {...bandRise}
-            style={{ paddingTop: 16, paddingBottom: 4 }}
+            style={{ paddingTop: 16, paddingBottom: 4, ...riseStyle(0) }}
           >
             <div style={{ padding: `0 ${homeSpace.gutter}px 12px` }}>
               <div style={{
@@ -252,37 +239,32 @@ export default function HomeScreen({
               onTuneChannel={onTuneSceneChannel}
               quiet
             />
-          </Motion.section>
+          </section>
         )}
 
-        {/* Channel dial alone when the schedule band has nothing to show */}
         {!catalogEmpty && !catalogError && !(airing?.show || programGuide.length > 0 || countdown.length > 0) && (
-          <Motion.div {...shelfRise}>
+          <div style={riseStyle(0.06)}>
             <SceneSurfRail
               tracks={tracks}
               activeChannelId={sceneChannelsActiveId}
               onTuneChannel={onTuneSceneChannel}
               quiet
             />
-          </Motion.div>
+          </div>
         )}
 
-        {/* Secondary shelves — quieter, after the channel jobs */}
         {!catalogEmpty && !catalogError && onBrowse && (
-          <Motion.div
-            {...(reduceMotion ? {} : {
-              initial: { opacity: 0, y: 8 },
-              animate: { opacity: 1, y: 0 },
-              transition: { duration: motionDuration.settle, delay: 0.1, ease: [0.22, 1, 0.36, 1] },
-            })}
+          <div
             style={{
-            marginTop: 8,
-            paddingTop: 18,
-            borderTop: `1px solid ${glass.borderSoft}`,
-            background: `
-              linear-gradient(180deg, rgba(184,192,204,0.12) 0%, transparent 40%)
-            `,
-          }}>
+              marginTop: 8,
+              paddingTop: 18,
+              borderTop: `1px solid ${glass.borderSoft}`,
+              background: `
+                linear-gradient(180deg, rgba(184,192,204,0.12) 0%, transparent 40%)
+              `,
+              ...riseStyle(0.1),
+            }}
+          >
             <div style={{ padding: `0 ${homeSpace.gutter}px 6px` }}>
               <div style={{
                 fontFamily: fontMono, fontSize: 10, fontWeight: 800,
@@ -350,7 +332,7 @@ export default function HomeScreen({
                 <span aria-hidden="true" style={{ color: chrome.steel, fontSize: 18 }}>→</span>
               </button>
             </section>
-          </Motion.div>
+          </div>
         )}
 
         {!catalogError && !catalogEmpty && countdown.length === 0 && !airing?.show && (
@@ -370,3 +352,4 @@ export default function HomeScreen({
   );
 }
 
+export default memo(HomeScreen);

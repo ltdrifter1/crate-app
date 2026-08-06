@@ -1,10 +1,10 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, memo } from "react";
 import Icon from "../components/ui/Icon";
 import VirtualList from "../components/ui/VirtualList";
 import GenreSceneBrowse from "../components/search/GenreSceneBrowse";
 import { AlbumArt } from "../components/listen/AlbumArt";
 import { TrackRow } from "../components/listen/TrackRow";
-import { useIsPlaying } from "../usePlayerTransport";
+import { useCurrentTrack, useIsPlaying } from "../usePlayerTransport";
 import {
   BTN_SECONDARY,
   INPUT_ST,
@@ -16,11 +16,12 @@ import {
   radius,
 } from "../theme";
 
-export default function SearchScreen({
-  query, setQuery, results, onPlay, onLike, currentTrack, playlistCtx,
+function SearchScreen({
+  query, setQuery, results, onPlay, onLike, playlistCtx,
   entityHits, onOpenArtist, onOpenAlbum, tracks = [], onListenIntent = null,
   recentSearches = [], onPickRecent = null, onClearRecent = null,
 }) {
+  const currentTrack = useCurrentTrack();
   const [showAllResults, setShowAllResults] = useState(false);
   const isPlaying = useIsPlaying();
   useEffect(() => { setShowAllResults(false); }, [query]);
@@ -194,4 +195,6 @@ export default function SearchScreen({
     </div>
   );
 }
+
+export default memo(SearchScreen);
 
