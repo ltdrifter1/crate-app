@@ -88,8 +88,7 @@ export function findResonant(sourceTrack, allTracks, count = 12) {
 
 export function computeSignalTraits(tracks, recentPlays = []) {
   const maxPlays = Math.max(...tracks.map(t => t.playCount || 0), 1);
-  const maxSkips = Math.max(...tracks.map(t => t.skipCount || 0), 1);
-  const maxLikes = Math.max(...tracks.map(t => t.likeCount || 0), 1);
+  const byId = new Map(tracks.map((t) => [t.id, t]));
 
   // Build a play-sequence map for lift/descent scoring
   const sequences = [];
@@ -124,7 +123,7 @@ export function computeSignalTraits(tracks, recentPlays = []) {
     const liftSeqs = sequences.filter(s => s.from.id === t.id);
     const avgLift = liftSeqs.length > 0
       ? liftSeqs.reduce((s, seq) => {
-          const nextTrack = tracks.find(x => x.id === seq.to.id);
+          const nextTrack = byId.get(seq.to.id);
           return s + ((nextTrack?.energy || 5) - energy);
         }, 0) / liftSeqs.length
       : 0;
@@ -236,7 +235,11 @@ export function pickNextTrack(allTracks, currentTrack, memory = null, options = 
   }
 
   function weightedPick(candidates) {
-    const weighted = candidates.flatMap(t => {
+    if (!candidates.length) return null;
+    let total = 0;
+    const weights = new Array(candidates.length);
+    for (let i = 0; i < candidates.length; i++) {
+      const t = candidates[i];
       let w = t.liked ? 3 : 1;
       // Skip penalty
       const plays = t.playCount || 0;
@@ -272,9 +275,16 @@ export function pickNextTrack(allTracks, currentTrack, memory = null, options = 
       }
       if (seedTrack?.camelot && t.camelot && camelotCompatible(seedTrack.camelot, t.camelot, 1)) w *= 2;
       if (seedTrack?.genre && t.genre === seedTrack.genre) w = Math.round(w * 1.5);
-      return Array(Math.max(1, Math.round(w))).fill(t);
-    });
-    return weighted[Math.floor(Math.random() * weighted.length)];
+      const weight = Math.max(1, Math.round(w));
+      weights[i] = weight;
+      total += weight;
+    }
+    let roll = Math.random() * total;
+    for (let i = 0; i < candidates.length; i++) {
+      roll -= weights[i];
+      if (roll < 0) return candidates[i];
+    }
+    return candidates[candidates.length - 1];
   }
 
   const p1 = pool.filter(t => camelotCompatible(anchor?.camelot, t.camelot) && t.energy >= eMin && t.energy <= eMax);

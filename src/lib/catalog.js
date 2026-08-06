@@ -122,14 +122,27 @@ export function buildAlbums(tracks = []) {
     .sort((a, b) => b.count - a.count || a.title.localeCompare(b.title));
 }
 
+/** Cache entity indexes by tracks array identity — rebuild only when catalog changes. */
+let _entityCache = { tracksRef: null, artists: null, albums: null };
+
+export function getCatalogEntities(tracks = []) {
+  if (_entityCache.tracksRef === tracks && _entityCache.artists && _entityCache.albums) {
+    return { artists: _entityCache.artists, albums: _entityCache.albums };
+  }
+  const artists = buildArtists(tracks);
+  const albums = buildAlbums(tracks);
+  _entityCache = { tracksRef: tracks, artists, albums };
+  return { artists, albums };
+}
+
 export function findArtist(tracks, slug) {
   if (!slug) return null;
-  return buildArtists(tracks).find((a) => a.slug === slug) || null;
+  return getCatalogEntities(tracks).artists.find((a) => a.slug === slug) || null;
 }
 
 export function findAlbum(tracks, slug) {
   if (!slug) return null;
-  return buildAlbums(tracks).find((a) => a.slug === slug) || null;
+  return getCatalogEntities(tracks).albums.find((a) => a.slug === slug) || null;
 }
 
 export function artistStory(name, genre, count) {
@@ -154,10 +167,11 @@ export function albumStory(title, artist, count) {
 export function searchEntities(tracks, query) {
   const q = String(query || "").trim().toLowerCase();
   if (q.length < 2) return { artists: [], albums: [] };
-  const artists = buildArtists(tracks)
+  const { artists: allArtists, albums: allAlbums } = getCatalogEntities(tracks);
+  const artists = allArtists
     .filter((a) => a.name.toLowerCase().includes(q))
     .slice(0, 6);
-  const albums = buildAlbums(tracks)
+  const albums = allAlbums
     .filter(
       (a) =>
         a.title.toLowerCase().includes(q) ||

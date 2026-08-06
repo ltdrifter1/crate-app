@@ -12,21 +12,24 @@ export default function CountdownRail({
   onTuneIn = null,
   activeId = null,
   isPlaying = false,
+  compact = false,
 }) {
   if (!entries.length) return null;
   const daypart = stationDaypart(new Date());
-  const top = entries.slice(0, 10);
+  const top = entries.slice(0, compact ? 5 : 10);
 
   return (
     <section
       aria-label="Countdown"
       style={{
-        padding: `${homeSpace.sectionPadTopFirst}px 0 ${homeSpace.sectionPadBottom}px`,
+        padding: compact
+          ? `4px 0 ${Math.round(homeSpace.sectionPadBottom * 0.55)}px`
+          : `${homeSpace.sectionPadTopFirst}px 0 ${homeSpace.sectionPadBottom}px`,
         animation: `rise 0.55s ${motion.ease} 0.02s both`,
       }}
     >
       <div style={{
-        padding: `0 ${homeSpace.gutter}px 14px`,
+        padding: `0 ${homeSpace.gutter}px ${compact ? 10 : 14}px`,
         display: "flex",
         alignItems: "flex-end",
         justifyContent: "space-between",
@@ -40,31 +43,46 @@ export default function CountdownRail({
             letterSpacing: 1.6,
             textTransform: "uppercase",
             color: chrome.steel,
-            marginBottom: 6,
+            marginBottom: compact ? 4 : 6,
           }}>
-            The countdown · {daypart.label}
+            {compact ? `Most requested · ${daypart.label}` : `The countdown · ${daypart.label}`}
           </div>
-          <h2 style={{
-            margin: 0,
-            fontFamily: fontDisplay,
-            fontSize: "clamp(20px, 3.6vw, 24px)",
-            fontWeight: 800,
-            letterSpacing: -0.4,
-            color: color.ink,
-            lineHeight: 1.1,
-            textTransform: "uppercase",
-          }}>
-            Most Requested
-          </h2>
-          <p style={{
-            margin: "6px 0 0",
-            fontSize: 13,
-            color: color.muted,
-            maxWidth: 320,
-            lineHeight: 1.4,
-          }}>
-            {daypart.vibe}. Vote from the player — climb the chart.
-          </p>
+          {compact ? (
+            <h3 style={{
+              margin: 0,
+              fontFamily: fontDisplay,
+              fontSize: 17,
+              fontWeight: 700,
+              letterSpacing: -0.25,
+              color: color.ink,
+              lineHeight: 1.2,
+            }}>
+              Top of the chart
+            </h3>
+          ) : (
+            <>
+              <h2 style={{
+                margin: 0,
+                fontFamily: fontDisplay,
+                fontSize: "clamp(20px, 3.6vw, 24px)",
+                fontWeight: 800,
+                letterSpacing: -0.4,
+                color: color.ink,
+                lineHeight: 1.1,
+              }}>
+                Most Requested
+              </h2>
+              <p style={{
+                margin: "6px 0 0",
+                fontSize: 13,
+                color: color.muted,
+                maxWidth: 320,
+                lineHeight: 1.4,
+              }}>
+                {daypart.vibe}. Vote from the player — climb the chart.
+              </p>
+            </>
+          )}
         </div>
         {onTuneIn && (
           <button
