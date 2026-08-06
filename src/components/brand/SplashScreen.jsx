@@ -2,18 +2,18 @@
  * SplashScreen — initial auth boot.
  * Logo only, oversized, transparent background. No copy.
  *
- * Lottie slot: drop the final animation at
- *   public/brand/splash-loader.json
- * When that file’s `nm` no longer starts with "PLACEHOLDER", it plays
- * automatically. Until then the static brand lockup is shown.
+ * Lottie loads on demand (not in the main chunk). Prefer
+ * public/brand/splash-loader.json when its `nm` is not a PLACEHOLDER.
  */
-import { useEffect, useState } from "react";
-import Lottie from "lottie-react";
+import { useEffect, useState, lazy, Suspense } from "react";
 import { BRAND_NAME } from "../../theme";
 import { BRAND_LOCKUP_SRC } from "./BrandGlyphs";
-import splashPlaceholder from "./splash-loader.json";
 
 const PUBLIC_LOTTIE_URL = "/brand/splash-loader.json";
+
+const LazyLottie = lazy(() =>
+  import("lottie-react").then((m) => ({ default: m.default }))
+);
 
 function usePrefersReducedMotion() {
   const [reduced, setReduced] = useState(false);
@@ -34,6 +34,25 @@ function isPlaceholderAnimation(data) {
   return !nm || nm.startsWith("PLACEHOLDER");
 }
 
+function StaticLockup({ size, edge }) {
+  return (
+    <img
+      src={BRAND_LOCKUP_SRC}
+      alt={BRAND_NAME}
+      width={size}
+      height={size}
+      draggable={false}
+      style={{
+        width: "100%",
+        height: "100%",
+        display: "block",
+        objectFit: "contain",
+        background: "transparent",
+      }}
+    />
+  );
+}
+
 /**
  * @param {object} [props]
  * @param {number} [props.size=220] — logo edge length (responsive capped)
@@ -44,25 +63,15 @@ export default function SplashScreen({ size = 220 } = {}) {
 
   useEffect(() => {
     let cancelled = false;
-    // Prefer a drop-in public file so the drawn Lottie can ship without a rebuild.
     fetch(PUBLIC_LOTTIE_URL, { cache: "no-cache" })
       .then((r) => (r.ok ? r.json() : null))
       .then((data) => {
         if (cancelled) return;
         if (data && !isPlaceholderAnimation(data)) {
           setAnimation(data);
-          return;
-        }
-        // Bundled stub — still a placeholder until the real file lands.
-        if (!isPlaceholderAnimation(splashPlaceholder)) {
-          setAnimation(splashPlaceholder);
         }
       })
-      .catch(() => {
-        if (!cancelled && !isPlaceholderAnimation(splashPlaceholder)) {
-          setAnimation(splashPlaceholder);
-        }
-      });
+      .catch(() => {});
     return () => { cancelled = true; };
   }, []);
 
@@ -99,34 +108,23 @@ export default function SplashScreen({ size = 220 } = {}) {
         }}
       >
         {playLottie ? (
-          <Lottie
-            animationData={animation}
-            loop
-            autoplay
-            rendererSettings={{
-              preserveAspectRatio: "xMidYMid meet",
-              clearCanvas: true,
-              progressiveLoad: true,
-              hideOnTransparent: true,
-            }}
-            style={{ width: "100%", height: "100%", background: "transparent" }}
-            aria-hidden
-          />
+          <Suspense fallback={<StaticLockup size={size} edge={edge} />}>
+            <LazyLottie
+              animationData={animation}
+              loop
+              autoplay
+              rendererSettings={{
+                preserveAspectRatio: "xMidYMid meet",
+                clearCanvas: true,
+                progressiveLoad: true,
+                hideOnTransparent: true,
+              }}
+              style={{ width: "100%", height: "100%", background: "transparent" }}
+              aria-hidden
+            />
+          </Suspense>
         ) : (
-          <img
-            src={BRAND_LOCKUP_SRC}
-            alt={BRAND_NAME}
-            width={size}
-            height={size}
-            draggable={false}
-            style={{
-              width: "100%",
-              height: "100%",
-              display: "block",
-              objectFit: "contain",
-              background: "transparent",
-            }}
-          />
+          <StaticLockup size={size} edge={edge} />
         )}
       </div>
       <span className="sr-only">Loading Planet MP3</span>

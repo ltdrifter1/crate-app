@@ -1,15 +1,18 @@
 /**
  * PlanetMascot — hard-drawn Y2K ink planet for the Cover Stage hero.
- * Plays the pure-vector Lottie (`planet-mascot.json`): sphere, tapered swoosh,
- * decreasing dot trail, optional moons. No wordmark. Transparent bg.
- * Falls back to the static SVG frame when reduced-motion is preferred.
+ * Lottie + animation JSON load on demand (not in the main chunk).
+ * Falls back to the static SVG frame when reduced-motion is preferred
+ * or while the animation chunk is loading.
  */
 
-import { useEffect, useState } from "react";
-import Lottie from "lottie-react";
-import planetMascotAnimation from "./planet-mascot.json";
+import { useEffect, useState, lazy, Suspense } from "react";
 
 const STATIC_SRC = "/brand/planet-mascot.svg";
+const PUBLIC_LOTTIE_URL = "/brand/planet-mascot.json";
+
+const LazyLottie = lazy(() =>
+  import("lottie-react").then((m) => ({ default: m.default }))
+);
 
 function usePrefersReducedMotion() {
   const [reduced, setReduced] = useState(false);
@@ -22,6 +25,24 @@ function usePrefersReducedMotion() {
     return () => mq.removeEventListener?.("change", sync);
   }, []);
   return reduced;
+}
+
+function StaticFrame({ size }) {
+  return (
+    <img
+      src={STATIC_SRC}
+      alt=""
+      width={size}
+      height={size}
+      draggable={false}
+      style={{
+        width: "100%",
+        height: "100%",
+        display: "block",
+        objectFit: "contain",
+      }}
+    />
+  );
 }
 
 /**
@@ -37,6 +58,19 @@ export default function PlanetMascot({
 }) {
   const reduced = usePrefersReducedMotion();
   const live = animated && !reduced;
+  const [animation, setAnimation] = useState(null);
+
+  useEffect(() => {
+    if (!live) return undefined;
+    let cancelled = false;
+    fetch(PUBLIC_LOTTIE_URL, { cache: "force-cache" })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        if (!cancelled && data) setAnimation(data);
+      })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, [live]);
 
   return (
     <div
@@ -54,34 +88,24 @@ export default function PlanetMascot({
         pointerEvents: "none",
       }}
     >
-      {live ? (
-        <Lottie
-          animationData={planetMascotAnimation}
-          loop
-          autoplay
-          rendererSettings={{
-            preserveAspectRatio: "xMidYMid meet",
-            clearCanvas: true,
-            progressiveLoad: true,
-            hideOnTransparent: true,
-          }}
-          style={{ width: "100%", height: "100%" }}
-          aria-hidden
-        />
+      {live && animation ? (
+        <Suspense fallback={<StaticFrame size={size} />}>
+          <LazyLottie
+            animationData={animation}
+            loop
+            autoplay
+            rendererSettings={{
+              preserveAspectRatio: "xMidYMid meet",
+              clearCanvas: true,
+              progressiveLoad: true,
+              hideOnTransparent: true,
+            }}
+            style={{ width: "100%", height: "100%" }}
+            aria-hidden
+          />
+        </Suspense>
       ) : (
-        <img
-          src={STATIC_SRC}
-          alt=""
-          width={size}
-          height={size}
-          draggable={false}
-          style={{
-            width: "100%",
-            height: "100%",
-            display: "block",
-            objectFit: "contain",
-          }}
-        />
+        <StaticFrame size={size} />
       )}
     </div>
   );
