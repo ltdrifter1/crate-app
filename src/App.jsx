@@ -1331,7 +1331,7 @@ function CoverStage({
         </div>
       )}
 
-      {/* Shared transport chrome — identical idle ↔ live */}
+      {/* Shared transport chrome — station mode collapses into one glass dock */}
       <div
         style={{
           position: "absolute",
@@ -1342,7 +1342,7 @@ function CoverStage({
           alignItems: "center",
           boxSizing: "border-box",
           pointerEvents: "none",
-          gap: 7,
+          gap: showStation ? 10 : 7,
         }}
       >
         {showStation && dedicationFlash && (
@@ -1355,178 +1355,386 @@ function CoverStage({
 
         {showStation && displayTrack ? (
           <div
-            role="button"
-            tabIndex={0}
-            onClick={openImmersive}
-            onKeyDown={(e) => { if (e.key === "Enter") openImmersive(); }}
-            style={{ width: "100%", maxWidth: 400, cursor: onOpen ? "pointer" : "default", pointerEvents: "auto" }}
-          >
-            <LowerThird track={displayTrack} rank={countdownRank} daypart={daypart} show={liveShow} />
-            <div style={{ marginTop: 6, display: "flex", justifyContent: "flex-start", gap: 6, flexWrap: "wrap" }}>
-              <VideoBadge track={displayTrack} dark />
-              {liveShow?.host && <HostCreditChip show={liveShow} compact />}
-            </div>
-          </div>
-        ) : (
-          <div
-            key={displayTrack?.id || "idle-meta"}
-            role={live ? "button" : undefined}
-            tabIndex={live ? 0 : undefined}
-            onClick={live ? openImmersive : undefined}
-            onKeyDown={live ? ((e) => { if (e.key === "Enter") openImmersive(); }) : undefined}
             style={{
               width: "100%",
               maxWidth: 420,
-              textAlign: "center",
-              marginBottom: 6,
-              animation: live ? `trackSwap 0.45s ${motion.ease} both` : `rise 0.65s ${motion.ease} 0.08s both`,
-              cursor: live && onOpen ? "pointer" : "inherit",
-              pointerEvents: live ? "auto" : "none",
+              pointerEvents: "auto",
+              borderRadius: 24,
+              padding: "16px 16px 14px",
+              background: `
+                linear-gradient(165deg, rgba(255,255,255,0.78) 0%, rgba(236,240,246,0.62) 48%, rgba(220,226,236,0.58) 100%)
+              `,
+              border: `1px solid ${glass.border}`,
+              boxShadow: `
+                inset 0 1px 0 ${glass.highlight},
+                inset 0 -1px 0 rgba(18,20,26,0.04),
+                0 20px 56px rgba(18,20,26,0.14),
+                0 4px 14px rgba(18,20,26,0.06)
+              `,
+              backdropFilter: glass.blurHeavy,
+              WebkitBackdropFilter: glass.blurHeavy,
+              animation: `dockRise 0.55s ${motion.ease} both`,
+              position: "relative",
+              overflow: "hidden",
             }}
           >
-            {displayTrack ? (
-              <>
-                <h1 style={{
-                  margin: 0,
-                  fontSize: "clamp(20px, 3.8vw, 28px)",
-                  fontWeight: 750,
-                  letterSpacing: -0.6,
-                  lineHeight: 1.12,
-                  color: color.ink,
-                  fontFamily: fontDisplay,
-                  overflow: "hidden",
-                  display: "-webkit-box",
-                  WebkitLineClamp: 2,
-                  WebkitBoxOrient: "vertical",
-                }}>
-                  {displayTrack.title}
-                </h1>
-                <div style={{
-                  marginTop: 7,
-                  fontSize: 14,
-                  fontWeight: 500,
-                  letterSpacing: -0.05,
-                  color: color.body,
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
-                  whiteSpace: "nowrap",
-                }}>
-                  {displayTrack.artist}
-                </div>
-              </>
-            ) : (
-              <BrandTagline size={12} style={{ letterSpacing: 2.2, textAlign: "center", maxWidth: "none", margin: "0 auto" }} />
-            )}
-          </div>
-        )}
+            {/* Soft edge bloom — premium frosted rim */}
+            <div
+              aria-hidden="true"
+              style={{
+                position: "absolute",
+                inset: 0,
+                borderRadius: 24,
+                pointerEvents: "none",
+                background: `
+                  radial-gradient(ellipse 90% 55% at 50% -10%, rgba(255,255,255,0.55) 0%, transparent 55%),
+                  linear-gradient(180deg, rgba(255,255,255,0.22) 0%, transparent 28%)
+                `,
+              }}
+            />
 
-        {showStation && (
-          <StationHeatBar
-            track={displayTrack}
-            onRequest={onRequest}
-            requested={requested}
-            onDedicate={onDedicate}
-            compact
-          />
-        )}
-
-        <div style={{
-          position: "relative",
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          gap: 12,
-          pointerEvents: "auto",
-          width: "100%",
-          maxWidth: 420,
-        }}>
-          <EnergyShiftModeChip />
-          <EnergyShiftFeedback bottom="calc(100% + 14px)" />
-
-          <div style={{
-            position: "relative",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            width: "100%",
-            minHeight: 64,
-          }}>
-            <div style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: 14,
-            }}>
-              <button
-                type="button"
-                aria-label="Previous"
-                disabled={!live}
-                onClick={() => onPrev?.()}
-                style={{
-                  background: "none", border: "none", padding: 8,
-                  color: live ? color.ink : color.faint,
-                  cursor: live ? "pointer" : "default",
-                  opacity: live ? 1 : 0.45,
-                }}
-              >
-                <Icon name="prev" size={20}/>
-              </button>
-
-              <OrbitalPlayControl
-                isPlaying={live ? isPlaying : false}
-                onToggle={handlePrimary}
-                progress={live ? progress : 0}
-                duration={live ? duration : 0}
-                onSeek={live ? onSeek : null}
-                size={64}
-                glowing={playingVisual}
+            <div
+              role="button"
+              tabIndex={0}
+              onClick={openImmersive}
+              onKeyDown={(e) => { if (e.key === "Enter") openImmersive(); }}
+              style={{
+                position: "relative",
+                cursor: onOpen ? "pointer" : "default",
+                outline: "none",
+              }}
+            >
+              <LowerThird
+                track={displayTrack}
+                rank={countdownRank}
+                daypart={daypart}
+                show={liveShow}
+                embedded
               />
+              <div style={{
+                marginTop: 12,
+                display: "flex",
+                justifyContent: "flex-start",
+                alignItems: "center",
+                gap: 8,
+                flexWrap: "wrap",
+              }}>
+                <VideoBadge track={displayTrack} />
+                {liveShow?.host && <HostCreditChip show={liveShow} compact tone="glass" />}
+              </div>
+            </div>
 
-              <button
-                type="button"
-                aria-label="Next"
-                disabled={!live && !canStart}
-                onClick={() => {
-                  if (live) onSkip?.();
-                  else if (canStart) onPlay?.();
-                }}
-                style={{
-                  background: "none", border: "none", padding: 8,
-                  color: (live || canStart) ? color.ink : color.faint,
-                  cursor: (live || canStart) ? "pointer" : "default",
-                  opacity: (live || canStart) ? 1 : 0.45,
-                }}
-              >
-                <Icon name="skip" size={20}/>
-              </button>
+            <div
+              aria-hidden="true"
+              style={{
+                height: 1,
+                margin: "14px 0 12px",
+                background: `
+                  linear-gradient(90deg, transparent 0%, ${glass.border} 18%, ${glass.border} 82%, transparent 100%)
+                `,
+              }}
+            />
+
+            <StationHeatBar
+              track={displayTrack}
+              onRequest={onRequest}
+              requested={requested}
+              onDedicate={onDedicate}
+              compact
+              embedded
+            />
+
+            <div
+              aria-hidden="true"
+              style={{
+                height: 1,
+                margin: "12px 0 10px",
+                background: `
+                  linear-gradient(90deg, transparent 0%, ${glass.border} 18%, ${glass.border} 82%, transparent 100%)
+                `,
+              }}
+            />
+
+            <div style={{
+              position: "relative",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              gap: 10,
+              pointerEvents: "auto",
+              width: "100%",
+            }}>
+              <EnergyShiftModeChip />
+              <EnergyShiftFeedback bottom="calc(100% + 12px)" />
+
+              <div style={{
+                position: "relative",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                width: "100%",
+                minHeight: 72,
+              }}>
+                <div style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: 16,
+                }}>
+                  <button
+                    type="button"
+                    aria-label="Previous"
+                    disabled={!live}
+                    onClick={() => onPrev?.()}
+                    style={{
+                      width: 44,
+                      height: 44,
+                      borderRadius: "50%",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      background: "rgba(255,255,255,0.55)",
+                      border: `1px solid ${glass.borderSoft}`,
+                      boxShadow: `inset 0 1px 0 ${glass.highlight}`,
+                      backdropFilter: glass.blurSoft,
+                      WebkitBackdropFilter: glass.blurSoft,
+                      color: live ? color.ink : color.faint,
+                      cursor: live ? "pointer" : "default",
+                      opacity: live ? 1 : 0.45,
+                      padding: 0,
+                    }}
+                  >
+                    <Icon name="prev" size={18}/>
+                  </button>
+
+                  <div style={{
+                    padding: 3,
+                    borderRadius: "50%",
+                    background: `
+                      linear-gradient(145deg, rgba(255,255,255,0.95) 0%, rgba(200,208,220,0.55) 100%)
+                    `,
+                    boxShadow: `inset 0 1px 0 ${glass.highlight}, 0 10px 28px rgba(18,20,26,0.12)`,
+                  }}>
+                    <OrbitalPlayControl
+                      isPlaying={live ? isPlaying : false}
+                      onToggle={handlePrimary}
+                      progress={live ? progress : 0}
+                      duration={live ? duration : 0}
+                      onSeek={live ? onSeek : null}
+                      size={64}
+                      glowing={playingVisual}
+                    />
+                  </div>
+
+                  <button
+                    type="button"
+                    aria-label="Next"
+                    disabled={!live && !canStart}
+                    onClick={() => {
+                      if (live) onSkip?.();
+                      else if (canStart) onPlay?.();
+                    }}
+                    style={{
+                      width: 44,
+                      height: 44,
+                      borderRadius: "50%",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      background: "rgba(255,255,255,0.55)",
+                      border: `1px solid ${glass.borderSoft}`,
+                      boxShadow: `inset 0 1px 0 ${glass.highlight}`,
+                      backdropFilter: glass.blurSoft,
+                      WebkitBackdropFilter: glass.blurSoft,
+                      color: (live || canStart) ? color.ink : color.faint,
+                      cursor: (live || canStart) ? "pointer" : "default",
+                      opacity: (live || canStart) ? 1 : 0.45,
+                      padding: 0,
+                    }}
+                  >
+                    <Icon name="skip" size={18}/>
+                  </button>
+                </div>
+
+                <div style={{
+                  position: "absolute",
+                  right: 0,
+                  top: "50%",
+                  transform: "translateY(-50%)",
+                }}>
+                  <EnergyShiftControl size={40} stopPropagation={false} />
+                </div>
+              </div>
+
+              <div style={{
+                display: "flex",
+                justifyContent: "space-between",
+                width: "100%",
+                maxWidth: 220,
+                fontSize: 11,
+                fontFamily: fontMono,
+                fontVariantNumeric: "tabular-nums",
+                letterSpacing: 0.3,
+                color: color.muted,
+                pointerEvents: "none",
+              }}>
+                <span>{live ? fmtTime(progress) : "0:00"}</span>
+                <span>{live && duration ? fmtTime(duration) : "—:—"}</span>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <>
+            <div
+              key={displayTrack?.id || "idle-meta"}
+              role={live ? "button" : undefined}
+              tabIndex={live ? 0 : undefined}
+              onClick={live ? openImmersive : undefined}
+              onKeyDown={live ? ((e) => { if (e.key === "Enter") openImmersive(); }) : undefined}
+              style={{
+                width: "100%",
+                maxWidth: 420,
+                textAlign: "center",
+                marginBottom: 6,
+                animation: live ? `trackSwap 0.45s ${motion.ease} both` : `rise 0.65s ${motion.ease} 0.08s both`,
+                cursor: live && onOpen ? "pointer" : "inherit",
+                pointerEvents: live ? "auto" : "none",
+              }}
+            >
+              {displayTrack ? (
+                <>
+                  <h1 style={{
+                    margin: 0,
+                    fontSize: "clamp(20px, 3.8vw, 28px)",
+                    fontWeight: 750,
+                    letterSpacing: -0.6,
+                    lineHeight: 1.12,
+                    color: color.ink,
+                    fontFamily: fontDisplay,
+                    overflow: "hidden",
+                    display: "-webkit-box",
+                    WebkitLineClamp: 2,
+                    WebkitBoxOrient: "vertical",
+                  }}>
+                    {displayTrack.title}
+                  </h1>
+                  <div style={{
+                    marginTop: 7,
+                    fontSize: 14,
+                    fontWeight: 500,
+                    letterSpacing: -0.05,
+                    color: color.body,
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
+                  }}>
+                    {displayTrack.artist}
+                  </div>
+                </>
+              ) : (
+                <BrandTagline size={12} style={{ letterSpacing: 2.2, textAlign: "center", maxWidth: "none", margin: "0 auto" }} />
+              )}
             </div>
 
             <div style={{
-              position: "absolute",
-              right: 0,
-              top: "50%",
-              transform: "translateY(-50%)",
+              position: "relative",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              gap: 12,
+              pointerEvents: "auto",
+              width: "100%",
+              maxWidth: 420,
             }}>
-              <EnergyShiftControl size={40} stopPropagation={false} />
-            </div>
-          </div>
+              <EnergyShiftModeChip />
+              <EnergyShiftFeedback bottom="calc(100% + 14px)" />
 
-          <div style={{
-            display: "flex",
-            justifyContent: "space-between",
-            width: "100%",
-            maxWidth: 200,
-            fontSize: 11,
-            fontFamily: fontMono,
-            fontVariantNumeric: "tabular-nums",
-            letterSpacing: 0.3,
-            color: color.faint,
-            pointerEvents: "none",
-          }}>
-            <span>{live ? fmtTime(progress) : "0:00"}</span>
-            <span>{live && duration ? fmtTime(duration) : "—:—"}</span>
-          </div>
-        </div>
+              <div style={{
+                position: "relative",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                width: "100%",
+                minHeight: 64,
+              }}>
+                <div style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: 14,
+                }}>
+                  <button
+                    type="button"
+                    aria-label="Previous"
+                    disabled={!live}
+                    onClick={() => onPrev?.()}
+                    style={{
+                      background: "none", border: "none", padding: 8,
+                      color: live ? color.ink : color.faint,
+                      cursor: live ? "pointer" : "default",
+                      opacity: live ? 1 : 0.45,
+                    }}
+                  >
+                    <Icon name="prev" size={20}/>
+                  </button>
+
+                  <OrbitalPlayControl
+                    isPlaying={live ? isPlaying : false}
+                    onToggle={handlePrimary}
+                    progress={live ? progress : 0}
+                    duration={live ? duration : 0}
+                    onSeek={live ? onSeek : null}
+                    size={64}
+                    glowing={playingVisual}
+                  />
+
+                  <button
+                    type="button"
+                    aria-label="Next"
+                    disabled={!live && !canStart}
+                    onClick={() => {
+                      if (live) onSkip?.();
+                      else if (canStart) onPlay?.();
+                    }}
+                    style={{
+                      background: "none", border: "none", padding: 8,
+                      color: (live || canStart) ? color.ink : color.faint,
+                      cursor: (live || canStart) ? "pointer" : "default",
+                      opacity: (live || canStart) ? 1 : 0.45,
+                    }}
+                  >
+                    <Icon name="skip" size={20}/>
+                  </button>
+                </div>
+
+                <div style={{
+                  position: "absolute",
+                  right: 0,
+                  top: "50%",
+                  transform: "translateY(-50%)",
+                }}>
+                  <EnergyShiftControl size={40} stopPropagation={false} />
+                </div>
+              </div>
+
+              <div style={{
+                display: "flex",
+                justifyContent: "space-between",
+                width: "100%",
+                maxWidth: 200,
+                fontSize: 11,
+                fontFamily: fontMono,
+                fontVariantNumeric: "tabular-nums",
+                letterSpacing: 0.3,
+                color: color.faint,
+                pointerEvents: "none",
+              }}>
+                <span>{live ? fmtTime(progress) : "0:00"}</span>
+                <span>{live && duration ? fmtTime(duration) : "—:—"}</span>
+              </div>
+            </div>
+          </>
+        )}
       </div>
     </div>
   );

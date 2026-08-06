@@ -263,13 +263,143 @@ export function StationTicker({ text = "", dense = false }) {
   );
 }
 
-/** MTV-style lower third for now playing — hard rectangles, chrome kicker. */
-export function LowerThird({ track, rank = null, daypart = null, show = null }) {
+/** Frosted glass now-playing plate — soft edges, connected station chrome. */
+export function LowerThird({
+  track,
+  rank = null,
+  daypart = null,
+  show = null,
+  embedded = false,
+}) {
   const line = useMemo(
     () => nowPlayingLowerThird(track, { rank, daypart, show }),
     [track, rank, daypart, show]
   );
   if (!line) return null;
+
+  const kickerBits = String(line.kicker || "")
+    .split("·")
+    .map((s) => s.trim())
+    .filter(Boolean);
+
+  const body = (
+    <>
+      <div style={{
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        gap: 10,
+        marginBottom: embedded ? 10 : 12,
+      }}>
+        <div style={{
+          display: "inline-flex",
+          alignItems: "center",
+          gap: 6,
+          minWidth: 0,
+          flexWrap: "wrap",
+        }}>
+          {kickerBits.map((bit, i) => (
+            <span
+              key={`${bit}-${i}`}
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 6,
+                padding: "5px 10px",
+                borderRadius: radius.pill,
+                fontFamily: fontMono,
+                fontSize: 9,
+                fontWeight: 800,
+                letterSpacing: 1.35,
+                textTransform: "uppercase",
+                color: i === 0 ? color.ink : color.muted,
+                background: i === 0
+                  ? "linear-gradient(165deg, rgba(255,255,255,0.95) 0%, rgba(226,232,240,0.78) 100%)"
+                  : "rgba(255,255,255,0.42)",
+                border: `1px solid ${i === 0 ? glass.border : glass.borderSoft}`,
+                boxShadow: i === 0
+                  ? `inset 0 1px 0 ${glass.highlight}, 0 2px 8px rgba(18,20,26,0.06)`
+                  : `inset 0 1px 0 ${glass.highlight}`,
+              }}
+            >
+              {i === 0 && (
+                <span
+                  aria-hidden="true"
+                  style={{
+                    width: 6,
+                    height: 6,
+                    borderRadius: "50%",
+                    background: chrome.live,
+                    boxShadow: "0 0 0 3px rgba(184,192,204,0.28)",
+                    animation: "stageLiveDot 1.5s ease-in-out infinite",
+                    flexShrink: 0,
+                  }}
+                />
+              )}
+              {bit}
+            </span>
+          ))}
+        </div>
+      </div>
+
+      <div style={{
+        fontFamily: fontDisplay,
+        fontSize: "clamp(17px, 3.6vw, 23px)",
+        fontWeight: 750,
+        letterSpacing: -0.55,
+        color: color.ink,
+        lineHeight: 1.12,
+        overflow: "hidden",
+        display: "-webkit-box",
+        WebkitLineClamp: 2,
+        WebkitBoxOrient: "vertical",
+      }}>
+        {line.title}
+      </div>
+      <div style={{
+        marginTop: 5,
+        fontSize: 14,
+        fontWeight: 600,
+        letterSpacing: -0.15,
+        color: color.body,
+        overflow: "hidden",
+        textOverflow: "ellipsis",
+        whiteSpace: "nowrap",
+      }}>
+        {line.artist}
+      </div>
+      <div style={{
+        marginTop: 8,
+        fontFamily: fontMono,
+        fontSize: 10,
+        fontWeight: 650,
+        letterSpacing: 1.05,
+        textTransform: "uppercase",
+        color: color.muted,
+        overflow: "hidden",
+        textOverflow: "ellipsis",
+        whiteSpace: "nowrap",
+      }}>
+        {line.meta}
+      </div>
+    </>
+  );
+
+  if (embedded) {
+    return (
+      <div
+        key={track?.id || line.title}
+        style={{
+          pointerEvents: "none",
+          width: "100%",
+          animation: `stationLowerIn 0.45s ${motion.ease} both`,
+        }}
+      >
+        {body}
+      </div>
+    );
+  }
+
   return (
     <div
       key={track?.id || line.title}
@@ -277,78 +407,22 @@ export function LowerThird({ track, rank = null, daypart = null, show = null }) 
         pointerEvents: "none",
         maxWidth: 400,
         width: "100%",
+        padding: "14px 16px 15px",
+        borderRadius: radius.xl,
+        background: glass.plate,
+        border: `1px solid ${glass.border}`,
+        boxShadow: `inset 0 1px 0 ${glass.highlight}, ${glass.shadowLift}`,
+        backdropFilter: glass.blur,
+        WebkitBackdropFilter: glass.blur,
         animation: `stationLowerIn 0.45s ${motion.ease} both`,
       }}
     >
-      <div style={{
-        display: "inline-flex",
-        alignItems: "center",
-        gap: 8,
-        padding: "4px 10px 4px 8px",
-        background: `linear-gradient(165deg, ${chrome.plate} 0%, ${chrome.steel} 100%)`,
-        color: "#fff",
-        fontFamily: fontMono,
-        fontSize: 10,
-        fontWeight: 900,
-        letterSpacing: 1.6,
-        textTransform: "uppercase",
-        clipPath: "polygon(0 0, 100% 0, calc(100% - 10px) 100%, 0 100%)",
-        marginBottom: 0,
-        boxShadow: "4px 0 0 rgba(22,24,30,0.35)",
-      }}>
-        {line.kicker}
-      </div>
-      <div style={{
-        background: "rgba(12,14,18,0.94)",
-        border: "1px solid rgba(255,255,255,0.1)",
-        borderTop: "none",
-        borderLeft: `4px solid ${chrome.hot}`,
-        padding: "9px 14px 10px",
-        boxShadow: "0 14px 32px rgba(12,14,18,0.4)",
-      }}>
-        <div style={{
-          fontFamily: fontDisplay,
-          fontSize: "clamp(15px, 3.2vw, 20px)",
-          fontWeight: 800,
-          letterSpacing: -0.35,
-          color: color.onDark,
-          lineHeight: 1.12,
-          overflow: "hidden",
-          display: "-webkit-box",
-          WebkitLineClamp: 2,
-          WebkitBoxOrient: "vertical",
-          textTransform: "uppercase",
-        }}>
-          {line.title}
-        </div>
-        <div style={{
-          marginTop: 3,
-          fontSize: 12,
-          fontWeight: 600,
-          color: "rgba(242,244,247,0.72)",
-          overflow: "hidden",
-          textOverflow: "ellipsis",
-          whiteSpace: "nowrap",
-        }}>
-          {line.artist}
-        </div>
-        <div style={{
-          marginTop: 5,
-          fontFamily: fontMono,
-          fontSize: 9,
-          fontWeight: 700,
-          letterSpacing: 1.3,
-          textTransform: "uppercase",
-          color: "rgba(242,244,247,0.45)",
-        }}>
-          {line.meta}
-        </div>
-      </div>
+      {body}
     </div>
   );
 }
 
-/** Up Next bumper strip — dark broadcast plate, not frosted glass. */
+/** Up Next bumper — soft glass chip that sits above the player dock. */
 export function UpNextBumper({ track = null }) {
   if (!track) return null;
   return (
@@ -358,11 +432,16 @@ export function UpNextBumper({ track = null }) {
         alignItems: "center",
         gap: 10,
         maxWidth: 340,
-        padding: "6px 8px 6px 0",
-        borderRadius: 0,
-        background: "rgba(12,14,18,0.88)",
-        border: "1px solid rgba(255,255,255,0.1)",
-        boxShadow: "0 8px 20px rgba(12,14,18,0.35)",
+        width: "100%",
+        padding: "8px 12px 8px 8px",
+        borderRadius: radius.lg,
+        background: `
+          linear-gradient(165deg, rgba(255,255,255,0.78) 0%, rgba(236,240,246,0.58) 100%)
+        `,
+        border: `1px solid ${glass.borderSoft}`,
+        boxShadow: `inset 0 1px 0 ${glass.highlight}, ${glass.shadowSoft}`,
+        backdropFilter: glass.blurSoft,
+        WebkitBackdropFilter: glass.blurSoft,
         pointerEvents: "none",
         animation: `rise 0.4s ${motion.ease} both`,
         overflow: "hidden",
@@ -371,18 +450,16 @@ export function UpNextBumper({ track = null }) {
       <div style={{
         fontFamily: fontMono,
         fontSize: 8,
-        fontWeight: 900,
-        letterSpacing: 1.2,
+        fontWeight: 800,
+        letterSpacing: 1.15,
         textTransform: "uppercase",
-        color: "#fff",
+        color: color.muted,
         flexShrink: 0,
-        background: `linear-gradient(165deg, ${chrome.plate} 0%, ${chrome.steel} 100%)`,
-        padding: "10px 8px",
-        alignSelf: "stretch",
-        display: "flex",
-        alignItems: "center",
-        clipPath: "polygon(0 0, 100% 0, calc(100% - 6px) 100%, 0 100%)",
-        paddingRight: 12,
+        padding: "6px 8px",
+        borderRadius: radius.sm,
+        background: "rgba(255,255,255,0.55)",
+        border: `1px solid ${glass.borderSoft}`,
+        boxShadow: `inset 0 1px 0 ${glass.highlight}`,
       }}>
         Up Next
       </div>
@@ -390,25 +467,31 @@ export function UpNextBumper({ track = null }) {
         <img
           src={track.albumCover}
           alt=""
-          width={26}
-          height={26}
-          style={{ borderRadius: 0, objectFit: "cover", flexShrink: 0 }}
+          width={28}
+          height={28}
+          style={{
+            borderRadius: 8,
+            objectFit: "cover",
+            flexShrink: 0,
+            boxShadow: "0 2px 8px rgba(18,20,26,0.12)",
+          }}
         />
       ) : (
         <div style={{
-          width: 26, height: 26, borderRadius: 0, flexShrink: 0,
-          background: "rgba(255,255,255,0.12)",
+          width: 28, height: 28, borderRadius: 8, flexShrink: 0,
+          background: "rgba(18,20,26,0.08)",
+          border: `1px solid ${glass.borderSoft}`,
         }} />
       )}
-      <div style={{ minWidth: 0, flex: 1, paddingRight: 6 }}>
+      <div style={{ minWidth: 0, flex: 1 }}>
         <div style={{
-          fontSize: 12, fontWeight: 700, color: color.onDark,
+          fontSize: 12, fontWeight: 700, color: color.ink,
           overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
         }}>
           {track.title}
         </div>
         <div style={{
-          fontSize: 10, color: "rgba(242,244,247,0.55)",
+          fontSize: 10, color: color.muted,
           overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
         }}>
           {track.artist}
@@ -419,8 +502,8 @@ export function UpNextBumper({ track = null }) {
 }
 
 /**
- * Compact request line — one slim plate so the lower third stays hero.
- * Reactions tuck into a secondary row (graphic-pack labels, not emoji parade).
+ * Soft glass request line — presence + request/dedicate chips.
+ * When embedded, sits as a connected strip inside the stage dock.
  */
 export function StationHeatBar({
   track,
@@ -429,6 +512,7 @@ export function StationHeatBar({
   requested = false,
   onDedicate = null,
   compact = true,
+  embedded = false,
 }) {
   const [lockedIn, setLockedIn] = useState(() => estimateLockedIn(track));
   const [burst, setBurst] = useState(null);
@@ -452,42 +536,74 @@ export function StationHeatBar({
 
   const REACT_LABELS = { "🔥": "HOT", "💥": "BANG", "🙌": "YES", "📺": "TV", "🕺": "MOVE" };
 
+  const chipBase = {
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
+    height: compact ? 32 : 34,
+    padding: "0 12px",
+    borderRadius: radius.pill,
+    fontFamily: fontMono,
+    fontSize: 10,
+    fontWeight: 750,
+    letterSpacing: 0.9,
+    textTransform: "uppercase",
+    border: `1px solid ${glass.borderSoft}`,
+    boxShadow: `inset 0 1px 0 ${glass.highlight}`,
+    backdropFilter: glass.blurSoft,
+    WebkitBackdropFilter: glass.blurSoft,
+    cursor: "pointer",
+    whiteSpace: "nowrap",
+    flexShrink: 0,
+  };
+
   return (
     <div style={{
       position: "relative",
       display: "flex",
       flexDirection: "column",
-      gap: 6,
+      gap: 8,
       width: "100%",
-      maxWidth: 400,
+      maxWidth: embedded ? "none" : 400,
       pointerEvents: "auto",
     }}>
       <div style={{
         display: "flex",
-        alignItems: "stretch",
-        gap: 0,
-        background: "rgba(12,14,18,0.9)",
-        border: "1px solid rgba(255,255,255,0.1)",
-        color: color.onDark,
-        overflow: "hidden",
+        alignItems: "center",
+        gap: 8,
+        padding: embedded ? "2px 0" : (compact ? "8px 10px" : "9px 12px"),
+        borderRadius: embedded ? 0 : radius.lg,
+        background: embedded
+          ? "transparent"
+          : `
+            linear-gradient(165deg, rgba(255,255,255,0.72) 0%, rgba(236,240,246,0.55) 100%)
+          `,
+        border: embedded ? "none" : `1px solid ${glass.borderSoft}`,
+        boxShadow: embedded
+          ? "none"
+          : `inset 0 1px 0 ${glass.highlight}, ${glass.shadowSoft}`,
+        backdropFilter: embedded ? "none" : glass.blurSoft,
+        WebkitBackdropFilter: embedded ? "none" : glass.blurSoft,
+        color: color.ink,
       }}>
         <div style={{
           display: "flex",
           alignItems: "center",
-          gap: 7,
-          padding: compact ? "7px 10px" : "8px 12px",
+          gap: 8,
           minWidth: 0,
           flex: 1,
+          paddingLeft: embedded ? 2 : 4,
         }}>
           <span aria-hidden="true" style={{
             width: 7, height: 7, borderRadius: "50%", background: chrome.live,
-            boxShadow: "0 0 0 3px rgba(184,192,204,0.22)",
+            boxShadow: "0 0 0 3px rgba(184,192,204,0.28)",
             animation: "stageLiveDot 1.6s ease-in-out infinite",
             flexShrink: 0,
           }} />
           <span style={{
-            fontFamily: fontMono, fontSize: 9, fontWeight: 800,
-            letterSpacing: 1.1, textTransform: "uppercase",
+            fontFamily: fontMono, fontSize: 10, fontWeight: 750,
+            letterSpacing: 1.05, textTransform: "uppercase",
+            color: color.muted,
             whiteSpace: "nowrap",
             overflow: "hidden",
             textOverflow: "ellipsis",
@@ -496,78 +612,66 @@ export function StationHeatBar({
           </span>
         </div>
 
-        {onRequest && (
+        <div style={{ display: "flex", alignItems: "center", gap: 6, flexShrink: 0 }}>
+          {onRequest && (
+            <button
+              type="button"
+              onClick={(e) => { e.stopPropagation(); onRequest(); }}
+              disabled={requested}
+              style={{
+                ...chipBase,
+                color: requested ? color.faint : color.ink,
+                background: requested
+                  ? "rgba(255,255,255,0.4)"
+                  : "linear-gradient(165deg, rgba(255,255,255,0.95) 0%, rgba(226,232,240,0.82) 100%)",
+                border: `1px solid ${requested ? glass.borderSoft : glass.border}`,
+                cursor: requested ? "default" : "pointer",
+                boxShadow: requested
+                  ? `inset 0 1px 0 ${glass.highlight}`
+                  : `inset 0 1px 0 ${glass.highlight}, 0 4px 12px rgba(18,20,26,0.08)`,
+              }}
+            >
+              {requested ? "Queued" : "Request"}
+            </button>
+          )}
+          {onDedicate && (
+            <button
+              type="button"
+              onClick={(e) => { e.stopPropagation(); onDedicate(); }}
+              style={{
+                ...chipBase,
+                color: color.body,
+                background: "rgba(255,255,255,0.48)",
+              }}
+            >
+              Dedicate
+            </button>
+          )}
           <button
             type="button"
-            onClick={(e) => { e.stopPropagation(); onRequest(); }}
-            disabled={requested}
+            aria-expanded={open}
+            aria-label={open ? "Hide reactions" : "Show reactions"}
+            onClick={(e) => { e.stopPropagation(); setOpen((v) => !v); }}
             style={{
-              padding: "0 12px",
-              border: "none",
-              borderLeft: "1px solid rgba(255,255,255,0.1)",
-              background: requested ? "rgba(255,255,255,0.06)" : chrome.hot,
-              color: requested ? "rgba(242,244,247,0.55)" : "#fff",
-              fontFamily: fontMono,
-              fontSize: 9,
-              fontWeight: 900,
-              letterSpacing: 1.1,
-              textTransform: "uppercase",
-              cursor: requested ? "default" : "pointer",
-              whiteSpace: "nowrap",
+              ...chipBase,
+              width: compact ? 32 : 34,
+              padding: 0,
+              color: open ? color.ink : color.muted,
+              background: open
+                ? "linear-gradient(165deg, rgba(255,255,255,0.95) 0%, rgba(226,232,240,0.82) 100%)"
+                : "rgba(255,255,255,0.42)",
+              border: `1px solid ${open ? glass.border : glass.borderSoft}`,
             }}
           >
-            {requested ? "Queued" : "Request"}
+            {open ? "−" : "+"}
           </button>
-        )}
-        {onDedicate && (
-          <button
-            type="button"
-            onClick={(e) => { e.stopPropagation(); onDedicate(); }}
-            style={{
-              padding: "0 12px",
-              border: "none",
-              borderLeft: "1px solid rgba(255,255,255,0.1)",
-              background: "rgba(255,255,255,0.06)",
-              color: color.onDark,
-              fontFamily: fontMono,
-              fontSize: 9,
-              fontWeight: 800,
-              letterSpacing: 1.1,
-              textTransform: "uppercase",
-              cursor: "pointer",
-              whiteSpace: "nowrap",
-            }}
-          >
-            Dedicate
-          </button>
-        )}
-        <button
-          type="button"
-          aria-expanded={open}
-          aria-label={open ? "Hide reactions" : "Show reactions"}
-          onClick={(e) => { e.stopPropagation(); setOpen((v) => !v); }}
-          style={{
-            padding: "0 10px",
-            border: "none",
-            borderLeft: "1px solid rgba(255,255,255,0.1)",
-            background: open ? "rgba(139,147,159,0.25)" : "rgba(255,255,255,0.04)",
-            color: color.onDark,
-            fontFamily: fontMono,
-            fontSize: 9,
-            fontWeight: 800,
-            letterSpacing: 1,
-            textTransform: "uppercase",
-            cursor: "pointer",
-          }}
-        >
-          {open ? "−" : "+"}
-        </button>
+        </div>
       </div>
 
       {open && (
         <div style={{
           display: "flex",
-          gap: 4,
+          gap: 6,
           animation: `rise 0.25s ${motion.ease} both`,
         }}>
           {STATION_REACTIONS.map((emoji) => (
@@ -578,26 +682,31 @@ export function StationHeatBar({
               onClick={(e) => { e.stopPropagation(); fireReact(emoji); }}
               style={{
                 flex: 1,
-                background: "rgba(12,14,18,0.88)",
-                border: "1px solid rgba(255,255,255,0.1)",
-                borderRadius: 0,
-                height: 30,
+                height: 34,
+                borderRadius: radius.md,
+                background: "rgba(255,255,255,0.55)",
+                border: `1px solid ${glass.borderSoft}`,
+                boxShadow: `inset 0 1px 0 ${glass.highlight}`,
+                backdropFilter: glass.blurSoft,
+                WebkitBackdropFilter: glass.blurSoft,
                 cursor: "pointer",
                 fontFamily: fontMono,
                 fontSize: 9,
                 fontWeight: 800,
                 letterSpacing: 0.8,
-                color: color.onDark,
+                color: color.body,
                 position: "relative",
               }}
             >
               {REACT_LABELS[emoji] || emoji}
               {reactCounts[emoji] > 0 && (
                 <span style={{
-                  position: "absolute", top: -5, right: 2,
+                  position: "absolute", top: -6, right: 4,
                   fontSize: 8, fontFamily: fontMono, fontWeight: 800,
-                  background: `linear-gradient(165deg, ${chrome.plate} 0%, ${chrome.steel} 100%)`, color: "#fff",
-                  padding: "1px 4px",
+                  background: color.ink, color: color.onAccent,
+                  padding: "1px 5px",
+                  borderRadius: radius.pill,
+                  boxShadow: "0 2px 6px rgba(18,20,26,0.16)",
                 }}>
                   {reactCounts[emoji]}
                 </span>
@@ -614,11 +723,11 @@ export function StationHeatBar({
           bottom: "110%",
           transform: "translateX(-50%)",
           fontFamily: fontMono,
-          fontSize: 18,
+          fontSize: 16,
           fontWeight: 900,
           letterSpacing: 2,
-          color: chrome.hot,
-          textShadow: "0 2px 12px rgba(12,14,18,0.6)",
+          color: color.ink,
+          textShadow: "0 2px 12px rgba(255,255,255,0.7)",
           animation: "stationBurst 0.7s ease forwards",
           pointerEvents: "none",
           zIndex: 6,
@@ -645,20 +754,21 @@ export function DedicationFlash({ dedication, onDone }) {
       style={{
         maxWidth: 380,
         width: "100%",
-        padding: "10px 14px",
-        borderRadius: radius.sm,
-        background: "rgba(255,255,255,0.92)",
+        padding: "12px 14px",
+        borderRadius: radius.lg,
+        background: glass.plate,
         border: `1px solid ${glass.border}`,
-        borderLeft: `4px solid ${chrome.plate}`,
-        boxShadow: glass.shadow,
+        boxShadow: `inset 0 1px 0 ${glass.highlight}, ${glass.shadowLift}`,
+        backdropFilter: glass.blur,
+        WebkitBackdropFilter: glass.blur,
         animation: `stationLowerIn 0.4s ${motion.ease} both`,
         pointerEvents: "none",
       }}
     >
       <div style={{
         fontFamily: fontMono, fontSize: 9, fontWeight: 800,
-        letterSpacing: 1.4, textTransform: "uppercase", color: chrome.plate,
-        marginBottom: 4,
+        letterSpacing: 1.4, textTransform: "uppercase", color: color.muted,
+        marginBottom: 5,
       }}>
         Dedication · {dedication.fromName}
       </div>
