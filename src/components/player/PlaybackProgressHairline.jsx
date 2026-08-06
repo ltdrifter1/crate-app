@@ -9,7 +9,7 @@ export default function PlaybackProgressHairline() {
     <div style={{
       height: 5,
       background: `
-        linear-gradient(180deg, rgba(18,20,26,0.1) 0%, rgba(255,255,255,0.45) 100%)
+        linear-gradient(180deg, rgba(18,20,26,0.1) 0%, rgba(28,32,38,0.55) 100%)
       `,
       marginBottom: 16,
       overflow: "hidden",
@@ -22,7 +22,7 @@ export default function PlaybackProgressHairline() {
         height: "100%",
         width: `${pct}%`,
         background: `
-          linear-gradient(180deg, #3A404C 0%, #1A1D24 55%, #2A2E38 100%)
+          linear-gradient(180deg, #EDF0F4 0%, #B9C1CC 55%, #D3D9E1 100%)
         `,
         boxShadow: "inset 0 1px 0 rgba(255,255,255,0.22)",
         transition: "width 1s linear",

@@ -118,7 +118,7 @@ export default function GenreSceneBrowse({
               gap: 12,
               padding: "14px 14px",
               background: `
-                linear-gradient(165deg, rgba(255,255,255,0.62) 0%, rgba(236,240,246,0.4) 100%)
+                linear-gradient(165deg, rgba(34,38,45,0.72) 0%, rgba(28,32,38,0.4) 100%)
               `,
               border: `1px solid ${glass.borderSoft}`,
               borderRadius: radius.lg,

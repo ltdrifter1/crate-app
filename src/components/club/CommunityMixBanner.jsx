@@ -51,14 +51,14 @@ export default function CommunityMixBanner({
         style={{
           width: "100%",
           textAlign: "left",
-          border: `1px solid rgba(255,255,255,0.55)`,
+          border: `1px solid rgba(255,255,255,0.14)`,
           borderRadius: radius.xl,
           padding: 0,
           cursor: "pointer",
           color: color.ink,
           overflow: "hidden",
           background: `
-            linear-gradient(165deg, rgba(255,255,255,0.72) 0%, rgba(236,240,246,0.5) 100%)
+            linear-gradient(165deg, rgba(38,43,51,0.82) 0%, rgba(28,32,38,0.5) 100%)
           `,
           boxShadow: `inset 0 1px 0 ${glass.highlight}, ${glass.shadowLift}`,
           backdropFilter: glass.blur,
@@ -124,7 +124,7 @@ export default function CommunityMixBanner({
         <div style={{
           padding: "14px 18px 16px",
           background: `
-            linear-gradient(180deg, rgba(255,255,255,0.55) 0%, rgba(242,244,247,0.42) 100%)
+            linear-gradient(180deg, rgba(32,36,43,0.65) 0%, rgba(242,244,247,0.42) 100%)
           `,
           borderTop: `1px solid ${glass.borderSoft}`,
         }}>

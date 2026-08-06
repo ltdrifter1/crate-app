@@ -86,7 +86,7 @@ export function HostCreditChip({ show, compact = false, onClick = null, tone = "
     padding: compact ? "4px 10px 4px 4px" : "6px 10px 6px 6px",
     borderRadius: 999,
     background: onGlass
-      ? (compact ? "rgba(255,255,255,0.48)" : glass.fillStrong)
+      ? (compact ? "rgba(29,33,39,0.58)" : glass.fillStrong)
       : (compact ? "rgba(255,255,255,0.08)" : glass.fillStrong),
     border: `1px solid ${onGlass ? glass.borderSoft : (compact ? "rgba(255,255,255,0.12)" : glass.border)}`,
     boxShadow: onGlass
@@ -131,10 +131,10 @@ export function NowOnAirCard({
         position: "relative",
         overflow: "hidden",
         borderRadius: radius.xl,
-        border: `1px solid rgba(255,255,255,0.55)`,
+        border: `1px solid rgba(255,255,255,0.14)`,
         background: `
           linear-gradient(135deg, ${host.accent}18 0%, transparent 48%),
-          linear-gradient(165deg, rgba(255,255,255,0.72) 0%, rgba(236,240,246,0.52) 55%, rgba(220,226,236,0.48) 100%)
+          linear-gradient(165deg, rgba(38,43,51,0.82) 0%, rgba(28,32,38,0.52) 55%, rgba(22,25,30,0.48) 100%)
         `,
         boxShadow: `inset 0 1px 0 ${glass.highlight}, ${glass.shadowLift}`,
         backdropFilter: glass.blur,
@@ -146,7 +146,7 @@ export function NowOnAirCard({
           position: "absolute", inset: 0, pointerEvents: "none",
           background: `
             radial-gradient(ellipse 80% 50% at 0% 0%, ${host.accent}22 0%, transparent 55%),
-            linear-gradient(180deg, rgba(255,255,255,0.35) 0%, transparent 40%)
+            linear-gradient(180deg, rgba(255,255,255,0.08) 0%, transparent 40%)
           `,
         }} />
 
@@ -154,7 +154,7 @@ export function NowOnAirCard({
           <div style={{
             display: "inline-flex", alignItems: "center", gap: 8,
             padding: "5px 10px", borderRadius: radius.pill,
-            background: "rgba(255,255,255,0.55)",
+            background: "rgba(32,36,43,0.65)",
             border: `1px solid ${glass.borderSoft}`,
             boxShadow: `inset 0 1px 0 ${glass.highlight}`,
           }}>
@@ -284,8 +284,8 @@ export function NowOnAirCard({
               textTransform: "uppercase",
               color: tuned ? color.muted : color.onAccent,
               background: tuned
-                ? "rgba(255,255,255,0.45)"
-                : `linear-gradient(165deg, ${color.ink} 0%, #2A2E38 100%)`,
+                ? "rgba(28,32,38,0.55)"
+                : `linear-gradient(165deg, #EDF0F4 0%, #C4CBD4 100%)`,
               boxShadow: tuned
                 ? `inset 0 1px 0 ${glass.highlight}`
                 : `inset 0 1px 0 rgba(255,255,255,0.22), ${glass.shadowSoft}`,
@@ -398,8 +398,8 @@ export function ShowGuideRail({
                 cursor: "pointer",
                 border: `1px solid ${live || tuned ? accent : glass.borderSoft}`,
                 background: live
-                  ? `linear-gradient(160deg, ${accent}18 0%, rgba(255,255,255,0.7) 55%)`
-                  : "rgba(255,255,255,0.58)",
+                  ? `linear-gradient(160deg, ${accent}18 0%, rgba(38,43,51,0.8) 55%)`
+                  : "rgba(32,36,43,0.68)",
                 boxShadow: `inset 0 1px 0 ${glass.highlight}, ${glass.shadowSoft}`,
               }}
             >

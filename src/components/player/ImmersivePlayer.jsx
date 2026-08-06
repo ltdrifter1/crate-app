@@ -49,8 +49,8 @@ function ChromeIconButton({
         cursor: "pointer",
         color: active ? color.ink : color.muted,
         background: active
-          ? "linear-gradient(165deg, rgba(255,255,255,0.95) 0%, rgba(226,232,240,0.88) 100%)"
-          : "linear-gradient(165deg, rgba(255,255,255,0.72) 0%, rgba(236,240,246,0.55) 100%)",
+          ? "linear-gradient(165deg, rgba(56,62,72,0.95) 0%, rgba(25,28,34,0.88) 100%)"
+          : "linear-gradient(165deg, rgba(38,43,51,0.82) 0%, rgba(28,32,38,0.55) 100%)",
         border: `1px solid ${active ? glass.border : glass.borderSoft}`,
         boxShadow: active
           ? `inset 0 1px 0 ${glass.highlight}, inset 0 -1px 0 rgba(22,24,30,0.06), 0 4px 12px rgba(22,24,30,0.08)`
@@ -89,9 +89,9 @@ function ChromeSeek({
           marginTop: -3,
           borderRadius: 999,
           background: `
-            linear-gradient(180deg, rgba(22,24,30,0.14) 0%, rgba(255,255,255,0.55) 100%)
+            linear-gradient(180deg, rgba(22,24,30,0.14) 0%, rgba(32,36,43,0.65) 100%)
           `,
-          boxShadow: "inset 0 1px 2px rgba(22,24,30,0.18), inset 0 -1px 0 rgba(255,255,255,0.65)",
+          boxShadow: "inset 0 1px 2px rgba(22,24,30,0.18), inset 0 -1px 0 rgba(36,40,48,0.75)",
           pointerEvents: "none",
           overflow: "hidden",
         }}
@@ -101,7 +101,7 @@ function ChromeSeek({
           width: `${pct}%`,
           borderRadius: 999,
           background: `
-            linear-gradient(180deg, #3A404C 0%, #1A1D24 55%, #2A2E38 100%)
+            linear-gradient(180deg, #EDF0F4 0%, #B9C1CC 55%, #D3D9E1 100%)
           `,
           boxShadow: "inset 0 1px 0 rgba(255,255,255,0.22)",
           transition: "width 0.08s linear",
@@ -144,7 +144,7 @@ function MetaChip({ children }) {
       fontFamily: fontMono,
       fontVariantNumeric: "tabular-nums",
       color: color.body,
-      background: "rgba(255,255,255,0.55)",
+      background: "rgba(32,36,43,0.65)",
       border: `1px solid ${glass.borderSoft}`,
       boxShadow: `inset 0 1px 0 ${glass.highlight}`,
     }}>
@@ -273,7 +273,7 @@ function BoothStrip({
               textTransform: "uppercase",
               cursor: requested ? "default" : "pointer",
               color: requested ? color.faint : color.ink,
-              background: requested ? "rgba(255,255,255,0.4)" : glass.fillStrong,
+              background: requested ? "rgba(27,31,37,0.5)" : glass.fillStrong,
               border: `1px solid ${glass.borderSoft}`,
               boxShadow: `inset 0 1px 0 ${glass.highlight}`,
             }}
@@ -472,7 +472,7 @@ export default function ImmersivePlayer({
           left: 0,
           right: 0,
           height: 120,
-          background: "linear-gradient(180deg, rgba(255,255,255,0.55) 0%, transparent 100%)",
+          background: "linear-gradient(180deg, rgba(32,36,43,0.65) 0%, transparent 100%)",
           pointerEvents: "none",
           zIndex: 1,
         }}
@@ -528,7 +528,7 @@ export default function ImmersivePlayer({
                 top: "112%",
                 right: 0,
                 minWidth: 200,
-                background: "rgba(255,255,255,0.94)",
+                background: "rgba(56,62,72,0.94)",
                 border: `1px solid ${glass.border}`,
                 borderRadius: radius.lg,
                 padding: "6px 0",
@@ -673,7 +673,7 @@ export default function ImmersivePlayer({
             borderRadius: 18,
             padding: 3,
             background: `
-              linear-gradient(145deg, rgba(255,255,255,0.95) 0%, rgba(210,216,226,0.7) 48%, rgba(255,255,255,0.85) 100%)
+              linear-gradient(145deg, rgba(56,62,72,0.95) 0%, rgba(210,216,226,0.7) 48%, rgba(46,51,60,0.88) 100%)
             `,
             boxShadow: isPlaying ? artShadow.raised : artShadow.quiet,
             animation: isPlaying
@@ -722,7 +722,7 @@ export default function ImmersivePlayer({
             <div aria-hidden="true" style={{
               position: "absolute",
               inset: 0,
-              background: "linear-gradient(135deg, rgba(255,255,255,0.35) 0%, transparent 42%)",
+              background: "linear-gradient(135deg, rgba(26,29,35,0.45) 0%, transparent 42%)",
               pointerEvents: "none",
             }} />
           </div>
@@ -826,9 +826,9 @@ export default function ImmersivePlayer({
           padding: "16px 18px 18px",
           borderRadius: 22,
           background: `
-            linear-gradient(165deg, rgba(255,255,255,0.72) 0%, rgba(236,240,246,0.55) 100%)
+            linear-gradient(165deg, rgba(38,43,51,0.82) 0%, rgba(28,32,38,0.55) 100%)
           `,
-          border: `1px solid rgba(255,255,255,0.55)`,
+          border: `1px solid rgba(255,255,255,0.14)`,
           boxShadow: `
             inset 0 1px 0 ${glass.highlight},
             0 -1px 0 rgba(22,24,30,0.04),
@@ -890,7 +890,7 @@ export default function ImmersivePlayer({
               padding: 3,
               borderRadius: "50%",
               background: `
-                linear-gradient(145deg, rgba(255,255,255,0.95) 0%, rgba(200,208,220,0.65) 100%)
+                linear-gradient(145deg, rgba(56,62,72,0.95) 0%, rgba(200,208,220,0.65) 100%)
               `,
               boxShadow: `inset 0 1px 0 ${glass.highlight}, 0 8px 24px rgba(22,24,30,0.12)`,
             }}>

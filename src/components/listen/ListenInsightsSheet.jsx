@@ -23,7 +23,7 @@ export default function ListenInsightsSheet({
           position: "absolute",
           inset: 0,
           background:
-            "radial-gradient(ellipse at 50% 0%, rgba(190,198,210,0.32) 0%, transparent 50%)",
+            "radial-gradient(ellipse at 50% 0%, rgba(169,199,228,0.07) 0%, transparent 50%)",
         }}
       />
 

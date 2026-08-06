@@ -28,7 +28,7 @@ function CoverThumb({ track, size = 40 }) {
   return (
     <div style={{
       width: size, height: size, borderRadius: 8,
-      background: `linear-gradient(160deg, rgba(255,255,255,0.9), ${color.surfaceRaised})`,
+      background: `linear-gradient(160deg, rgba(52,58,68,0.9), ${color.surfaceRaised})`,
       display: "flex", alignItems: "center", justifyContent: "center",
       fontFamily: fontDisplay, fontWeight: 700, fontSize: size * 0.36, color: color.faint,
     }}>
@@ -337,7 +337,7 @@ export function InterestsPanel({
                 }}>
                   <div style={{
                     height: "100%", width: `${g.pct}%`, borderRadius: 4,
-                    background: `linear-gradient(90deg, #3A404C 0%, #16181E 100%)`,
+                    background: `linear-gradient(90deg, #A9C7E4 0%, #7FA3C4 100%)`,
                     transition: "width 0.5s ease",
                   }}/>
                 </div>

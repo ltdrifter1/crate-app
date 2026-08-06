@@ -36,7 +36,7 @@ function SleeveArt({ track, size }) {
       display: "flex", alignItems: "center", justifyContent: "center",
       fontFamily: fontDisplay, fontSize: size * 0.28, fontWeight: 700,
       color: color.faint, letterSpacing: -1,
-      background: `linear-gradient(160deg, rgba(255,255,255,0.85), ${color.surfaceRaised})`,
+      background: `linear-gradient(160deg, rgba(46,51,60,0.88), ${color.surfaceRaised})`,
     }}>
       {(track.title || "P")[0]}
     </div>
@@ -53,7 +53,7 @@ function Sleeve({ track, size, active, playing }) {
         borderRadius: radius.md,
         overflow: "hidden",
         background: color.surfaceRaised,
-        border: `1px solid ${active ? "rgba(22,24,30,0.28)" : glass.borderSoft}`,
+        border: `1px solid ${active ? "rgba(255,255,255,0.2)" : glass.borderSoft}`,
         boxShadow: active ? artShadow.raised : artShadow.quiet,
         position: "relative",
       }}
@@ -61,7 +61,7 @@ function Sleeve({ track, size, active, playing }) {
       <SleeveArt track={track} size={size} />
       <div aria-hidden="true" style={{
         pointerEvents: "none", position: "absolute", inset: 0, borderRadius: radius.md,
-        boxShadow: "inset 0 1px 0 rgba(255,255,255,0.35)",
+        boxShadow: "inset 0 1px 0 rgba(255,255,255,0.08)",
         background: "linear-gradient(135deg, rgba(255,255,255,0.18) 0%, transparent 42%)",
       }}/>
       {active && playing && (
@@ -186,8 +186,8 @@ export default function CoverFlow({
             height: Math.round(size * 0.28),
             borderRadius: "50%",
             background: `
-              radial-gradient(ellipse at 50% 30%, rgba(255,255,255,0.55) 0%, rgba(255,255,255,0.12) 42%, transparent 72%),
-              linear-gradient(180deg, rgba(190,198,210,0.2) 0%, transparent 100%)
+              radial-gradient(ellipse at 50% 30%, rgba(32,36,43,0.65) 0%, rgba(255,255,255,0.12) 42%, transparent 72%),
+              linear-gradient(180deg, rgba(255,255,255,0.05) 0%, transparent 100%)
             `,
             filter: "blur(2px)",
             pointerEvents: "none",

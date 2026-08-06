@@ -29,7 +29,7 @@ export default function ChartsScreen({
           <span aria-hidden="true" style={{
             width: 10, height: 10,
             background: `linear-gradient(145deg, ${chrome.signal} 0%, ${chrome.steel} 100%)`,
-            boxShadow: "inset 0 1px 0 rgba(255,255,255,0.7), 0 0 0 1px rgba(18,20,26,0.18)",
+            boxShadow: "inset 0 1px 0 rgba(255,255,255,0.12), 0 0 0 1px rgba(18,20,26,0.18)",
             clipPath: "polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)",
           }} />
           <div style={{
@@ -76,9 +76,9 @@ export default function ChartsScreen({
           margin: `12px ${homeSpace.gutter}px 0`,
           padding: "18px 16px",
           borderRadius: radius.xl,
-          border: `1px solid rgba(255,255,255,0.5)`,
+          border: `1px solid rgba(255,255,255,0.12)`,
           background: `
-            linear-gradient(165deg, rgba(255,255,255,0.7) 0%, rgba(236,240,246,0.48) 100%)
+            linear-gradient(165deg, rgba(38,43,51,0.8) 0%, rgba(28,32,38,0.48) 100%)
           `,
           boxShadow: `inset 0 1px 0 ${glass.highlight}, ${glass.shadowSoft}`,
           backdropFilter: glass.blurSoft,

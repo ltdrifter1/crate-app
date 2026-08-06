@@ -120,7 +120,7 @@ export default function CountdownRail({
                   border: `1px solid ${active ? color.ink : glass.borderSoft}`,
                   background: active
                     ? "rgba(22,24,30,0.06)"
-                    : "rgba(255,255,255,0.55)",
+                    : "rgba(32,36,43,0.65)",
                   boxShadow: active
                     ? `inset 0 1px 0 ${glass.highlight}`
                     : `inset 0 1px 0 ${glass.highlight}, ${glass.shadowSoft}`,

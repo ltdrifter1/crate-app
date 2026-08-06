@@ -102,7 +102,7 @@ export function VideoBadge({ track, dark = false }) {
       background: dark
         ? "rgba(255,255,255,0.14)"
         : `
-          linear-gradient(165deg, rgba(255,255,255,0.72) 0%, rgba(236,240,246,0.5) 100%)
+          linear-gradient(165deg, rgba(38,43,51,0.82) 0%, rgba(28,32,38,0.5) 100%)
         `,
       color: dark ? color.onDark : color.ink,
       border: dark ? "1px solid rgba(255,255,255,0.18)" : `1px solid ${glass.borderSoft}`,

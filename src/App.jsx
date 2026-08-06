@@ -133,15 +133,15 @@ const injectStyles = () => {
     body {
       font-family: var(--font);
       background:
-        radial-gradient(ellipse 120% 70% at 50% -18%, rgba(255,255,255,0.72) 0%, transparent 55%),
-        radial-gradient(ellipse 70% 45% at 100% 110%, rgba(190,198,210,0.25) 0%, transparent 50%),
+        radial-gradient(ellipse 120% 70% at 50% -18%, rgba(169,199,228,0.05) 0%, transparent 55%),
+        radial-gradient(ellipse 70% 45% at 100% 110%, rgba(169,199,228,0.06) 0%, transparent 50%),
         var(--canvas);
       color: var(--ink);
     }
     ::-webkit-scrollbar { width: 8px; height: 8px; }
     ::-webkit-scrollbar-track { background: transparent; }
     ::-webkit-scrollbar-thumb {
-      background: rgba(26,29,36,0.14);
+      background: rgba(255,255,255,0.14);
       border-radius: 8px;
       border: 2px solid transparent;
       background-clip: padding-box;
@@ -159,7 +159,7 @@ const injectStyles = () => {
     }
     button.btn-primary:hover {
       transform: translateY(-1px);
-      box-shadow: inset 0 1px 0 rgba(255,255,255,0.32), ${glass.shadowLift} !important;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.6), ${glass.shadowLift} !important;
     }
     button.btn-secondary:hover {
       background: ${glass.fillHeavy} !important;
@@ -173,10 +173,10 @@ const injectStyles = () => {
     input:focus {
       outline: none;
       border-color: ${glass.border} !important;
-      background: rgba(255,255,255,0.78) !important;
+      background: rgba(42,47,55,0.85) !important;
       box-shadow: inset 0 1px 0 ${glass.highlight}, 0 0 0 3px ${color.accentSoft} !important;
     }
-    input[type="range"] { -webkit-appearance: none; height: 4px; background: rgba(26,29,36,0.12); border-radius: 2px; outline: none; cursor: pointer; }
+    input[type="range"] { -webkit-appearance: none; height: 4px; background: rgba(255,255,255,0.12); border-radius: 2px; outline: none; cursor: pointer; }
     input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; border-radius: 50%; background: ${color.accent}; border: 2px solid #fff; box-shadow: 0 1px 4px rgba(26,29,36,0.25); cursor: pointer; }
     input[type="range"]::-moz-range-thumb { width: 14px; height: 14px; border-radius: 50%; background: ${color.accent}; border: 2px solid #fff; box-shadow: 0 1px 4px rgba(26,29,36,0.25); cursor: pointer; }
     input.chrome-seek { -webkit-appearance: none; appearance: none; background: transparent !important; height: 28px !important; }
@@ -187,14 +187,14 @@ const injectStyles = () => {
       border-radius: 50%;
       background: linear-gradient(160deg, #FFFFFF 0%, #E8ECF2 45%, #C5CAD3 100%);
       border: 1px solid rgba(22,24,30,0.16);
-      box-shadow: inset 0 1px 0 rgba(255,255,255,0.95), 0 2px 6px rgba(22,24,30,0.22);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.95), 0 2px 6px rgba(0,0,0,0.4);
       cursor: pointer;
     }
     input.chrome-seek::-moz-range-thumb {
       width: 18px; height: 18px; border-radius: 50%;
       background: linear-gradient(160deg, #FFFFFF 0%, #E8ECF2 45%, #C5CAD3 100%);
       border: 1px solid rgba(22,24,30,0.16);
-      box-shadow: inset 0 1px 0 rgba(255,255,255,0.95), 0 2px 6px rgba(22,24,30,0.22);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.95), 0 2px 6px rgba(0,0,0,0.4);
       cursor: pointer;
     }
     .hide-scroll { -ms-overflow-style: none; scrollbar-width: none; }
@@ -215,7 +215,7 @@ const injectStyles = () => {
       backdrop-filter: ${glass.blur};
     }
     .glass-row:hover {
-      background: rgba(255,255,255,0.55) !important;
+      background: rgba(32,36,43,0.65) !important;
       box-shadow: inset 0 1px 0 ${glass.highlight};
     }
     @keyframes spin { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
@@ -277,8 +277,8 @@ const injectStyles = () => {
       50% { opacity: 1; }
     }
     @keyframes playGlow {
-      0%, 100% { box-shadow: 0 4px 14px rgba(22,24,30,0.2), 0 1px 0 rgba(255,255,255,0.5) inset; }
-      50% { box-shadow: 0 6px 18px rgba(22,24,30,0.28), 0 1px 0 rgba(255,255,255,0.55) inset; }
+      0%, 100% { box-shadow: 0 4px 14px rgba(22,24,30,0.2), 0 1px 0 rgba(30,34,41,0.6) inset; }
+      50% { box-shadow: 0 6px 18px rgba(255,255,255,0.2), 0 1px 0 rgba(32,36,43,0.65) inset; }
     }
     @keyframes coverFloat {
       0%, 100% { transform: translateY(0); }
@@ -371,7 +371,7 @@ const injectStyles = () => {
     }
     .flask-taste-btn:hover:not(:disabled) {
       transform: translateY(-1px);
-      box-shadow: inset 0 1px 0 rgba(255,255,255,0.7), 0 10px 22px rgba(26,29,36,0.16) !important;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.12), 0 10px 22px rgba(26,29,36,0.16) !important;
     }
     .flask-taste-btn:active:not(:disabled) {
       transform: translateY(0) scale(0.97);
@@ -443,10 +443,10 @@ const injectStyles = () => {
         box-shadow ${motion.base} ${motion.ease};
     }
     .custom-mix:hover {
-      background: rgba(255,255,255,0.88) !important;
-      border-color: rgba(26,29,36,0.14) !important;
+      background: rgba(48,53,62,0.9) !important;
+      border-color: rgba(255,255,255,0.14) !important;
       box-shadow:
-        inset 0 1px 0 rgba(255,255,255,0.95),
+        inset 0 1px 0 rgba(255,255,255,0.12),
         0 16px 40px rgba(26,29,36,0.12) !important;
       transform: translateY(-1px);
     }
@@ -580,8 +580,8 @@ function TimedMixMark({ size = 28, accent = color.accent }) {
         style={{ animation: "dialArc 1.1s cubic-bezier(0.22,1,0.36,1) both" }}
       />
       {/* Vibe bars — a short playlist inside the dial */}
-      <rect x="10.2" y="12.1" width="11.6" height="1.7" rx="0.85" fill="rgba(255,255,255,0.88)"/>
-      <rect x="10.2" y="15.15" width="8.4" height="1.7" rx="0.85" fill="rgba(255,255,255,0.55)"/>
+      <rect x="10.2" y="12.1" width="11.6" height="1.7" rx="0.85" fill="rgba(48,53,62,0.9)"/>
+      <rect x="10.2" y="15.15" width="8.4" height="1.7" rx="0.85" fill="rgba(32,36,43,0.65)"/>
       <rect x="10.2" y="18.2" width="5.6" height="1.7" rx="0.85" fill={accent}/>
     </svg>
   );
@@ -718,7 +718,7 @@ function IceOrbPlay({
         background: disabled
           ? color.surfaceRaised
           : `
-            linear-gradient(160deg, rgba(255,255,255,0.96) 0%, rgba(236,240,246,0.88) 48%, rgba(214,220,230,0.78) 100%)
+            linear-gradient(160deg, rgba(56,62,72,0.96) 0%, rgba(28,32,38,0.88) 48%, rgba(214,220,230,0.78) 100%)
           `,
         border: `1px solid ${disabled ? glass.borderSoft : glass.border}`,
         display: "flex",
@@ -930,8 +930,8 @@ function dockTintStyle(track) {
   const rgb = hexToRgbStr(track.color);
   return {
     background: `
-      linear-gradient(165deg, rgba(${rgb},0.14) 0%, rgba(${rgb},0.04) 38%, rgba(255,255,255,0.82) 78%),
-      rgba(255,255,255,0.78)
+      linear-gradient(165deg, rgba(${rgb},0.14) 0%, rgba(${rgb},0.04) 38%, rgba(44,49,58,0.86) 78%),
+      rgba(42,47,55,0.85)
     `,
   };
 }
@@ -1112,8 +1112,8 @@ function CoverStageAtmosphere({ track = null, playing = false, live = false }) {
         position: "absolute",
         inset: 0,
         background: `
-          linear-gradient(115deg, rgba(255,255,255,0.62) 0%, transparent 40%, transparent 60%, rgba(26,29,36,0.045) 100%),
-          radial-gradient(ellipse 90% 55% at 50% -8%, rgba(255,255,255,0.78) 0%, transparent 62%)
+          linear-gradient(115deg, rgba(34,38,45,0.72) 0%, transparent 40%, transparent 60%, rgba(26,29,36,0.045) 100%),
+          radial-gradient(ellipse 90% 55% at 50% -8%, rgba(42,47,55,0.85) 0%, transparent 62%)
         `,
         opacity: hasArt ? 0.35 : 1,
         transition: "opacity 0.7s ease",
@@ -1146,7 +1146,7 @@ function CoverStageAtmosphere({ track = null, playing = false, live = false }) {
             radial-gradient(ellipse 70% 50% at 50% 18%, rgba(255,255,255,0.22) 0%, transparent 65%)
           `
           : `
-            radial-gradient(ellipse 80% 50% at 50% 18%, rgba(190,198,210,0.22) 0%, transparent 60%),
+            radial-gradient(ellipse 80% 50% at 50% 18%, rgba(169,199,228,0.05) 0%, transparent 60%),
             linear-gradient(180deg, rgba(226,230,237,0.08) 0%, transparent 30%, transparent 55%, rgba(226,230,237,0.92) 100%)
           `,
       }}/>
@@ -1363,13 +1363,13 @@ function CoverStage({
               padding: "16px 16px 14px",
               background: `
                 linear-gradient(165deg,
-                  rgba(255,255,255,0.52) 0%,
-                  rgba(236,240,246,0.38) 42%,
+                  rgba(30,34,41,0.62) 0%,
+                  rgba(28,32,38,0.38) 42%,
                   rgba(214,220,230,0.34) 100%)
               `,
-              border: `1px solid rgba(255,255,255,0.55)`,
+              border: `1px solid rgba(255,255,255,0.14)`,
               boxShadow: `
-                inset 0 1px 0 rgba(255,255,255,0.75),
+                inset 0 1px 0 rgba(255,255,255,0.1),
                 inset 0 -1px 0 rgba(18,20,26,0.05),
                 0 24px 64px rgba(18,20,26,0.16),
                 0 6px 18px rgba(18,20,26,0.06)
@@ -1390,7 +1390,7 @@ function CoverStage({
                 borderRadius: 26,
                 pointerEvents: "none",
                 background: `
-                  radial-gradient(ellipse 90% 55% at 50% -10%, rgba(255,255,255,0.48) 0%, transparent 55%),
+                  radial-gradient(ellipse 90% 55% at 50% -10%, rgba(29,33,39,0.58) 0%, transparent 55%),
                   linear-gradient(180deg, rgba(255,255,255,0.28) 0%, transparent 32%),
                   linear-gradient(180deg, transparent 70%, rgba(255,255,255,0.12) 100%)
                 `,
@@ -1498,7 +1498,7 @@ function CoverStage({
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
-                      background: "rgba(255,255,255,0.55)",
+                      background: "rgba(32,36,43,0.65)",
                       border: `1px solid ${glass.borderSoft}`,
                       boxShadow: `inset 0 1px 0 ${glass.highlight}`,
                       backdropFilter: glass.blurSoft,
@@ -1516,7 +1516,7 @@ function CoverStage({
                     padding: 3,
                     borderRadius: "50%",
                     background: `
-                      linear-gradient(145deg, rgba(255,255,255,0.95) 0%, rgba(200,208,220,0.55) 100%)
+                      linear-gradient(145deg, rgba(56,62,72,0.95) 0%, rgba(200,208,220,0.55) 100%)
                     `,
                     boxShadow: `inset 0 1px 0 ${glass.highlight}, 0 10px 28px rgba(18,20,26,0.12)`,
                   }}>
@@ -1546,7 +1546,7 @@ function CoverStage({
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
-                      background: "rgba(255,255,255,0.55)",
+                      background: "rgba(32,36,43,0.65)",
                       border: `1px solid ${glass.borderSoft}`,
                       boxShadow: `inset 0 1px 0 ${glass.highlight}`,
                       backdropFilter: glass.blurSoft,
@@ -1820,7 +1820,7 @@ function TrackActionsMenu({ track, playlistCtx, activePlaylistId, x, y, onClose 
         left: pos.left,
         top: pos.top,
         zIndex: 400,
-        background: "rgba(255,255,255,0.92)",
+        background: "rgba(52,58,68,0.92)",
         border: `1px solid ${glass.border}`,
         borderRadius: radius.md,
         padding: "6px 0",
@@ -2053,10 +2053,10 @@ function TrackRow({ track, onPlay, active, isPlaying, onLike, extraAction, playl
           cursor: "pointer", marginBottom: 4,
           background: active
             ? `
-              linear-gradient(165deg, rgba(255,255,255,0.78) 0%, rgba(236,240,246,0.58) 100%)
+              linear-gradient(165deg, rgba(42,47,55,0.85) 0%, rgba(28,32,38,0.58) 100%)
             `
             : `
-              linear-gradient(165deg, rgba(255,255,255,0.28) 0%, rgba(236,240,246,0.12) 100%)
+              linear-gradient(165deg, rgba(255,255,255,0.28) 0%, rgba(28,32,38,0.12) 100%)
             `,
           border: active ? `1px solid ${glass.border}` : `1px solid ${glass.borderSoft}`,
           boxShadow: active
@@ -2212,10 +2212,10 @@ function SessionBuilderModal({ tracks, onClose, onPlayRoute, onSavePlaylist = nu
 
   const chromeChip = (selected) => ({
     borderRadius: radius.md,
-    border: selected ? `1px solid rgba(22,24,30,0.28)` : `1px solid ${glass.border}`,
+    border: selected ? `1px solid rgba(255,255,255,0.2)` : `1px solid ${glass.border}`,
     background: selected
-      ? `linear-gradient(180deg, rgba(255,255,255,0.2) 0%, transparent 45%), linear-gradient(165deg, #3A404C 0%, #1A1D24 100%)`
-      : `linear-gradient(160deg, rgba(255,255,255,0.88) 0%, rgba(236,240,246,0.62) 100%)`,
+      ? `linear-gradient(180deg, rgba(255,255,255,0.2) 0%, transparent 45%), linear-gradient(165deg, #EDF0F4 0%, #C4CBD4 100%)`
+      : `linear-gradient(160deg, rgba(48,53,62,0.9) 0%, rgba(28,32,38,0.62) 100%)`,
     color: selected ? color.onAccent : color.body,
     boxShadow: selected
       ? `inset 0 1px 0 rgba(255,255,255,0.2), ${glass.shadowSoft}`
@@ -2475,7 +2475,7 @@ function SessionBuilderModal({ tracks, onClose, onPlayRoute, onSavePlaylist = nu
 
               <div style={{
                 maxHeight: "42vh", overflowY: "auto", marginBottom: 24, borderRadius: 16,
-                background: "rgba(255,255,255,0.72)", border: `1px solid ${glass.border}`, padding: "8px 0",
+                background: "rgba(38,43,51,0.82)", border: `1px solid ${glass.border}`, padding: "8px 0",
                 boxShadow: `inset 0 1px 0 ${glass.highlight}`,
                 backdropFilter: glass.blurSoft,
                 WebkitBackdropFilter: glass.blurSoft,
@@ -2628,7 +2628,7 @@ function HarmonicMap({ tracks, onPlay, currentTrack }) {
               height: n.active ? 14 : 8,
               borderRadius:"50%",
               background: n.active ? color.accent : `rgba(${hexToRgbStr(n.color)},0.6)`,
-              border: n.active ? "2px solid #FFFFFF" : "1px solid rgba(255,255,255,0.5)",
+              border: n.active ? "2px solid #FFFFFF" : "1px solid rgba(255,255,255,0.12)",
               boxShadow: n.active ? `0 0 12px rgba(${hexToRgbStr(n.color)},0.4)` : "none",
               transition:"all 0.2s",
               cursor:"pointer",
@@ -2648,7 +2648,7 @@ function HarmonicMap({ tracks, onPlay, currentTrack }) {
             whiteSpace:"nowrap", zIndex:20,
           }}>
             <div style={{ fontSize:11, fontWeight:600, color: color.ink }}>{hover.title}</div>
-            <div style={{ fontSize:9, color:"rgba(255,255,255,0.5)" }}>{hover.artist} · {hover.camelot} · E{hover.energy}</div>
+            <div style={{ fontSize:9, color:"rgba(30,34,41,0.6)" }}>{hover.artist} · {hover.camelot} · E{hover.energy}</div>
           </div>
         )}
       </div>
@@ -2740,7 +2740,7 @@ function AfterglowOverlay({ data, onClose, onSavePlaylist }) {
       <div style={{
         position:"relative", zIndex:1, maxWidth:420, width:"100%", textAlign:"center",
         animation:"rise 0.45s cubic-bezier(0.22,1,0.36,1) both",
-        background: "rgba(255,255,255,0.92)",
+        background: "rgba(52,58,68,0.92)",
         border: `1px solid ${glass.border}`,
         borderRadius: radius.lg,
         padding: "28px 24px",
@@ -2802,7 +2802,7 @@ function AfterglowOverlay({ data, onClose, onSavePlaylist }) {
 function QueueSheet({ queue, currentTrack, onPlay, onClose, onClear, onShuffle, isRadioMode, radioHint, onRemove = null, onPlayNext = null }) {
   return (
     <div style={{ position:"fixed", inset:0, zIndex:110 }}>
-      <div onClick={onClose} style={{ position:"absolute", inset:0, background:"rgba(22,24,30,0.28)", backdropFilter: glass.blurSoft, WebkitBackdropFilter: glass.blurSoft }}/>
+      <div onClick={onClose} style={{ position:"absolute", inset:0, background:"rgba(255,255,255,0.2)", backdropFilter: glass.blurSoft, WebkitBackdropFilter: glass.blurSoft }}/>
       <div style={{
         position:"absolute", left:0, right:0, bottom:0, maxHeight:"72vh",
         background: glass.plate,
@@ -2923,7 +2923,7 @@ function CustomMixFeature({ onClick, inset = true }) {
         inset: 0,
         pointerEvents: "none",
         background: `
-          radial-gradient(ellipse 70% 80% at 0% 0%, rgba(255,255,255,0.75) 0%, transparent 55%),
+          radial-gradient(ellipse 70% 80% at 0% 0%, rgba(40,45,53,0.82) 0%, transparent 55%),
           linear-gradient(115deg, rgba(168,176,188,0.22) 0%, transparent 42%),
           repeating-linear-gradient(135deg, transparent, transparent 11px, rgba(18,20,26,0.015) 12px)
         `,
@@ -3022,7 +3022,7 @@ function CustomMixFeature({ onClick, inset = true }) {
                 padding: "10px 10px 12px",
                 borderRadius: radius.lg,
                 border: `1px solid ${glass.borderSoft}`,
-                background: "rgba(255,255,255,0.58)",
+                background: "rgba(32,36,43,0.68)",
                 boxShadow: `inset 0 1px 0 ${glass.highlight}`,
                 minWidth: 0,
               }}
@@ -3129,7 +3129,7 @@ function CoverShelf({ tracks, onPlayTrack, activeId, isPlaying, onLike, playlist
                 <AlbumArt track={t} size={tile} borderRadius={radius.md}/>
                 <div aria-hidden="true" style={{
                   pointerEvents: "none", position: "absolute", inset: 0, borderRadius: radius.md,
-                  boxShadow: `inset 0 1px 0 rgba(255,255,255,0.35)`,
+                  boxShadow: `inset 0 1px 0 rgba(255,255,255,0.08)`,
                 }}/>
                 {showRanks && (
                   <div aria-hidden="true" style={{
@@ -3137,7 +3137,7 @@ function CoverShelf({ tracks, onPlayTrack, activeId, isPlaying, onLike, playlist
                     minWidth: 24, height: 24, padding: "0 6px",
                     borderRadius: 6,
                     display: "flex", alignItems: "center", justifyContent: "center",
-                    background: "rgba(255,255,255,0.88)",
+                    background: "rgba(48,53,62,0.9)",
                     border: `1px solid ${glass.borderSoft}`,
                     backdropFilter: "blur(8px)",
                     WebkitBackdropFilter: "blur(8px)",
@@ -3533,7 +3533,7 @@ function HomeScreen({
       <div style={{
         position: "relative",
         background: `
-          linear-gradient(180deg, rgba(255,255,255,0.35) 0%, transparent 18%),
+          linear-gradient(180deg, rgba(255,255,255,0.08) 0%, transparent 18%),
           ${color.canvas}
         `,
       }}>
@@ -3550,7 +3550,7 @@ function HomeScreen({
                 <span aria-hidden="true" style={{
                   width: 10, height: 10,
                   background: `linear-gradient(145deg, ${chrome.signal} 0%, ${chrome.steel} 100%)`,
-                  boxShadow: `inset 0 1px 0 rgba(255,255,255,0.7), 0 0 0 1px rgba(18,20,26,0.18)`,
+                  boxShadow: `inset 0 1px 0 rgba(255,255,255,0.12), 0 0 0 1px rgba(18,20,26,0.18)`,
                   clipPath: "polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)",
                 }} />
                 <div style={{
@@ -3672,9 +3672,9 @@ function HomeScreen({
                       gap: 12,
                       padding: "14px 16px",
                       borderRadius: radius.xl,
-                      border: `1px solid rgba(255,255,255,0.5)`,
+                      border: `1px solid rgba(255,255,255,0.12)`,
                       background: `
-                        linear-gradient(165deg, rgba(255,255,255,0.7) 0%, rgba(236,240,246,0.5) 100%)
+                        linear-gradient(165deg, rgba(38,43,51,0.8) 0%, rgba(28,32,38,0.5) 100%)
                       `,
                       boxShadow: `inset 0 1px 0 ${glass.highlight}, ${glass.shadowSoft}`,
                       backdropFilter: glass.blurSoft,
@@ -3722,9 +3722,9 @@ function HomeScreen({
                       gap: 12,
                       padding: "14px 16px",
                       borderRadius: radius.xl,
-                      border: `1px solid rgba(255,255,255,0.5)`,
+                      border: `1px solid rgba(255,255,255,0.12)`,
                       background: `
-                        linear-gradient(165deg, rgba(255,255,255,0.7) 0%, rgba(236,240,246,0.5) 100%)
+                        linear-gradient(165deg, rgba(38,43,51,0.8) 0%, rgba(28,32,38,0.5) 100%)
                       `,
                       boxShadow: `inset 0 1px 0 ${glass.highlight}, ${glass.shadowSoft}`,
                       backdropFilter: glass.blurSoft,
@@ -3793,7 +3793,7 @@ function SearchScreen({
   const visibleResults = showAllResults ? results : results.slice(0, RESULT_CAP);
   const hintChip = {
     background: `
-      linear-gradient(165deg, rgba(255,255,255,0.72) 0%, rgba(236,240,246,0.5) 100%)
+      linear-gradient(165deg, rgba(38,43,51,0.82) 0%, rgba(28,32,38,0.5) 100%)
     `,
     border: `1px solid ${glass.borderSoft}`,
     borderRadius: 980,
@@ -3824,7 +3824,7 @@ function SearchScreen({
             paddingRight: query ? 42 : 16,
             borderRadius: radius.xl,
             background: `
-              linear-gradient(165deg, rgba(255,255,255,0.72) 0%, rgba(236,240,246,0.5) 100%)
+              linear-gradient(165deg, rgba(38,43,51,0.82) 0%, rgba(28,32,38,0.5) 100%)
             `,
           }}
           value={query}
@@ -3870,7 +3870,7 @@ function SearchScreen({
                 display:"flex", alignItems:"center", gap:12, width:"100%", padding:"12px 12px",
                 marginBottom: 6,
                 background: `
-                  linear-gradient(165deg, rgba(255,255,255,0.58) 0%, rgba(236,240,246,0.38) 100%)
+                  linear-gradient(165deg, rgba(32,36,43,0.68) 0%, rgba(28,32,38,0.38) 100%)
                 `,
                 border: `1px solid ${glass.borderSoft}`,
                 borderRadius: radius.lg,
@@ -3899,7 +3899,7 @@ function SearchScreen({
                 display:"flex", alignItems:"center", gap:12, width:"100%", padding:"12px 12px",
                 marginBottom: 6,
                 background: `
-                  linear-gradient(165deg, rgba(255,255,255,0.58) 0%, rgba(236,240,246,0.38) 100%)
+                  linear-gradient(165deg, rgba(32,36,43,0.68) 0%, rgba(28,32,38,0.38) 100%)
                 `,
                 border: `1px solid ${glass.borderSoft}`,
                 borderRadius: radius.lg,
@@ -4324,7 +4324,7 @@ function FavoritesScreen({
             fontSize: 32,
             fontWeight: 200,
             border: `1px solid ${glass.border}`,
-            background: `linear-gradient(160deg, rgba(255,255,255,0.92) 0%, rgba(242,244,247,0.72) 100%)`,
+            background: `linear-gradient(160deg, rgba(52,58,68,0.92) 0%, rgba(242,244,247,0.72) 100%)`,
             boxShadow: `inset 0 1px 0 ${glass.highlight}`,
           }}>
             +
@@ -4560,9 +4560,9 @@ function FavoritesScreen({
           {/* Glass control plate — segments + search */}
           <div style={{
             borderRadius: radius.xl,
-            border: `1px solid rgba(255,255,255,0.5)`,
+            border: `1px solid rgba(255,255,255,0.12)`,
             background: `
-              linear-gradient(165deg, rgba(255,255,255,0.62) 0%, rgba(236,240,246,0.42) 100%)
+              linear-gradient(165deg, rgba(34,38,45,0.72) 0%, rgba(28,32,38,0.42) 100%)
             `,
             boxShadow: `inset 0 1px 0 ${glass.highlight}, ${glass.shadowSoft}`,
             backdropFilter: glass.blurSoft,
@@ -4607,7 +4607,7 @@ function FavoritesScreen({
                   padding: "10px 14px 10px 36px",
                   fontSize: 15,
                   borderRadius: radius.md,
-                  background: "rgba(255,255,255,0.72)",
+                  background: "rgba(38,43,51,0.82)",
                   border: `1px solid ${glass.borderSoft}`,
                 }}
               />
@@ -4742,7 +4742,7 @@ function FavoritesScreen({
                 borderRadius: radius.lg,
                 border: `1px solid ${glass.borderSoft}`,
                 background: `
-                  linear-gradient(165deg, rgba(255,255,255,0.78) 0%, rgba(238,241,245,0.5) 100%)
+                  linear-gradient(165deg, rgba(42,47,55,0.85) 0%, rgba(238,241,245,0.5) 100%)
                 `,
                 boxShadow: `inset 0 1px 0 ${glass.highlight}`,
                 backdropFilter: glass.blurSoft,
@@ -4963,7 +4963,7 @@ function AnalyticsRow({ rank, track, value, label, max, color: trackColor, accen
     <div style={{
       display:"flex", alignItems:"center", gap:10, padding:"12px 14px",
       background: `
-        linear-gradient(165deg, rgba(255,255,255,0.7) 0%, rgba(236,240,246,0.48) 100%)
+        linear-gradient(165deg, rgba(38,43,51,0.8) 0%, rgba(28,32,38,0.48) 100%)
       `,
       borderRadius: radius.lg,
       marginBottom: 6,
@@ -5242,14 +5242,14 @@ function AdminScreen({
             <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.55)", backdropFilter:"blur(8px)", zIndex:100, display:"flex", alignItems:"center", justifyContent:"center", padding:24 }}>
               <div style={{
                 background: `
-                  linear-gradient(165deg, rgba(255,255,255,0.88) 0%, rgba(236,240,246,0.72) 100%)
+                  linear-gradient(165deg, rgba(48,53,62,0.9) 0%, rgba(28,32,38,0.72) 100%)
                 `,
                 borderRadius: radius.xl,
                 padding:24,
                 width:"100%",
                 maxWidth:380,
                 boxShadow: `inset 0 1px 0 ${glass.highlight}, ${glass.shadowLift}`,
-                border:`1px solid rgba(255,255,255,0.55)`,
+                border:`1px solid rgba(255,255,255,0.14)`,
                 backdropFilter: glass.blur,
                 WebkitBackdropFilter: glass.blur,
               }}>
@@ -5685,7 +5685,7 @@ function GlassDock({
               cursor: "pointer",
               borderBottom: `1px solid ${glass.borderFaint}`,
               background: `
-                linear-gradient(180deg, rgba(255,255,255,0.35) 0%, transparent 100%)
+                linear-gradient(180deg, rgba(255,255,255,0.08) 0%, transparent 100%)
               `,
               boxShadow: isRadioMode || hypnoPocket
                 ? `inset 2px 0 0 ${color.accent}`
@@ -7868,7 +7868,7 @@ export default function App() {
           transform: "translateX(-50%)",
           zIndex: 120,
           display: "flex", alignItems: "center", gap: 8,
-          background: isOffline ? color.ink : "rgba(255,255,255,0.92)",
+          background: isOffline ? color.ink : "rgba(52,58,68,0.92)",
           color: isOffline ? color.onDark : color.body,
           border: `1px solid ${glass.border}`,
           borderRadius: 980,
@@ -8025,7 +8025,7 @@ export default function App() {
       <div style={{
         width: 220, flexShrink: 0,
         background: `
-          linear-gradient(180deg, rgba(255,255,255,0.7) 0%, rgba(255,255,255,0.35) 100%),
+          linear-gradient(180deg, rgba(38,43,51,0.8) 0%, rgba(26,29,35,0.45) 100%),
           ${color.surfaceRaised}
         `,
         borderRight: `1px solid ${glass.border}`,
@@ -8273,7 +8273,7 @@ export default function App() {
         width: 336,
         flexShrink: 0,
         background: `
-          linear-gradient(180deg, rgba(255,255,255,0.75) 0%, rgba(255,255,255,0.4) 100%),
+          linear-gradient(180deg, rgba(40,45,53,0.82) 0%, rgba(27,31,37,0.5) 100%),
           ${color.surfaceRaised}
         `,
         borderLeft: `1px solid ${glass.border}`,
@@ -8289,7 +8289,7 @@ export default function App() {
           left: 0,
           right: 0,
           height: 1,
-          background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.85), transparent)",
+          background: "linear-gradient(90deg, transparent, rgba(46,51,60,0.88), transparent)",
           pointerEvents: "none",
           zIndex: 2,
         }}/>
@@ -8328,7 +8328,7 @@ export default function App() {
               <div aria-hidden="true" style={{
                 position: "absolute",
                 inset: 0,
-                boxShadow: "inset 0 1px 0 rgba(255,255,255,0.35)",
+                boxShadow: "inset 0 1px 0 rgba(255,255,255,0.08)",
                 pointerEvents: "none",
               }}/>
             </div>

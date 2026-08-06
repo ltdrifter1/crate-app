@@ -293,7 +293,7 @@ function ChartList({ entries, onPlay }) {
               padding: "10px 12px",
               borderRadius: radius.md,
               border: `1px solid ${glass.borderSoft}`,
-              background: "rgba(255,255,255,0.55)",
+              background: "rgba(32,36,43,0.65)",
               boxShadow: `inset 0 1px 0 ${glass.highlight}`,
               cursor: "pointer",
               textAlign: "left",

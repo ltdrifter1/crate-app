@@ -101,7 +101,7 @@ export function BrandLockup({
           inset: "8%",
           borderRadius: "50%",
           background:
-            "radial-gradient(circle at 55% 35%, rgba(255,255,255,0.55) 0%, rgba(190,198,210,0.22) 45%, transparent 72%)",
+            "radial-gradient(circle at 55% 35%, rgba(32,36,43,0.65) 0%, rgba(169,199,228,0.05) 45%, transparent 72%)",
           filter: "blur(16px)",
           pointerEvents: "none",
         }}

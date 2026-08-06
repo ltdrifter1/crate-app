@@ -48,7 +48,7 @@ export default function GenreTasteOnboarding({
           right: 0,
           height: "42vh",
           background:
-            "radial-gradient(ellipse at 50% 0%, rgba(190,198,210,0.35) 0%, transparent 55%)",
+            "radial-gradient(ellipse at 50% 0%, rgba(169,199,228,0.07) 0%, transparent 55%)",
           pointerEvents: "none",
         }}
       />

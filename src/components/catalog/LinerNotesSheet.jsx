@@ -13,7 +13,7 @@ export default function LinerNotesSheet({ track, roomLabel, onClose, onOpenArtis
         style={{
           position: "absolute",
           inset: 0,
-          background: "rgba(22,24,30,0.28)",
+          background: "rgba(255,255,255,0.2)",
           backdropFilter: glass.blurSoft,
           WebkitBackdropFilter: glass.blurSoft,
         }}
@@ -124,7 +124,7 @@ function Chip({ children, onClick }) {
         borderRadius: radius.pill,
         border: `1px solid ${glass.borderSoft}`,
         background: `
-          linear-gradient(165deg, rgba(255,255,255,0.72) 0%, rgba(236,240,246,0.5) 100%)
+          linear-gradient(165deg, rgba(38,43,51,0.82) 0%, rgba(28,32,38,0.5) 100%)
         `,
         boxShadow: `inset 0 1px 0 ${glass.highlight}`,
         backdropFilter: glass.blurSoft,
