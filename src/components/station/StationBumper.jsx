@@ -1,9 +1,9 @@
 import { useEffect } from "react";
-import { color, fontDisplay, fontMono, motion, chrome } from "../../theme";
+import { color, fontDisplay, fontMono, motion, chrome, glass, radius, aluminumGradient } from "../../theme";
 import { BUMPER_DURATION_MS } from "../../lib/bumpers";
 
 /**
- * Full-screen station bumper / ident interstitial.
+ * Full-screen station bumper / ident interstitial — frosted Y2K plate.
  */
 export default function StationBumper({ bumper = null, onDone = null, durationMs = BUMPER_DURATION_MS }) {
   useEffect(() => {
@@ -28,37 +28,55 @@ export default function StationBumper({ bumper = null, onDone = null, durationMs
         justifyContent: "center",
         padding: 28,
         background: `
-          radial-gradient(ellipse at 50% 40%, ${accent}33 0%, transparent 55%),
-          linear-gradient(160deg, #0c0d11 0%, #16181E 55%, #0a0b0e 100%)
+          ${aluminumGradient()},
+          radial-gradient(ellipse at 50% 40%, ${accent}28 0%, transparent 55%),
+          linear-gradient(160deg, #D8DEE8 0%, #C4CCD8 55%, #B8C0CC 100%)
         `,
         animation: `stationBumperIn 0.35s ${motion.ease} both`,
       }}
     >
-      {/* Scanlines */}
       <div aria-hidden="true" style={{
-        position: "absolute", inset: 0, pointerEvents: "none", opacity: 0.08,
-        backgroundImage: "repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255,255,255,0.4) 3px)",
+        position: "absolute", inset: 0, pointerEvents: "none", opacity: 0.06,
+        backgroundImage: "repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(18,20,26,0.35) 3px)",
       }} />
 
       <div style={{
         position: "relative",
         width: "min(100%, 440px)",
         textAlign: "center",
-        color: color.onDark,
+        color: color.ink,
+        padding: "28px 24px",
+        borderRadius: 28,
+        background: `
+          linear-gradient(165deg, rgba(255,255,255,0.78) 0%, rgba(236,240,246,0.55) 100%)
+        `,
+        border: `1px solid rgba(255,255,255,0.6)`,
+        boxShadow: `inset 0 1px 0 ${glass.highlight}, ${glass.shadowLift}`,
+        backdropFilter: glass.blurHeavy,
+        WebkitBackdropFilter: glass.blurHeavy,
       }}>
         <div style={{
-          display: "inline-block",
-          padding: "5px 10px",
-          marginBottom: 14,
-          background: accent,
-          color: "#fff",
+          display: "inline-flex",
+          alignItems: "center",
+          gap: 8,
+          padding: "6px 12px",
+          marginBottom: 16,
+          borderRadius: radius.pill,
+          background: glass.chrome,
+          border: `1px solid ${glass.border}`,
+          boxShadow: `inset 0 1px 0 ${glass.highlight}`,
           fontFamily: fontMono,
           fontSize: 10,
           fontWeight: 800,
           letterSpacing: 1.6,
           textTransform: "uppercase",
-          clipPath: "polygon(0 0, 100% 0, calc(100% - 8px) 100%, 0 100%)",
+          color: color.ink,
         }}>
+          <span aria-hidden="true" style={{
+            width: 6, height: 6, borderRadius: "50%",
+            background: accent,
+            boxShadow: `0 0 0 3px ${accent}33`,
+          }} />
           {bumper.kicker || "STATION"}
         </div>
         <div style={{
@@ -67,7 +85,6 @@ export default function StationBumper({ bumper = null, onDone = null, durationMs
           fontWeight: 800,
           letterSpacing: -1,
           lineHeight: 1.05,
-          textShadow: `0 0 40px ${accent}66`,
         }}>
           {bumper.title}
         </div>
@@ -76,7 +93,7 @@ export default function StationBumper({ bumper = null, onDone = null, durationMs
             marginTop: 12,
             fontSize: 15,
             fontWeight: 500,
-            color: "rgba(242,244,247,0.7)",
+            color: color.body,
             lineHeight: 1.35,
           }}>
             {bumper.subtitle}
@@ -85,7 +102,8 @@ export default function StationBumper({ bumper = null, onDone = null, durationMs
         <div aria-hidden="true" style={{
           margin: "22px auto 0",
           width: 120,
-          height: 2,
+          height: 3,
+          borderRadius: 999,
           background: `linear-gradient(90deg, transparent, ${accent}, transparent)`,
           animation: "stationBar 0.8s ease-in-out infinite alternate",
         }} />

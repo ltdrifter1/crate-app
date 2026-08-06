@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { font, fontDisplay, fontMono, color, radius, glass, motion } from "../../theme";
+import { font, fontDisplay, fontMono, color, radius, glass, motion, BTN_PRIMARY } from "../../theme";
 import { listPaths, findPath } from "../../lib/paths";
 import { roomPosterStyle } from "../../lib/rooms";
 import RoomPosterBackdrop from "../brand/RoomPosterBackdrop";
@@ -197,15 +197,13 @@ function PathDetail({ path, onBack, onPlayPath, onOpenRoom }) {
               className="play-primary"
               onClick={() => onPlayPath(path)}
               style={{
+                ...BTN_PRIMARY,
+                width: "auto",
                 marginTop: 20,
                 padding: "12px 18px",
-                borderRadius: radius.sm,
-                border: "none",
-                background: color.accent,
-                color: color.onAccent,
+                borderRadius: radius.lg,
                 fontWeight: 650,
                 fontSize: 13,
-                cursor: "pointer",
               }}
             >
               Walk this path · {path.playlist.length} stops
@@ -224,8 +222,16 @@ function PathDetail({ path, onBack, onPlayPath, onOpenRoom }) {
             style={{
               display: "flex",
               gap: 14,
-              padding: "16px 0",
-              borderBottom: `1px solid ${color.line}`,
+              padding: "14px 14px",
+              marginBottom: 6,
+              borderRadius: radius.lg,
+              background: `
+                linear-gradient(165deg, rgba(255,255,255,0.58) 0%, rgba(236,240,246,0.38) 100%)
+              `,
+              border: `1px solid ${glass.borderSoft}`,
+              boxShadow: `inset 0 1px 0 ${glass.highlight}`,
+              backdropFilter: glass.blurSoft,
+              WebkitBackdropFilter: glass.blurSoft,
             }}
           >
             <div

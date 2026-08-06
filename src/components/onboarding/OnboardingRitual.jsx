@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { populateAllRooms, roomPosterStyle, KIND_LABELS } from "../../lib/rooms";
 import {
-  font, fontDisplay, fontMono, color, radius,
+  font, fontDisplay, fontMono, color, radius, glass, BTN_PRIMARY, BTN_SECONDARY,
 } from "../../theme";
 import BrandMark from "../brand/BrandMark";
 
@@ -110,12 +110,16 @@ export default function OnboardingRitual({ tracks, onComplete, onSkip }) {
                   position: "relative",
                   minHeight: 168,
                   padding: 0,
-                  border: on ? `2px solid ${color.accent}` : `1px solid ${color.line}`,
+                  borderRadius: radius.xl,
+                  border: on ? `1px solid ${glass.border}` : `1px solid ${glass.borderSoft}`,
                   overflow: "hidden",
                   background: color.surfaceSolid,
                   cursor: "pointer",
                   textAlign: "left",
                   color: color.onDark,
+                  boxShadow: on
+                    ? `inset 0 1px 0 ${glass.highlight}, ${glass.shadowSoft}, 0 0 0 2px ${color.accentSoft}`
+                    : `inset 0 1px 0 ${glass.highlight}`,
                   animation: `rise 0.5s cubic-bezier(0.22,1,0.36,1) ${Math.min(i, 8) * 0.03}s both`,
                 }}
               >
@@ -219,15 +223,12 @@ export default function OnboardingRitual({ tracks, onComplete, onSkip }) {
           type="button"
           onClick={onSkip}
           style={{
+            ...BTN_SECONDARY,
+            width: "auto",
             padding: "14px 18px",
-            borderRadius: radius.sm,
-            border: `1px solid ${color.lineStrong}`,
-            background: "none",
-            color: color.muted,
+            borderRadius: radius.lg,
             fontWeight: 600,
             fontSize: 14,
-            cursor: "pointer",
-            fontFamily: font,
           }}
         >
           Wander first
@@ -237,15 +238,14 @@ export default function OnboardingRitual({ tracks, onComplete, onSkip }) {
           disabled={!ready}
           onClick={() => onComplete(selected)}
           style={{
+            ...BTN_PRIMARY,
+            width: "auto",
             padding: "14px 22px",
-            borderRadius: radius.sm,
-            border: "none",
-            background: ready ? color.accent : color.surfaceRaised,
-            color: ready ? color.onAccent : color.faint,
+            borderRadius: radius.lg,
+            opacity: ready ? 1 : 0.45,
             fontWeight: 650,
             fontSize: 14,
             cursor: ready ? "pointer" : "default",
-            fontFamily: font,
             minWidth: 160,
           }}
         >

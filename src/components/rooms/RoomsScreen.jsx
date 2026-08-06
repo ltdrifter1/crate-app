@@ -4,7 +4,7 @@
  */
 import { useMemo, useState } from "react";
 import {
-  font, fontDisplay, fontMono, color, radius, motion, glass,
+  font, fontDisplay, fontMono, color, radius, motion, glass, BTN_PRIMARY, BTN_SECONDARY,
 } from "../../theme";
 import {
   duration as motionDuration,
@@ -127,19 +127,16 @@ function RoomHero({ room, onEnter, onPlay }) {
               else onEnter(room);
             }}
             style={{
+              ...BTN_PRIMARY,
+              width: "auto",
               display: "inline-flex",
               alignItems: "center",
               gap: 10,
               padding: "13px 18px 13px 14px",
-              borderRadius: radius.sm,
-              background: color.accent,
-              border: "none",
-              color: color.onAccent,
-              cursor: "pointer",
+              borderRadius: radius.lg,
               fontSize: 14,
               fontWeight: 650,
               letterSpacing: -0.2,
-              boxShadow: `0 12px 32px ${color.accentGlow || "rgba(168,146,106,0.28)"}`,
             }}
           >
             Enter room
@@ -151,12 +148,10 @@ function RoomHero({ room, onEnter, onPlay }) {
               onEnter(room);
             }}
             style={{
+              ...BTN_SECONDARY,
+              width: "auto",
               padding: "13px 16px",
-              borderRadius: radius.sm,
-              background: "none",
-              border: `1px solid ${color.lineStrong}`,
-              color: color.body,
-              cursor: "pointer",
+              borderRadius: radius.lg,
               fontSize: 13,
               fontWeight: 600,
             }}
@@ -425,16 +420,14 @@ function RoomDetail({
               className="play-primary"
               onClick={() => onPlay(cover, room)}
               style={{
+                ...BTN_PRIMARY,
+                width: "auto",
                 marginTop: 20,
                 display: "inline-flex",
                 alignItems: "center",
                 gap: 10,
                 padding: "12px 18px",
-                borderRadius: radius.sm,
-                background: color.accent,
-                border: "none",
-                color: color.onAccent,
-                cursor: "pointer",
+                borderRadius: radius.lg,
                 fontSize: 13,
                 fontWeight: 650,
                 animation: `rise ${motionDuration.enter}s ${motionEase.out} 0.18s both`,
