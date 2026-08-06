@@ -46,7 +46,7 @@ export const VJ_HOSTS = {
     handle: "@maya",
     title: "After School Desk",
     bio: "Chaos curator. Requests, shout-outs, and anything that hits before dinner.",
-    accent: "#FF3B4E",
+    accent: "#8B939F",
     monogram: "MC",
   },
   dez: {
@@ -55,7 +55,7 @@ export const VJ_HOSTS = {
     handle: "@dez",
     title: "Countdown Host",
     bio: "Keeps the chart honest. If it’s climbing, Dez is already on it.",
-    accent: "#FFB020",
+    accent: "#C5CAD3",
     monogram: "DR",
   },
   sol: {
@@ -64,7 +64,7 @@ export const VJ_HOSTS = {
     handle: "@sol",
     title: "Morning Signal",
     bio: "Soft open, bright spins — the voice that wakes the station up.",
-    accent: "#5C8CFF",
+    accent: "#A8B0BC",
     monogram: "SP",
   },
   rio: {
@@ -73,7 +73,7 @@ export const VJ_HOSTS = {
     handle: "@rio",
     title: "Midday Frequency",
     bio: "Windows down energy. Pop heat, rhythm, and lunch-break pressure.",
-    accent: "#2ED3A4",
+    accent: "#7A8494",
     monogram: "RS",
   },
   jules: {
@@ -82,7 +82,7 @@ export const VJ_HOSTS = {
     handle: "@jules",
     title: "Night Desk",
     bio: "Alt edges and after-hours gravity. Headphones recommended.",
-    accent: "#B07CFF",
+    accent: "#6A7280",
     monogram: "JO",
   },
   desk: {

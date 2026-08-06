@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import {
-  color, font, fontDisplay, fontMono, glass, motion, radius,
+  color, font, fontDisplay, fontMono, glass, motion, radius, chrome
 } from "../../theme";
 import {
   STATION_REACTIONS,
@@ -82,7 +82,7 @@ export function OnAirBadge({ daypartLabel = null, showTitle = null, compact = fa
         alignItems: "center",
         gap: compact ? 6 : 8,
         padding: compact ? "6px 10px" : "7px 11px",
-        background: "#FF3B4E",
+        background: `linear-gradient(165deg, ${chrome.plate} 0%, ${chrome.steel} 100%)`,
         flexShrink: 0,
       }}>
         <span
@@ -173,7 +173,7 @@ export function ChannelBug({
     >
       <div style={{
         padding: compact ? "6px 8px" : "7px 10px",
-        background: bug.accent || "#FF3B4E",
+        background: bug.accent || chrome.hot,
         color: "#fff",
         fontFamily: fontMono,
         fontSize: compact ? 11 : 12,
@@ -263,7 +263,7 @@ export function StationTicker({ text = "", dense = false }) {
   );
 }
 
-/** MTV-style lower third for now playing — hard rectangles, hot red kicker. */
+/** MTV-style lower third for now playing — hard rectangles, chrome kicker. */
 export function LowerThird({ track, rank = null, daypart = null, show = null }) {
   const line = useMemo(
     () => nowPlayingLowerThird(track, { rank, daypart, show }),
@@ -285,7 +285,7 @@ export function LowerThird({ track, rank = null, daypart = null, show = null }) 
         alignItems: "center",
         gap: 8,
         padding: "4px 10px 4px 8px",
-        background: "#FF3B4E",
+        background: `linear-gradient(165deg, ${chrome.plate} 0%, ${chrome.steel} 100%)`,
         color: "#fff",
         fontFamily: fontMono,
         fontSize: 10,
@@ -302,7 +302,7 @@ export function LowerThird({ track, rank = null, daypart = null, show = null }) 
         background: "rgba(12,14,18,0.94)",
         border: "1px solid rgba(255,255,255,0.1)",
         borderTop: "none",
-        borderLeft: "4px solid #FF3B4E",
+        borderLeft: `4px solid ${chrome.hot}`,
         padding: "9px 14px 10px",
         boxShadow: "0 14px 32px rgba(12,14,18,0.4)",
       }}>
@@ -376,7 +376,7 @@ export function UpNextBumper({ track = null }) {
         textTransform: "uppercase",
         color: "#fff",
         flexShrink: 0,
-        background: "#FF3B4E",
+        background: `linear-gradient(165deg, ${chrome.plate} 0%, ${chrome.steel} 100%)`,
         padding: "10px 8px",
         alignSelf: "stretch",
         display: "flex",
@@ -480,8 +480,8 @@ export function StationHeatBar({
           flex: 1,
         }}>
           <span aria-hidden="true" style={{
-            width: 7, height: 7, borderRadius: "50%", background: "#5CFF8F",
-            boxShadow: "0 0 0 3px rgba(92,255,143,0.22)",
+            width: 7, height: 7, borderRadius: "50%", background: chrome.live,
+            boxShadow: "0 0 0 3px rgba(184,192,204,0.22)",
             animation: "stageLiveDot 1.6s ease-in-out infinite",
             flexShrink: 0,
           }} />
@@ -505,7 +505,7 @@ export function StationHeatBar({
               padding: "0 12px",
               border: "none",
               borderLeft: "1px solid rgba(255,255,255,0.1)",
-              background: requested ? "rgba(255,255,255,0.06)" : "#FF3B4E",
+              background: requested ? "rgba(255,255,255,0.06)" : chrome.hot,
               color: requested ? "rgba(242,244,247,0.55)" : "#fff",
               fontFamily: fontMono,
               fontSize: 9,
@@ -550,7 +550,7 @@ export function StationHeatBar({
             padding: "0 10px",
             border: "none",
             borderLeft: "1px solid rgba(255,255,255,0.1)",
-            background: open ? "rgba(255,59,78,0.25)" : "rgba(255,255,255,0.04)",
+            background: open ? "rgba(139,147,159,0.25)" : "rgba(255,255,255,0.04)",
             color: color.onDark,
             fontFamily: fontMono,
             fontSize: 9,
@@ -596,7 +596,7 @@ export function StationHeatBar({
                 <span style={{
                   position: "absolute", top: -5, right: 2,
                   fontSize: 8, fontFamily: fontMono, fontWeight: 800,
-                  background: "#FF3B4E", color: "#fff",
+                  background: `linear-gradient(165deg, ${chrome.plate} 0%, ${chrome.steel} 100%)`, color: "#fff",
                   padding: "1px 4px",
                 }}>
                   {reactCounts[emoji]}
@@ -617,7 +617,7 @@ export function StationHeatBar({
           fontSize: 18,
           fontWeight: 900,
           letterSpacing: 2,
-          color: "#FF3B4E",
+          color: chrome.hot,
           textShadow: "0 2px 12px rgba(12,14,18,0.6)",
           animation: "stationBurst 0.7s ease forwards",
           pointerEvents: "none",
@@ -649,7 +649,7 @@ export function DedicationFlash({ dedication, onDone }) {
         borderRadius: radius.sm,
         background: "rgba(255,255,255,0.92)",
         border: `1px solid ${glass.border}`,
-        borderLeft: "4px solid #5C8CFF",
+        borderLeft: `4px solid ${chrome.plate}`,
         boxShadow: glass.shadow,
         animation: `stationLowerIn 0.4s ${motion.ease} both`,
         pointerEvents: "none",
@@ -657,7 +657,7 @@ export function DedicationFlash({ dedication, onDone }) {
     >
       <div style={{
         fontFamily: fontMono, fontSize: 9, fontWeight: 800,
-        letterSpacing: 1.4, textTransform: "uppercase", color: "#5C8CFF",
+        letterSpacing: 1.4, textTransform: "uppercase", color: chrome.plate,
         marginBottom: 4,
       }}>
         Dedication · {dedication.fromName}
@@ -771,7 +771,7 @@ export function DedicateSheet({ track, defaultName = "Listener", onClose, onSubm
               flex: 1, padding: "12px 14px", borderRadius: radius.sm,
               border: "none",
               background: text.trim()
-                ? "linear-gradient(165deg, #5C8CFF 0%, #3A63D8 100%)"
+                ? `linear-gradient(165deg, ${chrome.bright} 0%, ${chrome.steel} 100%)`
                 : color.surfaceRaised,
               color: text.trim() ? "#fff" : color.faint,
               fontWeight: 700, cursor: text.trim() ? "pointer" : "default",

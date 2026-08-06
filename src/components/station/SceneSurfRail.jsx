@@ -1,13 +1,13 @@
 import { useState } from "react";
 import {
-  color, fontDisplay, fontMono, homeSpace, motion,
+  color, fontDisplay, fontMono, homeSpace, motion, chrome
 } from "../../theme";
 import { availableSceneChannels } from "../../lib/sceneChannels";
 import { formatChannelNum } from "../../lib/mtvChannel";
 
 /**
  * Channel dial — zap between scene channels with CH-IDs.
- * Late-90s MTV / MuchMusic remote energy, not glass browse cards.
+ * Y2K chrome remote plates with 90s MTG card-frame edges.
  */
 export default function SceneSurfRail({
   tracks = [],
@@ -35,24 +35,36 @@ export default function SceneSurfRail({
     >
       <div style={{ padding: `0 ${homeSpace.gutter}px 12px` }}>
         <div style={{
-          fontFamily: fontMono, fontSize: 10, fontWeight: 900,
-          letterSpacing: 1.8, textTransform: "uppercase", color: "#FF3B4E",
+          display: "inline-flex",
+          alignItems: "center",
+          gap: 8,
           marginBottom: 4,
         }}>
-          Channels
+          <span aria-hidden="true" style={{
+            width: 10, height: 10,
+            background: `linear-gradient(145deg, ${chrome.signal} 0%, ${chrome.steel} 100%)`,
+            boxShadow: "inset 0 1px 0 rgba(255,255,255,0.7), 0 0 0 1px rgba(18,20,26,0.18)",
+            clipPath: "polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)",
+          }} />
+          <div style={{
+            fontFamily: fontMono, fontSize: 10, fontWeight: 900,
+            letterSpacing: 1.8, textTransform: "uppercase", color: chrome.steel,
+          }}>
+            Channels
+          </div>
         </div>
         <h3 style={{
           margin: 0,
           fontFamily: fontDisplay,
           fontSize: 20,
           fontWeight: 800,
-          letterSpacing: -0.35,
+          letterSpacing: -0.2,
           color: color.ink,
           textTransform: "uppercase",
         }}>
           Don’t touch that dial
         </h3>
-        <p style={{ margin: "5px 0 0", fontSize: 13, color: color.muted, lineHeight: 1.4 }}>
+        <p style={{ margin: "5px 0 0", fontSize: 14, fontWeight: 500, color: color.muted, lineHeight: 1.4 }}>
           Scene channels under the genres — zap one and play.
         </p>
       </div>
@@ -85,15 +97,15 @@ export default function SceneSurfRail({
                 scrollSnapAlign: "start",
                 textAlign: "left",
                 padding: 0,
-                borderRadius: 0,
+                borderRadius: 2,
                 cursor: "pointer",
-                border: `2px solid ${active ? ch.accent : "rgba(22,24,30,0.18)"}`,
+                border: `2px solid ${active ? chrome.signal : "rgba(18,20,26,0.2)"}`,
                 background: active
                   ? `linear-gradient(180deg, ${ch.accent} 0%, ${ch.accent} 28%, #12141A 28%, #0C0E12 100%)`
-                  : "linear-gradient(180deg, #1A1D24 0%, #12141A 100%)",
+                  : `linear-gradient(165deg, #2A2E38 0%, #12141A 55%, #0C0E12 100%)`,
                 boxShadow: active
-                  ? `0 12px 28px rgba(22,24,30,0.28), inset 0 1px 0 rgba(255,255,255,0.18)`
-                  : `inset 0 1px 0 rgba(255,255,255,0.08)`,
+                  ? `inset 0 1px 0 rgba(255,255,255,0.35), 0 12px 28px rgba(18,20,26,0.28)`
+                  : `inset 0 1px 0 rgba(255,255,255,0.12), inset 0 -1px 0 rgba(0,0,0,0.35)`,
                 overflow: "hidden",
                 animation: zapping ? "channelZap 0.42s ease both" : undefined,
                 color: color.onDark,
@@ -103,12 +115,14 @@ export default function SceneSurfRail({
                 padding: "8px 10px 6px",
                 borderBottom: active
                   ? "1px solid rgba(255,255,255,0.25)"
-                  : `3px solid ${ch.accent}`,
+                  : `2px solid ${ch.accent}`,
                 display: "flex",
                 justifyContent: "space-between",
                 alignItems: "baseline",
                 gap: 6,
-                background: active ? "transparent" : "rgba(255,255,255,0.03)",
+                background: active
+                  ? "transparent"
+                  : "linear-gradient(180deg, rgba(255,255,255,0.08) 0%, transparent 100%)",
               }}>
                 <span style={{
                   fontFamily: fontMono,

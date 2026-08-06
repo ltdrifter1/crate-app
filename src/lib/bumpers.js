@@ -30,7 +30,7 @@ export function pickTrackBumper({
       title: line,
       subtitle: show.host?.name ? `with ${show.host.name}` : "Live block",
       tone: "show",
-      accent: show.host?.accent || "#FF3B4E",
+      accent: show.host?.accent || "#8B939F",
     };
   }
 
@@ -55,7 +55,7 @@ export function pickTrackBumper({
       title: `#1 — ${countdownTop.track.title}`,
       subtitle: countdownTop.track.artist,
       tone: "chart",
-      accent: "#FFB020",
+      accent: "#C5CAD3",
     };
   }
 
@@ -66,7 +66,7 @@ export function pickTrackBumper({
       title: nextTrack.title || "Next cut",
       subtitle: nextTrack.artist || "",
       tone: "upnext",
-      accent: "#5C8CFF",
+      accent: "#A8B0BC",
     };
   }
 

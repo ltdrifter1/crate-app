@@ -13,7 +13,7 @@ export const MAIN_CHANNEL = {
   slug: "LIVE",
   shortTitle: "Planet Live",
   title: "Planet MP3 Live",
-  accent: "#FF3B4E",
+  accent: "#8B939F",
 };
 
 /** Zero-padded dial label — CH-03 */
