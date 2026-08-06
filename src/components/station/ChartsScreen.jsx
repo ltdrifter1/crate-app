@@ -1,4 +1,4 @@
-import { color, fontDisplay, fontMono, homeSpace, chrome, glass } from "../../theme";
+import { color, fontDisplay, fontMono, homeSpace, chrome, glass, radius } from "../../theme";
 import ChartHistoryPanel from "./ChartHistoryPanel";
 import CountdownRail from "./CountdownRail";
 
@@ -75,9 +75,14 @@ export default function ChartsScreen({
         <div style={{
           margin: `12px ${homeSpace.gutter}px 0`,
           padding: "18px 16px",
-          borderRadius: 2,
-          border: `1px solid ${glass.border}`,
-          background: glass.fillStrong,
+          borderRadius: radius.xl,
+          border: `1px solid rgba(255,255,255,0.5)`,
+          background: `
+            linear-gradient(165deg, rgba(255,255,255,0.7) 0%, rgba(236,240,246,0.48) 100%)
+          `,
+          boxShadow: `inset 0 1px 0 ${glass.highlight}, ${glass.shadowSoft}`,
+          backdropFilter: glass.blurSoft,
+          WebkitBackdropFilter: glass.blurSoft,
           color: color.muted,
           fontSize: 13,
           lineHeight: 1.45,

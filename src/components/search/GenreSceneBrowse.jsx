@@ -74,13 +74,16 @@ export default function GenreSceneBrowse({
               marginTop: 12,
               width: "100%",
               padding: "12px 14px",
-              borderRadius: radius.sm,
+              borderRadius: radius.lg,
               border: `1px solid ${glass.border}`,
-              background: glass.fillStrong,
+              background: glass.chrome,
               color: color.ink,
               fontSize: 14,
               fontWeight: 650,
               cursor: "pointer",
+              boxShadow: `inset 0 1px 0 ${glass.highlight}, ${glass.shadowSoft}`,
+              backdropFilter: glass.blurSoft,
+              WebkitBackdropFilter: glass.blurSoft,
             }}
           >
             Listen
@@ -102,7 +105,7 @@ export default function GenreSceneBrowse({
       }}>
         Genres
       </div>
-      <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
+      <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
         {rows.map((row) => (
           <button
             key={row.lane}
@@ -113,10 +116,15 @@ export default function GenreSceneBrowse({
               justifyContent: "space-between",
               alignItems: "center",
               gap: 12,
-              padding: "14px 4px",
-              background: "none",
-              border: "none",
-              borderBottom: `1px solid ${color.line}`,
+              padding: "14px 14px",
+              background: `
+                linear-gradient(165deg, rgba(255,255,255,0.62) 0%, rgba(236,240,246,0.4) 100%)
+              `,
+              border: `1px solid ${glass.borderSoft}`,
+              borderRadius: radius.lg,
+              boxShadow: `inset 0 1px 0 ${glass.highlight}`,
+              backdropFilter: glass.blurSoft,
+              WebkitBackdropFilter: glass.blurSoft,
               cursor: "pointer",
               textAlign: "left",
               color: color.ink,

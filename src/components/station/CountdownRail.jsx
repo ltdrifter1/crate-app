@@ -72,18 +72,20 @@ export default function CountdownRail({
             onClick={onTuneIn}
             style={{
               flexShrink: 0,
-              padding: "12px 14px",
-              borderRadius: radius.sm,
-              border: "1px solid rgba(139,147,159,0.35)",
-              background: `linear-gradient(165deg, ${chrome.plate} 0%, ${chrome.steel} 100%)`,
-              color: "#fff",
+              padding: "11px 14px",
+              borderRadius: radius.pill,
+              border: `1px solid ${glass.border}`,
+              background: glass.chrome,
+              color: color.ink,
               fontFamily: fontMono,
               fontSize: 11,
               fontWeight: 800,
               letterSpacing: 1.1,
               textTransform: "uppercase",
               cursor: "pointer",
-              boxShadow: "0 10px 22px rgba(90,98,112,0.25)",
+              boxShadow: `inset 0 1px 0 ${glass.highlight}, ${glass.shadowSoft}`,
+              backdropFilter: glass.blurSoft,
+              WebkitBackdropFilter: glass.blurSoft,
             }}
           >
             Tune in

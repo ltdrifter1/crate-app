@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { font, fontDisplay, fontMono, color, radius } from "../../theme";
+import { font, fontDisplay, fontMono, color, radius, glass, motion } from "../../theme";
 import { listPaths, findPath } from "../../lib/paths";
 import { roomPosterStyle } from "../../lib/rooms";
 import RoomPosterBackdrop from "../brand/RoomPosterBackdrop";
@@ -76,11 +76,17 @@ export default function PathsScreen({
               width: "100%",
               textAlign: "left",
               padding: "18px 16px",
-              borderRadius: radius.md,
-              border: `1px solid ${color.line}`,
-              background: color.surfaceSolid,
+              borderRadius: radius.xl,
+              border: `1px solid rgba(255,255,255,0.5)`,
+              background: `
+                linear-gradient(165deg, rgba(255,255,255,0.7) 0%, rgba(236,240,246,0.48) 100%)
+              `,
+              boxShadow: `inset 0 1px 0 ${glass.highlight}, ${glass.shadowSoft}`,
+              backdropFilter: glass.blurSoft,
+              WebkitBackdropFilter: glass.blurSoft,
               cursor: "pointer",
               color: color.ink,
+              animation: `rise 0.4s ${motion.ease} both`,
             }}
           >
             <div

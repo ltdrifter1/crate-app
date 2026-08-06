@@ -3657,10 +3657,14 @@ function HomeScreen({
                       justifyContent: "space-between",
                       gap: 12,
                       padding: "14px 16px",
-                      borderRadius: 2,
-                      border: `1px solid ${glass.border}`,
-                      background: glass.chrome,
+                      borderRadius: radius.xl,
+                      border: `1px solid rgba(255,255,255,0.5)`,
+                      background: `
+                        linear-gradient(165deg, rgba(255,255,255,0.7) 0%, rgba(236,240,246,0.5) 100%)
+                      `,
                       boxShadow: `inset 0 1px 0 ${glass.highlight}, ${glass.shadowSoft}`,
+                      backdropFilter: glass.blurSoft,
+                      WebkitBackdropFilter: glass.blurSoft,
                       cursor: "pointer",
                       textAlign: "left",
                     }}
@@ -3703,10 +3707,14 @@ function HomeScreen({
                       justifyContent: "space-between",
                       gap: 12,
                       padding: "14px 16px",
-                      borderRadius: 2,
-                      border: `1px solid ${glass.border}`,
-                      background: glass.chrome,
+                      borderRadius: radius.xl,
+                      border: `1px solid rgba(255,255,255,0.5)`,
+                      background: `
+                        linear-gradient(165deg, rgba(255,255,255,0.7) 0%, rgba(236,240,246,0.5) 100%)
+                      `,
                       boxShadow: `inset 0 1px 0 ${glass.highlight}, ${glass.shadowSoft}`,
+                      backdropFilter: glass.blurSoft,
+                      WebkitBackdropFilter: glass.blurSoft,
                       cursor: "pointer",
                       textAlign: "left",
                     }}
@@ -7760,6 +7768,9 @@ export default function App() {
       dedicationFlash={dedicationFlash}
       onClearDedication={() => setDedicationFlash(null)}
       liveShow={liveShow || liveAiring?.show || null}
+      tracks={tracks}
+      sceneChannelsActiveId={activeSceneChannelId}
+      onTuneSceneChannel={playSceneChannel}
       Icon={Icon}
       IceOrbPlay={IceOrbPlay}
     />
