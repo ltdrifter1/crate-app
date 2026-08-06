@@ -118,13 +118,13 @@ export function NowOnAirCard({
       <div style={{
         position: "relative",
         overflow: "hidden",
-        borderRadius: radius.lg,
+        borderRadius: 2,
         border: `1px solid ${glass.border}`,
         background: `
-          linear-gradient(135deg, ${host.accent}22 0%, transparent 42%),
-          linear-gradient(165deg, rgba(22,24,30,0.94) 0%, #1A1D24 55%, #12141A 100%)
+          linear-gradient(135deg, ${host.accent}28 0%, transparent 42%),
+          linear-gradient(165deg, rgba(18,20,26,0.96) 0%, #1A1D24 55%, #0C0E12 100%)
         `,
-        boxShadow: `inset 0 1px 0 rgba(255,255,255,0.1), 0 18px 40px rgba(22,24,30,0.22)`,
+        boxShadow: `inset 0 1px 0 rgba(255,255,255,0.14), inset 0 -1px 0 rgba(0,0,0,0.35), 0 18px 40px rgba(18,20,26,0.24)`,
         color: color.onDark,
         padding: "18px 18px 16px",
       }}>
