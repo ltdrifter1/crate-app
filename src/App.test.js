@@ -4,7 +4,7 @@ test('theme exports core tokens', () => {
   expect(color.ink).toBeTruthy();
   expect(color.accent).toMatch(/#2A2E38/i);
   expect(color.onAccent).toMatch(/#F4F6F9/i);
-  expect(color.canvas).toMatch(/#E/i);
+  expect(color.canvas).toMatch(/#D8DEE8/i);
   expect(color.alert).toBeTruthy();
   expect(color.select).toMatch(/rgba/);
   expect(BRAND_TAGLINE).toMatch(/YOUR WORLD/i);
