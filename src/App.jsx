@@ -5240,7 +5240,19 @@ function AdminScreen({
         <div>
           {editTrack&&(
             <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.55)", backdropFilter:"blur(8px)", zIndex:100, display:"flex", alignItems:"center", justifyContent:"center", padding:24 }}>
-              <div style={{ background: color.surfaceSolid, borderRadius:20, padding:24, width:"100%", maxWidth:380, boxShadow:"0 16px 64px rgba(0,0,0,0.45)", border:`1px solid ${color.line}` }}>
+              <div style={{
+                background: `
+                  linear-gradient(165deg, rgba(255,255,255,0.88) 0%, rgba(236,240,246,0.72) 100%)
+                `,
+                borderRadius: radius.xl,
+                padding:24,
+                width:"100%",
+                maxWidth:380,
+                boxShadow: `inset 0 1px 0 ${glass.highlight}, ${glass.shadowLift}`,
+                border:`1px solid rgba(255,255,255,0.55)`,
+                backdropFilter: glass.blur,
+                WebkitBackdropFilter: glass.blur,
+              }}>
                 <div style={{ fontSize:18, fontWeight:600, color: color.ink, marginBottom:16 }}>Edit Track</div>
                 {[["title","Title"],["artist","Artist"],["album","Album"],["genre","Genre"],["energy","Energy (1–10)"],["camelot","Camelot Key"],["bpm","BPM"],["albumCover","Cover URL"],["videoUrl","Video URL (MP4/WebM)"]].map(([k,p])=>(
                   <input key={k} placeholder={p} value={editTrack[k]||""} onChange={e=>setEditTrack(t=>({...t,[k]:e.target.value}))} style={{...INPUT_ST,marginBottom:8}}/>
@@ -5457,8 +5469,8 @@ function AdminScreen({
                       <div key={label} style={{ padding:"14px 12px", background:"rgba(255,255,255,0.1)", backdropFilter:"blur(32px)", borderRadius:14, border:"1px solid rgba(255,255,255,0.14)" }}>
                         <div style={{ fontSize:11, fontWeight:600, color: color.ink, letterSpacing:0.5, marginBottom:8, textTransform:"uppercase" }}>{label}</div>
                         <div style={{ fontSize:28, fontWeight:700, color: color.ink }}>{has}<span style={{ fontSize:14, color: color.muted }}>/{total}</span></div>
-                        <div style={{ height:4, background:"rgba(0,0,0,0.06)", borderRadius:2, marginTop:8, overflow:"hidden" }}>
-                          <div style={{ width:`${pct}%`, height:"100%", background: pct === 100 ? color.accent : pct > 50 ? color.surfaceRaised : color.faint, borderRadius:2, transition:"width 0.5s" }}/>
+                        <div style={{ height:5, background:"rgba(18,20,26,0.08)", borderRadius:999, marginTop:8, overflow:"hidden", boxShadow: "inset 0 1px 1px rgba(18,20,26,0.08)" }}>
+                          <div style={{ width:`${pct}%`, height:"100%", background: pct === 100 ? color.accent : pct > 50 ? color.surfaceRaised : color.faint, borderRadius:999, transition:"width 0.5s" }}/>
                         </div>
                         <div style={{ fontSize:10, color: color.muted, marginTop:4 }}>{pct}% covered</div>
                       </div>
