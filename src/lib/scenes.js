@@ -814,9 +814,11 @@ export function enrichTracksWithScenes(tracks = []) {
 export function trackMatchesScene(track, sceneId) {
   const scene = getScene(sceneId);
   if (!scene) return false;
+  // Prefer precomputed scene tags from enrichTracksWithScenes.
+  if (track._scene?.id === sceneId) return true;
+  if ((track._scenes || []).includes(sceneId)) return true;
   const inferred = inferScene(track);
   if (inferred?.id === sceneId) return true;
-  if ((track._scenes || []).includes(sceneId)) return true;
   if (matchSceneFromText(track.genre)?.id === sceneId) return true;
   // Soft: same lane + energy/bpm band when track already tagged to family
   if (inferred && inferred.familyId === scene.familyId) {
