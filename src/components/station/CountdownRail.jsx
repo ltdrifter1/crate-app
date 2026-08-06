@@ -2,6 +2,7 @@ import {
   color, fontDisplay, fontMono, glass, homeSpace, motion, radius, artShadow, chrome
 } from "../../theme";
 import { stationDaypart } from "../../lib/station";
+import { useIsPlaying } from "../../usePlayerTransport";
 
 /**
  * Home Countdown rail — TRL / MuchMusic chart energy.
@@ -11,9 +12,9 @@ export default function CountdownRail({
   onPlayTrack,
   onTuneIn = null,
   activeId = null,
-  isPlaying = false,
   compact = false,
 }) {
+  const isPlaying = useIsPlaying();
   if (!entries.length) return null;
   const daypart = stationDaypart(new Date());
   const top = entries.slice(0, compact ? 5 : 10);
