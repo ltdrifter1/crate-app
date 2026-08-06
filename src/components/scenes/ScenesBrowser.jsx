@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { font, fontDisplay, fontMono, color, radius } from "../../theme";
+import { font, fontDisplay, fontMono, color, radius, glass } from "../../theme";
 import {
   scenesByFamily,
   relatedScenes,
@@ -101,13 +101,14 @@ export default function ScenesBrowser({
                 onClick={() => onPlayScene?.(active.id)}
                 style={{
                   padding: "12px 16px",
-                  borderRadius: radius.sm,
+                  borderRadius: radius.lg,
                   border: "none",
                   background: color.accent,
                   color: color.onAccent,
                   fontWeight: 650,
                   fontSize: 13,
                   cursor: "pointer",
+                  boxShadow: `inset 0 1px 0 rgba(255,255,255,0.22), ${glass.shadowSoft}`,
                 }}
               >
                 Play scene
@@ -117,9 +118,14 @@ export default function ScenesBrowser({
                 onClick={() => onOpenSceneRoom?.(active.id)}
                 style={{
                   padding: "12px 16px",
-                  borderRadius: radius.sm,
-                  border: `1px solid ${color.lineStrong}`,
-                  background: "none",
+                  borderRadius: radius.lg,
+                  border: `1px solid ${glass.border}`,
+                  background: `
+                    linear-gradient(165deg, rgba(255,255,255,0.7) 0%, rgba(236,240,246,0.5) 100%)
+                  `,
+                  boxShadow: `inset 0 1px 0 ${glass.highlight}`,
+                  backdropFilter: glass.blurSoft,
+                  WebkitBackdropFilter: glass.blurSoft,
                   color: color.body,
                   fontWeight: 600,
                   fontSize: 13,
@@ -149,10 +155,16 @@ export default function ScenesBrowser({
                   display: "flex",
                   justifyContent: "space-between",
                   width: "100%",
-                  padding: "14px 4px",
-                  background: "none",
-                  border: "none",
-                  borderBottom: `1px solid ${color.line}`,
+                  padding: "14px 14px",
+                  marginBottom: 6,
+                  background: `
+                    linear-gradient(165deg, rgba(255,255,255,0.58) 0%, rgba(236,240,246,0.38) 100%)
+                  `,
+                  border: `1px solid ${glass.borderSoft}`,
+                  borderRadius: radius.lg,
+                  boxShadow: `inset 0 1px 0 ${glass.highlight}`,
+                  backdropFilter: glass.blurSoft,
+                  WebkitBackdropFilter: glass.blurSoft,
                   cursor: "pointer",
                   textAlign: "left",
                   color: color.ink,
@@ -222,10 +234,16 @@ export default function ScenesBrowser({
                 justifyContent: "space-between",
                 alignItems: "center",
                 width: "100%",
-                padding: "14px 4px",
-                background: "none",
-                border: "none",
-                borderBottom: `1px solid ${color.line}`,
+                padding: "14px 14px",
+                marginBottom: 6,
+                background: `
+                  linear-gradient(165deg, rgba(255,255,255,0.58) 0%, rgba(236,240,246,0.38) 100%)
+                `,
+                border: `1px solid ${glass.borderSoft}`,
+                borderRadius: radius.lg,
+                boxShadow: `inset 0 1px 0 ${glass.highlight}`,
+                backdropFilter: glass.blurSoft,
+                WebkitBackdropFilter: glass.blurSoft,
                 cursor: "pointer",
                 textAlign: "left",
                 color: color.ink,

@@ -107,7 +107,7 @@ export function HostCreditChip({ show, compact = false, onClick = null, tone = "
 }
 
 /**
- * Hero "NOW ON AIR" card — the appointment-viewing surface.
+ * Hero "NOW ON AIR" card — frosted appointment-viewing surface.
  */
 export function NowOnAirCard({
   airing = null,
@@ -130,48 +130,53 @@ export function NowOnAirCard({
       <div style={{
         position: "relative",
         overflow: "hidden",
-        borderRadius: 2,
-        border: `1px solid ${glass.border}`,
+        borderRadius: radius.xl,
+        border: `1px solid rgba(255,255,255,0.55)`,
         background: `
-          linear-gradient(135deg, ${host.accent}28 0%, transparent 42%),
-          linear-gradient(165deg, rgba(18,20,26,0.96) 0%, #1A1D24 55%, #0C0E12 100%)
+          linear-gradient(135deg, ${host.accent}18 0%, transparent 48%),
+          linear-gradient(165deg, rgba(255,255,255,0.72) 0%, rgba(236,240,246,0.52) 55%, rgba(220,226,236,0.48) 100%)
         `,
-        boxShadow: `inset 0 1px 0 rgba(255,255,255,0.14), inset 0 -1px 0 rgba(0,0,0,0.35), 0 18px 40px rgba(18,20,26,0.24)`,
-        color: color.onDark,
+        boxShadow: `inset 0 1px 0 ${glass.highlight}, ${glass.shadowLift}`,
+        backdropFilter: glass.blur,
+        WebkitBackdropFilter: glass.blur,
+        color: color.ink,
         padding: "18px 18px 16px",
       }}>
-        {/* Scanline / broadcast texture */}
         <div aria-hidden="true" style={{
-          position: "absolute", inset: 0, pointerEvents: "none", opacity: 0.06,
-          backgroundImage: "repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255,255,255,0.35) 3px)",
+          position: "absolute", inset: 0, pointerEvents: "none",
+          background: `
+            radial-gradient(ellipse 80% 50% at 0% 0%, ${host.accent}22 0%, transparent 55%),
+            linear-gradient(180deg, rgba(255,255,255,0.35) 0%, transparent 40%)
+          `,
         }} />
 
         <div style={{ position: "relative", display: "flex", justifyContent: "space-between", gap: 12, marginBottom: 14 }}>
           <div style={{
             display: "inline-flex", alignItems: "center", gap: 8,
-            padding: "5px 10px", borderRadius: 2,
-            background: "rgba(139,147,159,0.18)",
-            border: "1px solid rgba(139,147,159,0.45)",
+            padding: "5px 10px", borderRadius: radius.pill,
+            background: "rgba(255,255,255,0.55)",
+            border: `1px solid ${glass.borderSoft}`,
+            boxShadow: `inset 0 1px 0 ${glass.highlight}`,
           }}>
             <span style={{
-              width: 7, height: 7, borderRadius: "50%", background: chrome.hot,
-              boxShadow: "0 0 0 3px rgba(139,147,159,0.28)",
+              width: 7, height: 7, borderRadius: "50%", background: "#E23B4C",
+              boxShadow: "0 0 0 3px rgba(226,59,76,0.22)",
               animation: "stageLiveDot 1.4s ease-in-out infinite",
             }} />
             <span style={{
               fontFamily: fontMono, fontSize: 10, fontWeight: 800,
-              letterSpacing: 1.5, textTransform: "uppercase",
+              letterSpacing: 1.5, textTransform: "uppercase", color: color.ink,
             }}>
               Now on air
             </span>
           </div>
           <div style={{
             fontFamily: fontMono, fontSize: 10, fontWeight: 700,
-            letterSpacing: 0.8, color: "rgba(242,244,247,0.55)",
+            letterSpacing: 0.8, color: color.muted,
             textAlign: "right",
           }}>
             {show.timeLabel}
-            <div style={{ marginTop: 2, color: host.accent }}>
+            <div style={{ marginTop: 2, color: color.body, fontWeight: 800 }}>
               {formatRemaining(remainingMinutes)}
             </div>
           </div>
@@ -187,13 +192,14 @@ export function NowOnAirCard({
               fontWeight: 750,
               letterSpacing: -0.55,
               lineHeight: 1.08,
+              color: color.ink,
             }}>
               {show.title}
             </h2>
             <div style={{
               marginTop: 6,
               fontSize: 13,
-              color: "rgba(242,244,247,0.72)",
+              color: color.body,
               lineHeight: 1.35,
             }}>
               {show.tagline}
@@ -207,15 +213,15 @@ export function NowOnAirCard({
             }}>
               <span style={{
                 fontFamily: fontMono, fontSize: 11, fontWeight: 700,
-                letterSpacing: 0.4, color: "#fff",
+                letterSpacing: 0.4, color: color.ink,
               }}>
                 {host.name}
               </span>
-              <span style={{ color: "rgba(242,244,247,0.35)" }}>·</span>
+              <span style={{ color: color.faint }}>·</span>
               <span style={{
                 fontFamily: fontMono, fontSize: 10, fontWeight: 600,
                 letterSpacing: 0.8, textTransform: "uppercase",
-                color: "rgba(242,244,247,0.5)",
+                color: color.muted,
               }}>
                 {host.title}
               </span>
@@ -223,16 +229,18 @@ export function NowOnAirCard({
           </div>
         </div>
 
-        {/* Block progress */}
         <div style={{ position: "relative", marginTop: 16 }} aria-hidden="true">
           <div style={{
-            height: 3, borderRadius: 2, background: "rgba(255,255,255,0.12)", overflow: "hidden",
+            height: 4, borderRadius: 999,
+            background: "rgba(18,20,26,0.08)",
+            boxShadow: "inset 0 1px 2px rgba(18,20,26,0.08)",
+            overflow: "hidden",
           }}>
             <div style={{
               width: `${Math.round((progress || 0) * 100)}%`,
               height: "100%",
-              background: `linear-gradient(90deg, ${host.accent}, #fff)`,
-              boxShadow: `0 0 12px ${host.accent}`,
+              borderRadius: 999,
+              background: `linear-gradient(90deg, ${host.accent}, ${color.ink})`,
               transition: "width 1s linear",
             }} />
           </div>
@@ -246,7 +254,7 @@ export function NowOnAirCard({
             fontSize: 11,
             fontWeight: 600,
             letterSpacing: 0.3,
-            color: "rgba(242,244,247,0.62)",
+            color: color.muted,
             lineHeight: 1.4,
           }}>
             “{bumper}”
@@ -266,19 +274,21 @@ export function NowOnAirCard({
             style={{
               flex: 1,
               padding: "13px 16px",
-              borderRadius: radius.sm,
-              border: "none",
+              borderRadius: radius.lg,
+              border: tuned ? `1px solid ${glass.borderSoft}` : "1px solid rgba(18,20,26,0.2)",
               cursor: "pointer",
               fontFamily: fontMono,
               fontSize: 12,
               fontWeight: 800,
               letterSpacing: 1.2,
               textTransform: "uppercase",
-              color: "#fff",
+              color: tuned ? color.muted : color.onAccent,
               background: tuned
-                ? "rgba(255,255,255,0.12)"
-                : `linear-gradient(165deg, ${host.accent} 0%, #16181E 130%)`,
-              boxShadow: tuned ? "none" : `0 10px 24px ${host.accent}44`,
+                ? "rgba(255,255,255,0.45)"
+                : `linear-gradient(165deg, ${color.ink} 0%, #2A2E38 100%)`,
+              boxShadow: tuned
+                ? `inset 0 1px 0 ${glass.highlight}`
+                : `inset 0 1px 0 rgba(255,255,255,0.22), ${glass.shadowSoft}`,
             }}
           >
             {tuned ? "You’re locked in ✓" : "Tune into this block"}
@@ -290,7 +300,7 @@ export function NowOnAirCard({
             position: "relative",
             marginTop: 12,
             paddingTop: 12,
-            borderTop: "1px solid rgba(255,255,255,0.08)",
+            borderTop: `1px solid ${glass.borderSoft}`,
             display: "flex",
             justifyContent: "space-between",
             gap: 10,
@@ -299,10 +309,10 @@ export function NowOnAirCard({
             fontWeight: 700,
             letterSpacing: 1,
             textTransform: "uppercase",
-            color: "rgba(242,244,247,0.48)",
+            color: color.faint,
           }}>
             <span>Up next</span>
-            <span style={{ color: "rgba(242,244,247,0.78)", textAlign: "right" }}>
+            <span style={{ color: color.body, textAlign: "right" }}>
               {nextShow.shortTitle || nextShow.title} · {formatShowClock(nextShow.startHour)}
             </span>
           </div>

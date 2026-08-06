@@ -4,7 +4,7 @@
  */
 import { useMemo, useState } from "react";
 import {
-  font, fontDisplay, fontMono, color, radius, motion,
+  font, fontDisplay, fontMono, color, radius, motion, glass,
 } from "../../theme";
 import {
   duration as motionDuration,
@@ -180,10 +180,20 @@ function RoomRow({ room, onEnter, isActive }) {
         alignItems: "center",
         justifyContent: "space-between",
         width: "100%",
-        padding: "16px 4px",
-        background: "none",
-        border: "none",
-        borderBottom: `1px solid ${color.line}`,
+        padding: "14px 14px",
+        marginBottom: 6,
+        background: isActive
+          ? `
+            linear-gradient(165deg, rgba(255,255,255,0.82) 0%, rgba(236,240,246,0.62) 100%)
+          `
+          : `
+            linear-gradient(165deg, rgba(255,255,255,0.58) 0%, rgba(236,240,246,0.38) 100%)
+          `,
+        border: `1px solid ${isActive ? glass.border : glass.borderSoft}`,
+        borderRadius: radius.lg,
+        boxShadow: `inset 0 1px 0 ${glass.highlight}${isActive ? `, ${glass.shadowSoft}` : ""}`,
+        backdropFilter: glass.blurSoft,
+        WebkitBackdropFilter: glass.blurSoft,
         cursor: "pointer",
         textAlign: "left",
         color: color.ink,
@@ -197,10 +207,12 @@ function RoomRow({ room, onEnter, isActive }) {
           height: 36,
           marginRight: 12,
           flexShrink: 0,
+          borderRadius: radius.sm,
           background: poster.gradient,
-          border: `1px solid ${color.line}`,
+          border: `1px solid ${glass.borderSoft}`,
           position: "relative",
           overflow: "hidden",
+          boxShadow: `inset 0 1px 0 ${glass.highlight}`,
         }}
       >
         {poster.texture && (

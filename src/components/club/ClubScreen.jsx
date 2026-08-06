@@ -106,9 +106,9 @@ export default function ClubScreen({
           flex: 1,
           minHeight: 40,
           border: "none",
-          borderRadius: 2,
+          borderRadius: radius.lg,
           cursor: "pointer",
-          background: active ? color.surfaceSolid : "transparent",
+          background: active ? glass.fillHeavy : "transparent",
           color: active ? color.ink : color.muted,
           boxShadow: active ? `inset 0 1px 0 ${glass.highlight}, ${glass.shadowSoft}` : "none",
           fontSize: 14,
@@ -141,10 +141,14 @@ export default function ClubScreen({
             gap: 4,
             padding: 4,
             marginBottom: 18,
-            borderRadius: 2,
+            borderRadius: radius.lg,
             border: `1px solid ${glass.border}`,
-            background: glass.frame,
+            background: `
+              linear-gradient(165deg, rgba(255,255,255,0.55) 0%, rgba(236,240,246,0.4) 100%)
+            `,
             boxShadow: `inset 0 1px 0 ${glass.highlight}, ${glass.shadowSoft}`,
+            backdropFilter: glass.blurSoft,
+            WebkitBackdropFilter: glass.blurSoft,
           }}
         >
           {SETTINGS_TABS.map((t) => segmentBtn(t.id, t.label))}

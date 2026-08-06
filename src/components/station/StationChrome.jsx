@@ -58,61 +58,62 @@ export function HypnoVisualizer({ playing = false, colorHex = null }) {
   );
 }
 
-/** Pulsing ON AIR plate — hard broadcast edge, not a soft pill. */
+/** Soft glass ON AIR plate — live pulse + callsign. */
 export function OnAirBadge({ daypartLabel = null, showTitle = null, compact = false, callsign = STATION_CALLSIGN }) {
   const secondary = showTitle || daypartLabel;
   return (
     <div
       style={{
         display: "inline-flex",
-        alignItems: "stretch",
-        gap: 0,
-        borderRadius: 0,
-        overflow: "hidden",
-        background: "rgba(22,24,30,0.92)",
-        border: "1px solid rgba(255,255,255,0.14)",
-        boxShadow: "0 8px 22px rgba(22,24,30,0.22)",
-        color: color.onDark,
-        pointerEvents: "none",
+        alignItems: "center",
+        gap: compact ? 8 : 10,
         maxWidth: compact ? 240 : 300,
+        padding: compact ? "6px 10px" : "7px 12px",
+        borderRadius: radius.pill,
+        background: `
+          linear-gradient(165deg, rgba(255,255,255,0.72) 0%, rgba(236,240,246,0.5) 100%)
+        `,
+        border: `1px solid rgba(255,255,255,0.55)`,
+        boxShadow: `inset 0 1px 0 ${glass.highlight}, ${glass.shadowSoft}`,
+        backdropFilter: glass.blurSoft,
+        WebkitBackdropFilter: glass.blurSoft,
+        color: color.ink,
+        pointerEvents: "none",
       }}
     >
-      <div style={{
-        display: "flex",
-        alignItems: "center",
-        gap: compact ? 6 : 8,
-        padding: compact ? "6px 10px" : "7px 11px",
-        background: `linear-gradient(165deg, ${chrome.plate} 0%, ${chrome.steel} 100%)`,
+      <span
+        aria-hidden="true"
+        style={{
+          width: compact ? 6 : 7,
+          height: compact ? 6 : 7,
+          borderRadius: "50%",
+          background: "#E23B4C",
+          boxShadow: "0 0 0 3px rgba(226,59,76,0.22)",
+          animation: "stageLiveDot 1.4s ease-in-out infinite",
+          flexShrink: 0,
+        }}
+      />
+      <span style={{
+        fontFamily: fontMono,
+        fontSize: compact ? 9 : 10,
+        fontWeight: 800,
+        letterSpacing: 1.5,
+        textTransform: "uppercase",
+        color: color.ink,
         flexShrink: 0,
       }}>
-        <span
-          aria-hidden="true"
-          style={{
-            width: compact ? 6 : 7,
-            height: compact ? 6 : 7,
-            borderRadius: "50%",
-            background: "#fff",
-            boxShadow: "0 0 0 3px rgba(255,255,255,0.28)",
-            animation: "stageLiveDot 1.4s ease-in-out infinite",
-            flexShrink: 0,
-          }}
-        />
-        <span style={{
-          fontFamily: fontMono,
-          fontSize: compact ? 9 : 10,
-          fontWeight: 800,
-          letterSpacing: 1.6,
-          textTransform: "uppercase",
-          color: "#fff",
-        }}>
-          On Air
-        </span>
-      </div>
+        On Air
+      </span>
+      <span style={{
+        width: 1,
+        height: 12,
+        background: glass.border,
+        flexShrink: 0,
+      }} />
       <div style={{
         display: "flex",
         flexDirection: "column",
         justifyContent: "center",
-        padding: compact ? "4px 10px" : "5px 12px",
         minWidth: 0,
         gap: 1,
       }}>
@@ -120,9 +121,9 @@ export function OnAirBadge({ daypartLabel = null, showTitle = null, compact = fa
           fontFamily: fontMono,
           fontSize: 8,
           fontWeight: 800,
-          letterSpacing: 1.4,
+          letterSpacing: 1.3,
           textTransform: "uppercase",
-          color: "rgba(242,244,247,0.55)",
+          color: color.faint,
         }}>
           {callsign}
         </span>
@@ -131,9 +132,9 @@ export function OnAirBadge({ daypartLabel = null, showTitle = null, compact = fa
             fontFamily: fontMono,
             fontSize: compact ? 9 : 10,
             fontWeight: 700,
-            letterSpacing: 1.0,
+            letterSpacing: 0.8,
             textTransform: "uppercase",
-            color: color.onDark,
+            color: color.body,
             overflow: "hidden",
             textOverflow: "ellipsis",
             whiteSpace: "nowrap",
@@ -147,8 +148,7 @@ export function OnAirBadge({ daypartLabel = null, showTitle = null, compact = fa
 }
 
 /**
- * Persistent channel bug — top-right CH-03 · RAP CITY plate.
- * MTV corner graphic energy.
+ * Persistent channel bug — frosted CH plate with accent signal.
  */
 export function ChannelBug({
   sceneChannel = null,
@@ -163,34 +163,39 @@ export function ChannelBug({
       style={{
         display: "inline-flex",
         alignItems: "stretch",
-        borderRadius: 0,
+        borderRadius: radius.lg,
         overflow: "hidden",
         pointerEvents: "none",
-        boxShadow: "0 10px 24px rgba(22,24,30,0.28)",
+        boxShadow: `inset 0 1px 0 ${glass.highlight}, ${glass.shadowSoft}`,
         animation: `channelBugIn 0.4s ${motion.ease} both`,
-        maxWidth: compact ? 160 : 200,
+        maxWidth: compact ? 168 : 210,
+        border: `1px solid ${glass.borderSoft}`,
+        backdropFilter: glass.blurSoft,
+        WebkitBackdropFilter: glass.blurSoft,
+        background: `
+          linear-gradient(165deg, rgba(255,255,255,0.7) 0%, rgba(236,240,246,0.48) 100%)
+        `,
       }}
     >
       <div style={{
-        padding: compact ? "6px 8px" : "7px 10px",
-        background: bug.accent || chrome.hot,
-        color: "#fff",
+        padding: compact ? "7px 9px" : "8px 11px",
+        background: `
+          linear-gradient(160deg, rgba(255,255,255,0.55) 0%, rgba(${hexToRgbSafe(bug.accent)},0.35) 100%)
+        `,
+        color: color.ink,
         fontFamily: fontMono,
         fontSize: compact ? 11 : 12,
         fontWeight: 900,
         letterSpacing: 0.6,
         display: "flex",
         alignItems: "center",
-        clipPath: "polygon(0 0, 100% 0, calc(100% - 6px) 100%, 0 100%)",
-        paddingRight: compact ? 12 : 14,
+        borderRight: `1px solid ${glass.borderSoft}`,
+        boxShadow: `inset 0 1px 0 ${glass.highlight}`,
       }}>
         {bug.ch}
       </div>
       <div style={{
         padding: compact ? "5px 10px" : "6px 12px",
-        background: "rgba(22,24,30,0.94)",
-        border: "1px solid rgba(255,255,255,0.12)",
-        borderLeft: "none",
         display: "flex",
         flexDirection: "column",
         justifyContent: "center",
@@ -203,7 +208,7 @@ export function ChannelBug({
           fontWeight: 800,
           letterSpacing: 1.3,
           textTransform: "uppercase",
-          color: "rgba(242,244,247,0.5)",
+          color: color.faint,
         }}>
           {daypartLabel || STATION_CALLSIGN}
         </span>
@@ -211,9 +216,9 @@ export function ChannelBug({
           fontFamily: fontMono,
           fontSize: compact ? 9 : 10,
           fontWeight: 800,
-          letterSpacing: 1.1,
+          letterSpacing: 1.0,
           textTransform: "uppercase",
-          color: color.onDark,
+          color: color.ink,
           overflow: "hidden",
           textOverflow: "ellipsis",
           whiteSpace: "nowrap",
@@ -225,7 +230,16 @@ export function ChannelBug({
   );
 }
 
-/** Scrolling station ticker — MuchMusic crawl energy. */
+function hexToRgbSafe(hex) {
+  if (!hex || typeof hex !== "string") return chrome.hotRgb;
+  const h = hex.replace("#", "");
+  if (h.length !== 6) return chrome.hotRgb;
+  const n = parseInt(h, 16);
+  if (Number.isNaN(n)) return chrome.hotRgb;
+  return `${(n >> 16) & 255},${(n >> 8) & 255},${n & 255}`;
+}
+
+/** Scrolling station ticker — frosted crawl. */
 export function StationTicker({ text = "", dense = false }) {
   if (!text) return null;
   const loop = `${text}   ◆   ${text}`;
@@ -235,10 +249,15 @@ export function StationTicker({ text = "", dense = false }) {
       style={{
         overflow: "hidden",
         width: "100%",
-        background: "rgba(22,24,30,0.82)",
-        borderTop: "1px solid rgba(255,255,255,0.1)",
-        borderBottom: "1px solid rgba(255,255,255,0.06)",
-        color: color.onDark,
+        background: `
+          linear-gradient(180deg, rgba(255,255,255,0.48) 0%, rgba(236,240,246,0.32) 100%)
+        `,
+        borderTop: `1px solid ${glass.borderSoft}`,
+        borderBottom: `1px solid ${glass.borderSoft}`,
+        boxShadow: `inset 0 1px 0 ${glass.highlight}`,
+        backdropFilter: glass.blurSoft,
+        WebkitBackdropFilter: glass.blurSoft,
+        color: color.body,
         height: dense ? 22 : 26,
         display: "flex",
         alignItems: "center",
@@ -250,7 +269,7 @@ export function StationTicker({ text = "", dense = false }) {
           whiteSpace: "nowrap",
           fontFamily: fontMono,
           fontSize: dense ? 9 : 10,
-          fontWeight: 600,
+          fontWeight: 650,
           letterSpacing: 1.4,
           textTransform: "uppercase",
           animation: "stationTicker 42s linear infinite",

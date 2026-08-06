@@ -19,6 +19,7 @@ import {
 } from "../station/StationChrome";
 import VideoStage, { VideoBadge } from "../station/VideoStage";
 import { HostCreditChip } from "../station/ShowGuide";
+import SceneSurfRail from "../station/SceneSurfRail";
 import { trackHasVideo } from "../../lib/video";
 import { estimateLockedIn } from "../../lib/station";
 
@@ -361,6 +362,9 @@ export default function ImmersivePlayer({
   dedicationFlash = null,
   onClearDedication = null,
   liveShow = null,
+  tracks = [],
+  sceneChannelsActiveId = null,
+  onTuneSceneChannel = null,
   Icon,
   IceOrbPlay,
 }) {
@@ -796,6 +800,17 @@ export default function ImmersivePlayer({
           requested={requested}
           onDedicate={onDedicate}
         />
+
+        {onTuneSceneChannel && (
+          <div style={{ width: "100%", maxWidth: 400, marginTop: 2 }}>
+            <SceneSurfRail
+              tracks={tracks}
+              activeChannelId={sceneChannelsActiveId}
+              onTuneChannel={onTuneSceneChannel}
+              compact
+            />
+          </div>
+        )}
       </div>
 
       {/* Transport deck — frosted remote */}
@@ -811,16 +826,16 @@ export default function ImmersivePlayer({
           padding: "16px 18px 18px",
           borderRadius: 22,
           background: `
-            linear-gradient(165deg, rgba(255,255,255,0.82) 0%, rgba(236,240,246,0.72) 100%)
+            linear-gradient(165deg, rgba(255,255,255,0.72) 0%, rgba(236,240,246,0.55) 100%)
           `,
-          border: `1px solid ${glass.border}`,
+          border: `1px solid rgba(255,255,255,0.55)`,
           boxShadow: `
             inset 0 1px 0 ${glass.highlight},
             0 -1px 0 rgba(22,24,30,0.04),
             0 18px 48px rgba(22,24,30,0.12)
           `,
-          backdropFilter: glass.blur,
-          WebkitBackdropFilter: glass.blur,
+          backdropFilter: glass.blurHeavy,
+          WebkitBackdropFilter: glass.blurHeavy,
           animation: `dockRise 0.5s ${EASE} both`,
         }}>
           <div style={{ marginBottom: 4 }}>
