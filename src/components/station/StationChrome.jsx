@@ -409,11 +409,13 @@ export function LowerThird({
         width: "100%",
         padding: "14px 16px 15px",
         borderRadius: radius.xl,
-        background: glass.plate,
-        border: `1px solid ${glass.border}`,
+        background: `
+          linear-gradient(165deg, rgba(255,255,255,0.55) 0%, rgba(236,240,246,0.4) 100%)
+        `,
+        border: `1px solid rgba(255,255,255,0.55)`,
         boxShadow: `inset 0 1px 0 ${glass.highlight}, ${glass.shadowLift}`,
-        backdropFilter: glass.blur,
-        WebkitBackdropFilter: glass.blur,
+        backdropFilter: "blur(36px) saturate(1.24)",
+        WebkitBackdropFilter: "blur(36px) saturate(1.24)",
         animation: `stationLowerIn 0.45s ${motion.ease} both`,
       }}
     >
@@ -436,12 +438,12 @@ export function UpNextBumper({ track = null }) {
         padding: "8px 12px 8px 8px",
         borderRadius: radius.lg,
         background: `
-          linear-gradient(165deg, rgba(255,255,255,0.78) 0%, rgba(236,240,246,0.58) 100%)
+          linear-gradient(165deg, rgba(255,255,255,0.48) 0%, rgba(236,240,246,0.32) 100%)
         `,
-        border: `1px solid ${glass.borderSoft}`,
+        border: `1px solid rgba(255,255,255,0.5)`,
         boxShadow: `inset 0 1px 0 ${glass.highlight}, ${glass.shadowSoft}`,
-        backdropFilter: glass.blurSoft,
-        WebkitBackdropFilter: glass.blurSoft,
+        backdropFilter: "blur(28px) saturate(1.2)",
+        WebkitBackdropFilter: "blur(28px) saturate(1.2)",
         pointerEvents: "none",
         animation: `rise 0.4s ${motion.ease} both`,
         overflow: "hidden",

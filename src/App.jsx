@@ -313,7 +313,7 @@ const injectStyles = () => {
       to { transform: translateX(-50%); }
     }
     @keyframes stationLowerIn {
-      from { opacity: 0; transform: translateY(10px) skewX(-2deg); }
+      from { opacity: 0; transform: translateY(14px) scale(0.985); }
       to { opacity: 1; transform: none; }
     }
     @keyframes stationBar {
@@ -1359,20 +1359,23 @@ function CoverStage({
               width: "100%",
               maxWidth: 420,
               pointerEvents: "auto",
-              borderRadius: 24,
+              borderRadius: 26,
               padding: "16px 16px 14px",
               background: `
-                linear-gradient(165deg, rgba(255,255,255,0.78) 0%, rgba(236,240,246,0.62) 48%, rgba(220,226,236,0.58) 100%)
+                linear-gradient(165deg,
+                  rgba(255,255,255,0.52) 0%,
+                  rgba(236,240,246,0.38) 42%,
+                  rgba(214,220,230,0.34) 100%)
               `,
-              border: `1px solid ${glass.border}`,
+              border: `1px solid rgba(255,255,255,0.55)`,
               boxShadow: `
-                inset 0 1px 0 ${glass.highlight},
-                inset 0 -1px 0 rgba(18,20,26,0.04),
-                0 20px 56px rgba(18,20,26,0.14),
-                0 4px 14px rgba(18,20,26,0.06)
+                inset 0 1px 0 rgba(255,255,255,0.75),
+                inset 0 -1px 0 rgba(18,20,26,0.05),
+                0 24px 64px rgba(18,20,26,0.16),
+                0 6px 18px rgba(18,20,26,0.06)
               `,
-              backdropFilter: glass.blurHeavy,
-              WebkitBackdropFilter: glass.blurHeavy,
+              backdropFilter: "blur(40px) saturate(1.28)",
+              WebkitBackdropFilter: "blur(40px) saturate(1.28)",
               animation: `dockRise 0.55s ${motion.ease} both`,
               position: "relative",
               overflow: "hidden",
@@ -1384,12 +1387,14 @@ function CoverStage({
               style={{
                 position: "absolute",
                 inset: 0,
-                borderRadius: 24,
+                borderRadius: 26,
                 pointerEvents: "none",
                 background: `
-                  radial-gradient(ellipse 90% 55% at 50% -10%, rgba(255,255,255,0.55) 0%, transparent 55%),
-                  linear-gradient(180deg, rgba(255,255,255,0.22) 0%, transparent 28%)
+                  radial-gradient(ellipse 90% 55% at 50% -10%, rgba(255,255,255,0.48) 0%, transparent 55%),
+                  linear-gradient(180deg, rgba(255,255,255,0.28) 0%, transparent 32%),
+                  linear-gradient(180deg, transparent 70%, rgba(255,255,255,0.12) 100%)
                 `,
+                boxShadow: "inset 0 0 0 1px rgba(255,255,255,0.28)",
               }}
             />
 
