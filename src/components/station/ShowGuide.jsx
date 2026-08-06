@@ -41,8 +41,16 @@ function HostAvatar({ host, size = 44 }) {
 }
 
 /** Compact host credit for player chrome. */
-export function HostCreditChip({ show, compact = false, onClick = null }) {
+export function HostCreditChip({ show, compact = false, onClick = null, tone = "auto" }) {
   if (!show?.host) return null;
+  const onGlass = tone === "glass" || (tone === "auto" && !compact);
+  const labelColor = onGlass
+    ? (compact ? color.faint : color.faint)
+    : (compact ? "rgba(242,244,247,0.55)" : color.faint);
+  const nameColor = onGlass
+    ? color.ink
+    : (compact ? color.onDark : color.ink);
+
   const inner = (
     <>
       <HostAvatar host={show.host} size={compact ? 22 : 28} />
@@ -53,14 +61,14 @@ export function HostCreditChip({ show, compact = false, onClick = null }) {
           fontWeight: 800,
           letterSpacing: 1.2,
           textTransform: "uppercase",
-          color: compact ? "rgba(242,244,247,0.55)" : color.faint,
+          color: labelColor,
         }}>
           Hosted by
         </div>
         <div style={{
           fontSize: compact ? 11 : 12,
           fontWeight: 700,
-          color: compact ? color.onDark : color.ink,
+          color: nameColor,
           overflow: "hidden",
           textOverflow: "ellipsis",
           whiteSpace: "nowrap",
@@ -75,12 +83,16 @@ export function HostCreditChip({ show, compact = false, onClick = null }) {
     display: "inline-flex",
     alignItems: "center",
     gap: 8,
-    padding: compact ? "4px 8px 4px 4px" : "6px 10px 6px 6px",
+    padding: compact ? "4px 10px 4px 4px" : "6px 10px 6px 6px",
     borderRadius: 999,
-    background: compact ? "rgba(255,255,255,0.08)" : glass.fillStrong,
-    border: `1px solid ${compact ? "rgba(255,255,255,0.12)" : glass.border}`,
-    boxShadow: compact ? "none" : `inset 0 1px 0 ${glass.highlight}`,
-    maxWidth: 200,
+    background: onGlass
+      ? (compact ? "rgba(255,255,255,0.48)" : glass.fillStrong)
+      : (compact ? "rgba(255,255,255,0.08)" : glass.fillStrong),
+    border: `1px solid ${onGlass ? glass.borderSoft : (compact ? "rgba(255,255,255,0.12)" : glass.border)}`,
+    boxShadow: onGlass
+      ? `inset 0 1px 0 ${glass.highlight}`
+      : (compact ? "none" : `inset 0 1px 0 ${glass.highlight}`),
+    maxWidth: 220,
     cursor: onClick ? "pointer" : "default",
   };
 
