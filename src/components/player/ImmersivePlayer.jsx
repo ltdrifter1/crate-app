@@ -10,6 +10,7 @@ import {
 } from "../../theme";
 import { fmtTime, hexToRgbStr } from "../../lib/harmony";
 import { usePlayerPlayback } from "../../usePlayerPlayback";
+import { useIsPlaying } from "../../usePlayerTransport";
 import { EnergyShiftFeedback, EnergyShiftControl } from "../listen/EnergyShiftButton";
 import {
   DedicationFlash,
@@ -326,7 +327,6 @@ const menuItemStyle = {
 
 export default function ImmersivePlayer({
   currentTrack,
-  isPlaying,
   onTogglePlay,
   onSkip,
   onPrev,
@@ -369,6 +369,7 @@ export default function ImmersivePlayer({
   IceOrbPlay,
 }) {
   const { progress, duration } = usePlayerPlayback();
+  const isPlaying = useIsPlaying();
   const [artLoaded, setArtLoaded] = useState(false);
   const [showMore, setShowMore] = useState(false);
   const moreRef = useRef(null);
