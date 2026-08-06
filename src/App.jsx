@@ -108,7 +108,7 @@ import { playbackClock, usePlayerPlayback } from "./usePlayerPlayback";
 import { playerPlaybackStore } from "./lib/playerPlaybackStore";
 import DesktopMiniPlayer from "./components/player/DesktopMiniPlayer";
 import PlaybackProgressHairline from "./components/player/PlaybackProgressHairline";
-import { transportFlags, useIsBuffering } from "./usePlayerTransport";
+import { transportFlags, useIsBuffering, useCurrentTrack, useIsPlaying } from "./usePlayerTransport";
 
 const ClubScreen = lazy(() => import("./components/club/ClubScreen"));
 const LazyMixScreen = lazy(() => import("./components/club/MixScreen"));
@@ -920,7 +920,7 @@ function OrbitalPlayControl({
       />
       <div style={{ position: "relative", zIndex: 1 }}>
         <IceOrbPlay
-          isPlaying={isPlaying}
+         
           onClick={onToggle}
           size={size}
           stopPropagation
@@ -1166,7 +1166,7 @@ function CoverStageAtmosphere({ track = null, playing = false, live = false }) {
  */
 function CoverStage({
   onPlay, onTogglePlay, onSkip, onPrev, onOpen,
-  currentTrack, isPlaying, isRadioMode, hypnoPocket = false,
+  currentTrack, isRadioMode, hypnoPocket = false,
   previewTrack = null, mixLane, playDisabled = false,
   onStageVisibilityChange = null,
   onSeek = null,
@@ -1184,6 +1184,7 @@ function CoverStage({
   sceneChannel = null,
 }) {
   const { progress, duration } = usePlayerPlayback();
+  const isPlaying = useIsPlaying();
   const stageRef = useRef(null);
   const live = !!currentTrack;
   const canStart = !playDisabled;
@@ -3386,8 +3387,9 @@ function HomeCatalogStatus({ error, isEmpty, playableCount, totalCount, onRetry 
  */
 
 /** Offline / buffering pill — subscribes to transport store so App root stays quiet. */
-function AmbientNetworkPill({ isOffline, isPlaying }) {
+function AmbientNetworkPill({ isOffline }) {
   const isBuffering = useIsBuffering();
+  const isPlaying = useIsPlaying();
   if (!(isOffline || (isBuffering && isPlaying))) return null;
   return (
     <div role="status" style={{
@@ -3423,9 +3425,9 @@ function ForYouRiver({
   coldStart = false,
   onPlayTrack,
   activeId,
-  isPlaying,
   first = false,
 }) {
+  const isPlaying = useIsPlaying();
   if (!tracks.length) return null;
 
   return (
@@ -3448,7 +3450,7 @@ function ForYouRiver({
 }
 
 function HomeScreen({
-  tracks, onPlayRadio, onTogglePlay, onPlayTrack, currentTrack, isPlaying, onLike,
+  tracks, onPlayRadio, onTogglePlay, onPlayTrack, currentTrack, onLike,
   isRadioMode, playlistCtx, signalLabel, hypnoPocket = false,
   mixLane, radioPreview = null, radioNext = null, onSkipRadio, onPrevRadio,
   catalogError = null, onRetryCatalog,
@@ -3494,7 +3496,7 @@ function HomeScreen({
         onPrev={onPrevRadio}
         onOpen={onOpenPlayer}
         currentTrack={currentTrack}
-        isPlaying={isPlaying}
+       
         isRadioMode={isRadioMode}
         hypnoPocket={hypnoPocket}
         previewTrack={radioPreview}
@@ -3584,7 +3586,7 @@ function HomeScreen({
                 onPlayTrack={onPlayTrack}
                 onTuneIn={onTuneCountdown}
                 activeId={activeId}
-                isPlaying={isPlaying}
+               
                 compact
               />
             )}
@@ -3700,11 +3702,12 @@ function HomeScreen({
 
 // ─── SEARCH ───────────────────────────────────────────────────────────────────
 function SearchScreen({
-  query, setQuery, results, onPlay, onLike, currentTrack, isPlaying, playlistCtx,
+  query, setQuery, results, onPlay, onLike, currentTrack, playlistCtx,
   entityHits, onOpenArtist, onOpenAlbum, tracks = [], onListenIntent = null,
   recentSearches = [], onPickRecent = null, onClearRecent = null,
 }) {
   const [showAllResults, setShowAllResults] = useState(false);
+  const isPlaying = useIsPlaying();
   useEffect(() => { setShowAllResults(false); }, [query]);
   const RESULT_CAP = 50;
   const visibleResults = showAllResults ? results : results.slice(0, RESULT_CAP);
@@ -3840,7 +3843,7 @@ function SearchScreen({
         </div>
       )}
       {visibleResults.map(t=>(
-        <TrackRow key={t.id} track={t} onPlay={()=>onPlay(t)} active={currentTrack?.id===t.id} isPlaying={isPlaying} onLike={onLike} playlistCtx={playlistCtx}/>
+        <TrackRow key={t.id} track={t} onPlay={()=>onPlay(t)} active={currentTrack?.id===t.id} onLike={onLike} playlistCtx={playlistCtx}/>
       ))}
       {!showAllResults && results.length > RESULT_CAP && (
         <button type="button" onClick={() => setShowAllResults(true)}
@@ -3854,7 +3857,7 @@ function SearchScreen({
           onPlayPool={(t, pool) => onPlay(t, pool)}
           onListenIntent={onListenIntent}
           currentTrack={currentTrack}
-          isPlaying={isPlaying}
+         
           TrackRow={TrackRow}
           onLike={onLike}
           playlistCtx={playlistCtx}
@@ -3881,7 +3884,7 @@ function EnergySparkline({ tracks, width=120, height=24 }) {
 
 // ─── LIBRARY — Cover Flow collection ─────────────────────────────────────────
 function FavoritesScreen({
-  tracks, onPlay, onLike, currentTrack, isPlaying, playlistCtx,
+  tracks, onPlay, onLike, currentTrack, playlistCtx,
   userPlaylists = [], onCreatePlaylist, onDeletePlaylist, onRenamePlaylist = null,
   onPlayTrack, onSharePlaylist = null, onOpenMix = null,
   communityMix = null,
@@ -3893,6 +3896,7 @@ function FavoritesScreen({
 }) {
   const { menu, close } = useTrackMenu();
   const activeId = currentTrack?.id;
+  const isPlaying = useIsPlaying();
   const saved = savedTracks(tracks, 80);
   const [libTab, setLibTab] = useState("playlists"); // playlists | liked
   const [libQuery, setLibQuery] = useState("");
@@ -4211,7 +4215,7 @@ function FavoritesScreen({
             track={t}
             onPlay={() => playTrackFn(t, openPlaylistTracks)}
             active={activeId === t.id}
-            isPlaying={isPlaying}
+           
             onLike={onLike}
             playlistCtx={playlistCtx}
             activePlaylistId={openPlaylist.id}
@@ -4843,7 +4847,7 @@ function FavoritesScreen({
                     tracks={filteredSaved}
                     onPlayTrack={(t) => playTrackFn(t, filteredSaved)}
                     activeId={activeId}
-                    isPlaying={isPlaying}
+                   
                     size={188}
                     limit={40}
                   />
@@ -4866,7 +4870,7 @@ function FavoritesScreen({
                       track={t}
                       onPlay={() => playTrackFn(t, filteredSaved)}
                       active={activeId === t.id}
-                      isPlaying={isPlaying}
+                     
                       onLike={onLike}
                       playlistCtx={playlistCtx}
                     />
@@ -4908,7 +4912,7 @@ function FavoritesScreen({
               coldStart={coldStart}
               onPlayTrack={playTrackFn}
               activeId={activeId}
-              isPlaying={isPlaying}
+             
               first={false}
             />
           </div>
@@ -5595,12 +5599,13 @@ function MetaChip({ children }) {
 // ─── FLOATING GLASS DOCK — mini-player + tabs as one surface ──────────────────
 function GlassDock({
   screen, setScreen, showAdmin = false,
-  track, isPlaying,
+  track,
   onTogglePlay, onSkip, onPrev, onLike, onSeek,
   isRadioMode, onOpen, playlistCtx, onShowQueue, hypnoPocket,
   hidePlayer = false,
 }) {
   const { progress, duration } = usePlayerPlayback();
+  const isPlaying = useIsPlaying();
   const items = [
     { id: "home", label: "Home", icon: "home" },
     { id: "charts", label: "Charts", icon: "chart" },
@@ -5750,7 +5755,7 @@ function GlassDock({
               <Icon name="prev" size={16}/>
             </button>
             <IceOrbPlay
-              isPlaying={isPlaying}
+             
               onClick={onTogglePlay}
               size={34}
               iconSize={14}
@@ -5907,7 +5912,8 @@ function CatalogSkeleton() {
 }
 
 // ─── PULSE — ambient energy visualization ─────────────────────────────────────
-function Pulse({ track, isPlaying }) {
+function Pulse({ track }) {
+  const isPlaying = useIsPlaying();
   // Kept intentionally empty for the minimal shell — ambient motion lives in the player only.
   return null;
 }
@@ -5988,8 +5994,20 @@ export default function App() {
   const [tracks, setTracks]           = useState([]);          // loaded from Firestore
   const [tracksLoading, setTracksLoading] = useState(true);
   const [tracksLoadError, setTracksLoadError] = useState(null);
-  const [currentTrack, setCurrent]    = useState(null);
-  const [isPlaying, setIsPlaying]     = useState(false);
+  // currentTrack / isPlaying live in playerTransportStore.
+  // App subscribes to track only — play/pause updates leaf chrome, not this tree.
+  const currentRef = useRef(null);
+  const isPlayingRef = useRef(false);
+  const currentTrack = useCurrentTrack();
+  const setCurrent = useCallback((track) => {
+    currentRef.current = track || null;
+    transportFlags.setTrack(track || null);
+  }, []);
+  const setIsPlaying = useCallback((v) => {
+    const next = typeof v === "function" ? v(!!isPlayingRef.current) : v;
+    isPlayingRef.current = !!next;
+    transportFlags.setPlaying(!!next);
+  }, []);
   // progress/duration live in playerPlaybackStore — transport UI subscribes
   const setProgress = playbackClock.setProgress;
   const setDuration = playbackClock.setDuration;
@@ -6553,21 +6571,15 @@ export default function App() {
 
   // Refs so audio listeners (bound once) always see current playback state
   const tracksRef      = useRef([]);
-  const currentRef     = useRef(null);
   const queueRef       = useRef([]);
   const repeatRef      = useRef("off");
   const shuffleRef     = useRef(false);
   const crossfadeOnRef = useRef(true);
-  const isPlayingRef   = useRef(false);
   useEffect(() => { tracksRef.current = tracks; }, [tracks]);
-  useEffect(() => { currentRef.current = currentTrack; }, [currentTrack]);
   useEffect(() => { queueRef.current = queue; }, [queue]);
   useEffect(() => { repeatRef.current = repeat; }, [repeat]);
   useEffect(() => { shuffleRef.current = shuffle; }, [shuffle]);
   useEffect(() => { crossfadeOnRef.current = crossfadeOn; }, [crossfadeOn]);
-  useEffect(() => { isPlayingRef.current = isPlaying; }, [isPlaying]);
-  useEffect(() => { transportFlags.setPlaying(isPlaying); }, [isPlaying]);
-  useEffect(() => { transportFlags.setTrackId(currentTrack?.id || null); }, [currentTrack?.id]);
 
   const handleSkipRef = useRef(null);
   const startCrossfadeRef = useRef(null);
@@ -6789,7 +6801,7 @@ export default function App() {
       } else {
         setProgress(0);
       }
-      if (isPlaying) audio.play().catch(() => {});
+      if (isPlayingRef.current) audio.play().catch(() => {});
     } else {
       audio.src = "";
       setProgress(0);
@@ -6835,12 +6847,17 @@ export default function App() {
     } catch { /* ignore */ }
   }, [tracksLoading, tracks, currentTrack]);
 
-  // Sync play/pause
+  // Sync play/pause — subscribe to transport store so App need not re-render
   useEffect(() => {
-    if (!audioRef.current || !currentTrack?.audioUrl) return;
-    if (isPlaying) { audioRef.current.play().catch(() => {}); }
-    else           { audioRef.current.pause(); }
-  }, [isPlaying]);
+    const apply = (state) => {
+      const audio = audioRef.current;
+      if (!audio) return;
+      if (state.isPlaying) audio.play().catch(() => {});
+      else audio.pause();
+    };
+    apply(transportFlags.getState());
+    return transportFlags.subscribe(apply);
+  }, []);
 
   // Sync volume to both audio elements
   useEffect(() => {
@@ -7111,7 +7128,6 @@ export default function App() {
           ? [{ src: currentTrack.albumCover, sizes: "512x512", type: "image/jpeg" }]
           : [],
       });
-      navigator.mediaSession.playbackState = isPlaying ? "playing" : "paused";
       navigator.mediaSession.setActionHandler("play", () => {
         unlockAudioElements();
         setIsPlaying(true);
@@ -7128,7 +7144,18 @@ export default function App() {
     } catch (e) {
       // MediaSession unsupported or rejected — ignore
     }
-  }, [currentTrack?.id, isPlaying]);
+  }, [currentTrack?.id]);
+
+  useEffect(() => {
+    if (!("mediaSession" in navigator)) return undefined;
+    const apply = (state) => {
+      try {
+        navigator.mediaSession.playbackState = state.isPlaying ? "playing" : "paused";
+      } catch { /* ignore */ }
+    };
+    apply(transportFlags.getState());
+    return transportFlags.subscribe(apply);
+  }, []);
 
 
   // ── Like/unlike — optimistic UI + Firestore sync ────────────────────────
@@ -7332,7 +7359,7 @@ export default function App() {
 
   // Station bumper / ident between cuts while locked to channel or show
   useEffect(() => {
-    if (!currentTrack?.id || !isPlaying) return;
+    if (!currentTrack?.id || !isPlayingRef.current) return;
     if (lastBumperTrackRef.current === currentTrack.id) return;
     const prev = lastBumperTrackRef.current;
     lastBumperTrackRef.current = currentTrack.id;
@@ -7345,7 +7372,7 @@ export default function App() {
       sceneChannel: activeSceneChannelId ? getSceneChannel(activeSceneChannelId) : null,
     });
     setStationBumper(bumper);
-  }, [currentTrack?.id, isPlaying, isRadioMode, activeShowId, activeSceneChannelId, liveShow, stationUpNext, countdown]);
+  }, [currentTrack?.id, isRadioMode, activeShowId, activeSceneChannelId, liveShow, stationUpNext, countdown]);
 
   // When a tuned block ends, roll the channel forward to the new live show
   useEffect(() => {
@@ -7800,7 +7827,7 @@ export default function App() {
     <Suspense fallback={null}>
     <LazyImmersivePlayer
       currentTrack={currentTrack}
-      isPlaying={isPlaying}
+     
       onTogglePlay={togglePlay}
       onSkip={handleSkip}
       onPrev={handlePrev}
@@ -7853,7 +7880,7 @@ export default function App() {
       <div className="sr-only" aria-live="polite">
         {currentTrack ? `Now playing ${currentTrack.title} by ${currentTrack.artist}` : ""}
       </div>
-      <AmbientNetworkPill isOffline={isOffline} isPlaying={isPlaying} />
+      <AmbientNetworkPill isOffline={isOffline} />
     </>
   );
 
@@ -7873,10 +7900,10 @@ export default function App() {
       )}
       <div ref={contentScrollRef} onScroll={rememberScroll} style={{ flex:1, overflow:"auto", paddingBottom: contentPadBottom(!!currentTrack && !immersive && !hideDockPlayer), zIndex:1, position:"relative" }}>
         <ScreenPane key={screen === "artist" ? `artist:${artistSlug}` : screen === "album" ? `album:${albumSlug}` : screen === "mix" ? `mix:${mixId}` : screen}>
-        {screen==="home"      && !tracksLoading && <HomeScreen tracks={tracks} onPlayRadio={playRadio} onTogglePlay={togglePlay} onPlayTrack={playTrack} currentTrack={currentTrack} isPlaying={isPlaying} onLike={toggleLike} isRadioMode={isRadioMode} hypnoPocket={!!hypnoSeed} playlistCtx={playlistCtx} signalLabel={signalState?.label} mixLane={mixLane} radioPreview={heroPreview} radioNext={setNext} onSkipRadio={handleSkip} onPrevRadio={handlePrev} onOpenPlayer={()=>setImmersive(true)} catalogError={tracksLoadError} onRetryCatalog={reloadCatalog} onBrowse={()=>setScreen("search")} onStageVisibilityChange={onHomeStageVisibilityChange} onSeek={handleSeek} countdown={countdown} onTuneCountdown={tuneCountdown} daypart={activeDaypart} tickerText={stationTicker} onRequest={requestCurrentTrack} requested={currentRequested} onDedicate={()=>setShowDedicate(true)} dedicationFlash={dedicationFlash} onClearDedication={()=>setDedicationFlash(null)} airing={liveAiring} programGuide={programGuide} activeShowId={activeShowId} onTuneShow={playShow} showBumper={showBumper} channelShow={liveShow} sceneChannelsActiveId={activeSceneChannelId} onTuneSceneChannel={playSceneChannel}/>}
+        {screen==="home"      && !tracksLoading && <HomeScreen tracks={tracks} onPlayRadio={playRadio} onTogglePlay={togglePlay} onPlayTrack={playTrack} currentTrack={currentTrack} onLike={toggleLike} isRadioMode={isRadioMode} hypnoPocket={!!hypnoSeed} playlistCtx={playlistCtx} signalLabel={signalState?.label} mixLane={mixLane} radioPreview={heroPreview} radioNext={setNext} onSkipRadio={handleSkip} onPrevRadio={handlePrev} onOpenPlayer={()=>setImmersive(true)} catalogError={tracksLoadError} onRetryCatalog={reloadCatalog} onBrowse={()=>setScreen("search")} onStageVisibilityChange={onHomeStageVisibilityChange} onSeek={handleSeek} countdown={countdown} onTuneCountdown={tuneCountdown} daypart={activeDaypart} tickerText={stationTicker} onRequest={requestCurrentTrack} requested={currentRequested} onDedicate={()=>setShowDedicate(true)} dedicationFlash={dedicationFlash} onClearDedication={()=>setDedicationFlash(null)} airing={liveAiring} programGuide={programGuide} activeShowId={activeShowId} onTuneShow={playShow} showBumper={showBumper} channelShow={liveShow} sceneChannelsActiveId={activeSceneChannelId} onTuneSceneChannel={playSceneChannel}/>}
         {screen==="charts"    && !tracksLoading && <Suspense fallback={<div style={{ padding: 32, color: color.muted }}>Loading charts…</div>}><LazyChartsScreen countdown={countdown} tracks={tracks} onPlayTrack={playTrack} onTuneWeekly={playWeeklyReveal}/></Suspense>}
-        {screen==="search"    && <SearchScreen query={searchQuery} setQuery={setSearch} results={searchResults} tracks={tracks} onPlay={(t,pool)=>{ recordRecentSearch(searchQuery); playTrack(t,pool||tracks); }} onListenIntent={(focus)=>{ const next={ genre: focus.genre || null, scene: null }; setListenFocus(next); playRadio(null, createListenIntent({ mixLane, ...next })); }} onLike={toggleLike} currentTrack={currentTrack} isPlaying={isPlaying} playlistCtx={playlistCtx} entityHits={entityHits} onOpenArtist={(slug)=>{ recordRecentSearch(searchQuery); openArtist(slug); }} onOpenAlbum={(slug)=>{ recordRecentSearch(searchQuery); openAlbum(slug); }} recentSearches={recentSearches} onPickRecent={(q)=>setSearch(q)} onClearRecent={clearRecentSearches}/>}
-        {screen==="favorites" && <FavoritesScreen tracks={tracks} onPlay={t=>{setIsRadioMode(false);playTrack(t,tracks);}} onPlayTrack={(t,pool)=>{setIsRadioMode(false);playTrack(t,pool||tracks);}} onLike={toggleLike} currentTrack={currentTrack} isPlaying={isPlaying} playlistCtx={playlistCtx} userPlaylists={libraryPlaylists} onCreatePlaylist={createPlaylist} onDeletePlaylist={deletePlaylist} onRenamePlaylist={renamePlaylist} onSharePlaylist={sharePlaylistToClub} openRequestId={stackOpenRequest} onConsumeOpenRequest={()=>setStackOpenRequest(null)} communityMix={communityMix} onOpenMix={()=>communityMix && openMix(communityMix.id)} onCustomMix={()=>{ setSessionInitialActivity(vibeForMixLane(mixLane)); setShowRouteBuilder(true); }} preferredGenres={user.genres} recentTrackIds={(profile?.recentTracks||[]).map(r=>r.trackId||r)} userKey={firebaseUser?.uid || ""}/>}
+        {screen==="search"    && <SearchScreen query={searchQuery} setQuery={setSearch} results={searchResults} tracks={tracks} onPlay={(t,pool)=>{ recordRecentSearch(searchQuery); playTrack(t,pool||tracks); }} onListenIntent={(focus)=>{ const next={ genre: focus.genre || null, scene: null }; setListenFocus(next); playRadio(null, createListenIntent({ mixLane, ...next })); }} onLike={toggleLike} currentTrack={currentTrack} playlistCtx={playlistCtx} entityHits={entityHits} onOpenArtist={(slug)=>{ recordRecentSearch(searchQuery); openArtist(slug); }} onOpenAlbum={(slug)=>{ recordRecentSearch(searchQuery); openAlbum(slug); }} recentSearches={recentSearches} onPickRecent={(q)=>setSearch(q)} onClearRecent={clearRecentSearches}/>}
+        {screen==="favorites" && <FavoritesScreen tracks={tracks} onPlay={t=>{setIsRadioMode(false);playTrack(t,tracks);}} onPlayTrack={(t,pool)=>{setIsRadioMode(false);playTrack(t,pool||tracks);}} onLike={toggleLike} currentTrack={currentTrack} playlistCtx={playlistCtx} userPlaylists={libraryPlaylists} onCreatePlaylist={createPlaylist} onDeletePlaylist={deletePlaylist} onRenamePlaylist={renamePlaylist} onSharePlaylist={sharePlaylistToClub} openRequestId={stackOpenRequest} onConsumeOpenRequest={()=>setStackOpenRequest(null)} communityMix={communityMix} onOpenMix={()=>communityMix && openMix(communityMix.id)} onCustomMix={()=>{ setSessionInitialActivity(vibeForMixLane(mixLane)); setShowRouteBuilder(true); }} preferredGenres={user.genres} recentTrackIds={(profile?.recentTracks||[]).map(r=>r.trackId||r)} userKey={firebaseUser?.uid || ""}/>}
         {screen==="mix"       && (
           <Suspense fallback={<div style={{ padding: 32, color: "var(--muted)" }}>Pulling the plate…</div>}>
           <LazyMixScreen
@@ -7885,7 +7912,7 @@ export default function App() {
             loading={mixLoading}
             notFound={!mixLoading && !activeMix}
             currentTrack={currentTrack}
-            isPlaying={isPlaying}
+           
             onPlayTrack={(t, pool)=>{ setIsRadioMode(false); playTrack(t, pool||tracks); }}
             onBack={goBack}
             onShare={()=>activeMix && sharePlaylistToClub(activeMix)}
@@ -7906,7 +7933,7 @@ export default function App() {
             onPlay={(t, pool) => playTrack(t, pool)}
             onOpenAlbum={(slug) => openAlbum(slug)}
             currentTrack={currentTrack}
-            isPlaying={isPlaying}
+           
             onLike={toggleLike}
             AlbumArt={AlbumArt}
             TrackRow={TrackRow}
@@ -7920,7 +7947,7 @@ export default function App() {
             onPlay={(t, pool) => playTrack(t, pool)}
             onOpenArtist={(slug) => openArtist(slug)}
             currentTrack={currentTrack}
-            isPlaying={isPlaying}
+           
             onLike={toggleLike}
             AlbumArt={AlbumArt}
             TrackRow={TrackRow}
@@ -7941,7 +7968,7 @@ export default function App() {
           setScreen={setScreen}
           showAdmin={firebaseUser?.uid === ADMIN_UID}
           track={currentTrack}
-          isPlaying={isPlaying}
+         
           onTogglePlay={togglePlay}
           onSkip={handleSkip}
           onPrev={handlePrev}
@@ -8143,7 +8170,7 @@ export default function App() {
             : `24px 32px ${currentTrack && !(screen === "home" && homeStageVisible) ? 120 : 24}px`,
         }}>
           <BgMist color={currentTrack?.color}/>
-          <Pulse track={currentTrack} isPlaying={isPlaying}/>
+          <Pulse track={currentTrack}/>
           {ambientStatus}
           {toast && <ToastEl msg={toast} onDismiss={()=>setToast(null)}/>}
           {tracksLoading ? (
@@ -8153,10 +8180,10 @@ export default function App() {
             </>
           ) : (
             <ScreenPane key={screen === "artist" ? `artist:${artistSlug}` : screen === "album" ? `album:${albumSlug}` : screen === "mix" ? `mix:${mixId}` : screen}>
-              {screen==="home"      && <HomeScreen tracks={tracks} onPlayRadio={playRadio} onTogglePlay={togglePlay} onPlayTrack={playTrack} currentTrack={currentTrack} isPlaying={isPlaying} onLike={toggleLike} isRadioMode={isRadioMode} hypnoPocket={!!hypnoSeed} playlistCtx={playlistCtx} signalLabel={signalState?.label} mixLane={mixLane} radioPreview={heroPreview} radioNext={setNext} onSkipRadio={handleSkip} onPrevRadio={handlePrev} onOpenPlayer={()=>setImmersive(true)} catalogError={tracksLoadError} onRetryCatalog={reloadCatalog} onBrowse={()=>setScreen("search")} onStageVisibilityChange={onHomeStageVisibilityChange} onSeek={handleSeek} countdown={countdown} onTuneCountdown={tuneCountdown} daypart={activeDaypart} tickerText={stationTicker} onRequest={requestCurrentTrack} requested={currentRequested} onDedicate={()=>setShowDedicate(true)} dedicationFlash={dedicationFlash} onClearDedication={()=>setDedicationFlash(null)} airing={liveAiring} programGuide={programGuide} activeShowId={activeShowId} onTuneShow={playShow} showBumper={showBumper} channelShow={liveShow} sceneChannelsActiveId={activeSceneChannelId} onTuneSceneChannel={playSceneChannel}/>}
+              {screen==="home"      && <HomeScreen tracks={tracks} onPlayRadio={playRadio} onTogglePlay={togglePlay} onPlayTrack={playTrack} currentTrack={currentTrack} onLike={toggleLike} isRadioMode={isRadioMode} hypnoPocket={!!hypnoSeed} playlistCtx={playlistCtx} signalLabel={signalState?.label} mixLane={mixLane} radioPreview={heroPreview} radioNext={setNext} onSkipRadio={handleSkip} onPrevRadio={handlePrev} onOpenPlayer={()=>setImmersive(true)} catalogError={tracksLoadError} onRetryCatalog={reloadCatalog} onBrowse={()=>setScreen("search")} onStageVisibilityChange={onHomeStageVisibilityChange} onSeek={handleSeek} countdown={countdown} onTuneCountdown={tuneCountdown} daypart={activeDaypart} tickerText={stationTicker} onRequest={requestCurrentTrack} requested={currentRequested} onDedicate={()=>setShowDedicate(true)} dedicationFlash={dedicationFlash} onClearDedication={()=>setDedicationFlash(null)} airing={liveAiring} programGuide={programGuide} activeShowId={activeShowId} onTuneShow={playShow} showBumper={showBumper} channelShow={liveShow} sceneChannelsActiveId={activeSceneChannelId} onTuneSceneChannel={playSceneChannel}/>}
               {screen==="charts"    && <Suspense fallback={<div style={{ padding: 32, color: color.muted }}>Loading charts…</div>}><LazyChartsScreen countdown={countdown} tracks={tracks} onPlayTrack={playTrack} onTuneWeekly={playWeeklyReveal}/></Suspense>}
-              {screen==="search"    && <SearchScreen query={searchQuery} setQuery={setSearch} results={searchResults} tracks={tracks} onPlay={(t,pool)=>{ recordRecentSearch(searchQuery); playTrack(t,pool||tracks); }} onListenIntent={(focus)=>{ const next={ genre: focus.genre || null, scene: null }; setListenFocus(next); playRadio(null, createListenIntent({ mixLane, ...next })); }} onLike={toggleLike} currentTrack={currentTrack} isPlaying={isPlaying} playlistCtx={playlistCtx} entityHits={entityHits} onOpenArtist={(slug)=>{ recordRecentSearch(searchQuery); openArtist(slug); }} onOpenAlbum={(slug)=>{ recordRecentSearch(searchQuery); openAlbum(slug); }} recentSearches={recentSearches} onPickRecent={(q)=>setSearch(q)} onClearRecent={clearRecentSearches}/>}
-              {screen==="favorites" && <FavoritesScreen tracks={tracks} onPlay={t=>{setIsRadioMode(false);playTrack(t,tracks);}} onPlayTrack={(t,pool)=>{setIsRadioMode(false);playTrack(t,pool||tracks);}} onLike={toggleLike} currentTrack={currentTrack} isPlaying={isPlaying} playlistCtx={playlistCtx} userPlaylists={libraryPlaylists} onCreatePlaylist={createPlaylist} onDeletePlaylist={deletePlaylist} onRenamePlaylist={renamePlaylist} onSharePlaylist={sharePlaylistToClub} openRequestId={stackOpenRequest} onConsumeOpenRequest={()=>setStackOpenRequest(null)} communityMix={communityMix} onOpenMix={()=>communityMix && openMix(communityMix.id)} onCustomMix={()=>{ setSessionInitialActivity(vibeForMixLane(mixLane)); setShowRouteBuilder(true); }} preferredGenres={user.genres} recentTrackIds={(profile?.recentTracks||[]).map(r=>r.trackId||r)} userKey={firebaseUser?.uid || ""}/>}
+              {screen==="search"    && <SearchScreen query={searchQuery} setQuery={setSearch} results={searchResults} tracks={tracks} onPlay={(t,pool)=>{ recordRecentSearch(searchQuery); playTrack(t,pool||tracks); }} onListenIntent={(focus)=>{ const next={ genre: focus.genre || null, scene: null }; setListenFocus(next); playRadio(null, createListenIntent({ mixLane, ...next })); }} onLike={toggleLike} currentTrack={currentTrack} playlistCtx={playlistCtx} entityHits={entityHits} onOpenArtist={(slug)=>{ recordRecentSearch(searchQuery); openArtist(slug); }} onOpenAlbum={(slug)=>{ recordRecentSearch(searchQuery); openAlbum(slug); }} recentSearches={recentSearches} onPickRecent={(q)=>setSearch(q)} onClearRecent={clearRecentSearches}/>}
+              {screen==="favorites" && <FavoritesScreen tracks={tracks} onPlay={t=>{setIsRadioMode(false);playTrack(t,tracks);}} onPlayTrack={(t,pool)=>{setIsRadioMode(false);playTrack(t,pool||tracks);}} onLike={toggleLike} currentTrack={currentTrack} playlistCtx={playlistCtx} userPlaylists={libraryPlaylists} onCreatePlaylist={createPlaylist} onDeletePlaylist={deletePlaylist} onRenamePlaylist={renamePlaylist} onSharePlaylist={sharePlaylistToClub} openRequestId={stackOpenRequest} onConsumeOpenRequest={()=>setStackOpenRequest(null)} communityMix={communityMix} onOpenMix={()=>communityMix && openMix(communityMix.id)} onCustomMix={()=>{ setSessionInitialActivity(vibeForMixLane(mixLane)); setShowRouteBuilder(true); }} preferredGenres={user.genres} recentTrackIds={(profile?.recentTracks||[]).map(r=>r.trackId||r)} userKey={firebaseUser?.uid || ""}/>}
               {screen==="mix"       && (
                 <Suspense fallback={<div style={{ padding: 32, color: "var(--muted)" }}>Pulling the plate…</div>}>
                 <LazyMixScreen
@@ -8165,7 +8192,7 @@ export default function App() {
                   loading={mixLoading}
                   notFound={!mixLoading && !activeMix}
                   currentTrack={currentTrack}
-                  isPlaying={isPlaying}
+                 
                   onPlayTrack={(t, pool)=>{ setIsRadioMode(false); playTrack(t, pool||tracks); }}
                   onBack={goBack}
                   onShare={()=>activeMix && sharePlaylistToClub(activeMix)}
@@ -8186,7 +8213,7 @@ export default function App() {
                   onPlay={(t, pool) => playTrack(t, pool)}
                   onOpenAlbum={(slug) => openAlbum(slug)}
                   currentTrack={currentTrack}
-                  isPlaying={isPlaying}
+                 
                   onLike={toggleLike}
                   AlbumArt={AlbumArt}
                   TrackRow={TrackRow}
@@ -8200,7 +8227,7 @@ export default function App() {
                   onPlay={(t, pool) => playTrack(t, pool)}
                   onOpenArtist={(slug) => openArtist(slug)}
                   currentTrack={currentTrack}
-                  isPlaying={isPlaying}
+                 
                   onLike={toggleLike}
                   AlbumArt={AlbumArt}
                   TrackRow={TrackRow}
@@ -8221,7 +8248,7 @@ export default function App() {
         {currentTrack && !immersive && !(screen === "home" && homeStageVisible) && (
           <DesktopMiniPlayer
             track={currentTrack}
-            isPlaying={isPlaying}
+           
             isRadioMode={isRadioMode}
             onOpen={() => setImmersive(true)}
             onTogglePlay={togglePlay}

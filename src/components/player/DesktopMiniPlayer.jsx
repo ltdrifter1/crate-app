@@ -7,11 +7,11 @@ import {
 } from "../../theme";
 import { fmtTime } from "../../lib/harmony";
 import { usePlayerPlayback } from "../../usePlayerPlayback";
+import { useIsPlaying } from "../../usePlayerTransport";
 import { EnergyShiftFeedback, EnergyShiftControl } from "../listen/EnergyShiftButton";
 
 export default function DesktopMiniPlayer({
   track,
-  isPlaying,
   isRadioMode,
   onOpen,
   onTogglePlay,
@@ -24,6 +24,7 @@ export default function DesktopMiniPlayer({
   dockTintStyle,
 }) {
   const { progress, duration } = usePlayerPlayback();
+  const isPlaying = useIsPlaying();
   if (!track) return null;
 
   return (
