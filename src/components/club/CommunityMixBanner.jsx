@@ -1,8 +1,8 @@
 /**
- * Home / Library — this month's Community Mix as a pressed flyer plate.
+ * Home / Library — this month's Community Mix as a frosted press plate.
  */
 import {
-  fontDisplay, fontMono, color, radius, glass, homeSpace,
+  fontDisplay, fontMono, color, radius, glass, homeSpace, BTN_PRIMARY,
 } from "../../theme";
 import { COMMUNITY_MIX_TITLE, formatMonthLabel } from "../../lib/mixes";
 import { CLUB_NAME, CLUB_TAGLINE } from "../../lib/memberNumber";
@@ -51,17 +51,20 @@ export default function CommunityMixBanner({
         style={{
           width: "100%",
           textAlign: "left",
-          border: `1px solid ${glass.border}`,
-          borderRadius: radius.lg,
+          border: `1px solid rgba(255,255,255,0.55)`,
+          borderRadius: radius.xl,
           padding: 0,
           cursor: "pointer",
           color: color.ink,
           overflow: "hidden",
-          background: color.ink,
-          boxShadow: `inset 0 1px 0 rgba(255,255,255,0.12), ${glass.shadow}`,
+          background: `
+            linear-gradient(165deg, rgba(255,255,255,0.72) 0%, rgba(236,240,246,0.5) 100%)
+          `,
+          boxShadow: `inset 0 1px 0 ${glass.highlight}, ${glass.shadowLift}`,
+          backdropFilter: glass.blur,
+          WebkitBackdropFilter: glass.blur,
         }}
       >
-        {/* Full-bleed sleeve mosaic */}
         <div style={{ position: "relative", height: 148, overflow: "hidden" }}>
           {covers.length > 0 ? (
             <div style={{
@@ -82,13 +85,13 @@ export default function CommunityMixBanner({
           ) : (
             <div style={{
               width: "100%", height: "100%",
-              background: "linear-gradient(135deg, #2a2e36 0%, #1A1D24 55%, #3D4450 100%)",
+              background: "linear-gradient(135deg, #A8B0BC 0%, #5A6270 55%, #2A2E38 100%)",
             }}/>
           )}
           <div aria-hidden="true" style={{
             position: "absolute", inset: 0,
             background: `
-              linear-gradient(180deg, rgba(26,29,36,0.15) 0%, rgba(26,29,36,0.55) 55%, rgba(26,29,36,0.92) 100%)
+              linear-gradient(180deg, rgba(216,222,232,0.15) 0%, rgba(18,20,26,0.35) 48%, rgba(18,20,26,0.72) 100%)
             `,
           }}/>
           <div style={{
@@ -99,7 +102,7 @@ export default function CommunityMixBanner({
               fontWeight: 700,
               letterSpacing: 1.6,
               textTransform: "uppercase",
-              color: "rgba(244,246,249,0.55)",
+              color: "rgba(244,246,249,0.7)",
               fontFamily: fontMono,
               marginBottom: 6,
             }}>
@@ -121,7 +124,7 @@ export default function CommunityMixBanner({
         <div style={{
           padding: "14px 18px 16px",
           background: `
-            linear-gradient(180deg, rgba(255,255,255,0.96) 0%, rgba(242,244,247,0.92) 100%)
+            linear-gradient(180deg, rgba(255,255,255,0.55) 0%, rgba(242,244,247,0.42) 100%)
           `,
           borderTop: `1px solid ${glass.borderSoft}`,
         }}>
@@ -138,16 +141,15 @@ export default function CommunityMixBanner({
                 onPlay?.();
               }}
               style={{
+                ...BTN_PRIMARY,
+                width: "auto",
                 display: "inline-flex",
                 alignItems: "center",
                 justifyContent: "center",
                 padding: "9px 16px",
-                borderRadius: radius.sm,
-                background: color.ink,
-                color: color.onDark,
+                borderRadius: radius.lg,
                 fontSize: 13,
                 fontWeight: 650,
-                border: `1px solid ${glass.border}`,
               }}
             >
               Play

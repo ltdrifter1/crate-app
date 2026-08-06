@@ -404,12 +404,16 @@ export default function ClubScreen({
               textAlign: "left",
               marginBottom: 26,
               padding: 0,
-              border: `1px solid ${glass.border}`,
-              borderRadius: radius.lg,
+              border: `1px solid rgba(255,255,255,0.55)`,
+              borderRadius: radius.xl,
               overflow: "hidden",
               cursor: "pointer",
-              background: color.ink,
-              boxShadow: glass.shadowSoft,
+              background: `
+                linear-gradient(165deg, rgba(255,255,255,0.72) 0%, rgba(236,240,246,0.5) 100%)
+              `,
+              boxShadow: `inset 0 1px 0 ${glass.highlight}, ${glass.shadowLift}`,
+              backdropFilter: glass.blur,
+              WebkitBackdropFilter: glass.blur,
               animation: `rise 0.55s ${motion.ease} 0.1s both`,
             }}
           >
@@ -419,7 +423,7 @@ export default function ClubScreen({
                 fontWeight: 700,
                 letterSpacing: 1.6,
                 textTransform: "uppercase",
-                color: "rgba(244,246,249,0.55)",
+                color: color.muted,
                 fontFamily: fontMono,
                 marginBottom: 8,
               }}>
@@ -430,13 +434,13 @@ export default function ClubScreen({
                 fontWeight: 700,
                 letterSpacing: -0.5,
                 fontFamily: fontDisplay,
-                color: color.onDark,
+                color: color.ink,
                 lineHeight: 1.15,
                 marginBottom: 6,
               }}>
                 {communityMix.title || "Community Mix"}
               </div>
-              <div style={{ fontSize: 13, color: "rgba(244,246,249,0.72)", lineHeight: 1.4 }}>
+              <div style={{ fontSize: 13, color: color.body, lineHeight: 1.4 }}>
                 {mixCurator
                   ? `Curated by ${mixCurator} · ${mixCount} cut${mixCount === 1 ? "" : "s"}`
                   : `${mixCount} cut${mixCount === 1 ? "" : "s"} · for every member`}
@@ -444,13 +448,13 @@ export default function ClubScreen({
             </div>
             <div style={{
               padding: "11px 18px",
-              background: "rgba(255,255,255,0.06)",
-              borderTop: "1px solid rgba(255,255,255,0.1)",
+              background: "rgba(255,255,255,0.42)",
+              borderTop: `1px solid ${glass.borderSoft}`,
               fontSize: 12,
               fontWeight: 650,
               letterSpacing: 0.8,
               textTransform: "uppercase",
-              color: "rgba(244,246,249,0.85)",
+              color: color.body,
               fontFamily: fontMono,
             }}>
               Open the plate →
@@ -468,9 +472,16 @@ export default function ClubScreen({
                 style={{
                   display: "flex",
                   gap: 14,
-                  padding: "12px 0",
-                  borderTop: i === 0 ? `1px solid ${glass.borderSoft}` : undefined,
-                  borderBottom: `1px solid ${glass.borderSoft}`,
+                  padding: "12px 14px",
+                  marginBottom: 6,
+                  borderRadius: radius.lg,
+                  background: `
+                    linear-gradient(165deg, rgba(255,255,255,0.58) 0%, rgba(236,240,246,0.38) 100%)
+                  `,
+                  border: `1px solid ${glass.borderSoft}`,
+                  boxShadow: `inset 0 1px 0 ${glass.highlight}`,
+                  backdropFilter: glass.blurSoft,
+                  WebkitBackdropFilter: glass.blurSoft,
                 }}
               >
                 <span style={{

@@ -1,4 +1,4 @@
-import { font, fontDisplay, fontMono, color, radius, glass, aluminumGradient, artShadow } from "../../theme";
+import { font, fontDisplay, fontMono, color, radius, glass, aluminumGradient, artShadow, BTN_SECONDARY } from "../../theme";
 
 /** Artist destination — catalogue as a world, not a discography dump. */
 export default function ArtistPage({
@@ -214,13 +214,11 @@ function EmptyEntity({ title, body, onBack }) {
           type="button"
           onClick={onBack}
           style={{
+            ...BTN_SECONDARY,
+            width: "auto",
             marginTop: 20,
             padding: "12px 18px",
-            borderRadius: radius.sm,
-            border: `1px solid ${color.lineStrong}`,
-            background: "none",
-            color: color.body,
-            cursor: "pointer",
+            borderRadius: radius.lg,
             fontWeight: 600,
           }}
         >

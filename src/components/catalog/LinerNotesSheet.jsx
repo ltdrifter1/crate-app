@@ -121,9 +121,14 @@ function Chip({ children, onClick }) {
       onClick={onClick}
       style={{
         padding: "10px 14px",
-        borderRadius: radius.sm,
-        border: `1px solid ${color.lineStrong}`,
-        background: color.surface,
+        borderRadius: radius.pill,
+        border: `1px solid ${glass.borderSoft}`,
+        background: `
+          linear-gradient(165deg, rgba(255,255,255,0.72) 0%, rgba(236,240,246,0.5) 100%)
+        `,
+        boxShadow: `inset 0 1px 0 ${glass.highlight}`,
+        backdropFilter: glass.blurSoft,
+        WebkitBackdropFilter: glass.blurSoft,
         color: color.body,
         fontSize: 13,
         fontWeight: 600,

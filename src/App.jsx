@@ -2048,10 +2048,23 @@ function TrackRow({ track, onPlay, active, isPlaying, onLike, extraAction, playl
         onContextMenu={(e) => openFromContext(e, track, activePlaylistId)}
         onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onPlay(); } }}
         style={{
-          display: "flex", alignItems: "center", gap: 12, padding: "9px 10px", borderRadius: radius.sm,
-          cursor: "pointer", marginBottom: 1,
-          background: active ? color.select : "transparent",
-          border: active ? `1px solid ${color.accentSoft}` : "1px solid transparent",
+          display: "flex", alignItems: "center", gap: 12, padding: "10px 12px",
+          borderRadius: radius.lg,
+          cursor: "pointer", marginBottom: 4,
+          background: active
+            ? `
+              linear-gradient(165deg, rgba(255,255,255,0.78) 0%, rgba(236,240,246,0.58) 100%)
+            `
+            : `
+              linear-gradient(165deg, rgba(255,255,255,0.28) 0%, rgba(236,240,246,0.12) 100%)
+            `,
+          border: active ? `1px solid ${glass.border}` : `1px solid ${glass.borderSoft}`,
+          boxShadow: active
+            ? `inset 0 1px 0 ${glass.highlight}, ${glass.shadowSoft}`
+            : `inset 0 1px 0 ${glass.highlight}`,
+          backdropFilter: glass.blurSoft,
+          WebkitBackdropFilter: glass.blurSoft,
+          transition: `background ${motion.fast} ${motion.ease}, border-color ${motion.fast}`,
         }}
       >
         {rank != null && (
@@ -2063,8 +2076,12 @@ function TrackRow({ track, onPlay, active, isPlaying, onLike, extraAction, playl
             color: rank <= 3 ? color.accent : color.faint,
           }}>{rank}</span>
         )}
-        <div style={{ width: 42, height: 42, borderRadius: 6, overflow: "hidden", flexShrink: 0, position: "relative", boxShadow: artShadow.quiet }}>
-          <AlbumArt track={track} size={42} borderRadius={0} />
+        <div style={{
+          width: 44, height: 44, borderRadius: radius.sm, overflow: "hidden", flexShrink: 0,
+          position: "relative", boxShadow: artShadow.quiet,
+          border: `1px solid ${glass.borderSoft}`,
+        }}>
+          <AlbumArt track={track} size={44} borderRadius={radius.sm} />
           {active && isPlaying && (
             <div style={{ position: "absolute", inset: 0, background: "rgba(26,29,36,0.28)", display: "flex", alignItems: "center", justifyContent: "center" }}>
               <div style={{ width: 6, height: 6, borderRadius: "50%", background: color.accent, animation: "pulse 1.2s ease-in-out infinite" }} />
@@ -2894,7 +2911,7 @@ function CustomMixFeature({ onClick, inset = true }) {
         margin: inset ? `0 ${gutter}px` : 0,
         width: inset ? `calc(100% - ${gutter * 2}px)` : "100%",
         padding: "20px 20px 18px",
-        ...chromeFrame({ sharp: true }),
+        ...chromeFrame(),
         cursor: "pointer",
         textAlign: "left",
         color: color.ink,
@@ -2977,17 +2994,14 @@ function CustomMixFeature({ onClick, inset = true }) {
               flexShrink: 0,
               width: 38,
               height: 38,
-              borderRadius: 2,
+              borderRadius: radius.lg,
               display: "inline-flex",
               alignItems: "center",
               justifyContent: "center",
               border: `1px solid ${glass.border}`,
-              background: `
-                linear-gradient(180deg, rgba(255,255,255,0.9) 0%, transparent 45%),
-                linear-gradient(165deg, ${chrome.bright} 0%, ${chrome.deep} 100%)
-              `,
+              background: glass.chrome,
               boxShadow: `inset 0 1px 0 ${glass.highlight}, ${glass.shadowSoft}`,
-              color: color.onDark,
+              color: color.ink,
               fontSize: 16,
               fontWeight: 700,
             }}
@@ -3006,7 +3020,7 @@ function CustomMixFeature({ onClick, inset = true }) {
               key={s.n}
               style={{
                 padding: "10px 10px 12px",
-                borderRadius: 2,
+                borderRadius: radius.lg,
                 border: `1px solid ${glass.borderSoft}`,
                 background: "rgba(255,255,255,0.58)",
                 boxShadow: `inset 0 1px 0 ${glass.highlight}`,
@@ -3752,7 +3766,7 @@ function HomeScreen({
 
         {!catalogError && !catalogEmpty && forYouTracks.length === 0 && countdown.length === 0 && !airing?.show && (
           <div style={{ padding: `28px ${homeSpace.gutter}px 56px` }}>
-            <div className="glass-surface" style={{ padding: "28px 22px", borderRadius: 2, ...chromeFrame({ sharp: true }) }}>
+            <div className="glass-surface" style={{ padding: "28px 22px", ...chromeFrame() }}>
               <div style={{ fontSize: 22, fontWeight: 700, fontFamily: fontDisplay, color: color.ink, marginBottom: 8, letterSpacing: -0.3, textTransform: "uppercase" }}>
                 Nothing on the shelf
               </div>
@@ -3778,7 +3792,9 @@ function SearchScreen({
   const RESULT_CAP = 50;
   const visibleResults = showAllResults ? results : results.slice(0, RESULT_CAP);
   const hintChip = {
-    background: color.surfaceRaised,
+    background: `
+      linear-gradient(165deg, rgba(255,255,255,0.72) 0%, rgba(236,240,246,0.5) 100%)
+    `,
     border: `1px solid ${glass.borderSoft}`,
     borderRadius: 980,
     padding: "7px 13px",
@@ -3788,6 +3804,9 @@ function SearchScreen({
     cursor: "pointer",
     fontFamily: fontMono,
     letterSpacing: 0.2,
+    boxShadow: `inset 0 1px 0 ${glass.highlight}`,
+    backdropFilter: glass.blurSoft,
+    WebkitBackdropFilter: glass.blurSoft,
   };
   return (
     <div style={{ padding: "0 0 16px" }}>
@@ -3795,11 +3814,19 @@ function SearchScreen({
         padding: `calc(14px + env(safe-area-inset-top, 0px)) 16px 0`,
       }}>
       <div style={{ position:"relative", marginBottom:14 }}>
-        <div style={{ position:"absolute", left:14, top:"50%", transform:"translateY(-50%)", color: color.faint }}><Icon name="search" size={16}/></div>
+        <div style={{ position:"absolute", left:14, top:"50%", transform:"translateY(-50%)", color: color.faint, zIndex: 1 }}><Icon name="search" size={16}/></div>
         <input
           placeholder="Search"
           aria-label="Search"
-          style={{...INPUT_ST, paddingLeft:42, paddingRight: query ? 42 : 16, background: color.surfaceRaised, border: "none"}}
+          style={{
+            ...INPUT_ST,
+            paddingLeft:42,
+            paddingRight: query ? 42 : 16,
+            borderRadius: radius.xl,
+            background: `
+              linear-gradient(165deg, rgba(255,255,255,0.72) 0%, rgba(236,240,246,0.5) 100%)
+            `,
+          }}
           value={query}
           onChange={e=>setQuery(e.target.value)}
           autoFocus={typeof window !== "undefined" && window.innerWidth >= 900}
@@ -3840,12 +3867,20 @@ function SearchScreen({
               type="button"
               onClick={() => onOpenArtist?.(a.slug)}
               style={{
-                display:"flex", alignItems:"center", gap:12, width:"100%", padding:"10px 4px",
-                background:"none", border:"none", borderBottom:`1px solid ${color.line}`,
+                display:"flex", alignItems:"center", gap:12, width:"100%", padding:"12px 12px",
+                marginBottom: 6,
+                background: `
+                  linear-gradient(165deg, rgba(255,255,255,0.58) 0%, rgba(236,240,246,0.38) 100%)
+                `,
+                border: `1px solid ${glass.borderSoft}`,
+                borderRadius: radius.lg,
+                boxShadow: `inset 0 1px 0 ${glass.highlight}`,
+                backdropFilter: glass.blurSoft,
+                WebkitBackdropFilter: glass.blurSoft,
                 cursor:"pointer", textAlign:"left", color: color.ink,
               }}
             >
-              <div style={{ width:48, height:48, overflow:"hidden", flexShrink:0, background: color.surfaceRaised, borderRadius: 24 }}>
+              <div style={{ width:48, height:48, overflow:"hidden", flexShrink:0, background: color.surfaceRaised, borderRadius: 24, border: `1px solid ${glass.borderSoft}` }}>
                 {a.coverTrack && <AlbumArt track={a.coverTrack} size={48} borderRadius={24}/>}
               </div>
               <div style={{ minWidth:0, fontSize:17, fontWeight:600, fontFamily: fontDisplay }}>{a.name}</div>
@@ -3861,13 +3896,21 @@ function SearchScreen({
               type="button"
               onClick={() => onOpenAlbum?.(a.slug)}
               style={{
-                display:"flex", alignItems:"center", gap:12, width:"100%", padding:"10px 4px",
-                background:"none", border:"none", borderBottom:`1px solid ${color.line}`,
+                display:"flex", alignItems:"center", gap:12, width:"100%", padding:"12px 12px",
+                marginBottom: 6,
+                background: `
+                  linear-gradient(165deg, rgba(255,255,255,0.58) 0%, rgba(236,240,246,0.38) 100%)
+                `,
+                border: `1px solid ${glass.borderSoft}`,
+                borderRadius: radius.lg,
+                boxShadow: `inset 0 1px 0 ${glass.highlight}`,
+                backdropFilter: glass.blurSoft,
+                WebkitBackdropFilter: glass.blurSoft,
                 cursor:"pointer", textAlign:"left", color: color.ink,
               }}
             >
-              <div style={{ width:48, height:48, overflow:"hidden", flexShrink:0, background: color.surfaceRaised, borderRadius: 6 }}>
-                {a.coverTrack && <AlbumArt track={a.coverTrack} size={48} borderRadius={6}/>}
+              <div style={{ width:48, height:48, overflow:"hidden", flexShrink:0, background: color.surfaceRaised, borderRadius: radius.sm, border: `1px solid ${glass.borderSoft}` }}>
+                {a.coverTrack && <AlbumArt track={a.coverTrack} size={48} borderRadius={radius.sm}/>}
               </div>
               <div style={{ minWidth:0, fontSize:17, fontWeight:600, fontFamily: fontDisplay }}>{a.title}</div>
             </button>
@@ -4220,9 +4263,9 @@ function FavoritesScreen({
           flex: 1,
           minHeight: 40,
           border: "none",
-          borderRadius: radius.sm,
+          borderRadius: radius.lg,
           cursor: "pointer",
-          background: active ? color.surfaceSolid : "transparent",
+          background: active ? glass.fillHeavy : "transparent",
           color: active ? color.ink : color.muted,
           boxShadow: active ? `inset 0 1px 0 ${glass.highlight}, ${glass.shadowSoft}` : "none",
           fontSize: 14,
@@ -4487,8 +4530,8 @@ function FavoritesScreen({
                 style={{
                   ...BTN_PRIMARY,
                   width: "auto",
-                  borderRadius: 2,
-                  padding: "9px 12px",
+                  borderRadius: radius.lg,
+                  padding: "9px 14px",
                   fontSize: 12.5,
                   fontWeight: 650,
                   display: "inline-flex",
@@ -4516,9 +4559,11 @@ function FavoritesScreen({
 
           {/* Glass control plate — segments + search */}
           <div style={{
-            borderRadius: 2,
-            border: `1px solid ${glass.border}`,
-            background: glass.frame,
+            borderRadius: radius.xl,
+            border: `1px solid rgba(255,255,255,0.5)`,
+            background: `
+              linear-gradient(165deg, rgba(255,255,255,0.62) 0%, rgba(236,240,246,0.42) 100%)
+            `,
             boxShadow: `inset 0 1px 0 ${glass.highlight}, ${glass.shadowSoft}`,
             backdropFilter: glass.blurSoft,
             WebkitBackdropFilter: glass.blurSoft,
@@ -4915,15 +4960,33 @@ function FavoritesScreen({
 function AnalyticsRow({ rank, track, value, label, max, color: trackColor, accent }) {
   const pct = max > 0 ? (value / max) * 100 : 0;
   return (
-    <div style={{ display:"flex", alignItems:"center", gap:10, padding:"10px 12px", background: color.surfaceSolid, borderRadius:12, marginBottom:4, border:`1px solid ${color.line}` }}>
+    <div style={{
+      display:"flex", alignItems:"center", gap:10, padding:"12px 14px",
+      background: `
+        linear-gradient(165deg, rgba(255,255,255,0.7) 0%, rgba(236,240,246,0.48) 100%)
+      `,
+      borderRadius: radius.lg,
+      marginBottom: 6,
+      border:`1px solid ${glass.borderSoft}`,
+      boxShadow: `inset 0 1px 0 ${glass.highlight}`,
+      backdropFilter: glass.blurSoft,
+      WebkitBackdropFilter: glass.blurSoft,
+    }}>
       <div style={{ width:22, textAlign:"right", fontSize:14, fontWeight:700, color: color.faint, flexShrink:0 }}>{rank}</div>
-      <div style={{ width:36, height:36, borderRadius:7, overflow:"hidden", flexShrink:0 }}>
-        <AlbumArt track={track} size={36} borderRadius={0}/>
+      <div style={{ width:36, height:36, borderRadius: radius.sm, overflow:"hidden", flexShrink:0, border: `1px solid ${glass.borderSoft}` }}>
+        <AlbumArt track={track} size={36} borderRadius={radius.sm}/>
       </div>
       <div style={{ flex:1, minWidth:0 }}>
         <div style={{ fontSize:14, fontWeight:600, color: color.ink, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{track.title}</div>
-        <div style={{ marginTop:5, background: "rgba(232,236,240,0.08)", borderRadius:2, height:3, overflow:"hidden" }}>
-          <div style={{ height:"100%", width:`${pct}%`, borderRadius:3, background: accent || trackColor || color.accent, transition:"width 0.4s ease" }}/>
+        <div style={{
+          marginTop:6,
+          background: "rgba(18,20,26,0.08)",
+          borderRadius:999,
+          height:4,
+          overflow:"hidden",
+          boxShadow: "inset 0 1px 1px rgba(18,20,26,0.08)",
+        }}>
+          <div style={{ height:"100%", width:`${pct}%`, borderRadius:999, background: accent || trackColor || color.accent, transition:"width 0.4s ease" }}/>
         </div>
       </div>
       <div style={{ flexShrink:0, textAlign:"right" }}>

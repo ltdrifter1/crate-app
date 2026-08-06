@@ -48,7 +48,9 @@ export default function CollapsingHeader({ title, subtitle }) {
           alignItems: "center",
           justifyContent: "center",
           gap: 8,
-          background: "rgba(255,255,255,0.72)",
+          background: `
+            linear-gradient(165deg, rgba(255,255,255,0.72) 0%, rgba(236,240,246,0.5) 100%)
+          `,
           WebkitBackdropFilter: glass.blurSoft,
           backdropFilter: glass.blurSoft,
           borderBottom: compact ? `1px solid ${glass.borderSoft}` : "none",

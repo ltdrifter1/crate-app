@@ -2,7 +2,7 @@
  * Your interests — the only user-facing listen control.
  * Clock mix lane / vibes / scenes stay automatic.
  */
-import { fontDisplay, fontMono, color, radius, glass, aluminumGradient } from "../../theme";
+import { fontDisplay, fontMono, color, radius, glass, aluminumGradient, BTN_PRIMARY } from "../../theme";
 import { CANONICAL_GENRES, migratePreferredGenres } from "../../lib/genres";
 
 export default function GenreTasteSheet({
@@ -174,16 +174,11 @@ export default function GenreTasteSheet({
               type="button"
               onClick={onBuildSet}
               style={{
+                ...BTN_PRIMARY,
                 marginTop: 28,
-                width: "100%",
-                padding: "16px 20px",
-                borderRadius: radius.md,
-                border: "none",
-                background: color.accent,
-                color: color.onAccent,
+                borderRadius: radius.xl,
                 fontSize: 15,
                 fontWeight: 650,
-                cursor: "pointer",
               }}
             >
               Build a custom mix
@@ -197,7 +192,7 @@ export default function GenreTasteSheet({
 
 function GenreToggleList({ selected, onToggle }) {
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
       {CANONICAL_GENRES.map((g) => {
         const on = selected.has(g);
         return (
@@ -211,15 +206,21 @@ function GenreToggleList({ selected, onToggle }) {
               justifyContent: "space-between",
               alignItems: "center",
               gap: 12,
-              padding: "14px 12px",
-              margin: "0 -10px",
-              background: on ? glass.chrome : "transparent",
-              border: on ? `1px solid ${glass.borderSoft}` : "none",
-              borderBottom: on ? `1px solid ${glass.borderSoft}` : `1px solid ${color.line}`,
-              borderRadius: on ? radius.md : 0,
-              boxShadow: on ? `inset 0 1px 0 ${glass.highlight}` : "none",
-              backdropFilter: on ? glass.blurSoft : "none",
-              WebkitBackdropFilter: on ? glass.blurSoft : "none",
+              padding: "14px 14px",
+              background: on
+                ? `
+                  linear-gradient(165deg, rgba(255,255,255,0.88) 0%, rgba(226,232,240,0.7) 100%)
+                `
+                : `
+                  linear-gradient(165deg, rgba(255,255,255,0.55) 0%, rgba(236,240,246,0.35) 100%)
+                `,
+              border: `1px solid ${on ? glass.border : glass.borderSoft}`,
+              borderRadius: radius.lg,
+              boxShadow: on
+                ? `inset 0 1px 0 ${glass.highlight}, ${glass.shadowSoft}`
+                : `inset 0 1px 0 ${glass.highlight}`,
+              backdropFilter: glass.blurSoft,
+              WebkitBackdropFilter: glass.blurSoft,
               cursor: "pointer",
               textAlign: "left",
               color: color.ink,

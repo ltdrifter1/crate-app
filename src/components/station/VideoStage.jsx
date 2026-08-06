@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { color, fontDisplay, fontMono, motion, chrome } from "../../theme";
+import { color, fontDisplay, fontMono, motion, chrome, glass, radius } from "../../theme";
 import { resolveVideoUrl, syncVideoToProgress, trackHasVideo } from "../../lib/video";
 
 /**
@@ -97,10 +97,16 @@ export function VideoBadge({ track, dark = false }) {
       display: "inline-flex",
       alignItems: "center",
       gap: 5,
-      padding: "3px 7px",
-      borderRadius: 4,
-      background: dark ? "rgba(139,147,159,0.9)" : "rgba(139,147,159,0.12)",
-      color: dark ? "#fff" : chrome.hot,
+      padding: "4px 9px",
+      borderRadius: radius.pill,
+      background: dark
+        ? "rgba(255,255,255,0.14)"
+        : `
+          linear-gradient(165deg, rgba(255,255,255,0.72) 0%, rgba(236,240,246,0.5) 100%)
+        `,
+      color: dark ? color.onDark : color.ink,
+      border: dark ? "1px solid rgba(255,255,255,0.18)" : `1px solid ${glass.borderSoft}`,
+      boxShadow: dark ? "none" : `inset 0 1px 0 ${glass.highlight}`,
       fontFamily: fontMono,
       fontSize: 9,
       fontWeight: 800,

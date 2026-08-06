@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { font, fontDisplay, fontMono, color, radius, glass } from "../../theme";
+import { font, fontDisplay, fontMono, color, radius, glass, BTN_PRIMARY } from "../../theme";
 import {
   scenesByFamily,
   relatedScenes,
@@ -100,14 +100,12 @@ export default function ScenesBrowser({
                 className="play-primary"
                 onClick={() => onPlayScene?.(active.id)}
                 style={{
+                  ...BTN_PRIMARY,
+                  width: "auto",
                   padding: "12px 16px",
                   borderRadius: radius.lg,
-                  border: "none",
-                  background: color.accent,
-                  color: color.onAccent,
                   fontWeight: 650,
                   fontSize: 13,
-                  cursor: "pointer",
                   boxShadow: `inset 0 1px 0 rgba(255,255,255,0.22), ${glass.shadowSoft}`,
                 }}
               >
