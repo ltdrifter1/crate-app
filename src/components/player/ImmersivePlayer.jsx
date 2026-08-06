@@ -23,6 +23,7 @@ import { HostCreditChip } from "../station/ShowGuide";
 import SceneSurfRail from "../station/SceneSurfRail";
 import { trackHasVideo } from "../../lib/video";
 import { estimateLockedIn } from "../../lib/station";
+import CoverImage from "../ui/CoverImage";
 
 const EASE = motion.ease;
 
@@ -696,11 +697,14 @@ export default function ImmersivePlayer({
             border: `1px solid ${glass.borderSoft}`,
           }}>
             {currentTrack.albumCover ? (
-              <img
+              <CoverImage
                 src={currentTrack.albumCover}
                 alt=""
+                width={320}
+                height={320}
+                sizes="(max-width: 480px) 72vw, 320px"
+                priority
                 onLoad={() => setArtLoaded(true)}
-                style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
               />
             ) : (
               <div style={{

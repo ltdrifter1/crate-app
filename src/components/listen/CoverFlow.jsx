@@ -5,6 +5,7 @@
  */
 import { useCallback, useEffect, useRef, useState } from "react";
 import { color, glass, radius, fontDisplay, artShadow, motion } from "../../theme";
+import CoverImage from "../ui/CoverImage";
 
 function usePrefersReducedMotion() {
   const [reduced, setReduced] = useState(false);
@@ -22,13 +23,12 @@ function usePrefersReducedMotion() {
 function SleeveArt({ track, size }) {
   if (track.albumCover) {
     return (
-      <img
+      <CoverImage
         src={track.albumCover}
         alt=""
+        width={size}
+        height={size}
         draggable={false}
-        loading="lazy"
-        decoding="async"
-        style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
       />
     );
   }

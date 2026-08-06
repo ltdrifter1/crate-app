@@ -3,6 +3,7 @@ import {
 } from "../../theme";
 import { stationDaypart } from "../../lib/station";
 import { useIsPlaying } from "../../usePlayerTransport";
+import CoverImage from "../ui/CoverImage";
 
 /**
  * Home Countdown rail — TRL / MuchMusic chart energy.
@@ -24,13 +25,13 @@ export default function CountdownRail({
       aria-label="Countdown"
       style={{
         padding: compact
-          ? `4px 0 ${Math.round(homeSpace.sectionPadBottom * 0.55)}px`
+          ? `8px 0 ${Math.round(homeSpace.sectionPadBottom * 0.45)}px`
           : `${homeSpace.sectionPadTopFirst}px 0 ${homeSpace.sectionPadBottom}px`,
-        animation: `rise 0.55s ${motion.ease} 0.02s both`,
+        animation: compact ? "none" : `rise 0.55s ${motion.ease} 0.02s both`,
       }}
     >
       <div style={{
-        padding: `0 ${homeSpace.gutter}px ${compact ? 10 : 14}px`,
+        padding: `0 ${homeSpace.gutter}px ${compact ? 8 : 14}px`,
         display: "flex",
         alignItems: "flex-end",
         justifyContent: "space-between",
@@ -44,23 +45,11 @@ export default function CountdownRail({
             letterSpacing: 1.6,
             textTransform: "uppercase",
             color: chrome.steel,
-            marginBottom: compact ? 4 : 6,
+            marginBottom: compact ? 0 : 6,
           }}>
             {compact ? `Most requested · ${daypart.label}` : `The countdown · ${daypart.label}`}
           </div>
-          {compact ? (
-            <h3 style={{
-              margin: 0,
-              fontFamily: fontDisplay,
-              fontSize: 17,
-              fontWeight: 700,
-              letterSpacing: -0.25,
-              color: color.ink,
-              lineHeight: 1.2,
-            }}>
-              Top of the chart
-            </h3>
-          ) : (
+          {!compact && (
             <>
               <h2 style={{
                 margin: 0,
@@ -159,27 +148,15 @@ export default function CountdownRail({
                 }}>
                   {rank}
                 </div>
-                {track.albumCover ? (
-                  <img
-                    src={track.albumCover}
-                    alt=""
-                    width={44}
-                    height={44}
-                    loading="lazy"
-                    style={{
-                      borderRadius: 6,
-                      objectFit: "cover",
-                      flexShrink: 0,
-                      boxShadow: artShadow.quiet,
-                      outline: active && isPlaying ? `2px solid ${color.ink}` : "none",
-                    }}
-                  />
-                ) : (
-                  <div style={{
-                    width: 44, height: 44, borderRadius: 6, flexShrink: 0,
-                    background: color.surfaceRaised,
-                  }} />
-                )}
+                <div style={{
+                  width: 44, height: 44, borderRadius: 6, flexShrink: 0,
+                  overflow: "hidden",
+                  background: color.surfaceRaised,
+                  boxShadow: artShadow.quiet,
+                  outline: active && isPlaying ? `2px solid ${color.ink}` : "none",
+                }}>
+                  <CoverImage src={track.albumCover} width={44} height={44} alt="" />
+                </div>
                 <div style={{ minWidth: 0, flex: 1 }}>
                   <div style={{
                     fontSize: 14, fontWeight: 650, color: color.ink,
