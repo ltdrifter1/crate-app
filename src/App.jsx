@@ -3500,14 +3500,13 @@ function HomeScreen({
           ${color.canvas}
         `,
       }}>
-        {/* Tonight — one quiet schedule band (guide + countdown). CoverStage
-            already owns the live ON AIR hero, so we only show NowOnAirCard
-            when that block isn't the active tuned show. */}
+        {/* Tonight — one schedule + dial composition. CoverStage owns the live
+            ON AIR hero; NowOnAirCard only when that block isn't tuned. */}
         {!catalogEmpty && !catalogError && (airing?.show || programGuide.length > 0 || countdown.length > 0) && (
           <Motion.section
             aria-label="Tonight"
             {...bandRise}
-            style={{ paddingTop: 16, paddingBottom: 8 }}
+            style={{ paddingTop: 16, paddingBottom: 4 }}
           >
             <div style={{ padding: `0 ${homeSpace.gutter}px 12px` }}>
               <div style={{
@@ -3559,11 +3558,18 @@ function HomeScreen({
                 compact
               />
             )}
+
+            <SceneSurfRail
+              tracks={tracks}
+              activeChannelId={sceneChannelsActiveId}
+              onTuneChannel={onTuneSceneChannel}
+              quiet
+            />
           </Motion.section>
         )}
 
-        {/* Channel dial — hardware metaphor, quiet label */}
-        {!catalogEmpty && !catalogError && (
+        {/* Channel dial alone when the schedule band has nothing to show */}
+        {!catalogEmpty && !catalogError && !(airing?.show || programGuide.length > 0 || countdown.length > 0) && (
           <Motion.div {...shelfRise}>
             <SceneSurfRail
               tracks={tracks}
@@ -4365,11 +4371,13 @@ function FavoritesScreen({
             </div>
           ) : covers.length === 1 ? (
             <div style={{ width: "100%", height: "100%", overflow: "hidden" }}>
-              <img
+              <CoverImage
                 src={covers[0].albumCover}
                 alt=""
+                width={homeSpace.tile}
+                height={homeSpace.tile}
+                sizes={`${homeSpace.tile}px`}
                 draggable={false}
-                style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
               />
             </div>
           ) : (
@@ -4377,11 +4385,13 @@ function FavoritesScreen({
               {[0, 1, 2, 3].map((i) => (
                 <div key={i} style={{ overflow: "hidden", background: color.surfaceSolid, minHeight: 0 }}>
                   {covers[i]?.albumCover ? (
-                    <img
+                    <CoverImage
                       src={covers[i].albumCover}
                       alt=""
+                      width={Math.round(homeSpace.tile / 2)}
+                      height={Math.round(homeSpace.tile / 2)}
+                      sizes={`${Math.round(homeSpace.tile / 2)}px`}
                       draggable={false}
-                      style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
                     />
                   ) : null}
                 </div>
@@ -8308,12 +8318,24 @@ export default function App() {
               boxShadow: artShadow.raised,
               border: `1px solid ${glass.borderSoft}`,
             }}>
-              <img
-                src={currentTrack.albumCover || "/covers/default.jpg"}
-                alt=""
-                style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
-                onError={(e) => { e.target.src = "/covers/default.jpg"; }}
-              />
+              {currentTrack.albumCover ? (
+                <CoverImage
+                  src={currentTrack.albumCover}
+                  alt=""
+                  width={360}
+                  height={360}
+                  sizes="(max-width: 900px) 40vw, 360px"
+                  priority
+                />
+              ) : (
+                <img
+                  src="/covers/default.jpg"
+                  alt=""
+                  width={360}
+                  height={360}
+                  style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+                />
+              )}
               <div aria-hidden="true" style={{
                 position: "absolute",
                 inset: 0,
@@ -8528,13 +8550,19 @@ export default function App() {
                       flexShrink: 0,
                       boxShadow: "0 4px 14px rgba(0,0,0,0.35)",
                       outline: active ? `1px solid ${color.accentSoft}` : "1px solid transparent",
+                      background: color.surfaceRaised,
                     }}>
-                      <img
-                        src={t.albumCover || "/covers/default.jpg"}
-                        alt=""
-                        style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
-                        onError={(e) => { e.target.src = "/covers/default.jpg"; }}
-                      />
+                      {t.albumCover ? (
+                        <CoverImage src={t.albumCover} alt="" width={40} height={40} />
+                      ) : (
+                        <img
+                          src="/covers/default.jpg"
+                          alt=""
+                          width={40}
+                          height={40}
+                          style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+                        />
+                      )}
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{

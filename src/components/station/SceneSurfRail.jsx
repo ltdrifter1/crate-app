@@ -35,7 +35,7 @@ function SceneSurfRail({
     <section
       aria-label="Channel dial"
       style={{
-        padding: compact ? "4px 0 2px" : (quiet ? "12px 0 10px" : "14px 0 8px"),
+        padding: compact ? "4px 0 2px" : (quiet ? "8px 0 6px" : "14px 0 8px"),
         width: "100%",
         maxWidth: compact ? 400 : "none",
         animation: quiet
