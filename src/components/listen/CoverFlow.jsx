@@ -26,6 +26,8 @@ function SleeveArt({ track, size }) {
         src={track.albumCover}
         alt=""
         draggable={false}
+        loading="lazy"
+        decoding="async"
         style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
       />
     );
@@ -369,6 +371,20 @@ export default function CoverFlow({
           }}>
             {focused.artist}
           </div>
+          {reasons?.[focused.id] && (
+            <div style={{
+              marginTop: 6,
+              fontSize: 11,
+              fontWeight: 600,
+              letterSpacing: 0.2,
+              color: color.faint,
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              whiteSpace: "nowrap",
+            }}>
+              {reasons[focused.id]}
+            </div>
+          )}
         </div>
       )}
     </div>

@@ -38,7 +38,6 @@ import {
 import { EnergyShiftFeedback, EnergyShiftModeChip, EnergyShiftControl } from "./components/listen/EnergyShiftButton";
 import CoverFlow from "./components/listen/CoverFlow";
 import { playerEnergyStore } from "./lib/playerEnergyStore";
-import ArtistPage, { AlbumPage } from "./components/catalog/ArtistPage";
 import LinerNotesSheet from "./components/catalog/LinerNotesSheet";
 import LoginScreen from "./components/auth/LoginScreen";
 import {
@@ -91,7 +90,6 @@ import {
 } from "./components/station/ShowGuide";
 import VideoStage, { VideoBadge } from "./components/station/VideoStage";
 import StationBumper from "./components/station/StationBumper";
-import ChartsScreen from "./components/station/ChartsScreen";
 import SceneSurfRail from "./components/station/SceneSurfRail";
 import {
   buildShowPool,
@@ -110,11 +108,19 @@ import { playbackClock, usePlayerPlayback } from "./usePlayerPlayback";
 import { playerPlaybackStore } from "./lib/playerPlaybackStore";
 import DesktopMiniPlayer from "./components/player/DesktopMiniPlayer";
 import PlaybackProgressHairline from "./components/player/PlaybackProgressHairline";
-import ImmersivePlayer from "./components/player/ImmersivePlayer";
+import { transportFlags, useIsBuffering } from "./usePlayerTransport";
 
 const ClubScreen = lazy(() => import("./components/club/ClubScreen"));
 const LazyMixScreen = lazy(() => import("./components/club/MixScreen"));
 const LazyPaywallScreen = lazy(() => import("./components/billing/PaywallScreen"));
+const LazyImmersivePlayer = lazy(() => import("./components/player/ImmersivePlayer"));
+const LazyChartsScreen = lazy(() => import("./components/station/ChartsScreen"));
+const LazyArtistPage = lazy(() =>
+  import("./components/catalog/ArtistPage").then((m) => ({ default: m.default }))
+);
+const LazyAlbumPage = lazy(() =>
+  import("./components/catalog/ArtistPage").then((m) => ({ default: m.AlbumPage }))
+);
 
 const injectStyles = () => {
   if (document.getElementById("rooms-app-global-styles")) return;
@@ -1192,12 +1198,21 @@ function CoverStage({
     if (!onStageVisibilityChange) return undefined;
     const el = stageRef.current;
     if (!el || typeof IntersectionObserver === "undefined") return undefined;
+    // Hysteresis: hide dock only when stage is clearly in view; show dock
+    // sooner when scrolling away so transport never fights the floating dock.
+    let lastVisible = true;
     const observer = new IntersectionObserver(
       ([entry]) => {
-        const visible = !!entry && entry.isIntersecting && entry.intersectionRatio >= 0.35;
-        onStageVisibilityChange(visible);
+        if (!entry) return;
+        const ratio = entry.intersectionRatio;
+        const next = lastVisible
+          ? (entry.isIntersecting && ratio >= 0.28)
+          : (entry.isIntersecting && ratio >= 0.48);
+        if (next === lastVisible) return;
+        lastVisible = next;
+        onStageVisibilityChange(next);
       },
-      { threshold: [0, 0.2, 0.35, 0.5, 1] }
+      { threshold: [0, 0.2, 0.28, 0.35, 0.48, 0.6, 1] }
     );
     observer.observe(el);
     return () => {
@@ -1336,13 +1351,16 @@ function CoverStage({
         style={{
           position: "absolute",
           left: 0, right: 0, bottom: 0, zIndex: 2,
-          padding: `0 ${homeSpace.gutter}px calc(18px + env(safe-area-inset-bottom, 0px))`,
+          // Clear the floating tab dock so stage transport never sandwiches it.
+          padding: showStation
+            ? `0 ${homeSpace.gutter}px calc(${dock.clearTabs - 34}px + env(safe-area-inset-bottom, 0px))`
+            : `0 ${homeSpace.gutter}px calc(18px + env(safe-area-inset-bottom, 0px))`,
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
           boxSizing: "border-box",
           pointerEvents: "none",
-          gap: showStation ? 10 : 7,
+          gap: showStation ? 8 : 7,
         }}
       >
         {showStation && dedicationFlash && (
@@ -1360,7 +1378,7 @@ function CoverStage({
               maxWidth: 420,
               pointerEvents: "auto",
               borderRadius: 26,
-              padding: "16px 16px 14px",
+              padding: "12px 14px 12px",
               background: `
                 linear-gradient(165deg,
                   rgba(30,34,41,0.62) 0%,
@@ -1417,7 +1435,7 @@ function CoverStage({
                 embedded
               />
               <div style={{
-                marginTop: 12,
+                marginTop: 10,
                 display: "flex",
                 justifyContent: "flex-start",
                 alignItems: "center",
@@ -1429,11 +1447,12 @@ function CoverStage({
               </div>
             </div>
 
+            {/* Request / dedicate / reactions stay available — compact one-row heat */}
             <div
               aria-hidden="true"
               style={{
                 height: 1,
-                margin: "14px 0 12px",
+                margin: "10px 0 8px",
                 background: `
                   linear-gradient(90deg, transparent 0%, ${glass.border} 18%, ${glass.border} 82%, transparent 100%)
                 `,
@@ -1453,7 +1472,7 @@ function CoverStage({
               aria-hidden="true"
               style={{
                 height: 1,
-                margin: "12px 0 10px",
+                margin: "8px 0 8px",
                 background: `
                   linear-gradient(90deg, transparent 0%, ${glass.border} 18%, ${glass.border} 82%, transparent 100%)
                 `,
@@ -1465,11 +1484,10 @@ function CoverStage({
               display: "flex",
               flexDirection: "column",
               alignItems: "center",
-              gap: 10,
+              gap: 8,
               pointerEvents: "auto",
               width: "100%",
             }}>
-              <EnergyShiftModeChip />
               <EnergyShiftFeedback bottom="calc(100% + 12px)" />
 
               <div style={{
@@ -1478,7 +1496,7 @@ function CoverStage({
                 alignItems: "center",
                 justifyContent: "center",
                 width: "100%",
-                minHeight: 72,
+                minHeight: 64,
               }}>
                 <div style={{
                   display: "flex",
@@ -3366,6 +3384,39 @@ function HomeCatalogStatus({ error, isEmpty, playableCount, totalCount, onRetry 
 /**
  * Selected for you — Cover Flow of recommended tracks with reason cues.
  */
+
+/** Offline / buffering pill — subscribes to transport store so App root stays quiet. */
+function AmbientNetworkPill({ isOffline, isPlaying }) {
+  const isBuffering = useIsBuffering();
+  if (!(isOffline || (isBuffering && isPlaying))) return null;
+  return (
+    <div role="status" style={{
+      position: "fixed",
+      top: `calc(10px + env(safe-area-inset-top, 0px))`,
+      left: "50%",
+      transform: "translateX(-50%)",
+      zIndex: 120,
+      display: "flex", alignItems: "center", gap: 8,
+      background: isOffline ? color.ink : "rgba(52,58,68,0.92)",
+      color: isOffline ? color.onDark : color.body,
+      border: `1px solid ${glass.border}`,
+      borderRadius: 980,
+      padding: "7px 14px",
+      fontSize: 12.5, fontWeight: 600,
+      boxShadow: glass.shadowSoft,
+      animation: "rise 0.3s cubic-bezier(0.22,1,0.36,1) both",
+      pointerEvents: "none",
+    }}>
+      <span aria-hidden="true" style={{
+        width: 7, height: 7, borderRadius: "50%",
+        background: isOffline ? color.alert : color.accent,
+        animation: isOffline ? "none" : "breathe 1.4s ease-in-out infinite",
+      }}/>
+      {isOffline ? "You're offline — playback may stall" : "Buffering…"}
+    </div>
+  );
+}
+
 function ForYouRiver({
   tracks = [],
   reasons = null,
@@ -3482,52 +3533,38 @@ function HomeScreen({
           ${color.canvas}
         `,
       }}>
-        {/* Tonight's block — chrome appointment TV */}
+        {/* Tonight — one quiet schedule band (guide + countdown). CoverStage
+            already owns the live ON AIR hero, so we only show NowOnAirCard
+            when that block isn't the active tuned show. */}
         {!catalogEmpty && !catalogError && (airing?.show || programGuide.length > 0 || countdown.length > 0) && (
-          <section aria-label="Tonight's block" style={{ paddingTop: 20 }}>
-            <div style={{ padding: `0 ${homeSpace.gutter}px 12px` }}>
+          <section aria-label="Tonight" style={{ paddingTop: 16, paddingBottom: 4 }}>
+            <div style={{ padding: `0 ${homeSpace.gutter}px 10px` }}>
               <div style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 8,
+                fontFamily: fontMono, fontSize: 10, fontWeight: 800,
+                letterSpacing: 1.6, textTransform: "uppercase", color: chrome.steel,
                 marginBottom: 6,
               }}>
-                <span aria-hidden="true" style={{
-                  width: 10, height: 10,
-                  background: `linear-gradient(145deg, ${chrome.signal} 0%, ${chrome.steel} 100%)`,
-                  boxShadow: `inset 0 1px 0 rgba(255,255,255,0.12), 0 0 0 1px rgba(18,20,26,0.18)`,
-                  clipPath: "polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)",
-                }} />
-                <div style={{
-                  fontFamily: fontMono, fontSize: 10, fontWeight: 800,
-                  letterSpacing: 1.8, textTransform: "uppercase", color: chrome.steel,
-                }}>
-                  Tonight’s block
-                </div>
+                Tonight
               </div>
               <h2 style={{
                 margin: 0,
                 fontFamily: fontDisplay,
-                fontSize: "clamp(22px, 4vw, 28px)",
-                fontWeight: 800,
-                letterSpacing: -0.35,
+                fontSize: "clamp(18px, 3.4vw, 22px)",
+                fontWeight: 700,
+                letterSpacing: -0.3,
                 color: color.ink,
-                textTransform: "uppercase",
-                lineHeight: 1.1,
+                lineHeight: 1.15,
               }}>
-                Appointment viewing
+                What’s on
               </h2>
-              <p style={{ margin: "6px 0 0", fontSize: 14, fontWeight: 500, color: color.muted, maxWidth: 340, lineHeight: 1.4 }}>
-                What’s on now, what’s next, and the countdown — one schedule.
-              </p>
             </div>
 
-            {airing?.show && (
+            {airing?.show && !(activeShowId === airing.show.id && currentTrack) && (
               <div style={{ paddingBottom: 8 }}>
                 <NowOnAirCard
                   airing={airing}
                   bumper={showBumper}
-                  tuned={activeShowId === airing.show.id && !!currentTrack}
+                  tuned={false}
                   onTuneIn={() => onTuneShow?.(airing.show)}
                 />
               </div>
@@ -3548,17 +3585,19 @@ function HomeScreen({
                 onTuneIn={onTuneCountdown}
                 activeId={activeId}
                 isPlaying={isPlaying}
+                compact
               />
             )}
           </section>
         )}
 
-        {/* Channel dial */}
+        {/* Channel dial — hardware metaphor, quiet label */}
         {!catalogEmpty && !catalogError && (
           <SceneSurfRail
             tracks={tracks}
             activeChannelId={sceneChannelsActiveId}
             onTuneChannel={onTuneSceneChannel}
+            quiet
           />
         )}
 
@@ -4479,32 +4518,6 @@ function FavoritesScreen({
             </div>
           </div>
 
-          {forYouTracks.length > 0 && (
-            <div style={{ margin: `0 -${homeSpace.gutter}px 4px` }}>
-              <ForYouRiver
-                tracks={forYouTracks}
-                reasons={forYouReasons}
-                coldStart={coldStart}
-                onPlayTrack={playTrackFn}
-                activeId={activeId}
-                isPlaying={isPlaying}
-                first
-              />
-            </div>
-          )}
-
-          {onCustomMix && (
-            <section
-              aria-label="Custom mix"
-              style={{
-                margin: "0 0 14px",
-                animation: `rise 0.5s ${motion.ease} both`,
-              }}
-            >
-              <CustomMixFeature onClick={onCustomMix} inset={false} />
-            </section>
-          )}
-
           {/* Glass control plate — segments + search */}
           <div style={{
             borderRadius: radius.xl,
@@ -4885,6 +4898,34 @@ function FavoritesScreen({
             )}
           </div>
         )}
+
+        {/* Secondary shelves — after collections so Library owns the first viewport */}
+        {forYouTracks.length > 0 && (
+          <div style={{ margin: `12px -${homeSpace.gutter}px 0` }}>
+            <ForYouRiver
+              tracks={forYouTracks}
+              reasons={forYouReasons}
+              coldStart={coldStart}
+              onPlayTrack={playTrackFn}
+              activeId={activeId}
+              isPlaying={isPlaying}
+              first={false}
+            />
+          </div>
+        )}
+
+        {onCustomMix && (
+          <section
+            aria-label="Custom mix"
+            style={{
+              margin: "8px 0 4px",
+              padding: `0 ${homeSpace.gutter}px`,
+              animation: `rise 0.5s ${motion.ease} both`,
+            }}
+          >
+            <CustomMixFeature onClick={onCustomMix} inset={false} />
+          </section>
+        )}
       </div>
 
       {menu && (
@@ -5139,7 +5180,7 @@ function AdminScreen({
       const q2 = query(collection(db, "tracks"), orderBy("createdAt", "desc"));
       const snap = await getDocs(q2);
       const loaded = snap.docs.map(d => ({ ...d.data(), id: d.id, liked: false }));
-      setTracks(computeSignalTraits(loaded));
+      setTracks(computeSignalTraits(enrichTracksWithScenes(loaded)));
     } catch(e) {}
 
     setImporting(false);
@@ -6019,7 +6060,7 @@ export default function App() {
       window.removeEventListener("online", goOnline);
     };
   }, []);
-  const [isBuffering, setIsBuffering] = useState(false);
+  // Buffering lives in transport store — ambient pill subscribes; App only writes.
   // ── Recent searches (local only) ──────────────────────────────────────────
   const [recentSearches, setRecentSearches] = useState(() => {
     try {
@@ -6146,9 +6187,10 @@ export default function App() {
   const setPrev = isRadioMode && currentTrack
     ? playHistoryRef.current.filter(t => t && t.id !== currentTrack.id).slice(0, 2).reverse()
     : [];
-  const setNext = isRadioMode && currentTrack
-    ? pickNextTrack(radioPool(), currentTrack, recentlyPlayedRef.current, radioPickOpts())
-    : null;
+  const setNext = useMemo(() => {
+    if (!isRadioMode || !currentTrack) return null;
+    return pickNextTrack(radioPool(), currentTrack, recentlyPlayedRef.current, radioPickOpts());
+  }, [isRadioMode, currentTrack, radioPool, signalState, hypnoSeed, listenFocus.genre, profile?.genres]);
 
   function logTrackPlay(track) {
     const now = Date.now();
@@ -6353,7 +6395,7 @@ export default function App() {
     setTracksLoadError(null);
     try {
       const loaded = await fetchCatalogTracks(db);
-      setTracks(applyLikedFlags(computeSignalTraits(loaded)));
+      setTracks(applyLikedFlags(computeSignalTraits(enrichTracksWithScenes(loaded))));
       writeCatalogCache(loaded);
     } catch (err) {
       console.error("Failed to load tracks:", err);
@@ -6369,7 +6411,7 @@ export default function App() {
   useEffect(() => {
     const cached = readCatalogCache();
     if (cached) {
-      setTracks(applyLikedFlags(computeSignalTraits(cached)));
+      setTracks(applyLikedFlags(computeSignalTraits(enrichTracksWithScenes(cached))));
       setTracksLoading(false);
       reloadCatalog({ background: true });
     } else {
@@ -6524,6 +6566,8 @@ export default function App() {
   useEffect(() => { shuffleRef.current = shuffle; }, [shuffle]);
   useEffect(() => { crossfadeOnRef.current = crossfadeOn; }, [crossfadeOn]);
   useEffect(() => { isPlayingRef.current = isPlaying; }, [isPlaying]);
+  useEffect(() => { transportFlags.setPlaying(isPlaying); }, [isPlaying]);
+  useEffect(() => { transportFlags.setTrackId(currentTrack?.id || null); }, [currentTrack?.id]);
 
   const handleSkipRef = useRef(null);
   const startCrossfadeRef = useRef(null);
@@ -6574,12 +6618,12 @@ export default function App() {
     };
 
     // Buffering + failure feedback — a stalled player should never look frozen
-    const onWaiting = () => setIsBuffering(true);
-    const onPlayingAgain = () => setIsBuffering(false);
+    const onWaiting = () => transportFlags.setBuffering(true);
+    const onPlayingAgain = () => transportFlags.setBuffering(false);
     const onError = () => {
       const src = audio.getAttribute("src") || "";
       if (!src || src.startsWith("data:audio")) return; // unlock stub — not a real failure
-      setIsBuffering(false);
+      transportFlags.setBuffering(false);
       const failed = currentRef.current;
       showToastRef.current?.(failed?.title ? `Couldn’t play “${failed.title}” — skipping` : "Couldn’t play that cut — skipping");
       setTimeout(() => { if (isPlayingRef.current) handleSkipRef.current?.(); }, 600);
@@ -7753,7 +7797,8 @@ export default function App() {
   );
 
   const boothPlayer = immersive && currentTrack ? (
-    <ImmersivePlayer
+    <Suspense fallback={null}>
+    <LazyImmersivePlayer
       currentTrack={currentTrack}
       isPlaying={isPlaying}
       onTogglePlay={togglePlay}
@@ -7796,7 +7841,7 @@ export default function App() {
       onTuneSceneChannel={playSceneChannel}
       Icon={Icon}
       IceOrbPlay={IceOrbPlay}
-    />
+    /></Suspense>
   ) : null;
 
   // Cover Stage owns transport on Home while visible — sticky dock returns after scroll.
@@ -7808,32 +7853,7 @@ export default function App() {
       <div className="sr-only" aria-live="polite">
         {currentTrack ? `Now playing ${currentTrack.title} by ${currentTrack.artist}` : ""}
       </div>
-      {(isOffline || (isBuffering && isPlaying)) && (
-        <div role="status" style={{
-          position: "fixed",
-          top: `calc(10px + env(safe-area-inset-top, 0px))`,
-          left: "50%",
-          transform: "translateX(-50%)",
-          zIndex: 120,
-          display: "flex", alignItems: "center", gap: 8,
-          background: isOffline ? color.ink : "rgba(52,58,68,0.92)",
-          color: isOffline ? color.onDark : color.body,
-          border: `1px solid ${glass.border}`,
-          borderRadius: 980,
-          padding: "7px 14px",
-          fontSize: 12.5, fontWeight: 600,
-          boxShadow: glass.shadowSoft,
-          animation: "rise 0.3s cubic-bezier(0.22,1,0.36,1) both",
-          pointerEvents: "none",
-        }}>
-          <span aria-hidden="true" style={{
-            width: 7, height: 7, borderRadius: "50%",
-            background: isOffline ? color.alert : color.accent,
-            animation: isOffline ? "none" : "breathe 1.4s ease-in-out infinite",
-          }}/>
-          {isOffline ? "Offline — playback may pause" : "Buffering…"}
-        </div>
-      )}
+      <AmbientNetworkPill isOffline={isOffline} isPlaying={isPlaying} />
     </>
   );
 
@@ -7854,7 +7874,7 @@ export default function App() {
       <div ref={contentScrollRef} onScroll={rememberScroll} style={{ flex:1, overflow:"auto", paddingBottom: contentPadBottom(!!currentTrack && !immersive && !hideDockPlayer), zIndex:1, position:"relative" }}>
         <ScreenPane key={screen === "artist" ? `artist:${artistSlug}` : screen === "album" ? `album:${albumSlug}` : screen === "mix" ? `mix:${mixId}` : screen}>
         {screen==="home"      && !tracksLoading && <HomeScreen tracks={tracks} onPlayRadio={playRadio} onTogglePlay={togglePlay} onPlayTrack={playTrack} currentTrack={currentTrack} isPlaying={isPlaying} onLike={toggleLike} isRadioMode={isRadioMode} hypnoPocket={!!hypnoSeed} playlistCtx={playlistCtx} signalLabel={signalState?.label} mixLane={mixLane} radioPreview={heroPreview} radioNext={setNext} onSkipRadio={handleSkip} onPrevRadio={handlePrev} onOpenPlayer={()=>setImmersive(true)} catalogError={tracksLoadError} onRetryCatalog={reloadCatalog} onBrowse={()=>setScreen("search")} onStageVisibilityChange={onHomeStageVisibilityChange} onSeek={handleSeek} countdown={countdown} onTuneCountdown={tuneCountdown} daypart={activeDaypart} tickerText={stationTicker} onRequest={requestCurrentTrack} requested={currentRequested} onDedicate={()=>setShowDedicate(true)} dedicationFlash={dedicationFlash} onClearDedication={()=>setDedicationFlash(null)} airing={liveAiring} programGuide={programGuide} activeShowId={activeShowId} onTuneShow={playShow} showBumper={showBumper} channelShow={liveShow} sceneChannelsActiveId={activeSceneChannelId} onTuneSceneChannel={playSceneChannel}/>}
-        {screen==="charts"    && !tracksLoading && <ChartsScreen countdown={countdown} tracks={tracks} onPlayTrack={playTrack} onTuneWeekly={playWeeklyReveal}/>}
+        {screen==="charts"    && !tracksLoading && <Suspense fallback={<div style={{ padding: 32, color: color.muted }}>Loading charts…</div>}><LazyChartsScreen countdown={countdown} tracks={tracks} onPlayTrack={playTrack} onTuneWeekly={playWeeklyReveal}/></Suspense>}
         {screen==="search"    && <SearchScreen query={searchQuery} setQuery={setSearch} results={searchResults} tracks={tracks} onPlay={(t,pool)=>{ recordRecentSearch(searchQuery); playTrack(t,pool||tracks); }} onListenIntent={(focus)=>{ const next={ genre: focus.genre || null, scene: null }; setListenFocus(next); playRadio(null, createListenIntent({ mixLane, ...next })); }} onLike={toggleLike} currentTrack={currentTrack} isPlaying={isPlaying} playlistCtx={playlistCtx} entityHits={entityHits} onOpenArtist={(slug)=>{ recordRecentSearch(searchQuery); openArtist(slug); }} onOpenAlbum={(slug)=>{ recordRecentSearch(searchQuery); openAlbum(slug); }} recentSearches={recentSearches} onPickRecent={(q)=>setSearch(q)} onClearRecent={clearRecentSearches}/>}
         {screen==="favorites" && <FavoritesScreen tracks={tracks} onPlay={t=>{setIsRadioMode(false);playTrack(t,tracks);}} onPlayTrack={(t,pool)=>{setIsRadioMode(false);playTrack(t,pool||tracks);}} onLike={toggleLike} currentTrack={currentTrack} isPlaying={isPlaying} playlistCtx={playlistCtx} userPlaylists={libraryPlaylists} onCreatePlaylist={createPlaylist} onDeletePlaylist={deletePlaylist} onRenamePlaylist={renamePlaylist} onSharePlaylist={sharePlaylistToClub} openRequestId={stackOpenRequest} onConsumeOpenRequest={()=>setStackOpenRequest(null)} communityMix={communityMix} onOpenMix={()=>communityMix && openMix(communityMix.id)} onCustomMix={()=>{ setSessionInitialActivity(vibeForMixLane(mixLane)); setShowRouteBuilder(true); }} preferredGenres={user.genres} recentTrackIds={(profile?.recentTracks||[]).map(r=>r.trackId||r)} userKey={firebaseUser?.uid || ""}/>}
         {screen==="mix"       && (
@@ -7880,7 +7900,7 @@ export default function App() {
           </Suspense>
         )}
         {screen==="artist"    && !tracksLoading && (
-          <ArtistPage
+          <Suspense fallback={<div style={{ padding: 32, color: color.muted }}>Loading…</div>}><LazyArtistPage
             artist={findArtist(tracks, artistSlug)}
             onBack={goBack}
             onPlay={(t, pool) => playTrack(t, pool)}
@@ -7891,10 +7911,10 @@ export default function App() {
             AlbumArt={AlbumArt}
             TrackRow={TrackRow}
             playlistCtx={playlistCtx}
-          />
+          /></Suspense>
         )}
         {screen==="album"     && !tracksLoading && (
-          <AlbumPage
+          <Suspense fallback={<div style={{ padding: 32, color: color.muted }}>Loading…</div>}><LazyAlbumPage
             album={findAlbum(tracks, albumSlug)}
             onBack={goBack}
             onPlay={(t, pool) => playTrack(t, pool)}
@@ -7905,7 +7925,7 @@ export default function App() {
             AlbumArt={AlbumArt}
             TrackRow={TrackRow}
             playlistCtx={playlistCtx}
-          />
+          /></Suspense>
         )}
         {screen==="profile"   && (
           <Suspense fallback={<div style={{ padding: 32, color: "var(--muted)" }}>Opening the club…</div>}>
@@ -8134,7 +8154,7 @@ export default function App() {
           ) : (
             <ScreenPane key={screen === "artist" ? `artist:${artistSlug}` : screen === "album" ? `album:${albumSlug}` : screen === "mix" ? `mix:${mixId}` : screen}>
               {screen==="home"      && <HomeScreen tracks={tracks} onPlayRadio={playRadio} onTogglePlay={togglePlay} onPlayTrack={playTrack} currentTrack={currentTrack} isPlaying={isPlaying} onLike={toggleLike} isRadioMode={isRadioMode} hypnoPocket={!!hypnoSeed} playlistCtx={playlistCtx} signalLabel={signalState?.label} mixLane={mixLane} radioPreview={heroPreview} radioNext={setNext} onSkipRadio={handleSkip} onPrevRadio={handlePrev} onOpenPlayer={()=>setImmersive(true)} catalogError={tracksLoadError} onRetryCatalog={reloadCatalog} onBrowse={()=>setScreen("search")} onStageVisibilityChange={onHomeStageVisibilityChange} onSeek={handleSeek} countdown={countdown} onTuneCountdown={tuneCountdown} daypart={activeDaypart} tickerText={stationTicker} onRequest={requestCurrentTrack} requested={currentRequested} onDedicate={()=>setShowDedicate(true)} dedicationFlash={dedicationFlash} onClearDedication={()=>setDedicationFlash(null)} airing={liveAiring} programGuide={programGuide} activeShowId={activeShowId} onTuneShow={playShow} showBumper={showBumper} channelShow={liveShow} sceneChannelsActiveId={activeSceneChannelId} onTuneSceneChannel={playSceneChannel}/>}
-              {screen==="charts"    && <ChartsScreen countdown={countdown} tracks={tracks} onPlayTrack={playTrack} onTuneWeekly={playWeeklyReveal}/>}
+              {screen==="charts"    && <Suspense fallback={<div style={{ padding: 32, color: color.muted }}>Loading charts…</div>}><LazyChartsScreen countdown={countdown} tracks={tracks} onPlayTrack={playTrack} onTuneWeekly={playWeeklyReveal}/></Suspense>}
               {screen==="search"    && <SearchScreen query={searchQuery} setQuery={setSearch} results={searchResults} tracks={tracks} onPlay={(t,pool)=>{ recordRecentSearch(searchQuery); playTrack(t,pool||tracks); }} onListenIntent={(focus)=>{ const next={ genre: focus.genre || null, scene: null }; setListenFocus(next); playRadio(null, createListenIntent({ mixLane, ...next })); }} onLike={toggleLike} currentTrack={currentTrack} isPlaying={isPlaying} playlistCtx={playlistCtx} entityHits={entityHits} onOpenArtist={(slug)=>{ recordRecentSearch(searchQuery); openArtist(slug); }} onOpenAlbum={(slug)=>{ recordRecentSearch(searchQuery); openAlbum(slug); }} recentSearches={recentSearches} onPickRecent={(q)=>setSearch(q)} onClearRecent={clearRecentSearches}/>}
               {screen==="favorites" && <FavoritesScreen tracks={tracks} onPlay={t=>{setIsRadioMode(false);playTrack(t,tracks);}} onPlayTrack={(t,pool)=>{setIsRadioMode(false);playTrack(t,pool||tracks);}} onLike={toggleLike} currentTrack={currentTrack} isPlaying={isPlaying} playlistCtx={playlistCtx} userPlaylists={libraryPlaylists} onCreatePlaylist={createPlaylist} onDeletePlaylist={deletePlaylist} onRenamePlaylist={renamePlaylist} onSharePlaylist={sharePlaylistToClub} openRequestId={stackOpenRequest} onConsumeOpenRequest={()=>setStackOpenRequest(null)} communityMix={communityMix} onOpenMix={()=>communityMix && openMix(communityMix.id)} onCustomMix={()=>{ setSessionInitialActivity(vibeForMixLane(mixLane)); setShowRouteBuilder(true); }} preferredGenres={user.genres} recentTrackIds={(profile?.recentTracks||[]).map(r=>r.trackId||r)} userKey={firebaseUser?.uid || ""}/>}
               {screen==="mix"       && (
@@ -8160,7 +8180,7 @@ export default function App() {
                 </Suspense>
               )}
               {screen==="artist"    && (
-                <ArtistPage
+                <Suspense fallback={<div style={{ padding: 32, color: color.muted }}>Loading…</div>}><LazyArtistPage
                   artist={findArtist(tracks, artistSlug)}
                   onBack={goBack}
                   onPlay={(t, pool) => playTrack(t, pool)}
@@ -8171,10 +8191,10 @@ export default function App() {
                   AlbumArt={AlbumArt}
                   TrackRow={TrackRow}
                   playlistCtx={playlistCtx}
-                />
+                /></Suspense>
               )}
               {screen==="album"     && (
-                <AlbumPage
+                <Suspense fallback={<div style={{ padding: 32, color: color.muted }}>Loading…</div>}><LazyAlbumPage
                   album={findAlbum(tracks, albumSlug)}
                   onBack={goBack}
                   onPlay={(t, pool) => playTrack(t, pool)}
@@ -8185,7 +8205,7 @@ export default function App() {
                   AlbumArt={AlbumArt}
                   TrackRow={TrackRow}
                   playlistCtx={playlistCtx}
-                />
+                /></Suspense>
               )}
               {screen==="profile"   && (
                 <Suspense fallback={<div style={{ padding: 32, color: "var(--muted)" }}>Opening the club…</div>}>

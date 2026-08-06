@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { memo, useMemo, useState } from "react";
 import {
   color, fontDisplay, fontMono, glass, homeSpace, motion, radius, chrome
 } from "../../theme";
@@ -9,13 +9,14 @@ import { formatChannelNum } from "../../lib/mtvChannel";
  * Channel dial — zap between scene channels with CH-IDs.
  * Premium frosted Y2K chrome plates (compact mode for the booth player).
  */
-export default function SceneSurfRail({
+function SceneSurfRail({
   tracks = [],
   activeChannelId = null,
   onTuneChannel = null,
   compact = false,
+  quiet = false,
 }) {
-  const channels = availableSceneChannels(tracks, 2);
+  const channels = useMemo(() => availableSceneChannels(tracks, 2), [tracks]);
   const [zapId, setZapId] = useState(null);
 
   if (!channels.length) return null;
@@ -27,12 +28,14 @@ export default function SceneSurfRail({
   };
 
   const tileW = compact ? 108 : 132;
+  const showQuietHeader = quiet && !compact;
+  const showFullHeader = !compact && !quiet;
 
   return (
     <section
       aria-label="Channel dial"
       style={{
-        padding: compact ? "4px 0 2px" : "14px 0 8px",
+        padding: compact ? "4px 0 2px" : (quiet ? "10px 0 8px" : "14px 0 8px"),
         width: "100%",
         maxWidth: compact ? 400 : "none",
         animation: compact
@@ -40,7 +43,7 @@ export default function SceneSurfRail({
           : `rise 0.55s ${motion.ease} 0.06s both`,
       }}
     >
-      {!compact && (
+      {showFullHeader && (
         <div style={{ padding: `0 ${homeSpace.gutter}px 12px` }}>
           <div style={{
             display: "inline-flex",
@@ -67,16 +70,37 @@ export default function SceneSurfRail({
             margin: 0,
             fontFamily: fontDisplay,
             fontSize: 20,
-            fontWeight: 800,
+            fontWeight: 700,
             letterSpacing: -0.2,
             color: color.ink,
-            textTransform: "uppercase",
           }}>
-            Don’t touch that dial
+            Channel dial
           </h3>
           <p style={{ margin: "5px 0 0", fontSize: 14, fontWeight: 500, color: color.muted, lineHeight: 1.4 }}>
             Scene channels under the genres — zap one and play.
           </p>
+        </div>
+      )}
+
+      {showQuietHeader && (
+        <div style={{ padding: `0 ${homeSpace.gutter}px 10px` }}>
+          <div style={{
+            fontFamily: fontMono, fontSize: 10, fontWeight: 800,
+            letterSpacing: 1.6, textTransform: "uppercase", color: chrome.steel,
+            marginBottom: 4,
+          }}>
+            Channels
+          </div>
+          <h3 style={{
+            margin: 0,
+            fontFamily: fontDisplay,
+            fontSize: 17,
+            fontWeight: 700,
+            letterSpacing: -0.25,
+            color: color.ink,
+          }}>
+            Channel dial
+          </h3>
         </div>
       )}
 
@@ -269,3 +293,5 @@ function hexToRgb(hex) {
   if (Number.isNaN(n)) return "184,192,204";
   return `${(n >> 16) & 255},${(n >> 8) & 255},${n & 255}`;
 }
+
+export default memo(SceneSurfRail);
