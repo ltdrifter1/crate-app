@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import {
-  color, fontDisplay, fontMono, glass, homeSpace, motion, radius, artShadow,
+  color, fontDisplay, fontMono, glass, homeSpace, motion, radius, artShadow, chrome
 } from "../../theme";
 import {
   biggestClimbers,
@@ -14,13 +14,13 @@ import {
 
 function MovementTag({ movement, delta }) {
   if (movement === "up") {
-    return <span style={{ color: "#2ED3A4", fontFamily: fontMono, fontSize: 10, fontWeight: 800 }}>↑{delta}</span>;
+    return <span style={{ color: chrome.plate, fontFamily: fontMono, fontSize: 10, fontWeight: 800 }}>↑{delta}</span>;
   }
   if (movement === "down") {
-    return <span style={{ color: "#FF3B4E", fontFamily: fontMono, fontSize: 10, fontWeight: 800 }}>↓{delta}</span>;
+    return <span style={{ color: chrome.hot, fontFamily: fontMono, fontSize: 10, fontWeight: 800 }}>↓{delta}</span>;
   }
   if (movement === "debut" || movement === "new") {
-    return <span style={{ color: "#FFB020", fontFamily: fontMono, fontSize: 10, fontWeight: 800 }}>NEW</span>;
+    return <span style={{ color: chrome.bright, fontFamily: fontMono, fontSize: 10, fontWeight: 800 }}>NEW</span>;
   }
   return <span style={{ color: color.faint, fontFamily: fontMono, fontSize: 10, fontWeight: 700 }}>●</span>;
 }
@@ -72,7 +72,7 @@ export default function ChartHistoryPanel({
       <div style={{ padding: `0 ${homeSpace.gutter}px 12px` }}>
         <div style={{
           fontFamily: fontMono, fontSize: 10, fontWeight: 800,
-          letterSpacing: 1.5, textTransform: "uppercase", color: "#FFB020",
+          letterSpacing: 1.5, textTransform: "uppercase", color: chrome.steel,
           marginBottom: 4,
         }}>
           Chart archive · {weekKey()}
@@ -170,8 +170,8 @@ export default function ChartHistoryPanel({
                   marginBottom: 10,
                   padding: "12px 14px",
                   borderRadius: radius.sm,
-                  border: "1px solid rgba(255,176,32,0.4)",
-                  background: "linear-gradient(165deg, #FFB020 0%, #C47A00 120%)",
+                  border: "1px solid rgba(197,202,211,0.4)",
+                  background: `linear-gradient(165deg, ${chrome.bright} 0%, ${chrome.hot} 120%)`,
                   color: "#16181E",
                   fontFamily: fontMono,
                   fontSize: 11,
@@ -301,7 +301,7 @@ function ChartList({ entries, onPlay }) {
           >
             <div style={{
               width: 28, fontFamily: fontMono, fontWeight: 800, fontSize: 14,
-              color: e.rank <= 3 ? "#FFB020" : color.ink, textAlign: "center",
+              color: e.rank <= 3 ? chrome.bright : color.ink, textAlign: "center",
             }}>
               {e.rank}
             </div>

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import {
-  color, font, fontDisplay, fontMono, glass, homeSpace, motion, radius,
+  color, font, fontDisplay, fontMono, glass, homeSpace, motion, radius, chrome
 } from "../../theme";
 import {
   buildDailyGuide,
@@ -137,13 +137,13 @@ export function NowOnAirCard({
         <div style={{ position: "relative", display: "flex", justifyContent: "space-between", gap: 12, marginBottom: 14 }}>
           <div style={{
             display: "inline-flex", alignItems: "center", gap: 8,
-            padding: "5px 10px", borderRadius: 999,
-            background: "rgba(255,59,78,0.18)",
-            border: "1px solid rgba(255,59,78,0.45)",
+            padding: "5px 10px", borderRadius: 2,
+            background: "rgba(139,147,159,0.18)",
+            border: "1px solid rgba(139,147,159,0.45)",
           }}>
             <span style={{
-              width: 7, height: 7, borderRadius: "50%", background: "#FF3B4E",
-              boxShadow: "0 0 0 3px rgba(255,59,78,0.28)",
+              width: 7, height: 7, borderRadius: "50%", background: chrome.hot,
+              boxShadow: "0 0 0 3px rgba(139,147,159,0.28)",
               animation: "stageLiveDot 1.4s ease-in-out infinite",
             }} />
             <span style={{
@@ -328,7 +328,7 @@ export function ShowGuideRail({
         <div>
           <div style={{
             fontFamily: fontMono, fontSize: 10, fontWeight: 800,
-            letterSpacing: 1.5, textTransform: "uppercase", color: "#FF3B4E",
+            letterSpacing: 1.5, textTransform: "uppercase", color: chrome.steel,
             marginBottom: 4,
           }}>
             Program guide
@@ -387,7 +387,7 @@ export function ShowGuideRail({
                 <span style={{
                   fontFamily: fontMono, fontSize: 9, fontWeight: 800,
                   letterSpacing: 1.1, textTransform: "uppercase",
-                  color: live ? "#FF3B4E" : color.faint,
+                  color: live ? chrome.hot : color.faint,
                 }}>
                   {live ? "Live" : show.status === "up-next" ? "Up next" : formatShowClock(show.startHour)}
                 </span>

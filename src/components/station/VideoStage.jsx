@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { color, fontDisplay, fontMono, motion } from "../../theme";
+import { color, fontDisplay, fontMono, motion, chrome } from "../../theme";
 import { resolveVideoUrl, syncVideoToProgress, trackHasVideo } from "../../lib/video";
 
 /**
@@ -74,7 +74,7 @@ export default function VideoStage({
         gap: 6,
         padding: "4px 8px",
         borderRadius: 4,
-        background: "rgba(255,59,78,0.92)",
+        background: "rgba(139,147,159,0.92)",
         color: "#fff",
         fontFamily: fontMono,
         fontSize: 9,
@@ -99,8 +99,8 @@ export function VideoBadge({ track, dark = false }) {
       gap: 5,
       padding: "3px 7px",
       borderRadius: 4,
-      background: dark ? "rgba(255,59,78,0.9)" : "rgba(255,59,78,0.12)",
-      color: dark ? "#fff" : "#FF3B4E",
+      background: dark ? "rgba(139,147,159,0.9)" : "rgba(139,147,159,0.12)",
+      color: dark ? "#fff" : chrome.hot,
       fontFamily: fontMono,
       fontSize: 9,
       fontWeight: 800,

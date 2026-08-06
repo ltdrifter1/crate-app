@@ -6,9 +6,9 @@ import { toggleLike as fbToggleLike, recordPlay, completeOnboarding, saveGenres 
 import { collection, getDocs, addDoc, query, orderBy, doc, updateDoc, setDoc, deleteDoc } from "firebase/firestore";
 import { db }                                       from "./firebase";
 import {
-  font, fontDisplay, fontMono, color, radius, motion,
+  font, fontDisplay, fontMono, color, chrome, radius, motion,
   glass, glassControl, homeSpace, dock, sectionRule,
-  artShadow, aluminumGradient,
+  artShadow, aluminumGradient, chromeFrame,
   APP_STYLE, INPUT_ST, BTN_PRIMARY, BTN_SECONDARY, CTRL_BTN, ADMIN_UID,
   BRAND_NAME, brandStoragePrefix,
 } from "./theme";
@@ -1041,7 +1041,7 @@ function OrbitingPlanet({ playing = false, night = false, progress = 0, tintRgb 
           marginTop: -3.5,
           marginLeft: -3.5,
           borderRadius: "50%",
-          background: night && !tintRgb ? "#FFD6AA" : color.accent,
+          background: night && !tintRgb ? chrome.signal : color.accent,
           animation: "orbitPulse 2.4s ease-in-out infinite",
           boxShadow: tintRgb ? `0 0 12px rgba(${glowRgb},0.55)` : undefined,
         }}/>
@@ -2669,13 +2669,14 @@ function QueueSheet({ queue, currentTrack, onPlay, onClose, onClear, onShuffle, 
   );
 }
 
-// ── Key feature: Build a custom mix — duration + vibe session builder entry ──
-function CustomMixFeature({ onClick }) {
+// ── Key feature: Build a custom mix — lives on Library (Y2K chrome plate) ──
+function CustomMixFeature({ onClick, inset = true }) {
   const steps = [
     { n: "01", label: "Length", hint: "30 min → night" },
     { n: "02", label: "Vibe", hint: "Drive, focus…" },
     { n: "03", label: "Arc", hint: "Warm → peak → chill" },
   ];
+  const gutter = inset ? homeSpace.gutter : 0;
 
   return (
     <button
@@ -2688,22 +2689,10 @@ function CustomMixFeature({ onClick }) {
         overflow: "hidden",
         display: "block",
         minHeight: 0,
-        margin: `0 ${homeSpace.gutter}px`,
-        width: `calc(100% - ${homeSpace.gutter * 2}px)`,
+        margin: inset ? `0 ${gutter}px` : 0,
+        width: inset ? `calc(100% - ${gutter * 2}px)` : "100%",
         padding: "20px 20px 18px",
-        border: `1px solid ${glass.border}`,
-        borderRadius: radius.xl,
-        background: `
-          linear-gradient(145deg, rgba(255,255,255,0.88) 0%, rgba(255,255,255,0.42) 48%, rgba(236,240,246,0.55) 100%),
-          ${aluminumGradient()}
-        `,
-        boxShadow: `
-          inset 0 1px 0 ${glass.highlight},
-          inset 0 -1px 0 rgba(22,24,30,0.04),
-          ${glass.shadow}
-        `,
-        backdropFilter: glass.blurSoft,
-        WebkitBackdropFilter: glass.blurSoft,
+        ...chromeFrame({ sharp: true }),
         cursor: "pointer",
         textAlign: "left",
         color: color.ink,
@@ -2715,10 +2704,28 @@ function CustomMixFeature({ onClick }) {
         inset: 0,
         pointerEvents: "none",
         background: `
-          radial-gradient(ellipse 70% 80% at 0% 0%, rgba(255,255,255,0.7) 0%, transparent 55%),
-          linear-gradient(115deg, rgba(190,198,210,0.16) 0%, transparent 42%)
+          radial-gradient(ellipse 70% 80% at 0% 0%, rgba(255,255,255,0.75) 0%, transparent 55%),
+          linear-gradient(115deg, rgba(168,176,188,0.22) 0%, transparent 42%),
+          repeating-linear-gradient(135deg, transparent, transparent 11px, rgba(18,20,26,0.015) 12px)
         `,
       }}/>
+      {/* MTG-style corner pips */}
+      <span aria-hidden="true" style={{
+        position: "absolute", top: 8, left: 8, width: 8, height: 8,
+        borderTop: `2px solid ${chrome.steel}`, borderLeft: `2px solid ${chrome.steel}`, opacity: 0.55,
+      }} />
+      <span aria-hidden="true" style={{
+        position: "absolute", top: 8, right: 8, width: 8, height: 8,
+        borderTop: `2px solid ${chrome.steel}`, borderRight: `2px solid ${chrome.steel}`, opacity: 0.55,
+      }} />
+      <span aria-hidden="true" style={{
+        position: "absolute", bottom: 8, left: 8, width: 8, height: 8,
+        borderBottom: `2px solid ${chrome.steel}`, borderLeft: `2px solid ${chrome.steel}`, opacity: 0.55,
+      }} />
+      <span aria-hidden="true" style={{
+        position: "absolute", bottom: 8, right: 8, width: 8, height: 8,
+        borderBottom: `2px solid ${chrome.steel}`, borderRight: `2px solid ${chrome.steel}`, opacity: 0.55,
+      }} />
 
       <div style={{ position: "relative", zIndex: 1 }}>
         <div style={{
@@ -2732,27 +2739,29 @@ function CustomMixFeature({ onClick }) {
             <div style={{
               fontSize: 10,
               fontWeight: 700,
-              letterSpacing: 1.2,
+              letterSpacing: 1.6,
               textTransform: "uppercase",
               fontFamily: fontMono,
-              color: color.faint,
+              color: chrome.steel,
               marginBottom: 6,
             }}>
-              Custom mix
+              Custom set ◆ Library
             </div>
             <div style={{
               fontSize: "clamp(18px, 4vw, 22px)",
               fontWeight: 700,
               fontFamily: fontDisplay,
-              letterSpacing: -0.45,
+              letterSpacing: -0.35,
               lineHeight: 1.12,
               marginBottom: 6,
+              textTransform: "uppercase",
             }}>
               Build a set
             </div>
             <p style={{
               margin: 0,
-              fontSize: 13,
+              fontSize: 14,
+              fontWeight: 500,
               color: color.muted,
               lineHeight: 1.4,
               maxWidth: 320,
@@ -2764,18 +2773,21 @@ function CustomMixFeature({ onClick }) {
             aria-hidden="true"
             style={{
               flexShrink: 0,
-              width: 36,
-              height: 36,
-              borderRadius: "50%",
+              width: 38,
+              height: 38,
+              borderRadius: 2,
               display: "inline-flex",
               alignItems: "center",
               justifyContent: "center",
               border: `1px solid ${glass.border}`,
-              background: glass.fillStrong,
-              boxShadow: `inset 0 1px 0 ${glass.highlight}`,
-              color: color.ink,
+              background: `
+                linear-gradient(180deg, rgba(255,255,255,0.9) 0%, transparent 45%),
+                linear-gradient(165deg, ${chrome.bright} 0%, ${chrome.deep} 100%)
+              `,
+              boxShadow: `inset 0 1px 0 ${glass.highlight}, ${glass.shadowSoft}`,
+              color: color.onDark,
               fontSize: 16,
-              fontWeight: 600,
+              fontWeight: 700,
             }}
           >
             →
@@ -2792,9 +2804,9 @@ function CustomMixFeature({ onClick }) {
               key={s.n}
               style={{
                 padding: "10px 10px 12px",
-                borderRadius: radius.md,
+                borderRadius: 2,
                 border: `1px solid ${glass.borderSoft}`,
-                background: "rgba(255,255,255,0.55)",
+                background: "rgba(255,255,255,0.58)",
                 boxShadow: `inset 0 1px 0 ${glass.highlight}`,
                 minWidth: 0,
               }}
@@ -2803,7 +2815,7 @@ function CustomMixFeature({ onClick }) {
                 fontSize: 10,
                 fontWeight: 700,
                 letterSpacing: 1.1,
-                color: color.faint,
+                color: chrome.steel,
                 fontFamily: fontMono,
                 marginBottom: 4,
               }}>
@@ -2813,14 +2825,16 @@ function CustomMixFeature({ onClick }) {
                 fontSize: 13,
                 fontWeight: 700,
                 fontFamily: fontDisplay,
-                letterSpacing: -0.2,
+                letterSpacing: -0.1,
                 color: color.ink,
                 marginBottom: 2,
+                textTransform: "uppercase",
               }}>
                 {s.label}
               </div>
               <div style={{
                 fontSize: 11,
+                fontWeight: 500,
                 color: color.muted,
                 lineHeight: 1.3,
                 overflow: "hidden",
@@ -3175,7 +3189,6 @@ function HomeScreen({
   intentLabel = null,
   communityMix = null, onOpenCommunityMix = null,
   onBrowse = null,
-  onCustomMix = null,
   onStageVisibilityChange = null,
   onSeek = null,
   userKey = "",
@@ -3307,32 +3320,47 @@ function HomeScreen({
 
       <div style={{
         position: "relative",
-        background: color.canvas,
+        background: `
+          linear-gradient(180deg, rgba(255,255,255,0.35) 0%, transparent 18%),
+          ${color.canvas}
+        `,
       }}>
-        {/* Tonight's block — appointment TV, not a shelf dashboard */}
+        {/* Tonight's block — chrome appointment TV */}
         {!catalogEmpty && !catalogError && (airing?.show || programGuide.length > 0 || countdown.length > 0) && (
           <section aria-label="Tonight's block" style={{ paddingTop: 20 }}>
             <div style={{ padding: `0 ${homeSpace.gutter}px 12px` }}>
               <div style={{
-                fontFamily: fontMono, fontSize: 10, fontWeight: 900,
-                letterSpacing: 1.8, textTransform: "uppercase", color: "#FF3B4E",
-                marginBottom: 4,
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 8,
+                marginBottom: 6,
               }}>
-                Tonight’s block
+                <span aria-hidden="true" style={{
+                  width: 10, height: 10,
+                  background: `linear-gradient(145deg, ${chrome.signal} 0%, ${chrome.steel} 100%)`,
+                  boxShadow: `inset 0 1px 0 rgba(255,255,255,0.7), 0 0 0 1px rgba(18,20,26,0.18)`,
+                  clipPath: "polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)",
+                }} />
+                <div style={{
+                  fontFamily: fontMono, fontSize: 10, fontWeight: 800,
+                  letterSpacing: 1.8, textTransform: "uppercase", color: chrome.steel,
+                }}>
+                  Tonight’s block
+                </div>
               </div>
               <h2 style={{
                 margin: 0,
                 fontFamily: fontDisplay,
                 fontSize: "clamp(22px, 4vw, 28px)",
                 fontWeight: 800,
-                letterSpacing: -0.5,
+                letterSpacing: -0.35,
                 color: color.ink,
                 textTransform: "uppercase",
                 lineHeight: 1.1,
               }}>
                 Appointment viewing
               </h2>
-              <p style={{ margin: "6px 0 0", fontSize: 13, color: color.muted, maxWidth: 340, lineHeight: 1.4 }}>
+              <p style={{ margin: "6px 0 0", fontSize: 14, fontWeight: 500, color: color.muted, maxWidth: 340, lineHeight: 1.4 }}>
                 What’s on now, what’s next, and the countdown — one schedule.
               </p>
             </div>
@@ -3378,16 +3406,19 @@ function HomeScreen({
         )}
 
         {/* Secondary shelves — quieter, after the channel jobs */}
-        {!catalogEmpty && !catalogError && (countdown.length > 0 || forYouTracks.length > 0 || onBrowse || onCustomMix || communityMix) && (
+        {!catalogEmpty && !catalogError && (countdown.length > 0 || forYouTracks.length > 0 || onBrowse || communityMix) && (
           <div style={{
             marginTop: 8,
             paddingTop: 18,
             borderTop: `1px solid ${glass.borderSoft}`,
+            background: `
+              linear-gradient(180deg, rgba(184,192,204,0.12) 0%, transparent 40%)
+            `,
           }}>
             <div style={{ padding: `0 ${homeSpace.gutter}px 6px` }}>
               <div style={{
                 fontFamily: fontMono, fontSize: 10, fontWeight: 800,
-                letterSpacing: 1.5, textTransform: "uppercase", color: color.faint,
+                letterSpacing: 1.5, textTransform: "uppercase", color: chrome.steel,
               }}>
                 More from the station
               </div>
@@ -3433,10 +3464,10 @@ function HomeScreen({
                     justifyContent: "space-between",
                     gap: 12,
                     padding: "14px 16px",
-                    borderRadius: 0,
-                    border: `1px solid ${glass.borderSoft}`,
-                    background: "rgba(255,255,255,0.55)",
-                    boxShadow: `inset 0 1px 0 ${glass.highlight}`,
+                    borderRadius: 2,
+                    border: `1px solid ${glass.border}`,
+                    background: glass.chrome,
+                    boxShadow: `inset 0 1px 0 ${glass.highlight}, ${glass.shadowSoft}`,
                     cursor: "pointer",
                     textAlign: "left",
                   }}
@@ -3448,37 +3479,24 @@ function HomeScreen({
                       letterSpacing: 1.2,
                       textTransform: "uppercase",
                       fontFamily: fontMono,
-                      color: color.faint,
+                      color: chrome.steel,
                       marginBottom: 4,
                     }}>
-                      Library
+                      Catalog
                     </div>
                     <div style={{
                       fontSize: 15,
                       fontWeight: 700,
                       fontFamily: fontDisplay,
-                      letterSpacing: -0.2,
+                      letterSpacing: -0.1,
                       color: color.ink,
+                      textTransform: "uppercase",
                     }}>
                       Browse the catalog
                     </div>
                   </div>
-                  <span aria-hidden="true" style={{ color: color.faint, fontSize: 18 }}>→</span>
+                  <span aria-hidden="true" style={{ color: chrome.steel, fontSize: 18 }}>→</span>
                 </button>
-              </section>
-            )}
-
-            {onCustomMix && (
-              <section
-                aria-label="Custom mix"
-                style={{
-                  margin: 0,
-                  paddingTop: 4,
-                  paddingBottom: 14,
-                  animation: `rise 0.55s ${motion.ease} 0.04s both`,
-                }}
-              >
-                <CustomMixFeature onClick={onCustomMix} />
               </section>
             )}
 
@@ -3503,11 +3521,11 @@ function HomeScreen({
 
         {!catalogError && !catalogEmpty && forYouTracks.length === 0 && countdown.length === 0 && !airing?.show && (
           <div style={{ padding: `28px ${homeSpace.gutter}px 56px` }}>
-            <div className="glass-surface" style={{ padding: "28px 22px", borderRadius: radius.lg }}>
-              <div style={{ fontSize: 22, fontWeight: 700, fontFamily: fontDisplay, color: color.ink, marginBottom: 8, letterSpacing: -0.4 }}>
+            <div className="glass-surface" style={{ padding: "28px 22px", borderRadius: 2, ...chromeFrame({ sharp: true }) }}>
+              <div style={{ fontSize: 22, fontWeight: 700, fontFamily: fontDisplay, color: color.ink, marginBottom: 8, letterSpacing: -0.3, textTransform: "uppercase" }}>
                 Nothing on the shelf
               </div>
-              <div style={{ fontSize: 15, color: color.muted, lineHeight: 1.5, maxWidth: 280 }}>
+              <div style={{ fontSize: 15, fontWeight: 500, color: color.muted, lineHeight: 1.5, maxWidth: 280 }}>
                 Add cuts to the catalog and they land here.
               </div>
             </div>
@@ -4210,17 +4228,18 @@ function FavoritesScreen({
                 margin: 0,
                 fontSize: 28,
                 fontWeight: 700,
-                letterSpacing: -0.9,
+                letterSpacing: -0.5,
                 fontFamily: fontDisplay,
                 color: color.ink,
                 lineHeight: 1.05,
+                textTransform: "uppercase",
               }}>
                 Library
               </h1>
               <div style={{
                 marginTop: 5,
                 fontSize: 12,
-                color: color.faint,
+                color: chrome.steel,
                 fontFamily: fontMono,
                 letterSpacing: 0.2,
                 fontVariantNumeric: "tabular-nums",
@@ -4231,34 +4250,13 @@ function FavoritesScreen({
               </div>
             </div>
             <div style={{ display: "flex", gap: 8, flexShrink: 0 }}>
-              {onCustomMix && (
-                <button
-                  type="button"
-                  onClick={onCustomMix}
-                  aria-label="Build a custom mix"
-                  style={{
-                    ...BTN_SECONDARY,
-                    width: "auto",
-                    borderRadius: radius.md,
-                    padding: "9px 12px",
-                    fontSize: 12.5,
-                    fontWeight: 650,
-                    display: "inline-flex",
-                    alignItems: "center",
-                    gap: 6,
-                  }}
-                >
-                  <Icon name="timedmix" size={14} />
-                  Custom Mix
-                </button>
-              )}
               <button
                 type="button"
                 onClick={() => { setLibTab("playlists"); setShowNewInput(true); }}
                 style={{
                   ...BTN_PRIMARY,
                   width: "auto",
-                  borderRadius: radius.md,
+                  borderRadius: 2,
                   padding: "9px 12px",
                   fontSize: 12.5,
                   fontWeight: 650,
@@ -4273,13 +4271,23 @@ function FavoritesScreen({
             </div>
           </div>
 
+          {onCustomMix && (
+            <section
+              aria-label="Custom mix"
+              style={{
+                margin: "0 0 14px",
+                animation: `rise 0.5s ${motion.ease} both`,
+              }}
+            >
+              <CustomMixFeature onClick={onCustomMix} inset={false} />
+            </section>
+          )}
+
           {/* Glass control plate — segments + search */}
           <div style={{
-            borderRadius: radius.lg,
+            borderRadius: 2,
             border: `1px solid ${glass.border}`,
-            background: `
-              linear-gradient(160deg, rgba(255,255,255,0.82) 0%, rgba(246,248,252,0.55) 100%)
-            `,
+            background: glass.frame,
             boxShadow: `inset 0 1px 0 ${glass.highlight}, ${glass.shadowSoft}`,
             backdropFilter: glass.blurSoft,
             WebkitBackdropFilter: glass.blurSoft,
@@ -7607,7 +7615,7 @@ export default function App() {
       )}
       <div ref={contentScrollRef} onScroll={rememberScroll} style={{ flex:1, overflow:"auto", paddingBottom: contentPadBottom(!!currentTrack && !immersive && !hideDockPlayer), zIndex:1, position:"relative" }}>
         <ScreenPane key={screen === "artist" ? `artist:${artistSlug}` : screen === "album" ? `album:${albumSlug}` : screen === "mix" ? `mix:${mixId}` : screen}>
-        {screen==="home"      && !tracksLoading && <HomeScreen tracks={tracks} onPlayRadio={playRadio} onTogglePlay={togglePlay} onPlayTrack={playTrack} currentTrack={currentTrack} isPlaying={isPlaying} onLike={toggleLike} isRadioMode={isRadioMode} hypnoPocket={!!hypnoSeed} playlistCtx={playlistCtx} signalLabel={signalState?.label} mixLane={mixLane} radioPreview={heroPreview} radioNext={setNext} onSkipRadio={handleSkip} onPrevRadio={handlePrev} onOpenPlayer={()=>setImmersive(true)} onListenFor={()=>setShowListenInsights(true)} intentLabel={radioIntentLabel} catalogError={tracksLoadError} onRetryCatalog={reloadCatalog} preferredGenres={user.genres} recentTrackIds={(profile?.recentTracks||[]).map(r=>r.trackId||r)} communityMix={communityMix} onOpenCommunityMix={()=>communityMix && openMix(communityMix.id)} onBrowse={()=>setScreen("search")} onCustomMix={()=>{ setSessionInitialActivity(vibeForMixLane(mixLane)); setShowRouteBuilder(true); }} onStageVisibilityChange={onHomeStageVisibilityChange} onSeek={handleSeek} userKey={firebaseUser?.uid || ""} countdown={countdown} onTuneCountdown={tuneCountdown} daypart={activeDaypart} tickerText={stationTicker} onRequest={requestCurrentTrack} requested={currentRequested} onDedicate={()=>setShowDedicate(true)} dedicationFlash={dedicationFlash} onClearDedication={()=>setDedicationFlash(null)} airing={liveAiring} programGuide={programGuide} activeShowId={activeShowId} onTuneShow={playShow} showBumper={showBumper} channelShow={liveShow} sceneChannelsActiveId={activeSceneChannelId} onTuneSceneChannel={playSceneChannel} onTuneWeeklyReveal={playWeeklyReveal}/>}
+        {screen==="home"      && !tracksLoading && <HomeScreen tracks={tracks} onPlayRadio={playRadio} onTogglePlay={togglePlay} onPlayTrack={playTrack} currentTrack={currentTrack} isPlaying={isPlaying} onLike={toggleLike} isRadioMode={isRadioMode} hypnoPocket={!!hypnoSeed} playlistCtx={playlistCtx} signalLabel={signalState?.label} mixLane={mixLane} radioPreview={heroPreview} radioNext={setNext} onSkipRadio={handleSkip} onPrevRadio={handlePrev} onOpenPlayer={()=>setImmersive(true)} onListenFor={()=>setShowListenInsights(true)} intentLabel={radioIntentLabel} catalogError={tracksLoadError} onRetryCatalog={reloadCatalog} preferredGenres={user.genres} recentTrackIds={(profile?.recentTracks||[]).map(r=>r.trackId||r)} communityMix={communityMix} onOpenCommunityMix={()=>communityMix && openMix(communityMix.id)} onBrowse={()=>setScreen("search")} onStageVisibilityChange={onHomeStageVisibilityChange} onSeek={handleSeek} userKey={firebaseUser?.uid || ""} countdown={countdown} onTuneCountdown={tuneCountdown} daypart={activeDaypart} tickerText={stationTicker} onRequest={requestCurrentTrack} requested={currentRequested} onDedicate={()=>setShowDedicate(true)} dedicationFlash={dedicationFlash} onClearDedication={()=>setDedicationFlash(null)} airing={liveAiring} programGuide={programGuide} activeShowId={activeShowId} onTuneShow={playShow} showBumper={showBumper} channelShow={liveShow} sceneChannelsActiveId={activeSceneChannelId} onTuneSceneChannel={playSceneChannel} onTuneWeeklyReveal={playWeeklyReveal}/>}
         {screen==="search"    && <SearchScreen query={searchQuery} setQuery={setSearch} results={searchResults} tracks={tracks} onPlay={(t,pool)=>{ recordRecentSearch(searchQuery); playTrack(t,pool||tracks); }} onListenIntent={(focus)=>{ const next={ genre: focus.genre || null, scene: null }; setListenFocus(next); playRadio(null, createListenIntent({ mixLane, ...next })); }} onLike={toggleLike} currentTrack={currentTrack} isPlaying={isPlaying} playlistCtx={playlistCtx} entityHits={entityHits} onOpenArtist={(slug)=>{ recordRecentSearch(searchQuery); openArtist(slug); }} onOpenAlbum={(slug)=>{ recordRecentSearch(searchQuery); openAlbum(slug); }} recentSearches={recentSearches} onPickRecent={(q)=>setSearch(q)} onClearRecent={clearRecentSearches}/>}
         {screen==="favorites" && <FavoritesScreen tracks={tracks} onPlay={t=>{setIsRadioMode(false);playTrack(t,tracks);}} onPlayTrack={(t,pool)=>{setIsRadioMode(false);playTrack(t,pool||tracks);}} onLike={toggleLike} currentTrack={currentTrack} isPlaying={isPlaying} playlistCtx={playlistCtx} userPlaylists={libraryPlaylists} onCreatePlaylist={createPlaylist} onDeletePlaylist={deletePlaylist} onRenamePlaylist={renamePlaylist} onSharePlaylist={sharePlaylistToClub} openRequestId={stackOpenRequest} onConsumeOpenRequest={()=>setStackOpenRequest(null)} communityMix={communityMix} onOpenMix={()=>communityMix && openMix(communityMix.id)} onCustomMix={()=>{ setSessionInitialActivity(vibeForMixLane(mixLane)); setShowRouteBuilder(true); }}/>}
         {screen==="mix"       && (
@@ -7885,7 +7893,7 @@ export default function App() {
             </>
           ) : (
             <ScreenPane key={screen === "artist" ? `artist:${artistSlug}` : screen === "album" ? `album:${albumSlug}` : screen === "mix" ? `mix:${mixId}` : screen}>
-              {screen==="home"      && <HomeScreen tracks={tracks} onPlayRadio={playRadio} onTogglePlay={togglePlay} onPlayTrack={playTrack} currentTrack={currentTrack} isPlaying={isPlaying} onLike={toggleLike} isRadioMode={isRadioMode} hypnoPocket={!!hypnoSeed} playlistCtx={playlistCtx} signalLabel={signalState?.label} mixLane={mixLane} radioPreview={heroPreview} radioNext={setNext} onSkipRadio={handleSkip} onPrevRadio={handlePrev} onOpenPlayer={()=>setImmersive(true)} onListenFor={()=>setShowListenInsights(true)} intentLabel={radioIntentLabel} catalogError={tracksLoadError} onRetryCatalog={reloadCatalog} preferredGenres={user.genres} recentTrackIds={(profile?.recentTracks||[]).map(r=>r.trackId||r)} communityMix={communityMix} onOpenCommunityMix={()=>communityMix && openMix(communityMix.id)} onBrowse={()=>setScreen("search")} onCustomMix={()=>{ setSessionInitialActivity(vibeForMixLane(mixLane)); setShowRouteBuilder(true); }} onStageVisibilityChange={onHomeStageVisibilityChange} onSeek={handleSeek} userKey={firebaseUser?.uid || ""} countdown={countdown} onTuneCountdown={tuneCountdown} daypart={activeDaypart} tickerText={stationTicker} onRequest={requestCurrentTrack} requested={currentRequested} onDedicate={()=>setShowDedicate(true)} dedicationFlash={dedicationFlash} onClearDedication={()=>setDedicationFlash(null)} airing={liveAiring} programGuide={programGuide} activeShowId={activeShowId} onTuneShow={playShow} showBumper={showBumper} channelShow={liveShow} sceneChannelsActiveId={activeSceneChannelId} onTuneSceneChannel={playSceneChannel} onTuneWeeklyReveal={playWeeklyReveal}/>}
+              {screen==="home"      && <HomeScreen tracks={tracks} onPlayRadio={playRadio} onTogglePlay={togglePlay} onPlayTrack={playTrack} currentTrack={currentTrack} isPlaying={isPlaying} onLike={toggleLike} isRadioMode={isRadioMode} hypnoPocket={!!hypnoSeed} playlistCtx={playlistCtx} signalLabel={signalState?.label} mixLane={mixLane} radioPreview={heroPreview} radioNext={setNext} onSkipRadio={handleSkip} onPrevRadio={handlePrev} onOpenPlayer={()=>setImmersive(true)} onListenFor={()=>setShowListenInsights(true)} intentLabel={radioIntentLabel} catalogError={tracksLoadError} onRetryCatalog={reloadCatalog} preferredGenres={user.genres} recentTrackIds={(profile?.recentTracks||[]).map(r=>r.trackId||r)} communityMix={communityMix} onOpenCommunityMix={()=>communityMix && openMix(communityMix.id)} onBrowse={()=>setScreen("search")} onStageVisibilityChange={onHomeStageVisibilityChange} onSeek={handleSeek} userKey={firebaseUser?.uid || ""} countdown={countdown} onTuneCountdown={tuneCountdown} daypart={activeDaypart} tickerText={stationTicker} onRequest={requestCurrentTrack} requested={currentRequested} onDedicate={()=>setShowDedicate(true)} dedicationFlash={dedicationFlash} onClearDedication={()=>setDedicationFlash(null)} airing={liveAiring} programGuide={programGuide} activeShowId={activeShowId} onTuneShow={playShow} showBumper={showBumper} channelShow={liveShow} sceneChannelsActiveId={activeSceneChannelId} onTuneSceneChannel={playSceneChannel} onTuneWeeklyReveal={playWeeklyReveal}/>}
               {screen==="search"    && <SearchScreen query={searchQuery} setQuery={setSearch} results={searchResults} tracks={tracks} onPlay={(t,pool)=>{ recordRecentSearch(searchQuery); playTrack(t,pool||tracks); }} onListenIntent={(focus)=>{ const next={ genre: focus.genre || null, scene: null }; setListenFocus(next); playRadio(null, createListenIntent({ mixLane, ...next })); }} onLike={toggleLike} currentTrack={currentTrack} isPlaying={isPlaying} playlistCtx={playlistCtx} entityHits={entityHits} onOpenArtist={(slug)=>{ recordRecentSearch(searchQuery); openArtist(slug); }} onOpenAlbum={(slug)=>{ recordRecentSearch(searchQuery); openAlbum(slug); }} recentSearches={recentSearches} onPickRecent={(q)=>setSearch(q)} onClearRecent={clearRecentSearches}/>}
               {screen==="favorites" && <FavoritesScreen tracks={tracks} onPlay={t=>{setIsRadioMode(false);playTrack(t,tracks);}} onPlayTrack={(t,pool)=>{setIsRadioMode(false);playTrack(t,pool||tracks);}} onLike={toggleLike} currentTrack={currentTrack} isPlaying={isPlaying} playlistCtx={playlistCtx} userPlaylists={libraryPlaylists} onCreatePlaylist={createPlaylist} onDeletePlaylist={deletePlaylist} onRenamePlaylist={renamePlaylist} onSharePlaylist={sharePlaylistToClub} openRequestId={stackOpenRequest} onConsumeOpenRequest={()=>setStackOpenRequest(null)} communityMix={communityMix} onOpenMix={()=>communityMix && openMix(communityMix.id)} onCustomMix={()=>{ setSessionInitialActivity(vibeForMixLane(mixLane)); setShowRouteBuilder(true); }}/>}
               {screen==="mix"       && (

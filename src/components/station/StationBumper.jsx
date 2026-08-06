@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { color, fontDisplay, fontMono, motion } from "../../theme";
+import { color, fontDisplay, fontMono, motion, chrome } from "../../theme";
 import { BUMPER_DURATION_MS } from "../../lib/bumpers";
 
 /**
@@ -13,7 +13,7 @@ export default function StationBumper({ bumper = null, onDone = null, durationMs
   }, [bumper?.id, bumper?.title, durationMs, onDone]);
 
   if (!bumper) return null;
-  const accent = bumper.accent || "#FF3B4E";
+  const accent = bumper.accent || chrome.hot;
 
   return (
     <div

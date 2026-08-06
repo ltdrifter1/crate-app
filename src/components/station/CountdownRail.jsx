@@ -1,5 +1,5 @@
 import {
-  color, fontDisplay, fontMono, glass, homeSpace, motion, radius, artShadow,
+  color, fontDisplay, fontMono, glass, homeSpace, motion, radius, artShadow, chrome
 } from "../../theme";
 import { stationDaypart } from "../../lib/station";
 
@@ -39,7 +39,7 @@ export default function CountdownRail({
             fontWeight: 800,
             letterSpacing: 1.6,
             textTransform: "uppercase",
-            color: "#FF3B4E",
+            color: chrome.steel,
             marginBottom: 6,
           }}>
             The countdown · {daypart.label}
@@ -74,8 +74,8 @@ export default function CountdownRail({
               flexShrink: 0,
               padding: "12px 14px",
               borderRadius: radius.sm,
-              border: "1px solid rgba(255,59,78,0.35)",
-              background: "linear-gradient(165deg, #FF5A6A 0%, #D61F33 100%)",
+              border: "1px solid rgba(139,147,159,0.35)",
+              background: `linear-gradient(165deg, ${chrome.plate} 0%, ${chrome.steel} 100%)`,
               color: "#fff",
               fontFamily: fontMono,
               fontSize: 11,
@@ -83,7 +83,7 @@ export default function CountdownRail({
               letterSpacing: 1.1,
               textTransform: "uppercase",
               cursor: "pointer",
-              boxShadow: "0 10px 22px rgba(214,31,51,0.25)",
+              boxShadow: "0 10px 22px rgba(90,98,112,0.25)",
             }}
           >
             Tune in
@@ -133,7 +133,7 @@ export default function CountdownRail({
                   fontSize: rank === 1 ? 22 : 16,
                   fontWeight: 800,
                   letterSpacing: -0.5,
-                  color: rank <= 3 ? "#FF3B4E" : color.ink,
+                  color: rank <= 3 ? chrome.hot : color.ink,
                   textAlign: "center",
                 }}>
                   {rank}
@@ -179,7 +179,7 @@ export default function CountdownRail({
                   fontWeight: 800,
                   letterSpacing: 0.8,
                   color: deltaLabel.includes("HOT") || deltaLabel.includes("↑")
-                    ? "#FF3B4E"
+                    ? chrome.hot
                     : color.faint,
                   flexShrink: 0,
                 }}>

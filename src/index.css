@@ -5,11 +5,11 @@ html, body, #root {
   min-height: 100%;
 }
 body {
-  font-family: "Source Sans 3", "Source Sans Pro", "Avenir Next", "Segoe UI", "Helvetica Neue", Helvetica, sans-serif;
+  font-family: "Rajdhani", "Source Sans 3", "Avenir Next", "Segoe UI", "Helvetica Neue", Helvetica, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background: #E2E6ED;
-  color: #16181E;
+  background: #D8DEE8;
+  color: #12141A;
 }
 code {
   font-family: "IBM Plex Mono", "SF Mono", ui-monospace, Menlo, Monaco, "Courier New", monospace;

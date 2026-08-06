@@ -9,8 +9,8 @@ test('theme exports core tokens', () => {
   expect(color.select).toMatch(/rgba/);
   expect(BRAND_TAGLINE).toMatch(/YOUR WORLD/i);
   expect(BRAND_NAME).toBe("Planet MP3");
-  expect(font).toMatch(/Source Sans/);
-  expect(fontDisplay).toMatch(/Outfit/);
+  expect(font).toMatch(/Rajdhani/);
+  expect(fontDisplay).toMatch(/Oxanium/);
   expect(ADMIN_UID).toHaveLength(28);
   expect(timeOfDayGradient()).toMatch(/gradient/);
   expect(aluminumGradient()).toMatch(/gradient/);
