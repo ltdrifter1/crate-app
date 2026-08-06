@@ -1,8 +1,8 @@
 /**
- * Club — Digital Record Club membership home.
- * Collectible card, listening privileges, crate stats, Community Mix.
+ * Club — Digital Record Club membership home + settings tabs.
+ * Collectible card, listening privileges, Interests (taste), Community Mix.
  */
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   fontDisplay, fontMono, color, radius, glass, motion,
   BTN_PRIMARY, BTN_SECONDARY, homeSpace,
@@ -22,6 +22,7 @@ import { formatMonthLabel } from "../../lib/mixes";
 import { getFloorPhase, hapticTap } from "../../lib/club";
 import { BrandGlyph as DoorGlyph } from "../brand/BrandMark";
 import CollapsingHeader from "../layout/CollapsingHeader";
+import { InterestsPanel } from "../listen/InterestsPanel";
 
 let clubVisitedThisSession = false;
 
@@ -43,6 +44,11 @@ const PRIVILEGES = [
   },
 ];
 
+const SETTINGS_TABS = [
+  { id: "club", label: "Club" },
+  { id: "interests", label: "Interests" },
+];
+
 export default function ClubScreen({
   user,
   tracks,
@@ -53,9 +59,15 @@ export default function ClubScreen({
   profile = null,
   onOpenMix = null,
   communityMix = null,
+  recentTracks = [],
+  signalLabel = null,
+  onPlayTrack = null,
+  initialTab = "club",
 }) {
+  const [settingsTab, setSettingsTab] = useState(
+    initialTab === "interests" ? "interests" : "club"
+  );
   const liked = useMemo(() => tracks.filter((t) => t.liked), [tracks]);
-  const genres = user.genres || [];
   const memberLine = membershipSummary(access);
   const price = formatPriceMonthly();
   const showSubscribe = access && !access.allowed;
@@ -75,14 +87,81 @@ export default function ClubScreen({
     hapticTap(10);
   }, []);
 
+  useEffect(() => {
+    if (initialTab === "interests" || initialTab === "club") {
+      setSettingsTab(initialTab);
+    }
+  }, [initialTab]);
+
+  const segmentBtn = (id, label) => {
+    const active = settingsTab === id;
+    return (
+      <button
+        key={id}
+        type="button"
+        role="tab"
+        aria-selected={active}
+        onClick={() => setSettingsTab(id)}
+        style={{
+          flex: 1,
+          minHeight: 40,
+          border: "none",
+          borderRadius: 2,
+          cursor: "pointer",
+          background: active ? color.surfaceSolid : "transparent",
+          color: active ? color.ink : color.muted,
+          boxShadow: active ? `inset 0 1px 0 ${glass.highlight}, ${glass.shadowSoft}` : "none",
+          fontSize: 14,
+          fontWeight: active ? 700 : 550,
+          fontFamily: fontDisplay,
+          letterSpacing: -0.1,
+          textTransform: "uppercase",
+          transition: `background ${motion.fast} ${motion.ease}, color ${motion.fast} ${motion.ease}`,
+        }}
+      >
+        {label}
+      </button>
+    );
+  };
+
   return (
     <div style={{ padding: "0 0 28px" }}>
       <CollapsingHeader
         title="Club"
-        subtitle={CLUB_TAGLINE}
+        subtitle={settingsTab === "interests" ? "Settings · Your interests" : CLUB_TAGLINE}
       />
 
       <div style={{ padding: `12px ${homeSpace.gutter}px 0` }}>
+        {/* Settings tabs */}
+        <div
+          role="tablist"
+          aria-label="Club settings"
+          style={{
+            display: "flex",
+            gap: 4,
+            padding: 4,
+            marginBottom: 18,
+            borderRadius: 2,
+            border: `1px solid ${glass.border}`,
+            background: glass.frame,
+            boxShadow: `inset 0 1px 0 ${glass.highlight}, ${glass.shadowSoft}`,
+          }}
+        >
+          {SETTINGS_TABS.map((t) => segmentBtn(t.id, t.label))}
+        </div>
+
+        {settingsTab === "interests" ? (
+          <InterestsPanel
+            tracks={tracks}
+            genres={user.genres || profile?.genres || []}
+            recentTracks={recentTracks}
+            signalLabel={signalLabel}
+            onEditGenres={onEditGenres}
+            onPlayTrack={onPlayTrack}
+            showIntro
+          />
+        ) : (
+          <>
         {/* Collectible membership card */}
         <div
           role="group"
@@ -452,29 +531,6 @@ export default function ClubScreen({
           )}
         </section>
 
-        <section style={{ marginBottom: 26 }}>
-          <div style={sectionLabel}>Your interests</div>
-          <div style={{ fontSize: 15, color: color.body, lineHeight: 1.45, marginBottom: 14 }}>
-            {genres.length
-              ? genres.join(" · ")
-              : "Not set yet. Shape the crate to your taste anytime."}
-          </div>
-          {onEditGenres && (
-            <button
-              type="button"
-              onClick={onEditGenres}
-              style={{
-                ...BTN_SECONDARY,
-                width: "100%",
-                borderRadius: 980,
-                marginBottom: 4,
-              }}
-            >
-              Edit interests
-            </button>
-          )}
-        </section>
-
         <button
           type="button"
           onClick={onLogout}
@@ -482,6 +538,8 @@ export default function ClubScreen({
         >
           Sign Out
         </button>
+          </>
+        )}
       </div>
     </div>
   );

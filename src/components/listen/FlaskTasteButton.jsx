@@ -1,7 +1,7 @@
 import { color, glass, radius, aluminumGradient, fontMono } from "../../theme";
 
 /**
- * Premium flask — opens Your interests on the Cover Stage.
+ * Premium flask — interests mark for Club → Interests settings.
  * Optional labeled chrome pill for discoverability.
  */
 export default function FlaskTasteButton({
