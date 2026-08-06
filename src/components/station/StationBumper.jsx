@@ -30,14 +30,14 @@ export default function StationBumper({ bumper = null, onDone = null, durationMs
         background: `
           ${aluminumGradient()},
           radial-gradient(ellipse at 50% 40%, ${accent}28 0%, transparent 55%),
-          linear-gradient(160deg, #D8DEE8 0%, #C4CCD8 55%, #B8C0CC 100%)
+          linear-gradient(160deg, #16191F 0%, #101318 55%, #0B0C0F 100%)
         `,
         animation: `stationBumperIn 0.35s ${motion.ease} both`,
       }}
     >
       <div aria-hidden="true" style={{
         position: "absolute", inset: 0, pointerEvents: "none", opacity: 0.06,
-        backgroundImage: "repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(18,20,26,0.35) 3px)",
+        backgroundImage: "repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255,255,255,0.35) 3px)",
       }} />
 
       <div style={{
@@ -48,9 +48,9 @@ export default function StationBumper({ bumper = null, onDone = null, durationMs
         padding: "28px 24px",
         borderRadius: 28,
         background: `
-          linear-gradient(165deg, rgba(255,255,255,0.78) 0%, rgba(236,240,246,0.55) 100%)
+          linear-gradient(165deg, rgba(42,47,55,0.85) 0%, rgba(28,32,38,0.55) 100%)
         `,
-        border: `1px solid rgba(255,255,255,0.6)`,
+        border: `1px solid rgba(255,255,255,0.16)`,
         boxShadow: `inset 0 1px 0 ${glass.highlight}, ${glass.shadowLift}`,
         backdropFilter: glass.blurHeavy,
         WebkitBackdropFilter: glass.blurHeavy,

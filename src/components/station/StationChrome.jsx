@@ -71,9 +71,9 @@ export function OnAirBadge({ daypartLabel = null, showTitle = null, compact = fa
         padding: compact ? "6px 10px" : "7px 12px",
         borderRadius: radius.pill,
         background: `
-          linear-gradient(165deg, rgba(255,255,255,0.72) 0%, rgba(236,240,246,0.5) 100%)
+          linear-gradient(165deg, rgba(38,43,51,0.82) 0%, rgba(28,32,38,0.5) 100%)
         `,
-        border: `1px solid rgba(255,255,255,0.55)`,
+        border: `1px solid rgba(255,255,255,0.14)`,
         boxShadow: `inset 0 1px 0 ${glass.highlight}, ${glass.shadowSoft}`,
         backdropFilter: glass.blurSoft,
         WebkitBackdropFilter: glass.blurSoft,
@@ -173,14 +173,14 @@ export function ChannelBug({
         backdropFilter: glass.blurSoft,
         WebkitBackdropFilter: glass.blurSoft,
         background: `
-          linear-gradient(165deg, rgba(255,255,255,0.7) 0%, rgba(236,240,246,0.48) 100%)
+          linear-gradient(165deg, rgba(38,43,51,0.8) 0%, rgba(28,32,38,0.48) 100%)
         `,
       }}
     >
       <div style={{
         padding: compact ? "7px 9px" : "8px 11px",
         background: `
-          linear-gradient(160deg, rgba(255,255,255,0.55) 0%, rgba(${hexToRgbSafe(bug.accent)},0.35) 100%)
+          linear-gradient(160deg, rgba(32,36,43,0.65) 0%, rgba(${hexToRgbSafe(bug.accent)},0.35) 100%)
         `,
         color: color.ink,
         fontFamily: fontMono,
@@ -250,7 +250,7 @@ export function StationTicker({ text = "", dense = false }) {
         overflow: "hidden",
         width: "100%",
         background: `
-          linear-gradient(180deg, rgba(255,255,255,0.48) 0%, rgba(236,240,246,0.32) 100%)
+          linear-gradient(180deg, rgba(29,33,39,0.58) 0%, rgba(28,32,38,0.32) 100%)
         `,
         borderTop: `1px solid ${glass.borderSoft}`,
         borderBottom: `1px solid ${glass.borderSoft}`,
@@ -333,8 +333,8 @@ export function LowerThird({
                 textTransform: "uppercase",
                 color: i === 0 ? color.ink : color.muted,
                 background: i === 0
-                  ? "linear-gradient(165deg, rgba(255,255,255,0.95) 0%, rgba(226,232,240,0.78) 100%)"
-                  : "rgba(255,255,255,0.42)",
+                  ? "linear-gradient(165deg, rgba(56,62,72,0.95) 0%, rgba(25,28,34,0.78) 100%)"
+                  : "rgba(27,31,37,0.52)",
                 border: `1px solid ${i === 0 ? glass.border : glass.borderSoft}`,
                 boxShadow: i === 0
                   ? `inset 0 1px 0 ${glass.highlight}, 0 2px 8px rgba(18,20,26,0.06)`
@@ -349,7 +349,7 @@ export function LowerThird({
                     height: 6,
                     borderRadius: "50%",
                     background: chrome.live,
-                    boxShadow: "0 0 0 3px rgba(184,192,204,0.28)",
+                    boxShadow: "0 0 0 3px rgba(224,60,75,0.22)",
                     animation: "stageLiveDot 1.5s ease-in-out infinite",
                     flexShrink: 0,
                   }}
@@ -429,9 +429,9 @@ export function LowerThird({
         padding: "14px 16px 15px",
         borderRadius: radius.xl,
         background: `
-          linear-gradient(165deg, rgba(255,255,255,0.55) 0%, rgba(236,240,246,0.4) 100%)
+          linear-gradient(165deg, rgba(32,36,43,0.65) 0%, rgba(28,32,38,0.4) 100%)
         `,
-        border: `1px solid rgba(255,255,255,0.55)`,
+        border: `1px solid rgba(255,255,255,0.14)`,
         boxShadow: `inset 0 1px 0 ${glass.highlight}, ${glass.shadowLift}`,
         backdropFilter: "blur(36px) saturate(1.24)",
         WebkitBackdropFilter: "blur(36px) saturate(1.24)",
@@ -457,9 +457,9 @@ export function UpNextBumper({ track = null }) {
         padding: "8px 12px 8px 8px",
         borderRadius: radius.lg,
         background: `
-          linear-gradient(165deg, rgba(255,255,255,0.48) 0%, rgba(236,240,246,0.32) 100%)
+          linear-gradient(165deg, rgba(29,33,39,0.58) 0%, rgba(28,32,38,0.32) 100%)
         `,
-        border: `1px solid rgba(255,255,255,0.5)`,
+        border: `1px solid rgba(255,255,255,0.12)`,
         boxShadow: `inset 0 1px 0 ${glass.highlight}, ${glass.shadowSoft}`,
         backdropFilter: "blur(28px) saturate(1.2)",
         WebkitBackdropFilter: "blur(28px) saturate(1.2)",
@@ -478,7 +478,7 @@ export function UpNextBumper({ track = null }) {
         flexShrink: 0,
         padding: "6px 8px",
         borderRadius: radius.sm,
-        background: "rgba(255,255,255,0.55)",
+        background: "rgba(32,36,43,0.65)",
         border: `1px solid ${glass.borderSoft}`,
         boxShadow: `inset 0 1px 0 ${glass.highlight}`,
       }}>
@@ -597,7 +597,7 @@ export function StationHeatBar({
         background: embedded
           ? "transparent"
           : `
-            linear-gradient(165deg, rgba(255,255,255,0.72) 0%, rgba(236,240,246,0.55) 100%)
+            linear-gradient(165deg, rgba(38,43,51,0.82) 0%, rgba(28,32,38,0.55) 100%)
           `,
         border: embedded ? "none" : `1px solid ${glass.borderSoft}`,
         boxShadow: embedded
@@ -617,7 +617,7 @@ export function StationHeatBar({
         }}>
           <span aria-hidden="true" style={{
             width: 7, height: 7, borderRadius: "50%", background: chrome.live,
-            boxShadow: "0 0 0 3px rgba(184,192,204,0.28)",
+            boxShadow: "0 0 0 3px rgba(224,60,75,0.22)",
             animation: "stageLiveDot 1.6s ease-in-out infinite",
             flexShrink: 0,
           }} />
@@ -643,8 +643,8 @@ export function StationHeatBar({
                 ...chipBase,
                 color: requested ? color.faint : color.ink,
                 background: requested
-                  ? "rgba(255,255,255,0.4)"
-                  : "linear-gradient(165deg, rgba(255,255,255,0.95) 0%, rgba(226,232,240,0.82) 100%)",
+                  ? "rgba(27,31,37,0.5)"
+                  : "linear-gradient(165deg, rgba(56,62,72,0.95) 0%, rgba(25,28,34,0.82) 100%)",
                 border: `1px solid ${requested ? glass.borderSoft : glass.border}`,
                 cursor: requested ? "default" : "pointer",
                 boxShadow: requested
@@ -662,7 +662,7 @@ export function StationHeatBar({
               style={{
                 ...chipBase,
                 color: color.body,
-                background: "rgba(255,255,255,0.48)",
+                background: "rgba(29,33,39,0.58)",
               }}
             >
               Dedicate
@@ -679,8 +679,8 @@ export function StationHeatBar({
               padding: 0,
               color: open ? color.ink : color.muted,
               background: open
-                ? "linear-gradient(165deg, rgba(255,255,255,0.95) 0%, rgba(226,232,240,0.82) 100%)"
-                : "rgba(255,255,255,0.42)",
+                ? "linear-gradient(165deg, rgba(56,62,72,0.95) 0%, rgba(25,28,34,0.82) 100%)"
+                : "rgba(27,31,37,0.52)",
               border: `1px solid ${open ? glass.border : glass.borderSoft}`,
             }}
           >
@@ -705,7 +705,7 @@ export function StationHeatBar({
                 flex: 1,
                 height: 34,
                 borderRadius: radius.md,
-                background: "rgba(255,255,255,0.55)",
+                background: "rgba(32,36,43,0.65)",
                 border: `1px solid ${glass.borderSoft}`,
                 boxShadow: `inset 0 1px 0 ${glass.highlight}`,
                 backdropFilter: glass.blurSoft,
@@ -748,7 +748,7 @@ export function StationHeatBar({
           fontWeight: 900,
           letterSpacing: 2,
           color: color.ink,
-          textShadow: "0 2px 12px rgba(255,255,255,0.7)",
+          textShadow: "0 2px 12px rgba(0,0,0,0.5)",
           animation: "stationBurst 0.7s ease forwards",
           pointerEvents: "none",
           zIndex: 6,
@@ -864,7 +864,7 @@ export function DedicateSheet({ track, defaultName = "Listener", onClose, onSubm
           style={{
             width: "100%", marginBottom: 10, padding: "12px 14px",
             borderRadius: radius.sm, border: `1px solid ${glass.border}`,
-            background: "rgba(255,255,255,0.8)", fontFamily: font, fontSize: 15,
+            background: "rgba(44,49,58,0.85)", fontFamily: font, fontSize: 15,
           }}
         />
         <textarea
@@ -876,7 +876,7 @@ export function DedicateSheet({ track, defaultName = "Listener", onClose, onSubm
           style={{
             width: "100%", marginBottom: 8, padding: "12px 14px",
             borderRadius: radius.sm, border: `1px solid ${glass.border}`,
-            background: "rgba(255,255,255,0.8)", fontFamily: font, fontSize: 15,
+            background: "rgba(44,49,58,0.85)", fontFamily: font, fontSize: 15,
             resize: "none",
           }}
         />

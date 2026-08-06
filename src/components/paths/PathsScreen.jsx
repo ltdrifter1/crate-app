@@ -77,9 +77,9 @@ export default function PathsScreen({
               textAlign: "left",
               padding: "18px 16px",
               borderRadius: radius.xl,
-              border: `1px solid rgba(255,255,255,0.5)`,
+              border: `1px solid rgba(255,255,255,0.12)`,
               background: `
-                linear-gradient(165deg, rgba(255,255,255,0.7) 0%, rgba(236,240,246,0.48) 100%)
+                linear-gradient(165deg, rgba(38,43,51,0.8) 0%, rgba(28,32,38,0.48) 100%)
               `,
               boxShadow: `inset 0 1px 0 ${glass.highlight}, ${glass.shadowSoft}`,
               backdropFilter: glass.blurSoft,
@@ -226,7 +226,7 @@ function PathDetail({ path, onBack, onPlayPath, onOpenRoom }) {
               marginBottom: 6,
               borderRadius: radius.lg,
               background: `
-                linear-gradient(165deg, rgba(255,255,255,0.58) 0%, rgba(236,240,246,0.38) 100%)
+                linear-gradient(165deg, rgba(32,36,43,0.68) 0%, rgba(28,32,38,0.38) 100%)
               `,
               border: `1px solid ${glass.borderSoft}`,
               boxShadow: `inset 0 1px 0 ${glass.highlight}`,

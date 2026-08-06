@@ -291,7 +291,7 @@ export default function LoginScreen({
               border: "1px solid rgba(22,24,30,0.2)",
               background: `
                 linear-gradient(180deg, rgba(255,255,255,0.2) 0%, transparent 42%),
-                linear-gradient(165deg, #454B58 0%, #1A1D24 100%)
+                linear-gradient(165deg, #EDF0F4 0%, #C4CBD4 100%)
               `,
               boxShadow: `inset 0 1px 0 rgba(255,255,255,0.28), ${glass.shadowSoft}`,
               cursor: loading ? "wait" : "pointer",
@@ -310,7 +310,7 @@ export default function LoginScreen({
               style={{
                 fontSize: 13,
                 color: displayError ? color.alert : color.body,
-                background: displayError ? "rgba(234,231,220,0.08)" : color.canvas,
+                background: displayError ? "rgba(30,34,40,0.08)" : color.canvas,
                 border: `1px solid ${displayError ? color.lineStrong : color.line}`,
                 borderRadius: radius.md,
                 padding: "12px 14px",

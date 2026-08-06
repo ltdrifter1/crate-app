@@ -1,112 +1,113 @@
-// Design tokens — Y2K liquid chrome + 90s MTG card-frame energy.
-// Brushed steel, specular plates, cool greys only — no hot red / amber.
+// Design tokens — premium Y2K broadcast. Dark studio surfaces, machined
+// aluminum controls, one ice-blue accent, a whisper of broadcast red for LIVE.
+// MTV2 (2001–2005) x Braun x Teenage Engineering — restraint over nostalgia.
 
 export const fontDisplay =
-  '"Oxanium", "Orbitron", "Avenir Next", "Segoe UI", "Helvetica Neue", Helvetica, sans-serif';
+  '"Space Grotesk", "Inter", "Avenir Next", "Segoe UI", "Helvetica Neue", Helvetica, sans-serif';
 export const font =
-  '"Rajdhani", "Source Sans 3", "Avenir Next", "Segoe UI", "Helvetica Neue", Helvetica, sans-serif';
+  '"Inter", "Geist", -apple-system, "SF Pro Text", "Segoe UI", "Helvetica Neue", Helvetica, sans-serif';
 export const fontMono =
   '"IBM Plex Mono", "SF Mono", ui-monospace, Menlo, Monaco, "Courier New", monospace';
 
-/** Brand palette — cool platinum + charcoal chrome (no chroma accents) */
+/** Brand palette — dark broadcast studio, editorial contrast */
 export const color = {
-  ink: "#12141A",
-  body: "#3A404C",
-  muted: "#6A7280",
-  faint: "#959DAA",
-  line: "rgba(18, 20, 26, 0.1)",
-  lineStrong: "rgba(18, 20, 26, 0.16)",
-  surface: "rgba(255, 255, 255, 0.55)",
-  surfaceSolid: "rgba(255, 255, 255, 0.84)",
-  surfaceRaised: "rgba(242, 245, 249, 0.9)",
-  canvas: "#D8DEE8",
-  canvasEdge: "#C4CCD8",
-  /** Charcoal chrome — primary interactive signal */
-  accent: "#2A2E38",
-  accentSoft: "rgba(42, 46, 56, 0.1)",
-  accentGlow: "rgba(42, 46, 56, 0.18)",
-  onAccent: "#F4F6F9",
+  ink: "#F7F8FA",
+  body: "#C9CED6",
+  muted: "#A4AAB4",
+  faint: "#6E7683",
+  line: "rgba(255, 255, 255, 0.08)",
+  lineStrong: "rgba(255, 255, 255, 0.14)",
+  surface: "rgba(24, 27, 32, 0.62)",
+  surfaceSolid: "rgba(24, 27, 32, 0.92)",
+  surfaceRaised: "rgba(30, 34, 40, 0.94)",
+  canvas: "#0B0C0F",
+  canvasEdge: "#08090B",
+  /** Ice blue — the single accent signal */
+  accent: "#A9C7E4",
+  accentSoft: "rgba(169, 199, 228, 0.12)",
+  accentGlow: "rgba(169, 199, 228, 0.22)",
+  onAccent: "#0B0C0F",
   onDark: "#F2F4F7",
   onDarkMuted: "rgba(242,244,247,0.62)",
-  /** Destructive only — never station chrome */
-  alert: "#8A6A66",
-  station: "#EBEEF3",
-  /** Soft aluminum list selection */
-  select: "rgba(42, 46, 56, 0.08)",
-  selectStrong: "rgba(42, 46, 56, 0.14)",
+  /** Broadcast red — LIVE + destructive only, never chrome */
+  alert: "#E03C4B",
+  station: "#121417",
+  /** Soft selection wash */
+  select: "rgba(169, 199, 228, 0.08)",
+  selectStrong: "rgba(169, 199, 228, 0.14)",
 };
 
 /**
- * Station / broadcast chrome — grey metal substitutes for former MTV reds.
+ * Station / broadcast chrome — silvers over the dark studio.
  * hot = live / request / rank signal; bright = chart / highlight; steel = plates.
  */
 export const chrome = {
   hot: "#8B939F",
-  bright: "#C5CAD3",
+  bright: "#D6DBE2",
   steel: "#5A6270",
-  plate: "#A8B0BC",
-  deep: "#1A1D24",
-  live: "#B8C0CC",
-  signal: "#D4DAE4",
-  inkPlate: "#0C0E12",
+  plate: "#2A2E36",
+  deep: "#101216",
+  live: "#E03C4B",
+  signal: "#A9C7E4",
+  inkPlate: "#08090B",
   /** rgba helpers for overlays */
   hotRgb: "139,147,159",
-  brightRgb: "197,202,211",
-  liveRgb: "184,192,204",
+  brightRgb: "214,219,226",
+  liveRgb: "224,60,75",
 };
 
-/** Frosted Y2K aluminum — soft glass edges, cool grey chrome. */
+/** Dark glass — blurred studio panels, hairline borders, soft top light. */
 export const glass = {
-  fill: "rgba(255, 255, 255, 0.42)",
-  fillStrong: "rgba(255, 255, 255, 0.7)",
-  fillQuiet: "rgba(246, 248, 252, 0.34)",
-  fillHeavy: "rgba(255, 255, 255, 0.84)",
-  border: "rgba(18, 20, 26, 0.12)",
-  borderSoft: "rgba(18, 20, 26, 0.08)",
-  borderFaint: "rgba(18, 20, 26, 0.05)",
-  highlight: "rgba(255, 255, 255, 0.94)",
-  blur: "blur(32px) saturate(1.22)",
-  blurSoft: "blur(20px) saturate(1.14)",
-  blurHeavy: "blur(48px) saturate(1.18)",
-  blurEdge: "blur(24px) saturate(1.16)",
-  shadow: "0 14px 40px rgba(18, 20, 26, 0.12), 0 2px 8px rgba(18, 20, 26, 0.05)",
-  shadowSoft: "0 8px 28px rgba(18, 20, 26, 0.08)",
-  shadowLift: "0 18px 48px rgba(18, 20, 26, 0.14), 0 4px 12px rgba(18, 20, 26, 0.06)",
-  /** Specular chrome edge for Y2K control plates */
+  fill: "rgba(24, 27, 32, 0.55)",
+  fillStrong: "rgba(24, 27, 32, 0.82)",
+  fillQuiet: "rgba(30, 34, 40, 0.4)",
+  fillHeavy: "rgba(18, 20, 23, 0.9)",
+  border: "rgba(255, 255, 255, 0.1)",
+  borderSoft: "rgba(255, 255, 255, 0.08)",
+  borderFaint: "rgba(255, 255, 255, 0.05)",
+  highlight: "rgba(255, 255, 255, 0.09)",
+  blur: "blur(32px) saturate(1.1)",
+  blurSoft: "blur(20px) saturate(1.06)",
+  blurHeavy: "blur(48px) saturate(1.08)",
+  blurEdge: "blur(24px) saturate(1.08)",
+  shadow: "0 14px 40px rgba(0, 0, 0, 0.42), 0 2px 8px rgba(0, 0, 0, 0.28)",
+  shadowSoft: "0 8px 28px rgba(0, 0, 0, 0.32)",
+  shadowLift: "0 18px 48px rgba(0, 0, 0, 0.5), 0 4px 12px rgba(0, 0, 0, 0.3)",
+  /** Machined-aluminum control face — MiniDisc / iPod wheel finish */
   chrome:
-    "linear-gradient(160deg, rgba(255,255,255,0.96) 0%, rgba(236,240,246,0.74) 42%, rgba(196,204,216,0.58) 100%)",
+    "linear-gradient(160deg, rgba(46,51,59,0.92) 0%, rgba(32,36,42,0.88) 42%, rgba(22,25,30,0.9) 100%)",
   /** Soft plate used by sheets / cards */
   plate:
-    "linear-gradient(165deg, rgba(255,255,255,0.82) 0%, rgba(236,240,246,0.64) 55%, rgba(210,216,226,0.58) 100%)",
-  /** Beveled MTG-style metal frame wash */
+    "linear-gradient(165deg, rgba(28,31,37,0.92) 0%, rgba(22,25,30,0.9) 55%, rgba(17,19,23,0.92) 100%)",
+  /** Beveled hardware frame wash */
   frame:
-    "linear-gradient(145deg, rgba(255,255,255,0.95) 0%, rgba(210,216,226,0.7) 38%, rgba(168,176,188,0.55) 72%, rgba(232,236,242,0.8) 100%)",
+    "linear-gradient(145deg, rgba(38,42,49,0.95) 0%, rgba(26,29,34,0.9) 38%, rgba(18,20,24,0.88) 72%, rgba(30,34,40,0.92) 100%)",
 };
 
-/** Soft jewel-case shadow for album art — Cover Flow memory. */
+/** Deep jewel-case shadow for album art — lit from the studio above. */
 export const artShadow = {
-  quiet: "0 2px 4px rgba(18,20,26,0.06), 0 12px 28px rgba(18,20,26,0.12)",
-  raised: "0 4px 10px rgba(18,20,26,0.08), 0 20px 44px rgba(18,20,26,0.16)",
-  active: `0 0 0 2px ${color.ink}, 0 8px 20px rgba(18,20,26,0.14), 0 18px 40px rgba(18,20,26,0.14)`,
+  quiet: "0 2px 4px rgba(0,0,0,0.3), 0 12px 28px rgba(0,0,0,0.45)",
+  raised: "0 4px 10px rgba(0,0,0,0.35), 0 20px 44px rgba(0,0,0,0.55)",
+  active: `0 0 0 2px ${color.accent}, 0 8px 20px rgba(0,0,0,0.45), 0 18px 40px rgba(0,0,0,0.45)`,
 };
 
 /** Home rhythm — wider section breaks, consistent gutters. */
 export const homeSpace = {
   gutter: 22,
-  bandPadY: 40,
-  sectionPadTop: 44,
-  sectionPadBottom: 40,
+  bandPadY: 44,
+  sectionPadTop: 48,
+  sectionPadBottom: 44,
   /** First shelf after a prior band/rule — keep tight; the break lives above. */
   sectionPadTopFirst: 8,
   shelfGap: 20,
   tile: 148,
 };
 
-/** Floating chrome dock — inset shell for mini-player + tabs. */
+/** Floating premium dock — blurred shell for mini-player + tabs. */
 export const dock = {
   insetX: 14,
   insetBottom: 12,
-  radius: 18,
+  radius: 20,
   tabH: 54,
   playerH: 66,
   /** Content clearances (tabs only / with player), excluding safe-area. */
@@ -114,11 +115,11 @@ export const dock = {
   clearPlayer: 176,
 };
 
-export const radius = { sm: 8, md: 10, lg: 14, xl: 18, pill: 980 };
+export const radius = { sm: 10, md: 14, lg: 18, xl: 20, pill: 980 };
 
 export const space = (n) => n * 4;
 
-/** Quiet elevated panel — soft aluminum edge + blur. */
+/** Quiet elevated panel — hairline edge + blur over the studio floor. */
 export const panel = {
   background: glass.plate,
   border: `1px solid ${glass.borderSoft}`,
@@ -157,7 +158,7 @@ export const glassControl = {
 };
 
 /**
- * 90s MTG card-frame plate — beveled metal inset for home bands / featured CTAs.
+ * Machined hardware plate — beveled inset for home bands / featured CTAs.
  */
 export function chromeFrame(opts = {}) {
   const sharp = opts.sharp === true;
@@ -166,10 +167,10 @@ export function chromeFrame(opts = {}) {
     borderRadius: sharp ? 2 : radius.xl,
     background: glass.frame,
     boxShadow: `
-      inset 0 1px 0 rgba(255,255,255,0.95),
-      inset 0 -1px 0 rgba(18,20,26,0.1),
-      inset 1px 0 0 rgba(255,255,255,0.4),
-      inset -1px 0 0 rgba(18,20,26,0.08),
+      inset 0 1px 0 rgba(255,255,255,0.1),
+      inset 0 -1px 0 rgba(0,0,0,0.35),
+      inset 1px 0 0 rgba(255,255,255,0.05),
+      inset -1px 0 0 rgba(0,0,0,0.25),
       ${glass.shadow}
     `,
     backdropFilter: glass.blurSoft,
@@ -177,52 +178,52 @@ export function chromeFrame(opts = {}) {
   };
 }
 
-/** Soft aluminum section rule. */
+/** Hairline broadcast separator. */
 export function sectionRule(inset = homeSpace.gutter) {
   return {
     height: 1,
     margin: `0 ${inset}px`,
     border: "none",
     background:
-      "linear-gradient(90deg, transparent 0%, rgba(18,20,26,0.07) 18%, rgba(18,20,26,0.14) 50%, rgba(18,20,26,0.07) 82%, transparent 100%)",
+      "linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.05) 18%, rgba(255,255,255,0.12) 50%, rgba(255,255,255,0.05) 82%, transparent 100%)",
   };
 }
 
 export const motion = {
-  fast: "0.12s",
-  base: "0.2s",
-  settle: "0.35s",
+  fast: "0.15s",
+  base: "0.24s",
+  settle: "0.32s",
   ease: "cubic-bezier(0.22, 1, 0.36, 1)",
 };
 
-/** Soft atmosphere that shifts with the hour — cool Y2K steel, never OLED. */
+/** Studio atmosphere that shifts with the hour — always deep, never OLED-flat. */
 export function timeOfDayGradient(date = new Date()) {
   const h = date.getHours();
   const late = h >= 22 || h <= 4;
   const dawn = h >= 5 && h <= 8;
   const day = h >= 9 && h <= 16;
   if (late) {
-    return `radial-gradient(ellipse at 50% -10%, #C8D0DC 0%, #D4DAE4 42%, #D8DEE8 100%)`;
+    return `radial-gradient(ellipse at 50% -10%, #14171D 0%, #0D0F13 42%, #0B0C0F 100%)`;
   }
   if (dawn) {
-    return `radial-gradient(ellipse at 70% 0%, #D6DAE2 0%, #D8DEE8 48%, #CCD4E0 100%)`;
+    return `radial-gradient(ellipse at 70% 0%, #15181E 0%, #0B0C0F 48%, #0D0F14 100%)`;
   }
   if (day) {
-    return `radial-gradient(ellipse at 40% -5%, #E4E8F0 0%, #D8DEE8 50%, #C8D0DC 100%)`;
+    return `radial-gradient(ellipse at 40% -5%, #181C23 0%, #0C0E12 50%, #0B0C0F 100%)`;
   }
-  return `radial-gradient(ellipse at 55% 0%, #D0D8E4 0%, #D8DEE8 45%, #C4CCD8 100%)`;
+  return `radial-gradient(ellipse at 55% 0%, #161A20 0%, #0C0D11 45%, #0A0B0E 100%)`;
 }
 
-/** Brushed aluminum wash for chrome bands / Cover Stage — cooler Y2K steel. */
+/** Brushed dark-aluminum wash for chrome bands / Cover Stage. */
 export function aluminumGradient() {
   return `
-    linear-gradient(180deg, rgba(255,255,255,0.88) 0%, rgba(255,255,255,0) 44%),
-    linear-gradient(135deg, #F0F3F8 0%, #D8DEE8 48%, #B8C0CC 100%)
+    linear-gradient(180deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0) 44%),
+    linear-gradient(135deg, #23272E 0%, #14171C 48%, #0E1013 100%)
   `;
 }
 
 /**
- * Soft glass disc behind the planet lockup — modern blur edge, Y2K grey halo.
+ * Soft glass disc behind the planet lockup — modern blur edge, quiet halo.
  * size: pixel diameter of the logo face.
  */
 export function brandGlassHalo(size = 280) {
@@ -237,13 +238,13 @@ export function brandGlassHalo(size = 280) {
   };
 }
 
-/** App shell — atmospheric canvas, not a flat slab. */
+/** App shell — deep broadcast canvas with a faint studio key light. */
 export const APP_STYLE = {
   fontFamily: font,
   background: `
-    radial-gradient(ellipse 120% 70% at 50% -20%, rgba(255,255,255,0.75) 0%, transparent 55%),
-    radial-gradient(ellipse 80% 50% at 100% 100%, rgba(168,176,188,0.32) 0%, transparent 50%),
-    radial-gradient(ellipse 60% 40% at 0% 80%, rgba(196,204,216,0.22) 0%, transparent 45%),
+    radial-gradient(ellipse 120% 70% at 50% -20%, rgba(169,199,228,0.06) 0%, transparent 55%),
+    radial-gradient(ellipse 80% 50% at 100% 100%, rgba(255,255,255,0.025) 0%, transparent 50%),
+    radial-gradient(ellipse 60% 40% at 0% 80%, rgba(255,255,255,0.02) 0%, transparent 45%),
     ${color.canvas}
   `,
   color: color.ink,
@@ -259,26 +260,26 @@ export const INPUT_ST = {
   padding: "14px 16px",
   borderRadius: radius.md,
   border: `1px solid ${glass.border}`,
-  background: "rgba(255,255,255,0.58)",
+  background: "rgba(24,27,32,0.7)",
   color: color.ink,
   fontSize: 16,
   fontFamily: font,
-  boxShadow: `inset 0 1px 0 ${glass.highlight}, inset 0 2px 6px rgba(18,20,26,0.04)`,
+  boxShadow: `inset 0 1px 0 ${glass.highlight}, inset 0 2px 6px rgba(0,0,0,0.25)`,
   backdropFilter: glass.blurSoft,
   WebkitBackdropFilter: glass.blurSoft,
   outline: "none",
   transition: `border-color ${motion.base} ${motion.ease}, box-shadow ${motion.base} ${motion.ease}, background ${motion.base}`,
 };
 
-/** Primary CTA — charcoal chrome glass plate. */
+/** Primary CTA — machined-silver hero plate, dark inscription. */
 export const BTN_PRIMARY = {
   width: "100%",
   padding: "14px 22px",
-  borderRadius: radius.md,
-  border: `1px solid rgba(18, 20, 26, 0.22)`,
+  borderRadius: radius.lg,
+  border: `1px solid rgba(255, 255, 255, 0.18)`,
   background: `
-    linear-gradient(180deg, rgba(255,255,255,0.22) 0%, transparent 42%),
-    linear-gradient(165deg, #4A5160 0%, #16181E 100%)
+    linear-gradient(180deg, rgba(255,255,255,0.35) 0%, transparent 42%),
+    linear-gradient(165deg, #EDF0F4 0%, #C4CBD4 100%)
   `,
   color: color.onAccent,
   fontSize: 16,
@@ -286,17 +287,17 @@ export const BTN_PRIMARY = {
   cursor: "pointer",
   fontFamily: font,
   letterSpacing: -0.15,
-  boxShadow: `inset 0 1px 0 rgba(255,255,255,0.3), ${glass.shadowSoft}`,
+  boxShadow: `inset 0 1px 0 rgba(255,255,255,0.6), ${glass.shadowSoft}`,
   backdropFilter: glass.blurSoft,
   WebkitBackdropFilter: glass.blurSoft,
   transition: `transform ${motion.fast} ${motion.ease}, box-shadow ${motion.base}, opacity ${motion.fast}`,
 };
 
-/** Secondary CTA — frosted glass plate. */
+/** Secondary CTA — dark glass plate. */
 export const BTN_SECONDARY = {
   width: "100%",
   padding: "14px 22px",
-  borderRadius: radius.md,
+  borderRadius: radius.lg,
   border: `1px solid ${glass.border}`,
   background: glass.chrome,
   color: color.body,

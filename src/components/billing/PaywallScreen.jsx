@@ -42,8 +42,8 @@ export default function PaywallScreen({
         justifyContent: "center",
         padding: "48px 28px 40px",
         background: `
-          radial-gradient(ellipse 90% 55% at 50% -10%, rgba(190,198,210,0.35) 0%, transparent 55%),
-          linear-gradient(180deg, #F4F6F9 0%, ${color.canvas} 42%, ${color.canvas} 100%)
+          radial-gradient(ellipse 90% 55% at 50% -10%, rgba(169,199,228,0.08) 0%, transparent 55%),
+          linear-gradient(180deg, #181C23 0%, ${color.canvas} 42%, ${color.canvas} 100%)
         `,
       }}
     >

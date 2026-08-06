@@ -147,10 +147,10 @@ export default function SceneSurfRail({
                 border: `1px solid ${active ? glass.border : glass.borderSoft}`,
                 background: active
                   ? `
-                    linear-gradient(160deg, rgba(255,255,255,0.92) 0%, rgba(226,232,240,0.78) 45%, rgba(${hexToRgb(ch.accent)},0.22) 100%)
+                    linear-gradient(160deg, rgba(52,58,68,0.92) 0%, rgba(25,28,34,0.78) 45%, rgba(${hexToRgb(ch.accent)},0.22) 100%)
                   `
                   : `
-                    linear-gradient(165deg, rgba(255,255,255,0.62) 0%, rgba(236,240,246,0.42) 100%)
+                    linear-gradient(165deg, rgba(34,38,45,0.72) 0%, rgba(28,32,38,0.42) 100%)
                   `,
                 boxShadow: active
                   ? `inset 0 1px 0 ${glass.highlight}, 0 10px 28px rgba(18,20,26,0.12), 0 0 0 1px rgba(18,20,26,0.06)`
@@ -171,7 +171,7 @@ export default function SceneSurfRail({
                 alignItems: "baseline",
                 gap: 6,
                 background: `
-                  linear-gradient(180deg, rgba(255,255,255,0.45) 0%, transparent 100%)
+                  linear-gradient(180deg, rgba(255,255,255,0.07) 0%, transparent 100%)
                 `,
               }}>
                 <span style={{
@@ -194,7 +194,7 @@ export default function SceneSurfRail({
                   borderRadius: radius.pill,
                   background: active
                     ? "rgba(42,46,56,0.1)"
-                    : "rgba(255,255,255,0.45)",
+                    : "rgba(28,32,38,0.55)",
                   border: `1px solid ${glass.borderSoft}`,
                 }}>
                   {active ? "Tuned" : "Zap"}

@@ -179,10 +179,10 @@ function RoomRow({ room, onEnter, isActive }) {
         marginBottom: 6,
         background: isActive
           ? `
-            linear-gradient(165deg, rgba(255,255,255,0.82) 0%, rgba(236,240,246,0.62) 100%)
+            linear-gradient(165deg, rgba(44,49,58,0.86) 0%, rgba(28,32,38,0.62) 100%)
           `
           : `
-            linear-gradient(165deg, rgba(255,255,255,0.58) 0%, rgba(236,240,246,0.38) 100%)
+            linear-gradient(165deg, rgba(32,36,43,0.68) 0%, rgba(28,32,38,0.38) 100%)
           `,
         border: `1px solid ${isActive ? glass.border : glass.borderSoft}`,
         borderRadius: radius.lg,

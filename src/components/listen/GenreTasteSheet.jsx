@@ -31,7 +31,7 @@ export default function GenreTasteSheet({
           position: "absolute",
           inset: 0,
           background:
-            "radial-gradient(ellipse at 50% 0%, rgba(190,198,210,0.28) 0%, transparent 48%)",
+            "radial-gradient(ellipse at 50% 0%, rgba(169,199,228,0.06) 0%, transparent 48%)",
         }}
       />
 
@@ -209,10 +209,10 @@ function GenreToggleList({ selected, onToggle }) {
               padding: "14px 14px",
               background: on
                 ? `
-                  linear-gradient(165deg, rgba(255,255,255,0.88) 0%, rgba(226,232,240,0.7) 100%)
+                  linear-gradient(165deg, rgba(48,53,62,0.9) 0%, rgba(25,28,34,0.7) 100%)
                 `
                 : `
-                  linear-gradient(165deg, rgba(255,255,255,0.55) 0%, rgba(236,240,246,0.35) 100%)
+                  linear-gradient(165deg, rgba(32,36,43,0.65) 0%, rgba(28,32,38,0.35) 100%)
                 `,
               border: `1px solid ${on ? glass.border : glass.borderSoft}`,
               borderRadius: radius.lg,

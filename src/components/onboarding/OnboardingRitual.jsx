@@ -42,7 +42,7 @@ export default function OnboardingRitual({ tracks, onComplete, onSkip }) {
           left: 0,
           right: 0,
           height: "42vh",
-          background: "radial-gradient(ellipse at 40% 0%, rgba(190,198,210,0.55) 0%, rgba(216,222,232,0.35) 45%, transparent 100%)",
+          background: "radial-gradient(ellipse at 40% 0%, rgba(169,199,228,0.1) 0%, rgba(255,255,255,0.04) 45%, transparent 100%)",
           pointerEvents: "none",
         }}
       />

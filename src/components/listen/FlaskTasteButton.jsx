@@ -28,11 +28,11 @@ export default function FlaskTasteButton({
         padding: labeled ? "0 14px 0 8px" : 0,
         gap: labeled ? 9 : 0,
         borderRadius: labeled ? radius.md : radius.sm,
-        border: `1px solid ${active ? "rgba(22,24,30,0.28)" : glass.border}`,
+        border: `1px solid ${active ? "rgba(255,255,255,0.2)" : glass.border}`,
         background: active
           ? `
             linear-gradient(180deg, rgba(255,255,255,0.22) 0%, transparent 48%),
-            linear-gradient(165deg, #3A404C 0%, #1A1D24 100%)
+            linear-gradient(165deg, #EDF0F4 0%, #C4CBD4 100%)
           `
           : aluminumGradient(),
         color: active ? color.onDark : color.ink,

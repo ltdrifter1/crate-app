@@ -115,7 +115,7 @@ export function EnergyShiftButton({ direction = "up", size = 30, stopPropagation
           cursor: "pointer",
           color: activeHere ? color.ink : color.muted,
           background: activeHere
-            ? `linear-gradient(180deg, rgba(255,255,255,0.75) 0%, rgba(255,255,255,0.45) 100%)`
+            ? `linear-gradient(180deg, rgba(40,45,53,0.82) 0%, rgba(28,32,38,0.55) 100%)`
             : glass.fillStrong,
           border: `1px solid ${activeHere ? color.lineStrong : glass.border}`,
           backdropFilter: glass.blurSoft,
@@ -162,7 +162,7 @@ export function EnergyShiftButton({ direction = "up", size = 30, stopPropagation
             whiteSpace: "nowrap",
             padding: "6px 11px",
             borderRadius: 999,
-            background: "rgba(255,255,255,0.95)",
+            background: "rgba(56,62,72,0.95)",
             border: `1px solid ${glass.border}`,
             boxShadow: `inset 0 1px 0 ${glass.highlight}, 0 8px 22px rgba(26,29,36,0.14)`,
             backdropFilter: glass.blurSoft,
@@ -197,7 +197,7 @@ export function EnergyShiftButton({ direction = "up", size = 30, stopPropagation
             minWidth: 118,
             padding: 4,
             borderRadius: 12,
-            background: "rgba(255,255,255,0.95)",
+            background: "rgba(56,62,72,0.95)",
             border: `1px solid ${glass.border}`,
             boxShadow: `inset 0 1px 0 ${glass.highlight}, 0 14px 34px rgba(26,29,36,0.16)`,
             backdropFilter: glass.blur,
@@ -251,7 +251,7 @@ export function EnergyShiftModeChip({ style = null }) {
         gap: 7,
         padding: "5px 11px",
         borderRadius: 980,
-        background: "rgba(255,255,255,0.88)",
+        background: "rgba(48,53,62,0.9)",
         border: `1px solid ${glass.border}`,
         boxShadow: `inset 0 1px 0 ${glass.highlight}, 0 6px 18px rgba(26,29,36,0.1)`,
         backdropFilter: glass.blurSoft,
@@ -309,7 +309,7 @@ export function EnergyShiftFeedback({ bottom = "calc(100% + 12px)" }) {
         <div style={{
           display: "flex", alignItems: "center", gap: 7,
           padding: "8px 15px", borderRadius: 999,
-          background: "rgba(255,255,255,0.94)",
+          background: "rgba(56,62,72,0.94)",
           border: `1px solid ${glass.border}`,
           boxShadow: `inset 0 1px 0 ${glass.highlight}, 0 10px 28px rgba(26,29,36,0.14)`,
           backdropFilter: glass.blur, WebkitBackdropFilter: glass.blur,
@@ -445,7 +445,7 @@ export function EnergyShiftControl({
           cursor: "pointer",
           color: active || open ? color.ink : color.muted,
           background: active || open
-            ? `linear-gradient(180deg, rgba(255,255,255,0.78) 0%, rgba(255,255,255,0.48) 100%)`
+            ? `linear-gradient(180deg, rgba(42,47,55,0.85) 0%, rgba(29,33,39,0.58) 100%)`
             : glass.fillStrong,
           border: `1px solid ${active || open ? color.lineStrong : glass.border}`,
           backdropFilter: glass.blurSoft,
@@ -487,7 +487,7 @@ export function EnergyShiftControl({
             width: 220,
             padding: "14px 14px 12px",
             borderRadius: 14,
-            background: "rgba(255,255,255,0.96)",
+            background: "rgba(56,62,72,0.96)",
             border: `1px solid ${glass.border}`,
             boxShadow: `inset 0 1px 0 ${glass.highlight}, 0 16px 36px rgba(26,29,36,0.16)`,
             backdropFilter: glass.blur,
@@ -579,7 +579,7 @@ export function EnergyShiftCapsule({ stopPropagation = false }) {
         gap: 6,
         padding: "5px 8px",
         borderRadius: 999,
-        background: "rgba(255,255,255,0.55)",
+        background: "rgba(32,36,43,0.65)",
         border: `1px solid ${glass.borderSoft}`,
         boxShadow: `inset 0 1px 0 ${glass.highlight}, ${glass.shadowSoft}`,
         backdropFilter: glass.blurSoft,
