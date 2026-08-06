@@ -160,10 +160,10 @@ export const glassControl = {
  * 90s MTG card-frame plate — beveled metal inset for home bands / featured CTAs.
  */
 export function chromeFrame(opts = {}) {
-  const sharp = opts.sharp !== false;
+  const sharp = opts.sharp === true;
   return {
     border: `1px solid ${glass.border}`,
-    borderRadius: sharp ? 2 : radius.lg,
+    borderRadius: sharp ? 2 : radius.xl,
     background: glass.frame,
     boxShadow: `
       inset 0 1px 0 rgba(255,255,255,0.95),
