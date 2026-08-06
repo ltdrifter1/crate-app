@@ -9,30 +9,27 @@ import {
 import { buildListenInsights } from "../../lib/listenInsights";
 import { collectionStatsLabel } from "../../lib/collectionStats";
 import FlaskTasteButton from "./FlaskTasteButton";
+import CoverImage from "../ui/CoverImage";
 
 function CoverThumb({ track, size = 40 }) {
   if (!track) return null;
-  if (track.albumCover) {
-    return (
-      <img
-        src={track.albumCover}
-        alt=""
-        draggable={false}
-        style={{
-          width: size, height: size, objectFit: "cover", display: "block",
-          borderRadius: 8,
-        }}
-      />
-    );
-  }
   return (
     <div style={{
-      width: size, height: size, borderRadius: 8,
-      background: `linear-gradient(160deg, rgba(52,58,68,0.9), ${color.surfaceRaised})`,
-      display: "flex", alignItems: "center", justifyContent: "center",
-      fontFamily: fontDisplay, fontWeight: 700, fontSize: size * 0.36, color: color.faint,
+      width: size, height: size, borderRadius: 8, overflow: "hidden", flexShrink: 0,
+      background: color.surfaceRaised,
     }}>
-      {(track.title || "P")[0]}
+      {track.albumCover ? (
+        <CoverImage src={track.albumCover} width={size} height={size} alt="" draggable={false} />
+      ) : (
+        <div style={{
+          width: "100%", height: "100%",
+          display: "flex", alignItems: "center", justifyContent: "center",
+          fontFamily: fontDisplay, fontSize: size * 0.32, fontWeight: 700, color: color.faint,
+          background: `linear-gradient(160deg, rgba(52,58,68,0.9), ${color.surfaceRaised})`,
+        }}>
+          {(track.title || "P")[0]}
+        </div>
+      )}
     </div>
   );
 }

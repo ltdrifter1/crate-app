@@ -11,6 +11,7 @@ import {
   getChartSnapshot,
   weekKey,
 } from "../../lib/chartHistory";
+import CoverImage from "../ui/CoverImage";
 
 function MovementTag({ movement, delta }) {
   if (movement === "up") {
@@ -305,11 +306,12 @@ function ChartList({ entries, onPlay }) {
             }}>
               {e.rank}
             </div>
-            {e.albumCover ? (
-              <img src={e.albumCover} alt="" width={40} height={40} style={{ borderRadius: 5, objectFit: "cover", boxShadow: artShadow.quiet }} />
-            ) : (
-              <div style={{ width: 40, height: 40, borderRadius: 5, background: color.surfaceRaised }} />
-            )}
+            <div style={{
+              width: 40, height: 40, borderRadius: 5, overflow: "hidden", flexShrink: 0,
+              background: color.surfaceRaised, boxShadow: artShadow.quiet,
+            }}>
+              <CoverImage src={e.albumCover} width={40} height={40} alt="" />
+            </div>
             <div style={{ minWidth: 0, flex: 1 }}>
               <div style={{ fontSize: 13, fontWeight: 650, color: color.ink, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                 {e.title}

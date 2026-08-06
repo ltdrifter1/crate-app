@@ -35,12 +35,14 @@ function SceneSurfRail({
     <section
       aria-label="Channel dial"
       style={{
-        padding: compact ? "4px 0 2px" : (quiet ? "10px 0 8px" : "14px 0 8px"),
+        padding: compact ? "4px 0 2px" : (quiet ? "12px 0 10px" : "14px 0 8px"),
         width: "100%",
         maxWidth: compact ? 400 : "none",
-        animation: compact
-          ? `rise 0.4s ${motion.ease} both`
-          : `rise 0.55s ${motion.ease} 0.06s both`,
+        animation: quiet
+          ? "none"
+          : compact
+            ? `rise 0.4s ${motion.ease} both`
+            : `rise 0.55s ${motion.ease} 0.06s both`,
       }}
     >
       {showFullHeader && (
@@ -83,24 +85,13 @@ function SceneSurfRail({
       )}
 
       {showQuietHeader && (
-        <div style={{ padding: `0 ${homeSpace.gutter}px 10px` }}>
+        <div style={{ padding: `0 ${homeSpace.gutter}px 8px` }}>
           <div style={{
             fontFamily: fontMono, fontSize: 10, fontWeight: 800,
             letterSpacing: 1.6, textTransform: "uppercase", color: chrome.steel,
-            marginBottom: 4,
           }}>
             Channels
           </div>
-          <h3 style={{
-            margin: 0,
-            fontFamily: fontDisplay,
-            fontSize: 17,
-            fontWeight: 700,
-            letterSpacing: -0.25,
-            color: color.ink,
-          }}>
-            Channel dial
-          </h3>
         </div>
       )}
 

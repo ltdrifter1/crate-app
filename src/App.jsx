@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback, useMemo, lazy, Suspense } from "react";
 import { createPortal }                             from "react-dom";
 import { useNavigate, useLocation }                 from "react-router-dom";
+import { motion as Motion, useReducedMotion }                 from "framer-motion";
 import { useAuth }                                  from "./useAuth";
 import { toggleLike as fbToggleLike, recordPlay, completeOnboarding, saveGenres } from "./useUserData";
 import { collection, getDocs, addDoc, query, orderBy, doc, updateDoc, setDoc, deleteDoc } from "firebase/firestore";
@@ -12,6 +13,10 @@ import {
   APP_STYLE, INPUT_ST, BTN_PRIMARY, BTN_SECONDARY, CTRL_BTN, ADMIN_UID,
   BRAND_NAME, brandStoragePrefix,
 } from "./theme";
+import { duration as motionDuration } from "./motion/tokens";
+import Icon from "./components/ui/Icon";
+import CoverImage from "./components/ui/CoverImage";
+import VirtualList from "./components/ui/VirtualList";
 import { camelotCompatible, getEnergyRangeForHour, fmtTime, hexToRgbStr } from "./lib/harmony";
 import {
   computeHumanState, findResonant, computeSignalTraits, pickNextTrack,
@@ -528,73 +533,10 @@ function EnergyBar({ level, size="sm" }) {
   );
 }
 
-// ─── ICONS ────────────────────────────────────────────────────────────────────
-const Icon = ({ name, size=18 }) => {
-  const icons = {
-    play:       <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>,
-    pause:      <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>,
-    skip:       <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor"><path d="M6 18l8.5-6L6 6v12zm2-8.14L11.03 12 8 14.14V9.86zM16 6h2v12h-2z"/></svg>,
-    prev:       <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor"><path d="M6 6h2v12H6zm3.5 6 8.5 6V6z"/></svg>,
-    heart:      <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>,
-    heartempty: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>,
-    search:     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>,
-    home:       <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>,
-    profile:    <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>,
-    repeat:     <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor"><path d="M7 7h10v3l4-4-4-4v3H5v6h2V7zm10 10H7v-3l-4 4 4 4v-3h12v-6h-2v4z"/></svg>,
-    shuffle:    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 3h5v5"/><path d="M4 20L21 3"/><path d="M21 16v5h-5"/><path d="M15 15l6 6"/><path d="M4 4l5 5"/></svg>,
-    settings:   <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor"><path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.07-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.74,8.87C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.07,0.94l-2.03,1.58c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.47-0.12-0.61L19.14,12.94zM12,15.6c-1.98,0-3.6-1.62-3.6-3.6s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z"/></svg>,
-    plus:       <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>,
-    door:       <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="square" strokeLinejoin="miter"><path d="M6 4h12v16H6z"/><path d="M9 7h5.2l1.3 10H9z"/><circle cx="13.2" cy="12" r="0.9" fill="currentColor" stroke="none"/></svg>,
-    dig:        <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round"><path d="M4 8h16v3H4z"/><path d="M5 11h14v3H5z"/><path d="M6 14h12v3H6z"/><path d="M8 6l2-2h4l2 2"/></svg>,
-    chart:      <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M4 19h16"/><path d="M7 16V9"/><path d="M12 16V5"/><path d="M17 16v-6"/></svg>,
-    map:        <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round"><path d="M12 3l7 4v10l-7 4-7-4V7l7-4z"/><path d="M12 8v8M9 10.5h6"/></svg>,
-    drift:      <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 3c2 4 2 8 0 12s-2 8 0 12" opacity="0.5"/><path d="M3 12c4-2 8-2 12 0s8 2 12 0" opacity="0.5"/></svg>,
-    grid:       <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="3"/><circle cx="5" cy="7" r="2"/><circle cx="19" cy="7" r="2"/><circle cx="5" cy="17" r="2"/><circle cx="19" cy="17" r="2"/><path d="M7 8l3 3M17 8l-3 3M7 16l3-3M17 16l-3-3"/></svg>,
-    x:          <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>,
-    edit:       <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>,
-    trash:      <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>,
-    chev_up:    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M18 15l-6-6-6 6"/></svg>,
-    chev_down:  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M6 9l6 6 6-6"/></svg>,
-    queue:      <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M4 6h16M4 12h16M4 18h10"/><circle cx="18" cy="18" r="2" fill="currentColor" stroke="none"/></svg>,
-    volume:     <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor"><path d="M3 10v4h4l5 5V5L7 10H3zm13.5 2c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"/></svg>,
-    hypno:      <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.5" fill="currentColor" stroke="none"/></svg>,
-    // Session Dial — length (arc) + vibe (playlist bars). Key feature mark.
-    timedmix:   <TimedMixMark size={size} />,
-    flask:      <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><path d="M9 3h6"/><path d="M10 3v5.2L5.8 16.2A3.2 3.2 0 0 0 8.6 21h6.8a3.2 3.2 0 0 0 2.8-4.8L14 8.2V3"/><path d="M8.2 14.5h7.6" opacity="0.55"/><circle cx="12" cy="17.2" r="1.1" fill="currentColor" stroke="none" opacity="0.85"/></svg>,
-  };
-  return icons[name] || null;
-};
-
-/** Custom mark for timed playlist builder — duration dial + track bars. */
-function TimedMixMark({ size = 28, accent = color.accent }) {
-  const r = 9.2;
-  const c = 2 * Math.PI * r;
-  const arc = c * 0.72;
-  return (
-    <svg width={size} height={size} viewBox="0 0 32 32" fill="none" aria-hidden="true">
-      {/* Quiet dial track */}
-      <circle cx="16" cy="16" r={r} stroke="rgba(255,255,255,0.16)" strokeWidth="1.6"/>
-      {/* Length arc — accent segment */}
-      <circle
-        cx="16" cy="16" r={r}
-        stroke={accent}
-        strokeWidth="1.8"
-        strokeLinecap="round"
-        strokeDasharray={`${arc} ${c}`}
-        strokeDashoffset={28}
-        transform="rotate(-95 16 16)"
-        style={{ animation: "dialArc 1.1s cubic-bezier(0.22,1,0.36,1) both" }}
-      />
-      {/* Vibe bars — a short playlist inside the dial */}
-      <rect x="10.2" y="12.1" width="11.6" height="1.7" rx="0.85" fill="rgba(48,53,62,0.9)"/>
-      <rect x="10.2" y="15.15" width="8.4" height="1.7" rx="0.85" fill="rgba(32,36,43,0.65)"/>
-      <rect x="10.2" y="18.2" width="5.6" height="1.7" rx="0.85" fill={accent}/>
-    </svg>
-  );
-}
+// ─── ICONS → components/ui/Icon.jsx (Lucide + TimedMixMark) ───────────────────
 
 // ─── ALBUM ART — jewel-case when framed by parent ─────────────────────────────
-function AlbumArt({ track, size=300, borderRadius=8 }) {
+function AlbumArt({ track, size=300, borderRadius=8, priority=false }) {
   const [loaded, setLoaded] = useState(false);
   const [error, setError]   = useState(false);
   if (!track.albumCover || error) {
@@ -614,9 +556,16 @@ function AlbumArt({ track, size=300, borderRadius=8 }) {
   return (
     <div style={{ width: size, height: size, borderRadius, flexShrink: 0, position: "relative", overflow: "hidden", background: color.surfaceRaised }}>
       {!loaded && <div style={{ position: "absolute", inset: 0, background: `rgba(${hexToRgbStr(track.color)},0.12)`, animation: "shimmer 1.5s ease-in-out infinite" }}/>}
-      <img src={track.albumCover} alt={track.album} onLoad={() => setLoaded(true)} onError={() => setError(true)}
-        loading="lazy" decoding="async"
-        style={{ width: "100%", height: "100%", objectFit: "cover", display: "block", opacity: loaded ? 1 : 0, transition: "opacity 0.4s" }}/>
+      <CoverImage
+        src={track.albumCover}
+        alt={track.album || ""}
+        width={size}
+        height={size}
+        priority={priority}
+        onLoad={() => setLoaded(true)}
+        onError={() => setError(true)}
+        style={{ opacity: loaded ? 1 : 0, transition: "opacity 0.4s" }}
+      />
     </div>
   );
 }
@@ -631,7 +580,8 @@ function VinylRecord({ track, isPlaying, size=190 }) {
       boxShadow:"0 8px 32px rgba(0,0,0,0.25)",
     }}>
       {track.albumCover
-        ? <img src={track.albumCover} alt="" style={{ width:"100%", height:"100%", objectFit:"cover", display:"block" }}/>
+        ? <CoverImage src={track.albumCover} alt="" width={size} height={size} priority />
+
         : <div style={{ width:"100%", height:"100%", background:`linear-gradient(135deg,rgba(${hexToRgbStr(track.color)},0.4),#141416)` }}/>
       }
       <svg style={{ position:"absolute", inset:0 }} width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
@@ -3477,6 +3427,21 @@ function HomeScreen({
   onTuneSceneChannel = null,
 }) {
   const activeId = currentTrack?.id;
+  const reduceMotion = useReducedMotion();
+  const bandRise = reduceMotion
+    ? {}
+    : {
+        initial: { opacity: 0, y: 10 },
+        animate: { opacity: 1, y: 0 },
+        transition: { duration: motionDuration.base, ease: [0.22, 1, 0.36, 1] },
+      };
+  const shelfRise = reduceMotion
+    ? {}
+    : {
+        initial: { opacity: 0, y: 8 },
+        animate: { opacity: 1, y: 0 },
+        transition: { duration: motionDuration.settle, delay: 0.06, ease: [0.22, 1, 0.36, 1] },
+      };
   const playableCount = countPlayableTracks(tracks);
   const catalogEmpty = !catalogError && tracks.length === 0;
   const catalogDepleted = !catalogError && tracks.length > 0 && playableCount === 0;
@@ -3539,8 +3504,12 @@ function HomeScreen({
             already owns the live ON AIR hero, so we only show NowOnAirCard
             when that block isn't the active tuned show. */}
         {!catalogEmpty && !catalogError && (airing?.show || programGuide.length > 0 || countdown.length > 0) && (
-          <section aria-label="Tonight" style={{ paddingTop: 16, paddingBottom: 4 }}>
-            <div style={{ padding: `0 ${homeSpace.gutter}px 10px` }}>
+          <Motion.section
+            aria-label="Tonight"
+            {...bandRise}
+            style={{ paddingTop: 16, paddingBottom: 8 }}
+          >
+            <div style={{ padding: `0 ${homeSpace.gutter}px 12px` }}>
               <div style={{
                 fontFamily: fontMono, fontSize: 10, fontWeight: 800,
                 letterSpacing: 1.6, textTransform: "uppercase", color: chrome.steel,
@@ -3562,7 +3531,7 @@ function HomeScreen({
             </div>
 
             {airing?.show && !(activeShowId === airing.show.id && currentTrack) && (
-              <div style={{ paddingBottom: 8 }}>
+              <div style={{ paddingBottom: 10 }}>
                 <NowOnAirCard
                   airing={airing}
                   bumper={showBumper}
@@ -3577,6 +3546,7 @@ function HomeScreen({
                 guide={programGuide}
                 activeShowId={activeShowId}
                 onSelectShow={(show) => onTuneShow?.(show)}
+                embedded
               />
             )}
 
@@ -3586,26 +3556,33 @@ function HomeScreen({
                 onPlayTrack={onPlayTrack}
                 onTuneIn={onTuneCountdown}
                 activeId={activeId}
-               
                 compact
               />
             )}
-          </section>
+          </Motion.section>
         )}
 
         {/* Channel dial — hardware metaphor, quiet label */}
         {!catalogEmpty && !catalogError && (
-          <SceneSurfRail
-            tracks={tracks}
-            activeChannelId={sceneChannelsActiveId}
-            onTuneChannel={onTuneSceneChannel}
-            quiet
-          />
+          <Motion.div {...shelfRise}>
+            <SceneSurfRail
+              tracks={tracks}
+              activeChannelId={sceneChannelsActiveId}
+              onTuneChannel={onTuneSceneChannel}
+              quiet
+            />
+          </Motion.div>
         )}
 
         {/* Secondary shelves — quieter, after the channel jobs */}
         {!catalogEmpty && !catalogError && onBrowse && (
-          <div style={{
+          <Motion.div
+            {...(reduceMotion ? {} : {
+              initial: { opacity: 0, y: 8 },
+              animate: { opacity: 1, y: 0 },
+              transition: { duration: motionDuration.settle, delay: 0.1, ease: [0.22, 1, 0.36, 1] },
+            })}
+            style={{
             marginTop: 8,
             paddingTop: 18,
             borderTop: `1px solid ${glass.borderSoft}`,
@@ -3680,7 +3657,7 @@ function HomeScreen({
                 <span aria-hidden="true" style={{ color: chrome.steel, fontSize: 18 }}>→</span>
               </button>
             </section>
-          </div>
+          </Motion.div>
         )}
 
         {!catalogError && !catalogEmpty && countdown.length === 0 && !airing?.show && (
@@ -3711,6 +3688,7 @@ function SearchScreen({
   useEffect(() => { setShowAllResults(false); }, [query]);
   const RESULT_CAP = 50;
   const visibleResults = showAllResults ? results : results.slice(0, RESULT_CAP);
+  const useVirtual = showAllResults && results.length > RESULT_CAP;
   const hintChip = {
     background: `
       linear-gradient(165deg, rgba(38,43,51,0.82) 0%, rgba(28,32,38,0.5) 100%)
@@ -3842,9 +3820,20 @@ function SearchScreen({
           <div style={{ color: color.ink, fontSize:17, fontWeight:600, fontFamily: fontDisplay }}>No results</div>
         </div>
       )}
-      {visibleResults.map(t=>(
-        <TrackRow key={t.id} track={t} onPlay={()=>onPlay(t)} active={currentTrack?.id===t.id} onLike={onLike} playlistCtx={playlistCtx}/>
-      ))}
+      {useVirtual ? (
+        <VirtualList
+          items={results}
+          estimateSize={68}
+          maxHeight={typeof window !== "undefined" ? Math.min(window.innerHeight * 0.7, 720) : 560}
+          renderItem={(t) => (
+            <TrackRow track={t} onPlay={()=>onPlay(t)} active={currentTrack?.id===t.id} onLike={onLike} playlistCtx={playlistCtx}/>
+          )}
+        />
+      ) : (
+        visibleResults.map(t=>(
+          <TrackRow key={t.id} track={t} onPlay={()=>onPlay(t)} active={currentTrack?.id===t.id} onLike={onLike} playlistCtx={playlistCtx}/>
+        ))
+      )}
       {!showAllResults && results.length > RESULT_CAP && (
         <button type="button" onClick={() => setShowAllResults(true)}
           style={{ ...BTN_SECONDARY, marginTop: 12, fontSize: 14, padding: "11px 16px" }}>
@@ -5297,23 +5286,28 @@ function AdminScreen({
             </button>
           )}
           <SectionLabel>Library ({tracks.length})</SectionLabel>
-          {tracks.map(t=>(
-            <div key={t.id} style={{ display:"flex", alignItems:"center", gap:10, padding:"10px 12px", background:"rgba(255,255,255,0.15)", backdropFilter:"blur(32px)", borderRadius:10, marginBottom:4, border:"1px solid rgba(255,255,255,0.16)" }}>
-              <div style={{ width:36, height:36, borderRadius:7, overflow:"hidden", flexShrink:0 }}><AlbumArt track={t} size={36} borderRadius={0}/></div>
-              <div style={{ flex:1, minWidth:0 }}>
-                <div style={{ fontSize:14, fontWeight:500, color: color.ink, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{t.title}</div>
-                <div style={{ fontSize:12, color: isUnknownArtist(t.artist) ? "#E8A0A0" : color.muted }}>{t.artist || "Unknown"}</div>
+          <VirtualList
+            items={tracks}
+            estimateSize={60}
+            maxHeight={Math.min(560, Math.max(240, tracks.length * 60))}
+            renderItem={(t) => (
+              <div style={{ display:"flex", alignItems:"center", gap:10, padding:"10px 12px", background:"rgba(255,255,255,0.15)", backdropFilter:"blur(32px)", borderRadius:10, marginBottom:4, border:"1px solid rgba(255,255,255,0.16)", height: 56, boxSizing: "border-box" }}>
+                <div style={{ width:36, height:36, borderRadius:7, overflow:"hidden", flexShrink:0 }}><AlbumArt track={t} size={36} borderRadius={0}/></div>
+                <div style={{ flex:1, minWidth:0 }}>
+                  <div style={{ fontSize:14, fontWeight:500, color: color.ink, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{t.title}</div>
+                  <div style={{ fontSize:12, color: isUnknownArtist(t.artist) ? "#E8A0A0" : color.muted }}>{t.artist || "Unknown"}</div>
+                </div>
+                <div style={{ display:"flex", gap:4, flexShrink:0, flexWrap:"wrap", justifyContent:"flex-end", maxWidth:180 }}>
+                  {t.genre&&<span style={{ fontSize:10, fontWeight:500, padding:"2px 8px", borderRadius:6, background:"rgba(26,29,38,0.06)", color: color.ink }}>{t.genre}</span>}
+                  {t.camelot&&<span style={{ fontSize:10, fontWeight:600, padding:"2px 8px", borderRadius:6, background:"rgba(26,29,38,0.08)", color: color.ink }}>{t.camelot}</span>}
+                  {t.bpm&&<span style={{ fontSize:10, fontWeight:500, padding:"2px 8px", borderRadius:6, background:"rgba(0,0,0,0.04)", color: color.muted }}>{t.bpm}bpm</span>}
+                  {t.energy&&<span style={{ fontSize:10, fontWeight:500, padding:"2px 8px", borderRadius:6, background:"rgba(0,0,0,0.04)", color: color.muted }}>E{t.energy}</span>}
+                </div>
+                <button type="button" onClick={()=>setEditTrack(t)} style={{ background:"none",border:"none",cursor:"pointer",color: color.muted,padding:6 }}><Icon name="edit" size={14}/></button>
+                <button type="button" onClick={()=>handleDeleteTrack(t)} style={{ background:"none",border:"none",cursor:"pointer",color: color.alert,padding:6 }}><Icon name="trash" size={14}/></button>
               </div>
-              <div style={{ display:"flex", gap:4, flexShrink:0, flexWrap:"wrap", justifyContent:"flex-end", maxWidth:180 }}>
-                {t.genre&&<span style={{ fontSize:10, fontWeight:500, padding:"2px 8px", borderRadius:6, background:"rgba(26,29,38,0.06)", color: color.ink }}>{t.genre}</span>}
-                {t.camelot&&<span style={{ fontSize:10, fontWeight:600, padding:"2px 8px", borderRadius:6, background:"rgba(26,29,38,0.08)", color: color.ink }}>{t.camelot}</span>}
-                {t.bpm&&<span style={{ fontSize:10, fontWeight:500, padding:"2px 8px", borderRadius:6, background:"rgba(0,0,0,0.04)", color: color.muted }}>{t.bpm}bpm</span>}
-                {t.energy&&<span style={{ fontSize:10, fontWeight:500, padding:"2px 8px", borderRadius:6, background:"rgba(0,0,0,0.04)", color: color.muted }}>E{t.energy}</span>}
-              </div>
-              <button onClick={()=>setEditTrack(t)} style={{ background:"none",border:"none",cursor:"pointer",color: color.muted,padding:6 }}><Icon name="edit" size={14}/></button>
-              <button onClick={()=>handleDeleteTrack(t)} style={{ background:"none",border:"none",cursor:"pointer",color: color.alert,padding:6 }}><Icon name="trash" size={14}/></button>
-            </div>
-          ))}
+            )}
+          />
         </div>
       )}
       {tab==="analytics"&&(

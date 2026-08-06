@@ -15,6 +15,7 @@ import {
   STATION_CALLSIGN,
   resolveChannelBug,
 } from "../../lib/mtvChannel";
+import CoverImage from "../ui/CoverImage";
 
 /** Soft neon kinetic bars — visualizer stand-in when no music video. */
 export function HypnoVisualizer({ playing = false, colorHex = null }) {
@@ -484,26 +485,15 @@ export function UpNextBumper({ track = null }) {
       }}>
         Up Next
       </div>
-      {track.albumCover ? (
-        <img
-          src={track.albumCover}
-          alt=""
-          width={28}
-          height={28}
-          style={{
-            borderRadius: 8,
-            objectFit: "cover",
-            flexShrink: 0,
-            boxShadow: "0 2px 8px rgba(18,20,26,0.12)",
-          }}
-        />
-      ) : (
-        <div style={{
-          width: 28, height: 28, borderRadius: 8, flexShrink: 0,
-          background: "rgba(18,20,26,0.08)",
-          border: `1px solid ${glass.borderSoft}`,
-        }} />
-      )}
+      <div style={{
+        width: 28, height: 28, borderRadius: 8, flexShrink: 0,
+        overflow: "hidden",
+        background: "rgba(18,20,26,0.08)",
+        border: `1px solid ${glass.borderSoft}`,
+        boxShadow: "0 2px 8px rgba(18,20,26,0.12)",
+      }}>
+        <CoverImage src={track.albumCover} width={28} height={28} alt="" />
+      </div>
       <div style={{ minWidth: 0, flex: 1 }}>
         <div style={{
           fontSize: 12, fontWeight: 700, color: color.ink,

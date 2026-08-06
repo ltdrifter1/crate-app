@@ -329,6 +329,8 @@ export function ShowGuideRail({
   guide = [],
   activeShowId = null,
   onSelectShow = null,
+  /** When true (Home Tonight band), drop nested headers — parent owns the title. */
+  embedded = false,
 }) {
   if (!guide.length) return null;
 
@@ -336,37 +338,39 @@ export function ShowGuideRail({
     <section
       aria-label="Today’s program guide"
       style={{
-        padding: `18px 0 8px`,
-        animation: `rise 0.55s ${motion.ease} 0.04s both`,
+        padding: embedded ? "4px 0 6px" : "18px 0 8px",
+        animation: embedded ? "none" : `rise 0.55s ${motion.ease} 0.04s both`,
       }}
     >
-      <div style={{
-        padding: `0 ${homeSpace.gutter}px 10px`,
-        display: "flex",
-        justifyContent: "space-between",
-        alignItems: "baseline",
-        gap: 12,
-      }}>
-        <div>
-          <div style={{
-            fontFamily: fontMono, fontSize: 10, fontWeight: 800,
-            letterSpacing: 1.5, textTransform: "uppercase", color: chrome.steel,
-            marginBottom: 4,
-          }}>
-            Program guide
+      {!embedded && (
+        <div style={{
+          padding: `0 ${homeSpace.gutter}px 10px`,
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "baseline",
+          gap: 12,
+        }}>
+          <div>
+            <div style={{
+              fontFamily: fontMono, fontSize: 10, fontWeight: 800,
+              letterSpacing: 1.5, textTransform: "uppercase", color: chrome.steel,
+              marginBottom: 4,
+            }}>
+              Program guide
+            </div>
+            <h3 style={{
+              margin: 0,
+              fontFamily: fontDisplay,
+              fontSize: 18,
+              fontWeight: 750,
+              letterSpacing: -0.3,
+              color: color.ink,
+            }}>
+              Today’s blocks
+            </h3>
           </div>
-          <h3 style={{
-            margin: 0,
-            fontFamily: fontDisplay,
-            fontSize: 18,
-            fontWeight: 750,
-            letterSpacing: -0.3,
-            color: color.ink,
-          }}>
-            Today’s blocks
-          </h3>
         </div>
-      </div>
+      )}
 
       <div
         className="hide-scroll"
@@ -374,7 +378,9 @@ export function ShowGuideRail({
           display: "flex",
           gap: 10,
           overflowX: "auto",
-          padding: `2px ${homeSpace.gutter}px 12px`,
+          padding: embedded
+            ? `2px ${homeSpace.gutter}px 8px`
+            : `2px ${homeSpace.gutter}px 12px`,
           scrollSnapType: "x mandatory",
         }}
       >
