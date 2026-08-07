@@ -4,7 +4,7 @@
 
 import React, { useEffect, useRef, useState } from "react";
 import { Zap } from "lucide-react";
-import { color, glass, fontMono } from "../../theme";
+import { color, glass, fontMono, hardware, hardwareKey } from "../../theme";
 import { useEnergyQueue } from "../../useEnergyQueue";
 
 const PRESS_EASE = "cubic-bezier(0.34, 1.4, 0.64, 1)";
@@ -428,25 +428,23 @@ export function EnergyShiftControl({
         onPointerEnter={(e) => { if (e.pointerType !== "touch") setHovered(true); }}
         onPointerLeave={() => setHovered(false)}
         style={{
+          ...hardwareKey({ pressed: active || open, size: "md" }),
           width: labeled ? "auto" : size,
           height: labeled ? 40 : size,
+          minHeight: labeled ? 40 : size,
           padding: labeled ? "0 12px 0 8px" : 0,
           gap: labeled ? 8 : 0,
-          borderRadius: labeled ? 12 : "50%",
+          borderRadius: 4,
           display: "inline-flex",
           alignItems: "center",
           justifyContent: "center",
           cursor: "pointer",
-          color: active || open ? color.ink : color.muted,
-          background: active || open
-            ? `linear-gradient(180deg, rgba(42,47,55,0.85) 0%, rgba(29,33,39,0.58) 100%)`
-            : glass.fillStrong,
-          border: `1px solid ${active || open ? color.lineStrong : glass.border}`,
-          backdropFilter: glass.blurSoft,
-          WebkitBackdropFilter: glass.blurSoft,
-          boxShadow: hovered || active || open
-            ? `inset 0 1px 0 ${glass.highlight}, 0 0 0 3px rgba(26,29,36,0.06), 0 4px 14px rgba(26,29,36,0.12)`
-            : `inset 0 1px 0 ${glass.highlight}, ${glass.shadowSoft}`,
+          color: active || open ? color.accent : color.muted,
+          boxShadow: active || open
+            ? hardware.keyPressed
+            : hovered
+              ? `${hardware.keyRaised}, 0 0 0 2px rgba(169,199,228,0.1)`
+              : hardware.keyRaised,
           transform: hovered ? "scale(1.04)" : "scale(1)",
           transition: `transform 0.28s ${PRESS_EASE}, box-shadow 0.35s ease, color 0.2s ease, border-color 0.2s ease`,
           WebkitTapHighlightColor: "transparent",
@@ -458,8 +456,8 @@ export function EnergyShiftControl({
         {labeled && (
           <span style={{
             fontFamily: fontMono,
-            fontSize: 9,
-            fontWeight: 700,
+            fontSize: 11,
+            fontWeight: 800,
             letterSpacing: 0.9,
             textTransform: "uppercase",
             lineHeight: 1,
@@ -499,8 +497,8 @@ export function EnergyShiftControl({
           }}>
             <div style={{
               fontFamily: fontMono,
-              fontSize: 10,
-              fontWeight: 700,
+              fontSize: 11,
+              fontWeight: 800,
               letterSpacing: 1,
               textTransform: "uppercase",
               color: color.faint,
@@ -543,8 +541,8 @@ export function EnergyShiftControl({
             justifyContent: "space-between",
             marginTop: 8,
             fontFamily: fontMono,
-            fontSize: 9,
-            fontWeight: 700,
+            fontSize: 11,
+            fontWeight: 800,
             letterSpacing: 0.8,
             textTransform: "uppercase",
             color: color.faint,

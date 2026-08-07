@@ -90,8 +90,8 @@ function SceneSurfRail({
           </div>
           <div style={{
             fontFamily: fontMono,
-            fontSize: 9,
-            fontWeight: 650,
+            fontSize: 11,
+            fontWeight: 800,
             letterSpacing: 0.8,
             textTransform: "uppercase",
             color: color.faint,
@@ -174,11 +174,11 @@ function SceneSurfRail({
                 </span>
                 <span style={{
                   fontFamily: fontMono,
-                  fontSize: 8,
+                  fontSize: 11,
                   fontWeight: 800,
-                  letterSpacing: 1.1,
+                  letterSpacing: 0.8,
                   textTransform: "uppercase",
-                  color: active ? color.accent : color.faint,
+                  color: active ? color.accent : color.muted,
                   padding: "2px 5px",
                   borderRadius: 3,
                   background: "rgba(8,9,11,0.42)",
@@ -216,11 +216,11 @@ function SceneSurfRail({
                   }} />
                   <span style={{
                     fontFamily: fontMono,
-                    fontSize: 8,
-                    fontWeight: 700,
+                    fontSize: 11,
+                    fontWeight: 800,
                     letterSpacing: 0.8,
                     textTransform: "uppercase",
-                    color: color.faint,
+                    color: color.muted,
                   }}>
                     {ch.count} cuts
                   </span>

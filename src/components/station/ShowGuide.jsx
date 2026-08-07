@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import {
-  color, fontDisplay, fontMono, glass, homeSpace, motion, chrome
+  color, fontDisplay, fontMono, glass, homeSpace, motion, chrome, hardware
 } from "../../theme";
 import {
   buildDailyGuide,
@@ -23,7 +23,7 @@ function HostAvatar({ host, size = 44 }) {
         alignItems: "center",
         justifyContent: "center",
         fontFamily: fontMono,
-        fontSize: size * 0.28,
+        fontSize: Math.max(10, size * 0.28),
         fontWeight: 800,
         letterSpacing: 0.5,
         color: "#fff",
@@ -48,8 +48,8 @@ export function HostCreditChip({ show, compact = false, onClick = null, tone = "
     ? (compact ? color.muted : color.muted)
     : (compact ? "rgba(242,244,247,0.55)" : color.faint);
   const nameColor = onGlass
-    ? color.ink
-    : (compact ? color.onDark : color.ink);
+    ? color.body
+    : (compact ? color.onDarkMuted : color.body);
 
   const inner = (
     <>
@@ -57,9 +57,9 @@ export function HostCreditChip({ show, compact = false, onClick = null, tone = "
       <div style={{ minWidth: 0 }}>
         <div style={{
           fontFamily: fontMono,
-          fontSize: compact ? 9 : 10,
+          fontSize: 11,
           fontWeight: 800,
-          letterSpacing: 1.2,
+          letterSpacing: 0.9,
           textTransform: "uppercase",
           color: labelColor,
         }}>
@@ -67,7 +67,7 @@ export function HostCreditChip({ show, compact = false, onClick = null, tone = "
         </div>
         <div style={{
           fontSize: compact ? 13 : 14,
-          fontWeight: 750,
+          fontWeight: 550,
           letterSpacing: -0.15,
           color: nameColor,
           overflow: "hidden",
@@ -85,14 +85,10 @@ export function HostCreditChip({ show, compact = false, onClick = null, tone = "
     alignItems: "center",
     gap: 9,
     padding: compact ? "5px 12px 5px 5px" : "6px 12px 6px 6px",
-    borderRadius: 4,
-    background: onGlass
-      ? (compact ? "rgba(18,20,24,0.92)" : glass.fillStrong)
-      : (compact ? "rgba(255,255,255,0.08)" : glass.fillStrong),
-    border: `1px solid ${onGlass ? glass.borderSoft : (compact ? "rgba(255,255,255,0.12)" : glass.border)}`,
-    boxShadow: onGlass
-      ? `inset 0 1px 0 ${glass.highlight}`
-      : (compact ? "none" : `inset 0 1px 0 ${glass.highlight}`),
+    borderRadius: 5,
+    background: hardware.keyFace,
+    border: "1px solid rgba(255,255,255,0.14)",
+    boxShadow: hardware.plateEdge,
     maxWidth: 240,
     cursor: onClick ? "pointer" : "default",
   };
