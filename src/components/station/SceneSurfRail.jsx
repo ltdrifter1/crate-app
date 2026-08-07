@@ -1,13 +1,13 @@
 import { memo, useMemo, useState } from "react";
 import {
-  color, fontDisplay, fontMono, glass, homeSpace, motion, radius, chrome
+  color, fontDisplay, fontMono, glass, homeSpace, motion, chrome
 } from "../../theme";
 import { availableSceneChannels } from "../../lib/sceneChannels";
 import { formatChannelNum } from "../../lib/mtvChannel";
 
 /**
  * Channel dial — zap between scene channels with CH-IDs.
- * Premium frosted Y2K chrome plates (compact mode for the booth player).
+ * Literal machined dial plates (compact mode for the booth player).
  */
 function SceneSurfRail({
   tracks = [],
@@ -47,48 +47,24 @@ function SceneSurfRail({
     >
       {showFullHeader && (
         <div style={{ padding: `0 ${homeSpace.gutter}px 12px` }}>
-          <div style={{
-            display: "inline-flex",
-            alignItems: "center",
-            gap: 8,
-            marginBottom: 6,
-          }}>
-            <span aria-hidden="true" style={{
-              width: 10, height: 10,
-              borderRadius: 2,
-              background: glass.chrome,
-              border: `1px solid ${glass.border}`,
-              boxShadow: `inset 0 1px 0 ${glass.highlight}, 0 0 0 1px rgba(18,20,26,0.06)`,
-              transform: "rotate(45deg)",
-            }} />
-            <div style={{
-              fontFamily: fontMono, fontSize: 11, fontWeight: 800,
-              letterSpacing: 1.6, textTransform: "uppercase", color: chrome.steel,
-            }}>
-              Channel surfing
-            </div>
-          </div>
           <h3 style={{
             margin: 0,
             fontFamily: fontDisplay,
-            fontSize: "clamp(22px, 4vw, 26px)",
-            fontWeight: 800,
-            letterSpacing: -0.4,
+            fontSize: "clamp(20px, 3.6vw, 24px)",
+            fontWeight: 750,
+            letterSpacing: -0.3,
             color: color.ink,
           }}>
-            Zap the dial
+            Channel surfing
           </h3>
-          <p style={{ margin: "6px 0 0", fontSize: 14, fontWeight: 500, color: color.muted, lineHeight: 1.4 }}>
-            Scene channels under the genres — tune one and play.
-          </p>
         </div>
       )}
 
       {showQuietHeader && (
         <div style={{ padding: `0 ${homeSpace.gutter}px 10px` }}>
           <div style={{
-            fontFamily: fontMono, fontSize: 11, fontWeight: 800,
-            letterSpacing: 1.5, textTransform: "uppercase", color: chrome.steel,
+            fontFamily: fontDisplay, fontSize: 13, fontWeight: 650,
+            letterSpacing: -0.1, color: color.muted,
           }}>
             Channel surfing
           </div>
@@ -104,11 +80,10 @@ function SceneSurfRail({
           padding: "0 2px 8px",
         }}>
           <div style={{
-            fontFamily: fontMono,
-            fontSize: 11,
-            fontWeight: 800,
-            letterSpacing: 1.2,
-            textTransform: "uppercase",
+            fontFamily: fontDisplay,
+            fontSize: 13,
+            fontWeight: 650,
+            letterSpacing: -0.1,
             color: color.muted,
           }}>
             Channel surfing
@@ -157,21 +132,19 @@ function SceneSurfRail({
                 scrollSnapAlign: "start",
                 textAlign: "left",
                 padding: 0,
-                borderRadius: radius.lg,
+                borderRadius: 6,
                 cursor: "pointer",
-                border: `1px solid ${active ? glass.border : glass.borderSoft}`,
+                border: `1px solid ${active ? color.accent : glass.borderSoft}`,
                 background: active
                   ? `
-                    linear-gradient(160deg, rgba(52,58,68,0.92) 0%, rgba(25,28,34,0.78) 45%, rgba(${hexToRgb(ch.accent)},0.22) 100%)
+                    linear-gradient(160deg, rgba(48,53,62,0.98) 0%, rgba(20,23,28,0.98) 72%)
                   `
                   : `
-                    linear-gradient(165deg, rgba(34,38,45,0.72) 0%, rgba(28,32,38,0.42) 100%)
+                    linear-gradient(160deg, rgba(41,46,54,0.96) 0%, rgba(21,24,29,0.98) 72%)
                   `,
                 boxShadow: active
-                  ? `inset 0 1px 0 ${glass.highlight}, 0 10px 28px rgba(18,20,26,0.12), 0 0 0 1px rgba(18,20,26,0.06)`
-                  : `inset 0 1px 0 ${glass.highlight}, ${glass.shadowSoft}`,
-                backdropFilter: glass.blurSoft,
-                WebkitBackdropFilter: glass.blurSoft,
+                  ? `inset 4px 0 0 ${color.accent}, inset 0 1px 0 ${glass.highlight}, inset 0 -1px 0 rgba(0,0,0,0.5)`
+                  : `inset 0 1px 0 ${glass.highlight}, inset 0 -1px 0 rgba(0,0,0,0.5)`,
                 overflow: "hidden",
                 animation: zapping ? "channelZap 0.42s ease both" : undefined,
                 color: color.ink,
@@ -179,7 +152,7 @@ function SceneSurfRail({
               }}
             >
               <div style={{
-                padding: compact ? "7px 9px 5px" : "8px 10px 6px",
+                padding: compact ? "8px 9px 6px" : "9px 10px 7px",
                 borderBottom: `1px solid ${glass.borderSoft}`,
                 display: "flex",
                 justifyContent: "space-between",
@@ -191,10 +164,11 @@ function SceneSurfRail({
               }}>
                 <span style={{
                   fontFamily: fontMono,
-                  fontSize: compact ? 12 : 13,
+                  fontSize: compact ? 20 : 24,
                   fontWeight: 900,
-                  letterSpacing: 0.4,
-                  color: active ? color.ink : chrome.steel,
+                  letterSpacing: -1,
+                  lineHeight: 1,
+                  color: active ? color.accent : color.ink,
                 }}>
                   {chLabel}
                 </span>
@@ -204,18 +178,16 @@ function SceneSurfRail({
                   fontWeight: 800,
                   letterSpacing: 1.1,
                   textTransform: "uppercase",
-                  color: active ? color.body : color.faint,
-                  padding: "2px 6px",
-                  borderRadius: radius.pill,
-                  background: active
-                    ? "rgba(42,46,56,0.1)"
-                    : "rgba(28,32,38,0.55)",
+                  color: active ? color.accent : color.faint,
+                  padding: "2px 5px",
+                  borderRadius: 3,
+                  background: "rgba(8,9,11,0.42)",
                   border: `1px solid ${glass.borderSoft}`,
                 }}>
                   {active ? "Tuned" : "Zap"}
                 </span>
               </div>
-              <div style={{ padding: compact ? "8px 9px 10px" : "10px 10px 12px" }}>
+              <div style={{ padding: compact ? "8px 9px 10px" : "9px 10px 11px" }}>
                 <div style={{
                   fontFamily: fontMono,
                   fontSize: compact ? 11 : 12,
@@ -224,25 +196,10 @@ function SceneSurfRail({
                   textTransform: "uppercase",
                   color: color.ink,
                   lineHeight: 1.2,
-                  minHeight: compact ? 24 : 28,
+                  minHeight: compact ? 24 : 15,
                 }}>
                   {slug}
                 </div>
-                {!compact && (
-                  <div style={{
-                    marginTop: 6,
-                    fontSize: 11,
-                    fontWeight: 500,
-                    color: color.muted,
-                    lineHeight: 1.35,
-                    display: "-webkit-box",
-                    WebkitLineClamp: 2,
-                    WebkitBoxOrient: "vertical",
-                    overflow: "hidden",
-                  }}>
-                    {ch.tagline}
-                  </div>
-                )}
                 <div style={{
                   marginTop: compact ? 8 : 10,
                   display: "flex",
@@ -253,8 +210,8 @@ function SceneSurfRail({
                     width: 6,
                     height: 6,
                     borderRadius: "50%",
-                    background: ch.accent || chrome.live,
-                    boxShadow: `0 0 0 2px rgba(${hexToRgb(ch.accent || "#B8C0CC")},0.25)`,
+                    background: active ? color.accent : chrome.steel,
+                    boxShadow: "none",
                     flexShrink: 0,
                   }} />
                   <span style={{
@@ -275,15 +232,6 @@ function SceneSurfRail({
       </div>
     </section>
   );
-}
-
-function hexToRgb(hex) {
-  if (!hex || typeof hex !== "string") return "184,192,204";
-  const h = hex.replace("#", "");
-  if (h.length !== 6) return "184,192,204";
-  const n = parseInt(h, 16);
-  if (Number.isNaN(n)) return "184,192,204";
-  return `${(n >> 16) & 255},${(n >> 8) & 255},${n & 255}`;
 }
 
 export default memo(SceneSurfRail);

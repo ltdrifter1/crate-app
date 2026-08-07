@@ -21,7 +21,7 @@ import {
 import { HostCreditChip } from "./ShowGuide";
 import VideoStage, { VideoBadge } from "./VideoStage";
 import { color, dock, fontDisplay, fontMono, glass, homeSpace, motion, aluminumGradient } from "../../theme";
-import { fmtTime, hexToRgbStr } from "../../lib/harmony";
+import { fmtTime } from "../../lib/harmony";
 import { trackHasVideo } from "../../lib/video";
 import { usePlayerPlayback } from "../../usePlayerPlayback";
 import { useIsPlaying } from "../../usePlayerTransport";
@@ -67,18 +67,18 @@ export function CoverStageAtmosphere({ track = null, playing = false, live = fal
         />
       )}
 
-      {/* Soft aluminum veil so chrome stays readable — cool Y2K grey, never OLED */}
+      {/* Cinematic broadcast veil — preserve sleeve color without washing it out. */}
       <div style={{
         position: "absolute",
         inset: 0,
         background: hasArt
           ? `
-            linear-gradient(180deg, rgba(226,230,237,0.58) 0%, rgba(226,230,237,0.12) 28%, rgba(226,230,237,0.08) 48%, rgba(226,230,237,0.84) 78%, rgba(226,230,237,0.97) 100%),
-            radial-gradient(ellipse 70% 50% at 50% 18%, rgba(255,255,255,0.22) 0%, transparent 65%)
+            linear-gradient(180deg, rgba(5,6,8,0.78) 0%, rgba(5,6,8,0.3) 24%, rgba(5,6,8,0.12) 48%, rgba(5,6,8,0.68) 76%, rgba(5,6,8,0.94) 100%),
+            radial-gradient(ellipse 76% 52% at 50% 24%, transparent 0%, rgba(5,6,8,0.16) 68%, rgba(5,6,8,0.42) 100%)
           `
           : `
             radial-gradient(ellipse 80% 50% at 50% 18%, rgba(169,199,228,0.05) 0%, transparent 60%),
-            linear-gradient(180deg, rgba(226,230,237,0.08) 0%, transparent 30%, transparent 55%, rgba(226,230,237,0.92) 100%)
+            linear-gradient(180deg, rgba(8,9,11,0.08) 0%, transparent 30%, transparent 55%, rgba(8,9,11,0.72) 100%)
           `,
       }}/>
     </div>
@@ -117,7 +117,6 @@ export default function CoverStage({
   const playingVisual = !!(live && isPlaying);
   const displayTrack = currentTrack || previewTrack || null;
   const showStation = !!(live && stationMode);
-  const rgb = displayTrack?.color ? hexToRgbStr(displayTrack.color) : "42,46,56";
   const onAirLabel = liveShow?.shortTitle || liveShow?.title || daypart?.label || (mixLane === "night" ? "Night Crash" : "Daytime Live");
 
   useEffect(() => {
@@ -178,7 +177,10 @@ export default function CoverStage({
           progress={progress}
         />
       ) : (
-        showStation && <HypnoVisualizer playing={playingVisual} colorHex={rgb} />
+        // Prefer the sleeve as the broadcast plane; hypno only when no art.
+        showStation && !stageTrack?.albumCover && (
+          <HypnoVisualizer playing={playingVisual} colorHex="169,199,228" />
+        )
       )}
 
       {live && (
@@ -198,54 +200,48 @@ export default function CoverStage({
         />
       )}
 
-      {/* Top chrome — On Air callsign + channel bug */}
-      <div
-        style={{
-          position: "absolute",
-          top: 0, left: 0, right: 0, zIndex: 3,
-          padding: `calc(12px + env(safe-area-inset-top, 0px)) ${homeSpace.gutter}px 0`,
-          display: "flex",
-          flexDirection: "column",
-          gap: 8,
-          pointerEvents: "none",
-        }}
-      >
-        <div style={{
-          display: "flex",
-          alignItems: "flex-start",
-          justifyContent: "space-between",
-          gap: 10,
-        }}>
-          <div style={{ pointerEvents: "none", minWidth: 0 }}>
-            {(showStation || !live) && (
+      {/* One hard top strip: ON AIR / callsign / show at left, CH-ID at right. */}
+      {showStation && (
+        <div
+          style={{
+            position: "absolute",
+            top: 0, left: 0, right: 0, zIndex: 3,
+            paddingTop: "env(safe-area-inset-top, 0px)",
+            pointerEvents: "none",
+            background: `
+              repeating-linear-gradient(90deg, rgba(255,255,255,0.018) 0 1px, transparent 1px 4px),
+              ${glass.frame}
+            `,
+            borderBottom: "1px solid rgba(0,0,0,0.72)",
+            boxShadow: "inset 0 1px 0 rgba(255,255,255,0.1), 0 6px 16px rgba(0,0,0,0.34)",
+          }}
+        >
+          <div style={{
+            minHeight: 44,
+            display: "flex",
+            alignItems: "stretch",
+            justifyContent: "space-between",
+            gap: 8,
+          }}>
+            <div style={{ pointerEvents: "none", minWidth: 0 }}>
               <OnAirBadge
                 showTitle={liveShow ? (liveShow.shortTitle || liveShow.title) : null}
                 daypartLabel={onAirLabel}
+                integrated
               />
-            )}
-          </div>
-          <div style={{
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "flex-end",
-            gap: 8,
-            flexShrink: 0,
-          }}>
-            {showStation && (
+            </div>
+            <div style={{ display: "flex", alignItems: "stretch", flexShrink: 0 }}>
               <ChannelBug
                 sceneChannel={sceneChannel}
                 show={sceneChannel ? null : liveShow}
                 daypartLabel={daypart?.label || onAirLabel}
+                integrated
               />
-            )}
+            </div>
           </div>
+          {tickerText && <StationTicker text={tickerText} dense />}
         </div>
-        {showStation && tickerText && (
-          <div style={{ margin: `0 -${homeSpace.gutter}px`, pointerEvents: "none" }}>
-            <StationTicker text={tickerText} dense />
-          </div>
-        )}
-      </div>
+      )}
 
       {/* Idle brand plane — mascot stays in the visual field */}
       {!live && (
@@ -303,41 +299,40 @@ export default function CoverStage({
               width: "100%",
               maxWidth: "none",
               pointerEvents: "auto",
-              borderRadius: "22px 22px 0 0",
+              borderRadius: "10px 10px 0 0",
               padding: "16px 18px 14px",
               background: `
+                repeating-linear-gradient(90deg, rgba(255,255,255,0.014) 0 1px, transparent 1px 4px),
                 linear-gradient(180deg,
-                  rgba(38,43,52,0.92) 0%,
-                  rgba(24,27,33,0.88) 48%,
-                  rgba(16,18,22,0.94) 100%)
+                  rgba(45,50,58,0.98) 0%,
+                  rgba(25,28,34,0.98) 38%,
+                  rgba(12,14,17,0.99) 100%)
               `,
               border: "none",
-              borderTop: `1px solid rgba(255,255,255,0.16)`,
+              borderTop: `2px solid rgba(255,255,255,0.2)`,
               boxShadow: `
-                inset 0 1px 0 rgba(255,255,255,0.14),
-                0 -18px 48px rgba(8,10,14,0.35),
-                0 -4px 16px rgba(8,10,14,0.18)
+                inset 0 1px 0 rgba(255,255,255,0.08),
+                inset 0 -1px 0 rgba(0,0,0,0.55),
+                0 -12px 28px rgba(0,0,0,0.42)
               `,
-              backdropFilter: "blur(48px) saturate(1.35)",
-              WebkitBackdropFilter: "blur(48px) saturate(1.35)",
               animation: `dockRise 0.55s ${motion.ease} both`,
               position: "relative",
               overflow: "hidden",
             }}
           >
-            {/* Soft edge bloom — premium frosted rim */}
+            {/* Fine brushed grain catches the top studio light. */}
             <div
               aria-hidden="true"
               style={{
                 position: "absolute",
                 inset: 0,
-                borderRadius: "22px 22px 0 0",
+                borderRadius: "10px 10px 0 0",
                 pointerEvents: "none",
                 background: `
-                  radial-gradient(ellipse 80% 40% at 50% 0%, rgba(169,199,228,0.08) 0%, transparent 55%),
-                  linear-gradient(180deg, rgba(255,255,255,0.1) 0%, transparent 28%)
+                  linear-gradient(180deg, rgba(255,255,255,0.055) 0%, transparent 18%),
+                  repeating-linear-gradient(0deg, transparent 0 2px, rgba(255,255,255,0.008) 2px 3px)
                 `,
-                boxShadow: "inset 0 0 0 1px rgba(255,255,255,0.06)",
+                boxShadow: "inset 1px 0 0 rgba(255,255,255,0.05), inset -1px 0 0 rgba(0,0,0,0.28)",
               }}
             />
 
@@ -441,11 +436,9 @@ export default function CoverStage({
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
-                      background: "rgba(32,36,43,0.65)",
+                      background: "rgba(18,20,24,0.96)",
                       border: `1px solid ${glass.borderSoft}`,
                       boxShadow: `inset 0 1px 0 ${glass.highlight}`,
-                      backdropFilter: glass.blurSoft,
-                      WebkitBackdropFilter: glass.blurSoft,
                       color: live ? color.ink : color.faint,
                       cursor: live ? "pointer" : "default",
                       opacity: live ? 1 : 0.45,
@@ -489,11 +482,9 @@ export default function CoverStage({
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
-                      background: "rgba(32,36,43,0.65)",
+                      background: "rgba(18,20,24,0.96)",
                       border: `1px solid ${glass.borderSoft}`,
                       boxShadow: `inset 0 1px 0 ${glass.highlight}`,
-                      backdropFilter: glass.blurSoft,
-                      WebkitBackdropFilter: glass.blurSoft,
                       color: (live || canStart) ? color.ink : color.faint,
                       cursor: (live || canStart) ? "pointer" : "default",
                       opacity: (live || canStart) ? 1 : 0.45,

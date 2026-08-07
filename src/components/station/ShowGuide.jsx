@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import {
-  color, font, fontDisplay, fontMono, glass, homeSpace, motion, radius, chrome
+  color, fontDisplay, fontMono, glass, homeSpace, motion, chrome
 } from "../../theme";
 import {
   buildDailyGuide,
@@ -28,11 +28,11 @@ function HostAvatar({ host, size = 44 }) {
         letterSpacing: 0.5,
         color: "#fff",
         background: `
-          linear-gradient(160deg, rgba(255,255,255,0.28) 0%, transparent 42%),
-          linear-gradient(145deg, ${host.accent} 0%, #16181E 120%)
+          linear-gradient(160deg, rgba(255,255,255,0.16) 0%, transparent 42%),
+          linear-gradient(145deg, #4A515D 0%, #16181E 100%)
         `,
-        border: "1px solid rgba(255,255,255,0.22)",
-        boxShadow: `0 8px 20px rgba(22,24,30,0.22), 0 0 0 3px ${host.accent}33`,
+        border: "1px solid rgba(255,255,255,0.14)",
+        boxShadow: "inset 0 1px 0 rgba(255,255,255,0.14), 0 6px 14px rgba(0,0,0,0.28)",
       }}
     >
       {host.monogram}
@@ -85,9 +85,9 @@ export function HostCreditChip({ show, compact = false, onClick = null, tone = "
     alignItems: "center",
     gap: 9,
     padding: compact ? "5px 12px 5px 5px" : "6px 12px 6px 6px",
-    borderRadius: 999,
+    borderRadius: 4,
     background: onGlass
-      ? (compact ? "rgba(32,36,43,0.72)" : glass.fillStrong)
+      ? (compact ? "rgba(18,20,24,0.92)" : glass.fillStrong)
       : (compact ? "rgba(255,255,255,0.08)" : glass.fillStrong),
     border: `1px solid ${onGlass ? glass.borderSoft : (compact ? "rgba(255,255,255,0.12)" : glass.border)}`,
     boxShadow: onGlass
@@ -131,31 +131,28 @@ export function NowOnAirCard({
       <div style={{
         position: "relative",
         overflow: "hidden",
-        borderRadius: radius.xl,
+        borderRadius: 8,
         border: `1px solid rgba(255,255,255,0.14)`,
         background: `
-          linear-gradient(135deg, ${host.accent}18 0%, transparent 48%),
-          linear-gradient(165deg, rgba(38,43,51,0.82) 0%, rgba(28,32,38,0.52) 55%, rgba(22,25,30,0.48) 100%)
+          repeating-linear-gradient(90deg, rgba(255,255,255,0.012) 0 1px, transparent 1px 4px),
+          linear-gradient(165deg, rgba(42,47,55,0.98) 0%, rgba(23,26,31,0.98) 58%, rgba(15,17,21,0.99) 100%)
         `,
-        boxShadow: `inset 0 1px 0 ${glass.highlight}, ${glass.shadowLift}`,
-        backdropFilter: glass.blur,
-        WebkitBackdropFilter: glass.blur,
+        boxShadow: `inset 4px 0 0 ${color.accent}, inset 0 1px 0 ${glass.highlight}, ${glass.shadowSoft}`,
         color: color.ink,
         padding: "18px 18px 16px",
       }}>
         <div aria-hidden="true" style={{
           position: "absolute", inset: 0, pointerEvents: "none",
           background: `
-            radial-gradient(ellipse 80% 50% at 0% 0%, ${host.accent}22 0%, transparent 55%),
-            linear-gradient(180deg, rgba(255,255,255,0.08) 0%, transparent 40%)
+            linear-gradient(180deg, rgba(255,255,255,0.045) 0%, transparent 28%)
           `,
         }} />
 
         <div style={{ position: "relative", display: "flex", justifyContent: "space-between", gap: 12, marginBottom: 14 }}>
           <div style={{
             display: "inline-flex", alignItems: "center", gap: 8,
-            padding: "5px 10px", borderRadius: radius.pill,
-            background: "rgba(32,36,43,0.65)",
+            padding: "5px 10px", borderRadius: 3,
+            background: "rgba(8,9,11,0.58)",
             border: `1px solid ${glass.borderSoft}`,
             boxShadow: `inset 0 1px 0 ${glass.highlight}`,
           }}>
@@ -241,7 +238,7 @@ export function NowOnAirCard({
               width: `${Math.round((progress || 0) * 100)}%`,
               height: "100%",
               borderRadius: 999,
-              background: `linear-gradient(90deg, ${host.accent}, ${color.ink})`,
+              background: color.accent,
               transition: "width 1s linear",
             }} />
           </div>
@@ -275,21 +272,21 @@ export function NowOnAirCard({
             style={{
               flex: 1,
               padding: "13px 16px",
-              borderRadius: radius.lg,
-              border: tuned ? `1px solid ${glass.borderSoft}` : "1px solid rgba(18,20,26,0.2)",
+              borderRadius: 5,
+              border: tuned ? `1px solid ${color.accent}` : `1px solid ${glass.border}`,
               cursor: "pointer",
               fontFamily: fontMono,
               fontSize: 12,
               fontWeight: 800,
               letterSpacing: 1.2,
               textTransform: "uppercase",
-              color: tuned ? color.muted : color.onAccent,
+              color: tuned ? color.accent : color.ink,
               background: tuned
-                ? "rgba(28,32,38,0.55)"
-                : `linear-gradient(165deg, #EDF0F4 0%, #C4CBD4 100%)`,
+                ? "rgba(8,9,11,0.58)"
+                : glass.chrome,
               boxShadow: tuned
-                ? `inset 0 1px 0 ${glass.highlight}`
-                : `inset 0 1px 0 rgba(255,255,255,0.22), ${glass.shadowSoft}`,
+                ? `inset 4px 0 0 ${color.accent}, inset 0 1px 0 ${glass.highlight}`
+                : `inset 0 1px 0 ${glass.highlight}, inset 0 -1px 0 rgba(0,0,0,0.5)`,
             }}
           >
             {tuned ? "You’re locked in ✓" : "Tune into this block"}
@@ -352,22 +349,15 @@ export function ShowGuideRail({
           gap: 12,
         }}>
           <div>
-            <div style={{
-              fontFamily: fontMono, fontSize: 11, fontWeight: 800,
-              letterSpacing: 1.5, textTransform: "uppercase", color: chrome.steel,
-              marginBottom: 6,
-            }}>
-              Program guide
-            </div>
             <h3 style={{
               margin: 0,
               fontFamily: fontDisplay,
-              fontSize: "clamp(20px, 3.8vw, 24px)",
-              fontWeight: 800,
-              letterSpacing: -0.35,
+              fontSize: "clamp(20px, 3.6vw, 24px)",
+              fontWeight: 750,
+              letterSpacing: -0.3,
               color: color.ink,
             }}>
-              Today’s blocks
+              Program guide
             </h3>
           </div>
         </div>
@@ -388,28 +378,27 @@ export function ShowGuideRail({
         {guide.map((show) => {
           const live = show.status === "live";
           const tuned = activeShowId === show.id;
-          const accent = show.host?.accent || color.accent;
           return (
             <button
               key={show.id}
               type="button"
               onClick={() => onSelectShow?.(show)}
-              aria-current={live ? "true" : undefined}
+              aria-current={tuned ? "true" : undefined}
               style={{
                 flex: "0 0 auto",
                 width: 176,
                 scrollSnapAlign: "start",
                 textAlign: "left",
                 padding: 14,
-                borderRadius: radius.lg,
+                borderRadius: 6,
                 cursor: "pointer",
-                border: `1px solid ${live || tuned ? accent : "rgba(255,255,255,0.12)"}`,
-                background: live
-                  ? `linear-gradient(160deg, ${accent}18 0%, rgba(38,43,51,0.88) 55%)`
-                  : `
-                    linear-gradient(165deg, rgba(38,43,52,0.88) 0%, rgba(24,27,33,0.72) 100%)
-                  `,
-                boxShadow: `inset 0 1px 0 ${glass.highlight}, ${glass.shadowSoft}`,
+                border: `1px solid ${live || tuned ? color.accent : glass.borderSoft}`,
+                background: live || tuned
+                  ? "linear-gradient(160deg, rgba(42,47,55,0.98) 0%, rgba(19,22,27,0.99) 72%)"
+                  : "linear-gradient(160deg, rgba(37,42,49,0.96) 0%, rgba(20,23,28,0.98) 72%)",
+                boxShadow: live || tuned
+                  ? `inset 4px 0 0 ${color.accent}, inset 0 1px 0 ${glass.highlight}, inset 0 -1px 0 rgba(0,0,0,0.5)`
+                  : `inset 0 1px 0 ${glass.highlight}, inset 0 -1px 0 rgba(0,0,0,0.5)`,
               }}
             >
               <div style={{
@@ -418,15 +407,15 @@ export function ShowGuideRail({
                 <span style={{
                   fontFamily: fontMono, fontSize: 10, fontWeight: 800,
                   letterSpacing: 1.1, textTransform: "uppercase",
-                  color: live ? chrome.hot : color.faint,
+                  color: live ? chrome.live : (tuned ? color.accent : color.faint),
                 }}>
-                  {live ? "Live" : show.status === "up-next" ? "Up next" : formatShowClock(show.startHour)}
+                  {live ? "Live" : tuned ? "Tuned" : show.status === "up-next" ? "Up next" : formatShowClock(show.startHour)}
                 </span>
                 <HostAvatar host={show.host} size={24} />
               </div>
               <div style={{
                 fontFamily: fontDisplay, fontSize: 15, fontWeight: 800,
-                letterSpacing: -0.25, color: color.ink, lineHeight: 1.15,
+                letterSpacing: -0.25, color: tuned ? color.accent : color.ink, lineHeight: 1.15,
                 minHeight: 36,
               }}>
                 {show.shortTitle || show.title}

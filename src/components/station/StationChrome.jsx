@@ -59,8 +59,14 @@ export function HypnoVisualizer({ playing = false, colorHex = null }) {
   );
 }
 
-/** Soft glass ON AIR plate — live pulse + callsign. */
-export function OnAirBadge({ daypartLabel = null, showTitle = null, compact = false, callsign = STATION_CALLSIGN }) {
+/** Machined ON AIR plate — live pulse + callsign. */
+export function OnAirBadge({
+  daypartLabel = null,
+  showTitle = null,
+  compact = false,
+  callsign = STATION_CALLSIGN,
+  integrated = false,
+}) {
   const secondary = showTitle || daypartLabel;
   return (
     <div
@@ -68,16 +74,16 @@ export function OnAirBadge({ daypartLabel = null, showTitle = null, compact = fa
         display: "inline-flex",
         alignItems: "center",
         gap: compact ? 8 : 10,
-        maxWidth: compact ? 240 : 300,
-        padding: compact ? "6px 10px" : "7px 12px",
-        borderRadius: radius.pill,
-        background: `
-          linear-gradient(165deg, rgba(38,43,51,0.82) 0%, rgba(28,32,38,0.5) 100%)
-        `,
-        border: `1px solid rgba(255,255,255,0.14)`,
-        boxShadow: `inset 0 1px 0 ${glass.highlight}, ${glass.shadowSoft}`,
-        backdropFilter: glass.blurSoft,
-        WebkitBackdropFilter: glass.blurSoft,
+        maxWidth: integrated ? "calc(100vw - 150px)" : (compact ? 240 : 300),
+        boxSizing: "border-box",
+        minHeight: compact ? 34 : 40,
+        padding: integrated ? "0 14px" : (compact ? "6px 10px" : "7px 12px"),
+        borderRadius: integrated ? 0 : 4,
+        background: integrated ? "transparent" : glass.chrome,
+        border: integrated ? "none" : `1px solid ${glass.border}`,
+        boxShadow: integrated
+          ? "none"
+          : `inset 0 1px 0 ${glass.highlight}, inset 0 -1px 0 rgba(0,0,0,0.45)`,
         color: color.ink,
         pointerEvents: "none",
       }}
@@ -89,7 +95,7 @@ export function OnAirBadge({ daypartLabel = null, showTitle = null, compact = fa
           height: compact ? 6 : 7,
           borderRadius: "50%",
           background: "#E23B4C",
-          boxShadow: "0 0 0 3px rgba(226,59,76,0.22)",
+          boxShadow: "0 0 0 2px rgba(226,59,76,0.2)",
           animation: "stageLiveDot 1.4s ease-in-out infinite",
           flexShrink: 0,
         }}
@@ -149,13 +155,14 @@ export function OnAirBadge({ daypartLabel = null, showTitle = null, compact = fa
 }
 
 /**
- * Persistent channel bug — frosted CH plate with accent signal.
+ * Persistent channel bug — hard CH-ID plate with tuned signal.
  */
 export function ChannelBug({
   sceneChannel = null,
   show = null,
   daypartLabel = null,
   compact = false,
+  integrated = false,
 }) {
   const bug = resolveChannelBug({ sceneChannel, show });
   return (
@@ -164,26 +171,25 @@ export function ChannelBug({
       style={{
         display: "inline-flex",
         alignItems: "stretch",
-        borderRadius: radius.lg,
+        borderRadius: integrated ? 0 : 4,
         overflow: "hidden",
         pointerEvents: "none",
-        boxShadow: `inset 0 1px 0 ${glass.highlight}, ${glass.shadowSoft}`,
+        boxShadow: integrated
+          ? "none"
+          : `inset 0 1px 0 ${glass.highlight}, inset 0 -1px 0 rgba(0,0,0,0.45)`,
         animation: `channelBugIn 0.4s ${motion.ease} both`,
         maxWidth: compact ? 168 : 210,
-        border: `1px solid ${glass.borderSoft}`,
-        backdropFilter: glass.blurSoft,
-        WebkitBackdropFilter: glass.blurSoft,
-        background: `
-          linear-gradient(165deg, rgba(38,43,51,0.8) 0%, rgba(28,32,38,0.48) 100%)
-        `,
+        border: integrated ? "none" : `1px solid ${glass.border}`,
+        borderLeft: integrated ? `1px solid ${glass.border}` : undefined,
+        background: integrated ? "transparent" : glass.chrome,
       }}
     >
       <div style={{
         padding: compact ? "7px 9px" : "8px 11px",
-        background: `
-          linear-gradient(160deg, rgba(32,36,43,0.65) 0%, rgba(${hexToRgbSafe(bug.accent)},0.35) 100%)
-        `,
-        color: color.ink,
+        background: integrated
+          ? "rgba(8,9,11,0.28)"
+          : "linear-gradient(160deg, rgba(48,53,61,0.95) 0%, rgba(22,25,30,0.95) 100%)",
+        color: color.accent,
         fontFamily: fontMono,
         fontSize: compact ? 11 : 12,
         fontWeight: 900,
@@ -191,7 +197,7 @@ export function ChannelBug({
         display: "flex",
         alignItems: "center",
         borderRight: `1px solid ${glass.borderSoft}`,
-        boxShadow: `inset 0 1px 0 ${glass.highlight}`,
+        boxShadow: "inset 0 1px 0 rgba(255,255,255,0.08), inset -1px 0 0 rgba(0,0,0,0.4)",
       }}>
         {bug.ch}
       </div>
@@ -231,16 +237,7 @@ export function ChannelBug({
   );
 }
 
-function hexToRgbSafe(hex) {
-  if (!hex || typeof hex !== "string") return chrome.hotRgb;
-  const h = hex.replace("#", "");
-  if (h.length !== 6) return chrome.hotRgb;
-  const n = parseInt(h, 16);
-  if (Number.isNaN(n)) return chrome.hotRgb;
-  return `${(n >> 16) & 255},${(n >> 8) & 255},${n & 255}`;
-}
-
-/** Scrolling station ticker — frosted crawl. */
+/** Scrolling station ticker — dense broadcast crawl. */
 export function StationTicker({ text = "", dense = false }) {
   if (!text) return null;
   const loop = `${text}   ◆   ${text}`;
@@ -250,16 +247,12 @@ export function StationTicker({ text = "", dense = false }) {
       style={{
         overflow: "hidden",
         width: "100%",
-        background: `
-          linear-gradient(180deg, rgba(29,33,39,0.58) 0%, rgba(28,32,38,0.32) 100%)
-        `,
-        borderTop: `1px solid ${glass.borderSoft}`,
-        borderBottom: `1px solid ${glass.borderSoft}`,
-        boxShadow: `inset 0 1px 0 ${glass.highlight}`,
-        backdropFilter: glass.blurSoft,
-        WebkitBackdropFilter: glass.blurSoft,
+        background: "rgba(8,9,11,0.94)",
+        borderTop: "1px solid rgba(255,255,255,0.06)",
+        borderBottom: "1px solid rgba(0,0,0,0.7)",
+        boxShadow: "none",
         color: color.body,
-        height: dense ? 22 : 26,
+        height: dense ? 18 : 22,
         display: "flex",
         alignItems: "center",
       }}
@@ -269,7 +262,7 @@ export function StationTicker({ text = "", dense = false }) {
           display: "inline-block",
           whiteSpace: "nowrap",
           fontFamily: fontMono,
-          fontSize: dense ? 9 : 10,
+          fontSize: dense ? 8 : 9,
           fontWeight: 650,
           letterSpacing: 1.4,
           textTransform: "uppercase",
@@ -283,7 +276,7 @@ export function StationTicker({ text = "", dense = false }) {
   );
 }
 
-/** Frosted glass now-playing plate — soft edges, connected station chrome. */
+/** Hard now-playing plate — monumental title, engraved broadcast metadata. */
 export function LowerThird({
   track,
   rank = null,
@@ -301,6 +294,7 @@ export function LowerThird({
     .split("·")
     .map((s) => s.trim())
     .filter(Boolean);
+  const isLive = kickerBits.some((bit) => bit.toUpperCase() === "NOW PLAYING");
 
   const body = (
     <>
@@ -309,7 +303,7 @@ export function LowerThird({
         alignItems: "center",
         justifyContent: "space-between",
         gap: 10,
-        marginBottom: embedded ? 10 : 12,
+        marginBottom: embedded ? 8 : 10,
       }}>
         <div style={{
           display: "inline-flex",
@@ -325,24 +319,20 @@ export function LowerThird({
                 display: "inline-flex",
                 alignItems: "center",
                 gap: 7,
-                padding: "6px 12px",
-                borderRadius: radius.pill,
+                padding: "4px 8px",
+                borderRadius: 3,
                 fontFamily: fontMono,
                 fontSize: 10,
                 fontWeight: 800,
                 letterSpacing: 1.4,
                 textTransform: "uppercase",
-                color: i === 0 ? color.ink : color.body,
-                background: i === 0
-                  ? "linear-gradient(165deg, rgba(56,62,72,0.95) 0%, rgba(25,28,34,0.78) 100%)"
-                  : "rgba(27,31,37,0.52)",
-                border: `1px solid ${i === 0 ? glass.border : glass.borderSoft}`,
-                boxShadow: i === 0
-                  ? `inset 0 1px 0 ${glass.highlight}, 0 2px 8px rgba(18,20,26,0.06)`
-                  : `inset 0 1px 0 ${glass.highlight}`,
+                color: bit.toUpperCase() === "NOW PLAYING" ? color.accent : color.body,
+                background: "rgba(8,9,11,0.48)",
+                border: `1px solid ${glass.borderSoft}`,
+                boxShadow: "inset 0 1px 0 rgba(255,255,255,0.05)",
               }}
             >
-              {i === 0 && (
+              {bit.toUpperCase() === "NOW PLAYING" && (
                 <span
                   aria-hidden="true"
                   style={{
@@ -350,7 +340,7 @@ export function LowerThird({
                     height: 6,
                     borderRadius: "50%",
                     background: chrome.live,
-                    boxShadow: "0 0 0 3px rgba(224,60,75,0.22)",
+                    boxShadow: "0 0 0 2px rgba(224,60,75,0.18)",
                     animation: "stageLiveDot 1.5s ease-in-out infinite",
                     flexShrink: 0,
                   }}
@@ -364,7 +354,7 @@ export function LowerThird({
 
       <div style={{
         fontFamily: fontDisplay,
-        fontSize: "clamp(22px, 4.8vw, 28px)",
+        fontSize: "clamp(24px, 5.5vw, 32px)",
         fontWeight: 800,
         letterSpacing: -0.7,
         color: color.ink,
@@ -395,7 +385,7 @@ export function LowerThird({
         fontWeight: 750,
         letterSpacing: 1.15,
         textTransform: "uppercase",
-        color: color.body,
+        color: isLive ? color.accent : color.body,
         overflow: "hidden",
         textOverflow: "ellipsis",
         whiteSpace: "nowrap",
@@ -428,14 +418,10 @@ export function LowerThird({
         maxWidth: 400,
         width: "100%",
         padding: "14px 16px 15px",
-        borderRadius: radius.xl,
-        background: `
-          linear-gradient(165deg, rgba(32,36,43,0.65) 0%, rgba(28,32,38,0.4) 100%)
-        `,
+        borderRadius: 8,
+        background: glass.frame,
         border: `1px solid rgba(255,255,255,0.14)`,
-        boxShadow: `inset 0 1px 0 ${glass.highlight}, ${glass.shadowLift}`,
-        backdropFilter: "blur(36px) saturate(1.24)",
-        WebkitBackdropFilter: "blur(36px) saturate(1.24)",
+        boxShadow: `inset 0 1px 0 ${glass.highlight}, inset 0 -1px 0 rgba(0,0,0,0.45), ${glass.shadowSoft}`,
         animation: `stationLowerIn 0.45s ${motion.ease} both`,
       }}
     >
@@ -513,7 +499,7 @@ export function UpNextBumper({ track = null }) {
 }
 
 /**
- * Soft glass request line — presence + request/dedicate chips.
+ * Hard request line — presence + request/dedicate controls.
  * When embedded, sits as a connected strip inside the stage dock.
  */
 export function StationHeatBar({
@@ -553,7 +539,7 @@ export function StationHeatBar({
     justifyContent: "center",
     height: compact ? 34 : 36,
     padding: "0 14px",
-    borderRadius: radius.pill,
+    borderRadius: 5,
     fontFamily: fontMono,
     fontSize: 11,
     fontWeight: 800,
@@ -561,8 +547,6 @@ export function StationHeatBar({
     textTransform: "uppercase",
     border: `1px solid ${glass.borderSoft}`,
     boxShadow: `inset 0 1px 0 ${glass.highlight}`,
-    backdropFilter: glass.blurSoft,
-    WebkitBackdropFilter: glass.blurSoft,
     cursor: "pointer",
     whiteSpace: "nowrap",
     flexShrink: 0,
@@ -587,14 +571,12 @@ export function StationHeatBar({
         background: embedded
           ? "transparent"
           : `
-            linear-gradient(165deg, rgba(38,43,51,0.82) 0%, rgba(28,32,38,0.55) 100%)
+            ${glass.frame}
           `,
         border: embedded ? "none" : `1px solid ${glass.borderSoft}`,
         boxShadow: embedded
           ? "none"
           : `inset 0 1px 0 ${glass.highlight}, ${glass.shadowSoft}`,
-        backdropFilter: embedded ? "none" : glass.blurSoft,
-        WebkitBackdropFilter: embedded ? "none" : glass.blurSoft,
         color: color.ink,
       }}>
         <div style={{
@@ -631,9 +613,9 @@ export function StationHeatBar({
               disabled={requested}
               style={{
                 ...chipBase,
-                color: requested ? color.faint : color.ink,
+                color: requested ? color.accent : color.ink,
                 background: requested
-                  ? "rgba(27,31,37,0.5)"
+                  ? "rgba(8,9,11,0.58)"
                   : "linear-gradient(165deg, rgba(56,62,72,0.95) 0%, rgba(25,28,34,0.82) 100%)",
                 border: `1px solid ${requested ? glass.borderSoft : glass.border}`,
                 cursor: requested ? "default" : "pointer",
@@ -667,7 +649,7 @@ export function StationHeatBar({
               ...chipBase,
               width: compact ? 32 : 34,
               padding: 0,
-              color: open ? color.ink : color.muted,
+              color: open ? color.accent : color.muted,
               background: open
                 ? "linear-gradient(165deg, rgba(56,62,72,0.95) 0%, rgba(25,28,34,0.82) 100%)"
                 : "rgba(27,31,37,0.52)",
@@ -694,12 +676,10 @@ export function StationHeatBar({
               style={{
                 flex: 1,
                 height: 34,
-                borderRadius: radius.md,
+                borderRadius: 5,
                 background: "rgba(32,36,43,0.65)",
                 border: `1px solid ${glass.borderSoft}`,
                 boxShadow: `inset 0 1px 0 ${glass.highlight}`,
-                backdropFilter: glass.blurSoft,
-                WebkitBackdropFilter: glass.blurSoft,
                 cursor: "pointer",
                 fontFamily: fontMono,
                 fontSize: 9,
