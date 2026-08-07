@@ -392,6 +392,11 @@ export function LowerThird({
         letterSpacing: 1.15,
         textTransform: "uppercase",
         color: isLive ? color.accent : color.muted,
+        overflow: "hidden",
+        textOverflow: "ellipsis",
+        whiteSpace: "nowrap",
+      }}>
+        {line.meta}
       </div>
     </>
   );
