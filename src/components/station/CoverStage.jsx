@@ -20,7 +20,10 @@ import {
 } from "./StationChrome";
 import { HostCreditChip } from "./ShowGuide";
 import VideoStage, { VideoBadge } from "./VideoStage";
-import { color, dock, fontDisplay, fontMono, glass, homeSpace, motion, aluminumGradient } from "../../theme";
+import {
+  color, dock, fontDisplay, fontMono, glass, homeSpace, motion,
+  aluminumGradient, hardware, hardwareKey
+} from "../../theme";
 import { fmtTime } from "../../lib/harmony";
 import { trackHasVideo } from "../../lib/video";
 import { usePlayerPlayback } from "../../usePlayerPlayback";
@@ -299,8 +302,8 @@ export default function CoverStage({
               width: "100%",
               maxWidth: "none",
               pointerEvents: "auto",
-              borderRadius: "10px 10px 0 0",
-              padding: "16px 18px 14px",
+              borderRadius: "6px 6px 0 0",
+              padding: "14px 16px 10px",
               background: `
                 repeating-linear-gradient(90deg, rgba(255,255,255,0.014) 0 1px, transparent 1px 4px),
                 linear-gradient(180deg,
@@ -309,9 +312,11 @@ export default function CoverStage({
                   rgba(12,14,17,0.99) 100%)
               `,
               border: "none",
-              borderTop: `2px solid rgba(255,255,255,0.2)`,
+              borderTop: `1px solid rgba(255,255,255,0.2)`,
               boxShadow: `
-                inset 0 1px 0 rgba(255,255,255,0.08),
+                ${hardware.plateEdge},
+                inset 1px 0 0 rgba(255,255,255,0.05),
+                inset -1px 0 0 rgba(0,0,0,0.28),
                 inset 0 -1px 0 rgba(0,0,0,0.55),
                 0 -12px 28px rgba(0,0,0,0.42)
               `,
@@ -326,7 +331,7 @@ export default function CoverStage({
               style={{
                 position: "absolute",
                 inset: 0,
-                borderRadius: "10px 10px 0 0",
+                borderRadius: "6px 6px 0 0",
                 pointerEvents: "none",
                 background: `
                   linear-gradient(180deg, rgba(255,255,255,0.055) 0%, transparent 18%),
@@ -372,10 +377,9 @@ export default function CoverStage({
               aria-hidden="true"
               style={{
                 height: 1,
-                margin: "10px 0 8px",
-                background: `
-                  linear-gradient(90deg, transparent 0%, ${glass.border} 18%, ${glass.border} 82%, transparent 100%)
-                `,
+                margin: "10px 0 7px",
+                background: hardware.rule,
+                boxShadow: "0 1px 0 rgba(0,0,0,0.55)",
               }}
             />
 
@@ -392,10 +396,9 @@ export default function CoverStage({
               aria-hidden="true"
               style={{
                 height: 1,
-                margin: "8px 0 8px",
-                background: `
-                  linear-gradient(90deg, transparent 0%, ${glass.border} 18%, ${glass.border} 82%, transparent 100%)
-                `,
+                margin: "7px 0 6px",
+                background: hardware.rule,
+                boxShadow: "0 1px 0 rgba(0,0,0,0.55)",
               }}
             />
 
@@ -416,7 +419,7 @@ export default function CoverStage({
                 alignItems: "center",
                 justifyContent: "center",
                 width: "100%",
-                minHeight: 64,
+                minHeight: 60,
               }}>
                 <div style={{
                   display: "flex",
@@ -430,15 +433,14 @@ export default function CoverStage({
                     disabled={!live}
                     onClick={() => onPrev?.()}
                     style={{
+                      ...hardwareKey({ size: "lg" }),
                       width: 44,
                       height: 44,
-                      borderRadius: "50%",
+                      minHeight: 44,
+                      borderRadius: 6,
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
-                      background: "rgba(18,20,24,0.96)",
-                      border: `1px solid ${glass.borderSoft}`,
-                      boxShadow: `inset 0 1px 0 ${glass.highlight}`,
                       color: live ? color.ink : color.faint,
                       cursor: live ? "pointer" : "default",
                       opacity: live ? 1 : 0.45,
@@ -476,15 +478,14 @@ export default function CoverStage({
                       else if (canStart) onPlay?.();
                     }}
                     style={{
+                      ...hardwareKey({ size: "lg" }),
                       width: 44,
                       height: 44,
-                      borderRadius: "50%",
+                      minHeight: 44,
+                      borderRadius: 6,
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
-                      background: "rgba(18,20,24,0.96)",
-                      border: `1px solid ${glass.borderSoft}`,
-                      boxShadow: `inset 0 1px 0 ${glass.highlight}`,
                       color: (live || canStart) ? color.ink : color.faint,
                       cursor: (live || canStart) ? "pointer" : "default",
                       opacity: (live || canStart) ? 1 : 0.45,
@@ -608,7 +609,9 @@ export default function CoverStage({
                     disabled={!live}
                     onClick={() => onPrev?.()}
                     style={{
-                      background: "none", border: "none", padding: 8,
+                      ...hardwareKey({ size: "lg" }),
+                      width: 44, height: 44, minHeight: 44,
+                      borderRadius: 6, padding: 0,
                       color: live ? color.ink : color.faint,
                       cursor: live ? "pointer" : "default",
                       opacity: live ? 1 : 0.45,
@@ -636,7 +639,9 @@ export default function CoverStage({
                       else if (canStart) onPlay?.();
                     }}
                     style={{
-                      background: "none", border: "none", padding: 8,
+                      ...hardwareKey({ size: "lg" }),
+                      width: 44, height: 44, minHeight: 44,
+                      borderRadius: 6, padding: 0,
                       color: (live || canStart) ? color.ink : color.faint,
                       cursor: (live || canStart) ? "pointer" : "default",
                       opacity: (live || canStart) ? 1 : 0.45,

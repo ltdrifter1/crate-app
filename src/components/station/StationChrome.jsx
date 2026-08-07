@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import {
-  color, font, fontDisplay, fontMono, glass, motion, radius, chrome
+  color, font, fontDisplay, fontMono, glass, motion, radius, chrome,
+  hardware, hardwareKey
 } from "../../theme";
 import {
   STATION_REACTIONS,
@@ -102,11 +103,11 @@ export function OnAirBadge({
       />
       <span style={{
         fontFamily: fontMono,
-        fontSize: compact ? 9 : 10,
+        fontSize: 11,
         fontWeight: 800,
         letterSpacing: 1.5,
         textTransform: "uppercase",
-        color: color.ink,
+        color: color.accent,
         flexShrink: 0,
       }}>
         On Air
@@ -126,20 +127,20 @@ export function OnAirBadge({
       }}>
         <span style={{
           fontFamily: fontMono,
-          fontSize: 8,
+          fontSize: 11,
           fontWeight: 800,
-          letterSpacing: 1.3,
+          letterSpacing: 1,
           textTransform: "uppercase",
-          color: color.faint,
+          color: color.muted,
         }}>
           {callsign}
         </span>
         {secondary && (
           <span style={{
             fontFamily: fontMono,
-            fontSize: compact ? 9 : 10,
-            fontWeight: 700,
-            letterSpacing: 0.8,
+            fontSize: 11,
+            fontWeight: 800,
+            letterSpacing: 0.65,
             textTransform: "uppercase",
             color: color.body,
             overflow: "hidden",
@@ -211,19 +212,19 @@ export function ChannelBug({
       }}>
         <span style={{
           fontFamily: fontMono,
-          fontSize: 8,
+          fontSize: 11,
           fontWeight: 800,
-          letterSpacing: 1.3,
+          letterSpacing: 0.8,
           textTransform: "uppercase",
-          color: color.faint,
+          color: color.muted,
         }}>
           {daypartLabel || STATION_CALLSIGN}
         </span>
         <span style={{
           fontFamily: fontMono,
-          fontSize: compact ? 9 : 10,
+          fontSize: 11,
           fontWeight: 800,
-          letterSpacing: 1.0,
+          letterSpacing: 0.8,
           textTransform: "uppercase",
           color: color.ink,
           overflow: "hidden",
@@ -308,47 +309,52 @@ export function LowerThird({
         <div style={{
           display: "inline-flex",
           alignItems: "center",
-          gap: 6,
+          gap: 7,
           minWidth: 0,
-          flexWrap: "wrap",
+          padding: "4px 8px",
+          borderRadius: 3,
+          background: "rgba(8,9,11,0.48)",
+          border: `1px solid ${glass.borderSoft}`,
+          boxShadow: "inset 0 1px 0 rgba(255,255,255,0.05), inset 0 -1px 0 rgba(0,0,0,0.5)",
+          fontFamily: fontMono,
+          fontSize: 11,
+          fontWeight: 800,
+          letterSpacing: 1.1,
+          textTransform: "uppercase",
+          color: color.body,
+          overflow: "hidden",
+          whiteSpace: "nowrap",
         }}>
-          {kickerBits.map((bit, i) => (
+          {isLive && (
             <span
-              key={`${bit}-${i}`}
+              aria-hidden="true"
               style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 7,
-                padding: "4px 8px",
-                borderRadius: 3,
-                fontFamily: fontMono,
-                fontSize: 10,
-                fontWeight: 800,
-                letterSpacing: 1.4,
-                textTransform: "uppercase",
-                color: bit.toUpperCase() === "NOW PLAYING" ? color.accent : color.body,
-                background: "rgba(8,9,11,0.48)",
-                border: `1px solid ${glass.borderSoft}`,
-                boxShadow: "inset 0 1px 0 rgba(255,255,255,0.05)",
+                width: 6,
+                height: 6,
+                borderRadius: "50%",
+                background: chrome.live,
+                boxShadow: "0 0 0 2px rgba(224,60,75,0.18)",
+                animation: "stageLiveDot 1.5s ease-in-out infinite",
+                flexShrink: 0,
               }}
-            >
-              {bit.toUpperCase() === "NOW PLAYING" && (
+            />
+          )}
+          <span style={{ overflow: "hidden", textOverflow: "ellipsis" }}>
+            {kickerBits.map((bit, i) => (
+              <span key={`${bit}-${i}`}>
+                {i > 0 && <span style={{ color: color.faint }}> · </span>}
                 <span
-                  aria-hidden="true"
                   style={{
-                    width: 6,
-                    height: 6,
-                    borderRadius: "50%",
-                    background: chrome.live,
-                    boxShadow: "0 0 0 2px rgba(224,60,75,0.18)",
-                    animation: "stageLiveDot 1.5s ease-in-out infinite",
-                    flexShrink: 0,
+                    color: bit.toUpperCase() === "NOW PLAYING"
+                      ? color.accent
+                      : color.body,
                   }}
-                />
-              )}
-              {bit}
-            </span>
-          ))}
+                >
+                  {bit}
+                </span>
+              </span>
+            ))}
+          </span>
         </div>
       </div>
 
@@ -369,7 +375,7 @@ export function LowerThird({
       <div style={{
         marginTop: 6,
         fontSize: 16,
-        fontWeight: 650,
+        fontWeight: 550,
         letterSpacing: -0.2,
         color: color.body,
         overflow: "hidden",
@@ -385,7 +391,7 @@ export function LowerThird({
         fontWeight: 750,
         letterSpacing: 1.15,
         textTransform: "uppercase",
-        color: isLive ? color.accent : color.body,
+        color: color.body,
         overflow: "hidden",
         textOverflow: "ellipsis",
         whiteSpace: "nowrap",
@@ -430,7 +436,7 @@ export function LowerThird({
   );
 }
 
-/** Up Next bumper — soft glass chip that sits above the player dock. */
+/** Up Next bumper — hard aluminum stamp that keys into the player dock. */
 export function UpNextBumper({ track = null }) {
   if (!track) return null;
   return (
@@ -442,14 +448,13 @@ export function UpNextBumper({ track = null }) {
         maxWidth: 340,
         width: "100%",
         padding: "8px 12px 8px 8px",
-        borderRadius: radius.lg,
+        borderRadius: 5,
         background: `
-          linear-gradient(165deg, rgba(29,33,39,0.58) 0%, rgba(28,32,38,0.32) 100%)
+          repeating-linear-gradient(90deg, rgba(255,255,255,0.014) 0 1px, transparent 1px 4px),
+          ${hardware.keyFace}
         `,
-        border: `1px solid rgba(255,255,255,0.12)`,
-        boxShadow: `inset 0 1px 0 ${glass.highlight}, ${glass.shadowSoft}`,
-        backdropFilter: "blur(28px) saturate(1.2)",
-        WebkitBackdropFilter: "blur(28px) saturate(1.2)",
+        border: `1px solid rgba(255,255,255,0.14)`,
+        boxShadow: `${hardware.plateEdge}, 0 8px 22px rgba(0,0,0,0.34)`,
         pointerEvents: "none",
         animation: `rise 0.4s ${motion.ease} both`,
         overflow: "hidden",
@@ -457,22 +462,22 @@ export function UpNextBumper({ track = null }) {
     >
       <div style={{
         fontFamily: fontMono,
-        fontSize: 8,
+        fontSize: 11,
         fontWeight: 800,
-        letterSpacing: 1.15,
+        letterSpacing: 1,
         textTransform: "uppercase",
-        color: color.muted,
+        color: color.body,
         flexShrink: 0,
-        padding: "6px 8px",
-        borderRadius: radius.sm,
-        background: "rgba(32,36,43,0.65)",
-        border: `1px solid ${glass.borderSoft}`,
-        boxShadow: `inset 0 1px 0 ${glass.highlight}`,
+        padding: "5px 7px",
+        borderRadius: 3,
+        background: "rgba(8,9,11,0.42)",
+        border: `1px solid rgba(255,255,255,0.12)`,
+        boxShadow: hardware.plateEdge,
       }}>
         Up Next
       </div>
       <div style={{
-        width: 28, height: 28, borderRadius: 8, flexShrink: 0,
+        width: 28, height: 28, borderRadius: 4, flexShrink: 0,
         overflow: "hidden",
         background: "rgba(18,20,26,0.08)",
         border: `1px solid ${glass.borderSoft}`,
@@ -482,13 +487,13 @@ export function UpNextBumper({ track = null }) {
       </div>
       <div style={{ minWidth: 0, flex: 1 }}>
         <div style={{
-          fontSize: 12, fontWeight: 700, color: color.ink,
+          fontSize: 12, fontWeight: 650, color: color.ink,
           overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
         }}>
           {track.title}
         </div>
         <div style={{
-          fontSize: 10, color: color.muted,
+          fontSize: 11, fontWeight: 550, color: color.muted,
           overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
         }}>
           {track.artist}
@@ -539,15 +544,8 @@ export function StationHeatBar({
     justifyContent: "center",
     height: compact ? 34 : 36,
     padding: "0 14px",
+    ...hardwareKey({ size: compact ? "sm" : "md" }),
     borderRadius: 5,
-    fontFamily: fontMono,
-    fontSize: 11,
-    fontWeight: 800,
-    letterSpacing: 1.0,
-    textTransform: "uppercase",
-    border: `1px solid ${glass.borderSoft}`,
-    boxShadow: `inset 0 1px 0 ${glass.highlight}`,
-    cursor: "pointer",
     whiteSpace: "nowrap",
     flexShrink: 0,
   };
@@ -596,7 +594,7 @@ export function StationHeatBar({
           <span style={{
             fontFamily: fontMono, fontSize: 11, fontWeight: 800,
             letterSpacing: 1.05, textTransform: "uppercase",
-            color: color.body,
+            color: color.accent,
             whiteSpace: "nowrap",
             overflow: "hidden",
             textOverflow: "ellipsis",
@@ -613,15 +611,9 @@ export function StationHeatBar({
               disabled={requested}
               style={{
                 ...chipBase,
+                ...hardwareKey({ pressed: requested, size: compact ? "sm" : "md" }),
                 color: requested ? color.accent : color.ink,
-                background: requested
-                  ? "rgba(8,9,11,0.58)"
-                  : "linear-gradient(165deg, rgba(56,62,72,0.95) 0%, rgba(25,28,34,0.82) 100%)",
-                border: `1px solid ${requested ? glass.borderSoft : glass.border}`,
                 cursor: requested ? "default" : "pointer",
-                boxShadow: requested
-                  ? `inset 0 1px 0 ${glass.highlight}`
-                  : `inset 0 1px 0 ${glass.highlight}, 0 4px 12px rgba(18,20,26,0.08)`,
               }}
             >
               {requested ? "Queued" : "Request"}
@@ -634,7 +626,6 @@ export function StationHeatBar({
               style={{
                 ...chipBase,
                 color: color.body,
-                background: "rgba(29,33,39,0.58)",
               }}
             >
               Dedicate
@@ -647,13 +638,10 @@ export function StationHeatBar({
             onClick={(e) => { e.stopPropagation(); setOpen((v) => !v); }}
             style={{
               ...chipBase,
+              ...hardwareKey({ pressed: open, size: compact ? "sm" : "md" }),
               width: compact ? 32 : 34,
               padding: 0,
               color: open ? color.accent : color.muted,
-              background: open
-                ? "linear-gradient(165deg, rgba(56,62,72,0.95) 0%, rgba(25,28,34,0.82) 100%)"
-                : "rgba(27,31,37,0.52)",
-              border: `1px solid ${open ? glass.border : glass.borderSoft}`,
             }}
           >
             {open ? "−" : "+"}
@@ -674,16 +662,13 @@ export function StationHeatBar({
               aria-label={`React ${REACT_LABELS[emoji] || emoji}`}
               onClick={(e) => { e.stopPropagation(); fireReact(emoji); }}
               style={{
+                ...hardwareKey({ size: "sm" }),
                 flex: 1,
                 height: 34,
                 borderRadius: 5,
-                background: "rgba(32,36,43,0.65)",
-                border: `1px solid ${glass.borderSoft}`,
-                boxShadow: `inset 0 1px 0 ${glass.highlight}`,
-                cursor: "pointer",
-                fontFamily: fontMono,
-                fontSize: 9,
-                fontWeight: 800,
+                minHeight: 34,
+                padding: 0,
+                fontSize: 11,
                 letterSpacing: 0.8,
                 color: color.body,
                 position: "relative",
@@ -693,7 +678,7 @@ export function StationHeatBar({
               {reactCounts[emoji] > 0 && (
                 <span style={{
                   position: "absolute", top: -6, right: 4,
-                  fontSize: 8, fontFamily: fontMono, fontWeight: 800,
+                  fontSize: 11, fontFamily: fontMono, fontWeight: 800,
                   background: color.ink, color: color.onAccent,
                   padding: "1px 5px",
                   borderRadius: radius.pill,

@@ -84,6 +84,51 @@ export const glass = {
     "linear-gradient(145deg, rgba(38,42,49,0.95) 0%, rgba(26,29,34,0.9) 38%, rgba(18,20,24,0.88) 72%, rgba(30,34,40,0.92) 100%)",
 };
 
+/** Hard, unblurred controls and plates used around playback chrome. */
+export const hardware = {
+  radius: 4,
+  keyFace:
+    "linear-gradient(180deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.025) 38%, rgba(0,0,0,0.12) 100%), linear-gradient(145deg, #343A43 0%, #24282F 48%, #171A1F 100%)",
+  keyRaised:
+    "inset 0 1px 0 rgba(255,255,255,0.14), inset 0 -1px 0 rgba(0,0,0,0.55), inset 1px 0 0 rgba(255,255,255,0.05), inset -1px 0 0 rgba(0,0,0,0.35)",
+  keyPressed:
+    "inset 0 2px 4px rgba(0,0,0,0.55), inset 0 1px 0 rgba(0,0,0,0.35)",
+  plateEdge:
+    "inset 0 1px 0 rgba(255,255,255,0.12), inset 0 -1px 0 rgba(0,0,0,0.5)",
+  rule:
+    "linear-gradient(90deg, transparent, rgba(255,255,255,0.14), transparent)",
+};
+
+/**
+ * Raised aluminum key face. Intentionally excludes backdrop-filter so keys
+ * read as physical controls instead of floating glass.
+ */
+export function hardwareKey(opts = { pressed: false, size: "md" }) {
+  const pressed = opts?.pressed === true;
+  const size = opts?.size || "md";
+  const metrics = {
+    sm: { minHeight: 32, padding: "0 10px" },
+    md: { minHeight: 36, padding: "0 13px" },
+    lg: { minHeight: 44, padding: "0 15px" },
+  }[size] || { minHeight: 36, padding: "0 13px" };
+
+  return {
+    ...metrics,
+    borderRadius: hardware.radius,
+    border: "1px solid rgba(255,255,255,0.14)",
+    background: hardware.keyFace,
+    boxShadow: pressed ? hardware.keyPressed : hardware.keyRaised,
+    color: pressed ? color.accent : color.body,
+    fontFamily: fontMono,
+    fontSize: 11,
+    fontWeight: 800,
+    letterSpacing: 0.9,
+    textTransform: "uppercase",
+    cursor: "pointer",
+    WebkitTapHighlightColor: "transparent",
+  };
+}
+
 /** Deep jewel-case shadow for album art — lit from the studio above. */
 export const artShadow = {
   quiet: "0 2px 4px rgba(0,0,0,0.3), 0 12px 28px rgba(0,0,0,0.45)",

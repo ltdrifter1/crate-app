@@ -1,4 +1,7 @@
-import { color, font, fontDisplay, ADMIN_UID, timeOfDayGradient, BRAND_TAGLINE, BRAND_NAME, dock, artShadow, aluminumGradient } from './theme';
+import {
+  color, font, fontDisplay, ADMIN_UID, timeOfDayGradient, BRAND_TAGLINE,
+  BRAND_NAME, dock, artShadow, aluminumGradient, hardware, hardwareKey
+} from './theme';
 
 test('theme exports core tokens', () => {
   expect(color.ink).toBeTruthy();
@@ -17,4 +20,7 @@ test('theme exports core tokens', () => {
   expect(artShadow.quiet).toBeTruthy();
   expect(dock.clearPlayer).toBeGreaterThan(dock.clearTabs);
   expect(dock.radius).toBeGreaterThan(0);
+  expect(hardware.keyFace).toMatch(/linear-gradient/);
+  expect(hardwareKey().backdropFilter).toBeUndefined();
+  expect(hardwareKey({ pressed: true }).boxShadow).toBe(hardware.keyPressed);
 });
