@@ -25,7 +25,7 @@ import {
 import { mixLaneForDate } from "./lib/mixLanes";
 import { parsePath, buildPath, documentTitleFor } from "./lib/routes";
 import { explainPick } from "./lib/explain";
-import { fetchCatalogTracks } from "./lib/catalogLoad";
+import { fetchCatalogTracks, isCatalogCacheFresh } from "./lib/catalogLoad";
 import { slugify, findArtist, findAlbum, searchEntities } from "./lib/catalog";
 import {
   enrichTracksWithScenes,
@@ -2161,6 +2161,11 @@ export default function App() {
 
   // ── App state ────────────────────────────────────────────────────────────
   const [tracks, setTracks]           = useState([]);          // loaded from Firestore
+  const trackById = useMemo(() => {
+    const m = new Map();
+    for (const t of tracks) m.set(t.id, t);
+    return m;
+  }, [tracks]);
   const [tracksLoading, setTracksLoading] = useState(true);
   const [tracksLoadError, setTracksLoadError] = useState(null);
   // currentTrack / isPlaying live in playerTransportStore.
@@ -2198,6 +2203,11 @@ export default function App() {
   const [queue, setQueue]             = useState([]);
   const [isRadioMode, setIsRadioMode] = useState(false);
   const [searchQuery, setSearch]      = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedSearch(searchQuery), 180);
+    return () => clearTimeout(t);
+  }, [searchQuery]);
   const [adminTab, setAdminTab]       = useState("tracks");
   const [editTrack, setEditTrack]     = useState(null);
   const [toast, setToast]             = useState(null);
@@ -2572,7 +2582,8 @@ export default function App() {
   const readCatalogCache = useCallback(() => {
     try {
       const raw = JSON.parse(localStorage.getItem(CATALOG_CACHE_KEY) || "null");
-      return Array.isArray(raw?.tracks) && raw.tracks.length ? raw.tracks : null;
+      if (!Array.isArray(raw?.tracks) || !raw.tracks.length) return null;
+      return { ts: Number(raw.ts) || 0, tracks: raw.tracks };
     } catch { return null; }
   }, [CATALOG_CACHE_KEY]);
   const writeCatalogCache = useCallback((list) => {
@@ -2602,9 +2613,12 @@ export default function App() {
   useEffect(() => {
     const cached = readCatalogCache();
     if (cached) {
-      setTracks(applyLikedFlags(computeSignalTraits(enrichTracksWithScenes(cached))));
+      setTracks(applyLikedFlags(computeSignalTraits(enrichTracksWithScenes(cached.tracks))));
       setTracksLoading(false);
-      reloadCatalog({ background: true });
+      // Fresh TTL: skip double warm-start enrich + network; Retry still forces reload.
+      if (!isCatalogCacheFresh(cached)) {
+        reloadCatalog({ background: true });
+      }
     } else {
       reloadCatalog();
     }
@@ -2684,6 +2698,9 @@ export default function App() {
   const crossfadeRef   = useRef(null); // interval for the crossfade ramp
   const isCrossfading  = useRef(false);
   const audioUnlockedRef = useRef(false);
+  /** Locked next cut for preload → crossfade (avoids re-rolling radio picks). */
+  const pendingNextRef = useRef(null); // { track, url }
+  const crossfadeReadyWaitRef = useRef(null);
   const RADIO_CROSSFADE_SECS = 15; // long, on-air blend
   const QUEUE_CROSSFADE_SECS = 6;  // tighter blend for playlists / sessions
   // Tiny silent WAV — unlocks the inactive A/B element under iOS autoplay rules
@@ -2758,6 +2775,53 @@ export default function App() {
   const startCrossfadeRef = useRef(null);
   const primaryAudioCleanupRef = useRef(() => {});
 
+  const pickCrossfadeNext = useCallback(() => {
+    const radio = isRadioModeRef.current;
+    if (radio) {
+      const focus = listenFocusRef.current || {};
+      const pool = resolveListenPool(
+        tracksRef.current,
+        { mixLane: mixLaneRef.current, genre: focus.genre, scene: focus.scene },
+        { requireAudio: true, applyMixLane: true }
+      ).tracks;
+      const library = pool.length
+        ? pool
+        : tracksRef.current.filter((t) => (t.duration || 0) <= 900 && String(t.audioUrl || "").trim());
+      return pickNextTrack(library, currentRef.current, recentlyPlayedRef.current, {
+        preferredGenres: profile?.genres || [],
+        signalState: signalFlags.getState(),
+        seedTrack: hypnoSeed,
+        scopedPool: true,
+        tasteBlend: !(listenFocusRef.current?.genre),
+        energyShift: playerEnergyStore.getState(),
+      });
+    }
+    const q = queueRef.current;
+    if (!q.length) return null;
+    return shuffleRef.current
+      ? q[Math.floor(Math.random() * q.length)]
+      : q[0];
+  }, [profile?.genres, hypnoSeed]);
+
+  const preloadNextAudio = useCallback((track) => {
+    if (!track?.audioUrl || isCrossfading.current) return;
+    const fadeIn = nextAudioRef.current;
+    if (!fadeIn) return;
+    const url = String(track.audioUrl).trim();
+    if (!url) return;
+    const currentSrc = fadeIn.getAttribute("src") || "";
+    if (pendingNextRef.current?.url === url && currentSrc === url) return;
+    pendingNextRef.current = { track, url };
+    try {
+      fadeIn.pause();
+    } catch { /* ignore */ }
+    fadeIn.volume = 0;
+    if (currentSrc !== url) {
+      fadeIn.src = url;
+      try { fadeIn.load(); } catch { /* ignore */ }
+    }
+  }, []);
+
   const bindPrimaryAudio = useCallback((audio) => {
     primaryAudioCleanupRef.current?.();
 
@@ -2772,6 +2836,13 @@ export default function App() {
       if (!radio && !wantsQueueFade) return;
       const fadeSecs = radio ? RADIO_CROSSFADE_SECS : QUEUE_CROSSFADE_SECS;
       const remaining = audio.duration - audio.currentTime;
+      // Kick preload ~20s before the blend so the inactive element is warm
+      if (remaining <= fadeSecs + 20 && remaining > fadeSecs) {
+        if (!pendingNextRef.current?.url) {
+          const candidate = pickCrossfadeNext();
+          if (candidate) preloadNextAudio(candidate);
+        }
+      }
       if (remaining <= fadeSecs && remaining > 0) {
         startCrossfadeRef.current?.();
       }
@@ -2835,7 +2906,7 @@ export default function App() {
       audio.removeEventListener("canplay", onPlayingAgain);
       audio.removeEventListener("error", onError);
     };
-  }, []);
+  }, [pickCrossfadeNext, preloadNextAudio]);
 
   useEffect(() => {
     const a = new Audio();
@@ -2850,54 +2921,69 @@ export default function App() {
 
     return () => {
       clearInterval(crossfadeRef.current);
+      if (crossfadeReadyWaitRef.current) {
+        clearTimeout(crossfadeReadyWaitRef.current.failSafe);
+        crossfadeReadyWaitRef.current.cleanup?.();
+        crossfadeReadyWaitRef.current = null;
+      }
       primaryAudioCleanupRef.current?.();
       a.pause(); b.pause();
       a.src = ""; b.src = "";
     };
   }, [bindPrimaryAudio]);
 
+  // Preload the locked next cut whenever queue / mode / current track settles
+  useEffect(() => {
+    if (!currentTrackId || isCrossfading.current) return;
+    // Drop stale preload when the now-playing cut changes
+    if (pendingNextRef.current?.track?.id === currentTrackId) {
+      pendingNextRef.current = null;
+    }
+    const radio = isRadioMode;
+    const wantsQueueFade = !radio
+      && crossfadeOn
+      && repeat !== "one"
+      && queue.length > 0;
+    if (!radio && !wantsQueueFade) {
+      pendingNextRef.current = null;
+      return;
+    }
+    if (pendingNextRef.current?.url) return; // already locked for this spin
+    const candidate = pickCrossfadeNext();
+    if (candidate && candidate.id !== currentTrackId) preloadNextAudio(candidate);
+  }, [currentTrackId, queue, isRadioMode, crossfadeOn, repeat, pickCrossfadeNext, preloadNextAudio]);
+
   function startCrossfade() {
     if (isCrossfading.current) return;
     isCrossfading.current = true;
 
     const radio = isRadioModeRef.current;
-    let next = null;
-    if (radio) {
-      const focus = listenFocusRef.current || {};
-      const pool = resolveListenPool(
-        tracksRef.current,
-        { mixLane: mixLaneRef.current, genre: focus.genre, scene: focus.scene },
-        { requireAudio: true, applyMixLane: true }
-      ).tracks;
-      const library = pool.length
-        ? pool
-        : tracksRef.current.filter((t) => (t.duration || 0) <= 900 && String(t.audioUrl || "").trim());
-      next = pickNextTrack(library, currentRef.current, recentlyPlayedRef.current, {
-        preferredGenres: profile?.genres || [],
-        signalState: signalFlags.getState(),
-        seedTrack: hypnoSeed,
-        scopedPool: true,
-        tasteBlend: !(listenFocusRef.current?.genre),
-        energyShift: playerEnergyStore.getState(),
-      });
-    } else {
+    let next = pendingNextRef.current?.track || null;
+    if (!radio) {
       const q = queueRef.current;
       if (!q.length) { isCrossfading.current = false; return; }
-      next = shuffleRef.current
-        ? q[Math.floor(Math.random() * q.length)]
+      const expected = shuffleRef.current
+        ? (next && q.some((t) => t.id === next.id) ? next : q[Math.floor(Math.random() * q.length)])
         : q[0];
+      next = expected;
+    } else if (!next) {
+      next = pickCrossfadeNext();
     }
-    if (!next?.audioUrl) { isCrossfading.current = false; return; }
+    if (!next?.audioUrl) { isCrossfading.current = false; pendingNextRef.current = null; return; }
 
     const outgoing = currentRef.current;
     const fadeOut = audioRef.current;
     const fadeIn  = nextAudioRef.current;
     const fadeSecs = radio ? RADIO_CROSSFADE_SECS : QUEUE_CROSSFADE_SECS;
+    const url = String(next.audioUrl).trim();
+    pendingNextRef.current = { track: next, url };
 
-    // Load and start the next track silently
-    fadeIn.src    = next.audioUrl;
+    const currentSrc = fadeIn.getAttribute("src") || "";
+    if (currentSrc !== url) {
+      fadeIn.src = url;
+      try { fadeIn.load(); } catch { /* ignore */ }
+    }
     fadeIn.volume = 0;
-    fadeIn.play().catch(() => {});
 
     // Record the play
     if (firebaseUser) recordPlay(next.id, profile?.recentTracks || []).catch(()=>{});
@@ -2906,50 +2992,81 @@ export default function App() {
       setDuration(Math.floor(fadeIn.duration || 0));
     }, { once: true });
 
-    // Ramp volumes over the crossfade window
-    const steps    = fadeSecs * 20; // 20 steps per second
-    const interval = 1000 / 20;
-    let   step     = 0;
+    const beginRamp = () => {
+      fadeIn.play().catch(() => {});
+      const steps    = fadeSecs * 20; // 20 steps per second
+      const interval = 1000 / 20;
+      let   step     = 0;
 
-    clearInterval(crossfadeRef.current);
-    crossfadeRef.current = setInterval(() => {
-      step++;
-      const t = step / steps;
-      const targetVol = volumeRef.current;
-      fadeOut.volume = Math.max(0, targetVol * (1 - t));
-      fadeIn.volume  = Math.min(targetVol, targetVol * t);
+      clearInterval(crossfadeRef.current);
+      crossfadeRef.current = setInterval(() => {
+        step++;
+        const t = Math.min(1, step / steps);
+        const targetVol = volumeRef.current;
+        // Equal-power crossfade — steadier perceived loudness than a linear ramp
+        fadeOut.volume = Math.max(0, targetVol * Math.cos(t * Math.PI / 2));
+        fadeIn.volume  = Math.min(targetVol, targetVol * Math.sin(t * Math.PI / 2));
 
-      if (step >= steps) {
-        clearInterval(crossfadeRef.current);
-        fadeOut.pause();
-        fadeOut.src = "";
-        fadeOut.volume = targetVol;
+        if (step >= steps) {
+          clearInterval(crossfadeRef.current);
+          fadeOut.pause();
+          fadeOut.src = "";
+          fadeOut.volume = targetVol;
 
-        // Swap refs so audioRef always points to the active player
-        audioRef.current     = fadeIn;
-        nextAudioRef.current = fadeOut;
-        bindPrimaryAudio(fadeIn);
+          // Swap refs so audioRef always points to the active player
+          audioRef.current     = fadeIn;
+          nextAudioRef.current = fadeOut;
+          bindPrimaryAudio(fadeIn);
+          pendingNextRef.current = null;
 
-        // Advance the queue for playlist/session playback
-        if (!radio) {
-          setQueue((prev) => {
-            const rest = prev.filter((t2) => t2.id !== next.id);
-            return repeatRef.current === "all" && outgoing
-              ? [...rest, outgoing]
-              : rest;
-          });
+          // Advance the queue for playlist/session playback
+          if (!radio) {
+            setQueue((prev) => {
+              const rest = prev.filter((t2) => t2.id !== next.id);
+              return repeatRef.current === "all" && outgoing
+                ? [...rest, outgoing]
+                : rest;
+            });
+          }
+
+          setCurrent(next);
+          if (outgoing) {
+            playHistoryRef.current = [outgoing, ...playHistoryRef.current].slice(0, 50);
+          }
+          logTrackPlay(next);
+          // Delay clearing the crossfade flag so the currentTrack useEffect
+          // sees isCrossfading=true and skips reloading the audio
+          setTimeout(() => { isCrossfading.current = false; }, 100);
         }
+      }, interval);
+    };
 
-        setCurrent(next);
-        if (outgoing) {
-          playHistoryRef.current = [outgoing, ...playHistoryRef.current].slice(0, 50);
-        }
-        logTrackPlay(next);
-        // Delay clearing the crossfade flag so the currentTrack useEffect
-        // sees isCrossfading=true and skips reloading the audio
-        setTimeout(() => { isCrossfading.current = false; }, 100);
+    // Gate the blend on canplay so we don't fade into silence / cold buffer
+    if (crossfadeReadyWaitRef.current) {
+      clearTimeout(crossfadeReadyWaitRef.current.failSafe);
+      crossfadeReadyWaitRef.current.cleanup?.();
+      crossfadeReadyWaitRef.current = null;
+    }
+    let started = false;
+    const kick = () => {
+      if (started) return;
+      started = true;
+      if (crossfadeReadyWaitRef.current) {
+        clearTimeout(crossfadeReadyWaitRef.current.failSafe);
+        crossfadeReadyWaitRef.current.cleanup?.();
+        crossfadeReadyWaitRef.current = null;
       }
-    }, interval);
+      beginRamp();
+    };
+    const onCanPlay = () => kick();
+    fadeIn.addEventListener("canplay", onCanPlay);
+    const failSafe = setTimeout(kick, 4500);
+    crossfadeReadyWaitRef.current = {
+      failSafe,
+      cleanup: () => fadeIn.removeEventListener("canplay", onCanPlay),
+    };
+    // HAVE_FUTURE_DATA or better — already warm from preload
+    if (fadeIn.readyState >= 3) kick();
   }
   startCrossfadeRef.current = startCrossfade;
 
@@ -2960,6 +3077,7 @@ export default function App() {
     if (isCrossfading.current) return;
     const audio = audioRef.current;
     clearInterval(crossfadeRef.current);
+    pendingNextRef.current = null;
     if (currentTrack.audioUrl) {
       audio.src = currentTrack.audioUrl;
       audio.volume = volumeRef.current;
@@ -3008,8 +3126,8 @@ export default function App() {
     try {
       const saved = JSON.parse(localStorage.getItem(`${brandStoragePrefix()}.lastSession`) || "null");
       if (!saved?.trackId) return;
-      const track = tracks.find((t) => t.id === saved.trackId && String(t.audioUrl || "").trim());
-      if (!track) return;
+      const track = trackById.get(saved.trackId);
+      if (!track || !String(track.audioUrl || "").trim()) return;
       const dur = track.duration || 0;
       const position = Number.isFinite(saved.position) && saved.position > 3 && (!dur || saved.position < dur - 10)
         ? saved.position
@@ -3018,7 +3136,7 @@ export default function App() {
       setCurrent(track); // paused — never autoplay on launch
       setIsRadioMode(false);
     } catch { /* ignore */ }
-  }, [tracksLoading, tracks, currentTrack]);
+  }, [tracksLoading, trackById, currentTrack]);
 
   // Sync play/pause — subscribe to transport store so App need not re-render
   useEffect(() => {
@@ -3333,7 +3451,7 @@ export default function App() {
 
   // ── Like/unlike — optimistic UI + Firestore sync ────────────────────────
   const toggleLike = async (id) => {
-    const track = tracks.find(t => t.id === id);
+    const track = trackById.get(id);
     if (!track) return;
     const nowLiked = !track.liked;
     const delta = nowLiked ? 1 : -1;
@@ -3490,7 +3608,7 @@ export default function App() {
   const playWeeklyReveal = useCallback(() => {
     const weekly = buildWeeklyReveal(12);
     const pool = weekly
-      .map((e) => tracks.find((t) => t.id === e.id))
+      .map((e) => trackById.get(e.id))
       .filter(Boolean);
     if (!pool.length) {
       showToast("Weekly reveal needs a few days of chart history");
@@ -3500,7 +3618,7 @@ export default function App() {
     setActiveSceneChannelId(null);
     playTrack(pool[0], pool, { immersive: true });
     showToast("Weekly reveal — peak chart cuts");
-  }, [tracks, playTrack]);
+  }, [trackById, playTrack]);
 
   // Snapshot today's chart for history / climbers
   useEffect(() => {
@@ -3727,11 +3845,11 @@ export default function App() {
     onOpenAlbum: (track) => openAlbum(track),
   };
 
-  // ── Search — ranked, diacritic-folded, memoized ───────────────────────────
+  // ── Search — ranked, diacritic-folded, memoized (debounced input) ─────────
   const searchResults = useMemo(() => {
-    if (searchQuery.length === 0) return [];
+    if (debouncedSearch.length === 0) return [];
     const fold = (s) => String(s || "").toLowerCase().normalize("NFKD").replace(/[\u0300-\u036f]/g, "");
-    const q = fold(searchQuery).trim();
+    const q = fold(debouncedSearch).trim();
     if (!q) return [];
     // Energy search: "e7", "energy 5", etc.
     const energyMatch = q.match(/^e(?:nergy)?\s*(\d+)$/i);
@@ -3776,10 +3894,10 @@ export default function App() {
       return [...bpmHits, ...textHits.filter((t) => !seen.has(t.id))];
     }
     return textHits;
-  }, [tracks, searchQuery]);
+  }, [tracks, debouncedSearch]);
   const entityHits = useMemo(
-    () => (searchQuery.length > 1 ? searchEntities(tracks, searchQuery) : { artists: [], albums: [] }),
-    [tracks, searchQuery]
+    () => (debouncedSearch.length > 1 ? searchEntities(tracks, debouncedSearch) : { artists: [], albums: [] }),
+    [tracks, debouncedSearch]
   );
 
   // ── Scroll memory — keep your place when switching tabs ──────────────────

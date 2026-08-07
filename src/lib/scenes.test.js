@@ -65,6 +65,14 @@ describe("scene taxonomy", () => {
     expect(enriched[0]._scenes.length).toBeGreaterThan(0);
   });
 
+  test("enrichTracksWithScenes skips work when _scene already present", () => {
+    const once = enrichTracksWithScenes([
+      { id: "1", genre: "Jazz", energy: 3, duration: 200 },
+    ]);
+    const twice = enrichTracksWithScenes(once);
+    expect(twice).toBe(once);
+  });
+
   test("trackMatchesScene + relatedScenes", () => {
     const t = { genre: "UK Garage", energy: 6, bpm: 132 };
     expect(trackMatchesScene(t, "uk-garage")).toBe(true);

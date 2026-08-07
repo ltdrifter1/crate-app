@@ -797,6 +797,10 @@ export function inferSceneTags(track, limit = 3) {
 
 /** Enrich track objects with `_scene` / `_scenes` (pure). */
 export function enrichTracksWithScenes(tracks = []) {
+  // Warm-start / remount: skip O(N×scenes) when already tagged.
+  if (tracks.length && Object.prototype.hasOwnProperty.call(tracks[0], "_scene")) {
+    return tracks;
+  }
   return tracks.map((t) => {
     const scene = inferScene(t);
     const tags = inferSceneTags(t, 4);
