@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState, memo } from "react";
 import Icon from "../components/ui/Icon";
 import CoverImage from "../components/ui/CoverImage";
+import VirtualList from "../components/ui/VirtualList";
 import CoverFlow from "../components/listen/CoverFlow";
 import { AlbumArt } from "../components/listen/AlbumArt";
 import {
@@ -347,12 +348,18 @@ function FavoritesScreen({
   const catalogKey = tracks.length;
   const dayKey = new Date().toISOString().slice(0, 10);
 
+  const trackById = useMemo(() => {
+    const m = new Map();
+    for (const t of tracks) m.set(t.id, t);
+    return m;
+  }, [tracks]);
+
   const recentlyPlayed = useMemo(
     () => [...new Set(recentTrackIds)]
-      .map((id) => tracks.find((t) => t.id === id))
+      .map((id) => trackById.get(id))
       .filter(Boolean)
       .slice(0, 25),
-    [tracks, recentKey]
+    [trackById, recentKey]
   );
 
   const trending = useMemo(() => trendingTracks(tracks, 25), [tracks, catalogKey]);
@@ -443,7 +450,7 @@ function FavoritesScreen({
     ? userPlaylists.find((p) => p.id === openPlaylistId)
     : null;
   const openPlaylistTracks = openPlaylist
-    ? (openPlaylist.trackIds || []).map((id) => tracks.find((t) => t.id === id)).filter(Boolean)
+    ? (openPlaylist.trackIds || []).map((id) => trackById.get(id)).filter(Boolean)
     : [];
 
   if (openPlaylist) {
@@ -644,6 +651,22 @@ function FavoritesScreen({
           <div style={{ fontSize: 15, color: color.faint, paddingTop: 32, textAlign: "center" }}>
             {community ? "This playlist is empty" : "This playlist is empty"}
           </div>
+        ) : openPlaylistTracks.length > 40 ? (
+          <VirtualList
+            items={openPlaylistTracks}
+            estimateSize={68}
+            maxHeight={typeof window !== "undefined" ? Math.min(window.innerHeight * 0.55, 640) : 480}
+            renderItem={(t) => (
+              <TrackRow
+                track={t}
+                onPlay={() => playTrackFn(t, openPlaylistTracks)}
+                active={activeId === t.id}
+                onLike={onLike}
+                playlistCtx={playlistCtx}
+                activePlaylistId={openPlaylist.id}
+              />
+            )}
+          />
         ) : openPlaylistTracks.map((t) => (
           <TrackRow
             key={t.id}
@@ -762,7 +785,7 @@ function FavoritesScreen({
       );
     }
 
-    const plTracks = (pl.trackIds || []).map((id) => tracks.find((t) => t.id === id)).filter(Boolean);
+    const plTracks = (pl.trackIds || []).map((id) => trackById.get(id)).filter(Boolean);
     const covers = plTracks.filter((t) => t.albumCover).slice(0, 4);
     const community = isCommunityPlaylist(pl);
     return (
@@ -1303,7 +1326,22 @@ function FavoritesScreen({
                   }}>
                     {q ? "Matches" : "All liked"}
                   </div>
-                  {filteredSaved.map((t) => (
+                  {filteredSaved.length > 40 ? (
+                    <VirtualList
+                      items={filteredSaved}
+                      estimateSize={68}
+                      maxHeight={typeof window !== "undefined" ? Math.min(window.innerHeight * 0.55, 640) : 480}
+                      renderItem={(t) => (
+                        <TrackRow
+                          track={t}
+                          onPlay={() => playTrackFn(t, filteredSaved)}
+                          active={activeId === t.id}
+                          onLike={onLike}
+                          playlistCtx={playlistCtx}
+                        />
+                      )}
+                    />
+                  ) : filteredSaved.map((t) => (
                     <TrackRow
                       key={t.id}
                       track={t}

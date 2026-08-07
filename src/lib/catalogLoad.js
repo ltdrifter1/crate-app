@@ -49,3 +49,13 @@ export async function fetchCatalogTracks(db) {
 export function countPlayableTracks(tracks = []) {
   return tracks.filter((t) => String(t.audioUrl || "").trim().length > 0).length;
 }
+
+/** Skip background refetch when warm-start cache is still fresh. */
+export const CATALOG_CACHE_TTL_MS = 15 * 60 * 1000;
+
+export function isCatalogCacheFresh(entry, now = Date.now(), ttlMs = CATALOG_CACHE_TTL_MS) {
+  if (!entry || !Array.isArray(entry.tracks) || !entry.tracks.length) return false;
+  const ts = Number(entry.ts);
+  if (!Number.isFinite(ts) || ts <= 0) return false;
+  return now - ts < ttlMs;
+}

@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { fontDisplay, fontMono, color, glass, radius } from "../../theme";
 import { genreBrowseRows, tracksForGenreLane } from "../../lib/browse";
+import VirtualList from "../ui/VirtualList";
 
 /**
  * Genre browse for Search empty state — names only, no description copy.
@@ -31,6 +32,10 @@ export default function GenreSceneBrowse({
 
   if (browsing) {
     const pool = tracksForGenreLane(tracks, browsing);
+    const useVirtual = pool.length > 40;
+    const listMax = typeof window !== "undefined"
+      ? Math.min(window.innerHeight * 0.62, 640)
+      : 480;
     return (
       <div style={{ paddingTop: 8, animation: "rise 0.4s cubic-bezier(0.22,1,0.36,1) both" }}>
         {!activeGenre && (
@@ -55,17 +60,35 @@ export default function GenreSceneBrowse({
         }}>
           {browsing}
         </div>
-        {pool.map((t) => (
-          <TrackRow
-            key={t.id}
-            track={t}
-            onPlay={() => onPlayPool?.(t, pool)}
-            active={currentTrack?.id === t.id}
-            isPlaying={isPlaying}
-            onLike={onLike}
-            playlistCtx={playlistCtx}
+        {useVirtual ? (
+          <VirtualList
+            items={pool}
+            estimateSize={68}
+            maxHeight={listMax}
+            renderItem={(t) => (
+              <TrackRow
+                track={t}
+                onPlay={() => onPlayPool?.(t, pool)}
+                active={currentTrack?.id === t.id}
+                isPlaying={isPlaying}
+                onLike={onLike}
+                playlistCtx={playlistCtx}
+              />
+            )}
           />
-        ))}
+        ) : (
+          pool.map((t) => (
+            <TrackRow
+              key={t.id}
+              track={t}
+              onPlay={() => onPlayPool?.(t, pool)}
+              active={currentTrack?.id === t.id}
+              isPlaying={isPlaying}
+              onLike={onLike}
+              playlistCtx={playlistCtx}
+            />
+          ))
+        )}
         {onListenIntent && pool.length > 0 && (
           <button
             type="button"
