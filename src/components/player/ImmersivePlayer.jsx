@@ -1,6 +1,6 @@
 /**
  * ImmersivePlayer — premium Y2K listening booth.
- * Platinum glass, brushed aluminum transport, jewel-case sleeve.
+ * Dark broadcast atmosphere, brushed aluminum transport, jewel-case sleeve.
  * Station TV chrome (dark lower-thirds / emoji heat) stays on Cover Stage;
  * here the hierarchy is sleeve → title → transport deck.
  */
@@ -430,7 +430,7 @@ export default function ImmersivePlayer({
         flexDirection: "column",
       }}
     >
-      {/* Atmosphere — aluminum + sleeve bloom */}
+      {/* Atmosphere — dark broadcast studio + sleeve bloom */}
       <div aria-hidden="true" style={{ position: "absolute", inset: 0, background: aluminumGradient() }} />
       {currentTrack.albumCover && (
         <div
@@ -454,13 +454,13 @@ export default function ImmersivePlayer({
           position: "absolute",
           inset: 0,
           background: `
-            radial-gradient(ellipse 80% 55% at 50% 18%, rgba(${rgb},0.16) 0%, transparent 58%),
+            radial-gradient(ellipse 80% 55% at 50% 18%, rgba(${rgb},0.18) 0%, transparent 58%),
             linear-gradient(180deg,
-              rgba(226,230,237,0.55) 0%,
-              rgba(226,230,237,0.12) 32%,
-              rgba(226,230,237,0.08) 52%,
-              rgba(226,230,237,0.72) 78%,
-              rgba(214,219,228,0.96) 100%
+              rgba(5,6,8,0.72) 0%,
+              rgba(5,6,8,0.28) 28%,
+              rgba(5,6,8,0.12) 48%,
+              rgba(5,6,8,0.7) 76%,
+              rgba(5,6,8,0.94) 100%
             )
           `,
         }}
@@ -474,7 +474,7 @@ export default function ImmersivePlayer({
           left: 0,
           right: 0,
           height: 120,
-          background: "linear-gradient(180deg, rgba(32,36,43,0.65) 0%, transparent 100%)",
+          background: "linear-gradient(180deg, rgba(255,255,255,0.06) 0%, transparent 100%)",
           pointerEvents: "none",
           zIndex: 1,
         }}
