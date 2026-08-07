@@ -1,5 +1,5 @@
 import {
-  color, fontDisplay, fontMono, glass, homeSpace, motion, radius, artShadow, chrome
+  color, fontDisplay, fontMono, glass, homeSpace, motion, chrome
 } from "../../theme";
 import { stationDaypart } from "../../lib/station";
 import { useIsPlaying } from "../../usePlayerTransport";
@@ -38,17 +38,17 @@ export default function CountdownRail({
         gap: 12,
       }}>
         <div style={{ minWidth: 0 }}>
-          <div style={{
-            fontFamily: fontMono,
-            fontSize: compact ? 11 : 10,
-            fontWeight: 800,
-            letterSpacing: 1.5,
-            textTransform: "uppercase",
-            color: chrome.steel,
-            marginBottom: compact ? 0 : 6,
-          }}>
-            {compact ? `Most requested · ${daypart.label}` : `The countdown · ${daypart.label}`}
-          </div>
+          {compact && (
+            <div style={{
+              fontFamily: fontDisplay,
+              fontSize: 14,
+              fontWeight: 650,
+              letterSpacing: -0.1,
+              color: color.muted,
+            }}>
+              Most requested
+            </div>
+          )}
           {!compact && (
             <>
               <h2 style={{
@@ -80,8 +80,8 @@ export default function CountdownRail({
             onClick={onTuneIn}
             style={{
               flexShrink: 0,
-              padding: "11px 14px",
-              borderRadius: radius.pill,
+              padding: "10px 13px",
+              borderRadius: 5,
               border: `1px solid ${glass.border}`,
               background: glass.chrome,
               color: color.ink,
@@ -91,9 +91,7 @@ export default function CountdownRail({
               letterSpacing: 1.1,
               textTransform: "uppercase",
               cursor: "pointer",
-              boxShadow: `inset 0 1px 0 ${glass.highlight}, ${glass.shadowSoft}`,
-              backdropFilter: glass.blurSoft,
-              WebkitBackdropFilter: glass.blurSoft,
+              boxShadow: `inset 0 1px 0 ${glass.highlight}, inset 0 -1px 0 rgba(0,0,0,0.5)`,
             }}
           >
             Tune in
@@ -107,7 +105,7 @@ export default function CountdownRail({
         padding: `0 ${homeSpace.gutter}px`,
         display: "flex",
         flexDirection: "column",
-        gap: 6,
+        gap: 5,
       }}>
         {top.map(({ rank, track, deltaLabel }) => {
           const active = activeId === track.id;
@@ -122,44 +120,47 @@ export default function CountdownRail({
                   width: "100%",
                   display: "flex",
                   alignItems: "center",
-                  gap: 12,
-                  padding: "10px 12px",
-                  borderRadius: radius.md,
-                  border: `1px solid ${active ? color.ink : glass.borderSoft}`,
+                  gap: 0,
+                  padding: 0,
+                  minHeight: 58,
+                  borderRadius: 6,
+                  overflow: "hidden",
+                  border: `1px solid ${active ? color.accent : glass.borderSoft}`,
                   background: active
-                    ? "rgba(22,24,30,0.06)"
-                    : "rgba(32,36,43,0.65)",
+                    ? "linear-gradient(90deg, rgba(169,199,228,0.1) 0%, rgba(24,27,32,0.98) 28%)"
+                    : "linear-gradient(90deg, rgba(37,42,49,0.96) 0%, rgba(20,23,28,0.98) 72%)",
                   boxShadow: active
-                    ? `inset 0 1px 0 ${glass.highlight}`
-                    : `inset 0 1px 0 ${glass.highlight}, ${glass.shadowSoft}`,
+                    ? `inset 4px 0 0 ${color.accent}, inset 0 1px 0 ${glass.highlight}`
+                    : `inset 0 1px 0 ${glass.highlight}, inset 0 -1px 0 rgba(0,0,0,0.5)`,
                   cursor: "pointer",
                   textAlign: "left",
                 }}
               >
                 <div style={{
-                  width: 36,
+                  width: rank <= 3 ? 50 : 44,
                   flexShrink: 0,
                   fontFamily: fontMono,
-                  fontSize: rank === 1 ? 22 : 16,
-                  fontWeight: 800,
-                  letterSpacing: -0.5,
-                  color: rank <= 3 ? chrome.hot : color.ink,
+                  fontSize: rank === 1 ? 32 : rank <= 3 ? 27 : 20,
+                  fontWeight: 900,
+                  letterSpacing: -1.5,
+                  color: active ? color.accent : (rank <= 3 ? chrome.bright : color.body),
                   textAlign: "center",
                 }}>
                   {rank}
                 </div>
                 <div style={{
-                  width: 44, height: 44, borderRadius: 6, flexShrink: 0,
+                  width: 56, height: 56, borderRadius: 0, flexShrink: 0,
                   overflow: "hidden",
                   background: color.surfaceRaised,
-                  boxShadow: artShadow.quiet,
-                  outline: active && isPlaying ? `2px solid ${color.ink}` : "none",
+                  boxShadow: "inset 1px 0 0 rgba(255,255,255,0.08), inset -1px 0 0 rgba(0,0,0,0.35)",
+                  outline: active && isPlaying ? `2px solid ${color.accent}` : "none",
+                  outlineOffset: -2,
                 }}>
-                  <CoverImage src={track.albumCover} width={44} height={44} alt="" />
+                  <CoverImage src={track.albumCover} width={56} height={56} alt="" />
                 </div>
-                <div style={{ minWidth: 0, flex: 1 }}>
+                <div style={{ minWidth: 0, flex: 1, padding: "8px 10px" }}>
                   <div style={{
-                    fontSize: 14, fontWeight: 650, color: color.ink,
+                    fontSize: 14, fontWeight: 700, color: active ? color.accent : color.ink,
                     overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
                   }}>
                     {track.title}
@@ -177,9 +178,10 @@ export default function CountdownRail({
                   fontWeight: 800,
                   letterSpacing: 0.8,
                   color: deltaLabel.includes("HOT") || deltaLabel.includes("↑")
-                    ? chrome.hot
+                    ? chrome.bright
                     : color.faint,
                   flexShrink: 0,
+                  paddingRight: 12,
                 }}>
                   {deltaLabel}
                 </div>

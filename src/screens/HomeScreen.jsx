@@ -2,11 +2,9 @@ import { useMemo, memo } from "react";
 import {
   BTN_PRIMARY,
   BTN_SECONDARY,
-  chrome,
   chromeFrame,
   color,
   fontDisplay,
-  fontMono,
   glass,
   homeSpace,
   motion,
@@ -182,23 +180,16 @@ function HomeScreen({
             style={{ paddingTop: 16, paddingBottom: 4, ...riseStyle(0) }}
           >
             <div style={{ padding: `0 ${homeSpace.gutter}px 12px` }}>
-                <div style={{
-                  fontFamily: fontMono, fontSize: 11, fontWeight: 800,
-                  letterSpacing: 1.5, textTransform: "uppercase", color: chrome.steel,
-                  marginBottom: 8,
-                }}>
-                  Tonight
-                </div>
                 <h2 style={{
                   margin: 0,
                   fontFamily: fontDisplay,
-                  fontSize: "clamp(22px, 4.6vw, 28px)",
+                  fontSize: "clamp(32px, 7vw, 40px)",
                   fontWeight: 800,
-                  letterSpacing: -0.45,
+                  letterSpacing: -1.1,
                   color: color.ink,
-                  lineHeight: 1.1,
+                  lineHeight: 1,
                 }}>
-                  What’s on
+                  Tonight
                 </h2>
             </div>
 
