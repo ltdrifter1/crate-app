@@ -30,6 +30,7 @@ import {
   Volume2,
   Disc3,
   FlaskConical,
+  Zap,
 } from "lucide-react";
 import { color } from "../../theme";
 
@@ -114,6 +115,7 @@ export default function Icon({ name, size = 18 }) {
     hypno: <Lucide Cmp={Disc3} size={size} />,
     timedmix: <TimedMixMark size={size} />,
     flask: <Lucide Cmp={FlaskConical} size={size} />,
+    zap: <Lucide Cmp={Zap} size={size} />,
   };
   return icons[name] || null;
 }

@@ -93,7 +93,6 @@ function HomeScreen({
   mixLane, radioPreview = null, radioNext = null, onSkipRadio, onPrevRadio,
   catalogError = null, onRetryCatalog,
   onOpenPlayer,
-  onBrowse = null,
   onStageVisibilityChange = null,
   onSeek = null,
   countdown = [],
@@ -183,24 +182,24 @@ function HomeScreen({
             style={{ paddingTop: 16, paddingBottom: 4, ...riseStyle(0) }}
           >
             <div style={{ padding: `0 ${homeSpace.gutter}px 12px` }}>
-              <div style={{
-                fontFamily: fontMono, fontSize: 10, fontWeight: 800,
-                letterSpacing: 1.6, textTransform: "uppercase", color: chrome.steel,
-                marginBottom: 6,
-              }}>
-                Tonight
-              </div>
-              <h2 style={{
-                margin: 0,
-                fontFamily: fontDisplay,
-                fontSize: "clamp(18px, 3.4vw, 22px)",
-                fontWeight: 700,
-                letterSpacing: -0.3,
-                color: color.ink,
-                lineHeight: 1.15,
-              }}>
-                What’s on
-              </h2>
+                <div style={{
+                  fontFamily: fontMono, fontSize: 11, fontWeight: 800,
+                  letterSpacing: 1.5, textTransform: "uppercase", color: chrome.steel,
+                  marginBottom: 8,
+                }}>
+                  Tonight
+                </div>
+                <h2 style={{
+                  margin: 0,
+                  fontFamily: fontDisplay,
+                  fontSize: "clamp(22px, 4.6vw, 28px)",
+                  fontWeight: 800,
+                  letterSpacing: -0.45,
+                  color: color.ink,
+                  lineHeight: 1.1,
+                }}>
+                  What’s on
+                </h2>
             </div>
 
             {airing?.show && !(activeShowId === airing.show.id && currentTrack) && (
@@ -253,92 +252,19 @@ function HomeScreen({
           </div>
         )}
 
-        {!catalogEmpty && !catalogError && onBrowse && (
-          <div
-            style={{
-              marginTop: 8,
-              paddingTop: 18,
-              borderTop: `1px solid ${glass.borderSoft}`,
-              background: `
-                linear-gradient(180deg, rgba(184,192,204,0.12) 0%, transparent 40%)
-              `,
-              ...riseStyle(0.1),
-            }}
-          >
-            <div style={{ padding: `0 ${homeSpace.gutter}px 6px` }}>
-              <div style={{
-                fontFamily: fontMono, fontSize: 10, fontWeight: 800,
-                letterSpacing: 1.5, textTransform: "uppercase", color: chrome.steel,
-              }}>
-                More from the station
-              </div>
-            </div>
-
-            <section
-              aria-label="Station links"
-              style={{
-                padding: `8px ${homeSpace.gutter}px 10px`,
-                display: "flex",
-                flexDirection: "column",
-                gap: 8,
-              }}
-            >
-              <button
-                type="button"
-                onClick={onBrowse}
-                aria-label="Browse the library"
-                style={{
-                  width: "100%",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                  gap: 12,
-                  padding: "14px 16px",
-                  borderRadius: radius.xl,
-                  border: `1px solid rgba(255,255,255,0.12)`,
-                  background: `
-                    linear-gradient(165deg, rgba(38,43,51,0.8) 0%, rgba(28,32,38,0.5) 100%)
-                  `,
-                  boxShadow: `inset 0 1px 0 ${glass.highlight}, ${glass.shadowSoft}`,
-                  backdropFilter: glass.blurSoft,
-                  WebkitBackdropFilter: glass.blurSoft,
-                  cursor: "pointer",
-                  textAlign: "left",
-                }}
-              >
-                <div>
-                  <div style={{
-                    fontSize: 10,
-                    fontWeight: 800,
-                    letterSpacing: 1.2,
-                    textTransform: "uppercase",
-                    fontFamily: fontMono,
-                    color: chrome.steel,
-                    marginBottom: 4,
-                  }}>
-                    Catalog
-                  </div>
-                  <div style={{
-                    fontSize: 15,
-                    fontWeight: 700,
-                    fontFamily: fontDisplay,
-                    letterSpacing: -0.1,
-                    color: color.ink,
-                    textTransform: "uppercase",
-                  }}>
-                    Browse the catalog
-                  </div>
-                </div>
-                <span aria-hidden="true" style={{ color: chrome.steel, fontSize: 18 }}>→</span>
-              </button>
-            </section>
-          </div>
-        )}
-
         {!catalogError && !catalogEmpty && countdown.length === 0 && !airing?.show && (
           <div style={{ padding: `28px ${homeSpace.gutter}px 56px` }}>
-            <div className="glass-surface" style={{ padding: "28px 22px", ...chromeFrame() }}>
-              <div style={{ fontSize: 22, fontWeight: 700, fontFamily: fontDisplay, color: color.ink, marginBottom: 8, letterSpacing: -0.3, textTransform: "uppercase" }}>
+            <div className="glass-surface" style={{
+              padding: "28px 22px",
+              ...chromeFrame(),
+              borderRadius: radius.xl,
+              border: `1px solid rgba(255,255,255,0.12)`,
+              background: `
+                linear-gradient(165deg, rgba(38,43,52,0.88) 0%, rgba(24,27,33,0.72) 100%)
+              `,
+              boxShadow: `inset 0 1px 0 ${glass.highlight}, ${glass.shadowLift}`,
+            }}>
+              <div style={{ fontSize: 24, fontWeight: 800, fontFamily: fontDisplay, color: color.ink, marginBottom: 8, letterSpacing: -0.4, textTransform: "uppercase" }}>
                 Nothing on the shelf
               </div>
               <div style={{ fontSize: 15, fontWeight: 500, color: color.muted, lineHeight: 1.5, maxWidth: 280 }}>

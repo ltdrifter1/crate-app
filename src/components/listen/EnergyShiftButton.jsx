@@ -3,6 +3,7 @@
 // the background; the UI only dispatches increaseEnergy() / decreaseEnergy().
 
 import React, { useEffect, useRef, useState } from "react";
+import { Zap } from "lucide-react";
 import { color, glass, fontMono } from "../../theme";
 import { useEnergyQueue } from "../../useEnergyQueue";
 
@@ -342,25 +343,18 @@ export function EnergyShiftFeedback({ bottom = "calc(100% + 12px)" }) {
   );
 }
 
-/** Dial icon — energy gauge with a center needle. */
-function EnergyDialIcon({ size = 18 }) {
+/** Energy shift mark — lightning bolt (tempo / lift). */
+function EnergyZapIcon({ size = 18 }) {
   return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <path
-        d="M5.2 16.2a7.2 7.2 0 0 1 13.6 0"
-        stroke="currentColor"
-        strokeWidth="1.7"
-        strokeLinecap="round"
-      />
-      <path
-        d="M12 16.2V8.6"
-        stroke="currentColor"
-        strokeWidth="1.8"
-        strokeLinecap="round"
-      />
-      <circle cx="12" cy="16.2" r="1.55" fill="currentColor" />
-      <path d="M7.4 14.2h1.6M15 14.2h1.6" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" opacity="0.45" />
-    </svg>
+    <Zap
+      size={size}
+      absoluteStrokeWidth
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      fill="currentColor"
+      aria-hidden="true"
+    />
   );
 }
 
@@ -460,7 +454,7 @@ export function EnergyShiftControl({
           flexShrink: 0,
         }}
       >
-        <EnergyDialIcon size={Math.round((labeled ? 40 : size) * 0.46)} />
+        <EnergyZapIcon size={Math.round((labeled ? 40 : size) * 0.46)} />
         {labeled && (
           <span style={{
             fontFamily: fontMono,
