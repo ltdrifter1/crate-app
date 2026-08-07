@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { fontDisplay, fontMono, color, glass, radius } from "../../theme";
+import { fontDisplay, fontMono, color, glass, radius, type } from "../../theme";
 import { genreBrowseRows, tracksForGenreLane } from "../../lib/browse";
 import VirtualList from "../ui/VirtualList";
 
@@ -51,11 +51,9 @@ export default function GenreSceneBrowse({
           </button>
         )}
         <div style={{
+          ...type.display,
           fontSize: 28,
-          fontWeight: 700,
-          letterSpacing: -0.7,
           color: color.ink,
-          fontFamily: fontDisplay,
           marginBottom: 16,
         }}>
           {browsing}
@@ -119,12 +117,10 @@ export default function GenreSceneBrowse({
   return (
     <div style={{ paddingTop: 8, animation: "rise 0.45s cubic-bezier(0.22,1,0.36,1) both" }}>
       <div style={{
+        ...type.section,
         fontSize: 20,
-        fontWeight: 700,
-        letterSpacing: -0.4,
         color: color.ink,
         marginBottom: 8,
-        fontFamily: fontDisplay,
       }}>
         Genres
       </div>
@@ -154,13 +150,16 @@ export default function GenreSceneBrowse({
               width: "100%",
             }}
           >
-            <span style={{ fontSize: 17, fontWeight: 600, fontFamily: fontDisplay }}>
+            <span style={{ ...type.section, fontSize: 17, color: color.ink }}>
               {row.lane}
             </span>
             <span style={{
+              ...type.monoLabel,
               fontSize: 12,
+              fontWeight: 600,
+              letterSpacing: 0.2,
+              textTransform: "none",
               color: color.faint,
-              fontFamily: fontMono,
               flexShrink: 0,
             }}>
               {row.trackCount}

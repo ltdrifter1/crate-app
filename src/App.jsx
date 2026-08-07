@@ -7,7 +7,7 @@ import { db }                                       from "./firebase";
 import {
   font, fontDisplay, fontMono, color, chrome, radius, motion,
   glass, glassControl, homeSpace, dock, sectionRule,
-  artShadow, aluminumGradient, chromeFrame,
+  artShadow, aluminumGradient, chromeFrame, hardware, hardwareKey, type,
   APP_STYLE, INPUT_ST, BTN_PRIMARY, BTN_SECONDARY, CTRL_BTN, ADMIN_UID,
   BRAND_NAME, brandStoragePrefix,
 } from "./theme";
@@ -430,8 +430,8 @@ const injectStyles = () => {
       padding: 0; margin: -1px; overflow: hidden;
       clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0;
     }
-    /* Mini-dock: hide secondary controls on narrow phones so targets stay big */
-    @media (max-width: 430px) {
+    /* Mini-dock: keep art · title · like · play; hide secondary chrome on phones */
+    @media (max-width: 520px) {
       .dock-xtra { display: none !important; }
     }
     .glass-dock {
@@ -1869,9 +1869,10 @@ function GlassDock({
 
             <div key={track.id} style={{ flex: 1, minWidth: 0, animation: "fadeIn 0.3s ease both" }}>
               <div style={{
-                fontSize: 14, fontWeight: 650, color: color.ink,
+                ...type.section,
+                fontSize: 14,
+                color: color.ink,
                 overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
-                fontFamily: fontDisplay, letterSpacing: -0.25,
               }}>
                 {(isRadioMode || hypnoPocket) && (
                   <span style={{
@@ -1884,6 +1885,7 @@ function GlassDock({
                 {track.title}
               </div>
               <div style={{
+                ...type.meta,
                 fontSize: 11, color: color.muted, marginTop: 3,
                 overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
                 display: "flex", alignItems: "center", gap: 8,
@@ -1893,11 +1895,13 @@ function GlassDock({
                 </span>
                 <span style={{
                   flexShrink: 0,
-                  fontFamily: fontMono,
+                  ...type.monoLabel,
                   fontSize: 10,
-                  fontVariantNumeric: "tabular-nums",
+                  fontWeight: 600,
                   letterSpacing: 0.2,
+                  textTransform: "none",
                   color: color.faint,
+                  fontVariantNumeric: "tabular-nums",
                 }}>
                   {fmtTime(progress)}{duration ? ` / ${fmtTime(duration)}` : ""}
                 </span>
@@ -1906,9 +1910,14 @@ function GlassDock({
 
             <button type="button" aria-label={track.liked ? "Unlike" : "Like"}
               onClick={(e) => { e.stopPropagation(); onLike(); }}
-              style={{ background: "none", border: "none", cursor: "pointer", color: track.liked ? color.accent : color.faint, padding: 8 }}>
+              style={{
+                background: "none", border: "none", cursor: "pointer",
+                color: track.liked ? color.accent : color.faint,
+                padding: 10, minWidth: 44, minHeight: 44,
+                display: "flex", alignItems: "center", justifyContent: "center",
+              }}>
               <span style={{ display: "flex", animation: track.liked ? "likePop 0.25s ease" : "none" }}>
-                <Icon name={track.liked ? "heart" : "heartempty"} size={16}/>
+                <Icon name={track.liked ? "heart" : "heartempty"} size={18}/>
               </span>
             </button>
             {onShowQueue && (
@@ -1923,23 +1932,27 @@ function GlassDock({
             <span className="dock-xtra" style={{ display: "flex" }}>
               <TrackMoreButton onClick={(e) => openFromButton(e, track)} />
             </span>
-            <button type="button" aria-label="Previous"
-              onClick={(e) => { e.stopPropagation(); onPrev?.(); }}
-              style={{ background: "none", border: "none", cursor: "pointer", color: color.muted, padding: 8 }}>
-              <Icon name="prev" size={16}/>
-            </button>
+            <span className="dock-xtra" style={{ display: "flex" }}>
+              <button type="button" aria-label="Previous"
+                onClick={(e) => { e.stopPropagation(); onPrev?.(); }}
+                style={{ background: "none", border: "none", cursor: "pointer", color: color.muted, padding: 8 }}>
+                <Icon name="prev" size={16}/>
+              </button>
+            </span>
             <IceOrbPlay
              
               onClick={onTogglePlay}
-              size={34}
-              iconSize={14}
+              size={38}
+              iconSize={15}
               stopPropagation
             />
-            <button type="button" aria-label="Next"
-              onClick={(e) => { e.stopPropagation(); onSkip(); }}
-              style={{ background: "none", border: "none", cursor: "pointer", color: color.muted, padding: 8 }}>
-              <Icon name="skip" size={16}/>
-            </button>
+            <span className="dock-xtra" style={{ display: "flex" }}>
+              <button type="button" aria-label="Next"
+                onClick={(e) => { e.stopPropagation(); onSkip(); }}
+                style={{ background: "none", border: "none", cursor: "pointer", color: color.muted, padding: 8 }}>
+                <Icon name="skip" size={16}/>
+              </button>
+            </span>
             <span className="dock-xtra" style={{ display: "flex" }}>
               <EnergyShiftControl size={30} />
             </span>

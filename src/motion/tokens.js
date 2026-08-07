@@ -1,11 +1,11 @@
-// ROOMS motion system — rhythmic, calm, purposeful.
+// Motion tokens — kept in sync with theme.motion (see identity.test.js).
 // Durations in seconds; easings tuned for music-adjacent UI.
 
 export const duration = {
   instant: 0.08,
   fast: 0.12,
   base: 0.2,
-  settle: 0.35,
+  settle: 0.32,
   enter: 0.55,
   ambient: 6,
   art: 8,
@@ -22,6 +22,7 @@ export const ease = {
   linear: "linear",
 };
 
+/** Prefer importing motion from theme.js in UI; this mirrors for Rooms / older imports. */
 export const motion = {
   fast: `${duration.fast}s`,
   base: `${duration.base}s`,
@@ -29,6 +30,7 @@ export const motion = {
   enter: `${duration.enter}s`,
   ease: ease.out,
   soft: ease.soft,
+  snap: ease.snap,
 };
 
 /** Stagger delay for editorial lists (seconds). Caps to avoid long waits. */

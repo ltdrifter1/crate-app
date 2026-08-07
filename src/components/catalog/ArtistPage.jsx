@@ -1,6 +1,6 @@
 import {
   font, fontDisplay, fontMono, color, radius, glass, aluminumGradient, artShadow,
-  BTN_SECONDARY, hardwareKey,
+  BTN_SECONDARY, hardwareKey, type,
 } from "../../theme";
 import Icon from "../ui/Icon";
 
@@ -329,12 +329,8 @@ function EntityHero({
         )}
         <div
           style={{
-            fontSize: 11,
-            fontWeight: 700,
-            letterSpacing: 1.8,
+            ...type.monoLabel,
             color: color.accent,
-            fontFamily: fontMono,
-            textTransform: "uppercase",
             marginBottom: 10,
           }}
         >
@@ -342,24 +338,21 @@ function EntityHero({
         </div>
         <h1
           style={{
+            ...type.display,
             margin: 0,
             fontSize: "clamp(30px, 7.5vw, 44px)",
-            fontWeight: 700,
-            letterSpacing: -1.2,
-            fontFamily: fontDisplay,
             color: color.ink,
-            lineHeight: 1.04,
             textShadow: "0 2px 24px rgba(0,0,0,0.45)",
           }}
         >
           {title}
         </h1>
         {subtitle}
-        <p style={{ margin: "14px 0 0", fontSize: 15, color: color.body, lineHeight: 1.5, maxWidth: 360 }}>
+        <p style={{ ...type.body, margin: "14px 0 0", fontSize: 15, color: color.body, maxWidth: 360 }}>
           {story}
         </p>
         {meta && (
-          <div style={{ marginTop: 14, fontFamily: fontMono, fontSize: 11, color: color.faint, letterSpacing: 0.3 }}>
+          <div style={{ marginTop: 14, ...type.monoLabel, fontSize: 11, fontWeight: 600, letterSpacing: 0.3, textTransform: "none", color: color.faint }}>
             {meta}
           </div>
         )}

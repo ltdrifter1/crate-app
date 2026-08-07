@@ -9,6 +9,7 @@ import {
   homeSpace,
   motion,
   radius,
+  type,
 } from "../theme";
 import { countPlayableTracks } from "../lib/catalogLoad";
 import { getSceneChannel } from "../lib/sceneChannels";
@@ -181,13 +182,11 @@ function HomeScreen({
           >
             <div style={{ padding: `0 ${homeSpace.gutter}px 12px` }}>
                 <h2 style={{
+                  ...type.display,
                   margin: 0,
-                  fontFamily: fontDisplay,
                   fontSize: "clamp(32px, 7vw, 40px)",
                   fontWeight: 800,
-                  letterSpacing: -1.1,
                   color: color.ink,
-                  lineHeight: 1,
                 }}>
                   Tonight
                 </h2>
