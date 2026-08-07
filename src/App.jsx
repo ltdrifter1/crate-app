@@ -435,12 +435,13 @@ const injectStyles = () => {
       .dock-xtra { display: none !important; }
     }
     .glass-dock {
-      background: rgba(255, 255, 255, 0.62);
+      background: ${glass.fillHeavy};
       border: 1px solid ${glass.border};
       box-shadow:
         inset 0 1px 0 ${glass.highlight},
-        0 16px 44px rgba(22, 24, 30, 0.12),
-        0 2px 8px rgba(22, 24, 30, 0.04);
+        inset 0 -1px 0 rgba(0, 0, 0, 0.35),
+        0 18px 48px rgba(0, 0, 0, 0.55),
+        0 4px 12px rgba(0, 0, 0, 0.35);
       -webkit-backdrop-filter: ${glass.blurHeavy};
       backdrop-filter: ${glass.blurHeavy};
       transition: background 0.6s ease, box-shadow 0.35s ease;
@@ -464,12 +465,12 @@ const injectStyles = () => {
       border-color: rgba(255,255,255,0.14) !important;
       box-shadow:
         inset 0 1px 0 rgba(255,255,255,0.12),
-        0 16px 40px rgba(26,29,36,0.12) !important;
+        0 16px 40px rgba(0,0,0,0.45) !important;
       transform: translateY(-1px);
     }
     .custom-mix:hover .custom-mix-play {
       transform: scale(1.04);
-      box-shadow: 0 8px 20px rgba(22,24,30,0.22) !important;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.4) !important;
     }
     .custom-mix:active {
       transform: scale(0.992);
@@ -481,7 +482,7 @@ const injectStyles = () => {
       transition: background ${motion.base} ${motion.ease};
     }
     .sidebar-queue-row:hover {
-      background: rgba(22,24,30,0.05) !important;
+      background: ${color.select} !important;
     }
     .sidebar-queue-row:hover .sidebar-queue-actions {
       opacity: 1 !important;
@@ -494,7 +495,8 @@ const injectStyles = () => {
       opacity: 1 !important;
     }
     .track-row:hover {
-      background: rgba(22,24,30,0.05) !important;
+      background: ${color.select} !important;
+      border-color: ${glass.border} !important;
     }
     .cover-tile {
       transition: transform ${motion.settle} ${motion.ease}, box-shadow ${motion.settle} ${motion.ease};
@@ -531,7 +533,7 @@ function EnergyBar({ level, size="sm" }) {
         <div key={i} style={{
           width: size==="lg"?4:2.5, height:ht,
           borderRadius:2,
-          background: i < level ? color.accent : "rgba(26,29,36,0.12)",
+          background: i < level ? color.accent : "rgba(255,255,255,0.12)",
           transition:"background 0.2s",
         }}/>
       ))}
@@ -596,8 +598,8 @@ function dockTintStyle(track) {
   const rgb = hexToRgbStr(track.color);
   return {
     background: `
-      linear-gradient(165deg, rgba(${rgb},0.14) 0%, rgba(${rgb},0.04) 38%, rgba(44,49,58,0.86) 78%),
-      rgba(42,47,55,0.85)
+      linear-gradient(165deg, rgba(${rgb},0.18) 0%, rgba(${rgb},0.06) 36%, rgba(18,20,24,0.92) 78%),
+      ${glass.fillHeavy}
     `,
   };
 }
@@ -889,7 +891,10 @@ function SessionBuilderModal({ tracks, onClose, onPlayRoute, onSavePlaylist = nu
       )}
       <div aria-hidden="true" style={{
         position: "absolute", inset: 0,
-        background: "linear-gradient(180deg, rgba(230,233,239,0.2) 0%, rgba(230,233,239,0.55) 55%, rgba(230,233,239,0.92) 100%)",
+        background: `
+          linear-gradient(180deg, rgba(5,6,8,0.55) 0%, rgba(5,6,8,0.2) 40%, rgba(5,6,8,0.88) 100%),
+          radial-gradient(ellipse 70% 45% at 50% 20%, rgba(169,199,228,0.06) 0%, transparent 60%)
+        `,
       }}/>
 
       <div className="hide-scroll" style={{
@@ -1449,7 +1454,7 @@ function AfterglowOverlay({ data, onClose, onSavePlaylist }) {
 function QueueSheet({ queue, currentTrack, onPlay, onClose, onClear, onShuffle, isRadioMode, radioHint, onRemove = null, onPlayNext = null }) {
   return (
     <div style={{ position:"fixed", inset:0, zIndex:110 }}>
-      <div onClick={onClose} style={{ position:"absolute", inset:0, background:"rgba(255,255,255,0.2)", backdropFilter: glass.blurSoft, WebkitBackdropFilter: glass.blurSoft }}/>
+      <div onClick={onClose} style={{ position:"absolute", inset:0, background:"rgba(5,6,8,0.55)", backdropFilter: glass.blurSoft, WebkitBackdropFilter: glass.blurSoft }}/>
       <div style={{
         position:"absolute", left:0, right:0, bottom:0, maxHeight:"72vh",
         background: glass.plate,
@@ -2034,32 +2039,36 @@ function GlassDock({
 // ─── CATALOG SKELETON — stable layout while records load ─────────────────────
 function CatalogSkeleton() {
   const tile = homeSpace.tile;
+  const bone = (opts) => ({
+    background: opts.strong
+      ? "rgba(255,255,255,0.1)"
+      : opts.mid
+        ? "rgba(255,255,255,0.08)"
+        : "rgba(255,255,255,0.055)",
+    animation: "shimmer 1.5s ease-in-out infinite",
+    animationDelay: opts.delay || "0s",
+  });
   const shelf = (key) => (
     <div key={key} style={{ padding: `0 ${homeSpace.gutter}px`, marginBottom: 36 }}>
       <div style={{
         width: 140, height: 14, borderRadius: 4, marginBottom: 18,
-        background: "rgba(26,29,36,0.08)", animation: "shimmer 1.5s ease-in-out infinite",
+        ...bone({ mid: true }),
       }}/>
       <div style={{ display: "flex", gap: homeSpace.shelfGap, overflow: "hidden" }}>
         {[0, 1, 2, 3, 4, 5].map((i) => (
           <div key={i} style={{ flex: "0 0 auto", width: tile }}>
             <div style={{
               width: tile, height: tile, borderRadius: radius.md,
-              background: "rgba(26,29,36,0.07)",
-              animation: "shimmer 1.5s ease-in-out infinite",
-              animationDelay: `${i * 0.08}s`,
+              border: `1px solid ${glass.borderFaint}`,
+              ...bone({ mid: true, delay: `${i * 0.08}s` }),
             }}/>
             <div style={{
               width: tile * 0.8, height: 11, borderRadius: 4, marginTop: 12,
-              background: "rgba(26,29,36,0.07)",
-              animation: "shimmer 1.5s ease-in-out infinite",
-              animationDelay: `${i * 0.08}s`,
+              ...bone({ delay: `${i * 0.08}s` }),
             }}/>
             <div style={{
               width: tile * 0.55, height: 9, borderRadius: 4, marginTop: 7,
-              background: "rgba(26,29,36,0.05)",
-              animation: "shimmer 1.5s ease-in-out infinite",
-              animationDelay: `${i * 0.08}s`,
+              ...bone({ delay: `${i * 0.08}s` }),
             }}/>
           </div>
         ))}
@@ -2071,7 +2080,8 @@ function CatalogSkeleton() {
       <div style={{ padding: `0 ${homeSpace.gutter}px`, marginBottom: 36 }}>
         <div style={{
           width: "100%", maxWidth: 420, height: 200, borderRadius: radius.xl,
-          background: "rgba(26,29,36,0.06)", animation: "shimmer 1.5s ease-in-out infinite",
+          border: `1px solid ${glass.borderFaint}`,
+          ...bone({ strong: true }),
         }}/>
       </div>
       {shelf("a")}
@@ -4699,7 +4709,7 @@ export default function App() {
         <div style={{
           height: 1,
           margin: "4px 20px 0",
-          background: "linear-gradient(90deg, transparent 0%, rgba(26,29,36,0.08) 20%, rgba(26,29,36,0.12) 50%, rgba(26,29,36,0.08) 80%, transparent 100%)",
+          background: "linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.06) 20%, rgba(255,255,255,0.12) 50%, rgba(255,255,255,0.06) 80%, transparent 100%)",
         }}/>
 
         {/* Up Next */}

@@ -1,4 +1,8 @@
-import { font, fontDisplay, fontMono, color, radius, glass, aluminumGradient, artShadow, BTN_SECONDARY } from "../../theme";
+import {
+  font, fontDisplay, fontMono, color, radius, glass, aluminumGradient, artShadow,
+  BTN_SECONDARY, hardwareKey,
+} from "../../theme";
+import Icon from "../ui/Icon";
 
 /** Artist destination — catalogue as a world, not a discography dump. */
 export default function ArtistPage({
@@ -257,18 +261,35 @@ function EntityHero({
       <div aria-hidden="true" style={{ position: "absolute", inset: 0, background: aluminumGradient() }} />
       {coverUrl && (
         <div aria-hidden="true" style={{
-          position: "absolute", inset: "-8%",
+          position: "absolute", inset: "-4%",
           backgroundImage: `url(${coverUrl})`,
           backgroundSize: "cover",
           backgroundPosition: "center",
-          filter: "blur(56px) saturate(1.05) brightness(1.15)",
-          opacity: 0.2,
-          transform: "scale(1.05)",
+          filter: "blur(28px) saturate(1.12) brightness(0.72)",
+          opacity: 0.55,
+          transform: "scale(1.04)",
+        }}/>
+      )}
+      {coverUrl && (
+        <div aria-hidden="true" style={{
+          position: "absolute", inset: 0,
+          backgroundImage: `url(${coverUrl})`,
+          backgroundSize: "cover",
+          backgroundPosition: "center 30%",
+          opacity: 0.42,
         }}/>
       )}
       <div aria-hidden="true" style={{
         position: "absolute", inset: 0,
-        background: "linear-gradient(180deg, rgba(230,233,239,0.2) 0%, transparent 40%, rgba(230,233,239,0.85) 100%)",
+        background: coverUrl
+          ? `
+            linear-gradient(180deg, rgba(5,6,8,0.72) 0%, rgba(5,6,8,0.22) 32%, rgba(5,6,8,0.55) 62%, rgba(5,6,8,0.96) 100%),
+            radial-gradient(ellipse 80% 50% at 50% 20%, transparent 0%, rgba(5,6,8,0.35) 100%)
+          `
+          : `
+            radial-gradient(ellipse 80% 50% at 50% 18%, rgba(169,199,228,0.06) 0%, transparent 60%),
+            linear-gradient(180deg, rgba(8,9,11,0.2) 0%, transparent 35%, rgba(5,6,8,0.88) 100%)
+          `,
       }}/>
 
       <button
@@ -278,30 +299,28 @@ function EntityHero({
           position: "relative",
           zIndex: 1,
           alignSelf: "flex-start",
-          marginBottom: 24,
-          background: glass.fillStrong,
-          border: `1px solid ${glass.borderSoft}`,
-          borderRadius: radius.sm,
-          color: color.ink,
+          marginBottom: 28,
+          ...hardwareKey({ size: "sm" }),
+          color: color.body,
+          textTransform: "none",
+          letterSpacing: 0.2,
+          fontFamily: font,
           fontSize: 13,
-          cursor: "pointer",
           fontWeight: 600,
-          padding: "8px 12px",
-          boxShadow: `inset 0 1px 0 ${glass.highlight}`,
         }}
       >
         ← {backLabel}
       </button>
-      <div style={{ position: "relative", zIndex: 1, maxWidth: 440 }}>
+      <div style={{ position: "relative", zIndex: 1, maxWidth: 480 }}>
         {coverUrl && (
           <div
             style={{
-              width: 140,
-              height: 140,
+              width: "min(42vw, 168px)",
+              height: "min(42vw, 168px)",
               overflow: "hidden",
-              marginBottom: 20,
-              borderRadius: radius.md,
-              border: `1px solid ${glass.borderSoft}`,
+              marginBottom: 22,
+              borderRadius: 6,
+              border: `1px solid ${glass.border}`,
               boxShadow: artShadow.raised,
             }}
           >
@@ -324,12 +343,13 @@ function EntityHero({
         <h1
           style={{
             margin: 0,
-            fontSize: "clamp(28px, 7vw, 40px)",
+            fontSize: "clamp(30px, 7.5vw, 44px)",
             fontWeight: 700,
-            letterSpacing: -1.1,
+            letterSpacing: -1.2,
             fontFamily: fontDisplay,
             color: color.ink,
-            lineHeight: 1.05,
+            lineHeight: 1.04,
+            textShadow: "0 2px 24px rgba(0,0,0,0.45)",
           }}
         >
           {title}
@@ -353,17 +373,14 @@ function EntityHero({
               display: "inline-flex",
               alignItems: "center",
               gap: 8,
-              padding: "13px 18px",
-              borderRadius: radius.md,
-              background: color.accent,
-              border: "none",
-              color: color.onAccent,
-              cursor: "pointer",
-              fontSize: 13,
-              fontWeight: 650,
-              boxShadow: "0 4px 14px rgba(22,24,30,0.22)",
+              ...hardwareKey({ size: "lg" }),
+              padding: "0 18px",
+              color: color.ink,
+              fontSize: 12,
+              letterSpacing: 1.1,
             }}
           >
+            <Icon name="play" size={14} />
             {playLabel}
           </button>
         )}

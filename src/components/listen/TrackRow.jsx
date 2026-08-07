@@ -323,14 +323,14 @@ export function TrackRow({ track, onPlay, active, isPlaying, onLike, extraAction
           cursor: "pointer", marginBottom: 4,
           background: active
             ? `
-              linear-gradient(165deg, rgba(42,47,55,0.85) 0%, rgba(28,32,38,0.58) 100%)
+              linear-gradient(165deg, rgba(42,47,55,0.92) 0%, rgba(28,32,38,0.72) 100%)
             `
             : `
-              linear-gradient(165deg, rgba(255,255,255,0.28) 0%, rgba(28,32,38,0.12) 100%)
+              linear-gradient(165deg, rgba(255,255,255,0.045) 0%, rgba(28,32,38,0.22) 100%)
             `,
-          border: active ? `1px solid ${glass.border}` : `1px solid ${glass.borderSoft}`,
+          border: active ? `1px solid ${glass.border}` : `1px solid ${glass.borderFaint}`,
           boxShadow: active
-            ? `inset 0 1px 0 ${glass.highlight}, ${glass.shadowSoft}`
+            ? `inset 0 1px 0 ${glass.highlight}, inset 2px 0 0 ${color.accent}, ${glass.shadowSoft}`
             : `inset 0 1px 0 ${glass.highlight}`,
           backdropFilter: glass.blurSoft,
           WebkitBackdropFilter: glass.blurSoft,
@@ -353,7 +353,7 @@ export function TrackRow({ track, onPlay, active, isPlaying, onLike, extraAction
         }}>
           <AlbumArt track={track} size={44} borderRadius={radius.sm} />
           {active && isPlaying && (
-            <div style={{ position: "absolute", inset: 0, background: "rgba(26,29,36,0.28)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <div style={{ position: "absolute", inset: 0, background: "rgba(5,6,8,0.42)", display: "flex", alignItems: "center", justifyContent: "center" }}>
               <div style={{ width: 6, height: 6, borderRadius: "50%", background: color.accent, animation: "pulse 1.2s ease-in-out infinite" }} />
             </div>
           )}
