@@ -177,7 +177,10 @@ export default function CoverStage({
           progress={progress}
         />
       ) : (
-        showStation && <HypnoVisualizer playing={playingVisual} colorHex="169,199,228" />
+        // Prefer the sleeve as the broadcast plane; hypno only when no art.
+        showStation && !stageTrack?.albumCover && (
+          <HypnoVisualizer playing={playingVisual} colorHex="169,199,228" />
+        )
       )}
 
       {live && (
