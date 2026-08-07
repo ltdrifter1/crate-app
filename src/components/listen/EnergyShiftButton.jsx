@@ -122,7 +122,7 @@ export function EnergyShiftButton({ direction = "up", size = 30, stopPropagation
           backdropFilter: glass.blurSoft,
           WebkitBackdropFilter: glass.blurSoft,
           boxShadow: hovered || activeHere
-            ? `inset 0 1px 0 ${glass.highlight}, 0 0 0 3px rgba(26,29,36,0.06), 0 4px 14px rgba(26,29,36,0.12)`
+            ? `inset 0 1px 0 ${glass.highlight}, 0 0 0 3px ${color.accentSoft}, 0 4px 14px rgba(0,0,0,0.4)`
             : `inset 0 1px 0 ${glass.highlight}, ${glass.shadowSoft}`,
           transform: pressed ? "scale(0.88)" : hovered ? "scale(1.06)" : "scale(1)",
           transition: `transform 0.28s ${PRESS_EASE}, box-shadow 0.35s ease, color 0.2s ease, border-color 0.2s ease`,
@@ -165,7 +165,7 @@ export function EnergyShiftButton({ direction = "up", size = 30, stopPropagation
             borderRadius: 999,
             background: "rgba(56,62,72,0.95)",
             border: `1px solid ${glass.border}`,
-            boxShadow: `inset 0 1px 0 ${glass.highlight}, 0 8px 22px rgba(26,29,36,0.14)`,
+            boxShadow: `inset 0 1px 0 ${glass.highlight}, 0 8px 22px rgba(0,0,0,0.4)`,
             backdropFilter: glass.blurSoft,
             WebkitBackdropFilter: glass.blurSoft,
             color: color.ink,
@@ -200,7 +200,7 @@ export function EnergyShiftButton({ direction = "up", size = 30, stopPropagation
             borderRadius: 12,
             background: "rgba(56,62,72,0.95)",
             border: `1px solid ${glass.border}`,
-            boxShadow: `inset 0 1px 0 ${glass.highlight}, 0 14px 34px rgba(26,29,36,0.16)`,
+            boxShadow: `inset 0 1px 0 ${glass.highlight}, 0 14px 34px rgba(0,0,0,0.45)`,
             backdropFilter: glass.blur,
             WebkitBackdropFilter: glass.blur,
             animation: `energyMenuIn 0.24s ${PRESS_EASE} both`,
@@ -219,7 +219,7 @@ export function EnergyShiftButton({ direction = "up", size = 30, stopPropagation
                 cursor: "pointer", color: color.ink, fontSize: 12.5, fontWeight: 650,
                 fontVariantNumeric: "tabular-nums",
               }}
-              onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(26,29,36,0.05)"; }}
+              onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(255,255,255,0.06)"; }}
               onMouseLeave={(e) => { e.currentTarget.style.background = "none"; }}
             >
               <span>{up ? "Lift" : "Ease"}</span>
@@ -254,7 +254,7 @@ export function EnergyShiftModeChip({ style = null }) {
         borderRadius: 980,
         background: "rgba(48,53,62,0.9)",
         border: `1px solid ${glass.border}`,
-        boxShadow: `inset 0 1px 0 ${glass.highlight}, 0 6px 18px rgba(26,29,36,0.1)`,
+        boxShadow: `inset 0 1px 0 ${glass.highlight}, 0 6px 18px rgba(0,0,0,0.35)`,
         backdropFilter: glass.blurSoft,
         WebkitBackdropFilter: glass.blurSoft,
         color: color.ink,
@@ -312,7 +312,7 @@ export function EnergyShiftFeedback({ bottom = "calc(100% + 12px)" }) {
           padding: "8px 15px", borderRadius: 999,
           background: "rgba(56,62,72,0.94)",
           border: `1px solid ${glass.border}`,
-          boxShadow: `inset 0 1px 0 ${glass.highlight}, 0 10px 28px rgba(26,29,36,0.14)`,
+          boxShadow: `inset 0 1px 0 ${glass.highlight}, 0 10px 28px rgba(0,0,0,0.4)`,
           backdropFilter: glass.blur, WebkitBackdropFilter: glass.blur,
           color: color.ink, fontSize: 12.5, fontWeight: 650, letterSpacing: -0.1,
           animation: `energyPillLife ${PILL_MS}ms cubic-bezier(0.22, 1, 0.36, 1) both`,
@@ -328,7 +328,7 @@ export function EnergyShiftFeedback({ bottom = "calc(100% + 12px)" }) {
         <div style={{
           display: "flex", alignItems: "center", gap: 4,
           padding: "3px 9px", borderRadius: 999,
-          background: "rgba(26,29,36,0.06)",
+          background: "rgba(255,255,255,0.06)",
           border: `1px solid ${glass.borderSoft}`,
           color: color.ink,
           fontSize: 10.5, fontWeight: 700, fontFamily: fontMono, letterSpacing: 0.3,
@@ -481,7 +481,7 @@ export function EnergyShiftControl({
             borderRadius: 14,
             background: "rgba(56,62,72,0.96)",
             border: `1px solid ${glass.border}`,
-            boxShadow: `inset 0 1px 0 ${glass.highlight}, 0 16px 36px rgba(26,29,36,0.16)`,
+            boxShadow: `inset 0 1px 0 ${glass.highlight}, 0 16px 36px rgba(0,0,0,0.45)`,
             backdropFilter: glass.blur,
             WebkitBackdropFilter: glass.blur,
             animation: `energyMenuIn 0.24s ${PRESS_EASE} both`,
