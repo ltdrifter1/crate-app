@@ -45,7 +45,7 @@ export function HostCreditChip({ show, compact = false, onClick = null, tone = "
   if (!show?.host) return null;
   const onGlass = tone === "glass" || (tone === "auto" && !compact);
   const labelColor = onGlass
-    ? (compact ? color.faint : color.faint)
+    ? (compact ? color.muted : color.muted)
     : (compact ? "rgba(242,244,247,0.55)" : color.faint);
   const nameColor = onGlass
     ? color.ink
@@ -53,11 +53,11 @@ export function HostCreditChip({ show, compact = false, onClick = null, tone = "
 
   const inner = (
     <>
-      <HostAvatar host={show.host} size={compact ? 22 : 28} />
+      <HostAvatar host={show.host} size={compact ? 24 : 28} />
       <div style={{ minWidth: 0 }}>
         <div style={{
           fontFamily: fontMono,
-          fontSize: compact ? 8 : 9,
+          fontSize: compact ? 9 : 10,
           fontWeight: 800,
           letterSpacing: 1.2,
           textTransform: "uppercase",
@@ -66,8 +66,9 @@ export function HostCreditChip({ show, compact = false, onClick = null, tone = "
           Hosted by
         </div>
         <div style={{
-          fontSize: compact ? 11 : 12,
-          fontWeight: 700,
+          fontSize: compact ? 13 : 14,
+          fontWeight: 750,
+          letterSpacing: -0.15,
           color: nameColor,
           overflow: "hidden",
           textOverflow: "ellipsis",
@@ -82,17 +83,17 @@ export function HostCreditChip({ show, compact = false, onClick = null, tone = "
   const style = {
     display: "inline-flex",
     alignItems: "center",
-    gap: 8,
-    padding: compact ? "4px 10px 4px 4px" : "6px 10px 6px 6px",
+    gap: 9,
+    padding: compact ? "5px 12px 5px 5px" : "6px 12px 6px 6px",
     borderRadius: 999,
     background: onGlass
-      ? (compact ? "rgba(29,33,39,0.58)" : glass.fillStrong)
+      ? (compact ? "rgba(32,36,43,0.72)" : glass.fillStrong)
       : (compact ? "rgba(255,255,255,0.08)" : glass.fillStrong),
     border: `1px solid ${onGlass ? glass.borderSoft : (compact ? "rgba(255,255,255,0.12)" : glass.border)}`,
     boxShadow: onGlass
       ? `inset 0 1px 0 ${glass.highlight}`
       : (compact ? "none" : `inset 0 1px 0 ${glass.highlight}`),
-    maxWidth: 220,
+    maxWidth: 240,
     cursor: onClick ? "pointer" : "default",
   };
 
@@ -352,18 +353,18 @@ export function ShowGuideRail({
         }}>
           <div>
             <div style={{
-              fontFamily: fontMono, fontSize: 10, fontWeight: 800,
+              fontFamily: fontMono, fontSize: 11, fontWeight: 800,
               letterSpacing: 1.5, textTransform: "uppercase", color: chrome.steel,
-              marginBottom: 4,
+              marginBottom: 6,
             }}>
               Program guide
             </div>
             <h3 style={{
               margin: 0,
               fontFamily: fontDisplay,
-              fontSize: 18,
-              fontWeight: 750,
-              letterSpacing: -0.3,
+              fontSize: "clamp(20px, 3.8vw, 24px)",
+              fontWeight: 800,
+              letterSpacing: -0.35,
               color: color.ink,
             }}>
               Today’s blocks
@@ -396,41 +397,43 @@ export function ShowGuideRail({
               aria-current={live ? "true" : undefined}
               style={{
                 flex: "0 0 auto",
-                width: 168,
+                width: 176,
                 scrollSnapAlign: "start",
                 textAlign: "left",
-                padding: 12,
-                borderRadius: radius.md,
+                padding: 14,
+                borderRadius: radius.lg,
                 cursor: "pointer",
-                border: `1px solid ${live || tuned ? accent : glass.borderSoft}`,
+                border: `1px solid ${live || tuned ? accent : "rgba(255,255,255,0.12)"}`,
                 background: live
-                  ? `linear-gradient(160deg, ${accent}18 0%, rgba(38,43,51,0.8) 55%)`
-                  : "rgba(32,36,43,0.68)",
+                  ? `linear-gradient(160deg, ${accent}18 0%, rgba(38,43,51,0.88) 55%)`
+                  : `
+                    linear-gradient(165deg, rgba(38,43,52,0.88) 0%, rgba(24,27,33,0.72) 100%)
+                  `,
                 boxShadow: `inset 0 1px 0 ${glass.highlight}, ${glass.shadowSoft}`,
               }}
             >
               <div style={{
-                display: "flex", justifyContent: "space-between", gap: 6, marginBottom: 8,
+                display: "flex", justifyContent: "space-between", gap: 6, marginBottom: 10,
               }}>
                 <span style={{
-                  fontFamily: fontMono, fontSize: 9, fontWeight: 800,
+                  fontFamily: fontMono, fontSize: 10, fontWeight: 800,
                   letterSpacing: 1.1, textTransform: "uppercase",
                   color: live ? chrome.hot : color.faint,
                 }}>
                   {live ? "Live" : show.status === "up-next" ? "Up next" : formatShowClock(show.startHour)}
                 </span>
-                <HostAvatar host={show.host} size={22} />
+                <HostAvatar host={show.host} size={24} />
               </div>
               <div style={{
-                fontFamily: fontDisplay, fontSize: 14, fontWeight: 700,
-                letterSpacing: -0.2, color: color.ink, lineHeight: 1.15,
-                minHeight: 34,
+                fontFamily: fontDisplay, fontSize: 15, fontWeight: 800,
+                letterSpacing: -0.25, color: color.ink, lineHeight: 1.15,
+                minHeight: 36,
               }}>
                 {show.shortTitle || show.title}
               </div>
               <div style={{
-                marginTop: 6,
-                fontSize: 11, color: color.muted,
+                marginTop: 7,
+                fontSize: 12, fontWeight: 550, color: color.muted,
                 overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
               }}>
                 {show.host?.name}

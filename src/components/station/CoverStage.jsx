@@ -272,21 +272,21 @@ export default function CoverStage({
         </div>
       )}
 
-      {/* Shared transport chrome — station mode collapses into one glass dock */}
+      {/* Shared transport chrome — station mode is a full-bleed bottom bar */}
       <div
         style={{
           position: "absolute",
           left: 0, right: 0, bottom: 0, zIndex: 2,
           // Clear the floating tab dock so stage transport never sandwiches it.
           padding: showStation
-            ? `0 ${homeSpace.gutter}px calc(${dock.clearTabs - 34}px + env(safe-area-inset-bottom, 0px))`
+            ? `0 0 calc(${dock.clearTabs - 34}px + env(safe-area-inset-bottom, 0px))`
             : `0 ${homeSpace.gutter}px calc(18px + env(safe-area-inset-bottom, 0px))`,
           display: "flex",
           flexDirection: "column",
-          alignItems: "center",
+          alignItems: showStation ? "stretch" : "center",
           boxSizing: "border-box",
           pointerEvents: "none",
-          gap: showStation ? 8 : 7,
+          gap: showStation ? 0 : 7,
         }}
       >
         {showStation && dedicationFlash && (
@@ -301,25 +301,25 @@ export default function CoverStage({
           <div
             style={{
               width: "100%",
-              maxWidth: 420,
+              maxWidth: "none",
               pointerEvents: "auto",
-              borderRadius: 26,
-              padding: "12px 14px 12px",
+              borderRadius: "22px 22px 0 0",
+              padding: "16px 18px 14px",
               background: `
-                linear-gradient(165deg,
-                  rgba(30,34,41,0.62) 0%,
-                  rgba(28,32,38,0.38) 42%,
-                  rgba(214,220,230,0.34) 100%)
+                linear-gradient(180deg,
+                  rgba(38,43,52,0.92) 0%,
+                  rgba(24,27,33,0.88) 48%,
+                  rgba(16,18,22,0.94) 100%)
               `,
-              border: `1px solid rgba(255,255,255,0.14)`,
+              border: "none",
+              borderTop: `1px solid rgba(255,255,255,0.16)`,
               boxShadow: `
-                inset 0 1px 0 rgba(255,255,255,0.1),
-                inset 0 -1px 0 rgba(18,20,26,0.05),
-                0 24px 64px rgba(18,20,26,0.16),
-                0 6px 18px rgba(18,20,26,0.06)
+                inset 0 1px 0 rgba(255,255,255,0.14),
+                0 -18px 48px rgba(8,10,14,0.35),
+                0 -4px 16px rgba(8,10,14,0.18)
               `,
-              backdropFilter: "blur(40px) saturate(1.28)",
-              WebkitBackdropFilter: "blur(40px) saturate(1.28)",
+              backdropFilter: "blur(48px) saturate(1.35)",
+              WebkitBackdropFilter: "blur(48px) saturate(1.35)",
               animation: `dockRise 0.55s ${motion.ease} both`,
               position: "relative",
               overflow: "hidden",
@@ -331,14 +331,13 @@ export default function CoverStage({
               style={{
                 position: "absolute",
                 inset: 0,
-                borderRadius: 26,
+                borderRadius: "22px 22px 0 0",
                 pointerEvents: "none",
                 background: `
-                  radial-gradient(ellipse 90% 55% at 50% -10%, rgba(29,33,39,0.58) 0%, transparent 55%),
-                  linear-gradient(180deg, rgba(255,255,255,0.28) 0%, transparent 32%),
-                  linear-gradient(180deg, transparent 70%, rgba(255,255,255,0.12) 100%)
+                  radial-gradient(ellipse 80% 40% at 50% 0%, rgba(169,199,228,0.08) 0%, transparent 55%),
+                  linear-gradient(180deg, rgba(255,255,255,0.1) 0%, transparent 28%)
                 `,
-                boxShadow: "inset 0 0 0 1px rgba(255,255,255,0.28)",
+                boxShadow: "inset 0 0 0 1px rgba(255,255,255,0.06)",
               }}
             />
 

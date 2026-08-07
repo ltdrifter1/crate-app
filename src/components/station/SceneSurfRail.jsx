@@ -33,7 +33,7 @@ function SceneSurfRail({
 
   return (
     <section
-      aria-label="Channel dial"
+      aria-label="Channel surfing"
       style={{
         padding: compact ? "4px 0 2px" : (quiet ? "8px 0 6px" : "14px 0 8px"),
         width: "100%",
@@ -51,7 +51,7 @@ function SceneSurfRail({
             display: "inline-flex",
             alignItems: "center",
             gap: 8,
-            marginBottom: 4,
+            marginBottom: 6,
           }}>
             <span aria-hidden="true" style={{
               width: 10, height: 10,
@@ -62,35 +62,35 @@ function SceneSurfRail({
               transform: "rotate(45deg)",
             }} />
             <div style={{
-              fontFamily: fontMono, fontSize: 10, fontWeight: 800,
-              letterSpacing: 1.8, textTransform: "uppercase", color: chrome.steel,
+              fontFamily: fontMono, fontSize: 11, fontWeight: 800,
+              letterSpacing: 1.6, textTransform: "uppercase", color: chrome.steel,
             }}>
-              Channels
+              Channel surfing
             </div>
           </div>
           <h3 style={{
             margin: 0,
             fontFamily: fontDisplay,
-            fontSize: 20,
-            fontWeight: 700,
-            letterSpacing: -0.2,
+            fontSize: "clamp(22px, 4vw, 26px)",
+            fontWeight: 800,
+            letterSpacing: -0.4,
             color: color.ink,
           }}>
-            Channel dial
+            Zap the dial
           </h3>
-          <p style={{ margin: "5px 0 0", fontSize: 14, fontWeight: 500, color: color.muted, lineHeight: 1.4 }}>
-            Scene channels under the genres — zap one and play.
+          <p style={{ margin: "6px 0 0", fontSize: 14, fontWeight: 500, color: color.muted, lineHeight: 1.4 }}>
+            Scene channels under the genres — tune one and play.
           </p>
         </div>
       )}
 
       {showQuietHeader && (
-        <div style={{ padding: `0 ${homeSpace.gutter}px 8px` }}>
+        <div style={{ padding: `0 ${homeSpace.gutter}px 10px` }}>
           <div style={{
-            fontFamily: fontMono, fontSize: 10, fontWeight: 800,
-            letterSpacing: 1.6, textTransform: "uppercase", color: chrome.steel,
+            fontFamily: fontMono, fontSize: 11, fontWeight: 800,
+            letterSpacing: 1.5, textTransform: "uppercase", color: chrome.steel,
           }}>
-            Channels
+            Channel surfing
           </div>
         </div>
       )}
@@ -105,13 +105,13 @@ function SceneSurfRail({
         }}>
           <div style={{
             fontFamily: fontMono,
-            fontSize: 10,
-            fontWeight: 750,
+            fontSize: 11,
+            fontWeight: 800,
             letterSpacing: 1.2,
             textTransform: "uppercase",
             color: color.muted,
           }}>
-            Scene surf
+            Channel surfing
           </div>
           <div style={{
             fontFamily: fontMono,
@@ -218,9 +218,9 @@ function SceneSurfRail({
               <div style={{ padding: compact ? "8px 9px 10px" : "10px 10px 12px" }}>
                 <div style={{
                   fontFamily: fontMono,
-                  fontSize: compact ? 10 : 11,
+                  fontSize: compact ? 11 : 12,
                   fontWeight: 800,
-                  letterSpacing: 1.0,
+                  letterSpacing: 0.9,
                   textTransform: "uppercase",
                   color: color.ink,
                   lineHeight: 1.2,
@@ -231,9 +231,10 @@ function SceneSurfRail({
                 {!compact && (
                   <div style={{
                     marginTop: 6,
-                    fontSize: 10,
+                    fontSize: 11,
+                    fontWeight: 500,
                     color: color.muted,
-                    lineHeight: 1.3,
+                    lineHeight: 1.35,
                     display: "-webkit-box",
                     WebkitLineClamp: 2,
                     WebkitBoxOrient: "vertical",

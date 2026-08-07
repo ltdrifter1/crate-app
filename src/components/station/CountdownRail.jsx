@@ -40,9 +40,9 @@ export default function CountdownRail({
         <div style={{ minWidth: 0 }}>
           <div style={{
             fontFamily: fontMono,
-            fontSize: 10,
+            fontSize: compact ? 11 : 10,
             fontWeight: 800,
-            letterSpacing: 1.6,
+            letterSpacing: 1.5,
             textTransform: "uppercase",
             color: chrome.steel,
             marginBottom: compact ? 0 : 6,
@@ -54,7 +54,7 @@ export default function CountdownRail({
               <h2 style={{
                 margin: 0,
                 fontFamily: fontDisplay,
-                fontSize: "clamp(20px, 3.6vw, 24px)",
+                fontSize: "clamp(22px, 4vw, 26px)",
                 fontWeight: 800,
                 letterSpacing: -0.4,
                 color: color.ink,
