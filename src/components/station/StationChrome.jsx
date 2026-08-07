@@ -391,12 +391,7 @@ export function LowerThird({
         fontWeight: 750,
         letterSpacing: 1.15,
         textTransform: "uppercase",
-        color: color.body,
-        overflow: "hidden",
-        textOverflow: "ellipsis",
-        whiteSpace: "nowrap",
-      }}>
-        {line.meta}
+        color: isLive ? color.accent : color.muted,
       </div>
     </>
   );
@@ -594,7 +589,7 @@ export function StationHeatBar({
           <span style={{
             fontFamily: fontMono, fontSize: 11, fontWeight: 800,
             letterSpacing: 1.05, textTransform: "uppercase",
-            color: color.accent,
+            color: color.muted,
             whiteSpace: "nowrap",
             overflow: "hidden",
             textOverflow: "ellipsis",
