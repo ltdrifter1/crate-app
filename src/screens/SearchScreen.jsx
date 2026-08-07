@@ -14,6 +14,7 @@ import {
   fontMono,
   glass,
   radius,
+  type,
 } from "../theme";
 
 function SearchScreen({
@@ -78,7 +79,7 @@ function SearchScreen({
       {!query && recentSearches.length > 0 && (
         <div style={{ marginBottom: 20 }}>
           <div style={{ display:"flex", alignItems:"baseline", justifyContent:"space-between", marginBottom:8 }}>
-            <div style={{ fontSize:12, fontWeight:650, color: color.muted, textTransform:"uppercase", letterSpacing:0.6 }}>Recent</div>
+            <div style={{ ...type.monoLabel, fontSize: 12, fontWeight: 650, color: color.muted }}>Recent</div>
             {onClearRecent && (
               <button type="button" onClick={onClearRecent}
                 style={{ background:"none", border:"none", cursor:"pointer", color: color.faint, fontSize:12, fontWeight:600, padding:"2px 4px" }}>

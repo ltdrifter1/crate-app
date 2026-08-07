@@ -6,7 +6,7 @@
  */
 import { useEffect, useRef, useState } from "react";
 import {
-  fontDisplay, fontMono, color, radius, motion, glass, artShadow, aluminumGradient,
+  fontDisplay, fontMono, color, radius, motion, glass, artShadow, aluminumGradient, type,
 } from "../../theme";
 import { fmtTime, hexToRgbStr } from "../../lib/harmony";
 import { usePlayerPlayback } from "../../usePlayerPlayback";
@@ -580,7 +580,7 @@ export default function ImmersivePlayer({
                     borderRadius: 11,
                     flexShrink: 0,
                     position: "relative",
-                    background: crossfadeOn ? color.accent : "rgba(26,29,36,0.14)",
+                    background: crossfadeOn ? color.accent : "rgba(255,255,255,0.14)",
                     transition: `background ${motion.base} ${EASE}`,
                   }}>
                     <span style={{
@@ -591,7 +591,7 @@ export default function ImmersivePlayer({
                       height: 18,
                       borderRadius: "50%",
                       background: crossfadeOn ? color.onAccent : color.surfaceSolid,
-                      boxShadow: "0 1px 3px rgba(26,29,36,0.25)",
+                      boxShadow: "0 1px 3px rgba(0,0,0,0.35)",
                       transition: `left ${motion.base} ${EASE}`,
                     }} />
                   </span>
@@ -741,12 +741,9 @@ export default function ImmersivePlayer({
           animation: `trackSwap 0.4s ${EASE} both`,
         }}>
           <div style={{
-            fontFamily: fontDisplay,
+            ...type.display,
             fontSize: "clamp(22px, 5.6vw, 30px)",
-            fontWeight: 700,
-            letterSpacing: -0.7,
             color: color.ink,
-            lineHeight: 1.12,
             marginBottom: 6,
             overflow: "hidden",
             display: "-webkit-box",
@@ -763,11 +760,10 @@ export default function ImmersivePlayer({
                 background: "none",
                 border: "none",
                 padding: 0,
-                color: color.body,
+                ...type.section,
                 fontSize: 16,
-                fontWeight: 600,
+                color: color.body,
                 cursor: "pointer",
-                letterSpacing: -0.2,
               }}
             >
               {currentTrack.artist}

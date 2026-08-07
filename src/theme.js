@@ -235,10 +235,58 @@ export function sectionRule(inset = homeSpace.gutter) {
 }
 
 export const motion = {
-  fast: "0.15s",
-  base: "0.24s",
+  fast: "0.12s",
+  base: "0.2s",
   settle: "0.32s",
+  enter: "0.55s",
   ease: "cubic-bezier(0.22, 1, 0.36, 1)",
+  soft: "cubic-bezier(0.33, 1, 0.68, 1)",
+  snap: "cubic-bezier(0.2, 0.8, 0.2, 1)",
+};
+
+/**
+ * Typography roles — editorial hierarchy for the broadcast UI.
+ * Prefer these over freelanced fontSize/weight on new surfaces.
+ */
+export const type = {
+  /** Hero / brand / monumental titles (Space Grotesk) */
+  display: {
+    fontFamily: fontDisplay,
+    fontWeight: 700,
+    letterSpacing: -0.04,
+    lineHeight: 1.05,
+  },
+  /** Section headers, shelf titles */
+  section: {
+    fontFamily: fontDisplay,
+    fontWeight: 650,
+    letterSpacing: -0.02,
+    lineHeight: 1.2,
+  },
+  /** Primary readable copy */
+  body: {
+    fontFamily: font,
+    fontWeight: 500,
+    letterSpacing: -0.01,
+    lineHeight: 1.45,
+  },
+  /** Secondary lines under titles */
+  meta: {
+    fontFamily: font,
+    fontWeight: 500,
+    fontSize: 12,
+    letterSpacing: 0,
+    lineHeight: 1.35,
+  },
+  /** ON AIR / Charts / mono plates */
+  monoLabel: {
+    fontFamily: fontMono,
+    fontWeight: 700,
+    fontSize: 11,
+    letterSpacing: 1.2,
+    textTransform: "uppercase",
+    lineHeight: 1.2,
+  },
 };
 
 /** Studio atmosphere that shifts with the hour — always deep, never OLED-flat. */
