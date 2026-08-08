@@ -2,21 +2,27 @@ import { useMemo, memo } from "react";
 import {
   BTN_PRIMARY,
   BTN_SECONDARY,
-  chromeFrame,
   color,
   fontDisplay,
   glass,
   homeSpace,
   motion,
   radius,
+  y2k,
 } from "../theme";
 import { countPlayableTracks } from "../lib/catalogLoad";
-import { getSceneChannel } from "../lib/sceneChannels";
-import CoverStage from "../components/station/CoverStage";
-import CountdownRail from "../components/station/CountdownRail";
-import SceneSurfRail from "../components/station/SceneSurfRail";
+import { availableSceneChannels } from "../lib/sceneChannels";
+import { recommendedPicks } from "../lib/homeCollections";
 import { NowOnAirCard, ShowGuideRail } from "../components/station/ShowGuide";
 import { useCurrentTrack } from "../usePlayerTransport";
+import HomeHeader from "../components/home/HomeHeader";
+import HeroPlayerCard from "../components/home/HeroPlayerCard";
+import MusicSection, { Rail } from "../components/home/MusicSection";
+import ChannelCard from "../components/home/ChannelCard";
+import TrackCard from "../components/home/TrackCard";
+import PlaylistCard from "../components/home/PlaylistCard";
+import RequestSongCard from "../components/home/RequestSongCard";
+import CardContainer from "../components/home/CardContainer";
 
 function HomeCatalogStatus({ error, isEmpty, playableCount, totalCount, onRetry }) {
   if (!error && !isEmpty) return null;
@@ -24,18 +30,19 @@ function HomeCatalogStatus({ error, isEmpty, playableCount, totalCount, onRetry 
     <div
       role={error ? "alert" : "status"}
       style={{
-        margin: `0 ${homeSpace.gutter}px ${homeSpace.sectionPadTopFirst}px`,
-        padding: "16px 18px",
-        borderRadius: radius.lg,
+        margin: `20px ${homeSpace.gutter}px 0`,
+        padding: "18px 20px",
+        borderRadius: radius.xl,
         border: `1px solid ${error ? color.lineStrong : color.line}`,
-        background: glass.fillStrong,
+        background: glass.plate,
+        boxShadow: `inset 0 1px 0 ${glass.highlight}, ${glass.shadowSoft}`,
         backdropFilter: glass.blurSoft,
         WebkitBackdropFilter: glass.blurSoft,
       }}
     >
       {error ? (
         <>
-          <div style={{ fontSize: 15, fontWeight: 650, color: color.ink, marginBottom: 6 }}>
+          <div style={{ fontSize: 15, fontWeight: 700, fontFamily: fontDisplay, color: color.ink, marginBottom: 6 }}>
             Couldn&apos;t pull the shelf
           </div>
           <div style={{ fontSize: 13, color: color.body, lineHeight: 1.45, marginBottom: 12 }}>
@@ -56,7 +63,7 @@ function HomeCatalogStatus({ error, isEmpty, playableCount, totalCount, onRetry 
         </>
       ) : (
         <>
-          <div style={{ fontSize: 15, fontWeight: 650, color: color.ink, marginBottom: 6 }}>
+          <div style={{ fontSize: 15, fontWeight: 700, fontFamily: fontDisplay, color: color.ink, marginBottom: 6 }}>
             {totalCount > 0 && playableCount === 0
               ? "Tracks need audio"
               : "Shelf is empty"}
@@ -81,6 +88,57 @@ function HomeCatalogStatus({ error, isEmpty, playableCount, totalCount, onRetry 
           </button>
         </>
       )}
+    </div>
+  );
+}
+
+/** Quiet editorial empty state used by shelves with nothing to show yet. */
+function EmptyShelfCard({ title, body, actionLabel = null, onAction = null }) {
+  return (
+    <div style={{ padding: `0 ${homeSpace.gutter}px` }}>
+      <CardContainer
+        interactive={!!onAction}
+        onClick={onAction}
+        ariaLabel={actionLabel || title}
+        padding="22px 20px"
+        style={{
+          background: `
+            radial-gradient(110% 120% at 0% 0%, ${y2k.purpleWash} 0%, transparent 55%),
+            linear-gradient(165deg, ${y2k.charcoalRaised} 0%, #101116 100%)
+          `,
+        }}
+      >
+        <div
+          style={{
+            fontFamily: fontDisplay,
+            fontSize: 15,
+            fontWeight: 800,
+            letterSpacing: 1.2,
+            textTransform: "uppercase",
+            color: y2k.offWhite,
+            marginBottom: 6,
+          }}
+        >
+          {title}
+        </div>
+        <div style={{ fontSize: 13, fontWeight: 500, color: color.muted, lineHeight: 1.5, maxWidth: 300 }}>
+          {body}
+        </div>
+        {actionLabel && (
+          <div
+            style={{
+              marginTop: 12,
+              fontSize: 12,
+              fontWeight: 700,
+              letterSpacing: 1.2,
+              textTransform: "uppercase",
+              color: y2k.purpleBright,
+            }}
+          >
+            {actionLabel} →
+          </div>
+        )}
+      </CardContainer>
     </div>
   );
 }
@@ -110,52 +168,95 @@ function HomeScreen({
   channelShow = null,
   sceneChannelsActiveId = null,
   onTuneSceneChannel = null,
+  // Discovery + navigation (new premium home)
+  recentTrackIds = [],
+  playlists = [],
+  preferredGenres = [],
+  userKey = "",
+  onOpenSearch = null,
+  onOpenProfile = null,
+  onOpenLibrary = null,
+  onOpenCharts = null,
+  onOpenPlaylist = null,
 }) {
   const currentTrack = useCurrentTrack();
   const activeId = currentTrack?.id;
   const playableCount = countPlayableTracks(tracks);
   const catalogEmpty = !catalogError && tracks.length === 0;
   const catalogDepleted = !catalogError && tracks.length > 0 && playableCount === 0;
+  const catalogReady = !catalogError && !catalogEmpty && !catalogDepleted;
 
-  const countdownRank = useMemo(() => {
-    if (!currentTrack?.id || !countdown.length) return null;
-    const hit = countdown.find((c) => c.track.id === currentTrack.id);
-    return hit?.rank ?? null;
-  }, [countdown, currentTrack?.id]);
+  const channels = useMemo(() => availableSceneChannels(tracks), [tracks]);
 
-  const riseStyle = (delay = 0) => ({
-    animation: `rise 0.45s ${motion.ease} ${delay}s both`,
-  });
+  const discover = useMemo(
+    () =>
+      recommendedPicks(tracks, {
+        preferredGenres,
+        recentTrackIds,
+        userKey,
+        excludeIds: recentTrackIds.slice(0, 8),
+        limit: 12,
+      }),
+    [tracks, preferredGenres, recentTrackIds, userKey]
+  );
+
+  const recentlyPlayed = useMemo(() => {
+    if (!recentTrackIds.length) return [];
+    const byId = new Map(tracks.map((t) => [t.id, t]));
+    const seen = new Set();
+    const out = [];
+    for (const id of recentTrackIds) {
+      if (seen.has(id)) continue;
+      seen.add(id);
+      const t = byId.get(id);
+      if (t) out.push(t);
+      if (out.length >= 12) break;
+    }
+    return out;
+  }, [recentTrackIds, tracks]);
+
+  const topRequested = useMemo(() => countdown.slice(0, 10), [countdown]);
+  const liveShow = channelShow || airing?.show || null;
+  const hasTonight = !!(airing?.show || programGuide.length > 0);
 
   return (
-    <div style={{ position: "relative", paddingBottom: 48 }}>
-      <CoverStage
-        onPlay={onPlayRadio}
-        onTogglePlay={onTogglePlay}
-        onSkip={onSkipRadio}
-        onPrev={onPrevRadio}
-        onOpen={onOpenPlayer}
-        currentTrack={currentTrack}
-        isRadioMode={isRadioMode}
-        hypnoPocket={hypnoPocket}
-        previewTrack={radioPreview}
-        mixLane={mixLane}
-        playDisabled={catalogEmpty || catalogDepleted || !!catalogError}
-        onStageVisibilityChange={onStageVisibilityChange}
-        onSeek={onSeek}
-        upNextTrack={radioNext}
-        countdownRank={countdownRank}
-        daypart={daypart}
-        tickerText={tickerText}
-        onRequest={onRequest}
-        requested={requested}
-        onDedicate={onDedicate}
-        dedicationFlash={dedicationFlash}
-        onClearDedication={onClearDedication}
-        stationMode
-        liveShow={channelShow || airing?.show || null}
-        sceneChannel={sceneChannelsActiveId ? getSceneChannel(sceneChannelsActiveId) : null}
-      />
+    <div
+      style={{
+        position: "relative",
+        paddingBottom: 56,
+        maxWidth: 720,
+        margin: "0 auto",
+        width: "100%",
+      }}
+    >
+      <HomeHeader onOpenSearch={onOpenSearch} onOpenProfile={onOpenProfile} />
+
+      {/* NOW PLAYING — hero */}
+      <div
+        style={{
+          padding: `0 ${homeSpace.gutter}px`,
+          animation: `rise 0.5s ${motion.ease} both`,
+        }}
+      >
+        <HeroPlayerCard
+          track={currentTrack}
+          previewTrack={radioPreview}
+          upNextTrack={radioNext}
+          liveShow={liveShow}
+          daypart={daypart}
+          isRadioMode={isRadioMode}
+          playDisabled={!catalogReady}
+          onPlay={onPlayRadio}
+          onTogglePlay={onTogglePlay}
+          onSkip={onSkipRadio}
+          onPrev={onPrevRadio}
+          onLike={onLike}
+          onOpen={onOpenPlayer}
+          onRequest={currentTrack ? onRequest : null}
+          requested={requested}
+          onVisibilityChange={onStageVisibilityChange}
+        />
+      </div>
 
       {(catalogError || catalogEmpty || catalogDepleted) && (
         <HomeCatalogStatus
@@ -167,104 +268,194 @@ function HomeScreen({
         />
       )}
 
-      <div style={{
-        position: "relative",
-        background: `
-          linear-gradient(180deg, rgba(255,255,255,0.08) 0%, transparent 18%),
-          ${color.canvas}
-        `,
-      }}>
-        {!catalogEmpty && !catalogError && (airing?.show || programGuide.length > 0 || countdown.length > 0) && (
-          <section
-            aria-label="Tonight"
-            style={{ paddingTop: 16, paddingBottom: 4, ...riseStyle(0) }}
-          >
-            <div style={{ padding: `0 ${homeSpace.gutter}px 12px` }}>
-                <h2 style={{
-                  margin: 0,
-                  fontFamily: fontDisplay,
-                  fontSize: "clamp(32px, 7vw, 40px)",
-                  fontWeight: 800,
-                  letterSpacing: -1.1,
-                  color: color.ink,
-                  lineHeight: 1,
-                }}>
-                  Tonight
-                </h2>
-            </div>
+      {/* FEATURED CHANNELS */}
+      {catalogReady && channels.length > 0 && (
+        <MusicSection
+          title="Featured channels"
+          subtitle="Surf the dial"
+          accent={y2k.purpleBright}
+          delay={0.05}
+        >
+          <Rail>
+            {channels.map((channel) => (
+              <ChannelCard
+                key={channel.id}
+                channel={channel}
+                active={sceneChannelsActiveId === channel.id}
+                onClick={() => onTuneSceneChannel?.(channel)}
+              />
+            ))}
+          </Rail>
+        </MusicSection>
+      )}
 
-            {airing?.show && !(activeShowId === airing.show.id && currentTrack) && (
-              <div style={{ paddingBottom: 10 }}>
-                <NowOnAirCard
-                  airing={airing}
-                  bumper={showBumper}
-                  tuned={false}
-                  onTuneIn={() => onTuneShow?.(airing.show)}
+      {/* ON TONIGHT — live show + program guide */}
+      {catalogReady && hasTonight && (
+        <MusicSection
+          title="On tonight"
+          subtitle={airing?.show?.tagline || "The program guide"}
+          accent={y2k.neon}
+          delay={0.08}
+        >
+          {airing?.show && !(activeShowId === airing.show.id && currentTrack) && (
+            <div style={{ paddingBottom: 8 }}>
+              <NowOnAirCard
+                airing={airing}
+                bumper={showBumper}
+                tuned={false}
+                onTuneIn={() => onTuneShow?.(airing.show)}
+              />
+            </div>
+          )}
+          {programGuide.length > 0 && (
+            <ShowGuideRail
+              guide={programGuide}
+              activeShowId={activeShowId}
+              onSelectShow={(show) => onTuneShow?.(show)}
+              embedded
+            />
+          )}
+        </MusicSection>
+      )}
+
+      {/* MOST REQUESTED — the countdown */}
+      {catalogReady && topRequested.length > 0 && (
+        <MusicSection
+          title="Most requested"
+          subtitle="Tonight's countdown"
+          accent={y2k.purpleBright}
+          action={
+            onOpenCharts
+              ? { label: "View all", onClick: onOpenCharts }
+              : onTuneCountdown
+                ? { label: "Tune in", onClick: onTuneCountdown }
+                : null
+          }
+          delay={0.1}
+        >
+          <Rail>
+            {topRequested.map(({ rank, track }) => (
+              <TrackCard
+                key={track.id}
+                track={track}
+                rank={rank}
+                active={activeId === track.id}
+                onClick={() => onPlayTrack?.(track, topRequested.map((e) => e.track))}
+              />
+            ))}
+          </Rail>
+        </MusicSection>
+      )}
+
+      {/* DISCOVER NEW MUSIC */}
+      {catalogReady && discover.picks.length > 0 && (
+        <MusicSection
+          title="Discover new music"
+          subtitle={discover.coldStart ? "Fresh off the dial" : "Selected for you"}
+          accent={y2k.purpleBright}
+          action={onOpenSearch ? { label: "Dig deeper", onClick: onOpenSearch } : null}
+          delay={0.12}
+        >
+          <Rail>
+            {discover.picks.map(({ track, reason }) => (
+              <TrackCard
+                key={track.id}
+                track={track}
+                reason={reason}
+                active={activeId === track.id}
+                onClick={() => onPlayTrack?.(track, discover.picks.map((p) => p.track))}
+              />
+            ))}
+          </Rail>
+        </MusicSection>
+      )}
+
+      {/* RECENTLY PLAYED */}
+      {catalogReady && recentlyPlayed.length > 0 && (
+        <MusicSection
+          title="Recently played"
+          subtitle="Back on the deck"
+          accent={y2k.purpleBright}
+          delay={0.14}
+        >
+          <Rail>
+            {recentlyPlayed.map((track) => (
+              <TrackCard
+                key={track.id}
+                track={track}
+                active={activeId === track.id}
+                onClick={() => onPlayTrack?.(track, recentlyPlayed)}
+              />
+            ))}
+          </Rail>
+        </MusicSection>
+      )}
+
+      {/* YOUR PLAYLISTS */}
+      {catalogReady && (playlists.length > 0 || onOpenLibrary) && (
+        <MusicSection
+          title="Your playlists"
+          subtitle="Stacks you built"
+          accent={y2k.purpleBright}
+          action={
+            playlists.length > 0 && onOpenLibrary
+              ? { label: "View all", onClick: onOpenLibrary }
+              : null
+          }
+          delay={0.16}
+        >
+          {playlists.length > 0 ? (
+            <Rail>
+              {playlists.map((playlist) => (
+                <PlaylistCard
+                  key={playlist.id}
+                  playlist={playlist}
+                  tracks={tracks}
+                  onClick={() =>
+                    onOpenPlaylist
+                      ? onOpenPlaylist(playlist.id)
+                      : onOpenLibrary?.()
+                  }
                 />
-              </div>
-            )}
-
-            {programGuide.length > 0 && (
-              <ShowGuideRail
-                guide={programGuide}
-                activeShowId={activeShowId}
-                onSelectShow={(show) => onTuneShow?.(show)}
-                embedded
-              />
-            )}
-
-            {countdown.length > 0 && (
-              <CountdownRail
-                entries={countdown}
-                onPlayTrack={onPlayTrack}
-                onTuneIn={onTuneCountdown}
-                activeId={activeId}
-                compact
-              />
-            )}
-
-            <SceneSurfRail
-              tracks={tracks}
-              activeChannelId={sceneChannelsActiveId}
-              onTuneChannel={onTuneSceneChannel}
-              quiet
+              ))}
+            </Rail>
+          ) : (
+            <EmptyShelfCard
+              title="No stacks yet"
+              body="Build a playlist and it lands right here on the shelf."
+              actionLabel="Start a stack"
+              onAction={onOpenLibrary}
             />
-          </section>
-        )}
+          )}
+        </MusicSection>
+      )}
 
-        {!catalogEmpty && !catalogError && !(airing?.show || programGuide.length > 0 || countdown.length > 0) && (
-          <div style={riseStyle(0.06)}>
-            <SceneSurfRail
-              tracks={tracks}
-              activeChannelId={sceneChannelsActiveId}
-              onTuneChannel={onTuneSceneChannel}
-              quiet
+      {/* REQUEST A SONG */}
+      {catalogReady && onOpenSearch && (
+        <div
+          style={{
+            marginTop: 36,
+            padding: `0 ${homeSpace.gutter}px`,
+            animation: `rise 0.5s ${motion.ease} 0.18s both`,
+          }}
+        >
+          <RequestSongCard onClick={onOpenSearch} />
+        </div>
+      )}
+
+      {/* Catalog is fine but nothing editorial to show — quiet empty state */}
+      {catalogReady &&
+        channels.length === 0 &&
+        !hasTonight &&
+        topRequested.length === 0 &&
+        discover.picks.length === 0 && (
+          <div style={{ marginTop: 32 }}>
+            <EmptyShelfCard
+              title="Nothing on the shelf"
+              body="Add cuts to the catalog and they land here."
             />
           </div>
         )}
-
-        {!catalogError && !catalogEmpty && countdown.length === 0 && !airing?.show && (
-          <div style={{ padding: `28px ${homeSpace.gutter}px 56px` }}>
-            <div className="glass-surface" style={{
-              padding: "28px 22px",
-              ...chromeFrame(),
-              borderRadius: radius.xl,
-              border: `1px solid rgba(255,255,255,0.12)`,
-              background: `
-                linear-gradient(165deg, rgba(38,43,52,0.88) 0%, rgba(24,27,33,0.72) 100%)
-              `,
-              boxShadow: `inset 0 1px 0 ${glass.highlight}, ${glass.shadowLift}`,
-            }}>
-              <div style={{ fontSize: 24, fontWeight: 800, fontFamily: fontDisplay, color: color.ink, marginBottom: 8, letterSpacing: -0.4, textTransform: "uppercase" }}>
-                Nothing on the shelf
-              </div>
-              <div style={{ fontSize: 15, fontWeight: 500, color: color.muted, lineHeight: 1.5, maxWidth: 280 }}>
-                Add cuts to the catalog and they land here.
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
     </div>
   );
 }

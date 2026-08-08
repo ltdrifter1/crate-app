@@ -56,6 +56,31 @@ export const chrome = {
   liveRgb: "224,60,75",
 };
 
+/**
+ * Y2K underground — purple broadcast branding + one neon signal.
+ * Used by the Home redesign + dock. Black, charcoal, off-white, purple,
+ * a whisper of neon. MTV meets pirate radio meets modern streaming.
+ */
+export const y2k = {
+  /** Primary brand purple — CTAs, active states, live chrome */
+  purple: "#8B5CF6",
+  purpleBright: "#A78BFA",
+  purpleDeep: "#5B21B6",
+  purpleSoft: "rgba(139, 92, 246, 0.14)",
+  purpleGlow: "rgba(139, 92, 246, 0.38)",
+  purpleWash: "rgba(139, 92, 246, 0.07)",
+  /** Neon zap — tiny highlights only, never large surfaces */
+  neon: "#C8F241",
+  neonSoft: "rgba(200, 242, 65, 0.16)",
+  /** Print-paper off-white for headline ink */
+  offWhite: "#F2EFE6",
+  charcoal: "#16171C",
+  charcoalRaised: "#1C1D24",
+  /** Hero / card art fallback wash */
+  artGradient:
+    "radial-gradient(120% 90% at 20% 0%, rgba(139,92,246,0.45) 0%, transparent 55%), radial-gradient(100% 80% at 90% 100%, rgba(91,33,182,0.5) 0%, transparent 60%), linear-gradient(160deg, #1C1626 0%, #0E0B14 100%)",
+};
+
 /** Dark glass — blurred studio panels, hairline borders, soft top light. */
 export const glass = {
   fill: "rgba(24, 27, 32, 0.55)",
