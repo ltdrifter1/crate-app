@@ -6,6 +6,8 @@
 
 **Codebase reviewed:** Home (`HomeScreen` + home components), GlassDock / BottomNavigation, Search, Library, Artist/Album pages, ImmersivePlayer, DesktopMiniPlayer, `theme.js` / `y2k` tokens, motion system.
 
+> **Implemented on this branch:** Upgrade 2 (Home destination density), Upgrade 3 (artwork elevation / `ArtFrame`), Homepage #1 (broadcast hero + consolidated LIVE·channel bug), Homepage #3 (cover-driven channels + Featured releases), and quick wins (tile 168 / featured 200, channel mosaics, shared art chrome). Upgrade 1 (full accent unification across Player/Artist) remains open.
+
 ---
 
 ## 1. Executive summary

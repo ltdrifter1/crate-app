@@ -1,9 +1,9 @@
 import { useEffect, useRef } from "react";
 import {
-  color,
   fontDisplay,
   fontMono,
   glass,
+  homeSpace,
   motion,
   y2k,
 } from "../../theme";
@@ -18,38 +18,70 @@ function fmtTime(secs = 0) {
   return `${m}:${String(s).padStart(2, "0")}`;
 }
 
-function LiveBadge({ playing }) {
+/** Single MTV-style bug: LIVE · channel — consolidates dual pills. */
+function BroadcastBug({ live, playing, channelLabel }) {
   return (
     <span
       style={{
         display: "inline-flex",
         alignItems: "center",
-        gap: 7,
-        padding: "6px 12px",
-        borderRadius: 999,
-        background: "rgba(10,8,16,0.55)",
-        border: "1px solid rgba(255,255,255,0.14)",
-        backdropFilter: "blur(12px)",
-        WebkitBackdropFilter: "blur(12px)",
+        gap: 8,
+        maxWidth: "100%",
+        padding: "7px 12px",
+        borderRadius: 8,
+        background: "rgba(10,8,16,0.62)",
+        border: "1px solid rgba(255,255,255,0.16)",
+        backdropFilter: "blur(14px)",
+        WebkitBackdropFilter: "blur(14px)",
+        boxShadow: "inset 0 1px 0 rgba(255,255,255,0.08)",
         fontFamily: fontMono,
         fontSize: 10,
         fontWeight: 800,
-        letterSpacing: 2,
+        letterSpacing: 1.8,
         color: y2k.offWhite,
       }}
     >
+      {(live || playing) && (
+        <>
+          <span
+            aria-hidden="true"
+            style={{
+              width: 7,
+              height: 7,
+              borderRadius: "50%",
+              flexShrink: 0,
+              background: live ? y2k.neon : y2k.purpleBright,
+              boxShadow: live
+                ? `0 0 8px ${y2k.neon}`
+                : `0 0 8px ${y2k.purpleGlow}`,
+              animation: playing ? "stageLiveDot 1.6s ease-in-out infinite" : "none",
+            }}
+          />
+          <span style={{ color: live ? y2k.neon : y2k.purpleBright, flexShrink: 0 }}>
+            LIVE
+          </span>
+          <span
+            aria-hidden="true"
+            style={{
+              width: 1,
+              height: 10,
+              background: "rgba(255,255,255,0.22)",
+              flexShrink: 0,
+            }}
+          />
+        </>
+      )}
       <span
-        aria-hidden="true"
         style={{
-          width: 7,
-          height: 7,
-          borderRadius: "50%",
-          background: y2k.purpleBright,
-          boxShadow: `0 0 8px ${y2k.purpleGlow}`,
-          animation: playing ? "stageLiveDot 1.6s ease-in-out infinite" : "none",
+          overflow: "hidden",
+          textOverflow: "ellipsis",
+          whiteSpace: "nowrap",
+          textTransform: "uppercase",
+          color: "rgba(242,239,230,0.88)",
         }}
-      />
-      LIVE
+      >
+        {channelLabel}
+      </span>
     </span>
   );
 }
@@ -68,17 +100,19 @@ function GlassIconButton({ label, icon, active = false, onClick, size = 42, icon
       style={{
         width: size,
         height: size,
-        borderRadius: "50%",
+        borderRadius: 12,
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
         cursor: "pointer",
         border: `1px solid ${active ? "rgba(167,139,250,0.5)" : "rgba(255,255,255,0.16)"}`,
-        background: active ? y2k.purpleSoft : "rgba(12,10,18,0.45)",
+        background: active ? y2k.purpleSoft : "rgba(12,10,18,0.5)",
         color: active ? y2k.purpleBright : y2k.offWhite,
         backdropFilter: "blur(14px)",
         WebkitBackdropFilter: "blur(14px)",
-        boxShadow: active ? `0 0 16px ${y2k.purpleGlow}` : "none",
+        boxShadow: active
+          ? `0 0 16px ${y2k.purpleGlow}`
+          : "inset 0 1px 0 rgba(255,255,255,0.08)",
         flexShrink: 0,
       }}
     >
@@ -88,8 +122,8 @@ function GlassIconButton({ label, icon, active = false, onClick, size = 42, icon
 }
 
 /**
- * HeroPlayerCard — full-width "Now Playing" hero.
- * Artwork-dominant rounded card with a dark glass overlay, live indicator,
+ * HeroPlayerCard — full-bleed broadcast "Now Playing" stage.
+ * Artwork-dominant plane with chrome lower-third, consolidated LIVE bug,
  * favorite + transport controls. Idle state invites starting the station.
  */
 export default function HeroPlayerCard({
@@ -100,12 +134,12 @@ export default function HeroPlayerCard({
   daypart = null,
   isRadioMode = false,
   playDisabled = false,
-  onPlay = null, // start the station
+  onPlay = null,
   onTogglePlay = null,
   onSkip = null,
   onPrev = null,
-  onLike = null, // (trackId)
-  onOpen = null, // open immersive player
+  onLike = null,
+  onOpen = null,
   onRequest = null,
   requested = false,
   onVisibilityChange = null,
@@ -118,8 +152,6 @@ export default function HeroPlayerCard({
   const channelLabel =
     liveShow?.shortTitle || liveShow?.title || daypart?.label || "Planet Radio";
 
-  // Same hysteresis contract as the old Cover Stage — the floating dock's
-  // mini-player stays hidden only while this hero clearly owns the transport.
   useEffect(() => {
     if (!onVisibilityChange) return undefined;
     const el = cardRef.current;
@@ -164,20 +196,32 @@ export default function HeroPlayerCard({
       className="pmp-hero"
       style={{
         position: "relative",
-        borderRadius: 24,
+        // Broadcast plate — sharper chrome, cinematic plane (not soft marketing card)
+        borderRadius: 12,
         overflow: "hidden",
-        aspectRatio: "1 / 1.02",
-        maxHeight: 480,
-        width: "100%",
+        aspectRatio: "16 / 11",
+        minHeight: 300,
+        maxHeight: 520,
+        // Bleed past home gutters toward edge-to-edge stage
+        marginLeft: -homeSpace.gutter,
+        marginRight: -homeSpace.gutter,
+        width: `calc(100% + ${homeSpace.gutter * 2}px)`,
+        maxWidth: "none",
         cursor: playDisabled && !live ? "default" : "pointer",
-        border: "1px solid rgba(255,255,255,0.1)",
+        border: "1px solid rgba(255,255,255,0.12)",
+        borderLeft: "none",
+        borderRight: "none",
         background: y2k.artGradient,
-        boxShadow: `0 24px 60px rgba(0,0,0,0.55), 0 4px 14px rgba(0,0,0,0.35), 0 0 0 1px rgba(139,92,246,0.08)`,
+        boxShadow: `
+          0 28px 64px rgba(0,0,0,0.55),
+          inset 0 1px 0 rgba(255,255,255,0.1),
+          0 0 0 1px rgba(139,92,246,0.06)
+        `,
         WebkitTapHighlightColor: "transparent",
         isolation: "isolate",
       }}
     >
-      {/* Artwork */}
+      {/* Artwork — full-bleed stage */}
       {art ? (
         <img
           key={art}
@@ -207,25 +251,29 @@ export default function HeroPlayerCard({
           <img
             src="/brand/planet-mp3-lockup-on-black.png"
             alt=""
-            style={{ width: "52%", maxWidth: 220, opacity: 0.9, filter: "drop-shadow(0 18px 40px rgba(0,0,0,0.5))" }}
+            style={{
+              width: "48%",
+              maxWidth: 240,
+              opacity: 0.9,
+              filter: "drop-shadow(0 18px 40px rgba(0,0,0,0.5))",
+            }}
             draggable={false}
           />
         </div>
       )}
 
-      {/* Overlay treatment — dark scrim bottom, faint key light top */}
+      {/* Broadcast scrim — key light top, dense lower-third */}
       <div
         aria-hidden="true"
         style={{
           position: "absolute",
           inset: 0,
           background: `
-            linear-gradient(180deg, rgba(8,6,14,0.5) 0%, rgba(8,6,14,0.08) 26%, transparent 44%),
-            linear-gradient(180deg, transparent 40%, rgba(8,6,14,0.42) 66%, rgba(8,6,14,0.92) 100%)
+            linear-gradient(180deg, rgba(8,6,14,0.55) 0%, rgba(8,6,14,0.08) 22%, transparent 40%),
+            linear-gradient(180deg, transparent 38%, rgba(8,6,14,0.5) 62%, rgba(8,6,14,0.94) 100%)
           `,
         }}
       />
-      {/* Purple floor glow */}
       <div
         aria-hidden="true"
         style={{
@@ -233,57 +281,39 @@ export default function HeroPlayerCard({
           left: 0,
           right: 0,
           bottom: 0,
-          height: "46%",
+          height: "50%",
           background: `radial-gradient(120% 100% at 50% 110%, ${y2k.purpleWash} 0%, transparent 70%)`,
         }}
       />
 
-      {/* Top chrome */}
+      {/* Top chrome — consolidated bug */}
       <div
         style={{
           position: "absolute",
           top: 16,
-          left: 16,
-          right: 16,
+          left: homeSpace.gutter,
+          right: homeSpace.gutter,
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
           gap: 10,
         }}
       >
-        {live || isRadioMode ? <LiveBadge playing={isPlaying} /> : <span />}
-        <span
-          style={{
-            padding: "6px 12px",
-            borderRadius: 999,
-            background: "rgba(10,8,16,0.55)",
-            border: "1px solid rgba(255,255,255,0.12)",
-            backdropFilter: "blur(12px)",
-            WebkitBackdropFilter: "blur(12px)",
-            fontFamily: fontMono,
-            fontSize: 10,
-            fontWeight: 700,
-            letterSpacing: 1.6,
-            textTransform: "uppercase",
-            color: color.body,
-            maxWidth: "58%",
-            overflow: "hidden",
-            textOverflow: "ellipsis",
-            whiteSpace: "nowrap",
-          }}
-        >
-          {channelLabel}
-        </span>
+        <BroadcastBug
+          live={live || isRadioMode}
+          playing={isPlaying}
+          channelLabel={channelLabel}
+        />
       </div>
 
-      {/* Lower third */}
+      {/* Lower third — chrome broadcast plate */}
       <div
         style={{
           position: "absolute",
           left: 0,
           right: 0,
           bottom: 0,
-          padding: "0 20px 20px",
+          padding: `0 ${homeSpace.gutter}px 18px`,
         }}
       >
         <div
@@ -308,31 +338,33 @@ export default function HeroPlayerCard({
           <div
             style={{
               fontFamily: fontDisplay,
-              fontSize: "clamp(22px, 5.6vw, 30px)",
+              fontSize: "clamp(24px, 6vw, 34px)",
               fontWeight: 800,
-              letterSpacing: -0.6,
-              lineHeight: 1.08,
+              letterSpacing: -0.7,
+              lineHeight: 1.06,
               color: y2k.offWhite,
-              textShadow: "0 2px 16px rgba(0,0,0,0.55)",
+              textShadow: "0 2px 18px rgba(0,0,0,0.55)",
               overflow: "hidden",
               textOverflow: "ellipsis",
               display: "-webkit-box",
               WebkitLineClamp: 2,
               WebkitBoxOrient: "vertical",
+              maxWidth: 640,
             }}
           >
             {live ? track.title : daypart?.vibe || "Tune the station"}
           </div>
           <div
             style={{
-              marginTop: 5,
-              fontSize: 14,
+              marginTop: 6,
+              fontSize: 15,
               fontWeight: 500,
-              color: "rgba(242,239,230,0.72)",
+              color: "rgba(242,239,230,0.74)",
               textShadow: "0 1px 8px rgba(0,0,0,0.5)",
               overflow: "hidden",
               textOverflow: "ellipsis",
               whiteSpace: "nowrap",
+              maxWidth: 520,
             }}
           >
             {live ? track.artist : "One tap and the dial finds you something good."}
@@ -362,7 +394,7 @@ export default function HeroPlayerCard({
                 style={{
                   width: 58,
                   height: 58,
-                  borderRadius: "50%",
+                  borderRadius: 14,
                   border: "1px solid rgba(255,255,255,0.22)",
                   background: `linear-gradient(160deg, ${y2k.purpleBright} 0%, ${y2k.purple} 48%, ${y2k.purpleDeep} 100%)`,
                   color: "#FFFFFF",
@@ -394,7 +426,7 @@ export default function HeroPlayerCard({
                   style={{
                     padding: "0 14px",
                     height: 42,
-                    borderRadius: 999,
+                    borderRadius: 10,
                     border: `1px solid ${requested ? "rgba(200,242,65,0.4)" : "rgba(255,255,255,0.16)"}`,
                     background: requested ? y2k.neonSoft : "rgba(12,10,18,0.45)",
                     color: requested ? y2k.neon : y2k.offWhite,
@@ -435,7 +467,7 @@ export default function HeroPlayerCard({
               style={{
                 height: 54,
                 padding: "0 26px",
-                borderRadius: 999,
+                borderRadius: 12,
                 border: "1px solid rgba(255,255,255,0.22)",
                 background: playDisabled
                   ? "rgba(60,58,72,0.6)"
@@ -462,7 +494,6 @@ export default function HeroPlayerCard({
           )}
         </div>
 
-        {/* Meta line — up next + elapsed */}
         {live && (
           <div
             style={{
@@ -520,13 +551,12 @@ export default function HeroPlayerCard({
         </div>
       )}
 
-      {/* Hairline highlight */}
       <div
         aria-hidden="true"
         style={{
           position: "absolute",
           inset: 0,
-          borderRadius: 24,
+          borderRadius: 12,
           boxShadow: `inset 0 1px 0 ${glass.highlight}`,
           pointerEvents: "none",
         }}

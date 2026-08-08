@@ -1,5 +1,5 @@
-import { color, fontDisplay, fontMono, y2k } from "../../theme";
-import CoverImage from "../ui/CoverImage";
+import { color, fontDisplay, fontMono, homeSpace, y2k } from "../../theme";
+import ArtFrame from "../ui/ArtFrame";
 
 /**
  * TrackCard — square artwork tile for Discover / Recently Played rails.
@@ -11,7 +11,7 @@ export default function TrackCard({
   rank = null,
   reason = null,
   active = false,
-  size = 138,
+  size = homeSpace.tile,
 }) {
   return (
     <button
@@ -31,39 +31,12 @@ export default function TrackCard({
         WebkitTapHighlightColor: "transparent",
       }}
     >
-      <span
-        style={{
-          position: "relative",
-          display: "block",
-          width: size,
-          height: size,
-          borderRadius: 16,
-          overflow: "hidden",
-          border: `1px solid ${active ? "rgba(167,139,250,0.55)" : "rgba(255,255,255,0.08)"}`,
-          background: y2k.artGradient,
-          boxShadow: active
-            ? `0 0 18px ${y2k.purpleGlow}, 0 10px 24px rgba(0,0,0,0.4)`
-            : "0 10px 24px rgba(0,0,0,0.35)",
-        }}
+      <ArtFrame
+        src={track.albumCover || null}
+        size={size}
+        active={active}
+        radius={14}
       >
-        {track.albumCover && (
-          <CoverImage
-            src={track.albumCover}
-            alt=""
-            width={size}
-            height={size}
-          />
-        )}
-        {/* Artwork gradient foot for legibility of badges */}
-        <span
-          aria-hidden="true"
-          style={{
-            position: "absolute",
-            inset: 0,
-            background:
-              "linear-gradient(180deg, rgba(8,6,14,0.18) 0%, transparent 30%)",
-          }}
-        />
         {rank != null && (
           <span
             style={{
@@ -86,28 +59,13 @@ export default function TrackCard({
               fontSize: 12,
               fontWeight: 800,
               color: y2k.purpleBright,
+              zIndex: 1,
             }}
           >
             #{rank}
           </span>
         )}
-        {active && (
-          <span
-            aria-hidden="true"
-            style={{
-              position: "absolute",
-              right: 8,
-              bottom: 8,
-              width: 8,
-              height: 8,
-              borderRadius: "50%",
-              background: y2k.neon,
-              boxShadow: `0 0 8px ${y2k.neon}`,
-              animation: "stageLiveDot 1.6s ease-in-out infinite",
-            }}
-          />
-        )}
-      </span>
+      </ArtFrame>
       <span
         style={{
           display: "block",

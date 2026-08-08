@@ -1,12 +1,12 @@
 import { useMemo } from "react";
-import { color, fontDisplay, fontMono, y2k } from "../../theme";
-import CoverImage from "../ui/CoverImage";
+import { color, fontDisplay, fontMono, homeSpace, y2k } from "../../theme";
+import ArtFrame from "../ui/ArtFrame";
 
 /**
  * PlaylistCard — a user "stack" tile. 2x2 art mosaic from its cuts,
  * falling back to a purple monogram plate.
  */
-export default function PlaylistCard({ playlist, tracks = [], onClick = null, size = 148 }) {
+export default function PlaylistCard({ playlist, tracks = [], onClick = null, size = homeSpace.tile }) {
   const covers = useMemo(() => {
     const byId = new Map(tracks.map((t) => [t.id, t]));
     const out = [];
@@ -19,7 +19,7 @@ export default function PlaylistCard({ playlist, tracks = [], onClick = null, si
   }, [playlist.trackIds, tracks]);
 
   const count = (playlist.trackIds || []).length;
-  const cell = Math.floor(size / 2);
+  const initial = String(playlist.name || playlist.title || "?").trim().charAt(0).toUpperCase();
 
   return (
     <button
@@ -39,38 +39,13 @@ export default function PlaylistCard({ playlist, tracks = [], onClick = null, si
         WebkitTapHighlightColor: "transparent",
       }}
     >
-      <span
-        style={{
-          position: "relative",
-          display: "block",
-          width: size,
-          height: size,
-          borderRadius: 16,
-          overflow: "hidden",
-          border: "1px solid rgba(255,255,255,0.08)",
-          background: y2k.artGradient,
-          boxShadow: "0 10px 24px rgba(0,0,0,0.35)",
-        }}
+      <ArtFrame
+        covers={covers.length >= 4 ? covers : null}
+        src={covers.length > 0 && covers.length < 4 ? covers[0] : null}
+        size={size}
+        radius={14}
       >
-        {covers.length >= 4 ? (
-          <span
-            style={{
-              position: "absolute",
-              inset: 0,
-              display: "grid",
-              gridTemplateColumns: "1fr 1fr",
-              gridTemplateRows: "1fr 1fr",
-            }}
-          >
-            {covers.slice(0, 4).map((src, i) => (
-              <span key={i} style={{ overflow: "hidden" }}>
-                <CoverImage src={src} alt="" width={cell} height={cell} />
-              </span>
-            ))}
-          </span>
-        ) : covers.length > 0 ? (
-          <CoverImage src={covers[0]} alt="" width={size} height={size} />
-        ) : (
+        {covers.length === 0 && (
           <span
             aria-hidden="true"
             style={{
@@ -85,25 +60,18 @@ export default function PlaylistCard({ playlist, tracks = [], onClick = null, si
               fontWeight: 800,
               color: "rgba(242,239,230,0.85)",
               textShadow: `0 0 24px ${y2k.purpleGlow}`,
+              zIndex: 1,
             }}
           >
-            {String(playlist.name || playlist.title || "?").trim().charAt(0).toUpperCase()}
+            {initial}
           </span>
         )}
-        <span
-          aria-hidden="true"
-          style={{
-            position: "absolute",
-            inset: 0,
-            background:
-              "linear-gradient(180deg, transparent 55%, rgba(8,6,14,0.55) 100%)",
-          }}
-        />
         <span
           style={{
             position: "absolute",
             left: 10,
             bottom: 8,
+            zIndex: 1,
             fontFamily: fontMono,
             fontSize: 9,
             fontWeight: 800,
@@ -114,7 +82,7 @@ export default function PlaylistCard({ playlist, tracks = [], onClick = null, si
         >
           {count} {count === 1 ? "cut" : "cuts"}
         </span>
-      </span>
+      </ArtFrame>
       <span
         style={{
           display: "block",

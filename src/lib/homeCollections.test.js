@@ -3,17 +3,19 @@ import {
   savedTracks,
   rediscoveredTracks,
   trendingTracks,
+  featuredReleases,
   recommendedTracks,
   recommendedPicks,
 } from "./homeCollections";
 
 describe("homeCollections", () => {
   const tracks = [
-    { id: "1", title: "A", energy: 3, genre: "Jazz", duration: 180, liked: true, playCount: 2 },
-    { id: "2", title: "B", energy: 8, genre: "House", duration: 200, liked: true, playCount: 0 },
-    { id: "3", title: "C", energy: 2, genre: "Soul", duration: 210, liked: false, playCount: 1, _signal: { pull: 6 } },
-    { id: "4", title: "D", energy: 9, genre: "House", duration: 190, playCount: 12, likeCount: 3 },
-    { id: "5", title: "E", energy: 5, genre: "Jazz", duration: 200, playCount: 0 },
+    { id: "1", title: "A", artist: "One", album: "Alpha", albumCover: "a.jpg", energy: 3, genre: "Jazz", duration: 180, liked: true, playCount: 2 },
+    { id: "2", title: "B", artist: "One", album: "Alpha", albumCover: "a.jpg", energy: 8, genre: "House", duration: 200, liked: true, playCount: 0 },
+    { id: "3", title: "C", artist: "Two", album: "Beta", albumCover: "b.jpg", energy: 2, genre: "Soul", duration: 210, liked: false, playCount: 1, _signal: { pull: 6 } },
+    { id: "4", title: "D", artist: "Two", album: "Beta", albumCover: "b.jpg", energy: 9, genre: "House", duration: 190, playCount: 12, likeCount: 3 },
+    { id: "5", title: "E", artist: "Three", album: "Singles & Unknown", albumCover: "c.jpg", energy: 5, genre: "Jazz", duration: 200, playCount: 0 },
+    { id: "6", title: "F", artist: "Four", album: "Solo", albumCover: "d.jpg", energy: 5, genre: "Rock", duration: 200, playCount: 1 },
   ];
 
   test("savedTracks returns likes only", () => {
@@ -32,6 +34,20 @@ describe("homeCollections", () => {
 
   test("trendingTracks ranks by play heat", () => {
     expect(trendingTracks(tracks, 3).map((t) => t.id)[0]).toBe("4");
+  });
+
+  test("featuredReleases prefers multi-track albums with sleeves", () => {
+    const releases = featuredReleases(tracks, 5);
+    expect(releases.every((a) => a.title !== "Singles & Unknown")).toBe(true);
+    expect(releases.every((a) => a.count >= 2)).toBe(true);
+    expect(releases.every((a) => a.coverTrack?.albumCover)).toBe(true);
+    // Beta has more heat than Alpha
+    expect(releases[0].title).toBe("Beta");
+  });
+
+  test("featuredReleases skips single-cut albums", () => {
+    const releases = featuredReleases(tracks, 10);
+    expect(releases.some((a) => a.title === "Solo")).toBe(false);
   });
 
   test("recommendedTracks uses taste when history exists", () => {
