@@ -6,7 +6,7 @@ import {
   getChartSnapshot,
   weekKey,
 } from "./chartHistory";
-import { availableSceneChannels, buildSceneChannelPool, getSceneChannel } from "./sceneChannels";
+import { availableSceneChannels, buildSceneChannelPool, channelCoverUrls, getSceneChannel } from "./sceneChannels";
 import { pickTrackBumper, STATION_IDENTS } from "./bumpers";
 import { brandStoragePrefix } from "../brand/identity";
 import {
@@ -85,6 +85,20 @@ describe("sceneChannels", () => {
     expect(formatChannelNum(rap.num)).toBe("CH-03");
     expect(buildSceneChannelPool(tracks, rap).length).toBeGreaterThanOrEqual(2);
     expect(availableSceneChannels(tracks, 2).some((c) => c.id === "rap-city")).toBe(true);
+  });
+
+  test("channelCoverUrls returns distinct sleeves for mosaics", () => {
+    const tracks = [
+      { id: "1", title: "A", genre: "Hip-Hop", duration: 180, audioUrl: "u", albumCover: "a.jpg" },
+      { id: "2", title: "B", genre: "Hip-Hop", duration: 180, audioUrl: "u", albumCover: "b.jpg" },
+      { id: "3", title: "C", genre: "Hip-Hop", duration: 180, audioUrl: "u", albumCover: "a.jpg" },
+      { id: "4", title: "D", genre: "Hip-Hop", duration: 180, audioUrl: "u", albumCover: "c.jpg" },
+      { id: "5", title: "E", genre: "Hip-Hop", duration: 180, audioUrl: "u", albumCover: "d.jpg" },
+    ];
+    const rap = getSceneChannel("rap-city");
+    const covers = channelCoverUrls(tracks, rap, 4);
+    expect(covers).toHaveLength(4);
+    expect(new Set(covers).size).toBe(4);
   });
 });
 

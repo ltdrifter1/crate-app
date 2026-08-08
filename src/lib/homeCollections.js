@@ -1,4 +1,5 @@
 import { normalizeGenre } from "./genres";
+import { buildAlbums } from "./catalog";
 
 /**
  * Smart collections for Personal Home — record wall, not file folders.
@@ -110,6 +111,29 @@ export function trendingTracks(tracks = [], limit = 10) {
       if (likes !== 0) return likes;
       return (b._signal?.pull || 0) - (a._signal?.pull || 0);
     })
+    .slice(0, limit);
+}
+
+/**
+ * Featured album releases for Home — real sleeves only, no Singles dump.
+ * Ranked by play/like heat, then track count.
+ */
+export function featuredReleases(tracks = [], limit = 10) {
+  return buildAlbums(tracks)
+    .filter(
+      (a) =>
+        a.title !== "Singles & Unknown" &&
+        !!a.coverTrack?.albumCover &&
+        (a.count || 0) >= 2
+    )
+    .map((a) => {
+      const heat = (a.tracks || []).reduce(
+        (s, t) => s + (t.playCount || 0) + (t.likeCount || 0) * 2 + (t._signal?.pull || 0),
+        0
+      );
+      return { ...a, heat };
+    })
+    .sort((a, b) => b.heat - a.heat || b.count - a.count || a.title.localeCompare(b.title))
     .slice(0, limit);
 }
 

@@ -158,8 +158,38 @@ export function hardwareKey(opts = { pressed: false, size: "md" }) {
 export const artShadow = {
   quiet: "0 2px 4px rgba(0,0,0,0.3), 0 12px 28px rgba(0,0,0,0.45)",
   raised: "0 4px 10px rgba(0,0,0,0.35), 0 20px 44px rgba(0,0,0,0.55)",
-  active: `0 0 0 2px ${color.accent}, 0 8px 20px rgba(0,0,0,0.45), 0 18px 40px rgba(0,0,0,0.45)`,
+  active: `0 0 0 1px rgba(167,139,250,0.45), 0 0 18px ${y2k.purpleGlow}, 0 8px 20px rgba(0,0,0,0.45), 0 18px 40px rgba(0,0,0,0.45)`,
 };
+
+/**
+ * Shared jewel-case art frame — hairline chrome edge, raised sleeve shadow.
+ * Use on Home tiles, channels, stacks, and featured releases.
+ */
+export function artFrameStyle({
+  size,
+  active = false,
+  radius: frameRadius = 14,
+  width = null,
+  height = null,
+} = {}) {
+  const w = width ?? size;
+  const h = height ?? size;
+  return {
+    position: "relative",
+    display: "block",
+    width: w,
+    height: h,
+    borderRadius: frameRadius,
+    overflow: "hidden",
+    border: `1px solid ${
+      active ? "rgba(167,139,250,0.55)" : "rgba(255,255,255,0.12)"
+    }`,
+    background: y2k.artGradient,
+    boxShadow: active
+      ? artShadow.active
+      : `${artShadow.raised}, inset 0 1px 0 rgba(255,255,255,0.08)`,
+  };
+}
 
 /** Home rhythm — wider section breaks, consistent gutters. */
 export const homeSpace = {
@@ -170,7 +200,10 @@ export const homeSpace = {
   /** First shelf after a prior band/rule — keep tight; the break lives above. */
   sectionPadTopFirst: 8,
   shelfGap: 20,
-  tile: 148,
+  /** Default discovery tile — sleeve-first. */
+  tile: 168,
+  /** Featured / countdown / releases — asymmetric presence. */
+  tileFeatured: 200,
 };
 
 /** Floating premium dock — blurred shell for mini-player + tabs. */

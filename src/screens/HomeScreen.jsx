@@ -11,8 +11,12 @@ import {
   y2k,
 } from "../theme";
 import { countPlayableTracks } from "../lib/catalogLoad";
-import { availableSceneChannels } from "../lib/sceneChannels";
-import { recommendedPicks } from "../lib/homeCollections";
+import { availableSceneChannels, channelCoverUrls } from "../lib/sceneChannels";
+import {
+  buildHomeCollections,
+  featuredReleases,
+  recommendedPicks,
+} from "../lib/homeCollections";
 import { NowOnAirCard, ShowGuideRail } from "../components/station/ShowGuide";
 import { useCurrentTrack } from "../usePlayerTransport";
 import HomeHeader from "../components/home/HomeHeader";
@@ -21,6 +25,7 @@ import MusicSection, { Rail } from "../components/home/MusicSection";
 import ChannelCard from "../components/home/ChannelCard";
 import TrackCard from "../components/home/TrackCard";
 import PlaylistCard from "../components/home/PlaylistCard";
+import ReleaseCard from "../components/home/ReleaseCard";
 import RequestSongCard from "../components/home/RequestSongCard";
 import CardContainer from "../components/home/CardContainer";
 
@@ -178,6 +183,7 @@ function HomeScreen({
   onOpenLibrary = null,
   onOpenCharts = null,
   onOpenPlaylist = null,
+  onOpenAlbum = null,
 }) {
   const currentTrack = useCurrentTrack();
   const activeId = currentTrack?.id;
@@ -187,6 +193,18 @@ function HomeScreen({
   const catalogReady = !catalogError && !catalogEmpty && !catalogDepleted;
 
   const channels = useMemo(() => availableSceneChannels(tracks), [tracks]);
+
+  const channelCovers = useMemo(() => {
+    const map = {};
+    for (const channel of channels) {
+      map[channel.id] = channelCoverUrls(tracks, channel, 4);
+    }
+    return map;
+  }, [channels, tracks]);
+
+  const releases = useMemo(() => featuredReleases(tracks, 10), [tracks]);
+
+  const editorial = useMemo(() => buildHomeCollections(tracks), [tracks]);
 
   const discover = useMemo(
     () =>
@@ -218,20 +236,21 @@ function HomeScreen({
   const topRequested = useMemo(() => countdown.slice(0, 10), [countdown]);
   const liveShow = channelShow || airing?.show || null;
   const hasTonight = !!(airing?.show || programGuide.length > 0);
+  const featuredSize = homeSpace.tileFeatured;
 
   return (
     <div
       style={{
         position: "relative",
         paddingBottom: 56,
-        maxWidth: 720,
+        maxWidth: 960,
         margin: "0 auto",
         width: "100%",
       }}
     >
       <HomeHeader onOpenSearch={onOpenSearch} onOpenProfile={onOpenProfile} />
 
-      {/* NOW PLAYING — hero */}
+      {/* NOW PLAYING — broadcast hero */}
       <div
         style={{
           padding: `0 ${homeSpace.gutter}px`,
@@ -268,7 +287,7 @@ function HomeScreen({
         />
       )}
 
-      {/* FEATURED CHANNELS */}
+      {/* FEATURED CHANNELS — cover mosaics */}
       {catalogReady && channels.length > 0 && (
         <MusicSection
           title="Featured channels"
@@ -276,13 +295,38 @@ function HomeScreen({
           accent={y2k.purpleBright}
           delay={0.05}
         >
-          <Rail>
+          <Rail gap={16}>
             {channels.map((channel) => (
               <ChannelCard
                 key={channel.id}
                 channel={channel}
+                covers={channelCovers[channel.id] || []}
                 active={sceneChannelsActiveId === channel.id}
                 onClick={() => onTuneSceneChannel?.(channel)}
+              />
+            ))}
+          </Rail>
+        </MusicSection>
+      )}
+
+      {/* FEATURED RELEASES — asymmetric sleeve band */}
+      {catalogReady && releases.length > 0 && (
+        <MusicSection
+          title="Featured releases"
+          subtitle="Albums worth the needle"
+          accent={y2k.neon}
+          delay={0.07}
+        >
+          <Rail gap={16}>
+            {releases.map((album) => (
+              <ReleaseCard
+                key={album.slug}
+                album={album}
+                size={featuredSize}
+                onClick={() => {
+                  if (onOpenAlbum) onOpenAlbum(album.slug);
+                  else if (album.coverTrack) onPlayTrack?.(album.coverTrack, album.tracks);
+                }}
               />
             ))}
           </Rail>
@@ -318,7 +362,7 @@ function HomeScreen({
         </MusicSection>
       )}
 
-      {/* MOST REQUESTED — the countdown */}
+      {/* MOST REQUESTED — larger featured sleeves */}
       {catalogReady && topRequested.length > 0 && (
         <MusicSection
           title="Most requested"
@@ -333,12 +377,13 @@ function HomeScreen({
           }
           delay={0.1}
         >
-          <Rail>
+          <Rail gap={16}>
             {topRequested.map(({ rank, track }) => (
               <TrackCard
                 key={track.id}
                 track={track}
                 rank={rank}
+                size={featuredSize}
                 active={activeId === track.id}
                 onClick={() => onPlayTrack?.(track, topRequested.map((e) => e.track))}
               />
@@ -347,6 +392,29 @@ function HomeScreen({
         </MusicSection>
       )}
 
+      {/* EDITORIAL — existing collections (Late booth / Played before) */}
+      {catalogReady &&
+        editorial.map((col, i) => (
+          <MusicSection
+            key={col.id}
+            title={col.label}
+            subtitle={col.story}
+            accent={y2k.purpleBright}
+            delay={0.11 + i * 0.02}
+          >
+            <Rail gap={16}>
+              {col.tracks.map((track) => (
+                <TrackCard
+                  key={track.id}
+                  track={track}
+                  active={activeId === track.id}
+                  onClick={() => onPlayTrack?.(track, col.tracks)}
+                />
+              ))}
+            </Rail>
+          </MusicSection>
+        ))}
+
       {/* DISCOVER NEW MUSIC */}
       {catalogReady && discover.picks.length > 0 && (
         <MusicSection
@@ -354,9 +422,9 @@ function HomeScreen({
           subtitle={discover.coldStart ? "Fresh off the dial" : "Selected for you"}
           accent={y2k.purpleBright}
           action={onOpenSearch ? { label: "Dig deeper", onClick: onOpenSearch } : null}
-          delay={0.12}
+          delay={0.14}
         >
-          <Rail>
+          <Rail gap={16}>
             {discover.picks.map(({ track, reason }) => (
               <TrackCard
                 key={track.id}
@@ -376,9 +444,9 @@ function HomeScreen({
           title="Recently played"
           subtitle="Back on the deck"
           accent={y2k.purpleBright}
-          delay={0.14}
+          delay={0.16}
         >
-          <Rail>
+          <Rail gap={16}>
             {recentlyPlayed.map((track) => (
               <TrackCard
                 key={track.id}
@@ -402,10 +470,10 @@ function HomeScreen({
               ? { label: "View all", onClick: onOpenLibrary }
               : null
           }
-          delay={0.16}
+          delay={0.18}
         >
           {playlists.length > 0 ? (
-            <Rail>
+            <Rail gap={16}>
               {playlists.map((playlist) => (
                 <PlaylistCard
                   key={playlist.id}
@@ -436,7 +504,7 @@ function HomeScreen({
           style={{
             marginTop: 36,
             padding: `0 ${homeSpace.gutter}px`,
-            animation: `rise 0.5s ${motion.ease} 0.18s both`,
+            animation: `rise 0.5s ${motion.ease} 0.2s both`,
           }}
         >
           <RequestSongCard onClick={onOpenSearch} />
@@ -446,8 +514,10 @@ function HomeScreen({
       {/* Catalog is fine but nothing editorial to show — quiet empty state */}
       {catalogReady &&
         channels.length === 0 &&
+        releases.length === 0 &&
         !hasTonight &&
         topRequested.length === 0 &&
+        editorial.length === 0 &&
         discover.picks.length === 0 && (
           <div style={{ marginTop: 32 }}>
             <EmptyShelfCard

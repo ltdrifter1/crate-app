@@ -143,3 +143,27 @@ export function availableSceneChannels(tracks = [], minTracks = 3) {
     };
   }).filter((c) => c.ready);
 }
+
+/**
+ * Distinct album-cover URLs for a channel tile mosaic (up to `limit`).
+ * Prefers direct channel matches, then the ranked pool.
+ */
+export function channelCoverUrls(tracks = [], channel, limit = 4) {
+  const max = Math.max(1, limit);
+  const seen = new Set();
+  const out = [];
+  const push = (list) => {
+    for (const t of list || []) {
+      const url = t?.albumCover;
+      if (!url || seen.has(url)) continue;
+      seen.add(url);
+      out.push(url);
+      if (out.length >= max) return true;
+    }
+    return false;
+  };
+  const direct = singlesOnly(tracks).filter((t) => matchesChannel(t, channel));
+  if (push(direct)) return out;
+  push(buildSceneChannelPool(tracks, channel));
+  return out;
+}
