@@ -87,6 +87,24 @@ describe("sceneChannels", () => {
     expect(availableSceneChannels(tracks, 2).some((c) => c.id === "rap-city")).toBe(true);
   });
 
+  test("CH-04 Local is Pacific Northwest only", () => {
+    const local = getSceneChannel("local-pnw");
+    expect(local.num).toBe(4);
+    expect(local.title).toBe("Local");
+    expect(local.tagline.toLowerCase()).toContain("pacific northwest");
+    expect(getSceneChannel("techno-tunnel")?.id).toBe("local-pnw");
+
+    const tracks = [
+      { id: "1", title: "Fog Cut", artist: "Seattle Dual", genre: "Electronic", duration: 180, audioUrl: "u" },
+      { id: "2", title: "Rain City", artist: "A", region: "pnw", duration: 200, audioUrl: "u" },
+      { id: "3", title: "Techno", artist: "Berlin", genre: "Electronic", duration: 180, audioUrl: "u", sceneId: "techno" },
+      { id: "4", title: "Other", artist: "NYC", genre: "Hip-Hop", duration: 180, audioUrl: "u" },
+    ];
+    const pool = buildSceneChannelPool(tracks, local);
+    expect(pool.map((t) => t.id).sort()).toEqual(["1", "2"]);
+    expect(availableSceneChannels(tracks, 3).some((c) => c.id === "local-pnw")).toBe(true);
+  });
+
   test("channelCoverUrls returns distinct sleeves for mosaics", () => {
     const tracks = [
       { id: "1", title: "A", genre: "Hip-Hop", duration: 180, audioUrl: "u", albumCover: "a.jpg" },

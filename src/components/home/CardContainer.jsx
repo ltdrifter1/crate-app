@@ -18,9 +18,13 @@ export default function CardContainer({
   const base = {
     position: "relative",
     borderRadius: rounded,
-    border: `1px solid ${glass.borderSoft}`,
+    border: `1px solid ${glass.border}`,
     background: glass.plate,
-    boxShadow: `inset 0 1px 0 ${glass.highlight}, ${glass.shadowSoft}`,
+    boxShadow: `
+      inset 0 1px 0 ${glass.highlight},
+      inset 0 -1px 0 rgba(0,0,0,0.35),
+      ${glass.shadowSoft}
+    `,
     backdropFilter: glass.blurSoft,
     WebkitBackdropFilter: glass.blurSoft,
     padding,

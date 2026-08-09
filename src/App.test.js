@@ -1,6 +1,6 @@
 import {
   color, font, fontDisplay, ADMIN_UID, timeOfDayGradient, BRAND_TAGLINE,
-  BRAND_NAME, dock, artShadow, aluminumGradient, hardware, hardwareKey
+  BRAND_NAME, dock, artShadow, aluminumGradient, hardware, hardwareKey, y2k
 } from './theme';
 
 test('theme exports core tokens', () => {
@@ -12,8 +12,10 @@ test('theme exports core tokens', () => {
   expect(color.select).toMatch(/rgba/);
   expect(BRAND_TAGLINE).toMatch(/YOUR WORLD/i);
   expect(BRAND_NAME).toBe("Planet MP3");
-  expect(font).toMatch(/Inter/);
+  expect(font).toMatch(/Space Grotesk/);
   expect(fontDisplay).toMatch(/Space Grotesk/);
+  expect(y2k.chromeBright).toBeTruthy();
+  expect(y2k.artGradient).not.toMatch(/139,\s*92,\s*246|purple/i);
   expect(ADMIN_UID).toHaveLength(28);
   expect(timeOfDayGradient()).toMatch(/gradient/);
   expect(aluminumGradient()).toMatch(/gradient/);

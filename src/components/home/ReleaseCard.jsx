@@ -32,7 +32,7 @@ export default function ReleaseCard({
         WebkitTapHighlightColor: "transparent",
       }}
     >
-      <ArtFrame src={cover} size={size} radius={14} priority={false}>
+      <ArtFrame src={cover} size={size} radius={12} priority={false}>
         <span
           style={{
             position: "absolute",
@@ -46,11 +46,12 @@ export default function ReleaseCard({
             textTransform: "uppercase",
             color: y2k.offWhite,
             padding: "5px 8px",
-            borderRadius: 6,
-            background: "rgba(10,8,16,0.72)",
-            border: "1px solid rgba(255,255,255,0.14)",
+            borderRadius: 4,
+            background: y2k.inkGlass,
+            border: "1px solid rgba(255,255,255,0.16)",
             backdropFilter: "blur(10px)",
             WebkitBackdropFilter: "blur(10px)",
+            boxShadow: "inset 0 1px 0 rgba(255,255,255,0.1)",
           }}
         >
           Release

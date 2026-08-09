@@ -3,9 +3,9 @@
 // MTV2 (2001–2005) x Braun x Teenage Engineering — restraint over nostalgia.
 
 export const fontDisplay =
-  '"Space Grotesk", "Inter", "Avenir Next", "Segoe UI", "Helvetica Neue", Helvetica, sans-serif';
+  '"Space Grotesk", "Avenir Next", "Segoe UI", "Helvetica Neue", Helvetica, sans-serif';
 export const font =
-  '"Inter", "Geist", -apple-system, "SF Pro Text", "Segoe UI", "Helvetica Neue", Helvetica, sans-serif';
+  '"Space Grotesk", "Avenir Next", "Segoe UI", "Helvetica Neue", Helvetica, sans-serif';
 export const fontMono =
   '"IBM Plex Mono", "SF Mono", ui-monospace, Menlo, Monaco, "Courier New", monospace';
 
@@ -57,28 +57,33 @@ export const chrome = {
 };
 
 /**
- * Y2K underground — purple broadcast branding + one neon signal.
- * Used by the Home redesign + dock. Black, charcoal, off-white, purple,
+ * Y2K underground — aluminum / charcoal broadcast branding + one neon signal.
+ * Used by the Home redesign + dock. Black, charcoal, off-white, silver,
  * a whisper of neon. MTV meets pirate radio meets modern streaming.
+ * Grey family only — no purple anywhere on player or home chrome.
  */
 export const y2k = {
-  /** Primary brand purple — CTAs, active states, live chrome */
-  purple: "#8B5CF6",
-  purpleBright: "#A78BFA",
-  purpleDeep: "#5B21B6",
-  purpleSoft: "rgba(139, 92, 246, 0.14)",
-  purpleGlow: "rgba(139, 92, 246, 0.38)",
-  purpleWash: "rgba(139, 92, 246, 0.07)",
+  /** Aluminum signal — CTAs, active states, live chrome (grey family) */
+  chrome: "#B8C0CC",
+  chromeBright: "#E8ECF2",
+  chromeMid: "#8B939F",
+  chromeDeep: "#3A414C",
+  chromeSoft: "rgba(184, 192, 204, 0.16)",
+  chromeGlow: "rgba(232, 236, 242, 0.28)",
+  chromeWash: "rgba(184, 192, 204, 0.08)",
   /** Neon zap — tiny highlights only, never large surfaces */
   neon: "#C8F241",
   neonSoft: "rgba(200, 242, 65, 0.16)",
-  /** Print-paper off-white for headline ink */
-  offWhite: "#F2EFE6",
-  charcoal: "#16171C",
-  charcoalRaised: "#1C1D24",
-  /** Hero / card art fallback wash */
+  /** Cool studio off-white for headline ink (not warm cream) */
+  offWhite: "#F4F6F8",
+  charcoal: "#14161A",
+  charcoalRaised: "#1A1D23",
+  /** Neutral ink used on glass bugs / lower-thirds */
+  inkGlass: "rgba(10, 11, 13, 0.72)",
+  inkGlassSoft: "rgba(12, 13, 16, 0.5)",
+  /** Hero / card art fallback wash — brushed steel, no purple cast */
   artGradient:
-    "radial-gradient(120% 90% at 20% 0%, rgba(139,92,246,0.45) 0%, transparent 55%), radial-gradient(100% 80% at 90% 100%, rgba(91,33,182,0.5) 0%, transparent 60%), linear-gradient(160deg, #1C1626 0%, #0E0B14 100%)",
+    "radial-gradient(120% 90% at 20% 0%, rgba(184,192,204,0.28) 0%, transparent 55%), radial-gradient(100% 80% at 90% 100%, rgba(58,65,76,0.55) 0%, transparent 60%), linear-gradient(160deg, #1A1D23 0%, #0C0D10 100%)",
 };
 
 /** Dark glass — blurred studio panels, hairline borders, soft top light. */
@@ -157,18 +162,19 @@ export function hardwareKey(opts = { pressed: false, size: "md" }) {
 /** Deep jewel-case shadow for album art — lit from the studio above. */
 export const artShadow = {
   quiet: "0 2px 4px rgba(0,0,0,0.3), 0 12px 28px rgba(0,0,0,0.45)",
-  raised: "0 4px 10px rgba(0,0,0,0.35), 0 20px 44px rgba(0,0,0,0.55)",
-  active: `0 0 0 1px rgba(167,139,250,0.45), 0 0 18px ${y2k.purpleGlow}, 0 8px 20px rgba(0,0,0,0.45), 0 18px 40px rgba(0,0,0,0.45)`,
+  raised:
+    "0 4px 10px rgba(0,0,0,0.35), 0 20px 44px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.1), inset 0 -1px 0 rgba(0,0,0,0.35)",
+  active: `0 0 0 1px rgba(232,236,242,0.42), 0 0 18px ${y2k.chromeGlow}, 0 8px 20px rgba(0,0,0,0.45), 0 18px 40px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.14)`,
 };
 
 /**
- * Shared jewel-case art frame — hairline chrome edge, raised sleeve shadow.
+ * Shared jewel-case art frame — dual-tone chrome edge, raised sleeve shadow.
  * Use on Home tiles, channels, stacks, and featured releases.
  */
 export function artFrameStyle({
   size,
   active = false,
-  radius: frameRadius = 14,
+  radius: frameRadius = 12,
   width = null,
   height = null,
 } = {}) {
@@ -182,12 +188,12 @@ export function artFrameStyle({
     borderRadius: frameRadius,
     overflow: "hidden",
     border: `1px solid ${
-      active ? "rgba(167,139,250,0.55)" : "rgba(255,255,255,0.12)"
+      active ? "rgba(232,236,242,0.5)" : "rgba(255,255,255,0.14)"
     }`,
     background: y2k.artGradient,
     boxShadow: active
       ? artShadow.active
-      : `${artShadow.raised}, inset 0 1px 0 rgba(255,255,255,0.08)`,
+      : artShadow.raised,
   };
 }
 

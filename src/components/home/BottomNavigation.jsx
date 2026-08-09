@@ -3,7 +3,7 @@ import Icon from "../ui/Icon";
 
 /**
  * BottomNavigation — floating pill tab bar.
- * Active destination gets a purple glow capsule; everything else stays quiet.
+ * Active destination gets a soft aluminum capsule; everything else stays quiet.
  */
 export default function BottomNavigation({ items = [], activeId, onSelect }) {
   return (
@@ -34,13 +34,13 @@ export default function BottomNavigation({ items = [], activeId, onSelect }) {
               height: 50,
               borderRadius: 999,
               border: active
-                ? "1px solid rgba(167,139,250,0.4)"
+                ? "1px solid rgba(232,236,242,0.35)"
                 : "1px solid transparent",
-              background: active ? y2k.purpleSoft : "none",
+              background: active ? y2k.chromeSoft : "none",
               boxShadow: active
-                ? `0 0 18px ${y2k.purpleGlow}, inset 0 1px 0 rgba(255,255,255,0.08)`
+                ? `0 0 16px ${y2k.chromeGlow}, inset 0 1px 0 rgba(255,255,255,0.1)`
                 : "none",
-              color: active ? y2k.purpleBright : color.muted,
+              color: active ? y2k.chromeBright : color.muted,
               cursor: "pointer",
               display: "flex",
               flexDirection: "column",

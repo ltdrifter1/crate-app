@@ -66,10 +66,10 @@ export default function ArtFrame({
           inset: 0,
           pointerEvents: "none",
           background: `
-            linear-gradient(135deg, rgba(255,255,255,0.1) 0%, transparent 42%),
-            linear-gradient(180deg, transparent 55%, rgba(8,6,14,0.28) 100%)
+            linear-gradient(135deg, rgba(255,255,255,0.12) 0%, transparent 42%),
+            linear-gradient(180deg, transparent 55%, rgba(10,11,13,0.32) 100%)
           `,
-          boxShadow: "inset 0 1px 0 rgba(255,255,255,0.1)",
+          boxShadow: "inset 0 1px 0 rgba(255,255,255,0.12), inset 0 -1px 0 rgba(0,0,0,0.25)",
         }}
       />
 

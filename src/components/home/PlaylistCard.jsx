@@ -4,7 +4,7 @@ import ArtFrame from "../ui/ArtFrame";
 
 /**
  * PlaylistCard — a user "stack" tile. 2x2 art mosaic from its cuts,
- * falling back to a purple monogram plate.
+ * falling back to a chrome monogram plate.
  */
 export default function PlaylistCard({ playlist, tracks = [], onClick = null, size = homeSpace.tile }) {
   const covers = useMemo(() => {
@@ -43,7 +43,7 @@ export default function PlaylistCard({ playlist, tracks = [], onClick = null, si
         covers={covers.length >= 4 ? covers : null}
         src={covers.length > 0 && covers.length < 4 ? covers[0] : null}
         size={size}
-        radius={14}
+        radius={12}
       >
         {covers.length === 0 && (
           <span
@@ -59,7 +59,7 @@ export default function PlaylistCard({ playlist, tracks = [], onClick = null, si
               fontSize: 44,
               fontWeight: 800,
               color: "rgba(242,239,230,0.85)",
-              textShadow: `0 0 24px ${y2k.purpleGlow}`,
+              textShadow: `0 0 20px ${y2k.chromeGlow}`,
               zIndex: 1,
             }}
           >
@@ -77,7 +77,7 @@ export default function PlaylistCard({ playlist, tracks = [], onClick = null, si
             fontWeight: 800,
             letterSpacing: 1.4,
             textTransform: "uppercase",
-            color: "rgba(242,239,230,0.8)",
+            color: "rgba(244,246,248,0.8)",
           }}
         >
           {count} {count === 1 ? "cut" : "cuts"}
@@ -105,7 +105,7 @@ export default function PlaylistCard({ playlist, tracks = [], onClick = null, si
           marginTop: 3,
           fontSize: 11,
           fontWeight: 500,
-          color: color.faint,
+          color: color.muted,
         }}
       >
         Your stack

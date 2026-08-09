@@ -18,11 +18,12 @@ function HeaderButton({ label, icon, onClick }) {
         alignItems: "center",
         justifyContent: "center",
         cursor: "pointer",
-        border: "1px solid rgba(255,255,255,0.1)",
+        border: "1px solid rgba(255,255,255,0.12)",
         background: "rgba(24,27,32,0.55)",
         color: color.muted,
         backdropFilter: "blur(14px)",
         WebkitBackdropFilter: "blur(14px)",
+        boxShadow: "inset 0 1px 0 rgba(255,255,255,0.08)",
         flexShrink: 0,
       }}
     >
@@ -64,10 +65,10 @@ export default function HomeHeader({ onOpenSearch = null, onOpenProfile = null }
             letterSpacing: 1.2,
             color: y2k.offWhite,
             whiteSpace: "nowrap",
-            textShadow: `0 0 24px ${y2k.purpleWash}`,
+            textShadow: `0 0 20px ${y2k.chromeWash}`,
           }}
         >
-          PLANET<span style={{ color: y2k.purpleBright }}>MP3</span>
+          PLANET<span style={{ color: y2k.chromeBright }}>MP3</span>
         </span>
       </div>
       <HeaderButton label="Profile" icon="profile" onClick={onOpenProfile} />

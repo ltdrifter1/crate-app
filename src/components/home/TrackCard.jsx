@@ -35,7 +35,7 @@ export default function TrackCard({
         src={track.albumCover || null}
         size={size}
         active={active}
-        radius={14}
+        radius={12}
       >
         {rank != null && (
           <span
@@ -50,16 +50,17 @@ export default function TrackCard({
               display: "inline-flex",
               alignItems: "center",
               justifyContent: "center",
-              background: "rgba(10,8,16,0.72)",
-              border: "1px solid rgba(167,139,250,0.4)",
+              background: y2k.inkGlass,
+              border: "1px solid rgba(232,236,242,0.35)",
               backdropFilter: "blur(8px)",
               WebkitBackdropFilter: "blur(8px)",
               fontFamily: fontDisplay,
               fontStyle: "italic",
               fontSize: 12,
               fontWeight: 800,
-              color: y2k.purpleBright,
+              color: y2k.chromeBright,
               zIndex: 1,
+              boxShadow: "inset 0 1px 0 rgba(255,255,255,0.1)",
             }}
           >
             #{rank}
@@ -88,16 +89,16 @@ export default function TrackCard({
           marginTop: 3,
           fontSize: 11,
           fontWeight: 500,
-          color: color.faint,
+          color: color.muted,
           overflow: "hidden",
           textOverflow: "ellipsis",
           whiteSpace: "nowrap",
         }}
       >
         {reason ? (
-          <span style={{ fontFamily: fontMono, fontSize: 9, letterSpacing: 1.2, textTransform: "uppercase", color: y2k.purpleBright }}>
+          <span style={{ fontFamily: fontMono, fontSize: 9, letterSpacing: 1.2, textTransform: "uppercase", color: y2k.chromeMid }}>
             {reason}
-            <span style={{ color: color.faint }}> · </span>
+            <span style={{ color: color.muted }}> · </span>
           </span>
         ) : null}
         {track.artist}

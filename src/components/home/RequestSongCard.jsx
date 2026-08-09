@@ -17,9 +17,11 @@ export default function RequestSongCard({ onClick = null }) {
         alignItems: "center",
         gap: 16,
         background: `
-          radial-gradient(110% 120% at 100% 0%, ${y2k.purpleWash} 0%, transparent 55%),
+          radial-gradient(110% 120% at 100% 0%, ${y2k.chromeWash} 0%, transparent 55%),
           linear-gradient(165deg, ${y2k.charcoalRaised} 0%, #101116 100%)
         `,
+        border: "1px solid rgba(255,255,255,0.12)",
+        boxShadow: "inset 0 1px 0 rgba(255,255,255,0.1), inset 0 -1px 0 rgba(0,0,0,0.35)",
       }}
     >
       <div style={{ flex: 1, minWidth: 0 }}>
@@ -56,10 +58,13 @@ export default function RequestSongCard({ onClick = null }) {
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          background: `linear-gradient(160deg, ${y2k.purpleBright} 0%, ${y2k.purple} 48%, ${y2k.purpleDeep} 100%)`,
-          border: "1px solid rgba(255,255,255,0.22)",
-          color: "#FFFFFF",
-          boxShadow: `0 0 20px ${y2k.purpleGlow}, inset 0 1px 0 rgba(255,255,255,0.35)`,
+          background: `
+            linear-gradient(180deg, rgba(255,255,255,0.28) 0%, transparent 42%),
+            linear-gradient(160deg, #E8ECF2 0%, #B8C0CC 48%, #6E7683 100%)
+          `,
+          border: "1px solid rgba(255,255,255,0.28)",
+          color: "#0B0C0F",
+          boxShadow: `0 0 18px ${y2k.chromeGlow}, inset 0 1px 0 rgba(255,255,255,0.4)`,
         }}
       >
         <span style={{ display: "flex", marginLeft: 2 }}>
