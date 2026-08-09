@@ -108,9 +108,11 @@ function EmptyShelfCard({ title, body, actionLabel = null, onAction = null }) {
         padding="22px 20px"
         style={{
           background: `
-            radial-gradient(110% 120% at 0% 0%, ${y2k.purpleWash} 0%, transparent 55%),
+            radial-gradient(110% 120% at 0% 0%, ${y2k.chromeWash} 0%, transparent 55%),
             linear-gradient(165deg, ${y2k.charcoalRaised} 0%, #101116 100%)
           `,
+          border: `1px solid rgba(255,255,255,0.12)`,
+          boxShadow: `inset 0 1px 0 rgba(255,255,255,0.1), inset 0 -1px 0 rgba(0,0,0,0.35), ${glass.shadowSoft}`,
         }}
       >
         <div
@@ -137,7 +139,7 @@ function EmptyShelfCard({ title, body, actionLabel = null, onAction = null }) {
               fontWeight: 700,
               letterSpacing: 1.2,
               textTransform: "uppercase",
-              color: y2k.purpleBright,
+              color: y2k.chromeBright,
             }}
           >
             {actionLabel} →
@@ -287,12 +289,12 @@ function HomeScreen({
         />
       )}
 
-      {/* FEATURED CHANNELS — cover mosaics */}
+      {/* CHANNEL SURFING — cover mosaics */}
       {catalogReady && channels.length > 0 && (
         <MusicSection
-          title="Featured channels"
-          subtitle="Surf the dial"
-          accent={y2k.purpleBright}
+          title="Channel surfing"
+          subtitle="Zap the dial"
+          accent={y2k.chromeBright}
           delay={0.05}
         >
           <Rail gap={16}>
@@ -367,7 +369,7 @@ function HomeScreen({
         <MusicSection
           title="Most requested"
           subtitle="Tonight's countdown"
-          accent={y2k.purpleBright}
+          accent={y2k.chromeMid}
           action={
             onOpenCharts
               ? { label: "View all", onClick: onOpenCharts }
@@ -399,7 +401,7 @@ function HomeScreen({
             key={col.id}
             title={col.label}
             subtitle={col.story}
-            accent={y2k.purpleBright}
+            accent={y2k.chromeMid}
             delay={0.11 + i * 0.02}
           >
             <Rail gap={16}>
@@ -420,7 +422,7 @@ function HomeScreen({
         <MusicSection
           title="Discover new music"
           subtitle={discover.coldStart ? "Fresh off the dial" : "Selected for you"}
-          accent={y2k.purpleBright}
+          accent={y2k.chromeMid}
           action={onOpenSearch ? { label: "Dig deeper", onClick: onOpenSearch } : null}
           delay={0.14}
         >
@@ -443,7 +445,7 @@ function HomeScreen({
         <MusicSection
           title="Recently played"
           subtitle="Back on the deck"
-          accent={y2k.purpleBright}
+          accent={y2k.chromeMid}
           delay={0.16}
         >
           <Rail gap={16}>
@@ -464,7 +466,7 @@ function HomeScreen({
         <MusicSection
           title="Your playlists"
           subtitle="Stacks you built"
-          accent={y2k.purpleBright}
+          accent={y2k.chromeMid}
           action={
             playlists.length > 0 && onOpenLibrary
               ? { label: "View all", onClick: onOpenLibrary }

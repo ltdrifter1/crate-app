@@ -18,6 +18,14 @@ function fmtTime(secs = 0) {
   return `${m}:${String(s).padStart(2, "0")}`;
 }
 
+/** Aluminum primary play plate — grey family, machined Y2K face. */
+const PLAY_FACE = `
+  linear-gradient(180deg, rgba(255,255,255,0.28) 0%, transparent 42%),
+  linear-gradient(160deg, #E8ECF2 0%, #B8C0CC 48%, #6E7683 100%)
+`;
+const PLAY_SHADOW =
+  "0 0 22px rgba(232,236,242,0.18), 0 10px 24px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.45), inset 0 -1px 0 rgba(0,0,0,0.25)";
+
 /** Single MTV-style bug: LIVE · channel — consolidates dual pills. */
 function BroadcastBug({ live, playing, channelLabel }) {
   return (
@@ -28,12 +36,12 @@ function BroadcastBug({ live, playing, channelLabel }) {
         gap: 8,
         maxWidth: "100%",
         padding: "7px 12px",
-        borderRadius: 8,
-        background: "rgba(10,8,16,0.62)",
+        borderRadius: 6,
+        background: y2k.inkGlass,
         border: "1px solid rgba(255,255,255,0.16)",
         backdropFilter: "blur(14px)",
         WebkitBackdropFilter: "blur(14px)",
-        boxShadow: "inset 0 1px 0 rgba(255,255,255,0.08)",
+        boxShadow: "inset 0 1px 0 rgba(255,255,255,0.1), inset 0 -1px 0 rgba(0,0,0,0.35)",
         fontFamily: fontMono,
         fontSize: 10,
         fontWeight: 800,
@@ -50,14 +58,14 @@ function BroadcastBug({ live, playing, channelLabel }) {
               height: 7,
               borderRadius: "50%",
               flexShrink: 0,
-              background: live ? y2k.neon : y2k.purpleBright,
+              background: live ? y2k.neon : y2k.chromeBright,
               boxShadow: live
                 ? `0 0 8px ${y2k.neon}`
-                : `0 0 8px ${y2k.purpleGlow}`,
+                : `0 0 8px ${y2k.chromeGlow}`,
               animation: playing ? "stageLiveDot 1.6s ease-in-out infinite" : "none",
             }}
           />
-          <span style={{ color: live ? y2k.neon : y2k.purpleBright, flexShrink: 0 }}>
+          <span style={{ color: live ? y2k.neon : y2k.chromeBright, flexShrink: 0 }}>
             LIVE
           </span>
           <span
@@ -77,7 +85,7 @@ function BroadcastBug({ live, playing, channelLabel }) {
           textOverflow: "ellipsis",
           whiteSpace: "nowrap",
           textTransform: "uppercase",
-          color: "rgba(242,239,230,0.88)",
+          color: "rgba(244,246,248,0.88)",
         }}
       >
         {channelLabel}
@@ -100,19 +108,19 @@ function GlassIconButton({ label, icon, active = false, onClick, size = 42, icon
       style={{
         width: size,
         height: size,
-        borderRadius: 12,
+        borderRadius: 10,
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
         cursor: "pointer",
-        border: `1px solid ${active ? "rgba(167,139,250,0.5)" : "rgba(255,255,255,0.16)"}`,
-        background: active ? y2k.purpleSoft : "rgba(12,10,18,0.5)",
-        color: active ? y2k.purpleBright : y2k.offWhite,
+        border: `1px solid ${active ? "rgba(232,236,242,0.45)" : "rgba(255,255,255,0.14)"}`,
+        background: active ? y2k.chromeSoft : y2k.inkGlassSoft,
+        color: active ? y2k.chromeBright : y2k.offWhite,
         backdropFilter: "blur(14px)",
         WebkitBackdropFilter: "blur(14px)",
         boxShadow: active
-          ? `0 0 16px ${y2k.purpleGlow}`
-          : "inset 0 1px 0 rgba(255,255,255,0.08)",
+          ? `0 0 14px ${y2k.chromeGlow}, inset 0 1px 0 rgba(255,255,255,0.12)`
+          : "inset 0 1px 0 rgba(255,255,255,0.1), inset 0 -1px 0 rgba(0,0,0,0.3)",
         flexShrink: 0,
       }}
     >
@@ -196,26 +204,24 @@ export default function HeroPlayerCard({
       className="pmp-hero"
       style={{
         position: "relative",
-        // Broadcast plate — sharper chrome, cinematic plane (not soft marketing card)
-        borderRadius: 12,
+        borderRadius: 10,
         overflow: "hidden",
         aspectRatio: "16 / 11",
         minHeight: 300,
         maxHeight: 520,
-        // Bleed past home gutters toward edge-to-edge stage
         marginLeft: -homeSpace.gutter,
         marginRight: -homeSpace.gutter,
         width: `calc(100% + ${homeSpace.gutter * 2}px)`,
         maxWidth: "none",
         cursor: playDisabled && !live ? "default" : "pointer",
-        border: "1px solid rgba(255,255,255,0.12)",
+        border: "1px solid rgba(255,255,255,0.14)",
         borderLeft: "none",
         borderRight: "none",
         background: y2k.artGradient,
         boxShadow: `
           0 28px 64px rgba(0,0,0,0.55),
-          inset 0 1px 0 rgba(255,255,255,0.1),
-          0 0 0 1px rgba(139,92,246,0.06)
+          inset 0 1px 0 rgba(255,255,255,0.12),
+          inset 0 -1px 0 rgba(0,0,0,0.4)
         `,
         WebkitTapHighlightColor: "transparent",
         isolation: "isolate",
@@ -269,8 +275,8 @@ export default function HeroPlayerCard({
           position: "absolute",
           inset: 0,
           background: `
-            linear-gradient(180deg, rgba(8,6,14,0.55) 0%, rgba(8,6,14,0.08) 22%, transparent 40%),
-            linear-gradient(180deg, transparent 38%, rgba(8,6,14,0.5) 62%, rgba(8,6,14,0.94) 100%)
+            linear-gradient(180deg, rgba(10,11,13,0.55) 0%, rgba(10,11,13,0.08) 22%, transparent 40%),
+            linear-gradient(180deg, transparent 38%, rgba(10,11,13,0.5) 62%, rgba(10,11,13,0.94) 100%)
           `,
         }}
       />
@@ -282,7 +288,7 @@ export default function HeroPlayerCard({
           right: 0,
           bottom: 0,
           height: "50%",
-          background: `radial-gradient(120% 100% at 50% 110%, ${y2k.purpleWash} 0%, transparent 70%)`,
+          background: `radial-gradient(120% 100% at 50% 110%, ${y2k.chromeWash} 0%, transparent 70%)`,
         }}
       />
 
@@ -323,7 +329,7 @@ export default function HeroPlayerCard({
             fontWeight: 800,
             letterSpacing: 3,
             textTransform: "uppercase",
-            color: y2k.purpleBright,
+            color: y2k.chromeBright,
             marginBottom: 8,
             textShadow: "0 1px 8px rgba(0,0,0,0.6)",
           }}
@@ -359,7 +365,7 @@ export default function HeroPlayerCard({
               marginTop: 6,
               fontSize: 15,
               fontWeight: 500,
-              color: "rgba(242,239,230,0.74)",
+              color: "rgba(244,246,248,0.74)",
               textShadow: "0 1px 8px rgba(0,0,0,0.5)",
               overflow: "hidden",
               textOverflow: "ellipsis",
@@ -394,15 +400,15 @@ export default function HeroPlayerCard({
                 style={{
                   width: 58,
                   height: 58,
-                  borderRadius: 14,
-                  border: "1px solid rgba(255,255,255,0.22)",
-                  background: `linear-gradient(160deg, ${y2k.purpleBright} 0%, ${y2k.purple} 48%, ${y2k.purpleDeep} 100%)`,
-                  color: "#FFFFFF",
+                  borderRadius: 12,
+                  border: "1px solid rgba(255,255,255,0.28)",
+                  background: PLAY_FACE,
+                  color: "#0B0C0F",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
                   cursor: "pointer",
-                  boxShadow: `0 0 26px ${y2k.purpleGlow}, 0 10px 24px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.35)`,
+                  boxShadow: PLAY_SHADOW,
                   flexShrink: 0,
                 }}
               >
@@ -426,9 +432,9 @@ export default function HeroPlayerCard({
                   style={{
                     padding: "0 14px",
                     height: 42,
-                    borderRadius: 10,
-                    border: `1px solid ${requested ? "rgba(200,242,65,0.4)" : "rgba(255,255,255,0.16)"}`,
-                    background: requested ? y2k.neonSoft : "rgba(12,10,18,0.45)",
+                    borderRadius: 8,
+                    border: `1px solid ${requested ? "rgba(200,242,65,0.4)" : "rgba(255,255,255,0.14)"}`,
+                    background: requested ? y2k.neonSoft : y2k.inkGlassSoft,
                     color: requested ? y2k.neon : y2k.offWhite,
                     fontFamily: fontMono,
                     fontSize: 10,
@@ -438,6 +444,7 @@ export default function HeroPlayerCard({
                     cursor: requested ? "default" : "pointer",
                     backdropFilter: "blur(14px)",
                     WebkitBackdropFilter: "blur(14px)",
+                    boxShadow: "inset 0 1px 0 rgba(255,255,255,0.1)",
                     display: "flex",
                     alignItems: "center",
                     gap: 6,
@@ -467,12 +474,12 @@ export default function HeroPlayerCard({
               style={{
                 height: 54,
                 padding: "0 26px",
-                borderRadius: 12,
-                border: "1px solid rgba(255,255,255,0.22)",
+                borderRadius: 10,
+                border: "1px solid rgba(255,255,255,0.28)",
                 background: playDisabled
-                  ? "rgba(60,58,72,0.6)"
-                  : `linear-gradient(160deg, ${y2k.purpleBright} 0%, ${y2k.purple} 48%, ${y2k.purpleDeep} 100%)`,
-                color: "#FFFFFF",
+                  ? "rgba(60,64,72,0.6)"
+                  : PLAY_FACE,
+                color: "#0B0C0F",
                 fontFamily: fontDisplay,
                 fontSize: 14,
                 fontWeight: 800,
@@ -482,9 +489,7 @@ export default function HeroPlayerCard({
                 display: "flex",
                 alignItems: "center",
                 gap: 10,
-                boxShadow: playDisabled
-                  ? "none"
-                  : `0 0 30px ${y2k.purpleGlow}, 0 12px 28px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.35)`,
+                boxShadow: playDisabled ? "none" : PLAY_SHADOW,
                 opacity: playDisabled ? 0.6 : 1,
               }}
             >
@@ -505,7 +510,7 @@ export default function HeroPlayerCard({
               fontFamily: fontMono,
               fontSize: 10,
               letterSpacing: 0.8,
-              color: "rgba(242,239,230,0.55)",
+              color: "rgba(244,246,248,0.55)",
             }}
           >
             <span
@@ -543,8 +548,8 @@ export default function HeroPlayerCard({
             style={{
               width: `${pct * 100}%`,
               height: "100%",
-              background: `linear-gradient(90deg, ${y2k.purpleDeep}, ${y2k.purpleBright})`,
-              boxShadow: `0 0 10px ${y2k.purpleGlow}`,
+              background: `linear-gradient(90deg, ${y2k.chromeDeep}, ${y2k.chromeBright})`,
+              boxShadow: `0 0 10px ${y2k.chromeGlow}`,
               transition: `width ${motion.base} linear`,
             }}
           />
@@ -556,8 +561,8 @@ export default function HeroPlayerCard({
         style={{
           position: "absolute",
           inset: 0,
-          borderRadius: 12,
-          boxShadow: `inset 0 1px 0 ${glass.highlight}`,
+          borderRadius: 10,
+          boxShadow: `inset 0 1px 0 ${glass.highlight}, inset 0 -1px 0 rgba(0,0,0,0.35)`,
           pointerEvents: "none",
         }}
       />

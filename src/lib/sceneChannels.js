@@ -11,6 +11,64 @@ function singlesOnly(tracks = []) {
   return tracks.filter((t) => (t.duration || 0) <= 900 && String(t.audioUrl || "").trim());
 }
 
+/** PNW / Cascadia markers for the Local channel. */
+const PNW_KEYWORDS = [
+  "pacific northwest",
+  "pacific-northwest",
+  "pnw",
+  "cascadia",
+  "seattle",
+  "portland",
+  "olympia",
+  "tacoma",
+  "bellingham",
+  "spokane",
+  "eugene",
+  "salem",
+  "bend",
+  "boise",
+  "vancouver wa",
+  "vancouver, wa",
+  "washington",
+  "oregon",
+  "puget sound",
+  "willamette",
+  "columbia river",
+];
+
+function trackTextBlob(track) {
+  return [
+    track?.title,
+    track?.artist,
+    track?.album,
+    track?.genre,
+    track?.city,
+    track?.region,
+    track?.origin,
+    track?.location,
+    track?.label,
+    Array.isArray(track?.tags) ? track.tags.join(" ") : track?.tags,
+  ]
+    .filter(Boolean)
+    .join(" ")
+    .toLowerCase();
+}
+
+function matchesKeywords(track, keywords = []) {
+  if (!keywords.length) return false;
+  const blob = trackTextBlob(track);
+  if (!blob) return false;
+  return keywords.some((kw) => blob.includes(String(kw).toLowerCase()));
+}
+
+function isLocalPnwTrack(track) {
+  if (!track) return false;
+  const region = String(track.region || track.origin || track.location || "").toLowerCase();
+  if (region === "pnw" || region === "pacific northwest" || region === "cascadia") return true;
+  if (track.local === true || track.pnw === true) return true;
+  return matchesKeywords(track, PNW_KEYWORDS);
+}
+
 export const SCENE_CHANNELS = [
   {
     id: "ukg-block",
@@ -37,16 +95,20 @@ export const SCENE_CHANNELS = [
     vibe: "Rap & Grime",
   },
   {
-    id: "techno-tunnel",
+    id: "local-pnw",
     num: 4,
-    title: "Techno",
-    shortTitle: "Techno",
-    dialSlug: "TECHNO",
-    tagline: "Techno and tech house",
-    accent: "#6B7380",
-    scenes: ["techno", "minimal", "tech-house", "industrial"],
-    genres: ["Electronic"],
-    vibe: "Techno",
+    title: "Local",
+    shortTitle: "Local",
+    dialSlug: "LOCAL",
+    tagline: "Pacific Northwest only",
+    accent: "#A8B0BC",
+    scenes: [],
+    genres: [],
+    vibe: "Local",
+    /** Only PNW cuts — never pad with the full catalog. */
+    strict: true,
+    match: isLocalPnwTrack,
+    minTracks: 1,
   },
   {
     id: "bass-weight",
@@ -111,11 +173,14 @@ export const SCENE_CHANNELS = [
 ];
 
 export function getSceneChannel(id) {
+  if (id === "techno-tunnel") return SCENE_CHANNELS.find((c) => c.id === "local-pnw") || null;
   return SCENE_CHANNELS.find((c) => c.id === id) || null;
 }
 
 function matchesChannel(track, channel) {
   if (!track || !channel) return false;
+  if (typeof channel.match === "function") return channel.match(track);
+  if ((channel.keywords || []).length && matchesKeywords(track, channel.keywords)) return true;
   if ((channel.scenes || []).some((id) => trackMatchesScene(track, id))) return true;
   const g = normalizeGenre(track.genre);
   return (channel.genres || []).includes(g);
@@ -125,6 +190,9 @@ export function buildSceneChannelPool(tracks = [], channel) {
   const singles = singlesOnly(tracks);
   if (!channel) return singles;
   const hits = singles.filter((t) => matchesChannel(t, channel));
+  if (channel.strict) {
+    return hits.slice().sort((a, b) => countdownScore(b) - countdownScore(a));
+  }
   const ranked = (hits.length ? hits : singles)
     .slice()
     .sort((a, b) => countdownScore(b) - countdownScore(a));
@@ -136,10 +204,11 @@ export function availableSceneChannels(tracks = [], minTracks = 3) {
   return SCENE_CHANNELS.map((channel) => {
     const pool = buildSceneChannelPool(tracks, channel);
     const direct = singlesOnly(tracks).filter((t) => matchesChannel(t, channel));
+    const need = channel.minTracks != null ? channel.minTracks : minTracks;
     return {
       ...channel,
       count: direct.length,
-      ready: direct.length >= minTracks || pool.length >= minTracks,
+      ready: direct.length >= need || (!channel.strict && pool.length >= need),
     };
   }).filter((c) => c.ready);
 }

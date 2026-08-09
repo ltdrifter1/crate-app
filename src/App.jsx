@@ -469,7 +469,9 @@ const injectStyles = () => {
     .pmp-hero .pmp-hero-art { transition: transform 1.2s ${motion.ease}; }
     .pmp-hero:hover .pmp-hero-art { transform: scale(1.025); }
     .pmp-view-all { transition: color ${motion.fast} ${motion.ease}, transform ${motion.fast} ${motion.ease}; }
-    .pmp-view-all:hover { color: #C4B5FD !important; transform: translateX(2px); }
+    .pmp-view-all:hover { color: #EDF0F4 !important; transform: translateX(2px); }
+    .pmp-rail { cursor: grab; }
+    .pmp-rail:active { cursor: grabbing; }
     @media (prefers-reduced-transparency: reduce) {
       .pill-nav {
         backdrop-filter: none !important;
@@ -1874,7 +1876,7 @@ function GlassDock({
                 linear-gradient(180deg, rgba(255,255,255,0.08) 0%, transparent 100%)
               `,
               boxShadow: isRadioMode || hypnoPocket
-                ? `inset 2px 0 0 ${y2k.purple}`
+                ? `inset 2px 0 0 ${y2k.chromeBright}`
                 : "none",
             }}
           >
@@ -1894,8 +1896,8 @@ function GlassDock({
                 {(isRadioMode || hypnoPocket) && (
                   <span style={{
                     display: "inline-block", width: 6, height: 6, borderRadius: "50%",
-                    background: y2k.purpleBright, marginRight: 8, verticalAlign: "middle",
-                    boxShadow: isPlaying ? `0 0 0 3px ${y2k.purpleSoft}` : "none",
+                    background: y2k.chromeBright, marginRight: 8, verticalAlign: "middle",
+                    boxShadow: isPlaying ? `0 0 0 3px ${y2k.chromeSoft}` : "none",
                     animation: isPlaying ? "breathe 2s ease-in-out infinite" : "none",
                   }}/>
                 )}
@@ -1924,7 +1926,7 @@ function GlassDock({
 
             <button type="button" aria-label={track.liked ? "Unlike" : "Like"}
               onClick={(e) => { e.stopPropagation(); onLike(); }}
-              style={{ background: "none", border: "none", cursor: "pointer", color: track.liked ? y2k.purpleBright : color.faint, padding: 8 }}>
+              style={{ background: "none", border: "none", cursor: "pointer", color: track.liked ? y2k.chromeBright : color.faint, padding: 8 }}>
               <span style={{ display: "flex", animation: track.liked ? "likePop 0.25s ease" : "none" }}>
                 <Icon name={track.liked ? "heart" : "heartempty"} size={16}/>
               </span>

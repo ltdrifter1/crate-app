@@ -31,6 +31,7 @@ export default function ChannelCard({
         cursor: "pointer",
         textAlign: "left",
         WebkitTapHighlightColor: "transparent",
+        touchAction: "pan-x",
       }}
     >
       <ArtFrame
@@ -39,7 +40,7 @@ export default function ChannelCard({
         width={size}
         height={h}
         active={active}
-        radius={14}
+        radius={12}
       >
         {/* CH bug — MTV-style channel ident */}
         <span
@@ -54,12 +55,14 @@ export default function ChannelCard({
             letterSpacing: 1.6,
             color: active ? y2k.neon : y2k.offWhite,
             padding: "5px 9px",
-            borderRadius: 6,
+            borderRadius: 4,
             border: `1px solid ${active ? "rgba(200,242,65,0.45)" : "rgba(255,255,255,0.18)"}`,
-            background: "rgba(10,8,16,0.72)",
+            background: y2k.inkGlass,
             backdropFilter: "blur(10px)",
             WebkitBackdropFilter: "blur(10px)",
-            boxShadow: active ? `0 0 12px ${y2k.neonSoft}` : "none",
+            boxShadow: active
+              ? `0 0 12px ${y2k.neonSoft}`
+              : "inset 0 1px 0 rgba(255,255,255,0.1), inset 0 -1px 0 rgba(0,0,0,0.35)",
           }}
         >
           CH·{num}
@@ -81,11 +84,12 @@ export default function ChannelCard({
               letterSpacing: 1.6,
               color: y2k.neon,
               padding: "5px 8px",
-              borderRadius: 6,
-              background: "rgba(10,8,16,0.72)",
+              borderRadius: 4,
+              background: y2k.inkGlass,
               border: "1px solid rgba(200,242,65,0.35)",
               backdropFilter: "blur(10px)",
               WebkitBackdropFilter: "blur(10px)",
+              boxShadow: "inset 0 1px 0 rgba(255,255,255,0.08)",
             }}
           >
             <span
@@ -113,7 +117,7 @@ export default function ChannelCard({
             zIndex: 1,
             padding: "28px 12px 12px",
             background:
-              "linear-gradient(180deg, transparent 0%, rgba(8,6,14,0.55) 40%, rgba(8,6,14,0.92) 100%)",
+              "linear-gradient(180deg, transparent 0%, rgba(10,11,13,0.55) 40%, rgba(10,11,13,0.92) 100%)",
           }}
         >
           <span
@@ -136,7 +140,7 @@ export default function ChannelCard({
               marginTop: 3,
               fontSize: 11,
               fontWeight: 500,
-              color: "rgba(242,239,230,0.62)",
+              color: "rgba(244,246,248,0.62)",
               lineHeight: 1.3,
               overflow: "hidden",
               textOverflow: "ellipsis",

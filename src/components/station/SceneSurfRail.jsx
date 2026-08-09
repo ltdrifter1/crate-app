@@ -102,16 +102,20 @@ function SceneSurfRail({
       )}
 
       <div
-        className="hide-scroll"
+        className="hide-scroll pmp-rail"
         style={{
           display: "flex",
           gap: compact ? 7 : 8,
           overflowX: "auto",
+          overflowY: "hidden",
           padding: compact
             ? "2px 2px 6px"
             : `2px ${homeSpace.gutter}px 16px`,
           scrollSnapType: "x mandatory",
           WebkitOverflowScrolling: "touch",
+          touchAction: "pan-x",
+          overscrollBehaviorX: "contain",
+          cursor: "grab",
         }}
       >
         {channels.map((ch) => {
