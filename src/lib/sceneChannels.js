@@ -11,62 +11,36 @@ function singlesOnly(tracks = []) {
   return tracks.filter((t) => (t.duration || 0) <= 900 && String(t.audioUrl || "").trim());
 }
 
-/** PNW / Cascadia markers for the Local channel. */
-const PNW_KEYWORDS = [
-  "pacific northwest",
-  "pacific-northwest",
-  "pnw",
-  "cascadia",
-  "seattle",
-  "portland",
-  "olympia",
-  "tacoma",
-  "bellingham",
-  "spokane",
-  "eugene",
-  "salem",
-  "bend",
-  "boise",
-  "vancouver wa",
-  "vancouver, wa",
-  "washington",
-  "oregon",
-  "puget sound",
-  "willamette",
-  "columbia river",
-];
+/** Canonical id for the Audioasis Local upload batch (CH-04). */
+export const AUDIOASIS_BATCH_ID = "audioasis";
 
-function trackTextBlob(track) {
-  return [
-    track?.title,
-    track?.artist,
-    track?.album,
-    track?.genre,
-    track?.city,
-    track?.region,
-    track?.origin,
-    track?.location,
-    track?.label,
-    Array.isArray(track?.tags) ? track.tags.join(" ") : track?.tags,
-  ]
-    .filter(Boolean)
-    .join(" ")
-    .toLowerCase();
+function normalizeBatchId(value) {
+  return String(value || "")
+    .trim()
+    .toLowerCase()
+    .replace(/[\s_]+/g, "-");
 }
 
-function matchesKeywords(track, keywords = []) {
-  if (!keywords.length) return false;
-  const blob = trackTextBlob(track);
-  if (!blob) return false;
-  return keywords.some((kw) => blob.includes(String(kw).toLowerCase()));
+function trackTagList(track) {
+  if (Array.isArray(track?.tags)) return track.tags.map((t) => String(t));
+  if (track?.tags == null || track?.tags === "") return [];
+  return String(track.tags).split(/[,;|]/).map((t) => t.trim()).filter(Boolean);
 }
 
-function isLocalPnwTrack(track) {
+/**
+ * CH-04 Local — only cuts stamped from the Audioasis upload batch.
+ * Matches `uploadBatch` / `batch` / `sourceBatch` / tags (not loose PNW keywords).
+ */
+export function isAudioasisBatchTrack(track) {
   if (!track) return false;
-  const region = String(track.region || track.origin || track.location || "").toLowerCase();
-  if (region === "pnw" || region === "pacific northwest" || region === "cascadia") return true;
-  if (track.local === true || track.pnw === true) return true;
-  return matchesKeywords(track, PNW_KEYWORDS);
+  const batch = normalizeBatchId(
+    track.uploadBatch || track.batch || track.sourceBatch || track.series
+  );
+  if (batch === AUDIOASIS_BATCH_ID || batch === "audio-asis") return true;
+  return trackTagList(track).some((tag) => {
+    const n = normalizeBatchId(tag);
+    return n === AUDIOASIS_BATCH_ID || n === "audio-asis";
+  });
 }
 
 export const SCENE_CHANNELS = [
@@ -105,9 +79,9 @@ export const SCENE_CHANNELS = [
     scenes: [],
     genres: [],
     vibe: "Local",
-    /** Only PNW cuts — never pad with the full catalog. */
+    /** Audioasis upload only — never pad with the full catalog. */
     strict: true,
-    match: isLocalPnwTrack,
+    match: isAudioasisBatchTrack,
     minTracks: 1,
   },
   {
@@ -180,7 +154,21 @@ export function getSceneChannel(id) {
 function matchesChannel(track, channel) {
   if (!track || !channel) return false;
   if (typeof channel.match === "function") return channel.match(track);
-  if ((channel.keywords || []).length && matchesKeywords(track, channel.keywords)) return true;
+  if ((channel.keywords || []).length) {
+    const blob = [
+      track?.title,
+      track?.artist,
+      track?.album,
+      track?.genre,
+      Array.isArray(track?.tags) ? track.tags.join(" ") : track?.tags,
+    ]
+      .filter(Boolean)
+      .join(" ")
+      .toLowerCase();
+    if ((channel.keywords || []).some((kw) => blob.includes(String(kw).toLowerCase()))) {
+      return true;
+    }
+  }
   if ((channel.scenes || []).some((id) => trackMatchesScene(track, id))) return true;
   const g = normalizeGenre(track.genre);
   return (channel.genres || []).includes(g);

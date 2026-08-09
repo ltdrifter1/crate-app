@@ -9,6 +9,7 @@ import { computeSignalTraits } from "../lib/engine";
 import { enrichTracksWithScenes } from "../lib/scenes";
 import { normalizeGenre } from "../lib/genres";
 import { COMMUNITY_MIX_TITLE, formatMonthLabel, isCommunityPlaylist } from "../lib/mixes";
+import { AUDIOASIS_BATCH_ID } from "../lib/sceneChannels";
 import {
   BTN_PRIMARY,
   BTN_SECONDARY,
@@ -24,6 +25,105 @@ const SectionLabel = ({ children, style = {} }) => (
     {children}
   </div>
 );
+
+function createdAtMs(track) {
+  const c = track?.createdAt;
+  if (!c) return 0;
+  if (typeof c.toMillis === "function") return c.toMillis();
+  if (typeof c.seconds === "number") return c.seconds * 1000;
+  if (c instanceof Date) return c.getTime();
+  const n = Date.parse(c);
+  return Number.isFinite(n) ? n : 0;
+}
+
+/** Stamp uploadBatch=audioasis on tracks created in a date window (Admin). */
+function AudioasisBatchStamp({ tracks, setTracks, showToast }) {
+  const [fromDay, setFromDay] = useState("2026-08-07");
+  const [toDay, setToDay] = useState("2026-08-08");
+  const [stamping, setStamping] = useState(false);
+  const [done, setDone] = useState(0);
+
+  const preview = useMemo(() => {
+    const from = Date.parse(`${fromDay}T00:00:00.000Z`);
+    const to = Date.parse(`${toDay}T23:59:59.999Z`);
+    if (!Number.isFinite(from) || !Number.isFinite(to) || to < from) return [];
+    return tracks.filter((t) => {
+      const ms = createdAtMs(t);
+      return ms >= from && ms <= to;
+    });
+  }, [tracks, fromDay, toDay]);
+
+  const already = preview.filter((t) => String(t.uploadBatch || "").toLowerCase() === AUDIOASIS_BATCH_ID).length;
+
+  async function stamp() {
+    if (stamping || !preview.length) return;
+    if (!window.confirm(
+      `Stamp uploadBatch="${AUDIOASIS_BATCH_ID}" on ${preview.length} track(s) created ${fromDay} → ${toDay}?`
+    )) return;
+    setStamping(true);
+    setDone(0);
+    let count = 0;
+    for (const t of preview) {
+      try {
+        await updateDoc(doc(db, "tracks", t.id), { uploadBatch: AUDIOASIS_BATCH_ID });
+        count++;
+        setDone(count);
+      } catch (e) {
+        console.error("Audioasis stamp failed", t.id, e);
+      }
+    }
+    setTracks((prev) =>
+      prev.map((t) =>
+        preview.some((p) => p.id === t.id) ? { ...t, uploadBatch: AUDIOASIS_BATCH_ID } : t
+      )
+    );
+    setStamping(false);
+    showToast(`Stamped ${count} tracks as ${AUDIOASIS_BATCH_ID}`);
+  }
+
+  return (
+    <div style={{
+      padding: 16,
+      borderRadius: radius.lg,
+      border: `1px solid ${glass.borderSoft}`,
+      background: glass.plate,
+      marginBottom: 8,
+    }}>
+      <div style={{ fontSize: 12, color: color.muted, lineHeight: 1.5, marginBottom: 12 }}>
+        CH-04 Local only plays cuts with <code>uploadBatch={AUDIOASIS_BATCH_ID}</code>.
+        Pick the calendar days of the Audioasis upload, preview the count, then stamp.
+      </div>
+      <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 12 }}>
+        <label style={{ fontSize: 11, color: color.muted, display: "flex", flexDirection: "column", gap: 4 }}>
+          From (UTC)
+          <input type="date" value={fromDay} onChange={(e) => setFromDay(e.target.value)} style={{ ...INPUT_ST, width: 160, padding: "8px 10px" }} />
+        </label>
+        <label style={{ fontSize: 11, color: color.muted, display: "flex", flexDirection: "column", gap: 4 }}>
+          To (UTC)
+          <input type="date" value={toDay} onChange={(e) => setToDay(e.target.value)} style={{ ...INPUT_ST, width: 160, padding: "8px 10px" }} />
+        </label>
+      </div>
+      <div style={{ fontSize: 12, color: color.body, marginBottom: 12 }}>
+        {preview.length} track(s) in window · {already} already stamped
+      </div>
+      <button
+        type="button"
+        onClick={stamp}
+        disabled={stamping || preview.length === 0}
+        style={{
+          ...BTN_PRIMARY,
+          width: "auto",
+          padding: "10px 16px",
+          fontSize: 13,
+          opacity: stamping || !preview.length ? 0.6 : 1,
+          cursor: stamping || !preview.length ? "wait" : "pointer",
+        }}
+      >
+        {stamping ? `Stamping… ${done}/${preview.length}` : `Stamp ${preview.length} as ${AUDIOASIS_BATCH_ID}`}
+      </button>
+    </div>
+  );
+}
 
 // ─── ANALYTICS ROW ───────────────────────────────────────────────────────────
 function AnalyticsRow({ rank, track, value, label, max, color: trackColor, accent }) {
@@ -132,7 +232,7 @@ export default function AdminScreen({
 
   // ── CSV EXPORT ──
   function exportCSV() {
-    const fields = ["id","title","artist","album","genre","energy","camelot","bpm","audioUrl","albumCover","videoUrl","color","duration"];
+    const fields = ["id","title","artist","album","genre","energy","camelot","bpm","audioUrl","albumCover","videoUrl","color","duration","uploadBatch"];
     const escape = v => {
       const s = String(v ?? "");
       return s.includes(",") || s.includes('"') || s.includes("\n") ? `"${s.replace(/"/g,'""')}"` : s;
@@ -201,6 +301,10 @@ export default function AdminScreen({
       if (albumCover && String(albumCover).trim()) updates.albumCover = String(albumCover).trim();
       if (r.color && String(r.color).trim()) updates.color = String(r.color).trim();
       if (r.duration && !isNaN(parseFloat(r.duration))) updates.duration = parseFloat(r.duration);
+      const uploadBatch = r.uploadbatch || r.uploadBatch || r.batch;
+      if (uploadBatch != null && String(uploadBatch).trim() !== "") {
+        updates.uploadBatch = String(uploadBatch).trim();
+      }
       return updates;
     }
 
@@ -229,6 +333,9 @@ export default function AdminScreen({
             color: r.color || cols[Math.floor(Math.random() * cols.length)],
             duration: parseFloat(r.duration) || 0,
             likeCount: 0, playCount: 0, skipCount: 0,
+            ...((r.uploadbatch || r.uploadBatch || r.batch)
+              ? { uploadBatch: String(r.uploadbatch || r.uploadBatch || r.batch).trim() }
+              : {}),
           };
           await setDoc(doc(db, "tracks", id), trackData, { merge: true });
           byId[id] = { ...trackData, id };
@@ -242,6 +349,9 @@ export default function AdminScreen({
             color: r.color || cols[Math.floor(Math.random() * cols.length)],
             duration: parseFloat(r.duration) || 0,
             createdAt: new Date(), likeCount: 0, playCount: 0, skipCount: 0,
+            ...((r.uploadbatch || r.uploadBatch || r.batch)
+              ? { uploadBatch: String(r.uploadbatch || r.uploadBatch || r.batch).trim() }
+              : {}),
           };
           const newId = `import_${Date.now()}_${i}`;
           await setDoc(doc(db, "tracks", newId), trackData);
@@ -483,8 +593,13 @@ export default function AdminScreen({
             </div>
           )}
           <div style={{ padding:"10px 14px", borderRadius:10, background:"rgba(255,255,255,0.06)", border:"1px solid rgba(255,255,255,0.1)", marginBottom:24, fontSize:11, color: color.muted, lineHeight:1.6 }}>
-            <strong style={{ color: color.muted }}>How it works:</strong> Export downloads all tracks as CSV (keep the <code>id</code> column). Edit titles/artists/genres/BPM/Camelot in Sheets, then Import. Matching is by <strong>id first</strong> so renames stick; title+artist is only a fallback when id is blank. New rows without id are created. Columns: id, title, artist, album, genre, energy, camelot, bpm, audioUrl, albumCover, color, duration.
+            <strong style={{ color: color.muted }}>How it works:</strong> Export downloads all tracks as CSV (keep the <code>id</code> column). Edit in Sheets, then Import. Matching is by <strong>id first</strong>; title+artist is only a fallback when id is blank. Columns: id, title, artist, album, genre, energy, camelot, bpm, audioUrl, albumCover, color, duration, <strong>uploadBatch</strong>.
+            Set <code>uploadBatch=audioasis</code> on the Audioasis import so CH-04 Local only plays that batch.
           </div>
+
+          <SectionLabel>CH-04 Local · Audioasis batch</SectionLabel>
+          <AudioasisBatchStamp tracks={tracks} setTracks={setTracks} showToast={showToast} />
+          <div style={{ height: 20 }} />
           {(() => {
             const withKey = tracks.filter(t => t.camelot && t.camelot.trim());
             const withoutKey = tracks.filter(t => !t.camelot || !t.camelot.trim());

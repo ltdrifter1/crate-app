@@ -145,6 +145,13 @@ async function uploadTracks() {
 
   console.log(`\n📦  Found ${rows.length} track(s) in tracks.csv`);
   console.log(`    Project: ${projectId}  |  Bucket: ${bucketName}`);
+  const batchStamp = String(
+    rows.find((r) => r.uploadBatch || r.batch)?.uploadBatch
+      || rows.find((r) => r.uploadBatch || r.batch)?.batch
+      || process.env.UPLOAD_BATCH
+      || ""
+  ).trim();
+  if (batchStamp) console.log(`    uploadBatch stamp: ${batchStamp}`);
   process.stdout.write("    Loading existing catalog... ");
   const existing = await loadExistingCatalog();
   console.log(`${existing.count} tracks in Firestore\n`);
@@ -214,6 +221,11 @@ async function uploadTracks() {
         skipCount:  0,
         likeCount:  0,
         createdAt:  admin.firestore.FieldValue.serverTimestamp(),
+        ...(
+          (row.uploadBatch || row.batch || process.env.UPLOAD_BATCH)
+            ? { uploadBatch: String(row.uploadBatch || row.batch || process.env.UPLOAD_BATCH).trim() }
+            : {}
+        ),
       });
       existing.byName.set(key, ref.id);
       existing.byAudioFile.set(row.audioFile, ref.id);

@@ -29,6 +29,7 @@ cp tracks.template.csv tracks.csv
 | `audioFile` | Yes | Filename only, must exist under `audio/` (e.g. `artist-title.mp3`). |
 | `coverFile` | No | Filename under `covers/` (jpg/png/webp). Upload script can skip if missing. |
 | `color` | No | Hex fallback for tiles without art (e.g. `#8899aa`). |
+| `uploadBatch` | No | Optional stamp (e.g. `audioasis`). CH-04 Local only plays `uploadBatch=audioasis`. Or set env `UPLOAD_BATCH=audioasis` when running the uploader. |
 
 **Auto-filled on upload (don’t put in CSV unless you know better):**
 

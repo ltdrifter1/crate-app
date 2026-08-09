@@ -87,7 +87,7 @@ describe("sceneChannels", () => {
     expect(availableSceneChannels(tracks, 2).some((c) => c.id === "rap-city")).toBe(true);
   });
 
-  test("CH-04 Local is Pacific Northwest only", () => {
+  test("CH-04 Local plays only the Audioasis upload batch", () => {
     const local = getSceneChannel("local-pnw");
     expect(local.num).toBe(4);
     expect(local.title).toBe("Local");
@@ -95,10 +95,11 @@ describe("sceneChannels", () => {
     expect(getSceneChannel("techno-tunnel")?.id).toBe("local-pnw");
 
     const tracks = [
-      { id: "1", title: "Fog Cut", artist: "Seattle Dual", genre: "Electronic", duration: 180, audioUrl: "u" },
-      { id: "2", title: "Rain City", artist: "A", region: "pnw", duration: 200, audioUrl: "u" },
+      { id: "1", title: "Fog Cut", artist: "Seattle Dual", uploadBatch: "audioasis", duration: 180, audioUrl: "u" },
+      { id: "2", title: "Rain City", artist: "A", tags: ["Audioasis"], duration: 200, audioUrl: "u" },
       { id: "3", title: "Techno", artist: "Berlin", genre: "Electronic", duration: 180, audioUrl: "u", sceneId: "techno" },
-      { id: "4", title: "Other", artist: "NYC", genre: "Hip-Hop", duration: 180, audioUrl: "u" },
+      { id: "4", title: "Other", artist: "Kamasi Washington", genre: "Jazz", duration: 180, audioUrl: "u" },
+      { id: "5", title: "Bend", artist: "Someone", region: "pnw", duration: 180, audioUrl: "u" },
     ];
     const pool = buildSceneChannelPool(tracks, local);
     expect(pool.map((t) => t.id).sort()).toEqual(["1", "2"]);
