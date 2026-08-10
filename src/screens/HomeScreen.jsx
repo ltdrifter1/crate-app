@@ -295,6 +295,7 @@ function HomeScreen({
           title="Channel surfing"
           subtitle="Zap the dial"
           accent={y2k.chromeBright}
+          first
           delay={0.05}
         >
           <Rail gap={16}>
@@ -316,7 +317,8 @@ function HomeScreen({
         <MusicSection
           title="Featured releases"
           subtitle="Albums worth the needle"
-          accent={y2k.neon}
+          accent={y2k.chromeBright}
+          first={channels.length === 0}
           delay={0.07}
         >
           <Rail gap={16}>
@@ -340,7 +342,8 @@ function HomeScreen({
         <MusicSection
           title="On tonight"
           subtitle={airing?.show?.tagline || "The program guide"}
-          accent={y2k.neon}
+          accent={y2k.chromeBright}
+          first={channels.length === 0 && releases.length === 0}
           delay={0.08}
         >
           {airing?.show && !(activeShowId === airing.show.id && currentTrack) && (
@@ -504,7 +507,7 @@ function HomeScreen({
       {catalogReady && onOpenSearch && (
         <div
           style={{
-            marginTop: 36,
+            marginTop: homeSpace.sectionGap,
             padding: `0 ${homeSpace.gutter}px`,
             animation: `rise 0.5s ${motion.ease} 0.2s both`,
           }}

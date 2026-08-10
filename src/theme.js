@@ -164,7 +164,7 @@ export const artShadow = {
   quiet: "0 2px 4px rgba(0,0,0,0.3), 0 12px 28px rgba(0,0,0,0.45)",
   raised:
     "0 4px 10px rgba(0,0,0,0.35), 0 20px 44px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.1), inset 0 -1px 0 rgba(0,0,0,0.35)",
-  active: `0 0 0 1px rgba(232,236,242,0.42), 0 0 18px ${y2k.chromeGlow}, 0 8px 20px rgba(0,0,0,0.45), 0 18px 40px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.14)`,
+  active: `0 0 0 1px rgba(232,236,242,0.5), 0 0 20px ${y2k.chromeGlow}, 0 8px 20px rgba(0,0,0,0.45), 0 18px 40px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.16)`,
 };
 
 /**
@@ -197,15 +197,19 @@ export function artFrameStyle({
   };
 }
 
-/** Home rhythm — wider section breaks, consistent gutters. */
+/** Home rhythm — tight shelves, consistent gutters, chrome-first. */
 export const homeSpace = {
   gutter: 22,
-  bandPadY: 44,
-  sectionPadTop: 48,
-  sectionPadBottom: 44,
+  bandPadY: 32,
+  sectionPadTop: 36,
+  sectionPadBottom: 28,
   /** First shelf after a prior band/rule — keep tight; the break lives above. */
   sectionPadTopFirst: 8,
-  shelfGap: 20,
+  /** Gap between Home MusicSection bands (title → previous shelf metadata). */
+  sectionGap: 22,
+  /** First Home shelf after the broadcast hero. */
+  sectionGapFirst: 18,
+  shelfGap: 16,
   /** Default discovery tile — sleeve-first. */
   tile: 168,
   /** Featured / countdown / releases — asymmetric presence. */

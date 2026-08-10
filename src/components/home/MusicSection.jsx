@@ -1,6 +1,30 @@
 import { useCallback, useRef } from "react";
 import { color, fontDisplay, fontMono, homeSpace, motion, y2k } from "../../theme";
 
+/** Machined aluminum tick — Y2K chrome grey, never purple. */
+function ChromeTick({ accent = null }) {
+  const tip = accent || y2k.chromeBright;
+  return (
+    <span
+      aria-hidden="true"
+      style={{
+        width: 3,
+        height: 13,
+        borderRadius: 1,
+        flexShrink: 0,
+        background: `
+          linear-gradient(180deg, ${y2k.chromeBright} 0%, ${tip} 42%, ${y2k.chromeMid} 100%)
+        `,
+        boxShadow: `
+          0 0 10px ${y2k.chromeGlow},
+          inset 0 1px 0 rgba(255,255,255,0.55),
+          inset 0 -1px 0 rgba(0,0,0,0.35)
+        `,
+      }}
+    />
+  );
+}
+
 /**
  * MusicSection — one consistent section shell for Home.
  * Uppercase display title, optional muted subtitle, optional "VIEW ALL" action.
@@ -9,7 +33,7 @@ export default function MusicSection({
   title,
   subtitle = null,
   action = null, // { label, onClick }
-  accent = null, // small colored tick before the title
+  accent = null, // chrome tip color for the title tick (grey family)
   children,
   first = false,
   delay = 0,
@@ -19,7 +43,7 @@ export default function MusicSection({
     <section
       aria-label={title}
       style={{
-        marginTop: first ? 0 : 36,
+        marginTop: first ? homeSpace.sectionGapFirst : homeSpace.sectionGap,
         animation: `rise 0.5s ${motion.ease} ${delay}s both`,
         ...style,
       }}
@@ -31,7 +55,7 @@ export default function MusicSection({
           justifyContent: "space-between",
           gap: 12,
           padding: `0 ${homeSpace.gutter}px`,
-          marginBottom: 14,
+          marginBottom: 10,
         }}
       >
         <div style={{ minWidth: 0 }}>
@@ -50,19 +74,7 @@ export default function MusicSection({
               lineHeight: 1.1,
             }}
           >
-            {accent && (
-              <span
-                aria-hidden="true"
-                style={{
-                  width: 3,
-                  height: 13,
-                  borderRadius: 1,
-                  background: accent,
-                  boxShadow: `0 0 8px ${accent}55`,
-                  flexShrink: 0,
-                }}
-              />
-            )}
+            <ChromeTick accent={accent} />
             <span
               style={{
                 overflow: "hidden",
@@ -76,7 +88,7 @@ export default function MusicSection({
           {subtitle && (
             <div
               style={{
-                marginTop: 5,
+                marginTop: 4,
                 fontSize: 12,
                 fontWeight: 500,
                 color: color.muted,
@@ -124,7 +136,7 @@ export default function MusicSection({
  * Horizontal snap rail — shared scroller for card shelves.
  * Pointer drag + touch-action so channel surfing (and other shelves) actually scroll.
  */
-export function Rail({ children, gap = 14, padBottom = 10 }) {
+export function Rail({ children, gap = 14, padBottom = 4 }) {
   const ref = useRef(null);
   const drag = useRef({ active: false, startX: 0, scrollLeft: 0, moved: false });
 

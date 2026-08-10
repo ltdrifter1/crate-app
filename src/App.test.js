@@ -1,6 +1,6 @@
 import {
   color, font, fontDisplay, ADMIN_UID, timeOfDayGradient, BRAND_TAGLINE,
-  BRAND_NAME, dock, artShadow, aluminumGradient, hardware, hardwareKey, y2k
+  BRAND_NAME, dock, artShadow, aluminumGradient, hardware, hardwareKey, y2k, homeSpace
 } from './theme';
 
 test('theme exports core tokens', () => {
@@ -15,7 +15,10 @@ test('theme exports core tokens', () => {
   expect(font).toMatch(/Space Grotesk/);
   expect(fontDisplay).toMatch(/Space Grotesk/);
   expect(y2k.chromeBright).toBeTruthy();
+  expect(y2k.chrome).toMatch(/#B8C0CC/i);
   expect(y2k.artGradient).not.toMatch(/139,\s*92,\s*246|purple/i);
+  expect(homeSpace.sectionGap).toBeLessThanOrEqual(24);
+  expect(homeSpace.sectionGap).toBeGreaterThan(0);
   expect(ADMIN_UID).toHaveLength(28);
   expect(timeOfDayGradient()).toMatch(/gradient/);
   expect(aluminumGradient()).toMatch(/gradient/);
