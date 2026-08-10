@@ -96,7 +96,7 @@ export default function TrackCard({
         }}
       >
         {reason ? (
-          <span style={{ fontFamily: fontMono, fontSize: 9, letterSpacing: 1.2, textTransform: "uppercase", color: y2k.chromeMid }}>
+          <span style={{ fontFamily: fontMono, fontSize: 9, letterSpacing: 1.2, textTransform: "uppercase", color: y2k.chromeBright }}>
             {reason}
             <span style={{ color: color.muted }}> · </span>
           </span>
