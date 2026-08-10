@@ -188,12 +188,12 @@ export function artFrameStyle({
     borderRadius: frameRadius,
     overflow: "hidden",
     border: `1px solid ${
-      active ? "rgba(232,236,242,0.5)" : "rgba(255,255,255,0.14)"
+      active ? "rgba(232,236,242,0.55)" : "rgba(184,192,204,0.28)"
     }`,
     background: y2k.artGradient,
     boxShadow: active
       ? artShadow.active
-      : artShadow.raised,
+      : `${artShadow.raised}, 0 0 0 1px rgba(184,192,204,0.06)`,
   };
 }
 
