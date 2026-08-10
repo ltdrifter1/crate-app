@@ -148,7 +148,7 @@ export function hardwareKey(opts = { pressed: false, size: "md" }) {
     border: "1px solid rgba(255,255,255,0.14)",
     background: hardware.keyFace,
     boxShadow: pressed ? hardware.keyPressed : hardware.keyRaised,
-    color: pressed ? color.accent : color.body,
+    color: pressed ? y2k.chromeBright : color.body,
     fontFamily: fontMono,
     fontSize: 11,
     fontWeight: 800,

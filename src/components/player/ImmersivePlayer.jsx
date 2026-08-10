@@ -1,12 +1,21 @@
 /**
  * ImmersivePlayer — premium Y2K listening booth.
- * Dark broadcast atmosphere, brushed aluminum transport, jewel-case sleeve.
- * Station TV chrome (dark lower-thirds / emoji heat) stays on Cover Stage;
- * here the hierarchy is sleeve → title → transport deck.
+ * Sleeve-first theater: oversized jewel case → title → aluminum transport.
+ * Secondary booth tools (channels, request, session arc) live in a drawer.
+ * Chrome language is machined aluminum / grey — no ice-blue accents.
  */
 import { useEffect, useRef, useState } from "react";
 import {
-  fontDisplay, fontMono, color, radius, motion, glass, artShadow, aluminumGradient,
+  fontDisplay,
+  fontMono,
+  color,
+  radius,
+  motion,
+  glass,
+  artShadow,
+  aluminumGradient,
+  hardware,
+  y2k,
 } from "../../theme";
 import { fmtTime, hexToRgbStr } from "../../lib/harmony";
 import { usePlayerPlayback } from "../../usePlayerPlayback";
@@ -16,10 +25,8 @@ import {
   DedicationFlash,
   HypnoVisualizer,
   StationTicker,
-  UpNextBumper,
 } from "../station/StationChrome";
-import VideoStage, { VideoBadge } from "../station/VideoStage";
-import { HostCreditChip } from "../station/ShowGuide";
+import VideoStage from "../station/VideoStage";
 import SceneSurfRail from "../station/SceneSurfRail";
 import { trackHasVideo } from "../../lib/video";
 import { estimateLockedIn } from "../../lib/station";
@@ -27,6 +34,7 @@ import CoverImage from "../ui/CoverImage";
 
 const EASE = motion.ease;
 
+/** Hard aluminum key — physical remote face, not soft glass. */
 function ChromeIconButton({
   onClick,
   label,
@@ -35,6 +43,7 @@ function ChromeIconButton({
   children,
   size = 44,
 }) {
+  const lit = active || pressed;
   return (
     <button
       type="button"
@@ -44,21 +53,17 @@ function ChromeIconButton({
       style={{
         width: size,
         height: size,
-        borderRadius: 12,
+        borderRadius: hardware.radius + 4,
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
         cursor: "pointer",
-        color: active ? color.ink : color.muted,
-        background: active
-          ? "linear-gradient(165deg, rgba(56,62,72,0.95) 0%, rgba(25,28,34,0.88) 100%)"
-          : "linear-gradient(165deg, rgba(38,43,51,0.82) 0%, rgba(28,32,38,0.55) 100%)",
-        border: `1px solid ${active ? glass.border : glass.borderSoft}`,
-        boxShadow: active
-          ? `inset 0 1px 0 ${glass.highlight}, inset 0 -1px 0 rgba(22,24,30,0.06), 0 4px 12px rgba(22,24,30,0.08)`
-          : `inset 0 1px 0 ${glass.highlight}, 0 2px 8px rgba(22,24,30,0.05)`,
-        backdropFilter: glass.blurSoft,
-        WebkitBackdropFilter: glass.blurSoft,
+        color: lit ? y2k.chromeBright : color.muted,
+        background: hardware.keyFace,
+        border: `1px solid ${lit ? "rgba(232,236,242,0.35)" : "rgba(255,255,255,0.14)"}`,
+        boxShadow: lit
+          ? `${hardware.keyRaised}, 0 0 14px ${y2k.chromeGlow}`
+          : hardware.keyRaised,
         transition: `transform ${motion.fast} ${EASE}, color ${motion.fast}, box-shadow ${motion.base}`,
         padding: 0,
         flexShrink: 0,
@@ -69,7 +74,7 @@ function ChromeIconButton({
   );
 }
 
-/** Inset aluminum seek groove with chrome thumb. */
+/** Inset aluminum seek groove with chrome thumb fill. */
 function ChromeSeek({
   value = 0,
   max = 1,
@@ -91,23 +96,25 @@ function ChromeSeek({
           marginTop: -3,
           borderRadius: 999,
           background: `
-            linear-gradient(180deg, rgba(22,24,30,0.14) 0%, rgba(32,36,43,0.65) 100%)
+            linear-gradient(180deg, rgba(8,9,11,0.55) 0%, rgba(32,36,43,0.85) 100%)
           `,
-          boxShadow: "inset 0 1px 2px rgba(22,24,30,0.18), inset 0 -1px 0 rgba(36,40,48,0.75)",
+          boxShadow: "inset 0 1px 2px rgba(0,0,0,0.45), inset 0 -1px 0 rgba(255,255,255,0.08)",
           pointerEvents: "none",
           overflow: "hidden",
         }}
       >
-        <div style={{
-          height: "100%",
-          width: `${pct}%`,
-          borderRadius: 999,
-          background: `
-            linear-gradient(180deg, #EDF0F4 0%, #B9C1CC 55%, #D3D9E1 100%)
-          `,
-          boxShadow: "inset 0 1px 0 rgba(255,255,255,0.22)",
-          transition: "width 0.08s linear",
-        }} />
+        <div
+          style={{
+            height: "100%",
+            width: `${pct}%`,
+            borderRadius: 999,
+            background: `
+              linear-gradient(180deg, #F4F6F8 0%, #B8C0CC 55%, #8B939F 100%)
+            `,
+            boxShadow: `inset 0 1px 0 rgba(255,255,255,0.45), 0 0 8px ${y2k.chromeGlow}`,
+            transition: "width 0.08s linear",
+          }}
+        />
       </div>
       <input
         type="range"
@@ -133,28 +140,6 @@ function ChromeSeek({
   );
 }
 
-function MetaChip({ children }) {
-  return (
-    <span style={{
-      display: "inline-flex",
-      alignItems: "center",
-      padding: "5px 9px",
-      borderRadius: 8,
-      fontSize: 11,
-      fontWeight: 650,
-      letterSpacing: 0.6,
-      fontFamily: fontMono,
-      fontVariantNumeric: "tabular-nums",
-      color: color.body,
-      background: "rgba(32,36,43,0.65)",
-      border: `1px solid ${glass.borderSoft}`,
-      boxShadow: `inset 0 1px 0 ${glass.highlight}`,
-    }}>
-      {children}
-    </span>
-  );
-}
-
 function PlayerOnAir({ showTitle = null, daypartLabel = null }) {
   const secondary = showTitle || daypartLabel;
   return (
@@ -165,10 +150,12 @@ function PlayerOnAir({ showTitle = null, daypartLabel = null }) {
         gap: 8,
         maxWidth: 200,
         padding: "7px 12px",
-        borderRadius: 980,
-        background: glass.chrome,
-        border: `1px solid ${glass.border}`,
-        boxShadow: `inset 0 1px 0 ${glass.highlight}, ${glass.shadowSoft}`,
+        borderRadius: 6,
+        background: y2k.inkGlass,
+        border: "1px solid rgba(255,255,255,0.16)",
+        boxShadow: "inset 0 1px 0 rgba(255,255,255,0.1), inset 0 -1px 0 rgba(0,0,0,0.35)",
+        backdropFilter: "blur(14px)",
+        WebkitBackdropFilter: "blur(14px)",
         pointerEvents: "none",
       }}
     >
@@ -178,34 +165,38 @@ function PlayerOnAir({ showTitle = null, daypartLabel = null }) {
           width: 7,
           height: 7,
           borderRadius: "50%",
-          background: "#E23B4C",
-          boxShadow: "0 0 0 3px rgba(226,59,76,0.2)",
+          background: color.alert,
+          boxShadow: "0 0 0 3px rgba(224,60,75,0.22)",
           animation: "stageLiveDot 1.5s ease-in-out infinite",
           flexShrink: 0,
         }}
       />
-      <span style={{
-        fontFamily: fontMono,
-        fontSize: 10,
-        fontWeight: 700,
-        letterSpacing: 1.5,
-        textTransform: "uppercase",
-        color: color.ink,
-        flexShrink: 0,
-      }}>
+      <span
+        style={{
+          fontFamily: fontMono,
+          fontSize: 10,
+          fontWeight: 800,
+          letterSpacing: 1.5,
+          textTransform: "uppercase",
+          color: y2k.offWhite,
+          flexShrink: 0,
+        }}
+      >
         On Air
       </span>
       {secondary && (
-        <span style={{
-          fontFamily: fontMono,
-          fontSize: 10,
-          fontWeight: 600,
-          letterSpacing: 0.4,
-          color: color.muted,
-          overflow: "hidden",
-          textOverflow: "ellipsis",
-          whiteSpace: "nowrap",
-        }}>
+        <span
+          style={{
+            fontFamily: fontMono,
+            fontSize: 10,
+            fontWeight: 600,
+            letterSpacing: 0.4,
+            color: y2k.chromeMid,
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            whiteSpace: "nowrap",
+          }}
+        >
           {secondary}
         </span>
       )}
@@ -213,7 +204,7 @@ function PlayerOnAir({ showTitle = null, daypartLabel = null }) {
   );
 }
 
-/** Quiet booth strip — locked-in count + request/dedicate as chrome chips. */
+/** Quiet booth tools — request / dedicate / locked-in count. */
 function BoothStrip({
   track,
   onRequest = null,
@@ -230,33 +221,38 @@ function BoothStrip({
   if (!onRequest && !onDedicate) return null;
 
   return (
-    <div style={{
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "space-between",
-      gap: 10,
-      width: "100%",
-      maxWidth: 400,
-      padding: "8px 4px",
-    }}>
-      <div style={{
-        fontFamily: fontMono,
-        fontSize: 10,
-        fontWeight: 650,
-        letterSpacing: 1.1,
-        textTransform: "uppercase",
-        color: color.muted,
-      }}>
-        <span style={{
-          display: "inline-block",
-          width: 6,
-          height: 6,
-          borderRadius: "50%",
-          background: color.accent,
-          marginRight: 8,
-          verticalAlign: "middle",
-          opacity: 0.7,
-        }} />
+    <div
+      style={{
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        gap: 10,
+        width: "100%",
+        padding: "4px 2px",
+      }}
+    >
+      <div
+        style={{
+          fontFamily: fontMono,
+          fontSize: 10,
+          fontWeight: 650,
+          letterSpacing: 1.1,
+          textTransform: "uppercase",
+          color: color.muted,
+        }}
+      >
+        <span
+          style={{
+            display: "inline-block",
+            width: 6,
+            height: 6,
+            borderRadius: "50%",
+            background: y2k.chromeBright,
+            marginRight: 8,
+            verticalAlign: "middle",
+            boxShadow: `0 0 8px ${y2k.chromeGlow}`,
+          }}
+        />
         {lockedIn} locked in
       </div>
       <div style={{ display: "flex", gap: 8 }}>
@@ -267,17 +263,17 @@ function BoothStrip({
             disabled={requested}
             style={{
               padding: "7px 12px",
-              borderRadius: 980,
+              borderRadius: hardware.radius + 2,
               fontSize: 11,
-              fontWeight: 650,
+              fontWeight: 700,
               fontFamily: fontMono,
               letterSpacing: 0.6,
               textTransform: "uppercase",
               cursor: requested ? "default" : "pointer",
-              color: requested ? color.faint : color.ink,
-              background: requested ? "rgba(27,31,37,0.5)" : glass.fillStrong,
+              color: requested ? color.faint : y2k.offWhite,
+              background: hardware.keyFace,
               border: `1px solid ${glass.borderSoft}`,
-              boxShadow: `inset 0 1px 0 ${glass.highlight}`,
+              boxShadow: hardware.keyRaised,
             }}
           >
             {requested ? "Requested" : "Request"}
@@ -289,17 +285,17 @@ function BoothStrip({
             onClick={onDedicate}
             style={{
               padding: "7px 12px",
-              borderRadius: 980,
+              borderRadius: hardware.radius + 2,
               fontSize: 11,
-              fontWeight: 650,
+              fontWeight: 700,
               fontFamily: fontMono,
               letterSpacing: 0.6,
               textTransform: "uppercase",
               cursor: "pointer",
-              color: color.ink,
-              background: glass.fillStrong,
+              color: y2k.offWhite,
+              background: hardware.keyFace,
               border: `1px solid ${glass.borderSoft}`,
-              boxShadow: `inset 0 1px 0 ${glass.highlight}`,
+              boxShadow: hardware.keyRaised,
             }}
           >
             Dedicate
@@ -373,8 +369,10 @@ export default function ImmersivePlayer({
   const isPlaying = useIsPlaying();
   const [artLoaded, setArtLoaded] = useState(false);
   const [showMore, setShowMore] = useState(false);
+  const [showBooth, setShowBooth] = useState(false);
   const moreRef = useRef(null);
   const hasVideo = trackHasVideo(currentTrack);
+  const hasBoothTools = !!(onRequest || onDedicate || onTuneSceneChannel || sessionArc?.energies?.length > 1);
 
   useEffect(() => {
     setShowMore(false);
@@ -398,6 +396,8 @@ export default function ImmersivePlayer({
     currentTrack.camelot || null,
     currentTrack.energy != null ? `E${currentTrack.energy}` : null,
     countdownRank ? `#${countdownRank}` : null,
+    hasVideo ? "Video" : null,
+    liveShow?.host?.name || liveShow?.host?.handle || null,
   ].filter(Boolean);
 
   const circleChrome = {
@@ -407,12 +407,10 @@ export default function ImmersivePlayer({
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    background: glass.chrome,
-    border: `1px solid ${glass.border}`,
-    boxShadow: `inset 0 1px 0 ${glass.highlight}, ${glass.shadowSoft}`,
-    backdropFilter: glass.blurSoft,
-    WebkitBackdropFilter: glass.blurSoft,
-    color: color.ink,
+    background: hardware.keyFace,
+    border: "1px solid rgba(255,255,255,0.16)",
+    boxShadow: hardware.keyRaised,
+    color: y2k.offWhite,
     cursor: "pointer",
     padding: 0,
     flexShrink: 0,
@@ -441,10 +439,10 @@ export default function ImmersivePlayer({
             backgroundImage: `url(${currentTrack.albumCover})`,
             backgroundSize: "cover",
             backgroundPosition: "center",
-            filter: "blur(42px) saturate(1.15)",
-            opacity: artLoaded ? 0.42 : 0.12,
-            transform: isPlaying ? "scale(1.06)" : "scale(1.02)",
-            transition: "opacity 0.8s ease, transform 10s ease",
+            filter: "blur(48px) saturate(1.12)",
+            opacity: artLoaded ? 0.38 : 0.1,
+            transform: isPlaying ? "scale(1.05)" : "scale(1.02)",
+            transition: "opacity 0.8s ease, transform 12s ease",
           }}
         />
       )}
@@ -454,18 +452,18 @@ export default function ImmersivePlayer({
           position: "absolute",
           inset: 0,
           background: `
-            radial-gradient(ellipse 80% 55% at 50% 18%, rgba(${rgb},0.18) 0%, transparent 58%),
+            radial-gradient(ellipse 85% 50% at 50% 16%, rgba(${rgb},0.14) 0%, transparent 55%),
+            radial-gradient(ellipse 60% 40% at 50% 70%, ${y2k.chromeWash} 0%, transparent 70%),
             linear-gradient(180deg,
-              rgba(5,6,8,0.72) 0%,
-              rgba(5,6,8,0.28) 28%,
-              rgba(5,6,8,0.12) 48%,
-              rgba(5,6,8,0.7) 76%,
-              rgba(5,6,8,0.94) 100%
+              rgba(5,6,8,0.78) 0%,
+              rgba(5,6,8,0.22) 30%,
+              rgba(5,6,8,0.1) 48%,
+              rgba(5,6,8,0.72) 78%,
+              rgba(5,6,8,0.96) 100%
             )
           `,
         }}
       />
-      {/* Specular top sheen */}
       <div
         aria-hidden="true"
         style={{
@@ -474,30 +472,30 @@ export default function ImmersivePlayer({
           left: 0,
           right: 0,
           height: 120,
-          background: "linear-gradient(180deg, rgba(255,255,255,0.06) 0%, transparent 100%)",
+          background: "linear-gradient(180deg, rgba(255,255,255,0.055) 0%, transparent 100%)",
           pointerEvents: "none",
           zIndex: 1,
         }}
       />
 
-      {!hasVideo && (
-        <HypnoVisualizer playing={isPlaying} colorHex={rgb} />
-      )}
+      {!hasVideo && <HypnoVisualizer playing={isPlaying} colorHex={rgb} />}
       {hasVideo && (
         <VideoStage track={currentTrack} playing={isPlaying} progress={progress} dim={false} />
       )}
 
       {/* Top chrome */}
-      <div style={{
-        position: "relative",
-        zIndex: 3,
-        display: "flex",
-        justifyContent: "space-between",
-        alignItems: "center",
-        padding: "calc(12px + env(safe-area-inset-top, 0px)) 18px 0",
-        flexShrink: 0,
-        gap: 12,
-      }}>
+      <div
+        style={{
+          position: "relative",
+          zIndex: 3,
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          padding: "calc(12px + env(safe-area-inset-top, 0px)) 18px 0",
+          flexShrink: 0,
+          gap: 12,
+        }}
+      >
         <button type="button" onClick={onClose} aria-label="Close player" style={circleChrome}>
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
             <path d="M6 9l6 6 6-6" />
@@ -505,254 +503,309 @@ export default function ImmersivePlayer({
         </button>
 
         <PlayerOnAir
-          showTitle={liveShow ? (liveShow.shortTitle || liveShow.title) : null}
+          showTitle={liveShow ? liveShow.shortTitle || liveShow.title : null}
           daypartLabel={daypart?.label}
         />
 
-        <div ref={moreRef} style={{ position: "relative" }}>
-          <button
-            type="button"
-            onClick={() => setShowMore((m) => !m)}
-            aria-label="More"
-            aria-expanded={showMore}
-            style={circleChrome}
-          >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-              <circle cx="6" cy="12" r="1.6" />
-              <circle cx="12" cy="12" r="1.6" />
-              <circle cx="18" cy="12" r="1.6" />
-            </svg>
-          </button>
-          {showMore && (
-            <div
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          {hasBoothTools && (
+            <button
+              type="button"
+              onClick={() => setShowBooth((v) => !v)}
+              aria-label={showBooth ? "Hide booth tools" : "Show booth tools"}
+              aria-pressed={showBooth}
               style={{
-                position: "absolute",
-                top: "112%",
-                right: 0,
-                minWidth: 200,
-                background: "rgba(56,62,72,0.94)",
-                border: `1px solid ${glass.border}`,
-                borderRadius: radius.lg,
-                padding: "6px 0",
-                zIndex: 8,
-                boxShadow: `inset 0 1px 0 ${glass.highlight}, 0 18px 48px rgba(22,24,30,0.16)`,
-                backdropFilter: glass.blur,
-                WebkitBackdropFilter: glass.blur,
-                animation: `rise 0.22s ${EASE} both`,
+                ...circleChrome,
+                width: "auto",
+                minWidth: 42,
+                padding: "0 12px",
+                borderRadius: 980,
+                gap: 6,
+                color: showBooth ? y2k.chromeBright : y2k.offWhite,
+                boxShadow: showBooth
+                  ? `${hardware.keyRaised}, 0 0 14px ${y2k.chromeGlow}`
+                  : hardware.keyRaised,
+                border: `1px solid ${showBooth ? "rgba(232,236,242,0.4)" : "rgba(255,255,255,0.16)"}`,
+                fontFamily: fontMono,
+                fontSize: 10,
+                fontWeight: 800,
+                letterSpacing: 1.2,
+                textTransform: "uppercase",
               }}
             >
-              {onOpenLiner && (
-                <button type="button" onClick={() => { setShowMore(false); onOpenLiner(currentTrack); }} style={menuItemStyle}>
-                  Liner notes
-                </button>
-              )}
-              {onHypno && (
-                <button type="button" onClick={() => { setShowMore(false); onHypno(currentTrack); }} style={menuItemStyle}>
-                  Near this
-                </button>
-              )}
-              {onHypnoRadio && (
-                <button type="button" onClick={() => { setShowMore(false); onHypnoRadio(currentTrack); }} style={menuItemStyle}>
-                  <span>Near this radio</span>
-                  <span style={{ color: hypnoPocket ? color.accent : color.faint, fontSize: 12 }}>
-                    {hypnoPocket ? "On" : "Off"}
-                  </span>
-                </button>
-              )}
-              {roomLabel && (
-                <button type="button" onClick={() => { setShowMore(false); onOpenRoom?.(); }} style={menuItemStyle}>
-                  Playing in {roomLabel}
-                </button>
-              )}
-              <div style={{ height: 1, background: glass.borderSoft, margin: "4px 10px" }} />
-              {onToggleCrossfade && (
-                <button
-                  type="button"
-                  onClick={() => onToggleCrossfade()}
-                  role="switch"
-                  aria-checked={crossfadeOn}
-                  style={menuItemStyle}
-                >
-                  <span>Crossfade</span>
-                  <span aria-hidden="true" style={{
-                    width: 36,
-                    height: 22,
-                    borderRadius: 11,
-                    flexShrink: 0,
-                    position: "relative",
-                    background: crossfadeOn ? color.accent : "rgba(26,29,36,0.14)",
-                    transition: `background ${motion.base} ${EASE}`,
-                  }}>
-                    <span style={{
-                      position: "absolute",
-                      top: 2,
-                      left: crossfadeOn ? 16 : 2,
-                      width: 18,
-                      height: 18,
-                      borderRadius: "50%",
-                      background: crossfadeOn ? color.onAccent : color.surfaceSolid,
-                      boxShadow: "0 1px 3px rgba(26,29,36,0.25)",
-                      transition: `left ${motion.base} ${EASE}`,
-                    }} />
-                  </span>
-                </button>
-              )}
-              <div style={{ padding: "10px 16px 14px" }}>
-                <div style={{
-                  fontSize: 10,
-                  fontWeight: 700,
-                  letterSpacing: 1.3,
-                  color: color.muted,
-                  fontFamily: fontMono,
-                  textTransform: "uppercase",
-                  marginBottom: 10,
-                }}>
-                  Volume
-                </div>
-                <ChromeSeek
-                  value={volume}
-                  max={1}
-                  onChange={onVolumeChange}
-                  label="Volume level"
-                />
-              </div>
-            </div>
+              Booth
+            </button>
           )}
+          <div ref={moreRef} style={{ position: "relative" }}>
+            <button
+              type="button"
+              onClick={() => setShowMore((m) => !m)}
+              aria-label="More"
+              aria-expanded={showMore}
+              style={circleChrome}
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                <circle cx="6" cy="12" r="1.6" />
+                <circle cx="12" cy="12" r="1.6" />
+                <circle cx="18" cy="12" r="1.6" />
+              </svg>
+            </button>
+            {showMore && (
+              <div
+                style={{
+                  position: "absolute",
+                  top: "112%",
+                  right: 0,
+                  minWidth: 200,
+                  background: "rgba(28,32,38,0.96)",
+                  border: `1px solid ${glass.border}`,
+                  borderRadius: radius.lg,
+                  padding: "6px 0",
+                  zIndex: 8,
+                  boxShadow: `inset 0 1px 0 ${glass.highlight}, 0 18px 48px rgba(0,0,0,0.45)`,
+                  backdropFilter: glass.blur,
+                  WebkitBackdropFilter: glass.blur,
+                  animation: `rise 0.22s ${EASE} both`,
+                }}
+              >
+                {onOpenLiner && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowMore(false);
+                      onOpenLiner(currentTrack);
+                    }}
+                    style={menuItemStyle}
+                  >
+                    Liner notes
+                  </button>
+                )}
+                {onHypno && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowMore(false);
+                      onHypno(currentTrack);
+                    }}
+                    style={menuItemStyle}
+                  >
+                    Near this
+                  </button>
+                )}
+                {onHypnoRadio && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowMore(false);
+                      onHypnoRadio(currentTrack);
+                    }}
+                    style={menuItemStyle}
+                  >
+                    <span>Near this radio</span>
+                    <span style={{ color: hypnoPocket ? y2k.chromeBright : color.faint, fontSize: 12 }}>
+                      {hypnoPocket ? "On" : "Off"}
+                    </span>
+                  </button>
+                )}
+                {roomLabel && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowMore(false);
+                      onOpenRoom?.();
+                    }}
+                    style={menuItemStyle}
+                  >
+                    Playing in {roomLabel}
+                  </button>
+                )}
+                <div style={{ height: 1, background: glass.borderSoft, margin: "4px 10px" }} />
+                {onToggleCrossfade && (
+                  <button
+                    type="button"
+                    onClick={() => onToggleCrossfade()}
+                    role="switch"
+                    aria-checked={crossfadeOn}
+                    style={menuItemStyle}
+                  >
+                    <span>Crossfade</span>
+                    <span
+                      aria-hidden="true"
+                      style={{
+                        width: 36,
+                        height: 22,
+                        borderRadius: 11,
+                        flexShrink: 0,
+                        position: "relative",
+                        background: crossfadeOn ? y2k.chrome : "rgba(26,29,36,0.45)",
+                        transition: `background ${motion.base} ${EASE}`,
+                        boxShadow: crossfadeOn ? `0 0 10px ${y2k.chromeGlow}` : "none",
+                      }}
+                    >
+                      <span
+                        style={{
+                          position: "absolute",
+                          top: 2,
+                          left: crossfadeOn ? 16 : 2,
+                          width: 18,
+                          height: 18,
+                          borderRadius: "50%",
+                          background: crossfadeOn ? y2k.offWhite : color.surfaceSolid,
+                          boxShadow: "0 1px 3px rgba(0,0,0,0.35)",
+                          transition: `left ${motion.base} ${EASE}`,
+                        }}
+                      />
+                    </span>
+                  </button>
+                )}
+                <div style={{ padding: "10px 16px 14px" }}>
+                  <div
+                    style={{
+                      fontSize: 10,
+                      fontWeight: 700,
+                      letterSpacing: 1.3,
+                      color: color.muted,
+                      fontFamily: fontMono,
+                      textTransform: "uppercase",
+                      marginBottom: 10,
+                    }}
+                  >
+                    Volume
+                  </div>
+                  <ChromeSeek value={volume} max={1} onChange={onVolumeChange} label="Volume level" />
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
       {tickerText && (
-        <div style={{ position: "relative", zIndex: 2, marginTop: 10, flexShrink: 0, opacity: 0.85 }}>
+        <div style={{ position: "relative", zIndex: 2, marginTop: 8, flexShrink: 0, opacity: 0.7 }}>
           <StationTicker text={tickerText} />
         </div>
       )}
 
-      {/* Center — sleeve + title */}
-      <div style={{
-        position: "relative",
-        zIndex: 2,
-        flex: 1,
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
-        padding: "6px 24px 8px",
-        minHeight: 0,
-        gap: 14,
-      }}>
+      {/* Center — sleeve theater */}
+      <div
+        style={{
+          position: "relative",
+          zIndex: 2,
+          flex: 1,
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          padding: "4px 20px 6px",
+          minHeight: 0,
+          gap: 16,
+        }}
+      >
         {dedicationFlash && (
           <DedicationFlash dedication={dedicationFlash} onDone={onClearDedication} />
         )}
 
-        {sessionArc?.energies?.length > 1 && (
-          <div style={{ width: "100%", maxWidth: 280, opacity: 0.7 }}>
-            <svg width="100%" height="22" viewBox="0 0 320 22" preserveAspectRatio="none" aria-hidden="true">
-              {(() => {
-                const energies = sessionArc.energies;
-                const idx = Math.min(sessionArc.index || 0, energies.length - 1);
-                const stepX = 320 / Math.max(energies.length - 1, 1);
-                const pts = energies.map((e, i) => `${i * stepX},${20 - ((e - 1) / 9) * 16}`).join(" ");
-                const cx = idx * stepX;
-                const cy = 20 - (((energies[idx] || 5) - 1) / 9) * 16;
-                return (
-                  <>
-                    <polyline points={pts} fill="none" stroke="rgba(26,29,36,0.18)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                    <circle cx={cx} cy={cy} r="3" fill={color.accent} />
-                  </>
-                );
-              })()}
-            </svg>
-          </div>
-        )}
-
-        {/* Jewel-case sleeve */}
+        {/* Jewel-case sleeve — dominant stage */}
         <div
           key={currentTrack.id}
           style={{
             position: "relative",
-            width: hasVideo ? "min(38vw, 148px)" : "min(68vw, 300px)",
+            width: hasVideo ? "min(42vw, 168px)" : "min(84vw, 360px)",
             aspectRatio: "1 / 1",
-            borderRadius: 18,
+            borderRadius: 16,
             padding: 3,
             background: `
-              linear-gradient(145deg, rgba(56,62,72,0.95) 0%, rgba(210,216,226,0.7) 48%, rgba(46,51,60,0.88) 100%)
+              linear-gradient(145deg, rgba(232,236,242,0.55) 0%, rgba(184,192,204,0.35) 42%, rgba(46,51,60,0.95) 100%)
             `,
             boxShadow: isPlaying ? artShadow.raised : artShadow.quiet,
             animation: isPlaying
-              ? `coverFloat 6s ease-in-out infinite, trackSwap 0.45s ${EASE} both`
+              ? `coverSettle 1.1s ${EASE} both, trackSwap 0.45s ${EASE} both`
               : `trackSwap 0.45s ${EASE} both`,
             opacity: hasVideo ? 0.94 : 1,
             flexShrink: 1,
             minHeight: 0,
-            maxHeight: "42vh",
+            maxHeight: hasVideo ? "28vh" : "52vh",
           }}
         >
-          <div style={{
-            position: "relative",
-            width: "100%",
-            height: "100%",
-            borderRadius: 15,
-            overflow: "hidden",
-            background: color.surfaceRaised,
-            border: `1px solid ${glass.borderSoft}`,
-          }}>
+          <div
+            style={{
+              position: "relative",
+              width: "100%",
+              height: "100%",
+              borderRadius: 13,
+              overflow: "hidden",
+              background: y2k.charcoalRaised,
+              border: "1px solid rgba(184,192,204,0.22)",
+            }}
+          >
             {currentTrack.albumCover ? (
               <CoverImage
                 src={currentTrack.albumCover}
                 alt=""
-                width={320}
-                height={320}
-                sizes="(max-width: 480px) 72vw, 320px"
+                width={360}
+                height={360}
+                sizes="(max-width: 480px) 84vw, 360px"
                 priority
                 onLoad={() => setArtLoaded(true)}
               />
             ) : (
-              <div style={{
-                width: "100%",
-                height: "100%",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                background: `linear-gradient(160deg, rgba(${rgb},0.35) 0%, ${color.surfaceRaised} 70%)`,
-                fontSize: 72,
-                fontWeight: 800,
-                color: `rgba(${rgb},0.55)`,
-                letterSpacing: -4,
-                fontFamily: fontDisplay,
-              }}>
+              <div
+                style={{
+                  width: "100%",
+                  height: "100%",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  background: y2k.artGradient,
+                  fontSize: 72,
+                  fontWeight: 800,
+                  color: "rgba(232,236,242,0.35)",
+                  letterSpacing: -4,
+                  fontFamily: fontDisplay,
+                }}
+              >
                 {(currentTrack.title || "P")[0]}
               </div>
             )}
-            {/* Specular corner */}
-            <div aria-hidden="true" style={{
-              position: "absolute",
-              inset: 0,
-              background: "linear-gradient(135deg, rgba(26,29,35,0.45) 0%, transparent 42%)",
-              pointerEvents: "none",
-            }} />
+            <div
+              aria-hidden="true"
+              style={{
+                position: "absolute",
+                inset: 0,
+                background: `
+                  linear-gradient(135deg, rgba(255,255,255,0.14) 0%, transparent 40%),
+                  linear-gradient(180deg, transparent 55%, rgba(10,11,13,0.28) 100%)
+                `,
+                pointerEvents: "none",
+              }}
+            />
           </div>
         </div>
 
-        {/* Title — premium hierarchy, not TV lower-third */}
-        <div style={{
-          width: "100%",
-          maxWidth: 400,
-          textAlign: "center",
-          animation: `trackSwap 0.4s ${EASE} both`,
-        }}>
-          <div style={{
-            fontFamily: fontDisplay,
-            fontSize: "clamp(22px, 5.6vw, 30px)",
-            fontWeight: 700,
-            letterSpacing: -0.7,
-            color: color.ink,
-            lineHeight: 1.12,
-            marginBottom: 6,
-            overflow: "hidden",
-            display: "-webkit-box",
-            WebkitLineClamp: 2,
-            WebkitBoxOrient: "vertical",
-          }}>
+        {/* Title hierarchy */}
+        <div
+          style={{
+            width: "100%",
+            maxWidth: 420,
+            textAlign: "center",
+            animation: `trackSwap 0.4s ${EASE} both`,
+          }}
+        >
+          <div
+            style={{
+              fontFamily: fontDisplay,
+              fontSize: "clamp(24px, 6vw, 34px)",
+              fontWeight: 750,
+              letterSpacing: -0.8,
+              color: y2k.offWhite,
+              lineHeight: 1.1,
+              marginBottom: 8,
+              overflow: "hidden",
+              display: "-webkit-box",
+              WebkitLineClamp: 2,
+              WebkitBoxOrient: "vertical",
+            }}
+          >
             {currentTrack.title}
           </div>
           {onOpenArtist ? (
@@ -778,71 +831,159 @@ export default function ImmersivePlayer({
             </div>
           )}
 
-          {(metaBits.length > 0 || hasVideo || liveShow?.host) && (
-            <div style={{
-              marginTop: 12,
-              display: "flex",
-              justifyContent: "center",
-              gap: 6,
-              flexWrap: "wrap",
-            }}>
-              {metaBits.map((m) => <MetaChip key={m}>{m}</MetaChip>)}
-              <VideoBadge track={currentTrack} />
-              {liveShow?.host && <HostCreditChip show={liveShow} />}
+          {metaBits.length > 0 && (
+            <div
+              style={{
+                marginTop: 10,
+                fontFamily: fontMono,
+                fontSize: 11,
+                fontWeight: 650,
+                letterSpacing: 1.1,
+                textTransform: "uppercase",
+                color: y2k.chromeMid,
+                lineHeight: 1.35,
+              }}
+            >
+              {metaBits.join(" · ")}
             </div>
           )}
+
+          {upNextTrack && (
+            <button
+              type="button"
+              onClick={() => onShowQueue?.()}
+              style={{
+                marginTop: 12,
+                background: "none",
+                border: "none",
+                padding: 0,
+                cursor: onShowQueue ? "pointer" : "default",
+                fontFamily: fontMono,
+                fontSize: 11,
+                fontWeight: 650,
+                letterSpacing: 0.8,
+                textTransform: "uppercase",
+                color: color.muted,
+                maxWidth: "100%",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                whiteSpace: "nowrap",
+              }}
+            >
+              <span style={{ color: y2k.chromeBright }}>Up next</span>
+              {" · "}
+              {upNextTrack.title}
+            </button>
+          )}
         </div>
-
-        {upNextTrack && (
-          <div style={{ width: "100%", maxWidth: 360, opacity: 0.9 }}>
-            <UpNextBumper track={upNextTrack} />
-          </div>
-        )}
-
-        <BoothStrip
-          track={currentTrack}
-          onRequest={onRequest}
-          requested={requested}
-          onDedicate={onDedicate}
-        />
-
-        {onTuneSceneChannel && (
-          <div style={{ width: "100%", maxWidth: 400, marginTop: 2 }}>
-            <SceneSurfRail
-              tracks={tracks}
-              activeChannelId={sceneChannelsActiveId}
-              onTuneChannel={onTuneSceneChannel}
-              compact
-            />
-          </div>
-        )}
       </div>
 
-      {/* Transport deck — frosted remote */}
-      <div style={{
-        position: "relative",
-        zIndex: 3,
-        padding: "0 16px calc(18px + env(safe-area-inset-bottom, 0px))",
-        flexShrink: 0,
-      }}>
-        <div style={{
-          maxWidth: 420,
-          margin: "0 auto",
-          padding: "16px 18px 18px",
-          borderRadius: 22,
-          background: `
-            linear-gradient(165deg, rgba(38,43,51,0.82) 0%, rgba(28,32,38,0.55) 100%)
-          `,
-          border: `1px solid rgba(255,255,255,0.14)`,
-          boxShadow: `
-            inset 0 1px 0 ${glass.highlight},
-            0 -1px 0 rgba(22,24,30,0.04),
-            0 18px 48px rgba(22,24,30,0.12)
-          `,
-          backdropFilter: glass.blurHeavy,
-          WebkitBackdropFilter: glass.blurHeavy,
-          animation: `dockRise 0.5s ${EASE} both`,
-        }}>
+      {/* Booth drawer — demoted secondary tools */}
+      {showBooth && hasBoothTools && (
+        <div
+          style={{
+            position: "relative",
+            zIndex: 3,
+            flexShrink: 0,
+            padding: "0 16px 10px",
+            animation: `rise 0.28s ${EASE} both`,
+          }}
+        >
+          <div
+            style={{
+              maxWidth: 420,
+              margin: "0 auto",
+              padding: "12px 14px 14px",
+              borderRadius: 16,
+              background: `
+                linear-gradient(165deg, rgba(30,34,40,0.92) 0%, rgba(18,20,24,0.88) 100%)
+              `,
+              border: "1px solid rgba(255,255,255,0.12)",
+              boxShadow: `inset 0 1px 0 ${glass.highlight}, ${glass.shadowSoft}`,
+              backdropFilter: glass.blurSoft,
+              WebkitBackdropFilter: glass.blurSoft,
+              display: "flex",
+              flexDirection: "column",
+              gap: 10,
+            }}
+          >
+            {sessionArc?.energies?.length > 1 && (
+              <div style={{ width: "100%", opacity: 0.75 }}>
+                <svg width="100%" height="22" viewBox="0 0 320 22" preserveAspectRatio="none" aria-hidden="true">
+                  {(() => {
+                    const energies = sessionArc.energies;
+                    const idx = Math.min(sessionArc.index || 0, energies.length - 1);
+                    const stepX = 320 / Math.max(energies.length - 1, 1);
+                    const pts = energies
+                      .map((e, i) => `${i * stepX},${20 - ((e - 1) / 9) * 16}`)
+                      .join(" ");
+                    const cx = idx * stepX;
+                    const cy = 20 - (((energies[idx] || 5) - 1) / 9) * 16;
+                    return (
+                      <>
+                        <polyline
+                          points={pts}
+                          fill="none"
+                          stroke="rgba(184,192,204,0.35)"
+                          strokeWidth="1.5"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                        <circle cx={cx} cy={cy} r="3" fill={y2k.chromeBright} />
+                      </>
+                    );
+                  })()}
+                </svg>
+              </div>
+            )}
+            <BoothStrip
+              track={currentTrack}
+              onRequest={onRequest}
+              requested={requested}
+              onDedicate={onDedicate}
+            />
+            {onTuneSceneChannel && (
+              <SceneSurfRail
+                tracks={tracks}
+                activeChannelId={sceneChannelsActiveId}
+                onTuneChannel={onTuneSceneChannel}
+                compact
+              />
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Transport deck — machined aluminum remote */}
+      <div
+        style={{
+          position: "relative",
+          zIndex: 3,
+          padding: "0 16px calc(18px + env(safe-area-inset-bottom, 0px))",
+          flexShrink: 0,
+        }}
+      >
+        <div
+          style={{
+            maxWidth: 420,
+            margin: "0 auto",
+            padding: "16px 18px 18px",
+            borderRadius: 18,
+            background: `
+              linear-gradient(180deg, rgba(255,255,255,0.06) 0%, transparent 40%),
+              linear-gradient(165deg, rgba(38,43,51,0.94) 0%, rgba(22,25,30,0.92) 100%)
+            `,
+            border: "1px solid rgba(255,255,255,0.14)",
+            boxShadow: `
+              inset 0 1px 0 ${glass.highlight},
+              inset 0 -1px 0 rgba(0,0,0,0.35),
+              0 18px 48px rgba(0,0,0,0.4)
+            `,
+            backdropFilter: glass.blurHeavy,
+            WebkitBackdropFilter: glass.blurHeavy,
+            animation: `dockRise 0.5s ${EASE} both`,
+          }}
+        >
           <div style={{ marginBottom: 4 }}>
             <ChromeSeek
               value={progress}
@@ -851,30 +992,34 @@ export default function ImmersivePlayer({
               label="Seek"
               valueText={`${fmtTime(progress)} of ${fmtTime(duration)}`}
             />
-            <div style={{
-              marginTop: 2,
-              display: "flex",
-              justifyContent: "space-between",
-              fontSize: 11,
-              color: color.muted,
-              fontFamily: fontMono,
-              fontVariantNumeric: "tabular-nums",
-              letterSpacing: 0.3,
-              padding: "0 2px",
-            }}>
+            <div
+              style={{
+                marginTop: 2,
+                display: "flex",
+                justifyContent: "space-between",
+                fontSize: 11,
+                color: color.muted,
+                fontFamily: fontMono,
+                fontVariantNumeric: "tabular-nums",
+                letterSpacing: 0.3,
+                padding: "0 2px",
+              }}
+            >
               <span>{fmtTime(progress)}</span>
               <span>{fmtTime(duration)}</span>
             </div>
           </div>
 
-          <div style={{
-            position: "relative",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: 10,
-            marginTop: 8,
-          }}>
+          <div
+            style={{
+              position: "relative",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 10,
+              marginTop: 8,
+            }}
+          >
             <EnergyShiftFeedback bottom="calc(100% + 14px)" />
 
             <ChromeIconButton
@@ -891,18 +1036,20 @@ export default function ImmersivePlayer({
               <Icon name="prev" size={20} />
             </ChromeIconButton>
 
-            <div style={{
-              padding: 3,
-              borderRadius: "50%",
-              background: `
-                linear-gradient(145deg, rgba(56,62,72,0.95) 0%, rgba(200,208,220,0.65) 100%)
-              `,
-              boxShadow: `inset 0 1px 0 ${glass.highlight}, 0 8px 24px rgba(22,24,30,0.12)`,
-            }}>
+            <div
+              style={{
+                padding: 3,
+                borderRadius: "50%",
+                background: `
+                  linear-gradient(145deg, rgba(232,236,242,0.45) 0%, rgba(184,192,204,0.2) 45%, rgba(46,51,60,0.95) 100%)
+                `,
+                boxShadow: `inset 0 1px 0 rgba(255,255,255,0.35), 0 8px 24px rgba(0,0,0,0.35), 0 0 20px ${y2k.chromeGlow}`,
+              }}
+            >
               <IceOrbPlay
                 isPlaying={isPlaying}
                 onClick={onTogglePlay}
-                size={68}
+                size={72}
                 glowing={isPlaying}
               />
             </div>
@@ -916,14 +1063,16 @@ export default function ImmersivePlayer({
             </div>
           </div>
 
-          <div style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            marginTop: 14,
-            padding: "0 4px",
-            gap: 8,
-          }}>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              marginTop: 14,
+              padding: "0 4px",
+              gap: 8,
+            }}
+          >
             {!isRadioMode && onToggleShuffle ? (
               <ChromeIconButton
                 onClick={onToggleShuffle}
@@ -938,22 +1087,19 @@ export default function ImmersivePlayer({
               <span style={{ width: 40 }} aria-hidden="true" />
             )}
 
-            <div style={{
-              flex: 1,
-              display: "flex",
-              alignItems: "center",
-              gap: 10,
-              padding: "0 6px",
-            }}>
-              <span style={{ color: color.faint, display: "flex", flexShrink: 0 }} aria-hidden="true">
+            <div
+              style={{
+                flex: 1,
+                display: "flex",
+                alignItems: "center",
+                gap: 10,
+                padding: "0 6px",
+              }}
+            >
+              <span style={{ color: y2k.chromeMid, display: "flex", flexShrink: 0 }} aria-hidden="true">
                 <Icon name="volume" size={14} />
               </span>
-              <ChromeSeek
-                value={volume}
-                max={1}
-                onChange={onVolumeChange}
-                label="Volume"
-              />
+              <ChromeSeek value={volume} max={1} onChange={onVolumeChange} label="Volume" />
             </div>
 
             {!isRadioMode && onCycleRepeat ? (
@@ -967,15 +1113,20 @@ export default function ImmersivePlayer({
                 <span style={{ position: "relative", display: "flex" }}>
                   <Icon name="repeat" size={15} />
                   {repeat === "one" && (
-                    <span aria-hidden="true" style={{
-                      position: "absolute",
-                      top: -4,
-                      right: -6,
-                      fontSize: 9,
-                      fontWeight: 800,
-                      color: color.accent,
-                      fontFamily: fontMono,
-                    }}>1</span>
+                    <span
+                      aria-hidden="true"
+                      style={{
+                        position: "absolute",
+                        top: -4,
+                        right: -6,
+                        fontSize: 9,
+                        fontWeight: 800,
+                        color: y2k.chromeBright,
+                        fontFamily: fontMono,
+                      }}
+                    >
+                      1
+                    </span>
                   )}
                 </span>
               </ChromeIconButton>
@@ -1000,7 +1151,7 @@ export default function ImmersivePlayer({
                   fontFamily: fontMono,
                   letterSpacing: 1,
                   textTransform: "uppercase",
-                  color: color.muted,
+                  color: y2k.chromeMid,
                   padding: "6px 12px",
                 }}
               >

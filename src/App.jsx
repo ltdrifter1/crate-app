@@ -302,6 +302,11 @@ const injectStyles = () => {
       0%, 100% { transform: translateY(0); }
       50% { transform: translateY(-4px); }
     }
+    @keyframes coverSettle {
+      0% { transform: translateY(6px) scale(0.985); opacity: 0.88; }
+      55% { transform: translateY(-3px) scale(1.01); opacity: 1; }
+      100% { transform: none; opacity: 1; }
+    }
     @keyframes energyPillLife {
       0% { opacity:0; transform:translateY(8px) scale(0.96) }
       14% { opacity:1; transform:none }
