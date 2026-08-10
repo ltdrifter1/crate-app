@@ -1,10 +1,10 @@
 import { useRef } from "react";
 import Icon from "../ui/Icon";
 import { AlbumArt } from "../listen/AlbumArt";
-import { color, glass, motion } from "../../theme";
+import { color, glass, motion, y2k } from "../../theme";
 
-// ─── Shared transport primitives (ice orb + orbital progress) ─────────────────
-/** Circular ice primary play — shared by hero, dock, immersive, desktop. */
+// ─── Shared transport primitives (aluminum orb + orbital progress) ────────────
+/** Circular aluminum primary play — shared by hero, dock, immersive, desktop. */
 export function IceOrbPlay({
   isPlaying = false,
   onClick,
@@ -33,13 +33,13 @@ export function IceOrbPlay({
         background: disabled
           ? color.surfaceRaised
           : `
-            linear-gradient(160deg, rgba(56,62,72,0.96) 0%, rgba(28,32,38,0.88) 48%, rgba(214,220,230,0.78) 100%)
+            linear-gradient(160deg, rgba(232,236,242,0.92) 0%, rgba(184,192,204,0.75) 42%, rgba(58,65,76,0.95) 100%)
           `,
-        border: `1px solid ${disabled ? glass.borderSoft : glass.border}`,
+        border: `1px solid ${disabled ? glass.borderSoft : "rgba(255,255,255,0.28)"}`,
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        color: disabled ? color.faint : color.ink,
+        color: disabled ? color.faint : color.onAccent,
         cursor: disabled ? "not-allowed" : "pointer",
         flexShrink: 0,
         backdropFilter: disabled ? "none" : glass.blur,
@@ -47,8 +47,8 @@ export function IceOrbPlay({
         boxShadow: disabled
           ? "none"
           : glowing
-            ? `inset 0 1px 0 ${glass.highlight}, inset 0 -1px 0 rgba(0,0,0,0.35), 0 0 0 5px ${color.accentSoft}, 0 12px 32px rgba(0,0,0,0.45)`
-            : `inset 0 1px 0 ${glass.highlight}, inset 0 -1px 0 rgba(0,0,0,0.3), 0 10px 28px rgba(0,0,0,0.4)`,
+            ? `inset 0 1px 0 rgba(255,255,255,0.55), inset 0 -1px 0 rgba(0,0,0,0.35), 0 0 0 5px ${y2k.chromeSoft}, 0 0 22px ${y2k.chromeGlow}, 0 12px 32px rgba(0,0,0,0.45)`
+            : `inset 0 1px 0 rgba(255,255,255,0.4), inset 0 -1px 0 rgba(0,0,0,0.3), 0 10px 28px rgba(0,0,0,0.4)`,
         transition: `transform ${motion.fast} ${motion.ease}, box-shadow ${motion.base} ${motion.ease}`,
       }}
     >
@@ -126,7 +126,7 @@ export function OrbitalArtRing({
           cy={svgSize / 2}
           r={r}
           fill="none"
-          stroke={color.accent}
+          stroke={y2k.chromeBright}
           strokeWidth={stroke}
           strokeLinecap="round"
           strokeDasharray={`${dash} ${Math.max(0, circ - dash)}`}
@@ -204,7 +204,7 @@ export function OrbitalPlayControl({
           cy={ring / 2}
           r={r}
           fill="none"
-          stroke={color.accent}
+          stroke={y2k.chromeBright}
           strokeWidth={stroke}
           strokeLinecap="round"
           strokeDasharray={`${dash} ${Math.max(0, circ - dash)}`}
