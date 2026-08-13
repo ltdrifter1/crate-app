@@ -19,8 +19,8 @@ describe("Planet MP3 identity", () => {
   });
 
   test("exact logo assets are wired (no placeholders)", () => {
-    expect(BRAND_LOCKUP_SRC).toBe("/brand/planet-mp3-lockup.png");
-    expect(BRAND_MARK_SRC).toBe("/brand/logo-mark.png");
-    expect(BRAND_MARK_INVERSE_SRC).toBe("/brand/logo-mark-inverse.png");
+    expect(BRAND_LOCKUP_SRC).toBe("/brand/planet-mp3-lockup-512.png");
+    expect(BRAND_MARK_SRC).toBe("/brand/logo-mark-128.png");
+    expect(BRAND_MARK_INVERSE_SRC).toBe("/brand/logo-mark-inverse-128.png");
   });
 });

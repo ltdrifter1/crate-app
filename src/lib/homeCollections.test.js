@@ -22,10 +22,12 @@ describe("homeCollections", () => {
     expect(savedTracks(tracks).map((t) => t.id)).toEqual(["1", "2"]);
   });
 
-  test("buildHomeCollections stays quiet — no Saved shelf, max two rails", () => {
+  test("buildHomeCollections stays quiet — no Saved or Late booth, max one rail", () => {
     const cols = buildHomeCollections(tracks);
     expect(cols.every((c) => c.id !== "saved")).toBe(true);
-    expect(cols.length).toBeLessThanOrEqual(2);
+    expect(cols.every((c) => c.id !== "soft-evening")).toBe(true);
+    expect(cols.every((c) => c.label !== "Late booth")).toBe(true);
+    expect(cols.length).toBeLessThanOrEqual(1);
   });
 
   test("rediscoveredTracks finds quiet favourites", () => {

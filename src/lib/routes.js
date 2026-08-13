@@ -3,6 +3,7 @@ import { BRAND_NAME } from "../theme";
 
 export const SCREEN_TO_PATH = {
   home: "/home",
+  explore: "/explore",
   charts: "/charts",
   favorites: "/discover",
   search: "/search",
@@ -16,6 +17,7 @@ export const SCREEN_TO_PATH = {
 export const PATH_TO_SCREEN = {
   "/": "home",
   "/home": "home",
+  "/explore": "explore",
   "/charts": "charts",
   "/discover": "favorites",
   "/favorites": "favorites",
@@ -111,6 +113,7 @@ export function documentTitleFor(screen, label) {
   if (label) return `${label} · ${BRAND_NAME}`;
   const labels = {
     home: "Home",
+    explore: "Explore",
     charts: "Charts",
     favorites: "Library",
     search: "Search",

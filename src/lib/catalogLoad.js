@@ -59,3 +59,63 @@ export function isCatalogCacheFresh(entry, now = Date.now(), ttlMs = CATALOG_CAC
   if (!Number.isFinite(ts) || ts <= 0) return false;
   return now - ts < ttlMs;
 }
+
+/* ── IndexedDB catalog store (avoids sync localStorage JSON on large shelves) ─ */
+
+const IDB_NAME = "planetmp3-catalog";
+const IDB_STORE = "cache";
+const IDB_VERSION = 1;
+
+function openCatalogIdb() {
+  if (typeof indexedDB === "undefined") return Promise.reject(new Error("no idb"));
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open(IDB_NAME, IDB_VERSION);
+    req.onerror = () => reject(req.error || new Error("idb open failed"));
+    req.onupgradeneeded = () => {
+      const db = req.result;
+      if (!db.objectStoreNames.contains(IDB_STORE)) {
+        db.createObjectStore(IDB_STORE);
+      }
+    };
+    req.onsuccess = () => resolve(req.result);
+  });
+}
+
+/** Read cached catalog entry `{ ts, tracks }` from IndexedDB. */
+export async function readCatalogIdb(key) {
+  try {
+    const db = await openCatalogIdb();
+    return await new Promise((resolve, reject) => {
+      const tx = db.transaction(IDB_STORE, "readonly");
+      const req = tx.objectStore(IDB_STORE).get(key);
+      req.onerror = () => reject(req.error);
+      req.onsuccess = () => {
+        const v = req.result;
+        if (!v || !Array.isArray(v.tracks) || !v.tracks.length) resolve(null);
+        else resolve({ ts: Number(v.ts) || 0, tracks: v.tracks });
+      };
+      tx.oncomplete = () => db.close();
+    });
+  } catch {
+    return null;
+  }
+}
+
+/** Persist catalog entry to IndexedDB (best-effort). */
+export async function writeCatalogIdb(key, tracks) {
+  try {
+    const db = await openCatalogIdb();
+    await new Promise((resolve, reject) => {
+      const tx = db.transaction(IDB_STORE, "readwrite");
+      tx.objectStore(IDB_STORE).put({ ts: Date.now(), tracks }, key);
+      tx.onerror = () => reject(tx.error);
+      tx.oncomplete = () => {
+        db.close();
+        resolve();
+      };
+    });
+    return true;
+  } catch {
+    return false;
+  }
+}

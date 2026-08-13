@@ -7,7 +7,7 @@ This file tracks work that needs backend, infra, or larger refactors — not blo
 ## Catalog & data
 
 - **Versioned catalog CDN** — export Firestore → gzipped JSON (or protobuf) behind a cacheable URL; clients fetch by `catalogVersion` instead of full `getDocs` on every cold miss.
-- **IndexedDB catalog store** — replace sync `localStorage` JSON (quota + main-thread parse) with IDB + worker parse; keep a tiny boot stub in memory.
+- **IndexedDB catalog store** — ✅ primary warm-start path shipped; still TODO: worker parse + tiny boot stub only in memory (no sync localStorage for large shelves beyond the small stub).
 - **Incremental sync** — `updatedAt` watermark / Firestore listeners for changed docs only; avoid full-shelf re-enrich on every background refresh.
 - **Scene index at write time** — compute `_scene` / `_scenes` in Admin upload or a Cloud Function so clients don’t pay O(N×scenes) on load.
 
@@ -29,7 +29,7 @@ This file tracks work that needs backend, infra, or larger refactors — not blo
 
 ## Images & delivery
 
-- **Cover `srcset` / AVIF-WebP pipeline** — resize on upload (Cloud Function or Imgix-style CDN); `CoverImage` already exists — feed it real variants.
+- **Cover `srcset` / AVIF-WebP pipeline** — resize on upload (Cloud Function or Imgix-style CDN); `CoverImage` already exists — feed it real variants. Brand lockups now ship 256/512 + WebP display sizes.
 - **Audio CDN edge cache** — long-cache immutable object names; signed URL short-TTL if needed for entitlement gating.
 
 ## App shell
@@ -37,3 +37,10 @@ This file tracks work that needs backend, infra, or larger refactors — not blo
 - **Further App-root thrash cuts** — stabilize `playlistCtx`, avoid passing full `tracks` into hot station chrome where a selector suffices.
 - **Worker for search / ranking** — move fold+score off the main thread for large catalogs.
 - **Route-level data loaders** — prefetch catalog/profile per route instead of always warming everything at App mount.
+
+## Shipped (follow-ups from Aug 2026 audit)
+
+- Display-sized brand lockups (256/512 + WebP) instead of 1MB+ masters in chrome/splash.
+- Slimmer Google Fonts weight set (500/700 only).
+- Lazy `LoginScreen` + IndexedDB-first catalog cache (localStorage stub only for small shelves).
+- Explore tab hosts Discover; Home Channel surfing is its own section under Most requested.

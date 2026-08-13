@@ -2,13 +2,58 @@
  * Planet MP3 brand marks — exact lockup / mark assets in /public/brand.
  * Lockup master is the authentic Y2K stippled planet + PLANET MP3 wordmark
  * on the black plate (matches the brand export).
+ *
+ * Display-sized variants (256 / 512 + WebP) keep splash / chrome off the
+ * multi‑megabyte master PNGs.
  */
 
-export const BRAND_LOCKUP_SRC = "/brand/planet-mp3-lockup.png";
+export const BRAND_LOCKUP_SRC = "/brand/planet-mp3-lockup-512.png";
+export const BRAND_LOCKUP_SRCSET =
+  "/brand/planet-mp3-lockup-256.png 256w, /brand/planet-mp3-lockup-512.png 512w";
+export const BRAND_LOCKUP_WEBP = "/brand/planet-mp3-lockup-512.webp";
+
 /** Solid black-plate export — same lockup; use for filled dark marks. */
-export const BRAND_LOCKUP_ON_BLACK_SRC = "/brand/planet-mp3-lockup-on-black.png";
-export const BRAND_MARK_SRC = "/brand/logo-mark.png";
-export const BRAND_MARK_INVERSE_SRC = "/brand/logo-mark-inverse.png";
+export const BRAND_LOCKUP_ON_BLACK_SRC = "/brand/planet-mp3-lockup-on-black-512.png";
+export const BRAND_LOCKUP_ON_BLACK_SRCSET =
+  "/brand/planet-mp3-lockup-on-black-256.png 256w, /brand/planet-mp3-lockup-on-black-512.png 512w";
+export const BRAND_LOCKUP_ON_BLACK_WEBP = "/brand/planet-mp3-lockup-on-black-512.webp";
+
+export const BRAND_MARK_SRC = "/brand/logo-mark-128.png";
+export const BRAND_MARK_INVERSE_SRC = "/brand/logo-mark-inverse-128.png";
+
+/** Masters kept for OG / high-DPI print — not used in app chrome. */
+export const BRAND_LOCKUP_MASTER_SRC = "/brand/planet-mp3-lockup.png";
+export const BRAND_LOCKUP_ON_BLACK_MASTER_SRC = "/brand/planet-mp3-lockup-on-black.png";
+
+function LockupPicture({
+  onBlack = false,
+  size,
+  title,
+  style,
+  draggable = false,
+}) {
+  const png = onBlack ? BRAND_LOCKUP_ON_BLACK_SRC : BRAND_LOCKUP_SRC;
+  const srcSet = onBlack ? BRAND_LOCKUP_ON_BLACK_SRCSET : BRAND_LOCKUP_SRCSET;
+  const webp = onBlack ? BRAND_LOCKUP_ON_BLACK_WEBP : BRAND_LOCKUP_WEBP;
+  const sizes = `${Math.max(12, Math.round(Number(size) || 280))}px`;
+
+  return (
+    <picture>
+      <source type="image/webp" srcSet={webp} sizes={sizes} />
+      <img
+        src={png}
+        srcSet={srcSet}
+        sizes={sizes}
+        alt={title || ""}
+        width={Math.max(12, Math.round(Number(size) || 280))}
+        height={Math.max(12, Math.round(Number(size) || 280))}
+        draggable={draggable}
+        decoding="async"
+        style={style}
+      />
+    </picture>
+  );
+}
 
 /**
  * App-icon mark — uses the exact black-plate lockup so chrome matches the brand.
@@ -21,12 +66,10 @@ export function BrandGlyph({
 }) {
   const s = Math.max(12, size);
   return (
-    <img
-      src={inverse ? BRAND_LOCKUP_SRC : BRAND_LOCKUP_ON_BLACK_SRC}
-      alt={title || ""}
-      width={s}
-      height={s}
-      draggable={false}
+    <LockupPicture
+      onBlack={!inverse}
+      size={s}
+      title={title}
       style={{
         width: s,
         height: s,
@@ -53,10 +96,10 @@ export function BrandLockup({
   compact = false,
 }) {
   const face = (
-    <img
-      src={onBlack || compact ? BRAND_LOCKUP_ON_BLACK_SRC : BRAND_LOCKUP_SRC}
-      alt={title || ""}
-      draggable={false}
+    <LockupPicture
+      onBlack={onBlack || compact}
+      size={size}
+      title={title}
       style={{
         width: "100%",
         maxWidth: size,
