@@ -7,7 +7,11 @@
  */
 import { useEffect, useState, lazy, Suspense } from "react";
 import { BRAND_NAME } from "../../theme";
-import { BRAND_LOCKUP_SRC } from "./BrandGlyphs";
+import {
+  BRAND_LOCKUP_SRC,
+  BRAND_LOCKUP_SRCSET,
+  BRAND_LOCKUP_WEBP,
+} from "./BrandGlyphs";
 
 const PUBLIC_LOTTIE_URL = "/brand/splash-loader.json";
 
@@ -35,21 +39,29 @@ function isPlaceholderAnimation(data) {
 }
 
 function StaticLockup({ size, edge }) {
+  const sizes = typeof edge === "string" ? edge : `${size}px`;
   return (
-    <img
-      src={BRAND_LOCKUP_SRC}
-      alt={BRAND_NAME}
-      width={size}
-      height={size}
-      draggable={false}
-      style={{
-        width: "100%",
-        height: "100%",
-        display: "block",
-        objectFit: "contain",
-        background: "transparent",
-      }}
-    />
+    <picture>
+      <source type="image/webp" srcSet={BRAND_LOCKUP_WEBP} sizes={sizes} />
+      <img
+        src={BRAND_LOCKUP_SRC}
+        srcSet={BRAND_LOCKUP_SRCSET}
+        sizes={sizes}
+        alt={BRAND_NAME}
+        width={size}
+        height={size}
+        draggable={false}
+        decoding="async"
+        fetchPriority="high"
+        style={{
+          width: "100%",
+          height: "100%",
+          display: "block",
+          objectFit: "contain",
+          background: "transparent",
+        }}
+      />
+    </picture>
   );
 }
 

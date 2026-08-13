@@ -50,7 +50,7 @@ export function wishlistish(tracks = [], limit = 12) {
 
 /**
  * Quiet home shelves — Saved is rendered separately on Home.
- * Cap at two curated rails so the wall doesn't sprawl.
+ * One curated rail so the wall doesn't sprawl (Late booth retired).
  */
 export function buildHomeCollections(tracks = []) {
   const singles = tracks.filter((t) => (t.duration || 0) <= 900);
@@ -61,14 +61,8 @@ export function buildHomeCollections(tracks = []) {
       story: "Cuts you’ve spun — worth another drop",
       tracks: rediscoveredTracks(singles),
     },
-    {
-      id: "soft-evening",
-      label: "Late booth",
-      story: "Low lights, slow press",
-      tracks: softEvening(singles),
-    },
   ];
-  return candidates.filter((c) => c.tracks.length > 0).slice(0, 2);
+  return candidates.filter((c) => c.tracks.length > 0).slice(0, 1);
 }
 
 /** Saved shelf for Personal Home. */
