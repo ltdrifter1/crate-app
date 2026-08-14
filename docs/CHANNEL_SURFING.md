@@ -2,16 +2,28 @@
 
 Home **Channel Surfing** uses nine fixed dials (`src/lib/sceneChannels.js`).
 
-| CH | Title | Match today | Source mapping (later) |
-|----|-------|-------------|------------------------|
+| CH | Title | Match today | Source mapping |
+|----|-------|-------------|----------------|
 | 01 | Y2K Dance | Genre / house–garage–disco–trance scenes | **by genre** |
 | 02 | Variety Mix | Full-shelf variety pad | **curator** shelf / playlist |
-| 03 | Local Pacific Northwest | PNW region/keywords (+ `audioasis` batch hint) | **Audioasis** batch upload |
-| 04 | Electronic | Techno/warehouse scenes + energy (+ `expansions` batch hint) | **expansions** |
+| 03 | Local Pacific Northwest | PNW region/keywords + `batch` includes `audioasis` | **Audioasis** batch upload |
+| 04 | Electronic | Techno/warehouse scenes + energy + `batch` includes `expansion` | **expansions** |
 | 05 | Drum & Bass | DnB / jungle / liquid scenes | **by genre** |
 | 06 | Emo & Shoegaze | Genre + emo/shoegaze keywords | **by genre** |
-| 07 | Metal | Metal genre / metal scene / keywords | **by genre** |
-| 08 | Punk | Punk keywords (punk normalizes into Rock) | **by genre** |
-| 09 | Country & Folk | Country & Folk genre / folk scene / keywords | **by genre** |
+| 07 | Metal | `batch` includes `metal` (+ Metal genre / scene) | **metal** batch upload |
+| 08 | Punk | `batch` includes `punk` (+ punk keywords) | **punk** batch upload |
+| 09 | Country & Folk | `batch` includes `country-folk` / `country` / `folk` (+ genre) | **country-folk** batch upload |
 
-When curator / Audioasis / expansions metadata lands on tracks (`curator`, `batch`, `source`, etc.), tighten CH-02/03/04 to those sources and stop soft pads where noted in `CHANNEL_SOURCE_NOTES`.
+## Batch uploads (Audioasis-style)
+
+Set `batch` on each track (CSV column or Firestore field), same pattern as Audioasis:
+
+| Channel | Example `batch` values |
+|---------|------------------------|
+| Local PNW (CH-03) | `audioasis-wave-1`, `audioasis-wave-2` |
+| Electronic (CH-04) | `expansions-wave-1` |
+| Metal (CH-07) | `metal-wave-1`, `metal-wave-2` |
+| Punk (CH-08) | `punk-wave-1`, `punk-wave-2` |
+| Country & Folk (CH-09) | `country-folk-wave-1`, `country-wave-1`, `folk-wave-1` |
+
+`upload-tracks.js` and Admin CSV import/export accept a `batch` column. Prefixes live in `CHANNEL_BATCH_PREFIXES`.
