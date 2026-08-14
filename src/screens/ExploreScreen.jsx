@@ -6,15 +6,16 @@ import {
   motion,
   y2k,
 } from "../theme";
-import { recommendedPicks } from "../lib/homeCollections";
+import { featuredReleases, recommendedPicks } from "../lib/homeCollections";
 import { useCurrentTrack } from "../usePlayerTransport";
 import MusicSection, { Rail } from "../components/home/MusicSection";
 import TrackCard from "../components/home/TrackCard";
+import ReleaseCard from "../components/home/ReleaseCard";
 import CardContainer from "../components/home/CardContainer";
 
 /**
- * Explore — Discover new music as its own destination.
- * Home stays broadcast-first; this tab is for digging.
+ * Explore — dig shelf: Discover, Featured releases, Recently played.
+ * Home stays broadcast-first.
  */
 function ExploreScreen({
   tracks = [],
@@ -23,9 +24,11 @@ function ExploreScreen({
   userKey = "",
   onPlayTrack = null,
   onOpenSearch = null,
+  onOpenAlbum = null,
 }) {
   const currentTrack = useCurrentTrack();
   const activeId = currentTrack?.id;
+  const featuredSize = homeSpace.tileFeatured;
 
   const discover = useMemo(
     () =>
@@ -38,6 +41,26 @@ function ExploreScreen({
       }),
     [tracks, preferredGenres, recentTrackIds, userKey]
   );
+
+  const releases = useMemo(() => featuredReleases(tracks, 10), [tracks]);
+
+  const recentlyPlayed = useMemo(() => {
+    if (!recentTrackIds.length) return [];
+    const byId = new Map(tracks.map((t) => [t.id, t]));
+    const seen = new Set();
+    const out = [];
+    for (const id of recentTrackIds) {
+      if (seen.has(id)) continue;
+      seen.add(id);
+      const t = byId.get(id);
+      if (t) out.push(t);
+      if (out.length >= 12) break;
+    }
+    return out;
+  }, [recentTrackIds, tracks]);
+
+  const hasAny =
+    discover.picks.length > 0 || releases.length > 0 || recentlyPlayed.length > 0;
 
   return (
     <div
@@ -79,11 +102,11 @@ function ExploreScreen({
             maxWidth: 360,
           }}
         >
-          Discover new music — fresh cuts selected for you.
+          Discover new music, featured sleeves, and what you spun last.
         </p>
       </header>
 
-      {discover.picks.length > 0 ? (
+      {discover.picks.length > 0 && (
         <MusicSection
           title="Discover new music"
           subtitle={discover.coldStart ? "Fresh off the dial" : "Selected for you"}
@@ -104,7 +127,54 @@ function ExploreScreen({
             ))}
           </Rail>
         </MusicSection>
-      ) : (
+      )}
+
+      {releases.length > 0 && (
+        <MusicSection
+          title="Featured releases"
+          subtitle="Albums worth the needle"
+          accent={y2k.chromeBright}
+          first={discover.picks.length === 0}
+          delay={0.08}
+        >
+          <Rail gap={16}>
+            {releases.map((album) => (
+              <ReleaseCard
+                key={album.slug}
+                album={album}
+                size={featuredSize}
+                onClick={() => {
+                  if (onOpenAlbum) onOpenAlbum(album.slug);
+                  else if (album.coverTrack) onPlayTrack?.(album.coverTrack, album.tracks);
+                }}
+              />
+            ))}
+          </Rail>
+        </MusicSection>
+      )}
+
+      {recentlyPlayed.length > 0 && (
+        <MusicSection
+          title="Recently played"
+          subtitle="Back on the deck"
+          accent={y2k.chromeMid}
+          first={discover.picks.length === 0 && releases.length === 0}
+          delay={0.12}
+        >
+          <Rail gap={16}>
+            {recentlyPlayed.map((track) => (
+              <TrackCard
+                key={track.id}
+                track={track}
+                active={activeId === track.id}
+                onClick={() => onPlayTrack?.(track, recentlyPlayed)}
+              />
+            ))}
+          </Rail>
+        </MusicSection>
+      )}
+
+      {!hasAny && (
         <div style={{ marginTop: homeSpace.sectionGap, padding: `0 ${homeSpace.gutter}px` }}>
           <CardContainer
             padding="22px 20px"
@@ -130,7 +200,7 @@ function ExploreScreen({
               Nothing to dig yet
             </div>
             <div style={{ fontSize: 13, fontWeight: 500, color: color.muted, lineHeight: 1.5 }}>
-              When the catalog lands, fresh picks show up here.
+              When the catalog lands, fresh picks and sleeves show up here.
             </div>
           </CardContainer>
         </div>
