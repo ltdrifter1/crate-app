@@ -16,7 +16,6 @@ import {
   BTN_SECONDARY,
   INPUT_ST,
   artShadow,
-  chrome,
   color,
   fontDisplay,
   fontMono,
@@ -24,7 +23,6 @@ import {
   homeSpace,
   motion,
   radius,
-  sectionRule,
 } from "../theme";
 
 // ── Key feature: Build a custom mix — quiet modern plate ──
@@ -132,82 +130,6 @@ function CustomMixFeature({ onClick, inset = true }) {
 
 
 
-// ── Home — three acts only ────────────────────────────────────────────────────
-const HomeSection = ({ label, count, subtitle, children, delay = 0, first = false, eyebrow = null }) => (
-  <section
-    style={{
-      margin: 0,
-      paddingBottom: homeSpace.sectionPadBottom,
-      animation: `rise 0.55s ${motion.ease} ${delay}s both`,
-    }}
-  >
-    {!first && (
-      <div aria-hidden="true" style={{
-        padding: `${Math.round(homeSpace.sectionPadTop * 0.45)}px 0 ${Math.round(homeSpace.sectionPadTop * 0.55)}px`,
-      }}>
-        <div style={sectionRule(homeSpace.gutter)}/>
-      </div>
-    )}
-    {first && <div style={{ height: label || eyebrow ? homeSpace.sectionPadTopFirst + 8 : 8 }} aria-hidden="true"/>}
-    {(label || eyebrow) && (
-    <div style={{
-      padding: `0 ${homeSpace.gutter}px ${subtitle ? 6 : 16}px`,
-      display: "flex",
-      alignItems: "baseline",
-      justifyContent: "space-between",
-      gap: 12,
-    }}>
-      <div>
-        {eyebrow && (
-          <div style={{
-            fontSize: 10,
-            fontWeight: 700,
-            letterSpacing: 1.6,
-            textTransform: "uppercase",
-            color: color.faint,
-            fontFamily: fontMono,
-            marginBottom: 6,
-          }}>
-            {eyebrow}
-          </div>
-        )}
-        {label && (
-        <h2 style={{
-          margin: 0,
-          fontSize: 22,
-          fontWeight: 700,
-          letterSpacing: -0.5,
-          color: color.ink,
-          fontFamily: fontDisplay,
-        }}>{label}</h2>
-        )}
-      </div>
-      {count != null && (
-        <span style={{
-          fontSize: 12,
-          color: color.muted,
-          fontVariantNumeric: "tabular-nums",
-          fontWeight: 600,
-          fontFamily: fontMono,
-          letterSpacing: 0.2,
-        }}>{count}</span>
-      )}
-    </div>
-    )}
-    {subtitle ? (
-      <p style={{
-        margin: `0 ${homeSpace.gutter}px 16px`,
-        fontSize: 13,
-        color: color.muted,
-        lineHeight: 1.4,
-        letterSpacing: -0.1,
-        maxWidth: 420,
-      }}>{subtitle}</p>
-    ) : null}
-    {children}
-  </section>
-);
-
 
 function FavoritesScreen({
   tracks, onPlay, onLike, playlistCtx,
@@ -223,7 +145,6 @@ function FavoritesScreen({
   const { menu, close } = useTrackMenu();
   const currentTrack = useCurrentTrack();
   const activeId = currentTrack?.id;
-  const isPlaying = useIsPlaying();
   const saved = savedTracks(tracks, 80);
   const [libTab, setLibTab] = useState("playlists"); // playlists | liked
   const [libQuery, setLibQuery] = useState("");
