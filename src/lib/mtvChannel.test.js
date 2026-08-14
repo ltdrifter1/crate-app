@@ -6,7 +6,7 @@ import {
   getChartSnapshot,
   weekKey,
 } from "./chartHistory";
-import { availableSceneChannels, buildSceneChannelPool, channelCoverUrls, getSceneChannel } from "./sceneChannels";
+import { availableSceneChannels, buildSceneChannelPool, channelCoverUrls, getSceneChannel, SCENE_CHANNELS, CHANNEL_SOURCE_NOTES } from "./sceneChannels";
 import { pickTrackBumper, STATION_IDENTS } from "./bumpers";
 import { brandStoragePrefix } from "../brand/identity";
 import {
@@ -72,6 +72,20 @@ describe("chartHistory", () => {
 });
 
 describe("sceneChannels", () => {
+  test("dials CH-01 through CH-06 with the new Channel Surfing names", () => {
+    expect(SCENE_CHANNELS.map((c) => [c.num, c.title])).toEqual([
+      [1, "House & UK Garage"],
+      [2, "Variety Mix"],
+      [3, "Local Pacific Northwest"],
+      [4, "Electronic Underground"],
+      [5, "Drum & Bass"],
+      [6, "Shoegaze"],
+    ]);
+    expect(CHANNEL_SOURCE_NOTES["local-pnw"].source).toBe("audioasis");
+    expect(CHANNEL_SOURCE_NOTES["variety-mix"].source).toBe("evie");
+    expect(CHANNEL_SOURCE_NOTES["electronic-underground"].source).toBe("expansions");
+  });
+
   test("builds pools and lists ready channels", () => {
     const tracks = [
       { id: "1", title: "Garage", genre: "Electronic", duration: 180, audioUrl: "u", sceneId: "uk-garage" },
@@ -80,17 +94,22 @@ describe("sceneChannels", () => {
       { id: "4", title: "Rock", genre: "Rock", duration: 180, audioUrl: "u" },
       { id: "5", title: "Rock2", genre: "Rock", duration: 180, audioUrl: "u" },
     ];
-    const rap = getSceneChannel("rap-city");
-    expect(rap.num).toBe(3);
-    expect(formatChannelNum(rap.num)).toBe("CH-03");
-    expect(buildSceneChannelPool(tracks, rap).length).toBeGreaterThanOrEqual(2);
-    expect(availableSceneChannels(tracks, 2).some((c) => c.id === "rap-city")).toBe(true);
+    const house = getSceneChannel("house-ukg");
+    expect(house.num).toBe(1);
+    expect(formatChannelNum(house.num)).toBe("CH-01");
+    expect(buildSceneChannelPool(tracks, house).length).toBeGreaterThanOrEqual(1);
+    expect(availableSceneChannels(tracks, 1).some((c) => c.id === "house-ukg")).toBe(true);
+
+    const variety = getSceneChannel("variety-mix");
+    expect(variety.num).toBe(2);
+    expect(availableSceneChannels(tracks, 2).some((c) => c.id === "variety-mix")).toBe(true);
+    expect(getSceneChannel("rap-city")?.id).toBe("variety-mix");
   });
 
-  test("CH-04 Local is Pacific Northwest only", () => {
+  test("CH-03 Local is Pacific Northwest only", () => {
     const local = getSceneChannel("local-pnw");
-    expect(local.num).toBe(4);
-    expect(local.title).toBe("Local");
+    expect(local.num).toBe(3);
+    expect(local.title).toBe("Local Pacific Northwest");
     expect(local.tagline.toLowerCase()).toContain("pacific northwest");
     expect(getSceneChannel("techno-tunnel")?.id).toBe("local-pnw");
 
@@ -99,22 +118,34 @@ describe("sceneChannels", () => {
       { id: "2", title: "Rain City", artist: "A", region: "pnw", duration: 200, audioUrl: "u" },
       { id: "3", title: "Techno", artist: "Berlin", genre: "Electronic", duration: 180, audioUrl: "u", sceneId: "techno" },
       { id: "4", title: "Other", artist: "NYC", genre: "Hip-Hop", duration: 180, audioUrl: "u" },
+      { id: "5", title: "Batch", artist: "B", batch: "audioasis-wave-1", duration: 180, audioUrl: "u" },
     ];
     const pool = buildSceneChannelPool(tracks, local);
-    expect(pool.map((t) => t.id).sort()).toEqual(["1", "2"]);
+    expect(pool.map((t) => t.id).sort()).toEqual(["1", "2", "5"]);
     expect(availableSceneChannels(tracks, 3).some((c) => c.id === "local-pnw")).toBe(true);
+  });
+
+  test("CH-06 Shoegaze matches genre keywords only", () => {
+    const shoe = getSceneChannel("shoegaze");
+    expect(shoe.num).toBe(6);
+    const tracks = [
+      { id: "1", title: "Haze", genre: "Shoegaze", duration: 180, audioUrl: "u" },
+      { id: "2", title: "Slowdive Cover", artist: "X", duration: 180, audioUrl: "u" },
+      { id: "3", title: "Metal", genre: "Metal", duration: 180, audioUrl: "u" },
+    ];
+    expect(buildSceneChannelPool(tracks, shoe).map((t) => t.id).sort()).toEqual(["1", "2"]);
   });
 
   test("channelCoverUrls returns distinct sleeves for mosaics", () => {
     const tracks = [
-      { id: "1", title: "A", genre: "Hip-Hop", duration: 180, audioUrl: "u", albumCover: "a.jpg" },
-      { id: "2", title: "B", genre: "Hip-Hop", duration: 180, audioUrl: "u", albumCover: "b.jpg" },
-      { id: "3", title: "C", genre: "Hip-Hop", duration: 180, audioUrl: "u", albumCover: "a.jpg" },
-      { id: "4", title: "D", genre: "Hip-Hop", duration: 180, audioUrl: "u", albumCover: "c.jpg" },
-      { id: "5", title: "E", genre: "Hip-Hop", duration: 180, audioUrl: "u", albumCover: "d.jpg" },
+      { id: "1", title: "A", genre: "Electronic", duration: 180, audioUrl: "u", albumCover: "a.jpg", energy: 8, bpm: 130 },
+      { id: "2", title: "B", genre: "Electronic", duration: 180, audioUrl: "u", albumCover: "b.jpg", energy: 8, bpm: 132 },
+      { id: "3", title: "C", genre: "Electronic", duration: 180, audioUrl: "u", albumCover: "a.jpg", energy: 9 },
+      { id: "4", title: "D", genre: "Electronic", duration: 180, audioUrl: "u", albumCover: "c.jpg", energy: 7, bpm: 128 },
+      { id: "5", title: "E", genre: "Electronic", duration: 180, audioUrl: "u", albumCover: "d.jpg", energy: 8 },
     ];
-    const rap = getSceneChannel("rap-city");
-    const covers = channelCoverUrls(tracks, rap, 4);
+    const underground = getSceneChannel("electronic-underground");
+    const covers = channelCoverUrls(tracks, underground, 4);
     expect(covers).toHaveLength(4);
     expect(new Set(covers).size).toBe(4);
   });
@@ -132,10 +163,10 @@ describe("mtvChannel", () => {
     expect(channelBugLine(main)).toBe("CH-01 · LIVE");
 
     const scene = resolveChannelBug({
-      sceneChannel: getSceneChannel("rap-city"),
+      sceneChannel: getSceneChannel("local-pnw"),
     });
     expect(scene.ch).toBe("CH-03");
-    expect(scene.slug).toContain("RAP");
+    expect(scene.slug).toContain("LOCAL");
   });
 });
 

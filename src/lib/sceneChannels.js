@@ -3,15 +3,22 @@ import { normalizeGenre } from "./genres";
 import { countdownScore } from "./station";
 
 /**
- * Scene surfing — dial channels under the broad genres.
- * Numbers map to on-air CH-bugs (CH-02 UK GARAGE …).
+ * Scene surfing — dial channels under Channel Surfing (CH-01 … CH-06).
+ *
+ * Source mapping (remember for later — not fully wired yet):
+ *   01 House & UK Garage     → by genre
+ *   02 Variety Mix           → Evie
+ *   03 Local Pacific Northwest → Audioasis batch upload mapping
+ *   04 Electronic Underground → expansions
+ *   05 Drum & Bass           → by genre
+ *   06 Shoegaze              → by genre
  */
 
 function singlesOnly(tracks = []) {
   return tracks.filter((t) => (t.duration || 0) <= 900 && String(t.audioUrl || "").trim());
 }
 
-/** PNW / Cascadia markers for the Local channel. */
+/** PNW / Cascadia markers for the Local channel (Audioasis mapping later). */
 const PNW_KEYWORDS = [
   "pacific northwest",
   "pacific-northwest",
@@ -34,7 +41,35 @@ const PNW_KEYWORDS = [
   "puget sound",
   "willamette",
   "columbia river",
+  "audioasis",
 ];
+
+const SHOEGAZE_KEYWORDS = [
+  "shoegaze",
+  "shoe gaze",
+  "shoegazer",
+  "dream pop",
+  "dreampop",
+  "slowdive",
+  "my bloody valentine",
+  "mbv",
+  "ride",
+  "chapterhouse",
+  "lush",
+  "category 4",
+  "nu gaze",
+  "nugaze",
+];
+
+/** Pending catalog-source wiring (Evie / Audioasis / expansions). */
+export const CHANNEL_SOURCE_NOTES = {
+  "house-ukg": { num: 1, source: "genre", note: "House & UK Garage — match by genre/scene" },
+  "variety-mix": { num: 2, source: "evie", note: "Variety Mix — Evie curator/playlist mapping (TODO)" },
+  "local-pnw": { num: 3, source: "audioasis", note: "Local PNW — Audioasis batch upload mapping (TODO)" },
+  "electronic-underground": { num: 4, source: "expansions", note: "Electronic Underground — expansions mapping (TODO)" },
+  "drum-and-bass": { num: 5, source: "genre", note: "Drum & Bass — match by genre/scene" },
+  shoegaze: { num: 6, source: "genre", note: "Shoegaze — match by genre/keywords" },
+};
 
 function trackTextBlob(track) {
   return [
@@ -47,6 +82,9 @@ function trackTextBlob(track) {
     track?.origin,
     track?.location,
     track?.label,
+    track?.batch,
+    track?.source,
+    track?.curator,
     Array.isArray(track?.tags) ? track.tags.join(" ") : track?.tags,
   ]
     .filter(Boolean)
@@ -66,122 +104,155 @@ function isLocalPnwTrack(track) {
   const region = String(track.region || track.origin || track.location || "").toLowerCase();
   if (region === "pnw" || region === "pacific northwest" || region === "cascadia") return true;
   if (track.local === true || track.pnw === true) return true;
+  // Soft Audioasis hint until batch mapping is wired
+  const batch = String(track.batch || track.source || "").toLowerCase();
+  if (batch.includes("audioasis")) return true;
   return matchesKeywords(track, PNW_KEYWORDS);
+}
+
+function isShoegazeTrack(track) {
+  if (!track) return false;
+  const rawGenre = String(track.genre || "").toLowerCase();
+  if (rawGenre.includes("shoegaze") || rawGenre.includes("dream pop") || rawGenre.includes("dreampop")) {
+    return true;
+  }
+  return matchesKeywords(track, SHOEGAZE_KEYWORDS);
+}
+
+/** Soft expansions hint until batch mapping lands. */
+function isElectronicUndergroundTrack(track) {
+  if (!track) return false;
+  const batch = String(track.batch || track.source || "").toLowerCase();
+  if (batch.includes("expansion")) return true;
+  if (matchesKeywords(track, ["underground", "warehouse", "expansions"])) return true;
+  if (["techno", "industrial", "minimal", "experimental", "acid"].some((id) => trackMatchesScene(track, id))) {
+    return true;
+  }
+  const g = normalizeGenre(track.genre);
+  // Electronic lane only when energy/bpm reads underground-leaning
+  if (g === "Electronic") {
+    const energy = Number(track.energy) || 5;
+    const bpm = Number(track.bpm) || 0;
+    if (energy >= 7 || (bpm >= 128 && energy >= 5)) return true;
+  }
+  return false;
 }
 
 export const SCENE_CHANNELS = [
   {
-    id: "ukg-block",
-    num: 2,
-    title: "UK Garage",
-    shortTitle: "UK Garage",
-    dialSlug: "UK GARAGE",
-    tagline: "2-step and garage",
+    id: "house-ukg",
+    num: 1,
+    title: "House & UK Garage",
+    shortTitle: "House & UKG",
+    dialSlug: "HOUSE UKG",
+    tagline: "House floors and 2-step garage",
     accent: "#9AA3B0",
-    scenes: ["uk-garage", "broken-beat"],
+    scenes: ["house", "uk-garage", "deep-house", "tech-house", "broken-beat", "disco"],
     genres: ["Electronic"],
-    vibe: "UK Garage",
+    vibe: "House & UK Garage",
+    source: "genre",
   },
   {
-    id: "rap-city",
-    num: 3,
-    title: "Rap & Grime",
-    shortTitle: "Rap City",
-    dialSlug: "RAP CITY",
-    tagline: "Hip-hop and UK grime",
+    id: "variety-mix",
+    num: 2,
+    title: "Variety Mix",
+    shortTitle: "Variety Mix",
+    dialSlug: "VARIETY",
+    tagline: "Evie's cross-genre dial",
     accent: "#C5CAD3",
-    scenes: ["hip-hop", "grime"],
-    genres: ["Hip-Hop"],
-    vibe: "Rap & Grime",
+    scenes: [],
+    genres: [],
+    vibe: "Variety Mix",
+    source: "evie",
+    /**
+     * Evie curator mapping TODO — empty filters + non-strict pool pads with the
+     * full shelf (variety). When Evie metadata ships, switch to a strict match.
+     */
+    minTracks: 1,
   },
   {
     id: "local-pnw",
-    num: 4,
-    title: "Local",
-    shortTitle: "Local",
-    dialSlug: "LOCAL",
+    num: 3,
+    title: "Local Pacific Northwest",
+    shortTitle: "Local PNW",
+    dialSlug: "LOCAL PNW",
     tagline: "Pacific Northwest only",
     accent: "#A8B0BC",
     scenes: [],
     genres: [],
-    vibe: "Local",
-    /** Only PNW cuts — never pad with the full catalog. */
+    vibe: "Local Pacific Northwest",
+    source: "audioasis",
+    /** Only PNW / Audioasis cuts — never pad with the full catalog. */
     strict: true,
     match: isLocalPnwTrack,
     minTracks: 1,
   },
   {
-    id: "bass-weight",
-    num: 5,
-    title: "DnB & Jungle",
-    shortTitle: "Bass Weight",
-    dialSlug: "BASS WT",
-    tagline: "Drum & bass, jungle, dubstep",
+    id: "electronic-underground",
+    num: 4,
+    title: "Electronic Underground",
+    shortTitle: "Underground",
+    dialSlug: "UNDERGROUND",
+    tagline: "Techno, warehouse, expansions",
     accent: "#7A8494",
-    scenes: ["drum-and-bass", "jungle", "liquid", "dubstep", "breakbeat"],
-    genres: ["Electronic"],
-    vibe: "DnB & Jungle",
+    scenes: ["techno", "industrial", "minimal", "experimental", "acid"],
+    genres: [],
+    vibe: "Electronic Underground",
+    source: "expansions",
+    /** Expansions batch mapping TODO — genre/scene match until then. */
+    match: isElectronicUndergroundTrack,
+    minTracks: 1,
   },
   {
-    id: "soul-continuum",
-    num: 6,
-    title: "Soul & R&B",
-    shortTitle: "Soul Cont.",
-    dialSlug: "SOUL",
-    tagline: "Soul, neo-soul, funk",
+    id: "drum-and-bass",
+    num: 5,
+    title: "Drum & Bass",
+    shortTitle: "Drum & Bass",
+    dialSlug: "DRUM BASS",
+    tagline: "DnB, jungle, liquid",
     accent: "#8A919C",
-    scenes: ["soul", "neo-soul", "funk", "rnb", "gospel"],
-    genres: ["R&B & Soul"],
-    vibe: "Soul & R&B",
+    scenes: ["drum-and-bass", "jungle", "liquid", "breakbeat"],
+    genres: ["Electronic"],
+    vibe: "Drum & Bass",
+    source: "genre",
   },
   {
-    id: "alt-nation",
-    num: 7,
-    title: "Rock & Alt",
-    shortTitle: "Alt Nation",
-    dialSlug: "ALT NAT",
-    tagline: "Rock, metal, left-field",
+    id: "shoegaze",
+    num: 6,
+    title: "Shoegaze",
+    shortTitle: "Shoegaze",
+    dialSlug: "SHOEGAZE",
+    tagline: "Walls of guitar haze",
     accent: "#16181E",
-    scenes: ["rock", "metal", "experimental"],
-    genres: ["Rock", "Metal"],
-    vibe: "Rock & Alt",
-  },
-  {
-    id: "pop-crash",
-    num: 8,
-    title: "Pop & Disco",
-    shortTitle: "Pop Crash",
-    dialSlug: "POP CRASH",
-    tagline: "Pop, disco, and house",
-    accent: "#8B939F",
-    scenes: ["disco", "house"],
-    genres: ["Pop", "Latin"],
-    vibe: "Pop & Disco",
-  },
-  {
-    id: "afterhours-fog",
-    num: 9,
-    title: "Ambient & Downtempo",
-    shortTitle: "Afterhours",
-    dialSlug: "AFTER HRS",
-    tagline: "Ambient, downtempo, deep house",
-    accent: "#7A91A4",
-    scenes: ["ambient", "downtempo", "deep-house"],
-    genres: ["Electronic", "Jazz"],
-    vibe: "Ambient & Downtempo",
+    scenes: [],
+    genres: [],
+    vibe: "Shoegaze",
+    source: "genre",
+    strict: true,
+    match: isShoegazeTrack,
+    minTracks: 1,
   },
 ];
 
 export function getSceneChannel(id) {
+  // Legacy aliases from earlier dials
   if (id === "techno-tunnel") return SCENE_CHANNELS.find((c) => c.id === "local-pnw") || null;
+  if (id === "ukg-block") return SCENE_CHANNELS.find((c) => c.id === "house-ukg") || null;
+  if (id === "bass-weight") return SCENE_CHANNELS.find((c) => c.id === "drum-and-bass") || null;
+  if (id === "rap-city") return SCENE_CHANNELS.find((c) => c.id === "variety-mix") || null;
   return SCENE_CHANNELS.find((c) => c.id === id) || null;
 }
 
 function matchesChannel(track, channel) {
   if (!track || !channel) return false;
-  if (typeof channel.match === "function") return channel.match(track);
+  if (typeof channel.match === "function") {
+    const hit = channel.match(track);
+    if (hit) return true;
+    // preferMatch channels still allow scene/genre fallback when match misses
+    if (!channel.preferMatch) return false;
+  }
   if ((channel.keywords || []).length && matchesKeywords(track, channel.keywords)) return true;
-  if ((channel.scenes || []).some((id) => trackMatchesScene(track, id))) return true;
+  if ((channel.scenes || []).some((sid) => trackMatchesScene(track, sid))) return true;
   const g = normalizeGenre(track.genre);
   return (channel.genres || []).includes(g);
 }
@@ -193,6 +264,7 @@ export function buildSceneChannelPool(tracks = [], channel) {
   if (channel.strict) {
     return hits.slice().sort((a, b) => countdownScore(b) - countdownScore(a));
   }
+  // Variety / expansions: prefer direct hits, then pad with ranked shelf
   const ranked = (hits.length ? hits : singles)
     .slice()
     .sort((a, b) => countdownScore(b) - countdownScore(a));
