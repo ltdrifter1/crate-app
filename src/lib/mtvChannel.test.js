@@ -140,14 +140,16 @@ describe("sceneChannels", () => {
       [1, "Y2K Dance"],
       [2, "Variety Mix"],
       [3, "Local Pacific Northwest"],
-      [4, "Electronic Underground"],
+      [4, "Electronic"],
       [5, "Drum & Bass"],
       [6, "Emo & Shoegaze"],
     ]);
     expect(CHANNEL_SOURCE_NOTES["y2k-dance"].source).toBe("genre");
     expect(CHANNEL_SOURCE_NOTES["local-pnw"].source).toBe("audioasis");
-    expect(CHANNEL_SOURCE_NOTES["variety-mix"].source).toBe("evie");
+    expect(CHANNEL_SOURCE_NOTES["variety-mix"].source).toBe("variety");
     expect(CHANNEL_SOURCE_NOTES["electronic-underground"].source).toBe("expansions");
+    expect(getSceneChannel("variety-mix").tagline.toLowerCase()).not.toContain("evie");
+    expect(getSceneChannel("electronic-underground").tagline.toLowerCase()).not.toContain("expansions");
   });
 
   test("builds pools and lists ready channels", () => {
