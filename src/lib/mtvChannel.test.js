@@ -74,13 +74,14 @@ describe("chartHistory", () => {
 describe("sceneChannels", () => {
   test("dials CH-01 through CH-06 with the new Channel Surfing names", () => {
     expect(SCENE_CHANNELS.map((c) => [c.num, c.title])).toEqual([
-      [1, "House & UK Garage"],
+      [1, "Y2K Dance"],
       [2, "Variety Mix"],
       [3, "Local Pacific Northwest"],
       [4, "Electronic Underground"],
       [5, "Drum & Bass"],
       [6, "Shoegaze"],
     ]);
+    expect(CHANNEL_SOURCE_NOTES["y2k-dance"].source).toBe("genre");
     expect(CHANNEL_SOURCE_NOTES["local-pnw"].source).toBe("audioasis");
     expect(CHANNEL_SOURCE_NOTES["variety-mix"].source).toBe("evie");
     expect(CHANNEL_SOURCE_NOTES["electronic-underground"].source).toBe("expansions");
@@ -94,11 +95,12 @@ describe("sceneChannels", () => {
       { id: "4", title: "Rock", genre: "Rock", duration: 180, audioUrl: "u" },
       { id: "5", title: "Rock2", genre: "Rock", duration: 180, audioUrl: "u" },
     ];
-    const house = getSceneChannel("house-ukg");
-    expect(house.num).toBe(1);
-    expect(formatChannelNum(house.num)).toBe("CH-01");
-    expect(buildSceneChannelPool(tracks, house).length).toBeGreaterThanOrEqual(1);
-    expect(availableSceneChannels(tracks, 1).some((c) => c.id === "house-ukg")).toBe(true);
+    const dance = getSceneChannel("y2k-dance");
+    expect(dance.num).toBe(1);
+    expect(formatChannelNum(dance.num)).toBe("CH-01");
+    expect(buildSceneChannelPool(tracks, dance).length).toBeGreaterThanOrEqual(1);
+    expect(availableSceneChannels(tracks, 1).some((c) => c.id === "y2k-dance")).toBe(true);
+    expect(getSceneChannel("house-ukg")?.id).toBe("y2k-dance");
 
     const variety = getSceneChannel("variety-mix");
     expect(variety.num).toBe(2);

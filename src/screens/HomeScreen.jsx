@@ -12,10 +12,7 @@ import {
 } from "../theme";
 import { countPlayableTracks } from "../lib/catalogLoad";
 import { availableSceneChannels, channelCoverUrls } from "../lib/sceneChannels";
-import {
-  buildHomeCollections,
-  featuredReleases,
-} from "../lib/homeCollections";
+import { buildHomeCollections } from "../lib/homeCollections";
 import { NowOnAirCard, ShowGuideRail } from "../components/station/ShowGuide";
 import { useCurrentTrack } from "../usePlayerTransport";
 import HomeHeader from "../components/home/HomeHeader";
@@ -23,8 +20,6 @@ import HeroPlayerCard from "../components/home/HeroPlayerCard";
 import MusicSection, { Rail } from "../components/home/MusicSection";
 import ChannelCard from "../components/home/ChannelCard";
 import TrackCard from "../components/home/TrackCard";
-import PlaylistCard from "../components/home/PlaylistCard";
-import ReleaseCard from "../components/home/ReleaseCard";
 import RequestSongCard from "../components/home/RequestSongCard";
 import CardContainer from "../components/home/CardContainer";
 
@@ -174,15 +169,10 @@ function HomeScreen({
   channelShow = null,
   sceneChannelsActiveId = null,
   onTuneSceneChannel = null,
-  // Discovery + navigation (new premium home)
-  recentTrackIds = [],
-  playlists = [],
+  // Navigation (broadcast home)
   onOpenSearch = null,
   onOpenProfile = null,
-  onOpenLibrary = null,
   onOpenCharts = null,
-  onOpenPlaylist = null,
-  onOpenAlbum = null,
 }) {
   const currentTrack = useCurrentTrack();
   const activeId = currentTrack?.id;
@@ -201,24 +191,7 @@ function HomeScreen({
     return map;
   }, [channels, tracks]);
 
-  const releases = useMemo(() => featuredReleases(tracks, 10), [tracks]);
-
   const editorial = useMemo(() => buildHomeCollections(tracks), [tracks]);
-
-  const recentlyPlayed = useMemo(() => {
-    if (!recentTrackIds.length) return [];
-    const byId = new Map(tracks.map((t) => [t.id, t]));
-    const seen = new Set();
-    const out = [];
-    for (const id of recentTrackIds) {
-      if (seen.has(id)) continue;
-      seen.add(id);
-      const t = byId.get(id);
-      if (t) out.push(t);
-      if (out.length >= 12) break;
-    }
-    return out;
-  }, [recentTrackIds, tracks]);
 
   const topRequested = useMemo(() => countdown.slice(0, 10), [countdown]);
   const liveShow = channelShow || airing?.show || null;
@@ -275,39 +248,14 @@ function HomeScreen({
         />
       )}
 
-      {/* FEATURED RELEASES — asymmetric sleeve band */}
-      {catalogReady && releases.length > 0 && (
-        <MusicSection
-          title="Featured releases"
-          subtitle="Albums worth the needle"
-          accent={y2k.chromeBright}
-          first
-          delay={0.05}
-        >
-          <Rail gap={16}>
-            {releases.map((album) => (
-              <ReleaseCard
-                key={album.slug}
-                album={album}
-                size={featuredSize}
-                onClick={() => {
-                  if (onOpenAlbum) onOpenAlbum(album.slug);
-                  else if (album.coverTrack) onPlayTrack?.(album.coverTrack, album.tracks);
-                }}
-              />
-            ))}
-          </Rail>
-        </MusicSection>
-      )}
-
       {/* ON TONIGHT — live show + program guide */}
       {catalogReady && hasTonight && (
         <MusicSection
           title="On tonight"
           subtitle={airing?.show?.tagline || "The program guide"}
           accent={y2k.chromeBright}
-          first={releases.length === 0}
-          delay={0.07}
+          first
+          delay={0.05}
         >
           {airing?.show && !(activeShowId === airing.show.id && currentTrack) && (
             <div style={{ paddingBottom: 8 }}>
@@ -336,7 +284,7 @@ function HomeScreen({
           title="Most requested"
           subtitle="Tonight's countdown"
           accent={y2k.chromeMid}
-          first={releases.length === 0 && !hasTonight}
+          first={!hasTonight}
           action={
             onOpenCharts
               ? { label: "View all", onClick: onOpenCharts }
@@ -344,7 +292,7 @@ function HomeScreen({
                 ? { label: "Tune in", onClick: onTuneCountdown }
                 : null
           }
-          delay={0.09}
+          delay={0.07}
         >
           <Rail gap={16}>
             {topRequested.map(({ rank, track }) => (
@@ -367,10 +315,10 @@ function HomeScreen({
           title="Channel surfing"
           subtitle="Zap the dial — scene channels on their own shelf"
           accent={y2k.chromeBright}
-          first={releases.length === 0 && !hasTonight && topRequested.length === 0}
-          delay={0.11}
+          first={!hasTonight && topRequested.length === 0}
+          delay={0.09}
           style={
-            topRequested.length > 0 || releases.length > 0 || hasTonight
+            topRequested.length > 0 || hasTonight
               ? {
                   marginTop: homeSpace.sectionGap + 12,
                   paddingTop: 8,
@@ -402,7 +350,7 @@ function HomeScreen({
             title={col.label}
             subtitle={col.story}
             accent={y2k.chromeMid}
-            delay={0.13 + i * 0.02}
+            delay={0.11 + i * 0.02}
           >
             <Rail gap={16}>
               {col.tracks.map((track) => (
@@ -417,73 +365,13 @@ function HomeScreen({
           </MusicSection>
         ))}
 
-      {/* RECENTLY PLAYED */}
-      {catalogReady && recentlyPlayed.length > 0 && (
-        <MusicSection
-          title="Recently played"
-          subtitle="Back on the deck"
-          accent={y2k.chromeMid}
-          delay={0.15}
-        >
-          <Rail gap={16}>
-            {recentlyPlayed.map((track) => (
-              <TrackCard
-                key={track.id}
-                track={track}
-                active={activeId === track.id}
-                onClick={() => onPlayTrack?.(track, recentlyPlayed)}
-              />
-            ))}
-          </Rail>
-        </MusicSection>
-      )}
-
-      {/* YOUR PLAYLISTS */}
-      {catalogReady && (playlists.length > 0 || onOpenLibrary) && (
-        <MusicSection
-          title="Your playlists"
-          subtitle="Stacks you built"
-          accent={y2k.chromeMid}
-          action={
-            playlists.length > 0 && onOpenLibrary
-              ? { label: "View all", onClick: onOpenLibrary }
-              : null
-          }
-          delay={0.17}
-        >
-          {playlists.length > 0 ? (
-            <Rail gap={16}>
-              {playlists.map((playlist) => (
-                <PlaylistCard
-                  key={playlist.id}
-                  playlist={playlist}
-                  tracks={tracks}
-                  onClick={() =>
-                    onOpenPlaylist
-                      ? onOpenPlaylist(playlist.id)
-                      : onOpenLibrary?.()
-                  }
-                />
-              ))}
-            </Rail>
-          ) : (
-            <EmptyShelfCard
-              title="No stacks yet"
-              body="Build a playlist and it lands right here on the shelf."
-              actionLabel="Start a stack"
-              onAction={onOpenLibrary}
-            />
-          )}
-        </MusicSection>
-      )}
-
       {/* REQUEST A SONG */}
       {catalogReady && onOpenSearch && (
         <div
           style={{
             marginTop: homeSpace.sectionGap,
             padding: `0 ${homeSpace.gutter}px`,
-            animation: `rise 0.5s ${motion.ease} 0.2s both`,
+            animation: `rise 0.5s ${motion.ease} 0.14s both`,
           }}
         >
           <RequestSongCard onClick={onOpenSearch} />
@@ -493,7 +381,6 @@ function HomeScreen({
       {/* Catalog is fine but nothing editorial to show — quiet empty state */}
       {catalogReady &&
         channels.length === 0 &&
-        releases.length === 0 &&
         !hasTonight &&
         topRequested.length === 0 &&
         editorial.length === 0 && (

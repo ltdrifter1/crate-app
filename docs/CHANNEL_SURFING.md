@@ -4,7 +4,7 @@ Home **Channel Surfing** uses six fixed dials (`src/lib/sceneChannels.js`).
 
 | CH | Title | Match today | Source mapping (later) |
 |----|-------|-------------|------------------------|
-| 01 | House & UK Garage | Genre / house–UKG scenes | **by genre** |
+| 01 | Y2K Dance | Genre / house–garage–disco–trance scenes | **by genre** |
 | 02 | Variety Mix | Full-shelf variety pad | **Evie** curator/playlist |
 | 03 | Local Pacific Northwest | PNW region/keywords (+ `audioasis` batch hint) | **Audioasis** batch upload |
 | 04 | Electronic Underground | Techno/warehouse scenes + energy (+ `expansions` batch hint) | **expansions** |

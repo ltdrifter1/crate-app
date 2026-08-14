@@ -6,7 +6,7 @@ import { countdownScore } from "./station";
  * Scene surfing — dial channels under Channel Surfing (CH-01 … CH-06).
  *
  * Source mapping (remember for later — not fully wired yet):
- *   01 House & UK Garage     → by genre
+ *   01 Y2K Dance             → by genre
  *   02 Variety Mix           → Evie
  *   03 Local Pacific Northwest → Audioasis batch upload mapping
  *   04 Electronic Underground → expansions
@@ -63,7 +63,7 @@ const SHOEGAZE_KEYWORDS = [
 
 /** Pending catalog-source wiring (Evie / Audioasis / expansions). */
 export const CHANNEL_SOURCE_NOTES = {
-  "house-ukg": { num: 1, source: "genre", note: "House & UK Garage — match by genre/scene" },
+  "y2k-dance": { num: 1, source: "genre", note: "Y2K Dance — match by genre/scene" },
   "variety-mix": { num: 2, source: "evie", note: "Variety Mix — Evie curator/playlist mapping (TODO)" },
   "local-pnw": { num: 3, source: "audioasis", note: "Local PNW — Audioasis batch upload mapping (TODO)" },
   "electronic-underground": { num: 4, source: "expansions", note: "Electronic Underground — expansions mapping (TODO)" },
@@ -140,16 +140,16 @@ function isElectronicUndergroundTrack(track) {
 
 export const SCENE_CHANNELS = [
   {
-    id: "house-ukg",
+    id: "y2k-dance",
     num: 1,
-    title: "House & UK Garage",
-    shortTitle: "House & UKG",
-    dialSlug: "HOUSE UKG",
-    tagline: "House floors and 2-step garage",
+    title: "Y2K Dance",
+    shortTitle: "Y2K Dance",
+    dialSlug: "Y2K DANCE",
+    tagline: "Millennium dancefloor — house, garage, disco",
     accent: "#9AA3B0",
-    scenes: ["house", "uk-garage", "deep-house", "tech-house", "broken-beat", "disco"],
-    genres: ["Electronic"],
-    vibe: "House & UK Garage",
+    scenes: ["house", "uk-garage", "deep-house", "tech-house", "broken-beat", "disco", "progressive", "trance"],
+    genres: ["Electronic", "Pop"],
+    vibe: "Y2K Dance",
     source: "genre",
   },
   {
@@ -237,7 +237,7 @@ export const SCENE_CHANNELS = [
 export function getSceneChannel(id) {
   // Legacy aliases from earlier dials
   if (id === "techno-tunnel") return SCENE_CHANNELS.find((c) => c.id === "local-pnw") || null;
-  if (id === "ukg-block") return SCENE_CHANNELS.find((c) => c.id === "house-ukg") || null;
+  if (id === "ukg-block" || id === "house-ukg") return SCENE_CHANNELS.find((c) => c.id === "y2k-dance") || null;
   if (id === "bass-weight") return SCENE_CHANNELS.find((c) => c.id === "drum-and-bass") || null;
   if (id === "rap-city") return SCENE_CHANNELS.find((c) => c.id === "variety-mix") || null;
   return SCENE_CHANNELS.find((c) => c.id === id) || null;
