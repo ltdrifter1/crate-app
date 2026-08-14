@@ -8,25 +8,31 @@ body {
   font-family: "Space Grotesk", "Avenir Next", "Segoe UI", "Helvetica Neue", Helvetica, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background: #0B0C0F;
+  background: #080A0D;
   color: #F7F8FA;
 }
 code {
   font-family: "IBM Plex Mono", "SF Mono", ui-monospace, Menlo, Monaco, "Courier New", monospace;
 }
-/* Soft broadcast grain + faint scanline wash — Y2K studio texture */
+/* Graphite chassis grain + quiet scanlines — high-end early-2000s audio hardware */
 body::before {
   content: "";
   position: fixed;
   inset: 0;
   pointer-events: none;
   z-index: 0;
-  opacity: 0.045;
+  opacity: 0.055;
   background-image:
-    linear-gradient(180deg, rgba(255,255,255,0.02) 0%, transparent 40%, rgba(0,0,0,0.04) 100%),
-    url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-  background-repeat: repeat;
-  background-size: auto, 160px 160px;
+    repeating-linear-gradient(
+      0deg,
+      transparent 0px,
+      transparent 2px,
+      rgba(255,255,255,0.03) 3px
+    ),
+    radial-gradient(ellipse 90% 55% at 50% -10%, rgba(101,230,255,0.07) 0%, transparent 55%),
+    url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-repeat: repeat, no-repeat, repeat;
+  background-size: auto, 100% 100%, 160px 160px;
   mix-blend-mode: soft-light;
 }
 #root {
