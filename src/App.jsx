@@ -93,8 +93,6 @@ import {
 import CountdownRail from "./components/station/CountdownRail";
 import {
   HostCreditChip,
-  NowOnAirCard,
-  ShowGuideRail,
   useLiveAiring,
 } from "./components/station/ShowGuide";
 import VideoStage, { VideoBadge } from "./components/station/VideoStage";
