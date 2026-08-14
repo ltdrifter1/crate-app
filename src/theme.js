@@ -102,17 +102,43 @@ export const y2k = {
 };
 
 /**
- * Radio / media-player module surfaces — physical plates, not website cards.
- * Use for ON AIR receiver, schedule strip, hardware CTAs.
+ * Radio / media-player module surfaces — Y2K chassis + premium glass.
+ * LCD insets, chrome bezels, frosted panels — engineered, not SaaS cards.
  */
 export const radio = {
   /** 8–14px engineered corners — never pill */
-  radius: 12,
+  radius: 14,
   radiusTight: 8,
   radiusControl: 10,
-  border: "1px solid rgba(255,255,255,0.14)",
-  borderLive: "1px solid rgba(101,230,255,0.42)",
+  radiusLcd: 6,
+  border: "1px solid rgba(255,255,255,0.16)",
+  borderLive: "1px solid rgba(101,230,255,0.38)",
   borderQuiet: "1px solid rgba(255,255,255,0.1)",
+  borderChrome: "1px solid rgba(231,235,240,0.22)",
+  /** Premium frosted glass chassis */
+  glassFace: `
+    linear-gradient(165deg, rgba(255,255,255,0.14) 0%, rgba(255,255,255,0.03) 38%, transparent 68%),
+    linear-gradient(145deg, rgba(40,46,56,0.55) 0%, rgba(18,22,28,0.72) 48%, rgba(10,12,16,0.78) 100%)
+  `,
+  glassFaceLive: `
+    radial-gradient(120% 80% at 0% 0%, rgba(101,230,255,0.14) 0%, transparent 45%),
+    radial-gradient(90% 70% at 100% 100%, rgba(123,167,255,0.1) 0%, transparent 50%),
+    linear-gradient(165deg, rgba(255,255,255,0.16) 0%, rgba(255,255,255,0.04) 36%, transparent 70%),
+    linear-gradient(145deg, rgba(44,52,64,0.58) 0%, rgba(20,24,30,0.76) 50%, rgba(10,12,16,0.82) 100%)
+  `,
+  glassBlur: "blur(28px) saturate(1.35)",
+  glassShadow:
+    "inset 0 1px 0 rgba(255,255,255,0.22), inset 0 -1px 0 rgba(0,0,0,0.4), 0 12px 36px rgba(0,0,0,0.45), 0 0 0 1px rgba(255,255,255,0.04)",
+  glassShadowLive:
+    "inset 0 1px 0 rgba(255,255,255,0.24), inset 0 -1px 0 rgba(0,0,0,0.45), 0 0 40px rgba(101,230,255,0.12), 0 14px 40px rgba(0,0,0,0.5), 0 0 0 1px rgba(101,230,255,0.1)",
+  /** Deep LCD screen inset */
+  lcdFace: `
+    linear-gradient(180deg, rgba(101,230,255,0.06) 0%, transparent 40%),
+    linear-gradient(160deg, #0A1016 0%, #06090E 55%, #04060A 100%)
+  `,
+  lcdBorder: "1px solid rgba(101,230,255,0.22)",
+  lcdShadow:
+    "inset 0 2px 8px rgba(0,0,0,0.65), inset 0 1px 0 rgba(101,230,255,0.08), 0 0 20px rgba(101,230,255,0.06)",
   /** Translucent graphite chassis with internal highlight */
   moduleFace: `
     linear-gradient(180deg, rgba(255,255,255,0.09) 0%, rgba(255,255,255,0.02) 36%, transparent 70%),
@@ -128,35 +154,35 @@ export const radio = {
   moduleShadowLive:
     "inset 0 1px 0 rgba(255,255,255,0.18), inset 0 -1px 0 rgba(0,0,0,0.5), 0 0 0 1px rgba(101,230,255,0.12), 0 0 28px rgba(101,230,255,0.1), 0 10px 28px rgba(0,0,0,0.45)",
   stripFace: `
-    linear-gradient(180deg, rgba(255,255,255,0.07) 0%, rgba(255,255,255,0.015) 40%, transparent 100%),
-    linear-gradient(160deg, #1C2026 0%, #12151A 55%, #0E1014 100%)
+    linear-gradient(180deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.02) 42%, transparent 100%),
+    rgba(18,22,28,0.45)
   `,
   stripFaceLive: `
-    linear-gradient(180deg, rgba(101,230,255,0.1) 0%, transparent 45%),
-    linear-gradient(180deg, rgba(255,255,255,0.08) 0%, transparent 40%),
-    linear-gradient(160deg, #222830 0%, #15191F 55%, #0E1116 100%)
+    linear-gradient(180deg, rgba(101,230,255,0.14) 0%, transparent 48%),
+    linear-gradient(180deg, rgba(255,255,255,0.1) 0%, transparent 40%),
+    rgba(22,28,36,0.55)
   `,
   stripShadow:
-    "inset 0 1px 0 rgba(255,255,255,0.12), inset 0 -1px 0 rgba(0,0,0,0.4), 0 4px 14px rgba(0,0,0,0.32)",
+    "inset 0 1px 0 rgba(255,255,255,0.16), inset 0 -1px 0 rgba(0,0,0,0.35), 0 4px 14px rgba(0,0,0,0.28)",
   stripShadowLive:
-    "inset 0 1px 0 rgba(255,255,255,0.16), inset 0 -1px 0 rgba(0,0,0,0.45), 0 0 18px rgba(101,230,255,0.12), 0 6px 16px rgba(0,0,0,0.36)",
+    "inset 0 1px 0 rgba(255,255,255,0.2), inset 0 -1px 0 rgba(0,0,0,0.4), 0 0 22px rgba(101,230,255,0.16), 0 6px 16px rgba(0,0,0,0.32)",
   /** Metallic Tune-In key */
   tuneFace: `
-    linear-gradient(180deg, rgba(255,255,255,0.42) 0%, rgba(255,255,255,0.08) 38%, transparent 55%),
-    linear-gradient(165deg, #F2F4F7 0%, #C5CBD4 42%, #8A929E 100%)
+    linear-gradient(180deg, rgba(255,255,255,0.5) 0%, rgba(255,255,255,0.12) 34%, transparent 55%),
+    linear-gradient(165deg, #F4F6F8 0%, #C8CED6 42%, #8E96A2 100%)
   `,
   tuneFacePressed: `
     linear-gradient(180deg, rgba(0,0,0,0.08) 0%, transparent 40%),
     linear-gradient(165deg, #D8DDE4 0%, #A8B0BB 50%, #6E7683 100%)
   `,
   tuneShadow:
-    "inset 0 1px 0 rgba(255,255,255,0.65), inset 0 -1px 0 rgba(0,0,0,0.22), 0 1px 0 rgba(255,255,255,0.12), 0 6px 16px rgba(0,0,0,0.35)",
+    "inset 0 1px 0 rgba(255,255,255,0.7), inset 0 -1px 0 rgba(0,0,0,0.22), 0 1px 0 rgba(255,255,255,0.14), 0 8px 20px rgba(0,0,0,0.38)",
   tuneShadowPressed:
     "inset 0 2px 4px rgba(0,0,0,0.28), inset 0 1px 0 rgba(0,0,0,0.12)",
-  lcdTrack: "rgba(255,255,255,0.06)",
+  lcdTrack: "rgba(101,230,255,0.1)",
   lcdFill:
-    "linear-gradient(90deg, rgba(101,230,255,0.55) 0%, rgba(123,167,255,0.95) 55%, rgba(231,235,240,0.9) 100%)",
-  lcdGlow: "0 0 10px rgba(101,230,255,0.35)",
+    "linear-gradient(90deg, rgba(101,230,255,0.45) 0%, rgba(101,230,255,0.95) 55%, rgba(231,235,240,0.95) 100%)",
+  lcdGlow: "0 0 12px rgba(101,230,255,0.45)",
   label: {
     fontFamily: fontMono,
     fontSize: 10,

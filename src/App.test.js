@@ -37,6 +37,7 @@ test('radio module tokens are hardware-shaped', () => {
   expect(radio.radius).toBeGreaterThanOrEqual(8);
   expect(radio.radius).toBeLessThanOrEqual(14);
   expect(radio.moduleFace).toMatch(/linear-gradient/);
+  expect(radio.glassFace || radio.moduleFace).toMatch(/linear-gradient/);
   expect(radio.tuneFace).toMatch(/linear-gradient/);
   expect(radio.lcdFill).toMatch(/101,\s*230,\s*255/);
 });
