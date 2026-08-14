@@ -34,7 +34,7 @@ import CoverImage from "../ui/CoverImage";
 
 const EASE = motion.ease;
 
-/** Hard aluminum key — physical remote face, not soft glass. */
+/** Soft circular secondary control. */
 function ChromeIconButton({
   onClick,
   label,
@@ -53,18 +53,16 @@ function ChromeIconButton({
       style={{
         width: size,
         height: size,
-        borderRadius: hardware.radius + 4,
+        borderRadius: "50%",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
         cursor: "pointer",
-        color: lit ? y2k.chromeBright : color.muted,
-        background: hardware.keyFace,
-        border: `1px solid ${lit ? "rgba(232,236,242,0.35)" : "rgba(255,255,255,0.14)"}`,
-        boxShadow: lit
-          ? `${hardware.keyRaised}, 0 0 14px ${y2k.chromeGlow}`
-          : hardware.keyRaised,
-        transition: `transform ${motion.fast} ${EASE}, color ${motion.fast}, box-shadow ${motion.base}`,
+        color: lit ? color.ink : color.muted,
+        background: lit ? "rgba(255,255,255,0.14)" : "rgba(255,255,255,0.05)",
+        border: `1px solid ${lit ? "rgba(255,255,255,0.22)" : "rgba(255,255,255,0.1)"}`,
+        boxShadow: "none",
+        transition: `transform ${motion.fast} ${EASE}, color ${motion.fast}, background ${motion.base}`,
         padding: 0,
         flexShrink: 0,
       }}
@@ -74,7 +72,7 @@ function ChromeIconButton({
   );
 }
 
-/** Inset aluminum seek groove with chrome thumb fill. */
+/** Thin modern seek — soft track, no aluminum groove. */
 function ChromeSeek({
   value = 0,
   max = 1,
@@ -92,13 +90,10 @@ function ChromeSeek({
           left: 0,
           right: 0,
           top: "50%",
-          height: 6,
-          marginTop: -3,
+          height: 3,
+          marginTop: -1.5,
           borderRadius: 999,
-          background: `
-            linear-gradient(180deg, rgba(8,9,11,0.55) 0%, rgba(32,36,43,0.85) 100%)
-          `,
-          boxShadow: "inset 0 1px 2px rgba(0,0,0,0.45), inset 0 -1px 0 rgba(255,255,255,0.08)",
+          background: "rgba(255,255,255,0.14)",
           pointerEvents: "none",
           overflow: "hidden",
         }}
@@ -108,10 +103,7 @@ function ChromeSeek({
             height: "100%",
             width: `${pct}%`,
             borderRadius: 999,
-            background: `
-              linear-gradient(180deg, #F4F6F8 0%, #B8C0CC 55%, #8B939F 100%)
-            `,
-            boxShadow: `inset 0 1px 0 rgba(255,255,255,0.45), 0 0 8px ${y2k.chromeGlow}`,
+            background: "rgba(247,248,250,0.92)",
             transition: "width 0.08s linear",
           }}
         />
@@ -954,12 +946,12 @@ export default function ImmersivePlayer({
         </div>
       )}
 
-      {/* Transport deck — machined aluminum remote */}
+      {/* Transport — flat controls on the canvas */}
       <div
         style={{
           position: "relative",
           zIndex: 3,
-          padding: "0 16px calc(18px + env(safe-area-inset-bottom, 0px))",
+          padding: "0 20px calc(20px + env(safe-area-inset-bottom, 0px))",
           flexShrink: 0,
         }}
       >
@@ -967,20 +959,7 @@ export default function ImmersivePlayer({
           style={{
             maxWidth: 420,
             margin: "0 auto",
-            padding: "16px 18px 18px",
-            borderRadius: 18,
-            background: `
-              linear-gradient(180deg, rgba(255,255,255,0.06) 0%, transparent 40%),
-              linear-gradient(165deg, rgba(38,43,51,0.94) 0%, rgba(22,25,30,0.92) 100%)
-            `,
-            border: "1px solid rgba(255,255,255,0.14)",
-            boxShadow: `
-              inset 0 1px 0 ${glass.highlight},
-              inset 0 -1px 0 rgba(0,0,0,0.35),
-              0 18px 48px rgba(0,0,0,0.4)
-            `,
-            backdropFilter: glass.blurHeavy,
-            WebkitBackdropFilter: glass.blurHeavy,
+            padding: "8px 4px 4px",
             animation: `dockRise 0.5s ${EASE} both`,
           }}
         >
@@ -1016,8 +995,8 @@ export default function ImmersivePlayer({
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              gap: 10,
-              marginTop: 8,
+              gap: 12,
+              marginTop: 10,
             }}
           >
             <EnergyShiftFeedback bottom="calc(100% + 14px)" />
@@ -1036,23 +1015,12 @@ export default function ImmersivePlayer({
               <Icon name="prev" size={20} />
             </ChromeIconButton>
 
-            <div
-              style={{
-                padding: 3,
-                borderRadius: "50%",
-                background: `
-                  linear-gradient(145deg, rgba(232,236,242,0.45) 0%, rgba(184,192,204,0.2) 45%, rgba(46,51,60,0.95) 100%)
-                `,
-                boxShadow: `inset 0 1px 0 rgba(255,255,255,0.35), 0 8px 24px rgba(0,0,0,0.35), 0 0 20px ${y2k.chromeGlow}`,
-              }}
-            >
-              <IceOrbPlay
-                isPlaying={isPlaying}
-                onClick={onTogglePlay}
-                size={72}
-                glowing={isPlaying}
-              />
-            </div>
+            <IceOrbPlay
+              isPlaying={isPlaying}
+              onClick={onTogglePlay}
+              size={68}
+              glowing={isPlaying}
+            />
 
             <ChromeIconButton onClick={onSkip} label="Next" size={48}>
               <Icon name="skip" size={20} />

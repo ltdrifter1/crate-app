@@ -908,18 +908,26 @@ function SessionBuilderModal({ tracks, onClose, onPlayRoute, onSavePlaylist = nu
     setSavedToLibrary(true);
   }
 
-  const chromeChip = (selected) => ({
-    borderRadius: radius.md,
-    border: selected ? `1px solid rgba(255,255,255,0.2)` : `1px solid ${glass.border}`,
+  const softChip = (selected) => ({
+    borderRadius: 980,
+    border: selected ? `1px solid rgba(255,255,255,0.35)` : `1px solid rgba(255,255,255,0.1)`,
     background: selected
-      ? `linear-gradient(180deg, rgba(255,255,255,0.2) 0%, transparent 45%), linear-gradient(165deg, #EDF0F4 0%, #C4CBD4 100%)`
-      : `linear-gradient(160deg, rgba(48,53,62,0.9) 0%, rgba(28,32,38,0.62) 100%)`,
+      ? "rgba(247,248,250,0.96)"
+      : "rgba(255,255,255,0.06)",
     color: selected ? color.onAccent : color.body,
-    boxShadow: selected
-      ? `inset 0 1px 0 rgba(255,255,255,0.2), ${glass.shadowSoft}`
-      : `inset 0 1px 0 ${glass.highlight}`,
-    backdropFilter: selected ? "none" : glass.blurSoft,
-    WebkitBackdropFilter: selected ? "none" : glass.blurSoft,
+    boxShadow: selected ? "0 8px 22px rgba(0,0,0,0.28)" : "none",
+    cursor: "pointer",
+    fontWeight: 600,
+  });
+
+  const softCard = (selected) => ({
+    borderRadius: radius.lg,
+    border: selected ? `1px solid rgba(255,255,255,0.28)` : `1px solid rgba(255,255,255,0.1)`,
+    background: selected
+      ? "rgba(247,248,250,0.96)"
+      : "rgba(255,255,255,0.05)",
+    color: selected ? color.onAccent : color.body,
+    boxShadow: selected ? "0 10px 28px rgba(0,0,0,0.28)" : "none",
     cursor: "pointer",
     fontWeight: 600,
   });
@@ -928,7 +936,7 @@ function SessionBuilderModal({ tracks, onClose, onPlayRoute, onSavePlaylist = nu
     <div style={{ position: "fixed", inset: 0, zIndex: 100, overflow: "hidden" }}>
       <div style={{
         position: "absolute", inset: 0,
-        background: aluminumGradient(),
+        background: color.canvas,
       }}/>
       {session?.[0]?.albumCover && (
         <div aria-hidden="true" style={{
@@ -966,8 +974,8 @@ function SessionBuilderModal({ tracks, onClose, onPlayRoute, onSavePlaylist = nu
             )}
           </div>
           <div style={{
-            fontSize: 10, fontWeight: 700, letterSpacing: 1.4, textTransform: "uppercase",
-            color: color.faint, fontFamily: fontMono,
+            fontSize: 10, fontWeight: 600, letterSpacing: 0.2,
+            color: color.faint, fontFamily: fontDisplay,
           }}>
             {step} / 3 · {stepLabel}
           </div>
@@ -991,14 +999,14 @@ function SessionBuilderModal({ tracks, onClose, onPlayRoute, onSavePlaylist = nu
 
           {step === 1 && (
             <div style={{ width: "100%", textAlign: "center", animation: "rise 0.45s cubic-bezier(0.22,1,0.36,1) both" }}>
-              <div style={{
-                fontSize: 11, fontWeight: 650, letterSpacing: 1.6, textTransform: "uppercase",
-                color: color.muted, fontFamily: fontMono, marginBottom: 12,
+                <div style={{
+                fontSize: 12, fontWeight: 550, letterSpacing: 0.15,
+                color: color.muted, fontFamily: fontDisplay, marginBottom: 12,
               }}>
                 Build a custom mix
               </div>
               <div style={{
-                fontSize: 34, fontWeight: 700, color: color.ink, letterSpacing: -1,
+                fontSize: 32, fontWeight: 650, color: color.ink, letterSpacing: -0.9,
                 marginBottom: 10, fontFamily: fontDisplay,
               }}>How long?</div>
               <p style={{
@@ -1966,7 +1974,7 @@ function GlassDock({
               <Icon name="prev" size={16}/>
             </button>
             <IceOrbPlay
-             
+              isPlaying={isPlaying}
               onClick={onTogglePlay}
               size={34}
               iconSize={14}

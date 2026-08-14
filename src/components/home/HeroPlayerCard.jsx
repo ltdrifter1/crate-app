@@ -2,14 +2,13 @@ import { useEffect, useRef } from "react";
 import {
   fontDisplay,
   fontMono,
-  glass,
   homeSpace,
-  motion,
   y2k,
 } from "../../theme";
 import { usePlayerPlayback } from "../../usePlayerPlayback";
 import { useIsPlaying } from "../../usePlayerTransport";
 import Icon from "../ui/Icon";
+import { IceOrbPlay } from "../player/OrbitalControls";
 
 function fmtTime(secs = 0) {
   if (!Number.isFinite(secs) || secs < 0) secs = 0;
@@ -18,15 +17,7 @@ function fmtTime(secs = 0) {
   return `${m}:${String(s).padStart(2, "0")}`;
 }
 
-/** Aluminum primary play plate — grey family, machined Y2K face. */
-const PLAY_FACE = `
-  linear-gradient(180deg, rgba(255,255,255,0.28) 0%, transparent 42%),
-  linear-gradient(160deg, #E8ECF2 0%, #B8C0CC 48%, #6E7683 100%)
-`;
-const PLAY_SHADOW =
-  "0 0 22px rgba(232,236,242,0.18), 0 10px 24px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.45), inset 0 -1px 0 rgba(0,0,0,0.25)";
-
-/** Single MTV-style bug: LIVE · channel — consolidates dual pills. */
+/** Soft on-media bug — quieter than the old plate chip. */
 function BroadcastBug({ live, playing, channelLabel }) {
   return (
     <span
@@ -35,18 +26,16 @@ function BroadcastBug({ live, playing, channelLabel }) {
         alignItems: "center",
         gap: 8,
         maxWidth: "100%",
-        padding: "7px 12px",
+        padding: "6px 11px",
         borderRadius: 980,
-        background:
-          "linear-gradient(180deg, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0.03) 100%), rgba(10,11,13,0.48)",
-        border: "1px solid rgba(255,255,255,0.16)",
-        backdropFilter: "blur(18px) saturate(1.3)",
-        WebkitBackdropFilter: "blur(18px) saturate(1.3)",
-        boxShadow: "inset 0 1px 0 rgba(255,255,255,0.2), inset 0 -1px 0 rgba(0,0,0,0.35)",
-        fontFamily: fontMono,
-        fontSize: 10,
-        fontWeight: 700,
-        letterSpacing: 1.4,
+        background: "rgba(10,11,13,0.42)",
+        border: "1px solid rgba(255,255,255,0.12)",
+        backdropFilter: "blur(16px) saturate(1.2)",
+        WebkitBackdropFilter: "blur(16px) saturate(1.2)",
+        fontFamily: fontDisplay,
+        fontSize: 11,
+        fontWeight: 600,
+        letterSpacing: 0.2,
         color: y2k.offWhite,
       }}
     >
@@ -55,47 +44,26 @@ function BroadcastBug({ live, playing, channelLabel }) {
           <span
             aria-hidden="true"
             style={{
-              width: 7,
-              height: 7,
-              borderRadius: "50%",
-              flexShrink: 0,
-              background: live ? y2k.neon : y2k.chromeBright,
-              boxShadow: live
-                ? `0 0 8px ${y2k.neon}`
-                : `0 0 8px ${y2k.chromeGlow}`,
+              width: 6, height: 6, borderRadius: "50%", flexShrink: 0,
+              background: live ? y2k.neon : "rgba(247,248,250,0.9)",
+              boxShadow: live ? `0 0 8px ${y2k.neon}` : "none",
               animation: playing ? "stageLiveDot 1.6s ease-in-out infinite" : "none",
             }}
           />
-          <span style={{ color: live ? y2k.neon : y2k.chromeBright, flexShrink: 0 }}>
-            LIVE
+          <span style={{ color: live ? y2k.neon : "rgba(247,248,250,0.88)", flexShrink: 0, fontSize: 10, fontWeight: 650 }}>
+            Live
           </span>
-          <span
-            aria-hidden="true"
-            style={{
-              width: 1,
-              height: 10,
-              background: "rgba(255,255,255,0.22)",
-              flexShrink: 0,
-            }}
-          />
+          <span aria-hidden="true" style={{ width: 1, height: 10, background: "rgba(255,255,255,0.18)", flexShrink: 0 }} />
         </>
       )}
-      <span
-        style={{
-          overflow: "hidden",
-          textOverflow: "ellipsis",
-          whiteSpace: "nowrap",
-          textTransform: "uppercase",
-          color: "rgba(244,246,248,0.88)",
-        }}
-      >
+      <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", color: "rgba(244,246,248,0.86)" }}>
         {channelLabel}
       </span>
     </span>
   );
 }
 
-function GlassIconButton({ label, icon, active = false, onClick, size = 42, iconSize = 17 }) {
+function SoftIconButton({ label, icon, active = false, onClick, size = 44, iconSize = 17 }) {
   return (
     <button
       type="button"
@@ -109,21 +77,17 @@ function GlassIconButton({ label, icon, active = false, onClick, size = 42, icon
       style={{
         width: size,
         height: size,
-        borderRadius: 12,
+        borderRadius: "50%",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
         cursor: "pointer",
-        border: `1px solid ${active ? "rgba(232,236,242,0.42)" : "rgba(255,255,255,0.16)"}`,
-        background: active
-          ? "linear-gradient(180deg, rgba(255,255,255,0.16) 0%, rgba(255,255,255,0.05) 100%), rgba(28,32,38,0.5)"
-          : "linear-gradient(180deg, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0.03) 100%), rgba(12,13,16,0.4)",
+        border: `1px solid ${active ? "rgba(255,255,255,0.28)" : "rgba(255,255,255,0.12)"}`,
+        background: active ? "rgba(255,255,255,0.16)" : "rgba(12,13,16,0.36)",
         color: active ? y2k.chromeBright : y2k.offWhite,
-        backdropFilter: "blur(18px) saturate(1.3)",
-        WebkitBackdropFilter: "blur(18px) saturate(1.3)",
-        boxShadow: active
-          ? `inset 0 1px 0 rgba(255,255,255,0.28), 0 0 14px ${y2k.chromeGlow}`
-          : "inset 0 1px 0 rgba(255,255,255,0.2), inset 0 -1px 0 rgba(0,0,0,0.35)",
+        backdropFilter: "blur(14px)",
+        WebkitBackdropFilter: "blur(14px)",
+        boxShadow: "none",
         flexShrink: 0,
       }}
     >
@@ -207,7 +171,7 @@ export default function HeroPlayerCard({
       className="pmp-hero"
       style={{
         position: "relative",
-        borderRadius: 10,
+        borderRadius: 16,
         overflow: "hidden",
         aspectRatio: "16 / 11",
         minHeight: 300,
@@ -217,15 +181,9 @@ export default function HeroPlayerCard({
         width: `calc(100% + ${homeSpace.gutter * 2}px)`,
         maxWidth: "none",
         cursor: playDisabled && !live ? "default" : "pointer",
-        border: "1px solid rgba(255,255,255,0.14)",
-        borderLeft: "none",
-        borderRight: "none",
+        border: "none",
         background: y2k.artGradient,
-        boxShadow: `
-          0 28px 64px rgba(0,0,0,0.55),
-          inset 0 1px 0 rgba(255,255,255,0.12),
-          inset 0 -1px 0 rgba(0,0,0,0.4)
-        `,
+        boxShadow: `0 24px 56px rgba(0,0,0,0.48)`,
         WebkitTapHighlightColor: "transparent",
         isolation: "isolate",
       }}
@@ -315,7 +273,7 @@ export default function HeroPlayerCard({
         />
       </div>
 
-      {/* Lower third — chrome broadcast plate */}
+      {/* Lower third — type + soft transport on the art */}
       <div
         style={{
           position: "absolute",
@@ -327,14 +285,13 @@ export default function HeroPlayerCard({
       >
         <div
           style={{
-            fontFamily: fontMono,
-            fontSize: 10,
-            fontWeight: 800,
-            letterSpacing: 3,
-            textTransform: "uppercase",
-            color: y2k.chromeBright,
-            marginBottom: 8,
-            textShadow: "0 1px 8px rgba(0,0,0,0.6)",
+            fontFamily: fontDisplay,
+            fontSize: 12,
+            fontWeight: 550,
+            letterSpacing: 0.15,
+            color: "rgba(244,246,248,0.62)",
+            marginBottom: 6,
+            textShadow: "0 1px 8px rgba(0,0,0,0.55)",
           }}
         >
           {live ? "Now playing" : "Planet Radio"}
@@ -347,12 +304,12 @@ export default function HeroPlayerCard({
           <div
             style={{
               fontFamily: fontDisplay,
-              fontSize: "clamp(24px, 6vw, 34px)",
-              fontWeight: 800,
-              letterSpacing: -0.7,
-              lineHeight: 1.06,
+              fontSize: "clamp(22px, 5.5vw, 30px)",
+              fontWeight: 650,
+              letterSpacing: -0.55,
+              lineHeight: 1.08,
               color: y2k.offWhite,
-              textShadow: "0 2px 18px rgba(0,0,0,0.55)",
+              textShadow: "0 2px 18px rgba(0,0,0,0.5)",
               overflow: "hidden",
               textOverflow: "ellipsis",
               display: "-webkit-box",
@@ -365,11 +322,11 @@ export default function HeroPlayerCard({
           </div>
           <div
             style={{
-              marginTop: 6,
-              fontSize: 15,
+              marginTop: 5,
+              fontSize: 14,
               fontWeight: 500,
-              color: "rgba(244,246,248,0.74)",
-              textShadow: "0 1px 8px rgba(0,0,0,0.5)",
+              color: "rgba(244,246,248,0.7)",
+              textShadow: "0 1px 8px rgba(0,0,0,0.45)",
               overflow: "hidden",
               textOverflow: "ellipsis",
               whiteSpace: "nowrap",
@@ -380,10 +337,9 @@ export default function HeroPlayerCard({
           </div>
         </div>
 
-        {/* Transport row */}
         <div
           style={{
-            marginTop: 16,
+            marginTop: 14,
             display: "flex",
             alignItems: "center",
             gap: 10,
@@ -391,35 +347,15 @@ export default function HeroPlayerCard({
         >
           {live ? (
             <>
-              <GlassIconButton label="Previous" icon="prev" onClick={onPrev} />
-              <button
-                type="button"
-                aria-label={isPlaying ? "Pause" : "Play"}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onTogglePlay?.();
-                }}
-                className="pmp-press play-primary"
-                style={{
-                  width: 58,
-                  height: 58,
-                  borderRadius: 12,
-                  border: "1px solid rgba(255,255,255,0.28)",
-                  background: PLAY_FACE,
-                  color: "#0B0C0F",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  cursor: "pointer",
-                  boxShadow: PLAY_SHADOW,
-                  flexShrink: 0,
-                }}
-              >
-                <span style={{ display: "flex", marginLeft: isPlaying ? 0 : 2 }}>
-                  <Icon name={isPlaying ? "pause" : "play"} size={22} />
-                </span>
-              </button>
-              <GlassIconButton label="Next" icon="skip" onClick={onSkip} />
+              <SoftIconButton label="Previous" icon="prev" onClick={onPrev} />
+              <IceOrbPlay
+                isPlaying={isPlaying}
+                onClick={onTogglePlay}
+                size={56}
+                glowing={isPlaying}
+                stopPropagation
+              />
+              <SoftIconButton label="Next" icon="skip" onClick={onSkip} />
               <span style={{ flex: 1 }} />
               {onRequest && (
                 <button
@@ -434,30 +370,28 @@ export default function HeroPlayerCard({
                   className="pmp-press"
                   style={{
                     padding: "0 14px",
-                    height: 42,
-                    borderRadius: 8,
-                    border: `1px solid ${requested ? "rgba(200,242,65,0.4)" : "rgba(255,255,255,0.14)"}`,
-                    background: requested ? y2k.neonSoft : y2k.inkGlassSoft,
+                    height: 40,
+                    borderRadius: 980,
+                    border: `1px solid ${requested ? "rgba(200,242,65,0.35)" : "rgba(255,255,255,0.14)"}`,
+                    background: requested ? y2k.neonSoft : "rgba(12,13,16,0.4)",
                     color: requested ? y2k.neon : y2k.offWhite,
-                    fontFamily: fontMono,
-                    fontSize: 10,
-                    fontWeight: 800,
-                    letterSpacing: 1.6,
-                    textTransform: "uppercase",
+                    fontFamily: fontDisplay,
+                    fontSize: 12,
+                    fontWeight: 600,
+                    letterSpacing: 0.1,
                     cursor: requested ? "default" : "pointer",
-                    backdropFilter: "blur(14px)",
-                    WebkitBackdropFilter: "blur(14px)",
-                    boxShadow: "inset 0 1px 0 rgba(255,255,255,0.1)",
+                    backdropFilter: "blur(12px)",
+                    WebkitBackdropFilter: "blur(12px)",
                     display: "flex",
                     alignItems: "center",
                     gap: 6,
                   }}
                 >
                   <Icon name="zap" size={13} />
-                  {requested ? "Req'd" : "Request"}
+                  {requested ? "Requested" : "Request"}
                 </button>
               )}
-              <GlassIconButton
+              <SoftIconButton
                 label={track.liked ? "Unlike" : "Like"}
                 icon={track.liked ? "heart" : "heartempty"}
                 active={!!track.liked}
@@ -475,29 +409,26 @@ export default function HeroPlayerCard({
               }}
               className="pmp-press play-primary"
               style={{
-                height: 54,
-                padding: "0 26px",
-                borderRadius: 10,
-                border: "1px solid rgba(255,255,255,0.28)",
-                background: playDisabled
-                  ? "rgba(60,64,72,0.6)"
-                  : PLAY_FACE,
+                height: 48,
+                padding: "0 22px",
+                borderRadius: 980,
+                border: "1px solid rgba(255,255,255,0.45)",
+                background: playDisabled ? "rgba(60,64,72,0.6)" : "rgba(247,248,250,0.96)",
                 color: "#0B0C0F",
                 fontFamily: fontDisplay,
                 fontSize: 14,
-                fontWeight: 800,
-                letterSpacing: 1.8,
-                textTransform: "uppercase",
+                fontWeight: 650,
+                letterSpacing: 0.1,
                 cursor: playDisabled ? "default" : "pointer",
                 display: "flex",
                 alignItems: "center",
                 gap: 10,
-                boxShadow: playDisabled ? "none" : PLAY_SHADOW,
+                boxShadow: playDisabled ? "none" : "0 8px 22px rgba(0,0,0,0.35)",
                 opacity: playDisabled ? 0.6 : 1,
               }}
             >
-              <Icon name="play" size={16} />
-              Start the station
+              <Icon name="play" size={15} />
+              Start listening
             </button>
           )}
         </div>
@@ -505,70 +436,49 @@ export default function HeroPlayerCard({
         {live && (
           <div
             style={{
-              marginTop: 14,
+              marginTop: 12,
               display: "flex",
               alignItems: "center",
-              justifyContent: "space-between",
-              gap: 12,
-              fontFamily: fontMono,
-              fontSize: 10,
-              letterSpacing: 0.8,
-              color: "rgba(244,246,248,0.55)",
+              gap: 10,
             }}
+            onClick={(e) => e.stopPropagation()}
           >
-            <span
+            <div
+              aria-hidden="true"
               style={{
+                flex: 1,
+                height: 2,
+                borderRadius: 999,
+                background: "rgba(255,255,255,0.14)",
                 overflow: "hidden",
-                textOverflow: "ellipsis",
-                whiteSpace: "nowrap",
-                textTransform: "uppercase",
               }}
             >
-              {upNextTrack ? `Up next — ${upNextTrack.title} · ${upNextTrack.artist}` : " "}
-            </span>
-            <span style={{ flexShrink: 0, fontVariantNumeric: "tabular-nums" }}>
+              <div
+                style={{
+                  height: "100%",
+                  width: `${pct * 100}%`,
+                  background: "rgba(247,248,250,0.92)",
+                  borderRadius: 999,
+                  transition: "width 0.2s linear",
+                }}
+              />
+            </div>
+            <span
+              style={{
+                fontFamily: fontMono,
+                fontSize: 10,
+                fontVariantNumeric: "tabular-nums",
+                color: "rgba(244,246,248,0.55)",
+                letterSpacing: 0.2,
+                flexShrink: 0,
+              }}
+            >
               {fmtTime(progress)}
               {duration ? ` / ${fmtTime(duration)}` : ""}
             </span>
           </div>
         )}
       </div>
-
-      {/* Progress hairline */}
-      {live && duration > 0 && (
-        <div
-          aria-hidden="true"
-          style={{
-            position: "absolute",
-            left: 0,
-            right: 0,
-            bottom: 0,
-            height: 3,
-            background: "rgba(255,255,255,0.08)",
-          }}
-        >
-          <div
-            style={{
-              width: `${pct * 100}%`,
-              height: "100%",
-              background: `linear-gradient(90deg, ${y2k.chromeDeep}, ${y2k.chromeBright})`,
-              boxShadow: `0 0 10px ${y2k.chromeGlow}`,
-              transition: `width ${motion.base} linear`,
-            }}
-          />
-        </div>
-      )}
-
-      <div
-        aria-hidden="true"
-        style={{
-          position: "absolute",
-          inset: 0,
-          borderRadius: 10,
-          boxShadow: `inset 0 1px 0 ${glass.highlight}, inset 0 -1px 0 rgba(0,0,0,0.35)`,
-          pointerEvents: "none",
-        }}
-      />
     </div>
   );
 }

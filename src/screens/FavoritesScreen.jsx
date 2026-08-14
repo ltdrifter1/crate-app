@@ -2,23 +2,20 @@ import { useEffect, useMemo, useState, memo } from "react";
 import Icon from "../components/ui/Icon";
 import CoverImage from "../components/ui/CoverImage";
 import VirtualList from "../components/ui/VirtualList";
-import CoverFlow from "../components/listen/CoverFlow";
 import { AlbumArt } from "../components/listen/AlbumArt";
 import {
   TrackActionsMenu,
   TrackRow,
   useTrackMenu,
 } from "../components/listen/TrackRow";
-import { useIsPlaying, useCurrentTrack } from "../usePlayerTransport";
-import { savedTracks, trendingTracks, recommendedPicks } from "../lib/homeCollections";
+import { useCurrentTrack } from "../usePlayerTransport";
+import { savedTracks } from "../lib/homeCollections";
 import { isCommunityPlaylist } from "../lib/mixes";
 import {
   BTN_PRIMARY,
   BTN_SECONDARY,
   INPUT_ST,
   artShadow,
-  chrome,
-  chromeFrame,
   color,
   fontDisplay,
   fontMono,
@@ -26,16 +23,10 @@ import {
   homeSpace,
   motion,
   radius,
-  sectionRule,
 } from "../theme";
 
-// ── Key feature: Build a custom mix — lives on Library (Y2K chrome plate) ──
+// ── Key feature: Build a custom mix — quiet modern plate ──
 function CustomMixFeature({ onClick, inset = true }) {
-  const steps = [
-    { n: "01", label: "Length", hint: "30 min → night" },
-    { n: "02", label: "Vibe", hint: "Drive, focus…" },
-    { n: "03", label: "Arc", hint: "Warm → peak → chill" },
-  ];
   const gutter = inset ? homeSpace.gutter : 0;
 
   return (
@@ -51,271 +42,93 @@ function CustomMixFeature({ onClick, inset = true }) {
         minHeight: 0,
         margin: inset ? `0 ${gutter}px` : 0,
         width: inset ? `calc(100% - ${gutter * 2}px)` : "100%",
-        padding: "20px 20px 18px",
-        ...chromeFrame(),
+        padding: "22px 20px",
+        borderRadius: radius.xl,
+        border: "1px solid rgba(255,255,255,0.1)",
+        background: `
+          linear-gradient(145deg, rgba(255,255,255,0.07) 0%, transparent 42%),
+          linear-gradient(165deg, rgba(34,38,45,0.72) 0%, rgba(18,20,24,0.88) 100%)
+        `,
+        boxShadow: `inset 0 1px 0 ${glass.highlight}, ${glass.shadowSoft}`,
+        backdropFilter: glass.blurSoft,
+        WebkitBackdropFilter: glass.blurSoft,
         cursor: "pointer",
         textAlign: "left",
         color: color.ink,
         animation: "rise 0.55s cubic-bezier(0.22,1,0.36,1) both",
       }}
     >
-      <div aria-hidden="true" style={{
-        position: "absolute",
-        inset: 0,
-        pointerEvents: "none",
-        background: `
-          radial-gradient(ellipse 70% 80% at 0% 0%, rgba(40,45,53,0.82) 0%, transparent 55%),
-          linear-gradient(115deg, rgba(168,176,188,0.22) 0%, transparent 42%),
-          repeating-linear-gradient(135deg, transparent, transparent 11px, rgba(18,20,26,0.015) 12px)
-        `,
-      }}/>
-      {/* MTG-style corner pips */}
-      <span aria-hidden="true" style={{
-        position: "absolute", top: 8, left: 8, width: 8, height: 8,
-        borderTop: `2px solid ${chrome.steel}`, borderLeft: `2px solid ${chrome.steel}`, opacity: 0.55,
-      }} />
-      <span aria-hidden="true" style={{
-        position: "absolute", top: 8, right: 8, width: 8, height: 8,
-        borderTop: `2px solid ${chrome.steel}`, borderRight: `2px solid ${chrome.steel}`, opacity: 0.55,
-      }} />
-      <span aria-hidden="true" style={{
-        position: "absolute", bottom: 8, left: 8, width: 8, height: 8,
-        borderBottom: `2px solid ${chrome.steel}`, borderLeft: `2px solid ${chrome.steel}`, opacity: 0.55,
-      }} />
-      <span aria-hidden="true" style={{
-        position: "absolute", bottom: 8, right: 8, width: 8, height: 8,
-        borderBottom: `2px solid ${chrome.steel}`, borderRight: `2px solid ${chrome.steel}`, opacity: 0.55,
-      }} />
-
-      <div style={{ position: "relative", zIndex: 1 }}>
-        <div style={{
-          display: "flex",
-          alignItems: "flex-start",
-          justifyContent: "space-between",
-          gap: 16,
-          marginBottom: 16,
-        }}>
-          <div style={{ minWidth: 0, flex: 1 }}>
-            <div style={{
-              fontSize: 10,
-              fontWeight: 700,
-              letterSpacing: 1.6,
-              textTransform: "uppercase",
-              fontFamily: fontMono,
-              color: chrome.steel,
-              marginBottom: 6,
-            }}>
-              Custom set ◆ Library
-            </div>
-            <div style={{
-              fontSize: "clamp(18px, 4vw, 22px)",
-              fontWeight: 700,
-              fontFamily: fontDisplay,
-              letterSpacing: -0.35,
-              lineHeight: 1.12,
-              marginBottom: 6,
-              textTransform: "uppercase",
-            }}>
-              Build a set
-            </div>
-            <p style={{
-              margin: 0,
-              fontSize: 14,
-              fontWeight: 500,
-              color: color.muted,
-              lineHeight: 1.4,
-              maxWidth: 320,
-            }}>
-              Pick a length and vibe — we shape the energy with you.
-            </p>
+      <div style={{ position: "relative", zIndex: 1, display: "flex", alignItems: "center", gap: 16 }}>
+        <div style={{ minWidth: 0, flex: 1 }}>
+          <div style={{
+            fontSize: 12,
+            fontWeight: 550,
+            letterSpacing: 0.15,
+            fontFamily: fontDisplay,
+            color: color.muted,
+            marginBottom: 6,
+          }}>
+            Custom mix
           </div>
-          <span
-            aria-hidden="true"
-            style={{
-              flexShrink: 0,
-              width: 38,
-              height: 38,
-              borderRadius: radius.lg,
-              display: "inline-flex",
-              alignItems: "center",
-              justifyContent: "center",
-              border: `1px solid ${glass.border}`,
-              background: glass.chrome,
-              boxShadow: `inset 0 1px 0 ${glass.highlight}, ${glass.shadowSoft}`,
-              color: color.ink,
-              fontSize: 16,
-              fontWeight: 700,
-            }}
-          >
-            →
-          </span>
+          <div style={{
+            fontSize: "clamp(20px, 4.2vw, 24px)",
+            fontWeight: 650,
+            fontFamily: fontDisplay,
+            letterSpacing: -0.4,
+            lineHeight: 1.12,
+            marginBottom: 6,
+          }}>
+            Build a set
+          </div>
+          <p style={{
+            margin: 0,
+            fontSize: 14,
+            fontWeight: 500,
+            color: color.muted,
+            lineHeight: 1.4,
+            maxWidth: 340,
+          }}>
+            Choose a length and vibe — we shape the energy arc with you.
+          </p>
+          <div style={{
+            marginTop: 12,
+            fontSize: 12,
+            fontWeight: 500,
+            color: color.faint,
+            letterSpacing: 0.1,
+          }}>
+            Length · Vibe · Preview
+          </div>
         </div>
-
-        <div style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
-          gap: 8,
-        }}>
-          {steps.map((s) => (
-            <div
-              key={s.n}
-              style={{
-                padding: "10px 10px 12px",
-                borderRadius: radius.lg,
-                border: `1px solid ${glass.borderSoft}`,
-                background: "rgba(32,36,43,0.68)",
-                boxShadow: `inset 0 1px 0 ${glass.highlight}`,
-                minWidth: 0,
-              }}
-            >
-              <div style={{
-                fontSize: 10,
-                fontWeight: 700,
-                letterSpacing: 1.1,
-                color: chrome.steel,
-                fontFamily: fontMono,
-                marginBottom: 4,
-              }}>
-                {s.n}
-              </div>
-              <div style={{
-                fontSize: 13,
-                fontWeight: 700,
-                fontFamily: fontDisplay,
-                letterSpacing: -0.1,
-                color: color.ink,
-                marginBottom: 2,
-                textTransform: "uppercase",
-              }}>
-                {s.label}
-              </div>
-              <div style={{
-                fontSize: 11,
-                fontWeight: 500,
-                color: color.muted,
-                lineHeight: 1.3,
-                overflow: "hidden",
-                textOverflow: "ellipsis",
-                whiteSpace: "nowrap",
-              }}>
-                {s.hint}
-              </div>
-            </div>
-          ))}
-        </div>
+        <span
+          aria-hidden="true"
+          style={{
+            flexShrink: 0,
+            height: 44,
+            padding: "0 16px",
+            borderRadius: 980,
+            display: "inline-flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: 6,
+            border: "1px solid rgba(255,255,255,0.35)",
+            background: "rgba(247,248,250,0.96)",
+            color: color.onAccent,
+            fontSize: 13,
+            fontWeight: 650,
+            fontFamily: fontDisplay,
+            boxShadow: "0 8px 20px rgba(0,0,0,0.28)",
+          }}
+        >
+          Start
+          <span style={{ fontSize: 15, lineHeight: 1 }}>→</span>
+        </span>
       </div>
     </button>
   );
 }
 
 
-
-// ── Home — three acts only ────────────────────────────────────────────────────
-const HomeSection = ({ label, count, subtitle, children, delay = 0, first = false, eyebrow = null }) => (
-  <section
-    style={{
-      margin: 0,
-      paddingBottom: homeSpace.sectionPadBottom,
-      animation: `rise 0.55s ${motion.ease} ${delay}s both`,
-    }}
-  >
-    {!first && (
-      <div aria-hidden="true" style={{
-        padding: `${Math.round(homeSpace.sectionPadTop * 0.45)}px 0 ${Math.round(homeSpace.sectionPadTop * 0.55)}px`,
-      }}>
-        <div style={sectionRule(homeSpace.gutter)}/>
-      </div>
-    )}
-    {first && <div style={{ height: label || eyebrow ? homeSpace.sectionPadTopFirst + 8 : 8 }} aria-hidden="true"/>}
-    {(label || eyebrow) && (
-    <div style={{
-      padding: `0 ${homeSpace.gutter}px ${subtitle ? 6 : 16}px`,
-      display: "flex",
-      alignItems: "baseline",
-      justifyContent: "space-between",
-      gap: 12,
-    }}>
-      <div>
-        {eyebrow && (
-          <div style={{
-            fontSize: 10,
-            fontWeight: 700,
-            letterSpacing: 1.6,
-            textTransform: "uppercase",
-            color: color.faint,
-            fontFamily: fontMono,
-            marginBottom: 6,
-          }}>
-            {eyebrow}
-          </div>
-        )}
-        {label && (
-        <h2 style={{
-          margin: 0,
-          fontSize: 22,
-          fontWeight: 700,
-          letterSpacing: -0.5,
-          color: color.ink,
-          fontFamily: fontDisplay,
-        }}>{label}</h2>
-        )}
-      </div>
-      {count != null && (
-        <span style={{
-          fontSize: 12,
-          color: color.muted,
-          fontVariantNumeric: "tabular-nums",
-          fontWeight: 600,
-          fontFamily: fontMono,
-          letterSpacing: 0.2,
-        }}>{count}</span>
-      )}
-    </div>
-    )}
-    {subtitle ? (
-      <p style={{
-        margin: `0 ${homeSpace.gutter}px 16px`,
-        fontSize: 13,
-        color: color.muted,
-        lineHeight: 1.4,
-        letterSpacing: -0.1,
-        maxWidth: 420,
-      }}>{subtitle}</p>
-    ) : null}
-    {children}
-  </section>
-);
-
-
-function ForYouRiver({
-  tracks = [],
-  reasons = null,
-  coldStart = false,
-  onPlayTrack,
-  activeId,
-  first = false,
-}) {
-  const isPlaying = useIsPlaying();
-  if (!tracks.length) return null;
-
-  return (
-    <HomeSection
-      label={coldStart ? "Fresh picks" : "Selected for you"}
-      delay={0.06}
-      first={first}
-    >
-      <CoverFlow
-        tracks={tracks}
-        reasons={reasons}
-        onPlayTrack={(t) => onPlayTrack(t, tracks)}
-        activeId={activeId}
-        isPlaying={isPlaying}
-        size={200}
-        limit={25}
-      />
-    </HomeSection>
-  );
-}
 
 
 function FavoritesScreen({
@@ -332,7 +145,6 @@ function FavoritesScreen({
   const { menu, close } = useTrackMenu();
   const currentTrack = useCurrentTrack();
   const activeId = currentTrack?.id;
-  const isPlaying = useIsPlaying();
   const saved = savedTracks(tracks, 80);
   const [libTab, setLibTab] = useState("playlists"); // playlists | liked
   const [libQuery, setLibQuery] = useState("");
@@ -343,64 +155,11 @@ function FavoritesScreen({
   const [showAddCuts, setShowAddCuts] = useState(false);
   const [addQuery, setAddQuery] = useState("");
 
-  const tasteKey = (preferredGenres || []).join("\u0001");
-  const recentKey = (recentTrackIds || []).join("\u0001");
-  const catalogKey = tracks.length;
-  const dayKey = new Date().toISOString().slice(0, 10);
-
   const trackById = useMemo(() => {
     const m = new Map();
     for (const t of tracks) m.set(t.id, t);
     return m;
   }, [tracks]);
-
-  const recentlyPlayed = useMemo(
-    () => [...new Set(recentTrackIds)]
-      .map((id) => trackById.get(id))
-      .filter(Boolean)
-      .slice(0, 25),
-    [trackById, recentKey]
-  );
-
-  const trending = useMemo(() => trendingTracks(tracks, 25), [tracks, catalogKey]);
-
-  const { picks: recommended, coldStart } = useMemo(
-    () => recommendedPicks(tracks, {
-      preferredGenres,
-      recentTrackIds,
-      limit: 25,
-      excludeIds: [],
-      userKey,
-      dayKey,
-    }),
-    [tracks, catalogKey, tasteKey, recentKey, userKey, dayKey]
-  );
-
-  const forYouTracks = useMemo(() => {
-    const seen = new Set();
-    const rail = [];
-    const pushUnique = (list) => {
-      for (const t of list) {
-        if (!t?.id || seen.has(t.id)) continue;
-        seen.add(t.id);
-        rail.push(t);
-        if (rail.length >= 25) return;
-      }
-    };
-    pushUnique(recommended.map((p) => p.track));
-    pushUnique(trending);
-    pushUnique(recentlyPlayed);
-    pushUnique(tracks);
-    return rail;
-  }, [recommended, trending, recentlyPlayed, tracks]);
-
-  const forYouReasons = useMemo(() => {
-    const map = {};
-    for (const p of recommended) {
-      if (p?.track?.id && p.reason) map[p.track.id] = p.reason;
-    }
-    return map;
-  }, [recommended]);
 
   // Deep-open request (e.g. desktop sidebar stack click)
   useEffect(() => {
@@ -940,21 +699,20 @@ function FavoritesScreen({
               <h1 style={{
                 margin: 0,
                 fontSize: 28,
-                fontWeight: 700,
+                fontWeight: 650,
                 letterSpacing: -0.5,
                 fontFamily: fontDisplay,
                 color: color.ink,
                 lineHeight: 1.05,
-                textTransform: "uppercase",
               }}>
                 Library
               </h1>
               <div style={{
                 marginTop: 5,
-                fontSize: 12,
-                color: chrome.steel,
-                fontFamily: fontMono,
-                letterSpacing: 0.2,
+                fontSize: 13,
+                color: color.muted,
+                fontFamily: fontDisplay,
+                letterSpacing: 0.1,
                 fontVariantNumeric: "tabular-nums",
               }}>
                 {userPlaylists.length} playlist{userPlaylists.length === 1 ? "" : "s"}
@@ -1092,6 +850,19 @@ function FavoritesScreen({
             </div>
           )}
         </div>
+
+        {onCustomMix && (
+          <section
+            aria-label="Custom mix"
+            style={{
+              margin: "4px 0 14px",
+              padding: `0 ${homeSpace.gutter}px`,
+              animation: `rise 0.5s ${motion.ease} both`,
+            }}
+          >
+            <CustomMixFeature onClick={onCustomMix} inset={false} />
+          </section>
+        )}
 
         {libTab === "playlists" ? (
           <div style={{
@@ -1378,34 +1149,6 @@ function FavoritesScreen({
               </div>
             )}
           </div>
-        )}
-
-        {/* Secondary shelves — after collections so Library owns the first viewport */}
-        {forYouTracks.length > 0 && (
-          <div style={{ margin: `12px -${homeSpace.gutter}px 0` }}>
-            <ForYouRiver
-              tracks={forYouTracks}
-              reasons={forYouReasons}
-              coldStart={coldStart}
-              onPlayTrack={playTrackFn}
-              activeId={activeId}
-             
-              first={false}
-            />
-          </div>
-        )}
-
-        {onCustomMix && (
-          <section
-            aria-label="Custom mix"
-            style={{
-              margin: "8px 0 4px",
-              padding: `0 ${homeSpace.gutter}px`,
-              animation: `rise 0.5s ${motion.ease} both`,
-            }}
-          >
-            <CustomMixFeature onClick={onCustomMix} inset={false} />
-          </section>
         )}
       </div>
 
