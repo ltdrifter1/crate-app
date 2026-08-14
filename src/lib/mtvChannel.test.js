@@ -5,8 +5,13 @@ import {
   ensureTodayChart,
   getChartSnapshot,
   weekKey,
+  buildMonthlyChart,
+  buildMonthlyReveal,
+  filterTracksForChartScope,
+  chartScopeKey,
+  monthKey,
 } from "./chartHistory";
-import { availableSceneChannels, buildSceneChannelPool, channelCoverUrls, getSceneChannel, SCENE_CHANNELS, CHANNEL_SOURCE_NOTES } from "./sceneChannels";
+import { availableSceneChannels, buildSceneChannelPool, channelCoverUrls, getSceneChannel, SCENE_CHANNELS, CHANNEL_SOURCE_NOTES, trackMatchesChannel } from "./sceneChannels";
 import { pickTrackBumper, STATION_IDENTS } from "./bumpers";
 import { brandStoragePrefix } from "../brand/identity";
 import {
@@ -34,9 +39,9 @@ describe("chartHistory", () => {
   });
 
   const tracks = [
-    { id: "a", title: "A", artist: "X", duration: 180, audioUrl: "u", playCount: 2, requestCount: 1 },
-    { id: "b", title: "B", artist: "Y", duration: 180, audioUrl: "u", playCount: 20, requestCount: 8 },
-    { id: "c", title: "C", artist: "Z", duration: 180, audioUrl: "u", playCount: 5 },
+    { id: "a", title: "A", artist: "X", duration: 180, audioUrl: "u", playCount: 2, requestCount: 1, genre: "Rock" },
+    { id: "b", title: "B", artist: "Y", duration: 180, audioUrl: "u", playCount: 20, requestCount: 8, genre: "Electronic" },
+    { id: "c", title: "C", artist: "Z", duration: 180, audioUrl: "u", playCount: 5, genre: "Rock" },
   ];
 
   test("captures snapshot and enrich movements", () => {
@@ -68,6 +73,64 @@ describe("chartHistory", () => {
 
   test("weekKey formats", () => {
     expect(weekKey(new Date("2024-06-03T12:00:00Z"))).toMatch(/^\d{4}-W\d{2}$/);
+  });
+
+  test("monthly chart overall and by genre", () => {
+    const overall = buildMonthlyChart(tracks, { limit: 10, scope: { mode: "overall" } });
+    expect(overall[0].track.id).toBe("b");
+    expect(overall[0].monthKey).toBe(monthKey());
+
+    const rock = buildMonthlyChart(tracks, { limit: 10, scope: { mode: "genre", genre: "Rock" } });
+    expect(rock.map((c) => c.track.id)).toEqual(["a", "c"]);
+    expect(chartScopeKey({ mode: "genre", genre: "Rock" })).toBe("genre:Rock");
+  });
+
+  test("monthly chart by channel filters membership", () => {
+    const shoeTracks = [
+      { id: "1", title: "Haze", genre: "Shoegaze", duration: 180, audioUrl: "u", requestCount: 4 },
+      { id: "2", title: "Metal", genre: "Metal", duration: 180, audioUrl: "u", requestCount: 9 },
+      { id: "3", title: "Bleed", genre: "Emo", duration: 180, audioUrl: "u", requestCount: 2 },
+    ];
+    const scoped = filterTracksForChartScope(shoeTracks, { mode: "channel", channelId: "shoegaze" });
+    expect(scoped.map((t) => t.id).sort()).toEqual(["1", "3"]);
+    const chart = buildMonthlyChart(shoeTracks, { scope: { mode: "channel", channelId: "shoegaze" } });
+    expect(chart[0].track.id).toBe("1");
+    expect(trackMatchesChannel(shoeTracks[0], getSceneChannel("shoegaze"))).toBe(true);
+  });
+
+  test("monthly reveal peaks from day snaps in month", () => {
+    const key = monthKey();
+    const day1 = `${key}-01`;
+    const day2 = `${key}-02`;
+    localStorage.setItem(
+      `${brandStoragePrefix()}:chart:day:${day1}`,
+      JSON.stringify({
+        dayKey: day1,
+        entries: [
+          { rank: 1, id: "a", title: "A", artist: "X", score: 1 },
+          { rank: 2, id: "b", title: "B", artist: "Y", score: 2 },
+        ],
+      })
+    );
+    localStorage.setItem(
+      `${brandStoragePrefix()}:chart:day:${day2}`,
+      JSON.stringify({
+        dayKey: day2,
+        entries: [
+          { rank: 1, id: "b", title: "B", artist: "Y", score: 5 },
+          { rank: 3, id: "a", title: "A", artist: "X", score: 1 },
+        ],
+      })
+    );
+    localStorage.setItem(
+      `${brandStoragePrefix()}:chart:index`,
+      JSON.stringify([day2, day1])
+    );
+
+    const reveal = buildMonthlyReveal(10, { tracks });
+    expect(reveal[0].id).toBe("b");
+    expect(reveal[0].monthRank).toBe(1);
+    expect(reveal.find((e) => e.id === "a").rank).toBe(1);
   });
 });
 

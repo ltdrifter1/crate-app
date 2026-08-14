@@ -277,6 +277,11 @@ function matchesChannel(track, channel) {
   return (channel.genres || []).includes(g);
 }
 
+/** Public channel membership check for charts / filters. */
+export function trackMatchesChannel(track, channel) {
+  return matchesChannel(track, channel);
+}
+
 export function buildSceneChannelPool(tracks = [], channel) {
   const singles = singlesOnly(tracks);
   if (!channel) return singles;

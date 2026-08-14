@@ -1,9 +1,15 @@
 import { brandStoragePrefix } from "../brand/identity";
+import { normalizeGenre } from "./genres";
+import { monthKey as calendarMonthKey } from "./mixes";
+import { getSceneChannel, trackMatchesChannel } from "./sceneChannels";
 import { buildCountdown, stationDayKey } from "./station";
 
 /**
- * Chart history — daily snapshots for climbers, #1 archive, weekly reveal.
+ * Chart history — daily snapshots, monthly charts, climbers, weekly reveal.
+ * Monthly charts can be overall or scoped by channel / genre.
  */
+
+export { calendarMonthKey as monthKey };
 
 function storageKey(suffix) {
   return `${brandStoragePrefix()}:chart:${suffix}`;
@@ -44,6 +50,73 @@ function snapshotFromCountdown(countdown = [], dayKey) {
   };
 }
 
+/** Normalize scope: overall | channel | genre */
+export function normalizeChartScope(scope = {}) {
+  const mode = scope.mode === "channel" || scope.mode === "genre" ? scope.mode : "overall";
+  if (mode === "channel") {
+    const channelId = String(scope.channelId || "").trim();
+    return { mode, channelId: channelId || null, genre: null };
+  }
+  if (mode === "genre") {
+    const genre = normalizeGenre(scope.genre) || String(scope.genre || "").trim() || null;
+    return { mode, channelId: null, genre };
+  }
+  return { mode: "overall", channelId: null, genre: null };
+}
+
+export function chartScopeKey(scope = {}) {
+  const s = normalizeChartScope(scope);
+  if (s.mode === "channel") return `channel:${s.channelId || "none"}`;
+  if (s.mode === "genre") return `genre:${s.genre || "none"}`;
+  return "overall";
+}
+
+export function chartScopeLabel(scope = {}) {
+  const s = normalizeChartScope(scope);
+  if (s.mode === "channel") {
+    const ch = getSceneChannel(s.channelId);
+    return ch ? `CH-${String(ch.num).padStart(2, "0")} · ${ch.shortTitle || ch.title}` : "Channel";
+  }
+  if (s.mode === "genre") return s.genre || "Genre";
+  return "Overall";
+}
+
+/** Filter catalog for a chart scope (channel / genre / overall). */
+export function filterTracksForChartScope(tracks = [], scope = {}) {
+  const s = normalizeChartScope(scope);
+  if (s.mode === "channel") {
+    const channel = getSceneChannel(s.channelId);
+    if (!channel) return [];
+    return tracks.filter((t) => trackMatchesChannel(t, channel));
+  }
+  if (s.mode === "genre") {
+    if (!s.genre) return [];
+    return tracks.filter((t) => normalizeGenre(t.genre) === s.genre);
+  }
+  return tracks;
+}
+
+/**
+ * Live monthly chart — heat-ranked singles for the current month, optionally
+ * scoped by channel or genre. Month is a presentation label; ranking uses
+ * live request/play/like heat (same as the station countdown).
+ */
+export function buildMonthlyChart(tracks = [], options = {}) {
+  const {
+    limit = 20,
+    date = new Date(),
+    scope = { mode: "overall" },
+  } = options;
+  const key = calendarMonthKey(date);
+  const scoped = filterTracksForChartScope(tracks, scope);
+  const countdown = buildCountdown(scoped, limit);
+  return countdown.map((c) => ({
+    ...c,
+    monthKey: key,
+    scope: normalizeChartScope(scope),
+  }));
+}
+
 /** Persist today's chart; returns the snapshot. */
 export function captureChartSnapshot(tracks = [], date = new Date()) {
   const dayKey = stationDayKey(date);
@@ -53,7 +126,8 @@ export function captureChartSnapshot(tracks = [], date = new Date()) {
   writeJson(storageKey(`day:${dayKey}`), snap);
 
   const index = readJson(storageKey("index"), []);
-  const nextIndex = [dayKey, ...index.filter((d) => d !== dayKey)].slice(0, 60);
+  // Keep ~3 months so monthly reveal can look back
+  const nextIndex = [dayKey, ...index.filter((d) => d !== dayKey)].slice(0, 93);
   writeJson(storageKey("index"), nextIndex);
 
   // Number-ones archive
@@ -131,6 +205,51 @@ export function weekKey(date = new Date()) {
   const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
   const weekNo = Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
   return `${d.getUTCFullYear()}-W${String(weekNo).padStart(2, "0")}`;
+}
+
+function dayKeyInMonth(dayKey, month) {
+  return typeof dayKey === "string" && dayKey.startsWith(`${month}-`);
+}
+
+/**
+ * Monthly reveal — best peak rank per track across stored days in the month.
+ * When tracks + scope are provided, only include tracks that match the scope.
+ */
+export function buildMonthlyReveal(limit = 20, options = {}) {
+  const {
+    date = new Date(),
+    scope = { mode: "overall" },
+    tracks = null,
+  } = options;
+  const key = calendarMonthKey(date);
+  const s = normalizeChartScope(scope);
+  const allowed =
+    tracks && s.mode !== "overall"
+      ? new Set(filterTracksForChartScope(tracks, s).map((t) => t.id))
+      : null;
+
+  const days = listChartDays(93).filter((d) => dayKeyInMonth(d, key));
+  const best = new Map();
+  for (const dayKey of days) {
+    const snap = getChartSnapshot(dayKey);
+    for (const e of snap?.entries || []) {
+      if (!e.id) continue;
+      if (allowed && !allowed.has(e.id)) continue;
+      const prev = best.get(e.id);
+      if (!prev || e.rank < prev.rank || (e.rank === prev.rank && (e.score || 0) > (prev.score || 0))) {
+        best.set(e.id, { ...e, peakDay: dayKey });
+      }
+    }
+  }
+  return [...best.values()]
+    .sort((a, b) => a.rank - b.rank || (b.score || 0) - (a.score || 0))
+    .slice(0, limit)
+    .map((e, i) => ({
+      ...e,
+      monthRank: i + 1,
+      monthKey: key,
+      scope: s,
+    }));
 }
 
 /**
