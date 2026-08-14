@@ -9,8 +9,13 @@ import {
 } from "../../theme";
 import {
   membershipSummary,
-  formatPriceMonthly,
+  formatPriceClub,
+  formatPricePremium,
+  formatMoney,
+  PLAN_IDS,
+  BILLING,
 } from "../../lib/entitlements";
+import { creditSummaryLine } from "../../lib/clubCredit";
 import { collectionStats } from "../../lib/collectionStats";
 import {
   CLUB_NAME,
@@ -24,27 +29,59 @@ import { BrandGlyph as DoorGlyph } from "../brand/BrandMark";
 import CollapsingHeader from "../layout/CollapsingHeader";
 import { InterestsPanel } from "../listen/InterestsPanel";
 import MonthlyPicksPanel from "./MonthlyPicksPanel";
+import CollectorPanel from "./CollectorPanel";
 import { TASTE_AXIS_DEFAULT } from "../../lib/tasteProfile";
 
 let clubVisitedThisSession = false;
 
-const PRIVILEGES = [
-  {
-    id: "crate",
-    label: "The crate",
-    blurb: "Full catalog · harmonic radio · listening booth",
-  },
-  {
-    id: "pressings",
-    label: "Your pressings",
-    blurb: "Stacks, likes, and filed cuts stay with your number",
-  },
-  {
-    id: "mix",
-    label: "Community Mix",
-    blurb: "One monthly plate pressed for every member",
-  },
-];
+const PRIVILEGES_BY_TIER = {
+  free: [
+    {
+      id: "limited",
+      label: "Limited streaming",
+      blurb: `${BILLING.freePlaysPerDay} plays per day · browse and save taste`,
+    },
+    {
+      id: "upgrade",
+      label: "Upgrade anytime",
+      blurb: "Club unlocks the full crate and your membership card",
+    },
+  ],
+  club: [
+    {
+      id: "crate",
+      label: "Full streaming",
+      blurb: "Unlimited listening · harmonic radio · listening booth",
+    },
+    {
+      id: "card",
+      label: "Membership card",
+      blurb: "Digital card now · physical member access with Club Copy",
+    },
+    {
+      id: "picks",
+      label: "Monthly picks",
+      blurb: "Choose 1 of 3 — or skip. Nothing ships unless you choose",
+    },
+  ],
+  premium: [
+    {
+      id: "crate",
+      label: "Full streaming",
+      blurb: "Everything in Club, unlimited",
+    },
+    {
+      id: "credit",
+      label: "Club Credit",
+      blurb: `${formatMoney(BILLING.premium.creditGrant)} toward physical releases each year`,
+    },
+    {
+      id: "physical",
+      label: "Physical access",
+      blurb: "Member pricing and Club Copy editions",
+    },
+  ],
+};
 
 const SETTINGS_TABS = [
   { id: "club", label: "Club" },
@@ -58,12 +95,15 @@ export default function ClubScreen({
   onEditGenres = null,
   access = null,
   onSubscribe = null,
+  onOpenPlans = null,
   profile = null,
   onOpenMix = null,
   communityMix = null,
   recentTracks = [],
   signalLabel = null,
   onPlayTrack = null,
+  onChoosePick = null,
+  onSkipMonth = null,
   initialTab = "club",
 }) {
   const [settingsTab, setSettingsTab] = useState(
@@ -71,9 +111,9 @@ export default function ClubScreen({
   );
   const liked = useMemo(() => tracks.filter((t) => t.liked), [tracks]);
   const memberLine = membershipSummary(access);
-  const price = formatPriceMonthly();
-  const showSubscribe = access && !access.allowed;
-  const onTrial = access?.reason === "trial";
+  const tier = access?.tier || PLAN_IDS.FREE;
+  const privileges = PRIVILEGES_BY_TIER[tier] || PRIVILEGES_BY_TIER.free;
+  const hasCard = !!access?.membershipCard;
   const stats = useMemo(() => collectionStats(liked), [liked]);
   const memberNo = profile?.memberNumber ?? user.memberNumber;
   const joined = formatJoinedMonth(profile?.createdAt || profile?.clubJoinedAt);
@@ -82,6 +122,7 @@ export default function ClubScreen({
   const mixCount = (communityMix?.trackIds || []).length;
   const mixCurator =
     communityMix?.featuredCurator?.displayName || communityMix?.ownerName || null;
+  const creditLine = creditSummaryLine(profile);
 
   useEffect(() => {
     if (clubVisitedThisSession) return;
@@ -268,10 +309,10 @@ export default function ClubScreen({
               fontWeight: 700,
               letterSpacing: 1.4,
               textTransform: "uppercase",
-              color: color.accent,
+              color: hasCard ? color.accent : color.muted,
               fontFamily: fontMono,
             }}>
-              Member
+              {tier === PLAN_IDS.PREMIUM ? "Premium" : hasCard ? "Club" : "Free"}
             </div>
           </div>
 
@@ -394,19 +435,29 @@ export default function ClubScreen({
             The booth is open
           </div>
           <div style={{ fontSize: 13, color: color.body, lineHeight: 1.45 }}>
-            {floor.blurb} Your membership keeps the crate unlocked.
+            {floor.blurb}{" "}
+            {hasCard
+              ? "Your membership keeps the crate unlocked."
+              : `Free plan · ${BILLING.freePlaysPerDay} plays/day.`}
           </div>
         </div>
 
-        {/* This month's picks — taste-matched */}
+        {/* This month's picks — choose 1 or skip */}
         <MonthlyPicksPanel
           tracks={tracks}
-          genres={user.genres || profile?.genres || []}
-          adventurous={profile?.adventurous}
-          depth={profile?.depth}
+          profile={profile}
           userKey={user?.uid || profile?.uid || ""}
           onPlayTrack={onPlayTrack}
           onEditTaste={onEditGenres}
+          onChoosePick={onChoosePick}
+          onSkipMonth={onSkipMonth}
+          membershipOk={hasCard}
+        />
+
+        <CollectorPanel
+          tracks={tracks}
+          collection={profile?.collection}
+          memberPricing={hasCard}
         />
 
         {/* This month’s pressing */}
@@ -481,7 +532,7 @@ export default function ClubScreen({
         <section style={{ marginBottom: 26 }}>
           <div style={sectionLabel}>Member privileges</div>
           <ul style={{ listStyle: "none", margin: 0, padding: 0 }}>
-            {PRIVILEGES.map((p, i) => (
+            {privileges.map((p, i) => (
               <li
                 key={p.id}
                 style={{
@@ -536,27 +587,30 @@ export default function ClubScreen({
           <div style={{ fontSize: 15, color: color.body, lineHeight: 1.45, marginBottom: 6 }}>
             {memberLine}
           </div>
-          <div style={{ fontSize: 14, color: color.muted, lineHeight: 1.45, marginBottom: 14 }}>
-            {access?.reason === "subscribed"
-              ? `Full access · ${price}/month.`
-              : onTrial
-                ? `Free for your first month, then ${price}/month.`
-                : access?.reason === "admin"
-                  ? "Admin — full access."
-                  : `Subscribe for ${price}/month to keep listening.`}
+          <div style={{ fontSize: 14, color: color.muted, lineHeight: 1.45, marginBottom: 8 }}>
+            {tier === PLAN_IDS.PREMIUM
+              ? `Premium · ${formatPricePremium()}. ${creditLine}.`
+              : tier === PLAN_IDS.CLUB || access?.reason === "trial"
+                ? `Club · ${formatPriceClub()}. Add Premium for physical Club Credit.`
+                : `Free · limited streaming. Club is ${formatPriceClub()}. Premium is ${formatPricePremium()}.`}
           </div>
-          {(showSubscribe || onTrial) && onSubscribe && (
+          {tier === PLAN_IDS.PREMIUM && (
+            <div style={{ fontSize: 13, color: color.body, marginBottom: 14, lineHeight: 1.4 }}>
+              {creditLine}
+            </div>
+          )}
+          {(access?.canUpgradeClub || access?.canUpgradePremium) && (onOpenPlans || onSubscribe) && (
             <button
               type="button"
-              onClick={onSubscribe}
+              onClick={() => (onOpenPlans ? onOpenPlans() : onSubscribe?.())}
               style={{
-                ...(showSubscribe ? BTN_PRIMARY : BTN_SECONDARY),
+                ...BTN_PRIMARY,
                 width: "100%",
                 borderRadius: 980,
                 marginBottom: 4,
               }}
             >
-              {showSubscribe ? `Subscribe — ${price}/mo` : `Subscribe early — ${price}/mo`}
+              {access?.canUpgradeClub ? `Join Club — ${formatPriceClub()}` : `Go Premium — ${formatPricePremium()}`}
             </button>
           )}
         </section>

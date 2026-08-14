@@ -21,7 +21,7 @@ import {
 import { auth, db } from "./firebase";
 import { normalizePhoneE164 } from "./lib/phone";
 import { migratePreferredGenres } from "./lib/genres";
-import { buildTrialFields, needsTrialBackfill } from "./lib/entitlements";
+import { buildFreePlanFields, needsPlanBackfill } from "./lib/entitlements";
 import {
   assignMemberNumber,
   provisionalMemberNumber,
@@ -41,7 +41,7 @@ async function resolveMemberNumber(uid, preferred = null) {
 
 async function createProfile(uid, fields = {}) {
   const displayName = fields.displayName || fields.username || "Listener";
-  const trial = buildTrialFields();
+  const trial = buildFreePlanFields();
   const memberNumber = await resolveMemberNumber(uid, fields.memberNumber);
   const profile = {
     uid,
@@ -59,6 +59,8 @@ async function createProfile(uid, fields = {}) {
     onboarded:    false,
     settings:     { repeat: false },
     memberNumber,
+    collection:   {},
+    monthlyChoices: {},
     ...trial,
   };
   await setDoc(doc(db, "users", uid), profile);
@@ -81,18 +83,20 @@ function ephemeralProfile(fbUser) {
     onboarded: true,
     settings: { repeat: false },
     memberNumber: provisionalMemberNumber(fbUser.uid),
-    ...buildTrialFields(),
+    collection: {},
+    monthlyChoices: {},
+    ...buildFreePlanFields(),
   };
 }
 
-/** One-time backfill so existing accounts get a fresh 30-day trial. */
+/** One-time backfill so existing accounts get a Free plan if missing. */
 async function backfillTrialIfNeeded(uid, data) {
-  if (!needsTrialBackfill(data)) return data;
-  const trial = buildTrialFields();
+  if (!needsPlanBackfill(data)) return data;
+  const trial = buildFreePlanFields();
   try {
     await updateDoc(doc(db, "users", uid), trial);
   } catch (e) {
-    console.warn("Trial backfill failed; using local trial fields", e);
+    console.warn("Plan backfill failed; using local free fields", e);
   }
   return { ...data, ...trial };
 }
