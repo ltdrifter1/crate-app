@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import {
-  color, fontDisplay, fontMono, glass, homeSpace, motion, chrome, hardware
+  color, fontDisplay, fontMono, glass, homeSpace, motion, chrome, hardware, y2k
 } from "../../theme";
 import {
   buildDailyGuide,
@@ -104,7 +104,7 @@ export function HostCreditChip({ show, compact = false, onClick = null, tone = "
 }
 
 /**
- * Hero "NOW ON AIR" card — frosted appointment-viewing surface.
+ * Hero "NOW ON AIR" card — soft frosted appointment surface (iOS glass).
  */
 export function NowOnAirCard({
   airing = null,
@@ -119,194 +119,226 @@ export function NowOnAirCard({
     <section
       aria-label={`Now on air: ${show.title}`}
       style={{
-        margin: `0 ${homeSpace.gutter}px`,
+        margin: 0,
         padding: 0,
         animation: `rise 0.5s ${motion.ease} both`,
       }}
     >
-      <div style={{
-        position: "relative",
-        overflow: "hidden",
-        borderRadius: 8,
-        border: `1px solid rgba(255,255,255,0.14)`,
-        background: `
-          repeating-linear-gradient(90deg, rgba(255,255,255,0.012) 0 1px, transparent 1px 4px),
-          linear-gradient(165deg, rgba(42,47,55,0.98) 0%, rgba(23,26,31,0.98) 58%, rgba(15,17,21,0.99) 100%)
-        `,
-        boxShadow: `inset 4px 0 0 ${color.accent}, inset 0 1px 0 ${glass.highlight}, ${glass.shadowSoft}`,
-        color: color.ink,
-        padding: "18px 18px 16px",
-      }}>
-        <div aria-hidden="true" style={{
-          position: "absolute", inset: 0, pointerEvents: "none",
-          background: `
-            linear-gradient(180deg, rgba(255,255,255,0.045) 0%, transparent 28%)
-          `,
-        }} />
-
-        <div style={{ position: "relative", display: "flex", justifyContent: "space-between", gap: 12, marginBottom: 14 }}>
-          <div style={{
-            display: "inline-flex", alignItems: "center", gap: 8,
-            padding: "5px 10px", borderRadius: 3,
-            background: "rgba(8,9,11,0.58)",
-            border: `1px solid ${glass.borderSoft}`,
-            boxShadow: `inset 0 1px 0 ${glass.highlight}`,
-          }}>
-            <span style={{
-              width: 7, height: 7, borderRadius: "50%", background: "#E23B4C",
-              boxShadow: "0 0 0 3px rgba(226,59,76,0.22)",
-              animation: "stageLiveDot 1.4s ease-in-out infinite",
-            }} />
-            <span style={{
-              fontFamily: fontMono, fontSize: 10, fontWeight: 800,
-              letterSpacing: 1.5, textTransform: "uppercase", color: color.ink,
-            }}>
+      <div
+        style={{
+          position: "relative",
+          overflow: "hidden",
+          borderRadius: 18,
+          border: "1px solid rgba(255,255,255,0.14)",
+          background:
+            "linear-gradient(180deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.03) 40%, transparent 100%), rgba(22,25,30,0.58)",
+          backdropFilter: "blur(22px) saturate(1.25)",
+          WebkitBackdropFilter: "blur(22px) saturate(1.25)",
+          boxShadow:
+            "inset 0 1px 0 rgba(255,255,255,0.2), inset 0 -1px 0 rgba(0,0,0,0.3), 0 10px 28px rgba(0,0,0,0.32)",
+          color: color.ink,
+          padding: "16px 16px 14px",
+        }}
+      >
+        <div
+          style={{
+            position: "relative",
+            display: "flex",
+            justifyContent: "space-between",
+            gap: 12,
+            marginBottom: 14,
+            alignItems: "center",
+          }}
+        >
+          <div
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 8,
+              padding: "6px 11px",
+              borderRadius: 980,
+              background:
+                "linear-gradient(180deg, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0.03) 100%), rgba(10,11,13,0.45)",
+              border: "1px solid rgba(255,255,255,0.14)",
+              boxShadow: "inset 0 1px 0 rgba(255,255,255,0.16)",
+            }}
+          >
+            <span
+              style={{
+                width: 7,
+                height: 7,
+                borderRadius: "50%",
+                background: "#E23B4C",
+                boxShadow: "0 0 0 3px rgba(226,59,76,0.22)",
+                animation: "stageLiveDot 1.4s ease-in-out infinite",
+              }}
+            />
+            <span
+              style={{
+                fontFamily: fontDisplay,
+                fontSize: 12,
+                fontWeight: 650,
+                letterSpacing: -0.1,
+                color: color.ink,
+              }}
+            >
               Now on air
             </span>
           </div>
-          <div style={{
-            fontFamily: fontMono, fontSize: 10, fontWeight: 700,
-            letterSpacing: 0.8, color: color.muted,
-            textAlign: "right",
-          }}>
+          <div
+            style={{
+              fontSize: 12,
+              fontWeight: 550,
+              letterSpacing: -0.05,
+              color: color.muted,
+              textAlign: "right",
+            }}
+          >
             {show.timeLabel}
-            <div style={{ marginTop: 2, color: color.body, fontWeight: 800 }}>
+            <div style={{ marginTop: 2, color: color.body, fontWeight: 650 }}>
               {formatRemaining(remainingMinutes)}
             </div>
           </div>
         </div>
 
         <div style={{ position: "relative", display: "flex", gap: 14, alignItems: "flex-start" }}>
-          <HostAvatar host={host} size={56} />
+          <HostAvatar host={host} size={52} />
           <div style={{ minWidth: 0, flex: 1 }}>
-            <h2 style={{
-              margin: 0,
-              fontFamily: fontDisplay,
-              fontSize: "clamp(22px, 4.5vw, 28px)",
-              fontWeight: 750,
-              letterSpacing: -0.55,
-              lineHeight: 1.08,
-              color: color.ink,
-            }}>
+            <h2
+              style={{
+                margin: 0,
+                fontFamily: fontDisplay,
+                fontSize: "clamp(20px, 4.2vw, 26px)",
+                fontWeight: 700,
+                letterSpacing: -0.45,
+                lineHeight: 1.1,
+                color: color.ink,
+              }}
+            >
               {show.title}
             </h2>
-            <div style={{
-              marginTop: 6,
-              fontSize: 13,
-              color: color.body,
-              lineHeight: 1.35,
-            }}>
+            <div
+              style={{
+                marginTop: 5,
+                fontSize: 13,
+                fontWeight: 500,
+                color: color.body,
+                lineHeight: 1.35,
+              }}
+            >
               {show.tagline}
             </div>
-            <div style={{
-              marginTop: 10,
-              display: "flex",
-              flexWrap: "wrap",
-              gap: 8,
-              alignItems: "center",
-            }}>
-              <span style={{
-                fontFamily: fontMono, fontSize: 11, fontWeight: 700,
-                letterSpacing: 0.4, color: color.ink,
-              }}>
+            <div
+              style={{
+                marginTop: 10,
+                display: "flex",
+                flexWrap: "wrap",
+                gap: 8,
+                alignItems: "center",
+              }}
+            >
+              <span style={{ fontSize: 13, fontWeight: 650, letterSpacing: -0.1, color: color.ink }}>
                 {host.name}
               </span>
               <span style={{ color: color.faint }}>·</span>
-              <span style={{
-                fontFamily: fontMono, fontSize: 10, fontWeight: 600,
-                letterSpacing: 0.8, textTransform: "uppercase",
-                color: color.muted,
-              }}>
-                {host.title}
-              </span>
+              <span style={{ fontSize: 12, fontWeight: 500, color: color.muted }}>{host.title}</span>
             </div>
           </div>
         </div>
 
         <div style={{ position: "relative", marginTop: 16 }} aria-hidden="true">
-          <div style={{
-            height: 4, borderRadius: 999,
-            background: "rgba(18,20,26,0.08)",
-            boxShadow: "inset 0 1px 2px rgba(18,20,26,0.08)",
-            overflow: "hidden",
-          }}>
-            <div style={{
-              width: `${Math.round((progress || 0) * 100)}%`,
-              height: "100%",
+          <div
+            style={{
+              height: 4,
               borderRadius: 999,
-              background: color.accent,
-              transition: "width 1s linear",
-            }} />
+              background: "rgba(255,255,255,0.08)",
+              overflow: "hidden",
+            }}
+          >
+            <div
+              style={{
+                width: `${Math.round((progress || 0) * 100)}%`,
+                height: "100%",
+                borderRadius: 999,
+                background: "linear-gradient(90deg, rgba(232,236,242,0.55), rgba(169,199,228,0.95))",
+                transition: "width 1s linear",
+              }}
+            />
           </div>
         </div>
 
         {bumper && (
-          <div style={{
-            position: "relative",
-            marginTop: 12,
-            fontFamily: fontMono,
-            fontSize: 11,
-            fontWeight: 600,
-            letterSpacing: 0.3,
-            color: color.muted,
-            lineHeight: 1.4,
-          }}>
+          <div
+            style={{
+              position: "relative",
+              marginTop: 12,
+              fontSize: 12,
+              fontWeight: 500,
+              color: color.muted,
+              lineHeight: 1.4,
+            }}
+          >
             “{bumper}”
           </div>
         )}
 
-        <div style={{
-          position: "relative",
-          marginTop: 16,
-          display: "flex",
-          gap: 8,
-          alignItems: "stretch",
-        }}>
+        <div
+          style={{
+            position: "relative",
+            marginTop: 14,
+            display: "flex",
+            gap: 8,
+            alignItems: "stretch",
+          }}
+        >
           <button
             type="button"
             onClick={onTuneIn}
             style={{
               flex: 1,
-              padding: "13px 16px",
-              borderRadius: 5,
-              border: tuned ? `1px solid ${color.accent}` : `1px solid ${glass.border}`,
+              padding: "12px 16px",
+              borderRadius: 980,
+              border: tuned
+                ? "1px solid rgba(232,236,242,0.4)"
+                : "1px solid rgba(255,255,255,0.16)",
               cursor: "pointer",
-              fontFamily: fontMono,
-              fontSize: 12,
-              fontWeight: 800,
-              letterSpacing: 1.2,
-              textTransform: "uppercase",
-              color: tuned ? color.accent : color.ink,
+              fontFamily: fontDisplay,
+              fontSize: 14,
+              fontWeight: 650,
+              letterSpacing: -0.15,
+              color: tuned ? y2k.chromeBright : "#0B0C0F",
               background: tuned
-                ? "rgba(8,9,11,0.58)"
-                : glass.chrome,
+                ? "linear-gradient(180deg, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0.04) 100%), rgba(18,20,24,0.55)"
+                : "linear-gradient(180deg, rgba(255,255,255,0.34) 0%, transparent 42%), linear-gradient(160deg, #E8ECF2 0%, #B8C0CC 48%, #6E7683 100%)",
               boxShadow: tuned
-                ? `inset 4px 0 0 ${color.accent}, inset 0 1px 0 ${glass.highlight}`
-                : `inset 0 1px 0 ${glass.highlight}, inset 0 -1px 0 rgba(0,0,0,0.5)`,
+                ? "inset 0 1px 0 rgba(255,255,255,0.18)"
+                : "0 0 18px rgba(232,236,242,0.18), inset 0 1px 0 rgba(255,255,255,0.45)",
+              backdropFilter: "blur(14px)",
+              WebkitBackdropFilter: "blur(14px)",
             }}
           >
-            {tuned ? "You’re locked in ✓" : "Tune into this block"}
+            {tuned ? "You’re locked in" : "Tune in"}
           </button>
         </div>
 
         {nextShow && (
-          <div style={{
-            position: "relative",
-            marginTop: 12,
-            paddingTop: 12,
-            borderTop: `1px solid ${glass.borderSoft}`,
-            display: "flex",
-            justifyContent: "space-between",
-            gap: 10,
-            fontFamily: fontMono,
-            fontSize: 10,
-            fontWeight: 700,
-            letterSpacing: 1,
-            textTransform: "uppercase",
-            color: color.faint,
-          }}>
+          <div
+            style={{
+              position: "relative",
+              marginTop: 12,
+              paddingTop: 12,
+              borderTop: "1px solid rgba(255,255,255,0.08)",
+              display: "flex",
+              justifyContent: "space-between",
+              gap: 10,
+              fontSize: 12,
+              fontWeight: 550,
+              letterSpacing: -0.05,
+              color: color.muted,
+            }}
+          >
             <span>Up next</span>
-            <span style={{ color: color.body, textAlign: "right" }}>
+            <span style={{ color: color.body, textAlign: "right", fontWeight: 650 }}>
               {nextShow.shortTitle || nextShow.title} · {formatShowClock(nextShow.startHour)}
             </span>
           </div>
@@ -363,12 +395,13 @@ export function ShowGuideRail({
         className="hide-scroll"
         style={{
           display: "flex",
-          gap: 10,
+          gap: 12,
           overflowX: "auto",
           padding: embedded
             ? `2px ${homeSpace.gutter}px 8px`
             : `2px ${homeSpace.gutter}px 12px`,
           scrollSnapType: "x mandatory",
+          WebkitOverflowScrolling: "touch",
         }}
       >
         {guide.map((show) => {
@@ -380,54 +413,89 @@ export function ShowGuideRail({
               type="button"
               onClick={() => onSelectShow?.(show)}
               aria-current={tuned ? "true" : undefined}
+              className="pmp-lift"
               style={{
                 flex: "0 0 auto",
-                width: 176,
+                width: 168,
                 scrollSnapAlign: "start",
                 textAlign: "left",
                 padding: 14,
-                borderRadius: 6,
+                borderRadius: 16,
                 cursor: "pointer",
-                border: `1px solid ${live || tuned ? color.accent : glass.borderSoft}`,
+                border: `1px solid ${
+                  live || tuned ? "rgba(232,236,242,0.35)" : "rgba(255,255,255,0.12)"
+                }`,
                 background: live || tuned
-                  ? "linear-gradient(160deg, rgba(42,47,55,0.98) 0%, rgba(19,22,27,0.99) 72%)"
-                  : "linear-gradient(160deg, rgba(37,42,49,0.96) 0%, rgba(20,23,28,0.98) 72%)",
+                  ? "linear-gradient(180deg, rgba(255,255,255,0.14) 0%, rgba(255,255,255,0.04) 100%), rgba(28,32,38,0.62)"
+                  : "linear-gradient(180deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.03) 100%), rgba(18,20,24,0.5)",
+                backdropFilter: "blur(18px) saturate(1.25)",
+                WebkitBackdropFilter: "blur(18px) saturate(1.25)",
                 boxShadow: live || tuned
-                  ? `inset 4px 0 0 ${color.accent}, inset 0 1px 0 ${glass.highlight}, inset 0 -1px 0 rgba(0,0,0,0.5)`
-                  : `inset 0 1px 0 ${glass.highlight}, inset 0 -1px 0 rgba(0,0,0,0.5)`,
+                  ? "inset 0 1px 0 rgba(255,255,255,0.22), 0 8px 22px rgba(0,0,0,0.32)"
+                  : "inset 0 1px 0 rgba(255,255,255,0.16), 0 6px 16px rgba(0,0,0,0.28)",
               }}
             >
-              <div style={{
-                display: "flex", justifyContent: "space-between", gap: 6, marginBottom: 10,
-              }}>
-                <span style={{
-                  fontFamily: fontMono, fontSize: 10, fontWeight: 800,
-                  letterSpacing: 1.1, textTransform: "uppercase",
-                  color: live ? chrome.live : (tuned ? color.accent : color.faint),
-                }}>
-                  {live ? "Live" : tuned ? "Tuned" : show.status === "up-next" ? "Up next" : formatShowClock(show.startHour)}
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  gap: 6,
+                  marginBottom: 10,
+                  alignItems: "center",
+                }}
+              >
+                <span
+                  style={{
+                    fontSize: 11,
+                    fontWeight: 650,
+                    letterSpacing: -0.05,
+                    color: live ? chrome.live : tuned ? y2k.chromeBright : color.muted,
+                  }}
+                >
+                  {live
+                    ? "Live"
+                    : tuned
+                      ? "Tuned"
+                      : show.status === "up-next"
+                        ? "Up next"
+                        : formatShowClock(show.startHour)}
                 </span>
                 <HostAvatar host={show.host} size={24} />
               </div>
-              <div style={{
-                fontFamily: fontDisplay, fontSize: 15, fontWeight: 800,
-                letterSpacing: -0.25, color: tuned ? color.accent : color.ink, lineHeight: 1.15,
-                minHeight: 36,
-              }}>
+              <div
+                style={{
+                  fontFamily: fontDisplay,
+                  fontSize: 15,
+                  fontWeight: 700,
+                  letterSpacing: -0.25,
+                  color: tuned ? y2k.chromeBright : color.ink,
+                  lineHeight: 1.2,
+                  minHeight: 36,
+                }}
+              >
                 {show.shortTitle || show.title}
               </div>
-              <div style={{
-                marginTop: 7,
-                fontSize: 12, fontWeight: 550, color: color.muted,
-                overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
-              }}>
+              <div
+                style={{
+                  marginTop: 7,
+                  fontSize: 12,
+                  fontWeight: 500,
+                  color: color.muted,
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  whiteSpace: "nowrap",
+                }}
+              >
                 {show.host?.name}
               </div>
-              <div style={{
-                marginTop: 8,
-                fontFamily: fontMono, fontSize: 9, fontWeight: 650,
-                letterSpacing: 0.6, color: color.faint,
-              }}>
+              <div
+                style={{
+                  marginTop: 8,
+                  fontSize: 11,
+                  fontWeight: 500,
+                  color: color.faint,
+                }}
+              >
                 {show.timeLabel}
               </div>
             </button>

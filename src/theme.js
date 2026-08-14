@@ -215,29 +215,29 @@ export const homeSpace = {
   /** Featured / countdown / releases — asymmetric presence. */
   tileFeatured: 200,
   /** Space under section title stack before the rail. */
-  titleToRail: 14,
+  titleToRail: 12,
 };
 
 /**
- * Premium section title — iOS Music pacing.
- * Flush with `homeSpace.gutter` (same edge as Rail cards). No chrome tick.
+ * Section title — compact premium, flush with rail gutter.
+ * Keep size modest so every shelf shares one optical left edge.
  */
 export const sectionTitle = {
   fontFamily: fontDisplay,
-  fontSize: 22,
-  fontWeight: 700,
-  letterSpacing: -0.4,
-  lineHeight: 1.15,
+  fontSize: 17,
+  fontWeight: 650,
+  letterSpacing: -0.28,
+  lineHeight: 1.2,
   color: y2k.offWhite,
   margin: 0,
   textTransform: "none",
 };
 
 export const sectionSubtitle = {
-  margin: "5px 0 0",
+  margin: "3px 0 0",
   fontSize: 13,
   fontWeight: 500,
-  letterSpacing: -0.08,
+  letterSpacing: -0.06,
   lineHeight: 1.35,
   color: color.muted,
 };

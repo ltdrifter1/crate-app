@@ -248,74 +248,13 @@ function HomeScreen({
         />
       )}
 
-      {/* ON TONIGHT — live show + program guide */}
-      {catalogReady && hasTonight && (
-        <MusicSection
-          title="On tonight"
-          subtitle={airing?.show?.tagline || "The program guide"}
-          accent={y2k.chromeBright}
-          first
-          delay={0.05}
-        >
-          {airing?.show && !(activeShowId === airing.show.id && currentTrack) && (
-            <div style={{ paddingBottom: 8 }}>
-              <NowOnAirCard
-                airing={airing}
-                bumper={showBumper}
-                tuned={false}
-                onTuneIn={() => onTuneShow?.(airing.show)}
-              />
-            </div>
-          )}
-          {programGuide.length > 0 && (
-            <ShowGuideRail
-              guide={programGuide}
-              activeShowId={activeShowId}
-              onSelectShow={(show) => onTuneShow?.(show)}
-              embedded
-            />
-          )}
-        </MusicSection>
-      )}
-
-      {/* MOST REQUESTED — larger featured sleeves */}
-      {catalogReady && topRequested.length > 0 && (
-        <MusicSection
-          title="Most requested"
-          subtitle="Tonight's countdown"
-          accent={y2k.chromeMid}
-          first={!hasTonight}
-          action={
-            onOpenCharts
-              ? { label: "View all", onClick: onOpenCharts }
-              : onTuneCountdown
-                ? { label: "Tune in", onClick: onTuneCountdown }
-                : null
-          }
-          delay={0.07}
-        >
-          <Rail gap={16}>
-            {topRequested.map(({ rank, track }) => (
-              <TrackCard
-                key={track.id}
-                track={track}
-                rank={rank}
-                size={featuredSize}
-                active={activeId === track.id}
-                onClick={() => onPlayTrack?.(track, topRequested.map((e) => e.track))}
-              />
-            ))}
-          </Rail>
-        </MusicSection>
-      )}
-
-      {/* CHANNEL SURFING — own section below Most requested */}
+      {/* CHANNEL SURFING — first shelf under the player */}
       {catalogReady && channels.length > 0 && (
         <MusicSection
           title="Channel surfing"
           subtitle="Zap the dial"
-          first={!hasTonight && topRequested.length === 0}
-          delay={0.09}
+          first
+          delay={0.04}
         >
           <Rail gap={16} padBottom={8}>
             {channels.map((channel) => (
@@ -332,6 +271,68 @@ function HomeScreen({
         </MusicSection>
       )}
 
+      {/* ON TONIGHT — live show + program guide */}
+      {catalogReady && hasTonight && (
+        <MusicSection
+          title="On tonight"
+          subtitle={airing?.show?.tagline || "The program guide"}
+          first={channels.length === 0}
+          delay={0.06}
+          inset
+        >
+          {airing?.show && !(activeShowId === airing.show.id && currentTrack) && (
+            <div style={{ paddingBottom: programGuide.length > 0 ? 12 : 0 }}>
+              <NowOnAirCard
+                airing={airing}
+                bumper={showBumper}
+                tuned={false}
+                onTuneIn={() => onTuneShow?.(airing.show)}
+              />
+            </div>
+          )}
+          {programGuide.length > 0 && (
+            <div style={{ margin: `0 -${homeSpace.gutter}px` }}>
+              <ShowGuideRail
+                guide={programGuide}
+                activeShowId={activeShowId}
+                onSelectShow={(show) => onTuneShow?.(show)}
+                embedded
+              />
+            </div>
+          )}
+        </MusicSection>
+      )}
+
+      {/* MOST REQUESTED — larger featured sleeves */}
+      {catalogReady && topRequested.length > 0 && (
+        <MusicSection
+          title="Most requested"
+          subtitle="Tonight's countdown"
+          first={channels.length === 0 && !hasTonight}
+          action={
+            onOpenCharts
+              ? { label: "View all", onClick: onOpenCharts }
+              : onTuneCountdown
+                ? { label: "Tune in", onClick: onTuneCountdown }
+                : null
+          }
+          delay={0.08}
+        >
+          <Rail gap={16}>
+            {topRequested.map(({ rank, track }) => (
+              <TrackCard
+                key={track.id}
+                track={track}
+                rank={rank}
+                size={featuredSize}
+                active={activeId === track.id}
+                onClick={() => onPlayTrack?.(track, topRequested.map((e) => e.track))}
+              />
+            ))}
+          </Rail>
+        </MusicSection>
+      )}
+
       {/* EDITORIAL — Played before */}
       {catalogReady &&
         editorial.map((col, i) => (
@@ -339,8 +340,7 @@ function HomeScreen({
             key={col.id}
             title={col.label}
             subtitle={col.story}
-            accent={y2k.chromeMid}
-            delay={0.11 + i * 0.02}
+            delay={0.1 + i * 0.02}
           >
             <Rail gap={16}>
               {col.tracks.map((track) => (

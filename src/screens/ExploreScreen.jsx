@@ -78,7 +78,7 @@ function ExploreScreen({
           animation: `rise 0.45s ${motion.ease} both`,
         }}
       >
-        <h1 style={{ ...sectionTitle, fontSize: 28, letterSpacing: -0.55 }}>
+        <h1 style={{ ...sectionTitle, fontSize: 24, letterSpacing: -0.4, fontWeight: 700 }}>
           Explore
         </h1>
         <p style={{ ...sectionSubtitle, maxWidth: 360, whiteSpace: "normal" }}>
