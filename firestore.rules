@@ -32,16 +32,30 @@ service cloud.firestore {
     }
 
     // Paid / Stripe-managed fields — only Admin SDK or admin UID may set these
-    // to privileged values. Clients may write trialing defaults on create/backfill.
+    // to privileged values. Clients may write free-plan defaults on create/backfill.
     function billingKeysTouched() {
       return request.resource.data.diff(resource.data).affectedKeys()
-        .hasAny(['subscriptionStatus', 'plan', 'stripeCustomerId', 'stripeSubscriptionId', 'trialEndsAt', 'trialStartedAt']);
+        .hasAny([
+          'subscriptionStatus', 'plan', 'stripeCustomerId', 'stripeSubscriptionId',
+          'trialEndsAt', 'trialStartedAt',
+          'clubCreditBalance', 'clubCreditExpiresAt', 'clubCreditGrantedAt', 'clubCreditGrantAmount',
+          'planStartedAt'
+        ]);
+    }
+
+    function isFreePlanWrite() {
+      let status = request.resource.data.get('subscriptionStatus', '');
+      let plan = request.resource.data.get('plan', '');
+      return plan == 'free' && status == 'free'
+        && request.resource.data.get('stripeCustomerId', null) == null
+        && request.resource.data.get('stripeSubscriptionId', null) == null
+        && request.resource.data.get('clubCreditBalance', 0) == 0;
     }
 
     function isTrialingWrite() {
       let status = request.resource.data.get('subscriptionStatus', '');
       let plan = request.resource.data.get('plan', '');
-      return status == 'trialing' && plan == 'trial'
+      return status == 'trialing' && (plan == 'trial' || plan == 'club')
         && request.resource.data.get('stripeCustomerId', null) == null
         && request.resource.data.get('stripeSubscriptionId', null) == null;
     }
@@ -56,6 +70,7 @@ service cloud.firestore {
 
       allow create: if isOwner(uid) && (
         !('subscriptionStatus' in request.resource.data)
+        || isFreePlanWrite()
         || isTrialingWrite()
         || isAdmin()
       );
@@ -64,7 +79,12 @@ service cloud.firestore {
         isAdmin()
         || !billingKeysTouched()
         || (
-          // One-time trial backfill when billing fields were never set
+          // One-time free/plan backfill when billing fields were never set
+          !('plan' in resource.data)
+          && isFreePlanWrite()
+          && !isPaidStatus()
+        )
+        || (
           !('trialEndsAt' in resource.data)
           && isTrialingWrite()
           && !isPaidStatus()

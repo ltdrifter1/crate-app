@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback, useMemo, lazy, Suspense } from "react";
 import { useNavigate, useLocation }                 from "react-router-dom";
 import { useAuth }                                  from "./useAuth";
-import { toggleLike as fbToggleLike, recordPlay, completeOnboarding, saveTasteProfile } from "./useUserData";
+import { toggleLike as fbToggleLike, recordPlay, completeOnboarding, saveTasteProfile, saveMonthlyChoice, savePlayMeter } from "./useUserData";
 import { collection, addDoc } from "firebase/firestore";
 import { db }                                       from "./firebase";
 import {
@@ -45,7 +45,19 @@ import LinerNotesSheet from "./components/catalog/LinerNotesSheet";
 import {
   getAccessState,
   openStripeCheckout,
+  paymentLinkForPlan,
+  PLAN_IDS,
+  BILLING,
 } from "./lib/entitlements";
+import {
+  buildChoosePayload,
+  buildSkipPayload,
+} from "./lib/monthlyChoice";
+import {
+  canPlayOnFreeTier,
+  bumpPlayMeter,
+  freePlaysRemaining,
+} from "./lib/freePlays";
 import {
   buildCommunityMix,
   buildMixFromPlaylist,
@@ -2263,6 +2275,7 @@ export default function App() {
   const [mixLane, setMixLane] = useState(() => mixLaneForDate().id);
   const [listenFocus, setListenFocus] = useState({ genre: null, scene: null });
   const [showGenreTaste, setShowGenreTaste] = useState(false);
+  const [showPlans, setShowPlans] = useState(false);
   const [sessionInitialActivity, setSessionInitialActivity] = useState(null);
   useEffect(() => {
     const sync = () => {
@@ -2634,15 +2647,66 @@ export default function App() {
   const isAdminUser = !!firebaseUser && firebaseUser.uid === ADMIN_UID;
   const access = useMemo(
     () => getAccessState(profile, { isAdmin: isAdminUser }),
-    // Recompute when trial/sub fields change
+    // Recompute when plan / credit fields change
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [profile?.trialEndsAt, profile?.subscriptionStatus, profile?.plan, isAdminUser]
+    [
+      profile?.trialEndsAt,
+      profile?.subscriptionStatus,
+      profile?.plan,
+      profile?.clubCreditBalance,
+      profile?.clubCreditExpiresAt,
+      isAdminUser,
+    ]
   );
-  const needsPaywall = !!firebaseUser && !!profile && !needsOnboarding && !access.allowed;
+  // Free is a real tier — never hard-block the app. Plans are an upgrade sheet.
 
-  const handleSubscribe = useCallback(() => {
-    openStripeCheckout(access.stripePaymentLink);
-  }, [access.stripePaymentLink]);
+  const handleSubscribe = useCallback((linkOrPlan, maybePlan) => {
+    let link = access.clubPaymentLink || access.stripePaymentLink;
+    if (typeof linkOrPlan === "string" && linkOrPlan.startsWith("http")) {
+      link = linkOrPlan;
+    } else if (typeof linkOrPlan === "string") {
+      link = paymentLinkForPlan(linkOrPlan);
+    } else if (maybePlan) {
+      link = paymentLinkForPlan(maybePlan);
+    }
+    openStripeCheckout(link);
+  }, [access.clubPaymentLink, access.stripePaymentLink]);
+
+  const handleOpenPlans = useCallback(() => setShowPlans(true), []);
+
+  const handleChoosePick = useCallback(async (trackId, monthKey) => {
+    const choice = buildChoosePayload(trackId);
+    try {
+      await saveMonthlyChoice(monthKey, choice);
+      setProfile((p) => ({
+        ...(p || {}),
+        monthlyChoices: {
+          ...((p && p.monthlyChoices) || {}),
+          [monthKey]: choice,
+        },
+      }));
+      showToast("Pick saved — tap to play");
+    } catch (e) {
+      showToast("Couldn’t save pick");
+    }
+  }, [setProfile]);
+
+  const handleSkipMonth = useCallback(async (monthKey) => {
+    const choice = buildSkipPayload();
+    try {
+      await saveMonthlyChoice(monthKey, choice);
+      setProfile((p) => ({
+        ...(p || {}),
+        monthlyChoices: {
+          ...((p && p.monthlyChoices) || {}),
+          [monthKey]: choice,
+        },
+      }));
+      showToast("Skipped this month");
+    } catch (e) {
+      showToast("Couldn’t skip");
+    }
+  }, [setProfile]);
 
   const handleBillingRefresh = useCallback(async () => {
     setBillingRefreshing(true);
@@ -3156,6 +3220,16 @@ export default function App() {
   };
 
   const playTrack = (track, q = null, opts = {}) => {
+    if (!canPlayOnFreeTier(profile, access)) {
+      const left = freePlaysRemaining(profile, access);
+      showToast(
+        left <= 0
+          ? `Free limit reached (${BILLING.freePlaysPerDay}/day) — join Club for unlimited`
+          : "Upgrade for unlimited listening"
+      );
+      setShowPlans(true);
+      return;
+    }
     unlockAudioElements();
     if (currentTrack && currentTrack.id !== track.id) {
       playHistoryRef.current = [currentTrack, ...playHistoryRef.current].slice(0, 50);
@@ -3172,7 +3246,14 @@ export default function App() {
     if (openImmersive) setImmersive(true);
     if (q) setQueue(q.filter(t => t.id !== track.id));
     logTrackPlay(track);
-    if (firebaseUser) recordPlay(track.id, profile?.recentTracks || []).catch(()=>{});
+    if (firebaseUser) {
+      recordPlay(track.id, profile?.recentTracks || []).catch(()=>{});
+      const meter = bumpPlayMeter(profile, access);
+      if (meter) {
+        setProfile((p) => ({ ...(p || {}), ...meter }));
+        savePlayMeter(meter).catch(() => {});
+      }
+    }
   };
 
   const playPath = (path) => {
@@ -3944,20 +4025,6 @@ export default function App() {
     );
   }
 
-  if (needsPaywall) {
-    return (
-      <Suspense fallback={<div style={{ padding: 48, textAlign: "center", color: "var(--muted)" }}>Loading membership…</div>}>
-        <LazyPaywallScreen
-          access={access}
-          onSubscribe={handleSubscribe}
-          onRefresh={handleBillingRefresh}
-          onLogout={logOut}
-          refreshing={billingRefreshing}
-        />
-      </Suspense>
-    );
-  }
-
   const sessionArc = sessionMeta?.tracks?.length
     ? {
         label: sessionMeta.label || "Session arc",
@@ -3992,6 +4059,42 @@ export default function App() {
 
   const listeningOverlays = (
     <>
+      {showPlans && (
+        <Suspense fallback={null}>
+          <LazyPaywallScreen
+            access={access}
+            mode="manage"
+            onSubscribe={(link, planId) => {
+              handleSubscribe(link, planId);
+            }}
+            onRefresh={handleBillingRefresh}
+            onContinueFree={() => setShowPlans(false)}
+            onLogout={null}
+            refreshing={billingRefreshing}
+          />
+          <button
+            type="button"
+            onClick={() => setShowPlans(false)}
+            aria-label="Close plans"
+            style={{
+              position: "fixed",
+              top: 16,
+              right: 16,
+              zIndex: 400,
+              width: 40,
+              height: 40,
+              borderRadius: 12,
+              border: "1px solid rgba(255,255,255,0.14)",
+              background: "rgba(24,27,32,0.9)",
+              color: "#F7F8FA",
+              fontSize: 20,
+              cursor: "pointer",
+            }}
+          >
+            ×
+          </button>
+        </Suspense>
+      )}
       {showQueue && (
         <QueueSheet
           queue={queue}
@@ -4082,6 +4185,7 @@ export default function App() {
           onOpenArtist={(name) => openArtist(name)}
           onOpenAlbum={(t) => openAlbum(t)}
           onOpenRoom={null}
+          memberPricing={!!access?.membershipCard}
         />
       )}
       {showDedicate && (
@@ -4257,7 +4361,7 @@ export default function App() {
         )}
         {screen==="profile"   && (
           <Suspense fallback={<div style={{ padding: 32, color: "var(--muted)" }}>Opening the club…</div>}>
-            <ClubScreen user={user} tracks={tracks} onLogout={logOut} access={access} onSubscribe={handleSubscribe} profile={profile} communityMix={communityMix} onOpenMix={communityMix ? ()=>openMix(communityMix.id) : null} onEditGenres={()=>setShowGenreTaste(true)} recentTracks={profile?.recentTracks||[]} signalLabel={signalFlags.getState().label} onPlayTrack={(t,pool)=>{setIsRadioMode(false);playTrack(t,pool||tracks);}}/>
+            <ClubScreen user={user} tracks={tracks} onLogout={logOut} access={access} onSubscribe={handleSubscribe} onOpenPlans={handleOpenPlans} profile={profile} communityMix={communityMix} onOpenMix={communityMix ? ()=>openMix(communityMix.id) : null} onEditGenres={()=>setShowGenreTaste(true)} recentTracks={profile?.recentTracks||[]} signalLabel={signalFlags.getState().label} onPlayTrack={(t,pool)=>{setIsRadioMode(false);playTrack(t,pool||tracks);}} onChoosePick={handleChoosePick} onSkipMonth={handleSkipMonth}/>
           </Suspense>
         )}
         {screen==="admin"     && <AdminScreen tracks={tracks} setTracks={setTracks} tab={adminTab} setTab={setAdminTab} editTrack={editTrack} setEditTrack={setEditTrack} showToast={showToast} userPlaylists={userPlaylists} communityMix={communityMix} onPublishCommunityMix={publishCommunityMixFromPlaylist}/>}
@@ -4541,7 +4645,7 @@ export default function App() {
               )}
               {screen==="profile"   && (
                 <Suspense fallback={<div style={{ padding: 32, color: "var(--muted)" }}>Opening the club…</div>}>
-                  <ClubScreen user={user} tracks={tracks} onLogout={logOut} access={access} onSubscribe={handleSubscribe} profile={profile} communityMix={communityMix} onOpenMix={communityMix ? ()=>openMix(communityMix.id) : null} onEditGenres={()=>setShowGenreTaste(true)} recentTracks={profile?.recentTracks||[]} signalLabel={signalFlags.getState().label} onPlayTrack={(t,pool)=>{setIsRadioMode(false);playTrack(t,pool||tracks);}}/>
+                  <ClubScreen user={user} tracks={tracks} onLogout={logOut} access={access} onSubscribe={handleSubscribe} onOpenPlans={handleOpenPlans} profile={profile} communityMix={communityMix} onOpenMix={communityMix ? ()=>openMix(communityMix.id) : null} onEditGenres={()=>setShowGenreTaste(true)} recentTracks={profile?.recentTracks||[]} signalLabel={signalFlags.getState().label} onPlayTrack={(t,pool)=>{setIsRadioMode(false);playTrack(t,pool||tracks);}} onChoosePick={handleChoosePick} onSkipMonth={handleSkipMonth}/>
                 </Suspense>
               )}
               {screen==="admin"     && <AdminScreen tracks={tracks} setTracks={setTracks} tab={adminTab} setTab={setAdminTab} editTrack={editTrack} setEditTrack={setEditTrack} showToast={showToast} userPlaylists={userPlaylists} communityMix={communityMix} onPublishCommunityMix={publishCommunityMixFromPlaylist}/>}

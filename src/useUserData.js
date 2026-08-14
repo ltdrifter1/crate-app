@@ -78,6 +78,20 @@ export async function completeOnboarding({
   await updateDoc(userRef(), payload);
 }
 
+// ── MONTHLY PICK CHOICE ───────────────────────────────────────────────────
+export async function saveMonthlyChoice(monthKey, choice) {
+  const key = String(monthKey || "");
+  if (!key || !choice) return;
+  await updateDoc(userRef(), {
+    [`monthlyChoices.${key}`]: choice,
+  });
+}
+
+// ── FREE PLAY METER ───────────────────────────────────────────────────────
+export async function savePlayMeter({ playsDayKey, playsToday }) {
+  await updateDoc(userRef(), { playsDayKey, playsToday });
+}
+
 // ── SAVE SETTINGS ─────────────────────────────────────────────────────────
 export async function saveSettings(settings) {
   await updateDoc(userRef(), { settings });
