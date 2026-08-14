@@ -38,7 +38,6 @@ jest.mock("./useUserData", () => ({
   completeOnboarding: jest.fn(),
   saveGenres: jest.fn(),
   saveTasteProfile: jest.fn(),
-  saveMonthlyChoice: jest.fn(),
   savePlayMeter: jest.fn(),
 }));
 

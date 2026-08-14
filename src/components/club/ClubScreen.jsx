@@ -28,7 +28,6 @@ import { getFloorPhase, hapticTap } from "../../lib/club";
 import { BrandGlyph as DoorGlyph } from "../brand/BrandMark";
 import CollapsingHeader from "../layout/CollapsingHeader";
 import { InterestsPanel } from "../listen/InterestsPanel";
-import MonthlyPicksPanel from "./MonthlyPicksPanel";
 import CollectorPanel from "./CollectorPanel";
 import { TASTE_AXIS_DEFAULT } from "../../lib/tasteProfile";
 
@@ -57,11 +56,6 @@ const PRIVILEGES_BY_TIER = {
       id: "card",
       label: "Membership card",
       blurb: "Digital card now · physical member access with Club Copy",
-    },
-    {
-      id: "picks",
-      label: "Monthly picks",
-      blurb: "Choose 1 of 3 — or skip. Nothing ships unless you choose",
     },
   ],
   premium: [
@@ -102,8 +96,6 @@ export default function ClubScreen({
   recentTracks = [],
   signalLabel = null,
   onPlayTrack = null,
-  onChoosePick = null,
-  onSkipMonth = null,
   initialTab = "club",
 }) {
   const [settingsTab, setSettingsTab] = useState(
@@ -441,18 +433,6 @@ export default function ClubScreen({
               : `Free plan · ${BILLING.freePlaysPerDay} plays/day.`}
           </div>
         </div>
-
-        {/* This month's picks — choose 1 or skip */}
-        <MonthlyPicksPanel
-          tracks={tracks}
-          profile={profile}
-          userKey={user?.uid || profile?.uid || ""}
-          onPlayTrack={onPlayTrack}
-          onEditTaste={onEditGenres}
-          onChoosePick={onChoosePick}
-          onSkipMonth={onSkipMonth}
-          membershipOk={hasCard}
-        />
 
         <CollectorPanel
           tracks={tracks}
