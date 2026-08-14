@@ -277,7 +277,7 @@ export function artFrameStyle({
   };
 }
 
-/** Home rhythm — generous pacing, one shared content edge. */
+/** Home rhythm — denser shelves, title sits closer to its row. */
 export const homeSpace = {
   gutter: 20,
   bandPadY: 32,
@@ -285,17 +285,17 @@ export const homeSpace = {
   sectionPadBottom: 28,
   /** First shelf after a prior band/rule — keep tight; the break lives above. */
   sectionPadTopFirst: 8,
-  /** Gap between Home MusicSection bands. */
-  sectionGap: 28,
+  /** Gap between Home MusicSection bands (row → next title). */
+  sectionGap: 20,
   /** First Home shelf after the broadcast hero. */
-  sectionGapFirst: 22,
+  sectionGapFirst: 18,
   shelfGap: 16,
   /** Default discovery tile — sleeve-first. */
   tile: 168,
   /** Featured / countdown / releases — asymmetric presence. */
   tileFeatured: 200,
   /** Space under section title stack before the rail. */
-  titleToRail: 12,
+  titleToRail: 14,
 };
 
 /**

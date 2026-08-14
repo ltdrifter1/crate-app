@@ -572,7 +572,7 @@ export function ShowGuideRail({
     <section
       aria-label="Today’s program guide"
       style={{
-        padding: embedded ? "4px 0 6px" : "18px 0 8px",
+        padding: embedded ? "0 0 0" : "18px 0 8px",
         animation: embedded ? "none" : `rise 0.55s ${motion.ease} 0.04s both`,
       }}
     >
@@ -607,7 +607,7 @@ export function ShowGuideRail({
           gap: 8,
           overflowX: "auto",
           padding: embedded
-            ? `2px ${homeSpace.gutter}px 8px`
+            ? `0 ${homeSpace.gutter}px 2px`
             : `2px ${homeSpace.gutter}px 12px`,
           scrollSnapType: "x mandatory",
           WebkitOverflowScrolling: "touch",
