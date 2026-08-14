@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback, useMemo, lazy, Suspense } from "react";
 import { useNavigate, useLocation }                 from "react-router-dom";
 import { useAuth }                                  from "./useAuth";
-import { toggleLike as fbToggleLike, recordPlay, completeOnboarding, saveTasteProfile, saveMonthlyChoice, savePlayMeter } from "./useUserData";
+import { toggleLike as fbToggleLike, recordPlay, completeOnboarding, saveTasteProfile, savePlayMeter } from "./useUserData";
 import { collection, addDoc } from "firebase/firestore";
 import { db }                                       from "./firebase";
 import {
@@ -47,10 +47,6 @@ import {
   BILLING,
 } from "./lib/entitlements";
 import { startCheckout, readBillingQuery } from "./lib/billing";
-import {
-  buildChoosePayload,
-  buildSkipPayload,
-} from "./lib/monthlyChoice";
 import {
   canPlayOnFreeTier,
   bumpPlayMeter,
@@ -2744,40 +2740,6 @@ export default function App() {
       }
     })();
   }, [firebaseUser, profile?.uid, refreshProfile]);
-
-  const handleChoosePick = useCallback(async (trackId, monthKey) => {
-    const choice = buildChoosePayload(trackId);
-    try {
-      await saveMonthlyChoice(monthKey, choice);
-      setProfile((p) => ({
-        ...(p || {}),
-        monthlyChoices: {
-          ...((p && p.monthlyChoices) || {}),
-          [monthKey]: choice,
-        },
-      }));
-      showToast("Pick saved — tap to play");
-    } catch (e) {
-      showToast("Couldn’t save pick");
-    }
-  }, [setProfile]);
-
-  const handleSkipMonth = useCallback(async (monthKey) => {
-    const choice = buildSkipPayload();
-    try {
-      await saveMonthlyChoice(monthKey, choice);
-      setProfile((p) => ({
-        ...(p || {}),
-        monthlyChoices: {
-          ...((p && p.monthlyChoices) || {}),
-          [monthKey]: choice,
-        },
-      }));
-      showToast("Skipped this month");
-    } catch (e) {
-      showToast("Couldn’t skip");
-    }
-  }, [setProfile]);
 
   const handleBillingRefresh = useCallback(async () => {
     setBillingRefreshing(true);
