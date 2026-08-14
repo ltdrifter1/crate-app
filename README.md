@@ -15,6 +15,7 @@ Legacy listening core (harmonic radio, sessions, Hypno, floor phases) remains; R
 - React 18 (Create React App)
 - Firebase Auth, Firestore, Cloud Storage, Hosting
 - Cloudflare Pages (serves committed `build/` today)
+- **Stripe + Firebase Functions** for Club / Premium billing — see [`docs/STRIPE_FIREBASE_BILLING.md`](docs/STRIPE_FIREBASE_BILLING.md)
 
 ## Setup
 
