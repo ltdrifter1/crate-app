@@ -1,9 +1,9 @@
-import { color, fontDisplay, glassPill, y2k } from "../../theme";
+import { color, fontDisplay, radio, y2k } from "../../theme";
 import Icon from "../ui/Icon";
 import CardContainer from "./CardContainer";
 
 /**
- * RequestSongCard — frosted prompt that jumps to Search.
+ * RequestSongCard — hardware prompt that jumps to Search.
  */
 export default function RequestSongCard({ onClick = null }) {
   return (
@@ -11,20 +11,21 @@ export default function RequestSongCard({ onClick = null }) {
       interactive
       onClick={onClick}
       ariaLabel="Request a song — open search"
-      padding="18px 18px"
+      padding="16px 16px"
       style={{
         display: "flex",
         alignItems: "center",
-        gap: 16,
+        gap: 14,
       }}
     >
       <div style={{ flex: 1, minWidth: 0 }}>
         <div
           style={{
             fontFamily: fontDisplay,
-            fontSize: 17,
+            fontSize: 16,
             fontWeight: 700,
-            letterSpacing: -0.25,
+            letterSpacing: 0.6,
+            textTransform: "uppercase",
             color: y2k.offWhite,
           }}
         >
@@ -45,21 +46,18 @@ export default function RequestSongCard({ onClick = null }) {
       <span
         aria-hidden="true"
         style={{
-          ...glassPill({ active: true, compact: true }),
-          width: 44,
-          height: 44,
+          width: 42,
+          height: 42,
+          borderRadius: radio.radiusControl,
           padding: 0,
           flexShrink: 0,
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          background: `
-            linear-gradient(180deg, rgba(255,255,255,0.34) 0%, transparent 42%),
-            linear-gradient(160deg, #E8ECF2 0%, #B8C0CC 48%, #6E7683 100%)
-          `,
-          color: "#0B0C0F",
-          border: "1px solid rgba(255,255,255,0.32)",
-          boxShadow: `0 0 18px ${y2k.chromeGlow}, inset 0 1px 0 rgba(255,255,255,0.45)`,
+          background: radio.tuneFace,
+          color: y2k.nearBlack,
+          border: "1px solid rgba(255,255,255,0.28)",
+          boxShadow: radio.tuneShadow,
         }}
       >
         <span style={{ display: "flex", marginLeft: 2 }}>

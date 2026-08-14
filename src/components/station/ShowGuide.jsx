@@ -1,13 +1,15 @@
 import { useEffect, useMemo, useState } from "react";
 import {
-  color, fontDisplay, fontMono, glass, homeSpace, motion, chrome, hardware, y2k
+  color, fontDisplay, fontMono, homeSpace, motion, chrome, hardware, y2k, radio
 } from "../../theme";
 import {
   buildDailyGuide,
   formatRemaining,
   formatShowClock,
   resolveShowAt,
+  STATION_SHOWS,
 } from "../../lib/shows";
+import { STATION_CALLSIGN, STATION_FREQ } from "../../lib/mtvChannel";
 
 function HostAvatar({ host, size = 44 }) {
   if (!host) return null;
@@ -17,27 +19,63 @@ function HostAvatar({ host, size = 44 }) {
       style={{
         width: size,
         height: size,
-        borderRadius: "50%",
+        borderRadius: Math.max(4, Math.round(size * 0.18)),
         flexShrink: 0,
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
         fontFamily: fontMono,
-        fontSize: Math.max(10, size * 0.28),
+        fontSize: Math.max(9, size * 0.26),
         fontWeight: 800,
-        letterSpacing: 0.5,
-        color: "#fff",
+        letterSpacing: 0.6,
+        color: y2k.lightMetal,
         background: `
-          linear-gradient(160deg, rgba(255,255,255,0.16) 0%, transparent 42%),
-          linear-gradient(145deg, #4A515D 0%, #16181E 100%)
+          linear-gradient(160deg, rgba(255,255,255,0.14) 0%, transparent 42%),
+          linear-gradient(145deg, #3A414C 0%, #15181C 100%)
         `,
-        border: "1px solid rgba(255,255,255,0.14)",
-        boxShadow: "inset 0 1px 0 rgba(255,255,255,0.14), 0 6px 14px rgba(0,0,0,0.28)",
+        border: "1px solid rgba(255,255,255,0.16)",
+        boxShadow: "inset 0 1px 0 rgba(255,255,255,0.16), 0 4px 10px rgba(0,0,0,0.35)",
       }}
     >
       {host.monogram}
     </div>
   );
+}
+
+function LiveLed({ size = 7 }) {
+  return (
+    <span
+      aria-hidden="true"
+      className="pmp-live-led"
+      style={{
+        width: size,
+        height: size,
+        borderRadius: "50%",
+        background: chrome.live,
+        boxShadow: `0 0 0 2px rgba(${chrome.liveRgb},0.22), 0 0 10px rgba(${chrome.liveRgb},0.55)`,
+        flexShrink: 0,
+      }}
+    />
+  );
+}
+
+function TechLabel({ children, color: c = color.faint, style = {} }) {
+  return (
+    <span
+      style={{
+        ...radio.label,
+        color: c,
+        ...style,
+      }}
+    >
+      {children}
+    </span>
+  );
+}
+
+function programIndex(showId) {
+  const idx = STATION_SHOWS.findIndex((s) => s.id === showId);
+  return String(Math.max(0, idx) + 1).padStart(2, "0");
 }
 
 /** Compact host credit for player chrome. */
@@ -57,9 +95,9 @@ export function HostCreditChip({ show, compact = false, onClick = null, tone = "
       <div style={{ minWidth: 0 }}>
         <div style={{
           fontFamily: fontMono,
-          fontSize: 11,
+          fontSize: 10,
           fontWeight: 800,
-          letterSpacing: 0.9,
+          letterSpacing: 1.1,
           textTransform: "uppercase",
           color: labelColor,
         }}>
@@ -85,7 +123,7 @@ export function HostCreditChip({ show, compact = false, onClick = null, tone = "
     alignItems: "center",
     gap: 9,
     padding: compact ? "5px 12px 5px 5px" : "6px 12px 6px 6px",
-    borderRadius: 5,
+    borderRadius: radio.radiusTight,
     background: hardware.keyFace,
     border: "1px solid rgba(255,255,255,0.14)",
     boxShadow: hardware.plateEdge,
@@ -103,8 +141,101 @@ export function HostCreditChip({ show, compact = false, onClick = null, tone = "
   return <div style={style}>{inner}</div>;
 }
 
+/** Broadcast timeline — illuminated tuner progress with tick marks. */
+function BroadcastTimeline({ progress = 0, startLabel, endLabel }) {
+  const pct = Math.min(100, Math.max(0, Math.round((progress || 0) * 100)));
+  const ticks = [0, 25, 50, 75, 100];
+
+  return (
+    <div style={{ position: "relative" }} aria-hidden="true">
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          marginBottom: 6,
+        }}
+      >
+        <TechLabel color={y2k.cyan}>{startLabel}</TechLabel>
+        <TechLabel color={color.faint}>{endLabel}</TechLabel>
+      </div>
+      <div
+        style={{
+          position: "relative",
+          height: 18,
+          display: "flex",
+          alignItems: "center",
+        }}
+      >
+        {/* Tick marks */}
+        <div
+          style={{
+            position: "absolute",
+            inset: "0 0 auto 0",
+            height: 4,
+            display: "flex",
+            justifyContent: "space-between",
+            pointerEvents: "none",
+          }}
+        >
+          {ticks.map((t) => (
+            <span
+              key={t}
+              style={{
+                width: 1,
+                height: t % 50 === 0 ? 5 : 3,
+                background: t <= pct
+                  ? "rgba(101,230,255,0.55)"
+                  : "rgba(255,255,255,0.14)",
+              }}
+            />
+          ))}
+        </div>
+        <div
+          style={{
+            position: "relative",
+            width: "100%",
+            height: 2,
+            marginTop: 4,
+            borderRadius: 1,
+            background: radio.lcdTrack,
+            boxShadow: "inset 0 1px 0 rgba(0,0,0,0.45)",
+            overflow: "visible",
+          }}
+        >
+          <div
+            style={{
+              width: `${pct}%`,
+              height: "100%",
+              borderRadius: 1,
+              background: radio.lcdFill,
+              boxShadow: radio.lcdGlow,
+              transition: "width 1s linear",
+            }}
+          />
+          <div
+            className="pmp-tuner-needle"
+            style={{
+              position: "absolute",
+              left: `calc(${pct}% - 4px)`,
+              top: "50%",
+              width: 8,
+              height: 8,
+              marginTop: -4,
+              borderRadius: "50%",
+              background: y2k.lightMetal,
+              border: `1px solid ${y2k.cyan}`,
+              boxShadow: `0 0 8px rgba(${chrome.cyanRgb},0.55), inset 0 1px 0 rgba(255,255,255,0.7)`,
+              transition: "left 1s linear",
+            }}
+          />
+        </div>
+      </div>
+    </div>
+  );
+}
+
 /**
- * Hero "NOW ON AIR" card — soft frosted appointment surface (iOS glass).
+ * Hero ON AIR receiver module — hardware broadcast interface.
  */
 export function NowOnAirCard({
   airing = null,
@@ -114,6 +245,7 @@ export function NowOnAirCard({
 }) {
   if (!airing?.show) return null;
   const { show, host, remainingMinutes, progress, nextShow } = airing;
+  const prog = programIndex(show.id);
 
   return (
     <section
@@ -125,94 +257,102 @@ export function NowOnAirCard({
       }}
     >
       <div
+        className="pmp-radio-module"
         style={{
           position: "relative",
           overflow: "hidden",
-          borderRadius: 18,
-          border: "1px solid rgba(255,255,255,0.14)",
-          background:
-            "linear-gradient(180deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.03) 40%, transparent 100%), rgba(22,25,30,0.58)",
-          backdropFilter: "blur(22px) saturate(1.25)",
-          WebkitBackdropFilter: "blur(22px) saturate(1.25)",
-          boxShadow:
-            "inset 0 1px 0 rgba(255,255,255,0.2), inset 0 -1px 0 rgba(0,0,0,0.3), 0 10px 28px rgba(0,0,0,0.32)",
+          borderRadius: radio.radius,
+          border: radio.borderLive,
+          background: radio.moduleFaceLive,
+          boxShadow: radio.moduleShadowLive,
           color: color.ink,
-          padding: "16px 16px 14px",
+          padding: "14px 14px 12px",
         }}
       >
+        {/* Subtle internal scanline wash */}
+        <div
+          aria-hidden="true"
+          style={{
+            position: "absolute",
+            inset: 0,
+            pointerEvents: "none",
+            opacity: 0.04,
+            backgroundImage:
+              "repeating-linear-gradient(0deg, transparent 0px, transparent 2px, rgba(255,255,255,0.55) 3px)",
+            mixBlendMode: "overlay",
+          }}
+        />
+
+        {/* Status / readout row */}
         <div
           style={{
             position: "relative",
             display: "flex",
             justifyContent: "space-between",
-            gap: 12,
+            gap: 10,
             marginBottom: 14,
             alignItems: "center",
+            flexWrap: "wrap",
           }}
         >
+          <div style={{ display: "inline-flex", alignItems: "center", gap: 10 }}>
+            <div
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 7,
+                padding: "5px 9px",
+                borderRadius: radio.radiusTight,
+                background: "rgba(8,10,13,0.55)",
+                border: "1px solid rgba(255,51,79,0.35)",
+                boxShadow: "inset 0 1px 0 rgba(255,255,255,0.08)",
+              }}
+            >
+              <LiveLed size={6} />
+              <TechLabel color={chrome.live} style={{ letterSpacing: 1.6 }}>
+                On Air
+              </TechLabel>
+            </div>
+            <TechLabel color={y2k.cyan}>Live</TechLabel>
+          </div>
+
           <div
             style={{
               display: "inline-flex",
               alignItems: "center",
-              gap: 8,
-              padding: "6px 11px",
-              borderRadius: 980,
-              background:
-                "linear-gradient(180deg, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0.03) 100%), rgba(10,11,13,0.45)",
-              border: "1px solid rgba(255,255,255,0.14)",
-              boxShadow: "inset 0 1px 0 rgba(255,255,255,0.16)",
+              gap: 10,
+              flexWrap: "wrap",
+              justifyContent: "flex-end",
             }}
           >
-            <span
-              style={{
-                width: 7,
-                height: 7,
-                borderRadius: "50%",
-                background: "#E23B4C",
-                boxShadow: "0 0 0 3px rgba(226,59,76,0.22)",
-                animation: "stageLiveDot 1.4s ease-in-out infinite",
-              }}
-            />
-            <span
-              style={{
-                fontFamily: fontDisplay,
-                fontSize: 12,
-                fontWeight: 650,
-                letterSpacing: -0.1,
-                color: color.ink,
-              }}
-            >
-              Now on air
-            </span>
-          </div>
-          <div
-            style={{
-              fontSize: 12,
-              fontWeight: 550,
-              letterSpacing: -0.05,
-              color: color.muted,
-              textAlign: "right",
-            }}
-          >
-            {show.timeLabel}
-            <div style={{ marginTop: 2, color: color.body, fontWeight: 650 }}>
-              {formatRemaining(remainingMinutes)}
-            </div>
+            <TechLabel color={color.muted}>
+              {STATION_CALLSIGN}
+            </TechLabel>
+            <TechLabel color={color.faint}>·</TechLabel>
+            <TechLabel color={y2k.techBlue}>
+              Freq {STATION_FREQ}
+            </TechLabel>
+            <TechLabel color={color.faint}>·</TechLabel>
+            <TechLabel color={color.muted}>
+              Prog {prog}
+            </TechLabel>
           </div>
         </div>
 
-        <div style={{ position: "relative", display: "flex", gap: 14, alignItems: "flex-start" }}>
-          <HostAvatar host={host} size={52} />
+        {/* Show identity */}
+        <div style={{ position: "relative", display: "flex", gap: 12, alignItems: "flex-start" }}>
+          <HostAvatar host={host} size={48} />
           <div style={{ minWidth: 0, flex: 1 }}>
             <h2
               style={{
                 margin: 0,
                 fontFamily: fontDisplay,
-                fontSize: "clamp(20px, 4.2vw, 26px)",
+                fontSize: "clamp(22px, 4.4vw, 28px)",
                 fontWeight: 700,
-                letterSpacing: -0.45,
-                lineHeight: 1.1,
-                color: color.ink,
+                letterSpacing: 0.4,
+                lineHeight: 1.05,
+                textTransform: "uppercase",
+                color: y2k.offWhite,
               }}
             >
               {show.title}
@@ -234,37 +374,62 @@ export function NowOnAirCard({
                 display: "flex",
                 flexWrap: "wrap",
                 gap: 8,
-                alignItems: "center",
+                alignItems: "baseline",
               }}
             >
-              <span style={{ fontSize: 13, fontWeight: 650, letterSpacing: -0.1, color: color.ink }}>
+              <span
+                style={{
+                  fontFamily: fontMono,
+                  fontSize: 12,
+                  fontWeight: 800,
+                  letterSpacing: 1.1,
+                  textTransform: "uppercase",
+                  color: y2k.lightMetal,
+                }}
+              >
                 {host.name}
               </span>
-              <span style={{ color: color.faint }}>·</span>
-              <span style={{ fontSize: 12, fontWeight: 500, color: color.muted }}>{host.title}</span>
+              <span style={{ color: color.faint, fontSize: 11 }}>·</span>
+              <span
+                style={{
+                  fontFamily: fontMono,
+                  fontSize: 11,
+                  fontWeight: 700,
+                  letterSpacing: 1,
+                  textTransform: "uppercase",
+                  color: color.muted,
+                }}
+              >
+                {host.title}
+              </span>
+            </div>
+          </div>
+          <div style={{ textAlign: "right", flexShrink: 0 }}>
+            <TechLabel color={color.muted} style={{ display: "block" }}>
+              Signal
+            </TechLabel>
+            <div
+              style={{
+                marginTop: 4,
+                fontFamily: fontMono,
+                fontSize: 12,
+                fontWeight: 800,
+                letterSpacing: 0.4,
+                color: y2k.cyan,
+              }}
+            >
+              {formatRemaining(remainingMinutes)}
             </div>
           </div>
         </div>
 
-        <div style={{ position: "relative", marginTop: 16 }} aria-hidden="true">
-          <div
-            style={{
-              height: 4,
-              borderRadius: 999,
-              background: "rgba(255,255,255,0.08)",
-              overflow: "hidden",
-            }}
-          >
-            <div
-              style={{
-                width: `${Math.round((progress || 0) * 100)}%`,
-                height: "100%",
-                borderRadius: 999,
-                background: "linear-gradient(90deg, rgba(232,236,242,0.55), rgba(169,199,228,0.95))",
-                transition: "width 1s linear",
-              }}
-            />
-          </div>
+        {/* Timeline */}
+        <div style={{ position: "relative", marginTop: 16 }}>
+          <BroadcastTimeline
+            progress={progress}
+            startLabel={formatShowClock(show.startHour)}
+            endLabel={formatShowClock(show.endHour === 24 ? 0 : show.endHour)}
+          />
         </div>
 
         {bumper && (
@@ -272,8 +437,13 @@ export function NowOnAirCard({
             style={{
               position: "relative",
               marginTop: 12,
+              padding: "8px 10px",
+              borderRadius: radio.radiusTight,
+              background: "rgba(8,10,13,0.42)",
+              border: "1px solid rgba(255,255,255,0.08)",
               fontSize: 12,
               fontWeight: 500,
+              fontStyle: "italic",
               color: color.muted,
               lineHeight: 1.4,
             }}
@@ -282,6 +452,7 @@ export function NowOnAirCard({
           </div>
         )}
 
+        {/* Tune-in hardware key */}
         <div
           style={{
             position: "relative",
@@ -294,30 +465,47 @@ export function NowOnAirCard({
           <button
             type="button"
             onClick={onTuneIn}
+            className={tuned ? "pmp-tune-key pmp-tune-key--locked" : "pmp-tune-key"}
             style={{
               flex: 1,
-              padding: "12px 16px",
-              borderRadius: 980,
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 10,
+              padding: "11px 16px",
+              borderRadius: radio.radiusControl,
               border: tuned
-                ? "1px solid rgba(232,236,242,0.4)"
-                : "1px solid rgba(255,255,255,0.16)",
+                ? "1px solid rgba(101,230,255,0.4)"
+                : "1px solid rgba(255,255,255,0.28)",
               cursor: "pointer",
-              fontFamily: fontDisplay,
-              fontSize: 14,
-              fontWeight: 650,
-              letterSpacing: -0.15,
-              color: tuned ? y2k.chromeBright : "#0B0C0F",
+              fontFamily: fontMono,
+              fontSize: 12,
+              fontWeight: 800,
+              letterSpacing: 1.6,
+              textTransform: "uppercase",
+              color: tuned ? y2k.cyan : "#0A0C10",
               background: tuned
-                ? "linear-gradient(180deg, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0.04) 100%), rgba(18,20,24,0.55)"
-                : "linear-gradient(180deg, rgba(255,255,255,0.34) 0%, transparent 42%), linear-gradient(160deg, #E8ECF2 0%, #B8C0CC 48%, #6E7683 100%)",
+                ? "linear-gradient(180deg, rgba(101,230,255,0.1) 0%, rgba(255,255,255,0.04) 100%), rgba(12,14,18,0.75)"
+                : radio.tuneFace,
               boxShadow: tuned
-                ? "inset 0 1px 0 rgba(255,255,255,0.18)"
-                : "0 0 18px rgba(232,236,242,0.18), inset 0 1px 0 rgba(255,255,255,0.45)",
-              backdropFilter: "blur(14px)",
-              WebkitBackdropFilter: "blur(14px)",
+                ? "inset 0 1px 0 rgba(255,255,255,0.12), 0 0 16px rgba(101,230,255,0.12)"
+                : radio.tuneShadow,
             }}
           >
-            {tuned ? "You’re locked in" : "Tune in"}
+            <span
+              aria-hidden="true"
+              style={{
+                width: 9,
+                height: 9,
+                borderRadius: "50%",
+                border: tuned ? `2px solid ${y2k.cyan}` : "2px solid #1A1E24",
+                boxShadow: tuned
+                  ? `inset 0 0 0 2px rgba(8,10,13,0.9), 0 0 8px rgba(${chrome.cyanRgb},0.5)`
+                  : "inset 0 0 0 2px rgba(232,236,242,0.9)",
+                background: tuned ? y2k.cyan : "transparent",
+              }}
+            />
+            {tuned ? "Locked in" : "Tune in"}
           </button>
         </div>
 
@@ -326,21 +514,41 @@ export function NowOnAirCard({
             style={{
               position: "relative",
               marginTop: 12,
-              paddingTop: 12,
+              paddingTop: 11,
               borderTop: "1px solid rgba(255,255,255,0.08)",
               display: "flex",
               justifyContent: "space-between",
               gap: 10,
-              fontSize: 12,
-              fontWeight: 550,
-              letterSpacing: -0.05,
-              color: color.muted,
+              alignItems: "center",
             }}
           >
-            <span>Up next</span>
-            <span style={{ color: color.body, textAlign: "right", fontWeight: 650 }}>
-              {nextShow.shortTitle || nextShow.title} · {formatShowClock(nextShow.startHour)}
-            </span>
+            <TechLabel color={color.faint}>Up next</TechLabel>
+            <div style={{ textAlign: "right" }}>
+              <span
+                style={{
+                  fontFamily: fontDisplay,
+                  fontSize: 13,
+                  fontWeight: 650,
+                  letterSpacing: 0.3,
+                  textTransform: "uppercase",
+                  color: color.body,
+                }}
+              >
+                {nextShow.shortTitle || nextShow.title}
+              </span>
+              <span
+                style={{
+                  marginLeft: 8,
+                  fontFamily: fontMono,
+                  fontSize: 11,
+                  fontWeight: 700,
+                  letterSpacing: 0.6,
+                  color: y2k.cyan,
+                }}
+              >
+                {formatShowClock(nextShow.startHour)}
+              </span>
+            </div>
           </div>
         )}
       </div>
@@ -349,7 +557,7 @@ export function NowOnAirCard({
 }
 
 /**
- * Horizontal day guide — surf the channel’s blocks.
+ * Horizontal day guide — compact broadcast schedule strip.
  */
 export function ShowGuideRail({
   guide = [],
@@ -380,9 +588,10 @@ export function ShowGuideRail({
             <h3 style={{
               margin: 0,
               fontFamily: fontDisplay,
-              fontSize: "clamp(20px, 3.6vw, 24px)",
-              fontWeight: 750,
-              letterSpacing: -0.3,
+              fontSize: "clamp(18px, 3.4vw, 22px)",
+              fontWeight: 700,
+              letterSpacing: 0.6,
+              textTransform: "uppercase",
               color: color.ink,
             }}>
               Program guide
@@ -395,7 +604,7 @@ export function ShowGuideRail({
         className="hide-scroll"
         style={{
           display: "flex",
-          gap: 12,
+          gap: 8,
           overflowX: "auto",
           padding: embedded
             ? `2px ${homeSpace.gutter}px 8px`
@@ -407,32 +616,26 @@ export function ShowGuideRail({
         {guide.map((show) => {
           const live = show.status === "live";
           const tuned = activeShowId === show.id;
+          const lit = live || tuned;
           return (
             <button
               key={show.id}
               type="button"
               onClick={() => onSelectShow?.(show)}
               aria-current={tuned ? "true" : undefined}
-              className="pmp-lift"
+              className="pmp-lift pmp-schedule-cell"
               style={{
                 flex: "0 0 auto",
-                width: 168,
+                width: 148,
                 scrollSnapAlign: "start",
                 textAlign: "left",
-                padding: 14,
-                borderRadius: 16,
+                padding: "11px 12px",
+                borderRadius: radio.radiusTight,
                 cursor: "pointer",
-                border: `1px solid ${
-                  live || tuned ? "rgba(232,236,242,0.35)" : "rgba(255,255,255,0.12)"
-                }`,
-                background: live || tuned
-                  ? "linear-gradient(180deg, rgba(255,255,255,0.14) 0%, rgba(255,255,255,0.04) 100%), rgba(28,32,38,0.62)"
-                  : "linear-gradient(180deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.03) 100%), rgba(18,20,24,0.5)",
-                backdropFilter: "blur(18px) saturate(1.25)",
-                WebkitBackdropFilter: "blur(18px) saturate(1.25)",
-                boxShadow: live || tuned
-                  ? "inset 0 1px 0 rgba(255,255,255,0.22), 0 8px 22px rgba(0,0,0,0.32)"
-                  : "inset 0 1px 0 rgba(255,255,255,0.16), 0 6px 16px rgba(0,0,0,0.28)",
+                border: lit ? radio.borderLive : radio.borderQuiet,
+                background: lit ? radio.stripFaceLive : radio.stripFace,
+                boxShadow: lit ? radio.stripShadowLive : radio.stripShadow,
+                transition: `transform ${motion.settle} ${motion.ease}, border-color ${motion.base}, box-shadow ${motion.settle}`,
               }}
             >
               <div
@@ -440,18 +643,30 @@ export function ShowGuideRail({
                   display: "flex",
                   justifyContent: "space-between",
                   gap: 6,
-                  marginBottom: 10,
+                  marginBottom: 8,
                   alignItems: "center",
                 }}
               >
                 <span
                   style={{
-                    fontSize: 11,
-                    fontWeight: 650,
-                    letterSpacing: -0.05,
-                    color: live ? chrome.live : tuned ? y2k.chromeBright : color.muted,
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: 5,
+                    fontFamily: fontMono,
+                    fontSize: 10,
+                    fontWeight: 800,
+                    letterSpacing: 1.1,
+                    textTransform: "uppercase",
+                    color: live
+                      ? chrome.live
+                      : tuned
+                        ? y2k.cyan
+                        : show.status === "up-next"
+                          ? y2k.techBlue
+                          : color.muted,
                   }}
                 >
+                  {live && <LiveLed size={5} />}
                   {live
                     ? "Live"
                     : tuned
@@ -460,17 +675,18 @@ export function ShowGuideRail({
                         ? "Up next"
                         : formatShowClock(show.startHour)}
                 </span>
-                <HostAvatar host={show.host} size={24} />
+                <HostAvatar host={show.host} size={22} />
               </div>
               <div
                 style={{
                   fontFamily: fontDisplay,
-                  fontSize: 15,
+                  fontSize: 14,
                   fontWeight: 700,
-                  letterSpacing: -0.25,
-                  color: tuned ? y2k.chromeBright : color.ink,
-                  lineHeight: 1.2,
-                  minHeight: 36,
+                  letterSpacing: 0.35,
+                  textTransform: "uppercase",
+                  color: lit ? y2k.offWhite : color.ink,
+                  lineHeight: 1.15,
+                  minHeight: 32,
                 }}
               >
                 {show.shortTitle || show.title}
@@ -478,8 +694,11 @@ export function ShowGuideRail({
               <div
                 style={{
                   marginTop: 7,
-                  fontSize: 12,
-                  fontWeight: 500,
+                  fontFamily: fontMono,
+                  fontSize: 10,
+                  fontWeight: 700,
+                  letterSpacing: 0.9,
+                  textTransform: "uppercase",
                   color: color.muted,
                   overflow: "hidden",
                   textOverflow: "ellipsis",
@@ -490,10 +709,12 @@ export function ShowGuideRail({
               </div>
               <div
                 style={{
-                  marginTop: 8,
-                  fontSize: 11,
-                  fontWeight: 500,
-                  color: color.faint,
+                  marginTop: 6,
+                  fontFamily: fontMono,
+                  fontSize: 10,
+                  fontWeight: 600,
+                  letterSpacing: 0.4,
+                  color: lit ? y2k.cyan : color.faint,
                 }}
               >
                 {show.timeLabel}

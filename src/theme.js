@@ -1,9 +1,9 @@
-// Design tokens — premium Y2K broadcast. Dark studio surfaces, machined
-// aluminum controls, one ice-blue accent, a whisper of broadcast red for LIVE.
-// MTV2 (2001–2005) x Braun x Teenage Engineering — restraint over nostalgia.
+// Design tokens — premium Y2K broadcast hardware.
+// Graphite chassis, LCD cyan, chrome plates, LIVE LED red.
+// Early-2000s FM receiver × MiniDisc × underground label — engineered, not SaaS.
 
 export const fontDisplay =
-  '"Space Grotesk", "Avenir Next", "Segoe UI", "Helvetica Neue", Helvetica, sans-serif';
+  '"Chakra Petch", "Space Grotesk", "Avenir Next", "Segoe UI", sans-serif';
 export const font =
   '"Space Grotesk", "Avenir Next", "Segoe UI", "Helvetica Neue", Helvetica, sans-serif';
 export const fontMono =
@@ -17,24 +17,24 @@ export const color = {
   faint: "#6E7683",
   line: "rgba(255, 255, 255, 0.08)",
   lineStrong: "rgba(255, 255, 255, 0.14)",
-  surface: "rgba(24, 27, 32, 0.62)",
-  surfaceSolid: "rgba(24, 27, 32, 0.92)",
-  surfaceRaised: "rgba(30, 34, 40, 0.94)",
-  canvas: "#0B0C0F",
-  canvasEdge: "#08090B",
-  /** Ice blue — the single accent signal */
-  accent: "#A9C7E4",
-  accentSoft: "rgba(169, 199, 228, 0.12)",
-  accentGlow: "rgba(169, 199, 228, 0.22)",
-  onAccent: "#0B0C0F",
+  surface: "rgba(21, 24, 28, 0.72)",
+  surfaceSolid: "rgba(21, 24, 28, 0.94)",
+  surfaceRaised: "rgba(28, 32, 38, 0.96)",
+  canvas: "#080A0D",
+  canvasEdge: "#06070A",
+  /** Technical blue — interface accent */
+  accent: "#7BA7FF",
+  accentSoft: "rgba(123, 167, 255, 0.12)",
+  accentGlow: "rgba(123, 167, 255, 0.22)",
+  onAccent: "#080A0D",
   onDark: "#F2F4F7",
   onDarkMuted: "rgba(242,244,247,0.62)",
   /** Broadcast red — LIVE + destructive only, never chrome */
-  alert: "#E03C4B",
-  station: "#121417",
+  alert: "#FF334F",
+  station: "#15181C",
   /** Soft selection wash */
-  select: "rgba(169, 199, 228, 0.08)",
-  selectStrong: "rgba(169, 199, 228, 0.14)",
+  select: "rgba(101, 230, 255, 0.08)",
+  selectStrong: "rgba(101, 230, 255, 0.14)",
 };
 
 /**
@@ -43,47 +43,127 @@ export const color = {
  */
 export const chrome = {
   hot: "#8B939F",
-  bright: "#D6DBE2",
+  bright: "#E7EBF0",
   steel: "#5A6270",
-  plate: "#2A2E36",
-  deep: "#101216",
-  live: "#E03C4B",
-  signal: "#A9C7E4",
-  inkPlate: "#08090B",
+  plate: "#15181C",
+  deep: "#0C0E12",
+  live: "#FF334F",
+  signal: "#65E6FF",
+  inkPlate: "#080A0D",
   /** rgba helpers for overlays */
   hotRgb: "139,147,159",
-  brightRgb: "214,219,226",
-  liveRgb: "224,60,75",
+  brightRgb: "231,235,240",
+  liveRgb: "255,51,79",
+  cyanRgb: "101,230,255",
 };
 
 /**
- * Y2K underground — aluminum / charcoal broadcast branding + one neon signal.
- * Used by the Home redesign + dock. Black, charcoal, off-white, silver,
- * a whisper of neon. MTV meets pirate radio meets modern streaming.
- * Grey family only — no purple anywhere on player or home chrome.
+ * Y2K underground — graphite chassis, light metal, LCD cyan.
+ * MTV meets pirate radio meets Japanese audio hardware.
+ * No purple anywhere on player or home chrome.
  */
 export const y2k = {
-  /** Aluminum signal — CTAs, active states, live chrome (grey family) */
-  chrome: "#B8C0CC",
-  chromeBright: "#E8ECF2",
+  /** Aluminum / light metal — CTAs, active states, chrome faces */
+  chrome: "#B8BEC7",
+  chromeBright: "#E7EBF0",
   chromeMid: "#8B939F",
   chromeDeep: "#3A414C",
-  chromeSoft: "rgba(184, 192, 204, 0.16)",
-  chromeGlow: "rgba(232, 236, 242, 0.28)",
-  chromeWash: "rgba(184, 192, 204, 0.08)",
-  /** Neon zap — tiny highlights only, never large surfaces */
+  chromeSoft: "rgba(184, 190, 199, 0.16)",
+  chromeGlow: "rgba(231, 235, 240, 0.28)",
+  chromeWash: "rgba(184, 190, 199, 0.08)",
+  /** Electric cyan — LCD / tuner illumination */
+  cyan: "#65E6FF",
+  cyanSoft: "rgba(101, 230, 255, 0.14)",
+  cyanGlow: "rgba(101, 230, 255, 0.32)",
+  /** Technical blue — secondary readout */
+  techBlue: "#7BA7FF",
+  techBlueSoft: "rgba(123, 167, 255, 0.14)",
+  /** Neon zap / acid — tiny highlights only */
   neon: "#C8F241",
   neonSoft: "rgba(200, 242, 65, 0.16)",
-  /** Cool studio off-white for headline ink (not warm cream) */
+  /** Optional Y2K magenta — sparingly */
+  magenta: "#FF4FD8",
+  magentaSoft: "rgba(255, 79, 216, 0.14)",
+  /** Cool studio off-white for headline ink */
   offWhite: "#F4F6F8",
-  charcoal: "#14161A",
-  charcoalRaised: "#1A1D23",
+  charcoal: "#15181C",
+  charcoalRaised: "#1C2026",
+  graphite: "#15181C",
+  nearBlack: "#080A0D",
+  metal: "#B8BEC7",
+  lightMetal: "#E7EBF0",
+  live: "#FF334F",
   /** Neutral ink used on glass bugs / lower-thirds */
-  inkGlass: "rgba(10, 11, 13, 0.72)",
-  inkGlassSoft: "rgba(12, 13, 16, 0.5)",
+  inkGlass: "rgba(8, 10, 13, 0.78)",
+  inkGlassSoft: "rgba(8, 10, 13, 0.52)",
   /** Hero / card art fallback wash — brushed steel, no purple cast */
   artGradient:
-    "radial-gradient(120% 90% at 20% 0%, rgba(184,192,204,0.28) 0%, transparent 55%), radial-gradient(100% 80% at 90% 100%, rgba(58,65,76,0.55) 0%, transparent 60%), linear-gradient(160deg, #1A1D23 0%, #0C0D10 100%)",
+    "radial-gradient(120% 90% at 20% 0%, rgba(184,190,199,0.28) 0%, transparent 55%), radial-gradient(100% 80% at 90% 100%, rgba(58,65,76,0.55) 0%, transparent 60%), linear-gradient(160deg, #1C2026 0%, #080A0D 100%)",
+};
+
+/**
+ * Radio / media-player module surfaces — physical plates, not website cards.
+ * Use for ON AIR receiver, schedule strip, hardware CTAs.
+ */
+export const radio = {
+  /** 8–14px engineered corners — never pill */
+  radius: 12,
+  radiusTight: 8,
+  radiusControl: 10,
+  border: "1px solid rgba(255,255,255,0.14)",
+  borderLive: "1px solid rgba(101,230,255,0.42)",
+  borderQuiet: "1px solid rgba(255,255,255,0.1)",
+  /** Translucent graphite chassis with internal highlight */
+  moduleFace: `
+    linear-gradient(180deg, rgba(255,255,255,0.09) 0%, rgba(255,255,255,0.02) 36%, transparent 70%),
+    linear-gradient(145deg, rgba(36,40,46,0.95) 0%, rgba(21,24,28,0.96) 48%, rgba(14,16,20,0.98) 100%)
+  `,
+  moduleFaceLive: `
+    linear-gradient(180deg, rgba(101,230,255,0.08) 0%, transparent 42%),
+    linear-gradient(180deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.02) 36%, transparent 70%),
+    linear-gradient(145deg, rgba(40,46,54,0.97) 0%, rgba(22,26,32,0.98) 50%, rgba(12,14,18,0.99) 100%)
+  `,
+  moduleShadow:
+    "inset 0 1px 0 rgba(255,255,255,0.16), inset 0 -1px 0 rgba(0,0,0,0.45), inset 1px 0 0 rgba(255,255,255,0.04), inset -1px 0 0 rgba(0,0,0,0.3), 0 8px 24px rgba(0,0,0,0.4)",
+  moduleShadowLive:
+    "inset 0 1px 0 rgba(255,255,255,0.18), inset 0 -1px 0 rgba(0,0,0,0.5), 0 0 0 1px rgba(101,230,255,0.12), 0 0 28px rgba(101,230,255,0.1), 0 10px 28px rgba(0,0,0,0.45)",
+  stripFace: `
+    linear-gradient(180deg, rgba(255,255,255,0.07) 0%, rgba(255,255,255,0.015) 40%, transparent 100%),
+    linear-gradient(160deg, #1C2026 0%, #12151A 55%, #0E1014 100%)
+  `,
+  stripFaceLive: `
+    linear-gradient(180deg, rgba(101,230,255,0.1) 0%, transparent 45%),
+    linear-gradient(180deg, rgba(255,255,255,0.08) 0%, transparent 40%),
+    linear-gradient(160deg, #222830 0%, #15191F 55%, #0E1116 100%)
+  `,
+  stripShadow:
+    "inset 0 1px 0 rgba(255,255,255,0.12), inset 0 -1px 0 rgba(0,0,0,0.4), 0 4px 14px rgba(0,0,0,0.32)",
+  stripShadowLive:
+    "inset 0 1px 0 rgba(255,255,255,0.16), inset 0 -1px 0 rgba(0,0,0,0.45), 0 0 18px rgba(101,230,255,0.12), 0 6px 16px rgba(0,0,0,0.36)",
+  /** Metallic Tune-In key */
+  tuneFace: `
+    linear-gradient(180deg, rgba(255,255,255,0.42) 0%, rgba(255,255,255,0.08) 38%, transparent 55%),
+    linear-gradient(165deg, #F2F4F7 0%, #C5CBD4 42%, #8A929E 100%)
+  `,
+  tuneFacePressed: `
+    linear-gradient(180deg, rgba(0,0,0,0.08) 0%, transparent 40%),
+    linear-gradient(165deg, #D8DDE4 0%, #A8B0BB 50%, #6E7683 100%)
+  `,
+  tuneShadow:
+    "inset 0 1px 0 rgba(255,255,255,0.65), inset 0 -1px 0 rgba(0,0,0,0.22), 0 1px 0 rgba(255,255,255,0.12), 0 6px 16px rgba(0,0,0,0.35)",
+  tuneShadowPressed:
+    "inset 0 2px 4px rgba(0,0,0,0.28), inset 0 1px 0 rgba(0,0,0,0.12)",
+  lcdTrack: "rgba(255,255,255,0.06)",
+  lcdFill:
+    "linear-gradient(90deg, rgba(101,230,255,0.55) 0%, rgba(123,167,255,0.95) 55%, rgba(231,235,240,0.9) 100%)",
+  lcdGlow: "0 0 10px rgba(101,230,255,0.35)",
+  label: {
+    fontFamily: fontMono,
+    fontSize: 10,
+    fontWeight: 700,
+    letterSpacing: 1.4,
+    textTransform: "uppercase",
+  },
 };
 
 /** Dark glass — blurred studio panels, hairline borders, soft top light. */
@@ -224,13 +304,13 @@ export const homeSpace = {
  */
 export const sectionTitle = {
   fontFamily: fontDisplay,
-  fontSize: 17,
+  fontSize: 16,
   fontWeight: 650,
-  letterSpacing: -0.28,
+  letterSpacing: 0.8,
   lineHeight: 1.2,
   color: y2k.offWhite,
   margin: 0,
-  textTransform: "none",
+  textTransform: "uppercase",
 };
 
 export const sectionSubtitle = {
@@ -276,7 +356,8 @@ export const dock = {
   clearPlayer: 176,
 };
 
-export const radius = { sm: 10, md: 14, lg: 18, xl: 20, pill: 980 };
+/** Prefer radio.radius for media modules; keep these for sheets / legacy chrome. */
+export const radius = { sm: 8, md: 12, lg: 14, xl: 16, pill: 980 };
 
 export const space = (n) => n * 4;
 
@@ -364,15 +445,15 @@ export function timeOfDayGradient(date = new Date()) {
   const dawn = h >= 5 && h <= 8;
   const day = h >= 9 && h <= 16;
   if (late) {
-    return `radial-gradient(ellipse at 50% -10%, #14171D 0%, #0D0F13 42%, #0B0C0F 100%)`;
+    return `radial-gradient(ellipse at 50% -10%, #15181C 0%, #0C0E12 42%, #080A0D 100%)`;
   }
   if (dawn) {
-    return `radial-gradient(ellipse at 70% 0%, #15181E 0%, #0B0C0F 48%, #0D0F14 100%)`;
+    return `radial-gradient(ellipse at 70% 0%, #171B22 0%, #080A0D 48%, #0C0E12 100%)`;
   }
   if (day) {
-    return `radial-gradient(ellipse at 40% -5%, #181C23 0%, #0C0E12 50%, #0B0C0F 100%)`;
+    return `radial-gradient(ellipse at 40% -5%, #1A1F27 0%, #0C0E12 50%, #080A0D 100%)`;
   }
-  return `radial-gradient(ellipse at 55% 0%, #161A20 0%, #0C0D11 45%, #0A0B0E 100%)`;
+  return `radial-gradient(ellipse at 55% 0%, #161A20 0%, #0C0E11 45%, #080A0D 100%)`;
 }
 
 /** Brushed dark-aluminum wash for chrome bands / Cover Stage. */
@@ -399,13 +480,13 @@ export function brandGlassHalo(size = 280) {
   };
 }
 
-/** App shell — deep broadcast canvas with a faint studio key light. */
+/** App shell — graphite chassis with quiet cyan atmosphere. */
 export const APP_STYLE = {
   fontFamily: font,
   background: `
-    radial-gradient(ellipse 120% 70% at 50% -20%, rgba(169,199,228,0.06) 0%, transparent 55%),
-    radial-gradient(ellipse 80% 50% at 100% 100%, rgba(255,255,255,0.025) 0%, transparent 50%),
-    radial-gradient(ellipse 60% 40% at 0% 80%, rgba(255,255,255,0.02) 0%, transparent 45%),
+    radial-gradient(ellipse 110% 65% at 50% -18%, rgba(101,230,255,0.045) 0%, transparent 55%),
+    radial-gradient(ellipse 70% 45% at 100% 100%, rgba(123,167,255,0.04) 0%, transparent 50%),
+    radial-gradient(ellipse 55% 40% at 0% 85%, rgba(255,255,255,0.02) 0%, transparent 45%),
     ${color.canvas}
   `,
   color: color.ink,
@@ -439,8 +520,8 @@ export const BTN_PRIMARY = {
   borderRadius: radius.lg,
   border: `1px solid rgba(255, 255, 255, 0.18)`,
   background: `
-    linear-gradient(180deg, rgba(255,255,255,0.35) 0%, transparent 42%),
-    linear-gradient(165deg, #EDF0F4 0%, #C4CBD4 100%)
+    linear-gradient(180deg, rgba(255,255,255,0.38) 0%, transparent 42%),
+    linear-gradient(165deg, #E7EBF0 0%, #B8BEC7 100%)
   `,
   color: color.onAccent,
   fontSize: 16,
@@ -449,8 +530,6 @@ export const BTN_PRIMARY = {
   fontFamily: font,
   letterSpacing: -0.15,
   boxShadow: `inset 0 1px 0 rgba(255,255,255,0.6), ${glass.shadowSoft}`,
-  backdropFilter: glass.blurSoft,
-  WebkitBackdropFilter: glass.blurSoft,
   transition: `transform ${motion.fast} ${motion.ease}, box-shadow ${motion.base}, opacity ${motion.fast}`,
 };
 

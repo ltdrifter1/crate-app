@@ -162,8 +162,8 @@ const injectStyles = () => {
     body {
       font-family: var(--font);
       background:
-        radial-gradient(ellipse 120% 70% at 50% -18%, rgba(169,199,228,0.05) 0%, transparent 55%),
-        radial-gradient(ellipse 70% 45% at 100% 110%, rgba(169,199,228,0.06) 0%, transparent 50%),
+        radial-gradient(ellipse 110% 65% at 50% -18%, rgba(101,230,255,0.045) 0%, transparent 55%),
+        radial-gradient(ellipse 70% 45% at 100% 110%, rgba(123,167,255,0.04) 0%, transparent 50%),
         var(--canvas);
       color: var(--ink);
     }
@@ -478,10 +478,51 @@ const injectStyles = () => {
     .pmp-lift {
       transition: transform ${motion.settle} ${motion.ease}, box-shadow ${motion.settle} ${motion.ease}, border-color ${motion.base} ${motion.ease};
     }
-    .pmp-lift:hover { transform: translateY(-3px); }
+    .pmp-lift:hover { transform: translateY(-2px); }
     .pmp-lift:active { transform: translateY(0) scale(0.985); opacity: 1; }
     .pmp-press { transition: transform ${motion.fast} ${motion.ease}, box-shadow ${motion.base} ${motion.ease}, background ${motion.base}; }
     .pmp-press:active { transform: scale(0.94); opacity: 1; }
+    .pmp-live-led {
+      animation: stageLiveDot 1.45s ease-in-out infinite;
+    }
+    .pmp-tune-key {
+      transition:
+        transform ${motion.fast} ${motion.ease},
+        box-shadow ${motion.base} ${motion.ease},
+        border-color ${motion.base},
+        background ${motion.base},
+        color ${motion.fast};
+    }
+    .pmp-tune-key:hover {
+      filter: brightness(1.05);
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,0.72),
+        inset 0 -1px 0 rgba(0,0,0,0.2),
+        0 0 0 1px rgba(101,230,255,0.18),
+        0 8px 20px rgba(0,0,0,0.4) !important;
+    }
+    .pmp-tune-key:active {
+      transform: translateY(1px) scale(0.985);
+      filter: brightness(0.96);
+      box-shadow:
+        inset 0 2px 4px rgba(0,0,0,0.28),
+        inset 0 1px 0 rgba(0,0,0,0.12) !important;
+    }
+    .pmp-tune-key--locked:hover {
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,0.14),
+        0 0 20px rgba(101,230,255,0.18) !important;
+    }
+    .pmp-schedule-cell:hover {
+      border-color: rgba(101,230,255,0.32) !important;
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,0.14),
+        0 0 14px rgba(101,230,255,0.08),
+        0 6px 16px rgba(0,0,0,0.34) !important;
+    }
+    .pmp-radio-module {
+      transition: box-shadow ${motion.settle} ${motion.ease}, border-color ${motion.base};
+    }
     .pmp-hero .pmp-hero-art { transition: transform 1.2s ${motion.ease}; }
     .pmp-hero:hover .pmp-hero-art { transform: scale(1.025); }
     .pmp-view-all { transition: color ${motion.fast} ${motion.ease}, transform ${motion.fast} ${motion.ease}; }
