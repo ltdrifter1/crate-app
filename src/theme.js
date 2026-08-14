@@ -304,13 +304,13 @@ export const homeSpace = {
  */
 export const sectionTitle = {
   fontFamily: fontDisplay,
-  fontSize: 16,
+  fontSize: 17,
   fontWeight: 650,
-  letterSpacing: 0.8,
+  letterSpacing: 0.2,
   lineHeight: 1.2,
   color: y2k.offWhite,
   margin: 0,
-  textTransform: "uppercase",
+  textTransform: "none",
 };
 
 export const sectionSubtitle = {
