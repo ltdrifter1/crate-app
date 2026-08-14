@@ -13,7 +13,7 @@ import {
 import { countPlayableTracks } from "../lib/catalogLoad";
 import { availableSceneChannels, channelCoverUrls } from "../lib/sceneChannels";
 import { buildHomeCollections } from "../lib/homeCollections";
-import { NowOnAirCard, ShowGuideRail } from "../components/station/ShowGuide";
+import { TonightDeck } from "../components/station/ShowGuide";
 import { useCurrentTrack } from "../usePlayerTransport";
 import HomeHeader from "../components/home/HomeHeader";
 import HeroPlayerCard from "../components/home/HeroPlayerCard";
@@ -248,36 +248,18 @@ function HomeScreen({
         />
       )}
 
-      {/* ON TONIGHT — live show + program guide */}
+      {/* ON TONIGHT — unified Y2K glass receiver deck */}
       {catalogReady && hasTonight && (
-        <MusicSection
-          title="On tonight"
-          subtitle={airing?.show?.tagline || "The program guide"}
-          first
-          delay={0.04}
-          inset
-        >
-          {airing?.show && !(activeShowId === airing.show.id && currentTrack) && (
-            <div style={{ paddingBottom: programGuide.length > 0 ? 10 : 0 }}>
-              <NowOnAirCard
-                airing={airing}
-                bumper={showBumper}
-                tuned={false}
-                onTuneIn={() => onTuneShow?.(airing.show)}
-              />
-            </div>
-          )}
-          {programGuide.length > 0 && (
-            <div style={{ margin: `0 -${homeSpace.gutter}px` }}>
-              <ShowGuideRail
-                guide={programGuide}
-                activeShowId={activeShowId}
-                onSelectShow={(show) => onTuneShow?.(show)}
-                embedded
-              />
-            </div>
-          )}
-        </MusicSection>
+        <TonightDeck
+          airing={airing}
+          guide={programGuide}
+          bumper={showBumper}
+          activeShowId={activeShowId}
+          tuned={false}
+          showNowPlaying={!!(airing?.show && !(activeShowId === airing.show.id && currentTrack))}
+          onTuneIn={() => onTuneShow?.(airing?.show)}
+          onSelectShow={(show) => onTuneShow?.(show)}
+        />
       )}
 
       {/* MOST REQUESTED — larger featured sleeves */}
