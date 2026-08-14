@@ -2,14 +2,13 @@ import { color, fontDisplay, fontMono, homeSpace, chrome, glass, radius } from "
 import ChartHistoryPanel from "./ChartHistoryPanel";
 
 /**
- * Charts tab — climbers, weekly reveal, #1s, past days.
- * Most Requested countdown lives on Home so it isn’t duplicated here.
+ * Charts tab — monthly countdown, overall or by channel / genre.
  */
 export default function ChartsScreen({
   countdown = [],
   tracks = [],
   onPlayTrack = null,
-  onTuneWeekly = null,
+  onTuneMonthly = null,
 }) {
   return (
     <div style={{ position: "relative", paddingBottom: 56 }}>
@@ -52,14 +51,14 @@ export default function ChartsScreen({
           fontSize: 14,
           fontWeight: 500,
           color: color.muted,
-          maxWidth: 360,
+          maxWidth: 400,
           lineHeight: 1.4,
         }}>
-          Climbers, weekly reveal, and the archive.
+          Monthly board — overall, or split by channel or genre.
         </p>
       </div>
 
-      {countdown.length === 0 && (
+      {tracks.length === 0 && countdown.length === 0 && (
         <div style={{
           margin: `12px ${homeSpace.gutter}px 0`,
           padding: "18px 16px",
@@ -75,7 +74,7 @@ export default function ChartsScreen({
           fontSize: 13,
           lineHeight: 1.45,
         }}>
-          Play and request cuts to build today&apos;s chart. History fills in as you listen.
+          Play and request cuts to build this month&apos;s chart. History fills in as you listen.
         </div>
       )}
 
@@ -83,7 +82,7 @@ export default function ChartsScreen({
         countdown={countdown}
         tracks={tracks}
         onPlayTrack={onPlayTrack}
-        onTuneWeekly={onTuneWeekly}
+        onTuneMonthly={onTuneMonthly}
       />
     </div>
   );

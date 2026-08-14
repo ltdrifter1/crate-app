@@ -4,13 +4,18 @@ import {
 } from "../../theme";
 import {
   biggestClimbers,
-  buildWeeklyReveal,
-  enrichCountdownWithHistory,
+  buildMonthlyChart,
+  buildMonthlyReveal,
+  chartScopeLabel,
   getNumberOnes,
   listChartDays,
   getChartSnapshot,
-  weekKey,
+  monthKey,
+  normalizeChartScope,
 } from "../../lib/chartHistory";
+import { formatMonthLabel } from "../../lib/mixes";
+import { CANONICAL_GENRES } from "../../lib/genres";
+import { SCENE_CHANNELS } from "../../lib/sceneChannels";
 import CoverImage from "../ui/CoverImage";
 
 function MovementTag({ movement, delta }) {
@@ -26,27 +31,95 @@ function MovementTag({ movement, delta }) {
   return <span style={{ color: color.faint, fontFamily: fontMono, fontSize: 10, fontWeight: 700 }}>●</span>;
 }
 
+function ScopeChip({ active, label, onClick }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      style={{
+        flexShrink: 0,
+        padding: "8px 12px",
+        borderRadius: 999,
+        border: `1px solid ${active ? color.ink : glass.border}`,
+        background: active ? color.ink : glass.fillStrong,
+        color: active ? color.onDark : color.body,
+        fontFamily: fontMono,
+        fontSize: 10,
+        fontWeight: 800,
+        letterSpacing: 0.8,
+        textTransform: "uppercase",
+        cursor: "pointer",
+      }}
+    >
+      {label}
+    </button>
+  );
+}
+
 /**
- * Chart history + weekly reveal — TRL archive energy.
+ * Monthly charts — overall or split by channel / genre, plus archive tabs.
  */
 export default function ChartHistoryPanel({
   countdown = [],
   tracks = [],
   onPlayTrack = null,
-  onTuneWeekly = null,
+  onTuneMonthly = null,
 }) {
-  const [tab, setTab] = useState("today"); // today | week | ones | archive
+  const [tab, setTab] = useState("month"); // month | climbers | ones | archive
+  const [scopeMode, setScopeMode] = useState("overall"); // overall | channel | genre
+  const [channelId, setChannelId] = useState(SCENE_CHANNELS[0]?.id || null);
+  const [genre, setGenre] = useState(CANONICAL_GENRES[0] || "Electronic");
   const [archiveDay, setArchiveDay] = useState(null);
 
-  const live = useMemo(() => enrichCountdownWithHistory(countdown), [countdown]);
+  const scope = useMemo(
+    () => normalizeChartScope({
+      mode: scopeMode,
+      channelId,
+      genre,
+    }),
+    [scopeMode, channelId, genre]
+  );
+
+  const month = monthKey();
+  const monthLabel = formatMonthLabel(month);
+
+  const monthlyLive = useMemo(
+    () => buildMonthlyChart(tracks, { limit: 20, scope }),
+    [tracks, scope]
+  );
+  const monthlyReveal = useMemo(
+    () => buildMonthlyReveal(20, { scope, tracks }),
+    [tracks, scope, countdown.length]
+  );
+  // Prefer live heat for the month board; fall back to peak-from-days if empty
+  const monthlyEntries = monthlyLive.length
+    ? monthlyLive.map((c) => ({
+        rank: c.rank,
+        id: c.track.id,
+        title: c.track.title,
+        artist: c.track.artist,
+        albumCover: c.track.albumCover,
+        movement: "same",
+        delta: 0,
+      }))
+    : monthlyReveal.map((e) => ({
+        rank: e.monthRank,
+        id: e.id,
+        title: e.title,
+        artist: e.artist,
+        albumCover: e.albumCover,
+        movement: "same",
+        delta: 0,
+        meta: e.peakDay,
+      }));
+
   const climbers = useMemo(() => biggestClimbers(countdown, 5), [countdown]);
-  const weekly = useMemo(() => buildWeeklyReveal(10), [countdown, tracks.length]);
   const ones = useMemo(() => getNumberOnes(10), [countdown]);
   const days = useMemo(() => listChartDays(10), [countdown]);
 
   const archive = archiveDay ? getChartSnapshot(archiveDay) : null;
 
-  if (!countdown.length && !weekly.length && !ones.length) return null;
+  if (!tracks.length && !countdown.length && !ones.length) return null;
 
   const playEntry = (entry, list) => {
     if (!entry?.id || !onPlayTrack) return;
@@ -62,9 +135,11 @@ export default function ChartHistoryPanel({
     onPlayTrack(track, pool.length ? pool : [track]);
   };
 
+  const scopeTitle = chartScopeLabel(scope);
+
   return (
     <section
-      aria-label="Chart history"
+      aria-label="Monthly charts"
       style={{
         padding: `8px 0 ${homeSpace.sectionPadBottom}px`,
         animation: `rise 0.55s ${motion.ease} 0.05s both`,
@@ -76,7 +151,7 @@ export default function ChartHistoryPanel({
           letterSpacing: 1.5, textTransform: "uppercase", color: chrome.steel,
           marginBottom: 4,
         }}>
-          Chart archive · {weekKey()}
+          Monthly chart · {monthLabel}
         </div>
         <h3 style={{
           margin: 0,
@@ -86,18 +161,67 @@ export default function ChartHistoryPanel({
           letterSpacing: -0.4,
           color: color.ink,
         }}>
-          History & climbers
+          {scopeTitle}
         </h3>
       </div>
+
+      <div style={{
+        display: "flex", gap: 6, padding: `0 ${homeSpace.gutter}px 10px`,
+        overflowX: "auto",
+      }} className="hide-scroll">
+        {[
+          { id: "overall", label: "Overall" },
+          { id: "channel", label: "By channel" },
+          { id: "genre", label: "By genre" },
+        ].map((t) => (
+          <ScopeChip
+            key={t.id}
+            active={scopeMode === t.id}
+            label={t.label}
+            onClick={() => setScopeMode(t.id)}
+          />
+        ))}
+      </div>
+
+      {scopeMode === "channel" && (
+        <div style={{
+          display: "flex", gap: 6, padding: `0 ${homeSpace.gutter}px 10px`,
+          overflowX: "auto",
+        }} className="hide-scroll">
+          {SCENE_CHANNELS.map((ch) => (
+            <ScopeChip
+              key={ch.id}
+              active={channelId === ch.id}
+              label={`CH-${String(ch.num).padStart(2, "0")} ${ch.shortTitle || ch.title}`}
+              onClick={() => setChannelId(ch.id)}
+            />
+          ))}
+        </div>
+      )}
+
+      {scopeMode === "genre" && (
+        <div style={{
+          display: "flex", gap: 6, padding: `0 ${homeSpace.gutter}px 10px`,
+          overflowX: "auto",
+        }} className="hide-scroll">
+          {CANONICAL_GENRES.map((g) => (
+            <ScopeChip
+              key={g}
+              active={genre === g}
+              label={g}
+              onClick={() => setGenre(g)}
+            />
+          ))}
+        </div>
+      )}
 
       <div style={{
         display: "flex", gap: 6, padding: `0 ${homeSpace.gutter}px 12px`,
         overflowX: "auto",
       }} className="hide-scroll">
         {[
-          { id: "today", label: "Today" },
+          { id: "month", label: "This month" },
           { id: "climbers", label: "Climbers" },
-          { id: "week", label: "Weekly reveal" },
           { id: "ones", label: "#1s" },
           { id: "archive", label: "Past days" },
         ].map((t) => (
@@ -126,19 +250,40 @@ export default function ChartHistoryPanel({
       </div>
 
       <div style={{ padding: `0 ${homeSpace.gutter}px` }}>
-        {tab === "today" && (
-          <ChartList
-            entries={live.slice(0, 10).map((c) => ({
-              rank: c.rank,
-              id: c.track.id,
-              title: c.track.title,
-              artist: c.track.artist,
-              albumCover: c.track.albumCover,
-              movement: c.movement,
-              delta: c.delta,
-            }))}
-            onPlay={(e, list) => playEntry(e, list)}
-          />
+        {tab === "month" && (
+          <>
+            {onTuneMonthly && monthlyEntries.length > 0 && (
+              <button
+                type="button"
+                onClick={() => onTuneMonthly(scope)}
+                style={{
+                  width: "100%",
+                  marginBottom: 10,
+                  padding: "12px 14px",
+                  borderRadius: radius.sm,
+                  border: "1px solid rgba(197,202,211,0.4)",
+                  background: `linear-gradient(165deg, ${chrome.bright} 0%, ${chrome.hot} 120%)`,
+                  color: "#16181E",
+                  fontFamily: fontMono,
+                  fontSize: 11,
+                  fontWeight: 800,
+                  letterSpacing: 1.1,
+                  textTransform: "uppercase",
+                  cursor: "pointer",
+                }}
+              >
+                Play monthly chart
+              </button>
+            )}
+            {monthlyEntries.length ? (
+              <ChartList
+                entries={monthlyEntries}
+                onPlay={(e, list) => playEntry(e, list)}
+              />
+            ) : (
+              <Empty note="No cuts in this scope yet — play and request to fill the monthly chart." />
+            )}
+          </>
         )}
 
         {tab === "climbers" && (
@@ -158,50 +303,6 @@ export default function ChartHistoryPanel({
           ) : (
             <Empty note="Play and request across two days to unlock climbers." />
           )
-        )}
-
-        {tab === "week" && (
-          <>
-            {onTuneWeekly && weekly.length > 0 && (
-              <button
-                type="button"
-                onClick={onTuneWeekly}
-                style={{
-                  width: "100%",
-                  marginBottom: 10,
-                  padding: "12px 14px",
-                  borderRadius: radius.sm,
-                  border: "1px solid rgba(197,202,211,0.4)",
-                  background: `linear-gradient(165deg, ${chrome.bright} 0%, ${chrome.hot} 120%)`,
-                  color: "#16181E",
-                  fontFamily: fontMono,
-                  fontSize: 11,
-                  fontWeight: 800,
-                  letterSpacing: 1.1,
-                  textTransform: "uppercase",
-                  cursor: "pointer",
-                }}
-              >
-                Play weekly reveal
-              </button>
-            )}
-            {weekly.length ? (
-              <ChartList
-                entries={weekly.map((e) => ({
-                  rank: e.weekRank,
-                  id: e.id,
-                  title: e.title,
-                  artist: e.artist,
-                  albumCover: e.albumCover,
-                  movement: "same",
-                  delta: 0,
-                }))}
-                onPlay={(e, list) => playEntry(e, list)}
-              />
-            ) : (
-              <Empty note="Come back after a few days of charting — the weekly reveal fills in." />
-            )}
-          </>
         )}
 
         {tab === "ones" && (
