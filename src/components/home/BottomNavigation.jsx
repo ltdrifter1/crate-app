@@ -34,12 +34,16 @@ export default function BottomNavigation({ items = [], activeId, onSelect }) {
               height: 50,
               borderRadius: 999,
               border: active
-                ? "1px solid rgba(232,236,242,0.35)"
+                ? "1px solid rgba(255,255,255,0.22)"
                 : "1px solid transparent",
-              background: active ? y2k.chromeSoft : "none",
-              boxShadow: active
-                ? `0 0 16px ${y2k.chromeGlow}, inset 0 1px 0 rgba(255,255,255,0.1)`
+              background: active
+                ? "linear-gradient(180deg, rgba(255,255,255,0.16) 0%, rgba(255,255,255,0.05) 100%), rgba(28,32,38,0.55)"
                 : "none",
+              boxShadow: active
+                ? `inset 0 1px 0 rgba(255,255,255,0.22), 0 0 18px ${y2k.chromeGlow}`
+                : "none",
+              backdropFilter: active ? "blur(16px) saturate(1.25)" : "none",
+              WebkitBackdropFilter: active ? "blur(16px) saturate(1.25)" : "none",
               color: active ? y2k.chromeBright : color.muted,
               cursor: "pointer",
               display: "flex",
@@ -63,10 +67,10 @@ export default function BottomNavigation({ items = [], activeId, onSelect }) {
             <span
               style={{
                 fontFamily: fontDisplay,
-                fontSize: 9,
-                fontWeight: active ? 800 : 600,
-                letterSpacing: 1.2,
-                textTransform: "uppercase",
+                fontSize: 10,
+                fontWeight: active ? 700 : 550,
+                letterSpacing: -0.05,
+                textTransform: "none",
                 overflow: "hidden",
                 textOverflow: "ellipsis",
                 whiteSpace: "nowrap",

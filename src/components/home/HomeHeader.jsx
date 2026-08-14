@@ -1,4 +1,4 @@
-import { color, fontDisplay, homeSpace, y2k } from "../../theme";
+import { color, fontDisplay, glassPill, homeSpace, y2k } from "../../theme";
 import { BrandGlyph } from "../brand/BrandGlyphs";
 import Icon from "../ui/Icon";
 
@@ -11,19 +11,15 @@ function HeaderButton({ label, icon, onClick }) {
       onClick={onClick}
       className="pmp-press"
       style={{
+        ...glassPill({ compact: true }),
         width: 40,
         height: 40,
-        borderRadius: "50%",
+        padding: 0,
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
         cursor: "pointer",
-        border: "1px solid rgba(255,255,255,0.12)",
-        background: "rgba(24,27,32,0.55)",
         color: color.muted,
-        backdropFilter: "blur(14px)",
-        WebkitBackdropFilter: "blur(14px)",
-        boxShadow: "inset 0 1px 0 rgba(255,255,255,0.08)",
         flexShrink: 0,
       }}
     >
@@ -33,7 +29,7 @@ function HeaderButton({ label, icon, onClick }) {
 }
 
 /**
- * HomeHeader — centered PlanetMP3 wordmark, minimal search / profile controls.
+ * HomeHeader — centered wordmark + frosted glass controls.
  */
 export default function HomeHeader({ onOpenSearch = null, onOpenProfile = null }) {
   return (
@@ -43,7 +39,7 @@ export default function HomeHeader({ onOpenSearch = null, onOpenProfile = null }
         alignItems: "center",
         justifyContent: "space-between",
         gap: 12,
-        padding: `calc(14px + env(safe-area-inset-top, 0px)) ${homeSpace.gutter}px 18px`,
+        padding: `calc(14px + env(safe-area-inset-top, 0px)) ${homeSpace.gutter}px 16px`,
       }}
     >
       <HeaderButton label="Search" icon="search" onClick={onOpenSearch} />
@@ -59,16 +55,14 @@ export default function HomeHeader({ onOpenSearch = null, onOpenProfile = null }
         <span
           style={{
             fontFamily: fontDisplay,
-            fontSize: 19,
-            fontWeight: 800,
-            fontStyle: "italic",
-            letterSpacing: 1.2,
+            fontSize: 18,
+            fontWeight: 700,
+            letterSpacing: -0.3,
             color: y2k.offWhite,
             whiteSpace: "nowrap",
-            textShadow: `0 0 20px ${y2k.chromeWash}`,
           }}
         >
-          PLANET<span style={{ color: y2k.chromeBright }}>MP3</span>
+          Planet<span style={{ color: y2k.chromeBright }}> MP3</span>
         </span>
       </div>
       <HeaderButton label="Profile" icon="profile" onClick={onOpenProfile} />

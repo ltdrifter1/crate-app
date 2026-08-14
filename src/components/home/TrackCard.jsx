@@ -1,4 +1,4 @@
-import { color, fontDisplay, fontMono, homeSpace, y2k } from "../../theme";
+import { color, fontDisplay, fontMono, glassPill, homeSpace, y2k } from "../../theme";
 import ArtFrame from "../ui/ArtFrame";
 
 /**
@@ -35,32 +35,27 @@ export default function TrackCard({
         src={track.albumCover || null}
         size={size}
         active={active}
-        radius={12}
+        radius={14}
       >
         {rank != null && (
           <span
             style={{
+              ...glassPill({ compact: true }),
               position: "absolute",
               top: 8,
               left: 8,
-              minWidth: 26,
-              height: 22,
-              padding: "0 7px",
-              borderRadius: 7,
+              minWidth: 28,
+              height: 24,
+              padding: "0 8px",
               display: "inline-flex",
               alignItems: "center",
               justifyContent: "center",
-              background: y2k.inkGlass,
-              border: "1px solid rgba(232,236,242,0.35)",
-              backdropFilter: "blur(8px)",
-              WebkitBackdropFilter: "blur(8px)",
               fontFamily: fontDisplay,
-              fontStyle: "italic",
               fontSize: 12,
-              fontWeight: 800,
+              fontWeight: 700,
+              letterSpacing: -0.2,
               color: y2k.chromeBright,
               zIndex: 1,
-              boxShadow: "inset 0 1px 0 rgba(255,255,255,0.1)",
             }}
           >
             #{rank}
@@ -70,11 +65,11 @@ export default function TrackCard({
       <span
         style={{
           display: "block",
-          marginTop: 9,
-          fontSize: 13,
+          marginTop: 10,
+          fontSize: 14,
           fontWeight: 650,
           fontFamily: fontDisplay,
-          letterSpacing: -0.2,
+          letterSpacing: -0.25,
           color: y2k.offWhite,
           overflow: "hidden",
           textOverflow: "ellipsis",
@@ -87,8 +82,9 @@ export default function TrackCard({
         style={{
           display: "block",
           marginTop: 3,
-          fontSize: 11,
+          fontSize: 12,
           fontWeight: 500,
+          letterSpacing: -0.05,
           color: color.muted,
           overflow: "hidden",
           textOverflow: "ellipsis",
@@ -96,7 +92,7 @@ export default function TrackCard({
         }}
       >
         {reason ? (
-          <span style={{ fontFamily: fontMono, fontSize: 9, letterSpacing: 1.2, textTransform: "uppercase", color: y2k.chromeBright }}>
+          <span style={{ fontFamily: fontMono, fontSize: 9, letterSpacing: 1.1, textTransform: "uppercase", color: y2k.chromeBright }}>
             {reason}
             <span style={{ color: color.muted }}> · </span>
           </span>

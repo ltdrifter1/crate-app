@@ -1,9 +1,9 @@
 import { useMemo, memo } from "react";
 import {
-  color,
-  fontDisplay,
   homeSpace,
   motion,
+  sectionSubtitle,
+  sectionTitle,
   y2k,
 } from "../theme";
 import { featuredReleases, recommendedPicks } from "../lib/homeCollections";
@@ -74,34 +74,14 @@ function ExploreScreen({
     >
       <header
         style={{
-          padding: `${homeSpace.sectionGapFirst}px ${homeSpace.gutter}px 4px`,
+          padding: `${homeSpace.sectionGapFirst}px ${homeSpace.gutter}px 2px`,
           animation: `rise 0.45s ${motion.ease} both`,
         }}
       >
-        <h1
-          style={{
-            margin: 0,
-            fontFamily: fontDisplay,
-            fontSize: 15,
-            fontWeight: 800,
-            letterSpacing: 2.2,
-            textTransform: "uppercase",
-            color: y2k.offWhite,
-            lineHeight: 1.1,
-          }}
-        >
+        <h1 style={{ ...sectionTitle, fontSize: 28, letterSpacing: -0.55 }}>
           Explore
         </h1>
-        <p
-          style={{
-            margin: "6px 0 0",
-            fontSize: 13,
-            fontWeight: 500,
-            color: color.muted,
-            lineHeight: 1.4,
-            maxWidth: 360,
-          }}
-        >
+        <p style={{ ...sectionSubtitle, maxWidth: 360, whiteSpace: "normal" }}>
           Discover new music, featured sleeves, and what you spun last.
         </p>
       </header>

@@ -1,9 +1,8 @@
-import { glass, radius } from "../../theme";
+import { glass, glassPill, radius } from "../../theme";
 
 /**
- * CardContainer — the one card surface for Home.
- * 16–20px radius, hairline border, soft shadow, dark plate.
- * Set `interactive` for hover lift + press feedback.
+ * CardContainer — frosted Home surface.
+ * Soft plate + hairline rim light + blur (iOS glass, not flat fill).
  */
 export default function CardContainer({
   children,
@@ -18,15 +17,16 @@ export default function CardContainer({
   const base = {
     position: "relative",
     borderRadius: rounded,
-    border: `1px solid ${glass.border}`,
-    background: glass.plate,
+    border: "1px solid rgba(255,255,255,0.14)",
+    background:
+      "linear-gradient(180deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.03) 42%, transparent 100%), rgba(22,25,30,0.58)",
     boxShadow: `
-      inset 0 1px 0 ${glass.highlight},
+      inset 0 1px 0 rgba(255,255,255,0.2),
       inset 0 -1px 0 rgba(0,0,0,0.35),
       ${glass.shadowSoft}
     `,
-    backdropFilter: glass.blurSoft,
-    WebkitBackdropFilter: glass.blurSoft,
+    backdropFilter: "blur(22px) saturate(1.25)",
+    WebkitBackdropFilter: "blur(22px) saturate(1.25)",
     padding,
     ...style,
   };
@@ -58,3 +58,5 @@ export default function CardContainer({
     </div>
   );
 }
+
+export { glassPill };
