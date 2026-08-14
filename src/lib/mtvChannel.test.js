@@ -79,7 +79,7 @@ describe("sceneChannels", () => {
       [3, "Local Pacific Northwest"],
       [4, "Electronic Underground"],
       [5, "Drum & Bass"],
-      [6, "Shoegaze"],
+      [6, "Emo & Shoegaze"],
     ]);
     expect(CHANNEL_SOURCE_NOTES["y2k-dance"].source).toBe("genre");
     expect(CHANNEL_SOURCE_NOTES["local-pnw"].source).toBe("audioasis");
@@ -127,15 +127,17 @@ describe("sceneChannels", () => {
     expect(availableSceneChannels(tracks, 3).some((c) => c.id === "local-pnw")).toBe(true);
   });
 
-  test("CH-06 Shoegaze matches genre keywords only", () => {
+  test("CH-06 Emo & Shoegaze matches genre keywords only", () => {
     const shoe = getSceneChannel("shoegaze");
     expect(shoe.num).toBe(6);
+    expect(shoe.title).toBe("Emo & Shoegaze");
     const tracks = [
       { id: "1", title: "Haze", genre: "Shoegaze", duration: 180, audioUrl: "u" },
       { id: "2", title: "Slowdive Cover", artist: "X", duration: 180, audioUrl: "u" },
       { id: "3", title: "Metal", genre: "Metal", duration: 180, audioUrl: "u" },
+      { id: "4", title: "Bleed", genre: "Emo", duration: 180, audioUrl: "u" },
     ];
-    expect(buildSceneChannelPool(tracks, shoe).map((t) => t.id).sort()).toEqual(["1", "2"]);
+    expect(buildSceneChannelPool(tracks, shoe).map((t) => t.id).sort()).toEqual(["1", "2", "4"]);
   });
 
   test("channelCoverUrls returns distinct sleeves for mosaics", () => {

@@ -11,19 +11,21 @@ import {
 } from "../../theme";
 
 /**
- * MusicSection — premium Home / Explore shelf shell.
- * Title + subtitle share one left edge with the Rail (homeSpace.gutter).
- * No chrome tick — that offset made titles look cheap and misaligned.
+ * MusicSection — Home / Explore shelf shell.
+ * Titles align to the same top + left edge as each other and the Rail.
+ * (Previous flex-end + View all shifted baselines so shelves looked crooked.)
  */
 export default function MusicSection({
   title,
   subtitle = null,
-  action = null, // { label, onClick }
-  accent = null, // kept for API compat; unused after tick retirement
+  action = null,
+  accent = null,
   children,
   first = false,
   delay = 0,
   style = {},
+  /** When true, wrap non-rail children in the shared gutter. */
+  inset = false,
 }) {
   void accent;
   return (
@@ -37,15 +39,16 @@ export default function MusicSection({
     >
       <div
         style={{
-          display: "flex",
-          alignItems: "flex-end",
-          justifyContent: "space-between",
-          gap: 14,
+          display: "grid",
+          gridTemplateColumns: action ? "minmax(0, 1fr) auto" : "minmax(0, 1fr)",
+          alignItems: "start",
+          columnGap: 12,
           padding: `0 ${homeSpace.gutter}px`,
           marginBottom: homeSpace.titleToRail,
+          minHeight: subtitle ? 40 : 22,
         }}
       >
-        <div style={{ minWidth: 0, flex: 1 }}>
+        <div style={{ minWidth: 0 }}>
           <h2
             style={{
               ...sectionTitle,
@@ -77,43 +80,39 @@ export default function MusicSection({
             style={{
               ...glassPill({ compact: true }),
               flexShrink: 0,
-              alignSelf: "center",
+              marginTop: 1,
               cursor: "pointer",
-              padding: "8px 12px",
+              padding: "7px 11px",
               fontFamily: fontDisplay,
               fontSize: 12,
-              fontWeight: 650,
+              fontWeight: 600,
               letterSpacing: -0.1,
               textTransform: "none",
               display: "inline-flex",
               alignItems: "center",
-              gap: 5,
+              gap: 4,
               color: y2k.offWhite,
+              height: 32,
             }}
           >
             {action.label || "View all"}
-            <span
-              aria-hidden="true"
-              style={{
-                fontSize: 13,
-                lineHeight: 1,
-                color: color.muted,
-                transform: "translateY(-0.5px)",
-              }}
-            >
+            <span aria-hidden="true" style={{ fontSize: 13, lineHeight: 1, color: color.muted }}>
               ›
             </span>
           </button>
         )}
       </div>
-      {children}
+      {inset ? (
+        <div style={{ padding: `0 ${homeSpace.gutter}px` }}>{children}</div>
+      ) : (
+        children
+      )}
     </section>
   );
 }
 
 /**
- * Horizontal snap rail — shared scroller for card shelves.
- * Padding uses the same gutter as MusicSection titles so edges line up.
+ * Horizontal snap rail — same gutter as MusicSection titles.
  */
 export function Rail({ children, gap = 14, padBottom = 4 }) {
   const ref = useRef(null);

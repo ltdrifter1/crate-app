@@ -11,7 +11,7 @@ import { countdownScore } from "./station";
  *   03 Local Pacific Northwest → Audioasis batch upload mapping
  *   04 Electronic Underground → expansions
  *   05 Drum & Bass           → by genre
- *   06 Shoegaze              → by genre
+ *   06 Emo & Shoegaze        → by genre
  */
 
 function singlesOnly(tracks = []) {
@@ -59,6 +59,18 @@ const SHOEGAZE_KEYWORDS = [
   "category 4",
   "nu gaze",
   "nugaze",
+  "emo",
+  "midwest emo",
+  "screamo",
+  "post-hardcore",
+  "post hardcore",
+  "american football",
+  "cap'n jazz",
+  "dashboard confessional",
+  "taking back sunday",
+  "brand new",
+  "paramore",
+  "jimmy eat world",
 ];
 
 /** Pending catalog-source wiring (Evie / Audioasis / expansions). */
@@ -68,7 +80,7 @@ export const CHANNEL_SOURCE_NOTES = {
   "local-pnw": { num: 3, source: "audioasis", note: "Local PNW — Audioasis batch upload mapping (TODO)" },
   "electronic-underground": { num: 4, source: "expansions", note: "Electronic Underground — expansions mapping (TODO)" },
   "drum-and-bass": { num: 5, source: "genre", note: "Drum & Bass — match by genre/scene" },
-  shoegaze: { num: 6, source: "genre", note: "Shoegaze — match by genre/keywords" },
+  shoegaze: { num: 6, source: "genre", note: "Emo & Shoegaze — match by genre/keywords" },
 };
 
 function trackTextBlob(track) {
@@ -113,7 +125,15 @@ function isLocalPnwTrack(track) {
 function isShoegazeTrack(track) {
   if (!track) return false;
   const rawGenre = String(track.genre || "").toLowerCase();
-  if (rawGenre.includes("shoegaze") || rawGenre.includes("dream pop") || rawGenre.includes("dreampop")) {
+  if (
+    rawGenre.includes("shoegaze") ||
+    rawGenre.includes("dream pop") ||
+    rawGenre.includes("dreampop") ||
+    rawGenre.includes("emo") ||
+    rawGenre.includes("screamo") ||
+    rawGenre.includes("post-hardcore") ||
+    rawGenre.includes("post hardcore")
+  ) {
     return true;
   }
   return matchesKeywords(track, SHOEGAZE_KEYWORDS);
@@ -219,14 +239,14 @@ export const SCENE_CHANNELS = [
   {
     id: "shoegaze",
     num: 6,
-    title: "Shoegaze",
-    shortTitle: "Shoegaze",
-    dialSlug: "SHOEGAZE",
-    tagline: "Walls of guitar haze",
+    title: "Emo & Shoegaze",
+    shortTitle: "Emo & Shoegaze",
+    dialSlug: "EMO SHOE",
+    tagline: "Feelings, fuzz, and walls of guitar",
     accent: "#16181E",
     scenes: [],
     genres: [],
-    vibe: "Shoegaze",
+    vibe: "Emo & Shoegaze",
     source: "genre",
     strict: true,
     match: isShoegazeTrack,
