@@ -135,7 +135,7 @@ describe("chartHistory", () => {
 });
 
 describe("sceneChannels", () => {
-  test("dials CH-01 through CH-06 with the new Channel Surfing names", () => {
+  test("dials CH-01 through CH-09 with Channel Surfing names", () => {
     expect(SCENE_CHANNELS.map((c) => [c.num, c.title])).toEqual([
       [1, "Y2K Dance"],
       [2, "Variety Mix"],
@@ -143,11 +143,17 @@ describe("sceneChannels", () => {
       [4, "Electronic"],
       [5, "Drum & Bass"],
       [6, "Emo & Shoegaze"],
+      [7, "Metal"],
+      [8, "Punk"],
+      [9, "Country & Folk"],
     ]);
     expect(CHANNEL_SOURCE_NOTES["y2k-dance"].source).toBe("genre");
     expect(CHANNEL_SOURCE_NOTES["local-pnw"].source).toBe("audioasis");
     expect(CHANNEL_SOURCE_NOTES["variety-mix"].source).toBe("variety");
     expect(CHANNEL_SOURCE_NOTES["electronic-underground"].source).toBe("expansions");
+    expect(CHANNEL_SOURCE_NOTES.metal.source).toBe("genre");
+    expect(CHANNEL_SOURCE_NOTES.punk.source).toBe("genre");
+    expect(CHANNEL_SOURCE_NOTES["country-folk"].source).toBe("genre");
     expect(getSceneChannel("variety-mix").tagline.toLowerCase()).not.toContain("evie");
     expect(getSceneChannel("electronic-underground").tagline.toLowerCase()).not.toContain("expansions");
   });
@@ -203,6 +209,33 @@ describe("sceneChannels", () => {
       { id: "4", title: "Bleed", genre: "Emo", duration: 180, audioUrl: "u" },
     ];
     expect(buildSceneChannelPool(tracks, shoe).map((t) => t.id).sort()).toEqual(["1", "2", "4"]);
+  });
+
+  test("CH-07/08/09 Metal Punk Country & Folk match their lanes", () => {
+    const metal = getSceneChannel("metal");
+    const punk = getSceneChannel("punk");
+    const country = getSceneChannel("country-folk");
+    expect(metal.num).toBe(7);
+    expect(punk.num).toBe(8);
+    expect(country.num).toBe(9);
+    expect(formatChannelNum(metal.num)).toBe("CH-07");
+
+    const tracks = [
+      { id: "1", title: "Riff", genre: "Metal", duration: 180, audioUrl: "u" },
+      { id: "2", title: "Thrash Cut", artist: "X", duration: 180, audioUrl: "u" },
+      { id: "3", title: "Riot", genre: "Punk", duration: 180, audioUrl: "u" },
+      { id: "4", title: "Post Punk Night", artist: "Y", duration: 180, audioUrl: "u" },
+      { id: "5", title: "Dust", genre: "Country", duration: 180, audioUrl: "u" },
+      { id: "6", title: "Porch", genre: "Folk", duration: 180, audioUrl: "u" },
+      { id: "7", title: "House", genre: "Electronic", duration: 180, audioUrl: "u" },
+      { id: "8", title: "Indie", genre: "Rock", duration: 180, audioUrl: "u" },
+    ];
+    expect(buildSceneChannelPool(tracks, metal).map((t) => t.id).sort()).toEqual(["1", "2"]);
+    expect(buildSceneChannelPool(tracks, punk).map((t) => t.id).sort()).toEqual(["3", "4"]);
+    expect(buildSceneChannelPool(tracks, country).map((t) => t.id).sort()).toEqual(["5", "6"]);
+    expect(availableSceneChannels(tracks, 1).some((c) => c.id === "metal")).toBe(true);
+    expect(availableSceneChannels(tracks, 1).some((c) => c.id === "punk")).toBe(true);
+    expect(availableSceneChannels(tracks, 1).some((c) => c.id === "country-folk")).toBe(true);
   });
 
   test("channelCoverUrls returns distinct sleeves for mosaics", () => {
