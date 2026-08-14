@@ -8,7 +8,7 @@ import {
   TrackRow,
   useTrackMenu,
 } from "../components/listen/TrackRow";
-import { useIsPlaying, useCurrentTrack } from "../usePlayerTransport";
+import { useCurrentTrack } from "../usePlayerTransport";
 import { savedTracks } from "../lib/homeCollections";
 import { isCommunityPlaylist } from "../lib/mixes";
 import {
