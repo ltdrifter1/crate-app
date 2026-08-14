@@ -47,13 +47,34 @@ export async function saveGenres(genres) {
   await updateDoc(userRef(), { genres });
 }
 
+// ── SAVE TASTE PROFILE (genres + adventurous + depth) ─────────────────────
+export async function saveTasteProfile({
+  genres = null,
+  adventurous = null,
+  depth = null,
+} = {}) {
+  const payload = {};
+  if (genres != null) payload.genres = genres;
+  if (adventurous != null) payload.adventurous = adventurous;
+  if (depth != null) payload.depth = depth;
+  if (!Object.keys(payload).length) return;
+  await updateDoc(userRef(), payload);
+}
+
 // ── COMPLETE ONBOARDING ───────────────────────────────────────────────────
-export async function completeOnboarding({ homeRooms = [], genres = null } = {}) {
+export async function completeOnboarding({
+  homeRooms = [],
+  genres = null,
+  adventurous = null,
+  depth = null,
+} = {}) {
   const payload = {
     onboarded: true,
     homeRooms,
   };
   if (genres) payload.genres = genres;
+  if (adventurous != null) payload.adventurous = adventurous;
+  if (depth != null) payload.depth = depth;
   await updateDoc(userRef(), payload);
 }
 

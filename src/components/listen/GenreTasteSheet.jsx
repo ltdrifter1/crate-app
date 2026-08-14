@@ -1,19 +1,72 @@
 /**
- * Your interests — the only user-facing listen control.
+ * Your interests — genres + adventurous / depth dials.
  * Clock mix lane / vibes / scenes stay automatic.
  */
+import { useEffect, useState } from "react";
 import { fontDisplay, fontMono, color, radius, glass, aluminumGradient, BTN_PRIMARY } from "../../theme";
 import { CANONICAL_GENRES, migratePreferredGenres } from "../../lib/genres";
+import {
+  ADVENTUROUS_LABELS,
+  DEPTH_LABELS,
+  TASTE_AXIS_DEFAULT,
+  normalizeTasteProfile,
+} from "../../lib/tasteProfile";
+import TasteAxisSlider from "./TasteAxisSlider";
 
 export default function GenreTasteSheet({
   onClose,
   selectedGenres = [],
+  adventurous = TASTE_AXIS_DEFAULT,
+  depth = TASTE_AXIS_DEFAULT,
   onSave,
   onClearGenreFocus = null,
   genreFocus = null,
   onBuildSet = null,
 }) {
-  const selected = new Set(migratePreferredGenres(selectedGenres));
+  const initial = normalizeTasteProfile({
+    genres: migratePreferredGenres(selectedGenres),
+    adventurous,
+    depth,
+  });
+  const [genres, setGenres] = useState(initial.genres);
+  const [adv, setAdv] = useState(initial.adventurous);
+  const [dep, setDep] = useState(initial.depth);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    const next = normalizeTasteProfile({
+      genres: migratePreferredGenres(selectedGenres),
+      adventurous,
+      depth,
+    });
+    setGenres(next.genres);
+    setAdv(next.adventurous);
+    setDep(next.depth);
+  }, [selectedGenres, adventurous, depth]);
+
+  const selected = new Set(genres);
+
+  async function persist(nextGenres, nextAdv, nextDep) {
+    if (!onSave) return;
+    setSaving(true);
+    try {
+      await onSave({
+        genres: nextGenres,
+        adventurous: nextAdv,
+        depth: nextDep,
+      });
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  function toggleGenre(g, nextOn) {
+    const arr = CANONICAL_GENRES.filter((x) =>
+      x === g ? nextOn : selected.has(x)
+    );
+    setGenres(arr);
+    persist(arr, adv, dep);
+  }
 
   return (
     <div style={{ position: "fixed", inset: 0, zIndex: 100, overflow: "hidden" }}>
@@ -100,7 +153,7 @@ export default function GenreTasteSheet({
             fontFamily: fontDisplay,
             marginBottom: 10,
           }}>
-            Select your favourite genres
+            Edit your taste
           </h2>
           <p style={{
             margin: "0 0 24px",
@@ -109,7 +162,8 @@ export default function GenreTasteSheet({
             lineHeight: 1.45,
             maxWidth: 360,
           }}>
-            You can change these anytime.
+            Genres and dials steer what we pick for you. Changes save as you go.
+            {saving ? " Saving…" : ""}
           </p>
 
           {genreFocus && onClearGenreFocus && (
@@ -159,14 +213,46 @@ export default function GenreTasteSheet({
             </div>
           )}
 
+          <TasteAxisSlider
+            id="sheet-adventurous"
+            title={ADVENTUROUS_LABELS.title}
+            hint={ADVENTUROUS_LABELS.hint}
+            lowLabel={ADVENTUROUS_LABELS.low}
+            highLabel={ADVENTUROUS_LABELS.high}
+            value={adv}
+            onChange={(next) => {
+              setAdv(next);
+              persist(genres, next, dep);
+            }}
+          />
+          <TasteAxisSlider
+            id="sheet-depth"
+            title={DEPTH_LABELS.title}
+            hint={DEPTH_LABELS.hint}
+            lowLabel={DEPTH_LABELS.low}
+            highLabel={DEPTH_LABELS.high}
+            value={dep}
+            onChange={(next) => {
+              setDep(next);
+              persist(genres, adv, next);
+            }}
+          />
+
+          <div style={{
+            fontSize: 11,
+            fontWeight: 650,
+            letterSpacing: 1.4,
+            textTransform: "uppercase",
+            color: color.accent,
+            fontFamily: fontMono,
+            margin: "8px 0 14px",
+          }}>
+            Genres
+          </div>
+
           <GenreToggleList
             selected={selected}
-            onToggle={(g, next) => {
-              const arr = CANONICAL_GENRES.filter((x) =>
-                x === g ? next : selected.has(x)
-              );
-              onSave?.(arr);
-            }}
+            onToggle={toggleGenre}
           />
 
           {onBuildSet && (

@@ -1,22 +1,41 @@
 import { useState } from "react";
 import { CANONICAL_GENRES, migratePreferredGenres } from "../../lib/genres";
+import {
+  ADVENTUROUS_LABELS,
+  DEPTH_LABELS,
+  TASTE_AXIS_DEFAULT,
+  normalizeTasteProfile,
+  tasteProfileStats,
+  tasteProfileBlurb,
+} from "../../lib/tasteProfile";
 import { font, fontDisplay, fontMono, color, radius, BTN_PRIMARY } from "../../theme";
 import BrandMark from "../brand/BrandMark";
+import TasteAxisSlider from "../listen/TasteAxisSlider";
 
 /**
- * First-visit intake — genres only. Everything else (mix lane, energy, scenes) is background.
+ * First-visit intake — genres, then adventurous + depth.
+ * Everything else (mix lane, energy, scenes) stays background.
  */
 export default function GenreTasteOnboarding({
   initialGenres = [],
+  initialAdventurous = TASTE_AXIS_DEFAULT,
+  initialDepth = TASTE_AXIS_DEFAULT,
   onComplete,
   onSkip,
   title = "Select your favourite genres",
-  subtitle = "You can change these anytime in Settings.",
+  subtitle = "You can change these anytime in Club.",
   confirmLabel = "Continue",
   allowSkip = true,
 }) {
+  const [step, setStep] = useState(0); // 0 genres · 1 taste axes · 2 summary
   const [selected, setSelected] = useState(() =>
     migratePreferredGenres(initialGenres)
+  );
+  const [adventurous, setAdventurous] = useState(() =>
+    normalizeTasteProfile({ adventurous: initialAdventurous }).adventurous
+  );
+  const [depth, setDepth] = useState(() =>
+    normalizeTasteProfile({ depth: initialDepth }).depth
   );
 
   function toggle(g) {
@@ -26,6 +45,12 @@ export default function GenreTasteOnboarding({
   }
 
   const ready = selected.length >= 1;
+  const taste = { genres: selected, adventurous, depth };
+  const stats = tasteProfileStats(taste);
+
+  function finish() {
+    onComplete?.(taste);
+  }
 
   return (
     <div
@@ -68,7 +93,7 @@ export default function GenreTasteOnboarding({
             marginBottom: 14,
           }}
         >
-          Your interests
+          {step === 0 ? "Your interests" : step === 1 ? "Your taste" : "All set"}
         </div>
         <h1
           style={{
@@ -81,7 +106,11 @@ export default function GenreTasteOnboarding({
             lineHeight: 1.02,
           }}
         >
-          {title}
+          {step === 0
+            ? title
+            : step === 1
+              ? "Shape your picks"
+              : "Your taste"}
         </h1>
         <p
           style={{
@@ -92,90 +121,196 @@ export default function GenreTasteOnboarding({
             maxWidth: 360,
           }}
         >
-          {subtitle}
+          {step === 0
+            ? subtitle
+            : step === 1
+              ? "Two quick dials. Change them anytime in Club."
+              : tasteProfileBlurb(taste)}
         </p>
 
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            gap: 0,
-            marginBottom: 28,
-          }}
-        >
-          {CANONICAL_GENRES.map((g) => {
-            const on = selected.includes(g);
-            return (
-              <button
-                key={g}
-                type="button"
-                onClick={() => toggle(g)}
-                aria-pressed={on}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                  gap: 12,
-                  padding: "16px 4px",
-                  background: "none",
-                  border: "none",
-                  borderBottom: `1px solid ${color.line}`,
-                  cursor: "pointer",
-                  textAlign: "left",
-                  color: color.ink,
-                }}
-              >
-                <span
+        {step === 0 && (
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              gap: 0,
+              marginBottom: 28,
+            }}
+          >
+            {CANONICAL_GENRES.map((g) => {
+              const on = selected.includes(g);
+              return (
+                <button
+                  key={g}
+                  type="button"
+                  onClick={() => toggle(g)}
+                  aria-pressed={on}
                   style={{
-                    fontSize: 18,
-                    fontWeight: 650,
-                    fontFamily: fontDisplay,
-                    letterSpacing: -0.3,
-                    color: on ? color.accent : color.ink,
-                  }}
-                >
-                  {g}
-                </span>
-                <span
-                  style={{
-                    width: 22,
-                    height: 22,
-                    borderRadius: radius.md,
-                    border: on ? `none` : `1px solid ${color.lineStrong}`,
-                    background: on ? color.accent : "transparent",
-                    color: color.onAccent,
                     display: "flex",
                     alignItems: "center",
-                    justifyContent: "center",
-                    fontSize: 12,
-                    fontWeight: 700,
-                    flexShrink: 0,
+                    justifyContent: "space-between",
+                    gap: 12,
+                    padding: "16px 4px",
+                    background: "none",
+                    border: "none",
+                    borderBottom: `1px solid ${color.line}`,
+                    cursor: "pointer",
+                    textAlign: "left",
+                    color: color.ink,
                   }}
-                  aria-hidden="true"
                 >
-                  {on ? "✓" : ""}
-                </span>
-              </button>
-            );
-          })}
-        </div>
+                  <span
+                    style={{
+                      fontSize: 18,
+                      fontWeight: 650,
+                      fontFamily: fontDisplay,
+                      letterSpacing: -0.3,
+                      color: on ? color.accent : color.ink,
+                    }}
+                  >
+                    {g}
+                  </span>
+                  <span
+                    style={{
+                      width: 22,
+                      height: 22,
+                      borderRadius: radius.md,
+                      border: on ? "none" : `1px solid ${color.lineStrong}`,
+                      background: on ? color.accent : "transparent",
+                      color: color.onAccent,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      fontSize: 12,
+                      fontWeight: 700,
+                      flexShrink: 0,
+                    }}
+                    aria-hidden="true"
+                  >
+                    {on ? "✓" : ""}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        )}
+
+        {step === 1 && (
+          <div style={{ marginBottom: 28 }}>
+            <TasteAxisSlider
+              id="onboard-adventurous"
+              title={ADVENTUROUS_LABELS.title}
+              hint={ADVENTUROUS_LABELS.hint}
+              lowLabel={ADVENTUROUS_LABELS.low}
+              highLabel={ADVENTUROUS_LABELS.high}
+              value={adventurous}
+              onChange={setAdventurous}
+            />
+            <TasteAxisSlider
+              id="onboard-depth"
+              title={DEPTH_LABELS.title}
+              hint={DEPTH_LABELS.hint}
+              lowLabel={DEPTH_LABELS.low}
+              highLabel={DEPTH_LABELS.high}
+              value={depth}
+              onChange={setDepth}
+            />
+          </div>
+        )}
+
+        {step === 2 && (
+          <div style={{ marginBottom: 28 }}>
+            {stats.map((row) => (
+              <div key={row.id} style={{ marginBottom: 12 }}>
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    gap: 10,
+                    marginBottom: 5,
+                  }}
+                >
+                  <span style={{ fontSize: 14, fontWeight: 650, color: color.ink }}>
+                    {row.label}
+                  </span>
+                  <span
+                    style={{
+                      fontSize: 12,
+                      fontFamily: fontMono,
+                      color: color.faint,
+                      fontWeight: 700,
+                      fontVariantNumeric: "tabular-nums",
+                    }}
+                  >
+                    {row.pct}%
+                  </span>
+                </div>
+                <div
+                  style={{
+                    height: 6,
+                    borderRadius: 4,
+                    background: "rgba(169,199,228,0.12)",
+                    overflow: "hidden",
+                  }}
+                >
+                  <div
+                    style={{
+                      height: "100%",
+                      width: `${row.pct}%`,
+                      borderRadius: 4,
+                      background:
+                        "linear-gradient(90deg, #A9C7E4 0%, #7FA3C4 100%)",
+                    }}
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
 
         <div style={{ display: "flex", flexDirection: "column", gap: 12, alignItems: "stretch" }}>
           <button
             type="button"
-            disabled={!ready}
-            onClick={() => ready && onComplete?.(selected)}
+            disabled={step === 0 && !ready}
+            onClick={() => {
+              if (step === 0) {
+                if (ready) setStep(1);
+                return;
+              }
+              if (step === 1) {
+                setStep(2);
+                return;
+              }
+              finish();
+            }}
             style={{
               ...BTN_PRIMARY,
               borderRadius: radius.md,
               padding: "16px 28px",
-              opacity: ready ? 1 : 0.4,
-              cursor: ready ? "pointer" : "default",
+              opacity: step === 0 && !ready ? 0.4 : 1,
+              cursor: step === 0 && !ready ? "default" : "pointer",
             }}
           >
-            {confirmLabel}
+            {step === 0 ? confirmLabel : step === 1 ? "Continue" : "Enter the club"}
           </button>
-          {allowSkip && (
+          {step > 0 && (
+            <button
+              type="button"
+              onClick={() => setStep((s) => Math.max(0, s - 1))}
+              style={{
+                background: "none",
+                border: "none",
+                color: color.muted,
+                fontSize: 14,
+                fontWeight: 500,
+                cursor: "pointer",
+                padding: "10px 0",
+              }}
+            >
+              Back
+            </button>
+          )}
+          {allowSkip && step === 0 && (
             <button
               type="button"
               onClick={() => onSkip?.()}

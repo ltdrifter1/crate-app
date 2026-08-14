@@ -23,6 +23,8 @@ import { getFloorPhase, hapticTap } from "../../lib/club";
 import { BrandGlyph as DoorGlyph } from "../brand/BrandMark";
 import CollapsingHeader from "../layout/CollapsingHeader";
 import { InterestsPanel } from "../listen/InterestsPanel";
+import MonthlyPicksPanel from "./MonthlyPicksPanel";
+import { TASTE_AXIS_DEFAULT } from "../../lib/tasteProfile";
 
 let clubVisitedThisSession = false;
 
@@ -158,6 +160,8 @@ export default function ClubScreen({
           <InterestsPanel
             tracks={tracks}
             genres={user.genres || profile?.genres || []}
+            adventurous={profile?.adventurous ?? TASTE_AXIS_DEFAULT}
+            depth={profile?.depth ?? TASTE_AXIS_DEFAULT}
             recentTracks={recentTracks}
             signalLabel={signalLabel}
             onEditGenres={onEditGenres}
@@ -393,6 +397,17 @@ export default function ClubScreen({
             {floor.blurb} Your membership keeps the crate unlocked.
           </div>
         </div>
+
+        {/* This month's picks — taste-matched */}
+        <MonthlyPicksPanel
+          tracks={tracks}
+          genres={user.genres || profile?.genres || []}
+          adventurous={profile?.adventurous}
+          depth={profile?.depth}
+          userKey={user?.uid || profile?.uid || ""}
+          onPlayTrack={onPlayTrack}
+          onEditTaste={onEditGenres}
+        />
 
         {/* This month’s pressing */}
         {communityMix && onOpenMix && (

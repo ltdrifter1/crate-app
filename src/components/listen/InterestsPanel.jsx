@@ -1,5 +1,5 @@
 /**
- * Interests panel — listening snapshot (genres, energy, recent, likes).
+ * Interests panel — listening snapshot (genres, taste dials, energy, recent, likes).
  * Used inline on Club → Interests settings tab.
  */
 import { useMemo } from "react";
@@ -8,6 +8,12 @@ import {
 } from "../../theme";
 import { buildListenInsights } from "../../lib/listenInsights";
 import { collectionStatsLabel } from "../../lib/collectionStats";
+import {
+  normalizeTasteProfile,
+  tasteProfileStats,
+  tasteProfileBlurb,
+  TASTE_AXIS_DEFAULT,
+} from "../../lib/tasteProfile";
 import FlaskTasteButton from "./FlaskTasteButton";
 import CoverImage from "../ui/CoverImage";
 
@@ -149,6 +155,8 @@ function TrackRow({ track, meta = null }) {
 export function InterestsPanel({
   tracks = [],
   genres = [],
+  adventurous = TASTE_AXIS_DEFAULT,
+  depth = TASTE_AXIS_DEFAULT,
   recentTracks = [],
   signalLabel = null,
   onEditGenres = null,
@@ -158,6 +166,17 @@ export function InterestsPanel({
   const insight = useMemo(
     () => buildListenInsights(tracks, { genres, recentTracks, signalLabel }),
     [tracks, genres, recentTracks, signalLabel]
+  );
+  const taste = useMemo(
+    () => normalizeTasteProfile({ genres, adventurous, depth }),
+    [genres, adventurous, depth]
+  );
+  const tasteStats = useMemo(
+    () =>
+      tasteProfileStats(taste, {
+        genreMix: insight.genreMix?.length ? insight.genreMix : null,
+      }),
+    [taste, insight.genreMix]
   );
 
   const nowLine = insight.signalLabel ? `Right now: ${insight.signalLabel}` : null;
@@ -212,7 +231,7 @@ export function InterestsPanel({
             lineHeight: 1.45,
             maxWidth: 360,
           }}>
-            {insight.leanLine}
+            {tasteProfileBlurb(taste) || insight.leanLine}
           </p>
           {nowLine && (
             <p style={{
@@ -227,9 +246,34 @@ export function InterestsPanel({
         </div>
       )}
 
-      {/* Genres */}
+      {/* Taste summary */}
       <GlassCard style={{ marginBottom: 14 }}>
-        <SectionLabel>Your genres</SectionLabel>
+        <SectionLabel>Your taste</SectionLabel>
+        <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: onEditGenres ? 14 : 0 }}>
+          {tasteStats.map((row) => (
+            <div key={row.id}>
+              <div style={{
+                display: "flex", justifyContent: "space-between", gap: 10, marginBottom: 5,
+              }}>
+                <span style={{ fontSize: 13, fontWeight: 650, color: color.ink }}>{row.label}</span>
+                <span style={{
+                  fontSize: 11, fontFamily: fontMono, color: color.faint, fontWeight: 700,
+                  fontVariantNumeric: "tabular-nums",
+                }}>
+                  {row.pct}%
+                </span>
+              </div>
+              <div style={{
+                height: 6, borderRadius: 4, background: "rgba(22,24,30,0.07)", overflow: "hidden",
+              }}>
+                <div style={{
+                  height: "100%", width: `${row.pct}%`, borderRadius: 4,
+                  background: `linear-gradient(90deg, #A9C7E4 0%, #7FA3C4 100%)`,
+                }}/>
+              </div>
+            </div>
+          ))}
+        </div>
         {insight.preferred.length ? (
           <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: onEditGenres ? 14 : 0 }}>
             {insight.preferred.map((g) => (
@@ -274,7 +318,7 @@ export function InterestsPanel({
               boxShadow: `inset 0 1px 0 ${glass.highlight}`,
             }}
           >
-            Edit genres
+            Edit taste
           </button>
         )}
       </GlassCard>

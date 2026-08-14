@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback, useMemo, lazy, Suspense } from "react";
 import { useNavigate, useLocation }                 from "react-router-dom";
 import { useAuth }                                  from "./useAuth";
-import { toggleLike as fbToggleLike, recordPlay, completeOnboarding, saveGenres } from "./useUserData";
+import { toggleLike as fbToggleLike, recordPlay, completeOnboarding, saveTasteProfile } from "./useUserData";
 import { collection, addDoc } from "firebase/firestore";
 import { db }                                       from "./firebase";
 import {
@@ -2620,6 +2620,7 @@ export default function App() {
     image:  profile?.profileImage || "",
     genres: profile?.genres || [],
     memberNumber: profile?.memberNumber,
+    uid: profile?.uid || firebaseUser?.uid || "",
   };
 
   // Library playlists = user mixes + this month's Community Mix (everyone gets it)
@@ -2652,15 +2653,30 @@ export default function App() {
     }
   }, [refreshProfile]);
 
-  // Genre taste intake — only user choice; mix lane/energy stay automatic
-  const finishOnboarding = async (genres = []) => {
+  // Genre + taste intake — only user choice; mix lane/energy stay automatic
+  const finishOnboarding = async (tasteOrGenres = []) => {
+    const taste = Array.isArray(tasteOrGenres)
+      ? { genres: tasteOrGenres, adventurous: null, depth: null }
+      : {
+          genres: tasteOrGenres?.genres || [],
+          adventurous: tasteOrGenres?.adventurous,
+          depth: tasteOrGenres?.depth,
+        };
+    const genres = Array.isArray(taste.genres) ? taste.genres : [];
     try {
-      await completeOnboarding({ homeRooms: [], genres: genres.length ? genres : null });
+      await completeOnboarding({
+        homeRooms: [],
+        genres: genres.length ? genres : null,
+        adventurous: taste.adventurous,
+        depth: taste.depth,
+      });
       setProfile((p) => ({
         ...(p || {}),
         onboarded: true,
         homeRooms: [],
         genres: genres.length ? genres : (p?.genres || []),
+        ...(taste.adventurous != null ? { adventurous: taste.adventurous } : {}),
+        ...(taste.depth != null ? { depth: taste.depth } : {}),
       }));
     } catch (e) { /* local dismiss still */ }
     setOnboardingDismissed(true);
@@ -3920,7 +3936,9 @@ export default function App() {
     return (
       <GenreTasteOnboarding
         initialGenres={profile?.genres || []}
-        onComplete={(genres) => finishOnboarding(genres)}
+        initialAdventurous={profile?.adventurous}
+        initialDepth={profile?.depth}
+        onComplete={(taste) => finishOnboarding(taste)}
         onSkip={() => finishOnboarding([])}
       />
     );
@@ -4004,19 +4022,29 @@ export default function App() {
       {showGenreTaste && (
         <GenreTasteSheet
           selectedGenres={profile?.genres || []}
+          adventurous={profile?.adventurous}
+          depth={profile?.depth}
           genreFocus={listenFocus.genre}
           onClose={() => setShowGenreTaste(false)}
           onClearGenreFocus={() => {
             setListenFocus({ genre: null, scene: null });
             showToast("Back to your usual mix");
           }}
-          onSave={async (genres) => {
+          onSave={async (taste) => {
             try {
-              await saveGenres(genres);
-              setProfile((p) => ({ ...(p || {}), genres }));
-              showToast(genres.length ? "Genres saved" : "Genres cleared");
+              const genres = taste?.genres ?? [];
+              const adventurous = taste?.adventurous;
+              const depth = taste?.depth;
+              await saveTasteProfile({ genres, adventurous, depth });
+              setProfile((p) => ({
+                ...(p || {}),
+                genres,
+                ...(adventurous != null ? { adventurous } : {}),
+                ...(depth != null ? { depth } : {}),
+              }));
+              showToast(genres.length ? "Taste saved" : "Taste updated");
             } catch (e) {
-              showToast("Couldn’t save genres");
+              showToast("Couldn’t save taste");
             }
           }}
           onBuildSet={() => {

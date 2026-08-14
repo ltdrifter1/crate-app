@@ -37,6 +37,7 @@ jest.mock("./useUserData", () => ({
   recordPlay: jest.fn(),
   completeOnboarding: jest.fn(),
   saveGenres: jest.fn(),
+  saveTasteProfile: jest.fn(),
 }));
 
 jest.mock("firebase/firestore", () => ({
