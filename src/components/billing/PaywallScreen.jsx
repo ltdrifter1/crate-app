@@ -1,7 +1,9 @@
 /**
  * Membership plans — Free / Club ($0.99/mo) / Premium ($10/yr with credits).
  * Soft upgrade surface (Free is always allowed into the app).
+ * Checkout goes through Firebase → Stripe Checkout Sessions.
  */
+import { useState } from "react";
 import {
   font, fontDisplay, fontMono, color, radius, glass,
   APP_STYLE, BTN_PRIMARY, BTN_SECONDARY, BRAND_NAME,
@@ -13,10 +15,9 @@ import {
   formatPricePremium,
   formatMoney,
   membershipSummary,
-  openStripeCheckout,
   planMarketingCopy,
-  paymentLinkForPlan,
 } from "../../lib/entitlements";
+import { startCheckout, openBillingPortal } from "../../lib/billing";
 import BrandMark from "../brand/BrandMark";
 
 export default function PaywallScreen({
@@ -31,18 +32,40 @@ export default function PaywallScreen({
   const summary = membershipSummary(access);
   const plans = planMarketingCopy();
   const tier = access?.tier || PLAN_IDS.FREE;
+  const [busyPlan, setBusyPlan] = useState(null);
+  const [error, setError] = useState(null);
 
-  function handlePlan(planId) {
+  async function handlePlan(planId) {
+    setError(null);
     if (planId === PLAN_IDS.FREE) {
       onContinueFree?.();
       return;
     }
-    const link = paymentLinkForPlan(planId);
     if (typeof onSubscribe === "function") {
-      onSubscribe(link, planId);
+      // Parent wires Cloud Function checkout
+      onSubscribe(null, planId);
       return;
     }
-    openStripeCheckout(link);
+    setBusyPlan(planId);
+    try {
+      await startCheckout(planId);
+    } catch (e) {
+      setError(e?.message || "Couldn’t start checkout");
+    } finally {
+      setBusyPlan(null);
+    }
+  }
+
+  async function handleManageBilling() {
+    setError(null);
+    setBusyPlan("portal");
+    try {
+      await openBillingPortal();
+    } catch (e) {
+      setError(e?.message || "Couldn’t open billing portal");
+    } finally {
+      setBusyPlan(null);
+    }
   }
 
   return (
@@ -107,8 +130,7 @@ export default function PaywallScreen({
             const current = plan.id === tier;
             const isClub = plan.id === PLAN_IDS.CLUB;
             const isPremium = plan.id === PLAN_IDS.PREMIUM;
-            const link = paymentLinkForPlan(plan.id);
-            const placeholder = /PLACEHOLDER/i.test(link);
+            const busy = busyPlan === plan.id;
             return (
               <div
                 key={plan.id}
@@ -173,17 +195,21 @@ export default function PaywallScreen({
                 {!current && plan.id !== PLAN_IDS.FREE && (
                   <button
                     type="button"
+                    disabled={!!busyPlan}
                     onClick={() => handlePlan(plan.id)}
                     style={{
                       ...(isPremium ? BTN_PRIMARY : BTN_SECONDARY),
                       width: "100%",
                       borderRadius: radius.md,
                       fontSize: 15,
+                      opacity: busyPlan && !busy ? 0.55 : 1,
                     }}
                   >
-                    {isClub
-                      ? `Join Club — ${formatPriceClub()}`
-                      : `Go Premium — ${formatPricePremium()}`}
+                    {busy
+                      ? "Opening Stripe…"
+                      : isClub
+                        ? `Join Club — ${formatPriceClub()}`
+                        : `Go Premium — ${formatPricePremium()}`}
                   </button>
                 )}
                 {!current && plan.id === PLAN_IDS.FREE && onContinueFree && tier === PLAN_IDS.FREE && (
@@ -214,15 +240,16 @@ export default function PaywallScreen({
                     Keep listening on Free
                   </button>
                 )}
-                {placeholder && plan.id !== PLAN_IDS.FREE && !current && (
-                  <p style={{ margin: "8px 0 0", fontSize: 11, color: color.faint, lineHeight: 1.4 }}>
-                    Checkout link is a placeholder until Stripe is wired.
-                  </p>
-                )}
               </div>
             );
           })}
         </div>
+
+        {error && (
+          <p role="alert" style={{ fontSize: 13, color: color.alert, lineHeight: 1.45, marginBottom: 12 }}>
+            {error}
+          </p>
+        )}
 
         {access?.tier === PLAN_IDS.PREMIUM && (
           <p style={{ fontSize: 13, color: color.body, lineHeight: 1.45, marginBottom: 16 }}>
@@ -231,6 +258,22 @@ export default function PaywallScreen({
               ? ` · use on physical releases before ${access.creditExpiresAt.toLocaleDateString?.("en-US", { month: "short", year: "numeric" }) || ""}`
               : ""}
           </p>
+        )}
+
+        {(tier === PLAN_IDS.CLUB || tier === PLAN_IDS.PREMIUM || access?.reason === "trial") && (
+          <button
+            type="button"
+            onClick={handleManageBilling}
+            disabled={!!busyPlan}
+            style={{
+              ...BTN_SECONDARY,
+              width: "100%",
+              borderRadius: radius.md,
+              marginBottom: 12,
+            }}
+          >
+            {busyPlan === "portal" ? "Opening…" : "Manage billing in Stripe"}
+          </button>
         )}
 
         {onRefresh && (
@@ -272,8 +315,9 @@ export default function PaywallScreen({
         )}
 
         <p style={{ marginTop: 16, fontSize: 12, color: color.faint, lineHeight: 1.45 }}>
-          Free includes {BILLING.freePlaysPerDay} plays/day. Club is {formatPriceClub()}.
-          Premium is {formatPricePremium()} and includes {formatMoney(BILLING.premium.creditGrant)} Club Credit.
+          Secure checkout via Stripe. Free includes {BILLING.freePlaysPerDay} plays/day.
+          Club is {formatPriceClub()}. Premium is {formatPricePremium()} and includes{" "}
+          {formatMoney(BILLING.premium.creditGrant)} Club Credit.
         </p>
       </div>
     </div>

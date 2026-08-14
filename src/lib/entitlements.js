@@ -19,13 +19,15 @@ export const BILLING = {
   productName: "Planet MP3",
   /** Free tier daily play cap (full tracks counted). */
   freePlaysPerDay: 20,
+  /** Checkout via Firebase Cloud Function (preferred). Payment links are fallback only. */
+  checkoutMode: "cloud_function",
   club: {
     id: PLAN_IDS.CLUB,
     label: "Club",
     price: 0.99,
     interval: "month",
-    /** Replace with live Stripe Payment Link. */
-    stripePaymentLink: "https://buy.stripe.com/PLACEHOLDER_CLUB",
+    /** Optional Payment Link fallback if Cloud Functions are unavailable. */
+    stripePaymentLink: "",
   },
   premium: {
     id: PLAN_IDS.PREMIUM,
@@ -35,8 +37,8 @@ export const BILLING = {
     /** Credits granted when Premium is purchased ($10 → $12 power). */
     creditGrant: 12,
     creditBonus: 2,
-    /** Replace with live Stripe Payment Link. */
-    stripePaymentLink: "https://buy.stripe.com/PLACEHOLDER_PREMIUM",
+    /** Optional Payment Link fallback if Cloud Functions are unavailable. */
+    stripePaymentLink: "",
   },
 };
 
@@ -359,14 +361,15 @@ export function planMarketingCopy() {
 
 export function openStripeCheckout(link = BILLING.club.stripePaymentLink) {
   if (typeof window === "undefined") return false;
-  const url = String(link || BILLING.club.stripePaymentLink);
+  const url = String(link || BILLING.club.stripePaymentLink || "");
+  if (!url || /PLACEHOLDER/i.test(url)) return false;
   window.open(url, "_blank", "noopener,noreferrer");
   return true;
 }
 
 export function paymentLinkForPlan(planId) {
   if (normalizePlanId(planId) === PLAN_IDS.PREMIUM) {
-    return BILLING.premium.stripePaymentLink;
+    return BILLING.premium.stripePaymentLink || "";
   }
-  return BILLING.club.stripePaymentLink;
+  return BILLING.club.stripePaymentLink || "";
 }
