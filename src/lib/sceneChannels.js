@@ -3,7 +3,7 @@ import { normalizeGenre } from "./genres";
 import { countdownScore } from "./station";
 
 /**
- * Scene surfing — dial channels under Channel Surfing (CH-01 … CH-06).
+ * Scene surfing — dial channels under Channel Surfing (CH-01 … CH-09).
  *
  * Source mapping (remember for later — not fully wired yet):
  *   01 Y2K Dance             → by genre
@@ -12,6 +12,9 @@ import { countdownScore } from "./station";
  *   04 Electronic            → expansions / techno–warehouse scenes
  *   05 Drum & Bass           → by genre
  *   06 Emo & Shoegaze        → by genre
+ *   07 Metal                 → by genre
+ *   08 Punk                  → by genre / keywords
+ *   09 Country & Folk        → by genre
  */
 
 function singlesOnly(tracks = []) {
@@ -73,6 +76,55 @@ const SHOEGAZE_KEYWORDS = [
   "jimmy eat world",
 ];
 
+const METAL_KEYWORDS = [
+  "metal",
+  "heavy metal",
+  "thrash",
+  "doom",
+  "death metal",
+  "black metal",
+  "metalcore",
+  "hardcore metal",
+  "sludge",
+  "stoner metal",
+  "power metal",
+  "nu metal",
+  "numetal",
+  "grindcore",
+];
+
+const PUNK_KEYWORDS = [
+  "punk",
+  "punk rock",
+  "post-punk",
+  "post punk",
+  "hardcore punk",
+  "pop punk",
+  "pop-punk",
+  "skate punk",
+  "ska punk",
+  "garage punk",
+  "crust punk",
+  "anarcho",
+  "oi!",
+  "street punk",
+];
+
+const COUNTRY_FOLK_KEYWORDS = [
+  "country",
+  "folk",
+  "americana",
+  "bluegrass",
+  "alt-country",
+  "alt country",
+  "singer-songwriter",
+  "singer songwriter",
+  "honky tonk",
+  "outlaw country",
+  "roots",
+  "country folk",
+];
+
 /** Pending catalog-source wiring (curator shelf / Audioasis / expansions). */
 export const CHANNEL_SOURCE_NOTES = {
   "y2k-dance": { num: 1, source: "genre", note: "Y2K Dance — match by genre/scene" },
@@ -81,6 +133,9 @@ export const CHANNEL_SOURCE_NOTES = {
   "electronic-underground": { num: 4, source: "expansions", note: "Electronic — techno/warehouse scenes (+ expansions later)" },
   "drum-and-bass": { num: 5, source: "genre", note: "Drum & Bass — match by genre/scene" },
   shoegaze: { num: 6, source: "genre", note: "Emo & Shoegaze — match by genre/keywords" },
+  metal: { num: 7, source: "genre", note: "Metal — match by genre/scene/keywords" },
+  punk: { num: 8, source: "genre", note: "Punk — match by keywords (punk normalizes into Rock)" },
+  "country-folk": { num: 9, source: "genre", note: "Country & Folk — match by genre/scene/keywords" },
 };
 
 function trackTextBlob(track) {
@@ -137,6 +192,45 @@ function isShoegazeTrack(track) {
     return true;
   }
   return matchesKeywords(track, SHOEGAZE_KEYWORDS);
+}
+
+function isMetalTrack(track) {
+  if (!track) return false;
+  if (normalizeGenre(track.genre) === "Metal") return true;
+  if (trackMatchesScene(track, "metal")) return true;
+  const rawGenre = String(track.genre || "").toLowerCase();
+  if (rawGenre.includes("metal") || rawGenre.includes("thrash") || rawGenre.includes("doom")) return true;
+  return matchesKeywords(track, METAL_KEYWORDS);
+}
+
+/** Punk maps into Rock in normalizeGenre — match raw labels + keywords. */
+function isPunkTrack(track) {
+  if (!track) return false;
+  const rawGenre = String(track.genre || "").toLowerCase();
+  if (
+    rawGenre.includes("punk") ||
+    rawGenre === "hardcore" ||
+    rawGenre.includes("hardcore punk")
+  ) {
+    return true;
+  }
+  return matchesKeywords(track, PUNK_KEYWORDS);
+}
+
+function isCountryFolkTrack(track) {
+  if (!track) return false;
+  if (normalizeGenre(track.genre) === "Country & Folk") return true;
+  if (trackMatchesScene(track, "folk")) return true;
+  const rawGenre = String(track.genre || "").toLowerCase();
+  if (
+    rawGenre.includes("country") ||
+    rawGenre.includes("folk") ||
+    rawGenre.includes("americana") ||
+    rawGenre.includes("bluegrass")
+  ) {
+    return true;
+  }
+  return matchesKeywords(track, COUNTRY_FOLK_KEYWORDS);
 }
 
 /** Soft expansions hint until batch mapping lands. */
@@ -250,6 +344,54 @@ export const SCENE_CHANNELS = [
     source: "genre",
     strict: true,
     match: isShoegazeTrack,
+    minTracks: 1,
+  },
+  {
+    id: "metal",
+    num: 7,
+    title: "Metal",
+    shortTitle: "Metal",
+    dialSlug: "METAL",
+    tagline: "Riffs, weight, and high gain",
+    accent: "#9A8F86",
+    scenes: ["metal"],
+    genres: ["Metal"],
+    vibe: "Metal",
+    source: "genre",
+    strict: true,
+    match: isMetalTrack,
+    minTracks: 1,
+  },
+  {
+    id: "punk",
+    num: 8,
+    title: "Punk",
+    shortTitle: "Punk",
+    dialSlug: "PUNK",
+    tagline: "Fast, loud, and unpolished",
+    accent: "#B0A49A",
+    scenes: [],
+    genres: [],
+    vibe: "Punk",
+    source: "genre",
+    strict: true,
+    match: isPunkTrack,
+    minTracks: 1,
+  },
+  {
+    id: "country-folk",
+    num: 9,
+    title: "Country & Folk",
+    shortTitle: "Country & Folk",
+    dialSlug: "COUNTRY",
+    tagline: "Twang, roots, and open roads",
+    accent: "#A89878",
+    scenes: ["folk"],
+    genres: ["Country & Folk"],
+    vibe: "Country & Folk",
+    source: "genre",
+    strict: true,
+    match: isCountryFolkTrack,
     minTracks: 1,
   },
 ];
