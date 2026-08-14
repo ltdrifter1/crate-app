@@ -166,6 +166,7 @@ When prepping a batch for me (or for yourself), deliver:
 - [ ] `covers/` when available  
 - [ ] MIK: BPM, Camelot key, energy filled per row  
 - [ ] Genre: specific background label, not only “Electronic” unless unknown  
+- [ ] Channel Surfing wave tag in `batch` when uploading for a dial (e.g. `audioasis-wave-1`, `metal-wave-1`, `punk-wave-1`, `country-folk-wave-1`) — see `docs/CHANNEL_SURFING.md`  
 - [ ] Titles/artists cleaned per §4  
 - [ ] Note any rows &gt; 15 min (mixes) intentionally  
 

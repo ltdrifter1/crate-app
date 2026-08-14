@@ -11,7 +11,7 @@ import {
   chartScopeKey,
   monthKey,
 } from "./chartHistory";
-import { availableSceneChannels, buildSceneChannelPool, channelCoverUrls, getSceneChannel, SCENE_CHANNELS, CHANNEL_SOURCE_NOTES, trackMatchesChannel } from "./sceneChannels";
+import { availableSceneChannels, buildSceneChannelPool, channelCoverUrls, getSceneChannel, SCENE_CHANNELS, CHANNEL_SOURCE_NOTES, CHANNEL_BATCH_PREFIXES, trackMatchesChannel, matchesChannelBatch } from "./sceneChannels";
 import { pickTrackBumper, STATION_IDENTS } from "./bumpers";
 import { brandStoragePrefix } from "../brand/identity";
 import {
@@ -151,9 +151,12 @@ describe("sceneChannels", () => {
     expect(CHANNEL_SOURCE_NOTES["local-pnw"].source).toBe("audioasis");
     expect(CHANNEL_SOURCE_NOTES["variety-mix"].source).toBe("variety");
     expect(CHANNEL_SOURCE_NOTES["electronic-underground"].source).toBe("expansions");
-    expect(CHANNEL_SOURCE_NOTES.metal.source).toBe("genre");
-    expect(CHANNEL_SOURCE_NOTES.punk.source).toBe("genre");
-    expect(CHANNEL_SOURCE_NOTES["country-folk"].source).toBe("genre");
+    expect(CHANNEL_SOURCE_NOTES.metal.source).toBe("metal");
+    expect(CHANNEL_SOURCE_NOTES.punk.source).toBe("punk");
+    expect(CHANNEL_SOURCE_NOTES["country-folk"].source).toBe("country-folk");
+    expect(CHANNEL_BATCH_PREFIXES.metal).toContain("metal");
+    expect(CHANNEL_BATCH_PREFIXES.punk).toContain("punk");
+    expect(CHANNEL_BATCH_PREFIXES["country-folk"]).toContain("country-folk");
     expect(getSceneChannel("variety-mix").tagline.toLowerCase()).not.toContain("evie");
     expect(getSceneChannel("electronic-underground").tagline.toLowerCase()).not.toContain("expansions");
   });
@@ -236,6 +239,23 @@ describe("sceneChannels", () => {
     expect(availableSceneChannels(tracks, 1).some((c) => c.id === "metal")).toBe(true);
     expect(availableSceneChannels(tracks, 1).some((c) => c.id === "punk")).toBe(true);
     expect(availableSceneChannels(tracks, 1).some((c) => c.id === "country-folk")).toBe(true);
+  });
+
+  test("CH-07/08/09 accept Audioasis-style batch tags without genre", () => {
+    const metal = getSceneChannel("metal");
+    const punk = getSceneChannel("punk");
+    const country = getSceneChannel("country-folk");
+    const tracks = [
+      { id: "m", title: "Batch Metal", artist: "A", duration: 180, audioUrl: "u", batch: "metal-wave-1" },
+      { id: "p", title: "Batch Punk", artist: "B", duration: 180, audioUrl: "u", batch: "punk-wave-2" },
+      { id: "c", title: "Batch Country", artist: "C", duration: 180, audioUrl: "u", batch: "country-folk-wave-1" },
+      { id: "x", title: "Other", artist: "D", duration: 180, audioUrl: "u", batch: "audioasis-wave-1" },
+    ];
+    expect(matchesChannelBatch(tracks[0], CHANNEL_BATCH_PREFIXES.metal)).toBe(true);
+    expect(buildSceneChannelPool(tracks, metal).map((t) => t.id)).toEqual(["m"]);
+    expect(buildSceneChannelPool(tracks, punk).map((t) => t.id)).toEqual(["p"]);
+    expect(buildSceneChannelPool(tracks, country).map((t) => t.id)).toEqual(["c"]);
+    expect(trackMatchesChannel(tracks[3], metal)).toBe(false);
   });
 
   test("channelCoverUrls returns distinct sleeves for mosaics", () => {

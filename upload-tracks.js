@@ -210,6 +210,9 @@ async function uploadTracks() {
         audioUrl:   audioUrl,
         albumCover: coverUrl,
         color:      row.color       || "#8899aa",
+        // Channel Surfing batch waves (Audioasis-style): audioasis-wave-1, metal-wave-1, …
+        ...(row.batch ? { batch: String(row.batch).trim() } : {}),
+        ...(row.source ? { source: String(row.source).trim() } : {}),
         playCount:  0,
         skipCount:  0,
         likeCount:  0,
