@@ -1,10 +1,25 @@
 import { font, fontDisplay, fontMono, color, radius, glass, glassSheet } from "../../theme";
 import { linerNotesFor } from "../../lib/catalog";
+import { physicalStatusFor, canBuyPhysical, memberPrice } from "../../lib/physicalStatus";
 
 /** Interactive liner notes — credits & listening context for a track. */
-export default function LinerNotesSheet({ track, roomLabel, onClose, onOpenArtist, onOpenAlbum, onOpenRoom }) {
+export default function LinerNotesSheet({
+  track,
+  roomLabel,
+  onClose,
+  onOpenArtist,
+  onOpenAlbum,
+  onOpenRoom,
+  memberPricing = false,
+}) {
   const notes = linerNotesFor(track);
   if (!notes) return null;
+  const physical = physicalStatusFor(track);
+  const retail = track?.retailPrice != null ? Number(track.retailPrice) : null;
+  const price = retail != null ? memberPrice(retail, {
+    member: memberPricing,
+    memberRetail: track?.memberPrice,
+  }) : null;
 
   return (
     <div style={{ position: "fixed", inset: 0, zIndex: 120 }}>
@@ -54,6 +69,31 @@ export default function LinerNotesSheet({ track, roomLabel, onClose, onOpenArtis
               {notes.title}
             </div>
             <div style={{ fontSize: 14, color: color.muted, marginTop: 4 }}>{notes.artist}</div>
+            <div style={{
+              marginTop: 10,
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 8,
+              padding: "5px 10px",
+              borderRadius: radius.sm,
+              border: `1px solid ${glass.borderSoft}`,
+              background: "rgba(22,24,30,0.35)",
+              fontSize: 11,
+              fontWeight: 700,
+              letterSpacing: 1.1,
+              textTransform: "uppercase",
+              fontFamily: fontMono,
+              color: color.accent,
+            }}>
+              {physical.label}
+              {track?.catalogNumber ? ` · ${track.catalogNumber}` : ""}
+            </div>
+            {canBuyPhysical(physical) && price != null && (
+              <div style={{ marginTop: 8, fontSize: 13, color: color.body }}>
+                {memberPricing ? "Club price" : "Retail"} · ${price.toFixed(2)}
+                {memberPricing && retail != null && retail !== price ? ` (was $${retail.toFixed(2)})` : ""}
+              </div>
+            )}
           </div>
           <button
             type="button"

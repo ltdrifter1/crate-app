@@ -255,7 +255,7 @@ export default function LoginScreen({
           />
           {mode === "signup" && (
             <div style={{ fontSize: 15, color: color.body, lineHeight: 1.5, maxWidth: 280 }}>
-              Join the club — first month free, then $2.99/mo.
+              Join free — Club is $0.99/mo. Premium is $10/yr with Club Credit.
             </div>
           )}
         </div>
