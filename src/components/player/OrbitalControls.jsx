@@ -1,10 +1,11 @@
 import { useRef } from "react";
 import Icon from "../ui/Icon";
 import { AlbumArt } from "../listen/AlbumArt";
-import { color, glass, motion, y2k } from "../../theme";
+import { color, glass, motion } from "../../theme";
 
-// ─── Shared transport primitives (aluminum orb + orbital progress) ────────────
-/** Circular aluminum primary play — shared by hero, dock, immersive, desktop. */
+// ─── Shared transport primitives (soft modern play + linear-friendly progress) ─
+
+/** Soft circular primary play — shared by hero, dock, immersive, desktop. */
 export function IceOrbPlay({
   isPlaying = false,
   onClick,
@@ -31,25 +32,21 @@ export function IceOrbPlay({
         height: size,
         borderRadius: "50%",
         background: disabled
-          ? color.surfaceRaised
-          : `
-            linear-gradient(160deg, rgba(232,236,242,0.92) 0%, rgba(184,192,204,0.75) 42%, rgba(58,65,76,0.95) 100%)
-          `,
-        border: `1px solid ${disabled ? glass.borderSoft : "rgba(255,255,255,0.28)"}`,
+          ? "rgba(40,44,52,0.9)"
+          : "rgba(247,248,250,0.96)",
+        border: `1px solid ${disabled ? "rgba(255,255,255,0.08)" : "rgba(255,255,255,0.55)"}`,
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
         color: disabled ? color.faint : color.onAccent,
         cursor: disabled ? "not-allowed" : "pointer",
         flexShrink: 0,
-        backdropFilter: disabled ? "none" : glass.blur,
-        WebkitBackdropFilter: disabled ? "none" : glass.blur,
         boxShadow: disabled
           ? "none"
           : glowing
-            ? `inset 0 1px 0 rgba(255,255,255,0.55), inset 0 -1px 0 rgba(0,0,0,0.35), 0 0 0 5px ${y2k.chromeSoft}, 0 0 22px ${y2k.chromeGlow}, 0 12px 32px rgba(0,0,0,0.45)`
-            : `inset 0 1px 0 rgba(255,255,255,0.4), inset 0 -1px 0 rgba(0,0,0,0.3), 0 10px 28px rgba(0,0,0,0.4)`,
-        transition: `transform ${motion.fast} ${motion.ease}, box-shadow ${motion.base} ${motion.ease}`,
+            ? `0 0 0 1px rgba(169,199,228,0.35), 0 10px 28px rgba(0,0,0,0.4), 0 0 28px rgba(169,199,228,0.22)`
+            : `0 8px 22px rgba(0,0,0,0.38)`,
+        transition: `transform ${motion.fast} ${motion.ease}, box-shadow ${motion.base} ${motion.ease}, background ${motion.fast} ${motion.ease}`,
       }}
     >
       <Icon name={isPlaying ? "pause" : "play"} size={iSize} />
@@ -58,7 +55,7 @@ export function IceOrbPlay({
 }
 
 /**
- * Album art wrapped in an orbital progress ring — dock / desktop scrub language.
+ * Album art with a thin progress ring — dock scrub language (kept light).
  */
 export function OrbitalArtRing({
   track,
@@ -66,12 +63,12 @@ export function OrbitalArtRing({
   duration = 0,
   size = 40,
   onSeek,
-  artRadius = 8,
+  artRadius = 10,
 }) {
   const scrubRef = useRef(null);
   const pct = duration > 0 ? Math.max(0, Math.min(1, progress / duration)) : 0;
-  const stroke = 2.4;
-  const pad = 6;
+  const stroke = 2;
+  const pad = 5;
   const svgSize = size + pad * 2;
   const r = (svgSize - stroke) / 2 - 0.5;
   const circ = 2 * Math.PI * r;
@@ -118,7 +115,7 @@ export function OrbitalArtRing({
           cy={svgSize / 2}
           r={r}
           fill="none"
-          stroke="rgba(255,255,255,0.16)"
+          stroke="rgba(255,255,255,0.12)"
           strokeWidth={stroke}
         />
         <circle
@@ -126,7 +123,7 @@ export function OrbitalArtRing({
           cy={svgSize / 2}
           r={r}
           fill="none"
-          stroke={y2k.chromeBright}
+          stroke="rgba(247,248,250,0.92)"
           strokeWidth={stroke}
           strokeLinecap="round"
           strokeDasharray={`${dash} ${Math.max(0, circ - dash)}`}
@@ -150,7 +147,7 @@ export function OrbitalArtRing({
 }
 
 /**
- * Play orb with orbital seek ring — immersive / full-player transport.
+ * Play control with optional orbital seek — immersive / full-player transport.
  */
 export function OrbitalPlayControl({
   isPlaying,
@@ -163,8 +160,8 @@ export function OrbitalPlayControl({
 }) {
   const scrubRef = useRef(null);
   const pct = duration > 0 ? Math.max(0, Math.min(1, progress / duration)) : 0;
-  const ring = size + 18;
-  const stroke = 2.6;
+  const ring = size + 16;
+  const stroke = 2.2;
   const r = (ring - stroke) / 2 - 1;
   const circ = 2 * Math.PI * r;
   const dash = pct * circ;
@@ -198,13 +195,13 @@ export function OrbitalPlayControl({
         aria-hidden="true"
         style={{ position: "absolute", inset: 0, transform: "rotate(-90deg)", pointerEvents: "none" }}
       >
-        <circle cx={ring / 2} cy={ring / 2} r={r} fill="none" stroke="rgba(255,255,255,0.16)" strokeWidth={stroke} />
+        <circle cx={ring / 2} cy={ring / 2} r={r} fill="none" stroke="rgba(255,255,255,0.12)" strokeWidth={stroke} />
         <circle
           cx={ring / 2}
           cy={ring / 2}
           r={r}
           fill="none"
-          stroke={y2k.chromeBright}
+          stroke="rgba(247,248,250,0.9)"
           strokeWidth={stroke}
           strokeLinecap="round"
           strokeDasharray={`${dash} ${Math.max(0, circ - dash)}`}
@@ -229,7 +226,7 @@ export function OrbitalPlayControl({
       />
       <div style={{ position: "relative", zIndex: 1 }}>
         <IceOrbPlay
-         
+          isPlaying={isPlaying}
           onClick={onToggle}
           size={size}
           stopPropagation
@@ -239,4 +236,3 @@ export function OrbitalPlayControl({
     </div>
   );
 }
-
