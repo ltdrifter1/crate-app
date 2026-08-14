@@ -22,6 +22,7 @@ describe("entitlements three-tier", () => {
     expect(formatPricePremium()).toBe("$10/yr");
     expect(BILLING.freePlaysPerDay).toBe(20);
     expect(BILLING.premium.creditGrant).toBe(12);
+    expect(BILLING.checkoutMode).toBe("cloud_function");
   });
 
   test("new accounts default to Free", () => {

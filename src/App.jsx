@@ -44,10 +44,9 @@ import { playerEnergyStore } from "./lib/playerEnergyStore";
 import LinerNotesSheet from "./components/catalog/LinerNotesSheet";
 import {
   getAccessState,
-  openStripeCheckout,
-  paymentLinkForPlan,
   BILLING,
 } from "./lib/entitlements";
+import { startCheckout, readBillingQuery } from "./lib/billing";
 import {
   buildChoosePayload,
   buildSkipPayload,
@@ -2659,19 +2658,45 @@ export default function App() {
   );
   // Free is a real tier — never hard-block the app. Plans are an upgrade sheet.
 
-  const handleSubscribe = useCallback((linkOrPlan, maybePlan) => {
-    let link = access.clubPaymentLink || access.stripePaymentLink;
-    if (typeof linkOrPlan === "string" && linkOrPlan.startsWith("http")) {
-      link = linkOrPlan;
-    } else if (typeof linkOrPlan === "string") {
-      link = paymentLinkForPlan(linkOrPlan);
+  const handleSubscribe = useCallback(async (linkOrPlan, maybePlan) => {
+    let plan = "club";
+    if (typeof linkOrPlan === "string" && !linkOrPlan.startsWith("http")) {
+      plan = linkOrPlan;
     } else if (maybePlan) {
-      link = paymentLinkForPlan(maybePlan);
+      plan = maybePlan;
     }
-    openStripeCheckout(link);
-  }, [access.clubPaymentLink, access.stripePaymentLink]);
+    try {
+      await startCheckout(plan);
+    } catch (e) {
+      showToast(e?.message || "Couldn’t start checkout");
+    }
+  }, []);
 
   const handleOpenPlans = useCallback(() => setShowPlans(true), []);
+
+  // After Stripe redirect (?billing=success), refresh membership from Firestore
+  useEffect(() => {
+    if (!firebaseUser || !profile) return;
+    const q = readBillingQuery(typeof window !== "undefined" ? window.location.search : "");
+    if (q.billing !== "success") return;
+    (async () => {
+      try {
+        await refreshProfile();
+        showToast(q.plan === "premium" ? "Premium unlocked" : "Club unlocked");
+        setShowPlans(false);
+      } catch {
+        /* ignore */
+      }
+      try {
+        const url = new URL(window.location.href);
+        url.searchParams.delete("billing");
+        url.searchParams.delete("plan");
+        window.history.replaceState({}, "", url.pathname + url.search + url.hash);
+      } catch {
+        /* ignore */
+      }
+    })();
+  }, [firebaseUser, profile?.uid, refreshProfile]);
 
   const handleChoosePick = useCallback(async (trackId, monthKey) => {
     const choice = buildChoosePayload(trackId);
