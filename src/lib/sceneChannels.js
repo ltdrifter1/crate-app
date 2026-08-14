@@ -7,9 +7,9 @@ import { countdownScore } from "./station";
  *
  * Source mapping (remember for later — not fully wired yet):
  *   01 Y2K Dance             → by genre
- *   02 Variety Mix           → Evie
+ *   02 Variety Mix           → curator shelf (variety pad)
  *   03 Local Pacific Northwest → Audioasis batch upload mapping
- *   04 Electronic Underground → expansions
+ *   04 Electronic            → expansions / techno–warehouse scenes
  *   05 Drum & Bass           → by genre
  *   06 Emo & Shoegaze        → by genre
  */
@@ -73,12 +73,12 @@ const SHOEGAZE_KEYWORDS = [
   "jimmy eat world",
 ];
 
-/** Pending catalog-source wiring (Evie / Audioasis / expansions). */
+/** Pending catalog-source wiring (curator shelf / Audioasis / expansions). */
 export const CHANNEL_SOURCE_NOTES = {
   "y2k-dance": { num: 1, source: "genre", note: "Y2K Dance — match by genre/scene" },
-  "variety-mix": { num: 2, source: "evie", note: "Variety Mix — Evie curator/playlist mapping (TODO)" },
+  "variety-mix": { num: 2, source: "variety", note: "Variety Mix — full-shelf variety pad (curator mapping later)" },
   "local-pnw": { num: 3, source: "audioasis", note: "Local PNW — Audioasis batch upload mapping (TODO)" },
-  "electronic-underground": { num: 4, source: "expansions", note: "Electronic Underground — expansions mapping (TODO)" },
+  "electronic-underground": { num: 4, source: "expansions", note: "Electronic — techno/warehouse scenes (+ expansions later)" },
   "drum-and-bass": { num: 5, source: "genre", note: "Drum & Bass — match by genre/scene" },
   shoegaze: { num: 6, source: "genre", note: "Emo & Shoegaze — match by genre/keywords" },
 };
@@ -178,15 +178,15 @@ export const SCENE_CHANNELS = [
     title: "Variety Mix",
     shortTitle: "Variety Mix",
     dialSlug: "VARIETY",
-    tagline: "Evie's cross-genre dial",
+    tagline: "Cross-genre spins · anything goes",
     accent: "#C5CAD3",
     scenes: [],
     genres: [],
     vibe: "Variety Mix",
-    source: "evie",
+    source: "variety",
     /**
-     * Evie curator mapping TODO — empty filters + non-strict pool pads with the
-     * full shelf (variety). When Evie metadata ships, switch to a strict match.
+     * Curator mapping TODO — empty filters + non-strict pool pads with the
+     * full shelf (variety). When curator metadata ships, switch to a strict match.
      */
     minTracks: 1,
   },
@@ -210,14 +210,14 @@ export const SCENE_CHANNELS = [
   {
     id: "electronic-underground",
     num: 4,
-    title: "Electronic Underground",
-    shortTitle: "Underground",
-    dialSlug: "UNDERGROUND",
-    tagline: "Techno, warehouse, expansions",
+    title: "Electronic",
+    shortTitle: "Electronic",
+    dialSlug: "ELECTRONIC",
+    tagline: "Techno, warehouse, late voltage",
     accent: "#7A8494",
     scenes: ["techno", "industrial", "minimal", "experimental", "acid"],
     genres: [],
-    vibe: "Electronic Underground",
+    vibe: "Electronic",
     source: "expansions",
     /** Expansions batch mapping TODO — genre/scene match until then. */
     match: isElectronicUndergroundTrack,
