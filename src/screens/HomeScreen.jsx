@@ -248,40 +248,17 @@ function HomeScreen({
         />
       )}
 
-      {/* CHANNEL SURFING — first shelf under the player */}
-      {catalogReady && channels.length > 0 && (
-        <MusicSection
-          title="Channel surfing"
-          subtitle="Zap the dial"
-          first
-          delay={0.04}
-        >
-          <Rail gap={16} padBottom={8}>
-            {channels.map((channel) => (
-              <ChannelCard
-                key={channel.id}
-                channel={channel}
-                covers={channelCovers[channel.id] || []}
-                active={sceneChannelsActiveId === channel.id}
-                size={channelSurfSize}
-                onClick={() => onTuneSceneChannel?.(channel)}
-              />
-            ))}
-          </Rail>
-        </MusicSection>
-      )}
-
       {/* ON TONIGHT — live show + program guide */}
       {catalogReady && hasTonight && (
         <MusicSection
           title="On tonight"
           subtitle={airing?.show?.tagline || "The program guide"}
-          first={channels.length === 0}
-          delay={0.06}
+          first
+          delay={0.04}
           inset
         >
           {airing?.show && !(activeShowId === airing.show.id && currentTrack) && (
-            <div style={{ paddingBottom: programGuide.length > 0 ? 12 : 0 }}>
+            <div style={{ paddingBottom: programGuide.length > 0 ? 10 : 0 }}>
               <NowOnAirCard
                 airing={airing}
                 bumper={showBumper}
@@ -308,7 +285,7 @@ function HomeScreen({
         <MusicSection
           title="Most requested"
           subtitle="Tonight's countdown"
-          first={channels.length === 0 && !hasTonight}
+          first={!hasTonight}
           action={
             onOpenCharts
               ? { label: "View all", onClick: onOpenCharts }
@@ -316,7 +293,7 @@ function HomeScreen({
                 ? { label: "Tune in", onClick: onTuneCountdown }
                 : null
           }
-          delay={0.08}
+          delay={0.06}
         >
           <Rail gap={16}>
             {topRequested.map(({ rank, track }) => (
@@ -340,7 +317,8 @@ function HomeScreen({
             key={col.id}
             title={col.label}
             subtitle={col.story}
-            delay={0.1 + i * 0.02}
+            first={!hasTonight && topRequested.length === 0 && i === 0}
+            delay={0.08 + i * 0.02}
           >
             <Rail gap={16}>
               {col.tracks.map((track) => (
@@ -361,11 +339,34 @@ function HomeScreen({
           style={{
             marginTop: homeSpace.sectionGap,
             padding: `0 ${homeSpace.gutter}px`,
-            animation: `rise 0.5s ${motion.ease} 0.14s both`,
+            animation: `rise 0.5s ${motion.ease} 0.12s both`,
           }}
         >
           <RequestSongCard onClick={onOpenSearch} />
         </div>
+      )}
+
+      {/* CHANNEL SURFING — dial at the bottom */}
+      {catalogReady && channels.length > 0 && (
+        <MusicSection
+          title="Channel surfing"
+          subtitle="Zap the dial"
+          first={!hasTonight && topRequested.length === 0 && editorial.length === 0 && !onOpenSearch}
+          delay={0.14}
+        >
+          <Rail gap={16} padBottom={8}>
+            {channels.map((channel) => (
+              <ChannelCard
+                key={channel.id}
+                channel={channel}
+                covers={channelCovers[channel.id] || []}
+                active={sceneChannelsActiveId === channel.id}
+                size={channelSurfSize}
+                onClick={() => onTuneSceneChannel?.(channel)}
+              />
+            ))}
+          </Rail>
+        </MusicSection>
       )}
 
       {/* Catalog is fine but nothing editorial to show — quiet empty state */}
