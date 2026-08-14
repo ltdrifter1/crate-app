@@ -36,16 +36,17 @@ function BroadcastBug({ live, playing, channelLabel }) {
         gap: 8,
         maxWidth: "100%",
         padding: "7px 12px",
-        borderRadius: 6,
-        background: y2k.inkGlass,
+        borderRadius: 980,
+        background:
+          "linear-gradient(180deg, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0.03) 100%), rgba(10,11,13,0.48)",
         border: "1px solid rgba(255,255,255,0.16)",
-        backdropFilter: "blur(14px)",
-        WebkitBackdropFilter: "blur(14px)",
-        boxShadow: "inset 0 1px 0 rgba(255,255,255,0.1), inset 0 -1px 0 rgba(0,0,0,0.35)",
+        backdropFilter: "blur(18px) saturate(1.3)",
+        WebkitBackdropFilter: "blur(18px) saturate(1.3)",
+        boxShadow: "inset 0 1px 0 rgba(255,255,255,0.2), inset 0 -1px 0 rgba(0,0,0,0.35)",
         fontFamily: fontMono,
         fontSize: 10,
-        fontWeight: 800,
-        letterSpacing: 1.8,
+        fontWeight: 700,
+        letterSpacing: 1.4,
         color: y2k.offWhite,
       }}
     >
@@ -108,19 +109,21 @@ function GlassIconButton({ label, icon, active = false, onClick, size = 42, icon
       style={{
         width: size,
         height: size,
-        borderRadius: 10,
+        borderRadius: 12,
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
         cursor: "pointer",
-        border: `1px solid ${active ? "rgba(232,236,242,0.45)" : "rgba(255,255,255,0.14)"}`,
-        background: active ? y2k.chromeSoft : y2k.inkGlassSoft,
+        border: `1px solid ${active ? "rgba(232,236,242,0.42)" : "rgba(255,255,255,0.16)"}`,
+        background: active
+          ? "linear-gradient(180deg, rgba(255,255,255,0.16) 0%, rgba(255,255,255,0.05) 100%), rgba(28,32,38,0.5)"
+          : "linear-gradient(180deg, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0.03) 100%), rgba(12,13,16,0.4)",
         color: active ? y2k.chromeBright : y2k.offWhite,
-        backdropFilter: "blur(14px)",
-        WebkitBackdropFilter: "blur(14px)",
+        backdropFilter: "blur(18px) saturate(1.3)",
+        WebkitBackdropFilter: "blur(18px) saturate(1.3)",
         boxShadow: active
-          ? `0 0 14px ${y2k.chromeGlow}, inset 0 1px 0 rgba(255,255,255,0.12)`
-          : "inset 0 1px 0 rgba(255,255,255,0.1), inset 0 -1px 0 rgba(0,0,0,0.3)",
+          ? `inset 0 1px 0 rgba(255,255,255,0.28), 0 0 14px ${y2k.chromeGlow}`
+          : "inset 0 1px 0 rgba(255,255,255,0.2), inset 0 -1px 0 rgba(0,0,0,0.35)",
         flexShrink: 0,
       }}
     >

@@ -1,44 +1,31 @@
 import { useCallback, useRef } from "react";
-import { color, fontDisplay, fontMono, homeSpace, motion, y2k } from "../../theme";
-
-/** Machined aluminum tick — Y2K chrome grey, never purple. */
-function ChromeTick({ accent = null }) {
-  const tip = accent || y2k.chromeBright;
-  return (
-    <span
-      aria-hidden="true"
-      style={{
-        width: 3,
-        height: 13,
-        borderRadius: 1,
-        flexShrink: 0,
-        background: `
-          linear-gradient(180deg, ${y2k.chromeBright} 0%, ${tip} 42%, ${y2k.chromeMid} 100%)
-        `,
-        boxShadow: `
-          0 0 10px ${y2k.chromeGlow},
-          inset 0 1px 0 rgba(255,255,255,0.55),
-          inset 0 -1px 0 rgba(0,0,0,0.35)
-        `,
-      }}
-    />
-  );
-}
+import {
+  color,
+  fontDisplay,
+  glassPill,
+  homeSpace,
+  motion,
+  sectionSubtitle,
+  sectionTitle,
+  y2k,
+} from "../../theme";
 
 /**
- * MusicSection — one consistent section shell for Home.
- * Uppercase display title, optional muted subtitle, optional "VIEW ALL" action.
+ * MusicSection — premium Home / Explore shelf shell.
+ * Title + subtitle share one left edge with the Rail (homeSpace.gutter).
+ * No chrome tick — that offset made titles look cheap and misaligned.
  */
 export default function MusicSection({
   title,
   subtitle = null,
   action = null, // { label, onClick }
-  accent = null, // chrome tip color for the title tick (grey family)
+  accent = null, // kept for API compat; unused after tick retirement
   children,
   first = false,
   delay = 0,
   style = {},
 }) {
+  void accent;
   return (
     <section
       aria-label={title}
@@ -53,51 +40,33 @@ export default function MusicSection({
           display: "flex",
           alignItems: "flex-end",
           justifyContent: "space-between",
-          gap: 12,
+          gap: 14,
           padding: `0 ${homeSpace.gutter}px`,
-          marginBottom: 10,
+          marginBottom: homeSpace.titleToRail,
         }}
       >
-        <div style={{ minWidth: 0 }}>
+        <div style={{ minWidth: 0, flex: 1 }}>
           <h2
             style={{
-              margin: 0,
-              display: "flex",
-              alignItems: "center",
-              gap: 8,
-              fontFamily: fontDisplay,
-              fontSize: 15,
-              fontWeight: 800,
-              letterSpacing: 2.2,
-              textTransform: "uppercase",
-              color: y2k.offWhite,
-              lineHeight: 1.1,
+              ...sectionTitle,
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              whiteSpace: "nowrap",
             }}
           >
-            <ChromeTick accent={accent} />
-            <span
+            {title}
+          </h2>
+          {subtitle && (
+            <p
               style={{
+                ...sectionSubtitle,
                 overflow: "hidden",
                 textOverflow: "ellipsis",
                 whiteSpace: "nowrap",
               }}
             >
-              {title}
-            </span>
-          </h2>
-          {subtitle && (
-            <div
-              style={{
-                marginTop: 4,
-                fontSize: 12,
-                fontWeight: 500,
-                color: color.muted,
-                letterSpacing: 0.15,
-                lineHeight: 1.35,
-              }}
-            >
               {subtitle}
-            </div>
+            </p>
           )}
         </div>
         {action && (
@@ -106,24 +75,34 @@ export default function MusicSection({
             onClick={action.onClick}
             className="pmp-view-all"
             style={{
+              ...glassPill({ compact: true }),
               flexShrink: 0,
-              background: "none",
-              border: "none",
+              alignSelf: "center",
               cursor: "pointer",
-              padding: "6px 0 6px 12px",
-              fontFamily: fontMono,
-              fontSize: 11,
-              fontWeight: 700,
-              letterSpacing: 1.4,
-              textTransform: "uppercase",
-              color: y2k.chromeBright,
-              display: "flex",
+              padding: "8px 12px",
+              fontFamily: fontDisplay,
+              fontSize: 12,
+              fontWeight: 650,
+              letterSpacing: -0.1,
+              textTransform: "none",
+              display: "inline-flex",
               alignItems: "center",
-              gap: 6,
+              gap: 5,
+              color: y2k.offWhite,
             }}
           >
             {action.label || "View all"}
-            <span aria-hidden="true" style={{ fontSize: 12, lineHeight: 1 }}>→</span>
+            <span
+              aria-hidden="true"
+              style={{
+                fontSize: 13,
+                lineHeight: 1,
+                color: color.muted,
+                transform: "translateY(-0.5px)",
+              }}
+            >
+              ›
+            </span>
           </button>
         )}
       </div>
@@ -134,7 +113,7 @@ export default function MusicSection({
 
 /**
  * Horizontal snap rail — shared scroller for card shelves.
- * Pointer drag + touch-action so channel surfing (and other shelves) actually scroll.
+ * Padding uses the same gutter as MusicSection titles so edges line up.
  */
 export function Rail({ children, gap = 14, padBottom = 4 }) {
   const ref = useRef(null);
@@ -143,7 +122,6 @@ export function Rail({ children, gap = 14, padBottom = 4 }) {
   const onPointerDown = useCallback((e) => {
     const el = ref.current;
     if (!el || e.pointerType === "touch") return;
-    // Only primary button / pen — let nested buttons still click when not dragged
     if (e.button != null && e.button !== 0) return;
     drag.current = {
       active: true,
@@ -178,7 +156,6 @@ export function Rail({ children, gap = 14, padBottom = 4 }) {
         /* already released */
       }
     }
-    // Swallow the click that follows a drag so tiles don't fire accidentally
     if (d.moved && e?.target) {
       const swallow = (ev) => {
         ev.preventDefault();
@@ -204,7 +181,7 @@ export function Rail({ children, gap = 14, padBottom = 4 }) {
         gap,
         overflowX: "auto",
         overflowY: "hidden",
-        padding: `4px ${homeSpace.gutter}px ${padBottom}px`,
+        padding: `2px ${homeSpace.gutter}px ${padBottom}px`,
         scrollSnapType: "x proximity",
         WebkitOverflowScrolling: "touch",
         touchAction: "pan-x",

@@ -1,8 +1,8 @@
-import { fontDisplay, fontMono, homeSpace, y2k } from "../../theme";
+import { fontDisplay, fontMono, glassPill, homeSpace, y2k } from "../../theme";
 import ArtFrame from "../ui/ArtFrame";
 
 /**
- * ChannelCard — dial channel tile with sleeve mosaic + CH bug overlay.
+ * ChannelCard — dial channel tile with sleeve mosaic + frosted CH bug.
  */
 export default function ChannelCard({
   channel,
@@ -40,29 +40,22 @@ export default function ChannelCard({
         width={size}
         height={h}
         active={active}
-        radius={12}
+        radius={16}
       >
-        {/* CH bug — MTV-style channel ident */}
+        {/* CH bug — frosted glass pill */}
         <span
           style={{
+            ...glassPill({ active, compact: true }),
             position: "absolute",
             top: 10,
             left: 10,
             zIndex: 1,
             fontFamily: fontMono,
             fontSize: 10,
-            fontWeight: 800,
-            letterSpacing: 1.6,
+            fontWeight: 700,
+            letterSpacing: 1.2,
             color: active ? y2k.neon : y2k.offWhite,
-            padding: "5px 9px",
-            borderRadius: 4,
-            border: `1px solid ${active ? "rgba(200,242,65,0.45)" : "rgba(255,255,255,0.18)"}`,
-            background: y2k.inkGlass,
-            backdropFilter: "blur(10px)",
-            WebkitBackdropFilter: "blur(10px)",
-            boxShadow: active
-              ? `0 0 12px ${y2k.neonSoft}`
-              : "inset 0 1px 0 rgba(255,255,255,0.1), inset 0 -1px 0 rgba(0,0,0,0.35)",
+            padding: "6px 10px",
           }}
         >
           CH·{num}
@@ -71,6 +64,7 @@ export default function ChannelCard({
         {active && (
           <span
             style={{
+              ...glassPill({ active: true, compact: true }),
               position: "absolute",
               top: 10,
               right: 10,
@@ -80,16 +74,10 @@ export default function ChannelCard({
               gap: 5,
               fontFamily: fontMono,
               fontSize: 9,
-              fontWeight: 800,
-              letterSpacing: 1.6,
+              fontWeight: 700,
+              letterSpacing: 1.4,
               color: y2k.neon,
-              padding: "5px 8px",
-              borderRadius: 4,
-              background: y2k.inkGlass,
-              border: "1px solid rgba(200,242,65,0.35)",
-              backdropFilter: "blur(10px)",
-              WebkitBackdropFilter: "blur(10px)",
-              boxShadow: "inset 0 1px 0 rgba(255,255,255,0.08)",
+              padding: "6px 9px",
             }}
           >
             <span
@@ -107,17 +95,23 @@ export default function ChannelCard({
           </span>
         )}
 
-        {/* Lower-third title plate */}
+        {/* Lower-third glass plate */}
         <span
           style={{
             position: "absolute",
-            left: 0,
-            right: 0,
-            bottom: 0,
+            left: 8,
+            right: 8,
+            bottom: 8,
             zIndex: 1,
-            padding: "28px 12px 12px",
+            padding: "12px 12px 11px",
+            borderRadius: 12,
             background:
-              "linear-gradient(180deg, transparent 0%, rgba(10,11,13,0.55) 40%, rgba(10,11,13,0.92) 100%)",
+              "linear-gradient(180deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.03) 100%), rgba(10,11,13,0.55)",
+            border: "1px solid rgba(255,255,255,0.14)",
+            backdropFilter: "blur(16px) saturate(1.3)",
+            WebkitBackdropFilter: "blur(16px) saturate(1.3)",
+            boxShadow:
+              "inset 0 1px 0 rgba(255,255,255,0.16), 0 8px 20px rgba(0,0,0,0.35)",
           }}
         >
           <span
@@ -125,9 +119,8 @@ export default function ChannelCard({
               display: "block",
               fontFamily: fontDisplay,
               fontSize: 14,
-              fontWeight: 800,
-              letterSpacing: 0.4,
-              textTransform: "uppercase",
+              fontWeight: 700,
+              letterSpacing: -0.2,
               color: y2k.offWhite,
               lineHeight: 1.15,
             }}
@@ -140,6 +133,7 @@ export default function ChannelCard({
               marginTop: 3,
               fontSize: 11,
               fontWeight: 500,
+              letterSpacing: -0.05,
               color: "rgba(244,246,248,0.62)",
               lineHeight: 1.3,
               overflow: "hidden",

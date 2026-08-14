@@ -197,24 +197,72 @@ export function artFrameStyle({
   };
 }
 
-/** Home rhythm — tight shelves, consistent gutters, chrome-first. */
+/** Home rhythm — generous pacing, one shared content edge. */
 export const homeSpace = {
-  gutter: 22,
+  gutter: 20,
   bandPadY: 32,
   sectionPadTop: 36,
   sectionPadBottom: 28,
   /** First shelf after a prior band/rule — keep tight; the break lives above. */
   sectionPadTopFirst: 8,
-  /** Gap between Home MusicSection bands (title → previous shelf metadata). */
-  sectionGap: 22,
+  /** Gap between Home MusicSection bands. */
+  sectionGap: 28,
   /** First Home shelf after the broadcast hero. */
-  sectionGapFirst: 18,
+  sectionGapFirst: 22,
   shelfGap: 16,
   /** Default discovery tile — sleeve-first. */
   tile: 168,
   /** Featured / countdown / releases — asymmetric presence. */
   tileFeatured: 200,
+  /** Space under section title stack before the rail. */
+  titleToRail: 14,
 };
+
+/**
+ * Premium section title — iOS Music pacing.
+ * Flush with `homeSpace.gutter` (same edge as Rail cards). No chrome tick.
+ */
+export const sectionTitle = {
+  fontFamily: fontDisplay,
+  fontSize: 22,
+  fontWeight: 700,
+  letterSpacing: -0.4,
+  lineHeight: 1.15,
+  color: y2k.offWhite,
+  margin: 0,
+  textTransform: "none",
+};
+
+export const sectionSubtitle = {
+  margin: "5px 0 0",
+  fontSize: 13,
+  fontWeight: 500,
+  letterSpacing: -0.08,
+  lineHeight: 1.35,
+  color: color.muted,
+};
+
+/** Frosted glass control — header buttons, view-all, CH bugs. */
+export function glassPill(opts = {}) {
+  const active = opts.active === true;
+  const compact = opts.compact === true;
+  return {
+    border: `1px solid ${
+      active ? "rgba(232,236,242,0.42)" : "rgba(255,255,255,0.16)"
+    }`,
+    background: active
+      ? "linear-gradient(180deg, rgba(255,255,255,0.16) 0%, rgba(255,255,255,0.06) 100%), rgba(28,32,38,0.55)"
+      : "linear-gradient(180deg, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0.03) 100%), rgba(18,20,24,0.42)",
+    backdropFilter: "blur(18px) saturate(1.35)",
+    WebkitBackdropFilter: "blur(18px) saturate(1.35)",
+    boxShadow: active
+      ? `inset 0 1px 0 rgba(255,255,255,0.28), 0 0 16px ${y2k.chromeGlow}, 0 6px 18px rgba(0,0,0,0.35)`
+      : "inset 0 1px 0 rgba(255,255,255,0.22), inset 0 -1px 0 rgba(0,0,0,0.35), 0 4px 14px rgba(0,0,0,0.28)",
+    color: active ? y2k.chromeBright : y2k.offWhite,
+    borderRadius: compact ? 980 : radius.md,
+    WebkitTapHighlightColor: "transparent",
+  };
+}
 
 /** Floating premium dock — blurred shell for mini-player + tabs. */
 export const dock = {

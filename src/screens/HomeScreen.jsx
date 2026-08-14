@@ -313,21 +313,11 @@ function HomeScreen({
       {catalogReady && channels.length > 0 && (
         <MusicSection
           title="Channel surfing"
-          subtitle="Zap the dial — scene channels on their own shelf"
-          accent={y2k.chromeBright}
+          subtitle="Zap the dial"
           first={!hasTonight && topRequested.length === 0}
           delay={0.09}
-          style={
-            topRequested.length > 0 || hasTonight
-              ? {
-                  marginTop: homeSpace.sectionGap + 12,
-                  paddingTop: 8,
-                  borderTop: "1px solid rgba(255,255,255,0.06)",
-                }
-              : undefined
-          }
         >
-          <Rail gap={18} padBottom={8}>
+          <Rail gap={16} padBottom={8}>
             {channels.map((channel) => (
               <ChannelCard
                 key={channel.id}
