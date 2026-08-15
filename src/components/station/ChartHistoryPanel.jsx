@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import {
-  color, fontDisplay, fontMono, glass, homeSpace, motion, radius, artShadow, chrome
+  color, fontDisplay, fontMono, glass, homeSpace, motion, artShadow, chrome, y2k, radio
 } from "../../theme";
 import {
   biggestClimbers,
@@ -20,35 +20,98 @@ import CoverImage from "../ui/CoverImage";
 
 function MovementTag({ movement, delta }) {
   if (movement === "up") {
-    return <span style={{ color: chrome.plate, fontFamily: fontMono, fontSize: 10, fontWeight: 800 }}>↑{delta}</span>;
+    return (
+      <span style={{
+        color: chrome.signal,
+        fontFamily: fontMono,
+        fontSize: 10,
+        fontWeight: 800,
+        letterSpacing: 0.4,
+        textShadow: `0 0 10px rgba(${chrome.cyanRgb},0.35)`,
+      }}>
+        ↑{delta}
+      </span>
+    );
   }
   if (movement === "down") {
-    return <span style={{ color: chrome.hot, fontFamily: fontMono, fontSize: 10, fontWeight: 800 }}>↓{delta}</span>;
+    return (
+      <span style={{
+        color: chrome.hot,
+        fontFamily: fontMono,
+        fontSize: 10,
+        fontWeight: 800,
+        letterSpacing: 0.4,
+      }}>
+        ↓{delta}
+      </span>
+    );
   }
   if (movement === "debut" || movement === "new") {
-    return <span style={{ color: chrome.bright, fontFamily: fontMono, fontSize: 10, fontWeight: 800 }}>NEW</span>;
+    return (
+      <span style={{
+        color: chrome.signal,
+        fontFamily: fontMono,
+        fontSize: 9,
+        fontWeight: 800,
+        letterSpacing: 1,
+        padding: "3px 6px",
+        borderRadius: 3,
+        border: "1px solid rgba(101,230,255,0.35)",
+        background: "rgba(101,230,255,0.08)",
+        boxShadow: `0 0 12px rgba(${chrome.cyanRgb},0.15)`,
+      }}>
+        NEW
+      </span>
+    );
   }
-  return <span style={{ color: color.faint, fontFamily: fontMono, fontSize: 10, fontWeight: 700 }}>●</span>;
+  return (
+    <span style={{
+      width: 5,
+      height: 5,
+      borderRadius: "50%",
+      background: "rgba(255,255,255,0.18)",
+      boxShadow: "inset 0 1px 0 rgba(255,255,255,0.2)",
+      display: "inline-block",
+    }} />
+  );
 }
 
+/** Machined scope / mode key — engineered corners, never pill. */
 function ScopeChip({ active, label, onClick }) {
   return (
     <button
       type="button"
       onClick={onClick}
+      aria-pressed={active}
       style={{
         flexShrink: 0,
-        padding: "8px 12px",
-        borderRadius: 999,
-        border: `1px solid ${active ? color.ink : glass.border}`,
-        background: active ? color.ink : glass.fillStrong,
-        color: active ? color.onDark : color.body,
+        padding: "9px 13px",
+        minHeight: 34,
+        borderRadius: radio.radiusControl,
+        border: active
+          ? "1px solid rgba(101,230,255,0.42)"
+          : `1px solid ${glass.border}`,
+        background: active
+          ? `
+            linear-gradient(180deg, rgba(101,230,255,0.16) 0%, rgba(101,230,255,0.04) 100%),
+            linear-gradient(165deg, rgba(48,54,64,0.95) 0%, rgba(22,26,32,0.98) 100%)
+          `
+          : `
+            linear-gradient(180deg, rgba(255,255,255,0.08) 0%, transparent 42%),
+            ${glass.fillStrong}
+          `,
+        color: active ? chrome.signal : color.body,
         fontFamily: fontMono,
         fontSize: 10,
         fontWeight: 800,
-        letterSpacing: 0.8,
+        letterSpacing: 0.9,
         textTransform: "uppercase",
         cursor: "pointer",
+        boxShadow: active
+          ? `inset 0 1px 0 rgba(255,255,255,0.2), 0 0 18px rgba(${chrome.cyanRgb},0.12), inset 0 -1px 0 rgba(0,0,0,0.4)`
+          : `inset 0 1px 0 ${glass.highlight}, inset 0 -1px 0 rgba(0,0,0,0.4)`,
+        transition: `border-color ${motion.fast} ${motion.ease}, color ${motion.fast}, box-shadow ${motion.base}`,
+        WebkitTapHighlightColor: "transparent",
       }}
     >
       {label}
@@ -141,30 +204,47 @@ export default function ChartHistoryPanel({
     <section
       aria-label="Monthly charts"
       style={{
-        padding: `8px 0 ${homeSpace.sectionPadBottom}px`,
-        animation: `rise 0.55s ${motion.ease} 0.05s both`,
+        position: "relative",
+        padding: `4px 0 ${homeSpace.sectionPadBottom}px`,
+        animation: `rise 0.55s ${motion.ease} 0.06s both`,
       }}
     >
-      <div style={{ padding: `0 ${homeSpace.gutter}px 12px` }}>
+      <div style={{ padding: `0 ${homeSpace.gutter}px 14px` }}>
         <div style={{
-          fontFamily: fontMono, fontSize: 10, fontWeight: 800,
-          letterSpacing: 1.5, textTransform: "uppercase", color: chrome.steel,
-          marginBottom: 4,
+          display: "inline-flex",
+          alignItems: "center",
+          gap: 8,
+          marginBottom: 6,
         }}>
-          Monthly chart · {monthLabel}
+          <span aria-hidden="true" style={{
+            width: 6,
+            height: 6,
+            borderRadius: "50%",
+            background: chrome.signal,
+            boxShadow: `0 0 0 2px rgba(${chrome.cyanRgb},0.2), 0 0 12px rgba(${chrome.cyanRgb},0.45)`,
+            animation: "breathe 2.4s ease-in-out infinite",
+          }} />
+          <div style={{
+            fontFamily: fontMono, fontSize: 10, fontWeight: 800,
+            letterSpacing: 1.6, textTransform: "uppercase", color: chrome.steel,
+          }}>
+            Monthly chart · {monthLabel}
+          </div>
         </div>
         <h3 style={{
           margin: 0,
           fontFamily: fontDisplay,
-          fontSize: "clamp(20px, 4vw, 26px)",
+          fontSize: "clamp(22px, 4.5vw, 28px)",
           fontWeight: 750,
-          letterSpacing: -0.4,
+          letterSpacing: -0.5,
           color: color.ink,
+          lineHeight: 1.1,
         }}>
           {scopeTitle}
         </h3>
       </div>
 
+      {/* Scope bank */}
       <div style={{
         display: "flex", gap: 6, padding: `0 ${homeSpace.gutter}px 10px`,
         overflowX: "auto",
@@ -215,38 +295,73 @@ export default function ChartHistoryPanel({
         </div>
       )}
 
-      <div style={{
-        display: "flex", gap: 6, padding: `0 ${homeSpace.gutter}px 12px`,
-        overflowX: "auto",
-      }} className="hide-scroll">
-        {[
-          { id: "month", label: "This month" },
-          { id: "climbers", label: "Climbers" },
-          { id: "ones", label: "#1s" },
-          { id: "archive", label: "Past days" },
-        ].map((t) => (
-          <button
-            key={t.id}
-            type="button"
-            onClick={() => setTab(t.id)}
-            style={{
-              flexShrink: 0,
-              padding: "8px 12px",
-              borderRadius: 999,
-              border: `1px solid ${tab === t.id ? color.ink : glass.border}`,
-              background: tab === t.id ? color.ink : glass.fillStrong,
-              color: tab === t.id ? color.onDark : color.body,
-              fontFamily: fontMono,
-              fontSize: 10,
-              fontWeight: 800,
-              letterSpacing: 0.8,
-              textTransform: "uppercase",
-              cursor: "pointer",
-            }}
-          >
-            {t.label}
-          </button>
-        ))}
+      {/* Mode segment — single hardware plate */}
+      <div style={{ padding: `0 ${homeSpace.gutter}px 14px` }}>
+        <div
+          role="tablist"
+          aria-label="Chart view"
+          style={{
+            display: "flex",
+            gap: 3,
+            padding: 4,
+            borderRadius: radio.radiusTight,
+            border: `1px solid ${glass.border}`,
+            background: `
+              linear-gradient(180deg, rgba(255,255,255,0.05) 0%, transparent 50%),
+              rgba(12,14,18,0.72)
+            `,
+            boxShadow: `inset 0 1px 0 ${glass.highlight}, inset 0 2px 6px rgba(0,0,0,0.35)`,
+            overflowX: "auto",
+          }}
+          className="hide-scroll"
+        >
+          {[
+            { id: "month", label: "This month" },
+            { id: "climbers", label: "Climbers" },
+            { id: "ones", label: "#1s" },
+            { id: "archive", label: "Past days" },
+          ].map((t) => {
+            const active = tab === t.id;
+            return (
+              <button
+                key={t.id}
+                type="button"
+                role="tab"
+                aria-selected={active}
+                onClick={() => setTab(t.id)}
+                style={{
+                  flex: "1 0 auto",
+                  padding: "9px 12px",
+                  borderRadius: 5,
+                  border: active
+                    ? "1px solid rgba(231,235,240,0.28)"
+                    : "1px solid transparent",
+                  background: active
+                    ? `
+                      linear-gradient(180deg, rgba(255,255,255,0.14) 0%, rgba(255,255,255,0.03) 100%),
+                      rgba(36,40,48,0.95)
+                    `
+                    : "transparent",
+                  color: active ? y2k.offWhite : color.faint,
+                  fontFamily: fontMono,
+                  fontSize: 10,
+                  fontWeight: 800,
+                  letterSpacing: 0.8,
+                  textTransform: "uppercase",
+                  cursor: "pointer",
+                  boxShadow: active
+                    ? `inset 0 1px 0 rgba(255,255,255,0.22), 0 4px 12px rgba(0,0,0,0.3)`
+                    : "none",
+                  transition: `color ${motion.fast}, background ${motion.base}, box-shadow ${motion.base}`,
+                  WebkitTapHighlightColor: "transparent",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                {t.label}
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       <div style={{ padding: `0 ${homeSpace.gutter}px` }}>
@@ -258,18 +373,21 @@ export default function ChartHistoryPanel({
                 onClick={() => onTuneMonthly(scope)}
                 style={{
                   width: "100%",
-                  marginBottom: 10,
-                  padding: "12px 14px",
-                  borderRadius: radius.sm,
-                  border: "1px solid rgba(197,202,211,0.4)",
-                  background: `linear-gradient(165deg, ${chrome.bright} 0%, ${chrome.hot} 120%)`,
-                  color: "#16181E",
+                  marginBottom: 14,
+                  padding: "14px 16px",
+                  borderRadius: radio.radiusTight,
+                  border: "1px solid rgba(231,235,240,0.35)",
+                  background: radio.tuneFace,
+                  color: chrome.inkPlate,
                   fontFamily: fontMono,
-                  fontSize: 11,
+                  fontSize: 12,
                   fontWeight: 800,
-                  letterSpacing: 1.1,
+                  letterSpacing: 1.4,
                   textTransform: "uppercase",
                   cursor: "pointer",
+                  boxShadow: radio.tuneShadow,
+                  transition: `transform ${motion.fast} ${motion.ease}, box-shadow ${motion.base}`,
+                  WebkitTapHighlightColor: "transparent",
                 }}
               >
                 Play monthly chart
@@ -326,27 +444,14 @@ export default function ChartHistoryPanel({
 
         {tab === "archive" && (
           <>
-            <div style={{ display: "flex", gap: 6, overflowX: "auto", marginBottom: 10 }} className="hide-scroll">
+            <div style={{ display: "flex", gap: 6, overflowX: "auto", marginBottom: 12 }} className="hide-scroll">
               {days.map((d) => (
-                <button
+                <ScopeChip
                   key={d}
-                  type="button"
+                  active={archiveDay === d}
+                  label={d.slice(5)}
                   onClick={() => setArchiveDay(d)}
-                  style={{
-                    flexShrink: 0,
-                    padding: "8px 10px",
-                    borderRadius: radius.sm,
-                    border: `1px solid ${archiveDay === d ? color.ink : glass.border}`,
-                    background: archiveDay === d ? color.surfaceRaised : glass.fillStrong,
-                    fontFamily: fontMono,
-                    fontSize: 10,
-                    fontWeight: 700,
-                    cursor: "pointer",
-                    color: color.ink,
-                  }}
-                >
-                  {d.slice(5)}
-                </button>
+                />
               ))}
             </div>
             {archive ? (
@@ -373,58 +478,152 @@ export default function ChartHistoryPanel({
 
 function Empty({ note }) {
   return (
-    <div className="glass-surface" style={{ padding: 16, borderRadius: radius.md, color: color.muted, fontSize: 13 }}>
+    <div style={{
+      padding: "18px 16px",
+      borderRadius: radio.radiusTight,
+      border: radio.lcdBorder,
+      background: radio.lcdFace,
+      boxShadow: radio.lcdShadow,
+      color: color.muted,
+      fontSize: 13,
+      lineHeight: 1.5,
+      fontFamily: fontMono,
+      letterSpacing: 0.2,
+    }}>
       {note}
     </div>
   );
 }
 
+/** Continuous machined countdown strips — premium, not boxed cards. */
 function ChartList({ entries, onPlay }) {
   return (
-    <ol style={{ listStyle: "none", margin: 0, padding: 0, display: "flex", flexDirection: "column", gap: 6 }}>
-      {entries.map((e) => (
-        <li key={`${e.id}-${e.rank}`}>
-          <button
-            type="button"
-            onClick={() => onPlay?.(e, entries)}
+    <ol style={{
+      listStyle: "none",
+      margin: 0,
+      padding: 0,
+      display: "flex",
+      flexDirection: "column",
+      gap: 5,
+    }}>
+      {entries.map((e, i) => {
+        const top = e.rank <= 3;
+        return (
+          <li
+            key={`${e.id}-${e.rank}`}
             style={{
-              width: "100%",
-              display: "flex",
-              alignItems: "center",
-              gap: 10,
-              padding: "10px 12px",
-              borderRadius: radius.md,
-              border: `1px solid ${glass.borderSoft}`,
-              background: "rgba(32,36,43,0.65)",
-              boxShadow: `inset 0 1px 0 ${glass.highlight}`,
-              cursor: "pointer",
-              textAlign: "left",
+              animation: `rise 0.45s ${motion.ease} ${Math.min(i, 12) * 0.03}s both`,
             }}
           >
-            <div style={{
-              width: 28, fontFamily: fontMono, fontWeight: 800, fontSize: 14,
-              color: e.rank <= 3 ? chrome.bright : color.ink, textAlign: "center",
-            }}>
-              {e.rank}
-            </div>
-            <div style={{
-              width: 40, height: 40, borderRadius: 5, overflow: "hidden", flexShrink: 0,
-              background: color.surfaceRaised, boxShadow: artShadow.quiet,
-            }}>
-              <CoverImage src={e.albumCover} width={40} height={40} alt="" />
-            </div>
-            <div style={{ minWidth: 0, flex: 1 }}>
-              <div style={{ fontSize: 13, fontWeight: 650, color: color.ink, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                {e.title}
+            <button
+              type="button"
+              onClick={() => onPlay?.(e, entries)}
+              aria-label={`#${e.rank} ${e.title} by ${e.artist}`}
+              style={{
+                width: "100%",
+                display: "flex",
+                alignItems: "center",
+                gap: 0,
+                padding: 0,
+                minHeight: 58,
+                borderRadius: 6,
+                overflow: "hidden",
+                border: top
+                  ? "1px solid rgba(101,230,255,0.22)"
+                  : `1px solid ${glass.borderSoft}`,
+                background: top
+                  ? `
+                    linear-gradient(90deg, rgba(101,230,255,0.1) 0%, rgba(24,27,32,0.98) 32%),
+                    linear-gradient(165deg, rgba(40,46,56,0.96) 0%, rgba(16,18,22,0.98) 100%)
+                  `
+                  : `
+                    linear-gradient(90deg, rgba(37,42,49,0.96) 0%, rgba(20,23,28,0.98) 72%)
+                  `,
+                boxShadow: top
+                  ? `inset 3px 0 0 ${chrome.signal}, inset 0 1px 0 ${glass.highlight}, 0 0 20px rgba(${chrome.cyanRgb},0.06)`
+                  : `inset 0 1px 0 ${glass.highlight}, inset 0 -1px 0 rgba(0,0,0,0.5)`,
+                cursor: "pointer",
+                textAlign: "left",
+                transition: `border-color ${motion.fast}, box-shadow ${motion.base}`,
+                WebkitTapHighlightColor: "transparent",
+              }}
+            >
+              <div style={{
+                width: top ? 50 : 44,
+                flexShrink: 0,
+                fontFamily: fontMono,
+                fontSize: e.rank === 1 ? 30 : top ? 26 : 18,
+                fontWeight: 900,
+                letterSpacing: -1.4,
+                color: e.rank === 1
+                  ? chrome.signal
+                  : top
+                    ? chrome.bright
+                    : color.body,
+                textAlign: "center",
+                textShadow: e.rank === 1
+                  ? `0 0 18px rgba(${chrome.cyanRgb},0.4)`
+                  : "none",
+                fontVariantNumeric: "tabular-nums",
+              }}>
+                {e.rank}
               </div>
-              <div style={{ fontSize: 11, color: color.muted, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                {e.artist}{e.meta ? ` · ${e.meta}` : ""}
+
+              <div style={{
+                width: 56,
+                height: 56,
+                borderRadius: 0,
+                flexShrink: 0,
+                overflow: "hidden",
+                background: color.surfaceRaised,
+                boxShadow: `
+                  inset 1px 0 0 rgba(255,255,255,0.08),
+                  inset -1px 0 0 rgba(0,0,0,0.35),
+                  ${artShadow.quiet}
+                `,
+              }}>
+                <CoverImage src={e.albumCover} width={56} height={56} alt="" />
               </div>
-            </div>
-            <MovementTag movement={e.movement} delta={e.delta} />
-          </button>
-        </li>
-      ))}
+
+              <div style={{ minWidth: 0, flex: 1, padding: "8px 12px" }}>
+                <div style={{
+                  fontSize: 14,
+                  fontWeight: 700,
+                  color: color.ink,
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  whiteSpace: "nowrap",
+                  fontFamily: fontDisplay,
+                  letterSpacing: -0.2,
+                }}>
+                  {e.title}
+                </div>
+                <div style={{
+                  fontSize: 12,
+                  color: color.muted,
+                  marginTop: 2,
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  whiteSpace: "nowrap",
+                }}>
+                  {e.artist}{e.meta ? ` · ${e.meta}` : ""}
+                </div>
+              </div>
+
+              <div style={{
+                flexShrink: 0,
+                paddingRight: 14,
+                display: "flex",
+                alignItems: "center",
+                minWidth: 28,
+                justifyContent: "flex-end",
+              }}>
+                <MovementTag movement={e.movement} delta={e.delta} />
+              </div>
+            </button>
+          </li>
+        );
+      })}
     </ol>
   );
 }
