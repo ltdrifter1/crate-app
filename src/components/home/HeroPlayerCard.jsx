@@ -171,7 +171,8 @@ export default function HeroPlayerCard({
       className="pmp-hero"
       style={{
         position: "relative",
-        borderRadius: 16,
+        /* Full-bleed stage — no inset card radius fighting the Home gutter */
+        borderRadius: 0,
         overflow: "hidden",
         aspectRatio: "16 / 11",
         minHeight: 300,
@@ -183,7 +184,7 @@ export default function HeroPlayerCard({
         cursor: playDisabled && !live ? "default" : "pointer",
         border: "none",
         background: y2k.artGradient,
-        boxShadow: `0 24px 56px rgba(0,0,0,0.48)`,
+        boxShadow: `0 20px 48px rgba(0,0,0,0.42)`,
         WebkitTapHighlightColor: "transparent",
         isolation: "isolate",
       }}

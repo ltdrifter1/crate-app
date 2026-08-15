@@ -327,6 +327,8 @@ export const homeSpace = {
 /**
  * Section title — compact premium, flush with rail gutter.
  * Keep size modest so every shelf shares one optical left edge.
+ * Featured bands (Channel surfing, On tonight) use the same token —
+ * hierarchy comes from content, not competing title sizes.
  */
 export const sectionTitle = {
   fontFamily: fontDisplay,
@@ -346,6 +348,18 @@ export const sectionSubtitle = {
   letterSpacing: -0.06,
   lineHeight: 1.35,
   color: color.muted,
+};
+
+/** Mono eyebrow above a Home band title — sits on the same left edge. */
+export const sectionEyebrow = {
+  fontFamily: fontMono,
+  fontSize: 10,
+  fontWeight: 800,
+  letterSpacing: 1.6,
+  textTransform: "uppercase",
+  color: chrome.steel,
+  margin: "0 0 6px",
+  lineHeight: 1,
 };
 
 /** Frosted glass control — header buttons, view-all, CH bugs. */
