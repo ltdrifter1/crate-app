@@ -514,6 +514,18 @@ const injectStyles = () => {
         0 0 14px rgba(101,230,255,0.08),
         0 6px 16px rgba(0,0,0,0.34) !important;
     }
+    .pmp-dial-cell:hover {
+      background:
+        linear-gradient(180deg, rgba(101,230,255,0.1) 0%, rgba(101,230,255,0.02) 100%),
+        rgba(14,20,26,0.95) !important;
+    }
+    .pmp-dial-cell:active {
+      transform: none;
+      opacity: 0.92;
+    }
+    .pmp-tonight-stage {
+      animation: rise 0.55s ${motion.ease} 0.04s both;
+    }
     .pmp-radio-module {
       transition: box-shadow ${motion.settle} ${motion.ease}, border-color ${motion.base};
     }

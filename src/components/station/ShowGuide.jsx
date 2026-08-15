@@ -109,7 +109,7 @@ function SignalBars({ level = 4 }) {
   );
 }
 
-function Scanlines() {
+function Scanlines({ opacity = 0.05 }) {
   return (
     <div
       aria-hidden="true"
@@ -117,7 +117,7 @@ function Scanlines() {
         position: "absolute",
         inset: 0,
         pointerEvents: "none",
-        opacity: 0.055,
+        opacity,
         backgroundImage:
           "repeating-linear-gradient(0deg, transparent 0px, transparent 2px, rgba(101,230,255,0.35) 3px)",
         mixBlendMode: "screen",
@@ -189,27 +189,20 @@ export function HostCreditChip({ show, compact = false, onClick = null, tone = "
   return <div style={style}>{inner}</div>;
 }
 
-/** LCD tuner timeline with ticks + glowing needle. */
+/** Full-bleed LCD tuner — frequency-scale timeline. */
 function BroadcastTimeline({ progress = 0, startLabel, endLabel }) {
   const pct = Math.min(100, Math.max(0, Math.round((progress || 0) * 100)));
   const ticks = [0, 12.5, 25, 37.5, 50, 62.5, 75, 87.5, 100];
 
   return (
     <div style={{ position: "relative" }} aria-hidden="true">
-      <div
-        style={{
-          position: "relative",
-          height: 22,
-          display: "flex",
-          alignItems: "center",
-        }}
-      >
+      <div style={{ position: "relative", height: 28, display: "flex", alignItems: "center" }}>
         <div
           style={{
             position: "absolute",
             left: 0,
             right: 0,
-            top: 2,
+            top: 0,
             display: "flex",
             justifyContent: "space-between",
             pointerEvents: "none",
@@ -220,10 +213,10 @@ function BroadcastTimeline({ progress = 0, startLabel, endLabel }) {
               key={t}
               style={{
                 width: 1,
-                height: t % 25 === 0 ? 6 : 3,
+                height: t % 25 === 0 ? 8 : 4,
                 background: t <= pct
-                  ? "rgba(101,230,255,0.65)"
-                  : "rgba(255,255,255,0.16)",
+                  ? "rgba(101,230,255,0.7)"
+                  : "rgba(255,255,255,0.14)",
               }}
             />
           ))}
@@ -232,10 +225,10 @@ function BroadcastTimeline({ progress = 0, startLabel, endLabel }) {
           style={{
             position: "relative",
             width: "100%",
-            height: 3,
-            marginTop: 8,
+            height: 4,
+            marginTop: 10,
             borderRadius: 2,
-            background: radio.lcdTrack,
+            background: "rgba(101,230,255,0.08)",
             boxShadow: "inset 0 1px 0 rgba(0,0,0,0.55)",
             overflow: "visible",
           }}
@@ -254,47 +247,42 @@ function BroadcastTimeline({ progress = 0, startLabel, endLabel }) {
             className="pmp-tuner-needle"
             style={{
               position: "absolute",
-              left: `calc(${pct}% - 5px)`,
+              left: `calc(${pct}% - 6px)`,
               top: "50%",
-              width: 10,
-              height: 10,
-              marginTop: -5,
+              width: 12,
+              height: 12,
+              marginTop: -6,
               borderRadius: "50%",
               background: y2k.lightMetal,
               border: `1.5px solid ${y2k.cyan}`,
-              boxShadow: `0 0 12px rgba(${chrome.cyanRgb},0.65), inset 0 1px 0 rgba(255,255,255,0.75)`,
+              boxShadow: `0 0 14px rgba(${chrome.cyanRgb},0.7), inset 0 1px 0 rgba(255,255,255,0.75)`,
               transition: "left 1s linear",
             }}
           />
         </div>
       </div>
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          marginTop: 4,
-        }}
-      >
+      <div style={{ display: "flex", justifyContent: "space-between", marginTop: 2 }}>
         <TechLabel color={y2k.cyan}>{startLabel}</TechLabel>
-        <TechLabel color="rgba(101,230,255,0.45)">{endLabel}</TechLabel>
+        <TechLabel color="rgba(101,230,255,0.4)">{endLabel}</TechLabel>
       </div>
     </div>
   );
 }
 
-function TuneInKey({ tuned, onTuneIn }) {
+function TuneInKey({ tuned, onTuneIn, compact = false }) {
   return (
     <button
       type="button"
       onClick={onTuneIn}
       className={tuned ? "pmp-tune-key pmp-tune-key--locked" : "pmp-tune-key"}
       style={{
-        width: "100%",
+        width: compact ? "auto" : "100%",
+        minWidth: compact ? 132 : undefined,
         display: "inline-flex",
         alignItems: "center",
         justifyContent: "center",
         gap: 10,
-        padding: "13px 16px",
+        padding: compact ? "12px 18px" : "14px 18px",
         borderRadius: radio.radiusControl,
         border: tuned
           ? "1px solid rgba(101,230,255,0.45)"
@@ -314,6 +302,7 @@ function TuneInKey({ tuned, onTuneIn }) {
           : radio.tuneShadow,
         backdropFilter: tuned ? "blur(12px)" : undefined,
         WebkitBackdropFilter: tuned ? "blur(12px)" : undefined,
+        flexShrink: 0,
       }}
     >
       <span
@@ -335,7 +324,269 @@ function TuneInKey({ tuned, onTuneIn }) {
 }
 
 /**
- * Hero ON AIR — LCD display + chrome control bay (standalone).
+ * Flat on-air stage — one composition, no nested glass cards.
+ * Massive title + compact tune key + full-bleed tuner.
+ */
+function OnAirStage({
+  airing,
+  bumper = null,
+  tuned = false,
+  onTuneIn = null,
+}) {
+  if (!airing?.show) return null;
+  const { show, host, remainingMinutes, progress, nextShow } = airing;
+  const prog = programIndex(show.id);
+
+  return (
+    <div
+      aria-label={`Now on air: ${show.title}`}
+      className="pmp-onair-stage"
+      style={{ position: "relative", overflow: "hidden" }}
+    >
+      {/* Ghost monogram watermark — artistic anchor */}
+      <div
+        aria-hidden="true"
+        style={{
+          position: "absolute",
+          right: -8,
+          top: "50%",
+          transform: "translateY(-52%)",
+          fontFamily: fontDisplay,
+          fontSize: "clamp(96px, 28vw, 160px)",
+          fontWeight: 800,
+          letterSpacing: -6,
+          lineHeight: 1,
+          color: "transparent",
+          WebkitTextStroke: "1px rgba(101,230,255,0.1)",
+          opacity: 0.9,
+          pointerEvents: "none",
+          userSelect: "none",
+        }}
+      >
+        {host?.monogram || "PM"}
+      </div>
+
+      {/* Meta strip */}
+      <div
+        style={{
+          position: "relative",
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          gap: 12,
+          flexWrap: "wrap",
+          marginBottom: 18,
+        }}
+      >
+        <div style={{ display: "inline-flex", alignItems: "center", gap: 10 }}>
+          <LiveLed size={8} />
+          <TechLabel color={chrome.live} style={{ letterSpacing: 2 }}>
+            On air
+          </TechLabel>
+          <span
+            aria-hidden="true"
+            style={{
+              width: 1,
+              height: 10,
+              background: "rgba(255,255,255,0.16)",
+            }}
+          />
+          <TechLabel color={y2k.cyan}>Live</TechLabel>
+        </div>
+        <div style={{ display: "inline-flex", alignItems: "center", gap: 10 }}>
+          <TechLabel color={color.muted}>{STATION_CALLSIGN}</TechLabel>
+          <TechLabel color="rgba(101,230,255,0.28)">·</TechLabel>
+          <TechLabel color={y2k.cyan}>{STATION_FREQ} FM</TechLabel>
+          <TechLabel color="rgba(101,230,255,0.28)">·</TechLabel>
+          <TechLabel color={y2k.techBlue}>Prog {prog}</TechLabel>
+          <SignalBars level={4} />
+        </div>
+      </div>
+
+      {/* Hero: title stack + tune key */}
+      <div
+        className="pmp-onair-hero"
+        style={{
+          position: "relative",
+          display: "grid",
+          gridTemplateColumns: onTuneIn ? "minmax(0, 1fr) auto" : "1fr",
+          gap: "16px 20px",
+          alignItems: "end",
+        }}
+      >
+        <div style={{ minWidth: 0 }}>
+          <h2
+            style={{
+              margin: 0,
+              fontFamily: fontDisplay,
+              fontSize: "clamp(32px, 9vw, 52px)",
+              fontWeight: 800,
+              letterSpacing: -1.4,
+              lineHeight: 0.92,
+              textTransform: "uppercase",
+              color: y2k.offWhite,
+              textShadow: `0 0 48px rgba(${chrome.cyanRgb},0.18)`,
+            }}
+          >
+            {show.title}
+          </h2>
+          {show.tagline && (
+            <p
+              style={{
+                margin: "12px 0 0",
+                fontSize: 15,
+                fontWeight: 500,
+                color: color.body,
+                lineHeight: 1.4,
+                maxWidth: 420,
+              }}
+            >
+              {show.tagline}
+            </p>
+          )}
+          <div
+            style={{
+              marginTop: 14,
+              display: "flex",
+              flexWrap: "wrap",
+              alignItems: "center",
+              gap: "6px 14px",
+            }}
+          >
+            <span
+              style={{
+                fontFamily: fontMono,
+                fontSize: 12,
+                fontWeight: 800,
+                letterSpacing: 1.2,
+                textTransform: "uppercase",
+                color: y2k.cyan,
+              }}
+            >
+              {host?.name}
+            </span>
+            {host?.title && (
+              <span
+                style={{
+                  fontFamily: fontMono,
+                  fontSize: 11,
+                  fontWeight: 600,
+                  letterSpacing: 0.8,
+                  textTransform: "uppercase",
+                  color: color.muted,
+                }}
+              >
+                {host.title}
+              </span>
+            )}
+          </div>
+        </div>
+
+        {onTuneIn && (
+          <div style={{ justifySelf: "end", alignSelf: "end" }}>
+            <TuneInKey tuned={tuned} onTuneIn={onTuneIn} compact />
+          </div>
+        )}
+      </div>
+
+      {/* Tuner */}
+      <div style={{ position: "relative", marginTop: 22 }}>
+        <BroadcastTimeline
+          progress={progress}
+          startLabel={formatShowClock(show.startHour)}
+          endLabel={formatShowClock(show.endHour === 24 ? 0 : show.endHour)}
+        />
+      </div>
+
+      {/* Status line — remaining + up next + bumper in one quiet row */}
+      <div
+        style={{
+          position: "relative",
+          marginTop: 14,
+          display: "flex",
+          flexWrap: "wrap",
+          alignItems: "baseline",
+          gap: "8px 18px",
+        }}
+      >
+        <div style={{ display: "inline-flex", alignItems: "baseline", gap: 8 }}>
+          <TechLabel color={color.faint}>Left</TechLabel>
+          <span
+            style={{
+              fontFamily: fontDisplay,
+              fontSize: 18,
+              fontWeight: 700,
+              letterSpacing: 0.3,
+              color: y2k.offWhite,
+            }}
+          >
+            {formatRemaining(remainingMinutes) || "—"}
+          </span>
+        </div>
+
+        {nextShow && (
+          <div style={{ display: "inline-flex", alignItems: "baseline", gap: 8, minWidth: 0 }}>
+            <TechLabel color={color.faint}>Up next</TechLabel>
+            <span
+              style={{
+                fontFamily: fontDisplay,
+                fontSize: 13,
+                fontWeight: 700,
+                letterSpacing: 0.4,
+                textTransform: "uppercase",
+                color: color.body,
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                whiteSpace: "nowrap",
+              }}
+            >
+              {nextShow.shortTitle || nextShow.title}
+            </span>
+            <span
+              style={{
+                fontFamily: fontMono,
+                fontSize: 11,
+                fontWeight: 700,
+                color: y2k.cyan,
+              }}
+            >
+              {formatShowClock(nextShow.startHour)}
+            </span>
+          </div>
+        )}
+
+        {bumper && (
+          <span
+            style={{
+              fontSize: 12,
+              fontWeight: 500,
+              fontStyle: "italic",
+              color: "rgba(169,199,210,0.55)",
+              lineHeight: 1.35,
+              maxWidth: "100%",
+            }}
+          >
+            “{bumper}”
+          </span>
+        )}
+      </div>
+
+      <style>{`
+        @media (max-width: 560px) {
+          .pmp-onair-hero {
+            grid-template-columns: 1fr !important;
+          }
+          .pmp-onair-hero .pmp-tune-key {
+            width: 100% !important;
+          }
+        }
+      `}</style>
+    </div>
+  );
+}
+
+/**
+ * Hero ON AIR — standalone stage wrapper (legacy export).
  */
 export function NowOnAirCard({
   airing = null,
@@ -345,330 +596,51 @@ export function NowOnAirCard({
   embedded = false,
 }) {
   if (!airing?.show) return null;
-  const { show, host, remainingMinutes, progress, nextShow } = airing;
-  const prog = programIndex(show.id);
 
-  const body = (
-    <>
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "minmax(0, 1.35fr) minmax(140px, 0.75fr)",
-          gap: 12,
-          alignItems: "stretch",
-        }}
-        className="pmp-tonight-grid"
-      >
-        {/* LCD DISPLAY */}
-        <div
-          style={{
-            position: "relative",
-            overflow: "hidden",
-            borderRadius: radio.radiusLcd,
-            border: radio.lcdBorder,
-            background: radio.lcdFace,
-            boxShadow: radio.lcdShadow,
-            padding: "14px 14px 12px",
-            minWidth: 0,
-          }}
-        >
-          <Scanlines />
-          <div
-            style={{
-              position: "relative",
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              gap: 8,
-              marginBottom: 12,
-            }}
-          >
-            <div style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
-              <LiveLed size={7} />
-              <TechLabel color={chrome.live} style={{ letterSpacing: 1.8 }}>
-                On Air
-              </TechLabel>
-              <TechLabel color="rgba(101,230,255,0.35)">│</TechLabel>
-              <TechLabel color={y2k.cyan}>Live</TechLabel>
-            </div>
-            <div style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
-              <TechLabel color="rgba(101,230,255,0.55)">Prog {prog}</TechLabel>
-              <SignalBars level={4} />
-            </div>
-          </div>
-
-          <div style={{ position: "relative", display: "flex", gap: 12, alignItems: "flex-start" }}>
-            <HostAvatar host={host} size={52} lcd />
-            <div style={{ minWidth: 0, flex: 1 }}>
-              <h2
-                style={{
-                  margin: 0,
-                  fontFamily: fontDisplay,
-                  fontSize: "clamp(20px, 4vw, 26px)",
-                  fontWeight: 700,
-                  letterSpacing: 0.6,
-                  lineHeight: 1.05,
-                  textTransform: "uppercase",
-                  color: y2k.cyan,
-                  textShadow: `0 0 18px rgba(${chrome.cyanRgb},0.35)`,
-                }}
-              >
-                {show.title}
-              </h2>
-              <div
-                style={{
-                  marginTop: 6,
-                  fontSize: 12,
-                  fontWeight: 500,
-                  color: "rgba(201,220,230,0.72)",
-                  lineHeight: 1.35,
-                }}
-              >
-                {show.tagline}
-              </div>
-              <div
-                style={{
-                  marginTop: 10,
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: 3,
-                }}
-              >
-                <span
-                  style={{
-                    fontFamily: fontMono,
-                    fontSize: 11,
-                    fontWeight: 800,
-                    letterSpacing: 1.2,
-                    textTransform: "uppercase",
-                    color: y2k.lightMetal,
-                  }}
-                >
-                  {host.name}
-                </span>
-                <span
-                  style={{
-                    fontFamily: fontMono,
-                    fontSize: 10,
-                    fontWeight: 700,
-                    letterSpacing: 1,
-                    textTransform: "uppercase",
-                    color: "rgba(101,230,255,0.55)",
-                  }}
-                >
-                  {host.title}
-                </span>
-              </div>
-            </div>
-          </div>
-
-          <div style={{ position: "relative", marginTop: 14 }}>
-            <BroadcastTimeline
-              progress={progress}
-              startLabel={formatShowClock(show.startHour)}
-              endLabel={formatShowClock(show.endHour === 24 ? 0 : show.endHour)}
-            />
-          </div>
-
-          {bumper && (
-            <div
-              style={{
-                position: "relative",
-                marginTop: 12,
-                paddingTop: 10,
-                borderTop: "1px solid rgba(101,230,255,0.12)",
-                fontSize: 11,
-                fontWeight: 500,
-                fontStyle: "italic",
-                color: "rgba(169,199,210,0.7)",
-                lineHeight: 1.4,
-              }}
-            >
-              “{bumper}”
-            </div>
-          )}
-        </div>
-
-        {/* CHROME CONTROL BAY */}
-        <div
-          style={{
-            position: "relative",
-            display: "flex",
-            flexDirection: "column",
-            justifyContent: "space-between",
-            gap: 12,
-            padding: "12px 12px 12px",
-            borderRadius: radio.radiusTight,
-            border: radio.borderChrome,
-            background: `
-              linear-gradient(180deg, rgba(255,255,255,0.14) 0%, rgba(255,255,255,0.03) 40%, transparent 100%),
-              linear-gradient(160deg, rgba(48,54,64,0.55) 0%, rgba(22,26,32,0.65) 100%)
-            `,
-            boxShadow:
-              "inset 0 1px 0 rgba(255,255,255,0.2), inset 0 -1px 0 rgba(0,0,0,0.35)",
-            backdropFilter: "blur(18px) saturate(1.3)",
-            WebkitBackdropFilter: "blur(18px) saturate(1.3)",
-            minWidth: 0,
-          }}
-        >
-          <div>
-            <TechLabel color={color.muted} style={{ display: "block", marginBottom: 6 }}>
-              Remaining
-            </TechLabel>
-            <div
-              style={{
-                fontFamily: fontDisplay,
-                fontSize: "clamp(22px, 4vw, 28px)",
-                fontWeight: 700,
-                letterSpacing: 0.4,
-                color: y2k.offWhite,
-                lineHeight: 1,
-              }}
-            >
-              {formatRemaining(remainingMinutes) || "—"}
-            </div>
-            <div
-              style={{
-                marginTop: 10,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                gap: 8,
-              }}
-            >
-              <TechLabel color={color.faint}>Signal</TechLabel>
-              <SignalBars level={4} />
-            </div>
-            <div
-              style={{
-                marginTop: 8,
-                fontFamily: fontMono,
-                fontSize: 10,
-                fontWeight: 700,
-                letterSpacing: 0.8,
-                textTransform: "uppercase",
-                color: color.muted,
-              }}
-            >
-              {show.timeLabel}
-            </div>
-          </div>
-
-          <TuneInKey tuned={tuned} onTuneIn={onTuneIn} />
-
-          {nextShow && (
-            <div
-              style={{
-                paddingTop: 10,
-                borderTop: "1px solid rgba(255,255,255,0.1)",
-              }}
-            >
-              <TechLabel color={color.faint} style={{ display: "block", marginBottom: 4 }}>
-                Up next
-              </TechLabel>
-              <div
-                style={{
-                  fontFamily: fontDisplay,
-                  fontSize: 13,
-                  fontWeight: 700,
-                  letterSpacing: 0.4,
-                  textTransform: "uppercase",
-                  color: color.body,
-                  lineHeight: 1.2,
-                }}
-              >
-                {nextShow.shortTitle || nextShow.title}
-              </div>
-              <div
-                style={{
-                  marginTop: 3,
-                  fontFamily: fontMono,
-                  fontSize: 11,
-                  fontWeight: 700,
-                  letterSpacing: 0.6,
-                  color: y2k.cyan,
-                }}
-              >
-                {formatShowClock(nextShow.startHour)}
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-
-      <style>{`
-        @media (max-width: 560px) {
-          .pmp-tonight-grid {
-            grid-template-columns: 1fr !important;
-          }
-        }
-      `}</style>
-    </>
+  const stage = (
+    <OnAirStage
+      airing={airing}
+      bumper={bumper}
+      tuned={tuned}
+      onTuneIn={onTuneIn}
+    />
   );
 
   if (embedded) {
-    return (
-      <div aria-label={`Now on air: ${show.title}`} style={{ position: "relative" }}>
-        {body}
-      </div>
-    );
+    return <div style={{ position: "relative" }}>{stage}</div>;
   }
 
   return (
     <section
-      aria-label={`Now on air: ${show.title}`}
+      aria-label={`Now on air: ${airing.show.title}`}
       style={{
         margin: 0,
-        padding: 0,
+        padding: `0 ${homeSpace.gutter}px`,
         animation: `rise 0.5s ${motion.ease} both`,
       }}
     >
       <div
-        className="pmp-radio-module"
         style={{
           position: "relative",
           overflow: "hidden",
-          borderRadius: radio.radius,
-          border: radio.borderLive,
-          background: radio.glassFaceLive,
-          boxShadow: radio.glassShadowLive,
-          backdropFilter: radio.glassBlur,
-          WebkitBackdropFilter: radio.glassBlur,
-          color: color.ink,
-          padding: 12,
+          padding: "20px 0 8px",
+          borderTop: "1px solid rgba(101,230,255,0.16)",
+          borderBottom: "1px solid rgba(255,255,255,0.06)",
+          background: `
+            radial-gradient(ellipse 80% 90% at 0% 0%, rgba(${chrome.cyanRgb},0.1) 0%, transparent 55%),
+            radial-gradient(ellipse 50% 70% at 100% 100%, rgba(123,167,255,0.05) 0%, transparent 50%)
+          `,
         }}
       >
-        <Scanlines />
-        <div
-          style={{
-            position: "relative",
-            display: "flex",
-            justifyContent: "space-between",
-            gap: 10,
-            marginBottom: 12,
-            paddingBottom: 10,
-            borderBottom: "1px solid rgba(255,255,255,0.1)",
-            alignItems: "center",
-            flexWrap: "wrap",
-          }}
-        >
-          <TechLabel color={y2k.offWhite} style={{ letterSpacing: 2, fontSize: 11 }}>
-            On tonight
-          </TechLabel>
-          <div style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
-            <TechLabel color={color.muted}>{STATION_CALLSIGN}</TechLabel>
-            <TechLabel color={color.faint}>·</TechLabel>
-            <TechLabel color={y2k.techBlue}>{STATION_FREQ} FM</TechLabel>
-          </div>
-        </div>
-        <div style={{ position: "relative" }}>{body}</div>
+        <Scanlines opacity={0.04} />
+        <div style={{ position: "relative" }}>{stage}</div>
       </div>
     </section>
   );
 }
 
 /**
- * Horizontal day guide — glass program dial strip.
+ * Continuous program dial — one LCD trough, hairline cells (not mini-cards).
  */
 export function ShowGuideRail({
   guide = [],
@@ -696,190 +668,198 @@ export function ShowGuideRail({
           alignItems: "baseline",
           gap: 12,
         }}>
-          <div>
-            <h3 style={{
-              margin: 0,
-              fontFamily: fontDisplay,
-              fontSize: "clamp(18px, 3.4vw, 22px)",
-              fontWeight: 700,
-              letterSpacing: 0.6,
-              textTransform: "uppercase",
-              color: color.ink,
-            }}>
-              Program guide
-            </h3>
-          </div>
-        </div>
-      )}
-
-      {(embedded || flush) && (
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            padding: flush ? "0 2px 10px" : `0 ${homeSpace.gutter}px 10px`,
-          }}
-        >
-          <TechLabel color={color.muted} style={{ letterSpacing: 1.8 }}>
-            Program dial
-          </TechLabel>
-          <TechLabel color={color.faint}>
-            {guide.length} blocks
-          </TechLabel>
+          <h3 style={{
+            margin: 0,
+            fontFamily: fontDisplay,
+            fontSize: "clamp(18px, 3.4vw, 22px)",
+            fontWeight: 700,
+            letterSpacing: 0.6,
+            textTransform: "uppercase",
+            color: color.ink,
+          }}>
+            Program guide
+          </h3>
         </div>
       )}
 
       <div
-        className="hide-scroll"
         style={{
-          display: "flex",
-          gap: 6,
-          overflowX: "auto",
-          padding: flush
-            ? "0 0 2px"
-            : embedded
-              ? `0 ${homeSpace.gutter}px 2px`
-              : `2px ${homeSpace.gutter}px 12px`,
-          scrollSnapType: "x mandatory",
-          WebkitOverflowScrolling: "touch",
+          position: "relative",
+          margin: flush ? 0 : embedded ? `0 ${homeSpace.gutter}px` : `0 ${homeSpace.gutter}px`,
+          borderRadius: flush ? 0 : radio.radiusLcd,
+          border: flush ? "none" : radio.lcdBorder,
+          background: flush
+            ? "transparent"
+            : `
+              linear-gradient(180deg, rgba(101,230,255,0.04) 0%, transparent 40%),
+              linear-gradient(160deg, #0A1016 0%, #06090E 55%, #04060A 100%)
+            `,
+          boxShadow: flush ? "none" : radio.lcdShadow,
+          overflow: "hidden",
         }}
       >
-        {guide.map((show, i) => {
-          const live = show.status === "live";
-          const tuned = activeShowId === show.id;
-          const lit = live || tuned;
-          const upNext = show.status === "up-next";
-          return (
-            <button
-              key={show.id}
-              type="button"
-              onClick={() => onSelectShow?.(show)}
-              aria-current={tuned ? "true" : undefined}
-              className="pmp-lift pmp-schedule-cell"
-              style={{
-                flex: "0 0 auto",
-                width: 132,
-                scrollSnapAlign: "start",
-                textAlign: "left",
-                padding: "10px 10px 11px",
-                borderRadius: radio.radiusTight,
-                cursor: "pointer",
-                border: lit
-                  ? radio.borderLive
-                  : upNext
-                    ? "1px solid rgba(123,167,255,0.28)"
-                    : "1px solid rgba(255,255,255,0.12)",
-                background: lit ? radio.stripFaceLive : radio.stripFace,
-                boxShadow: lit ? radio.stripShadowLive : radio.stripShadow,
-                backdropFilter: "blur(16px) saturate(1.25)",
-                WebkitBackdropFilter: "blur(16px) saturate(1.25)",
-                transition: `transform ${motion.settle} ${motion.ease}, border-color ${motion.base}, box-shadow ${motion.settle}`,
-              }}
-            >
-              <div
+        {(embedded || flush) && (
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              padding: "0 0 10px",
+            }}
+          >
+            <TechLabel color={color.muted} style={{ letterSpacing: 1.8 }}>
+              Day dial
+            </TechLabel>
+            <TechLabel color={color.faint}>
+              {guide.length} blocks
+            </TechLabel>
+          </div>
+        )}
+
+        <div
+          className="hide-scroll pmp-day-dial"
+          style={{
+            display: "flex",
+            gap: 0,
+            overflowX: "auto",
+            padding: flush ? "0 0 2px" : "2px 0 4px",
+            scrollSnapType: "x mandatory",
+            WebkitOverflowScrolling: "touch",
+            borderTop: "1px solid rgba(101,230,255,0.12)",
+            borderBottom: "1px solid rgba(255,255,255,0.06)",
+            background: `
+              linear-gradient(180deg, rgba(101,230,255,0.05) 0%, transparent 50%),
+              rgba(6,10,14,0.72)
+            `,
+            boxShadow: "inset 0 1px 0 rgba(255,255,255,0.04), inset 0 -1px 0 rgba(0,0,0,0.4)",
+          }}
+        >
+          {guide.map((show, i) => {
+            const live = show.status === "live";
+            const tuned = activeShowId === show.id;
+            const lit = live || tuned;
+            const upNext = show.status === "up-next";
+            return (
+              <button
+                key={show.id}
+                type="button"
+                onClick={() => onSelectShow?.(show)}
+                aria-current={tuned ? "true" : undefined}
+                className="pmp-dial-cell"
                 style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  gap: 6,
-                  marginBottom: 8,
-                  alignItems: "center",
+                  flex: lit ? "0 0 168px" : "0 0 108px",
+                  scrollSnapAlign: "start",
+                  textAlign: "left",
+                  padding: "12px 12px 14px",
+                  margin: 0,
+                  borderRadius: 0,
+                  cursor: "pointer",
+                  border: "none",
+                  borderRight: "1px solid rgba(255,255,255,0.06)",
+                  borderLeft: lit
+                    ? `2px solid ${live ? chrome.live : y2k.cyan}`
+                    : "2px solid transparent",
+                  background: lit
+                    ? `
+                      linear-gradient(180deg, rgba(101,230,255,0.12) 0%, rgba(101,230,255,0.02) 100%),
+                      rgba(12,18,24,0.9)
+                    `
+                    : upNext
+                      ? "rgba(123,167,255,0.04)"
+                      : "transparent",
+                  boxShadow: lit
+                    ? `inset 0 0 24px rgba(${chrome.cyanRgb},0.06)`
+                    : "none",
+                  transition: `flex-basis ${motion.settle} ${motion.ease}, background ${motion.base}, border-color ${motion.base}`,
+                  WebkitTapHighlightColor: "transparent",
                 }}
               >
-                <span
+                <div
                   style={{
-                    display: "inline-flex",
+                    display: "flex",
+                    justifyContent: "space-between",
+                    gap: 6,
+                    marginBottom: 10,
                     alignItems: "center",
-                    gap: 5,
-                    fontFamily: fontMono,
-                    fontSize: 9,
-                    fontWeight: 800,
-                    letterSpacing: 1.1,
-                    textTransform: "uppercase",
-                    color: live
-                      ? chrome.live
-                      : tuned
-                        ? y2k.cyan
-                        : upNext
-                          ? y2k.techBlue
-                          : color.muted,
                   }}
                 >
-                  {live && <LiveLed size={5} />}
-                  {live
-                    ? "Live"
-                    : tuned
-                      ? "Tuned"
-                      : upNext
-                        ? "Next"
-                        : formatShowClock(show.startHour)}
-                </span>
-                <TechLabel color={lit ? y2k.cyan : "rgba(255,255,255,0.22)"} style={{ fontSize: 8 }}>
-                  {String(i + 1).padStart(2, "0")}
-                </TechLabel>
-              </div>
-              <div
-                style={{
-                  fontFamily: fontDisplay,
-                  fontSize: 13,
-                  fontWeight: 700,
-                  letterSpacing: 0.4,
-                  textTransform: "uppercase",
-                  color: lit ? y2k.offWhite : color.ink,
-                  lineHeight: 1.15,
-                  minHeight: 30,
-                }}
-              >
-                {show.shortTitle || show.title}
-              </div>
-              <div
-                style={{
-                  marginTop: 8,
-                  height: 1,
-                  background: lit
-                    ? "linear-gradient(90deg, rgba(101,230,255,0.45), transparent)"
-                    : "rgba(255,255,255,0.08)",
-                }}
-              />
-              <div
-                style={{
-                  marginTop: 7,
-                  fontFamily: fontMono,
-                  fontSize: 9,
-                  fontWeight: 700,
-                  letterSpacing: 0.9,
-                  textTransform: "uppercase",
-                  color: color.muted,
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
-                  whiteSpace: "nowrap",
-                }}
-              >
-                {show.host?.name}
-              </div>
-              <div
-                style={{
-                  marginTop: 4,
-                  fontFamily: fontMono,
-                  fontSize: 9,
-                  fontWeight: 600,
-                  letterSpacing: 0.3,
-                  color: lit ? y2k.cyan : color.faint,
-                }}
-              >
-                {show.timeLabel}
-              </div>
-            </button>
-          );
-        })}
+                  <span
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: 5,
+                      fontFamily: fontMono,
+                      fontSize: 9,
+                      fontWeight: 800,
+                      letterSpacing: 1.1,
+                      textTransform: "uppercase",
+                      color: live
+                        ? chrome.live
+                        : tuned
+                          ? y2k.cyan
+                          : upNext
+                            ? y2k.techBlue
+                            : color.muted,
+                    }}
+                  >
+                    {live && <LiveLed size={5} />}
+                    {live
+                      ? "Live"
+                      : tuned
+                        ? "Tuned"
+                        : upNext
+                          ? "Next"
+                          : formatShowClock(show.startHour)}
+                  </span>
+                  <TechLabel
+                    color={lit ? y2k.cyan : "rgba(255,255,255,0.18)"}
+                    style={{ fontSize: 8 }}
+                  >
+                    {String(i + 1).padStart(2, "0")}
+                  </TechLabel>
+                </div>
+                <div
+                  style={{
+                    fontFamily: fontDisplay,
+                    fontSize: lit ? 14 : 12,
+                    fontWeight: 700,
+                    letterSpacing: 0.3,
+                    textTransform: "uppercase",
+                    color: lit ? y2k.offWhite : color.body,
+                    lineHeight: 1.15,
+                    minHeight: 28,
+                  }}
+                >
+                  {show.shortTitle || show.title}
+                </div>
+                <div
+                  style={{
+                    marginTop: 10,
+                    fontFamily: fontMono,
+                    fontSize: 9,
+                    fontWeight: 700,
+                    letterSpacing: 0.8,
+                    textTransform: "uppercase",
+                    color: lit ? "rgba(101,230,255,0.65)" : color.faint,
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  {show.host?.name}
+                </div>
+              </button>
+            );
+          })}
+        </div>
       </div>
     </section>
   );
 }
 
 /**
- * Unified On Tonight deck — one Y2K glass instrument panel.
- * Header chrome + LCD receiver + program dial in a single chassis.
+ * On Tonight — flat broadcast stage + continuous day dial.
+ * One atmospheric band (not a nested glass card stack).
  */
 export function TonightDeck({
   airing = null,
@@ -892,7 +872,6 @@ export function TonightDeck({
   showNowPlaying = true,
 }) {
   const show = airing?.show || null;
-  const prog = show ? programIndex(show.id) : "—";
   const hasGuide = guide.length > 0;
   const hasNow = !!(showNowPlaying && show);
 
@@ -901,124 +880,109 @@ export function TonightDeck({
   return (
     <section
       aria-label="On tonight"
+      className="pmp-tonight-stage"
       style={{
         marginTop: homeSpace.sectionGapFirst,
-        padding: `0 ${homeSpace.gutter}px`,
-        animation: `rise 0.5s ${motion.ease} 0.04s both`,
+        padding: 0,
+        animation: `rise 0.55s ${motion.ease} 0.04s both`,
+        position: "relative",
+        overflow: "hidden",
       }}
     >
+      {/* Full-bleed atmosphere — no chassis card */}
       <div
-        className="pmp-radio-module pmp-tonight-deck"
+        aria-hidden="true"
+        style={{
+          position: "absolute",
+          inset: 0,
+          pointerEvents: "none",
+          background: `
+            radial-gradient(ellipse 95% 70% at 8% -10%, rgba(${chrome.cyanRgb},0.16) 0%, transparent 52%),
+            radial-gradient(ellipse 60% 50% at 100% 30%, rgba(123,167,255,0.07) 0%, transparent 48%),
+            linear-gradient(180deg, rgba(14,18,24,0.9) 0%, rgba(8,10,13,0.35) 55%, transparent 100%)
+          `,
+        }}
+      />
+      <Scanlines opacity={0.035} />
+
+      {/* Section identity — brand-weight, not a card header */}
+      <div
         style={{
           position: "relative",
-          overflow: "hidden",
-          borderRadius: radio.radius,
-          border: radio.borderLive,
-          background: radio.glassFaceLive,
-          boxShadow: radio.glassShadowLive,
-          backdropFilter: radio.glassBlur,
-          WebkitBackdropFilter: radio.glassBlur,
-          padding: "12px 12px 12px",
+          padding: `4px ${homeSpace.gutter}px 0`,
         }}
       >
-        <Scanlines />
-
-        {/* Chrome header */}
         <div
           style={{
-            position: "relative",
             display: "flex",
+            alignItems: "baseline",
             justifyContent: "space-between",
-            alignItems: "center",
             gap: 12,
-            marginBottom: hasNow || hasGuide ? 12 : 0,
-            padding: "2px 2px 12px",
-            borderBottom: "1px solid rgba(255,255,255,0.1)",
             flexWrap: "wrap",
+            paddingBottom: 16,
+            borderBottom: `1px solid rgba(${chrome.cyanRgb},0.2)`,
+            boxShadow: `0 1px 0 rgba(0,0,0,0.35)`,
           }}
         >
-          <div style={{ minWidth: 0 }}>
-            <div
-              style={{
-                fontFamily: fontDisplay,
-                fontSize: 15,
-                fontWeight: 700,
-                letterSpacing: 1.4,
-                textTransform: "uppercase",
-                color: y2k.offWhite,
-                lineHeight: 1.1,
-              }}
-            >
-              On tonight
-            </div>
-            {show?.tagline && (
-              <div
-                style={{
-                  marginTop: 4,
-                  fontSize: 12,
-                  fontWeight: 500,
-                  color: color.muted,
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
-                  whiteSpace: "nowrap",
-                  maxWidth: 280,
-                }}
-              >
-                {show.tagline}
-              </div>
-            )}
-          </div>
+          <h2
+            style={{
+              margin: 0,
+              fontFamily: fontDisplay,
+              fontSize: "clamp(28px, 7vw, 40px)",
+              fontWeight: 800,
+              letterSpacing: -1,
+              textTransform: "uppercase",
+              color: y2k.offWhite,
+              lineHeight: 0.95,
+            }}
+          >
+            On tonight
+          </h2>
           <div
             style={{
               display: "inline-flex",
               alignItems: "center",
               gap: 8,
-              padding: "6px 10px",
-              borderRadius: radio.radiusLcd,
-              background: "rgba(6,10,14,0.55)",
-              border: "1px solid rgba(101,230,255,0.18)",
-              boxShadow: "inset 0 1px 0 rgba(255,255,255,0.06)",
-              flexWrap: "wrap",
             }}
           >
-            <TechLabel color={y2k.lightMetal}>{STATION_CALLSIGN}</TechLabel>
+            <TechLabel color={color.muted}>{STATION_CALLSIGN}</TechLabel>
             <TechLabel color="rgba(101,230,255,0.3)">·</TechLabel>
             <TechLabel color={y2k.cyan}>{STATION_FREQ} FM</TechLabel>
-            <TechLabel color="rgba(101,230,255,0.3)">·</TechLabel>
-            <TechLabel color={y2k.techBlue}>Prog {prog}</TechLabel>
           </div>
         </div>
-
-        {hasNow && (
-          <div style={{ position: "relative", marginBottom: hasGuide ? 14 : 0 }}>
-            <NowOnAirCard
-              airing={airing}
-              bumper={bumper}
-              tuned={tuned}
-              onTuneIn={onTuneIn}
-              embedded
-            />
-          </div>
-        )}
-
-        {hasGuide && (
-          <div
-            style={{
-              position: "relative",
-              paddingTop: hasNow ? 12 : 0,
-              borderTop: hasNow ? "1px solid rgba(255,255,255,0.08)" : "none",
-              margin: hasNow ? "0 -2px" : 0,
-            }}
-          >
-            <ShowGuideRail
-              guide={guide}
-              activeShowId={activeShowId}
-              onSelectShow={onSelectShow}
-              flush
-            />
-          </div>
-        )}
       </div>
+
+      {hasNow && (
+        <div
+          style={{
+            position: "relative",
+            padding: `22px ${homeSpace.gutter}px ${hasGuide ? 8 : 20}px`,
+          }}
+        >
+          <OnAirStage
+            airing={airing}
+            bumper={bumper}
+            tuned={tuned}
+            onTuneIn={onTuneIn}
+          />
+        </div>
+      )}
+
+      {hasGuide && (
+        <div
+          style={{
+            position: "relative",
+            padding: `${hasNow ? 12 : 18}px ${homeSpace.gutter}px 20px`,
+          }}
+        >
+          <ShowGuideRail
+            guide={guide}
+            activeShowId={activeShowId}
+            onSelectShow={onSelectShow}
+            flush
+          />
+        </div>
+      )}
     </section>
   );
 }

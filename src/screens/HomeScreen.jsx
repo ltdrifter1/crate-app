@@ -248,7 +248,7 @@ function HomeScreen({
         />
       )}
 
-      {/* ON TONIGHT — unified Y2K glass receiver deck */}
+      {/* ON TONIGHT — flat broadcast stage + continuous day dial */}
       {catalogReady && hasTonight && (
         <TonightDeck
           airing={airing}
