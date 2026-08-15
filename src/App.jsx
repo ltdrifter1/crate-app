@@ -515,13 +515,15 @@ const injectStyles = () => {
         0 6px 16px rgba(0,0,0,0.34) !important;
     }
     .pmp-dial-cell:hover {
-      background:
-        linear-gradient(180deg, rgba(101,230,255,0.1) 0%, rgba(101,230,255,0.02) 100%),
-        rgba(14,20,26,0.95) !important;
+      color: #F7F8FA;
+    }
+    .pmp-dial-cell:hover > div:nth-child(2),
+    .pmp-dial-cell:hover > div:nth-child(3) {
+      opacity: 1;
     }
     .pmp-dial-cell:active {
       transform: none;
-      opacity: 0.92;
+      opacity: 0.88;
     }
     .pmp-tonight-stage {
       animation: rise 0.55s ${motion.ease} 0.04s both;
