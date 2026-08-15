@@ -47,10 +47,68 @@
         min-height: 100vh;
         min-height: 100dvh;
       }
+      body {
+        margin: 0;
+        background: #080A0D;
+        color: #F7F8FA;
+      }
+      /* Pre-React boot shell — replaced when the app mounts */
+      #boot-splash {
+        min-height: 100vh;
+        min-height: 100dvh;
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 22px;
+        box-sizing: border-box;
+        padding: 24px;
+        background:
+          radial-gradient(ellipse 90% 55% at 50% -10%, rgba(101,230,255,0.08) 0%, transparent 55%),
+          #080A0D;
+      }
+      #boot-splash img {
+        width: min(200px, 48vw);
+        height: auto;
+        display: block;
+        object-fit: contain;
+        user-select: none;
+        -webkit-user-drag: none;
+      }
+      #boot-splash .boot-label {
+        font-family: "IBM Plex Mono", "SF Mono", ui-monospace, Menlo, Monaco, monospace;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.22em;
+        text-transform: uppercase;
+        color: #A4AAB4;
+        margin: 0;
+        animation: bootPulse 1.4s ease-in-out infinite;
+      }
+      @keyframes bootPulse {
+        0%, 100% { opacity: 0.45; }
+        50% { opacity: 1; }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        #boot-splash .boot-label { animation: none; opacity: 0.85; }
+      }
     </style>
   </head>
   <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>
-    <div id="root"></div>
+    <div id="root">
+      <div id="boot-splash" role="status" aria-live="polite" aria-busy="true" aria-label="Loading">
+        <img
+          src="%PUBLIC_URL%/brand/planet-mp3-lockup-512.png"
+          alt="Planet MP3"
+          width="200"
+          height="200"
+          decoding="async"
+          fetchpriority="high"
+        />
+        <p class="boot-label">Loading…</p>
+      </div>
+    </div>
   </body>
 </html>

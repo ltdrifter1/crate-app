@@ -2095,8 +2095,43 @@ function CatalogSkeleton() {
     </div>
   );
   return (
-    <div aria-hidden="true" style={{ paddingTop: 32, animation: "fadeIn 0.3s ease both" }}>
-      <div style={{ padding: `0 ${homeSpace.gutter}px`, marginBottom: 36 }}>
+    <div style={{ paddingTop: 32, animation: "fadeIn 0.3s ease both" }}>
+      <div
+        role="status"
+        aria-live="polite"
+        style={{
+          padding: `0 ${homeSpace.gutter}px`,
+          marginBottom: 18,
+          display: "flex",
+          alignItems: "center",
+          gap: 10,
+        }}
+      >
+        <span
+          aria-hidden="true"
+          style={{
+            width: 6,
+            height: 6,
+            borderRadius: "50%",
+            background: chrome.signal,
+            boxShadow: `0 0 10px rgba(${chrome.cyanRgb},0.45)`,
+            animation: "breathe 1.4s ease-in-out infinite",
+          }}
+        />
+        <span
+          style={{
+            fontFamily: fontMono,
+            fontSize: 11,
+            fontWeight: 700,
+            letterSpacing: 2,
+            textTransform: "uppercase",
+            color: color.muted,
+          }}
+        >
+          Loading…
+        </span>
+      </div>
+      <div aria-hidden="true" style={{ padding: `0 ${homeSpace.gutter}px`, marginBottom: 36 }}>
         <div style={{
           width: "100%", maxWidth: 420, height: 200, borderRadius: radius.xl,
           border: `1px solid ${glass.borderFaint}`,
@@ -4033,12 +4068,38 @@ export default function App() {
   }, [screen]);
 
   // ── Loading states ────────────────────────────────────────────────────────
-  // Auth boot — logo only (Lottie slot at public/brand/splash-loader.json)
+  // Auth boot — brand lockup + Loading… (Lottie slot at public/brand/splash-loader.json)
   if (authLoading) {
     return (
-      <Suspense fallback={<div style={{ minHeight: "100dvh", display: "grid", placeItems: "center" }} />}>
-        <SplashScreen size={240} />
-      </Suspense>
+      <div style={{ ...APP_STYLE, position: "relative" }}>
+        <Suspense
+          fallback={(
+            <div
+              role="status"
+              aria-live="polite"
+              aria-busy="true"
+              style={{
+                minHeight: "100dvh",
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 16,
+                color: color.muted,
+                fontFamily: fontMono,
+                fontSize: 11,
+                fontWeight: 700,
+                letterSpacing: 2.2,
+                textTransform: "uppercase",
+              }}
+            >
+              Loading…
+            </div>
+          )}
+        >
+          <SplashScreen size={240} label="Loading…" />
+        </Suspense>
+      </div>
     );
   }
 
