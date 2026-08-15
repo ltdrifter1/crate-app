@@ -260,7 +260,7 @@ function HomeScreen({
         />
       )}
 
-      {/* ON TONIGHT — flat broadcast stage + continuous day dial */}
+      {/* ON TONIGHT — EPG band, shared left edge with Channel surfing */}
       {catalogReady && hasTonight && (
         <TonightDeck
           airing={airing}
@@ -268,6 +268,7 @@ function HomeScreen({
           bumper={showBumper}
           activeShowId={activeShowId}
           tuned={false}
+          first={!hasChannels}
           showNowPlaying={!!(airing?.show && !(activeShowId === airing.show.id && currentTrack))}
           onTuneIn={() => onTuneShow?.(airing?.show)}
           onSelectShow={(show) => onTuneShow?.(show)}
