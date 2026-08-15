@@ -35,7 +35,7 @@ describe("SplashScreen", () => {
     expect(placeholder.h).toBe(512);
   });
 
-  test("renders logo-only with transparent background", async () => {
+  test("renders lockup with visible Loading… indicator", async () => {
     const div = document.createElement("div");
     document.body.appendChild(div);
     const root = createRoot(div);
@@ -47,8 +47,9 @@ describe("SplashScreen", () => {
     });
     const status = div.querySelector('[role="status"]');
     expect(status).toBeTruthy();
+    expect(status.getAttribute("aria-busy")).toBe("true");
     expect(status.style.background).toBe("transparent");
-    expect(div.textContent).not.toMatch(/please wait/i);
+    expect(div.textContent).toMatch(/Loading/i);
     // Placeholder Lottie → static brand lockup
     const img = div.querySelector("img");
     expect(img).toBeTruthy();

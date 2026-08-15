@@ -1,12 +1,12 @@
 /**
  * SplashScreen — initial auth boot.
- * Logo only, oversized, transparent background. No copy.
+ * Brand lockup + visible Loading… indicator. Transparent shell over APP_STYLE.
  *
  * Lottie loads on demand (not in the main chunk). Prefer
  * public/brand/splash-loader.json when its `nm` is not a PLACEHOLDER.
  */
 import { useEffect, useState, lazy, Suspense } from "react";
-import { BRAND_NAME } from "../../theme";
+import { BRAND_NAME, chrome, fontMono, motion, y2k } from "../../theme";
 import {
   BRAND_LOCKUP_SRC,
   BRAND_LOCKUP_SRCSET,
@@ -68,8 +68,9 @@ function StaticLockup({ size, edge }) {
 /**
  * @param {object} [props]
  * @param {number} [props.size=220] — logo edge length (responsive capped)
+ * @param {string} [props.label="Loading…"] — visible boot status copy
  */
-export default function SplashScreen({ size = 220 } = {}) {
+export default function SplashScreen({ size = 220, label = "Loading…" } = {}) {
   const reduced = usePrefersReducedMotion();
   const [animation, setAnimation] = useState(null);
 
@@ -94,18 +95,22 @@ export default function SplashScreen({ size = 220 } = {}) {
     <div
       role="status"
       aria-live="polite"
-      aria-label="Loading"
+      aria-busy="true"
+      aria-label={label}
       style={{
         minHeight: "100dvh",
         width: "100%",
         display: "flex",
+        flexDirection: "column",
         alignItems: "center",
         justifyContent: "center",
+        gap: 22,
         background: "transparent",
         position: "relative",
         overflow: "hidden",
         margin: 0,
-        padding: 0,
+        padding: 24,
+        boxSizing: "border-box",
       }}
     >
       <div
@@ -139,7 +144,34 @@ export default function SplashScreen({ size = 220 } = {}) {
           <StaticLockup size={size} edge={edge} />
         )}
       </div>
-      <span className="sr-only">Loading Planet MP3</span>
+
+      <p
+        style={{
+          margin: 0,
+          fontFamily: fontMono,
+          fontSize: 11,
+          fontWeight: 700,
+          letterSpacing: 2.4,
+          textTransform: "uppercase",
+          color: y2k.chromeMid || "#8B939F",
+          animation: reduced ? "none" : `breathe 1.4s ${motion.ease} infinite`,
+        }}
+      >
+        {label}
+      </p>
+
+      {/* Quiet cyan hairline under the status — tuner signal */}
+      <div
+        aria-hidden="true"
+        style={{
+          width: 48,
+          height: 2,
+          borderRadius: 1,
+          background: `linear-gradient(90deg, transparent, rgba(${chrome.cyanRgb},0.65), transparent)`,
+          boxShadow: `0 0 12px rgba(${chrome.cyanRgb},0.35)`,
+          animation: reduced ? "none" : `breathe 1.4s ${motion.ease} infinite`,
+        }}
+      />
     </div>
   );
 }
