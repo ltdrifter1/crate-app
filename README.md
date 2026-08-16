@@ -6,9 +6,9 @@ Music you inhabit.
 
 Living destinations for discovering, collecting, and experiencing music — not another streaming feed.
 
-**Product vision & full audit:** [`docs/ROOMS_PRODUCT_VISION.md`](docs/ROOMS_PRODUCT_VISION.md)
+**Current product IA:** broadcast **Home** (Channel Surfing, live stage, charts) + Explore / Library / Club. Rooms/Paths nav is retired; see archival notes in [`docs/ROOMS_PRODUCT_VISION.md`](docs/ROOMS_PRODUCT_VISION.md).
 
-Legacy listening core (harmonic radio, sessions, Hypno, floor phases) remains; Rooms are becoming first-class destinations.
+**UX audit:** [`docs/UX_AUDIT.md`](docs/UX_AUDIT.md) · **Billing:** [`docs/STRIPE_FIREBASE_BILLING.md`](docs/STRIPE_FIREBASE_BILLING.md)
 
 ## Stack
 

@@ -7,7 +7,7 @@ Home **Channel Surfing** uses nine fixed dials (`src/lib/sceneChannels.js`).
 | 01 | Y2K Dance | Genre / house–garage–disco–trance scenes | **by genre** |
 | 02 | Variety Mix | Curator `batch` (`variety-wave-N`) when set; else cross-genre mix | **curator** shelf / playlist |
 | 03 | Local Pacific Northwest | PNW region/keywords + `batch` includes `audioasis` | **Audioasis** batch upload |
-| 04 | Electronic | Techno/warehouse scenes + energy + `batch` includes `expansion` | **expansions** |
+| 04 | Electronic | `batch` includes `expansion` / `expansions`, else techno–warehouse scenes + energy | **expansions** |
 | 05 | Drum & Bass | DnB / jungle / liquid scenes | **by genre** |
 | 06 | Emo & Shoegaze | Genre + emo/shoegaze keywords | **by genre** |
 | 07 | Metal | `batch` includes `metal` (+ Metal genre / scene) | **metal** batch upload |
