@@ -321,7 +321,7 @@ export const homeSpace = {
   /** Featured / countdown / releases — asymmetric presence. */
   tileFeatured: 188,
   /** Channel surfing future-ticket width. */
-  tileTicket: 292,
+  tileTicket: 304,
   /** Space under section title stack before the rail. */
   titleToRail: 12,
 };

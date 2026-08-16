@@ -112,8 +112,15 @@ export default function ChannelCard({
             justifyContent: "space-between",
             padding: "14px 8px",
             background: active
-              ? "linear-gradient(180deg, rgba(101,230,255,0.12) 0%, rgba(8,12,16,0.35) 100%)"
-              : "linear-gradient(180deg, rgba(255,255,255,0.06) 0%, rgba(8,10,13,0.28) 100%)",
+              ? `
+                linear-gradient(180deg, rgba(101,230,255,0.18) 0%, rgba(101,230,255,0.04) 100%),
+                linear-gradient(90deg, rgba(255,255,255,0.05) 0%, transparent 100%)
+              `
+              : `
+                linear-gradient(180deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.02) 100%),
+                linear-gradient(90deg, rgba(255,255,255,0.04) 0%, transparent 100%)
+              `,
+            boxShadow: "inset -1px 0 0 rgba(255,255,255,0.06)",
           }}
         >
           <span
@@ -166,37 +173,71 @@ export default function ChannelCard({
           </span>
         </span>
 
-        {/* Perforation */}
+        {/* Perforation — dashed tear + punch holes */}
         <span
+          aria-hidden="true"
           style={{
-            width: 0,
-            position: "relative",
+            width: 14,
             flexShrink: 0,
-            borderLeft: "1.5px dashed rgba(255,255,255,0.22)",
+            position: "relative",
+            display: "flex",
+            alignItems: "stretch",
+            justifyContent: "center",
+            background: "transparent",
           }}
         >
           <span
             style={{
               position: "absolute",
-              top: -7,
-              left: -7,
-              width: 14,
-              height: 14,
+              top: 0,
+              bottom: 0,
+              left: "50%",
+              width: 0,
+              borderLeft: "2px dashed rgba(255,255,255,0.28)",
+              transform: "translateX(-50%)",
+            }}
+          />
+          {/* Micro punch dots along the tear */}
+          {Array.from({ length: 7 }).map((_, i) => (
+            <span
+              key={i}
+              style={{
+                position: "absolute",
+                left: "50%",
+                top: `${12 + i * 12}%`,
+                width: 5,
+                height: 5,
+                marginLeft: -2.5,
+                borderRadius: "50%",
+                background: "#080A0D",
+                boxShadow: "0 0 0 1px rgba(255,255,255,0.14)",
+              }}
+            />
+          ))}
+          <span
+            style={{
+              position: "absolute",
+              top: -8,
+              left: "50%",
+              width: 16,
+              height: 16,
+              marginLeft: -8,
               borderRadius: "50%",
               background: "#080A0D",
-              boxShadow: "inset 0 0 0 1px rgba(255,255,255,0.06)",
+              boxShadow: "0 0 0 1px rgba(255,255,255,0.08)",
             }}
           />
           <span
             style={{
               position: "absolute",
-              bottom: -7,
-              left: -7,
-              width: 14,
-              height: 14,
+              bottom: -8,
+              left: "50%",
+              width: 16,
+              height: 16,
+              marginLeft: -8,
               borderRadius: "50%",
               background: "#080A0D",
-              boxShadow: "inset 0 0 0 1px rgba(255,255,255,0.06)",
+              boxShadow: "0 0 0 1px rgba(255,255,255,0.08)",
             }}
           />
         </span>
