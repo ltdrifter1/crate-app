@@ -52,6 +52,7 @@ import {
   bumpPlayMeter,
   freePlaysRemaining,
 } from "./lib/freePlays";
+import FreePlaysMeter from "./components/billing/FreePlaysMeter";
 import {
   buildCommunityMix,
   buildMixFromPlaylist,
@@ -1883,6 +1884,9 @@ function GlassDock({
   onTogglePlay, onSkip, onPrev, onLike, onSeek,
   isRadioMode, onOpen, playlistCtx, onShowQueue, hypnoPocket,
   hidePlayer = false,
+  playsRemaining = null,
+  access = null,
+  onOpenPlans = null,
 }) {
   const { progress, duration } = usePlayerPlayback();
   const isPlaying = useIsPlaying();
@@ -1919,6 +1923,12 @@ function GlassDock({
         margin: "0 auto",
       }}
     >
+      <FreePlaysMeter
+        variant="banner"
+        remaining={playsRemaining}
+        access={access}
+        onUpgrade={onOpenPlans}
+      />
       {hasPlayer && <EnergyShiftFeedback />}
       {hasPlayer && (
         <div
@@ -2747,6 +2757,11 @@ export default function App() {
       profile?.clubCreditExpiresAt,
       isAdminUser,
     ]
+  );
+  const playsRemaining = useMemo(
+    () => freePlaysRemaining(profile, access),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [profile?.playsToday, profile?.playsDayKey, access]
   );
   // Free is a real tier — never hard-block the app. Plans are an upgrade sheet.
 
@@ -4494,6 +4509,9 @@ export default function App() {
           onShowQueue={() => setShowQueue(true)}
           playlistCtx={playlistCtx}
           hidePlayer={hideDockPlayer}
+          playsRemaining={playsRemaining}
+          access={access}
+          onOpenPlans={handleOpenPlans}
         />
       )}
       {boothPlayer}
@@ -4777,6 +4795,9 @@ export default function App() {
             IceOrbPlay={IceOrbPlay}
             Icon={Icon}
             dockTintStyle={dockTintStyle}
+            playsRemaining={playsRemaining}
+            access={access}
+            onOpenPlans={handleOpenPlans}
           />
         )}
       </div>

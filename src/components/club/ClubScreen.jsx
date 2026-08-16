@@ -29,6 +29,8 @@ import { BrandGlyph as DoorGlyph } from "../brand/BrandMark";
 import CollapsingHeader from "../layout/CollapsingHeader";
 import { InterestsPanel } from "../listen/InterestsPanel";
 import CollectorPanel from "./CollectorPanel";
+import FreePlaysMeter from "../billing/FreePlaysMeter";
+import { freePlaysRemaining, freePlaysMeterLabel } from "../../lib/freePlays";
 import { TASTE_AXIS_DEFAULT } from "../../lib/tasteProfile";
 
 let clubVisitedThisSession = false;
@@ -55,7 +57,7 @@ const PRIVILEGES_BY_TIER = {
     {
       id: "card",
       label: "Membership card",
-      blurb: "Digital card now · physical member access with Club Copy",
+      blurb: "Digital card now · Club Copy access when editions open",
     },
   ],
   premium: [
@@ -67,12 +69,12 @@ const PRIVILEGES_BY_TIER = {
     {
       id: "credit",
       label: "Club Credit",
-      blurb: `${formatMoney(BILLING.premium.creditGrant)} toward physical releases each year`,
+      blurb: `${formatMoney(BILLING.premium.creditGrant)} on file — spend when Club Copy buying opens`,
     },
     {
       id: "physical",
       label: "Physical access",
-      blurb: "Member pricing and Club Copy editions",
+      blurb: "Member pricing ready for Club Copy editions",
     },
   ],
 };
@@ -115,6 +117,8 @@ export default function ClubScreen({
   const mixCurator =
     communityMix?.featuredCurator?.displayName || communityMix?.ownerName || null;
   const creditLine = creditSummaryLine(profile);
+  const playsLeft = freePlaysRemaining(profile, access);
+  const playsLabel = freePlaysMeterLabel(playsLeft, access);
 
   useEffect(() => {
     if (clubVisitedThisSession) return;
@@ -430,8 +434,19 @@ export default function ClubScreen({
             {floor.blurb}{" "}
             {hasCard
               ? "Your membership keeps the crate unlocked."
-              : `Free plan · ${BILLING.freePlaysPerDay} plays/day.`}
+              : playsLabel
+                ? `${playsLabel}.`
+                : `Free plan · ${BILLING.freePlaysPerDay} plays/day.`}
           </div>
+          {!hasCard && (
+            <div style={{ marginTop: 12 }}>
+              <FreePlaysMeter
+                remaining={playsLeft}
+                access={access}
+                onUpgrade={onOpenPlans || (onSubscribe ? () => onSubscribe() : null)}
+              />
+            </div>
+          )}
         </div>
 
         <CollectorPanel
@@ -569,9 +584,9 @@ export default function ClubScreen({
           </div>
           <div style={{ fontSize: 14, color: color.muted, lineHeight: 1.45, marginBottom: 8 }}>
             {tier === PLAN_IDS.PREMIUM
-              ? `Premium · ${formatPricePremium()}. ${creditLine}.`
+              ? `Premium · ${formatPricePremium()}. ${creditLine} — spend when Club Copy buying opens.`
               : tier === PLAN_IDS.CLUB || access?.reason === "trial"
-                ? `Club · ${formatPriceClub()}. Add Premium for physical Club Credit.`
+                ? `Club · ${formatPriceClub()}. Premium adds Club Credit for when editions open.`
                 : `Free · limited streaming. Club is ${formatPriceClub()}. Premium is ${formatPricePremium()}.`}
           </div>
           {tier === PLAN_IDS.PREMIUM && (

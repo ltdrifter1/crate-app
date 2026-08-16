@@ -9,6 +9,8 @@ import { fmtTime } from "../../lib/harmony";
 import { usePlayerPlayback } from "../../usePlayerPlayback";
 import { useIsPlaying } from "../../usePlayerTransport";
 import { EnergyShiftFeedback, EnergyShiftControl } from "../listen/EnergyShiftButton";
+import FreePlaysMeter from "../billing/FreePlaysMeter";
+import { freePlaysMeterLabel } from "../../lib/freePlays";
 
 export default function DesktopMiniPlayer({
   track,
@@ -22,13 +24,24 @@ export default function DesktopMiniPlayer({
   IceOrbPlay,
   Icon,
   dockTintStyle,
+  playsRemaining = null,
+  access = null,
+  onOpenPlans = null,
 }) {
   const { progress, duration } = usePlayerPlayback();
   const isPlaying = useIsPlaying();
   if (!track) return null;
+  const playsLabel = freePlaysMeterLabel(playsRemaining, access);
 
   return (
     <div style={{ position: "fixed", bottom: 12, left: 232, right: 348, zIndex: 80 }}>
+      <FreePlaysMeter
+        variant="banner"
+        remaining={playsRemaining}
+        access={access}
+        onUpgrade={onOpenPlans}
+        style={{ marginBottom: 8 }}
+      />
       <EnergyShiftFeedback />
       <div
         onClick={onOpen}
@@ -70,8 +83,27 @@ export default function DesktopMiniPlayer({
             )}
             {track.title}
           </div>
-          <div style={{ fontSize: 11, color: color.muted, marginTop: 2 }}>
-            {track.artist}
+          <div style={{
+            fontSize: 11, color: color.muted, marginTop: 2,
+            display: "flex", alignItems: "center", gap: 8,
+            overflow: "hidden",
+          }}>
+            <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+              {track.artist}
+            </span>
+            {playsLabel && (
+              <span style={{
+                flexShrink: 0,
+                fontFamily: fontMono,
+                fontSize: 10,
+                fontWeight: 700,
+                letterSpacing: 0.6,
+                textTransform: "uppercase",
+                color: color.faint,
+              }}>
+                {playsLabel}
+              </span>
+            )}
           </div>
         </div>
         <span style={{

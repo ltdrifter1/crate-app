@@ -2,6 +2,9 @@ import {
   physicalStatusFor,
   normalizePhysicalStatus,
   canBuyPhysical,
+  canPurchasePhysical,
+  physicalCommerceHint,
+  PHYSICAL_COMMERCE_LIVE,
   memberPrice,
 } from "./physicalStatus";
 import {
@@ -21,6 +24,8 @@ import {
   canPlayOnFreeTier,
   bumpPlayMeter,
   freePlaysRemaining,
+  freePlaysMeterLabel,
+  shouldNudgeFreePlays,
 } from "./freePlays";
 
 describe("physicalStatus", () => {
@@ -36,6 +41,12 @@ describe("physicalStatus", () => {
     expect(memberPrice(28, { member: true })).toBe(22.4);
     expect(memberPrice(28, { member: true, memberRetail: 22 })).toBe(22);
     expect(canBuyPhysical(normalizePhysicalStatus("preorder"))).toBe(true);
+  });
+
+  test("purchase stays off until commerce is live", () => {
+    expect(PHYSICAL_COMMERCE_LIVE).toBe(false);
+    expect(canPurchasePhysical(normalizePhysicalStatus("preorder"))).toBe(false);
+    expect(physicalCommerceHint(normalizePhysicalStatus("announced"))).toMatch(/coming soon/i);
   });
 });
 
@@ -118,5 +129,15 @@ describe("freePlays", () => {
       new Date("2026-08-14T12:00:00Z")
     );
     expect(next.playsToday).toBe(3);
+  });
+
+  test("meter labels and soft nudge", () => {
+    expect(freePlaysMeterLabel(15, limited)).toBe("15 of 20 plays left");
+    expect(freePlaysMeterLabel(3, limited)).toBe("3 plays left today");
+    expect(freePlaysMeterLabel(0, limited)).toBe("0 plays left today");
+    expect(freePlaysMeterLabel(99, full)).toBeNull();
+    expect(shouldNudgeFreePlays(5, limited)).toBe(true);
+    expect(shouldNudgeFreePlays(6, limited)).toBe(false);
+    expect(shouldNudgeFreePlays(0, limited)).toBe(false);
   });
 });
