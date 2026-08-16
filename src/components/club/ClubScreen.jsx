@@ -57,7 +57,7 @@ const PRIVILEGES_BY_TIER = {
     {
       id: "card",
       label: "Membership card",
-      blurb: "Digital card now · Club Copy access when editions open",
+      blurb: "Digital card now · member pricing on Club Copy",
     },
   ],
   premium: [
@@ -69,12 +69,12 @@ const PRIVILEGES_BY_TIER = {
     {
       id: "credit",
       label: "Club Credit",
-      blurb: `${formatMoney(BILLING.premium.creditGrant)} on file — spend when Club Copy buying opens`,
+      blurb: `${formatMoney(BILLING.premium.creditGrant)} to spend on Club Copy from liner notes`,
     },
     {
       id: "physical",
       label: "Physical access",
-      blurb: "Member pricing ready for Club Copy editions",
+      blurb: "Member pricing and Club Copy editions",
     },
   ],
 };

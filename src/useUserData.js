@@ -4,9 +4,9 @@ import {
   updateDoc,
   arrayUnion,
   arrayRemove,
-  increment,
 } from "firebase/firestore";
 import { auth, db } from "./firebase";
+import { recordListeningEvent } from "./lib/listeningApi";
 
 function userRef() {
   return doc(db, "users", auth.currentUser.uid);
@@ -21,24 +21,36 @@ export async function toggleLike(trackId, currentlyLiked) {
   });
 }
 
-// ── RECORD A PLAY ─────────────────────────────────────────────────────────
-// 1. Updates the user's personal recent plays list
-// 2. Increments the global playCount on the track (powers Top Tracks)
+/**
+ * Record a play — prefers Cloud Function (trusted meter + playCount).
+ * Falls back to recentTracks-only if the function is unreachable.
+ */
 export async function recordPlay(trackId, currentRecentTracks = []) {
-  const entry = { trackId, playedAt: new Date().toISOString() };
-  const updated = [
-    entry,
-    ...currentRecentTracks.filter(r => r.trackId !== trackId),
-  ].slice(0, 50);
+  if (!auth.currentUser) {
+    return { allowed: true, offline: true };
+  }
 
-  // User's personal history
-  await updateDoc(userRef(), { recentTracks: updated });
-
-  // Global play count on the track document — used for Top Tracks across all users
   try {
-    await updateDoc(doc(db, "tracks", trackId), { playCount: increment(1) });
-  } catch (e) {
-    // Non-critical — don't break playback if this fails
+    const data = await recordListeningEvent(trackId);
+    return data;
+  } catch (err) {
+    console.warn("recordListeningEvent failed; recentTracks-only fallback", err);
+    const entry = { trackId, playedAt: new Date().toISOString() };
+    const updated = [
+      entry,
+      ...currentRecentTracks.filter((r) => r.trackId !== trackId),
+    ].slice(0, 50);
+    try {
+      await updateDoc(userRef(), { recentTracks: updated });
+    } catch {
+      /* ignore */
+    }
+    return {
+      allowed: true,
+      fallback: true,
+      recentTracks: updated,
+      error: err?.message || "function_unavailable",
+    };
   }
 }
 
@@ -87,9 +99,15 @@ export async function saveMonthlyChoice(monthKey, choice) {
   });
 }
 
-// ── FREE PLAY METER ───────────────────────────────────────────────────────
+/**
+ * @deprecated Prefer recordListeningEvent / recordPlay — meter is server-owned.
+ * Kept as a no-op-friendly helper for older call sites.
+ */
 export async function savePlayMeter({ playsDayKey, playsToday }) {
-  await updateDoc(userRef(), { playsDayKey, playsToday });
+  // Intentionally unused: firestore rules block client meter writes.
+  // Optimistic UI still updates local profile from recordPlay results.
+  void playsDayKey;
+  void playsToday;
 }
 
 // ── SAVE SETTINGS ─────────────────────────────────────────────────────────

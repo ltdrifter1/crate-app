@@ -22,6 +22,11 @@ const {
   applySubscriptionDeleted,
   applyInvoicePaid,
 } = require("./lib/syncMembership");
+const {
+  evaluateListeningPlay,
+  evaluateCreditSpend,
+  FREE_PLAYS_PER_DAY,
+} = require("./lib/listening");
 
 if (!admin.apps.length) {
   admin.initializeApp();
@@ -225,3 +230,171 @@ exports.billingHealth = onRequest(async (_req, res) => {
     premiumPriceConfigured: Boolean(env("STRIPE_PREMIUM_PRICE_ID") || premiumPriceId.value()),
   });
 });
+
+/**
+ * Callable: recordListeningEvent({ trackId })
+ * Server-trusted free-play meter + track playCount + recentTracks.
+ */
+exports.recordListeningEvent = onCall(
+  { invoker: "public" },
+  async (request) => {
+    if (!request.auth?.uid) {
+      throw new HttpsError("unauthenticated", "Sign in to play.");
+    }
+    const trackId = String(request.data?.trackId || "").trim();
+    if (!trackId) {
+      throw new HttpsError("invalid-argument", "trackId required");
+    }
+
+    const db = admin.firestore();
+    const userRef = db.collection("users").doc(request.auth.uid);
+    const trackRef = db.collection("tracks").doc(trackId);
+
+    try {
+      return await db.runTransaction(async (tx) => {
+        const [userSnap, trackSnap] = await Promise.all([tx.get(userRef), tx.get(trackRef)]);
+        if (!trackSnap.exists) {
+          throw new HttpsError("not-found", "Track not found");
+        }
+        const user = userSnap.exists ? userSnap.data() : {};
+        const decision = evaluateListeningPlay(user);
+        if (!decision.allowed) {
+          return {
+            allowed: false,
+            reason: decision.reason || "free_limit",
+            playsToday: decision.meter?.playsToday ?? FREE_PLAYS_PER_DAY,
+            playsDayKey: decision.meter?.playsDayKey || null,
+            remaining: 0,
+            freePlaysPerDay: FREE_PLAYS_PER_DAY,
+          };
+        }
+
+        const entry = { trackId, playedAt: new Date().toISOString() };
+        const prev = Array.isArray(user.recentTracks) ? user.recentTracks : [];
+        const recentTracks = [entry, ...prev.filter((r) => r && r.trackId !== trackId)].slice(0, 50);
+        const userUpdate = { recentTracks };
+        if (decision.meter) {
+          userUpdate.playsDayKey = decision.meter.playsDayKey;
+          userUpdate.playsToday = decision.meter.playsToday;
+        }
+        tx.set(userRef, userUpdate, { merge: true });
+        tx.update(trackRef, {
+          playCount: admin.firestore.FieldValue.increment(1),
+        });
+        const playCount = (Number(trackSnap.data()?.playCount) || 0) + 1;
+        return {
+          allowed: true,
+          full: !!decision.full,
+          playsToday: decision.meter?.playsToday ?? null,
+          playsDayKey: decision.meter?.playsDayKey ?? null,
+          remaining: decision.full ? null : decision.remaining,
+          freePlaysPerDay: FREE_PLAYS_PER_DAY,
+          playCount,
+          recentTracks,
+        };
+      });
+    } catch (err) {
+      if (err instanceof HttpsError) throw err;
+      console.error("recordListeningEvent failed", err);
+      throw new HttpsError("internal", "Could not record play");
+    }
+  }
+);
+
+/**
+ * Callable: spendClubCredit({ trackId, amount? })
+ * Spends Premium Club Credit and files the cut into the member collection.
+ */
+exports.spendClubCredit = onCall(
+  { invoker: "public" },
+  async (request) => {
+    if (!request.auth?.uid) {
+      throw new HttpsError("unauthenticated", "Sign in to spend Club Credit.");
+    }
+    const trackId = String(request.data?.trackId || "").trim();
+    if (!trackId) {
+      throw new HttpsError("invalid-argument", "trackId required");
+    }
+
+    const db = admin.firestore();
+    const userRef = db.collection("users").doc(request.auth.uid);
+    const trackRef = db.collection("tracks").doc(trackId);
+
+    try {
+      return await db.runTransaction(async (tx) => {
+        const [userSnap, trackSnap] = await Promise.all([tx.get(userRef), tx.get(trackRef)]);
+        if (!trackSnap.exists) {
+          throw new HttpsError("not-found", "Release not found");
+        }
+        const track = trackSnap.data() || {};
+        const user = userSnap.exists ? userSnap.data() : {};
+
+        let amount = request.data?.amount;
+        if (amount == null) {
+          const member = track.memberPrice != null ? Number(track.memberPrice) : null;
+          const retail = track.retailPrice != null ? Number(track.retailPrice) : null;
+          if (Number.isFinite(member)) amount = member;
+          else if (Number.isFinite(retail)) amount = Math.round(retail * 0.8 * 100) / 100;
+          else amount = 12;
+        }
+
+        const decision = evaluateCreditSpend(user, amount);
+        if (!decision.ok) {
+          const map = {
+            insufficient_credit: "Not enough Club Credit",
+            premium_required: "Premium Club Credit required",
+            invalid_amount: "Invalid amount",
+          };
+          throw new HttpsError("failed-precondition", map[decision.error] || decision.error);
+        }
+
+        const collection = {
+          digital: [],
+          vinyl: [],
+          cassette: [],
+          cd: [],
+          clubcopy: [],
+          wishlist: [],
+          owned: [],
+          ...(user.collection && typeof user.collection === "object" ? user.collection : {}),
+        };
+        for (const key of Object.keys(collection)) {
+          collection[key] = Array.isArray(collection[key]) ? collection[key].filter(Boolean) : [];
+        }
+        if (!collection.clubcopy.includes(trackId)) collection.clubcopy = [...collection.clubcopy, trackId];
+        if (!collection.owned.includes(trackId)) collection.owned = [...collection.owned, trackId];
+
+        const spends = Array.isArray(user.clubCreditSpends) ? user.clubCreditSpends.slice(0, 49) : [];
+        spends.unshift({
+          trackId,
+          amount: decision.spent,
+          at: new Date().toISOString(),
+          title: track.title || null,
+          catalogNumber: track.catalogNumber || null,
+        });
+
+        tx.set(
+          userRef,
+          {
+            clubCreditBalance: decision.clubCreditBalance,
+            collection,
+            clubCreditSpends: spends,
+          },
+          { merge: true }
+        );
+
+        return {
+          ok: true,
+          spent: decision.spent,
+          clubCreditBalance: decision.clubCreditBalance,
+          trackId,
+          collection,
+        };
+      });
+    } catch (err) {
+      if (err instanceof HttpsError) throw err;
+      console.error("spendClubCredit failed", err);
+      throw new HttpsError("internal", "Could not complete purchase");
+    }
+  }
+);

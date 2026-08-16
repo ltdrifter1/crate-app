@@ -7,7 +7,7 @@
  * Flip when Club Copy checkout / credit spend ships.
  * Status + pricing can still display as “coming”; purchase CTAs stay off until live.
  */
-export const PHYSICAL_COMMERCE_LIVE = false;
+export const PHYSICAL_COMMERCE_LIVE = true;
 
 export const PHYSICAL_STATUSES = [
   { id: "digital", label: "Digital", blurb: "Listen now" },

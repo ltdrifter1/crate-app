@@ -16,6 +16,9 @@ export default function LinerNotesSheet({
   onOpenAlbum,
   onOpenRoom,
   memberPricing = false,
+  creditBalance = null,
+  onPurchase = null,
+  purchasing = false,
 }) {
   const notes = linerNotesFor(track);
   if (!notes) return null;
@@ -27,6 +30,9 @@ export default function LinerNotesSheet({
   }) : null;
   const purchasable = canPurchasePhysical(physical);
   const commerceHint = physicalCommerceHint(physical);
+  const bal = creditBalance != null ? Number(creditBalance) : null;
+  const canAfford = purchasable && price != null && bal != null && bal >= price;
+  const needsPremium = purchasable && (bal == null || bal <= 0);
 
   return (
     <div style={{ position: "fixed", inset: 0, zIndex: 120 }}>
@@ -106,6 +112,36 @@ export default function LinerNotesSheet({
                 {commerceHint}
                 {price != null ? ` · from $${price.toFixed(2)}` : ""}
               </div>
+            )}
+            {purchasable && onPurchase && price != null && (
+              <button
+                type="button"
+                disabled={!!purchasing || (!canAfford && !needsPremium)}
+                onClick={() => onPurchase(track, price)}
+                style={{
+                  marginTop: 12,
+                  padding: "10px 14px",
+                  borderRadius: radius.pill,
+                  border: "none",
+                  background: canAfford || needsPremium ? color.accent : "rgba(255,255,255,0.12)",
+                  color: canAfford || needsPremium ? color.onAccent || "#111" : color.faint,
+                  fontSize: 13,
+                  fontWeight: 700,
+                  fontFamily: fontMono,
+                  letterSpacing: 0.6,
+                  textTransform: "uppercase",
+                  cursor: purchasing ? "wait" : "pointer",
+                  opacity: purchasing ? 0.7 : 1,
+                }}
+              >
+                {purchasing
+                  ? "Filing…"
+                  : needsPremium
+                    ? "Premium + Club Credit to buy"
+                    : canAfford
+                      ? `Buy with Club Credit · $${price.toFixed(2)}`
+                      : `Need $${price.toFixed(2)} credit`}
+              </button>
             )}
           </div>
           <button
