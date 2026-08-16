@@ -535,12 +535,27 @@ export function ShowGuideRail({
             marginBottom: 10,
           }}
         >
-          <TechLabel color={color.muted} style={{ letterSpacing: 1.6 }}>
-            Day dial
-          </TechLabel>
-          <TechLabel color={color.faint}>
+          <span
+            style={{
+              fontFamily: fontDisplay,
+              fontSize: 13,
+              fontWeight: 600,
+              letterSpacing: -0.1,
+              color: color.muted,
+            }}
+          >
+            Today
+          </span>
+          <span
+            style={{
+              fontSize: 13,
+              fontWeight: 500,
+              letterSpacing: -0.08,
+              color: color.faint,
+            }}
+          >
             {guide.length} blocks
-          </TechLabel>
+          </span>
         </div>
       )}
 
