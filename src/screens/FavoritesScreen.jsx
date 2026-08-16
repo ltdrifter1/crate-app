@@ -137,6 +137,11 @@ function FavoritesScreen({
   onPlayTrack, onSharePlaylist = null, onOpenMix = null,
   communityMix = null,
   openRequestId = null, onConsumeOpenRequest = null,
+  /** URL-driven stack id (`/stack/:id`) — source of truth when set. */
+  stackId = null,
+  onOpenStack = null,
+  onCloseStack = null,
+  onReorderPlaylist = null,
   onCustomMix = null,
   preferredGenres = [],
   recentTrackIds = [],
@@ -154,6 +159,7 @@ function FavoritesScreen({
   const [openPlaylistId, setOpenPlaylistId] = useState(null);
   const [showAddCuts, setShowAddCuts] = useState(false);
   const [addQuery, setAddQuery] = useState("");
+  const [openAddOnArrive, setOpenAddOnArrive] = useState(false);
 
   const trackById = useMemo(() => {
     const m = new Map();
@@ -161,19 +167,50 @@ function FavoritesScreen({
     return m;
   }, [tracks]);
 
-  // Deep-open request (e.g. desktop sidebar stack click)
+  const openStack = (id, { addCuts = false } = {}) => {
+    if (!id) return;
+    if (addCuts) setOpenAddOnArrive(true);
+    if (onOpenStack) onOpenStack(id);
+    else setOpenPlaylistId(id);
+  };
+
+  const closeStack = () => {
+    setShowAddCuts(false);
+    setOpenAddOnArrive(false);
+    if (onCloseStack) onCloseStack();
+    else setOpenPlaylistId(null);
+  };
+
+  // URL stack deep link
+  useEffect(() => {
+    if (stackId) {
+      setLibTab("playlists");
+      setOpenPlaylistId(stackId);
+      return;
+    }
+    // Leaving /stack/:id → Library list
+    if (openPlaylistId && onCloseStack) {
+      setOpenPlaylistId(null);
+    }
+  }, [stackId]); // eslint-disable-line react-hooks/exhaustive-deps -- sync from URL only
+
+  // Legacy deep-open request (e.g. older sidebar path)
   useEffect(() => {
     if (!openRequestId) return;
-    setLibTab("playlists");
-    setOpenPlaylistId(openRequestId);
+    openStack(openRequestId);
     onConsumeOpenRequest?.();
-  }, [openRequestId, onConsumeOpenRequest]);
+  }, [openRequestId, onConsumeOpenRequest]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Reset the add-cuts picker when leaving a stack
+  // Reset / open the add-cuts picker when entering a stack
   useEffect(() => {
-    setShowAddCuts(false);
     setAddQuery("");
-  }, [openPlaylistId]);
+    if (openPlaylistId && openAddOnArrive) {
+      setShowAddCuts(true);
+      setOpenAddOnArrive(false);
+    } else {
+      setShowAddCuts(false);
+    }
+  }, [openPlaylistId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const playTrackFn = onPlayTrack || ((t, pool) => onPlay(t));
 
@@ -182,7 +219,7 @@ function FavoritesScreen({
     const created = onCreatePlaylist(newName.trim());
     setNewName("");
     setShowNewInput(false);
-    if (created?.id) setOpenPlaylistId(created.id);
+    if (created?.id) openStack(created.id, { addCuts: true });
   }
 
   const q = libQuery.trim().toLowerCase();
@@ -205,12 +242,27 @@ function FavoritesScreen({
         || String(t.artist || "").toLowerCase().includes(q))
     : saved;
 
-  const openPlaylist = openPlaylistId
-    ? userPlaylists.find((p) => p.id === openPlaylistId)
+  const resolvedOpenId = stackId || openPlaylistId;
+  const openPlaylist = resolvedOpenId
+    ? userPlaylists.find((p) => p.id === resolvedOpenId)
     : null;
   const openPlaylistTracks = openPlaylist
     ? (openPlaylist.trackIds || []).map((id) => trackById.get(id)).filter(Boolean)
     : [];
+
+  // Missing stack id from URL → fall back to Library list chrome
+  if (resolvedOpenId && !openPlaylist) {
+    return (
+      <div style={{ padding: "24px 16px 36px" }}>
+        <button type="button" onClick={closeStack} style={{
+          background: "none", border: "none", color: color.body, fontSize: 17, cursor: "pointer", fontWeight: 500, marginBottom: 16,
+        }}>‹ Library</button>
+        <div style={{ fontSize: 16, color: color.muted, lineHeight: 1.45 }}>
+          That stack isn’t in your library (or was deleted).
+        </div>
+      </div>
+    );
+  }
 
   if (openPlaylist) {
     const community = isCommunityPlaylist(openPlaylist);
@@ -226,7 +278,7 @@ function FavoritesScreen({
       : [];
     return (
       <div style={{ padding: "24px 16px 36px" }}>
-        <button type="button" onClick={() => setOpenPlaylistId(null)} style={{
+        <button type="button" onClick={closeStack} style={{
           background: "none", border: "none", color: color.body, fontSize: 17, cursor: "pointer", fontWeight: 500, marginBottom: 16,
         }}>‹ Library</button>
 
@@ -355,7 +407,7 @@ function FavoritesScreen({
                 onClick={() => {
                   if (!window.confirm(`Delete “${openPlaylist.name}”? This can’t be undone.`)) return;
                   onDeletePlaylist(openPlaylist.id);
-                  setOpenPlaylistId(null);
+                  closeStack();
                 }}
                 style={{
                   background: "none", border: "none", padding: "4px 2px",
@@ -408,14 +460,59 @@ function FavoritesScreen({
         )}
         {openPlaylistTracks.length === 0 ? (
           <div style={{ fontSize: 15, color: color.faint, paddingTop: 32, textAlign: "center" }}>
-            {community ? "This playlist is empty" : "This playlist is empty"}
+            {community
+              ? "This playlist is empty"
+              : "This stack is empty — tap Add songs to file cuts."}
           </div>
-        ) : openPlaylistTracks.length > 40 ? (
-          <VirtualList
-            items={openPlaylistTracks}
-            estimateSize={68}
-            maxHeight={typeof window !== "undefined" ? Math.min(window.innerHeight * 0.55, 640) : 480}
-            renderItem={(t) => (
+        ) : openPlaylistTracks.map((t, index) => (
+          <div key={t.id} style={{ display: "flex", alignItems: "stretch", gap: 4 }}>
+            {!community && onReorderPlaylist && openPlaylistTracks.length > 1 && (
+              <div style={{
+                display: "flex",
+                flexDirection: "column",
+                justifyContent: "center",
+                gap: 2,
+                paddingLeft: 2,
+              }}>
+                <button
+                  type="button"
+                  aria-label={`Move ${t.title} up`}
+                  disabled={index === 0}
+                  onClick={() => onReorderPlaylist(openPlaylist.id, t.id, -1)}
+                  style={{
+                    background: "none",
+                    border: "none",
+                    color: index === 0 ? color.faint : color.muted,
+                    cursor: index === 0 ? "default" : "pointer",
+                    padding: "2px 4px",
+                    fontSize: 11,
+                    lineHeight: 1,
+                    fontFamily: fontMono,
+                  }}
+                >
+                  ▲
+                </button>
+                <button
+                  type="button"
+                  aria-label={`Move ${t.title} down`}
+                  disabled={index >= openPlaylistTracks.length - 1}
+                  onClick={() => onReorderPlaylist(openPlaylist.id, t.id, 1)}
+                  style={{
+                    background: "none",
+                    border: "none",
+                    color: index >= openPlaylistTracks.length - 1 ? color.faint : color.muted,
+                    cursor: index >= openPlaylistTracks.length - 1 ? "default" : "pointer",
+                    padding: "2px 4px",
+                    fontSize: 11,
+                    lineHeight: 1,
+                    fontFamily: fontMono,
+                  }}
+                >
+                  ▼
+                </button>
+              </div>
+            )}
+            <div style={{ flex: 1, minWidth: 0 }}>
               <TrackRow
                 track={t}
                 onPlay={() => playTrackFn(t, openPlaylistTracks)}
@@ -424,19 +521,8 @@ function FavoritesScreen({
                 playlistCtx={playlistCtx}
                 activePlaylistId={openPlaylist.id}
               />
-            )}
-          />
-        ) : openPlaylistTracks.map((t) => (
-          <TrackRow
-            key={t.id}
-            track={t}
-            onPlay={() => playTrackFn(t, openPlaylistTracks)}
-            active={activeId === t.id}
-           
-            onLike={onLike}
-            playlistCtx={playlistCtx}
-            activePlaylistId={openPlaylist.id}
-          />
+            </div>
+          </div>
         ))}
         {menu && (
           <TrackActionsMenu track={menu.track} playlistCtx={playlistCtx} activePlaylistId={menu.activePlaylistId} x={menu.x} y={menu.y} onClose={close}/>
@@ -552,11 +638,15 @@ function FavoritesScreen({
         key={pl.id}
         role="button"
         tabIndex={0}
-        onClick={() => setOpenPlaylistId(pl.id)}
+        onClick={() => {
+          if (community && onOpenMix) onOpenMix();
+          else openStack(pl.id);
+        }}
         onKeyDown={(e) => {
           if (e.key === "Enter" || e.key === " ") {
             e.preventDefault();
-            setOpenPlaylistId(pl.id);
+            if (community && onOpenMix) onOpenMix();
+            else openStack(pl.id);
           }
         }}
         style={{
