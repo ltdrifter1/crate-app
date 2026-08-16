@@ -146,7 +146,7 @@ export const CHANNEL_SOURCE_NOTES = {
   "y2k-dance": { num: 1, source: "genre", note: "Y2K Dance — match by genre/scene" },
   "variety-mix": { num: 2, source: "variety", note: "Variety Mix — curator batch (`variety-wave-N`) or cross-genre mix" },
   "local-pnw": { num: 3, source: "audioasis", note: "Local PNW — Audioasis batch upload (`batch` includes audioasis)" },
-  "electronic-underground": { num: 4, source: "expansions", note: "Electronic — expansions batch (+ techno/warehouse scenes)" },
+  "electronic-underground": { num: 4, source: "expansions", note: "Electronic — expansions batch (`expansions-wave-N`) + techno/warehouse scenes" },
   "drum-and-bass": { num: 5, source: "genre", note: "Drum & Bass — match by genre/scene" },
   shoegaze: { num: 6, source: "genre", note: "Emo & Shoegaze — match by genre/keywords" },
   metal: { num: 7, source: "metal", note: "Metal — batch upload (`metal-wave-N`) + genre/scene fallback" },
@@ -264,7 +264,7 @@ function isCountryFolkTrack(track) {
 }
 
 /** Soft expansions hint until batch mapping lands. */
-function isElectronicUndergroundTrack(track) {
+export function isElectronicUndergroundTrack(track) {
   if (!track) return false;
   if (matchesChannelBatch(track, CHANNEL_BATCH_PREFIXES["electronic-underground"])) return true;
   if (matchesKeywords(track, ["underground", "warehouse", "expansions"])) return true;
@@ -396,8 +396,9 @@ export const SCENE_CHANNELS = [
     genres: [],
     vibe: "Electronic",
     source: "expansions",
-    /** Expansions batch mapping TODO — genre/scene match until then. */
+    /** Expansions batch (`expansions-wave-N`) preferred; else techno/warehouse match. */
     match: isElectronicUndergroundTrack,
+    preferMatch: true,
     minTracks: 1,
   },
   {

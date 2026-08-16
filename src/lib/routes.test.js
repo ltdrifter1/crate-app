@@ -38,6 +38,16 @@ describe("routes", () => {
     expect(documentTitleFor("mix", "Late Drive")).toContain("Late Drive");
   });
 
+  test("stack deep links open Library with stackId", () => {
+    expect(parsePath("/stack/pl_123")).toEqual(
+      expect.objectContaining({ screen: "favorites", stackId: "pl_123" })
+    );
+    expect(buildPath("stack", { stackId: "pl_abc" })).toBe("/stack/pl_abc");
+    expect(buildPath("favorites", { stackId: "pl_abc" })).toBe("/stack/pl_abc");
+    expect(buildPath("stack")).toBe("/discover");
+    expect(documentTitleFor("stack", "Late Nights")).toContain("Late Nights");
+  });
+
   test("documentTitleFor", () => {
     expect(documentTitleFor("home")).toContain("Home");
     expect(documentTitleFor("explore")).toContain("Explore");

@@ -3,7 +3,9 @@
 > **Implementation status (this branch):** the following audit items have been implemented and shipped alongside this document —
 > global keyboard shortcuts (Space, ←/→ seek, ↑/↓ volume, M mute, L like, Q queue, F player, / search, Esc); session resume (last track + position restored paused on launch); queue editing (remove + play-next in the queue sheet); ranked diacritic-folded memoized search with recent searches, hint chips, a clear button, and a 50-result cap; playback-error toast with auto-skip; offline banner; buffering pill; shuffle/repeat/volume on the immersive transport; Camelot key browsing in Search; stack rename, delete confirmation, and an add-cuts picker; desktop sidebar stacks; catalog cache (stale-while-revalidate) for instant warm starts; skeleton loading shelves; per-tab scroll memory; "Browse the crate" link on Home; larger dock touch targets + compact dock on narrow phones; lazy artwork loading; like-pop animation; persisted volume; aria-live now-playing announcements; tap-to-dismiss toasts; and targeted micro-type/contrast fixes.
 >
-> **Still open (larger refactors):** `App.jsx` decomposition + code splitting, playback-progress state isolation, URL-routed stacks, drag-and-drop reorder, and the full type-scale migration.
+> **Still open (larger refactors):** `App.jsx` decomposition + code splitting, playback-progress state isolation, drag-and-drop reorder (▲/▼ shipped), and the full type-scale migration.
+>
+> **Shipped since prior audit:** URL-routed stacks (`/stack/:id`), desktop sidebar Stacks list, create→open with Add songs, stack share deep links.
 
 *Frontend-only audit. No recommendation touches backend logic, APIs, auth, the recommendation engine, Firestore schema, the audio/crossfade engine, subscriptions, or payments. Everything below is UX, interaction design, visual design, information architecture, accessibility, and frontend performance.*
 

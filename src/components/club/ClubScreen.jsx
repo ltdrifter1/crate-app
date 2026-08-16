@@ -584,9 +584,9 @@ export default function ClubScreen({
           </div>
           <div style={{ fontSize: 14, color: color.muted, lineHeight: 1.45, marginBottom: 8 }}>
             {tier === PLAN_IDS.PREMIUM
-              ? `Premium · ${formatPricePremium()}. ${creditLine} — spend when Club Copy buying opens.`
+              ? `Premium · ${formatPricePremium()}. ${creditLine}.`
               : tier === PLAN_IDS.CLUB || access?.reason === "trial"
-                ? `Club · ${formatPriceClub()}. Premium adds Club Credit for when editions open.`
+                ? `Club · ${formatPriceClub()}. Add Premium for Club Credit on Club Copy.`
                 : `Free · limited streaming. Club is ${formatPriceClub()}. Premium is ${formatPricePremium()}.`}
           </div>
           {tier === PLAN_IDS.PREMIUM && (
