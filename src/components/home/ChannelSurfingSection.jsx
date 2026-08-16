@@ -5,8 +5,8 @@ import ChannelCard from "./ChannelCard";
 import HomeBandHeader from "./HomeBandHeader";
 
 /**
- * Channel surfing — top Home dial band.
- * Same left-edge header as every other Home shelf; premium lives in the posters.
+ * Channel surfing — first Home destination band.
+ * Future-ticket rail; clean App Store section header.
  */
 function ChannelSurfingSection({
   channels = [],
@@ -14,11 +14,11 @@ function ChannelSurfingSection({
   activeChannelId = null,
   onTuneChannel = null,
   first = true,
-  delay = 0.04,
+  delay = 0.02,
 }) {
   if (!channels.length) return null;
 
-  const tile = Math.round(homeSpace.tileFeatured * 1.06);
+  const ticketW = homeSpace.tileTicket;
 
   return (
     <section
@@ -31,25 +31,25 @@ function ChannelSurfingSection({
       }}
     >
       <HomeBandHeader
-        title="Channel surfing"
-        subtitle="Zap the dial — scenes with sleeve heat"
-        eyebrow="Scene dial"
-        meta={`${String(channels.length).padStart(2, "0")} channels`}
+        title="Channel Surfing"
+        subtitle="Pick a scene. Instant dial."
+        action={null}
+        meta={`${channels.length} channels`}
       />
 
-      <Rail gap={homeSpace.shelfGap} padBottom={8}>
+      <Rail gap={homeSpace.shelfGap} padBottom={6}>
         {channels.map((channel, i) => (
           <div
             key={channel.id}
             style={{
-              animation: `rise 0.4s ${motion.ease} ${Math.min(i, 8) * 0.03}s both`,
+              animation: `rise 0.45s ${motion.ease} ${Math.min(i, 8) * 0.035}s both`,
             }}
           >
             <ChannelCard
               channel={channel}
               covers={channelCovers[channel.id] || []}
               active={activeChannelId === channel.id}
-              size={tile}
+              size={ticketW}
               onClick={() => onTuneChannel?.(channel)}
             />
           </div>

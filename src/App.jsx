@@ -538,9 +538,24 @@ const injectStyles = () => {
     .pmp-hero .pmp-hero-art { transition: transform 1.2s ${motion.ease}; }
     .pmp-hero:hover .pmp-hero-art { transform: scale(1.025); }
     .pmp-view-all { transition: color ${motion.fast} ${motion.ease}, transform ${motion.fast} ${motion.ease}; }
-    .pmp-view-all:hover { color: #EDF0F4 !important; transform: translateX(2px); }
+    .pmp-view-all:hover { color: #A9C4FF !important; transform: translateX(1px); }
     .pmp-rail { cursor: grab; }
     .pmp-rail:active { cursor: grabbing; }
+    .pmp-ticket-holo {
+      background-size: 220% 220%;
+      animation: pmpTicketHolo 7.5s ease-in-out infinite;
+    }
+    .pmp-ticket-shell--live .pmp-ticket-holo {
+      animation-duration: 4.8s;
+    }
+    @keyframes pmpTicketHolo {
+      0% { background-position: 0% 40%; opacity: 0.45; }
+      50% { background-position: 100% 60%; opacity: 0.85; }
+      100% { background-position: 0% 40%; opacity: 0.45; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .pmp-ticket-holo { animation: none !important; opacity: 0.55 !important; }
+    }
     @media (prefers-reduced-transparency: reduce) {
       .pill-nav {
         backdrop-filter: none !important;

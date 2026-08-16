@@ -100,43 +100,42 @@ function EmptyShelfCard({ title, body, actionLabel = null, onAction = null }) {
         onClick={onAction}
         ariaLabel={actionLabel || title}
         padding="22px 20px"
+        rounded={18}
         style={{
           background: `
-            radial-gradient(110% 120% at 0% 0%, ${y2k.chromeWash} 0%, transparent 55%),
-            linear-gradient(165deg, ${y2k.charcoalRaised} 0%, #101116 100%)
+            linear-gradient(135deg, rgba(255,255,255,0.07) 0%, transparent 50%),
+            linear-gradient(165deg, #1A1F26 0%, #10141A 100%)
           `,
-          border: `1px solid rgba(255,255,255,0.12)`,
-          boxShadow: `inset 0 1px 0 rgba(255,255,255,0.1), inset 0 -1px 0 rgba(0,0,0,0.35), ${glass.shadowSoft}`,
+          border: `1px solid rgba(255,255,255,0.1)`,
+          boxShadow: `inset 0 1px 0 rgba(255,255,255,0.1), 0 12px 28px rgba(0,0,0,0.28)`,
         }}
       >
         <div
           style={{
             fontFamily: fontDisplay,
-            fontSize: 15,
-            fontWeight: 800,
-            letterSpacing: 1.2,
-            textTransform: "uppercase",
+            fontSize: 17,
+            fontWeight: 700,
+            letterSpacing: -0.3,
             color: y2k.offWhite,
             marginBottom: 6,
           }}
         >
           {title}
         </div>
-        <div style={{ fontSize: 13, fontWeight: 500, color: color.muted, lineHeight: 1.5, maxWidth: 300 }}>
+        <div style={{ fontSize: 14, fontWeight: 500, color: color.muted, lineHeight: 1.45, maxWidth: 320 }}>
           {body}
         </div>
         {actionLabel && (
           <div
             style={{
               marginTop: 12,
-              fontSize: 12,
-              fontWeight: 700,
-              letterSpacing: 1.2,
-              textTransform: "uppercase",
-              color: y2k.chromeBright,
+              fontSize: 14,
+              fontWeight: 600,
+              letterSpacing: -0.15,
+              color: color.accent,
             }}
           >
-            {actionLabel} →
+            {actionLabel}
           </div>
         )}
       </CardContainer>
@@ -211,11 +210,24 @@ function HomeScreen({
     >
       <HomeHeader onOpenSearch={onOpenSearch} onOpenProfile={onOpenProfile} />
 
-      {/* NOW PLAYING — broadcast hero */}
+      {/* CHANNEL SURFING — top of Home, future-ticket dial */}
+      {hasChannels && (
+        <ChannelSurfingSection
+          channels={channels}
+          channelCovers={channelCovers}
+          activeChannelId={sceneChannelsActiveId}
+          onTuneChannel={onTuneSceneChannel}
+          first
+          delay={0.02}
+        />
+      )}
+
+      {/* NOW PLAYING — clean App Store stage card */}
       <div
         style={{
           padding: `0 ${homeSpace.gutter}px`,
-          animation: `rise 0.5s ${motion.ease} both`,
+          marginTop: hasChannels ? homeSpace.sectionGap : homeSpace.sectionGapFirst,
+          animation: `rise 0.5s ${motion.ease} 0.04s both`,
         }}
       >
         <HeroPlayerCard
@@ -248,19 +260,7 @@ function HomeScreen({
         />
       )}
 
-      {/* CHANNEL SURFING — premium dial band, top of Home */}
-      {hasChannels && (
-        <ChannelSurfingSection
-          channels={channels}
-          channelCovers={channelCovers}
-          activeChannelId={sceneChannelsActiveId}
-          onTuneChannel={onTuneSceneChannel}
-          first
-          delay={0.04}
-        />
-      )}
-
-      {/* ON TONIGHT — EPG band, shared left edge with Channel surfing */}
+      {/* ON TONIGHT — EPG band */}
       {catalogReady && hasTonight && (
         <TonightDeck
           airing={airing}
@@ -268,7 +268,7 @@ function HomeScreen({
           bumper={showBumper}
           activeShowId={activeShowId}
           tuned={false}
-          first={!hasChannels}
+          first={false}
           showNowPlaying={!!(airing?.show && !(activeShowId === airing.show.id && currentTrack))}
           onTuneIn={() => onTuneShow?.(airing?.show)}
           onSelectShow={(show) => onTuneShow?.(show)}
@@ -278,14 +278,14 @@ function HomeScreen({
       {/* MOST REQUESTED — larger featured sleeves */}
       {catalogReady && topRequested.length > 0 && (
         <MusicSection
-          title="Most requested"
+          title="Most Requested"
           subtitle="Tonight's countdown"
           first={!hasChannels && !hasTonight}
           action={
             onOpenCharts
-              ? { label: "View all", onClick: onOpenCharts }
+              ? { label: "See All", onClick: onOpenCharts }
               : onTuneCountdown
-                ? { label: "Tune in", onClick: onTuneCountdown }
+                ? { label: "Tune In", onClick: onTuneCountdown }
                 : null
           }
           delay={0.06}

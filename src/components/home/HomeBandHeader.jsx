@@ -5,12 +5,11 @@ import {
   sectionEyebrow,
   sectionSubtitle,
   sectionTitle,
-  y2k,
 } from "../../theme";
 
 /**
  * HomeBandHeader — ONE left edge for every Home band.
- * Title + rail always pad with homeSpace.gutter. No nested plates.
+ * App Store–clean title stack; titles always pad with homeSpace.gutter.
  */
 export default function HomeBandHeader({
   title,
@@ -24,11 +23,11 @@ export default function HomeBandHeader({
       style={{
         display: "grid",
         gridTemplateColumns: action || meta ? "minmax(0, 1fr) auto" : "minmax(0, 1fr)",
-        alignItems: "start",
+        alignItems: "end",
         columnGap: 12,
         padding: `0 ${homeSpace.gutter}px`,
         marginBottom: homeSpace.titleToRail,
-        minHeight: subtitle || eyebrow ? 40 : 22,
+        minHeight: subtitle || eyebrow ? 44 : 26,
       }}
     >
       <div style={{ minWidth: 0 }}>
@@ -71,13 +70,12 @@ export default function HomeBandHeader({
       {meta && !action && (
         <div
           style={{
-            fontFamily: sectionEyebrow.fontFamily,
-            fontSize: 10,
-            fontWeight: 700,
-            letterSpacing: 1.2,
-            textTransform: "uppercase",
+            fontFamily: sectionSubtitle.fontFamily || "inherit",
+            fontSize: 13,
+            fontWeight: 550,
+            letterSpacing: -0.08,
             color: color.muted,
-            paddingTop: eyebrow ? 22 : 2,
+            paddingBottom: subtitle ? 2 : 4,
             flexShrink: 0,
             whiteSpace: "nowrap",
           }}
@@ -90,31 +88,27 @@ export default function HomeBandHeader({
         <button
           type="button"
           onClick={action.onClick}
+          className="pmp-view-all"
           style={{
             flexShrink: 0,
-            marginTop: eyebrow ? 18 : 1,
+            marginBottom: subtitle ? 1 : 2,
             cursor: "pointer",
-            padding: "7px 11px",
+            padding: "6px 2px",
             height: 32,
-            borderRadius: 8,
-            border: "1px solid rgba(255,255,255,0.16)",
-            background:
-              "linear-gradient(180deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.03) 100%), rgba(18,20,24,0.42)",
-            color: y2k.offWhite,
+            border: "none",
+            background: "transparent",
+            color: color.accent,
             fontFamily: fontDisplay,
-            fontSize: 12,
+            fontSize: 15,
             fontWeight: 600,
-            letterSpacing: -0.1,
+            letterSpacing: -0.2,
             display: "inline-flex",
             alignItems: "center",
-            gap: 4,
+            gap: 2,
             WebkitTapHighlightColor: "transparent",
           }}
         >
-          {action.label || "View all"}
-          <span aria-hidden="true" style={{ fontSize: 13, lineHeight: 1, color: color.muted }}>
-            ›
-          </span>
+          {action.label || "See All"}
         </button>
       )}
     </div>
