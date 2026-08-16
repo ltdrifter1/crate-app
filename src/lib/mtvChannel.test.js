@@ -11,7 +11,7 @@ import {
   chartScopeKey,
   monthKey,
 } from "./chartHistory";
-import { availableSceneChannels, buildSceneChannelPool, channelCoverUrls, getSceneChannel, SCENE_CHANNELS, CHANNEL_SOURCE_NOTES, CHANNEL_BATCH_PREFIXES, trackMatchesChannel, matchesChannelBatch } from "./sceneChannels";
+import { availableSceneChannels, buildSceneChannelPool, channelCoverUrls, getSceneChannel, SCENE_CHANNELS, CHANNEL_SOURCE_NOTES, CHANNEL_BATCH_PREFIXES, trackMatchesChannel, matchesChannelBatch, isVarietyCuratorTrack, buildCrossGenreVarietyPool } from "./sceneChannels";
 import { pickTrackBumper, STATION_IDENTS } from "./bumpers";
 import { brandStoragePrefix } from "../brand/identity";
 import {
@@ -180,6 +180,28 @@ describe("sceneChannels", () => {
     expect(variety.num).toBe(2);
     expect(availableSceneChannels(tracks, 2).some((c) => c.id === "variety-mix")).toBe(true);
     expect(getSceneChannel("rap-city")?.id).toBe("variety-mix");
+    const varietyPool = buildSceneChannelPool(tracks, variety);
+    expect(varietyPool.length).toBeGreaterThanOrEqual(2);
+    expect(varietyPool.length).toBeLessThanOrEqual(tracks.length);
+    // Cross-genre mix should not dump a single-genre shelf first
+    const genres = new Set(varietyPool.map((t) => t.genre));
+    expect(genres.size).toBeGreaterThanOrEqual(2);
+  });
+
+  test("CH-02 Variety Mix prefers curator batch when present", () => {
+    const variety = getSceneChannel("variety-mix");
+    const tracks = [
+      { id: "1", title: "A", genre: "Rock", duration: 180, audioUrl: "u", batch: "variety-wave-1" },
+      { id: "2", title: "B", genre: "Jazz", duration: 180, audioUrl: "u", curated: true },
+      { id: "3", title: "C", genre: "Pop", duration: 180, audioUrl: "u" },
+      { id: "4", title: "D", genre: "Metal", duration: 180, audioUrl: "u" },
+    ];
+    expect(isVarietyCuratorTrack(tracks[0])).toBe(true);
+    expect(isVarietyCuratorTrack(tracks[2])).toBe(false);
+    expect(CHANNEL_BATCH_PREFIXES["variety-mix"]).toContain("variety");
+    const pool = buildSceneChannelPool(tracks, variety);
+    expect(pool.map((t) => t.id).sort()).toEqual(["1", "2"]);
+    expect(buildCrossGenreVarietyPool(tracks, 3).length).toBe(3);
   });
 
   test("CH-03 Local is Pacific Northwest only", () => {

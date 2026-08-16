@@ -5,7 +5,7 @@ Home **Channel Surfing** uses nine fixed dials (`src/lib/sceneChannels.js`).
 | CH | Title | Match today | Source mapping |
 |----|-------|-------------|----------------|
 | 01 | Y2K Dance | Genre / house–garage–disco–trance scenes | **by genre** |
-| 02 | Variety Mix | Full-shelf variety pad | **curator** shelf / playlist |
+| 02 | Variety Mix | Curator `batch` (`variety-wave-N`) when set; else cross-genre mix | **curator** shelf / playlist |
 | 03 | Local Pacific Northwest | PNW region/keywords + `batch` includes `audioasis` | **Audioasis** batch upload |
 | 04 | Electronic | Techno/warehouse scenes + energy + `batch` includes `expansion` | **expansions** |
 | 05 | Drum & Bass | DnB / jungle / liquid scenes | **by genre** |
@@ -20,6 +20,7 @@ Set `batch` on each track (CSV column or Firestore field), same pattern as Audio
 
 | Channel | Example `batch` values |
 |---------|------------------------|
+| Variety Mix (CH-02) | `variety-wave-1`, `curator-wave-1` |
 | Local PNW (CH-03) | `audioasis-wave-1`, `audioasis-wave-2` |
 | Electronic (CH-04) | `expansions-wave-1` |
 | Metal (CH-07) | `metal-wave-1`, `metal-wave-2` |

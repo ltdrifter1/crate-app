@@ -3,6 +3,12 @@
  * Status ladder used on PlanetMP3 release pages / Club Copy bridges.
  */
 
+/**
+ * Flip when Club Copy checkout / credit spend ships.
+ * Status + pricing can still display as “coming”; purchase CTAs stay off until live.
+ */
+export const PHYSICAL_COMMERCE_LIVE = false;
+
 export const PHYSICAL_STATUSES = [
   { id: "digital", label: "Digital", blurb: "Listen now" },
   { id: "announced", label: "Announced", blurb: "Physical edition coming" },
@@ -63,6 +69,18 @@ export function physicalStatusIndex(statusId) {
 export function canBuyPhysical(status) {
   const id = normalizePhysicalStatus(status).id;
   return id === "preorder" || id === "announced" || id === "pressing" || id === "shipping";
+}
+
+/** True only when status is buyable AND commerce is live. */
+export function canPurchasePhysical(status) {
+  return PHYSICAL_COMMERCE_LIVE && canBuyPhysical(status);
+}
+
+/** Honest copy when an edition exists but checkout is not live yet. */
+export function physicalCommerceHint(status) {
+  if (!canBuyPhysical(status)) return null;
+  if (PHYSICAL_COMMERCE_LIVE) return null;
+  return "Club Copy buying with Club Credit is coming soon";
 }
 
 /** Member price helper — Club editions discount vs retail. */

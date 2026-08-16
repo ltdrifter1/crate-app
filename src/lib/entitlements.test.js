@@ -121,6 +121,9 @@ describe("entitlements three-tier", () => {
   test("planMarketingCopy has three levels", () => {
     const plans = planMarketingCopy();
     expect(plans.map((p) => p.id)).toEqual(["free", "club", "premium"]);
+    const premium = plans.find((p) => p.id === "premium");
+    expect(premium.blurb).toMatch(/when physical editions open/i);
+    expect(premium.perks.some((p) => /when buying opens/i.test(p))).toBe(true);
   });
 
   test("addTrialDays still works", () => {

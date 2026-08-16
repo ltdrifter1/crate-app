@@ -340,7 +340,7 @@ export function planMarketingCopy() {
       perks: [
         "Unlimited streaming",
         "Digital membership card",
-        "Physical member access",
+        "Early access when Club Copy drops",
         "This month’s picks",
       ],
     },
@@ -348,11 +348,11 @@ export function planMarketingCopy() {
       id: PLAN_IDS.PREMIUM,
       name: "Premium",
       price: formatPricePremium(),
-      blurb: `Pay ${formatMoney(BILLING.premium.price)} once a year — get ${formatMoney(BILLING.premium.creditGrant)} in Club Credit for physical releases.`,
+      blurb: `Pay ${formatMoney(BILLING.premium.price)} once a year — ${formatMoney(BILLING.premium.creditGrant)} Club Credit ready when physical editions open.`,
       perks: [
         "Everything in Club",
-        `${formatMoney(BILLING.premium.creditGrant)} Club Credit`,
-        "Credits for physical purchases",
+        `${formatMoney(BILLING.premium.creditGrant)} Club Credit on file`,
+        "Ready for Club Copy when buying opens",
         "Good for 12 months",
       ],
     },

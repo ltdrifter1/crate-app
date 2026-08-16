@@ -130,6 +130,7 @@ const COUNTRY_FOLK_KEYWORDS = [
 
 /** Batch / source prefixes for channel upload waves (Audioasis-style). */
 export const CHANNEL_BATCH_PREFIXES = {
+  "variety-mix": ["variety", "curator", "variety-mix"],
   "local-pnw": ["audioasis"],
   "electronic-underground": ["expansion", "expansions"],
   metal: ["metal"],
@@ -137,10 +138,13 @@ export const CHANNEL_BATCH_PREFIXES = {
   "country-folk": ["country-folk", "countryfolk", "country", "folk"],
 };
 
+/** Default Variety Mix pool size when no curator batch is present. */
+export const VARIETY_CROSS_GENRE_LIMIT = 48;
+
 /** Pending catalog-source wiring (curator shelf / Audioasis / expansions / genre batches). */
 export const CHANNEL_SOURCE_NOTES = {
   "y2k-dance": { num: 1, source: "genre", note: "Y2K Dance — match by genre/scene" },
-  "variety-mix": { num: 2, source: "variety", note: "Variety Mix — full-shelf variety pad (curator mapping later)" },
+  "variety-mix": { num: 2, source: "variety", note: "Variety Mix — curator batch (`variety-wave-N`) or cross-genre mix" },
   "local-pnw": { num: 3, source: "audioasis", note: "Local PNW — Audioasis batch upload (`batch` includes audioasis)" },
   "electronic-underground": { num: 4, source: "expansions", note: "Electronic — expansions batch (+ techno/warehouse scenes)" },
   "drum-and-bass": { num: 5, source: "genre", note: "Drum & Bass — match by genre/scene" },
@@ -277,6 +281,60 @@ function isElectronicUndergroundTrack(track) {
   return false;
 }
 
+/**
+ * Curator-tagged Variety Mix cuts — batch waves, channel ids, or explicit flags.
+ * Admin CSV: set `batch` to `variety-wave-1` (or `curator-wave-1`).
+ */
+export function isVarietyCuratorTrack(track) {
+  if (!track) return false;
+  if (track.varietyMix === true || track.curated === true) return true;
+  if (matchesChannelBatch(track, CHANNEL_BATCH_PREFIXES["variety-mix"])) return true;
+  const channels = track.channels || track.channelIds || track.sceneChannels;
+  if (Array.isArray(channels)) {
+    return channels.some((c) => {
+      const id = String(c || "").toLowerCase();
+      return id === "variety-mix" || id === "variety" || id === "curator";
+    });
+  }
+  const single = String(track.channel || track.channelId || "").toLowerCase();
+  return single === "variety-mix" || single === "variety";
+}
+
+/**
+ * Cross-genre station mix when no curator batch is present —
+ * round-robin by normalized genre, ranked within each lane.
+ */
+export function buildCrossGenreVarietyPool(tracks = [], limit = VARIETY_CROSS_GENRE_LIMIT) {
+  const max = Math.max(1, Number(limit) || VARIETY_CROSS_GENRE_LIMIT);
+  const singles = singlesOnly(tracks);
+  const byGenre = new Map();
+  for (const t of singles) {
+    const g = normalizeGenre(t.genre) || "Other";
+    if (!byGenre.has(g)) byGenre.set(g, []);
+    byGenre.get(g).push(t);
+  }
+  for (const list of byGenre.values()) {
+    list.sort((a, b) => countdownScore(b) - countdownScore(a));
+  }
+  const queues = [...byGenre.values()].sort((a, b) => b.length - a.length);
+  const out = [];
+  const seen = new Set();
+  let progressed = true;
+  while (out.length < max && progressed) {
+    progressed = false;
+    for (const q of queues) {
+      while (q.length && seen.has(q[0].id)) q.shift();
+      if (!q.length) continue;
+      const next = q.shift();
+      seen.add(next.id);
+      out.push(next);
+      progressed = true;
+      if (out.length >= max) break;
+    }
+  }
+  return out;
+}
+
 export const SCENE_CHANNELS = [
   {
     id: "y2k-dance",
@@ -297,16 +355,16 @@ export const SCENE_CHANNELS = [
     title: "Variety Mix",
     shortTitle: "Variety Mix",
     dialSlug: "VARIETY",
-    tagline: "Cross-genre spins · anything goes",
+    tagline: "Cross-genre spins · curator shelf",
     accent: "#C5CAD3",
     scenes: [],
     genres: [],
     vibe: "Variety Mix",
     source: "variety",
-    /**
-     * Curator mapping TODO — empty filters + non-strict pool pads with the
-     * full shelf (variety). When curator metadata ships, switch to a strict match.
-     */
+    /** Curator batch (`variety-wave-N`) when present; else cross-genre mix. */
+    match: isVarietyCuratorTrack,
+    preferMatch: true,
+    poolLimit: VARIETY_CROSS_GENRE_LIMIT,
     minTracks: 1,
   },
   {
@@ -455,11 +513,22 @@ export function trackMatchesChannel(track, channel) {
 export function buildSceneChannelPool(tracks = [], channel) {
   const singles = singlesOnly(tracks);
   if (!channel) return singles;
+
+  // Variety Mix: curator batch when present, otherwise a balanced cross-genre mix
+  if (channel.source === "variety" || channel.id === "variety-mix") {
+    const curated = singles.filter((t) => isVarietyCuratorTrack(t));
+    const need = channel.minTracks != null ? channel.minTracks : 1;
+    if (curated.length >= need) {
+      return curated.slice().sort((a, b) => countdownScore(b) - countdownScore(a));
+    }
+    return buildCrossGenreVarietyPool(singles, channel.poolLimit || VARIETY_CROSS_GENRE_LIMIT);
+  }
+
   const hits = singles.filter((t) => matchesChannel(t, channel));
   if (channel.strict) {
     return hits.slice().sort((a, b) => countdownScore(b) - countdownScore(a));
   }
-  // Variety / expansions: prefer direct hits, then pad with ranked shelf
+  // Expansions / soft channels: prefer direct hits, then pad with ranked shelf
   const ranked = (hits.length ? hits : singles)
     .slice()
     .sort((a, b) => countdownScore(b) - countdownScore(a));
@@ -472,9 +541,11 @@ export function availableSceneChannels(tracks = [], minTracks = 3) {
     const pool = buildSceneChannelPool(tracks, channel);
     const direct = singlesOnly(tracks).filter((t) => matchesChannel(t, channel));
     const need = channel.minTracks != null ? channel.minTracks : minTracks;
+    const isVariety = channel.source === "variety" || channel.id === "variety-mix";
+    const count = isVariety && direct.length === 0 ? pool.length : direct.length;
     return {
       ...channel,
-      count: direct.length,
+      count,
       ready: direct.length >= need || (!channel.strict && pool.length >= need),
     };
   }).filter((c) => c.ready);

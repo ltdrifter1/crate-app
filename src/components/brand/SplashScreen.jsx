@@ -1,9 +1,7 @@
 /**
  * SplashScreen — initial auth boot.
- * Brand lockup + visible Loading… indicator. Transparent shell over APP_STYLE.
- *
- * Lottie loads on demand (not in the main chunk). Prefer
- * public/brand/splash-loader.json when its `nm` is not a PLACEHOLDER.
+ * Brand lockup stays hero-level; optional Lottie is a ring overlay only
+ * when splash-loader.json is a real (non-PLACEHOLDER) animation.
  */
 import { useEffect, useState, lazy, Suspense } from "react";
 import { BRAND_NAME, chrome, fontMono, motion, y2k } from "../../theme";
@@ -38,7 +36,7 @@ function isPlaceholderAnimation(data) {
   return !nm || nm.startsWith("PLACEHOLDER");
 }
 
-function StaticLockup({ size, edge }) {
+function StaticLockup({ size, edge, reduced }) {
   const sizes = typeof edge === "string" ? edge : `${size}px`;
   return (
     <picture>
@@ -59,6 +57,9 @@ function StaticLockup({ size, edge }) {
           display: "block",
           objectFit: "contain",
           background: "transparent",
+          position: "relative",
+          zIndex: 1,
+          animation: reduced ? "none" : `splashLockupIn 0.7s ${motion.ease} both`,
         }}
       />
     </picture>
@@ -113,6 +114,16 @@ export default function SplashScreen({ size = 220, label = "Loading…" } = {}) 
         boxSizing: "border-box",
       }}
     >
+      <style>{`
+        @keyframes splashLockupIn {
+          from { opacity: 0; transform: scale(0.94); }
+          to { opacity: 1; transform: scale(1); }
+        }
+        @keyframes splashRing {
+          0%, 100% { opacity: 0.35; transform: scale(0.92); }
+          50% { opacity: 0.7; transform: scale(1); }
+        }
+      `}</style>
       <div
         style={{
           width: edge,
@@ -124,25 +135,46 @@ export default function SplashScreen({ size = 220, label = "Loading…" } = {}) 
           pointerEvents: "none",
         }}
       >
-        {playLottie ? (
-          <Suspense fallback={<StaticLockup size={size} edge={edge} />}>
-            <LazyLottie
-              animationData={animation}
-              loop
-              autoplay
-              rendererSettings={{
-                preserveAspectRatio: "xMidYMid meet",
-                clearCanvas: true,
-                progressiveLoad: true,
-                hideOnTransparent: true,
-              }}
-              style={{ width: "100%", height: "100%", background: "transparent" }}
+        {/* Soft tuner ring — presence without replacing the brand lockup */}
+        <div
+          aria-hidden="true"
+          style={{
+            position: "absolute",
+            inset: "-8%",
+            borderRadius: "50%",
+            border: `1.5px solid rgba(${chrome.cyanRgb}, 0.45)`,
+            boxShadow: `0 0 24px rgba(${chrome.cyanRgb}, 0.18)`,
+            animation: reduced ? "none" : `splashRing 1.8s ${motion.ease} infinite`,
+            zIndex: 0,
+          }}
+        />
+        {playLottie && (
+          <Suspense fallback={null}>
+            <div
               aria-hidden
-            />
+              style={{
+                position: "absolute",
+                inset: "-6%",
+                zIndex: 0,
+                opacity: 0.55,
+              }}
+            >
+              <LazyLottie
+                animationData={animation}
+                loop
+                autoplay
+                rendererSettings={{
+                  preserveAspectRatio: "xMidYMid meet",
+                  clearCanvas: true,
+                  progressiveLoad: true,
+                  hideOnTransparent: true,
+                }}
+                style={{ width: "100%", height: "100%", background: "transparent" }}
+              />
+            </div>
           </Suspense>
-        ) : (
-          <StaticLockup size={size} edge={edge} />
         )}
+        <StaticLockup size={size} edge={edge} reduced={reduced} />
       </div>
 
       <p

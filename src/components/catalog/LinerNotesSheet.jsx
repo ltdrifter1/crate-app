@@ -1,6 +1,11 @@
 import { font, fontDisplay, fontMono, color, radius, glass, glassSheet } from "../../theme";
 import { linerNotesFor } from "../../lib/catalog";
-import { physicalStatusFor, canBuyPhysical, memberPrice } from "../../lib/physicalStatus";
+import {
+  physicalStatusFor,
+  canPurchasePhysical,
+  physicalCommerceHint,
+  memberPrice,
+} from "../../lib/physicalStatus";
 
 /** Interactive liner notes — credits & listening context for a track. */
 export default function LinerNotesSheet({
@@ -20,6 +25,8 @@ export default function LinerNotesSheet({
     member: memberPricing,
     memberRetail: track?.memberPrice,
   }) : null;
+  const purchasable = canPurchasePhysical(physical);
+  const commerceHint = physicalCommerceHint(physical);
 
   return (
     <div style={{ position: "fixed", inset: 0, zIndex: 120 }}>
@@ -88,10 +95,16 @@ export default function LinerNotesSheet({
               {physical.label}
               {track?.catalogNumber ? ` · ${track.catalogNumber}` : ""}
             </div>
-            {canBuyPhysical(physical) && price != null && (
+            {purchasable && price != null && (
               <div style={{ marginTop: 8, fontSize: 13, color: color.body }}>
                 {memberPricing ? "Club price" : "Retail"} · ${price.toFixed(2)}
                 {memberPricing && retail != null && retail !== price ? ` (was $${retail.toFixed(2)})` : ""}
+              </div>
+            )}
+            {!purchasable && commerceHint && (
+              <div style={{ marginTop: 8, fontSize: 12, color: color.muted, lineHeight: 1.4 }}>
+                {commerceHint}
+                {price != null ? ` · from $${price.toFixed(2)}` : ""}
               </div>
             )}
           </div>

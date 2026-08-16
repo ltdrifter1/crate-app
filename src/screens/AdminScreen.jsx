@@ -489,7 +489,7 @@ export default function AdminScreen({
             </div>
           )}
           <div style={{ padding:"10px 14px", borderRadius:10, background:"rgba(255,255,255,0.06)", border:"1px solid rgba(255,255,255,0.1)", marginBottom:24, fontSize:11, color: color.muted, lineHeight:1.6 }}>
-            <strong style={{ color: color.muted }}>How it works:</strong> Export downloads all tracks as CSV (keep the <code>id</code> column). Edit titles/artists/genres/BPM/Camelot in Sheets, then Import. Matching is by <strong>id first</strong> so renames stick; title+artist is only a fallback when id is blank. New rows without id are created. Columns: id, title, artist, album, genre, energy, camelot, bpm, audioUrl, albumCover, color, duration, <code>batch</code> (Channel Surfing waves: <code>audioasis-wave-1</code>, <code>metal-wave-1</code>, <code>punk-wave-1</code>, <code>country-folk-wave-1</code>), source.
+            <strong style={{ color: color.muted }}>How it works:</strong> Export downloads all tracks as CSV (keep the <code>id</code> column). Edit titles/artists/genres/BPM/Camelot in Sheets, then Import. Matching is by <strong>id first</strong> so renames stick; title+artist is only a fallback when id is blank. New rows without id are created. Columns: id, title, artist, album, genre, energy, camelot, bpm, audioUrl, albumCover, color, duration, <code>batch</code> (Channel Surfing waves: <code>variety-wave-1</code>, <code>audioasis-wave-1</code>, <code>metal-wave-1</code>, <code>punk-wave-1</code>, <code>country-folk-wave-1</code>), source.
           </div>
           {(() => {
             const withKey = tracks.filter(t => t.camelot && t.camelot.trim());
