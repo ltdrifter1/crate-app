@@ -12,6 +12,7 @@ export const SCREEN_TO_PATH = {
   artist: "/artist",
   album: "/album",
   mix: "/mix",
+  stack: "/stack",
 };
 
 export const PATH_TO_SCREEN = {
@@ -33,7 +34,7 @@ export const PATH_TO_SCREEN = {
 
 /**
  * Parse location.pathname → route state.
- * { screen, roomId, artistSlug, albumSlug, pathId, mixId }
+ * { screen, roomId, artistSlug, albumSlug, pathId, mixId, stackId }
  */
 export function parsePath(pathname = "/") {
   const path = (pathname || "/").replace(/\/+$/, "") || "/";
@@ -58,6 +59,14 @@ export function parsePath(pathname = "/") {
     return emptyExtras({ screen: "mix", mixId: decodeURIComponent(mixMatch[1]) });
   }
 
+  const stackMatch = path.match(/^\/stack\/([^/]+)$/);
+  if (stackMatch) {
+    return emptyExtras({
+      screen: "favorites",
+      stackId: decodeURIComponent(stackMatch[1]),
+    });
+  }
+
   const screen = PATH_TO_SCREEN[path] || PATH_TO_SCREEN["/"];
   return emptyExtras({ screen });
 }
@@ -69,13 +78,14 @@ function emptyExtras(base) {
     albumSlug: null,
     pathId: null,
     mixId: null,
+    stackId: null,
     ...base,
   };
 }
 
 /**
  * Build path for a screen.
- * param: string id OR { roomId | artistSlug | albumSlug | pathId | mixId }
+ * param: string id OR { roomId | artistSlug | albumSlug | pathId | mixId | stackId }
  */
 export function buildPath(screen, param = null) {
   const p = normalizeParam(param);
@@ -89,9 +99,13 @@ export function buildPath(screen, param = null) {
   if (screen === "mix" && p.mixId) {
     return `/mix/${encodeURIComponent(p.mixId)}`;
   }
+  if ((screen === "stack" || screen === "favorites") && p.stackId) {
+    return `/stack/${encodeURIComponent(p.stackId)}`;
+  }
   if (screen === "artist") return "/search";
   if (screen === "album") return "/search";
   if (screen === "mix") return "/discover";
+  if (screen === "stack") return "/discover";
 
   // Retired screens land on Home
   if (screen === "rooms" || screen === "paths" || screen === "map" || screen === "drift") {
@@ -104,7 +118,14 @@ export function buildPath(screen, param = null) {
 function normalizeParam(param) {
   if (param == null) return {};
   if (typeof param === "string") {
-    return { roomId: param, artistSlug: param, albumSlug: param, pathId: param, mixId: param };
+    return {
+      roomId: param,
+      artistSlug: param,
+      albumSlug: param,
+      pathId: param,
+      mixId: param,
+      stackId: param,
+    };
   }
   return param;
 }
@@ -122,6 +143,7 @@ export function documentTitleFor(screen, label) {
     artist: "Artist",
     album: "Album",
     mix: "Mixtape",
+    stack: "Stack",
   };
   return labels[screen] ? `${labels[screen]} · ${BRAND_NAME}` : BRAND_NAME;
 }

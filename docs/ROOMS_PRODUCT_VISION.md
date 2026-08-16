@@ -1,10 +1,12 @@
 # ROOMS — Product Audit, Experience Vision & Implementation Roadmap
 
+> **Archival / aspirational (2026):** Rooms and Paths are **not** current top-level destinations. Live product IA is **Station Home** (Channel Surfing, live stage, countdown) + Explore / Charts / Library / Club. This document remains the long-form vision reference; foundation libs (`lib/rooms.js`, posters, motion tokens) still power atmosphere elsewhere.
+
 > **Guiding principle:** ROOMS should feel less like software and more like a place people return to—where music is discovered through exploration, collections become personal spaces, and every visit uncovers something worth sharing.
 
-**Document status:** Phase 1–12 complete as strategic specification. Foundation implementation shipped alongside this document (Rooms destination model, visual system, motion tokens, Rooms screen IA).
+**Document status:** Phase 1–12 complete as strategic specification. Rooms destination UI was prototyped then **retired from nav** in favor of the broadcast station model.
 
-**Current codebase audited:** `crate-app` / legacy brand **4AM** — React 18 CRA, Firebase Auth + Firestore, dual-audio crossfade engine, monolith `App.jsx` (~4.4k LOC).
+**Current codebase audited:** `crate-app` / Planet MP3 — React 18 CRA, Firebase Auth + Firestore, dual-audio crossfade engine, monolith `App.jsx`.
 
 ---
 
@@ -20,7 +22,9 @@ The existing product is a **strong late-night listening booth** with harmonic ra
 | Quiet editorial UI (list-first, full-bleed heroes) | Library = likes + playlists, not a personal home |
 | Pure testable libs (`engine`, `harmony`, `club`) | Monolith UI; no router; social layer absent |
 
-**Transformation thesis:** Keep the booth and floor as the *listening instrument*. Rebuild product gravity around **Rooms** (living destinations), **Home** (personal musical world), and **Discovery through culture** (scenes, stories, relationships).
+**Transformation thesis (historical):** Keep the booth and floor as the *listening instrument*. Rebuild product gravity around **Rooms** (living destinations), **Home** (personal musical world), and **Discovery through culture** (scenes, stories, relationships).
+
+**Current thesis:** Own the **broadcast station** (Home + channels) and make **Library stacks** first-class (`/stack/:id`) while this Rooms vision stays on ice.
 
 ---
 

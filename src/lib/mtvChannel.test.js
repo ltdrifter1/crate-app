@@ -11,7 +11,7 @@ import {
   chartScopeKey,
   monthKey,
 } from "./chartHistory";
-import { availableSceneChannels, buildSceneChannelPool, channelCoverUrls, getSceneChannel, SCENE_CHANNELS, CHANNEL_SOURCE_NOTES, CHANNEL_BATCH_PREFIXES, trackMatchesChannel, matchesChannelBatch, isVarietyCuratorTrack, buildCrossGenreVarietyPool } from "./sceneChannels";
+import { availableSceneChannels, buildSceneChannelPool, channelCoverUrls, getSceneChannel, SCENE_CHANNELS, CHANNEL_SOURCE_NOTES, CHANNEL_BATCH_PREFIXES, trackMatchesChannel, matchesChannelBatch, isVarietyCuratorTrack, buildCrossGenreVarietyPool, isElectronicUndergroundTrack } from "./sceneChannels";
 import { pickTrackBumper, STATION_IDENTS } from "./bumpers";
 import { brandStoragePrefix } from "../brand/identity";
 import {
@@ -278,6 +278,19 @@ describe("sceneChannels", () => {
     expect(buildSceneChannelPool(tracks, punk).map((t) => t.id)).toEqual(["p"]);
     expect(buildSceneChannelPool(tracks, country).map((t) => t.id)).toEqual(["c"]);
     expect(trackMatchesChannel(tracks[3], metal)).toBe(false);
+  });
+
+  test("CH-04 Electronic matches expansions batch waves", () => {
+    const electronic = getSceneChannel("electronic-underground");
+    expect(electronic.preferMatch).toBe(true);
+    const tracks = [
+      { id: "e1", title: "Warehouse", artist: "A", duration: 180, audioUrl: "u", batch: "expansions-wave-1" },
+      { id: "e2", title: "Soft Pop", artist: "B", genre: "Pop", duration: 180, audioUrl: "u", energy: 3 },
+      { id: "e3", title: "Techno", artist: "C", duration: 180, audioUrl: "u", sceneId: "techno" },
+    ];
+    expect(isElectronicUndergroundTrack(tracks[0])).toBe(true);
+    expect(isElectronicUndergroundTrack(tracks[1])).toBe(false);
+    expect(buildSceneChannelPool(tracks, electronic).map((t) => t.id).sort()).toEqual(["e1", "e3"]);
   });
 
   test("channelCoverUrls returns distinct sleeves for mosaics", () => {
