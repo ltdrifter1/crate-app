@@ -39,7 +39,10 @@ service cloud.firestore {
           'subscriptionStatus', 'plan', 'stripeCustomerId', 'stripeSubscriptionId',
           'trialEndsAt', 'trialStartedAt',
           'clubCreditBalance', 'clubCreditExpiresAt', 'clubCreditGrantedAt', 'clubCreditGrantAmount',
-          'planStartedAt'
+          'clubCreditSpends',
+          'planStartedAt',
+          // Free-play meter — Cloud Function recordListeningEvent only
+          'playsToday', 'playsDayKey'
         ]);
     }
 
@@ -97,10 +100,12 @@ service cloud.firestore {
     match /tracks/{trackId} {
       allow read: if true;
       allow create, delete: if isAdmin();
+      // Clients may nudge likes / skips / requests. playCount is Cloud Function only
+      // (recordListeningEvent) so charts stay trustworthy.
       allow update: if isAdmin() || (
         isSignedIn() &&
         request.resource.data.diff(resource.data).affectedKeys()
-          .hasOnly(['playCount', 'skipCount', 'likeCount', 'requestCount'])
+          .hasOnly(['skipCount', 'likeCount', 'requestCount'])
       );
     }
 

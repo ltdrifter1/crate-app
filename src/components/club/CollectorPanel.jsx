@@ -29,7 +29,7 @@ export default function CollectorPanel({
           color: color.body,
           lineHeight: 1.45,
         }}>
-          When Club Copy editions land, they show up here. Buying with Club Credit is coming soon.
+          When Club Copy editions land, they show up here. Open liner notes to buy with Club Credit.
         </div>
       </section>
     );
@@ -83,7 +83,7 @@ export default function CollectorPanel({
               </div>
               <div style={{ fontSize: 13, color: color.body, lineHeight: 1.4, marginBottom: 8 }}>
                 {c.cta?.line || c.label}
-                {memberPricing ? " · Club member pricing when buying opens" : ""}
+                {memberPricing ? " · Club member pricing" : ""}
               </div>
               <div style={{
                 fontSize: 11,

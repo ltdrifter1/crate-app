@@ -348,11 +348,11 @@ export function planMarketingCopy() {
       id: PLAN_IDS.PREMIUM,
       name: "Premium",
       price: formatPricePremium(),
-      blurb: `Pay ${formatMoney(BILLING.premium.price)} once a year — ${formatMoney(BILLING.premium.creditGrant)} Club Credit ready when physical editions open.`,
+      blurb: `Pay ${formatMoney(BILLING.premium.price)} once a year — get ${formatMoney(BILLING.premium.creditGrant)} Club Credit for Club Copy editions.`,
       perks: [
         "Everything in Club",
         `${formatMoney(BILLING.premium.creditGrant)} Club Credit on file`,
-        "Ready for Club Copy when buying opens",
+        "Buy Club Copy with credit on liner notes",
         "Good for 12 months",
       ],
     },

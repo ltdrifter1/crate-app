@@ -57,7 +57,7 @@ const PRIVILEGES_BY_TIER = {
     {
       id: "card",
       label: "Membership card",
-      blurb: "Digital card now · Club Copy access when editions open",
+      blurb: "Digital card now · member pricing on Club Copy",
     },
   ],
   premium: [
@@ -69,12 +69,12 @@ const PRIVILEGES_BY_TIER = {
     {
       id: "credit",
       label: "Club Credit",
-      blurb: `${formatMoney(BILLING.premium.creditGrant)} on file — spend when Club Copy buying opens`,
+      blurb: `${formatMoney(BILLING.premium.creditGrant)} to spend on Club Copy from liner notes`,
     },
     {
       id: "physical",
       label: "Physical access",
-      blurb: "Member pricing ready for Club Copy editions",
+      blurb: "Member pricing and Club Copy editions",
     },
   ],
 };
@@ -584,9 +584,9 @@ export default function ClubScreen({
           </div>
           <div style={{ fontSize: 14, color: color.muted, lineHeight: 1.45, marginBottom: 8 }}>
             {tier === PLAN_IDS.PREMIUM
-              ? `Premium · ${formatPricePremium()}. ${creditLine} — spend when Club Copy buying opens.`
+              ? `Premium · ${formatPricePremium()}. ${creditLine}.`
               : tier === PLAN_IDS.CLUB || access?.reason === "trial"
-                ? `Club · ${formatPriceClub()}. Premium adds Club Credit for when editions open.`
+                ? `Club · ${formatPriceClub()}. Add Premium for Club Credit on Club Copy.`
                 : `Free · limited streaming. Club is ${formatPriceClub()}. Premium is ${formatPricePremium()}.`}
           </div>
           {tier === PLAN_IDS.PREMIUM && (

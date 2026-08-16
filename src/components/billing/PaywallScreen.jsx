@@ -122,7 +122,7 @@ export default function PaywallScreen({
           maxWidth: 360,
         }}>
           Free keeps limited streaming. Club unlocks the full crate and your card.
-          Premium banks Club Credit for Club Copy when physical buying opens on {BRAND_NAME}.
+          Premium adds Club Credit to buy Club Copy editions on {BRAND_NAME}.
         </p>
 
         <div style={{ display: "flex", flexDirection: "column", gap: 12, marginBottom: 20 }}>
@@ -317,7 +317,7 @@ export default function PaywallScreen({
         <p style={{ marginTop: 16, fontSize: 12, color: color.faint, lineHeight: 1.45 }}>
           Secure checkout via Stripe. Free includes {BILLING.freePlaysPerDay} plays/day.
           Club is {formatPriceClub()}. Premium is {formatPricePremium()} with{" "}
-          {formatMoney(BILLING.premium.creditGrant)} Club Credit ready when Club Copy buying opens.
+          {formatMoney(BILLING.premium.creditGrant)} Club Credit for Club Copy.
         </p>
       </div>
     </div>

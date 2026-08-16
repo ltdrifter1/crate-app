@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback, useMemo, lazy, Suspense } from "react";
 import { useNavigate, useLocation }                 from "react-router-dom";
 import { useAuth }                                  from "./useAuth";
-import { toggleLike as fbToggleLike, recordPlay, completeOnboarding, saveTasteProfile, savePlayMeter } from "./useUserData";
+import { toggleLike as fbToggleLike, recordPlay, completeOnboarding, saveTasteProfile } from "./useUserData";
 import { collection, addDoc } from "firebase/firestore";
 import { db }                                       from "./firebase";
 import {
@@ -53,6 +53,9 @@ import {
   freePlaysRemaining,
 } from "./lib/freePlays";
 import FreePlaysMeter from "./components/billing/FreePlaysMeter";
+import { spendClubCredit } from "./lib/listeningApi";
+import { usableCreditBalance } from "./lib/clubCredit";
+import { memberPrice } from "./lib/physicalStatus";
 import {
   buildCommunityMix,
   buildMixFromPlaylist,
@@ -2370,6 +2373,7 @@ export default function App() {
   const [onboardingDismissed, setOnboardingDismissed] = useState(false);
   const [listeningRoom, setListeningRoom] = useState(null);
   const [linerTrack, setLinerTrack] = useState(null);
+  const [purchasingTrackId, setPurchasingTrackId] = useState(null);
   const [showDedicate, setShowDedicate] = useState(false);
   const [requestTick, setRequestTick] = useState(0); // re-read local request ledger
   const [activeShowId, setActiveShowId] = useState(null); // tuned VJ block
@@ -2794,6 +2798,55 @@ export default function App() {
 
   const handleOpenPlans = useCallback(() => setShowPlans(true), []);
 
+  const handlePurchasePhysical = useCallback(async (track, amount) => {
+    if (!track?.id) return;
+    if (!firebaseUser) {
+      showToast("Sign in to buy with Club Credit");
+      return;
+    }
+    const bal = usableCreditBalance(profile);
+    if (bal <= 0) {
+      showToast("Go Premium for Club Credit");
+      setShowPlans(true);
+      return;
+    }
+    const price = amount != null
+      ? Number(amount)
+      : memberPrice(track.retailPrice, {
+          member: !!access?.membershipCard,
+          memberRetail: track.memberPrice,
+        });
+    if (!Number.isFinite(price) || price <= 0) {
+      showToast("No price on this edition yet");
+      return;
+    }
+    if (bal < price) {
+      showToast(`Need $${price.toFixed(2)} Club Credit (you have $${bal.toFixed(2)})`);
+      return;
+    }
+    setPurchasingTrackId(track.id);
+    try {
+      const data = await spendClubCredit(track.id, price);
+      setProfile((p) => ({
+        ...(p || {}),
+        clubCreditBalance: data.clubCreditBalance,
+        collection: data.collection || p?.collection,
+        clubCreditSpends: [
+          { trackId: track.id, amount: data.spent, at: new Date().toISOString() },
+          ...((p?.clubCreditSpends) || []),
+        ].slice(0, 50),
+      }));
+      showToast(`Filed to your collection · $${Number(data.spent).toFixed(2)}`);
+      setLinerTrack(null);
+    } catch (err) {
+      const msg = err?.message || err?.code || "Purchase failed";
+      showToast(String(msg).replace(/^Firebase:\s*/i, "").slice(0, 120));
+      if (/Premium|Club Credit/i.test(String(msg))) setShowPlans(true);
+    } finally {
+      setPurchasingTrackId(null);
+    }
+  }, [firebaseUser, profile, access?.membershipCard]);
+
   // After Stripe redirect (?billing=success), refresh membership from Firestore
   useEffect(() => {
     if (!firebaseUser || !profile) return;
@@ -3151,7 +3204,7 @@ export default function App() {
     fadeIn.volume = 0;
 
     // Record the play
-    if (firebaseUser) recordPlay(next.id, profile?.recentTracks || []).catch(()=>{});
+    commitListeningPlay(next);
 
     fadeIn.addEventListener("loadedmetadata", () => {
       setDuration(Math.floor(fadeIn.duration || 0));
@@ -3329,17 +3382,58 @@ export default function App() {
     });
   };
 
-  const playTrack = (track, q = null, opts = {}) => {
-    if (!canPlayOnFreeTier(profile, access)) {
-      const left = freePlaysRemaining(profile, access);
-      showToast(
-        left <= 0
-          ? `Free limit reached (${BILLING.freePlaysPerDay}/day) — join Club for unlimited`
-          : "Upgrade for unlimited listening"
-      );
-      setShowPlans(true);
-      return;
+  /** Server-trusted play accounting (meter + charts). Optimistic local meter. */
+  const commitListeningPlay = useCallback((track) => {
+    if (!firebaseUser || !track?.id) return;
+    const optimistic = bumpPlayMeter(profile, access);
+    if (optimistic) {
+      setProfile((p) => ({ ...(p || {}), ...optimistic }));
     }
+    recordPlay(track.id, profile?.recentTracks || [])
+      .then((result) => {
+        if (result?.allowed === false) {
+          setIsPlaying(false);
+          setProfile((p) => ({
+            ...(p || {}),
+            playsToday: result.playsToday ?? (p?.playsToday || 0),
+            playsDayKey: result.playsDayKey || p?.playsDayKey || null,
+          }));
+          showToast(
+            `Free limit reached (${result.freePlaysPerDay || BILLING.freePlaysPerDay}/day) — join Club for unlimited`
+          );
+          setShowPlans(true);
+          return;
+        }
+        setProfile((p) => ({
+          ...(p || {}),
+          ...(result?.playsToday != null
+            ? { playsToday: result.playsToday, playsDayKey: result.playsDayKey }
+            : {}),
+          ...(result?.recentTracks ? { recentTracks: result.recentTracks } : {}),
+        }));
+        if (result?.playCount != null) {
+          setTracks((prev) =>
+            prev.map((t) => (t.id === track.id ? { ...t, playCount: result.playCount } : t))
+          );
+        }
+      })
+      .catch(() => {});
+  }, [firebaseUser, profile, access]);
+
+  const guardFreePlay = useCallback(() => {
+    if (canPlayOnFreeTier(profile, access)) return true;
+    const left = freePlaysRemaining(profile, access);
+    showToast(
+      left <= 0
+        ? `Free limit reached (${BILLING.freePlaysPerDay}/day) — join Club for unlimited`
+        : "Upgrade for unlimited listening"
+    );
+    setShowPlans(true);
+    return false;
+  }, [profile, access]);
+
+  const playTrack = (track, q = null, opts = {}) => {
+    if (!guardFreePlay()) return;
     unlockAudioElements();
     if (currentTrack && currentTrack.id !== track.id) {
       playHistoryRef.current = [currentTrack, ...playHistoryRef.current].slice(0, 50);
@@ -3356,14 +3450,7 @@ export default function App() {
     if (openImmersive) setImmersive(true);
     if (q) setQueue(q.filter(t => t.id !== track.id));
     logTrackPlay(track);
-    if (firebaseUser) {
-      recordPlay(track.id, profile?.recentTracks || []).catch(()=>{});
-      const meter = bumpPlayMeter(profile, access);
-      if (meter) {
-        setProfile((p) => ({ ...(p || {}), ...meter }));
-        savePlayMeter(meter).catch(() => {});
-      }
-    }
+    commitListeningPlay(track);
   };
 
   const playPath = (path) => {
@@ -3375,6 +3462,7 @@ export default function App() {
   };
 
   const playRadio = (seed = null, intentOverride = null) => {
+    if (!guardFreePlay()) return;
     unlockAudioElements();
     const liveBlock = resolveShowAt(new Date()).show;
     // Default orb = tune the live VJ block (channel, not anonymous shuffle)
@@ -3406,12 +3494,13 @@ export default function App() {
     if (!sessionStartRef.current) sessionStartRef.current = Date.now();
     logTrackPlay(first);
     showToast(seedTrack ? "Near this" : (liveBlock?.intro || "What's in the mix?"));
-    if (firebaseUser) recordPlay(first.id, profile?.recentTracks || []).catch(()=>{});
+    commitListeningPlay(first);
   };
 
   // Play a generated route / night as a queue — session ritual
   const playRoute = (routeTracks, kind = "night") => {
     if (!routeTracks.length) return;
+    if (!guardFreePlay()) return;
     unlockAudioElements();
     const first = routeTracks[0];
     const now = Date.now();
@@ -3427,7 +3516,7 @@ export default function App() {
     });
     logTrackPlay(first);
     showToast(`Playing ${routeTracks.length} songs`);
-    if (firebaseUser) recordPlay(first.id, profile?.recentTracks || []).catch(()=>{});
+    commitListeningPlay(first);
   };
 
   const playHypnoRadio = (track) => {
@@ -3458,7 +3547,7 @@ export default function App() {
       if (next) {
         setCurrent(next); setProgress(0); setIsPlaying(true);
         logTrackPlay(next);
-        if (firebaseUser) recordPlay(next.id, profile?.recentTracks || []).catch(()=>{});
+        commitListeningPlay(next);
       }
       return;
     }
@@ -3724,6 +3813,7 @@ export default function App() {
       showToast("That block isn’t on the guide");
       return;
     }
+    if (!guardFreePlay()) return;
     const pool = buildShowPool(tracks, show, { countdown });
     if (!pool.length) {
       showToast("Nothing lined up for this block yet");
@@ -3751,8 +3841,8 @@ export default function App() {
     if (!sessionStartRef.current) sessionStartRef.current = Date.now();
     logTrackPlay(first);
     showToast(show.intro || `Tuned into ${show.title}`);
-    if (firebaseUser) recordPlay(first.id, profile?.recentTracks || []).catch(() => {});
-  }, [tracks, countdown, liveAiring, currentTrack, firebaseUser, profile?.recentTracks]);
+    commitListeningPlay(first);
+  }, [tracks, countdown, liveAiring, currentTrack, guardFreePlay, commitListeningPlay]);
 
   // Stable ref so playRadio (defined earlier) can tune a live block without TDZ issues
   playShowRef.current = playShow;
@@ -3762,6 +3852,7 @@ export default function App() {
       ? getSceneChannel(channelInput)
       : channelInput;
     if (!channel) return;
+    if (!guardFreePlay()) return;
     const pool = buildSceneChannelPool(tracks, channel);
     if (!pool.length) {
       showToast("Nothing lined up on that channel yet");
@@ -3784,8 +3875,8 @@ export default function App() {
     if (!sessionStartRef.current) sessionStartRef.current = Date.now();
     logTrackPlay(first);
     showToast(`${channel.title} — ${channel.tagline}`);
-    if (firebaseUser) recordPlay(first.id, profile?.recentTracks || []).catch(() => {});
-  }, [tracks, currentTrack, firebaseUser, profile?.recentTracks]);
+    commitListeningPlay(first);
+  }, [tracks, currentTrack, guardFreePlay, commitListeningPlay]);
 
   const playMonthlyChart = useCallback((scope = { mode: "overall" }) => {
     const monthly = buildMonthlyChart(tracks, { limit: 20, scope });
@@ -4348,6 +4439,9 @@ export default function App() {
           onOpenAlbum={(t) => openAlbum(t)}
           onOpenRoom={null}
           memberPricing={!!access?.membershipCard}
+          creditBalance={usableCreditBalance(profile)}
+          onPurchase={handlePurchasePhysical}
+          purchasing={purchasingTrackId === linerTrack?.id}
         />
       )}
       {showDedicate && (

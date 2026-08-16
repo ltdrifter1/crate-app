@@ -122,8 +122,8 @@ describe("entitlements three-tier", () => {
     const plans = planMarketingCopy();
     expect(plans.map((p) => p.id)).toEqual(["free", "club", "premium"]);
     const premium = plans.find((p) => p.id === "premium");
-    expect(premium.blurb).toMatch(/when physical editions open/i);
-    expect(premium.perks.some((p) => /when buying opens/i.test(p))).toBe(true);
+    expect(premium.blurb).toMatch(/Club Credit/i);
+    expect(premium.perks.some((p) => /Club Copy/i.test(p))).toBe(true);
   });
 
   test("addTrialDays still works", () => {

@@ -15,6 +15,19 @@ Flow:
 3. Webhook `stripeWebhook` updates `users/{uid}`
 4. App refreshes profile on `?billing=success`
 
+### Also deployed with billing functions
+
+| Callable | Purpose |
+|---|---|
+| `recordListeningEvent` | Trusted free-play meter + `tracks.playCount` + `recentTracks` |
+| `spendClubCredit` | Spend Premium Club Credit → file Club Copy into `collection` |
+
+Deploy rules so clients cannot write `playsToday` / `playCount` directly:
+
+```bash
+firebase deploy --only firestore:rules,functions
+```
+
 ## Deploy (Firebase)
 
 Requires **Blaze** plan on project `crate-app-58494`.
