@@ -35,7 +35,7 @@ export default function TrackCard({
         src={track.albumCover || null}
         size={size}
         active={active}
-        radius={14}
+        radius={16}
       >
         {rank != null && (
           <span

@@ -1,42 +1,52 @@
-import { color, fontDisplay, radio, y2k } from "../../theme";
+import { color, fontDisplay, y2k } from "../../theme";
 import Icon from "../ui/Icon";
-import CardContainer from "./CardContainer";
 
 /**
- * RequestSongCard — hardware prompt that jumps to Search.
+ * RequestSongCard — quiet App Store–style prompt into Search.
  */
 export default function RequestSongCard({ onClick = null }) {
   return (
-    <CardContainer
-      interactive
-      onClick={onClick}
-      ariaLabel="Request a song — open search"
-      padding="16px 16px"
+    <button
+      type="button"
+      aria-label="Request a song — open search"
+      onClick={onClick || undefined}
+      className="pmp-lift"
       style={{
+        width: "100%",
         display: "flex",
         alignItems: "center",
         gap: 14,
+        padding: "18px 18px",
+        borderRadius: 18,
+        border: "1px solid rgba(255,255,255,0.1)",
+        background: `
+          linear-gradient(135deg, rgba(255,255,255,0.08) 0%, transparent 42%),
+          linear-gradient(165deg, #1A1F26 0%, #10141A 100%)
+        `,
+        boxShadow: "inset 0 1px 0 rgba(255,255,255,0.1), 0 12px 28px rgba(0,0,0,0.28)",
+        cursor: "pointer",
+        textAlign: "left",
+        WebkitTapHighlightColor: "transparent",
       }}
     >
       <div style={{ flex: 1, minWidth: 0 }}>
         <div
           style={{
             fontFamily: fontDisplay,
-            fontSize: 16,
+            fontSize: 17,
             fontWeight: 700,
-            letterSpacing: 0.6,
-            textTransform: "uppercase",
+            letterSpacing: -0.3,
             color: y2k.offWhite,
           }}
         >
-          Request a song
+          Request a Song
         </div>
         <div
           style={{
             marginTop: 4,
-            fontSize: 13,
+            fontSize: 14,
             fontWeight: 500,
-            letterSpacing: -0.05,
+            letterSpacing: -0.08,
             color: color.muted,
           }}
         >
@@ -46,24 +56,22 @@ export default function RequestSongCard({ onClick = null }) {
       <span
         aria-hidden="true"
         style={{
-          width: 42,
-          height: 42,
-          borderRadius: radio.radiusControl,
+          width: 40,
+          height: 40,
+          borderRadius: "50%",
           padding: 0,
           flexShrink: 0,
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          background: radio.tuneFace,
-          color: y2k.nearBlack,
-          border: "1px solid rgba(255,255,255,0.28)",
-          boxShadow: radio.tuneShadow,
+          background: "rgba(255,255,255,0.92)",
+          color: "#0B0C0F",
         }}
       >
         <span style={{ display: "flex", marginLeft: 2 }}>
-          <Icon name="play" size={15} />
+          <Icon name="play" size={14} />
         </span>
       </span>
-    </CardContainer>
+    </button>
   );
 }

@@ -303,7 +303,7 @@ export function artFrameStyle({
   };
 }
 
-/** Home rhythm — denser shelves, title sits closer to its row. */
+/** Home rhythm — App Store breathing room, title sits close to its row. */
 export const homeSpace = {
   gutter: 20,
   bandPadY: 32,
@@ -312,54 +312,54 @@ export const homeSpace = {
   /** First shelf after a prior band/rule — keep tight; the break lives above. */
   sectionPadTopFirst: 8,
   /** Gap between Home MusicSection bands (row → next title). */
-  sectionGap: 20,
-  /** First Home shelf after the broadcast hero. */
-  sectionGapFirst: 18,
-  shelfGap: 16,
+  sectionGap: 28,
+  /** First Home shelf after header / prior hero band. */
+  sectionGapFirst: 12,
+  shelfGap: 14,
   /** Default discovery tile — sleeve-first. */
-  tile: 168,
+  tile: 160,
   /** Featured / countdown / releases — asymmetric presence. */
-  tileFeatured: 200,
+  tileFeatured: 188,
+  /** Channel surfing future-ticket width. */
+  tileTicket: 304,
   /** Space under section title stack before the rail. */
-  titleToRail: 14,
+  titleToRail: 12,
 };
 
 /**
- * Section title — compact premium, flush with rail gutter.
- * Keep size modest so every shelf shares one optical left edge.
- * Featured bands (Channel surfing, On tonight) use the same token —
- * hierarchy comes from content, not competing title sizes.
+ * Section title — clean iOS editorial, flush with rail gutter.
+ * Shared optical left edge across Channel Surfing / shelves / tonight.
  */
 export const sectionTitle = {
   fontFamily: fontDisplay,
-  fontSize: 17,
-  fontWeight: 650,
-  letterSpacing: 0.2,
-  lineHeight: 1.2,
+  fontSize: 22,
+  fontWeight: 700,
+  letterSpacing: -0.45,
+  lineHeight: 1.15,
   color: y2k.offWhite,
   margin: 0,
   textTransform: "none",
 };
 
 export const sectionSubtitle = {
-  margin: "3px 0 0",
-  fontSize: 13,
+  margin: "4px 0 0",
+  fontSize: 14,
   fontWeight: 500,
-  letterSpacing: -0.06,
+  letterSpacing: -0.08,
   lineHeight: 1.35,
   color: color.muted,
 };
 
-/** Mono eyebrow above a Home band title — sits on the same left edge. */
+/** Quiet eyebrow above a Home band title — optional, rarely needed. */
 export const sectionEyebrow = {
-  fontFamily: fontMono,
-  fontSize: 10,
-  fontWeight: 800,
-  letterSpacing: 1.6,
-  textTransform: "uppercase",
-  color: chrome.steel,
-  margin: "0 0 6px",
-  lineHeight: 1,
+  fontFamily: font,
+  fontSize: 12,
+  fontWeight: 600,
+  letterSpacing: -0.08,
+  textTransform: "none",
+  color: color.muted,
+  margin: "0 0 4px",
+  lineHeight: 1.2,
 };
 
 /** Frosted glass control — header buttons, view-all, CH bugs. */

@@ -2,18 +2,15 @@ import { useCallback, useRef } from "react";
 import {
   color,
   fontDisplay,
-  glassPill,
   homeSpace,
   motion,
   sectionSubtitle,
   sectionTitle,
-  y2k,
 } from "../../theme";
 
 /**
  * MusicSection — Home / Explore shelf shell.
- * Titles align to the same top + left edge as each other and the Rail.
- * (Previous flex-end + View all shifted baselines so shelves looked crooked.)
+ * App Store–clean titles align to the same left edge as the Rail.
  */
 export default function MusicSection({
   title,
@@ -41,11 +38,11 @@ export default function MusicSection({
         style={{
           display: "grid",
           gridTemplateColumns: action ? "minmax(0, 1fr) auto" : "minmax(0, 1fr)",
-          alignItems: "start",
+          alignItems: "end",
           columnGap: 12,
           padding: `0 ${homeSpace.gutter}px`,
           marginBottom: homeSpace.titleToRail,
-          minHeight: subtitle ? 40 : 22,
+          minHeight: subtitle ? 44 : 26,
         }}
       >
         <div style={{ minWidth: 0 }}>
@@ -78,27 +75,25 @@ export default function MusicSection({
             onClick={action.onClick}
             className="pmp-view-all"
             style={{
-              ...glassPill({ compact: true }),
               flexShrink: 0,
               marginTop: 1,
               cursor: "pointer",
-              padding: "7px 11px",
+              padding: "6px 2px",
               fontFamily: fontDisplay,
-              fontSize: 12,
+              fontSize: 15,
               fontWeight: 600,
-              letterSpacing: -0.1,
+              letterSpacing: -0.2,
               textTransform: "none",
               display: "inline-flex",
               alignItems: "center",
-              gap: 4,
-              color: y2k.offWhite,
+              gap: 2,
+              color: color.accent,
               height: 32,
+              border: "none",
+              background: "transparent",
             }}
           >
-            {action.label || "View all"}
-            <span aria-hidden="true" style={{ fontSize: 13, lineHeight: 1, color: color.muted }}>
-              ›
-            </span>
+            {action.label || "See All"}
           </button>
         )}
       </div>

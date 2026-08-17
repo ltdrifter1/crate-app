@@ -17,25 +17,25 @@ function fmtTime(secs = 0) {
   return `${m}:${String(s).padStart(2, "0")}`;
 }
 
-/** Soft on-media bug — quieter than the old plate chip. */
+/** Soft on-media bug — quiet App Store chip. */
 function BroadcastBug({ live, playing, channelLabel }) {
   return (
     <span
       style={{
         display: "inline-flex",
         alignItems: "center",
-        gap: 8,
+        gap: 7,
         maxWidth: "100%",
-        padding: "6px 11px",
+        padding: "5px 10px",
         borderRadius: 980,
-        background: "rgba(10,11,13,0.42)",
-        border: "1px solid rgba(255,255,255,0.12)",
-        backdropFilter: "blur(16px) saturate(1.2)",
-        WebkitBackdropFilter: "blur(16px) saturate(1.2)",
+        background: "rgba(10,11,13,0.38)",
+        border: "1px solid rgba(255,255,255,0.1)",
+        backdropFilter: "blur(16px) saturate(1.15)",
+        WebkitBackdropFilter: "blur(16px) saturate(1.15)",
         fontFamily: fontDisplay,
-        fontSize: 11,
+        fontSize: 12,
         fontWeight: 600,
-        letterSpacing: 0.2,
+        letterSpacing: -0.1,
         color: y2k.offWhite,
       }}
     >
@@ -50,10 +50,10 @@ function BroadcastBug({ live, playing, channelLabel }) {
               animation: playing ? "stageLiveDot 1.6s ease-in-out infinite" : "none",
             }}
           />
-          <span style={{ color: live ? y2k.neon : "rgba(247,248,250,0.88)", flexShrink: 0, fontSize: 10, fontWeight: 650 }}>
+          <span style={{ color: live ? y2k.neon : "rgba(247,248,250,0.88)", flexShrink: 0, fontSize: 12, fontWeight: 650 }}>
             Live
           </span>
-          <span aria-hidden="true" style={{ width: 1, height: 10, background: "rgba(255,255,255,0.18)", flexShrink: 0 }} />
+          <span aria-hidden="true" style={{ width: 1, height: 10, background: "rgba(255,255,255,0.16)", flexShrink: 0 }} />
         </>
       )}
       <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", color: "rgba(244,246,248,0.86)" }}>
@@ -97,9 +97,8 @@ function SoftIconButton({ label, icon, active = false, onClick, size = 44, iconS
 }
 
 /**
- * HeroPlayerCard — full-bleed broadcast "Now Playing" stage.
- * Artwork-dominant plane with chrome lower-third, consolidated LIVE bug,
- * favorite + transport controls. Idle state invites starting the station.
+ * HeroPlayerCard — App Store–style Now Playing stage.
+ * Soft rounded art plane, quiet lower-third, consolidated LIVE chip.
  */
 export default function HeroPlayerCard({
   track = null,
@@ -171,20 +170,16 @@ export default function HeroPlayerCard({
       className="pmp-hero"
       style={{
         position: "relative",
-        /* Full-bleed stage — no inset card radius fighting the Home gutter */
-        borderRadius: 0,
+        borderRadius: 22,
         overflow: "hidden",
-        aspectRatio: "16 / 11",
-        minHeight: 300,
-        maxHeight: 520,
-        marginLeft: -homeSpace.gutter,
-        marginRight: -homeSpace.gutter,
-        width: `calc(100% + ${homeSpace.gutter * 2}px)`,
-        maxWidth: "none",
+        aspectRatio: "16 / 10",
+        minHeight: 280,
+        maxHeight: 460,
+        width: "100%",
         cursor: playDisabled && !live ? "default" : "pointer",
-        border: "none",
+        border: "1px solid rgba(255,255,255,0.1)",
         background: y2k.artGradient,
-        boxShadow: `0 20px 48px rgba(0,0,0,0.42)`,
+        boxShadow: `0 18px 40px rgba(0,0,0,0.38), inset 0 1px 0 rgba(255,255,255,0.08)`,
         WebkitTapHighlightColor: "transparent",
         isolation: "isolate",
       }}
@@ -287,15 +282,15 @@ export default function HeroPlayerCard({
         <div
           style={{
             fontFamily: fontDisplay,
-            fontSize: 12,
+            fontSize: 13,
             fontWeight: 550,
-            letterSpacing: 0.15,
+            letterSpacing: -0.1,
             color: "rgba(244,246,248,0.62)",
             marginBottom: 6,
             textShadow: "0 1px 8px rgba(0,0,0,0.55)",
           }}
         >
-          {live ? "Now playing" : "Planet Radio"}
+          {live ? "Now Playing" : "Planet Radio"}
         </div>
 
         <div
@@ -305,10 +300,10 @@ export default function HeroPlayerCard({
           <div
             style={{
               fontFamily: fontDisplay,
-              fontSize: "clamp(22px, 5.5vw, 30px)",
-              fontWeight: 650,
-              letterSpacing: -0.55,
-              lineHeight: 1.08,
+              fontSize: "clamp(24px, 5.8vw, 32px)",
+              fontWeight: 700,
+              letterSpacing: -0.7,
+              lineHeight: 1.06,
               color: y2k.offWhite,
               textShadow: "0 2px 18px rgba(0,0,0,0.5)",
               overflow: "hidden",
