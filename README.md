@@ -93,8 +93,22 @@ Legacy labels (House, Drum and Bass, Funk, etc.) remap via `src/lib/genre-normal
 
 ### D. Add a lot more tracks
 
+**Option 1 — Whole folder (easiest):**
+
+```bash
+python build-crate-from-folder.py "E:\04_MP3_Library\Ramos Jan 2025 - Mar 26"
+node upload-tracks.js
+```
+
+Scans the folder recursively, reads tags, extracts covers, fills `audio/`, `covers/`, `tracks.csv` (appends + dedupes). Needs `pip install mutagen pillow requests`.
+
+**Option 2 — From an M3U playlist:**
+
 1. Build an M3U playlist of new tracks  
 2. Edit paths in `build-crate-from-playlist.py` if needed, then run it → fills `audio/`, `covers/`, `tracks.csv`  
+
+**Then for either option:**
+
 3. `serviceAccountKey.json` in repo root  
 4. `node upload-tracks.js` — **skips duplicates** (by title+artist, audio filename, or existing Storage object)  
 5. Optional: `DISCOGS_TOKEN` / `LASTFM_KEY` then `python fix_genres.py`  
