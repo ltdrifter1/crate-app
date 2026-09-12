@@ -99,5 +99,6 @@ describe("Home broadcast + four-tab IA", () => {
     expect(video.getAttribute("src")).toBe(track.videoUrl);
     expect(div.textContent).toMatch(/CH-03/i);
     expect(div.textContent).toMatch(/Video/i);
+    expect(div.textContent).toMatch(/Night Drive/);
   });
 });

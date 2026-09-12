@@ -255,6 +255,8 @@ export default function HeroPlayerCard({
         style={{
           position: "absolute",
           inset: 0,
+          zIndex: 2,
+          pointerEvents: "none",
           background: `
             linear-gradient(180deg, rgba(10,11,13,0.55) 0%, rgba(10,11,13,0.08) 22%, transparent 40%),
             linear-gradient(180deg, transparent 38%, rgba(10,11,13,0.5) 62%, rgba(10,11,13,0.94) 100%)
@@ -268,7 +270,9 @@ export default function HeroPlayerCard({
           left: 0,
           right: 0,
           bottom: 0,
+          zIndex: 2,
           height: "50%",
+          pointerEvents: "none",
           background: `radial-gradient(120% 100% at 50% 110%, ${y2k.chromeWash} 0%, transparent 70%)`,
         }}
       />
@@ -280,6 +284,7 @@ export default function HeroPlayerCard({
           top: 16,
           left: homeSpace.gutter,
           right: homeSpace.gutter,
+          zIndex: 3,
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
@@ -324,6 +329,7 @@ export default function HeroPlayerCard({
           left: 0,
           right: 0,
           bottom: 0,
+          zIndex: 3,
           padding: `0 ${homeSpace.gutter}px 18px`,
         }}
       >
