@@ -175,8 +175,10 @@ const injectStyles = () => {
     body {
       font-family: var(--font);
       background:
-        radial-gradient(ellipse 110% 65% at 50% -18%, rgba(101,230,255,0.045) 0%, transparent 55%),
-        radial-gradient(ellipse 70% 45% at 100% 110%, rgba(123,167,255,0.04) 0%, transparent 50%),
+        radial-gradient(ellipse 120% 70% at 50% -20%, rgba(101,230,255,0.1) 0%, transparent 55%),
+        radial-gradient(ellipse 55% 40% at 100% 0%, rgba(255,79,216,0.055) 0%, transparent 46%),
+        radial-gradient(ellipse 60% 42% at 0% 100%, rgba(200,242,65,0.045) 0%, transparent 50%),
+        radial-gradient(ellipse 70% 45% at 100% 110%, rgba(123,167,255,0.07) 0%, transparent 50%),
         var(--canvas);
       color: var(--ink);
     }
@@ -478,15 +480,62 @@ const injectStyles = () => {
     }
     /* ── Premium Home kit ─────────────────────────────────────────────── */
     .pill-nav {
-      background: ${glass.fillHeavy};
-      border: 1px solid ${glass.border};
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.02) 42%, transparent 100%),
+        ${glass.fillHeavy};
+      border: 1px solid rgba(231,235,240,0.2);
       box-shadow:
-        inset 0 1px 0 ${glass.highlight},
-        inset 0 -1px 0 rgba(0, 0, 0, 0.35),
+        inset 0 1px 0 rgba(255,255,255,0.24),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.4),
+        0 0 0 1px rgba(101,230,255,0.06),
         0 18px 48px rgba(0, 0, 0, 0.55),
         0 4px 12px rgba(0, 0, 0, 0.35);
       -webkit-backdrop-filter: ${glass.blurHeavy};
       backdrop-filter: ${glass.blurHeavy};
+    }
+    .glass-dock {
+      border: 1px solid rgba(231,235,240,0.18);
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,0.2),
+        0 0 0 1px rgba(101,230,255,0.05),
+        0 16px 40px rgba(0,0,0,0.48);
+    }
+    .pmp-crt {
+      pointer-events: none;
+      background: repeating-linear-gradient(
+        to bottom,
+        rgba(255,255,255,0.035) 0px,
+        rgba(255,255,255,0.035) 1px,
+        transparent 1px,
+        transparent 3px
+      );
+      mix-blend-mode: overlay;
+      opacity: 0.42;
+    }
+    .pmp-crt::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(180deg, transparent 0%, rgba(101,230,255,0.07) 48%, transparent 100%);
+      animation: pmpCrtSweep 9s linear infinite;
+    }
+    @keyframes pmpCrtSweep {
+      0% { transform: translateY(-120%); }
+      100% { transform: translateY(120%); }
+    }
+    .pmp-hero-bezel {
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,0.28),
+        inset 0 -1px 0 rgba(0,0,0,0.5),
+        0 22px 50px rgba(0,0,0,0.5),
+        0 0 40px rgba(101,230,255,0.07);
+    }
+    .pmp-ticker-track {
+      animation: stationTicker 22s linear infinite;
+    }
+    @media (max-width: 400px) {
+      .pmp-onair-chip-label { display: none; }
+      .pmp-onair-chip { padding: 0 7px !important; }
     }
     .pmp-lift {
       transition: transform ${motion.settle} ${motion.ease}, box-shadow ${motion.settle} ${motion.ease}, border-color ${motion.base} ${motion.ease};
@@ -2004,9 +2053,9 @@ function GlassDock({
                 {(isRadioMode || hypnoPocket) && (
                   <span style={{
                     display: "inline-block", width: 6, height: 6, borderRadius: "50%",
-                    background: y2k.chromeBright, marginRight: 8, verticalAlign: "middle",
-                    boxShadow: isPlaying ? `0 0 0 3px ${y2k.chromeSoft}` : "none",
-                    animation: isPlaying ? "breathe 2s ease-in-out infinite" : "none",
+                    background: y2k.neon, marginRight: 8, verticalAlign: "middle",
+                    boxShadow: isPlaying ? `0 0 10px ${y2k.neon}` : "none",
+                    animation: isPlaying ? "stageLiveDot 1.6s ease-in-out infinite" : "none",
                   }}/>
                 )}
                 {track.title}

@@ -152,4 +152,22 @@ describe("Home broadcast + four-tab IA", () => {
     expect(div.textContent).toMatch(/Sol Park/);
     expect(div.querySelector('[aria-label*="Up first Morning Signal"]')).toBeTruthy();
   });
+
+  test("live hero crawls a station ticker when provided", async () => {
+    await act(async () => {
+      root.render(
+        React.createElement(HeroPlayerCard, {
+          track: {
+            id: "t1",
+            title: "Night Drive",
+            artist: "Signal",
+            albumCover: "/brand/planet-mp3-lockup-on-black.png",
+          },
+          isRadioMode: true,
+          tickerText: "Planet Radio — requests open",
+        })
+      );
+    });
+    expect(div.textContent).toMatch(/Planet Radio — requests open/);
+  });
 });

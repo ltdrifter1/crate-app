@@ -31,6 +31,7 @@ function ChannelSurfingSection({
       }}
     >
       <HomeBandHeader
+        eyebrow="On the dial"
         title="Channel Surfing"
         subtitle="Flip the dial. Music stays on this stage."
         action={null}
