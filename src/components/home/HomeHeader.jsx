@@ -1,4 +1,4 @@
-import { color, fontDisplay, homeSpace, y2k } from "../../theme";
+import { chromeIconButton, color, fontDisplay, fontMono, homeSpace, y2k } from "../../theme";
 import { BrandGlyph } from "../brand/BrandGlyphs";
 import Icon from "../ui/Icon";
 
@@ -10,20 +10,7 @@ function HeaderButton({ label, icon, onClick }) {
       aria-label={label}
       onClick={onClick}
       className="pmp-press"
-      style={{
-        width: 36,
-        height: 36,
-        padding: 0,
-        borderRadius: "50%",
-        border: "1px solid rgba(255,255,255,0.1)",
-        background: "rgba(255,255,255,0.06)",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        cursor: "pointer",
-        color: y2k.offWhite,
-        flexShrink: 0,
-      }}
+      style={chromeIconButton(36)}
     >
       <Icon name={icon} size={16} />
     </button>
@@ -31,7 +18,7 @@ function HeaderButton({ label, icon, onClick }) {
 }
 
 /**
- * HomeHeader — App Store–clean: brand left, quiet circular controls right.
+ * HomeHeader — station ID strip: ON AIR chip, wordmark, chrome controls.
  */
 export default function HomeHeader({
   onOpenSearch = null,
@@ -45,24 +32,58 @@ export default function HomeHeader({
         alignItems: "center",
         justifyContent: "space-between",
         gap: 12,
-        padding: `calc(10px + env(safe-area-inset-top, 0px)) ${homeSpace.gutter}px 8px`,
+        padding: `calc(10px + env(safe-area-inset-top, 0px)) ${homeSpace.gutter}px 10px`,
       }}
     >
       <div
         style={{
           display: "flex",
           alignItems: "center",
-          gap: 9,
+          gap: 10,
           minWidth: 0,
         }}
       >
-        <BrandGlyph size={28} />
+        <span
+          aria-hidden="true"
+          className="pmp-onair-chip"
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 6,
+            height: 26,
+            padding: "0 8px",
+            borderRadius: 6,
+            border: "1px solid rgba(101,230,255,0.28)",
+            background: "rgba(101,230,255,0.1)",
+            boxShadow: "inset 0 1px 0 rgba(255,255,255,0.16), 0 0 14px rgba(101,230,255,0.12)",
+            fontFamily: fontMono,
+            fontSize: 9,
+            fontWeight: 800,
+            letterSpacing: 1.4,
+            textTransform: "uppercase",
+            color: y2k.cyan,
+            flexShrink: 0,
+          }}
+        >
+          <span
+            style={{
+              width: 6,
+              height: 6,
+              borderRadius: "50%",
+              background: y2k.neon,
+              boxShadow: `0 0 8px ${y2k.neon}`,
+              animation: "stageLiveDot 1.8s ease-in-out infinite",
+            }}
+          />
+          <span className="pmp-onair-chip-label">On air</span>
+        </span>
+        <BrandGlyph size={26} />
         <span
           style={{
             fontFamily: fontDisplay,
-            fontSize: 22,
-            fontWeight: 700,
-            letterSpacing: -0.5,
+            fontSize: 21,
+            fontWeight: 750,
+            letterSpacing: -0.45,
             color: y2k.offWhite,
             whiteSpace: "nowrap",
           }}

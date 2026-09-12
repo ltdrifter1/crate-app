@@ -730,6 +730,7 @@ export function TonightDeck({
       }}
     >
       <HomeBandHeader
+        eyebrow="Guide"
         title="On Tonight"
         subtitle={show?.tagline || "Tonight’s programmed blocks"}
         meta={`${STATION_CALLSIGN} · ${STATION_FREQ}`}

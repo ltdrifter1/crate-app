@@ -350,17 +350,58 @@ export const sectionSubtitle = {
   color: color.muted,
 };
 
-/** Quiet eyebrow above a Home band title — optional, rarely needed. */
+/** Broadcast readout above a Home band title. */
 export const sectionEyebrow = {
-  fontFamily: font,
-  fontSize: 12,
-  fontWeight: 600,
-  letterSpacing: -0.08,
-  textTransform: "none",
-  color: color.muted,
-  margin: "0 0 4px",
+  fontFamily: fontMono,
+  fontSize: 10,
+  fontWeight: 700,
+  letterSpacing: 1.5,
+  textTransform: "uppercase",
+  color: y2k.cyan,
+  margin: "0 0 6px",
   lineHeight: 1.2,
 };
+
+/** Monitor bezel + LCD used by the Home stage and dock. */
+export const broadcast = {
+  bezelBorder: "1px solid rgba(231,235,240,0.22)",
+  bezelShadow: `
+    inset 0 1px 0 rgba(255,255,255,0.28),
+    inset 0 -1px 0 rgba(0,0,0,0.55),
+    inset 1px 0 0 rgba(255,255,255,0.08),
+    inset -1px 0 0 rgba(0,0,0,0.35),
+    0 22px 50px rgba(0,0,0,0.52),
+    0 0 40px rgba(101,230,255,0.06)
+  `,
+  lcdTrack: "rgba(101,230,255,0.14)",
+  lcdFill:
+    "linear-gradient(90deg, rgba(101,230,255,0.55) 0%, rgba(101,230,255,0.95) 55%, rgba(231,235,240,0.95) 100%)",
+  lcdGlow: "0 0 10px rgba(101,230,255,0.45)",
+};
+
+/** Circular chrome glass control — header / Explore / Charts. */
+export function chromeIconButton(size = 36) {
+  return {
+    width: size,
+    height: size,
+    padding: 0,
+    borderRadius: "50%",
+    border: "1px solid rgba(231,235,240,0.22)",
+    background:
+      "linear-gradient(180deg, rgba(255,255,255,0.16) 0%, rgba(255,255,255,0.04) 100%), rgba(18,20,24,0.55)",
+    boxShadow:
+      "inset 0 1px 0 rgba(255,255,255,0.3), inset 0 -1px 0 rgba(0,0,0,0.4), 0 4px 14px rgba(0,0,0,0.3)",
+    backdropFilter: "blur(16px) saturate(1.3)",
+    WebkitBackdropFilter: "blur(16px) saturate(1.3)",
+    color: y2k.offWhite,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    cursor: "pointer",
+    flexShrink: 0,
+    WebkitTapHighlightColor: "transparent",
+  };
+}
 
 /** Frosted glass control — header buttons, view-all, CH bugs. */
 export function glassPill(opts = {}) {
@@ -520,13 +561,14 @@ export function brandGlassHalo(size = 280) {
   };
 }
 
-/** App shell — graphite chassis with quiet cyan atmosphere. */
+/** App shell — studio bloom: cyan tuner, acid spark, magenta rim. */
 export const APP_STYLE = {
   fontFamily: font,
   background: `
-    radial-gradient(ellipse 110% 65% at 50% -18%, rgba(101,230,255,0.045) 0%, transparent 55%),
-    radial-gradient(ellipse 70% 45% at 100% 100%, rgba(123,167,255,0.04) 0%, transparent 50%),
-    radial-gradient(ellipse 55% 40% at 0% 85%, rgba(255,255,255,0.02) 0%, transparent 45%),
+    radial-gradient(ellipse 120% 70% at 50% -20%, rgba(101,230,255,0.1) 0%, transparent 55%),
+    radial-gradient(ellipse 55% 40% at 100% 0%, rgba(255,79,216,0.055) 0%, transparent 46%),
+    radial-gradient(ellipse 60% 42% at 0% 100%, rgba(200,242,65,0.045) 0%, transparent 50%),
+    radial-gradient(ellipse 70% 45% at 100% 100%, rgba(123,167,255,0.07) 0%, transparent 50%),
     ${color.canvas}
   `,
   color: color.ink,

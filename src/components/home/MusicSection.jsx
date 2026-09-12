@@ -4,6 +4,7 @@ import {
   fontDisplay,
   homeSpace,
   motion,
+  sectionEyebrow,
   sectionSubtitle,
   sectionTitle,
 } from "../../theme";
@@ -15,6 +16,7 @@ import {
 export default function MusicSection({
   title,
   subtitle = null,
+  eyebrow = null,
   action = null,
   accent = null,
   children,
@@ -42,10 +44,22 @@ export default function MusicSection({
           columnGap: 12,
           padding: `0 ${homeSpace.gutter}px`,
           marginBottom: homeSpace.titleToRail,
-          minHeight: subtitle ? 44 : 26,
+          minHeight: subtitle || eyebrow ? 44 : 26,
         }}
       >
         <div style={{ minWidth: 0 }}>
+          {eyebrow && (
+            <div
+              style={{
+                ...sectionEyebrow,
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                whiteSpace: "nowrap",
+              }}
+            >
+              {eyebrow}
+            </div>
+          )}
           <h2
             style={{
               ...sectionTitle,

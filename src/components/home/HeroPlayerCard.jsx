@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
 import {
+  broadcast,
   fontDisplay,
   fontMono,
   homeSpace,
@@ -20,25 +21,27 @@ function fmtTime(secs = 0) {
   return `${m}:${String(s).padStart(2, "0")}`;
 }
 
-/** Soft on-media bug — quiet App Store chip. */
+/** Broadcast bug — LIVE LED + channel readout. */
 function BroadcastBug({ live, playing, channelLabel }) {
   return (
     <span
       style={{
         display: "inline-flex",
         alignItems: "center",
-        gap: 7,
+        gap: 8,
         maxWidth: "100%",
-        padding: "5px 10px",
-        borderRadius: 980,
-        background: "rgba(10,11,13,0.38)",
-        border: "1px solid rgba(255,255,255,0.1)",
-        backdropFilter: "blur(16px) saturate(1.15)",
-        WebkitBackdropFilter: "blur(16px) saturate(1.15)",
-        fontFamily: fontDisplay,
-        fontSize: 12,
-        fontWeight: 600,
-        letterSpacing: -0.1,
+        padding: "6px 11px 6px 9px",
+        borderRadius: 8,
+        background:
+          "linear-gradient(180deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.02) 100%), rgba(8,10,13,0.62)",
+        border: "1px solid rgba(231,235,240,0.2)",
+        boxShadow: "inset 0 1px 0 rgba(255,255,255,0.18), 0 8px 20px rgba(0,0,0,0.35)",
+        backdropFilter: "blur(18px) saturate(1.25)",
+        WebkitBackdropFilter: "blur(18px) saturate(1.25)",
+        fontFamily: fontMono,
+        fontSize: 11,
+        fontWeight: 700,
+        letterSpacing: 0.6,
         color: y2k.offWhite,
       }}
     >
@@ -47,26 +50,50 @@ function BroadcastBug({ live, playing, channelLabel }) {
           <span
             aria-hidden="true"
             style={{
-              width: 6, height: 6, borderRadius: "50%", flexShrink: 0,
+              width: 7,
+              height: 7,
+              borderRadius: "50%",
+              flexShrink: 0,
               background: live ? y2k.neon : "rgba(247,248,250,0.9)",
-              boxShadow: live ? `0 0 8px ${y2k.neon}` : "none",
+              boxShadow: live ? `0 0 10px ${y2k.neon}` : "none",
               animation: playing ? "stageLiveDot 1.6s ease-in-out infinite" : "none",
             }}
           />
-          <span style={{ color: live ? y2k.neon : "rgba(247,248,250,0.88)", flexShrink: 0, fontSize: 12, fontWeight: 650 }}>
+          <span
+            style={{
+              color: live ? y2k.neon : "rgba(247,248,250,0.88)",
+              flexShrink: 0,
+              fontSize: 11,
+              fontWeight: 800,
+              letterSpacing: 1.3,
+              textTransform: "uppercase",
+            }}
+          >
             Live
           </span>
-          <span aria-hidden="true" style={{ width: 1, height: 10, background: "rgba(255,255,255,0.16)", flexShrink: 0 }} />
+          <span
+            aria-hidden="true"
+            style={{ width: 1, height: 11, background: "rgba(255,255,255,0.2)", flexShrink: 0 }}
+          />
         </>
       )}
-      <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", color: "rgba(244,246,248,0.86)" }}>
+      <span
+        style={{
+          overflow: "hidden",
+          textOverflow: "ellipsis",
+          whiteSpace: "nowrap",
+          color: "rgba(244,246,248,0.88)",
+          letterSpacing: 0.8,
+          textTransform: "uppercase",
+        }}
+      >
         {channelLabel}
       </span>
     </span>
   );
 }
 
-function SoftIconButton({ label, icon, active = false, onClick, size = 44, iconSize = 17 }) {
+function ChromeIconButton({ label, icon, active = false, onClick, size = 44, iconSize = 17 }) {
   return (
     <button
       type="button"
@@ -80,17 +107,21 @@ function SoftIconButton({ label, icon, active = false, onClick, size = 44, iconS
       style={{
         width: size,
         height: size,
-        borderRadius: "50%",
+        borderRadius: 12,
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
         cursor: "pointer",
-        border: `1px solid ${active ? "rgba(255,255,255,0.28)" : "rgba(255,255,255,0.12)"}`,
-        background: active ? "rgba(255,255,255,0.16)" : "rgba(12,13,16,0.36)",
+        border: `1px solid ${active ? "rgba(231,235,240,0.4)" : "rgba(231,235,240,0.18)"}`,
+        background: active
+          ? "linear-gradient(180deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0.06) 100%), rgba(28,32,38,0.55)"
+          : "linear-gradient(180deg, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0.03) 100%), rgba(10,12,16,0.45)",
         color: active ? y2k.chromeBright : y2k.offWhite,
+        boxShadow: active
+          ? `inset 0 1px 0 rgba(255,255,255,0.32), 0 0 16px ${y2k.chromeGlow}`
+          : "inset 0 1px 0 rgba(255,255,255,0.2), inset 0 -1px 0 rgba(0,0,0,0.4)",
         backdropFilter: "blur(14px)",
         WebkitBackdropFilter: "blur(14px)",
-        boxShadow: "none",
         flexShrink: 0,
       }}
     >
@@ -100,8 +131,8 @@ function SoftIconButton({ label, icon, active = false, onClick, size = 44, iconS
 }
 
 /**
- * HeroPlayerCard — App Store–style Now Playing stage.
- * Soft rounded art plane, quiet lower-third, consolidated LIVE chip.
+ * HeroPlayerCard — broadcast monitor stage.
+ * Chrome bezel, CRT wash, LIVE bug, LCD seek, lower-third transport.
  */
 export default function HeroPlayerCard({
   track = null,
@@ -122,6 +153,7 @@ export default function HeroPlayerCard({
   requested = false,
   onVisibilityChange = null,
   onSeek = null,
+  tickerText = "",
 }) {
   const isPlaying = useIsPlaying();
   const isBuffering = useIsBuffering();
@@ -187,24 +219,22 @@ export default function HeroPlayerCard({
       onKeyDown={(e) => {
         if (e.key === "Enter") live ? onOpen?.() : !playDisabled && onPlay?.();
       }}
-      className="pmp-hero"
+      className="pmp-hero pmp-hero-bezel"
       style={{
         position: "relative",
-        borderRadius: 22,
+        borderRadius: 18,
         overflow: "hidden",
         aspectRatio: "16 / 10",
         minHeight: 300,
         maxHeight: 520,
         width: "100%",
         cursor: playDisabled && !live ? "default" : "pointer",
-        border: "1px solid rgba(255,255,255,0.1)",
+        border: broadcast.bezelBorder,
         background: y2k.artGradient,
-        boxShadow: `0 18px 40px rgba(0,0,0,0.38), inset 0 1px 0 rgba(255,255,255,0.08)`,
         WebkitTapHighlightColor: "transparent",
         isolation: "isolate",
       }}
     >
-      {/* Artwork — full-bleed stage (fallback under video) */}
       {art ? (
         <img
           key={art}
@@ -220,7 +250,7 @@ export default function HeroPlayerCard({
             animation: "fadeIn 0.6s ease both",
             transform: !hasVideo && isPlaying ? "scale(1.08)" : "scale(1.02)",
             transition: "transform 18s ease",
-            filter: isPlaying && !hasVideo ? "saturate(1.08) contrast(1.04)" : "none",
+            filter: isPlaying && !hasVideo ? "saturate(1.12) contrast(1.06)" : "none",
           }}
         />
       ) : (
@@ -265,13 +295,18 @@ export default function HeroPlayerCard({
             inset: 0,
             zIndex: 1,
             pointerEvents: "none",
-            background: `radial-gradient(80% 70% at 50% 20%, ${track.color}33 0%, transparent 62%)`,
+            background: `radial-gradient(80% 70% at 50% 20%, ${track.color}40 0%, transparent 62%)`,
             mixBlendMode: "screen",
           }}
         />
       )}
 
-      {/* Broadcast scrim — key light top, dense lower-third */}
+      <div
+        aria-hidden="true"
+        className="pmp-crt"
+        style={{ position: "absolute", inset: 0, zIndex: 2 }}
+      />
+
       <div
         aria-hidden="true"
         style={{
@@ -280,26 +315,33 @@ export default function HeroPlayerCard({
           zIndex: 2,
           pointerEvents: "none",
           background: `
-            linear-gradient(180deg, rgba(10,11,13,0.55) 0%, rgba(10,11,13,0.08) 22%, transparent 40%),
-            linear-gradient(180deg, transparent 38%, rgba(10,11,13,0.5) 62%, rgba(10,11,13,0.94) 100%)
+            linear-gradient(180deg, rgba(10,11,13,0.62) 0%, rgba(10,11,13,0.1) 22%, transparent 40%),
+            linear-gradient(180deg, transparent 36%, rgba(10,11,13,0.55) 62%, rgba(8,10,13,0.96) 100%)
           `,
         }}
       />
-      <div
-        aria-hidden="true"
-        style={{
-          position: "absolute",
-          left: 0,
-          right: 0,
-          bottom: 0,
-          zIndex: 2,
-          height: "50%",
-          pointerEvents: "none",
-          background: `radial-gradient(120% 100% at 50% 110%, ${y2k.chromeWash} 0%, transparent 70%)`,
-        }}
-      />
 
-      {/* Top chrome — consolidated bug */}
+      {/* Corner ticks — monitor frame */}
+      {[
+        { top: 10, left: 10, borderTop: "2px solid rgba(231,235,240,0.45)", borderLeft: "2px solid rgba(231,235,240,0.45)" },
+        { top: 10, right: 10, borderTop: "2px solid rgba(231,235,240,0.45)", borderRight: "2px solid rgba(231,235,240,0.45)" },
+        { bottom: 10, left: 10, borderBottom: "2px solid rgba(101,230,255,0.4)", borderLeft: "2px solid rgba(101,230,255,0.4)" },
+        { bottom: 10, right: 10, borderBottom: "2px solid rgba(101,230,255,0.4)", borderRight: "2px solid rgba(101,230,255,0.4)" },
+      ].map((tick, i) => (
+        <span
+          key={i}
+          aria-hidden="true"
+          style={{
+            position: "absolute",
+            zIndex: 4,
+            width: 16,
+            height: 16,
+            pointerEvents: "none",
+            ...tick,
+          }}
+        />
+      ))}
+
       <div
         style={{
           position: "absolute",
@@ -326,11 +368,10 @@ export default function HeroPlayerCard({
               alignItems: "center",
               gap: 5,
               padding: "5px 10px",
-              borderRadius: 980,
-              background: "rgba(10,11,13,0.42)",
-              border: "1px solid rgba(255,255,255,0.12)",
-              backdropFilter: "blur(16px) saturate(1.15)",
-              WebkitBackdropFilter: "blur(16px) saturate(1.15)",
+              borderRadius: 6,
+              background: "rgba(10,11,13,0.55)",
+              border: "1px solid rgba(255,79,216,0.28)",
+              boxShadow: "0 0 16px rgba(255,79,216,0.16)",
               fontFamily: fontMono,
               fontSize: 10,
               fontWeight: 800,
@@ -344,7 +385,6 @@ export default function HeroPlayerCard({
         )}
       </div>
 
-      {/* Lower third — type + soft transport on the art */}
       <div
         style={{
           position: "absolute",
@@ -352,18 +392,19 @@ export default function HeroPlayerCard({
           right: 0,
           bottom: 0,
           zIndex: 3,
-          padding: `0 ${homeSpace.gutter}px 18px`,
+          padding: `0 ${homeSpace.gutter}px 16px`,
         }}
       >
         <div
           style={{
-            fontFamily: fontDisplay,
-            fontSize: 13,
-            fontWeight: 550,
-            letterSpacing: -0.1,
-            color: "rgba(244,246,248,0.62)",
+            fontFamily: fontMono,
+            fontSize: 11,
+            fontWeight: 800,
+            letterSpacing: 1.6,
+            textTransform: "uppercase",
+            color: live ? y2k.cyan : "rgba(244,246,248,0.62)",
             marginBottom: 6,
-            textShadow: "0 1px 8px rgba(0,0,0,0.55)",
+            textShadow: live ? "0 0 12px rgba(101,230,255,0.45)" : "0 1px 8px rgba(0,0,0,0.55)",
           }}
         >
           {live
@@ -379,11 +420,11 @@ export default function HeroPlayerCard({
             style={{
               fontFamily: fontDisplay,
               fontSize: "clamp(24px, 5.8vw, 32px)",
-              fontWeight: 700,
+              fontWeight: 750,
               letterSpacing: -0.7,
               lineHeight: 1.06,
               color: y2k.offWhite,
-              textShadow: "0 2px 18px rgba(0,0,0,0.5)",
+              textShadow: "0 2px 18px rgba(0,0,0,0.55)",
               overflow: "hidden",
               textOverflow: "ellipsis",
               display: "-webkit-box",
@@ -399,7 +440,7 @@ export default function HeroPlayerCard({
               marginTop: 5,
               fontSize: 14,
               fontWeight: 500,
-              color: "rgba(244,246,248,0.7)",
+              color: "rgba(244,246,248,0.74)",
               textShadow: "0 1px 8px rgba(0,0,0,0.45)",
               overflow: "hidden",
               textOverflow: "ellipsis",
@@ -418,7 +459,7 @@ export default function HeroPlayerCard({
                 fontWeight: 700,
                 letterSpacing: 1.1,
                 textTransform: "uppercase",
-                color: "rgba(244,246,248,0.5)",
+                color: "rgba(101,230,255,0.78)",
               }}
             >
               Up next · {upNextTrack.title}
@@ -437,7 +478,7 @@ export default function HeroPlayerCard({
         >
           {live ? (
             <>
-              <SoftIconButton label="Previous" icon="prev" onClick={onPrev} />
+              <ChromeIconButton label="Previous" icon="prev" onClick={onPrev} />
               <IceOrbPlay
                 isPlaying={isPlaying}
                 buffering={isBuffering}
@@ -446,7 +487,7 @@ export default function HeroPlayerCard({
                 glowing={isPlaying && !isBuffering}
                 stopPropagation
               />
-              <SoftIconButton label="Next" icon="skip" onClick={onSkip} />
+              <ChromeIconButton label="Next" icon="skip" onClick={onSkip} />
               <span style={{ flex: 1 }} />
               {onRequest && (
                 <button
@@ -462,27 +503,29 @@ export default function HeroPlayerCard({
                   style={{
                     padding: "0 14px",
                     height: 40,
-                    borderRadius: 980,
-                    border: `1px solid ${requested ? "rgba(200,242,65,0.35)" : "rgba(255,255,255,0.14)"}`,
-                    background: requested ? y2k.neonSoft : "rgba(12,13,16,0.4)",
+                    borderRadius: 10,
+                    border: `1px solid ${requested ? "rgba(200,242,65,0.45)" : "rgba(231,235,240,0.2)"}`,
+                    background: requested ? y2k.neonSoft : "rgba(12,13,16,0.5)",
                     color: requested ? y2k.neon : y2k.offWhite,
-                    fontFamily: fontDisplay,
-                    fontSize: 12,
-                    fontWeight: 600,
-                    letterSpacing: 0.1,
+                    fontFamily: fontMono,
+                    fontSize: 11,
+                    fontWeight: 800,
+                    letterSpacing: 0.8,
+                    textTransform: "uppercase",
                     cursor: requested ? "default" : "pointer",
                     backdropFilter: "blur(12px)",
                     WebkitBackdropFilter: "blur(12px)",
                     display: "flex",
                     alignItems: "center",
                     gap: 6,
+                    boxShadow: requested ? `0 0 16px ${y2k.neonSoft}` : "inset 0 1px 0 rgba(255,255,255,0.14)",
                   }}
                 >
                   <Icon name="zap" size={13} />
                   {requested ? "Requested" : "Request"}
                 </button>
               )}
-              <SoftIconButton
+              <ChromeIconButton
                 label={track.liked ? "Unlike" : "Like"}
                 icon={track.liked ? "heart" : "heartempty"}
                 active={!!track.liked}
@@ -502,19 +545,23 @@ export default function HeroPlayerCard({
               style={{
                 height: 48,
                 padding: "0 22px",
-                borderRadius: 980,
-                border: "1px solid rgba(255,255,255,0.45)",
-                background: playDisabled ? "rgba(60,64,72,0.6)" : "rgba(247,248,250,0.96)",
+                borderRadius: 12,
+                border: "1px solid rgba(255,255,255,0.5)",
+                background: playDisabled
+                  ? "rgba(60,64,72,0.6)"
+                  : "linear-gradient(180deg, #FFFFFF 0%, #E7EBF0 55%, #C8CED6 100%)",
                 color: "#0B0C0F",
                 fontFamily: fontDisplay,
                 fontSize: 14,
-                fontWeight: 650,
-                letterSpacing: 0.1,
+                fontWeight: 700,
+                letterSpacing: 0.15,
                 cursor: playDisabled ? "default" : "pointer",
                 display: "flex",
                 alignItems: "center",
                 gap: 10,
-                boxShadow: playDisabled ? "none" : "0 8px 22px rgba(0,0,0,0.35)",
+                boxShadow: playDisabled
+                  ? "none"
+                  : "inset 0 1px 0 rgba(255,255,255,0.85), 0 10px 24px rgba(0,0,0,0.38)",
                 opacity: playDisabled ? 0.6 : 1,
               }}
             >
@@ -548,40 +595,42 @@ export default function HeroPlayerCard({
               }}
               style={{
                 flex: 1,
-                height: onSeek && duration ? 14 : 2,
+                height: onSeek && duration ? 14 : 3,
                 display: "flex",
                 alignItems: "center",
                 cursor: onSeek && duration ? "pointer" : "default",
               }}
             >
-            <div
-              aria-hidden="true"
-              style={{
-                flex: 1,
-                height: 2,
-                borderRadius: 999,
-                background: "rgba(255,255,255,0.14)",
-                overflow: "hidden",
-              }}
-            >
               <div
+                aria-hidden="true"
                 style={{
-                  height: "100%",
-                  width: `${pct * 100}%`,
-                  background: "rgba(247,248,250,0.92)",
+                  flex: 1,
+                  height: 3,
                   borderRadius: 999,
-                  transition: "width 0.2s linear",
+                  background: broadcast.lcdTrack,
+                  overflow: "hidden",
+                  boxShadow: "inset 0 1px 2px rgba(0,0,0,0.45)",
                 }}
-              />
-            </div>
+              >
+                <div
+                  style={{
+                    height: "100%",
+                    width: `${pct * 100}%`,
+                    background: broadcast.lcdFill,
+                    borderRadius: 999,
+                    boxShadow: broadcast.lcdGlow,
+                    transition: "width 0.2s linear",
+                  }}
+                />
+              </div>
             </div>
             <span
               style={{
                 fontFamily: fontMono,
                 fontSize: 10,
                 fontVariantNumeric: "tabular-nums",
-                color: "rgba(244,246,248,0.55)",
-                letterSpacing: 0.2,
+                color: "rgba(101,230,255,0.7)",
+                letterSpacing: 0.3,
                 flexShrink: 0,
               }}
             >
@@ -590,6 +639,34 @@ export default function HeroPlayerCard({
             </span>
           </div>
         )}
+
+        {tickerText ? (
+          <div
+            aria-hidden="true"
+            style={{
+              marginTop: 10,
+              overflow: "hidden",
+              maskImage: "linear-gradient(90deg, transparent 0%, #000 8%, #000 92%, transparent 100%)",
+              WebkitMaskImage: "linear-gradient(90deg, transparent 0%, #000 8%, #000 92%, transparent 100%)",
+            }}
+          >
+            <div
+              className="pmp-ticker-track"
+              style={{
+                display: "inline-block",
+                whiteSpace: "nowrap",
+                fontFamily: fontMono,
+                fontSize: 10,
+                fontWeight: 700,
+                letterSpacing: 1.3,
+                textTransform: "uppercase",
+                color: "rgba(244,246,248,0.48)",
+              }}
+            >
+              {tickerText} · {tickerText} ·
+            </div>
+          </div>
+        ) : null}
       </div>
     </div>
   );
