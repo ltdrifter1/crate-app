@@ -1,6 +1,6 @@
 # ROOMS — Product Audit, Experience Vision & Implementation Roadmap
 
-> **Archival / aspirational (2026):** Rooms and Paths are **not** current top-level destinations. Live product IA is **Station Home** (Channel Surfing, live stage, countdown) + Explore / Charts / Library / Club. This document remains the long-form vision reference; foundation libs (`lib/rooms.js`, posters, motion tokens) still power atmosphere elsewhere.
+> **Archival / aspirational (2026):** Rooms and Paths are **not** current top-level destinations. Live product IA is **Station Home** (Channel Surfing, live stage, countdown) + Explore / Library / Club. Charts and Search remain routes off Home / Explore. This document remains the long-form vision reference; foundation libs (`lib/rooms.js`, posters, motion tokens) still power atmosphere elsewhere.
 
 > **Guiding principle:** ROOMS should feel less like software and more like a place people return to—where music is discovered through exploration, collections become personal spaces, and every visit uncovers something worth sharing.
 

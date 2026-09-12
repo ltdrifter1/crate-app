@@ -3,6 +3,7 @@ import Icon from "../components/ui/Icon";
 import CoverImage from "../components/ui/CoverImage";
 import VirtualList from "../components/ui/VirtualList";
 import { AlbumArt } from "../components/listen/AlbumArt";
+import CoverFlow from "../components/listen/CoverFlow";
 import {
   TrackActionsMenu,
   TrackRow,

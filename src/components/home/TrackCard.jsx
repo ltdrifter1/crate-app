@@ -1,4 +1,5 @@
 import { color, fontDisplay, fontMono, glassPill, homeSpace, y2k } from "../../theme";
+import { trackHasVideo } from "../../lib/video";
 import ArtFrame from "../ui/ArtFrame";
 
 /**
@@ -37,6 +38,30 @@ export default function TrackCard({
         active={active}
         radius={16}
       >
+        {trackHasVideo(track) && (
+          <span
+            aria-hidden="true"
+            style={{
+              ...glassPill({ compact: true }),
+              position: "absolute",
+              top: 8,
+              right: 8,
+              height: 22,
+              padding: "0 8px",
+              display: "inline-flex",
+              alignItems: "center",
+              fontFamily: fontMono,
+              fontSize: 9,
+              fontWeight: 800,
+              letterSpacing: 1.1,
+              textTransform: "uppercase",
+              color: y2k.chromeBright,
+              zIndex: 1,
+            }}
+          >
+            Video
+          </span>
+        )}
         {rank != null && (
           <span
             style={{

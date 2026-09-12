@@ -33,7 +33,11 @@ function HeaderButton({ label, icon, onClick }) {
 /**
  * HomeHeader — App Store–clean: brand left, quiet circular controls right.
  */
-export default function HomeHeader({ onOpenSearch = null, onOpenProfile = null }) {
+export default function HomeHeader({
+  onOpenSearch = null,
+  onOpenCharts = null,
+  onOpenProfile = null,
+}) {
   return (
     <header
       style={{
@@ -67,6 +71,7 @@ export default function HomeHeader({ onOpenSearch = null, onOpenProfile = null }
         </span>
       </div>
       <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+        <HeaderButton label="Charts" icon="chart" onClick={onOpenCharts} />
         <HeaderButton label="Search" icon="search" onClick={onOpenSearch} />
         <HeaderButton label="Profile" icon="profile" onClick={onOpenProfile} />
       </div>

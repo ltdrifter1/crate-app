@@ -4,7 +4,7 @@ import VirtualList from "../components/ui/VirtualList";
 import GenreSceneBrowse from "../components/search/GenreSceneBrowse";
 import { AlbumArt } from "../components/listen/AlbumArt";
 import { TrackRow } from "../components/listen/TrackRow";
-import { useCurrentTrack, useIsPlaying } from "../usePlayerTransport";
+import { useCurrentTrack } from "../usePlayerTransport";
 import {
   BTN_SECONDARY,
   INPUT_ST,
@@ -20,10 +20,10 @@ function SearchScreen({
   query, setQuery, results, onPlay, onLike, playlistCtx,
   entityHits, onOpenArtist, onOpenAlbum, tracks = [], onListenIntent = null,
   recentSearches = [], onPickRecent = null, onClearRecent = null,
+  onBack = null,
 }) {
   const currentTrack = useCurrentTrack();
   const [showAllResults, setShowAllResults] = useState(false);
-  const isPlaying = useIsPlaying();
   useEffect(() => { setShowAllResults(false); }, [query]);
   const RESULT_CAP = 50;
   const visibleResults = showAllResults ? results : results.slice(0, RESULT_CAP);
@@ -50,6 +50,25 @@ function SearchScreen({
       <div style={{
         padding: `calc(14px + env(safe-area-inset-top, 0px)) 16px 0`,
       }}>
+      {onBack && (
+        <button
+          type="button"
+          onClick={onBack}
+          aria-label="Back to Explore"
+          style={{
+            background: "none",
+            border: "none",
+            color: color.muted,
+            fontFamily: fontDisplay,
+            fontSize: 14,
+            fontWeight: 600,
+            cursor: "pointer",
+            padding: "0 0 10px",
+          }}
+        >
+          ‹ Explore
+        </button>
+      )}
       <div style={{ position:"relative", marginBottom:14 }}>
         <div style={{ position:"absolute", left:14, top:"50%", transform:"translateY(-50%)", color: color.faint, zIndex: 1 }}><Icon name="search" size={16}/></div>
         <input

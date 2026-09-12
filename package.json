@@ -25,6 +25,15 @@
     "catalog:delete-unknown-artists": "node delete-unknown-artists.js",
     "catalog:delete-unknown-artists:apply": "node delete-unknown-artists.js --apply"
   },
+  "eslintConfig": {
+    "extends": ["react-app"],
+    "rules": {
+      "no-unused-vars": "off",
+      "react-hooks/exhaustive-deps": "off",
+      "no-loop-func": "off",
+      "no-useless-escape": "off"
+    }
+  },
   "browserslist": {
     "production": [
       ">0.2%",

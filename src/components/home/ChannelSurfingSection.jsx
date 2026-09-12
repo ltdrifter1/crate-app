@@ -32,7 +32,7 @@ function ChannelSurfingSection({
     >
       <HomeBandHeader
         title="Channel Surfing"
-        subtitle="Pick a scene. Instant dial."
+        subtitle="Flip the dial — playback stays on this stage."
         action={null}
         meta={`${channels.length} channels`}
       />

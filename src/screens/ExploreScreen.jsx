@@ -8,6 +8,7 @@ import {
   sectionTitle,
   y2k,
 } from "../theme";
+import Icon from "../components/ui/Icon";
 import { featuredReleases, recommendedPicks, trendingTracks } from "../lib/homeCollections";
 import { useCurrentTrack, useIsPlaying } from "../usePlayerTransport";
 import MusicSection, { Rail } from "../components/home/MusicSection";
@@ -115,12 +116,39 @@ function ExploreScreen({
           animation: `rise 0.45s ${motion.ease} both`,
         }}
       >
-        <h1 style={{ ...sectionTitle, fontSize: 24, letterSpacing: -0.4, fontWeight: 650 }}>
-          Explore
-        </h1>
-        <p style={{ ...sectionSubtitle, maxWidth: 380, whiteSpace: "normal" }}>
-          Picks for you, featured sleeves, and what you spun last.
-        </p>
+        <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12 }}>
+          <div style={{ minWidth: 0 }}>
+            <h1 style={{ ...sectionTitle, fontSize: 24, letterSpacing: -0.4, fontWeight: 650 }}>
+              Explore
+            </h1>
+            <p style={{ ...sectionSubtitle, maxWidth: 380, whiteSpace: "normal" }}>
+              Picks for you, featured sleeves, and what you spun last.
+            </p>
+          </div>
+          {onOpenSearch && (
+            <button
+              type="button"
+              aria-label="Search"
+              onClick={onOpenSearch}
+              className="pmp-press"
+              style={{
+                width: 40,
+                height: 40,
+                flexShrink: 0,
+                borderRadius: "50%",
+                border: "1px solid rgba(255,255,255,0.1)",
+                background: "rgba(255,255,255,0.06)",
+                color: y2k.offWhite,
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <Icon name="search" size={16} />
+            </button>
+          )}
+        </div>
       </header>
 
       {forYouTracks.length > 0 && (
