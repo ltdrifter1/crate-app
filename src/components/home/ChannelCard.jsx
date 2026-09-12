@@ -7,7 +7,7 @@ import Icon from "../ui/Icon";
  * Cover, name, blurb, play. No ticket stub, perforation, or novelty stamp.
  */
 function ChannelArt({ covers = [], title, size }) {
-  const tiles = covers.filter(Boolean).slice(0, 4);
+  const tiles = [...new Set(covers.filter(Boolean))].slice(0, 4);
   const cell = Math.ceil(size / 2);
   const initial = (title || "?").trim().charAt(0).toUpperCase() || "?";
 
