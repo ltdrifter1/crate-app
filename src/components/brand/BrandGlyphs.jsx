@@ -1,10 +1,10 @@
 /**
  * Planet MP3 brand marks — exact lockup / mark assets in /public/brand.
- * Lockup master is the authentic Y2K stippled planet + PLANET MP3 wordmark
- * on the black plate (matches the brand export).
+ * Primary chrome uses the transparent lockup (planet + rings + wordmark)
+ * so the mark sits on the UI without a black plate.
  *
  * Display-sized variants (256 / 512 + WebP) keep splash / chrome off the
- * multi‑megabyte master PNGs.
+ * master PNGs. On-black masters are reserved for app icons / OG.
  */
 
 export const BRAND_LOCKUP_SRC = "/brand/planet-mp3-lockup-512.png";
@@ -12,7 +12,7 @@ export const BRAND_LOCKUP_SRCSET =
   "/brand/planet-mp3-lockup-256.png 256w, /brand/planet-mp3-lockup-512.png 512w";
 export const BRAND_LOCKUP_WEBP = "/brand/planet-mp3-lockup-512.webp";
 
-/** Solid black-plate export — same lockup; use for filled dark marks. */
+/** Solid black-plate export — app icons, OG, filled dark marks only. */
 export const BRAND_LOCKUP_ON_BLACK_SRC = "/brand/planet-mp3-lockup-on-black-512.png";
 export const BRAND_LOCKUP_ON_BLACK_SRCSET =
   "/brand/planet-mp3-lockup-on-black-256.png 256w, /brand/planet-mp3-lockup-on-black-512.png 512w";
@@ -56,18 +56,19 @@ function LockupPicture({
 }
 
 /**
- * App-icon mark — uses the exact black-plate lockup so chrome matches the brand.
+ * App-icon mark — transparent lockup so chrome stays clean on dark UI.
  */
 export function BrandGlyph({
   size = 28,
   title = "Planet MP3",
-  inverse = false,
-  rounded = true,
+  inverse = false, // kept for callers; mark is already light-on-clear
+  rounded = false,
 }) {
+  void inverse;
   const s = Math.max(12, size);
   return (
     <LockupPicture
-      onBlack={!inverse}
+      onBlack={false}
       size={s}
       title={title}
       style={{
@@ -75,6 +76,7 @@ export function BrandGlyph({
         height: s,
         display: "block",
         objectFit: "contain",
+        background: "transparent",
         borderRadius: rounded ? Math.round(s * 0.18) : 0,
         flexShrink: 0,
         userSelect: "none",
@@ -84,7 +86,7 @@ export function BrandGlyph({
 }
 
 /**
- * Full lockup — hero / splash / sidebar. Exact black-plate brand asset.
+ * Full lockup — hero / splash / sidebar. Transparent unless onBlack is set.
  */
 export function BrandLockup({
   size = 280,
@@ -97,7 +99,7 @@ export function BrandLockup({
 }) {
   const face = (
     <LockupPicture
-      onBlack={onBlack || compact}
+      onBlack={onBlack}
       size={size}
       title={title}
       style={{
@@ -107,13 +109,14 @@ export function BrandLockup({
         aspectRatio: "1 / 1",
         display: "block",
         objectFit: "contain",
+        background: "transparent",
         opacity,
         margin: glassHalo ? 0 : "0 auto",
         userSelect: "none",
-        borderRadius: compact ? Math.round(size * 0.12) : 0,
+        borderRadius: 0,
         filter: compact
-          ? "drop-shadow(0 4px 12px rgba(22,24,30,0.14))"
-          : "drop-shadow(0 12px 28px rgba(22,24,30,0.18))",
+          ? "drop-shadow(0 8px 18px rgba(0,0,0,0.45))"
+          : "drop-shadow(0 14px 32px rgba(0,0,0,0.55))",
       }}
     />
   );
@@ -141,11 +144,11 @@ export function BrandLockup({
         aria-hidden="true"
         style={{
           position: "absolute",
-          inset: "8%",
+          inset: "10%",
           borderRadius: "50%",
           background:
-            "radial-gradient(circle at 55% 35%, rgba(32,36,43,0.65) 0%, rgba(169,199,228,0.05) 45%, transparent 72%)",
-          filter: "blur(16px)",
+            "radial-gradient(circle at 42% 32%, rgba(255,255,255,0.16) 0%, rgba(101,230,255,0.07) 38%, transparent 70%)",
+          filter: "blur(18px)",
           pointerEvents: "none",
         }}
       />

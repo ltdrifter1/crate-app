@@ -1,6 +1,6 @@
 /**
  * Planet MP3 — exact logo mark + optional wordmark.
- * Uses the identical Y2K lockup assets (not a placeholder glyph).
+ * Uses the transparent lockup assets (not a placeholder glyph).
  */
 import { fontDisplay, color, BRAND_NAME } from "../../theme";
 import { brandWordmark } from "../../brand/identity";

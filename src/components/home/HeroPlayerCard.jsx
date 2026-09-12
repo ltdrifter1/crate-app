@@ -235,7 +235,7 @@ export default function HeroPlayerCard({
           }}
         >
           <img
-            src="/brand/planet-mp3-lockup-on-black.png"
+            src="/brand/planet-mp3-lockup-512.png"
             alt=""
             style={{
               width: "48%",
