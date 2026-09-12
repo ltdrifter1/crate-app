@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { color, fontDisplay, fontMono, motion, chrome, glass, radius } from "../../theme";
+import { color, fontDisplay, fontMono, motion, glass, radius } from "../../theme";
 import { resolveVideoUrl, syncVideoToProgress, trackHasVideo } from "../../lib/video";
 
 /**

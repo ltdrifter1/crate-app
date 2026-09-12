@@ -133,6 +133,10 @@ const LazyPaywallScreen = lazy(() => import("./components/billing/PaywallScreen"
 const LazyImmersivePlayer = lazy(() => import("./components/player/ImmersivePlayer"));
 const LazyChartsScreen = lazy(() => import("./components/station/ChartsScreen"));
 const HomeScreen = lazy(() => import("./screens/HomeScreen"));
+const DevBroadcastPreview =
+  process.env.NODE_ENV !== "production"
+    ? lazy(() => import("./preview/BroadcastPreview"))
+    : null;
 const ExploreScreen = lazy(() => import("./screens/ExploreScreen"));
 const SearchScreen = lazy(() => import("./screens/SearchScreen"));
 const FavoritesScreen = lazy(() => import("./screens/FavoritesScreen"));
@@ -2235,13 +2239,13 @@ export default function App() {
   const closeStack = useCallback(() => {
     navigate(buildPath("favorites"));
   }, [navigate]);
-  /** History-aware back — prefer in-app history, else Search hub. */
+  /** History-aware back — prefer in-app history, else Explore (Search is no longer a tab). */
   const goBack = useCallback(() => {
     if (location.key && location.key !== "default") {
       navigate(-1);
       return;
     }
-    navigate(buildPath("search"));
+    navigate(buildPath("explore"));
   }, [navigate, location.key]);
 
   // Retired surfaces → Home
@@ -4219,6 +4223,19 @@ export default function App() {
     const isTab = screen === "home" || screen === "explore" || screen === "charts" || screen === "search" || screen === "favorites" || screen === "profile";
     el.scrollTop = isTab ? (scrollPosRef.current[screen] || 0) : 0;
   }, [screen]);
+
+  // Dev-only: #broadcast-preview exercises Home IA + video stage without auth.
+  if (
+    DevBroadcastPreview &&
+    typeof window !== "undefined" &&
+    window.location.hash === "#broadcast-preview"
+  ) {
+    return (
+      <Suspense fallback={<div style={{ minHeight: "100dvh", background: color.canvas }} />}>
+        <DevBroadcastPreview />
+      </Suspense>
+    );
+  }
 
   // ── Loading states ────────────────────────────────────────────────────────
   // Auth boot — brand lockup + Loading… (Lottie slot at public/brand/splash-loader.json)

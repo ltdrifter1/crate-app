@@ -4,7 +4,7 @@ import VirtualList from "../components/ui/VirtualList";
 import GenreSceneBrowse from "../components/search/GenreSceneBrowse";
 import { AlbumArt } from "../components/listen/AlbumArt";
 import { TrackRow } from "../components/listen/TrackRow";
-import { useCurrentTrack, useIsPlaying } from "../usePlayerTransport";
+import { useCurrentTrack } from "../usePlayerTransport";
 import {
   BTN_SECONDARY,
   INPUT_ST,
@@ -24,7 +24,6 @@ function SearchScreen({
 }) {
   const currentTrack = useCurrentTrack();
   const [showAllResults, setShowAllResults] = useState(false);
-  const isPlaying = useIsPlaying();
   useEffect(() => { setShowAllResults(false); }, [query]);
   const RESULT_CAP = 50;
   const visibleResults = showAllResults ? results : results.slice(0, RESULT_CAP);
