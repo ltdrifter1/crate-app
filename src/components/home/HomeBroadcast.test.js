@@ -136,4 +136,20 @@ describe("Home broadcast + four-tab IA", () => {
     });
     expect(onSeek).toHaveBeenCalled();
   });
+
+  test("idle hero shows the preview cut as Up first", async () => {
+    await act(async () => {
+      root.render(
+        React.createElement(HeroPlayerCard, {
+          track: null,
+          previewTrack: { title: "Morning Signal", artist: "Sol Park" },
+          daypart: { vibe: "Soft open" },
+        })
+      );
+    });
+    expect(div.textContent).toMatch(/Up first/i);
+    expect(div.textContent).toMatch(/Morning Signal/);
+    expect(div.textContent).toMatch(/Sol Park/);
+    expect(div.querySelector('[aria-label*="Up first Morning Signal"]')).toBeTruthy();
+  });
 });

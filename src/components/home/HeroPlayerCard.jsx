@@ -167,6 +167,9 @@ export default function HeroPlayerCard({
   }, [onVisibilityChange]);
 
   const pct = duration > 0 ? Math.min(1, progress / duration) : 0;
+  const idleEyebrow = previewTrack ? "Up first" : "Planet Radio";
+  const idleTitle = previewTrack?.title || daypart?.vibe || "Tune the station";
+  const idleArtist = previewTrack?.artist || "One tap and the dial finds you something good.";
 
   return (
     <div
@@ -176,7 +179,9 @@ export default function HeroPlayerCard({
       aria-label={
         live
           ? `Now playing ${track.title} by ${track.artist}. Open player.`
-          : "Start the station"
+          : previewTrack
+            ? `Up first ${previewTrack.title} by ${previewTrack.artist}. Start the station.`
+            : "Start the station"
       }
       onClick={() => (live ? onOpen?.() : !playDisabled && onPlay?.())}
       onKeyDown={(e) => {
@@ -363,7 +368,7 @@ export default function HeroPlayerCard({
         >
           {live
             ? (isRadioMode ? "On air" : "Now playing")
-            : "Planet Radio"}
+            : idleEyebrow}
         </div>
 
         <div
@@ -387,7 +392,7 @@ export default function HeroPlayerCard({
               maxWidth: 640,
             }}
           >
-            {live ? track.title : daypart?.vibe || "Tune the station"}
+            {live ? track.title : idleTitle}
           </div>
           <div
             style={{
@@ -402,7 +407,7 @@ export default function HeroPlayerCard({
               maxWidth: 520,
             }}
           >
-            {live ? track.artist : "One tap and the dial finds you something good."}
+            {live ? track.artist : idleArtist}
           </div>
           {live && upNextTrack?.title && (
             <div

@@ -1,4 +1,11 @@
-import { canAttemptPlay, finishAudioUnlock, isUnlockStubSrc } from "./audioUnlock";
+import {
+  canAttemptPlay,
+  finishAudioUnlock,
+  hasPlayableAudio,
+  isBenignPlayReject,
+  isUnlockStubSrc,
+  shouldIgnoreUnlockTransportEvent,
+} from "./audioUnlock";
 
 describe("audio unlock handshake", () => {
   test("treats empty and data: URLs as unlock stubs", () => {
@@ -53,5 +60,23 @@ describe("audio unlock handshake", () => {
     expect(removeAttribute).toHaveBeenCalledWith("src");
     expect(el.src).toBe("");
     expect(load).toHaveBeenCalled();
+  });
+
+  test("hasPlayableAudio requires a real audioUrl", () => {
+    expect(hasPlayableAudio({ audioUrl: "https://cdn.example/cut.mp3" })).toBe(true);
+    expect(hasPlayableAudio({ audioUrl: "  " })).toBe(false);
+    expect(hasPlayableAudio({})).toBe(false);
+    expect(hasPlayableAudio(null)).toBe(false);
+  });
+
+  test("isBenignPlayReject ignores AbortError / interrupted play()", () => {
+    expect(isBenignPlayReject({ name: "AbortError", message: "The play() request was interrupted" })).toBe(true);
+    expect(isBenignPlayReject(new Error("NotAllowedError"))).toBe(false);
+  });
+
+  test("unlock handshake pause/play events are ignored", () => {
+    expect(shouldIgnoreUnlockTransportEvent({ unlocking: true, src: "https://cdn.example/cut.mp3" })).toBe(true);
+    expect(shouldIgnoreUnlockTransportEvent({ unlocking: false, src: "data:audio/wav;base64,AAA" })).toBe(true);
+    expect(shouldIgnoreUnlockTransportEvent({ unlocking: false, src: "https://cdn.example/cut.mp3" })).toBe(false);
   });
 });

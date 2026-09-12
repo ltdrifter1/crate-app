@@ -4,9 +4,28 @@
  * while the stub play() promise was still settling.
  */
 
+export const PLAY_REJECTED_TOAST = "Playback blocked. Tap play again.";
+export const MISSING_AUDIO_TOAST = "This cut has no audio yet.";
+export const AUDIO_LOAD_TIMEOUT_MS = 10000;
+
 export function isUnlockStubSrc(src) {
   const s = String(src || "").trim();
   return !s || s.startsWith("data:audio");
+}
+
+export function hasPlayableAudio(track) {
+  return Boolean(String(track?.audioUrl || "").trim());
+}
+
+/** Autoplay policy / navigation interrupts — not a real failure. */
+export function isBenignPlayReject(err) {
+  const msg = `${err?.name || ""} ${err?.message || err || ""}`;
+  return /interrupted|AbortError/i.test(msg);
+}
+
+/** Handshake pause/play must not flip the transport UI. */
+export function shouldIgnoreUnlockTransportEvent({ unlocking = false, src = "" } = {}) {
+  return !!unlocking || isUnlockStubSrc(src);
 }
 
 export function canAttemptPlay(el) {
