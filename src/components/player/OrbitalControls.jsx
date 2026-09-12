@@ -8,6 +8,7 @@ import { color, glass, motion } from "../../theme";
 /** Soft circular primary play — shared by hero, dock, immersive, desktop. */
 export function IceOrbPlay({
   isPlaying = false,
+  buffering = false,
   onClick,
   size = 58,
   iconSize = null,
@@ -17,17 +18,20 @@ export function IceOrbPlay({
   stopPropagation = false,
 }) {
   const iSize = iconSize ?? Math.round(size * 0.38);
+  const busy = buffering && isPlaying;
   return (
     <button
       type="button"
       className="play-primary"
-      aria-label={ariaLabel || (isPlaying ? "Pause" : "Play")}
+      aria-label={ariaLabel || (busy ? "Buffering" : isPlaying ? "Pause" : "Play")}
+      aria-busy={busy || undefined}
       disabled={disabled}
       onClick={(e) => {
         if (stopPropagation) e.stopPropagation();
         onClick?.(e);
       }}
       style={{
+        position: "relative",
         width: size,
         height: size,
         borderRadius: "50%",
@@ -49,7 +53,21 @@ export function IceOrbPlay({
         transition: `transform ${motion.fast} ${motion.ease}, box-shadow ${motion.base} ${motion.ease}, background ${motion.fast} ${motion.ease}`,
       }}
     >
-      <Icon name={isPlaying ? "pause" : "play"} size={iSize} />
+      {busy ? (
+        <span
+          aria-hidden="true"
+          style={{
+            width: Math.round(size * 0.38),
+            height: Math.round(size * 0.38),
+            borderRadius: "50%",
+            border: "2px solid rgba(8,10,13,0.18)",
+            borderTopColor: color.onAccent,
+            animation: "spin 0.7s linear infinite",
+          }}
+        />
+      ) : (
+        <Icon name={isPlaying ? "pause" : "play"} size={iSize} />
+      )}
     </button>
   );
 }

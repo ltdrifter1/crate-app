@@ -26,6 +26,7 @@ import {
 import { mixLaneForDate } from "./lib/mixLanes";
 import { parsePath, buildPath, documentTitleFor } from "./lib/routes";
 import { primaryNavItems, dockActiveTab } from "./lib/nav";
+import { canAttemptPlay, finishAudioUnlock } from "./lib/audioUnlock";
 import { explainPick } from "./lib/explain";
 import { fetchCatalogTracks, isCatalogCacheFresh, readCatalogIdb, writeCatalogIdb } from "./lib/catalogLoad";
 import { slugify, findArtist, findAlbum, searchEntities } from "./lib/catalog";
@@ -1913,6 +1914,7 @@ function GlassDock({
 }) {
   const { progress, duration } = usePlayerPlayback();
   const isPlaying = useIsPlaying();
+  const isBuffering = useIsBuffering();
   const items = primaryNavItems({ showAdmin });
 
   // When Home radio owns the transport, dock collapses to tabs only.
@@ -2047,6 +2049,7 @@ function GlassDock({
             </button>
             <IceOrbPlay
               isPlaying={isPlaying}
+              buffering={isBuffering}
               onClick={onTogglePlay}
               size={34}
               iconSize={14}
@@ -2958,22 +2961,7 @@ export default function App() {
         const wasMuted = el.muted;
         el.muted = true;
         const p = el.play();
-        const finish = () => {
-          try {
-            el.pause();
-            if ((el.getAttribute("src") || "").startsWith("data:audio")) {
-              el.currentTime = 0;
-            }
-          } catch { /* ignore */ }
-          el.muted = wasMuted;
-          // Never clobber a real track URL that loaded during unlock
-          const now = el.getAttribute("src") || "";
-          if (now.startsWith("data:audio")) {
-            el.removeAttribute("src");
-            el.src = "";
-            try { el.load(); } catch { /* ignore */ }
-          }
-        };
+        const finish = () => finishAudioUnlock(el, { wasMuted });
         if (p && typeof p.then === "function") {
           p.then(finish).catch(finish);
         } else {
@@ -3055,6 +3043,7 @@ export default function App() {
 
     const onTimeUpdate = () => {
       setProgress(Math.floor(audio.currentTime));
+      if (audio.currentTime > 0 && !audio.paused) transportFlags.setBuffering(false);
       if (!audio.duration || isCrossfading.current) return;
       const radio = isRadioModeRef.current;
       const wantsQueueFade = !radio
@@ -3306,25 +3295,51 @@ export default function App() {
     const audio = audioRef.current;
     clearInterval(crossfadeRef.current);
     pendingNextRef.current = null;
-    if (currentTrack.audioUrl) {
-      audio.src = currentTrack.audioUrl;
-      audio.volume = volumeRef.current;
-      audio.load();
-      // Resume a restored session at its saved position
-      const resumeAt = pendingResumeRef.current;
-      pendingResumeRef.current = null;
-      if (resumeAt != null && resumeAt > 0) {
-        const seekWhenReady = () => { try { audio.currentTime = resumeAt; } catch { /* ignore */ } };
-        audio.addEventListener("loadedmetadata", seekWhenReady, { once: true });
-        setProgress(Math.floor(resumeAt));
-      } else {
-        setProgress(0);
-      }
-      if (isPlayingRef.current) audio.play().catch(() => {});
-    } else {
+    const url = String(currentTrack.audioUrl || "").trim();
+    if (!url) {
       audio.src = "";
       setProgress(0);
+      transportFlags.setBuffering(false);
+      return undefined;
     }
+    const already = (audio.getAttribute("src") || "") === url;
+    audio.volume = volumeRef.current;
+    if (!already) {
+      transportFlags.setBuffering(true);
+      audio.src = url;
+      try { audio.load(); } catch { /* ignore */ }
+    }
+    const resumeAt = pendingResumeRef.current;
+    pendingResumeRef.current = null;
+    if (resumeAt != null && resumeAt > 0) {
+      const seekWhenReady = () => { try { audio.currentTime = resumeAt; } catch { /* ignore */ } };
+      audio.addEventListener("loadedmetadata", seekWhenReady, { once: true });
+      setProgress(Math.floor(resumeAt));
+    } else if (!already) {
+      setProgress(0);
+    }
+
+    let cancelled = false;
+    const tryPlay = () => {
+      if (cancelled || !isPlayingRef.current || !canAttemptPlay(audio)) return;
+      const p = audio.play();
+      if (p?.catch) {
+        p.catch(() => {
+          if (cancelled || !isPlayingRef.current) return;
+          setTimeout(() => {
+            if (!cancelled && isPlayingRef.current && canAttemptPlay(audio)) {
+              audio.play().catch(() => {});
+            }
+          }, 220);
+        });
+      }
+    };
+    if (audio.readyState >= 2) tryPlay();
+    else audio.addEventListener("canplay", tryPlay, { once: true });
+    return () => {
+      cancelled = true;
+      audio.removeEventListener("canplay", tryPlay);
+    };
   }, [currentTrackId]);
 
   // ── Session resume — save the listening position, restore on next launch ──
@@ -3371,8 +3386,11 @@ export default function App() {
     const apply = (state) => {
       const audio = audioRef.current;
       if (!audio) return;
-      if (state.isPlaying) audio.play().catch(() => {});
-      else audio.pause();
+      if (state.isPlaying) {
+        if (canAttemptPlay(audio)) audio.play().catch(() => {});
+      } else {
+        audio.pause();
+      }
     };
     apply(transportFlags.getState());
     return transportFlags.subscribe(apply);
