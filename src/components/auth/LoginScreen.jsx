@@ -190,10 +190,10 @@ export default function LoginScreen({
           position: "absolute",
           inset: 0,
           background:
-            "radial-gradient(ellipse 90% 55% at 50% 8%, rgba(180,190,205,0.35) 0%, transparent 58%), radial-gradient(ellipse 70% 40% at 80% 90%, rgba(160,170,185,0.18) 0%, transparent 55%)",
+            "radial-gradient(ellipse 90% 55% at 50% 8%, rgba(180,190,205,0.12) 0%, transparent 58%), radial-gradient(ellipse 70% 40% at 80% 90%, rgba(101,230,255,0.05) 0%, transparent 55%)",
         }}
       />
-      {/* Soft brand wash — oversized lockup, barely there */}
+      {/* Soft brand wash — oversized transparent lockup, barely there */}
       <div
         aria-hidden="true"
         style={{
@@ -203,13 +203,13 @@ export default function LoginScreen({
           width: "min(148vw, 820px)",
           height: "min(148vw, 820px)",
           transform: "translate(-50%, -50%)",
-          backgroundImage: "url(/brand/planet-mp3-lockup-on-black.png)",
+          backgroundImage: "url(/brand/planet-mp3-lockup-512.png)",
           backgroundSize: "contain",
           backgroundPosition: "center",
           backgroundRepeat: "no-repeat",
-          opacity: 0.07,
+          opacity: 0.12,
           pointerEvents: "none",
-          filter: "blur(1.5px) grayscale(0.2)",
+          filter: "blur(0.6px)",
         }}
       />
       <div
@@ -243,7 +243,7 @@ export default function LoginScreen({
               animation: "brandLockupBreathe 6.5s ease-in-out infinite",
             }}
           >
-            <BrandLockup size={280} onBlack />
+            <BrandLockup size={280} />
           </div>
           <BrandTagline
             size={11}
