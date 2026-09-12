@@ -25,6 +25,7 @@ import {
 } from "./lib/engine";
 import { mixLaneForDate } from "./lib/mixLanes";
 import { parsePath, buildPath, documentTitleFor } from "./lib/routes";
+import { primaryNavItems, dockActiveTab } from "./lib/nav";
 import { explainPick } from "./lib/explain";
 import { fetchCatalogTracks, isCatalogCacheFresh, readCatalogIdb, writeCatalogIdb } from "./lib/catalogLoad";
 import { slugify, findArtist, findAlbum, searchEntities } from "./lib/catalog";
@@ -1092,7 +1093,7 @@ function SessionBuilderModal({ tracks, onClose, onPlayRoute, onSavePlaylist = nu
                 ].map(({ m, label }) => (
                   <button type="button" key={m} onClick={() => setDuration(m)} style={{
                     minWidth: 88, height: 52, padding: "0 16px",
-                    fontSize: 15, ...chromeChip(duration === m),
+                    fontSize: 15, ...softChip(duration === m),
                   }}>
                     {label}
                   </button>
@@ -1143,7 +1144,7 @@ function SessionBuilderModal({ tracks, onClose, onPlayRoute, onSavePlaylist = nu
                       onClick={() => setActivity(id)}
                       aria-pressed={selected}
                       style={{
-                        ...chromeChip(selected),
+                        ...softCard(selected),
                         padding: "14px 14px 16px",
                         textAlign: "left",
                         minHeight: 96,
@@ -1908,24 +1909,14 @@ function GlassDock({
 }) {
   const { progress, duration } = usePlayerPlayback();
   const isPlaying = useIsPlaying();
-  const items = [
-    { id: "home", label: "Home", icon: "home" },
-    { id: "explore", label: "Explore", icon: "map" },
-    { id: "charts", label: "Charts", icon: "chart" },
-    { id: "favorites", label: "Library", icon: "dig" },
-    { id: "search", label: "Search", icon: "search" },
-    { id: "profile", label: "Club", icon: "profile" },
-  ];
-  if (showAdmin) items.push({ id: "admin", label: "Admin", icon: "settings" });
+  const items = primaryNavItems({ showAdmin });
 
   // When Home radio owns the transport, dock collapses to tabs only.
   const hasPlayer = !!track && !hidePlayer;
   const { menu, openFromButton, openFromContext, close } = useTrackMenu();
   const tint = dockTintStyle(track);
 
-  const activeTab = items.some((i) => i.id === screen)
-    ? screen
-    : (screen === "artist" || screen === "album" ? "search" : "home");
+  const activeTab = dockActiveTab(screen, { hasAdmin: showAdmin });
 
   return (
     <div
@@ -3504,7 +3495,7 @@ export default function App() {
           tasteBlend: !(intentOverride?.genre || listenFocus.genre),
         }) || pool.find(t => (t.duration || 0) <= 900) || pool[0];
     if (currentTrack) playHistoryRef.current = [currentTrack, ...playHistoryRef.current].slice(0, 50);
-    setCurrent(first); setIsPlaying(true); setProgress(0); setIsRadioMode(true); setQueue([]); setImmersive(true);
+    setCurrent(first); setIsPlaying(true); setProgress(0); setIsRadioMode(true); setQueue([]);
     setSessionMeta(null);
     if (!sessionStartRef.current) sessionStartRef.current = Date.now();
     logTrackPlay(first);
@@ -3846,7 +3837,7 @@ export default function App() {
     setProgress(0);
     setIsRadioMode(true);
     setQueue([]);
-    setImmersive(true);
+    // Stay on the Home broadcast stage — immersive is opt-in via the hero.
     setSessionMeta({
       tracks: pool.slice(0, 24),
       startTime: Date.now(),
@@ -3885,7 +3876,7 @@ export default function App() {
     setProgress(0);
     setIsRadioMode(true);
     setQueue([]);
-    setImmersive(true);
+    // Channel Surfing plays on the live Home stage, not the immersive booth.
     setSessionMeta(null);
     if (!sessionStartRef.current) sessionStartRef.current = Date.now();
     logTrackPlay(first);
@@ -3923,7 +3914,7 @@ export default function App() {
       playRadio();
       return;
     }
-    playTrack(pool[0], pool, { immersive: true });
+    playTrack(pool[0], pool, { immersive: false });
     showToast(`${activeDaypart?.label || "Countdown"} — locked in`);
   }, [countdown, activeDaypart, playRadio, playTrack, playShow]);
 
@@ -4577,8 +4568,8 @@ export default function App() {
         <ScreenPane key={screen === "artist" ? `artist:${artistSlug}` : screen === "album" ? `album:${albumSlug}` : screen === "mix" ? `mix:${mixId}` : screen}>
         {screen==="home"      && !tracksLoading && <HomeScreen tracks={tracks} onPlayRadio={playRadio} onTogglePlay={togglePlay} onPlayTrack={playTrack} onLike={toggleLike} isRadioMode={isRadioMode} hypnoPocket={!!hypnoSeed} playlistCtx={playlistCtx} mixLane={mixLane} radioPreview={heroPreview} radioNext={setNext} onSkipRadio={handleSkip} onPrevRadio={handlePrev} onOpenPlayer={()=>setImmersive(true)} catalogError={tracksLoadError} onRetryCatalog={reloadCatalog} onStageVisibilityChange={onHomeStageVisibilityChange} onSeek={handleSeek} countdown={countdown} onTuneCountdown={tuneCountdown} daypart={activeDaypart} tickerText={stationTicker} onRequest={requestCurrentTrack} requested={currentRequested} onDedicate={()=>setShowDedicate(true)} dedicationFlash={dedicationFlash} onClearDedication={()=>setDedicationFlash(null)} airing={liveAiring} programGuide={programGuide} activeShowId={activeShowId} onTuneShow={playShow} showBumper={showBumper} channelShow={liveShow} sceneChannelsActiveId={activeSceneChannelId} onTuneSceneChannel={playSceneChannel} recentTrackIds={(profile?.recentTracks||[]).map(r=>r.trackId||r)} playlists={libraryPlaylists.filter((pl)=>!isCommunityPlaylist(pl))} preferredGenres={user.genres||[]} userKey={firebaseUser?.uid||""} onOpenSearch={()=>setScreen("search")} onOpenProfile={()=>setScreen("profile")} onOpenLibrary={()=>setScreen("favorites")} onOpenCharts={()=>setScreen("charts")} onOpenPlaylist={(id)=>openStack(id)} onOpenAlbum={(slug)=>openAlbum(slug)}/>}
         {screen==="explore"   && !tracksLoading && <Suspense fallback={<div style={{ padding: 32, color: color.muted }}>Loading explore…</div>}><ExploreScreen tracks={tracks} preferredGenres={user.genres||[]} recentTrackIds={(profile?.recentTracks||[]).map(r=>r.trackId||r)} userKey={firebaseUser?.uid||""} onPlayTrack={playTrack} onOpenSearch={()=>setScreen("search")} onOpenAlbum={(slug)=>openAlbum(slug)}/></Suspense>}
-        {screen==="charts"    && !tracksLoading && <Suspense fallback={<div style={{ padding: 32, color: color.muted }}>Loading charts…</div>}><LazyChartsScreen countdown={countdown} tracks={tracks} onPlayTrack={playTrack} onTuneMonthly={playMonthlyChart}/></Suspense>}
-        {screen==="search"    && <SearchScreen query={searchQuery} setQuery={setSearch} results={searchResults} tracks={tracks} onPlay={(t,pool)=>{ recordRecentSearch(searchQuery); playTrack(t,pool||tracks); }} onListenIntent={(focus)=>{ const next={ genre: focus.genre || null, scene: null }; setListenFocus(next); playRadio(null, createListenIntent({ mixLane, ...next })); }} onLike={toggleLike} playlistCtx={playlistCtx} entityHits={entityHits} onOpenArtist={(slug)=>{ recordRecentSearch(searchQuery); openArtist(slug); }} onOpenAlbum={(slug)=>{ recordRecentSearch(searchQuery); openAlbum(slug); }} recentSearches={recentSearches} onPickRecent={(q)=>setSearch(q)} onClearRecent={clearRecentSearches}/>}
+        {screen==="charts"    && !tracksLoading && <Suspense fallback={<div style={{ padding: 32, color: color.muted }}>Loading charts…</div>}><LazyChartsScreen countdown={countdown} tracks={tracks} onPlayTrack={playTrack} onTuneMonthly={playMonthlyChart} onBack={()=>setScreen("home")}/></Suspense>}
+        {screen==="search"    && <SearchScreen query={searchQuery} setQuery={setSearch} results={searchResults} tracks={tracks} onPlay={(t,pool)=>{ recordRecentSearch(searchQuery); playTrack(t,pool||tracks); }} onListenIntent={(focus)=>{ const next={ genre: focus.genre || null, scene: null }; setListenFocus(next); playRadio(null, createListenIntent({ mixLane, ...next })); }} onLike={toggleLike} playlistCtx={playlistCtx} entityHits={entityHits} onOpenArtist={(slug)=>{ recordRecentSearch(searchQuery); openArtist(slug); }} onOpenAlbum={(slug)=>{ recordRecentSearch(searchQuery); openAlbum(slug); }} recentSearches={recentSearches} onPickRecent={(q)=>setSearch(q)} onClearRecent={clearRecentSearches} onBack={()=>setScreen("explore")}/>}
         {screen==="favorites" && <FavoritesScreen tracks={tracks} onPlay={t=>{setIsRadioMode(false);playTrack(t,tracks);}} onPlayTrack={(t,pool)=>{setIsRadioMode(false);playTrack(t,pool||tracks);}} onLike={toggleLike} playlistCtx={playlistCtx} userPlaylists={libraryPlaylists} onCreatePlaylist={createPlaylist} onDeletePlaylist={deletePlaylist} onRenamePlaylist={renamePlaylist} onSharePlaylist={sharePlaylistToClub} stackId={stackId} onOpenStack={openStack} onCloseStack={closeStack} onReorderPlaylist={reorderPlaylistTrack} communityMix={communityMix} onOpenMix={()=>communityMix && openMix(communityMix.id)} onCustomMix={()=>{ setSessionInitialActivity(vibeForMixLane(mixLane)); setShowRouteBuilder(true); }} preferredGenres={user.genres} recentTrackIds={(profile?.recentTracks||[]).map(r=>r.trackId||r)} userKey={firebaseUser?.uid || ""}/>}
         {screen==="mix"       && (
           <Suspense fallback={<div style={{ padding: 32, color: "var(--muted)" }}>Pulling the plate…</div>}>
@@ -4632,7 +4623,7 @@ export default function App() {
         )}
         {screen==="profile"   && (
           <Suspense fallback={<div style={{ padding: 32, color: "var(--muted)" }}>Opening the club…</div>}>
-            <ClubScreen user={user} tracks={tracks} onLogout={logOut} access={access} onSubscribe={handleSubscribe} onOpenPlans={handleOpenPlans} profile={profile} communityMix={communityMix} onOpenMix={communityMix ? ()=>openMix(communityMix.id) : null} onEditGenres={()=>setShowGenreTaste(true)} recentTracks={profile?.recentTracks||[]} signalLabel={signalFlags.getState().label} onPlayTrack={(t,pool)=>{setIsRadioMode(false);playTrack(t,pool||tracks);}} onChoosePick={handleChoosePick} onSkipMonth={handleSkipMonth}/>
+            <ClubScreen user={user} tracks={tracks} onLogout={logOut} access={access} onSubscribe={handleSubscribe} onOpenPlans={handleOpenPlans} profile={profile} communityMix={communityMix} onOpenMix={communityMix ? ()=>openMix(communityMix.id) : null} onEditGenres={()=>setShowGenreTaste(true)} recentTracks={profile?.recentTracks||[]} signalLabel={signalFlags.getState().label} onPlayTrack={(t,pool)=>{setIsRadioMode(false);playTrack(t,pool||tracks);}}/>
           </Suspense>
         )}
         {screen==="admin"     && <AdminScreen tracks={tracks} setTracks={setTracks} tab={adminTab} setTab={setAdminTab} editTrack={editTrack} setEditTrack={setEditTrack} showToast={showToast} userPlaylists={userPlaylists} communityMix={communityMix} onPublishCommunityMix={publishCommunityMixFromPlaylist}/>}
@@ -4674,9 +4665,7 @@ export default function App() {
   const NAV_TOP = [
     { id: "home",      icon: "home",   label: "Home" },
     { id: "explore",   icon: "map",    label: "Explore" },
-    { id: "charts",    icon: "chart",  label: "Charts" },
     { id: "favorites", icon: "dig",    label: "Library" },
-    { id: "search",    icon: "search", label: "Search" },
   ];
   const NAV_BOTTOM = [];
 
@@ -4715,7 +4704,7 @@ export default function App() {
 
         <div style={{ display: "flex", flexDirection: "column", gap: 2, flex: 1, minHeight: 0 }}>
           {NAV_TOP.map((item) => {
-            const active = screen === item.id || ((screen === "artist" || screen === "album") && item.id === "search");
+            const active = dockActiveTab(screen) === item.id;
             return (
               <button
                 key={item.id}
@@ -4864,8 +4853,8 @@ export default function App() {
             <ScreenPane key={screen === "artist" ? `artist:${artistSlug}` : screen === "album" ? `album:${albumSlug}` : screen === "mix" ? `mix:${mixId}` : screen}>
               {screen==="home"      && <HomeScreen tracks={tracks} onPlayRadio={playRadio} onTogglePlay={togglePlay} onPlayTrack={playTrack} onLike={toggleLike} isRadioMode={isRadioMode} hypnoPocket={!!hypnoSeed} playlistCtx={playlistCtx} mixLane={mixLane} radioPreview={heroPreview} radioNext={setNext} onSkipRadio={handleSkip} onPrevRadio={handlePrev} onOpenPlayer={()=>setImmersive(true)} catalogError={tracksLoadError} onRetryCatalog={reloadCatalog} onStageVisibilityChange={onHomeStageVisibilityChange} onSeek={handleSeek} countdown={countdown} onTuneCountdown={tuneCountdown} daypart={activeDaypart} tickerText={stationTicker} onRequest={requestCurrentTrack} requested={currentRequested} onDedicate={()=>setShowDedicate(true)} dedicationFlash={dedicationFlash} onClearDedication={()=>setDedicationFlash(null)} airing={liveAiring} programGuide={programGuide} activeShowId={activeShowId} onTuneShow={playShow} showBumper={showBumper} channelShow={liveShow} sceneChannelsActiveId={activeSceneChannelId} onTuneSceneChannel={playSceneChannel} recentTrackIds={(profile?.recentTracks||[]).map(r=>r.trackId||r)} playlists={libraryPlaylists.filter((pl)=>!isCommunityPlaylist(pl))} preferredGenres={user.genres||[]} userKey={firebaseUser?.uid||""} onOpenSearch={()=>setScreen("search")} onOpenProfile={()=>setScreen("profile")} onOpenLibrary={()=>setScreen("favorites")} onOpenCharts={()=>setScreen("charts")} onOpenPlaylist={(id)=>openStack(id)} onOpenAlbum={(slug)=>openAlbum(slug)}/>}
               {screen==="explore"   && <Suspense fallback={<div style={{ padding: 32, color: color.muted }}>Loading explore…</div>}><ExploreScreen tracks={tracks} preferredGenres={user.genres||[]} recentTrackIds={(profile?.recentTracks||[]).map(r=>r.trackId||r)} userKey={firebaseUser?.uid||""} onPlayTrack={playTrack} onOpenSearch={()=>setScreen("search")} onOpenAlbum={(slug)=>openAlbum(slug)}/></Suspense>}
-              {screen==="charts"    && <Suspense fallback={<div style={{ padding: 32, color: color.muted }}>Loading charts…</div>}><LazyChartsScreen countdown={countdown} tracks={tracks} onPlayTrack={playTrack} onTuneMonthly={playMonthlyChart}/></Suspense>}
-              {screen==="search"    && <SearchScreen query={searchQuery} setQuery={setSearch} results={searchResults} tracks={tracks} onPlay={(t,pool)=>{ recordRecentSearch(searchQuery); playTrack(t,pool||tracks); }} onListenIntent={(focus)=>{ const next={ genre: focus.genre || null, scene: null }; setListenFocus(next); playRadio(null, createListenIntent({ mixLane, ...next })); }} onLike={toggleLike} playlistCtx={playlistCtx} entityHits={entityHits} onOpenArtist={(slug)=>{ recordRecentSearch(searchQuery); openArtist(slug); }} onOpenAlbum={(slug)=>{ recordRecentSearch(searchQuery); openAlbum(slug); }} recentSearches={recentSearches} onPickRecent={(q)=>setSearch(q)} onClearRecent={clearRecentSearches}/>}
+              {screen==="charts"    && <Suspense fallback={<div style={{ padding: 32, color: color.muted }}>Loading charts…</div>}><LazyChartsScreen countdown={countdown} tracks={tracks} onPlayTrack={playTrack} onTuneMonthly={playMonthlyChart} onBack={()=>setScreen("home")}/></Suspense>}
+              {screen==="search"    && <SearchScreen query={searchQuery} setQuery={setSearch} results={searchResults} tracks={tracks} onPlay={(t,pool)=>{ recordRecentSearch(searchQuery); playTrack(t,pool||tracks); }} onListenIntent={(focus)=>{ const next={ genre: focus.genre || null, scene: null }; setListenFocus(next); playRadio(null, createListenIntent({ mixLane, ...next })); }} onLike={toggleLike} playlistCtx={playlistCtx} entityHits={entityHits} onOpenArtist={(slug)=>{ recordRecentSearch(searchQuery); openArtist(slug); }} onOpenAlbum={(slug)=>{ recordRecentSearch(searchQuery); openAlbum(slug); }} recentSearches={recentSearches} onPickRecent={(q)=>setSearch(q)} onClearRecent={clearRecentSearches} onBack={()=>setScreen("explore")}/>}
               {screen==="favorites" && <FavoritesScreen tracks={tracks} onPlay={t=>{setIsRadioMode(false);playTrack(t,tracks);}} onPlayTrack={(t,pool)=>{setIsRadioMode(false);playTrack(t,pool||tracks);}} onLike={toggleLike} playlistCtx={playlistCtx} userPlaylists={libraryPlaylists} onCreatePlaylist={createPlaylist} onDeletePlaylist={deletePlaylist} onRenamePlaylist={renamePlaylist} onSharePlaylist={sharePlaylistToClub} stackId={stackId} onOpenStack={openStack} onCloseStack={closeStack} onReorderPlaylist={reorderPlaylistTrack} communityMix={communityMix} onOpenMix={()=>communityMix && openMix(communityMix.id)} onCustomMix={()=>{ setSessionInitialActivity(vibeForMixLane(mixLane)); setShowRouteBuilder(true); }} preferredGenres={user.genres} recentTrackIds={(profile?.recentTracks||[]).map(r=>r.trackId||r)} userKey={firebaseUser?.uid || ""}/>}
               {screen==="mix"       && (
                 <Suspense fallback={<div style={{ padding: 32, color: "var(--muted)" }}>Pulling the plate…</div>}>
@@ -4919,7 +4908,7 @@ export default function App() {
               )}
               {screen==="profile"   && (
                 <Suspense fallback={<div style={{ padding: 32, color: "var(--muted)" }}>Opening the club…</div>}>
-                  <ClubScreen user={user} tracks={tracks} onLogout={logOut} access={access} onSubscribe={handleSubscribe} onOpenPlans={handleOpenPlans} profile={profile} communityMix={communityMix} onOpenMix={communityMix ? ()=>openMix(communityMix.id) : null} onEditGenres={()=>setShowGenreTaste(true)} recentTracks={profile?.recentTracks||[]} signalLabel={signalFlags.getState().label} onPlayTrack={(t,pool)=>{setIsRadioMode(false);playTrack(t,pool||tracks);}} onChoosePick={handleChoosePick} onSkipMonth={handleSkipMonth}/>
+                  <ClubScreen user={user} tracks={tracks} onLogout={logOut} access={access} onSubscribe={handleSubscribe} onOpenPlans={handleOpenPlans} profile={profile} communityMix={communityMix} onOpenMix={communityMix ? ()=>openMix(communityMix.id) : null} onEditGenres={()=>setShowGenreTaste(true)} recentTracks={profile?.recentTracks||[]} signalLabel={signalFlags.getState().label} onPlayTrack={(t,pool)=>{setIsRadioMode(false);playTrack(t,pool||tracks);}}/>
                 </Suspense>
               )}
               {screen==="admin"     && <AdminScreen tracks={tracks} setTracks={setTracks} tab={adminTab} setTab={setAdminTab} editTrack={editTrack} setEditTrack={setEditTrack} showToast={showToast} userPlaylists={userPlaylists} communityMix={communityMix} onPublishCommunityMix={publishCommunityMixFromPlaylist}/>}

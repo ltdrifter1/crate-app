@@ -10,6 +10,7 @@ export default function ChartsScreen({
   tracks = [],
   onPlayTrack = null,
   onTuneMonthly = null,
+  onBack = null,
 }) {
   return (
     <div style={{
@@ -37,6 +38,25 @@ export default function ChartsScreen({
         position: "relative",
         padding: `calc(18px + env(safe-area-inset-top, 0px)) ${homeSpace.gutter}px 14px`,
       }}>
+        {onBack && (
+          <button
+            type="button"
+            onClick={onBack}
+            aria-label="Back to Home"
+            style={{
+              background: "none",
+              border: "none",
+              color: color.muted,
+              fontFamily: fontDisplay,
+              fontSize: 14,
+              fontWeight: 600,
+              cursor: "pointer",
+              padding: "0 0 12px",
+            }}
+          >
+            ‹ Home
+          </button>
+        )}
         <div style={{
           display: "inline-flex",
           alignItems: "center",

@@ -1,4 +1,6 @@
-/** Path ↔ screen mapping for shareable URLs. Home is the start page. */
+/** Path ↔ screen mapping for shareable URLs. Home is the start page.
+ *  Charts and Search remain addressable; the dock is Home / Explore / Library / Club.
+ */
 import { BRAND_NAME } from "../theme";
 
 export const SCREEN_TO_PATH = {

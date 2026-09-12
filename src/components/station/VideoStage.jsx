@@ -10,6 +10,7 @@ export default function VideoStage({
   playing = false,
   progress = 0,
   dim = false,
+  showBadge = true,
 }) {
   const videoRef = useRef(null);
   const url = resolveVideoUrl(track);
@@ -65,26 +66,28 @@ export default function VideoStage({
         `,
         pointerEvents: "none",
       }} />
-      <div style={{
-        position: "absolute",
-        top: 12,
-        left: 12,
-        display: "inline-flex",
-        alignItems: "center",
-        gap: 6,
-        padding: "4px 8px",
-        borderRadius: 4,
-        background: "rgba(139,147,159,0.92)",
-        color: "#fff",
-        fontFamily: fontMono,
-        fontSize: 9,
-        fontWeight: 800,
-        letterSpacing: 1.4,
-        textTransform: "uppercase",
-        boxShadow: "0 6px 16px rgba(0,0,0,0.35)",
-      }}>
-        Video
-      </div>
+      {showBadge && (
+        <div style={{
+          position: "absolute",
+          top: 12,
+          left: 12,
+          display: "inline-flex",
+          alignItems: "center",
+          gap: 6,
+          padding: "4px 8px",
+          borderRadius: 4,
+          background: "rgba(139,147,159,0.92)",
+          color: "#fff",
+          fontFamily: fontMono,
+          fontSize: 9,
+          fontWeight: 800,
+          letterSpacing: 1.4,
+          textTransform: "uppercase",
+          boxShadow: "0 6px 16px rgba(0,0,0,0.35)",
+        }}>
+          Video
+        </div>
+      )}
     </div>
   );
 }

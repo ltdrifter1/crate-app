@@ -7,8 +7,11 @@ import {
 } from "../../theme";
 import { usePlayerPlayback } from "../../usePlayerPlayback";
 import { useIsPlaying } from "../../usePlayerTransport";
+import { channelBugLine, resolveChannelBug } from "../../lib/mtvChannel";
+import { trackHasVideo } from "../../lib/video";
 import Icon from "../ui/Icon";
 import { IceOrbPlay } from "../player/OrbitalControls";
+import VideoStage from "../station/VideoStage";
 
 function fmtTime(secs = 0) {
   if (!Number.isFinite(secs) || secs < 0) secs = 0;
@@ -105,6 +108,7 @@ export default function HeroPlayerCard({
   previewTrack = null,
   upNextTrack = null,
   liveShow = null,
+  sceneChannel = null,
   daypart = null,
   isRadioMode = false,
   playDisabled = false,
@@ -123,8 +127,17 @@ export default function HeroPlayerCard({
   const cardRef = useRef(null);
   const live = !!track;
   const art = track?.albumCover || previewTrack?.albumCover || null;
+  const hasVideo = trackHasVideo(track);
+  const channelBug = resolveChannelBug({ sceneChannel, show: liveShow });
   const channelLabel =
-    liveShow?.shortTitle || liveShow?.title || daypart?.label || "Planet Radio";
+    sceneChannel?.shortTitle ||
+    sceneChannel?.title ||
+    liveShow?.shortTitle ||
+    liveShow?.title ||
+    daypart?.label ||
+    channelBug.label ||
+    "Planet Radio";
+  const bugLine = channelBugLine(channelBug);
 
   useEffect(() => {
     if (!onVisibilityChange) return undefined;
@@ -184,7 +197,7 @@ export default function HeroPlayerCard({
         isolation: "isolate",
       }}
     >
-      {/* Artwork — full-bleed stage */}
+      {/* Artwork — full-bleed stage (fallback under video) */}
       {art ? (
         <img
           key={art}
@@ -198,6 +211,8 @@ export default function HeroPlayerCard({
             height: "100%",
             objectFit: "cover",
             animation: "fadeIn 0.6s ease both",
+            transform: !hasVideo && isPlaying ? "scale(1.06)" : "scale(1)",
+            transition: "transform 12s ease",
           }}
         />
       ) : (
@@ -223,6 +238,15 @@ export default function HeroPlayerCard({
             draggable={false}
           />
         </div>
+      )}
+
+      {hasVideo && (
+        <VideoStage
+          track={track}
+          playing={isPlaying}
+          progress={progress}
+          showBadge={false}
+        />
       )}
 
       {/* Broadcast scrim — key light top, dense lower-third */}
@@ -265,8 +289,32 @@ export default function HeroPlayerCard({
         <BroadcastBug
           live={live || isRadioMode}
           playing={isPlaying}
-          channelLabel={channelLabel}
+          channelLabel={live ? `${bugLine}` : channelLabel}
         />
+        {hasVideo && (
+          <span
+            aria-hidden="true"
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 5,
+              padding: "5px 10px",
+              borderRadius: 980,
+              background: "rgba(10,11,13,0.42)",
+              border: "1px solid rgba(255,255,255,0.12)",
+              backdropFilter: "blur(16px) saturate(1.15)",
+              WebkitBackdropFilter: "blur(16px) saturate(1.15)",
+              fontFamily: fontMono,
+              fontSize: 10,
+              fontWeight: 800,
+              letterSpacing: 1.2,
+              textTransform: "uppercase",
+              color: y2k.offWhite,
+            }}
+          >
+            ▶ Video
+          </span>
+        )}
       </div>
 
       {/* Lower third — type + soft transport on the art */}

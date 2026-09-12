@@ -194,6 +194,10 @@ function HomeScreen({
 
   const topRequested = useMemo(() => countdown.slice(0, 10), [countdown]);
   const liveShow = channelShow || airing?.show || null;
+  const activeChannel = useMemo(
+    () => channels.find((c) => c.id === sceneChannelsActiveId) || null,
+    [channels, sceneChannelsActiveId]
+  );
   const hasTonight = !!(airing?.show || programGuide.length > 0);
   const featuredSize = homeSpace.tileFeatured;
   const hasChannels = catalogReady && channels.length > 0;
@@ -208,7 +212,11 @@ function HomeScreen({
         width: "100%",
       }}
     >
-      <HomeHeader onOpenSearch={onOpenSearch} onOpenProfile={onOpenProfile} />
+      <HomeHeader
+        onOpenSearch={onOpenSearch}
+        onOpenCharts={onOpenCharts}
+        onOpenProfile={onOpenProfile}
+      />
 
       {/* CHANNEL SURFING — top of Home, future-ticket dial */}
       {hasChannels && (
@@ -235,6 +243,7 @@ function HomeScreen({
           previewTrack={radioPreview}
           upNextTrack={radioNext}
           liveShow={liveShow}
+          sceneChannel={activeChannel}
           daypart={daypart}
           isRadioMode={isRadioMode}
           playDisabled={!catalogReady}

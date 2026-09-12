@@ -111,7 +111,9 @@ export default function CoverFlow({
     if (!activeId || !list.length) return;
     const i = list.findIndex((t) => t.id === activeId);
     if (i >= 0) setFocus(i);
-  }, [activeId]); // eslint-disable-line react-hooks/exhaustive-deps — list identity flips often
+    // list identity flips often; keep focus locked to the playing id
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeId]);
 
   useEffect(() => {
     if (focus > list.length - 1) setFocus(Math.max(0, list.length - 1));
