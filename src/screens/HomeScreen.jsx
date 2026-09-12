@@ -20,7 +20,6 @@ import HeroPlayerCard from "../components/home/HeroPlayerCard";
 import MusicSection, { Rail } from "../components/home/MusicSection";
 import ChannelSurfingSection from "../components/home/ChannelSurfingSection";
 import TrackCard from "../components/home/TrackCard";
-import RequestSongCard from "../components/home/RequestSongCard";
 import CardContainer from "../components/home/CardContainer";
 
 function HomeCatalogStatus({ error, isEmpty, playableCount, totalCount, onRetry }) {
@@ -32,11 +31,8 @@ function HomeCatalogStatus({ error, isEmpty, playableCount, totalCount, onRetry 
         margin: `20px ${homeSpace.gutter}px 0`,
         padding: "18px 20px",
         borderRadius: radius.xl,
-        border: `1px solid ${error ? "rgba(255,51,79,0.28)" : "rgba(101,230,255,0.2)"}`,
-        background: `
-          linear-gradient(180deg, ${error ? "rgba(255,51,79,0.08)" : "rgba(101,230,255,0.07)"} 0%, transparent 46%),
-          ${glass.plate}
-        `,
+        border: `1px solid ${error ? "rgba(255,51,79,0.22)" : "rgba(255,255,255,0.1)"}`,
+        background: glass.plate,
         boxShadow: `inset 0 1px 0 ${glass.highlight}, ${glass.shadowSoft}`,
         backdropFilter: glass.blurSoft,
         WebkitBackdropFilter: glass.blurSoft,
@@ -221,7 +217,7 @@ function HomeScreen({
         onOpenProfile={onOpenProfile}
       />
 
-      {/* CHANNEL SURFING — top of Home, future-ticket dial */}
+      {/* CHANNEL SURFING — top of Home */}
       {hasChannels && (
         <ChannelSurfingSection
           channels={channels}
@@ -292,7 +288,6 @@ function HomeScreen({
       {/* MOST REQUESTED — larger featured sleeves */}
       {catalogReady && topRequested.length > 0 && (
         <MusicSection
-          eyebrow="Countdown"
           title="Most Requested"
           subtitle="Tonight's countdown"
           first={!hasChannels && !hasTonight}
@@ -325,7 +320,6 @@ function HomeScreen({
         editorial.map((col, i) => (
           <MusicSection
             key={col.id}
-            eyebrow="Shelf"
             title={col.label}
             subtitle={col.story}
             first={!hasChannels && !hasTonight && topRequested.length === 0 && i === 0}
@@ -343,19 +337,6 @@ function HomeScreen({
             </Rail>
           </MusicSection>
         ))}
-
-      {/* REQUEST A SONG */}
-      {catalogReady && onOpenSearch && (
-        <div
-          style={{
-            marginTop: homeSpace.sectionGap,
-            padding: `0 ${homeSpace.gutter}px`,
-            animation: `rise 0.5s ${motion.ease} 0.12s both`,
-          }}
-        >
-          <RequestSongCard onClick={onOpenSearch} />
-        </div>
-      )}
 
       {/* Catalog is fine but nothing editorial to show — quiet empty state */}
       {catalogReady &&

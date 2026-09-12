@@ -6,7 +6,7 @@ import HomeBandHeader from "./HomeBandHeader";
 
 /**
  * Channel surfing — first Home destination band.
- * Future-ticket rail; clean App Store section header.
+ * Art-first station tiles; music stays on this stage.
  */
 function ChannelSurfingSection({
   channels = [],
@@ -18,7 +18,7 @@ function ChannelSurfingSection({
 }) {
   if (!channels.length) return null;
 
-  const ticketW = homeSpace.tileTicket;
+  const tile = homeSpace.tileTicket;
 
   return (
     <section
@@ -31,7 +31,6 @@ function ChannelSurfingSection({
       }}
     >
       <HomeBandHeader
-        eyebrow="On the dial"
         title="Channel Surfing"
         subtitle="Flip the dial. Music stays on this stage."
         action={null}
@@ -50,7 +49,7 @@ function ChannelSurfingSection({
               channel={channel}
               covers={channelCovers[channel.id] || []}
               active={activeChannelId === channel.id}
-              size={ticketW}
+              size={tile}
               onClick={() => onTuneChannel?.(channel)}
             />
           </div>

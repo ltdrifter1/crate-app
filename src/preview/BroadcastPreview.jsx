@@ -9,11 +9,13 @@ import ChannelSurfingSection from "../components/home/ChannelSurfingSection";
 import { primaryNavItems } from "../lib/nav";
 import { color, homeSpace } from "../theme";
 
+const SAMPLE_COVER = "/brand/planet-mp3-lockup-on-black.png";
+
 const SAMPLE_TRACK = {
   id: "preview-1",
   title: "Night Drive",
   artist: "Signal",
-  albumCover: "/brand/planet-mp3-lockup-on-black.png",
+  albumCover: SAMPLE_COVER,
   color: "#65E6FF",
   liked: false,
 };
@@ -28,7 +30,15 @@ const SAMPLE_CHANNELS = [
   { id: "rap", num: 3, shortTitle: "Rap City", title: "Rap City", tagline: "Bars after dark" },
   { id: "rock", num: 5, shortTitle: "120 Minutes", title: "120 Minutes", tagline: "Alt + volume" },
   { id: "pop", num: 1, shortTitle: "Total Request", title: "Total Request", tagline: "Countdown energy" },
+  { id: "y2k", num: 1, shortTitle: "Y2K Dance", title: "Y2K Dance", tagline: "Millennium dancefloor" },
 ];
+
+const SAMPLE_COVERS = {
+  rap: [SAMPLE_COVER, SAMPLE_COVER, SAMPLE_COVER, SAMPLE_COVER],
+  rock: [SAMPLE_COVER],
+  pop: [SAMPLE_COVER, SAMPLE_COVER],
+  y2k: [SAMPLE_COVER],
+};
 
 export default function BroadcastPreview() {
   return (
@@ -36,8 +46,8 @@ export default function BroadcastPreview() {
       <HomeHeader onOpenSearch={() => {}} onOpenCharts={() => {}} onOpenProfile={() => {}} />
       <ChannelSurfingSection
         channels={SAMPLE_CHANNELS}
-        channelCovers={{}}
-        activeChannelId="rap"
+        channelCovers={SAMPLE_COVERS}
+        activeChannelId="y2k"
         onTuneChannel={() => {}}
       />
       <div style={{ padding: `0 ${homeSpace.gutter}px`, marginTop: homeSpace.sectionGap }}>
@@ -45,8 +55,8 @@ export default function BroadcastPreview() {
           track={SAMPLE_TRACK}
           upNextTrack={SAMPLE_NEXT}
           isRadioMode
-          sceneChannel={SAMPLE_CHANNELS[0]}
-          liveShow={{ shortTitle: "Rap City", title: "Rap City" }}
+          sceneChannel={SAMPLE_CHANNELS[3]}
+          liveShow={{ shortTitle: "Y2K Dance", title: "Y2K Dance" }}
         />
       </div>
       <div
