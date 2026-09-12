@@ -2,8 +2,8 @@ import { color, fontDisplay, motion, y2k } from "../../theme";
 import Icon from "../ui/Icon";
 
 /**
- * BottomNavigation — floating pill tab bar.
- * Active destination gets a soft aluminum capsule; everything else stays quiet.
+ * BottomNavigation — chrome glass tab bar.
+ * Active destination gets a cyan-lit aluminum capsule.
  */
 export default function BottomNavigation({ items = [], activeId, onSelect }) {
   return (
@@ -14,7 +14,7 @@ export default function BottomNavigation({ items = [], activeId, onSelect }) {
         display: "flex",
         gap: 4,
         padding: 6,
-        borderRadius: 999,
+        borderRadius: 18,
         pointerEvents: "auto",
       }}
     >
@@ -32,19 +32,19 @@ export default function BottomNavigation({ items = [], activeId, onSelect }) {
               flex: 1,
               minWidth: 0,
               height: 50,
-              borderRadius: 999,
+              borderRadius: 14,
               border: active
-                ? "1px solid rgba(255,255,255,0.22)"
+                ? "1px solid rgba(101,230,255,0.32)"
                 : "1px solid transparent",
               background: active
-                ? "linear-gradient(180deg, rgba(255,255,255,0.16) 0%, rgba(255,255,255,0.05) 100%), rgba(28,32,38,0.55)"
+                ? "linear-gradient(180deg, rgba(101,230,255,0.16) 0%, rgba(255,255,255,0.05) 100%), rgba(28,32,38,0.55)"
                 : "none",
               boxShadow: active
-                ? `inset 0 1px 0 rgba(255,255,255,0.22), 0 0 18px ${y2k.chromeGlow}`
+                ? `inset 0 1px 0 rgba(255,255,255,0.22), 0 0 18px ${y2k.cyanGlow}`
                 : "none",
               backdropFilter: active ? "blur(16px) saturate(1.25)" : "none",
               WebkitBackdropFilter: active ? "blur(16px) saturate(1.25)" : "none",
-              color: active ? y2k.chromeBright : color.muted,
+              color: active ? y2k.cyan : color.muted,
               cursor: "pointer",
               display: "flex",
               flexDirection: "column",
@@ -69,7 +69,7 @@ export default function BottomNavigation({ items = [], activeId, onSelect }) {
                 fontFamily: fontDisplay,
                 fontSize: 10,
                 fontWeight: active ? 700 : 550,
-                letterSpacing: -0.05,
+                letterSpacing: active ? 0.2 : -0.05,
                 textTransform: "none",
                 overflow: "hidden",
                 textOverflow: "ellipsis",

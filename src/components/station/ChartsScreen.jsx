@@ -1,4 +1,4 @@
-import { color, fontDisplay, fontMono, homeSpace, chrome, glass, radius, y2k, motion } from "../../theme";
+import { color, fontDisplay, fontMono, homeSpace, chrome, chromeIconButton, glass, radius, y2k, motion } from "../../theme";
 import ChartHistoryPanel from "./ChartHistoryPanel";
 
 /**
@@ -43,15 +43,18 @@ export default function ChartsScreen({
             type="button"
             onClick={onBack}
             aria-label="Back to Home"
+            className="pmp-press"
             style={{
-              background: "none",
-              border: "none",
-              color: color.muted,
+              ...chromeIconButton(36),
+              width: "auto",
+              padding: "0 12px",
+              borderRadius: 10,
+              gap: 8,
+              color: y2k.offWhite,
               fontFamily: fontDisplay,
-              fontSize: 14,
-              fontWeight: 600,
-              cursor: "pointer",
-              padding: "0 0 12px",
+              fontSize: 13,
+              fontWeight: 650,
+              marginBottom: 14,
             }}
           >
             ‹ Home
