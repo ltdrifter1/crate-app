@@ -14,8 +14,14 @@ const SAMPLE_TRACK = {
   title: "Night Drive",
   artist: "Signal",
   albumCover: "/brand/planet-mp3-lockup-on-black.png",
-  videoUrl: "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4",
+  color: "#65E6FF",
   liked: false,
+};
+
+const SAMPLE_NEXT = {
+  id: "preview-2",
+  title: "After Hours",
+  artist: "Low Light",
 };
 
 const SAMPLE_CHANNELS = [
@@ -37,6 +43,7 @@ export default function BroadcastPreview() {
       <div style={{ padding: `0 ${homeSpace.gutter}px`, marginTop: homeSpace.sectionGap }}>
         <HeroPlayerCard
           track={SAMPLE_TRACK}
+          upNextTrack={SAMPLE_NEXT}
           isRadioMode
           sceneChannel={SAMPLE_CHANNELS[0]}
           liveShow={{ shortTitle: "Rap City", title: "Rap City" }}

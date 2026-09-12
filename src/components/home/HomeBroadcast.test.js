@@ -15,12 +15,12 @@ jest.mock("../../usePlayerPlayback", () => ({
 
 jest.mock("../../usePlayerTransport", () => ({
   useIsPlaying: () => true,
+  useIsBuffering: () => false,
   useCurrentTrack: () => ({
     id: "t1",
     title: "Night Drive",
     artist: "Signal",
     albumCover: "/brand/planet-mp3-lockup-on-black.png",
-    videoUrl: "https://cdn.example/night-drive.mp4",
   }),
 }));
 
@@ -100,5 +100,40 @@ describe("Home broadcast + four-tab IA", () => {
     expect(div.textContent).toMatch(/CH-03/i);
     expect(div.textContent).toMatch(/Video/i);
     expect(div.textContent).toMatch(/Night Drive/);
+  });
+
+  test("music-only stage is album-art broadcast with up next, no video plane", async () => {
+    const track = {
+      id: "t1",
+      title: "Night Drive",
+      artist: "Signal",
+      albumCover: "/brand/planet-mp3-lockup-on-black.png",
+      color: "#65E6FF",
+    };
+    const onSeek = jest.fn();
+    await act(async () => {
+      root.render(
+        React.createElement(HeroPlayerCard, {
+          track,
+          isRadioMode: true,
+          upNextTrack: { title: "After Hours", artist: "Low Light" },
+          onSeek,
+          sceneChannel: { id: "rap", num: 3, shortTitle: "Rap City", title: "Rap City" },
+        })
+      );
+    });
+    expect(div.querySelector("video")).toBeNull();
+    expect(div.textContent).toMatch(/On air/i);
+    expect(div.textContent).toMatch(/Night Drive/);
+    expect(div.textContent).toMatch(/Up next/i);
+    expect(div.textContent).toMatch(/After Hours/);
+    const seek = div.querySelector('[aria-label="Seek"]');
+    expect(seek).toBeTruthy();
+    await act(async () => {
+      const rect = { left: 0, width: 100 };
+      seek.getBoundingClientRect = () => rect;
+      seek.dispatchEvent(new MouseEvent("click", { bubbles: true, clientX: 50 }));
+    });
+    expect(onSeek).toHaveBeenCalled();
   });
 });
