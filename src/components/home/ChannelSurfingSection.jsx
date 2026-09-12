@@ -32,7 +32,7 @@ function ChannelSurfingSection({
     >
       <HomeBandHeader
         title="Channel Surfing"
-        subtitle="Flip the dial — playback stays on this stage."
+        subtitle="Flip the dial. Music stays on this stage."
         action={null}
         meta={`${channels.length} channels`}
       />

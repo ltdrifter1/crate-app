@@ -6,7 +6,7 @@ import {
   y2k,
 } from "../../theme";
 import { usePlayerPlayback } from "../../usePlayerPlayback";
-import { useIsPlaying } from "../../usePlayerTransport";
+import { useIsBuffering, useIsPlaying } from "../../usePlayerTransport";
 import { channelBugLine, resolveChannelBug } from "../../lib/mtvChannel";
 import { trackHasVideo } from "../../lib/video";
 import Icon from "../ui/Icon";
@@ -121,8 +121,10 @@ export default function HeroPlayerCard({
   onRequest = null,
   requested = false,
   onVisibilityChange = null,
+  onSeek = null,
 }) {
   const isPlaying = useIsPlaying();
+  const isBuffering = useIsBuffering();
   const { progress, duration } = usePlayerPlayback();
   const cardRef = useRef(null);
   const live = !!track;
@@ -165,6 +167,9 @@ export default function HeroPlayerCard({
   }, [onVisibilityChange]);
 
   const pct = duration > 0 ? Math.min(1, progress / duration) : 0;
+  const idleEyebrow = previewTrack ? "Up first" : "Planet Radio";
+  const idleTitle = previewTrack?.title || daypart?.vibe || "Tune the station";
+  const idleArtist = previewTrack?.artist || "One tap and the dial finds you something good.";
 
   return (
     <div
@@ -174,7 +179,9 @@ export default function HeroPlayerCard({
       aria-label={
         live
           ? `Now playing ${track.title} by ${track.artist}. Open player.`
-          : "Start the station"
+          : previewTrack
+            ? `Up first ${previewTrack.title} by ${previewTrack.artist}. Start the station.`
+            : "Start the station"
       }
       onClick={() => (live ? onOpen?.() : !playDisabled && onPlay?.())}
       onKeyDown={(e) => {
@@ -186,8 +193,8 @@ export default function HeroPlayerCard({
         borderRadius: 22,
         overflow: "hidden",
         aspectRatio: "16 / 10",
-        minHeight: 280,
-        maxHeight: 460,
+        minHeight: 300,
+        maxHeight: 520,
         width: "100%",
         cursor: playDisabled && !live ? "default" : "pointer",
         border: "1px solid rgba(255,255,255,0.1)",
@@ -211,8 +218,9 @@ export default function HeroPlayerCard({
             height: "100%",
             objectFit: "cover",
             animation: "fadeIn 0.6s ease both",
-            transform: !hasVideo && isPlaying ? "scale(1.06)" : "scale(1)",
-            transition: "transform 12s ease",
+            transform: !hasVideo && isPlaying ? "scale(1.08)" : "scale(1.02)",
+            transition: "transform 18s ease",
+            filter: isPlaying && !hasVideo ? "saturate(1.08) contrast(1.04)" : "none",
           }}
         />
       ) : (
@@ -246,6 +254,20 @@ export default function HeroPlayerCard({
           playing={isPlaying}
           progress={progress}
           showBadge={false}
+        />
+      )}
+
+      {!hasVideo && track?.color && (
+        <div
+          aria-hidden="true"
+          style={{
+            position: "absolute",
+            inset: 0,
+            zIndex: 1,
+            pointerEvents: "none",
+            background: `radial-gradient(80% 70% at 50% 20%, ${track.color}33 0%, transparent 62%)`,
+            mixBlendMode: "screen",
+          }}
         />
       )}
 
@@ -344,7 +366,9 @@ export default function HeroPlayerCard({
             textShadow: "0 1px 8px rgba(0,0,0,0.55)",
           }}
         >
-          {live ? "Now Playing" : "Planet Radio"}
+          {live
+            ? (isRadioMode ? "On air" : "Now playing")
+            : idleEyebrow}
         </div>
 
         <div
@@ -368,7 +392,7 @@ export default function HeroPlayerCard({
               maxWidth: 640,
             }}
           >
-            {live ? track.title : daypart?.vibe || "Tune the station"}
+            {live ? track.title : idleTitle}
           </div>
           <div
             style={{
@@ -383,8 +407,24 @@ export default function HeroPlayerCard({
               maxWidth: 520,
             }}
           >
-            {live ? track.artist : "One tap and the dial finds you something good."}
+            {live ? track.artist : idleArtist}
           </div>
+          {live && upNextTrack?.title && (
+            <div
+              style={{
+                marginTop: 8,
+                fontFamily: fontMono,
+                fontSize: 10,
+                fontWeight: 700,
+                letterSpacing: 1.1,
+                textTransform: "uppercase",
+                color: "rgba(244,246,248,0.5)",
+              }}
+            >
+              Up next · {upNextTrack.title}
+              {upNextTrack.artist ? ` — ${upNextTrack.artist}` : ""}
+            </div>
+          )}
         </div>
 
         <div
@@ -400,9 +440,10 @@ export default function HeroPlayerCard({
               <SoftIconButton label="Previous" icon="prev" onClick={onPrev} />
               <IceOrbPlay
                 isPlaying={isPlaying}
+                buffering={isBuffering}
                 onClick={onTogglePlay}
                 size={56}
-                glowing={isPlaying}
+                glowing={isPlaying && !isBuffering}
                 stopPropagation
               />
               <SoftIconButton label="Next" icon="skip" onClick={onSkip} />
@@ -494,6 +535,26 @@ export default function HeroPlayerCard({
             onClick={(e) => e.stopPropagation()}
           >
             <div
+              role={onSeek && duration ? "slider" : undefined}
+              aria-label={onSeek && duration ? "Seek" : undefined}
+              aria-valuemin={onSeek && duration ? 0 : undefined}
+              aria-valuemax={onSeek && duration ? Math.floor(duration) : undefined}
+              aria-valuenow={onSeek && duration ? Math.floor(progress) : undefined}
+              onClick={(e) => {
+                if (!onSeek || !duration) return;
+                const rect = e.currentTarget.getBoundingClientRect();
+                const x = (e.clientX - rect.left) / Math.max(1, rect.width);
+                onSeek(Math.max(0, Math.min(1, x)) * duration);
+              }}
+              style={{
+                flex: 1,
+                height: onSeek && duration ? 14 : 2,
+                display: "flex",
+                alignItems: "center",
+                cursor: onSeek && duration ? "pointer" : "default",
+              }}
+            >
+            <div
               aria-hidden="true"
               style={{
                 flex: 1,
@@ -512,6 +573,7 @@ export default function HeroPlayerCard({
                   transition: "width 0.2s linear",
                 }}
               />
+            </div>
             </div>
             <span
               style={{

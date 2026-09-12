@@ -26,6 +26,16 @@ import {
 import { mixLaneForDate } from "./lib/mixLanes";
 import { parsePath, buildPath, documentTitleFor } from "./lib/routes";
 import { primaryNavItems, dockActiveTab } from "./lib/nav";
+import {
+  AUDIO_LOAD_TIMEOUT_MS,
+  canAttemptPlay,
+  finishAudioUnlock,
+  hasPlayableAudio,
+  isBenignPlayReject,
+  MISSING_AUDIO_TOAST,
+  PLAY_REJECTED_TOAST,
+  shouldIgnoreUnlockTransportEvent,
+} from "./lib/audioUnlock";
 import { explainPick } from "./lib/explain";
 import { fetchCatalogTracks, isCatalogCacheFresh, readCatalogIdb, writeCatalogIdb } from "./lib/catalogLoad";
 import { slugify, findArtist, findAlbum, searchEntities } from "./lib/catalog";
@@ -1913,6 +1923,7 @@ function GlassDock({
 }) {
   const { progress, duration } = usePlayerPlayback();
   const isPlaying = useIsPlaying();
+  const isBuffering = useIsBuffering();
   const items = primaryNavItems({ showAdmin });
 
   // When Home radio owns the transport, dock collapses to tabs only.
@@ -2047,6 +2058,7 @@ function GlassDock({
             </button>
             <IceOrbPlay
               isPlaying={isPlaying}
+              buffering={isBuffering}
               onClick={onTogglePlay}
               size={34}
               iconSize={14}
@@ -2423,7 +2435,9 @@ export default function App() {
   ), [tracks, activeListenIntent]);
 
   const activeShowIdRef = useRef(activeShowId);
+  const activeSceneChannelIdRef = useRef(activeSceneChannelId);
   useEffect(() => { activeShowIdRef.current = activeShowId; }, [activeShowId]);
+  useEffect(() => { activeSceneChannelIdRef.current = activeSceneChannelId; }, [activeSceneChannelId]);
   const playShowRef = useRef(null);
 
   const radioPool = useCallback(() => {
@@ -2435,7 +2449,7 @@ export default function App() {
         if (pool.length) return pool;
       }
     }
-    const sceneId = activeSceneChannelId;
+    const sceneId = activeSceneChannelIdRef.current;
     if (sceneId) {
       const channel = getSceneChannel(sceneId);
       if (channel) {
@@ -2926,6 +2940,7 @@ export default function App() {
   const crossfadeRef   = useRef(null); // interval for the crossfade ramp
   const isCrossfading  = useRef(false);
   const audioUnlockedRef = useRef(false);
+  const unlockingRef = useRef(false);
   /** Locked next cut for preload → crossfade (avoids re-rolling radio picks). */
   const pendingNextRef = useRef(null); // { track, url }
   const crossfadeReadyWaitRef = useRef(null);
@@ -2949,7 +2964,17 @@ export default function App() {
   const unlockAudioElements = () => {
     if (audioUnlockedRef.current) return;
     audioUnlockedRef.current = true;
+    unlockingRef.current = true;
     const els = [audioRef.current, nextAudioRef.current].filter(Boolean);
+    let pending = els.length;
+    const markDone = () => {
+      pending -= 1;
+      if (pending <= 0) unlockingRef.current = false;
+    };
+    if (!pending) {
+      unlockingRef.current = false;
+      return;
+    }
     els.forEach((el) => {
       try {
         configureAudioElement(el);
@@ -2959,27 +2984,17 @@ export default function App() {
         el.muted = true;
         const p = el.play();
         const finish = () => {
-          try {
-            el.pause();
-            if ((el.getAttribute("src") || "").startsWith("data:audio")) {
-              el.currentTime = 0;
-            }
-          } catch { /* ignore */ }
-          el.muted = wasMuted;
-          // Never clobber a real track URL that loaded during unlock
-          const now = el.getAttribute("src") || "";
-          if (now.startsWith("data:audio")) {
-            el.removeAttribute("src");
-            el.src = "";
-            try { el.load(); } catch { /* ignore */ }
-          }
+          finishAudioUnlock(el, { wasMuted });
+          markDone();
         };
         if (p && typeof p.then === "function") {
           p.then(finish).catch(finish);
         } else {
           finish();
         }
-      } catch { /* ignore */ }
+      } catch {
+        markDone();
+      }
     });
   };
 
@@ -3055,6 +3070,7 @@ export default function App() {
 
     const onTimeUpdate = () => {
       setProgress(Math.floor(audio.currentTime));
+      if (audio.currentTime > 0 && !audio.paused) transportFlags.setBuffering(false);
       if (!audio.duration || isCrossfading.current) return;
       const radio = isRadioModeRef.current;
       const wantsQueueFade = !radio
@@ -3094,10 +3110,14 @@ export default function App() {
     // Keep UI in sync when iOS interrupts (call, Siri, Control Center, route change)
     const onPause = () => {
       if (isCrossfading.current) return;
+      const src = audio.getAttribute("src") || audio.src || "";
+      if (shouldIgnoreUnlockTransportEvent({ unlocking: unlockingRef.current, src })) return;
       if (isPlayingRef.current) setIsPlaying(false);
     };
     const onPlay = () => {
       if (isCrossfading.current) return;
+      const src = audio.getAttribute("src") || audio.src || "";
+      if (shouldIgnoreUnlockTransportEvent({ unlocking: unlockingRef.current, src })) return;
       if (!isPlayingRef.current) setIsPlaying(true);
     };
 
@@ -3306,25 +3326,69 @@ export default function App() {
     const audio = audioRef.current;
     clearInterval(crossfadeRef.current);
     pendingNextRef.current = null;
-    if (currentTrack.audioUrl) {
-      audio.src = currentTrack.audioUrl;
-      audio.volume = volumeRef.current;
-      audio.load();
-      // Resume a restored session at its saved position
-      const resumeAt = pendingResumeRef.current;
-      pendingResumeRef.current = null;
-      if (resumeAt != null && resumeAt > 0) {
-        const seekWhenReady = () => { try { audio.currentTime = resumeAt; } catch { /* ignore */ } };
-        audio.addEventListener("loadedmetadata", seekWhenReady, { once: true });
-        setProgress(Math.floor(resumeAt));
-      } else {
-        setProgress(0);
-      }
-      if (isPlayingRef.current) audio.play().catch(() => {});
-    } else {
+    const url = String(currentTrack.audioUrl || "").trim();
+    if (!url) {
       audio.src = "";
       setProgress(0);
+      transportFlags.setBuffering(false);
+      setIsPlaying(false);
+      return undefined;
     }
+    const already = (audio.getAttribute("src") || "") === url;
+    audio.volume = volumeRef.current;
+    if (!already) {
+      transportFlags.setBuffering(true);
+      audio.src = url;
+      try { audio.load(); } catch { /* ignore */ }
+    }
+    const resumeAt = pendingResumeRef.current;
+    pendingResumeRef.current = null;
+    if (resumeAt != null && resumeAt > 0) {
+      const seekWhenReady = () => { try { audio.currentTime = resumeAt; } catch { /* ignore */ } };
+      audio.addEventListener("loadedmetadata", seekWhenReady, { once: true });
+      setProgress(Math.floor(resumeAt));
+    } else if (!already) {
+      setProgress(0);
+    }
+
+    let cancelled = false;
+    const rejectPlay = (err) => {
+      if (cancelled || isBenignPlayReject(err)) return;
+      setIsPlaying(false);
+      transportFlags.setBuffering(false);
+      showToastRef.current?.(PLAY_REJECTED_TOAST);
+    };
+    const tryPlay = () => {
+      if (cancelled || !isPlayingRef.current || !canAttemptPlay(audio)) return;
+      const p = audio.play();
+      if (p?.catch) {
+        p.catch((err) => {
+          if (cancelled || !isPlayingRef.current || isBenignPlayReject(err)) return;
+          setTimeout(() => {
+            if (!cancelled && isPlayingRef.current && canAttemptPlay(audio)) {
+              audio.play().catch(rejectPlay);
+            } else if (!cancelled && isPlayingRef.current) {
+              rejectPlay(err);
+            }
+          }, 220);
+        });
+      }
+    };
+    if (audio.readyState >= 2) tryPlay();
+    else audio.addEventListener("canplay", tryPlay, { once: true });
+    const loadTimeout = window.setTimeout(() => {
+      if (cancelled) return;
+      transportFlags.setBuffering(false);
+      if (audio.paused && isPlayingRef.current) {
+        setIsPlaying(false);
+        showToastRef.current?.("This cut is taking too long. Try another.");
+      }
+    }, AUDIO_LOAD_TIMEOUT_MS);
+    return () => {
+      cancelled = true;
+      window.clearTimeout(loadTimeout);
+      audio.removeEventListener("canplay", tryPlay);
+    };
   }, [currentTrackId]);
 
   // ── Session resume — save the listening position, restore on next launch ──
@@ -3371,8 +3435,18 @@ export default function App() {
     const apply = (state) => {
       const audio = audioRef.current;
       if (!audio) return;
-      if (state.isPlaying) audio.play().catch(() => {});
-      else audio.pause();
+      if (state.isPlaying) {
+        if (canAttemptPlay(audio)) {
+          audio.play().catch((err) => {
+            if (isBenignPlayReject(err)) return;
+            setIsPlaying(false);
+            transportFlags.setBuffering(false);
+            showToastRef.current?.(PLAY_REJECTED_TOAST);
+          });
+        }
+      } else {
+        audio.pause();
+      }
     };
     apply(transportFlags.getState());
     return transportFlags.subscribe(apply);
@@ -3443,6 +3517,11 @@ export default function App() {
   }, [profile, access]);
 
   const playTrack = (track, q = null, opts = {}) => {
+    if (!track) return;
+    if (!hasPlayableAudio(track)) {
+      showToast(MISSING_AUDIO_TOAST);
+      return;
+    }
     if (!guardFreePlay()) return;
     unlockAudioElements();
     if (currentTrack && currentTrack.id !== track.id) {
@@ -3453,8 +3532,14 @@ export default function App() {
     setCurrent(track); setIsPlaying(true); setProgress(0); setIsRadioMode(false);
     if (!opts.keepSession) setSessionMeta(null);
     if (!opts.keepHypno) setHypnoSeed(null);
-    if (!opts.keepShow) setActiveShowId(null);
-    if (!opts.keepScene) setActiveSceneChannelId(null);
+    if (!opts.keepShow) {
+      activeShowIdRef.current = null;
+      setActiveShowId(null);
+    }
+    if (!opts.keepScene) {
+      activeSceneChannelIdRef.current = null;
+      setActiveSceneChannelId(null);
+    }
     if (opts.room) setListeningRoom(opts.room);
     else if (!opts.keepRoom) setListeningRoom(null);
     if (openImmersive) setImmersive(true);
@@ -3486,8 +3571,6 @@ export default function App() {
     const pool = resolved.tracks;
     if (!pool.length) return;
     const seedTrack = seed || null;
-    setHypnoSeed(seedTrack);
-    if (liveBlock && !seedTrack) setActiveShowId(liveBlock.id);
     // Honor the hero preview so "Up first" is what actually plays
     const first = (!seedTrack && !intentOverride && heroPreview && pool.some(t => t.id === heroPreview.id))
       ? heroPreview
@@ -3498,8 +3581,18 @@ export default function App() {
           scopedPool: true,
           tasteBlend: !(intentOverride?.genre || listenFocus.genre),
         }) || pool.find(t => (t.duration || 0) <= 900) || pool[0];
+    if (!hasPlayableAudio(first)) {
+      showToast("This station is missing audio.");
+      return;
+    }
+    setHypnoSeed(seedTrack);
+    if (liveBlock && !seedTrack) {
+      activeShowIdRef.current = liveBlock.id;
+      setActiveShowId(liveBlock.id);
+    }
     if (currentTrack) playHistoryRef.current = [currentTrack, ...playHistoryRef.current].slice(0, 50);
     setCurrent(first); setIsPlaying(true); setProgress(0); setIsRadioMode(true); setQueue([]);
+    setImmersive(false);
     setSessionMeta(null);
     if (!sessionStartRef.current) sessionStartRef.current = Date.now();
     logTrackPlay(first);
@@ -3831,6 +3924,12 @@ export default function App() {
     }
     unlockAudioElements();
     const first = pool[0];
+    if (!hasPlayableAudio(first)) {
+      showToast("Nothing lined up for this block yet");
+      return;
+    }
+    activeShowIdRef.current = show.id;
+    activeSceneChannelIdRef.current = null;
     setActiveShowId(show.id);
     setActiveSceneChannelId(null);
     setHypnoSeed(null);
@@ -3842,6 +3941,7 @@ export default function App() {
     setIsRadioMode(true);
     setQueue([]);
     // Stay on the Home broadcast stage — immersive is opt-in via the hero.
+    setImmersive(false);
     setSessionMeta({
       tracks: pool.slice(0, 24),
       startTime: Date.now(),
@@ -3870,6 +3970,12 @@ export default function App() {
     }
     unlockAudioElements();
     const first = pool[0];
+    if (!hasPlayableAudio(first)) {
+      showToast("Nothing lined up on that channel yet");
+      return;
+    }
+    activeSceneChannelIdRef.current = channel.id;
+    activeShowIdRef.current = null;
     setActiveSceneChannelId(channel.id);
     setActiveShowId(null);
     setHypnoSeed(null);
@@ -3881,6 +3987,7 @@ export default function App() {
     setIsRadioMode(true);
     setQueue([]);
     // Channel Surfing plays on the live Home stage, not the immersive booth.
+    setImmersive(false);
     setSessionMeta(null);
     if (!sessionStartRef.current) sessionStartRef.current = Date.now();
     logTrackPlay(first);

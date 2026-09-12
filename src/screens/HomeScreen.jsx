@@ -256,6 +256,7 @@ function HomeScreen({
           onRequest={currentTrack ? onRequest : null}
           requested={requested}
           onVisibilityChange={onStageVisibilityChange}
+          onSeek={onSeek}
         />
       </div>
 
