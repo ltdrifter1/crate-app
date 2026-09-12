@@ -7,6 +7,8 @@ import { act } from "react-dom/test-utils";
 import BottomNavigation from "./BottomNavigation";
 import HomeHeader from "./HomeHeader";
 import HeroPlayerCard from "./HeroPlayerCard";
+import ChannelCard from "./ChannelCard";
+import ChannelSurfingSection from "./ChannelSurfingSection";
 import { PRIMARY_TABS, primaryNavItems } from "../../lib/nav";
 
 jest.mock("../../usePlayerPlayback", () => ({
@@ -69,6 +71,8 @@ describe("Home broadcast + four-tab IA", () => {
     const search = div.querySelector('button[aria-label="Search"]');
     expect(charts).toBeTruthy();
     expect(search).toBeTruthy();
+    expect(div.querySelector(".pmp-onair-chip")).toBeNull();
+    expect(div.textContent).not.toMatch(/On air/i);
     await act(async () => {
       charts.click();
       search.click();
@@ -169,5 +173,54 @@ describe("Home broadcast + four-tab IA", () => {
       );
     });
     expect(div.textContent).toMatch(/Planet Radio — requests open/);
+  });
+
+  test("channel cards are art tiles, not ticket stubs", async () => {
+    const channel = {
+      id: "y2k",
+      num: 1,
+      shortTitle: "Y2K Dance",
+      title: "Y2K Dance",
+      tagline: "Millennium dancefloor",
+    };
+    await act(async () => {
+      root.render(
+        React.createElement(ChannelCard, {
+          channel,
+          covers: ["/brand/planet-mp3-lockup-on-black.png"],
+          active: true,
+        })
+      );
+    });
+    expect(div.querySelector(".pmp-channel-card")).toBeTruthy();
+    expect(div.querySelector(".pmp-channel-ticket")).toBeNull();
+    expect(div.textContent).toMatch(/Y2K Dance/);
+    expect(div.textContent).toMatch(/Millennium dancefloor/);
+    expect(div.textContent).toMatch(/Playing/);
+    expect(div.textContent).not.toMatch(/Admit one/i);
+    expect(div.textContent).not.toMatch(/ADMIT ONE/);
+    expect(div.textContent).not.toMatch(/PLANET\s*[·•]/i);
+    expect(div.textContent).not.toMatch(/Tune/);
+    expect(div.querySelector('[aria-label="Tune Y2K Dance — Millennium dancefloor"]')).toBeTruthy();
+    expect(div.querySelector("[aria-pressed]")).toBeTruthy();
+  });
+
+  test("Channel Surfing rail has no ticket copy or request card", async () => {
+    await act(async () => {
+      root.render(
+        React.createElement(ChannelSurfingSection, {
+          channels: [
+            { id: "rap", num: 3, title: "Rap City", tagline: "Bars after dark" },
+          ],
+          channelCovers: {},
+          activeChannelId: "rap",
+        })
+      );
+    });
+    expect(div.textContent).toMatch(/Channel Surfing/);
+    expect(div.textContent).toMatch(/Music stays on this stage/i);
+    expect(div.textContent).not.toMatch(/On the dial/i);
+    expect(div.textContent).not.toMatch(/Admit one/i);
+    expect(div.textContent).not.toMatch(/Request a song/i);
   });
 });

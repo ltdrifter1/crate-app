@@ -2,8 +2,8 @@ import { color, fontDisplay, motion, y2k } from "../../theme";
 import Icon from "../ui/Icon";
 
 /**
- * BottomNavigation — chrome glass tab bar.
- * Active destination gets a cyan-lit aluminum capsule.
+ * BottomNavigation — iOS tab bar.
+ * Active destination is brighter off-white, no LED glow.
  */
 export default function BottomNavigation({ items = [], activeId, onSelect }) {
   return (
@@ -33,25 +33,17 @@ export default function BottomNavigation({ items = [], activeId, onSelect }) {
               minWidth: 0,
               height: 50,
               borderRadius: 14,
-              border: active
-                ? "1px solid rgba(101,230,255,0.32)"
-                : "1px solid transparent",
-              background: active
-                ? "linear-gradient(180deg, rgba(101,230,255,0.16) 0%, rgba(255,255,255,0.05) 100%), rgba(28,32,38,0.55)"
-                : "none",
-              boxShadow: active
-                ? `inset 0 1px 0 rgba(255,255,255,0.22), 0 0 18px ${y2k.cyanGlow}`
-                : "none",
-              backdropFilter: active ? "blur(16px) saturate(1.25)" : "none",
-              WebkitBackdropFilter: active ? "blur(16px) saturate(1.25)" : "none",
-              color: active ? y2k.cyan : color.muted,
+              border: "1px solid transparent",
+              background: active ? "rgba(255,255,255,0.08)" : "none",
+              boxShadow: "none",
+              color: active ? y2k.offWhite : color.muted,
               cursor: "pointer",
               display: "flex",
               flexDirection: "column",
               alignItems: "center",
               justifyContent: "center",
               gap: 3,
-              transition: `color ${motion.base} ${motion.ease}, background ${motion.base} ${motion.ease}, box-shadow ${motion.base} ${motion.ease}`,
+              transition: `color ${motion.base} ${motion.ease}, background ${motion.base} ${motion.ease}`,
               WebkitTapHighlightColor: "transparent",
             }}
           >
@@ -68,8 +60,8 @@ export default function BottomNavigation({ items = [], activeId, onSelect }) {
               style={{
                 fontFamily: fontDisplay,
                 fontSize: 10,
-                fontWeight: active ? 700 : 550,
-                letterSpacing: active ? 0.2 : -0.05,
+                fontWeight: active ? 650 : 550,
+                letterSpacing: -0.08,
                 textTransform: "none",
                 overflow: "hidden",
                 textOverflow: "ellipsis",

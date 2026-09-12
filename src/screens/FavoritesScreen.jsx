@@ -62,12 +62,10 @@ function CustomMixFeature({ onClick, inset = true }) {
       <div style={{ position: "relative", zIndex: 1, display: "flex", alignItems: "center", gap: 16 }}>
         <div style={{ minWidth: 0, flex: 1 }}>
           <div style={{
-            fontSize: 10,
-            fontWeight: 800,
-            letterSpacing: 1.5,
-            textTransform: "uppercase",
-            fontFamily: fontMono,
-            color: "#65E6FF",
+            fontSize: 13,
+            fontWeight: 600,
+            letterSpacing: -0.08,
+            color: color.muted,
             marginBottom: 6,
           }}>
             Custom mix

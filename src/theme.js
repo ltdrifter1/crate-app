@@ -1,13 +1,13 @@
-// Design tokens — premium Y2K broadcast hardware.
-// Graphite chassis, LCD cyan, chrome plates, LIVE LED red.
-// Early-2000s FM receiver × MiniDisc × underground label — engineered, not SaaS.
+// Design tokens — premium modern MTV × iOS.
+// Graphite studio, clean system type, restrained chrome.
+// Taste over novelty — no ticket stubs, LED stamps, or costume jewelry.
 
 export const fontDisplay =
-  '"Chakra Petch", "Space Grotesk", "Avenir Next", "Segoe UI", sans-serif';
+  'system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", Helvetica, Arial, sans-serif';
 export const font =
-  '"Space Grotesk", "Avenir Next", "Segoe UI", "Helvetica Neue", Helvetica, sans-serif';
+  'system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Helvetica Neue", Helvetica, Arial, sans-serif';
 export const fontMono =
-  '"IBM Plex Mono", "SF Mono", ui-monospace, Menlo, Monaco, "Courier New", monospace';
+  'ui-monospace, "SF Mono", SFMono-Regular, Menlo, Monaco, Consolas, monospace';
 
 /** Brand palette — dark broadcast studio, editorial contrast */
 export const color = {
@@ -320,8 +320,8 @@ export const homeSpace = {
   tile: 160,
   /** Featured / countdown / releases — asymmetric presence. */
   tileFeatured: 188,
-  /** Channel surfing future-ticket width. */
-  tileTicket: 304,
+  /** Channel surfing station tile — art-first, not a ticket stub. */
+  tileTicket: 168,
   /** Space under section title stack before the rail. */
   titleToRail: 12,
 };
@@ -350,15 +350,15 @@ export const sectionSubtitle = {
   color: color.muted,
 };
 
-/** Broadcast readout above a Home band title. */
+/** Quiet label above a Home band title — iOS editorial, not a stamp. */
 export const sectionEyebrow = {
-  fontFamily: fontMono,
-  fontSize: 10,
-  fontWeight: 700,
-  letterSpacing: 1.5,
-  textTransform: "uppercase",
-  color: y2k.cyan,
-  margin: "0 0 6px",
+  fontFamily: font,
+  fontSize: 13,
+  fontWeight: 600,
+  letterSpacing: -0.08,
+  textTransform: "none",
+  color: color.muted,
+  margin: "0 0 4px",
   lineHeight: 1.2,
 };
 
@@ -386,13 +386,11 @@ export function chromeIconButton(size = 36) {
     height: size,
     padding: 0,
     borderRadius: "50%",
-    border: "1px solid rgba(231,235,240,0.22)",
-    background:
-      "linear-gradient(180deg, rgba(255,255,255,0.16) 0%, rgba(255,255,255,0.04) 100%), rgba(18,20,24,0.55)",
-    boxShadow:
-      "inset 0 1px 0 rgba(255,255,255,0.3), inset 0 -1px 0 rgba(0,0,0,0.4), 0 4px 14px rgba(0,0,0,0.3)",
-    backdropFilter: "blur(16px) saturate(1.3)",
-    WebkitBackdropFilter: "blur(16px) saturate(1.3)",
+    border: "1px solid rgba(255,255,255,0.1)",
+    background: "rgba(255,255,255,0.08)",
+    boxShadow: "none",
+    backdropFilter: "blur(16px)",
+    WebkitBackdropFilter: "blur(16px)",
     color: y2k.offWhite,
     display: "flex",
     alignItems: "center",
@@ -565,10 +563,8 @@ export function brandGlassHalo(size = 280) {
 export const APP_STYLE = {
   fontFamily: font,
   background: `
-    radial-gradient(ellipse 120% 70% at 50% -20%, rgba(101,230,255,0.1) 0%, transparent 55%),
-    radial-gradient(ellipse 55% 40% at 100% 0%, rgba(255,79,216,0.055) 0%, transparent 46%),
-    radial-gradient(ellipse 60% 42% at 0% 100%, rgba(200,242,65,0.045) 0%, transparent 50%),
-    radial-gradient(ellipse 70% 45% at 100% 100%, rgba(123,167,255,0.07) 0%, transparent 50%),
+    radial-gradient(ellipse 110% 65% at 50% -18%, rgba(255,255,255,0.04) 0%, transparent 55%),
+    radial-gradient(ellipse 70% 45% at 100% 100%, rgba(123,167,255,0.035) 0%, transparent 50%),
     ${color.canvas}
   `,
   color: color.ink,

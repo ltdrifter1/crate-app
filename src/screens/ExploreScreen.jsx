@@ -5,7 +5,6 @@ import {
   fontDisplay,
   homeSpace,
   motion,
-  sectionEyebrow,
   sectionSubtitle,
   sectionTitle,
   y2k,
@@ -120,7 +119,6 @@ function ExploreScreen({
       >
         <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12 }}>
           <div style={{ minWidth: 0 }}>
-            <div style={sectionEyebrow}>Browse</div>
             <h1 style={{ ...sectionTitle, fontSize: 24, letterSpacing: -0.4, fontWeight: 650 }}>
               Explore
             </h1>
@@ -144,7 +142,6 @@ function ExploreScreen({
 
       {forYouTracks.length > 0 && (
         <MusicSection
-          eyebrow="For you"
           title={coldStart ? "Fresh picks" : "Selected for you"}
           subtitle={coldStart ? "Start anywhere — the dial learns fast" : "Tuned to your taste"}
           accent={y2k.chromeBright}
@@ -168,7 +165,6 @@ function ExploreScreen({
 
       {releases.length > 0 && (
         <MusicSection
-          eyebrow="Sleeves"
           title="Featured releases"
           subtitle="Albums worth the needle"
           accent={y2k.chromeBright}
@@ -193,7 +189,6 @@ function ExploreScreen({
 
       {recentlyPlayed.length > 0 && (
         <MusicSection
-          eyebrow="History"
           title="Recently played"
           subtitle="Back on the deck"
           accent={y2k.chromeMid}
