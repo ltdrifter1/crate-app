@@ -2,7 +2,7 @@
  * Dev-only IA preview — hash #broadcast-preview.
  * Exercises left source list (Charts + Build a set), Library, and Home Channel Surfing.
  */
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import BottomNavigation from "../components/home/BottomNavigation";
 import HomeHeader from "../components/home/HomeHeader";
 import HeroPlayerCard from "../components/home/HeroPlayerCard";
@@ -70,13 +70,23 @@ export default function BroadcastPreview() {
   const [screen, setScreen] = useState("home");
   const [drawer, setDrawer] = useState(false);
   const [buildingSet, setBuildingSet] = useState(false);
+  const [isDesktop, setIsDesktop] = useState(
+    () => typeof window !== "undefined" && window.innerWidth >= 768
+  );
+
+  useEffect(() => {
+    const sync = () => setIsDesktop(window.innerWidth >= 768);
+    sync();
+    window.addEventListener("resize", sync);
+    return () => window.removeEventListener("resize", sync);
+  }, []);
 
   const home = (
     <div style={{ maxWidth: 960, margin: "0 auto", width: "100%" }}>
       <HomeHeader
         onOpenSearch={() => {}}
         onOpenProfile={() => setScreen("profile")}
-        onOpenMenu={() => setDrawer(true)}
+        onOpenMenu={isDesktop ? null : () => setDrawer(true)}
       />
       <ChannelSurfingSection
         channels={SAMPLE_CHANNELS}
@@ -116,8 +126,8 @@ export default function BroadcastPreview() {
             onPlayTrack={() => {}}
             onCustomMix={() => setBuildingSet(true)}
             onOpenCharts={() => setScreen("charts")}
-            onOpenMenu={() => setDrawer(true)}
-            showLibraryDestinations
+            onOpenMenu={isDesktop ? null : () => setDrawer(true)}
+            showLibraryDestinations={!isDesktop}
           />
         ) : screen === "charts" ? (
           <div style={{ padding: "48px 24px", color: color.ink, fontSize: 28, fontWeight: 700 }}>

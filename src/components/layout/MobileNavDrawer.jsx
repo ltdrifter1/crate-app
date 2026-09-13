@@ -30,17 +30,6 @@ export default function MobileNavDrawer({
         display: "flex",
       }}
     >
-      <button
-        type="button"
-        aria-label="Close menu"
-        onClick={onClose}
-        style={{
-          flex: 1,
-          border: "none",
-          background: "rgba(0,0,0,0.52)",
-          cursor: "pointer",
-        }}
-      />
       <div
         style={{
           width: "min(300px, 86vw)",
@@ -89,6 +78,17 @@ export default function MobileNavDrawer({
           />
         </div>
       </div>
+      <button
+        type="button"
+        aria-label="Close menu"
+        onClick={onClose}
+        style={{
+          flex: 1,
+          border: "none",
+          background: "rgba(0,0,0,0.52)",
+          cursor: "pointer",
+        }}
+      />
     </div>
   );
 }
