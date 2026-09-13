@@ -11,13 +11,19 @@ function playsDayKey(date = new Date()) {
   return d.toISOString().slice(0, 10);
 }
 
-function isFullStreaming(user = {}) {
+const PAID_STREAMING_STATUSES = new Set(["active", "past_due"]);
+
+function isFullStreaming(user = {}, now = new Date()) {
   const status = String(user.subscriptionStatus || "").toLowerCase();
   const plan = String(user.plan || "").toLowerCase();
-  if (status === "active" && (plan === "club" || plan === "premium")) return true;
+  // Match client entitlements: past_due keeps access while Stripe retries.
+  if (PAID_STREAMING_STATUSES.has(status) && (plan === "club" || plan === "premium")) {
+    return true;
+  }
   if (status === "trialing") {
     const ends = user.trialEndsAt ? new Date(user.trialEndsAt) : null;
-    if (ends && !Number.isNaN(ends.getTime()) && ends.getTime() > Date.now()) return true;
+    const clock = now instanceof Date ? now : new Date(now);
+    if (ends && !Number.isNaN(ends.getTime()) && ends.getTime() > clock.getTime()) return true;
   }
   return false;
 }
@@ -34,7 +40,7 @@ function normalizePlayMeter(user = {}, now = new Date()) {
  * @returns {{ allowed: boolean, full: boolean, meter: {playsDayKey:string, playsToday:number}|null, remaining: number, reason?: string }}
  */
 function evaluateListeningPlay(user = {}, now = new Date()) {
-  if (isFullStreaming(user)) {
+  if (isFullStreaming(user, now)) {
     return {
       allowed: true,
       full: true,
@@ -82,7 +88,7 @@ function evaluateCreditSpend(user = {}, amount, now = new Date()) {
   }
   const plan = String(user.plan || "").toLowerCase();
   const status = String(user.subscriptionStatus || "").toLowerCase();
-  const hasPremium = plan === "premium" && status === "active";
+  const hasPremium = plan === "premium" && (status === "active" || status === "past_due");
   if (!hasPremium && usableCreditBalance(user, now) <= 0) {
     return { ok: false, error: "premium_required" };
   }

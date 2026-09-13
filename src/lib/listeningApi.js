@@ -3,12 +3,13 @@
  */
 import { getFunctions, httpsCallable } from "firebase/functions";
 import { app } from "../firebase";
+import { FUNCTIONS_REGION } from "./functionsRegion";
 
 let functionsInstance = null;
 
 function functions() {
   if (!functionsInstance) {
-    functionsInstance = getFunctions(app);
+    functionsInstance = getFunctions(app, FUNCTIONS_REGION);
   }
   return functionsInstance;
 }

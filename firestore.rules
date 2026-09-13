@@ -7,8 +7,8 @@ rules_version = '2';
 // Signed-in users may only nudge popularity counters on tracks.
 // Admin (custom claim or known UID) may create/update/delete tracks.
 // Sessions are private to the creating user.
-// Billing/subscription fields: clients may start a trial; paid status is admin-only
-// until a Stripe webhook (Admin SDK) writes active subscriptions.
+// Billing/subscription fields: clients may write Free defaults on create/backfill.
+// Paid / trial-with-end-date status is Admin SDK (Stripe webhook) or admin UID only.
 // Mixtape Club: public mixes readable by anyone; owners write their mixes;
 // community monthly mixes are admin-only writes.
 // Member counter: signed-in users may increment counters/members.next by 1.
@@ -55,12 +55,15 @@ service cloud.firestore {
         && request.resource.data.get('clubCreditBalance', 0) == 0;
     }
 
+    // Legacy create path only — clients cannot set trialEndsAt (that would
+    // unlock unlimited streaming on the server meter).
     function isTrialingWrite() {
       let status = request.resource.data.get('subscriptionStatus', '');
       let plan = request.resource.data.get('plan', '');
       return status == 'trialing' && (plan == 'trial' || plan == 'club')
         && request.resource.data.get('stripeCustomerId', null) == null
-        && request.resource.data.get('stripeSubscriptionId', null) == null;
+        && request.resource.data.get('stripeSubscriptionId', null) == null
+        && request.resource.data.get('trialEndsAt', null) == null;
     }
 
     function isPaidStatus() {

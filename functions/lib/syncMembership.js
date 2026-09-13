@@ -14,44 +14,137 @@ function db() {
   return admin.firestore();
 }
 
+function customerIdOf(obj) {
+  const c = obj?.customer;
+  if (typeof c === "string" && c) return c;
+  if (c && typeof c === "object" && typeof c.id === "string") return c.id;
+  return null;
+}
+
+function uidFromMetadata(meta = {}) {
+  const uid = meta.firebaseUid || meta.uid || null;
+  return uid ? String(uid) : null;
+}
+
 function firstPriceIdFromSubscription(subscription) {
   const item = subscription?.items?.data?.[0];
   return item?.price?.id || item?.plan?.id || null;
 }
 
+/**
+ * Prefer the live Stripe Price (portal upgrades/downgrades) over stale
+ * checkout metadata that still says "club" after a Premium switch.
+ */
 function resolvePlan(subscription, sessionMeta = {}) {
   return (
+    planFromPriceId(firstPriceIdFromSubscription(subscription)) ||
     planFromMetadata(subscription?.metadata || {}) ||
     planFromMetadata(sessionMeta) ||
-    planFromPriceId(firstPriceIdFromSubscription(subscription)) ||
     PLAN_IDS.CLUB
   );
 }
 
 /**
- * Apply an active/past_due subscription to the member profile.
+ * Basil / Dahlia invoices no longer have top-level `subscription`.
+ * Fall back for older event payloads.
  */
-async function applySubscriptionToUser(uid, subscription, { sessionMeta = {}, grantPremiumCredit = false } = {}) {
-  if (!uid) throw new Error("Missing firebase uid");
+function subscriptionIdFromInvoice(invoice) {
+  const parent = invoice?.parent;
+  if (parent?.type === "subscription_details") {
+    const id = parent.subscription_details?.subscription;
+    if (id) return id;
+  }
+  if (parent?.subscription_details?.subscription) {
+    return parent.subscription_details.subscription;
+  }
+  return invoice?.subscription || null;
+}
+
+function unixToIso(seconds) {
+  const n = Number(seconds);
+  if (!Number.isFinite(n) || n <= 0) return null;
+  const d = new Date(n * 1000);
+  return Number.isNaN(d.getTime()) ? null : d.toISOString();
+}
+
+/**
+ * Build the Firestore patch for an active / past_due / trialing subscription.
+ * Pure — used by tests. Does not reset Club Credit unless grantPremiumCredit
+ * and this subscription has not already been granted.
+ */
+function buildMembershipPatch(subscription, {
+  sessionMeta = {},
+  grantPremiumCredit = false,
+  existing = {},
+  now = new Date(),
+} = {}) {
   const plan = resolvePlan(subscription, sessionMeta);
-  const status = String(subscription.status || "active").toLowerCase();
-  const now = new Date();
+  const status = String(subscription?.status || "active").toLowerCase();
+  const clock = now instanceof Date ? now : new Date(now);
+  const subId = subscription?.id || null;
 
   const payload = {
     plan,
     subscriptionStatus: status,
-    stripeCustomerId: subscription.customer || null,
-    stripeSubscriptionId: subscription.id || null,
-    planStartedAt: now.toISOString(),
+    stripeCustomerId: customerIdOf(subscription),
+    stripeSubscriptionId: subId,
     stripePriceId: firstPriceIdFromSubscription(subscription),
-    updatedFromStripeAt: now.toISOString(),
+    updatedFromStripeAt: clock.toISOString(),
   };
 
-  if (plan === PLAN_IDS.PREMIUM && (grantPremiumCredit || status === "active")) {
-    // Grant / refresh annual credit when Premium activates or renews
-    Object.assign(payload, buildPremiumCreditGrant(now));
+  const isNewSub = !existing.stripeSubscriptionId || existing.stripeSubscriptionId !== subId;
+  if (!existing.planStartedAt || isNewSub) {
+    payload.planStartedAt = clock.toISOString();
   }
 
+  if (status === "trialing") {
+    const trialEnd = unixToIso(subscription?.trial_end);
+    const trialStart = unixToIso(subscription?.trial_start);
+    if (trialEnd) payload.trialEndsAt = trialEnd;
+    if (trialStart) payload.trialStartedAt = trialStart;
+  }
+
+  const alreadyGranted =
+    existing.stripeSubscriptionId === subId &&
+    String(existing.plan || "").toLowerCase() === PLAN_IDS.PREMIUM &&
+    !!existing.clubCreditGrantedAt;
+
+  if (plan === PLAN_IDS.PREMIUM && grantPremiumCredit && !alreadyGranted) {
+    Object.assign(payload, buildPremiumCreditGrant(clock));
+  }
+
+  return { payload, plan, status };
+}
+
+async function resolveUid({ metadata, customer } = {}) {
+  const fromMeta = uidFromMetadata(metadata || {});
+  if (fromMeta) return fromMeta;
+  const customerId = typeof customer === "string" ? customer : customer?.id;
+  if (!customerId) return null;
+  const snap = await db()
+    .collection("users")
+    .where("stripeCustomerId", "==", customerId)
+    .limit(1)
+    .get();
+  return snap.empty ? null : snap.docs[0].id;
+}
+
+async function readExistingUser(uid) {
+  const snap = await db().collection("users").doc(uid).get();
+  return snap.exists ? snap.data() || {} : {};
+}
+
+/**
+ * Apply an active/past_due/trialing subscription to the member profile.
+ */
+async function applySubscriptionToUser(uid, subscription, { sessionMeta = {}, grantPremiumCredit = false } = {}) {
+  if (!uid) throw new Error("Missing firebase uid");
+  const existing = await readExistingUser(uid);
+  const { payload, plan, status } = buildMembershipPatch(subscription, {
+    sessionMeta,
+    grantPremiumCredit,
+    existing,
+  });
   await db().collection("users").doc(uid).set(payload, { merge: true });
   return { uid, plan, status };
 }
@@ -59,9 +152,8 @@ async function applySubscriptionToUser(uid, subscription, { sessionMeta = {}, gr
 async function applyCheckoutCompleted(session, stripe) {
   const uid =
     session.client_reference_id ||
-    session.metadata?.firebaseUid ||
-    session.metadata?.uid ||
-    null;
+    uidFromMetadata(session.metadata || {}) ||
+    (await resolveUid({ metadata: session.metadata, customer: session.customer }));
   if (!uid) {
     console.warn("checkout.session.completed missing firebase uid", session.id);
     return null;
@@ -76,10 +168,9 @@ async function applyCheckoutCompleted(session, stripe) {
   }
 
   if (!subscription) {
-    // Shouldn't happen for mode=subscription, but record customer at least
     await db().collection("users").doc(uid).set(
       {
-        stripeCustomerId: session.customer || null,
+        stripeCustomerId: customerIdOf(session),
         updatedFromStripeAt: new Date().toISOString(),
       },
       { merge: true }
@@ -87,10 +178,9 @@ async function applyCheckoutCompleted(session, stripe) {
     return null;
   }
 
-  // Ensure subscription metadata carries uid/plan for later events
   const plan =
-    planFromMetadata(session.metadata || {}) ||
     planFromPriceId(firstPriceIdFromSubscription(subscription)) ||
+    planFromMetadata(session.metadata || {}) ||
     PLAN_IDS.CLUB;
 
   if (!subscription.metadata?.firebaseUid || !subscription.metadata?.plan) {
@@ -114,7 +204,10 @@ async function applyCheckoutCompleted(session, stripe) {
 }
 
 async function applySubscriptionUpdated(subscription) {
-  const uid = subscription.metadata?.firebaseUid || subscription.metadata?.uid;
+  const uid = await resolveUid({
+    metadata: subscription.metadata,
+    customer: subscription.customer,
+  });
   if (!uid) {
     console.warn("subscription.updated missing firebaseUid", subscription.id);
     return null;
@@ -124,7 +217,7 @@ async function applySubscriptionUpdated(subscription) {
     await db().collection("users").doc(uid).set(
       {
         ...freePlanFields(),
-        stripeCustomerId: subscription.customer || null,
+        stripeCustomerId: customerIdOf(subscription),
         stripeSubscriptionId: subscription.id,
         subscriptionStatus: status,
         updatedFromStripeAt: new Date().toISOString(),
@@ -139,12 +232,15 @@ async function applySubscriptionUpdated(subscription) {
 }
 
 async function applySubscriptionDeleted(subscription) {
-  const uid = subscription.metadata?.firebaseUid || subscription.metadata?.uid;
+  const uid = await resolveUid({
+    metadata: subscription.metadata,
+    customer: subscription.customer,
+  });
   if (!uid) return null;
   await db().collection("users").doc(uid).set(
     {
       ...freePlanFields(),
-      stripeCustomerId: subscription.customer || null,
+      stripeCustomerId: customerIdOf(subscription),
       stripeSubscriptionId: null,
       updatedFromStripeAt: new Date().toISOString(),
     },
@@ -157,12 +253,16 @@ async function applySubscriptionDeleted(subscription) {
  * Yearly Premium renewal — refresh Club Credit on invoice.paid.
  */
 async function applyInvoicePaid(invoice, stripe) {
-  if (!invoice.subscription) return null;
+  const subscriptionRef = subscriptionIdFromInvoice(invoice);
+  if (!subscriptionRef) return null;
   const subscription =
-    typeof invoice.subscription === "string"
-      ? await stripe.subscriptions.retrieve(invoice.subscription)
-      : invoice.subscription;
-  const uid = subscription.metadata?.firebaseUid || subscription.metadata?.uid;
+    typeof subscriptionRef === "string"
+      ? await stripe.subscriptions.retrieve(subscriptionRef)
+      : subscriptionRef;
+  const uid = await resolveUid({
+    metadata: subscription.metadata,
+    customer: subscription.customer || invoice.customer,
+  });
   if (!uid) return null;
   const plan = resolvePlan(subscription);
   if (plan !== PLAN_IDS.PREMIUM) return null;
@@ -182,10 +282,25 @@ async function applyInvoicePaid(invoice, stripe) {
   return { uid, plan, credit: grant.clubCreditBalance };
 }
 
+function withCheckoutSessionId(url) {
+  const raw = String(url || "").trim();
+  if (!raw) return raw;
+  if (raw.includes("{CHECKOUT_SESSION_ID}")) return raw;
+  const sep = raw.includes("?") ? "&" : "?";
+  return `${raw}${sep}session_id={CHECKOUT_SESSION_ID}`;
+}
+
 module.exports = {
   applyCheckoutCompleted,
   applySubscriptionUpdated,
   applySubscriptionDeleted,
   applyInvoicePaid,
   applySubscriptionToUser,
+  buildMembershipPatch,
+  resolvePlan,
+  subscriptionIdFromInvoice,
+  customerIdOf,
+  uidFromMetadata,
+  firstPriceIdFromSubscription,
+  withCheckoutSessionId,
 };
