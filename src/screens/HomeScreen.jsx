@@ -171,6 +171,7 @@ function HomeScreen({
   onOpenSearch = null,
   onOpenProfile = null,
   onOpenCharts = null,
+  onOpenMenu = null,
 }) {
   const currentTrack = useCurrentTrack();
   const activeId = currentTrack?.id;
@@ -213,8 +214,8 @@ function HomeScreen({
     >
       <HomeHeader
         onOpenSearch={onOpenSearch}
-        onOpenCharts={onOpenCharts}
         onOpenProfile={onOpenProfile}
+        onOpenMenu={onOpenMenu}
       />
 
       {/* CHANNEL SURFING — top of Home */}

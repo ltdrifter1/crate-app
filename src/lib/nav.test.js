@@ -1,4 +1,4 @@
-import { PRIMARY_TABS, dockActiveTab, primaryNavItems } from "./nav";
+import { PRIMARY_TABS, SIDEBAR_TOOLS, dockActiveTab, primaryNavItems, sidebarActiveId } from "./nav";
 
 describe("product nav IA", () => {
   test("dock has four primary tabs: Home, Explore, Library, Club", () => {
@@ -21,6 +21,19 @@ describe("product nav IA", () => {
     const ids = PRIMARY_TABS.map((t) => t.id);
     expect(ids).not.toContain("charts");
     expect(ids).not.toContain("search");
+    expect(ids).not.toContain("set");
+  });
+
+  test("left sidebar tools are Charts and Build a set", () => {
+    expect(SIDEBAR_TOOLS.map((t) => t.id)).toEqual(["charts", "set"]);
+    expect(SIDEBAR_TOOLS.map((t) => t.label)).toEqual(["Charts", "Build a set"]);
+  });
+
+  test("sidebarActiveId highlights Charts and Build a set independently of the dock", () => {
+    expect(sidebarActiveId("charts")).toBe("charts");
+    expect(sidebarActiveId("home")).toBe("home");
+    expect(sidebarActiveId("favorites", { buildingSet: true })).toBe("set");
+    expect(dockActiveTab("charts")).toBe("home");
   });
 
   test("dockActiveTab maps secondary screens onto the four tabs", () => {

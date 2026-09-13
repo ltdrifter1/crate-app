@@ -31,6 +31,7 @@ import {
   Disc3,
   FlaskConical,
   Zap,
+  Menu,
 } from "lucide-react";
 import { color } from "../../theme";
 
@@ -116,6 +117,7 @@ export default function Icon({ name, size = 18 }) {
     timedmix: <TimedMixMark size={size} />,
     flask: <Lucide Cmp={FlaskConical} size={size} />,
     zap: <Lucide Cmp={Zap} size={size} />,
+    menu: <Lucide Cmp={Menu} size={size} />,
   };
   return icons[name] || null;
 }

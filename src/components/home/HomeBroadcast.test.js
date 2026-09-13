@@ -59,26 +59,37 @@ describe("Home broadcast + four-tab IA", () => {
     expect(labels).not.toContain("Search");
   });
 
-  test("Home header exposes Charts and Search once they leave the dock", async () => {
-    const onOpenCharts = jest.fn();
+  test("Home header exposes Search, not Charts", async () => {
     const onOpenSearch = jest.fn();
     await act(async () => {
       root.render(
-        React.createElement(HomeHeader, { onOpenCharts, onOpenSearch })
+        React.createElement(HomeHeader, { onOpenSearch })
       );
     });
-    const charts = div.querySelector('button[aria-label="Charts"]');
+    expect(div.querySelector('button[aria-label="Charts"]')).toBeNull();
     const search = div.querySelector('button[aria-label="Search"]');
-    expect(charts).toBeTruthy();
     expect(search).toBeTruthy();
     expect(div.querySelector(".pmp-onair-chip")).toBeNull();
     expect(div.textContent).not.toMatch(/On air/i);
     await act(async () => {
-      charts.click();
       search.click();
     });
-    expect(onOpenCharts).toHaveBeenCalled();
     expect(onOpenSearch).toHaveBeenCalled();
+  });
+
+  test("Home header menu opens the mobile browse drawer", async () => {
+    const onOpenMenu = jest.fn();
+    await act(async () => {
+      root.render(
+        React.createElement(HomeHeader, { onOpenMenu })
+      );
+    });
+    const menu = div.querySelector('button[aria-label="Browse"]');
+    expect(menu).toBeTruthy();
+    await act(async () => {
+      menu.click();
+    });
+    expect(onOpenMenu).toHaveBeenCalled();
   });
 
   test("hero stage mounts a synced video plane when the cut has videoUrl", async () => {
