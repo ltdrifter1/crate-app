@@ -29,6 +29,7 @@ function ExploreScreen({
   onPlayTrack = null,
   onOpenSearch = null,
   onOpenAlbum = null,
+  onOpenMenu = null,
 }) {
   const currentTrack = useCurrentTrack();
   const isPlaying = useIsPlaying();
@@ -118,13 +119,26 @@ function ExploreScreen({
         }}
       >
         <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12 }}>
-          <div style={{ minWidth: 0 }}>
-            <h1 style={{ ...sectionTitle, fontSize: 24, letterSpacing: -0.4, fontWeight: 650 }}>
-              Explore
-            </h1>
-            <p style={{ ...sectionSubtitle, maxWidth: 380, whiteSpace: "normal" }}>
-              Picks for you, featured sleeves, and what you spun last.
-            </p>
+          <div style={{ display: "flex", alignItems: "flex-start", gap: 10, minWidth: 0 }}>
+            {onOpenMenu && (
+              <button
+                type="button"
+                aria-label="Browse"
+                onClick={onOpenMenu}
+                className="pmp-press"
+                style={{ ...chromeIconButton(40), marginTop: 2 }}
+              >
+                <Icon name="menu" size={16} />
+              </button>
+            )}
+            <div style={{ minWidth: 0 }}>
+              <h1 style={{ ...sectionTitle, fontSize: 24, letterSpacing: -0.4, fontWeight: 650 }}>
+                Explore
+              </h1>
+              <p style={{ ...sectionSubtitle, maxWidth: 380, whiteSpace: "normal" }}>
+                Picks for you, featured sleeves, and what you spun last.
+              </p>
+            </div>
           </div>
           {onOpenSearch && (
             <button

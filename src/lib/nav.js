@@ -1,6 +1,6 @@
 /**
- * Product IA — YouTube Music–style four destinations.
- * Charts and Search stay as routes, reached from Home / Explore chrome.
+ * Product IA — YouTube Music–style four dock destinations.
+ * Charts and Build a set live in the left source list (desktop rail / mobile drawer).
  */
 
 export const PRIMARY_TABS = [
@@ -8,6 +8,18 @@ export const PRIMARY_TABS = [
   { id: "explore", label: "Explore", icon: "map" },
   { id: "favorites", label: "Library", icon: "dig" },
   { id: "profile", label: "Club", icon: "profile" },
+];
+
+/** Primary destinations in the left source list (same four as the dock). */
+export const SIDEBAR_PRIMARY = PRIMARY_TABS.slice(0, 3).map((item) => ({
+  ...item,
+  kind: "screen",
+}));
+
+/** First-class tools — not dock tabs. */
+export const SIDEBAR_TOOLS = [
+  { id: "charts", label: "Charts", icon: "chart", kind: "screen" },
+  { id: "set", label: "Build a set", icon: "timedmix", kind: "action" },
 ];
 
 const TAB_IDS = new Set(PRIMARY_TABS.map((t) => t.id));
@@ -23,6 +35,15 @@ export function dockActiveTab(screen, { hasAdmin = false } = {}) {
   if (screen === "search" || screen === "artist" || screen === "album") return "explore";
   if (screen === "mix" || screen === "stack") return "favorites";
   return "home";
+}
+
+/** Which source-list row should appear selected. */
+export function sidebarActiveId(screen, { buildingSet = false } = {}) {
+  if (buildingSet) return "set";
+  if (screen === "charts") return "charts";
+  if (screen === "admin") return "admin";
+  if (screen === "profile") return "profile";
+  return dockActiveTab(screen);
 }
 
 export function primaryNavItems({ showAdmin = false } = {}) {

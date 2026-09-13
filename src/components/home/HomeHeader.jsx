@@ -3,7 +3,7 @@ import { BrandGlyph } from "../brand/BrandGlyphs";
 import Icon from "../ui/Icon";
 
 function HeaderButton({ label, icon, onClick }) {
-  if (!onClick) return <span style={{ width: 36, height: 36 }} aria-hidden="true" />;
+  if (!onClick) return null;
   return (
     <button
       type="button"
@@ -19,11 +19,12 @@ function HeaderButton({ label, icon, onClick }) {
 
 /**
  * HomeHeader — wordmark + quiet iOS header controls.
+ * Charts lives in the left source list, not here.
  */
 export default function HomeHeader({
   onOpenSearch = null,
-  onOpenCharts = null,
   onOpenProfile = null,
+  onOpenMenu = null,
 }) {
   return (
     <header
@@ -43,6 +44,7 @@ export default function HomeHeader({
           minWidth: 0,
         }}
       >
+        {onOpenMenu && <HeaderButton label="Browse" icon="menu" onClick={onOpenMenu} />}
         <BrandGlyph size={26} />
         <span
           style={{
@@ -58,7 +60,6 @@ export default function HomeHeader({
         </span>
       </div>
       <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-        <HeaderButton label="Charts" icon="chart" onClick={onOpenCharts} />
         <HeaderButton label="Search" icon="search" onClick={onOpenSearch} />
         <HeaderButton label="Profile" icon="profile" onClick={onOpenProfile} />
       </div>
