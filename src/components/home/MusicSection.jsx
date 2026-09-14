@@ -131,14 +131,16 @@ export function Rail({ children, gap = 14, padBottom = 4 }) {
     const el = ref.current;
     if (!el || e.pointerType === "touch") return;
     if (e.button != null && e.button !== 0) return;
+    // Do not capture yet — capturing on pointerdown steals clicks from
+    // ChannelCard / TrackCard buttons inside the rail.
     drag.current = {
       active: true,
       startX: e.clientX,
       scrollLeft: el.scrollLeft,
       moved: false,
       pointerId: e.pointerId,
+      captured: false,
     };
-    el.setPointerCapture?.(e.pointerId);
   }, []);
 
   const onPointerMove = useCallback((e) => {
@@ -146,11 +148,18 @@ export function Rail({ children, gap = 14, padBottom = 4 }) {
     const d = drag.current;
     if (!el || !d.active) return;
     const dx = e.clientX - d.startX;
-    if (Math.abs(dx) > 4) d.moved = true;
-    if (d.moved) {
-      el.scrollLeft = d.scrollLeft - dx;
-      e.preventDefault();
+    if (Math.abs(dx) <= 8) return;
+    if (!d.captured) {
+      d.captured = true;
+      d.moved = true;
+      try {
+        el.setPointerCapture?.(d.pointerId);
+      } catch {
+        /* already released */
+      }
     }
+    el.scrollLeft = d.scrollLeft - dx;
+    e.preventDefault();
   }, []);
 
   const endDrag = useCallback((e) => {

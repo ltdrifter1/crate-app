@@ -198,7 +198,6 @@ describe("Home broadcast + four-tab IA", () => {
       root.render(
         React.createElement(ChannelCard, {
           channel,
-          covers: ["/brand/planet-mp3-lockup-on-black.png"],
           active: true,
         })
       );
@@ -216,6 +215,27 @@ describe("Home broadcast + four-tab IA", () => {
     expect(div.querySelector("[aria-pressed]")).toBeTruthy();
   });
 
+  test("channel card click tunes the station", async () => {
+    const onClick = jest.fn();
+    await act(async () => {
+      root.render(
+        React.createElement(ChannelCard, {
+          channel: {
+            id: "downtempo",
+            title: "Downtempo",
+            tagline: "Trip-hop, chill, late listening",
+            art: "/channels/downtempo.png",
+          },
+          onClick,
+        })
+      );
+    });
+    div.querySelector(".pmp-channel-card").click();
+    expect(onClick).toHaveBeenCalledTimes(1);
+    expect(div.querySelectorAll("img")).toHaveLength(1);
+    expect(div.querySelector("[style*='grid-template-columns']")).toBeNull();
+  });
+
   test("Channel Surfing rail has no ticket copy or request card", async () => {
     await act(async () => {
       root.render(
@@ -223,7 +243,6 @@ describe("Home broadcast + four-tab IA", () => {
           channels: [
             { id: "rap", num: 3, title: "Rap City", tagline: "Bars after dark" },
           ],
-          channelCovers: {},
           activeChannelId: "rap",
         })
       );

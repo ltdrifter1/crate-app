@@ -11,7 +11,9 @@ import AppSidebar from "../components/layout/AppSidebar";
 import MobileNavDrawer from "../components/layout/MobileNavDrawer";
 import FavoritesScreen from "../screens/FavoritesScreen";
 import { primaryNavItems } from "../lib/nav";
-import { color, homeSpace } from "../theme";
+import { SCENE_CHANNELS } from "../lib/sceneChannels";
+import { color, fontDisplay, fontMono, glass, homeSpace } from "../theme";
+import CoverImage from "../components/ui/CoverImage";
 
 const SAMPLE_COVER = "/brand/planet-mp3-lockup-on-black.png";
 
@@ -52,20 +54,6 @@ const SAMPLE_PLAYLISTS = [
   { id: "pl_2", name: "Late Signal", trackIds: ["preview-3", "preview-1"] },
 ];
 
-const SAMPLE_CHANNELS = [
-  { id: "rap", num: 3, shortTitle: "Rap City", title: "Rap City", tagline: "Bars after dark" },
-  { id: "rock", num: 5, shortTitle: "120 Minutes", title: "120 Minutes", tagline: "Alt + volume" },
-  { id: "pop", num: 1, shortTitle: "Total Request", title: "Total Request", tagline: "Countdown energy" },
-  { id: "y2k", num: 1, shortTitle: "Y2K Dance", title: "Y2K Dance", tagline: "Millennium dancefloor" },
-];
-
-const SAMPLE_COVERS = {
-  rap: [SAMPLE_COVER],
-  rock: [SAMPLE_COVER],
-  pop: [SAMPLE_COVER],
-  y2k: [SAMPLE_COVER],
-};
-
 export default function BroadcastPreview() {
   const [screen, setScreen] = useState("home");
   const [drawer, setDrawer] = useState(false);
@@ -89,9 +77,8 @@ export default function BroadcastPreview() {
         onOpenMenu={isDesktop ? null : () => setDrawer(true)}
       />
       <ChannelSurfingSection
-        channels={SAMPLE_CHANNELS}
-        channelCovers={SAMPLE_COVERS}
-        activeChannelId="y2k"
+        channels={SCENE_CHANNELS}
+        activeChannelId="y2k-dance"
         onTuneChannel={() => {}}
       />
       <div style={{ padding: `0 ${homeSpace.gutter}px`, marginTop: homeSpace.sectionGap }}>
@@ -99,7 +86,7 @@ export default function BroadcastPreview() {
           track={SAMPLE_TRACK}
           upNextTrack={SAMPLE_NEXT}
           isRadioMode
-          sceneChannel={SAMPLE_CHANNELS[3]}
+          sceneChannel={SCENE_CHANNELS.find((c) => c.id === "y2k-dance")}
           liveShow={{ shortTitle: "Y2K Dance", title: "Y2K Dance" }}
         />
       </div>
@@ -137,6 +124,127 @@ export default function BroadcastPreview() {
           home
         )}
       </div>
+      {isDesktop && (
+        <div
+          className="hide-scroll"
+          style={{
+            width: 336,
+            flexShrink: 0,
+            borderLeft: `1px solid ${glass.border}`,
+            background: color.surfaceRaised,
+            padding: "22px 12px 24px",
+            overflowY: "auto",
+          }}
+        >
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "baseline",
+              padding: "0 8px 14px",
+            }}
+          >
+            <div>
+              <div
+                style={{
+                  fontSize: 10,
+                  fontWeight: 700,
+                  letterSpacing: 1.8,
+                  textTransform: "uppercase",
+                  color: color.faint,
+                  fontFamily: fontMono,
+                  marginBottom: 4,
+                }}
+              >
+                Queue
+              </div>
+              <div
+                style={{
+                  fontSize: 14,
+                  fontWeight: 650,
+                  letterSpacing: -0.25,
+                  color: color.ink,
+                  fontFamily: fontDisplay,
+                }}
+              >
+                Up Next
+              </div>
+            </div>
+            <div
+              style={{
+                fontSize: 10,
+                fontWeight: 600,
+                letterSpacing: 0.8,
+                textTransform: "uppercase",
+                fontFamily: fontMono,
+                color: color.muted,
+              }}
+            >
+              Shuffle
+            </div>
+          </div>
+          {SAMPLE_TRACKS.map((t, i) => (
+            <div
+              key={t.id}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 10,
+                padding: "10px 8px",
+              }}
+            >
+              <div
+                style={{
+                  width: 18,
+                  fontSize: 10,
+                  fontFamily: fontMono,
+                  color: color.faint,
+                  textAlign: "center",
+                }}
+              >
+                {String(i + 1).padStart(2, "0")}
+              </div>
+              <div
+                style={{
+                  width: 40,
+                  height: 40,
+                  borderRadius: 5,
+                  overflow: "hidden",
+                  flexShrink: 0,
+                }}
+              >
+                <CoverImage src={t.albumCover} alt="" width={40} height={40} />
+              </div>
+              <div style={{ minWidth: 0 }}>
+                <div
+                  style={{
+                    fontSize: 12.5,
+                    fontFamily: fontDisplay,
+                    color: color.ink,
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  {t.title}
+                </div>
+                <div
+                  style={{
+                    marginTop: 2,
+                    fontSize: 11,
+                    color: color.muted,
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  {t.artist}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
       <div
         style={{
           position: "fixed",

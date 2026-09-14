@@ -10,7 +10,6 @@ import HomeBandHeader from "./HomeBandHeader";
  */
 function ChannelSurfingSection({
   channels = [],
-  channelCovers = {},
   activeChannelId = null,
   onTuneChannel = null,
   first = true,
@@ -47,7 +46,6 @@ function ChannelSurfingSection({
           >
             <ChannelCard
               channel={channel}
-              covers={channelCovers[channel.id] || []}
               active={activeChannelId === channel.id}
               size={tile}
               onClick={() => onTuneChannel?.(channel)}

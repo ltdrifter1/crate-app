@@ -4,43 +4,15 @@ import Icon from "../ui/Icon";
 
 /**
  * ChannelCard — art-first station tile (Apple Music / YouTube Music).
- * Cover, name, blurb, play. No ticket stub, perforation, or novelty stamp.
+ * Generic channel photo, name, blurb, play. No album-cover mosaic.
  */
-function ChannelArt({ covers = [], title, size }) {
-  const tiles = [...new Set(covers.filter(Boolean))].slice(0, 4);
-  const cell = Math.ceil(size / 2);
+function ChannelArt({ src, title, size, accent }) {
   const initial = (title || "?").trim().charAt(0).toUpperCase() || "?";
 
-  if (tiles.length >= 4) {
-    return (
-      <span
-        aria-hidden="true"
-        style={{
-          display: "grid",
-          gridTemplateColumns: "1fr 1fr",
-          gridTemplateRows: "1fr 1fr",
-          width: "100%",
-          height: "100%",
-        }}
-      >
-        {tiles.map((src, i) => (
-          <CoverImage
-            key={`${src}-${i}`}
-            src={src}
-            alt=""
-            width={cell}
-            height={cell}
-            style={{ width: "100%", height: "100%", objectFit: "cover" }}
-          />
-        ))}
-      </span>
-    );
-  }
-
-  if (tiles[0]) {
+  if (src) {
     return (
       <CoverImage
-        src={tiles[0]}
+        src={src}
         alt=""
         width={size}
         height={size}
@@ -58,7 +30,9 @@ function ChannelArt({ covers = [], title, size }) {
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        background: y2k.artGradient,
+        background: accent
+          ? `linear-gradient(160deg, ${accent} 0%, #10141A 78%)`
+          : y2k.artGradient,
         fontFamily: fontDisplay,
         fontSize: Math.round(size * 0.34),
         fontWeight: 650,
@@ -73,20 +47,23 @@ function ChannelArt({ covers = [], title, size }) {
 
 export default function ChannelCard({
   channel,
-  covers = [],
   active = false,
   onClick = null,
   size = Math.round(homeSpace.tileTicket),
 }) {
   const width = size;
   const title = channel.shortTitle || channel.title;
+  const photo = channel.art || null;
 
   return (
     <button
       type="button"
       aria-label={`Tune ${channel.title} — ${channel.tagline}`}
       aria-pressed={active || undefined}
-      onClick={onClick || undefined}
+      onClick={(e) => {
+        e.stopPropagation();
+        onClick?.(e);
+      }}
       className="pmp-lift pmp-channel-card"
       style={{
         flex: "0 0 auto",
@@ -99,7 +76,7 @@ export default function ChannelCard({
         cursor: "pointer",
         textAlign: "left",
         WebkitTapHighlightColor: "transparent",
-        touchAction: "pan-x",
+        touchAction: "manipulation",
       }}
     >
       <span
@@ -116,7 +93,7 @@ export default function ChannelCard({
             : "0 10px 24px rgba(0,0,0,0.36)",
         }}
       >
-        <ChannelArt covers={covers} title={title} size={width} />
+        <ChannelArt src={photo} title={title} size={width} accent={channel.accent} />
 
         {active && (
           <span
