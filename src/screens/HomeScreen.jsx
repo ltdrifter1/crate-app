@@ -11,7 +11,7 @@ import {
   y2k,
 } from "../theme";
 import { countPlayableTracks } from "../lib/catalogLoad";
-import { availableSceneChannels, channelCoverUrls } from "../lib/sceneChannels";
+import { availableSceneChannels } from "../lib/sceneChannels";
 import { buildHomeCollections } from "../lib/homeCollections";
 import { TonightDeck } from "../components/station/ShowGuide";
 import { useCurrentTrack } from "../usePlayerTransport";
@@ -182,14 +182,6 @@ function HomeScreen({
 
   const channels = useMemo(() => availableSceneChannels(tracks), [tracks]);
 
-  const channelCovers = useMemo(() => {
-    const map = {};
-    for (const channel of channels) {
-      map[channel.id] = channelCoverUrls(tracks, channel, 4);
-    }
-    return map;
-  }, [channels, tracks]);
-
   const editorial = useMemo(() => buildHomeCollections(tracks), [tracks]);
 
   const topRequested = useMemo(() => countdown.slice(0, 10), [countdown]);
@@ -222,7 +214,6 @@ function HomeScreen({
       {hasChannels && (
         <ChannelSurfingSection
           channels={channels}
-          channelCovers={channelCovers}
           activeChannelId={sceneChannelsActiveId}
           onTuneChannel={onTuneSceneChannel}
           first
