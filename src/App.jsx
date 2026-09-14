@@ -58,6 +58,7 @@ import LinerNotesSheet from "./components/catalog/LinerNotesSheet";
 import {
   getAccessState,
   BILLING,
+  PAYWALL_ENABLED,
 } from "./lib/entitlements";
 import { startCheckout, settleBillingReturn, stripBillingQuery } from "./lib/billing";
 import {
@@ -127,7 +128,6 @@ import { trackHasVideo } from "./lib/video";
 import { playbackClock, usePlayerPlayback } from "./usePlayerPlayback";
 import { playerPlaybackStore } from "./lib/playerPlaybackStore";
 import DesktopMiniPlayer from "./components/player/DesktopMiniPlayer";
-import PlaybackProgressHairline from "./components/player/PlaybackProgressHairline";
 import {
   transportFlags,
   useIsBuffering,
@@ -2830,7 +2830,10 @@ export default function App() {
     }
   }, []);
 
-  const handleOpenPlans = useCallback(() => setShowPlans(true), []);
+  const handleOpenPlans = useCallback(() => {
+    if (!PAYWALL_ENABLED) return;
+    setShowPlans(true);
+  }, []);
 
   const handlePurchasePhysical = useCallback(async (track, amount) => {
     if (!track?.id) return;
@@ -2841,7 +2844,7 @@ export default function App() {
     const bal = usableCreditBalance(profile);
     if (bal <= 0) {
       showToast("Go Premium for Club Credit");
-      setShowPlans(true);
+      if (PAYWALL_ENABLED) setShowPlans(true);
       return;
     }
     const price = amount != null
@@ -2875,7 +2878,7 @@ export default function App() {
     } catch (err) {
       const msg = err?.message || err?.code || "Purchase failed";
       showToast(String(msg).replace(/^Firebase:\s*/i, "").slice(0, 120));
-      if (/Premium|Club Credit/i.test(String(msg))) setShowPlans(true);
+      if (PAYWALL_ENABLED && /Premium|Club Credit/i.test(String(msg))) setShowPlans(true);
     } finally {
       setPurchasingTrackId(null);
     }
@@ -2899,7 +2902,7 @@ export default function App() {
       if (result.applied) {
         showToast(result.plan === "premium" ? "Premium unlocked" : "Club unlocked");
         setShowPlans(false);
-      } else if (result.pending) {
+      } else if (result.pending && PAYWALL_ENABLED) {
         showToast("Payment received — tap “I’ve paid — refresh” if Club isn’t unlocked yet");
         setShowPlans(true);
       }
@@ -3500,6 +3503,7 @@ export default function App() {
     recordPlay(track.id, profile?.recentTracks || [])
       .then((result) => {
         if (result?.allowed === false) {
+          if (!PAYWALL_ENABLED) return;
           setIsPlaying(false);
           setProfile((p) => ({
             ...(p || {}),
@@ -3529,6 +3533,7 @@ export default function App() {
   }, [firebaseUser, profile, access]);
 
   const guardFreePlay = useCallback(() => {
+    if (!PAYWALL_ENABLED) return true;
     if (canPlayOnFreeTier(profile, access)) return true;
     const left = freePlaysRemaining(profile, access);
     showToast(
@@ -4466,7 +4471,7 @@ export default function App() {
 
   const listeningOverlays = (
     <>
-      {showPlans && (
+      {PAYWALL_ENABLED && showPlans && (
         <Suspense fallback={null}>
           <LazyPaywallScreen
             access={access}
@@ -4986,121 +4991,8 @@ export default function App() {
           zIndex: 2,
         }}/>
 
-        {/* Now Playing */}
-        {currentTrack ? (
-          <div style={{ padding: "22px 20px 18px", position: "relative" }}>
-            {/* Ambient color wash behind art */}
-            <div style={{
-              position: "absolute",
-              top: 0,
-              left: 0,
-              right: 0,
-              height: "78%",
-              background: `radial-gradient(ellipse at 50% 18%, rgba(${glowRgb},0.14) 0%, transparent 68%)`,
-              pointerEvents: "none",
-            }}/>
-
-            {/* Album art — framed, luminous */}
-            <div style={{
-              position: "relative",
-              width: "100%",
-              aspectRatio: "1",
-              overflow: "hidden",
-              marginBottom: 18,
-              borderRadius: 10,
-              boxShadow: artShadow.raised,
-              border: `1px solid ${glass.borderSoft}`,
-            }}>
-              {currentTrack.albumCover ? (
-                <CoverImage
-                  src={currentTrack.albumCover}
-                  alt=""
-                  width={360}
-                  height={360}
-                  sizes="(max-width: 900px) 40vw, 360px"
-                  priority
-                />
-              ) : (
-                <img
-                  src="/covers/default.jpg"
-                  alt=""
-                  width={360}
-                  height={360}
-                  style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
-                />
-              )}
-              <div aria-hidden="true" style={{
-                position: "absolute",
-                inset: 0,
-                boxShadow: "inset 0 1px 0 rgba(255,255,255,0.08)",
-                pointerEvents: "none",
-              }}/>
-            </div>
-
-            {/* Progress — whisper hairline under art (store-subscribed) */}
-            <PlaybackProgressHairline />
-
-            {/* Track info */}
-            <div key={currentTrack.id} style={{
-              position: "relative",
-              animation: "trackSwap 0.35s cubic-bezier(0.22,1,0.36,1) both",
-            }}>
-              <div style={{
-                fontSize: 17,
-                fontWeight: 650,
-                color: color.ink,
-                letterSpacing: -0.35,
-                lineHeight: 1.25,
-                marginBottom: 4,
-                overflow: "hidden",
-                textOverflow: "ellipsis",
-                whiteSpace: "nowrap",
-                fontFamily: fontDisplay,
-              }}>
-                {currentTrack.title}
-              </div>
-              <div style={{
-                fontSize: 13,
-                color: color.muted,
-                marginBottom: 14,
-                overflow: "hidden",
-                textOverflow: "ellipsis",
-                whiteSpace: "nowrap",
-                letterSpacing: -0.1,
-              }}>
-                {currentTrack.artist}
-              </div>
-            </div>
-          </div>
-        ) : (
-          <div style={{
-            padding: "72px 20px",
-            textAlign: "center",
-            opacity: 0.55,
-          }}>
-            <BrandGlyph size={28}/>
-            <div style={{
-              marginTop: 14,
-              fontSize: 11,
-              letterSpacing: 1.4,
-              textTransform: "uppercase",
-              color: color.faint,
-              fontFamily: fontMono,
-            }}>
-              Nothing playing
-            </div>
-          </div>
-        )}
-
-        {/* Faded rule */}
-        <div style={{
-          height: 1,
-          margin: "4px 20px 0",
-          background: "linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.06) 20%, rgba(255,255,255,0.12) 50%, rgba(255,255,255,0.06) 80%, transparent 100%)",
-        }}/>
-
-        {/* Up Next */}
-        <div style={{ flex: 1, padding: "18px 12px 24px", display: "flex", flexDirection: "column" }}>
+        {/* Queue — list only; album art lives on the home stage / player */}
+        <div style={{ flex: 1, padding: "22px 12px 24px", display: "flex", flexDirection: "column" }}>
           <div style={{
             display: "flex",
             justifyContent: "space-between",

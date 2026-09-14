@@ -6,6 +6,9 @@
  *
  * Checkout goes through Firebase Cloud Functions (Stripe Checkout Sessions).
  * Payment Links are an unused fallback unless configured.
+ *
+ * PAYWALL_ENABLED: set false to give every account unlimited streaming
+ * and hide Club/Premium upgrade surfaces. Flip back to restore gating.
  */
 
 export const PLAN_IDS = {
@@ -13,6 +16,9 @@ export const PLAN_IDS = {
   CLUB: "club",
   PREMIUM: "premium",
 };
+
+/** Temporary: crate is open — all accounts stream unlimited. */
+export const PAYWALL_ENABLED = false;
 
 export const BILLING = {
   currency: "USD",
@@ -175,9 +181,9 @@ export function normalizePlanId(plan) {
 
 /**
  * Membership feature matrix derived from profile.
- * Free users are always allowed into the app (limited streaming).
+ * Free users are always allowed into the app (limited streaming when paywall is on).
  */
-export function getAccessState(profile, { now = new Date(), isAdmin = false } = {}) {
+function computeAccessState(profile, { now = new Date(), isAdmin = false } = {}) {
   const clock = now instanceof Date ? now : new Date(now);
   const base = {
     plan: normalizePlanId(profile?.plan),
@@ -300,6 +306,18 @@ export function getAccessState(profile, { now = new Date(), isAdmin = false } = 
   };
 }
 
+export function getAccessState(profile, { now = new Date(), isAdmin = false, paywallEnabled = PAYWALL_ENABLED } = {}) {
+  const access = computeAccessState(profile, { now, isAdmin });
+  if (paywallEnabled) return access;
+  return {
+    ...access,
+    allowed: true,
+    streaming: "full",
+    canUpgradeClub: false,
+    canUpgradePremium: false,
+  };
+}
+
 export function membershipSummary(access) {
   if (!access) return "Membership";
   if (access.reason === "admin") return "Admin · full access";
@@ -315,6 +333,7 @@ export function membershipSummary(access) {
     return n <= 1 ? "Club trial · 1 day left" : `Club trial · ${n} days left`;
   }
   if (access.reason === "free") {
+    if (access.streaming === "full") return "Free";
     return `Free · ${access.freePlaysPerDay || BILLING.freePlaysPerDay} plays/day`;
   }
   return "Free";

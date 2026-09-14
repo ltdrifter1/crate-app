@@ -4,6 +4,8 @@
  */
 
 const FREE_PLAYS_PER_DAY = 20;
+/** Keep in sync with src/lib/entitlements.js PAYWALL_ENABLED. */
+const PAYWALL_ENABLED = false;
 
 function playsDayKey(date = new Date()) {
   const d = date instanceof Date ? date : new Date(date);
@@ -14,6 +16,7 @@ function playsDayKey(date = new Date()) {
 const PAID_STREAMING_STATUSES = new Set(["active", "past_due"]);
 
 function isFullStreaming(user = {}, now = new Date()) {
+  if (!PAYWALL_ENABLED) return true;
   const status = String(user.subscriptionStatus || "").toLowerCase();
   const plan = String(user.plan || "").toLowerCase();
   // Match client entitlements: past_due keeps access while Stripe retries.
@@ -105,6 +108,7 @@ function evaluateCreditSpend(user = {}, amount, now = new Date()) {
 
 module.exports = {
   FREE_PLAYS_PER_DAY,
+  PAYWALL_ENABLED,
   playsDayKey,
   isFullStreaming,
   normalizePlayMeter,

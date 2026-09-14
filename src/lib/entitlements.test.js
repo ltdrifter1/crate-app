@@ -1,5 +1,6 @@
 import {
   BILLING,
+  PAYWALL_ENABLED,
   PLAN_IDS,
   addTrialDays,
   buildFreePlanFields,
@@ -16,6 +17,19 @@ import {
 } from "./entitlements";
 
 describe("entitlements three-tier", () => {
+  test("paywall is off — every account streams unlimited", () => {
+    expect(PAYWALL_ENABLED).toBe(false);
+    const access = getAccessState(
+      { plan: "free", subscriptionStatus: "free", playsToday: 99 },
+      { now: new Date("2026-06-01T00:00:00.000Z") }
+    );
+    expect(access.allowed).toBe(true);
+    expect(access.streaming).toBe("full");
+    expect(access.canUpgradeClub).toBe(false);
+    expect(access.canUpgradePremium).toBe(false);
+    expect(membershipSummary(access)).toBe("Free");
+  });
+
   test("prices match Free / Club / Premium", () => {
     expect(formatPriceMonthly()).toBe("$0.99");
     expect(formatPriceClub()).toBe("$0.99/mo");
@@ -43,7 +57,7 @@ describe("entitlements three-tier", () => {
   test("free always allowed with limited streaming", () => {
     const access = getAccessState(
       { plan: "free", subscriptionStatus: "free" },
-      { now: new Date("2026-06-01T00:00:00.000Z") }
+      { now: new Date("2026-06-01T00:00:00.000Z"), paywallEnabled: true }
     );
     expect(access.allowed).toBe(true);
     expect(access.tier).toBe("free");
@@ -55,7 +69,7 @@ describe("entitlements three-tier", () => {
   test("club grants full streaming + card", () => {
     const access = getAccessState(
       { plan: "club", subscriptionStatus: "active" },
-      { now: new Date("2026-06-01T00:00:00.000Z") }
+      { now: new Date("2026-06-01T00:00:00.000Z"), paywallEnabled: true }
     );
     expect(access.allowed).toBe(true);
     expect(access.reason).toBe("club");
@@ -73,7 +87,7 @@ describe("entitlements three-tier", () => {
         clubCreditBalance: 12,
         clubCreditExpiresAt: "2027-06-01T00:00:00.000Z",
       },
-      { now: new Date("2026-06-01T00:00:00.000Z") }
+      { now: new Date("2026-06-01T00:00:00.000Z"), paywallEnabled: true }
     );
     expect(access.reason).toBe("premium");
     expect(access.streaming).toBe("full");
@@ -89,7 +103,7 @@ describe("entitlements three-tier", () => {
         trialEndsAt: "2026-01-31T00:00:00.000Z",
         plan: "trial",
       },
-      { now: new Date("2026-01-15T12:00:00.000Z") }
+      { now: new Date("2026-01-15T12:00:00.000Z"), paywallEnabled: true }
     );
     expect(access.allowed).toBe(true);
     expect(access.reason).toBe("trial");
@@ -104,7 +118,7 @@ describe("entitlements three-tier", () => {
         trialEndsAt: "2026-01-01T00:00:00.000Z",
         plan: "trial",
       },
-      { now: new Date("2026-02-01T00:00:00.000Z") }
+      { now: new Date("2026-02-01T00:00:00.000Z"), paywallEnabled: true }
     );
     expect(access.allowed).toBe(true);
     expect(access.tier).toBe("free");
@@ -114,7 +128,7 @@ describe("entitlements three-tier", () => {
   test("past_due club keeps full streaming (dunning grace)", () => {
     const access = getAccessState(
       { plan: "club", subscriptionStatus: "past_due" },
-      { now: new Date("2026-06-01T00:00:00.000Z") }
+      { now: new Date("2026-06-01T00:00:00.000Z"), paywallEnabled: true }
     );
     expect(access.streaming).toBe("full");
     expect(access.tier).toBe("club");
@@ -124,13 +138,13 @@ describe("entitlements three-tier", () => {
   test("canceled / unpaid fall back to free limited", () => {
     const canceled = getAccessState(
       { plan: "club", subscriptionStatus: "canceled" },
-      { now: new Date("2026-06-01T00:00:00.000Z") }
+      { now: new Date("2026-06-01T00:00:00.000Z"), paywallEnabled: true }
     );
     expect(canceled.tier).toBe("free");
     expect(canceled.streaming).toBe("limited");
     const unpaid = getAccessState(
       { plan: "premium", subscriptionStatus: "unpaid" },
-      { now: new Date("2026-06-01T00:00:00.000Z") }
+      { now: new Date("2026-06-01T00:00:00.000Z"), paywallEnabled: true }
     );
     expect(unpaid.tier).toBe("free");
     expect(unpaid.streaming).toBe("limited");
