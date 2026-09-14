@@ -47,14 +47,13 @@ function ChannelArt({ src, title, size, accent }) {
 
 export default function ChannelCard({
   channel,
-  covers = [],
   active = false,
   onClick = null,
   size = Math.round(homeSpace.tileTicket),
 }) {
   const width = size;
   const title = channel.shortTitle || channel.title;
-  const photo = channel.art || covers[0] || null;
+  const photo = channel.art || null;
 
   return (
     <button

@@ -2,7 +2,7 @@ import { memo, useMemo, useState } from "react";
 import {
   color, fontDisplay, fontMono, glass, homeSpace, motion, chrome
 } from "../../theme";
-import { availableSceneChannels } from "../../lib/sceneChannels";
+import { decorateSceneChannels } from "../../lib/sceneChannels";
 import { formatChannelNum } from "../../lib/mtvChannel";
 
 /**
@@ -16,7 +16,7 @@ function SceneSurfRail({
   compact = false,
   quiet = false,
 }) {
-  const channels = useMemo(() => availableSceneChannels(tracks, 2), [tracks]);
+  const channels = useMemo(() => decorateSceneChannels(tracks, 2), [tracks]);
   const [zapId, setZapId] = useState(null);
 
   if (!channels.length) return null;

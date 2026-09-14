@@ -232,6 +232,8 @@ describe("Home broadcast + four-tab IA", () => {
     });
     div.querySelector(".pmp-channel-card").click();
     expect(onClick).toHaveBeenCalledTimes(1);
+    expect(div.querySelectorAll("img")).toHaveLength(1);
+    expect(div.querySelector("[style*='grid-template-columns']")).toBeNull();
   });
 
   test("Channel Surfing rail has no ticket copy or request card", async () => {
@@ -241,7 +243,6 @@ describe("Home broadcast + four-tab IA", () => {
           channels: [
             { id: "rap", num: 3, title: "Rap City", tagline: "Bars after dark" },
           ],
-          channelCovers: {},
           activeChannelId: "rap",
         })
       );

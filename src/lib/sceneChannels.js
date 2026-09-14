@@ -1,6 +1,7 @@
 import { trackMatchesScene } from "./scenes";
 import { normalizeGenre } from "./genres";
 import { countdownScore } from "./station";
+import { CHANNEL_ART } from "./channelArt";
 
 /**
  * Scene surfing — dial channels under Channel Surfing (CH-01 … CH-09).
@@ -383,7 +384,7 @@ export const SCENE_CHANNELS = [
     genres: ["Electronic", "Pop"],
     vibe: "Y2K Dance",
     source: "genre",
-    art: "/channels/y2k-dance.png",
+    art: CHANNEL_ART["y2k-dance"],
   },
   {
     id: "variety-mix",
@@ -402,7 +403,7 @@ export const SCENE_CHANNELS = [
     preferMatch: true,
     poolLimit: VARIETY_CROSS_GENRE_LIMIT,
     minTracks: 1,
-    art: "/channels/variety-mix.png",
+    art: CHANNEL_ART["variety-mix"],
   },
   {
     id: "local-pnw",
@@ -420,7 +421,7 @@ export const SCENE_CHANNELS = [
     strict: true,
     match: isLocalPnwTrack,
     minTracks: 1,
-    art: "/channels/local-pnw.png",
+    art: CHANNEL_ART["local-pnw"],
   },
   {
     id: "electronic-underground",
@@ -438,7 +439,7 @@ export const SCENE_CHANNELS = [
     match: isElectronicUndergroundTrack,
     preferMatch: true,
     minTracks: 1,
-    art: "/channels/electronic.png",
+    art: CHANNEL_ART["electronic-underground"],
   },
   {
     id: "drum-and-bass",
@@ -452,7 +453,7 @@ export const SCENE_CHANNELS = [
     genres: ["Electronic"],
     vibe: "Drum & Bass",
     source: "genre",
-    art: "/channels/drum-and-bass.png",
+    art: CHANNEL_ART["drum-and-bass"],
   },
   {
     id: "shoegaze",
@@ -469,7 +470,7 @@ export const SCENE_CHANNELS = [
     strict: true,
     match: isShoegazeTrack,
     minTracks: 1,
-    art: "/channels/shoegaze.png",
+    art: CHANNEL_ART.shoegaze,
   },
   {
     id: "metal",
@@ -487,7 +488,7 @@ export const SCENE_CHANNELS = [
     strict: true,
     match: isMetalTrack,
     minTracks: 1,
-    art: "/channels/metal.png",
+    art: CHANNEL_ART.metal,
   },
   {
     id: "punk",
@@ -505,7 +506,7 @@ export const SCENE_CHANNELS = [
     strict: true,
     match: isPunkTrack,
     minTracks: 1,
-    art: "/channels/punk.png",
+    art: CHANNEL_ART.punk,
   },
   {
     id: "country-folk",
@@ -523,7 +524,7 @@ export const SCENE_CHANNELS = [
     strict: true,
     match: isCountryFolkTrack,
     minTracks: 1,
-    art: "/channels/country-folk.png",
+    art: CHANNEL_ART["country-folk"],
   },
   {
     id: "downtempo",
@@ -540,7 +541,7 @@ export const SCENE_CHANNELS = [
     strict: true,
     match: isDowntempoTrack,
     minTracks: 1,
-    art: "/channels/downtempo.png",
+    art: CHANNEL_ART.downtempo,
   },
 ];
 
@@ -597,8 +598,8 @@ export function buildSceneChannelPool(tracks = [], channel) {
   return ranked;
 }
 
-/** Channels that actually have catalog depth right now. */
-export function availableSceneChannels(tracks = [], minTracks = 3) {
+/** All dials with live counts. Home lists every channel, even if empty. */
+export function decorateSceneChannels(tracks = [], minTracks = 3) {
   return SCENE_CHANNELS.map((channel) => {
     const pool = buildSceneChannelPool(tracks, channel);
     const direct = singlesOnly(tracks).filter((t) => matchesChannel(t, channel));
@@ -610,7 +611,12 @@ export function availableSceneChannels(tracks = [], minTracks = 3) {
       count,
       ready: direct.length >= need || (!channel.strict && pool.length >= need),
     };
-  }).filter((c) => c.ready);
+  });
+}
+
+/** Channels that actually have catalog depth right now. */
+export function availableSceneChannels(tracks = [], minTracks = 3) {
+  return decorateSceneChannels(tracks, minTracks).filter((c) => c.ready);
 }
 
 /**

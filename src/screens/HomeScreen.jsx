@@ -11,7 +11,7 @@ import {
   y2k,
 } from "../theme";
 import { countPlayableTracks } from "../lib/catalogLoad";
-import { availableSceneChannels } from "../lib/sceneChannels";
+import { decorateSceneChannels } from "../lib/sceneChannels";
 import { buildHomeCollections } from "../lib/homeCollections";
 import { TonightDeck } from "../components/station/ShowGuide";
 import { useCurrentTrack } from "../usePlayerTransport";
@@ -180,7 +180,7 @@ function HomeScreen({
   const catalogDepleted = !catalogError && tracks.length > 0 && playableCount === 0;
   const catalogReady = !catalogError && !catalogEmpty && !catalogDepleted;
 
-  const channels = useMemo(() => availableSceneChannels(tracks), [tracks]);
+  const channels = useMemo(() => decorateSceneChannels(tracks), [tracks]);
 
   const editorial = useMemo(() => buildHomeCollections(tracks), [tracks]);
 

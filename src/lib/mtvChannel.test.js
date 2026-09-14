@@ -11,7 +11,7 @@ import {
   chartScopeKey,
   monthKey,
 } from "./chartHistory";
-import { availableSceneChannels, buildSceneChannelPool, channelCoverUrls, getSceneChannel, SCENE_CHANNELS, CHANNEL_SOURCE_NOTES, CHANNEL_BATCH_PREFIXES, trackMatchesChannel, matchesChannelBatch, isVarietyCuratorTrack, buildCrossGenreVarietyPool, isElectronicUndergroundTrack } from "./sceneChannels";
+import { availableSceneChannels, decorateSceneChannels, buildSceneChannelPool, channelCoverUrls, getSceneChannel, SCENE_CHANNELS, CHANNEL_SOURCE_NOTES, CHANNEL_BATCH_PREFIXES, trackMatchesChannel, matchesChannelBatch, isVarietyCuratorTrack, buildCrossGenreVarietyPool, isElectronicUndergroundTrack } from "./sceneChannels";
 import { pickTrackBumper, STATION_IDENTS } from "./bumpers";
 import { brandStoragePrefix } from "../brand/identity";
 import {
@@ -160,7 +160,8 @@ describe("sceneChannels", () => {
     expect(CHANNEL_BATCH_PREFIXES.punk).toContain("punk");
     expect(CHANNEL_BATCH_PREFIXES["country-folk"]).toContain("country-folk");
     expect(CHANNEL_BATCH_PREFIXES.downtempo).toContain("downtempo");
-    expect(SCENE_CHANNELS.every((c) => String(c.art || "").startsWith("/channels/"))).toBe(true);
+    expect(SCENE_CHANNELS).toHaveLength(10);
+    expect(SCENE_CHANNELS.every((c) => Boolean(c.art))).toBe(true);
     expect(getSceneChannel("variety-mix").tagline.toLowerCase()).not.toContain("evie");
     expect(getSceneChannel("electronic-underground").tagline.toLowerCase()).not.toContain("expansions");
   });
@@ -297,10 +298,12 @@ describe("sceneChannels", () => {
     expect(buildSceneChannelPool(tracks, electronic).map((t) => t.id).sort()).toEqual(["e1", "e3"]);
   });
 
-  test("channelCoverUrls returns the generic channel photo", () => {
+  test("channelCoverUrls returns the bundled channel photo", () => {
     const underground = getSceneChannel("electronic-underground");
-    expect(channelCoverUrls([], underground, 4)).toEqual(["/channels/electronic.png"]);
-    expect(getSceneChannel("downtempo").art).toBe("/channels/downtempo.png");
+    expect(channelCoverUrls([], underground, 4)).toEqual([underground.art]);
+    expect(getSceneChannel("downtempo").art).toBeTruthy();
+    expect(decorateSceneChannels([], 1)).toHaveLength(10);
+    expect(decorateSceneChannels([], 1).some((c) => c.id === "downtempo")).toBe(true);
   });
 
   test("CH-10 Downtempo matches trip-hop, chill, and ambient", () => {

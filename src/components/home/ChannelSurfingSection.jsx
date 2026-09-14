@@ -10,13 +10,11 @@ import HomeBandHeader from "./HomeBandHeader";
  */
 function ChannelSurfingSection({
   channels = [],
-  channelCovers = {},
   activeChannelId = null,
   onTuneChannel = null,
   first = true,
   delay = 0.02,
 }) {
-  void channelCovers;
   if (!channels.length) return null;
 
   const tile = homeSpace.tileTicket;
