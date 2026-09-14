@@ -4,6 +4,8 @@
  */
 
 const FREE_PLAYS_PER_DAY = 20;
+/** Keep in sync with src/lib/entitlements.js PAYWALL_ENABLED. */
+const PAYWALL_ENABLED = false;
 
 function playsDayKey(date = new Date()) {
   const d = date instanceof Date ? date : new Date(date);
@@ -12,6 +14,7 @@ function playsDayKey(date = new Date()) {
 }
 
 function isFullStreaming(user = {}) {
+  if (!PAYWALL_ENABLED) return true;
   const status = String(user.subscriptionStatus || "").toLowerCase();
   const plan = String(user.plan || "").toLowerCase();
   if (status === "active" && (plan === "club" || plan === "premium")) return true;
@@ -99,6 +102,7 @@ function evaluateCreditSpend(user = {}, amount, now = new Date()) {
 
 module.exports = {
   FREE_PLAYS_PER_DAY,
+  PAYWALL_ENABLED,
   playsDayKey,
   isFullStreaming,
   normalizePlayMeter,

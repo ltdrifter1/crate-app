@@ -14,6 +14,7 @@ import {
   formatMoney,
   PLAN_IDS,
   BILLING,
+  PAYWALL_ENABLED,
 } from "../../lib/entitlements";
 import { creditSummaryLine } from "../../lib/clubCredit";
 import { collectionStats } from "../../lib/collectionStats";
@@ -46,6 +47,18 @@ const PRIVILEGES_BY_TIER = {
       id: "upgrade",
       label: "Upgrade anytime",
       blurb: "Club unlocks the full crate and your membership card",
+    },
+  ],
+  freeOpen: [
+    {
+      id: "crate",
+      label: "Full streaming",
+      blurb: "Unlimited listening — every account is open for now",
+    },
+    {
+      id: "save",
+      label: "Save your taste",
+      blurb: "Likes, mixes, and interests stay on your account",
     },
   ],
   club: [
@@ -106,7 +119,9 @@ export default function ClubScreen({
   const liked = useMemo(() => tracks.filter((t) => t.liked), [tracks]);
   const memberLine = membershipSummary(access);
   const tier = access?.tier || PLAN_IDS.FREE;
-  const privileges = PRIVILEGES_BY_TIER[tier] || PRIVILEGES_BY_TIER.free;
+  const privileges = !PAYWALL_ENABLED && tier === PLAN_IDS.FREE
+    ? PRIVILEGES_BY_TIER.freeOpen
+    : (PRIVILEGES_BY_TIER[tier] || PRIVILEGES_BY_TIER.free);
   const hasCard = !!access?.membershipCard;
   const stats = useMemo(() => collectionStats(liked), [liked]);
   const memberNo = profile?.memberNumber ?? user.memberNumber;
@@ -434,11 +449,13 @@ export default function ClubScreen({
             {floor.blurb}{" "}
             {hasCard
               ? "Your membership keeps the crate unlocked."
-              : playsLabel
-                ? `${playsLabel}.`
-                : `Free plan · ${BILLING.freePlaysPerDay} plays/day.`}
+              : !PAYWALL_ENABLED || access?.streaming === "full"
+                ? "The crate is open — listen as much as you like."
+                : playsLabel
+                  ? `${playsLabel}.`
+                  : `Free plan · ${BILLING.freePlaysPerDay} plays/day.`}
           </div>
-          {!hasCard && (
+          {!hasCard && PAYWALL_ENABLED && (
             <div style={{ marginTop: 12 }}>
               <FreePlaysMeter
                 remaining={playsLeft}
@@ -587,7 +604,9 @@ export default function ClubScreen({
               ? `Premium · ${formatPricePremium()}. ${creditLine}.`
               : tier === PLAN_IDS.CLUB || access?.reason === "trial"
                 ? `Club · ${formatPriceClub()}. Add Premium for Club Credit on Club Copy.`
-                : `Free · limited streaming. Club is ${formatPriceClub()}. Premium is ${formatPricePremium()}.`}
+                : PAYWALL_ENABLED
+                  ? `Free · limited streaming. Club is ${formatPriceClub()}. Premium is ${formatPricePremium()}.`
+                  : "Free · full streaming. Club and Premium billing are paused for now."}
           </div>
           {tier === PLAN_IDS.PREMIUM && (
             <div style={{ fontSize: 13, color: color.body, marginBottom: 14, lineHeight: 1.4 }}>
