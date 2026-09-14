@@ -12,6 +12,7 @@ import MobileNavDrawer from "../components/layout/MobileNavDrawer";
 import FavoritesScreen from "../screens/FavoritesScreen";
 import { primaryNavItems } from "../lib/nav";
 import { SCENE_CHANNELS } from "../lib/sceneChannels";
+import { color, homeSpace } from "../theme";
 
 const SAMPLE_COVER = "/brand/planet-mp3-lockup-on-black.png";
 
