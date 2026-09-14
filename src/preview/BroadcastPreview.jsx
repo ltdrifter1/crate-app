@@ -11,7 +11,7 @@ import AppSidebar from "../components/layout/AppSidebar";
 import MobileNavDrawer from "../components/layout/MobileNavDrawer";
 import FavoritesScreen from "../screens/FavoritesScreen";
 import { primaryNavItems } from "../lib/nav";
-import { color, homeSpace } from "../theme";
+import { SCENE_CHANNELS } from "../lib/sceneChannels";
 
 const SAMPLE_COVER = "/brand/planet-mp3-lockup-on-black.png";
 
@@ -52,13 +52,6 @@ const SAMPLE_PLAYLISTS = [
   { id: "pl_2", name: "Late Signal", trackIds: ["preview-3", "preview-1"] },
 ];
 
-const SAMPLE_CHANNELS = [
-  { id: "rap", num: 3, shortTitle: "Rap City", title: "Rap City", tagline: "Bars after dark", art: "/channels/variety-mix.png" },
-  { id: "rock", num: 5, shortTitle: "120 Minutes", title: "120 Minutes", tagline: "Alt + volume", art: "/channels/shoegaze.png" },
-  { id: "pop", num: 1, shortTitle: "Total Request", title: "Total Request", tagline: "Countdown energy", art: "/channels/y2k-dance.png" },
-  { id: "y2k", num: 1, shortTitle: "Y2K Dance", title: "Y2K Dance", tagline: "Millennium dancefloor", art: "/channels/y2k-dance.png" },
-];
-
 export default function BroadcastPreview() {
   const [screen, setScreen] = useState("home");
   const [drawer, setDrawer] = useState(false);
@@ -82,8 +75,8 @@ export default function BroadcastPreview() {
         onOpenMenu={isDesktop ? null : () => setDrawer(true)}
       />
       <ChannelSurfingSection
-        channels={SAMPLE_CHANNELS}
-        activeChannelId="y2k"
+        channels={SCENE_CHANNELS}
+        activeChannelId="y2k-dance"
         onTuneChannel={() => {}}
       />
       <div style={{ padding: `0 ${homeSpace.gutter}px`, marginTop: homeSpace.sectionGap }}>
@@ -91,7 +84,7 @@ export default function BroadcastPreview() {
           track={SAMPLE_TRACK}
           upNextTrack={SAMPLE_NEXT}
           isRadioMode
-          sceneChannel={SAMPLE_CHANNELS[3]}
+          sceneChannel={SCENE_CHANNELS.find((c) => c.id === "y2k-dance")}
           liveShow={{ shortTitle: "Y2K Dance", title: "Y2K Dance" }}
         />
       </div>
