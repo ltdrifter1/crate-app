@@ -10,6 +10,9 @@ import {
   hasRequestedToday,
   markRequestedToday,
   stationDayKey,
+  hasSeenShowcasePromo,
+  markShowcasePromoSeen,
+  clearShowcasePromoSeen,
 } from "./station";
 
 describe("station", () => {
@@ -74,6 +77,15 @@ describe("station", () => {
     expect(markRequestedToday(id, day)).toBe(true);
     expect(hasRequestedToday(id, day)).toBe(true);
     expect(markRequestedToday(id, day)).toBe(false);
+  });
+
+  test("showcase promo is remembered for the session", () => {
+    clearShowcasePromoSeen();
+    expect(hasSeenShowcasePromo()).toBe(false);
+    markShowcasePromoSeen();
+    expect(hasSeenShowcasePromo()).toBe(true);
+    clearShowcasePromoSeen();
+    expect(hasSeenShowcasePromo()).toBe(false);
   });
 
   test("dedications append to the feed", () => {

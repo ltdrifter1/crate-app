@@ -9,7 +9,11 @@ import HomeHeader from "./HomeHeader";
 import HeroPlayerCard from "./HeroPlayerCard";
 import ChannelCard from "./ChannelCard";
 import ChannelSurfingSection from "./ChannelSurfingSection";
+import ShowcasePromo from "./ShowcasePromo";
+import HomeScreen from "../../screens/HomeScreen";
 import { PRIMARY_TABS, primaryNavItems } from "../../lib/nav";
+import { clearShowcasePromoSeen } from "../../lib/station";
+import { CHANNEL_ART } from "../../lib/channelArt";
 
 jest.mock("../../usePlayerPlayback", () => ({
   usePlayerPlayback: () => ({ progress: 12, duration: 180 }),
@@ -34,6 +38,7 @@ describe("Home broadcast + four-tab IA", () => {
     div = document.createElement("div");
     document.body.appendChild(div);
     root = createRoot(div);
+    clearShowcasePromoSeen();
   });
 
   afterEach(async () => {
@@ -215,6 +220,24 @@ describe("Home broadcast + four-tab IA", () => {
     expect(div.querySelector("[aria-pressed]")).toBeTruthy();
   });
 
+  test("showcase channel tile shows a Showcase badge", async () => {
+    await act(async () => {
+      root.render(
+        React.createElement(ChannelCard, {
+          channel: {
+            id: "local-pnw",
+            title: "Local Pacific Northwest",
+            shortTitle: "Local PNW",
+            tagline: "Pacific Northwest only",
+            showcase: true,
+          },
+        })
+      );
+    });
+    expect(div.textContent).toMatch(/Showcase/);
+    expect(div.textContent).toMatch(/Local PNW/);
+  });
+
   test("channel card click tunes the station", async () => {
     const onClick = jest.fn();
     await act(async () => {
@@ -252,5 +275,76 @@ describe("Home broadcast + four-tab IA", () => {
     expect(div.textContent).not.toMatch(/On the dial/i);
     expect(div.textContent).not.toMatch(/Admit one/i);
     expect(div.textContent).not.toMatch(/Request a song/i);
+  });
+
+  test("showcase promo dialog tunes the local station", async () => {
+    const onTune = jest.fn();
+    const onDismiss = jest.fn();
+    await act(async () => {
+      root.render(
+        React.createElement(ShowcasePromo, {
+          open: true,
+          channel: {
+            id: "local-pnw",
+            num: 3,
+            title: "Local Pacific Northwest",
+            tagline: "Pacific Northwest only",
+            art: CHANNEL_ART["local-pnw"],
+          },
+          onTune,
+          onDismiss,
+        })
+      );
+    });
+    expect(div.querySelector(".pmp-showcase-promo")).toBeTruthy();
+    expect(div.textContent).toMatch(/Showcase/);
+    expect(div.textContent).toMatch(/Local Pacific Northwest/);
+    const tune = [...div.querySelectorAll("button")].find((b) => b.textContent === "Tune in");
+    expect(tune).toBeTruthy();
+    await act(async () => {
+      tune.click();
+    });
+    expect(onTune).toHaveBeenCalled();
+  });
+
+  test("home loads a showcase popup for Local PNW", async () => {
+    const onTuneSceneChannel = jest.fn();
+    const tracks = [
+      {
+        id: "pnw-1",
+        title: "Rain City",
+        artist: "Fog",
+        region: "pnw",
+        duration: 180,
+        audioUrl: "https://cdn.example/rain.mp3",
+      },
+      {
+        id: "other",
+        title: "Other",
+        artist: "NYC",
+        genre: "Hip-Hop",
+        duration: 180,
+        audioUrl: "https://cdn.example/other.mp3",
+      },
+    ];
+    await act(async () => {
+      root.render(
+        React.createElement(HomeScreen, {
+          tracks,
+          onTuneSceneChannel,
+        })
+      );
+    });
+    const dialog = div.querySelector(".pmp-showcase-promo");
+    expect(dialog).toBeTruthy();
+    expect(div.textContent).toMatch(/Local Pacific Northwest/);
+    const surf = div.querySelector(".pmp-channel-surf");
+    expect(surf.textContent).toMatch(/Showcase/);
+    const tune = [...div.querySelectorAll("button")].find((b) => b.textContent === "Tune in");
+    await act(async () => {
+      tune.click();
+    });
+    expect(onTuneSceneChannel).toHaveBeenCalled();
+    expect(onTuneSceneChannel.mock.calls[0][0].id).toBe("local-pnw");
   });
 });

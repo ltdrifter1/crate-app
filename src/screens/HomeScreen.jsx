@@ -1,4 +1,4 @@
-import { useMemo, memo } from "react";
+import { useMemo, useState, useEffect, useCallback, memo } from "react";
 import {
   BTN_PRIMARY,
   BTN_SECONDARY,
@@ -11,7 +11,8 @@ import {
   y2k,
 } from "../theme";
 import { countPlayableTracks } from "../lib/catalogLoad";
-import { decorateSceneChannels } from "../lib/sceneChannels";
+import { decorateSceneChannels, getShowcaseChannel, SHOWCASE_CHANNEL_ID } from "../lib/sceneChannels";
+import { hasSeenShowcasePromo, markShowcasePromoSeen } from "../lib/station";
 import { buildHomeCollections } from "../lib/homeCollections";
 import { TonightDeck } from "../components/station/ShowGuide";
 import { useCurrentTrack } from "../usePlayerTransport";
@@ -19,6 +20,7 @@ import HomeHeader from "../components/home/HomeHeader";
 import HeroPlayerCard from "../components/home/HeroPlayerCard";
 import MusicSection, { Rail } from "../components/home/MusicSection";
 import ChannelSurfingSection from "../components/home/ChannelSurfingSection";
+import ShowcasePromo from "../components/home/ShowcasePromo";
 import TrackCard from "../components/home/TrackCard";
 import CardContainer from "../components/home/CardContainer";
 
@@ -181,6 +183,10 @@ function HomeScreen({
   const catalogReady = !catalogError && !catalogEmpty && !catalogDepleted;
 
   const channels = useMemo(() => decorateSceneChannels(tracks), [tracks]);
+  const showcaseChannel = useMemo(
+    () => channels.find((c) => c.showcase || c.id === SHOWCASE_CHANNEL_ID) || getShowcaseChannel(),
+    [channels]
+  );
 
   const editorial = useMemo(() => buildHomeCollections(tracks), [tracks]);
 
@@ -193,6 +199,25 @@ function HomeScreen({
   const hasTonight = !!(airing?.show || programGuide.length > 0);
   const featuredSize = homeSpace.tileFeatured;
   const hasChannels = catalogReady && channels.length > 0;
+  const [showcaseOpen, setShowcaseOpen] = useState(false);
+
+  useEffect(() => {
+    if (!catalogReady || !showcaseChannel) return;
+    if (sceneChannelsActiveId === showcaseChannel.id) return;
+    if (hasSeenShowcasePromo()) return;
+    setShowcaseOpen(true);
+  }, [catalogReady, showcaseChannel, sceneChannelsActiveId]);
+
+  const dismissShowcase = useCallback(() => {
+    markShowcasePromoSeen();
+    setShowcaseOpen(false);
+  }, []);
+
+  const tuneShowcase = useCallback(() => {
+    markShowcasePromoSeen();
+    setShowcaseOpen(false);
+    onTuneSceneChannel?.(showcaseChannel);
+  }, [onTuneSceneChannel, showcaseChannel]);
 
   return (
     <div
@@ -343,6 +368,13 @@ function HomeScreen({
             />
           </div>
         )}
+
+      <ShowcasePromo
+        channel={showcaseChannel}
+        open={showcaseOpen}
+        onTune={tuneShowcase}
+        onDismiss={dismissShowcase}
+      />
     </div>
   );
 }

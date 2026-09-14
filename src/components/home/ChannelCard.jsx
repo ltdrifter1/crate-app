@@ -95,7 +95,7 @@ export default function ChannelCard({
       >
         <ChannelArt src={photo} title={title} size={width} accent={channel.accent} />
 
-        {active && (
+        {(active || channel.showcase) && (
           <span
             style={{
               position: "absolute",
@@ -114,7 +114,7 @@ export default function ChannelCard({
               alignItems: "center",
             }}
           >
-            Playing
+            {active ? "Playing" : "Showcase"}
           </span>
         )}
 
