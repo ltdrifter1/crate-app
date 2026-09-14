@@ -7,11 +7,13 @@ import BottomNavigation from "../components/home/BottomNavigation";
 import HomeHeader from "../components/home/HomeHeader";
 import HeroPlayerCard from "../components/home/HeroPlayerCard";
 import ChannelSurfingSection from "../components/home/ChannelSurfingSection";
+import ShowcasePromo from "../components/home/ShowcasePromo";
 import AppSidebar from "../components/layout/AppSidebar";
 import MobileNavDrawer from "../components/layout/MobileNavDrawer";
 import FavoritesScreen from "../screens/FavoritesScreen";
 import { primaryNavItems } from "../lib/nav";
-import { SCENE_CHANNELS } from "../lib/sceneChannels";
+import { SCENE_CHANNELS, getShowcaseChannel } from "../lib/sceneChannels";
+import { clearShowcasePromoSeen } from "../lib/station";
 import { color, fontDisplay, fontMono, glass, homeSpace } from "../theme";
 import CoverImage from "../components/ui/CoverImage";
 
@@ -58,9 +60,20 @@ export default function BroadcastPreview() {
   const [screen, setScreen] = useState("home");
   const [drawer, setDrawer] = useState(false);
   const [buildingSet, setBuildingSet] = useState(false);
+  const [showcaseOpen, setShowcaseOpen] = useState(true);
+  const [activeChannelId, setActiveChannelId] = useState("local-pnw");
+  const showcase = getShowcaseChannel();
+  const channels = [...SCENE_CHANNELS].sort((a, b) => {
+    if (!!a.showcase !== !!b.showcase) return a.showcase ? -1 : 1;
+    return (a.num || 0) - (b.num || 0);
+  });
   const [isDesktop, setIsDesktop] = useState(
     () => typeof window !== "undefined" && window.innerWidth >= 768
   );
+
+  useEffect(() => {
+    clearShowcasePromoSeen();
+  }, []);
 
   useEffect(() => {
     const sync = () => setIsDesktop(window.innerWidth >= 768);
@@ -77,19 +90,28 @@ export default function BroadcastPreview() {
         onOpenMenu={isDesktop ? null : () => setDrawer(true)}
       />
       <ChannelSurfingSection
-        channels={SCENE_CHANNELS}
-        activeChannelId="y2k-dance"
-        onTuneChannel={() => {}}
+        channels={channels}
+        activeChannelId={activeChannelId}
+        onTuneChannel={(ch) => setActiveChannelId(ch.id)}
       />
       <div style={{ padding: `0 ${homeSpace.gutter}px`, marginTop: homeSpace.sectionGap }}>
         <HeroPlayerCard
           track={SAMPLE_TRACK}
           upNextTrack={SAMPLE_NEXT}
           isRadioMode
-          sceneChannel={SCENE_CHANNELS.find((c) => c.id === "y2k-dance")}
-          liveShow={{ shortTitle: "Y2K Dance", title: "Y2K Dance" }}
+          sceneChannel={SCENE_CHANNELS.find((c) => c.id === activeChannelId)}
+          liveShow={{ shortTitle: "Local PNW", title: "Local Pacific Northwest" }}
         />
       </div>
+      <ShowcasePromo
+        channel={showcase}
+        open={screen === "home" && showcaseOpen}
+        onTune={(ch) => {
+          setActiveChannelId(ch.id);
+          setShowcaseOpen(false);
+        }}
+        onDismiss={() => setShowcaseOpen(false)}
+      />
     </div>
   );
 

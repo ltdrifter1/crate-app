@@ -11,7 +11,7 @@ import {
   chartScopeKey,
   monthKey,
 } from "./chartHistory";
-import { availableSceneChannels, decorateSceneChannels, buildSceneChannelPool, channelCoverUrls, getSceneChannel, SCENE_CHANNELS, CHANNEL_SOURCE_NOTES, CHANNEL_BATCH_PREFIXES, trackMatchesChannel, matchesChannelBatch, isVarietyCuratorTrack, buildCrossGenreVarietyPool, isElectronicUndergroundTrack } from "./sceneChannels";
+import { availableSceneChannels, decorateSceneChannels, buildSceneChannelPool, channelCoverUrls, getSceneChannel, getShowcaseChannel, SHOWCASE_CHANNEL_ID, SCENE_CHANNELS, CHANNEL_SOURCE_NOTES, CHANNEL_BATCH_PREFIXES, trackMatchesChannel, matchesChannelBatch, isVarietyCuratorTrack, buildCrossGenreVarietyPool, isElectronicUndergroundTrack } from "./sceneChannels";
 import { pickTrackBumper, STATION_IDENTS } from "./bumpers";
 import { brandStoragePrefix } from "../brand/identity";
 import {
@@ -150,6 +150,11 @@ describe("sceneChannels", () => {
     ]);
     expect(CHANNEL_SOURCE_NOTES["y2k-dance"].source).toBe("genre");
     expect(CHANNEL_SOURCE_NOTES["local-pnw"].source).toBe("audioasis");
+    expect(CHANNEL_SOURCE_NOTES["local-pnw"].showcase).toBe(true);
+    expect(SHOWCASE_CHANNEL_ID).toBe("local-pnw");
+    expect(getShowcaseChannel()?.id).toBe("local-pnw");
+    expect(getSceneChannel("showcase")?.id).toBe("local-pnw");
+    expect(getSceneChannel("local-pnw").showcase).toBe(true);
     expect(CHANNEL_SOURCE_NOTES["variety-mix"].source).toBe("variety");
     expect(CHANNEL_SOURCE_NOTES["electronic-underground"].source).toBe("expansions");
     expect(CHANNEL_SOURCE_NOTES.metal.source).toBe("metal");
@@ -226,6 +231,7 @@ describe("sceneChannels", () => {
     const pool = buildSceneChannelPool(tracks, local);
     expect(pool.map((t) => t.id).sort()).toEqual(["1", "2", "5"]);
     expect(availableSceneChannels(tracks, 3).some((c) => c.id === "local-pnw")).toBe(true);
+    expect(decorateSceneChannels(tracks, 1)[0].id).toBe("local-pnw");
   });
 
   test("CH-06 Emo & Shoegaze matches genre keywords only", () => {

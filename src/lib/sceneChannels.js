@@ -10,6 +10,7 @@ import { CHANNEL_ART } from "./channelArt";
  *   01 Y2K Dance             → by genre
  *   02 Variety Mix           → curator shelf (variety pad)
  *   03 Local Pacific Northwest → Audioasis batch upload (`batch` includes audioasis)
+ *      **Showcase channel** — featured on Home (popup + pin)
  *   04 Electronic            → expansions batch / techno–warehouse scenes
  *   05 Drum & Bass           → by genre
  *   06 Emo & Shoegaze        → by genre
@@ -161,7 +162,7 @@ export const VARIETY_CROSS_GENRE_LIMIT = 48;
 export const CHANNEL_SOURCE_NOTES = {
   "y2k-dance": { num: 1, source: "genre", note: "Y2K Dance — match by genre/scene" },
   "variety-mix": { num: 2, source: "variety", note: "Variety Mix — curator batch (`variety-wave-N`) or cross-genre mix" },
-  "local-pnw": { num: 3, source: "audioasis", note: "Local PNW — Audioasis batch upload (`batch` includes audioasis)" },
+  "local-pnw": { num: 3, source: "audioasis", showcase: true, note: "Local PNW — showcase station; Audioasis batch (`batch` includes audioasis)" },
   "electronic-underground": { num: 4, source: "expansions", note: "Electronic — expansions batch (`expansions-wave-N`) + techno/warehouse scenes" },
   "drum-and-bass": { num: 5, source: "genre", note: "Drum & Bass — match by genre/scene" },
   shoegaze: { num: 6, source: "genre", note: "Emo & Shoegaze — match by genre/keywords" },
@@ -371,6 +372,9 @@ export function buildCrossGenreVarietyPool(tracks = [], limit = VARIETY_CROSS_GE
   return out;
 }
 
+/** Featured Channel Surfing dial — Local PNW is the station we push on Home. */
+export const SHOWCASE_CHANNEL_ID = "local-pnw";
+
 export const SCENE_CHANNELS = [
   {
     id: "y2k-dance",
@@ -417,6 +421,7 @@ export const SCENE_CHANNELS = [
     genres: [],
     vibe: "Local Pacific Northwest",
     source: "audioasis",
+    showcase: true,
     /** Only PNW / Audioasis cuts — never pad with the full catalog. */
     strict: true,
     match: isLocalPnwTrack,
@@ -545,8 +550,13 @@ export const SCENE_CHANNELS = [
   },
 ];
 
+export function getShowcaseChannel() {
+  return SCENE_CHANNELS.find((c) => c.showcase || c.id === SHOWCASE_CHANNEL_ID) || null;
+}
+
 export function getSceneChannel(id) {
   // Legacy aliases from earlier dials
+  if (id === "showcase") return getShowcaseChannel();
   if (id === "techno-tunnel") return SCENE_CHANNELS.find((c) => c.id === "local-pnw") || null;
   if (id === "ukg-block" || id === "house-ukg") return SCENE_CHANNELS.find((c) => c.id === "y2k-dance") || null;
   if (id === "bass-weight") return SCENE_CHANNELS.find((c) => c.id === "drum-and-bass") || null;
@@ -611,6 +621,9 @@ export function decorateSceneChannels(tracks = [], minTracks = 3) {
       count,
       ready: direct.length >= need || (!channel.strict && pool.length >= need),
     };
+  }).sort((a, b) => {
+    if (!!a.showcase !== !!b.showcase) return a.showcase ? -1 : 1;
+    return (a.num || 0) - (b.num || 0);
   });
 }
 
