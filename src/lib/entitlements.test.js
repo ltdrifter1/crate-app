@@ -125,6 +125,31 @@ describe("entitlements three-tier", () => {
     expect(access.streaming).toBe("limited");
   });
 
+  test("past_due club keeps full streaming (dunning grace)", () => {
+    const access = getAccessState(
+      { plan: "club", subscriptionStatus: "past_due" },
+      { now: new Date("2026-06-01T00:00:00.000Z"), paywallEnabled: true }
+    );
+    expect(access.streaming).toBe("full");
+    expect(access.tier).toBe("club");
+    expect(access.reason).toBe("club");
+  });
+
+  test("canceled / unpaid fall back to free limited", () => {
+    const canceled = getAccessState(
+      { plan: "club", subscriptionStatus: "canceled" },
+      { now: new Date("2026-06-01T00:00:00.000Z"), paywallEnabled: true }
+    );
+    expect(canceled.tier).toBe("free");
+    expect(canceled.streaming).toBe("limited");
+    const unpaid = getAccessState(
+      { plan: "premium", subscriptionStatus: "unpaid" },
+      { now: new Date("2026-06-01T00:00:00.000Z"), paywallEnabled: true }
+    );
+    expect(unpaid.tier).toBe("free");
+    expect(unpaid.streaming).toBe("limited");
+  });
+
   test("admin always full", () => {
     const access = getAccessState({}, { isAdmin: true, now: new Date() });
     expect(access.reason).toBe("admin");

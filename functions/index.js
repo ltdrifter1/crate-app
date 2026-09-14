@@ -21,7 +21,10 @@ const {
   applySubscriptionUpdated,
   applySubscriptionDeleted,
   applyInvoicePaid,
+  withCheckoutSessionId,
 } = require("./lib/syncMembership");
+
+const FUNCTIONS_REGION = "us-central1";
 const {
   evaluateListeningPlay,
   evaluateCreditSpend,
@@ -85,6 +88,7 @@ async function getOrCreateCustomer(stripe, uid, email) {
  */
 exports.createCheckoutSession = onCall(
   {
+    region: FUNCTIONS_REGION,
     secrets: [stripeSecret],
     invoker: "public",
   },
@@ -105,7 +109,7 @@ exports.createCheckoutSession = onCall(
       );
     }
 
-    const successUrl = String(request.data?.successUrl || "").trim();
+    const successUrl = withCheckoutSessionId(String(request.data?.successUrl || "").trim());
     const cancelUrl = String(request.data?.cancelUrl || "").trim();
     if (!successUrl || !cancelUrl) {
       throw new HttpsError("invalid-argument", "successUrl and cancelUrl required");
@@ -141,6 +145,7 @@ exports.createCheckoutSession = onCall(
  */
 exports.createPortalSession = onCall(
   {
+    region: FUNCTIONS_REGION,
     secrets: [stripeSecret],
     invoker: "public",
   },
@@ -167,11 +172,61 @@ exports.createPortalSession = onCall(
 );
 
 /**
+ * Callable: confirmCheckoutSession({ sessionId })
+ * Applies membership immediately on return from Checkout (webhook race).
+ */
+exports.confirmCheckoutSession = onCall(
+  {
+    region: FUNCTIONS_REGION,
+    secrets: [stripeSecret],
+    invoker: "public",
+  },
+  async (request) => {
+    if (!request.auth?.uid) {
+      throw new HttpsError("unauthenticated", "Sign in to confirm checkout.");
+    }
+    const sessionId = String(request.data?.sessionId || "").trim();
+    if (!sessionId || !sessionId.startsWith("cs_")) {
+      throw new HttpsError("invalid-argument", "sessionId required");
+    }
+    injectPriceEnv();
+    const stripe = stripeClient(stripeSecret.value());
+    let session;
+    try {
+      session = await stripe.checkout.sessions.retrieve(sessionId, {
+        expand: ["subscription"],
+      });
+    } catch (err) {
+      throw new HttpsError("not-found", "Checkout session not found");
+    }
+    const uid =
+      session.client_reference_id ||
+      session.metadata?.firebaseUid ||
+      session.metadata?.uid ||
+      null;
+    if (uid && uid !== request.auth.uid) {
+      throw new HttpsError("permission-denied", "This checkout belongs to another account.");
+    }
+    if (session.status !== "complete" && session.payment_status !== "paid") {
+      return { ok: false, pending: true, status: session.status || null };
+    }
+    const result = await applyCheckoutCompleted(session, stripe);
+    return {
+      ok: true,
+      pending: false,
+      plan: result?.plan || session.metadata?.plan || null,
+      status: result?.status || null,
+    };
+  }
+);
+
+/**
  * HTTP: Stripe webhook → sync Firestore membership.
- * Endpoint: https://<region>-crate-app-58494.cloudfunctions.net/stripeWebhook
+ * Endpoint: https://us-central1-crate-app-58494.cloudfunctions.net/stripeWebhook
  */
 exports.stripeWebhook = onRequest(
   {
+    region: FUNCTIONS_REGION,
     secrets: [stripeSecret, webhookSecret],
     cors: false,
   },
@@ -222,7 +277,7 @@ exports.stripeWebhook = onRequest(
 );
 
 /** Health / config peek (no secrets). */
-exports.billingHealth = onRequest(async (_req, res) => {
+exports.billingHealth = onRequest({ region: FUNCTIONS_REGION }, async (_req, res) => {
   injectPriceEnv();
   res.json({
     ok: true,
@@ -236,7 +291,7 @@ exports.billingHealth = onRequest(async (_req, res) => {
  * Server-trusted free-play meter + track playCount + recentTracks.
  */
 exports.recordListeningEvent = onCall(
-  { invoker: "public" },
+  { region: FUNCTIONS_REGION, invoker: "public" },
   async (request) => {
     if (!request.auth?.uid) {
       throw new HttpsError("unauthenticated", "Sign in to play.");
@@ -306,7 +361,7 @@ exports.recordListeningEvent = onCall(
  * Spends Premium Club Credit and files the cut into the member collection.
  */
 exports.spendClubCredit = onCall(
-  { invoker: "public" },
+  { region: FUNCTIONS_REGION, invoker: "public" },
   async (request) => {
     if (!request.auth?.uid) {
       throw new HttpsError("unauthenticated", "Sign in to spend Club Credit.");

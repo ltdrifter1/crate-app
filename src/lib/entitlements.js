@@ -4,7 +4,8 @@
  *   club     — $0.99/mo full streaming + membership card
  *   premium  — $10/year Club Credits for physical purchases
  *
- * Stripe Payment Links are placeholders until live checkout is wired.
+ * Checkout goes through Firebase Cloud Functions (Stripe Checkout Sessions).
+ * Payment Links are an unused fallback unless configured.
  *
  * PAYWALL_ENABLED: set false to give every account unlimited streaming
  * and hide Club/Premium upgrade surfaces. Flip back to restore gating.

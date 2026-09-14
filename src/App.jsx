@@ -60,7 +60,7 @@ import {
   BILLING,
   PAYWALL_ENABLED,
 } from "./lib/entitlements";
-import { startCheckout, readBillingQuery } from "./lib/billing";
+import { startCheckout, settleBillingReturn, stripBillingQuery } from "./lib/billing";
 import {
   canPlayOnFreeTier,
   bumpPlayMeter,
@@ -2223,6 +2223,7 @@ export default function App() {
   // ── Auth (login/signup/logout + user profile) ───────────────────────────
   const { firebaseUser, profile, setProfile, loading: authLoading, authError, clearAuthError, signUp, logIn, logOut, refreshProfile, signInWithGoogle, sendPhoneOTP, verifyPhoneOTP, resetPassword } = useAuth();
   const [billingRefreshing, setBillingRefreshing] = useState(false);
+  const billingSettleKeyRef = useRef("");
 
   // ── URL ↔ screen ─────────────────────────────────────────────────────────
   const navigate = useNavigate();
@@ -2883,38 +2884,52 @@ export default function App() {
     }
   }, [firebaseUser, profile, access?.membershipCard]);
 
-  // After Stripe redirect (?billing=success), refresh membership from Firestore
+  // After Stripe redirect (?billing=success), confirm session + refresh membership
   useEffect(() => {
     if (!firebaseUser || !profile) return;
-    const q = readBillingQuery(typeof window !== "undefined" ? window.location.search : "");
-    if (q.billing !== "success") return;
+    if (typeof window === "undefined") return;
+    const search = window.location.search || "";
+    if (!/[?&]billing=success\b/.test(search)) return;
+    if (billingSettleKeyRef.current === search) return;
+    billingSettleKeyRef.current = search;
+    let cancelled = false;
     (async () => {
-      try {
-        await refreshProfile();
-        showToast(q.plan === "premium" ? "Premium unlocked" : "Club unlocked");
+      const result = await settleBillingReturn({
+        search,
+        refreshProfile,
+      });
+      if (cancelled) return;
+      if (result.applied) {
+        showToast(result.plan === "premium" ? "Premium unlocked" : "Club unlocked");
         setShowPlans(false);
-      } catch {
-        /* ignore */
+      } else if (result.pending && PAYWALL_ENABLED) {
+        showToast("Payment received — tap “I’ve paid — refresh” if Club isn’t unlocked yet");
+        setShowPlans(true);
       }
       try {
-        const url = new URL(window.location.href);
-        url.searchParams.delete("billing");
-        url.searchParams.delete("plan");
-        window.history.replaceState({}, "", url.pathname + url.search + url.hash);
+        window.history.replaceState({}, "", stripBillingQuery(window.location.href));
       } catch {
         /* ignore */
       }
     })();
+    return () => {
+      cancelled = true;
+    };
   }, [firebaseUser, profile?.uid, refreshProfile]);
 
   const handleBillingRefresh = useCallback(async () => {
     setBillingRefreshing(true);
     try {
-      await refreshProfile();
+      const next = await refreshProfile();
+      const nextAccess = getAccessState(next, { isAdmin: isAdminUser });
+      if (nextAccess?.tier === "club" || nextAccess?.tier === "premium" || nextAccess?.reason === "trial") {
+        setShowPlans(false);
+        showToast(nextAccess.tier === "premium" ? "Premium unlocked" : "Club unlocked");
+      }
     } finally {
       setBillingRefreshing(false);
     }
-  }, [refreshProfile]);
+  }, [refreshProfile, isAdminUser]);
 
   // Genre + taste intake — only user choice; mix lane/energy stay automatic
   const finishOnboarding = async (tasteOrGenres = []) => {
@@ -4460,7 +4475,7 @@ export default function App() {
         <Suspense fallback={null}>
           <LazyPaywallScreen
             access={access}
-            mode="manage"
+            mode={access?.tier === "free" || access?.reason === "free" ? "upgrade" : "manage"}
             onSubscribe={(link, planId) => {
               handleSubscribe(link, planId);
             }}
