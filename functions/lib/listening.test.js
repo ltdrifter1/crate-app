@@ -33,6 +33,15 @@ describe("evaluateListeningPlay", () => {
     assert.equal(r.reason, "free_limit");
   });
 
+  it("skips meter for past_due club (grace)", () => {
+    const r = evaluateListeningPlay(
+      { plan: "club", subscriptionStatus: "past_due", playsToday: 99, playsDayKey: day },
+      now
+    );
+    assert.equal(r.allowed, true);
+    assert.equal(r.full, true);
+  });
+
   it("skips meter for club", () => {
     const r = evaluateListeningPlay(
       { plan: "club", subscriptionStatus: "active", playsToday: 99, playsDayKey: day },
@@ -61,6 +70,21 @@ describe("evaluateCreditSpend", () => {
     assert.equal(r.ok, true);
     assert.equal(r.clubCreditBalance, 4);
     assert.equal(r.spent, 8);
+  });
+
+  it("allows spend while premium is past_due", () => {
+    const r = evaluateCreditSpend(
+      {
+        plan: "premium",
+        subscriptionStatus: "past_due",
+        clubCreditBalance: 12,
+        clubCreditExpiresAt: "2027-01-01T00:00:00.000Z",
+      },
+      2,
+      now
+    );
+    assert.equal(r.ok, true);
+    assert.equal(r.clubCreditBalance, 10);
   });
 
   it("rejects overspend", () => {

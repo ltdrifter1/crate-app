@@ -1,5 +1,5 @@
 // src/useAuth.js
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
@@ -226,11 +226,11 @@ export function useAuth() {
   }
 
   /** Re-read profile from Firestore (e.g. after Stripe checkout). */
-  async function refreshProfile() {
+  const refreshProfile = useCallback(async () => {
     const fbUser = auth.currentUser;
     if (!fbUser) return null;
     return ensureProfile(fbUser);
-  }
+  }, []);
 
   useEffect(() => {
     let cancelled = false;

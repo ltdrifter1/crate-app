@@ -4,7 +4,8 @@
  *   club     — $0.99/mo full streaming + membership card
  *   premium  — $10/year Club Credits for physical purchases
  *
- * Stripe Payment Links are placeholders until live checkout is wired.
+ * Checkout goes through Firebase Cloud Functions (Stripe Checkout Sessions).
+ * Payment Links are an unused fallback unless configured.
  */
 
 export const PLAN_IDS = {
