@@ -53,18 +53,11 @@ const SAMPLE_PLAYLISTS = [
 ];
 
 const SAMPLE_CHANNELS = [
-  { id: "rap", num: 3, shortTitle: "Rap City", title: "Rap City", tagline: "Bars after dark" },
-  { id: "rock", num: 5, shortTitle: "120 Minutes", title: "120 Minutes", tagline: "Alt + volume" },
-  { id: "pop", num: 1, shortTitle: "Total Request", title: "Total Request", tagline: "Countdown energy" },
-  { id: "y2k", num: 1, shortTitle: "Y2K Dance", title: "Y2K Dance", tagline: "Millennium dancefloor" },
+  { id: "rap", num: 3, shortTitle: "Rap City", title: "Rap City", tagline: "Bars after dark", art: "/channels/variety-mix.png" },
+  { id: "rock", num: 5, shortTitle: "120 Minutes", title: "120 Minutes", tagline: "Alt + volume", art: "/channels/shoegaze.png" },
+  { id: "pop", num: 1, shortTitle: "Total Request", title: "Total Request", tagline: "Countdown energy", art: "/channels/y2k-dance.png" },
+  { id: "y2k", num: 1, shortTitle: "Y2K Dance", title: "Y2K Dance", tagline: "Millennium dancefloor", art: "/channels/y2k-dance.png" },
 ];
-
-const SAMPLE_COVERS = {
-  rap: [SAMPLE_COVER],
-  rock: [SAMPLE_COVER],
-  pop: [SAMPLE_COVER],
-  y2k: [SAMPLE_COVER],
-};
 
 export default function BroadcastPreview() {
   const [screen, setScreen] = useState("home");
@@ -90,7 +83,6 @@ export default function BroadcastPreview() {
       />
       <ChannelSurfingSection
         channels={SAMPLE_CHANNELS}
-        channelCovers={SAMPLE_COVERS}
         activeChannelId="y2k"
         onTuneChannel={() => {}}
       />

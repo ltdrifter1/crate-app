@@ -15,6 +15,7 @@ import { countdownScore } from "./station";
  *   07 Metal                 → metal batch upload (+ genre fallback)
  *   08 Punk                  → punk batch upload (+ keywords)
  *   09 Country & Folk        → country-folk batch upload (+ genre fallback)
+ *   10 Downtempo             → downtempo / trip-hop / ambient scenes
  *
  * Batch uploads: set track.batch (or source) like audioasis-wave-1 —
  *   metal-wave-1 | punk-wave-1 | country-folk-wave-1
@@ -128,6 +129,19 @@ const COUNTRY_FOLK_KEYWORDS = [
   "country folk",
 ];
 
+const DOWNTOMPO_KEYWORDS = [
+  "downtempo",
+  "trip-hop",
+  "trip hop",
+  "triphop",
+  "chillout",
+  "chill-out",
+  "chill out",
+  "lounge",
+  "lo-fi",
+  "lofi",
+];
+
 /** Batch / source prefixes for channel upload waves (Audioasis-style). */
 export const CHANNEL_BATCH_PREFIXES = {
   "variety-mix": ["variety", "curator", "variety-mix"],
@@ -136,6 +150,7 @@ export const CHANNEL_BATCH_PREFIXES = {
   metal: ["metal"],
   punk: ["punk"],
   "country-folk": ["country-folk", "countryfolk", "country", "folk"],
+  downtempo: ["downtempo", "trip-hop", "triphop"],
 };
 
 /** Default Variety Mix pool size when no curator batch is present. */
@@ -152,6 +167,7 @@ export const CHANNEL_SOURCE_NOTES = {
   metal: { num: 7, source: "metal", note: "Metal — batch upload (`metal-wave-N`) + genre/scene fallback" },
   punk: { num: 8, source: "punk", note: "Punk — batch upload (`punk-wave-N`) + keywords" },
   "country-folk": { num: 9, source: "country-folk", note: "Country & Folk — batch upload (`country-folk-wave-N`) + genre fallback" },
+  downtempo: { num: 10, source: "genre", note: "Downtempo — trip-hop / chill / ambient scenes" },
 };
 
 function trackTextBlob(track) {
@@ -263,6 +279,25 @@ function isCountryFolkTrack(track) {
   return matchesKeywords(track, COUNTRY_FOLK_KEYWORDS);
 }
 
+export function isDowntempoTrack(track) {
+  if (!track) return false;
+  if (matchesChannelBatch(track, CHANNEL_BATCH_PREFIXES.downtempo)) return true;
+  if (trackMatchesScene(track, "downtempo")) return true;
+  if (trackMatchesScene(track, "ambient")) return true;
+  const rawGenre = String(track.genre || "").toLowerCase();
+  if (
+    rawGenre.includes("downtempo") ||
+    rawGenre.includes("trip-hop") ||
+    rawGenre.includes("trip hop") ||
+    rawGenre.includes("chill") ||
+    rawGenre.includes("ambient") ||
+    rawGenre.includes("lounge")
+  ) {
+    return true;
+  }
+  return matchesKeywords(track, DOWNTOMPO_KEYWORDS);
+}
+
 /** Soft expansions hint until batch mapping lands. */
 export function isElectronicUndergroundTrack(track) {
   if (!track) return false;
@@ -348,6 +383,7 @@ export const SCENE_CHANNELS = [
     genres: ["Electronic", "Pop"],
     vibe: "Y2K Dance",
     source: "genre",
+    art: "/channels/y2k-dance.png",
   },
   {
     id: "variety-mix",
@@ -366,6 +402,7 @@ export const SCENE_CHANNELS = [
     preferMatch: true,
     poolLimit: VARIETY_CROSS_GENRE_LIMIT,
     minTracks: 1,
+    art: "/channels/variety-mix.png",
   },
   {
     id: "local-pnw",
@@ -383,6 +420,7 @@ export const SCENE_CHANNELS = [
     strict: true,
     match: isLocalPnwTrack,
     minTracks: 1,
+    art: "/channels/local-pnw.png",
   },
   {
     id: "electronic-underground",
@@ -400,6 +438,7 @@ export const SCENE_CHANNELS = [
     match: isElectronicUndergroundTrack,
     preferMatch: true,
     minTracks: 1,
+    art: "/channels/electronic.png",
   },
   {
     id: "drum-and-bass",
@@ -413,6 +452,7 @@ export const SCENE_CHANNELS = [
     genres: ["Electronic"],
     vibe: "Drum & Bass",
     source: "genre",
+    art: "/channels/drum-and-bass.png",
   },
   {
     id: "shoegaze",
@@ -429,6 +469,7 @@ export const SCENE_CHANNELS = [
     strict: true,
     match: isShoegazeTrack,
     minTracks: 1,
+    art: "/channels/shoegaze.png",
   },
   {
     id: "metal",
@@ -446,6 +487,7 @@ export const SCENE_CHANNELS = [
     strict: true,
     match: isMetalTrack,
     minTracks: 1,
+    art: "/channels/metal.png",
   },
   {
     id: "punk",
@@ -463,6 +505,7 @@ export const SCENE_CHANNELS = [
     strict: true,
     match: isPunkTrack,
     minTracks: 1,
+    art: "/channels/punk.png",
   },
   {
     id: "country-folk",
@@ -480,6 +523,24 @@ export const SCENE_CHANNELS = [
     strict: true,
     match: isCountryFolkTrack,
     minTracks: 1,
+    art: "/channels/country-folk.png",
+  },
+  {
+    id: "downtempo",
+    num: 10,
+    title: "Downtempo",
+    shortTitle: "Downtempo",
+    dialSlug: "DOWNTEMPO",
+    tagline: "Trip-hop, chill, late listening",
+    accent: "#6E7A8A",
+    scenes: ["downtempo", "ambient"],
+    genres: [],
+    vibe: "Downtempo",
+    source: "genre",
+    strict: true,
+    match: isDowntempoTrack,
+    minTracks: 1,
+    art: "/channels/downtempo.png",
   },
 ];
 
@@ -557,6 +618,7 @@ export function availableSceneChannels(tracks = [], minTracks = 3) {
  * Prefers direct channel matches, then the ranked pool.
  */
 export function channelCoverUrls(tracks = [], channel, limit = 4) {
+  if (channel?.art) return [channel.art];
   const max = Math.max(1, limit);
   const seen = new Set();
   const out = [];

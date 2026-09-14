@@ -135,7 +135,7 @@ describe("chartHistory", () => {
 });
 
 describe("sceneChannels", () => {
-  test("dials CH-01 through CH-09 with Channel Surfing names", () => {
+  test("dials CH-01 through CH-10 with Channel Surfing names", () => {
     expect(SCENE_CHANNELS.map((c) => [c.num, c.title])).toEqual([
       [1, "Y2K Dance"],
       [2, "Variety Mix"],
@@ -146,6 +146,7 @@ describe("sceneChannels", () => {
       [7, "Metal"],
       [8, "Punk"],
       [9, "Country & Folk"],
+      [10, "Downtempo"],
     ]);
     expect(CHANNEL_SOURCE_NOTES["y2k-dance"].source).toBe("genre");
     expect(CHANNEL_SOURCE_NOTES["local-pnw"].source).toBe("audioasis");
@@ -154,9 +155,12 @@ describe("sceneChannels", () => {
     expect(CHANNEL_SOURCE_NOTES.metal.source).toBe("metal");
     expect(CHANNEL_SOURCE_NOTES.punk.source).toBe("punk");
     expect(CHANNEL_SOURCE_NOTES["country-folk"].source).toBe("country-folk");
+    expect(CHANNEL_SOURCE_NOTES.downtempo.source).toBe("genre");
     expect(CHANNEL_BATCH_PREFIXES.metal).toContain("metal");
     expect(CHANNEL_BATCH_PREFIXES.punk).toContain("punk");
     expect(CHANNEL_BATCH_PREFIXES["country-folk"]).toContain("country-folk");
+    expect(CHANNEL_BATCH_PREFIXES.downtempo).toContain("downtempo");
+    expect(SCENE_CHANNELS.every((c) => String(c.art || "").startsWith("/channels/"))).toBe(true);
     expect(getSceneChannel("variety-mix").tagline.toLowerCase()).not.toContain("evie");
     expect(getSceneChannel("electronic-underground").tagline.toLowerCase()).not.toContain("expansions");
   });
@@ -293,18 +297,25 @@ describe("sceneChannels", () => {
     expect(buildSceneChannelPool(tracks, electronic).map((t) => t.id).sort()).toEqual(["e1", "e3"]);
   });
 
-  test("channelCoverUrls returns distinct sleeves for mosaics", () => {
-    const tracks = [
-      { id: "1", title: "A", genre: "Electronic", duration: 180, audioUrl: "u", albumCover: "a.jpg", energy: 8, bpm: 130 },
-      { id: "2", title: "B", genre: "Electronic", duration: 180, audioUrl: "u", albumCover: "b.jpg", energy: 8, bpm: 132 },
-      { id: "3", title: "C", genre: "Electronic", duration: 180, audioUrl: "u", albumCover: "a.jpg", energy: 9 },
-      { id: "4", title: "D", genre: "Electronic", duration: 180, audioUrl: "u", albumCover: "c.jpg", energy: 7, bpm: 128 },
-      { id: "5", title: "E", genre: "Electronic", duration: 180, audioUrl: "u", albumCover: "d.jpg", energy: 8 },
-    ];
+  test("channelCoverUrls returns the generic channel photo", () => {
     const underground = getSceneChannel("electronic-underground");
-    const covers = channelCoverUrls(tracks, underground, 4);
-    expect(covers).toHaveLength(4);
-    expect(new Set(covers).size).toBe(4);
+    expect(channelCoverUrls([], underground, 4)).toEqual(["/channels/electronic.png"]);
+    expect(getSceneChannel("downtempo").art).toBe("/channels/downtempo.png");
+  });
+
+  test("CH-10 Downtempo matches trip-hop, chill, and ambient", () => {
+    const ch = getSceneChannel("downtempo");
+    expect(ch.num).toBe(10);
+    expect(ch.title).toBe("Downtempo");
+    const tracks = [
+      { id: "1", title: "Slow", genre: "Downtempo", duration: 180, audioUrl: "u" },
+      { id: "2", title: "Trip Hop Night", artist: "X", duration: 180, audioUrl: "u" },
+      { id: "3", title: "Haze", genre: "Ambient", duration: 180, audioUrl: "u" },
+      { id: "4", title: "Riff", genre: "Metal", duration: 180, audioUrl: "u" },
+      { id: "5", title: "Batch Chill", artist: "Y", duration: 180, audioUrl: "u", batch: "downtempo-wave-1" },
+    ];
+    expect(buildSceneChannelPool(tracks, ch).map((t) => t.id).sort()).toEqual(["1", "2", "3", "5"]);
+    expect(availableSceneChannels(tracks, 1).some((c) => c.id === "downtempo")).toBe(true);
   });
 });
 

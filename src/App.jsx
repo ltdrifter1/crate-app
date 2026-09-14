@@ -3992,6 +3992,12 @@ export default function App() {
       : channelInput;
     if (!channel) return;
     if (!guardFreePlay()) return;
+    // Already on this dial — the tile shows pause, so toggle transport.
+    if (activeSceneChannelIdRef.current === channel.id) {
+      if (!isPlayingRef.current) unlockAudioElements();
+      togglePlay();
+      return;
+    }
     const pool = buildSceneChannelPool(tracks, channel);
     if (!pool.length) {
       showToast("Nothing lined up on that channel yet");
