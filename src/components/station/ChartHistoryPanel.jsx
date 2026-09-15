@@ -424,16 +424,22 @@ export default function ChartHistoryPanel({
                 className="pmp-tune-key"
                 style={{
                   ...BTN_PRIMARY,
+                  width: "auto",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 8,
                   marginBottom: 16,
-                  padding: "13px 18px",
-                  fontSize: 16,
+                  padding: "10px 16px",
+                  minHeight: 40,
+                  fontSize: 15,
                   fontWeight: 650,
                   letterSpacing: -0.2,
                   textTransform: "none",
                   fontFamily: fontDisplay,
-                  borderRadius: 12,
+                  borderRadius: 10,
                 }}
               >
+                <Icon name="play" size={14} />
                 Play this chart
               </button>
             )}
@@ -567,7 +573,7 @@ function Empty({ note }) {
 }
 
 function ChartHero({ entry, active, onPlay, onAdd, onMore, onContextMenu }) {
-  const art = 132;
+  const art = 160;
   return (
     <article
       aria-label={`#${entry.rank} ${entry.title} by ${entry.artist}`}
@@ -650,20 +656,22 @@ function ChartHero({ entry, active, onPlay, onAdd, onMore, onContextMenu }) {
       <div style={{ minWidth: 0, flex: 1, display: "flex", flexDirection: "column", justifyContent: "center" }}>
         <div style={{
           fontFamily: fontDisplay,
-          fontSize: 13,
-          fontWeight: 650,
+          fontSize: "clamp(40px, 9vw, 56px)",
+          fontWeight: 780,
           color: chrome.signal,
-          letterSpacing: -0.1,
-          marginBottom: 4,
-          textShadow: `0 0 16px rgba(${chrome.cyanRgb},0.28)`,
+          letterSpacing: -1.6,
+          lineHeight: 0.9,
+          marginBottom: 8,
+          fontVariantNumeric: "tabular-nums",
+          textShadow: `0 0 28px rgba(${chrome.cyanRgb},0.35)`,
         }}>
-          #{entry.rank}
+          {entry.rank}
         </div>
         <div style={{
           fontFamily: fontDisplay,
-          fontSize: "clamp(20px, 4.6vw, 26px)",
-          fontWeight: 750,
-          letterSpacing: -0.55,
+          fontSize: "clamp(18px, 4.2vw, 24px)",
+          fontWeight: 720,
+          letterSpacing: -0.45,
           color: color.ink,
           lineHeight: 1.12,
           overflow: "hidden",
