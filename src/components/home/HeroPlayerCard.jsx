@@ -14,6 +14,7 @@ import Icon from "../ui/Icon";
 import { IceOrbPlay } from "../player/OrbitalControls";
 import VideoStage from "../station/VideoStage";
 import { EnergyShiftControl } from "../listen/EnergyShiftButton";
+import { HERO_IDLE_ART, HERO_IDLE_FOCUS } from "../../lib/channelArt";
 
 function fmtTime(secs = 0) {
   if (!Number.isFinite(secs) || secs < 0) secs = 0;
@@ -246,19 +247,35 @@ export default function HeroPlayerCard({
           style={{
             position: "absolute",
             inset: 0,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
           }}
         >
+          <img
+            src={HERO_IDLE_ART}
+            alt=""
+            style={{
+              position: "absolute",
+              inset: 0,
+              width: "100%",
+              height: "100%",
+              objectFit: "cover",
+              objectPosition: HERO_IDLE_FOCUS,
+              filter: "saturate(1.08) contrast(1.05)",
+            }}
+            draggable={false}
+          />
           <img
             src="/brand/planet-mp3-lockup-512.png"
             alt=""
             style={{
-              width: "48%",
-              maxWidth: 240,
-              opacity: 0.9,
-              filter: "drop-shadow(0 18px 40px rgba(0,0,0,0.5))",
+              position: "absolute",
+              left: "50%",
+              top: "46%",
+              width: "42%",
+              maxWidth: 220,
+              transform: "translate(-50%, -50%)",
+              opacity: 0.92,
+              filter: "drop-shadow(0 18px 40px rgba(0,0,0,0.55))",
+              zIndex: 1,
             }}
             draggable={false}
           />

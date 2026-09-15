@@ -6,7 +6,7 @@ import Icon from "../ui/Icon";
  * ChannelCard — art-first station tile (Apple Music / YouTube Music).
  * Generic channel photo, name, blurb, play. No album-cover mosaic.
  */
-function ChannelArt({ src, title, size, accent }) {
+function ChannelArt({ src, title, size, accent, objectPosition }) {
   const initial = (title || "?").trim().charAt(0).toUpperCase() || "?";
 
   if (src) {
@@ -16,6 +16,7 @@ function ChannelArt({ src, title, size, accent }) {
         alt=""
         width={size}
         height={size}
+        objectPosition={objectPosition}
         style={{ width: "100%", height: "100%", objectFit: "cover" }}
       />
     );
@@ -54,6 +55,7 @@ export default function ChannelCard({
   const width = size;
   const title = channel.shortTitle || channel.title;
   const photo = channel.art || null;
+  const focus = channel.artFocus || "center";
 
   return (
     <button
@@ -93,7 +95,7 @@ export default function ChannelCard({
             : "0 10px 24px rgba(0,0,0,0.36)",
         }}
       >
-        <ChannelArt src={photo} title={title} size={width} accent={channel.accent} />
+        <ChannelArt src={photo} title={title} size={width} accent={channel.accent} objectPosition={focus} />
 
         {(active || channel.showcase) && (
           <span
