@@ -14,6 +14,8 @@ function ChannelSurfingSection({
   onTuneChannel = null,
   first = true,
   delay = 0.02,
+  title = "Channel Surfing",
+  subtitle = "Flip the dial. Music stays on this stage.",
 }) {
   if (!channels.length) return null;
 
@@ -30,8 +32,8 @@ function ChannelSurfingSection({
       }}
     >
       <HomeBandHeader
-        title="Channel Surfing"
-        subtitle="Flip the dial. Music stays on this stage."
+        title={title}
+        subtitle={subtitle}
         action={null}
         meta={`${channels.length} channels`}
       />
