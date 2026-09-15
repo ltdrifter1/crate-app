@@ -371,10 +371,17 @@ export const SESSION_PROFILES = {
   study:      { label: "Study",         blurb: "Quiet focus with soft breaks", phases: [{ name: "Warm up", p: 0.15, e: 3 }, { name: "Cruise", p: 0.7, e: 2 }, { name: "Chill out", p: 0.15, e: 2 }] },
 };
 
-export function buildSession(allTracks, durationMins, activityId) {
+export function buildSession(allTracks, durationMins, activityId, options = {}) {
   const profile = SESSION_PROFILES[activityId];
   if (!profile) return [];
-  const pool = allTracks.filter(t => (t.duration||0) <= 900 && (t.duration||0) > 0);
+  let pool = allTracks.filter(t => (t.duration||0) <= 900 && (t.duration||0) > 0);
+  const genre = options.genre || null;
+  const genres = options.genres || (genre ? [genre] : null);
+  if (genres && genres.length) {
+    const want = new Set(genres.map((g) => normalizeGenre(g) || g).filter(Boolean));
+    const sliced = pool.filter((t) => want.has(normalizeGenre(t.genre) || t.genre));
+    if (sliced.length >= 3) pool = sliced;
+  }
   if (!pool.length) return [];
 
   const totalSecs = durationMins * 60;
