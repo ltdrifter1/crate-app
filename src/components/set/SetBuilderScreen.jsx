@@ -116,19 +116,6 @@ export default function SetBuilderScreen({
     setSavedToLibrary(true);
   }
 
-  const consoleBlock = (
-    <BoothConsole
-      duration={duration}
-      onDuration={setDuration}
-      activity={activity}
-      onActivity={setActivity}
-      genre={genre}
-      onGenre={setGenre}
-      poolGenres={poolGenres}
-      tintRgb={tintRgb}
-    />
-  );
-
   return (
     <div
       role="dialog"
@@ -147,13 +134,13 @@ export default function SetBuilderScreen({
       <style>{BOOTH_CSS}</style>
       <BoothAtmosphere covers={stats.covers} tintRgb={tintRgb} />
 
-      <div className="hide-scroll" style={{
+      <div style={{
         position: "relative",
         zIndex: 1,
         height: "100%",
-        overflowY: "auto",
         display: "flex",
         flexDirection: "column",
+        overflow: "hidden",
       }}>
         <header style={{
           display: "flex",
@@ -215,48 +202,43 @@ export default function SetBuilderScreen({
           </div>
         </header>
 
-        <div style={{
+        <div className="hide-scroll" style={{
           flex: 1,
+          minHeight: 0,
+          overflowY: "auto",
           width: "100%",
-          maxWidth: wide ? 1120 : 640,
+        }}>
+        <div style={{
+          width: "100%",
+          maxWidth: wide ? 1080 : 640,
           margin: "0 auto",
           padding: `0 ${homeSpace.gutter}px 8px`,
+          minWidth: 0,
         }}>
-          {wide ? (
-            <div style={{
-              display: "grid",
-              gridTemplateColumns: "1.2fr 0.8fr",
-              gap: 18,
-              alignItems: "stretch",
-            }}>
-              <BoothStage
-                session={session}
-                covers={stats.covers}
-                headline={headline}
-                profile={profile}
-                stats={stats}
-                durationLabel={durationLabel}
-                tintRgb={tintRgb}
-                arcPoints={arcPoints}
-                tall
-              />
-              {consoleBlock}
-            </div>
-          ) : (
-            <>
-              <BoothStage
-                session={session}
-                covers={stats.covers}
-                headline={headline}
-                profile={profile}
-                stats={stats}
-                durationLabel={durationLabel}
-                tintRgb={tintRgb}
-                arcPoints={arcPoints}
-              />
-              <div style={{ marginTop: 16 }}>{consoleBlock}</div>
-            </>
-          )}
+          <BoothStage
+            session={session}
+            covers={stats.covers}
+            headline={headline}
+            profile={profile}
+            stats={stats}
+            durationLabel={durationLabel}
+            tintRgb={tintRgb}
+            arcPoints={arcPoints}
+            tall={wide}
+          />
+          <div style={{ marginTop: 16, minWidth: 0 }}>
+            <BoothConsole
+              duration={duration}
+              onDuration={setDuration}
+              activity={activity}
+              onActivity={setActivity}
+              genre={genre}
+              onGenre={setGenre}
+              poolGenres={poolGenres}
+              tintRgb={tintRgb}
+              wrapVibes
+            />
+          </div>
 
           <SetPreview
             session={session}
@@ -265,14 +247,19 @@ export default function SetBuilderScreen({
             tintRgb={tintRgb}
           />
         </div>
+        </div>
 
         <div style={{
           flexShrink: 0,
           padding: `12px ${homeSpace.gutter}px calc(16px + env(safe-area-inset-bottom, 0px))`,
-          background: `linear-gradient(180deg, transparent 0%, ${color.canvas} 28%)`,
+          background: `
+            linear-gradient(180deg, rgba(8,10,13,0.2) 0%, ${color.canvas} 36%),
+            ${color.canvas}
+          `,
+          borderTop: `1px solid ${glass.borderSoft}`,
         }}>
           <div style={{
-            maxWidth: wide ? 1120 : 640,
+            maxWidth: wide ? 1080 : 640,
             margin: "0 auto",
             display: "flex",
             gap: 10,
@@ -376,8 +363,9 @@ function BoothStage({
   return (
     <div style={{
       position: "relative",
-      minHeight: tall ? 340 : 228,
-      height: tall ? "100%" : undefined,
+      width: "100%",
+      minHeight: tall ? 420 : 260,
+      height: tall ? 420 : 260,
       borderRadius: radio.radius,
       overflow: "hidden",
       border: radio.borderChrome,
@@ -507,6 +495,7 @@ function BoothConsole({
   onGenre,
   poolGenres,
   tintRgb,
+  wrapVibes = false,
 }) {
   return (
     <div style={{
@@ -518,7 +507,8 @@ function BoothConsole({
       display: "flex",
       flexDirection: "column",
       gap: 16,
-      minHeight: 0,
+      minWidth: 0,
+      overflow: "hidden",
     }}>
       <ConsoleLabel>Length</ConsoleLabel>
       <div role="group" aria-label="Set length" style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
@@ -547,11 +537,12 @@ function BoothConsole({
         style={{
           display: "flex",
           gap: 8,
-          overflowX: "auto",
+          flexWrap: wrapVibes ? "wrap" : "nowrap",
+          overflowX: wrapVibes ? "visible" : "auto",
           paddingBottom: 4,
-          margin: "0 -4px",
-          paddingLeft: 4,
-          paddingRight: 4,
+          margin: wrapVibes ? 0 : "0 -4px",
+          paddingLeft: wrapVibes ? 0 : 4,
+          paddingRight: wrapVibes ? 0 : 4,
         }}
       >
         {vibeEntries().map(([id, prof]) => {
@@ -588,6 +579,9 @@ function BoothConsole({
                 color: on ? "rgba(8,10,13,0.62)" : color.muted,
                 lineHeight: 1.3,
                 maxWidth: 140,
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                whiteSpace: "nowrap",
               }}>
                 {prof.blurb}
               </div>
@@ -690,7 +684,7 @@ function SetPreview({ session, phases, stats, tintRgb }) {
   }
 
   return (
-    <div style={{ marginTop: 20, paddingBottom: 8 }}>
+    <div style={{ marginTop: 20, paddingBottom: 28 }}>
       <div style={{
         display: "flex",
         justifyContent: "space-between",

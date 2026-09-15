@@ -54,6 +54,7 @@ describe("SetBuilderScreen", () => {
     expect(div.querySelector('[aria-label="Build a set"]')).toBeTruthy();
     expect(div.textContent).toMatch(/Build a set/);
     expect(div.textContent).toMatch(/In the booth|Sculpt/i);
+    expect(div.textContent).toMatch(/IN THE BOOTH/);
     expect(div.textContent).toMatch(/Live set/);
     expect(div.textContent).not.toMatch(/How long\?/);
     expect(div.textContent).not.toMatch(/Choose vibe/);

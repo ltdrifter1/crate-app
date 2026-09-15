@@ -13,7 +13,7 @@ export function makeSetPreviewCatalog() {
     title: [
       "Night Drive", "Cascade", "Iron Lung", "Haze", "Millennium",
       "After Hours", "Low Light", "Signal", "Booth Two", "Warm Up",
-    ][i % 10],
+    ][i % 10] + (i >= 10 ? ` ${Math.floor(i / 10) + 1}` : ""),
     artist: ["Signal", "Rain City", "Foundry", "Sol Park", "Low Light"][i % 5],
     albumCover: COVERS[i % COVERS.length],
     duration: 160 + (i % 8) * 17,
