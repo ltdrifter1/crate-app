@@ -36,7 +36,7 @@ function ChannelSurfingSection({
         meta={`${channels.length} channels`}
       />
 
-      <Rail gap={homeSpace.shelfGap} padBottom={6}>
+      <Rail gap={homeSpace.shelfGap} padTop={10} padBottom={14}>
         {channels.map((channel, i) => (
           <div
             key={channel.id}

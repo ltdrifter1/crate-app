@@ -270,6 +270,11 @@ const injectStyles = () => {
     @keyframes rise { from{opacity:0;transform:translateY(14px)} to{opacity:1;transform:none} }
     @keyframes fadeIn { from{opacity:0} to{opacity:1} }
     @keyframes shimmer { 0%{opacity:0.35} 50%{opacity:0.7} 100%{opacity:0.35} }
+    @keyframes pmpGoldSpin { to { transform: rotate(360deg); } }
+    @keyframes pmpGoldHalo {
+      0%, 100% { opacity: 0.7; }
+      50% { opacity: 1; }
+    }
     @keyframes stationIn { from{opacity:0;transform:translateY(18px) scale(0.985)} to{opacity:1;transform:none} }
     @keyframes roomEnter { from{opacity:0;transform:translateY(14px)} to{opacity:1;transform:none} }
     @keyframes trackSwap { from{opacity:0;transform:translateY(4px)} to{opacity:1;transform:none} }
@@ -518,6 +523,56 @@ const injectStyles = () => {
     }
     .pmp-lift:hover { transform: translateY(-2px); }
     .pmp-lift:active { transform: translateY(0) scale(0.985); opacity: 1; }
+    /* Local PNW featured rim — warm tungsten, not chrome gold spam */
+    .pmp-channel-card--gold .pmp-channel-card-frame::before {
+      content: "";
+      position: absolute;
+      inset: -3px;
+      border-radius: 17px;
+      z-index: 0;
+      pointer-events: none;
+      background: conic-gradient(
+        from 18deg,
+        rgba(255, 214, 140, 0.06) 0deg,
+        rgba(255, 220, 150, 0.92) 48deg,
+        rgba(176, 118, 38, 0.14) 96deg,
+        rgba(255, 236, 186, 0.88) 156deg,
+        rgba(158, 104, 32, 0.1) 214deg,
+        rgba(255, 204, 110, 0.9) 292deg,
+        rgba(255, 214, 140, 0.06) 360deg
+      );
+      filter: blur(0.35px);
+      animation: pmpGoldSpin 9s linear infinite;
+    }
+    .pmp-channel-card--gold .pmp-channel-card-frame::after {
+      content: "";
+      position: absolute;
+      inset: -6px;
+      border-radius: 20px;
+      z-index: 0;
+      pointer-events: none;
+      box-shadow:
+        0 0 10px rgba(212, 160, 64, 0.4),
+        0 0 22px rgba(176, 118, 36, 0.18);
+      animation: pmpGoldHalo 3.8s ease-in-out infinite;
+    }
+    .pmp-channel-card--gold .pmp-channel-card-art::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      pointer-events: none;
+      z-index: 3;
+      box-shadow: inset 0 0 0 1.25px rgba(255, 220, 150, 0.48);
+      background: linear-gradient(
+        125deg,
+        rgba(255, 236, 190, 0.16) 0%,
+        transparent 30%,
+        transparent 70%,
+        rgba(255, 196, 90, 0.08) 100%
+      );
+      mix-blend-mode: screen;
+    }
     .pmp-press { transition: transform ${motion.fast} ${motion.ease}, box-shadow ${motion.base} ${motion.ease}, background ${motion.base}; }
     .pmp-press:active { transform: scale(0.94); opacity: 1; }
     .pmp-live-led {

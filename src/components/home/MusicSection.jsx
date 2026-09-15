@@ -123,7 +123,7 @@ export default function MusicSection({
 /**
  * Horizontal snap rail — same gutter as MusicSection titles.
  */
-export function Rail({ children, gap = 14, padBottom = 4 }) {
+export function Rail({ children, gap = 14, padTop = 2, padBottom = 4 }) {
   const ref = useRef(null);
   const drag = useRef({ active: false, startX: 0, scrollLeft: 0, moved: false });
 
@@ -198,7 +198,7 @@ export function Rail({ children, gap = 14, padBottom = 4 }) {
         gap,
         overflowX: "auto",
         overflowY: "hidden",
-        padding: `2px ${homeSpace.gutter}px ${padBottom}px`,
+        padding: `${padTop}px ${homeSpace.gutter}px ${padBottom}px`,
         scrollSnapType: "x proximity",
         WebkitOverflowScrolling: "touch",
         touchAction: "pan-x",
