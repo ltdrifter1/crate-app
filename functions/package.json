@@ -9,8 +9,8 @@
   "scripts": {
     "serve": "firebase emulators:start --only functions",
     "deploy": "firebase deploy --only functions",
-    "lint": "node --check index.js && node --check lib/plans.js && node --check lib/syncMembership.js && node --check lib/listening.js && node --check lib/homeLite.js",
-    "test": "node --test lib/plans.test.js lib/listening.test.js lib/syncMembership.test.js lib/homeLite.test.js"
+    "lint": "node --check index.js && node --check lib/plans.js && node --check lib/syncMembership.js && node --check lib/listening.js && node --check lib/homeLite.js && node --check lib/stationChat.js",
+    "test": "node --test lib/plans.test.js lib/listening.test.js lib/syncMembership.test.js lib/homeLite.test.js lib/stationChat.test.js"
   },
   "dependencies": {
     "firebase-admin": "^13.0.2",

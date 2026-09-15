@@ -7,6 +7,9 @@ rules_version = '2';
 // Signed-in users may only nudge popularity counters on tracks.
 // Admin (custom claim or known UID) may create/update/delete tracks.
 // Sessions are private to the creating user.
+// Station chat: public read on stationChat/home/{messages,presence};
+// signed-in users create messages (200 chars, server timestamp) and own presence.
+// Billing/subscription fields: clients may write Free defaults on create/backfill.
 // Billing/subscription fields: clients may write Free defaults on create/backfill.
 // Paid / trial-with-end-date status is Admin SDK (Stripe webhook) or admin UID only.
 // Mixtape Club: public mixes readable by anyone; owners write their mixes;
@@ -131,6 +134,52 @@ service cloud.firestore {
         && request.resource.data.fromName.size() > 0
         && request.resource.data.fromName.size() <= 24;
       allow update, delete: if isAdmin();
+    }
+
+    // Station chat — Home messenger. Public read (who's listening / station chat).
+    // Authenticated create only; text is capped; createdAt must be server time.
+    // Client rate-limits; Cloud Function moderateStationChat is the flood backstop.
+    match /stationChat/{roomId}/messages/{messageId} {
+      allow read: if roomId == 'home';
+      allow create: if isSignedIn()
+        && roomId == 'home'
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.keys().hasOnly([
+          'uid', 'displayName', 'text', 'createdAt', 'clientId', 'trackId', 'trackTitle'
+        ])
+        && request.resource.data.displayName is string
+        && request.resource.data.displayName.size() > 0
+        && request.resource.data.displayName.size() <= 24
+        && request.resource.data.text is string
+        && request.resource.data.text.size() > 0
+        && request.resource.data.text.size() <= 200
+        && request.resource.data.createdAt == request.time
+        && request.resource.data.clientId is string
+        && request.resource.data.clientId.size() > 0
+        && request.resource.data.clientId.size() <= 40
+        && (!('trackId' in request.resource.data) || request.resource.data.trackId is string)
+        && (!('trackTitle' in request.resource.data)
+          || (request.resource.data.trackTitle is string
+            && request.resource.data.trackTitle.size() <= 80));
+      allow update, delete: if isAdmin();
+    }
+
+    match /stationChat/{roomId}/presence/{uid} {
+      allow read: if roomId == 'home';
+      allow create, update: if isSignedIn()
+        && roomId == 'home'
+        && request.auth.uid == uid
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.displayName is string
+        && request.resource.data.displayName.size() > 0
+        && request.resource.data.displayName.size() <= 24
+        && request.resource.data.keys().hasOnly([
+          'uid', 'displayName', 'lastSeen', 'lastChatAt', 'color'
+        ])
+        && (!('lastChatAt' in request.resource.data)
+          || request.resource.data.lastChatAt is int
+          || request.resource.data.lastChatAt is float);
+      allow delete: if isSignedIn() && request.auth.uid == uid;
     }
 
     match /sessions/{sessionId} {

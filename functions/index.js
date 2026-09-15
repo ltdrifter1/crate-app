@@ -8,7 +8,7 @@
  *   STRIPE_PREMIUM_PRICE_ID
  */
 const { onCall, onRequest, HttpsError } = require("firebase-functions/v2/https");
-const { onDocumentWritten } = require("firebase-functions/v2/firestore");
+const { onDocumentWritten, onDocumentCreated } = require("firebase-functions/v2/firestore");
 const { defineSecret, defineString } = require("firebase-functions/params");
 const admin = require("firebase-admin");
 const Stripe = require("stripe");
@@ -32,6 +32,7 @@ const {
   FREE_PLAYS_PER_DAY,
 } = require("./lib/listening");
 const { publishHomeLite } = require("./lib/homeLite");
+const { moderateNewMessage } = require("./lib/stationChat");
 
 if (!admin.apps.length) {
   admin.initializeApp();
@@ -480,5 +481,28 @@ exports.rebuildHomeLite = onDocumentWritten(
   },
   async () => {
     scheduleHomeLiteRebuild();
+  }
+);
+
+/**
+ * Station chat flood / sanitize backstop. Client still writes directly for snappy send.
+ */
+exports.moderateStationChat = onDocumentCreated(
+  {
+    document: "stationChat/{roomId}/messages/{messageId}",
+    region: FUNCTIONS_REGION,
+  },
+  async (event) => {
+    const data = event.data?.data?.();
+    if (!data) return;
+    try {
+      await moderateNewMessage(admin.firestore(), {
+        roomId: event.params.roomId,
+        messageId: event.params.messageId,
+        data,
+      });
+    } catch (err) {
+      console.error("moderateStationChat failed", err);
+    }
   }
 );

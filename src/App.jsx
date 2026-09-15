@@ -166,6 +166,11 @@ const LazyTasteTuner = lazy(() => import("./components/onboarding/TasteTuner"));
 const LazyLinerNotesSheet = lazy(() => import("./components/catalog/LinerNotesSheet"));
 const LazyDedicateSheet = lazy(() => import("./components/station/DedicateSheet"));
 const LazyStationBumper = lazy(() => import("./components/station/StationBumper"));
+const LazyHomeMessenger = lazy(() => import("./components/chat/HomeMessenger"));
+const DevChatPreview =
+  process.env.NODE_ENV !== "production"
+    ? lazy(() => import("./preview/ChatPreview"))
+    : null;
 
 const injectStyles = () => {
   if (document.getElementById("rooms-app-global-styles")) return;
@@ -870,6 +875,8 @@ export default function App() {
   const onHomeStageVisibilityChange = useCallback((visible) => {
     setHomeStageVisible(!!visible);
   }, []);
+  const [homeChatReady, setHomeChatReady] = useState(false);
+  useEffect(() => runAfterPaint(() => setHomeChatReady(true)), []);
   useEffect(() => {
     if (screen !== "home") setHomeStageVisible(true);
   }, [screen]);
@@ -3000,6 +3007,17 @@ export default function App() {
       </Suspense>
     );
   }
+  if (
+    DevChatPreview &&
+    typeof window !== "undefined" &&
+    (window.location.hash === "#chat-preview" || window.location.hash === "#chat-preview-open")
+  ) {
+    return (
+      <Suspense fallback={<div style={{ minHeight: "100dvh", background: color.canvas }} />}>
+        <DevChatPreview />
+      </Suspense>
+    );
+  }
 
   // ── Loading states ────────────────────────────────────────────────────────
   // Auth restore — keep the HTML boot splash's dark canvas; skip Lottie on the critical path.
@@ -3440,6 +3458,17 @@ export default function App() {
           access={access}
           onOpenPlans={handleOpenPlans}
         />
+      )}
+      {homeChatReady && screen === "home" && !immersive && (
+        <Suspense fallback={null}>
+          <LazyHomeMessenger
+            variant="mobile"
+            uid={firebaseUser?.uid || null}
+            displayName={profile?.displayName || profile?.username || firebaseUser?.displayName || "Listener"}
+            nowPlaying={currentTrack}
+            hasDockPlayer={!!currentTrack && !hideDockPlayer}
+          />
+        </Suspense>
       )}
       {boothPlayer}
       {listeningOverlays}
@@ -3919,6 +3948,17 @@ export default function App() {
           )}
         </div>
       </div>
+
+      {homeChatReady && screen === "home" && (
+        <Suspense fallback={null}>
+          <LazyHomeMessenger
+            variant="desktop"
+            uid={firebaseUser?.uid || null}
+            displayName={profile?.displayName || profile?.username || firebaseUser?.displayName || "Listener"}
+            nowPlaying={currentTrack}
+          />
+        </Suspense>
+      )}
 
       {/* Listening overlays + Booth */}
       {listeningOverlays}

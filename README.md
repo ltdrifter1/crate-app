@@ -57,6 +57,12 @@ firebase deploy --only firestore:rules,storage
 
 Files: `firestore.rules`, `storage.rules`, `firebase.json`.
 
+Station chat (Home messenger) needs those rules live before anyone else can read/write `stationChat/home`. Optional flood backstop:
+
+```bash
+firebase deploy --only functions:moderateStationChat,firestore:rules
+```
+
 Until this runs, Console rules may still be looser/outdated than the repo.
 
 ### A note on rules
