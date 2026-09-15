@@ -171,6 +171,7 @@ describe("Home broadcast + four-tab IA", () => {
     expect(div.textContent).toMatch(/Morning Signal/);
     expect(div.textContent).toMatch(/Sol Park/);
     expect(div.querySelector('[aria-label*="Up first Morning Signal"]')).toBeTruthy();
+    expect(div.querySelectorAll("img").length).toBeGreaterThanOrEqual(2);
   });
 
   test("live hero has energy-shift beaker and dislike, not a Request button", async () => {

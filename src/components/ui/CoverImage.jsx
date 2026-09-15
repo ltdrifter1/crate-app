@@ -23,6 +23,7 @@ export function coverSizeAttrs(size) {
  * @param {number} props.height
  * @param {string} [props.sizes]
  * @param {boolean} [props.priority] — eager load (hero / above-fold)
+ * @param {string} [props.objectPosition] — CSS object-position for art crops
  * @param {object} [props.style]
  * @param {string} [props.className]
  * @param {boolean} [props.draggable]
@@ -36,6 +37,7 @@ export default function CoverImage({
   height,
   sizes,
   priority = false,
+  objectPosition,
   style,
   className,
   draggable = false,
@@ -68,6 +70,7 @@ export default function CoverImage({
         width: "100%",
         height: "100%",
         objectFit: "cover",
+        objectPosition: objectPosition || "center",
         display: "block",
         ...style,
       }}
