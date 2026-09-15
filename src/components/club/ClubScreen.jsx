@@ -29,6 +29,7 @@ import { getFloorPhase, hapticTap } from "../../lib/club";
 import { BrandGlyph as DoorGlyph } from "../brand/BrandMark";
 import CollapsingHeader from "../layout/CollapsingHeader";
 import { InterestsPanel } from "../listen/InterestsPanel";
+import FeatureGuidePanel from "../guide/FeatureGuidePanel";
 import CollectorPanel from "./CollectorPanel";
 import FreePlaysMeter from "../billing/FreePlaysMeter";
 import { freePlaysRemaining, freePlaysMeterLabel } from "../../lib/freePlays";
@@ -95,6 +96,7 @@ const PRIVILEGES_BY_TIER = {
 const SETTINGS_TABS = [
   { id: "club", label: "Club" },
   { id: "interests", label: "Interests" },
+  { id: "guide", label: "Guide" },
 ];
 
 export default function ClubScreen({
@@ -112,9 +114,10 @@ export default function ClubScreen({
   signalLabel = null,
   onPlayTrack = null,
   initialTab = "club",
+  onReplayTour = null,
 }) {
   const [settingsTab, setSettingsTab] = useState(
-    initialTab === "interests" ? "interests" : "club"
+    initialTab === "interests" || initialTab === "guide" ? initialTab : "club"
   );
   const liked = useMemo(() => tracks.filter((t) => t.liked), [tracks]);
   const memberLine = membershipSummary(access);
@@ -142,7 +145,7 @@ export default function ClubScreen({
   }, []);
 
   useEffect(() => {
-    if (initialTab === "interests" || initialTab === "club") {
+    if (initialTab === "interests" || initialTab === "club" || initialTab === "guide") {
       setSettingsTab(initialTab);
     }
   }, [initialTab]);
@@ -182,7 +185,13 @@ export default function ClubScreen({
     <div style={{ padding: "0 0 28px" }}>
       <CollapsingHeader
         title="Club"
-        subtitle={settingsTab === "interests" ? "Settings · Your interests" : CLUB_TAGLINE}
+        subtitle={
+          settingsTab === "interests"
+            ? "Settings · Your interests"
+            : settingsTab === "guide"
+              ? "Settings · How it works"
+              : CLUB_TAGLINE
+        }
       />
 
       <div style={{ padding: `12px ${homeSpace.gutter}px 0` }}>
@@ -220,6 +229,8 @@ export default function ClubScreen({
             onPlayTrack={onPlayTrack}
             showIntro
           />
+        ) : settingsTab === "guide" ? (
+          <FeatureGuidePanel onReplayTour={onReplayTour} />
         ) : (
           <>
         {/* Collectible membership card */}
@@ -627,6 +638,41 @@ export default function ClubScreen({
               {access?.canUpgradeClub ? `Join Club — ${formatPriceClub()}` : `Go Premium — ${formatPricePremium()}`}
             </button>
           )}
+        </section>
+
+        <section style={{ marginBottom: 26 }}>
+          <div style={sectionLabel}>How it works</div>
+          <button
+            type="button"
+            onClick={() => setSettingsTab("guide")}
+            style={{
+              width: "100%",
+              textAlign: "left",
+              padding: "16px 16px 14px",
+              borderRadius: radius.lg,
+              border: `1px solid ${glass.borderSoft}`,
+              background: glass.plate,
+              boxShadow: `inset 0 1px 0 ${glass.highlight}, ${glass.shadowSoft}`,
+              cursor: "pointer",
+              color: "inherit",
+            }}
+          >
+            <div
+              style={{
+                fontSize: 17,
+                fontWeight: 680,
+                fontFamily: fontDisplay,
+                letterSpacing: -0.3,
+                color: color.ink,
+                marginBottom: 6,
+              }}
+            >
+              Review the guide
+            </div>
+            <div style={{ fontSize: 14, color: color.body, lineHeight: 1.4 }}>
+              Home, Explore, Library, the booth, Charts, the player, Club, and live chat — replay the short tour anytime.
+            </div>
+          </button>
         </section>
 
         <button
