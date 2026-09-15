@@ -48,3 +48,14 @@ export const CHANNEL_ART_FOCUS = {
 /** Idle Home hero — club documentary, not a catalog sleeve. */
 export const HERO_IDLE_ART = heroIdle;
 export const HERO_IDLE_FOCUS = "62% 42%";
+
+/**
+ * Resolve a Channel Surfing photo without baking webpack image URLs into
+ * the scene-channel catalog module (that module is on App's critical path).
+ */
+export function resolveChannelArt(channel) {
+  if (!channel) return { src: null, focus: "center" };
+  const src = channel.art || CHANNEL_ART[channel.id] || null;
+  const focus = channel.artFocus || CHANNEL_ART_FOCUS[channel.id] || "center";
+  return { src, focus };
+}

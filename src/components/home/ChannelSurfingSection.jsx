@@ -48,6 +48,8 @@ function ChannelSurfingSection({
               channel={channel}
               active={activeChannelId === channel.id}
               size={tile}
+              priority={i === 0}
+              eager={i > 0 && i < 3}
               onClick={() => onTuneChannel?.(channel)}
             />
           </div>
