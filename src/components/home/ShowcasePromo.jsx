@@ -101,6 +101,7 @@ export default function ShowcasePromo({
             width={356}
             height={200}
             priority
+            objectPosition={channel.artFocus || "center 40%"}
             style={{
               width: "100%",
               height: 168,
