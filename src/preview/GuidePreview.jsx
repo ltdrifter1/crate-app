@@ -31,15 +31,17 @@ export default function GuidePreview() {
   return (
     <div style={{ minHeight: "100dvh", background: color.canvas }}>
       {phase === "club" && (
-        <ClubScreen
-          user={PREVIEW_USER}
-          tracks={[]}
-          onLogout={() => {}}
-          profile={PREVIEW_PROFILE}
-          recentTracks={[]}
-          initialTab="guide"
-          onReplayTour={() => setReplay(true)}
-        />
+        <div style={{ maxWidth: 960, margin: "0 auto" }}>
+          <ClubScreen
+            user={PREVIEW_USER}
+            tracks={[]}
+            onLogout={() => {}}
+            profile={PREVIEW_PROFILE}
+            recentTracks={[]}
+            initialTab="guide"
+            onReplayTour={() => setReplay(true)}
+          />
+        </div>
       )}
       {showTour && (
         <FeatureTour

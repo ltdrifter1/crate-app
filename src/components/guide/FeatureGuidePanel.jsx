@@ -11,7 +11,11 @@ export default function FeatureGuidePanel({
   onReplayTour = null,
 }) {
   return (
-    <section data-testid="feature-guide-panel" aria-label="How Planet MP3 works">
+    <section
+      data-testid="feature-guide-panel"
+      aria-label="How Planet MP3 works"
+      style={{ maxWidth: 560 }}
+    >
       <div
         style={{
           marginBottom: 22,

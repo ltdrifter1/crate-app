@@ -4,7 +4,7 @@
  */
 import { useState } from "react";
 import {
-  font, fontDisplay, fontMono, color, y2k,
+  font, fontDisplay, fontMono, color, y2k, glass, radius,
   BTN_PRIMARY, motion,
 } from "../../theme";
 import { FEATURE_GUIDE_STEPS } from "../../lib/featureGuide";
@@ -42,38 +42,36 @@ export default function FeatureTour({
         position: "fixed",
         inset: 0,
         zIndex: 280,
-        background: color.canvas,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: "16px",
+        background: `
+          radial-gradient(ellipse 80% 70% at 20% 0%, rgba(101,230,255,0.10) 0%, transparent 55%),
+          radial-gradient(ellipse 50% 50% at 90% 10%, rgba(123,167,255,0.08) 0%, transparent 50%),
+          ${color.canvas}
+        `,
         overflow: "auto",
         fontFamily: font,
         animation: "fadeIn 0.35s ease both",
       }}
     >
       <div
-        aria-hidden="true"
-        style={{
-          position: "absolute",
-          top: 0,
-          left: 0,
-          right: 0,
-          height: 220,
-          background: `
-            radial-gradient(ellipse 80% 70% at 20% 0%, rgba(101,230,255,0.10) 0%, transparent 55%),
-            radial-gradient(ellipse 50% 50% at 90% 10%, rgba(123,167,255,0.08) 0%, transparent 50%)
-          `,
-          pointerEvents: "none",
-        }}
-      />
-
-      <div
         style={{
           position: "relative",
           zIndex: 1,
-          minHeight: "100dvh",
+          width: "100%",
+          maxWidth: 420,
+          minHeight: "min(680px, calc(100dvh - 32px))",
           display: "flex",
           flexDirection: "column",
-          maxWidth: 440,
-          margin: "0 auto",
-          padding: "18px 24px 28px",
+          padding: "18px 22px 22px",
+          borderRadius: radius.xl,
+          border: `1px solid ${glass.border}`,
+          background: glass.plate || color.surfaceSolid,
+          boxShadow: `inset 0 1px 0 ${glass.highlight}, ${glass.shadowLift || "0 24px 60px rgba(0,0,0,0.45)"}`,
+          backdropFilter: glass.blur,
+          WebkitBackdropFilter: glass.blur,
         }}
       >
         <div
