@@ -173,9 +173,12 @@ const DevChatPreview =
     : null;
 
 const injectStyles = () => {
-  if (document.getElementById("rooms-app-global-styles")) return;
-  const s = document.createElement("style");
-  s.id = "rooms-app-global-styles";
+  let s = document.getElementById("rooms-app-global-styles");
+  if (!s) {
+    s = document.createElement("style");
+    s.id = "rooms-app-global-styles";
+    document.head.appendChild(s);
+  }
   s.textContent = `
     * { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
@@ -283,20 +286,14 @@ const injectStyles = () => {
     @keyframes shimmer { 0%{opacity:0.35} 50%{opacity:0.7} 100%{opacity:0.35} }
     @keyframes pmpGoldGlow {
       0%, 100% {
-        opacity: 0.38;
-        transform: scale(1);
-        box-shadow:
-          0 0 0 1px rgba(232, 196, 118, 0.5),
-          0 0 10px 2px rgba(212, 160, 64, 0.22),
-          0 0 20px 7px rgba(176, 118, 36, 0.1);
+        opacity: 0.16;
+        transform: scale(0.94);
+        filter: blur(7px);
       }
       50% {
         opacity: 1;
-        transform: scale(1.045);
-        box-shadow:
-          0 0 0 2px rgba(255, 224, 160, 0.95),
-          0 0 18px 5px rgba(232, 176, 64, 0.55),
-          0 0 36px 12px rgba(196, 140, 40, 0.3);
+        transform: scale(1.14);
+        filter: blur(16px);
       }
     }
     @keyframes stationIn { from{opacity:0;transform:translateY(18px) scale(0.985)} to{opacity:1;transform:none} }
@@ -555,17 +552,15 @@ const injectStyles = () => {
     .pmp-channel-card--gold .pmp-channel-card-frame::before {
       content: "";
       position: absolute;
-      inset: 0;
-      border-radius: 16px;
+      inset: -6px;
+      border-radius: 20px;
       z-index: 0;
       pointer-events: none;
       transform-origin: center;
-      will-change: transform, opacity, box-shadow;
-      box-shadow:
-        0 0 0 1.5px rgba(242, 205, 120, 0.88),
-        0 0 12px 3px rgba(212, 160, 64, 0.42),
-        0 0 28px 10px rgba(184, 128, 40, 0.24);
-      animation: pmpGoldGlow 2.8s ease-in-out infinite;
+      background: #E8B84A;
+      filter: blur(10px);
+      will-change: transform, opacity, filter;
+      animation: pmpGoldGlow 2.4s ease-in-out infinite;
     }
     .pmp-press { transition: transform ${motion.fast} ${motion.ease}, box-shadow ${motion.base} ${motion.ease}, background ${motion.base}; }
     .pmp-press:active { transform: scale(0.94); opacity: 1; }
@@ -709,7 +704,6 @@ const injectStyles = () => {
       }
     }
   `;
-  document.head.appendChild(s);
 };
 injectStyles();
 
