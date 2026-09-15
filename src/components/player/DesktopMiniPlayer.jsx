@@ -11,6 +11,9 @@ import { useIsPlaying } from "../../usePlayerTransport";
 import { EnergyShiftFeedback, EnergyShiftControl } from "../listen/EnergyShiftButton";
 import FreePlaysMeter from "../billing/FreePlaysMeter";
 import { freePlaysMeterLabel } from "../../lib/freePlays";
+import Icon from "../ui/Icon";
+import { IceOrbPlay, OrbitalArtRing } from "./OrbitalControls";
+import { dockTintStyle } from "../../lib/dockTint";
 
 export default function DesktopMiniPlayer({
   track,
@@ -21,10 +24,6 @@ export default function DesktopMiniPlayer({
   onLikeToggle,
   onDislike = null,
   onSeek,
-  OrbitalArtRing,
-  IceOrbPlay,
-  Icon,
-  dockTintStyle,
   playsRemaining = null,
   access = null,
   onOpenPlans = null,

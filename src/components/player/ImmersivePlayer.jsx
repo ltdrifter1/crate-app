@@ -21,6 +21,8 @@ import { fmtTime, hexToRgbStr } from "../../lib/harmony";
 import { usePlayerPlayback } from "../../usePlayerPlayback";
 import { useIsPlaying } from "../../usePlayerTransport";
 import { EnergyShiftFeedback, EnergyShiftControl } from "../listen/EnergyShiftButton";
+import Icon from "../ui/Icon";
+import { IceOrbPlay } from "./OrbitalControls";
 import {
   DedicationFlash,
   HypnoVisualizer,
@@ -328,8 +330,6 @@ export default function ImmersivePlayer({
   tracks = [],
   sceneChannelsActiveId = null,
   onTuneSceneChannel = null,
-  Icon,
-  IceOrbPlay,
 }) {
   const { progress, duration } = usePlayerPlayback();
   const isPlaying = useIsPlaying();

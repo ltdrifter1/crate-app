@@ -260,6 +260,7 @@ export default function HeroPlayerCard({
             width={1280}
             height={800}
             eager
+            raw
             objectPosition={HERO_IDLE_FOCUS}
             style={{
               position: "absolute",

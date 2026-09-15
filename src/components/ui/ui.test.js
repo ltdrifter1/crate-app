@@ -34,6 +34,27 @@ describe("CoverImage loading", () => {
     document.body.removeChild(div);
   });
 
+  it("rewrites Firebase Storage covers through /cdn-cgi/image", async () => {
+    const div = document.createElement("div");
+    document.body.appendChild(div);
+    const root = createRoot(div);
+    const src = "https://storage.googleapis.com/bucket/covers/a.jpg";
+    await act(async () => {
+      root.render(
+        React.createElement(CoverImage, {
+          src,
+          width: 168,
+          height: 168,
+        })
+      );
+    });
+    const img = div.querySelector("img");
+    expect(img.getAttribute("src")).toContain("/cdn-cgi/image/");
+    expect(img.getAttribute("src")).toContain(src);
+    await act(async () => root.unmount());
+    document.body.removeChild(div);
+  });
+
   it("eager without priority does not steal LCP", async () => {
     const div = document.createElement("div");
     document.body.appendChild(div);

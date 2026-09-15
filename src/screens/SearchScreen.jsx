@@ -1,10 +1,11 @@
-import { useEffect, useState, memo } from "react";
+import { useEffect, useMemo, useState, memo } from "react";
 import Icon from "../components/ui/Icon";
 import VirtualList from "../components/ui/VirtualList";
 import GenreSceneBrowse from "../components/search/GenreSceneBrowse";
 import { AlbumArt } from "../components/listen/AlbumArt";
 import { TrackRow } from "../components/listen/TrackRow";
 import { useCurrentTrack } from "../usePlayerTransport";
+import { rankSearchResults, searchEntityHits } from "../lib/searchRank";
 import {
   BTN_SECONDARY,
   INPUT_ST,
@@ -17,14 +18,23 @@ import {
 } from "../theme";
 
 function SearchScreen({
-  query, setQuery, results, onPlay, onLike, playlistCtx,
-  entityHits, onOpenArtist, onOpenAlbum, tracks = [], onListenIntent = null,
+  query, setQuery, results: resultsProp, onPlay, onLike, playlistCtx,
+  entityHits: entityHitsProp, onOpenArtist, onOpenAlbum, tracks = [], onListenIntent = null,
   recentSearches = [], onPickRecent = null, onClearRecent = null,
   onBack = null,
 }) {
   const currentTrack = useCurrentTrack();
   const [showAllResults, setShowAllResults] = useState(false);
+  const [debounced, setDebounced] = useState(query);
+  useEffect(() => {
+    const t = setTimeout(() => setDebounced(query), 180);
+    return () => clearTimeout(t);
+  }, [query]);
   useEffect(() => { setShowAllResults(false); }, [query]);
+  const computedResults = useMemo(() => rankSearchResults(tracks, debounced), [tracks, debounced]);
+  const computedEntities = useMemo(() => searchEntityHits(tracks, debounced), [tracks, debounced]);
+  const results = resultsProp || computedResults;
+  const entityHits = entityHitsProp || computedEntities;
   const RESULT_CAP = 50;
   const visibleResults = showAllResults ? results : results.slice(0, RESULT_CAP);
   const useVirtual = showAllResults && results.length > RESULT_CAP;
