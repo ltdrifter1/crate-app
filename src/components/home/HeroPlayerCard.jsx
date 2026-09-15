@@ -13,6 +13,7 @@ import { trackHasVideo } from "../../lib/video";
 import Icon from "../ui/Icon";
 import { IceOrbPlay } from "../player/OrbitalControls";
 import VideoStage from "../station/VideoStage";
+import { EnergyShiftControl } from "../listen/EnergyShiftButton";
 
 function fmtTime(secs = 0) {
   if (!Number.isFinite(secs) || secs < 0) secs = 0;
@@ -135,9 +136,8 @@ export default function HeroPlayerCard({
   onSkip = null,
   onPrev = null,
   onLike = null,
+  onDislike = null,
   onOpen = null,
-  onRequest = null,
-  requested = false,
   onVisibilityChange = null,
   onSeek = null,
   tickerText = "",
@@ -441,46 +441,21 @@ export default function HeroPlayerCard({
               />
               <ChromeIconButton label="Next" icon="skip" onClick={onSkip} />
               <span style={{ flex: 1 }} />
-              {onRequest && (
-                <button
-                  type="button"
-                  aria-label={requested ? "Requested" : "Request this cut"}
-                  aria-pressed={requested || undefined}
-                  disabled={requested}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onRequest();
-                  }}
-                  className="pmp-press"
-                  style={{
-                    padding: "0 14px",
-                    height: 40,
-                    borderRadius: 10,
-                    border: `1px solid ${requested ? "rgba(255,255,255,0.22)" : "rgba(255,255,255,0.14)"}`,
-                    background: requested ? "rgba(255,255,255,0.16)" : "rgba(8,10,13,0.5)",
-                    color: y2k.offWhite,
-                    fontSize: 13,
-                    fontWeight: 600,
-                    letterSpacing: -0.08,
-                    cursor: requested ? "default" : "pointer",
-                    backdropFilter: "blur(12px)",
-                    WebkitBackdropFilter: "blur(12px)",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 6,
-                    boxShadow: "none",
-                  }}
-                >
-                  <Icon name="zap" size={13} />
-                  {requested ? "Requested" : "Request"}
-                </button>
-              )}
               <ChromeIconButton
                 label={track.liked ? "Unlike" : "Like"}
                 icon={track.liked ? "heart" : "heartempty"}
                 active={!!track.liked}
                 onClick={() => onLike?.(track.id)}
               />
+              {onDislike && (
+                <ChromeIconButton
+                  label="Dislike this track"
+                  icon={track.disliked ? "dislikefilled" : "dislike"}
+                  active={!!track.disliked}
+                  onClick={() => onDislike()}
+                />
+              )}
+              <EnergyShiftControl size={40} stopPropagation={false} />
             </>
           ) : (
             <button

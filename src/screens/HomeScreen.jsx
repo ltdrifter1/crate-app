@@ -156,8 +156,7 @@ function HomeScreen({
   onTuneCountdown = null,
   daypart = null,
   tickerText = "",
-  onRequest = null,
-  requested = false,
+  onDislike = null,
   onDedicate = null,
   dedicationFlash = null,
   onClearDedication = null,
@@ -268,9 +267,8 @@ function HomeScreen({
           onSkip={onSkipRadio}
           onPrev={onPrevRadio}
           onLike={onLike}
+          onDislike={currentTrack ? onDislike : null}
           onOpen={onOpenPlayer}
-          onRequest={currentTrack ? onRequest : null}
-          requested={requested}
           onVisibilityChange={onStageVisibilityChange}
           onSeek={onSeek}
           tickerText={tickerText}

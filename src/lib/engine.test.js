@@ -6,6 +6,7 @@ import {
   buildSession,
   SESSION_PROFILES,
 } from "./engine";
+import { emptyDislikeTaste, recordDislikeEvent } from "./dislikeTaste";
 
 const mkTrack = (over = {}) => ({
   id: Math.random().toString(36).slice(2),
@@ -91,6 +92,35 @@ describe("pickNextTrack", () => {
       counts[next.id] += 1;
     }
     expect(counts.house).toBeGreaterThan(counts.rock);
+  });
+
+  test("dislikeTaste downweights then hard-suppresses a genre+energy neighborhood", () => {
+    const cur = mkTrack({ id: "cur", camelot: "8A", energy: 5, genre: "Jazz" });
+    const house = mkTrack({ id: "house", camelot: "8A", energy: 5, genre: "House" });
+    const jazz = mkTrack({ id: "jazz", camelot: "8A", energy: 5, genre: "Jazz" });
+    const lib = [cur, house, jazz];
+    let taste = emptyDislikeTaste();
+    taste = recordDislikeEvent(taste, { id: "d1", genre: "House", energy: 5 }).taste;
+    taste = recordDislikeEvent(taste, { id: "d2", genre: "House", energy: 5 }).taste;
+    taste = recordDislikeEvent(taste, { id: "d3", genre: "Electronic", energy: 6 }).taste;
+    for (let i = 0; i < 20; i++) {
+      expect(pickNextTrack(lib, cur, null, { dislikeTaste: taste }).id).toBe("jazz");
+    }
+  });
+
+  test("energyShift still steers when dislikeTaste is empty", () => {
+    const cur = mkTrack({ id: "cur", bpm: 120, energy: 6, camelot: "8A", genre: "House" });
+    const lift = mkTrack({ id: "lift", bpm: 128, energy: 7, camelot: "9A", genre: "House" });
+    const drag = mkTrack({ id: "drag", bpm: 104, energy: 3, camelot: "3B", genre: "Jazz" });
+    const lib = [cur, lift, drag];
+    const shift = { active: true, direction: 1, bpmDelta: 10, energyDelta: 1.5, camelotDelta: 2 };
+    const counts = { lift: 0, drag: 0 };
+    for (let i = 0; i < 80; i++) {
+      const next = pickNextTrack(lib, cur, null, { energyShift: shift });
+      counts[next.id] += 1;
+    }
+    expect(counts.lift).toBeGreaterThan(counts.drag);
+    expect(counts.lift).toBeGreaterThan(40);
   });
 
   test("seedTrack pocket mode stays near seed energy", () => {

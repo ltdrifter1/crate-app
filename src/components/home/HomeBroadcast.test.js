@@ -173,6 +173,27 @@ describe("Home broadcast + four-tab IA", () => {
     expect(div.querySelector('[aria-label*="Up first Morning Signal"]')).toBeTruthy();
   });
 
+  test("live hero has energy-shift beaker and dislike, not a Request button", async () => {
+    await act(async () => {
+      root.render(
+        React.createElement(HeroPlayerCard, {
+          track: {
+            id: "t1",
+            title: "Night Drive",
+            artist: "Signal",
+            albumCover: "/brand/planet-mp3-lockup-on-black.png",
+          },
+          isRadioMode: true,
+          onDislike: () => {},
+          onLike: () => {},
+        })
+      );
+    });
+    expect(div.textContent).not.toMatch(/\bRequest\b/);
+    expect(div.querySelector('[aria-label="Energy shift — speed up or slow down the mix"]')).toBeTruthy();
+    expect(div.querySelector('[aria-label="Dislike this track"]')).toBeTruthy();
+  });
+
   test("live hero crawls a station ticker when provided", async () => {
     await act(async () => {
       root.render(

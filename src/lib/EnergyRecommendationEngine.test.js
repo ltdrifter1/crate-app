@@ -6,6 +6,7 @@ import {
   rankEnergyCandidates,
   pickEnergyTrack,
 } from "./EnergyRecommendationEngine";
+import { emptyDislikeTaste, recordDislikeEvent } from "./dislikeTaste";
 
 const shiftUp = { active: true, direction: 1, bpmDelta: 10, energyDelta: 1.5, camelotDelta: 2 };
 const shiftDown = { active: true, direction: -1, bpmDelta: -10, energyDelta: -1.5, camelotDelta: -2 };
@@ -114,5 +115,23 @@ describe("pickEnergyTrack", () => {
       { id: "meh", bpm: 150, energy: 9, camelot: "3B", genre: "Trance" },
     ];
     expect(pickEnergyTrack(pool, current, shiftUp, () => 0).id).toBe("best");
+  });
+
+  test("energy-shift pick honors dislike downweight over a closer match", () => {
+    const current = { id: "cur", bpm: 120, energy: 6, camelot: "8A", genre: "House" };
+    const bestButDisliked = { id: "best", bpm: 128, energy: 7, camelot: "8A", genre: "House" };
+    const other = { id: "jazz", bpm: 126, energy: 6, camelot: "8A", genre: "Jazz" };
+    let taste = emptyDislikeTaste();
+    taste = recordDislikeEvent(taste, { id: "x1", genre: "House", energy: 7 }).taste;
+    taste = recordDislikeEvent(taste, { id: "x2", genre: "House", energy: 7 }).taste;
+    taste = recordDislikeEvent(taste, { id: "x3", genre: "Electronic", energy: 6.5 }).taste;
+    const pick = pickEnergyTrack(
+      [bestButDisliked, other],
+      current,
+      shiftUp,
+      () => 0,
+      { dislikeTaste: taste }
+    );
+    expect(pick.id).toBe("jazz");
   });
 });

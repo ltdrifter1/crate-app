@@ -102,8 +102,6 @@ export default function CoverStage({
   countdownRank = null,
   daypart = null,
   tickerText = "",
-  onRequest = null,
-  requested = false,
   onDedicate = null,
   dedicationFlash = null,
   onClearDedication = null,
@@ -372,7 +370,7 @@ export default function CoverStage({
               </div>
             </div>
 
-            {/* Request / dedicate / reactions stay available — compact one-row heat */}
+            {/* Dedicate / reactions stay available — compact one-row heat */}
             <div
               aria-hidden="true"
               style={{
@@ -385,8 +383,6 @@ export default function CoverStage({
 
             <StationHeatBar
               track={displayTrack}
-              onRequest={onRequest}
-              requested={requested}
               onDedicate={onDedicate}
               compact
               embedded
