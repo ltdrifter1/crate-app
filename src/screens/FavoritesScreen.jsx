@@ -833,7 +833,7 @@ function FavoritesScreen({
                 <LibraryDestination
                   icon="timedmix"
                   title="Build a set"
-                  subtitle="Pick a length and vibe"
+                  subtitle="Sculpt a mix in the booth"
                   onClick={onCustomMix}
                 />
               )}

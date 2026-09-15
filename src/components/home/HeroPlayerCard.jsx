@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, lazy, Suspense } from "react";
 import {
   broadcast,
   fontDisplay,
@@ -11,10 +11,12 @@ import { useIsBuffering, useIsPlaying } from "../../usePlayerTransport";
 import { channelBugLine, resolveChannelBug } from "../../lib/mtvChannel";
 import { trackHasVideo } from "../../lib/video";
 import Icon from "../ui/Icon";
+import CoverImage from "../ui/CoverImage";
 import { IceOrbPlay } from "../player/OrbitalControls";
-import VideoStage from "../station/VideoStage";
 import { EnergyShiftControl } from "../listen/EnergyShiftButton";
 import { HERO_IDLE_ART, HERO_IDLE_FOCUS } from "../../lib/channelArt";
+
+const VideoStage = lazy(() => import("../station/VideoStage"));
 
 function fmtTime(secs = 0) {
   if (!Number.isFinite(secs) || secs < 0) secs = 0;
@@ -224,10 +226,13 @@ export default function HeroPlayerCard({
       }}
     >
       {art ? (
-        <img
+        <CoverImage
           key={art}
           src={art}
           alt=""
+          width={960}
+          height={600}
+          priority
           className="pmp-hero-art"
           style={{
             position: "absolute",
@@ -249,23 +254,29 @@ export default function HeroPlayerCard({
             inset: 0,
           }}
         >
-          <img
+          <CoverImage
             src={HERO_IDLE_ART}
             alt=""
+            width={1280}
+            height={800}
+            eager
+            objectPosition={HERO_IDLE_FOCUS}
             style={{
               position: "absolute",
               inset: 0,
               width: "100%",
               height: "100%",
               objectFit: "cover",
-              objectPosition: HERO_IDLE_FOCUS,
               filter: "saturate(1.08) contrast(1.05)",
             }}
-            draggable={false}
           />
           <img
             src="/brand/planet-mp3-lockup-512.png"
             alt=""
+            width={220}
+            height={220}
+            decoding="async"
+            fetchPriority="low"
             style={{
               position: "absolute",
               left: "50%",
@@ -283,12 +294,14 @@ export default function HeroPlayerCard({
       )}
 
       {hasVideo && (
-        <VideoStage
-          track={track}
-          playing={isPlaying}
-          progress={progress}
-          showBadge={false}
-        />
+        <Suspense fallback={null}>
+          <VideoStage
+            track={track}
+            playing={isPlaying}
+            progress={progress}
+            showBadge={false}
+          />
+        </Suspense>
       )}
 
       {!hasVideo && track?.color && (

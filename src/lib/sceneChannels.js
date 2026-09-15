@@ -1,7 +1,6 @@
 import { trackMatchesScene } from "./scenes";
 import { normalizeGenre } from "./genres";
 import { countdownScore } from "./station";
-import { CHANNEL_ART, CHANNEL_ART_FOCUS } from "./channelArt";
 
 /**
  * Scene surfing — dial channels under Channel Surfing (CH-01 … CH-09).
@@ -388,8 +387,6 @@ export const SCENE_CHANNELS = [
     genres: ["Electronic", "Pop"],
     vibe: "Y2K Dance",
     source: "genre",
-    art: CHANNEL_ART["y2k-dance"],
-    artFocus: CHANNEL_ART_FOCUS["y2k-dance"],
   },
   {
     id: "variety-mix",
@@ -408,8 +405,6 @@ export const SCENE_CHANNELS = [
     preferMatch: true,
     poolLimit: VARIETY_CROSS_GENRE_LIMIT,
     minTracks: 1,
-    art: CHANNEL_ART["variety-mix"],
-    artFocus: CHANNEL_ART_FOCUS["variety-mix"],
   },
   {
     id: "local-pnw",
@@ -428,8 +423,6 @@ export const SCENE_CHANNELS = [
     strict: true,
     match: isLocalPnwTrack,
     minTracks: 1,
-    art: CHANNEL_ART["local-pnw"],
-    artFocus: CHANNEL_ART_FOCUS["local-pnw"],
   },
   {
     id: "electronic-underground",
@@ -447,8 +440,6 @@ export const SCENE_CHANNELS = [
     match: isElectronicUndergroundTrack,
     preferMatch: true,
     minTracks: 1,
-    art: CHANNEL_ART["electronic-underground"],
-    artFocus: CHANNEL_ART_FOCUS["electronic-underground"],
   },
   {
     id: "drum-and-bass",
@@ -462,8 +453,6 @@ export const SCENE_CHANNELS = [
     genres: ["Electronic"],
     vibe: "Drum & Bass",
     source: "genre",
-    art: CHANNEL_ART["drum-and-bass"],
-    artFocus: CHANNEL_ART_FOCUS["drum-and-bass"],
   },
   {
     id: "shoegaze",
@@ -480,8 +469,6 @@ export const SCENE_CHANNELS = [
     strict: true,
     match: isShoegazeTrack,
     minTracks: 1,
-    art: CHANNEL_ART.shoegaze,
-    artFocus: CHANNEL_ART_FOCUS.shoegaze,
   },
   {
     id: "metal",
@@ -499,8 +486,6 @@ export const SCENE_CHANNELS = [
     strict: true,
     match: isMetalTrack,
     minTracks: 1,
-    art: CHANNEL_ART.metal,
-    artFocus: CHANNEL_ART_FOCUS.metal,
   },
   {
     id: "punk",
@@ -518,8 +503,6 @@ export const SCENE_CHANNELS = [
     strict: true,
     match: isPunkTrack,
     minTracks: 1,
-    art: CHANNEL_ART.punk,
-    artFocus: CHANNEL_ART_FOCUS.punk,
   },
   {
     id: "country-folk",
@@ -537,8 +520,6 @@ export const SCENE_CHANNELS = [
     strict: true,
     match: isCountryFolkTrack,
     minTracks: 1,
-    art: CHANNEL_ART["country-folk"],
-    artFocus: CHANNEL_ART_FOCUS["country-folk"],
   },
   {
     id: "downtempo",
@@ -555,8 +536,6 @@ export const SCENE_CHANNELS = [
     strict: true,
     match: isDowntempoTrack,
     minTracks: 1,
-    art: CHANNEL_ART.downtempo,
-    artFocus: CHANNEL_ART_FOCUS.downtempo,
   },
 ];
 
@@ -644,7 +623,9 @@ export function availableSceneChannels(tracks = [], minTracks = 3) {
 
 /**
  * Distinct album-cover URLs for a channel tile mosaic (up to `limit`).
- * Prefers direct channel matches, then the ranked pool.
+ * Prefers an explicit `channel.art` override, then direct matches, then the pool.
+ * Bundled Channel Surfing photos live in `channelArt.js` so App's scene-channel
+ * import does not pull image bytes onto the Home-critical JS graph.
  */
 export function channelCoverUrls(tracks = [], channel, limit = 4) {
   if (channel?.art) return [channel.art];

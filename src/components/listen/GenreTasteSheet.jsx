@@ -267,7 +267,7 @@ export default function GenreTasteSheet({
                 fontWeight: 650,
               }}
             >
-              Build a custom mix
+              Build a set
             </button>
           )}
         </div>

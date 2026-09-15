@@ -11,6 +11,7 @@ import {
   y2k,
 } from "../../theme";
 import { formatChannelNum } from "../../lib/mtvChannel";
+import { resolveChannelArt } from "../../lib/channelArt";
 import CoverImage from "../ui/CoverImage";
 
 /**
@@ -35,7 +36,7 @@ export default function ShowcasePromo({
 
   const title = channel.title || "Local Pacific Northwest";
   const ch = formatChannelNum(channel.num ?? 3);
-  const photo = channel.art || null;
+  const { src: photo, focus } = resolveChannelArt(channel);
 
   return (
     <div
@@ -101,7 +102,7 @@ export default function ShowcasePromo({
             width={356}
             height={200}
             priority
-            objectPosition={channel.artFocus || "center 40%"}
+            objectPosition={focus}
             style={{
               width: "100%",
               height: 168,
