@@ -3,7 +3,7 @@
  * Straightforward labels only (no "signal" / "transmission" product language).
  */
 import { normalizeGenre } from "./genres";
-import { hashSeed } from "./homeCollections";
+import { hashSeed } from "./hashSeed";
 
 /** 0 = familiar / well-known, 100 = adventurous / deep cuts */
 export const TASTE_AXIS_MIN = 0;
@@ -33,14 +33,38 @@ export function clampTasteAxis(value, fallback = TASTE_AXIS_DEFAULT) {
 /**
  * Normalize taste fields from a user profile (or partial form state).
  */
+const ENERGY_BAND_IDS = new Set(["soft", "steady", "lift", "peak"]);
+
+function uniqueStrings(list = []) {
+  const out = [];
+  const seen = new Set();
+  (Array.isArray(list) ? list : []).forEach((v) => {
+    const s = String(v || "").trim();
+    if (!s) return;
+    const key = s.toLowerCase();
+    if (seen.has(key)) return;
+    seen.add(key);
+    out.push(s);
+  });
+  return out;
+}
+
 export function normalizeTasteProfile(source = {}) {
-  const genres = Array.isArray(source.genres)
-    ? source.genres.filter(Boolean)
+  const raw = source && typeof source === "object" ? source : {};
+  const genres = Array.isArray(raw.genres)
+    ? raw.genres.filter(Boolean)
     : [];
+  const energyBand = ENERGY_BAND_IDS.has(raw.energyBand) ? raw.energyBand : null;
+  const vibe = raw.vibe ? String(raw.vibe) : null;
   return {
     genres,
-    adventurous: clampTasteAxis(source.adventurous, TASTE_AXIS_DEFAULT),
-    depth: clampTasteAxis(source.depth, TASTE_AXIS_DEFAULT),
+    adventurous: clampTasteAxis(raw.adventurous, TASTE_AXIS_DEFAULT),
+    depth: clampTasteAxis(raw.depth, TASTE_AXIS_DEFAULT),
+    channelIds: uniqueStrings(raw.channelIds),
+    artistNames: uniqueStrings(raw.artistNames),
+    energyBand,
+    vibe,
+    seedChannelId: raw.seedChannelId ? String(raw.seedChannelId) : null,
   };
 }
 
@@ -159,6 +183,11 @@ export function scoreTrackForTaste(track, taste = {}) {
   if (Number.isFinite(energy)) {
     const mid = 1 - Math.abs(energy - 5.5) / 5.5;
     score += mid * 1.5;
+  }
+
+  if (profile.artistNames?.length) {
+    const want = new Set(profile.artistNames.map((n) => String(n).trim().toLowerCase()));
+    if (want.has(String(track?.artist || "").trim().toLowerCase())) score += 6;
   }
 
   // Prefer unplayed discovery for monthly slate
@@ -287,6 +316,6 @@ export function tasteProfileBlurb(taste = {}) {
   else if (profile.adventurous <= 30) parts.push("familiar");
   if (profile.depth >= 70) parts.push("deep cuts");
   else if (profile.depth <= 30) parts.push("well-known");
-  if (!parts.length) return "Set your genres and taste to steer picks.";
+  if (!parts.length) return "Tune a station and we’ll build your mix.";
   return parts.join(" · ");
 }

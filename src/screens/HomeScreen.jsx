@@ -12,7 +12,8 @@ import {
 } from "../theme";
 import { countPlayableTracks } from "../lib/catalogLoad";
 import { getSceneChannel, SCENE_CHANNELS } from "../lib/sceneChannels";
-import { buildHomeCollections } from "../lib/homeCollections";
+import { buildHomeCollections, recommendedPicks } from "../lib/homeCollections";
+import { rankChannelsForTaste, trackHitsPreferredChannels } from "../lib/onboardingTaste";
 import { runAfterPaint } from "../lib/afterPaint";
 import { TonightDeck } from "../components/station/ShowGuide";
 import { useCurrentTrack } from "../usePlayerTransport";
@@ -228,6 +229,10 @@ function HomeScreen({
   onOpenProfile = null,
   onOpenCharts = null,
   onOpenMenu = null,
+  taste = null,
+  userKey = "",
+  recentTrackIds = [],
+  dislikeTaste = null,
 }) {
   const currentTrack = useCurrentTrack();
   const activeId = currentTrack?.id;
@@ -237,9 +242,25 @@ function HomeScreen({
   const catalogReady = !catalogLoading && !catalogError && !catalogEmpty && !catalogDepleted;
   const shelvesReady = useAfterFirstPaint();
 
-  const channels = SCENE_CHANNELS;
+  const channels = useMemo(
+    () => rankChannelsForTaste(SCENE_CHANNELS, taste),
+    [taste]
+  );
 
   const editorial = useMemo(() => buildHomeCollections(tracks), [tracks]);
+  const forYou = useMemo(() => {
+    if (!shelvesReady) return [];
+    const channelIds = taste?.channelIds || [];
+    return recommendedPicks(tracks, {
+      preferredGenres: taste?.genres || [],
+      taste,
+      userKey,
+      recentTrackIds,
+      dislikeTaste,
+      limit: 10,
+      channelHit: (t) => trackHitsPreferredChannels(t, channelIds),
+    }).picks;
+  }, [shelvesReady, tracks, taste, userKey, recentTrackIds, dislikeTaste]);
 
   const topRequested = useMemo(() => countdown.slice(0, 10), [countdown]);
   const liveShow = channelShow || airing?.show || null;
@@ -315,6 +336,28 @@ function HomeScreen({
           totalCount={tracks.length}
           onRetry={onRetryCatalog}
         />
+      )}
+
+      {/* MADE FOR YOU — onboarding-seeded slate */}
+      {shelvesReady && catalogReady && forYou.length > 0 && (
+        <MusicSection
+          title="Made for you"
+          subtitle={taste?.genres?.length ? "From the stations you tuned" : "A first mix"}
+          first={false}
+          delay={0.05}
+        >
+          <Rail gap={16}>
+            {forYou.map(({ track, reason }) => (
+              <TrackCard
+                key={track.id}
+                track={track}
+                reason={reason}
+                active={activeId === track.id}
+                onClick={() => onPlayTrack?.(track, forYou.map((p) => p.track))}
+              />
+            ))}
+          </Rail>
+        </MusicSection>
       )}
 
       {/* ON TONIGHT — EPG band (below-fold; wait a frame so channel photos win the network) */}

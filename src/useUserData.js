@@ -73,11 +73,21 @@ export async function saveTasteProfile({
   genres = null,
   adventurous = null,
   depth = null,
+  channelIds = null,
+  artistNames = null,
+  energyBand = null,
+  vibe = null,
+  seedChannelId = null,
 } = {}) {
   const payload = {};
   if (genres != null) payload.genres = genres;
   if (adventurous != null) payload.adventurous = adventurous;
   if (depth != null) payload.depth = depth;
+  if (channelIds != null) payload.channelIds = channelIds;
+  if (artistNames != null) payload.artistNames = artistNames;
+  if (energyBand != null) payload.energyBand = energyBand;
+  if (vibe != null) payload.vibe = vibe;
+  if (seedChannelId != null) payload.seedChannelId = seedChannelId;
   if (!Object.keys(payload).length) return;
   await updateDoc(userRef(), payload);
 }
@@ -88,6 +98,11 @@ export async function completeOnboarding({
   genres = null,
   adventurous = null,
   depth = null,
+  channelIds = null,
+  artistNames = null,
+  energyBand = null,
+  vibe = null,
+  seedChannelId = null,
 } = {}) {
   const payload = {
     onboarded: true,
@@ -96,6 +111,12 @@ export async function completeOnboarding({
   if (genres) payload.genres = genres;
   if (adventurous != null) payload.adventurous = adventurous;
   if (depth != null) payload.depth = depth;
+  if (channelIds) payload.channelIds = channelIds;
+  if (artistNames) payload.artistNames = artistNames;
+  if (energyBand != null) payload.energyBand = energyBand;
+  if (vibe != null) payload.vibe = vibe;
+  if (seedChannelId != null) payload.seedChannelId = seedChannelId;
+  payload.onboardingVersion = 2;
   await updateDoc(userRef(), payload);
 }
 

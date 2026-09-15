@@ -22,10 +22,15 @@ describe("tasteProfile", () => {
       genres: [],
       adventurous: 50,
       depth: 50,
+      channelIds: [],
+      artistNames: [],
+      energyBand: null,
+      vibe: null,
+      seedChannelId: null,
     });
     expect(
       normalizeTasteProfile({ genres: ["Jazz"], adventurous: 80, depth: 20 })
-    ).toEqual({ genres: ["Jazz"], adventurous: 80, depth: 20 });
+    ).toMatchObject({ genres: ["Jazz"], adventurous: 80, depth: 20 });
   });
 
   test("tasteMonthKey is YYYY-MM UTC", () => {
@@ -112,6 +117,6 @@ describe("tasteProfile", () => {
     expect(
       tasteProfileBlurb({ genres: ["Jazz"], adventurous: 80, depth: 20 })
     ).toMatch(/Jazz/);
-    expect(tasteProfileBlurb({})).toMatch(/Set your genres/);
+    expect(tasteProfileBlurb({})).toMatch(/Tune a station/);
   });
 });

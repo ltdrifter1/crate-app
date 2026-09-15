@@ -70,6 +70,24 @@ describe("homeCollections", () => {
     expect(again.map((t) => t.id)).toEqual(recs.map((t) => t.id));
   });
 
+  test("recommendedPicks cold-start with genres prefers that lane over global heat", () => {
+    const cold = [
+      { id: "hit", title: "Hit", genre: "Pop", duration: 180, playCount: 80, likeCount: 20 },
+      { id: "j1", title: "J1", genre: "Jazz", duration: 180, playCount: 0 },
+      { id: "j2", title: "J2", genre: "Jazz", duration: 180, playCount: 1 },
+      { id: "r1", title: "R1", genre: "Rock", duration: 180, playCount: 40 },
+    ];
+    const { picks, coldStart } = recommendedPicks(cold, {
+      preferredGenres: ["Jazz"],
+      taste: { genres: ["Jazz"], adventurous: 20, depth: 50 },
+      limit: 2,
+      userKey: "u-new",
+      dayKey: "2026-09-15",
+    });
+    expect(coldStart).toBe(false);
+    expect(picks.every((p) => p.track.genre === "Jazz")).toBe(true);
+  });
+
   test("recommendedPicks marks cold start and labels fresh picks", () => {
     const cold = [
       { id: "a", title: "A", genre: "Rock", duration: 180 },
@@ -86,6 +104,28 @@ describe("homeCollections", () => {
     expect(picks.every((p) => typeof p.reason === "string" && p.reason.length > 0)).toBe(true);
     const likedPick = picks.find((p) => p.track.liked);
     if (likedPick) expect(likedPick.reason).toBe("Saved");
+  });
+
+  test("recommendedPicks hard-suppresses disliked neighborhoods on Made for you", () => {
+    const { emptyDislikeTaste, recordDislikeEvent } = require("./dislikeTaste");
+    let dislike = emptyDislikeTaste();
+    dislike = recordDislikeEvent(dislike, { id: "d1", genre: "Pop", energy: 6 }).taste;
+    dislike = recordDislikeEvent(dislike, { id: "d2", genre: "Pop", energy: 6 }).taste;
+    dislike = recordDislikeEvent(dislike, { id: "d3", genre: "Pop", energy: 5 }).taste;
+    const cold = [
+      { id: "pop", title: "Pop", genre: "Pop", duration: 180, playCount: 2, energy: 6 },
+      { id: "jazz", title: "Jazz", genre: "Jazz", duration: 180, playCount: 1, energy: 4 },
+    ];
+    const { picks } = recommendedPicks(cold, {
+      preferredGenres: ["Jazz", "Pop"],
+      taste: { genres: ["Jazz", "Pop"], adventurous: 20, depth: 40 },
+      dislikeTaste: dislike,
+      limit: 2,
+      userKey: "u-dislike",
+      dayKey: "2026-09-15",
+    });
+    expect(picks.some((p) => p.track.genre === "Pop")).toBe(false);
+    expect(picks.some((p) => p.track.genre === "Jazz")).toBe(true);
   });
 
   test("recommendedPicks honors excludeIds", () => {
