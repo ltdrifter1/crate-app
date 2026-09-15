@@ -26,6 +26,8 @@ const SAMPLE_TRACK = {
   liked: true,
   duration: 214,
   audioUrl: "u",
+  album: "Afterglow",
+  bpm: 118,
   genre: "Electronic",
 };
 

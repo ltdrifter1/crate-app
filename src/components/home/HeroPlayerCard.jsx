@@ -494,15 +494,15 @@ export default function HeroPlayerCard({
             idleSrc={art ? null : HERO_IDLE_ART}
             playing={live && isPlaying}
             priority
-            size={148}
+            size={168}
           />
         )}
 
         <div
           key={track?.id || previewTrack?.id || "idle"}
           style={{
-            flex: "1 1 180px",
-            minWidth: 0,
+            flex: "1 1 0%",
+            minWidth: 200,
             display: "flex",
             flexDirection: "column",
             justifyContent: "center",
@@ -591,10 +591,11 @@ export default function HeroPlayerCard({
           {live && upNextTrack?.title && (
             <div
               style={{
-                marginTop: 14,
+                marginTop: "auto",
                 display: "flex",
                 alignItems: "center",
                 gap: 10,
+                width: "100%",
                 padding: "8px 10px",
                 borderRadius: 8,
                 border: "1px solid rgba(255,255,255,0.1)",
@@ -677,6 +678,7 @@ export default function HeroPlayerCard({
           style={{
             display: "flex",
             alignItems: "center",
+            flexWrap: "wrap",
             gap: 10,
           }}
         >
@@ -692,7 +694,65 @@ export default function HeroPlayerCard({
                 stopPropagation
               />
               <ChromeIconButton label="Next" icon="skip" onClick={onSkip} />
-              <span style={{ flex: 1 }} />
+              <div
+                role={onSeek && duration ? "slider" : undefined}
+                aria-label={onSeek && duration ? "Seek" : undefined}
+                aria-valuemin={onSeek && duration ? 0 : undefined}
+                aria-valuemax={onSeek && duration ? Math.floor(duration) : undefined}
+                aria-valuenow={onSeek && duration ? Math.floor(progress) : undefined}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (!onSeek || !duration) return;
+                  const rect = e.currentTarget.getBoundingClientRect();
+                  const x = (e.clientX - rect.left) / Math.max(1, rect.width);
+                  onSeek(Math.max(0, Math.min(1, x)) * duration);
+                }}
+                style={{
+                  flex: "1 1 140px",
+                  minWidth: 120,
+                  height: onSeek && duration ? 14 : 12,
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 10,
+                  cursor: onSeek && duration ? "pointer" : "default",
+                }}
+              >
+                <div
+                  aria-hidden="true"
+                  style={{
+                    flex: 1,
+                    height: 3,
+                    borderRadius: 999,
+                    background: broadcast.lcdTrack,
+                    overflow: "hidden",
+                    boxShadow: "inset 0 1px 2px rgba(0,0,0,0.45)",
+                  }}
+                >
+                  <div
+                    style={{
+                      height: "100%",
+                      width: `${pct * 100}%`,
+                      background: broadcast.lcdFill,
+                      borderRadius: 999,
+                      boxShadow: broadcast.lcdGlow,
+                      transition: "width 0.2s linear",
+                    }}
+                  />
+                </div>
+                <span
+                  style={{
+                    fontFamily: fontMono,
+                    fontSize: 11,
+                    fontVariantNumeric: "tabular-nums",
+                    color: "rgba(244,246,248,0.55)",
+                    letterSpacing: 0,
+                    flexShrink: 0,
+                  }}
+                >
+                  {fmtTime(progress)}
+                  {duration ? ` / ${fmtTime(duration)}` : ""}
+                </span>
+              </div>
               <ChromeIconButton
                 label={track.liked ? "Unlike" : "Like"}
                 icon={track.liked ? "heart" : "heartempty"}
@@ -747,75 +807,6 @@ export default function HeroPlayerCard({
             </button>
           )}
         </div>
-
-        {live && (
-          <div
-            style={{
-              marginTop: 10,
-              display: "flex",
-              alignItems: "center",
-              gap: 10,
-            }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div
-              role={onSeek && duration ? "slider" : undefined}
-              aria-label={onSeek && duration ? "Seek" : undefined}
-              aria-valuemin={onSeek && duration ? 0 : undefined}
-              aria-valuemax={onSeek && duration ? Math.floor(duration) : undefined}
-              aria-valuenow={onSeek && duration ? Math.floor(progress) : undefined}
-              onClick={(e) => {
-                if (!onSeek || !duration) return;
-                const rect = e.currentTarget.getBoundingClientRect();
-                const x = (e.clientX - rect.left) / Math.max(1, rect.width);
-                onSeek(Math.max(0, Math.min(1, x)) * duration);
-              }}
-              style={{
-                flex: 1,
-                height: onSeek && duration ? 14 : 3,
-                display: "flex",
-                alignItems: "center",
-                cursor: onSeek && duration ? "pointer" : "default",
-              }}
-            >
-              <div
-                aria-hidden="true"
-                style={{
-                  flex: 1,
-                  height: 3,
-                  borderRadius: 999,
-                  background: broadcast.lcdTrack,
-                  overflow: "hidden",
-                  boxShadow: "inset 0 1px 2px rgba(0,0,0,0.45)",
-                }}
-              >
-                <div
-                  style={{
-                    height: "100%",
-                    width: `${pct * 100}%`,
-                    background: broadcast.lcdFill,
-                    borderRadius: 999,
-                    boxShadow: broadcast.lcdGlow,
-                    transition: "width 0.2s linear",
-                  }}
-                />
-              </div>
-            </div>
-            <span
-              style={{
-                fontFamily: fontMono,
-                fontSize: 11,
-                fontVariantNumeric: "tabular-nums",
-                color: "rgba(244,246,248,0.55)",
-                letterSpacing: 0,
-                flexShrink: 0,
-              }}
-            >
-              {fmtTime(progress)}
-              {duration ? ` / ${fmtTime(duration)}` : ""}
-            </span>
-          </div>
-        )}
 
         {tickerText ? (
           <div

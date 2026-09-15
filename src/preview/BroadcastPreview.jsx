@@ -31,6 +31,8 @@ const SAMPLE_TRACK = {
   liked: true,
   duration: 214,
   audioUrl: "u",
+  album: "Afterglow",
+  bpm: 118,
   genre: "Electronic",
   playCount: 48,
   requestCount: 22,
@@ -197,6 +199,7 @@ export default function BroadcastPreview() {
           isRadioMode
           sceneChannel={SCENE_CHANNELS.find((c) => c.id === activeChannelId)}
           liveShow={{ shortTitle: "Local PNW", title: "Local Pacific Northwest" }}
+          tickerText="Planet Radio — requests open · Local PNW on the dial"
         />
       </div>
     </div>
