@@ -32,6 +32,7 @@ export default function HomeMessenger({
   presence: presenceProp = null,
   onSend: onSendProp = null,
   live = true,
+  embedded = false,
 }) {
   const isMobile = variant === "mobile" || chatLayoutForWidth(viewportWidth) === "mobile-sheet";
   const [open, setOpen] = useState(() => {
@@ -95,15 +96,23 @@ export default function HomeMessenger({
 
   if (isMobile) {
     return (
-      <div data-testid="home-messenger" data-layout={layout} data-open={open ? "true" : "false"}>
+      <div
+        data-testid="home-messenger"
+        data-layout={layout}
+        data-open={open ? "true" : "false"}
+        style={embedded ? { position: "absolute", inset: 0, pointerEvents: "none", zIndex: 40 } : undefined}
+      >
         {!open ? (
           <MessengerPill
             presence={presence}
             onOpen={() => toggle(true)}
             bottomPx={mobileChatPillBottomPx(hasDockPlayer)}
+            position={embedded ? "absolute" : "fixed"}
           />
         ) : (
-          <MessengerSheet onClose={() => toggle(false)}>{windowEl}</MessengerSheet>
+          <MessengerSheet onClose={() => toggle(false)} position={embedded ? "absolute" : "fixed"}>
+            {windowEl}
+          </MessengerSheet>
         )}
       </div>
     );

@@ -577,6 +577,7 @@ export function MessengerPill({
   onOpen,
   bottomPx = 98,
   now = Date.now(),
+  position = "fixed",
 }) {
   const count = onlineBuddies(presence, now, 20).length;
   return (
@@ -586,7 +587,7 @@ export function MessengerPill({
       aria-label="Open station chat"
       onClick={onOpen}
       style={{
-        position: "fixed",
+        position,
         right: 16,
         bottom: `calc(${bottomPx}px + env(safe-area-inset-bottom, 0px))`,
         zIndex: 80,
@@ -606,6 +607,7 @@ export function MessengerPill({
         boxShadow: "inset 0 1px 0 rgba(255,255,255,0.22), 0 10px 28px rgba(0,0,0,0.4)",
         color: y2k.offWhite,
         cursor: "pointer",
+        pointerEvents: "auto",
         fontFamily: font,
         animation: `rise 0.4s ${motion.ease} both`,
       }}
@@ -629,18 +631,19 @@ export function MessengerPill({
   );
 }
 
-export function MessengerSheet({ children, onClose }) {
+export function MessengerSheet({ children, onClose, position = "fixed" }) {
   return (
     <div
       data-testid="messenger-sheet"
       style={{
-        position: "fixed",
+        position,
         inset: 0,
         zIndex: 140,
         background: "rgba(8,10,13,0.46)",
         display: "flex",
         alignItems: "flex-end",
         justifyContent: "center",
+        pointerEvents: "auto",
       }}
       onClick={onClose}
     >
@@ -650,6 +653,7 @@ export function MessengerSheet({ children, onClose }) {
           width: "100%",
           maxWidth: 560,
           height: "min(88dvh, 720px)",
+          maxHeight: "100%",
           padding: "0 0 env(safe-area-inset-bottom, 0px)",
           animation: `rise 0.32s ${motion.ease} both`,
         }}

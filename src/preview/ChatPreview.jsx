@@ -104,126 +104,163 @@ export default function ChatPreview() {
     </div>
   );
 
+  const messenger = (
+    <HomeMessenger
+      key={`${desktop ? "desk" : "mob"}-${open ? "open" : "shut"}`}
+      variant={desktop ? "desktop" : "mobile"}
+      viewportWidth={desktop ? 1280 : 390}
+      defaultOpen={open}
+      live={false}
+      uid="u1"
+      displayName="Luke"
+      nowPlaying={SAMPLE_TRACK}
+      hasDockPlayer={false}
+      embedded={!desktop}
+      messages={sent}
+      presence={SAMPLE_PRESENCE}
+      onSend={(text) => {
+        setSent((prev) => [
+          ...prev,
+          {
+            id: `local-${prev.length}`,
+            uid: "u1",
+            displayName: "Luke",
+            text,
+            createdAt: Date.now(),
+          },
+        ]);
+        return { ok: true };
+      }}
+    />
+  );
+
+  const previewBar = (
+    <div
+      style={{
+        position: "fixed",
+        top: 10,
+        left: "50%",
+        transform: "translateX(-50%)",
+        zIndex: 200,
+        display: "flex",
+        gap: 6,
+        padding: 4,
+        borderRadius: 980,
+        background: "rgba(18,20,24,0.78)",
+        border: `1px solid ${glass.border}`,
+      }}
+    >
+      {[
+        ["Desktop collapsed", () => { setForced("desktop"); setOpen(false); }],
+        ["Desktop open", () => { setForced("desktop"); setOpen(true); }],
+        ["Mobile", () => { setForced("mobile"); setOpen(false); }],
+        ["Mobile sheet", () => { setForced("mobile"); setOpen(true); }],
+      ].map(([label, fn]) => (
+        <button
+          key={label}
+          type="button"
+          onClick={fn}
+          style={{
+            border: "none",
+            background: "transparent",
+            color: color.body,
+            fontFamily: font,
+            fontSize: 11,
+            fontWeight: 600,
+            padding: "6px 10px",
+            cursor: "pointer",
+          }}
+        >
+          {label}
+        </button>
+      ))}
+    </div>
+  );
+
+  if (!desktop) {
+    return (
+      <div
+        data-testid="chat-preview"
+        style={{
+          minHeight: "100dvh",
+          background: "#05070a",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          padding: 28,
+        }}
+      >
+        {previewBar}
+        <div
+          data-testid="chat-preview-phone"
+          style={{
+            width: 390,
+            height: 844,
+            position: "relative",
+            overflow: "hidden",
+            borderRadius: 28,
+            border: `1px solid ${glass.border}`,
+            background: color.canvas,
+            boxShadow: "0 24px 60px rgba(0,0,0,0.5)",
+          }}
+        >
+          <div style={{ height: "100%", overflow: "auto", paddingBottom: 100 }}>
+            {home}
+          </div>
+          {messenger}
+          <div
+            style={{
+              position: "absolute",
+              left: 14,
+              right: 14,
+              bottom: 12,
+              zIndex: 20,
+            }}
+          >
+            <BottomNavigation items={primaryNavItems()} activeId="home" onSelect={() => {}} />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div
       data-testid="chat-preview"
       style={{ display: "flex", minHeight: "100dvh", background: color.canvas, position: "relative" }}
     >
-      {desktop && (
-        <div className="pmp-preview-rail">
-          <AppSidebar screen="home" onNavigate={() => {}} user={{ name: "Luke" }} />
-        </div>
-      )}
-      <div style={{ flex: 1, minWidth: 0, overflow: "auto", paddingBottom: desktop ? 24 : 120 }}>
+      {previewBar}
+      <div className="pmp-preview-rail">
+        <AppSidebar screen="home" onNavigate={() => {}} user={{ name: "Luke" }} />
+      </div>
+      <div style={{ flex: 1, minWidth: 0, overflow: "auto", paddingBottom: 24 }}>
         {home}
       </div>
-      {desktop && (
-        <div
-          className="hide-scroll"
-          style={{
-            width: 280,
-            flexShrink: 0,
-            borderLeft: `1px solid ${glass.border}`,
-            background: color.surfaceRaised,
-            padding: 18,
-          }}
-        >
-          <div
-            style={{
-              fontFamily: fontMono,
-              fontSize: 10,
-              letterSpacing: 1.6,
-              textTransform: "uppercase",
-              color: color.faint,
-              marginBottom: 8,
-            }}
-          >
-            Queue
-          </div>
-          <div style={{ fontSize: 14, fontWeight: 650, color: y2k.offWhite }}>Up Next</div>
-        </div>
-      )}
-      <HomeMessenger
-        key={`${desktop ? "desk" : "mob"}-${open ? "open" : "shut"}`}
-        variant={desktop ? "desktop" : "mobile"}
-        viewportWidth={desktop ? 1280 : 390}
-        defaultOpen={open}
-        live={false}
-        uid="u1"
-        displayName="Luke"
-        nowPlaying={SAMPLE_TRACK}
-        hasDockPlayer={!desktop}
-        messages={sent}
-        presence={SAMPLE_PRESENCE}
-        onSend={(text) => {
-          setSent((prev) => [
-            ...prev,
-            {
-              id: `local-${prev.length}`,
-              uid: "u1",
-              displayName: "Luke",
-              text,
-              createdAt: Date.now(),
-            },
-          ]);
-          return { ok: true };
-        }}
-      />
-      {!desktop && (
-        <div
-          style={{
-            position: "fixed",
-            left: 16,
-            right: 16,
-            bottom: 16,
-            zIndex: 20,
-            maxWidth: 560,
-            margin: "0 auto",
-          }}
-        >
-          <BottomNavigation items={primaryNavItems()} activeId="home" onSelect={() => {}} />
-        </div>
-      )}
       <div
+        className="hide-scroll"
         style={{
-          position: "fixed",
-          top: 10,
-          left: "50%",
-          transform: "translateX(-50%)",
-          zIndex: 200,
-          display: "flex",
-          gap: 6,
-          padding: 4,
-          borderRadius: 980,
-          background: "rgba(18,20,24,0.78)",
-          border: `1px solid ${glass.border}`,
+          width: 280,
+          flexShrink: 0,
+          borderLeft: `1px solid ${glass.border}`,
+          background: color.surfaceRaised,
+          padding: 18,
         }}
       >
-        {[
-          ["Desktop collapsed", () => { setForced("desktop"); setOpen(false); }],
-          ["Desktop open", () => { setForced("desktop"); setOpen(true); }],
-          ["Mobile", () => { setForced("mobile"); setOpen(false); }],
-          ["Mobile sheet", () => { setForced("mobile"); setOpen(true); }],
-        ].map(([label, fn]) => (
-          <button
-            key={label}
-            type="button"
-            onClick={fn}
-            style={{
-              border: "none",
-              background: "transparent",
-              color: color.body,
-              fontFamily: font,
-              fontSize: 11,
-              fontWeight: 600,
-              padding: "6px 10px",
-              cursor: "pointer",
-            }}
-          >
-            {label}
-          </button>
-        ))}
+        <div
+          style={{
+            fontFamily: fontMono,
+            fontSize: 10,
+            letterSpacing: 1.6,
+            textTransform: "uppercase",
+            color: color.faint,
+            marginBottom: 8,
+          }}
+        >
+          Queue
+        </div>
+        <div style={{ fontSize: 14, fontWeight: 650, color: y2k.offWhite }}>Up Next</div>
       </div>
+      {messenger}
       <style>{`
         @media (max-width: 767px) {
           .pmp-preview-rail { display: none !important; }

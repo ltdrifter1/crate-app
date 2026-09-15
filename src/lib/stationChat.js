@@ -39,23 +39,27 @@ export function toMillis(ts, fallback = 0) {
   return fallback;
 }
 
+function stripControlChars(s) {
+  let out = "";
+  for (let i = 0; i < s.length; i += 1) {
+    const c = s.charCodeAt(i);
+    if (c >= 32 && c !== 127) out += s[i];
+  }
+  return out;
+}
+
 export function sanitizeChatText(raw) {
-  let s = String(raw ?? "");
+  let s = stripControlChars(String(raw ?? ""));
   s = s.replace(/<[^>]*>/g, " ");
-  s = s.replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g, "");
-  s = s.replace(/https?:\/\/\S+|www\.\S+/gi, (m) => {
-    if (/^https?:\/\//i.test(m) || /^www\./i.test(m)) return m.slice(0, 120);
-    return "";
-  });
+  s = s.replace(/https?:\/\/\S+|www\.\S+/gi, (m) => m.slice(0, 120));
   s = s.replace(/\s+/g, " ").trim();
   if (s.length > CHAT_MAX_TEXT) s = s.slice(0, CHAT_MAX_TEXT);
   return s;
 }
 
 export function sanitizeDisplayName(raw) {
-  let s = String(raw ?? "")
+  let s = stripControlChars(String(raw ?? ""))
     .replace(/<[^>]*>/g, "")
-    .replace(/[\u0000-\u001F\u007F]/g, "")
     .replace(/\s+/g, " ")
     .trim();
   if (!s) return "Listener";
