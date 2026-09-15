@@ -85,7 +85,7 @@ describe("MessengerWindow send + render", () => {
     expect(div.textContent).toMatch(/This one is for the late bus/);
     expect(div.textContent).toMatch(/On the station/);
     expect(div.textContent).toMatch(/Mira/);
-    expect(div.textContent).toMatch(/Planet MP3 Chat/);
+    expect(div.textContent).toMatch(/Live chat/);
 
     const input = div.querySelector("[data-testid='chat-input']");
     await act(async () => {
@@ -117,7 +117,7 @@ describe("HomeMessenger layout breakpoints", () => {
     document.body.removeChild(div);
   });
 
-  test("desktop default is a slim nub, not a middle column", async () => {
+  test("desktop can collapse to a slim nub", async () => {
     await act(async () => {
       root.render(
         React.createElement(HomeMessenger, {
@@ -125,6 +125,7 @@ describe("HomeMessenger layout breakpoints", () => {
           viewportWidth: 1280,
           defaultOpen: false,
           live: false,
+          roomBots: false,
           uid: "u1",
           presence: SAMPLE_PRESENCE,
         })
@@ -139,7 +140,7 @@ describe("HomeMessenger layout breakpoints", () => {
     expect(div.querySelector("[data-testid='messenger-pill']")).toBeNull();
   });
 
-  test("desktop open overlays the queue on a laptop width", async () => {
+  test("desktop open docks chat in the right column", async () => {
     await act(async () => {
       root.render(
         React.createElement(HomeMessenger, {
@@ -147,6 +148,7 @@ describe("HomeMessenger layout breakpoints", () => {
           viewportWidth: 1280,
           defaultOpen: true,
           live: false,
+          roomBots: false,
           uid: "u1",
           messages: SAMPLE_MESSAGES,
           presence: SAMPLE_PRESENCE,
@@ -154,7 +156,7 @@ describe("HomeMessenger layout breakpoints", () => {
       );
     });
     const host = div.querySelector("[data-testid='home-messenger']");
-    expect(host.getAttribute("data-mode")).toBe("overlay");
+    expect(host.getAttribute("data-mode")).toBe("dock");
     expect(div.querySelector("[data-testid='messenger-window']")).toBeTruthy();
     expect(div.textContent).toMatch(/On the station/);
   });
@@ -167,6 +169,7 @@ describe("HomeMessenger layout breakpoints", () => {
           viewportWidth: 390,
           defaultOpen: false,
           live: false,
+          roomBots: false,
           uid: "u1",
           hasDockPlayer: true,
           presence: SAMPLE_PRESENCE,
@@ -199,6 +202,7 @@ describe("HomeMessenger layout breakpoints", () => {
           viewportWidth: 1600,
           defaultOpen: true,
           live: false,
+          roomBots: false,
           uid: "u1",
           messages: SAMPLE_MESSAGES,
         })
@@ -217,6 +221,7 @@ describe("HomeMessenger layout breakpoints", () => {
           viewportWidth: CHAT_DESKTOP_MIN - 20,
           defaultOpen: false,
           live: false,
+          roomBots: false,
         })
       );
     });
@@ -224,5 +229,24 @@ describe("HomeMessenger layout breakpoints", () => {
       "mobile-sheet"
     );
     expect(div.querySelector("[data-testid='messenger-pill']")).toBeTruthy();
+  });
+
+  test("human-like bots keep the ice room active", async () => {
+    await act(async () => {
+      root.render(
+        React.createElement(HomeMessenger, {
+          variant: "desktop",
+          viewportWidth: 1280,
+          defaultOpen: true,
+          live: false,
+          roomBots: true,
+        })
+      );
+    });
+    expect(div.textContent).toMatch(/Live chat/);
+    expect(div.textContent).toMatch(/Rio/);
+    expect(div.textContent).toMatch(/Sable/);
+    expect(div.textContent).toMatch(/this is the one i needed tonight/);
+    expect(div.querySelector("[data-testid='chat-message']")).toBeTruthy();
   });
 });

@@ -1,6 +1,6 @@
 /**
  * Dev-only IA preview — hash #chat-preview.
- * Home broadcast stage + MSN messenger companion (collapsed / open / mobile).
+ * Home broadcast stage + ice live chat (open on desktop).
  */
 import { useEffect, useState } from "react";
 import HomeHeader from "../components/home/HomeHeader";
@@ -11,7 +11,7 @@ import BottomNavigation from "../components/home/BottomNavigation";
 import { primaryNavItems } from "../lib/nav";
 import { SCENE_CHANNELS } from "../lib/sceneChannels";
 import { CHANNEL_ART } from "../lib/channelArt";
-import { color, font, fontMono, glass, homeSpace, y2k } from "../theme";
+import { color, font, glass, homeSpace } from "../theme";
 import HomeMessenger from "../components/chat/HomeMessenger";
 import { CHAT_DESKTOP_MIN } from "../lib/stationChat";
 
@@ -64,7 +64,7 @@ const SAMPLE_PRESENCE = [
 
 export default function ChatPreview() {
   const [forced, setForced] = useState(null);
-  const [open, setOpen] = useState(() => window.location.hash.includes("open"));
+  const [open, setOpen] = useState(true);
   const [isDesktop, setIsDesktop] = useState(
     () => typeof window !== "undefined" && window.innerWidth >= CHAT_DESKTOP_MIN
   );
@@ -235,30 +235,6 @@ export default function ChatPreview() {
       </div>
       <div style={{ flex: 1, minWidth: 0, overflow: "auto", paddingBottom: 24 }}>
         {home}
-      </div>
-      <div
-        className="hide-scroll"
-        style={{
-          width: 280,
-          flexShrink: 0,
-          borderLeft: `1px solid ${glass.border}`,
-          background: color.surfaceRaised,
-          padding: 18,
-        }}
-      >
-        <div
-          style={{
-            fontFamily: fontMono,
-            fontSize: 10,
-            letterSpacing: 1.6,
-            textTransform: "uppercase",
-            color: color.faint,
-            marginBottom: 8,
-          }}
-        >
-          Queue
-        </div>
-        <div style={{ fontSize: 14, fontWeight: 650, color: y2k.offWhite }}>Up Next</div>
       </div>
       {messenger}
       <style>{`

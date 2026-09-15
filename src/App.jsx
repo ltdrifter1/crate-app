@@ -3594,7 +3594,8 @@ export default function App() {
         )}
       </div>
 
-      {/* ── RIGHT PANEL ─────────────────────────────────────────────── */}
+      {/* ── RIGHT PANEL: queue on non-Home; Home uses ice chat instead ─ */}
+      {screen !== "home" ? (
       <div className="hide-scroll" style={{
         width: 336,
         flexShrink: 0,
@@ -3915,6 +3916,7 @@ export default function App() {
           )}
         </div>
       </div>
+      ) : null}
 
       {homeChatReady && screen === "home" && (
         <Suspense fallback={null}>

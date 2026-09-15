@@ -17,8 +17,8 @@ import ChartsScreen from "../components/station/ChartsScreen";
 import SetBuilderScreen from "../components/set/SetBuilderScreen";
 import { makeSetPreviewCatalog } from "./SetPreview";
 import { CHANNEL_ART } from "../lib/channelArt";
-import { color, fontDisplay, fontMono, glass, homeSpace } from "../theme";
-import CoverImage from "../components/ui/CoverImage";
+import { color, homeSpace } from "../theme";
+import HomeMessenger from "../components/chat/HomeMessenger";
 
 const SAMPLE_COVER = "/brand/planet-mp3-lockup-on-black.png";
 
@@ -240,125 +240,15 @@ export default function BroadcastPreview() {
         )}
       </div>
       {isDesktop && (
-        <div
-          className="hide-scroll"
-          style={{
-            width: 336,
-            flexShrink: 0,
-            borderLeft: `1px solid ${glass.border}`,
-            background: color.surfaceRaised,
-            padding: "22px 12px 24px",
-            overflowY: "auto",
-          }}
-        >
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "baseline",
-              padding: "0 8px 14px",
-            }}
-          >
-            <div>
-              <div
-                style={{
-                  fontSize: 10,
-                  fontWeight: 700,
-                  letterSpacing: 1.8,
-                  textTransform: "uppercase",
-                  color: color.faint,
-                  fontFamily: fontMono,
-                  marginBottom: 4,
-                }}
-              >
-                Queue
-              </div>
-              <div
-                style={{
-                  fontSize: 14,
-                  fontWeight: 650,
-                  letterSpacing: -0.25,
-                  color: color.ink,
-                  fontFamily: fontDisplay,
-                }}
-              >
-                Up Next
-              </div>
-            </div>
-            <div
-              style={{
-                fontSize: 10,
-                fontWeight: 600,
-                letterSpacing: 0.8,
-                textTransform: "uppercase",
-                fontFamily: fontMono,
-                color: color.muted,
-              }}
-            >
-              Shuffle
-            </div>
-          </div>
-          {SAMPLE_TRACKS.map((t, i) => (
-            <div
-              key={t.id}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 10,
-                padding: "10px 8px",
-              }}
-            >
-              <div
-                style={{
-                  width: 18,
-                  fontSize: 10,
-                  fontFamily: fontMono,
-                  color: color.faint,
-                  textAlign: "center",
-                }}
-              >
-                {String(i + 1).padStart(2, "0")}
-              </div>
-              <div
-                style={{
-                  width: 40,
-                  height: 40,
-                  borderRadius: 5,
-                  overflow: "hidden",
-                  flexShrink: 0,
-                }}
-              >
-                <CoverImage src={t.albumCover} alt="" width={40} height={40} />
-              </div>
-              <div style={{ minWidth: 0 }}>
-                <div
-                  style={{
-                    fontSize: 12.5,
-                    fontFamily: fontDisplay,
-                    color: color.ink,
-                    overflow: "hidden",
-                    textOverflow: "ellipsis",
-                    whiteSpace: "nowrap",
-                  }}
-                >
-                  {t.title}
-                </div>
-                <div
-                  style={{
-                    marginTop: 2,
-                    fontSize: 11,
-                    color: color.muted,
-                    overflow: "hidden",
-                    textOverflow: "ellipsis",
-                    whiteSpace: "nowrap",
-                  }}
-                >
-                  {t.artist}
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
+        <HomeMessenger
+          variant="desktop"
+          viewportWidth={1280}
+          defaultOpen
+          live={false}
+          uid="u1"
+          displayName="Luke"
+          nowPlaying={SAMPLE_TRACK}
+        />
       )}
       <div
         style={{

@@ -62,6 +62,29 @@ export const chrome = {
  * MTV meets pirate radio meets Japanese audio hardware.
  * No purple anywhere on player or home chrome.
  */
+/** Modern ice — frosted cyan glass for live station chat. */
+export const ice = {
+  frost: "rgba(214, 236, 248, 0.14)",
+  frostStrong: "rgba(224, 242, 254, 0.22)",
+  rim: "rgba(186, 230, 253, 0.32)",
+  rimSoft: "rgba(186, 230, 253, 0.16)",
+  glow: "rgba(125, 211, 252, 0.28)",
+  mist: "rgba(14, 32, 44, 0.72)",
+  pane: `
+    linear-gradient(180deg, rgba(214,236,248,0.12) 0%, rgba(214,236,248,0.03) 28%, transparent 58%),
+    linear-gradient(165deg, rgba(18,36,48,0.88) 0%, rgba(8,14,20,0.94) 100%)
+  `,
+  thread: `
+    radial-gradient(120% 80% at 50% -10%, rgba(125,211,252,0.16) 0%, transparent 46%),
+    linear-gradient(180deg, #0B141C 0%, #070C11 100%)
+  `,
+  bubble: "rgba(186, 230, 253, 0.1)",
+  bubbleMine: "rgba(125, 211, 252, 0.18)",
+  ink: "#E7F4FB",
+  mute: "rgba(186, 214, 230, 0.62)",
+  pip: "#7DD3FC",
+};
+
 export const y2k = {
   /** Aluminum / light metal — CTAs, active states, chrome faces */
   chrome: "#B8BEC7",
