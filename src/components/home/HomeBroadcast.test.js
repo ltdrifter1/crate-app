@@ -142,7 +142,9 @@ describe("Home broadcast + four-tab IA", () => {
       );
     });
     expect(div.querySelector("video")).toBeNull();
+    expect(div.querySelector(".pmp-hero-sleeve")).toBeTruthy();
     expect(div.textContent).toMatch(/On air/i);
+    expect(div.textContent).toMatch(/PMP3/);
     expect(div.textContent).toMatch(/Night Drive/);
     expect(div.textContent).toMatch(/Up next/i);
     expect(div.textContent).toMatch(/After Hours/);

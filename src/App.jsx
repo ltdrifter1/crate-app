@@ -620,7 +620,9 @@ const injectStyles = () => {
       transition: box-shadow ${motion.settle} ${motion.ease}, border-color ${motion.base};
     }
     .pmp-hero .pmp-hero-art { transition: transform 1.2s ${motion.ease}; }
-    .pmp-hero:hover .pmp-hero-art { transform: scale(1.025); }
+    .pmp-hero:hover .pmp-hero-sleeve { transform: translateY(-2px); }
+    .pmp-hero:hover .pmp-hero-art { transform: scale(1.04); }
+    .pmp-hero-sleeve { transition: transform 0.45s ${motion.ease}; }
     .pmp-view-all { transition: color ${motion.fast} ${motion.ease}, transform ${motion.fast} ${motion.ease}; }
     .pmp-view-all:hover { color: #A9C4FF !important; transform: translateX(1px); }
     .pmp-rail { cursor: grab; }
