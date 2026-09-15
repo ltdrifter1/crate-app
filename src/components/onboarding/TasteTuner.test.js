@@ -82,4 +82,19 @@ describe("TasteTuner", () => {
     });
     expect(onComplete.mock.calls[0][0].seedChannelId).toBe("variety-mix");
   });
+
+  test("wander first prefers onSkip when provided", async () => {
+    const onComplete = jest.fn();
+    const onSkip = jest.fn();
+    await act(async () => {
+      root.render(React.createElement(TasteTuner, { tracks: [], onComplete, onSkip }));
+    });
+    const wander = [...div.querySelectorAll("button")].find((b) => b.textContent === "Wander first");
+    await act(async () => {
+      wander.click();
+    });
+    expect(onSkip).toHaveBeenCalledTimes(1);
+    expect(onComplete).not.toHaveBeenCalled();
+    expect(onSkip.mock.calls[0][0].seedChannelId).toBe("variety-mix");
+  });
 });

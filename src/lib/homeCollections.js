@@ -247,9 +247,13 @@ export function recommendedPicks(
     })
     .sort((a, b) => b.score - a.score || String(a.track.id).localeCompare(String(b.track.id)));
 
+  // Hard-suppressed (score 0) stays off Made for you unless it would empty the rail.
+  const audible = scored.filter((row) => row.score > 0);
+  const ranked = audible.length ? audible : scored;
+
   return {
     coldStart: !hasPersonal,
-    picks: rotateDaily(scored).map(({ track, reason }) => ({
+    picks: rotateDaily(ranked).map(({ track, reason }) => ({
       track,
       reason: reason || (coldStart ? "Made for you" : "For you"),
     })),

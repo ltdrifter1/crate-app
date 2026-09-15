@@ -106,6 +106,28 @@ describe("homeCollections", () => {
     if (likedPick) expect(likedPick.reason).toBe("Saved");
   });
 
+  test("recommendedPicks hard-suppresses disliked neighborhoods on Made for you", () => {
+    const { emptyDislikeTaste, recordDislikeEvent } = require("./dislikeTaste");
+    let dislike = emptyDislikeTaste();
+    dislike = recordDislikeEvent(dislike, { id: "d1", genre: "Pop", energy: 6 }).taste;
+    dislike = recordDislikeEvent(dislike, { id: "d2", genre: "Pop", energy: 6 }).taste;
+    dislike = recordDislikeEvent(dislike, { id: "d3", genre: "Pop", energy: 5 }).taste;
+    const cold = [
+      { id: "pop", title: "Pop", genre: "Pop", duration: 180, playCount: 2, energy: 6 },
+      { id: "jazz", title: "Jazz", genre: "Jazz", duration: 180, playCount: 1, energy: 4 },
+    ];
+    const { picks } = recommendedPicks(cold, {
+      preferredGenres: ["Jazz", "Pop"],
+      taste: { genres: ["Jazz", "Pop"], adventurous: 20, depth: 40 },
+      dislikeTaste: dislike,
+      limit: 2,
+      userKey: "u-dislike",
+      dayKey: "2026-09-15",
+    });
+    expect(picks.some((p) => p.track.genre === "Pop")).toBe(false);
+    expect(picks.some((p) => p.track.genre === "Jazz")).toBe(true);
+  });
+
   test("recommendedPicks honors excludeIds", () => {
     const { picks } = recommendedPicks(tracks, { preferredGenres: ["Jazz"], excludeIds: ["1", "2"], limit: 10 });
     expect(picks.some((p) => p.track.id === "1" || p.track.id === "2")).toBe(false);

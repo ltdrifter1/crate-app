@@ -233,6 +233,8 @@ function HomeScreen({
   onOpenMenu = null,
   taste = null,
   userKey = "",
+  recentTrackIds = [],
+  dislikeTaste = null,
   suppressShowcasePromo = false,
 }) {
   const currentTrack = useCurrentTrack();
@@ -257,10 +259,12 @@ function HomeScreen({
       preferredGenres: taste?.genres || [],
       taste,
       userKey,
+      recentTrackIds,
+      dislikeTaste,
       limit: 10,
       channelHit: (t) => trackHitsPreferredChannels(t, channelIds),
     }).picks;
-  }, [shelvesReady, tracks, taste, userKey]);
+  }, [shelvesReady, tracks, taste, userKey, recentTrackIds, dislikeTaste]);
 
   const topRequested = useMemo(() => countdown.slice(0, 10), [countdown]);
   const liveShow = channelShow || airing?.show || null;

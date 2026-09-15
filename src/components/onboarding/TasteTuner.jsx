@@ -326,7 +326,8 @@ export default function TasteTuner({
     const bag = fromSkip
       ? compileOnboardingTaste({ skip: true })
       : compileOnboardingTaste({ channelIds, artistNames, energyId, stretchId });
-    onComplete?.(bag);
+    if (fromSkip && onSkip) onSkip(bag);
+    else onComplete?.(bag);
   }
 
   const heading =
