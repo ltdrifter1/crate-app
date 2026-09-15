@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback, useMemo, lazy, Suspense } from "react";
 import { useNavigate, useLocation }                 from "react-router-dom";
 import { useAuth }                                  from "./useAuth";
-import { toggleLike as fbToggleLike, recordPlay, completeOnboarding, saveTasteProfile, saveDislikeTaste } from "./useUserData";
+import { toggleLike as fbToggleLike, recordPlay, completeOnboarding, saveTasteProfile, saveDislikeTaste, saveFeatureGuideSeen } from "./useUserData";
 import { collection, addDoc } from "firebase/firestore";
 import { db }                                       from "./firebase";
 import {
@@ -76,6 +76,7 @@ import {
   isColdStartTaste,
 } from "./lib/ranking";
 import { trackHitsPreferredChannels, compileOnboardingTaste } from "./lib/onboardingTaste";
+import { shouldAutoShowFeatureTour, featureGuideSeenPayload } from "./lib/featureGuide";
 import {
   buildCountdown,
   stationDaypart,
@@ -163,6 +164,7 @@ const LazyAfterglow = lazy(() => import("./components/listen/AfterglowOverlay"))
 const LazyQueueSheet = lazy(() => import("./components/listen/QueueSheet"));
 const LazyGenreTasteSheet = lazy(() => import("./components/listen/GenreTasteSheet"));
 const LazyTasteTuner = lazy(() => import("./components/onboarding/TasteTuner"));
+const LazyFeatureTour = lazy(() => import("./components/guide/FeatureTour"));
 const LazyLinerNotesSheet = lazy(() => import("./components/catalog/LinerNotesSheet"));
 const LazyDedicateSheet = lazy(() => import("./components/station/DedicateSheet"));
 const LazyStationBumper = lazy(() => import("./components/station/StationBumper"));
@@ -170,6 +172,10 @@ const LazyHomeMessenger = lazy(() => import("./components/chat/HomeMessenger"));
 const DevChatPreview =
   process.env.NODE_ENV !== "production"
     ? lazy(() => import("./preview/ChatPreview"))
+    : null;
+const DevGuidePreview =
+  process.env.NODE_ENV !== "production"
+    ? lazy(() => import("./preview/GuidePreview"))
     : null;
 
 const injectStyles = () => {
@@ -917,6 +923,8 @@ export default function App() {
   }, []);
   const [hypnoSeed, setHypnoSeed] = useState(null); // pocket-mode seed track
   const [onboardingDismissed, setOnboardingDismissed] = useState(false);
+  const [featureTourDismissed, setFeatureTourDismissed] = useState(false);
+  const [featureTourReplay, setFeatureTourReplay] = useState(false);
   const [pendingTune, setPendingTune] = useState(null);
   const [listeningRoom, setListeningRoom] = useState(null);
   const [linerTrack, setLinerTrack] = useState(null);
@@ -1365,6 +1373,14 @@ export default function App() {
     return [stub, ...own.filter((p) => p.id !== stub.id)];
   }, [userPlaylists, communityMix]);
   const needsOnboarding = !!firebaseUser && profile && profile.onboarded === false && !onboardingDismissed && !tracksLoading;
+  // Taste tuner first. Short feature tour only after taste is done/skipped, once per version.
+  const needsFeatureTour =
+    !!firebaseUser
+    && profile
+    && !needsOnboarding
+    && !featureTourDismissed
+    && shouldAutoShowFeatureTour(profile);
+  const showFeatureTour = (needsFeatureTour || featureTourReplay) && !needsOnboarding;
   const isAdminUser = !!firebaseUser && firebaseUser.uid === ADMIN_UID;
   const access = useMemo(
     () => getAccessState(profile, { isAdmin: isAdminUser }),
@@ -1540,6 +1556,18 @@ export default function App() {
     } catch (e) { /* local dismiss still */ }
     if (taste.seedChannelId) setPendingTune(taste.seedChannelId);
     setOnboardingDismissed(true);
+  };
+
+  const finishFeatureTour = async () => {
+    const payload = featureGuideSeenPayload();
+    try {
+      await saveFeatureGuideSeen(payload);
+      setProfile((p) => ({ ...(p || {}), ...payload }));
+    } catch {
+      setProfile((p) => ({ ...(p || {}), ...payload }));
+    }
+    setFeatureTourDismissed(true);
+    setFeatureTourReplay(false);
   };
 
   // ── Crossfade audio engine ───────────────────────────────────────────────
@@ -3002,6 +3030,17 @@ export default function App() {
       </Suspense>
     );
   }
+  if (
+    DevGuidePreview &&
+    typeof window !== "undefined" &&
+    (window.location.hash === "#guide-preview" || window.location.hash === "#guide-preview-club")
+  ) {
+    return (
+      <Suspense fallback={<div style={{ minHeight: "100dvh", background: color.canvas }} />}>
+        <DevGuidePreview />
+      </Suspense>
+    );
+  }
 
   // ── Loading states ────────────────────────────────────────────────────────
   // Auth restore — keep the HTML boot splash's dark canvas; skip Lottie on the critical path.
@@ -3096,6 +3135,15 @@ export default function App() {
 
   const listeningOverlays = (
     <>
+      {showFeatureTour && (
+        <Suspense fallback={null}>
+          <LazyFeatureTour
+            replay={featureTourReplay}
+            onComplete={finishFeatureTour}
+            onSkip={finishFeatureTour}
+          />
+        </Suspense>
+      )}
       {PAYWALL_ENABLED && showPlans && (
         <Suspense fallback={null}>
           <LazyPaywallScreen
@@ -3412,7 +3460,7 @@ export default function App() {
         )}
         {screen==="profile"   && (
           <Suspense fallback={<div style={{ padding: 32, color: "var(--muted)" }}>Opening the club…</div>}>
-            <ClubScreen user={user} tracks={tracks} onLogout={logOut} access={access} onSubscribe={handleSubscribe} onOpenPlans={handleOpenPlans} profile={profile} communityMix={communityMix} onOpenMix={communityMix ? ()=>openMix(communityMix.id) : null} onEditGenres={()=>setShowGenreTaste(true)} recentTracks={profile?.recentTracks||[]} signalLabel={signalFlags.getState().label} onPlayTrack={(t,pool)=>{setIsRadioMode(false);playTrack(t,pool||tracks);}}/>
+            <ClubScreen user={user} tracks={tracks} onLogout={logOut} access={access} onSubscribe={handleSubscribe} onOpenPlans={handleOpenPlans} profile={profile} communityMix={communityMix} onOpenMix={communityMix ? ()=>openMix(communityMix.id) : null} onEditGenres={()=>setShowGenreTaste(true)} recentTracks={profile?.recentTracks||[]} signalLabel={signalFlags.getState().label} onPlayTrack={(t,pool)=>{setIsRadioMode(false);playTrack(t,pool||tracks);}} onReplayTour={() => setFeatureTourReplay(true)}/>
           </Suspense>
         )}
         {screen==="admin"     && <AdminScreen tracks={tracks} setTracks={setTracks} tab={adminTab} setTab={setAdminTab} editTrack={editTrack} setEditTrack={setEditTrack} showToast={showToast} userPlaylists={userPlaylists} communityMix={communityMix} onPublishCommunityMix={publishCommunityMixFromPlaylist}/>}
@@ -3581,7 +3629,7 @@ export default function App() {
               )}
               {screen==="profile"   && (
                 <Suspense fallback={<div style={{ padding: 32, color: "var(--muted)" }}>Opening the club…</div>}>
-                  <ClubScreen user={user} tracks={tracks} onLogout={logOut} access={access} onSubscribe={handleSubscribe} onOpenPlans={handleOpenPlans} profile={profile} communityMix={communityMix} onOpenMix={communityMix ? ()=>openMix(communityMix.id) : null} onEditGenres={()=>setShowGenreTaste(true)} recentTracks={profile?.recentTracks||[]} signalLabel={signalFlags.getState().label} onPlayTrack={(t,pool)=>{setIsRadioMode(false);playTrack(t,pool||tracks);}}/>
+                  <ClubScreen user={user} tracks={tracks} onLogout={logOut} access={access} onSubscribe={handleSubscribe} onOpenPlans={handleOpenPlans} profile={profile} communityMix={communityMix} onOpenMix={communityMix ? ()=>openMix(communityMix.id) : null} onEditGenres={()=>setShowGenreTaste(true)} recentTracks={profile?.recentTracks||[]} signalLabel={signalFlags.getState().label} onPlayTrack={(t,pool)=>{setIsRadioMode(false);playTrack(t,pool||tracks);}} onReplayTour={() => setFeatureTourReplay(true)}/>
                 </Suspense>
               )}
               {screen==="admin"     && <AdminScreen tracks={tracks} setTracks={setTracks} tab={adminTab} setTab={setAdminTab} editTrack={editTrack} setEditTrack={setEditTrack} showToast={showToast} userPlaylists={userPlaylists} communityMix={communityMix} onPublishCommunityMix={publishCommunityMixFromPlaylist}/>}

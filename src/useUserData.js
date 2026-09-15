@@ -144,3 +144,15 @@ export async function savePlayMeter({ playsDayKey, playsToday }) {
 export async function saveSettings(settings) {
   await updateDoc(userRef(), { settings });
 }
+
+/** Persist first-login tour seen + guide version (auto-show once per version). */
+export async function saveFeatureGuideSeen({
+  tutorialSeen = true,
+  featureGuideVersion = null,
+} = {}) {
+  const payload = {};
+  if (tutorialSeen != null) payload.tutorialSeen = tutorialSeen;
+  if (featureGuideVersion != null) payload.featureGuideVersion = featureGuideVersion;
+  if (!Object.keys(payload).length) return;
+  await updateDoc(userRef(), payload);
+}
