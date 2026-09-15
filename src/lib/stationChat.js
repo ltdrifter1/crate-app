@@ -1,5 +1,5 @@
 /**
- * Station chat — Home companion (MSN-style rail / mobile sheet).
+ * Station chat — Home companion (ice rail / mobile sheet).
  * Pure helpers: sanitize, rate-limit, layout breakpoints, presence.
  * Firestore I/O lives in components/chat so Home boot can lazy-load it.
  */
@@ -157,27 +157,19 @@ export function chatLayoutForWidth(width) {
 }
 
 /**
- * Desktop right chrome: collapsed nub keeps Home music-first.
- * Expanded overlays the existing Queue on typical laptops; both stay
- * visible on wide desks so #178 queue IA is not clobbered.
+ * Desktop right chrome: chat owns the old queue column when open.
+ * Queue stays hidden on Home; a slim nub is the only collapsed state.
  */
 export function desktopMessengerPlacement(width, open) {
+  void width;
   if (!open) {
     return { mode: "nub", flexWidth: CHAT_NUB_WIDTH, overlay: false, overlayWidth: 0 };
   }
-  if (width >= CHAT_WIDE_BOTH) {
-    return {
-      mode: "dock",
-      flexWidth: CHAT_WINDOW_WIDTH,
-      overlay: false,
-      overlayWidth: 0,
-    };
-  }
   return {
-    mode: "overlay",
-    flexWidth: 0,
-    overlay: true,
-    overlayWidth: CHAT_WINDOW_WIDTH,
+    mode: "dock",
+    flexWidth: CHAT_QUEUE_WIDTH,
+    overlay: false,
+    overlayWidth: 0,
   };
 }
 
@@ -192,9 +184,11 @@ export function railStorageKey() {
 
 export function readRailOpen() {
   try {
-    return localStorage.getItem(railStorageKey()) === "open";
+    const v = localStorage.getItem(railStorageKey());
+    if (v === "collapsed") return false;
+    return true;
   } catch {
-    return false;
+    return true;
   }
 }
 

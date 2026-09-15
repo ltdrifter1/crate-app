@@ -55,7 +55,8 @@ describe("Chat preview", () => {
     expect(div.textContent).toMatch(/Channel Surfing/i);
     expect(div.querySelector("[data-testid='home-messenger']")).toBeTruthy();
     expect(
-      div.querySelector("[data-testid='messenger-nub']") ||
+      div.querySelector("[data-testid='messenger-window']") ||
+        div.querySelector("[data-testid='messenger-nub']") ||
         div.querySelector("[data-testid='messenger-pill']")
     ).toBeTruthy();
     await act(async () => {

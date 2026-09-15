@@ -16,7 +16,6 @@ import {
   CHAT_MAX_TEXT,
   CHAT_MIN_INTERVAL_MS,
   CHAT_NUB_WIDTH,
-  CHAT_WINDOW_WIDTH,
   CHAT_DESKTOP_MIN,
 } from "./stationChat";
 import { dock } from "../theme";
@@ -89,20 +88,20 @@ describe("stationChat layout breakpoints", () => {
     expect(chatLayoutForWidth(1280)).toBe("desktop-rail");
   });
 
-  test("collapsed nub is slim; overlay covers queue on typical desktops", () => {
+  test("open chat docks in the queue column; collapsed is a slim nub", () => {
     const collapsed = desktopMessengerPlacement(1280, false);
     expect(collapsed.mode).toBe("nub");
     expect(collapsed.flexWidth).toBe(CHAT_NUB_WIDTH);
     expect(collapsed.overlay).toBe(false);
 
     const laptop = desktopMessengerPlacement(1280, true);
-    expect(laptop.mode).toBe("overlay");
-    expect(laptop.flexWidth).toBe(0);
-    expect(laptop.overlayWidth).toBe(CHAT_WINDOW_WIDTH);
+    expect(laptop.mode).toBe("dock");
+    expect(laptop.flexWidth).toBe(336);
+    expect(laptop.overlay).toBe(false);
 
     const wide = desktopMessengerPlacement(1600, true);
     expect(wide.mode).toBe("dock");
-    expect(wide.flexWidth).toBe(CHAT_WINDOW_WIDTH);
+    expect(wide.flexWidth).toBe(336);
     expect(wide.overlay).toBe(false);
   });
 

@@ -1,18 +1,21 @@
 /**
  * Home station chat host — lazy-loaded from App.
- * Desktop: collapsible right messenger rail (nub / overlay / dock).
- * Mobile: floating pill → bottom sheet. Does not occupy Home's broadcast stage.
+ * Desktop: ice rail occupies the right column (queue is hidden on Home).
+ * Mobile: floating pill → bottom sheet.
  */
 import { useEffect, useMemo, useState } from "react";
 import {
   chatLayoutForWidth,
   desktopMessengerPlacement,
+  mergeChatMessages,
   mobileChatPillBottomPx,
   readRailOpen,
   writeRailOpen,
   CHAT_NUB_WIDTH,
 } from "../../lib/stationChat";
+import { mergePresence } from "../../lib/stationBots";
 import { useStationChat } from "./useStationChat";
+import { useStationBots } from "./useStationBots";
 import {
   MessengerNub,
   MessengerPill,
@@ -33,6 +36,7 @@ export default function HomeMessenger({
   onSend: onSendProp = null,
   live = true,
   embedded = false,
+  roomBots = true,
 }) {
   const isMobile = variant === "mobile" || chatLayoutForWidth(viewportWidth) === "mobile-sheet";
   const [open, setOpen] = useState(() => {
@@ -64,8 +68,13 @@ export default function HomeMessenger({
     enabled: live,
   });
 
-  const messages = messagesProp || chat.messages;
-  const presence = presenceProp || chat.presence;
+  const bots = useStationBots({
+    nowPlaying,
+    enabled: roomBots && (open || !isMobile),
+  });
+
+  const messages = mergeChatMessages(messagesProp || chat.messages, roomBots ? bots.messages : []);
+  const presence = mergePresence(presenceProp || chat.presence, roomBots ? bots.presence : []);
   const send = onSendProp || chat.send;
 
   const toggle = (next) => {
@@ -86,6 +95,7 @@ export default function HomeMessenger({
       onMinimize={() => toggle(false)}
       onClose={() => toggle(false)}
       composerAutoFocus={open}
+      typing={roomBots ? bots.typing : null}
     />
   );
 
@@ -130,26 +140,16 @@ export default function HomeMessenger({
         flexShrink: 0,
         position: "relative",
         alignSelf: "stretch",
-        zIndex: open && placement.overlay ? 60 : 30,
+        zIndex: 30,
         transition: "width 0.28s cubic-bezier(0.22, 1, 0.36, 1)",
       }}
     >
       {open ? (
         <div
-          style={
-            placement.overlay
-              ? {
-                  position: "absolute",
-                  right: 0,
-                  top: 8,
-                  bottom: 8,
-                  width: placement.overlayWidth,
-                }
-              : {
-                  height: "100%",
-                  padding: "8px 8px 8px 0",
-                }
-          }
+          style={{
+            height: "100%",
+            padding: "8px 8px 8px 0",
+          }}
         >
           {windowEl}
         </div>

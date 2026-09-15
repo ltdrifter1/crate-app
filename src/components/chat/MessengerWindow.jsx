@@ -1,10 +1,9 @@
 /**
- * MSN-inspired messenger chrome — presentational.
- * Premium Y2K window, lime/cyan accents, system iOS type. Not costume jewelry.
+ * Ice station messenger — frosted live room. Not MSN chrome.
  */
 import { useEffect, useRef, useState } from "react";
 import {
-  color, font, fontDisplay, fontMono, glass, hardware, motion, radius, y2k,
+  color, font, fontDisplay, ice, motion,
 } from "../../theme";
 import {
   buddyColor,
@@ -14,15 +13,21 @@ import {
   onlineBuddies,
   CHAT_MAX_TEXT,
 } from "../../lib/stationChat";
-function gemStyle(size = 8) {
-  return {
-    width: size,
-    height: size,
-    borderRadius: "50%",
-    background: y2k.neon,
-    boxShadow: `0 0 0 1px rgba(8,10,13,0.35), 0 0 10px ${y2k.neonSoft}`,
-    flexShrink: 0,
-  };
+
+function IcePip({ size = 7 }) {
+  return (
+    <span
+      aria-hidden="true"
+      style={{
+        width: size,
+        height: size,
+        borderRadius: "50%",
+        background: ice.pip,
+        boxShadow: `0 0 10px ${ice.glow}`,
+        flexShrink: 0,
+      }}
+    />
+  );
 }
 
 function BuddyNub({ person, size = 26 }) {
@@ -36,18 +41,18 @@ function BuddyNub({ person, size = 26 }) {
         height: size,
         borderRadius: "50%",
         background: `
-          linear-gradient(160deg, rgba(255,255,255,0.35) 0%, transparent 42%),
+          linear-gradient(160deg, rgba(255,255,255,0.45) 0%, transparent 46%),
           ${fill}
         `,
-        color: color.onAccent,
+        color: "#07202C",
         fontFamily: fontDisplay,
         fontSize: size < 24 ? 8 : 10,
         fontWeight: 700,
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        border: `1.5px solid ${y2k.nearBlack}`,
-        boxShadow: `0 0 0 1.5px ${y2k.neon}`,
+        border: `1px solid ${ice.rim}`,
+        boxShadow: `0 0 0 1px rgba(8,16,22,0.55), 0 0 12px ${ice.glow}`,
         flexShrink: 0,
         letterSpacing: -0.2,
       }}
@@ -57,41 +62,32 @@ function BuddyNub({ person, size = 26 }) {
   );
 }
 
-function WindowButtons({ onMinimize, onClose }) {
-  const btn = (label, onClick, glyph) => (
+function GhostBtn({ label, onClick, glyph }) {
+  if (!onClick) return null;
+  return (
     <button
       type="button"
       aria-label={label}
       onClick={onClick}
       style={{
-        width: 18,
-        height: 18,
-        borderRadius: 4,
-        border: "1px solid rgba(8,10,13,0.22)",
-        background: `
-          linear-gradient(180deg, rgba(255,255,255,0.55) 0%, rgba(255,255,255,0.08) 40%, transparent 100%),
-          linear-gradient(165deg, #E7EBF0 0%, #9AA3AE 100%)
-        `,
-        boxShadow: "inset 0 1px 0 rgba(255,255,255,0.7), 0 1px 2px rgba(0,0,0,0.25)",
-        color: y2k.charcoal,
+        width: 28,
+        height: 28,
+        borderRadius: 8,
+        border: `1px solid ${ice.rimSoft}`,
+        background: ice.frost,
+        color: ice.ink,
         cursor: "pointer",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
         padding: 0,
-        fontSize: 10,
-        fontWeight: 800,
+        fontSize: 16,
+        fontWeight: 500,
         lineHeight: 1,
       }}
     >
       {glyph}
     </button>
-  );
-  return (
-    <div style={{ display: "flex", gap: 5, alignItems: "center" }}>
-      {onMinimize ? btn("Minimize chat", onMinimize, "–") : null}
-      {onClose ? btn("Close chat", onClose, "×") : null}
-    </div>
   );
 }
 
@@ -102,25 +98,21 @@ function TitleBar({ title, subtitle, onMinimize, onClose, compact = false }) {
         display: "flex",
         alignItems: "center",
         gap: 10,
-        padding: compact ? "8px 10px" : "9px 12px",
-        background: `
-          linear-gradient(180deg, rgba(255,255,255,0.22) 0%, rgba(255,255,255,0.04) 42%, transparent 100%),
-          linear-gradient(90deg, #2A3038 0%, #1C2128 48%, #161A20 100%)
-        `,
-        borderBottom: "1px solid rgba(255,255,255,0.1)",
-        boxShadow: "inset 0 1px 0 rgba(255,255,255,0.16)",
+        padding: compact ? "10px 12px" : "12px 14px",
+        background: ice.frost,
+        borderBottom: `1px solid ${ice.rimSoft}`,
         flexShrink: 0,
       }}
     >
-      <span aria-hidden="true" style={gemStyle(8)} />
+      <IcePip />
       <div style={{ flex: 1, minWidth: 0 }}>
         <div
           style={{
             fontFamily: fontDisplay,
-            fontSize: compact ? 12.5 : 13.5,
-            fontWeight: 700,
-            letterSpacing: -0.2,
-            color: y2k.offWhite,
+            fontSize: compact ? 13 : 14,
+            fontWeight: 650,
+            letterSpacing: -0.25,
+            color: ice.ink,
             overflow: "hidden",
             textOverflow: "ellipsis",
             whiteSpace: "nowrap",
@@ -131,11 +123,11 @@ function TitleBar({ title, subtitle, onMinimize, onClose, compact = false }) {
         {subtitle ? (
           <div
             style={{
-              marginTop: 1,
+              marginTop: 2,
               fontFamily: font,
-              fontSize: 11,
+              fontSize: 11.5,
               fontWeight: 500,
-              color: color.muted,
+              color: ice.mute,
               overflow: "hidden",
               textOverflow: "ellipsis",
               whiteSpace: "nowrap",
@@ -145,7 +137,10 @@ function TitleBar({ title, subtitle, onMinimize, onClose, compact = false }) {
           </div>
         ) : null}
       </div>
-      <WindowButtons onMinimize={onMinimize} onClose={onClose} />
+      <div style={{ display: "flex", gap: 6 }}>
+        <GhostBtn label="Minimize chat" onClick={onMinimize} glyph="–" />
+        <GhostBtn label="Close chat" onClick={onClose} glyph="×" />
+      </div>
     </div>
   );
 }
@@ -156,25 +151,23 @@ function BuddyStrip({ presence, now }) {
     return (
       <div
         style={{
-          padding: "8px 12px",
-          borderBottom: `1px solid ${glass.borderFaint}`,
-          background: "rgba(8,10,13,0.28)",
+          padding: "10px 14px",
+          borderBottom: `1px solid ${ice.rimSoft}`,
+          background: "rgba(8,18,26,0.35)",
           flexShrink: 0,
         }}
       >
         <div
           style={{
-            fontFamily: fontMono,
-            fontSize: 9,
-            fontWeight: 700,
-            letterSpacing: 1.4,
-            textTransform: "uppercase",
-            color: color.faint,
+            fontSize: 11,
+            fontWeight: 650,
+            letterSpacing: 0.2,
+            color: ice.mute,
           }}
         >
-          Buddy list
+          Listening
         </div>
-        <div style={{ marginTop: 4, fontSize: 12, color: color.muted, fontFamily: font }}>
+        <div style={{ marginTop: 3, fontSize: 12.5, color: ice.ink, fontFamily: font }}>
           You&apos;re on the station
         </div>
       </div>
@@ -185,10 +178,10 @@ function BuddyStrip({ presence, now }) {
       style={{
         display: "flex",
         alignItems: "center",
-        gap: 8,
-        padding: "8px 12px",
-        borderBottom: `1px solid ${glass.borderFaint}`,
-        background: "rgba(8,10,13,0.28)",
+        gap: 10,
+        padding: "10px 14px",
+        borderBottom: `1px solid ${ice.rimSoft}`,
+        background: "rgba(8,18,26,0.35)",
         flexShrink: 0,
       }}
     >
@@ -202,20 +195,18 @@ function BuddyStrip({ presence, now }) {
       <div style={{ minWidth: 0 }}>
         <div
           style={{
-            fontFamily: fontMono,
-            fontSize: 9,
-            fontWeight: 700,
-            letterSpacing: 1.3,
-            textTransform: "uppercase",
-            color: y2k.neon,
+            fontSize: 11,
+            fontWeight: 650,
+            letterSpacing: 0.15,
+            color: ice.pip,
           }}
         >
-          {online.length} online
+          {online.length} listening
         </div>
         <div
           style={{
-            fontSize: 11.5,
-            color: color.muted,
+            fontSize: 12,
+            color: ice.mute,
             fontFamily: font,
             overflow: "hidden",
             textOverflow: "ellipsis",
@@ -237,7 +228,7 @@ function MessageRow({ msg, mine, now }) {
         display: "flex",
         flexDirection: "column",
         alignItems: mine ? "flex-end" : "flex-start",
-        marginBottom: 10,
+        marginBottom: 12,
         padding: mine ? "0 2px 0 28px" : "0 28px 0 2px",
       }}
     >
@@ -246,7 +237,7 @@ function MessageRow({ msg, mine, now }) {
           display: "flex",
           alignItems: "baseline",
           gap: 8,
-          marginBottom: 3,
+          marginBottom: 4,
           flexDirection: mine ? "row-reverse" : "row",
         }}
       >
@@ -255,7 +246,7 @@ function MessageRow({ msg, mine, now }) {
             fontFamily: font,
             fontSize: 12,
             fontWeight: 650,
-            color: mine ? y2k.cyan : y2k.neon,
+            color: mine ? ice.pip : ice.ink,
             letterSpacing: -0.1,
           }}
         >
@@ -265,7 +256,7 @@ function MessageRow({ msg, mine, now }) {
           style={{
             fontFamily: font,
             fontSize: 11,
-            color: color.faint,
+            color: ice.mute,
             fontVariantNumeric: "tabular-nums",
           }}
         >
@@ -275,21 +266,18 @@ function MessageRow({ msg, mine, now }) {
       <div
         style={{
           maxWidth: "100%",
-          padding: "7px 10px",
-          borderRadius: mine ? "10px 10px 3px 10px" : "10px 10px 10px 3px",
-          background: mine
-            ? "linear-gradient(165deg, rgba(101,230,255,0.16) 0%, rgba(101,230,255,0.05) 100%)"
-            : "rgba(255,255,255,0.05)",
-          border: mine
-            ? "1px solid rgba(101,230,255,0.22)"
-            : "1px solid rgba(255,255,255,0.07)",
-          color: y2k.offWhite,
+          padding: "8px 12px",
+          borderRadius: mine ? "16px 16px 5px 16px" : "16px 16px 16px 5px",
+          background: mine ? ice.bubbleMine : ice.bubble,
+          border: `1px solid ${ice.rimSoft}`,
+          color: ice.ink,
           fontFamily: font,
-          fontSize: 14,
+          fontSize: 14.5,
           fontWeight: 450,
-          lineHeight: 1.4,
-          letterSpacing: -0.15,
+          lineHeight: 1.42,
+          letterSpacing: -0.16,
           wordBreak: "break-word",
+          boxShadow: mine ? `0 0 18px ${ice.glow}` : "none",
         }}
       >
         {msg.text}
@@ -297,13 +285,13 @@ function MessageRow({ msg, mine, now }) {
       {msg.trackTitle ? (
         <div
           style={{
-            marginTop: 3,
-            fontSize: 10.5,
-            color: color.faint,
+            marginTop: 4,
+            fontSize: 11,
+            color: ice.mute,
             fontFamily: font,
           }}
         >
-          while {msg.trackTitle}
+          on {msg.trackTitle}
         </div>
       ) : null}
     </div>
@@ -321,23 +309,24 @@ export function MessengerWindow({
   onMinimize,
   onClose,
   now = Date.now(),
-  emptyHint = "No one's talking yet. Be the first on the station.",
+  typing = null,
+  emptyHint = "Quiet on the station. Say something.",
   composerAutoFocus = false,
 }) {
   const [draft, setDraft] = useState("");
   const scroller = useRef(null);
   const online = presence.filter((p) => isPresenceOnline(p.lastSeen, now));
   const subtitle = nowPlaying?.title
-    ? `Now: ${nowPlaying.title}${nowPlaying.artist ? ` — ${nowPlaying.artist}` : ""}`
+    ? `${nowPlaying.title}${nowPlaying.artist ? ` — ${nowPlaying.artist}` : ""}`
     : online.length
       ? `${online.length} listening`
-      : "Who's listening";
+      : "Live on the station";
 
   useEffect(() => {
     const el = scroller.current;
     if (!el) return;
     el.scrollTop = el.scrollHeight;
-  }, [messages.length]);
+  }, [messages.length, typing]);
 
   const submit = (e) => {
     e?.preventDefault?.();
@@ -363,22 +352,21 @@ export function MessengerWindow({
         flexDirection: "column",
         height: "100%",
         minHeight: 0,
-        borderRadius: 12,
+        borderRadius: 18,
         overflow: "hidden",
-        border: "1px solid rgba(231,235,240,0.2)",
-        background: `
-          linear-gradient(180deg, rgba(255,255,255,0.06) 0%, transparent 28%),
-          linear-gradient(165deg, #1A1F26 0%, #10141A 100%)
-        `,
+        border: `1px solid ${ice.rim}`,
+        background: ice.pane,
         boxShadow: `
-          inset 0 1px 0 rgba(255,255,255,0.16),
-          inset 0 -1px 0 rgba(0,0,0,0.45),
-          0 18px 48px rgba(0,0,0,0.45)
+          inset 0 1px 0 rgba(224,242,254,0.22),
+          0 0 40px ${ice.glow},
+          0 18px 48px rgba(0,0,0,0.38)
         `,
+        backdropFilter: "blur(28px) saturate(1.35)",
+        WebkitBackdropFilter: "blur(28px) saturate(1.35)",
       }}
     >
       <TitleBar
-        title="Planet MP3 Chat"
+        title="Live chat"
         subtitle={subtitle}
         onMinimize={onMinimize}
         onClose={onClose}
@@ -392,20 +380,16 @@ export function MessengerWindow({
           flex: 1,
           minHeight: 0,
           overflowY: "auto",
-          padding: "12px 12px 8px",
-          background: `
-            linear-gradient(180deg, rgba(101,230,255,0.04) 0%, transparent 28%),
-            linear-gradient(160deg, #0A1016 0%, #06090E 100%)
-          `,
-          boxShadow: "inset 0 2px 10px rgba(0,0,0,0.35)",
+          padding: "14px 14px 10px",
+          background: ice.thread,
         }}
       >
         {messages.length === 0 ? (
           <div
             style={{
-              padding: "28px 12px",
+              padding: "32px 12px",
               textAlign: "center",
-              color: color.muted,
+              color: ice.mute,
               fontFamily: font,
               fontSize: 13.5,
               lineHeight: 1.45,
@@ -423,12 +407,38 @@ export function MessengerWindow({
             />
           ))
         )}
+        {typing ? (
+          <div
+            data-testid="chat-typing"
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
+              padding: "4px 6px 8px",
+              color: ice.mute,
+              fontSize: 12.5,
+            }}
+          >
+            <span
+              aria-hidden="true"
+              style={{
+                width: 6,
+                height: 6,
+                borderRadius: "50%",
+                background: ice.pip,
+                boxShadow: `0 0 8px ${ice.glow}`,
+                animation: "pulse 1.2s ease-in-out infinite",
+              }}
+            />
+            {typing} is typing
+          </div>
+        ) : null}
       </div>
       {error ? (
         <div
           role="status"
           style={{
-            padding: "6px 12px",
+            padding: "6px 14px",
             fontSize: 12,
             color: color.alert,
             fontFamily: font,
@@ -443,12 +453,9 @@ export function MessengerWindow({
         style={{
           display: "flex",
           gap: 8,
-          padding: "10px 10px 12px",
-          borderTop: "1px solid rgba(255,255,255,0.08)",
-          background: `
-            linear-gradient(180deg, rgba(255,255,255,0.06) 0%, transparent 50%),
-            rgba(16,18,22,0.92)
-          `,
+          padding: "12px 12px 14px",
+          borderTop: `1px solid ${ice.rimSoft}`,
+          background: "rgba(10, 22, 32, 0.55)",
           flexShrink: 0,
         }}
       >
@@ -464,16 +471,16 @@ export function MessengerWindow({
           style={{
             flex: 1,
             minWidth: 0,
-            height: 38,
-            padding: "0 12px",
-            borderRadius: radius.sm,
-            border: "1px solid rgba(101,230,255,0.18)",
-            background: "rgba(6,10,14,0.85)",
-            color: color.ink,
+            height: 40,
+            padding: "0 14px",
+            borderRadius: 980,
+            border: `1px solid ${ice.rim}`,
+            background: "rgba(6, 16, 24, 0.72)",
+            color: ice.ink,
             fontFamily: font,
             fontSize: 15,
             outline: "none",
-            boxShadow: "inset 0 1px 4px rgba(0,0,0,0.45)",
+            boxShadow: `inset 0 1px 0 rgba(224,242,254,0.08), 0 0 0 3px transparent`,
           }}
         />
         <button
@@ -481,21 +488,20 @@ export function MessengerWindow({
           data-testid="chat-send"
           disabled={!canSend || !draft.trim()}
           style={{
-            height: 38,
-            padding: "0 14px",
-            borderRadius: hardware.radius,
-            border: "1px solid rgba(255,255,255,0.18)",
+            height: 40,
+            padding: "0 16px",
+            borderRadius: 980,
+            border: "1px solid rgba(186,230,253,0.4)",
             background: draft.trim()
-              ? hardware.keyFace
-              : "rgba(255,255,255,0.04)",
-            color: draft.trim() ? y2k.offWhite : color.faint,
-            boxShadow: draft.trim() ? hardware.keyRaised : "none",
-            fontFamily: fontMono,
-            fontSize: 11,
-            fontWeight: 800,
-            letterSpacing: 0.9,
-            textTransform: "uppercase",
+              ? "linear-gradient(180deg, rgba(186,230,253,0.95) 0%, rgba(125,211,252,0.88) 100%)"
+              : ice.frost,
+            color: draft.trim() ? "#06202C" : ice.mute,
+            fontFamily: font,
+            fontSize: 13,
+            fontWeight: 700,
+            letterSpacing: -0.1,
             cursor: draft.trim() && canSend ? "pointer" : "default",
+            boxShadow: draft.trim() ? `0 0 18px ${ice.glow}` : "none",
           }}
         >
           Send
@@ -521,33 +527,30 @@ export function MessengerNub({
         width: "100%",
         height: "100%",
         minHeight: 160,
-        border: "1px solid rgba(231,235,240,0.16)",
+        border: `1px solid ${ice.rimSoft}`,
         borderRight: "none",
-        borderRadius: "12px 0 0 12px",
+        borderRadius: "16px 0 0 16px",
         cursor: "pointer",
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
-        padding: "12px 6px 16px",
+        padding: "14px 6px 16px",
         gap: 10,
-        background: `
-          linear-gradient(180deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.02) 36%, transparent 70%),
-          linear-gradient(145deg, #242A32 0%, #15191F 100%)
-        `,
-        boxShadow: "inset 0 1px 0 rgba(255,255,255,0.14), -8px 0 24px rgba(0,0,0,0.18)",
-        color: y2k.offWhite,
+        background: ice.pane,
+        boxShadow: `inset 0 1px 0 rgba(224,242,254,0.18), -10px 0 28px ${ice.glow}`,
+        color: ice.ink,
       }}
     >
-      <span aria-hidden="true" style={gemStyle(8)} />
+      <IcePip />
       <div
         style={{
           writingMode: "vertical-rl",
           transform: "rotate(180deg)",
           fontFamily: fontDisplay,
           fontSize: 12,
-          fontWeight: 700,
-          letterSpacing: 0.6,
-          color: y2k.offWhite,
+          fontWeight: 650,
+          letterSpacing: 0.4,
+          color: ice.ink,
         }}
       >
         Chat
@@ -559,11 +562,9 @@ export function MessengerNub({
       </div>
       <div
         style={{
-          fontFamily: fontMono,
-          fontSize: 9,
+          fontSize: 11,
           fontWeight: 700,
-          letterSpacing: 0.6,
-          color: y2k.neon,
+          color: ice.pip,
         }}
       >
         {online.length || "–"}
@@ -597,31 +598,26 @@ export function MessengerPill({
         height: 44,
         padding: "0 14px 0 12px",
         borderRadius: 980,
-        border: "1px solid rgba(231,235,240,0.22)",
-        background: `
-          linear-gradient(180deg, rgba(255,255,255,0.16) 0%, rgba(255,255,255,0.04) 100%),
-          rgba(18,20,24,0.78)
-        `,
+        border: `1px solid ${ice.rim}`,
+        background: ice.pane,
         backdropFilter: "blur(20px) saturate(1.3)",
         WebkitBackdropFilter: "blur(20px) saturate(1.3)",
-        boxShadow: "inset 0 1px 0 rgba(255,255,255,0.22), 0 10px 28px rgba(0,0,0,0.4)",
-        color: y2k.offWhite,
+        boxShadow: `inset 0 1px 0 rgba(224,242,254,0.22), 0 10px 28px ${ice.glow}`,
+        color: ice.ink,
         cursor: "pointer",
         pointerEvents: "auto",
         fontFamily: font,
         animation: `rise 0.4s ${motion.ease} both`,
       }}
     >
-      <span aria-hidden="true" style={gemStyle(8)} />
+      <IcePip />
       <span style={{ fontSize: 14, fontWeight: 650, letterSpacing: -0.15 }}>Chat</span>
       {count > 0 ? (
         <span
           style={{
-            fontFamily: fontMono,
-            fontSize: 10,
+            fontSize: 11,
             fontWeight: 700,
-            color: y2k.neon,
-            letterSpacing: 0.4,
+            color: ice.pip,
           }}
         >
           {count}
@@ -639,7 +635,7 @@ export function MessengerSheet({ children, onClose, position = "fixed" }) {
         position,
         inset: 0,
         zIndex: 140,
-        background: "rgba(8,10,13,0.46)",
+        background: "rgba(4,10,16,0.52)",
         display: "flex",
         alignItems: "flex-end",
         justifyContent: "center",
@@ -664,7 +660,7 @@ export function MessengerSheet({ children, onClose, position = "fixed" }) {
             width: 36,
             height: 4,
             borderRadius: 4,
-            background: "rgba(255,255,255,0.28)",
+            background: ice.rim,
             margin: "8px auto 6px",
           }}
         />
