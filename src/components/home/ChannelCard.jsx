@@ -19,6 +19,7 @@ function ChannelArt({ src, title, size, accent, objectPosition, priority = false
         height={size}
         priority={priority}
         eager={eager}
+        raw
         objectPosition={objectPosition}
         style={{ width: "100%", height: "100%", objectFit: "cover" }}
       />

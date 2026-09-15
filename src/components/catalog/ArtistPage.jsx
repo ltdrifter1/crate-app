@@ -2,6 +2,8 @@ import {
   font, fontDisplay, fontMono, color, radius, glass, aluminumGradient, artShadow,
   BTN_SECONDARY, hardwareKey,
 } from "../../theme";
+import { AlbumArt } from "../listen/AlbumArt";
+import { TrackRow } from "../listen/TrackRow";
 import Icon from "../ui/Icon";
 
 /** Artist destination — catalogue as a world, not a discography dump. */
@@ -13,8 +15,6 @@ export default function ArtistPage({
   currentTrack,
   isPlaying,
   onLike,
-  AlbumArt,
-  TrackRow,
   playlistCtx,
 }) {
   if (!artist) {
@@ -65,7 +65,7 @@ export default function ArtistPage({
                 }}
               >
                 <div style={{ width: 140, height: 140, overflow: "hidden", marginBottom: 10, background: color.surfaceRaised }}>
-                  {AlbumArt && al.coverTrack ? (
+                  {al.coverTrack ? (
                     <AlbumArt track={al.coverTrack} size={140} borderRadius={0} />
                   ) : null}
                 </div>
@@ -81,19 +81,17 @@ export default function ArtistPage({
 
       <section style={{ padding: "20px 16px 40px" }}>
         <SectionTitle sub="Everything filed under this name">Tracks</SectionTitle>
-        {artist.tracks.map((t) =>
-          TrackRow ? (
-            <TrackRow
-              key={t.id}
-              track={t}
-              onPlay={() => onPlay(t, artist.tracks)}
-              active={currentTrack?.id === t.id}
-              isPlaying={isPlaying}
-              onLike={onLike}
-              playlistCtx={playlistCtx}
-            />
-          ) : null
-        )}
+        {artist.tracks.map((t) => (
+          <TrackRow
+            key={t.id}
+            track={t}
+            onPlay={() => onPlay(t, artist.tracks)}
+            active={currentTrack?.id === t.id}
+            isPlaying={isPlaying}
+            onLike={onLike}
+            playlistCtx={playlistCtx}
+          />
+        ))}
       </section>
     </div>
   );
@@ -107,8 +105,6 @@ export function AlbumPage({
   currentTrack,
   isPlaying,
   onLike,
-  AlbumArt,
-  TrackRow,
   playlistCtx,
 }) {
   if (!album) {
@@ -163,8 +159,7 @@ export function AlbumPage({
 
       <section style={{ padding: "8px 16px 40px" }}>
         <SectionTitle>Tracklist</SectionTitle>
-        {album.tracks.map((t, i) =>
-          TrackRow ? (
+        {album.tracks.map((t, i) => (
             <div key={t.id} style={{ display: "flex", alignItems: "center", gap: 4 }}>
               <div
                 style={{
@@ -190,8 +185,7 @@ export function AlbumPage({
                 />
               </div>
             </div>
-          ) : null
-        )}
+        ))}
       </section>
     </div>
   );

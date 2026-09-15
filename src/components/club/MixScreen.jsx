@@ -7,6 +7,7 @@ import {
 } from "../../theme";
 import { formatMonthLabel, isCommunityPlaylist, COMMUNITY_MIX_TITLE } from "../../lib/mixes";
 import { CLUB_NAME } from "../../lib/memberNumber";
+import { TrackRow } from "../listen/TrackRow";
 
 export default function MixScreen({
   mix,
@@ -19,7 +20,6 @@ export default function MixScreen({
   onBack,
   onShare,
   onSaveToLibrary,
-  TrackRow,
   playlistCtx,
   onLike,
 }) {

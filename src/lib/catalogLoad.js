@@ -1,7 +1,19 @@
 /**
  * Load catalog from Firestore with ordered-query fallback.
+ * Home cold-boot uses a lite path (single homeLite doc or a limited query)
+ * so shelves fill before the full `tracks` collection download.
  */
-import { collection, getDocs, query, orderBy } from "firebase/firestore";
+import { collection, doc, getDoc, getDocs, query, orderBy, limit } from "firebase/firestore";
+
+export const HOME_LITE_LIMIT = 48;
+export const HOME_LITE_DOC_PATH = ["catalog", "homeLite"];
+
+/** Fields Home / play need on first paint. Extra keys are kept if present. */
+export const HOME_LITE_FIELDS = [
+  "title", "artist", "album", "albumCover", "audioUrl", "duration",
+  "energy", "genre", "playCount", "likeCount", "requestCount", "skipCount",
+  "color", "camelot", "bpm", "videoUrl", "batch", "source", "createdAt",
+];
 
 export function mapTrackDoc(docSnap) {
   return {
@@ -9,6 +21,15 @@ export function mapTrackDoc(docSnap) {
     id: docSnap.id,
     liked: false,
   };
+}
+
+export function toLiteTrack(track = {}) {
+  if (!track || !track.id) return null;
+  const out = { id: String(track.id), liked: !!track.liked };
+  HOME_LITE_FIELDS.forEach((key) => {
+    if (track[key] !== undefined) out[key] = track[key];
+  });
+  return out;
 }
 
 function createdAtMs(track) {
@@ -44,6 +65,60 @@ export async function fetchCatalogTracks(db) {
     }
     throw orderedErr;
   }
+}
+
+async function fetchHomeLiteDoc(db) {
+  const snap = await getDoc(doc(db, ...HOME_LITE_DOC_PATH));
+  if (!snap.exists()) return null;
+  const data = snap.data() || {};
+  const raw = Array.isArray(data.tracks) ? data.tracks : [];
+  const tracks = raw.map((t) => toLiteTrack(t)).filter(Boolean);
+  if (!tracks.length) return null;
+  return {
+    tracks: sortTracksNewestFirst(tracks),
+    source: "lite-doc",
+    updatedAt: data.updatedAt || null,
+  };
+}
+
+async function fetchHomeLiteQuery(db) {
+  try {
+    const q = query(
+      collection(db, "tracks"),
+      orderBy("createdAt", "desc"),
+      limit(HOME_LITE_LIMIT)
+    );
+    const snap = await getDocs(q);
+    const tracks = sortTracksNewestFirst(snap.docs.map(mapTrackDoc));
+    if (!tracks.length) return null;
+    return { tracks, source: "lite-query" };
+  } catch {
+    try {
+      const q = query(collection(db, "tracks"), limit(HOME_LITE_LIMIT));
+      const snap = await getDocs(q);
+      const tracks = sortTracksNewestFirst(snap.docs.map(mapTrackDoc));
+      if (!tracks.length) return null;
+      return { tracks, source: "lite-query-unordered" };
+    } catch {
+      return null;
+    }
+  }
+}
+
+/**
+ * Cold-boot Home catalog: one precomputed doc if Luke published it,
+ * otherwise a shelf-sized `limit()` query — never the full collection.
+ */
+export async function fetchHomeLite(db) {
+  try {
+    const fromDoc = await fetchHomeLiteDoc(db);
+    if (fromDoc) return fromDoc;
+  } catch {
+    // rules / missing collection — fall through to limited query
+  }
+  const fromQuery = await fetchHomeLiteQuery(db);
+  if (fromQuery) return fromQuery;
+  return { tracks: [], source: "empty" };
 }
 
 export function countPlayableTracks(tracks = []) {

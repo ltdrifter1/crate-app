@@ -1,9 +1,10 @@
 /**
  * Shared cover art image — always sized, lazy by default.
- * Use for list thumbs and sleeves so the browser can reserve layout
- * and skip decoding offscreen art.
+ * Remote Firebase Storage covers go through Cloudflare Image Resizing
+ * (`/cdn-cgi/image/…`) and fall back to the original on error.
  */
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { coverDisplayUrl } from "../../lib/coverUrl";
 
 /** Intrinsic attrs for a square cover at CSS `size` px. */
 export function coverSizeAttrs(size) {
@@ -24,6 +25,7 @@ export function coverSizeAttrs(size) {
  * @param {string} [props.sizes]
  * @param {boolean} [props.priority] — eager + fetchPriority=high (LCP)
  * @param {boolean} [props.eager] — eager load without stealing LCP priority
+ * @param {boolean} [props.raw] — skip CDN/transform (channel photos, data URLs)
  * @param {string} [props.objectPosition] — CSS object-position for art crops
  * @param {object} [props.style]
  * @param {string} [props.className]
@@ -39,6 +41,7 @@ export default function CoverImage({
   sizes,
   priority = false,
   eager = false,
+  raw = false,
   objectPosition,
   style,
   className,
@@ -47,14 +50,24 @@ export default function CoverImage({
   onError,
 }) {
   const [failed, setFailed] = useState(false);
+  const [useOriginal, setUseOriginal] = useState(false);
+
+  useEffect(() => {
+    setFailed(false);
+    setUseOriginal(false);
+  }, [src]);
+
   if (!src || failed) return null;
 
   const w = Math.max(1, Math.round(Number(width) || 1));
   const h = Math.max(1, Math.round(Number(height) || w));
+  const displaySrc = (!raw && !useOriginal)
+    ? coverDisplayUrl(src, { width: w })
+    : src;
 
   return (
     <img
-      src={src}
+      src={displaySrc}
       alt={alt}
       width={w}
       height={h}
@@ -66,6 +79,10 @@ export default function CoverImage({
       className={className}
       onLoad={onLoad}
       onError={(e) => {
+        if (!raw && !useOriginal && displaySrc !== src) {
+          setUseOriginal(true);
+          return;
+        }
         setFailed(true);
         onError?.(e);
       }}

@@ -8,6 +8,7 @@
  *   STRIPE_PREMIUM_PRICE_ID
  */
 const { onCall, onRequest, HttpsError } = require("firebase-functions/v2/https");
+const { onDocumentWritten } = require("firebase-functions/v2/firestore");
 const { defineSecret, defineString } = require("firebase-functions/params");
 const admin = require("firebase-admin");
 const Stripe = require("stripe");
@@ -30,6 +31,7 @@ const {
   evaluateCreditSpend,
   FREE_PLAYS_PER_DAY,
 } = require("./lib/listening");
+const { publishHomeLite } = require("./lib/homeLite");
 
 if (!admin.apps.length) {
   admin.initializeApp();
@@ -451,5 +453,32 @@ exports.spendClubCredit = onCall(
       console.error("spendClubCredit failed", err);
       throw new HttpsError("internal", "Could not complete purchase");
     }
+  }
+);
+
+/**
+ * Keep catalog/homeLite in sync so Home cold-boot is one getDoc, not getDocs(tracks).
+ * Debounced by skip-if-recent on the doc itself inside publishHomeLite callers.
+ */
+let homeLiteTimer = null;
+function scheduleHomeLiteRebuild() {
+  if (homeLiteTimer) return;
+  homeLiteTimer = setTimeout(async () => {
+    homeLiteTimer = null;
+    try {
+      await publishHomeLite(admin.firestore(), { FieldValue: admin.firestore.FieldValue });
+    } catch (err) {
+      console.error("rebuildHomeLite failed", err);
+    }
+  }, 8000);
+}
+
+exports.rebuildHomeLite = onDocumentWritten(
+  {
+    document: "tracks/{trackId}",
+    region: FUNCTIONS_REGION,
+  },
+  async () => {
+    scheduleHomeLiteRebuild();
   }
 );
