@@ -85,7 +85,7 @@ import { absoluteAppUrl, shareOrCopy } from "./lib/share";
 import BrandMark from "./components/brand/BrandMark";
 import BrandTagline from "./components/brand/BrandTagline";
 import GenreTasteSheet from "./components/listen/GenreTasteSheet";
-import GenreTasteOnboarding from "./components/onboarding/GenreTasteOnboarding";
+import TasteTuner from "./components/onboarding/TasteTuner";
 import { vibeForMixLane, blendPoolForSession } from "./lib/taste";
 import {
   emptyDislikeTaste,
@@ -93,8 +93,15 @@ import {
   recordDislikeEvent,
 } from "./lib/dislikeTaste";
 import {
+  tasteFromProfile,
+  defaultSetPrefs,
+  isColdStartTaste,
+} from "./lib/ranking";
+import { trackHitsPreferredChannels } from "./lib/onboardingTaste";
+import {
   buildCountdown,
   stationDaypart,
+  markShowcasePromoSeen,
 } from "./lib/station";
 import {
   DedicateSheet,
@@ -1821,6 +1828,23 @@ const ToastEl = ({msg, onDismiss = null}) => (
 export default function App() {
   // ── Auth (login/signup/logout + user profile) ───────────────────────────
   const { firebaseUser, profile, setProfile, loading: authLoading, authError, clearAuthError, signUp, logIn, logOut, refreshProfile, signInWithGoogle, sendPhoneOTP, verifyPhoneOTP, resetPassword } = useAuth();
+  const profileTaste = useMemo(
+    () => tasteFromProfile(profile || {}),
+    [
+      profile?.genres,
+      profile?.adventurous,
+      profile?.depth,
+      profile?.channelIds,
+      profile?.artistNames,
+      profile?.energyBand,
+      profile?.vibe,
+      profile?.seedChannelId,
+    ]
+  );
+  const tasteColdStart = isColdStartTaste(profileTaste, {
+    recentTrackIds: (profile?.recentTracks || []).map((r) => r.trackId || r.id),
+    likedCount: (profile?.likedTracks || []).length,
+  });
   const [billingRefreshing, setBillingRefreshing] = useState(false);
   const billingSettleKeyRef = useRef("");
 
@@ -1997,6 +2021,7 @@ export default function App() {
   }, []);
   const [hypnoSeed, setHypnoSeed] = useState(null); // pocket-mode seed track
   const [onboardingDismissed, setOnboardingDismissed] = useState(false);
+  const [pendingTune, setPendingTune] = useState(null);
   const [listeningRoom, setListeningRoom] = useState(null);
   const [linerTrack, setLinerTrack] = useState(null);
   const [purchasingTrackId, setPurchasingTrackId] = useState(null);
@@ -2080,13 +2105,16 @@ export default function App() {
     setHeroPreview((prev) => {
       if (prev && pool.some((t) => t.id === prev.id)) return prev;
       return pickNextTrack(pool, null, recentlyPlayedRef.current, {
-        preferredGenres: profile?.genres || [],
+        preferredGenres: profileTaste.genres || [],
+        taste: profileTaste,
         scopedPool: true,
         tasteBlend: !listenFocus.genre,
+        coldStart: tasteColdStart,
+        channelHit: (t) => trackHitsPreferredChannels(t, profileTaste.channelIds),
         dislikeTaste: normalizeDislikeTaste(profile?.dislikeTaste || emptyDislikeTaste()),
       }) || pool[0];
     });
-  }, [radioPool, profile?.genres, profile?.dislikeTaste, listenFocus.genre]);
+  }, [radioPool, profileTaste, profile?.dislikeTaste, listenFocus.genre, tasteColdStart]);
 
   // ── Listening Memory — tracks recently played with timestamps ──
   const recentlyPlayedRef = useRef([]); // [{id, genre, energy, timestamp}]
@@ -2095,13 +2123,14 @@ export default function App() {
 
   // Set arc for On Air floor (last 2 → now → next)
   const radioPickOpts = () => ({
-    preferredGenres: profile?.genres || [],
+    preferredGenres: profileTaste.genres || [],
+    taste: profileTaste,
     signalState: signalFlags.getState(),
     seedTrack: hypnoSeed,
     scopedPool: true,
-    // Hard genre focus = play that lane; otherwise 95/5 taste blend
     tasteBlend: !listenFocus.genre,
-    // Rabbit / Turtle sweep — read fresh so picks always see the latest target
+    coldStart: tasteColdStart,
+    channelHit: (t) => trackHitsPreferredChannels(t, profileTaste.channelIds),
     energyShift: playerEnergyStore.getState(),
     dislikeTaste: normalizeDislikeTaste(profile?.dislikeTaste || emptyDislikeTaste()),
   });
@@ -2112,7 +2141,7 @@ export default function App() {
     const track = transportFlags.getState().track;
     if (!isRadioMode || !track) return null;
     return pickNextTrack(radioPool(), track, recentlyPlayedRef.current, radioPickOpts());
-  }, [isRadioMode, currentTrackId, radioPool, hypnoSeed, listenFocus.genre, profile?.genres, profile?.dislikeTaste]);
+  }, [isRadioMode, currentTrackId, radioPool, hypnoSeed, listenFocus.genre, profileTaste, profile?.dislikeTaste, tasteColdStart]);
 
   function logTrackPlay(track) {
     const now = Date.now();
@@ -2562,32 +2591,41 @@ export default function App() {
     }
   }, [refreshProfile, isAdminUser]);
 
-  // Genre + taste intake — only user choice; mix lane/energy stay automatic
+  // Genre + taste intake — stations / faces / this-or-that compile into the user doc
   const finishOnboarding = async (tasteOrGenres = []) => {
     const taste = Array.isArray(tasteOrGenres)
-      ? { genres: tasteOrGenres, adventurous: null, depth: null }
-      : {
-          genres: tasteOrGenres?.genres || [],
-          adventurous: tasteOrGenres?.adventurous,
-          depth: tasteOrGenres?.depth,
-        };
+      ? tasteFromProfile({ genres: tasteOrGenres })
+      : tasteFromProfile(tasteOrGenres || {});
     const genres = Array.isArray(taste.genres) ? taste.genres : [];
     try {
       await completeOnboarding({
         homeRooms: [],
-        genres: genres.length ? genres : null,
+        genres,
         adventurous: taste.adventurous,
         depth: taste.depth,
+        channelIds: taste.channelIds,
+        artistNames: taste.artistNames,
+        energyBand: taste.energyBand,
+        vibe: taste.vibe,
+        seedChannelId: taste.seedChannelId,
+        onboardingVersion: 2,
       });
       setProfile((p) => ({
         ...(p || {}),
         onboarded: true,
         homeRooms: [],
-        genres: genres.length ? genres : (p?.genres || []),
-        ...(taste.adventurous != null ? { adventurous: taste.adventurous } : {}),
-        ...(taste.depth != null ? { depth: taste.depth } : {}),
+        genres,
+        adventurous: taste.adventurous,
+        depth: taste.depth,
+        channelIds: taste.channelIds,
+        artistNames: taste.artistNames,
+        energyBand: taste.energyBand,
+        vibe: taste.vibe,
+        seedChannelId: taste.seedChannelId,
       }));
     } catch (e) { /* local dismiss still */ }
+    try { markShowcasePromoSeen(); } catch { /* ignore */ }
+    if (taste.seedChannelId) setPendingTune(taste.seedChannelId);
     setOnboardingDismissed(true);
   };
 
@@ -2689,11 +2727,14 @@ export default function App() {
         ? pool
         : tracksRef.current.filter((t) => (t.duration || 0) <= 900 && String(t.audioUrl || "").trim());
       return pickNextTrack(library, currentRef.current, recentlyPlayedRef.current, {
-        preferredGenres: profile?.genres || [],
+        preferredGenres: profileTaste.genres || [],
+        taste: profileTaste,
         signalState: signalFlags.getState(),
         seedTrack: hypnoSeed,
         scopedPool: true,
         tasteBlend: !(listenFocusRef.current?.genre),
+        coldStart: tasteColdStart,
+        channelHit: (t) => trackHitsPreferredChannels(t, profileTaste.channelIds),
         energyShift: playerEnergyStore.getState(),
         dislikeTaste: normalizeDislikeTaste(profile?.dislikeTaste || emptyDislikeTaste()),
       });
@@ -2703,7 +2744,7 @@ export default function App() {
     return shuffleRef.current
       ? q[Math.floor(Math.random() * q.length)]
       : q[0];
-  }, [profile?.genres, profile?.dislikeTaste, hypnoSeed]);
+  }, [profileTaste, profile?.dislikeTaste, hypnoSeed, tasteColdStart]);
 
   const preloadNextAudio = useCallback((track) => {
     if (!track?.audioUrl || isCrossfading.current) return;
@@ -3222,7 +3263,7 @@ export default function App() {
     unlockAudioElements();
     const liveBlock = resolveShowAt(new Date()).show;
     // Default orb = tune the live VJ block (channel, not anonymous shuffle)
-    if (!seed && !intentOverride && liveBlock && !listenFocus.genre && !listenFocus.scene) {
+    if (!seed && !intentOverride && liveBlock && !listenFocus.genre && !listenFocus.scene && !(tasteColdStart && profileTaste.seedChannelId)) {
       playShowRef.current?.(liveBlock);
       return;
     }
@@ -3236,12 +3277,9 @@ export default function App() {
     const first = (!seedTrack && !intentOverride && heroPreview && pool.some(t => t.id === heroPreview.id))
       ? heroPreview
       : pickNextTrack(pool, null, recentlyPlayedRef.current, {
-          preferredGenres: profile?.genres || [],
-          signalState: signalFlags.getState(),
+          ...radioPickOpts(),
           seedTrack,
-          scopedPool: true,
           tasteBlend: !(intentOverride?.genre || listenFocus.genre),
-          dislikeTaste: normalizeDislikeTaste(profile?.dislikeTaste || emptyDislikeTaste()),
         }) || pool.find(t => (t.duration || 0) <= 900) || pool[0];
     if (!hasPlayableAudio(first)) {
       showToast("This station is missing audio.");
@@ -3650,7 +3688,11 @@ export default function App() {
       return;
     }
     unlockAudioElements();
-    const first = pool[0];
+    const first = pickNextTrack(pool, null, recentlyPlayedRef.current, {
+      ...radioPickOpts(),
+      tasteBlend: false,
+      scopedPool: true,
+    }) || pool.find((t) => hasPlayableAudio(t)) || pool[0];
     if (!hasPlayableAudio(first)) {
       showToast("Nothing lined up on that channel yet");
       return;
@@ -3674,7 +3716,18 @@ export default function App() {
     logTrackPlay(first);
     showToast(`${channel.title} — ${channel.tagline}`);
     commitListeningPlay(first);
-  }, [tracks, currentTrack, guardFreePlay, commitListeningPlay]);
+  }, [tracks, currentTrack, guardFreePlay, commitListeningPlay, profileTaste, tasteColdStart, profile?.dislikeTaste]);
+
+  const playSceneChannelRef = useRef(null);
+  playSceneChannelRef.current = playSceneChannel;
+
+  useEffect(() => {
+    if (!pendingTune || needsOnboarding || tracksLoading) return;
+    const id = pendingTune;
+    setPendingTune(null);
+    const frame = requestAnimationFrame(() => playSceneChannelRef.current?.(id));
+    return () => cancelAnimationFrame(frame);
+  }, [pendingTune, needsOnboarding, tracksLoading]);
 
   const playMonthlyChart = useCallback((scope = { mode: "overall" }) => {
     const monthly = buildMonthlyChart(tracks, { limit: 20, scope });
@@ -4105,12 +4158,10 @@ export default function App() {
 
   if (needsOnboarding) {
     return (
-      <GenreTasteOnboarding
-        initialGenres={profile?.genres || []}
-        initialAdventurous={profile?.adventurous}
-        initialDepth={profile?.depth}
+      <TasteTuner
+        tracks={tracks}
         onComplete={(taste) => finishOnboarding(taste)}
-        onSkip={() => finishOnboarding([])}
+        onSkip={() => finishOnboarding({ skip: true })}
       />
     );
   }
@@ -4252,14 +4303,16 @@ export default function App() {
           tracks={blendPoolForSession(
             resolveListenPool(
               tracks,
-              activeListenIntent({ vibe: sessionInitialActivity || vibeForMixLane(mixLane) }),
+              activeListenIntent({ vibe: sessionInitialActivity || defaultSetPrefs(profileTaste).vibe || vibeForMixLane(mixLane) }),
               { requireAudio: false, applyMixLane: false }
             ).tracks,
-            listenFocus.genre ? [listenFocus.genre] : (profile?.genres || [])
+            listenFocus.genre ? [listenFocus.genre] : (profileTaste.genres || [])
           )}
-          initialActivity={sessionInitialActivity || vibeForMixLane(mixLane)}
-          initialGenre={listenFocus.genre || null}
-          intentLabel={listenFocus.genre || (profile?.genres?.length ? "Your interests" : null)}
+          initialActivity={sessionInitialActivity || defaultSetPrefs(profileTaste).vibe || vibeForMixLane(mixLane)}
+          initialGenre={listenFocus.genre || defaultSetPrefs(profileTaste).genre || null}
+          intentLabel={listenFocus.genre || (profileTaste.genres?.length ? "Your mix" : null)}
+          taste={profileTaste}
+          coldStart={tasteColdStart}
           onClose={() => {
             setShowRouteBuilder(false);
             setSessionInitialActivity(null);
@@ -4397,7 +4450,7 @@ export default function App() {
       <div ref={contentScrollRef} onScroll={rememberScroll} style={{ flex:1, overflow:"auto", paddingBottom: contentPadBottom(!!currentTrack && !immersive && !hideDockPlayer), zIndex:1, position:"relative" }}>
         <Suspense fallback={<div style={{ padding: 32, color: color.muted }}>Loading…</div>}>
         <ScreenPane key={screen === "artist" ? `artist:${artistSlug}` : screen === "album" ? `album:${albumSlug}` : screen === "mix" ? `mix:${mixId}` : screen}>
-        {screen==="home"      && <HomeScreen catalogLoading={tracksLoading} tracks={tracks} onPlayRadio={playRadio} onTogglePlay={togglePlay} onPlayTrack={playTrack} onLike={toggleLike} isRadioMode={isRadioMode} hypnoPocket={!!hypnoSeed} playlistCtx={playlistCtx} mixLane={mixLane} radioPreview={heroPreview} radioNext={setNext} onSkipRadio={handleSkip} onPrevRadio={handlePrev} onOpenPlayer={()=>setImmersive(true)} catalogError={tracksLoadError} onRetryCatalog={reloadCatalog} onStageVisibilityChange={onHomeStageVisibilityChange} onSeek={handleSeek} countdown={countdown} onTuneCountdown={tuneCountdown} daypart={activeDaypart} tickerText={stationTicker} onDislike={dislikeCurrentTrack} onDedicate={()=>setShowDedicate(true)} dedicationFlash={dedicationFlash} onClearDedication={()=>setDedicationFlash(null)} airing={liveAiring} programGuide={programGuide} activeShowId={activeShowId} onTuneShow={playShow} showBumper={showBumper} channelShow={liveShow} sceneChannelsActiveId={activeSceneChannelId} onTuneSceneChannel={playSceneChannel} recentTrackIds={(profile?.recentTracks||[]).map(r=>r.trackId||r)} playlists={libraryPlaylists.filter((pl)=>!isCommunityPlaylist(pl))} preferredGenres={user.genres||[]} userKey={firebaseUser?.uid||""} onOpenSearch={()=>setScreen("search")} onOpenProfile={()=>setScreen("profile")} onOpenLibrary={()=>setScreen("favorites")} onOpenCharts={()=>setScreen("charts")} onOpenMenu={()=>setShowNavDrawer(true)} onOpenPlaylist={(id)=>openStack(id)} onOpenAlbum={(slug)=>openAlbum(slug)}/>}
+        {screen==="home"      && <HomeScreen catalogLoading={tracksLoading} tracks={tracks} onPlayRadio={playRadio} onTogglePlay={togglePlay} onPlayTrack={playTrack} onLike={toggleLike} isRadioMode={isRadioMode} hypnoPocket={!!hypnoSeed} playlistCtx={playlistCtx} mixLane={mixLane} radioPreview={heroPreview} radioNext={setNext} onSkipRadio={handleSkip} onPrevRadio={handlePrev} onOpenPlayer={()=>setImmersive(true)} catalogError={tracksLoadError} onRetryCatalog={reloadCatalog} onStageVisibilityChange={onHomeStageVisibilityChange} onSeek={handleSeek} countdown={countdown} onTuneCountdown={tuneCountdown} daypart={activeDaypart} tickerText={stationTicker} onDislike={dislikeCurrentTrack} onDedicate={()=>setShowDedicate(true)} dedicationFlash={dedicationFlash} onClearDedication={()=>setDedicationFlash(null)} airing={liveAiring} programGuide={programGuide} activeShowId={activeShowId} onTuneShow={playShow} showBumper={showBumper} channelShow={liveShow} sceneChannelsActiveId={activeSceneChannelId} onTuneSceneChannel={playSceneChannel} taste={profileTaste} userKey={firebaseUser?.uid||""} suppressShowcasePromo={tasteColdStart && !!profileTaste.seedChannelId} recentTrackIds={(profile?.recentTracks||[]).map(r=>r.trackId||r)} playlists={libraryPlaylists.filter((pl)=>!isCommunityPlaylist(pl))} preferredGenres={user.genres||[]} userKey={firebaseUser?.uid||""} onOpenSearch={()=>setScreen("search")} onOpenProfile={()=>setScreen("profile")} onOpenLibrary={()=>setScreen("favorites")} onOpenCharts={()=>setScreen("charts")} onOpenMenu={()=>setShowNavDrawer(true)} onOpenPlaylist={(id)=>openStack(id)} onOpenAlbum={(slug)=>openAlbum(slug)}/>}
         {screen==="explore"   && !tracksLoading && <Suspense fallback={<div style={{ padding: 32, color: color.muted }}>Loading explore…</div>}><ExploreScreen tracks={tracks} preferredGenres={user.genres||[]} recentTrackIds={(profile?.recentTracks||[]).map(r=>r.trackId||r)} userKey={firebaseUser?.uid||""} onPlayTrack={playTrack} onOpenSearch={()=>setScreen("search")} onOpenAlbum={(slug)=>openAlbum(slug)} onOpenMenu={()=>setShowNavDrawer(true)}/></Suspense>}
         {screen==="charts"    && !tracksLoading && <Suspense fallback={<div style={{ padding: 32, color: color.muted, fontFamily: font, fontSize: 15 }}>Loading charts…</div>}><LazyChartsScreen countdown={countdown} tracks={tracks} onPlayTrack={playTrack} onTuneMonthly={playMonthlyChart} onAddToQueue={addTrackToQueue} playlistCtx={playlistCtx} nowPlayingId={currentTrackId} onOpenMenu={()=>setShowNavDrawer(true)}/></Suspense>}
         {screen==="search"    && <SearchScreen query={searchQuery} setQuery={setSearch} results={searchResults} tracks={tracks} onPlay={(t,pool)=>{ recordRecentSearch(searchQuery); playTrack(t,pool||tracks); }} onListenIntent={(focus)=>{ const next={ genre: focus.genre || null, scene: null }; setListenFocus(next); playRadio(null, createListenIntent({ mixLane, ...next })); }} onLike={toggleLike} playlistCtx={playlistCtx} entityHits={entityHits} onOpenArtist={(slug)=>{ recordRecentSearch(searchQuery); openArtist(slug); }} onOpenAlbum={(slug)=>{ recordRecentSearch(searchQuery); openAlbum(slug); }} recentSearches={recentSearches} onPickRecent={(q)=>setSearch(q)} onClearRecent={clearRecentSearches} onBack={()=>setScreen("explore")}/>}
@@ -4556,7 +4609,7 @@ export default function App() {
           ) : (
             <Suspense fallback={<div style={{ padding: 32, color: color.muted }}>Loading…</div>}>
             <ScreenPane key={screen === "artist" ? `artist:${artistSlug}` : screen === "album" ? `album:${albumSlug}` : screen === "mix" ? `mix:${mixId}` : screen}>
-              {screen==="home"      && <HomeScreen catalogLoading={tracksLoading} tracks={tracks} onPlayRadio={playRadio} onTogglePlay={togglePlay} onPlayTrack={playTrack} onLike={toggleLike} isRadioMode={isRadioMode} hypnoPocket={!!hypnoSeed} playlistCtx={playlistCtx} mixLane={mixLane} radioPreview={heroPreview} radioNext={setNext} onSkipRadio={handleSkip} onPrevRadio={handlePrev} onOpenPlayer={()=>setImmersive(true)} catalogError={tracksLoadError} onRetryCatalog={reloadCatalog} onStageVisibilityChange={onHomeStageVisibilityChange} onSeek={handleSeek} countdown={countdown} onTuneCountdown={tuneCountdown} daypart={activeDaypart} tickerText={stationTicker} onDislike={dislikeCurrentTrack} onDedicate={()=>setShowDedicate(true)} dedicationFlash={dedicationFlash} onClearDedication={()=>setDedicationFlash(null)} airing={liveAiring} programGuide={programGuide} activeShowId={activeShowId} onTuneShow={playShow} showBumper={showBumper} channelShow={liveShow} sceneChannelsActiveId={activeSceneChannelId} onTuneSceneChannel={playSceneChannel} recentTrackIds={(profile?.recentTracks||[]).map(r=>r.trackId||r)} playlists={libraryPlaylists.filter((pl)=>!isCommunityPlaylist(pl))} preferredGenres={user.genres||[]} userKey={firebaseUser?.uid||""} onOpenSearch={()=>setScreen("search")} onOpenProfile={()=>setScreen("profile")} onOpenLibrary={()=>setScreen("favorites")} onOpenCharts={()=>setScreen("charts")} onOpenPlaylist={(id)=>openStack(id)} onOpenAlbum={(slug)=>openAlbum(slug)}/>}
+              {screen==="home"      && <HomeScreen catalogLoading={tracksLoading} tracks={tracks} onPlayRadio={playRadio} onTogglePlay={togglePlay} onPlayTrack={playTrack} onLike={toggleLike} isRadioMode={isRadioMode} hypnoPocket={!!hypnoSeed} playlistCtx={playlistCtx} mixLane={mixLane} radioPreview={heroPreview} radioNext={setNext} onSkipRadio={handleSkip} onPrevRadio={handlePrev} onOpenPlayer={()=>setImmersive(true)} catalogError={tracksLoadError} onRetryCatalog={reloadCatalog} onStageVisibilityChange={onHomeStageVisibilityChange} onSeek={handleSeek} countdown={countdown} onTuneCountdown={tuneCountdown} daypart={activeDaypart} tickerText={stationTicker} onDislike={dislikeCurrentTrack} onDedicate={()=>setShowDedicate(true)} dedicationFlash={dedicationFlash} onClearDedication={()=>setDedicationFlash(null)} airing={liveAiring} programGuide={programGuide} activeShowId={activeShowId} onTuneShow={playShow} showBumper={showBumper} channelShow={liveShow} sceneChannelsActiveId={activeSceneChannelId} onTuneSceneChannel={playSceneChannel} taste={profileTaste} userKey={firebaseUser?.uid||""} suppressShowcasePromo={tasteColdStart && !!profileTaste.seedChannelId} recentTrackIds={(profile?.recentTracks||[]).map(r=>r.trackId||r)} playlists={libraryPlaylists.filter((pl)=>!isCommunityPlaylist(pl))} preferredGenres={user.genres||[]} userKey={firebaseUser?.uid||""} onOpenSearch={()=>setScreen("search")} onOpenProfile={()=>setScreen("profile")} onOpenLibrary={()=>setScreen("favorites")} onOpenCharts={()=>setScreen("charts")} onOpenPlaylist={(id)=>openStack(id)} onOpenAlbum={(slug)=>openAlbum(slug)}/>}
               {screen==="explore"   && <Suspense fallback={<div style={{ padding: 32, color: color.muted }}>Loading explore…</div>}><ExploreScreen tracks={tracks} preferredGenres={user.genres||[]} recentTrackIds={(profile?.recentTracks||[]).map(r=>r.trackId||r)} userKey={firebaseUser?.uid||""} onPlayTrack={playTrack} onOpenSearch={()=>setScreen("search")} onOpenAlbum={(slug)=>openAlbum(slug)}/></Suspense>}
               {screen==="charts"    && <Suspense fallback={<div style={{ padding: 32, color: color.muted, fontFamily: font, fontSize: 15 }}>Loading charts…</div>}><LazyChartsScreen countdown={countdown} tracks={tracks} onPlayTrack={playTrack} onTuneMonthly={playMonthlyChart} onAddToQueue={addTrackToQueue} playlistCtx={playlistCtx} nowPlayingId={currentTrackId}/></Suspense>}
               {screen==="search"    && <SearchScreen query={searchQuery} setQuery={setSearch} results={searchResults} tracks={tracks} onPlay={(t,pool)=>{ recordRecentSearch(searchQuery); playTrack(t,pool||tracks); }} onListenIntent={(focus)=>{ const next={ genre: focus.genre || null, scene: null }; setListenFocus(next); playRadio(null, createListenIntent({ mixLane, ...next })); }} onLike={toggleLike} playlistCtx={playlistCtx} entityHits={entityHits} onOpenArtist={(slug)=>{ recordRecentSearch(searchQuery); openArtist(slug); }} onOpenAlbum={(slug)=>{ recordRecentSearch(searchQuery); openAlbum(slug); }} recentSearches={recentSearches} onPickRecent={(q)=>setSearch(q)} onClearRecent={clearRecentSearches} onBack={()=>setScreen("explore")}/>}

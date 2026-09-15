@@ -70,6 +70,24 @@ describe("homeCollections", () => {
     expect(again.map((t) => t.id)).toEqual(recs.map((t) => t.id));
   });
 
+  test("recommendedPicks cold-start with genres prefers that lane over global heat", () => {
+    const cold = [
+      { id: "hit", title: "Hit", genre: "Pop", duration: 180, playCount: 80, likeCount: 20 },
+      { id: "j1", title: "J1", genre: "Jazz", duration: 180, playCount: 0 },
+      { id: "j2", title: "J2", genre: "Jazz", duration: 180, playCount: 1 },
+      { id: "r1", title: "R1", genre: "Rock", duration: 180, playCount: 40 },
+    ];
+    const { picks, coldStart } = recommendedPicks(cold, {
+      preferredGenres: ["Jazz"],
+      taste: { genres: ["Jazz"], adventurous: 20, depth: 50 },
+      limit: 2,
+      userKey: "u-new",
+      dayKey: "2026-09-15",
+    });
+    expect(coldStart).toBe(true);
+    expect(picks.every((p) => p.track.genre === "Jazz")).toBe(true);
+  });
+
   test("recommendedPicks marks cold start and labels fresh picks", () => {
     const cold = [
       { id: "a", title: "A", genre: "Rock", duration: 180 },

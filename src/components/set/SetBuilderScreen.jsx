@@ -64,6 +64,8 @@ export default function SetBuilderScreen({
   initialActivity = null,
   initialGenre = null,
   intentLabel = null,
+  taste = null,
+  coldStart = false,
 }) {
   const wide = useWideBooth();
   const autoActivity = initialActivity && SESSION_PROFILES[initialActivity]
@@ -75,7 +77,10 @@ export default function SetBuilderScreen({
   const [reshuffle, setReshuffle] = useState(0);
   const [savedToLibrary, setSavedToLibrary] = useState(false);
   const [session, setSession] = useState(() =>
-    buildSession(filterTracksForSet(tracks, initialGenre || null), 60, autoActivity)
+    buildSession(filterTracksForSet(tracks, initialGenre || null), 60, autoActivity, {
+      taste,
+      coldStart,
+    })
   );
 
   const profile = SESSION_PROFILES[activity] || SESSION_PROFILES.drive;
@@ -84,9 +89,9 @@ export default function SetBuilderScreen({
 
   useEffect(() => {
     const pool = filterTracksForSet(tracks, genre);
-    setSession(buildSession(pool, duration, activity));
+    setSession(buildSession(pool, duration, activity, { taste, coldStart }));
     setSavedToLibrary(false);
-  }, [tracks, duration, activity, genre, reshuffle]);
+  }, [tracks, duration, activity, genre, reshuffle, taste, coldStart]);
 
   useEffect(() => {
     const onKey = (e) => {

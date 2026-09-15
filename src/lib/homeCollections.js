@@ -1,5 +1,7 @@
 import { normalizeGenre } from "./genres";
 import { buildAlbums } from "./catalog";
+import { scoreTrackForRanking, tasteFromProfile } from "./ranking";
+import { hashSeed } from "./hashSeed";
 
 /**
  * Smart collections for Personal Home — record wall, not file folders.
@@ -81,16 +83,7 @@ export function forYouDayKey(date = new Date()) {
   return date.toISOString().slice(0, 10);
 }
 
-/** FNV-1a style hash → unsigned 32-bit. */
-export function hashSeed(str = "") {
-  let h = 2166136261;
-  const s = String(str);
-  for (let i = 0; i < s.length; i += 1) {
-    h ^= s.charCodeAt(i);
-    h = Math.imul(h, 16777619);
-  }
-  return h >>> 0;
-}
+export { hashSeed } from "./hashSeed";
 
 /**
  * Top trending — global play heat, then likes, then signal pull.
@@ -133,8 +126,9 @@ export function featuredReleases(tracks = [], limit = 10) {
 
 /**
  * Top recommended from listening history, with a human-readable reason per pick.
- * Uses likes, play counts, preferred genres, and optional recent track ids.
- * Falls back to a stable catalog sample when there is no history (coldStart: true).
+ * Uses likes, play counts, preferred genres / full taste bag, and optional recents.
+ * Cold start with onboarding: ranking formula owns the slate (not global heat).
+ * Falls back to a stable catalog sample when there is no history and no taste.
  * Daily rotation: `userKey` + `dayKey` jitter the order so each listener gets a
  * fresh Selected for you slate every calendar day without random flicker mid-day.
  * Returns { picks: [{ track, reason }], coldStart }.
@@ -148,29 +142,38 @@ export function recommendedPicks(
     excludeIds = [],
     userKey = "",
     dayKey = forYouDayKey(),
+    taste = null,
+    channelHit = null,
+    dislikeTaste = null,
   } = {}
 ) {
   const singles = singlesOnly(tracks);
   const exclude = new Set(excludeIds);
   const pool = singles.filter((t) => !exclude.has(t.id));
   const rotateSeed = hashSeed(`${userKey || "guest"}:${dayKey || forYouDayKey()}`);
+  const tasteBag = tasteFromProfile({
+    ...(taste || {}),
+    genres: (taste?.genres?.length ? taste.genres : preferredGenres) || [],
+  });
 
   const liked = pool.filter((t) => t.liked);
-  const played = pool.filter((t) => (t.playCount || 0) > 0);
   const recentSet = new Set(recentTrackIds || []);
   const preferredSet = new Set(
-    (preferredGenres || []).map((g) => normalizeGenre(g)).filter(Boolean)
+    (tasteBag.genres || []).map((g) => normalizeGenre(g)).filter(Boolean)
   );
   const tasteGenres = new Set([
     ...liked.map((t) => normalizeGenre(t.genre)).filter(Boolean),
     ...preferredSet,
   ]);
 
-  const hasHistory =
-    liked.length > 0 ||
-    played.length > 0 ||
-    recentSet.size > 0 ||
-    preferredSet.size > 0;
+  const hasOnboarding =
+    preferredSet.size > 0 ||
+    (tasteBag.channelIds || []).length > 0 ||
+    (tasteBag.artistNames || []).length > 0 ||
+    !!tasteBag.energyBand;
+  const hasPersonal = liked.length > 0 || recentSet.size > 0;
+  const hasHistory = hasPersonal || hasOnboarding;
+  const coldStart = !hasPersonal && hasOnboarding;
 
   /** Deterministic shuffle — same user+day always yields the same slate. */
   const seededShuffle = (list, seed) => {
@@ -185,7 +188,10 @@ export function recommendedPicks(
   };
 
   const rotateDaily = (ranked) => {
-    const window = Math.min(ranked.length, Math.max(limit * 3, limit));
+    // Cold start: don't widen into the global dump — only shuffle the top matches.
+    const window = coldStart
+      ? Math.min(ranked.length, limit)
+      : Math.min(ranked.length, Math.max(limit * 3, limit));
     return seededShuffle(ranked.slice(0, window), rotateSeed).slice(0, limit);
   };
 
@@ -203,25 +209,35 @@ export function recommendedPicks(
     return { coldStart: true, picks: rotateDaily(ranked) };
   }
 
+  const hitFn = typeof channelHit === "function" ? channelHit : () => false;
+
   const scored = pool
     .map((t) => {
-      let score = 0;
       const genre = normalizeGenre(t.genre);
       const inTaste = tasteGenres.has(genre);
-      if (t.liked) score += 8;
-      if (recentSet.has(t.id)) score += 10;
-      if (inTaste) score += 6;
-      if (preferredSet.has(genre)) score += 4;
-      score += Math.min(12, (t.playCount || 0) * 1.5);
-      score += (t._signal?.pull || 0) * 0.6;
-      score += (t._signal?.grip || 0) * 0.4;
-      // Prefer unplayed-but-on-taste for discovery
       const discovery = !t.liked && (t.playCount || 0) === 0 && inTaste;
-      if (discovery) score += 3;
+      let score = scoreTrackForRanking(t, tasteBag, {
+        coldStart,
+        channelHit: hitFn(t),
+        dislikeTaste,
+        liked: !!t.liked,
+        recent: recentSet.has(t.id),
+      });
+      if (!coldStart) {
+        if (t.liked) score += 8;
+        if (recentSet.has(t.id)) score += 10;
+        score += Math.min(12, (t.playCount || 0) * 1.5);
+        score += (t._signal?.pull || 0) * 0.6;
+        score += (t._signal?.grip || 0) * 0.4;
+      } else {
+        score += (t._signal?.grip || 0) * 0.15;
+      }
+      if (discovery) score += coldStart ? 4 : 3;
 
       let reason;
       if (t.liked) reason = "Saved";
       else if (recentSet.has(t.id)) reason = "Recent";
+      else if (hitFn(t) && coldStart) reason = "Your station";
       else if (discovery) reason = genre || "New";
       else if (inTaste) reason = genre || null;
       else if ((t.playCount || 0) > 0) reason = null;
@@ -232,10 +248,10 @@ export function recommendedPicks(
     .sort((a, b) => b.score - a.score || String(a.track.id).localeCompare(String(b.track.id)));
 
   return {
-    coldStart: false,
+    coldStart: !hasPersonal,
     picks: rotateDaily(scored).map(({ track, reason }) => ({
       track,
-      reason: reason || "For you",
+      reason: reason || (coldStart ? "Made for you" : "For you"),
     })),
   };
 }
