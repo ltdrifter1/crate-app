@@ -14,6 +14,9 @@ import FavoritesScreen from "../screens/FavoritesScreen";
 import { primaryNavItems } from "../lib/nav";
 import { SCENE_CHANNELS, getShowcaseChannel } from "../lib/sceneChannels";
 import { clearShowcasePromoSeen } from "../lib/station";
+import { brandStoragePrefix } from "../brand/identity";
+import ChartsScreen from "../components/station/ChartsScreen";
+import { CHANNEL_ART } from "../lib/channelArt";
 import { color, fontDisplay, fontMono, glass, homeSpace } from "../theme";
 import CoverImage from "../components/ui/CoverImage";
 
@@ -23,19 +26,27 @@ const SAMPLE_TRACK = {
   id: "preview-1",
   title: "Night Drive",
   artist: "Signal",
-  albumCover: SAMPLE_COVER,
+  albumCover: CHANNEL_ART["y2k-dance"] || SAMPLE_COVER,
   color: "#65E6FF",
   liked: true,
   duration: 214,
+  audioUrl: "u",
+  genre: "Electronic",
+  playCount: 48,
+  requestCount: 22,
 };
 
 const SAMPLE_NEXT = {
   id: "preview-2",
   title: "After Hours",
   artist: "Low Light",
-  albumCover: SAMPLE_COVER,
+  albumCover: CHANNEL_ART.downtempo || SAMPLE_COVER,
   liked: true,
   duration: 198,
+  audioUrl: "u",
+  genre: "Electronic",
+  playCount: 31,
+  requestCount: 11,
 };
 
 const SAMPLE_TRACKS = [
@@ -45,11 +56,77 @@ const SAMPLE_TRACKS = [
     id: "preview-3",
     title: "Millennium",
     artist: "Sol Park",
-    albumCover: SAMPLE_COVER,
+    albumCover: CHANNEL_ART["variety-mix"] || SAMPLE_COVER,
     liked: true,
     duration: 187,
+    audioUrl: "u",
+    genre: "Pop",
+    playCount: 27,
+    requestCount: 9,
+  },
+  {
+    id: "preview-4",
+    title: "Cascade",
+    artist: "Rain City",
+    albumCover: CHANNEL_ART["local-pnw"] || SAMPLE_COVER,
+    duration: 203,
+    audioUrl: "u",
+    genre: "Rock",
+    region: "pnw",
+    playCount: 19,
+    requestCount: 7,
+  },
+  {
+    id: "preview-5",
+    title: "Warehouse",
+    artist: "Gridlock",
+    albumCover: CHANNEL_ART["electronic-underground"] || SAMPLE_COVER,
+    duration: 241,
+    audioUrl: "u",
+    genre: "Electronic",
+    playCount: 16,
+    requestCount: 5,
+  },
+  {
+    id: "preview-6",
+    title: "Amen Break",
+    artist: "Two-Step",
+    albumCover: CHANNEL_ART["drum-and-bass"] || SAMPLE_COVER,
+    duration: 176,
+    audioUrl: "u",
+    genre: "Electronic",
+    playCount: 14,
+    requestCount: 4,
+  },
+  {
+    id: "preview-7",
+    title: "Haze",
+    artist: "Chapterhouse",
+    albumCover: CHANNEL_ART.shoegaze || SAMPLE_COVER,
+    duration: 255,
+    audioUrl: "u",
+    genre: "Rock",
+    playCount: 12,
+    requestCount: 3,
+  },
+  {
+    id: "preview-8",
+    title: "Iron Lung",
+    artist: "Foundry",
+    albumCover: CHANNEL_ART.metal || SAMPLE_COVER,
+    duration: 221,
+    audioUrl: "u",
+    genre: "Metal",
+    playCount: 11,
+    requestCount: 3,
   },
 ];
+
+const SAMPLE_COUNTDOWN = SAMPLE_TRACKS.map((track, i) => ({
+  rank: i + 1,
+  track,
+  score: 80 - i * 6,
+}));
 
 const SAMPLE_PLAYLISTS = [
   { id: "pl_1", name: "Night Drive", trackIds: ["preview-1", "preview-2"] },
@@ -73,6 +150,28 @@ export default function BroadcastPreview() {
 
   useEffect(() => {
     clearShowcasePromoSeen();
+    const y = new Date();
+    y.setUTCDate(y.getUTCDate() - 1);
+    const yKey = y.toISOString().slice(0, 10);
+    const prefix = `${brandStoragePrefix()}:chart:`;
+    try {
+      localStorage.setItem(
+        `${prefix}day:${yKey}`,
+        JSON.stringify({
+          dayKey: yKey,
+          entries: [
+            { rank: 1, id: "preview-3", title: "Millennium", artist: "Sol Park" },
+            { rank: 2, id: "preview-1", title: "Night Drive", artist: "Signal" },
+            { rank: 3, id: "preview-2", title: "After Hours", artist: "Low Light" },
+            { rank: 4, id: "preview-5", title: "Warehouse", artist: "Gridlock" },
+            { rank: 5, id: "preview-4", title: "Cascade", artist: "Rain City" },
+            { rank: 6, id: "preview-8", title: "Iron Lung", artist: "Foundry" },
+          ],
+        })
+      );
+    } catch {
+      /* ignore */
+    }
   }, []);
 
   useEffect(() => {
@@ -139,9 +238,15 @@ export default function BroadcastPreview() {
             showLibraryDestinations={!isDesktop}
           />
         ) : screen === "charts" ? (
-          <div style={{ padding: "48px 24px", color: color.ink, fontSize: 28, fontWeight: 700 }}>
-            Charts
-          </div>
+          <ChartsScreen
+            countdown={SAMPLE_COUNTDOWN}
+            tracks={SAMPLE_TRACKS}
+            onPlayTrack={() => {}}
+            onTuneMonthly={() => {}}
+            onAddToQueue={() => {}}
+            nowPlayingId="preview-1"
+            onOpenMenu={isDesktop ? null : () => setDrawer(true)}
+          />
         ) : (
           home
         )}
