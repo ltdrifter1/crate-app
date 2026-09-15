@@ -109,7 +109,7 @@ export default function ChannelCard({
             overflow: "hidden",
             background: y2k.artGradient,
             boxShadow: featured
-              ? "0 10px 24px rgba(0,0,0,0.36)"
+              ? "0 0 0 1px rgba(242, 205, 120, 0.72), 0 10px 24px rgba(0,0,0,0.36)"
               : active
                 ? "0 0 0 2px rgba(247,248,250,0.92), 0 12px 28px rgba(0,0,0,0.42)"
                 : "0 10px 24px rgba(0,0,0,0.36)",
