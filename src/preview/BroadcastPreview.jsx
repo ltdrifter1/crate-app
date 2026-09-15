@@ -7,13 +7,11 @@ import BottomNavigation from "../components/home/BottomNavigation";
 import HomeHeader from "../components/home/HomeHeader";
 import HeroPlayerCard from "../components/home/HeroPlayerCard";
 import ChannelSurfingSection from "../components/home/ChannelSurfingSection";
-import ShowcasePromo from "../components/home/ShowcasePromo";
 import AppSidebar from "../components/layout/AppSidebar";
 import MobileNavDrawer from "../components/layout/MobileNavDrawer";
 import FavoritesScreen from "../screens/FavoritesScreen";
 import { primaryNavItems } from "../lib/nav";
-import { SCENE_CHANNELS, getShowcaseChannel } from "../lib/sceneChannels";
-import { clearShowcasePromoSeen } from "../lib/station";
+import { SCENE_CHANNELS } from "../lib/sceneChannels";
 import { brandStoragePrefix } from "../brand/identity";
 import ChartsScreen from "../components/station/ChartsScreen";
 import SetBuilderScreen from "../components/set/SetBuilderScreen";
@@ -139,9 +137,7 @@ export default function BroadcastPreview() {
   const [screen, setScreen] = useState("home");
   const [drawer, setDrawer] = useState(false);
   const [buildingSet, setBuildingSet] = useState(false);
-  const [showcaseOpen, setShowcaseOpen] = useState(true);
   const [activeChannelId, setActiveChannelId] = useState("local-pnw");
-  const showcase = getShowcaseChannel();
   const channels = [...SCENE_CHANNELS].sort((a, b) => {
     if (!!a.showcase !== !!b.showcase) return a.showcase ? -1 : 1;
     return (a.num || 0) - (b.num || 0);
@@ -151,7 +147,6 @@ export default function BroadcastPreview() {
   );
 
   useEffect(() => {
-    clearShowcasePromoSeen();
     const y = new Date();
     y.setUTCDate(y.getUTCDate() - 1);
     const yKey = y.toISOString().slice(0, 10);
@@ -204,15 +199,6 @@ export default function BroadcastPreview() {
           liveShow={{ shortTitle: "Local PNW", title: "Local Pacific Northwest" }}
         />
       </div>
-      <ShowcasePromo
-        channel={showcase}
-        open={screen === "home" && showcaseOpen}
-        onTune={(ch) => {
-          setActiveChannelId(ch.id);
-          setShowcaseOpen(false);
-        }}
-        onDismiss={() => setShowcaseOpen(false)}
-      />
     </div>
   );
 
