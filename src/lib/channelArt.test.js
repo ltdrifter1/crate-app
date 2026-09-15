@@ -1,6 +1,6 @@
 import { readFileSync } from "fs";
 import { join } from "path";
-import { CHANNEL_ART, CHANNEL_ART_FOCUS, HERO_IDLE_ART, HERO_IDLE_FOCUS } from "./channelArt";
+import { CHANNEL_ART, CHANNEL_ART_FOCUS, HERO_IDLE_ART, HERO_IDLE_FOCUS, resolveChannelArt } from "./channelArt";
 import { SCENE_CHANNELS } from "./sceneChannels";
 
 const CREDITS = readFileSync(join(__dirname, "../../docs/IMAGE_CREDITS.md"), "utf8");
@@ -8,10 +8,12 @@ const CREDITS = readFileSync(join(__dirname, "../../docs/IMAGE_CREDITS.md"), "ut
 describe("licensed editorial photography", () => {
   test("every channel ships a bundled photo and a crop focus", () => {
     SCENE_CHANNELS.forEach((channel) => {
-      expect(channel.art).toBeTruthy();
+      const art = resolveChannelArt(channel);
+      expect(art.src).toBeTruthy();
       expect(CHANNEL_ART[channel.id]).toBeTruthy();
-      expect(channel.artFocus).toMatch(/%/);
-      expect(CHANNEL_ART_FOCUS[channel.id]).toBe(channel.artFocus);
+      expect(art.focus).toMatch(/%/);
+      expect(CHANNEL_ART_FOCUS[channel.id]).toBe(art.focus);
+      expect(channel.art).toBeUndefined();
     });
   });
 

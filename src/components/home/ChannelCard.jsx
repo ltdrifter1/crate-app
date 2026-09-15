@@ -1,4 +1,5 @@
 import { color, fontDisplay, homeSpace, y2k } from "../../theme";
+import { resolveChannelArt } from "../../lib/channelArt";
 import CoverImage from "../ui/CoverImage";
 import Icon from "../ui/Icon";
 
@@ -6,7 +7,7 @@ import Icon from "../ui/Icon";
  * ChannelCard — art-first station tile (Apple Music / YouTube Music).
  * Generic channel photo, name, blurb, play. No album-cover mosaic.
  */
-function ChannelArt({ src, title, size, accent, objectPosition }) {
+function ChannelArt({ src, title, size, accent, objectPosition, priority = false, eager = false }) {
   const initial = (title || "?").trim().charAt(0).toUpperCase() || "?";
 
   if (src) {
@@ -16,6 +17,8 @@ function ChannelArt({ src, title, size, accent, objectPosition }) {
         alt=""
         width={size}
         height={size}
+        priority={priority}
+        eager={eager}
         objectPosition={objectPosition}
         style={{ width: "100%", height: "100%", objectFit: "cover" }}
       />
@@ -51,11 +54,12 @@ export default function ChannelCard({
   active = false,
   onClick = null,
   size = Math.round(homeSpace.tileTicket),
+  priority = false,
+  eager = false,
 }) {
   const width = size;
   const title = channel.shortTitle || channel.title;
-  const photo = channel.art || null;
-  const focus = channel.artFocus || "center";
+  const { src: photo, focus } = resolveChannelArt(channel);
 
   return (
     <button
@@ -95,7 +99,15 @@ export default function ChannelCard({
             : "0 10px 24px rgba(0,0,0,0.36)",
         }}
       >
-        <ChannelArt src={photo} title={title} size={width} accent={channel.accent} objectPosition={focus} />
+        <ChannelArt
+          src={photo}
+          title={title}
+          size={width}
+          accent={channel.accent}
+          objectPosition={focus}
+          priority={priority}
+          eager={eager}
+        />
 
         {(active || channel.showcase) && (
           <span

@@ -114,6 +114,9 @@ describe("Home broadcast + four-tab IA", () => {
         })
       );
     });
+    await act(async () => {
+      await new Promise((r) => setTimeout(r, 0));
+    });
     const video = div.querySelector("video");
     expect(video).toBeTruthy();
     expect(video.getAttribute("src")).toBe(track.videoUrl);
@@ -368,5 +371,43 @@ describe("Home broadcast + four-tab IA", () => {
     });
     expect(onTuneSceneChannel).toHaveBeenCalled();
     expect(onTuneSceneChannel.mock.calls[0][0].id).toBe("local-pnw");
+  });
+
+  test("Home paints Channel Surfing before the catalog arrives", async () => {
+    await act(async () => {
+      root.render(
+        React.createElement(HomeScreen, {
+          tracks: [],
+          catalogLoading: true,
+        })
+      );
+    });
+    expect(div.querySelector(".pmp-channel-surf")).toBeTruthy();
+    expect(div.textContent).toMatch(/Channel Surfing/);
+    expect(div.textContent).toMatch(/Y2K Dance/);
+    expect(div.textContent).not.toMatch(/Shelf is empty/);
+    expect(div.textContent).not.toMatch(/Couldn.t pull the shelf/);
+    expect(div.querySelector(".pmp-showcase-promo")).toBeNull();
+  });
+
+  test("first Channel Surfing tile is LCP-eager, later tiles lazy", async () => {
+    await act(async () => {
+      root.render(
+        React.createElement(ChannelSurfingSection, {
+          channels: [
+            { id: "y2k-dance", title: "Y2K Dance", tagline: "floor" },
+            { id: "downtempo", title: "Downtempo", tagline: "late" },
+            { id: "punk", title: "Punk", tagline: "fast" },
+            { id: "metal", title: "Metal", tagline: "gain" },
+          ],
+        })
+      );
+    });
+    const imgs = [...div.querySelectorAll("img")];
+    expect(imgs.length).toBeGreaterThanOrEqual(4);
+    expect(imgs[0].getAttribute("fetchpriority") || imgs[0].fetchPriority).toMatch(/high/i);
+    expect(imgs[0].getAttribute("loading")).toBe("eager");
+    expect(imgs[1].getAttribute("loading")).toBe("eager");
+    expect(imgs[3].getAttribute("loading")).toBe("lazy");
   });
 });

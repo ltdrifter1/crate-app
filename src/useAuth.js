@@ -26,6 +26,7 @@ import {
   assignMemberNumber,
   provisionalMemberNumber,
 } from "./lib/memberNumber";
+import { hasPendingAuthRedirect } from "./lib/authBoot";
 
 const REDIRECT_ERROR_KEY = "rooms.auth.redirectError";
 
@@ -239,28 +240,34 @@ export function useAuth() {
   useEffect(() => {
     let cancelled = false;
 
-    // Finish Google/Apple redirect sign-in before trusting auth state alone
-    getRedirectResult(auth)
-      .then(async (result) => {
-        if (cancelled || !result?.user) return;
-        await ensureProfile(result.user);
-      })
-      .catch((err) => {
-        if (cancelled) return;
-        console.error("OAuth redirect failed", err);
-        storeAuthError(err);
-        setAuthError({ code: err?.code || "", message: err?.message || "Sign-in failed" });
-      });
+    // Finish Google/Apple redirect sign-in only when a bounce is actually pending.
+    // getRedirectResult on a normal Home boot is a wasted persistence read.
+    if (hasPendingAuthRedirect()) {
+      getRedirectResult(auth)
+        .then(async (result) => {
+          if (cancelled || !result?.user) return;
+          await ensureProfile(result.user);
+        })
+        .catch((err) => {
+          if (cancelled) return;
+          console.error("OAuth redirect failed", err);
+          storeAuthError(err);
+          setAuthError({ code: err?.code || "", message: err?.message || "Sign-in failed" });
+        });
+    }
 
-    const unsub = onAuthStateChanged(auth, async (fbUser) => {
+    const unsub = onAuthStateChanged(auth, (fbUser) => {
+      if (cancelled) return;
       if (fbUser) {
         setFirebaseUser(fbUser);
-        await ensureProfile(fbUser);
+        setLoading(false);
+        // Profile getDoc / backfill must not block first Home paint.
+        ensureProfile(fbUser);
       } else {
         setFirebaseUser(null);
         setProfile(null);
+        setLoading(false);
       }
-      if (!cancelled) setLoading(false);
     });
 
     return () => {

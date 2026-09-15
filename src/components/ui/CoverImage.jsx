@@ -22,7 +22,8 @@ export function coverSizeAttrs(size) {
  * @param {number} props.width
  * @param {number} props.height
  * @param {string} [props.sizes]
- * @param {boolean} [props.priority] — eager load (hero / above-fold)
+ * @param {boolean} [props.priority] — eager + fetchPriority=high (LCP)
+ * @param {boolean} [props.eager] — eager load without stealing LCP priority
  * @param {string} [props.objectPosition] — CSS object-position for art crops
  * @param {object} [props.style]
  * @param {string} [props.className]
@@ -37,6 +38,7 @@ export default function CoverImage({
   height,
   sizes,
   priority = false,
+  eager = false,
   objectPosition,
   style,
   className,
@@ -57,7 +59,8 @@ export default function CoverImage({
       width={w}
       height={h}
       sizes={sizes || `${w}px`}
-      loading={priority ? "eager" : "lazy"}
+      loading={priority || eager ? "eager" : "lazy"}
+      fetchPriority={priority ? "high" : "auto"}
       decoding="async"
       draggable={draggable}
       className={className}

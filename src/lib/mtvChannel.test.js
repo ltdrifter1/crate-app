@@ -166,7 +166,7 @@ describe("sceneChannels", () => {
     expect(CHANNEL_BATCH_PREFIXES["country-folk"]).toContain("country-folk");
     expect(CHANNEL_BATCH_PREFIXES.downtempo).toContain("downtempo");
     expect(SCENE_CHANNELS).toHaveLength(10);
-    expect(SCENE_CHANNELS.every((c) => Boolean(c.art))).toBe(true);
+    expect(SCENE_CHANNELS.every((c) => Boolean(c.id))).toBe(true);
     expect(getSceneChannel("variety-mix").tagline.toLowerCase()).not.toContain("evie");
     expect(getSceneChannel("electronic-underground").tagline.toLowerCase()).not.toContain("expansions");
   });
@@ -304,10 +304,13 @@ describe("sceneChannels", () => {
     expect(buildSceneChannelPool(tracks, electronic).map((t) => t.id).sort()).toEqual(["e1", "e3"]);
   });
 
-  test("channelCoverUrls returns the bundled channel photo", () => {
+  test("channelCoverUrls prefers explicit art, not webpack photos", () => {
     const underground = getSceneChannel("electronic-underground");
-    expect(channelCoverUrls([], underground, 4)).toEqual([underground.art]);
-    expect(getSceneChannel("downtempo").art).toBeTruthy();
+    expect(underground.art).toBeUndefined();
+    expect(channelCoverUrls([], underground, 4)).toEqual([]);
+    expect(channelCoverUrls([], { ...underground, art: "/channels/electronic.jpg" }, 4)).toEqual([
+      "/channels/electronic.jpg",
+    ]);
     expect(decorateSceneChannels([], 1)).toHaveLength(10);
     expect(decorateSceneChannels([], 1).some((c) => c.id === "downtempo")).toBe(true);
   });

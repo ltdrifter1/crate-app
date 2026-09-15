@@ -11,9 +11,10 @@ import {
   y2k,
 } from "../theme";
 import { countPlayableTracks } from "../lib/catalogLoad";
-import { decorateSceneChannels, getShowcaseChannel, SHOWCASE_CHANNEL_ID } from "../lib/sceneChannels";
+import { getShowcaseChannel, getSceneChannel, SCENE_CHANNELS } from "../lib/sceneChannels";
 import { hasSeenShowcasePromo, markShowcasePromoSeen } from "../lib/station";
 import { buildHomeCollections } from "../lib/homeCollections";
+import { runAfterPaint } from "../lib/afterPaint";
 import { TonightDeck } from "../components/station/ShowGuide";
 import { useCurrentTrack } from "../usePlayerTransport";
 import HomeHeader from "../components/home/HomeHeader";
@@ -92,6 +93,61 @@ function HomeCatalogStatus({ error, isEmpty, playableCount, totalCount, onRetry 
   );
 }
 
+function HomeShelfSkeleton() {
+  const tile = homeSpace.tile;
+  return (
+    <div
+      aria-hidden="true"
+      style={{
+        marginTop: homeSpace.sectionGap,
+        padding: `0 ${homeSpace.gutter}px`,
+      }}
+    >
+      <div
+        style={{
+          width: 132,
+          height: 14,
+          borderRadius: 4,
+          marginBottom: 16,
+          background: "rgba(255,255,255,0.08)",
+          animation: "shimmer 1.5s ease-in-out infinite",
+        }}
+      />
+      <div style={{ display: "flex", gap: homeSpace.shelfGap, overflow: "hidden" }}>
+        {[0, 1, 2, 3].map((i) => (
+          <div key={i} style={{ flex: "0 0 auto", width: tile }}>
+            <div
+              style={{
+                width: tile,
+                height: tile,
+                borderRadius: 16,
+                background: "rgba(255,255,255,0.06)",
+                animation: "shimmer 1.5s ease-in-out infinite",
+                animationDelay: `${i * 0.08}s`,
+              }}
+            />
+            <div
+              style={{
+                width: tile * 0.72,
+                height: 11,
+                borderRadius: 4,
+                marginTop: 10,
+                background: "rgba(255,255,255,0.05)",
+              }}
+            />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function useAfterFirstPaint() {
+  const [ready, setReady] = useState(false);
+  useEffect(() => runAfterPaint(() => setReady(true)), []);
+  return ready;
+}
+
 /** Quiet editorial empty state used by shelves with nothing to show yet. */
 function EmptyShelfCard({ title, body, actionLabel = null, onAction = null }) {
   return (
@@ -149,6 +205,7 @@ function HomeScreen({
   isRadioMode, playlistCtx, signalLabel, hypnoPocket = false,
   mixLane, radioPreview = null, radioNext = null, onSkipRadio, onPrevRadio,
   catalogError = null, onRetryCatalog,
+  catalogLoading = false,
   onOpenPlayer,
   onStageVisibilityChange = null,
   onSeek = null,
@@ -177,27 +234,24 @@ function HomeScreen({
   const currentTrack = useCurrentTrack();
   const activeId = currentTrack?.id;
   const playableCount = countPlayableTracks(tracks);
-  const catalogEmpty = !catalogError && tracks.length === 0;
-  const catalogDepleted = !catalogError && tracks.length > 0 && playableCount === 0;
-  const catalogReady = !catalogError && !catalogEmpty && !catalogDepleted;
+  const catalogEmpty = !catalogLoading && !catalogError && tracks.length === 0;
+  const catalogDepleted = !catalogLoading && !catalogError && tracks.length > 0 && playableCount === 0;
+  const catalogReady = !catalogLoading && !catalogError && !catalogEmpty && !catalogDepleted;
+  const shelvesReady = useAfterFirstPaint();
 
-  const channels = useMemo(() => decorateSceneChannels(tracks), [tracks]);
-  const showcaseChannel = useMemo(
-    () => channels.find((c) => c.showcase || c.id === SHOWCASE_CHANNEL_ID) || getShowcaseChannel(),
-    [channels]
-  );
+  const channels = SCENE_CHANNELS;
+  const showcaseChannel = getShowcaseChannel();
 
   const editorial = useMemo(() => buildHomeCollections(tracks), [tracks]);
 
   const topRequested = useMemo(() => countdown.slice(0, 10), [countdown]);
   const liveShow = channelShow || airing?.show || null;
-  const activeChannel = useMemo(
-    () => channels.find((c) => c.id === sceneChannelsActiveId) || null,
-    [channels, sceneChannelsActiveId]
-  );
+  const activeChannel = sceneChannelsActiveId
+    ? getSceneChannel(sceneChannelsActiveId)
+    : null;
   const hasTonight = !!(airing?.show || programGuide.length > 0);
   const featuredSize = homeSpace.tileFeatured;
-  const hasChannels = catalogReady && channels.length > 0;
+  const hasChannels = channels.length > 0;
   const [showcaseOpen, setShowcaseOpen] = useState(false);
 
   useEffect(() => {
@@ -285,8 +339,8 @@ function HomeScreen({
         />
       )}
 
-      {/* ON TONIGHT — EPG band */}
-      {catalogReady && hasTonight && (
+      {/* ON TONIGHT — EPG band (below-fold; wait a frame so channel photos win the network) */}
+      {shelvesReady && catalogReady && hasTonight && (
         <TonightDeck
           airing={airing}
           guide={programGuide}
@@ -301,7 +355,7 @@ function HomeScreen({
       )}
 
       {/* MOST REQUESTED — larger featured sleeves */}
-      {catalogReady && topRequested.length > 0 && (
+      {shelvesReady && catalogReady && topRequested.length > 0 && (
         <MusicSection
           title="Most Requested"
           subtitle="Tonight's countdown"
@@ -331,7 +385,7 @@ function HomeScreen({
       )}
 
       {/* EDITORIAL — Played before */}
-      {catalogReady &&
+      {shelvesReady && catalogReady &&
         editorial.map((col, i) => (
           <MusicSection
             key={col.id}
@@ -352,6 +406,8 @@ function HomeScreen({
             </Rail>
           </MusicSection>
         ))}
+
+      {catalogLoading && <HomeShelfSkeleton />}
 
       {/* Catalog is fine but nothing editorial to show — quiet empty state */}
       {catalogReady &&
