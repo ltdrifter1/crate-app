@@ -183,4 +183,16 @@ describe("buildSession", () => {
       expect(total).toBeLessThan(1.1);
     }
   });
+
+  test("optional genre filter prefers that lane when the pool is deep enough", () => {
+    const lib = [
+      ...Array.from({ length: 20 }, (_, i) =>
+        mkTrack({ id: `e${i}`, genre: "Electronic", energy: (i % 10) + 1, duration: 180 })),
+      ...Array.from({ length: 20 }, (_, i) =>
+        mkTrack({ id: `r${i}`, genre: "Rock", energy: (i % 10) + 1, duration: 180 })),
+    ];
+    const set = buildSession(lib, 30, "drive", { genre: "Electronic" });
+    expect(set.length).toBeGreaterThan(0);
+    expect(set.every((t) => t.genre === "Electronic")).toBe(true);
+  });
 });

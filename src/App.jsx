@@ -21,13 +21,13 @@ import { IceOrbPlay, OrbitalArtRing, OrbitalPlayControl } from "./components/pla
 import { camelotCompatible, getEnergyRangeForHour, fmtTime, hexToRgbStr } from "./lib/harmony";
 import {
   computeHumanState, findResonant, computeSignalTraits, pickNextTrack,
-  buildSession, buildRoute, SESSION_PROFILES,
 } from "./lib/engine";
 import { mixLaneForDate } from "./lib/mixLanes";
 import { parsePath, buildPath, documentTitleFor } from "./lib/routes";
 import { primaryNavItems, dockActiveTab } from "./lib/nav";
 import AppSidebar from "./components/layout/AppSidebar";
 import MobileNavDrawer from "./components/layout/MobileNavDrawer";
+import SetBuilderScreen from "./components/set/SetBuilderScreen";
 import {
   AUDIO_LOAD_TIMEOUT_MS,
   canAttemptPlay,
@@ -145,6 +145,10 @@ const DevBroadcastPreview =
 const DevPlayerPreview =
   process.env.NODE_ENV !== "production"
     ? lazy(() => import("./preview/PlayerPreview"))
+    : null;
+const DevSetPreview =
+  process.env.NODE_ENV !== "production"
+    ? lazy(() => import("./preview/SetPreview"))
     : null;
 const ExploreScreen = lazy(() => import("./screens/ExploreScreen"));
 const SearchScreen = lazy(() => import("./screens/SearchScreen"));
@@ -941,420 +945,7 @@ function contentPadBottom(hasPlayer) {
   return `calc(${base}px + env(safe-area-inset-bottom, 0px))`;
 }
 
-// ─── BUILD A SET — pick a length → energy arc runs in the background ─────────
-function SessionBuilderModal({ tracks, onClose, onPlayRoute, onSavePlaylist = null, initialActivity = null, intentLabel = null }) {
-  // 1 length → 2 vibe → 3 preview
-  const [step, setStep] = useState(1);
-  const [duration, setDuration] = useState(60);
-  const autoActivity = initialActivity && SESSION_PROFILES[initialActivity]
-    ? initialActivity
-    : "drive";
-  const [activity, setActivity] = useState(autoActivity);
-  const [session, setSession] = useState(null);
-  const [savedToLibrary, setSavedToLibrary] = useState(false);
-
-  const profile = SESSION_PROFILES[activity] || SESSION_PROFILES.drive;
-  const totalMins = session ? Math.round(session.reduce((s, t) => s + (t.duration || 210), 0) / 60) : 0;
-  const vibeEntries = Object.entries(SESSION_PROFILES);
-
-  const phases = session ? (() => {
-    const groups = [];
-    let current = null;
-    session.forEach((t) => {
-      if (!current || current.name !== t._phase) {
-        current = { name: t._phase, tracks: [] };
-        groups.push(current);
-      }
-      current.tracks.push(t);
-    });
-    return groups;
-  })() : [];
-
-  function handleContinueFromLength() {
-    setStep(2);
-  }
-
-  function handleGenerate() {
-    const act = activity && SESSION_PROFILES[activity] ? activity : autoActivity;
-    setActivity(act);
-    setSession(buildSession(tracks, duration, act));
-    setSavedToLibrary(false);
-    setStep(3);
-  }
-
-  function handleRegenerate() {
-    setSession(buildSession(tracks, duration, activity || autoActivity));
-    setSavedToLibrary(false);
-  }
-
-  const durationLabel = duration < 60 ? `${duration} min` : duration === 60 ? "1 hour" : `${duration / 60} hours`;
-  const stepLabel = step === 1 ? "Length" : step === 2 ? "Vibe" : "Preview";
-
-  function handleSaveToLibrary() {
-    if (!onSavePlaylist || !session?.length || savedToLibrary) return;
-    const name = `${profile.label} · ${durationLabel}`;
-    onSavePlaylist(name, session.map((t) => t.id));
-    setSavedToLibrary(true);
-  }
-
-  const softChip = (selected) => ({
-    borderRadius: 980,
-    border: selected ? `1px solid rgba(255,255,255,0.35)` : `1px solid rgba(255,255,255,0.1)`,
-    background: selected
-      ? "rgba(247,248,250,0.96)"
-      : "rgba(255,255,255,0.06)",
-    color: selected ? color.onAccent : color.body,
-    boxShadow: selected ? "0 8px 22px rgba(0,0,0,0.28)" : "none",
-    cursor: "pointer",
-    fontWeight: 600,
-  });
-
-  const softCard = (selected) => ({
-    borderRadius: radius.lg,
-    border: selected ? `1px solid rgba(255,255,255,0.28)` : `1px solid rgba(255,255,255,0.1)`,
-    background: selected
-      ? "rgba(247,248,250,0.96)"
-      : "rgba(255,255,255,0.05)",
-    color: selected ? color.onAccent : color.body,
-    boxShadow: selected ? "0 10px 28px rgba(0,0,0,0.28)" : "none",
-    cursor: "pointer",
-    fontWeight: 600,
-  });
-
-  return (
-    <div style={{ position: "fixed", inset: 0, zIndex: 100, overflow: "hidden" }}>
-      <div style={{
-        position: "absolute", inset: 0,
-        background: color.canvas,
-      }}/>
-      {session?.[0]?.albumCover && (
-        <div aria-hidden="true" style={{
-          position: "absolute", inset: 0, opacity: 0.14,
-          backgroundImage: `url(${session[0].albumCover})`,
-          backgroundSize: "cover", backgroundPosition: "center",
-          filter: "blur(56px) saturate(1.05) brightness(1.12)", transform: "scale(1.08)",
-        }}/>
-      )}
-      <div aria-hidden="true" style={{
-        position: "absolute", inset: 0,
-        background: `
-          linear-gradient(180deg, rgba(5,6,8,0.55) 0%, rgba(5,6,8,0.2) 40%, rgba(5,6,8,0.88) 100%),
-          radial-gradient(ellipse 70% 45% at 50% 20%, rgba(169,199,228,0.06) 0%, transparent 60%)
-        `,
-      }}/>
-
-      <div className="hide-scroll" style={{
-        position: "relative", zIndex: 1, height: "100%", overflowY: "auto",
-        display: "flex", flexDirection: "column",
-      }}>
-        <div style={{
-          display: "flex", justifyContent: "space-between", alignItems: "center",
-          padding: "20px 20px 8px", flexShrink: 0,
-        }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            {step > 1 && (
-              <button type="button" onClick={() => {
-                if (step === 3) { setSession(null); setStep(2); }
-                else setStep(1);
-              }} style={{
-                background: "none", border: "none", color: color.ink,
-                fontSize: 17, fontWeight: 500, cursor: "pointer", padding: "6px 0",
-              }}>‹ Back</button>
-            )}
-          </div>
-          <div style={{
-            fontSize: 10, fontWeight: 600, letterSpacing: 0.2,
-            color: color.faint, fontFamily: fontDisplay,
-          }}>
-            {step} / 3 · {stepLabel}
-          </div>
-          <button type="button" onClick={onClose} aria-label="Close" style={{
-            background: glass.fillStrong, border: `1px solid ${glass.borderSoft}`, borderRadius: radius.md,
-            width: 36, height: 36, cursor: "pointer", color: color.muted,
-            display: "flex", alignItems: "center", justifyContent: "center",
-            boxShadow: `inset 0 1px 0 ${glass.highlight}`,
-            backdropFilter: glass.blurSoft,
-            WebkitBackdropFilter: glass.blurSoft,
-          }}>
-            <Icon name="x" size={16}/>
-          </button>
-        </div>
-
-        <div style={{
-          flex: 1, display: "flex", flexDirection: "column",
-          alignItems: "center", justifyContent: step === 3 ? "flex-start" : "center",
-          padding: "12px 20px 40px", maxWidth: 560, margin: "0 auto", width: "100%",
-        }}>
-
-          {step === 1 && (
-            <div style={{ width: "100%", textAlign: "center", animation: "rise 0.45s cubic-bezier(0.22,1,0.36,1) both" }}>
-                <div style={{
-                fontSize: 12, fontWeight: 550, letterSpacing: 0.15,
-                color: color.muted, fontFamily: fontDisplay, marginBottom: 12,
-              }}>
-                Build a custom mix
-              </div>
-              <div style={{
-                fontSize: 32, fontWeight: 650, color: color.ink, letterSpacing: -0.9,
-                marginBottom: 10, fontFamily: fontDisplay,
-              }}>How long?</div>
-              <p style={{
-                margin: "0 auto 32px", maxWidth: 340, fontSize: 15, color: color.body, lineHeight: 1.45,
-              }}>
-                Pick a length — next you’ll choose the vibe that shapes the energy arc.
-              </p>
-              <div style={{ display: "flex", gap: 10, justifyContent: "center", marginBottom: 36, flexWrap: "wrap" }}>
-                {[
-                  { m: 30, label: "30 min" },
-                  { m: 60, label: "1 hour" },
-                  { m: 120, label: "2 hours" },
-                  { m: 240, label: "4 hours" },
-                  { m: 480, label: "All night" },
-                ].map(({ m, label }) => (
-                  <button type="button" key={m} onClick={() => setDuration(m)} style={{
-                    minWidth: 88, height: 52, padding: "0 16px",
-                    fontSize: 15, ...softChip(duration === m),
-                  }}>
-                    {label}
-                  </button>
-                ))}
-              </div>
-              <button type="button" onClick={handleContinueFromLength} style={{
-                ...BTN_PRIMARY, width: "auto", minWidth: 200, borderRadius: radius.md, padding: "16px 36px",
-              }}>
-                Choose vibe
-              </button>
-            </div>
-          )}
-
-          {step === 2 && (
-            <div style={{ width: "100%", animation: "rise 0.45s cubic-bezier(0.22,1,0.36,1) both" }}>
-              <div style={{ textAlign: "center", marginBottom: 22 }}>
-                <div style={{
-                  fontSize: 11, fontWeight: 650, letterSpacing: 1.6, textTransform: "uppercase",
-                  color: color.muted, fontFamily: fontMono, marginBottom: 10,
-                }}>
-                  {durationLabel}
-                </div>
-                <div style={{
-                  fontSize: 32, fontWeight: 700, color: color.ink, letterSpacing: -0.9,
-                  marginBottom: 8, fontFamily: fontDisplay,
-                }}>
-                  What’s the vibe?
-                </div>
-                <p style={{
-                  margin: "0 auto", maxWidth: 360, fontSize: 15, color: color.body, lineHeight: 1.45,
-                }}>
-                  Activity shapes the energy curve — warm up, peak, chill out — not just a shuffled list.
-                </p>
-              </div>
-
-              <div style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(auto-fill, minmax(148px, 1fr))",
-                gap: 10,
-                marginBottom: 28,
-              }}>
-                {vibeEntries.map(([id, prof]) => {
-                  const selected = activity === id;
-                  return (
-                    <button
-                      key={id}
-                      type="button"
-                      onClick={() => setActivity(id)}
-                      aria-pressed={selected}
-                      style={{
-                        ...softCard(selected),
-                        padding: "14px 14px 16px",
-                        textAlign: "left",
-                        minHeight: 96,
-                        display: "flex",
-                        flexDirection: "column",
-                        gap: 6,
-                      }}
-                    >
-                      <span style={{
-                        fontSize: 15, fontWeight: 700, fontFamily: fontDisplay,
-                        letterSpacing: -0.3, lineHeight: 1.15,
-                      }}>
-                        {prof.label}
-                      </span>
-                      <span style={{
-                        fontSize: 12, lineHeight: 1.35, fontWeight: 500,
-                        color: selected ? "rgba(244,246,249,0.72)" : color.muted,
-                      }}>
-                        {prof.blurb}
-                      </span>
-                    </button>
-                  );
-                })}
-              </div>
-
-              {profile && (
-                <div style={{
-                  marginBottom: 24,
-                  padding: "14px 16px",
-                  borderRadius: radius.lg,
-                  border: `1px solid ${glass.borderSoft}`,
-                  background: glass.fillStrong,
-                  boxShadow: `inset 0 1px 0 ${glass.highlight}`,
-                  backdropFilter: glass.blurSoft,
-                  WebkitBackdropFilter: glass.blurSoft,
-                }}>
-                  <div style={{
-                    fontSize: 10, fontWeight: 700, letterSpacing: 1.2, textTransform: "uppercase",
-                    color: color.faint, fontFamily: fontMono, marginBottom: 10,
-                  }}>
-                    Energy arc · {profile.label}
-                  </div>
-                  <div style={{ display: "flex", borderRadius: 8, overflow: "hidden", height: 8, marginBottom: 8, background: "rgba(22,24,30,0.08)" }}>
-                    {profile.phases.map((ph, i) => (
-                      <div key={i} style={{
-                        flex: ph.p,
-                        background: i % 2
-                          ? "rgba(22,24,30,0.45)"
-                          : "rgba(22,24,30,0.22)",
-                      }}/>
-                    ))}
-                  </div>
-                  <div style={{ display: "flex" }}>
-                    {profile.phases.map((ph, i) => (
-                      <div key={i} style={{ flex: ph.p, textAlign: "center" }}>
-                        <div style={{ fontSize: 10, fontWeight: 600, color: color.faint }}>{ph.name}</div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              <div style={{ display: "flex", justifyContent: "center" }}>
-                <button type="button" onClick={handleGenerate} style={{
-                  ...BTN_PRIMARY, width: "auto", minWidth: 220, borderRadius: radius.md, padding: "16px 36px",
-                }}>
-                  Build mix
-                </button>
-              </div>
-            </div>
-          )}
-
-          {step === 3 && session && profile && (
-            <div style={{ width: "100%", animation: "rise 0.45s cubic-bezier(0.22,1,0.36,1) both" }}>
-              <div style={{ textAlign: "center", marginBottom: 28, paddingTop: 8 }}>
-                <div style={{
-                  fontSize: 13, fontWeight: 600, color: color.muted, marginBottom: 8,
-                }}>
-                  {durationLabel} · {profile.label}
-                </div>
-                <div style={{
-                  fontSize: 32, fontWeight: 700, color: color.ink, letterSpacing: -0.8,
-                  marginBottom: 6, fontFamily: fontDisplay,
-                }}>
-                  Your custom mix
-                </div>
-                <div style={{ fontSize: 15, color: color.body }}>
-                  {session.length} songs · about {totalMins} minutes
-                </div>
-              </div>
-
-              <div style={{ marginBottom: 24, padding: "0 4px" }}>
-                <div style={{ display: "flex", borderRadius: 8, overflow: "hidden", height: 6, marginBottom: 8, background: color.surface }}>
-                  {profile.phases.map((ph, i) => (
-                    <div key={i} style={{ flex: ph.p, background: i % 2 ? color.accent : color.accentSoft }}/>
-                  ))}
-                </div>
-                <div style={{ display: "flex" }}>
-                  {profile.phases.map((ph, i) => (
-                    <div key={i} style={{ flex: ph.p, textAlign: "center" }}>
-                      <div style={{ fontSize: 10, fontWeight: 600, color: color.faint }}>{ph.name}</div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div style={{
-                maxHeight: "42vh", overflowY: "auto", marginBottom: 24, borderRadius: 16,
-                background: "rgba(38,43,51,0.82)", border: `1px solid ${glass.border}`, padding: "8px 0",
-                boxShadow: `inset 0 1px 0 ${glass.highlight}`,
-                backdropFilter: glass.blurSoft,
-                WebkitBackdropFilter: glass.blurSoft,
-              }}>
-                {phases.map((phase, pi) => (
-                  <div key={pi}>
-                    <div style={{
-                      fontSize: 11, fontWeight: 700, letterSpacing: 0.4, color: color.faint,
-                      textTransform: "uppercase", padding: "12px 16px 6px",
-                    }}>{phase.name}</div>
-                    {phase.tracks.map((t) => (
-                      <div key={t.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "6px 16px" }}>
-                        <div style={{ width: 36, height: 36, borderRadius: 6, overflow: "hidden", flexShrink: 0 }}>
-                          <AlbumArt track={t} size={36} borderRadius={6}/>
-                        </div>
-                        <div style={{ flex: 1, minWidth: 0 }}>
-                          <div style={{
-                            fontSize: 14, fontWeight: 550, color: color.ink,
-                            overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
-                          }}>{t.title}</div>
-                          <div style={{ fontSize: 12, color: color.muted }}>{t.artist}</div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ))}
-              </div>
-
-              <div style={{ display: "flex", flexDirection: "column", gap: 10, alignItems: "center" }}>
-                <div style={{ display: "flex", gap: 10, justifyContent: "center", width: "100%" }}>
-                  <button type="button" onClick={() => {
-                    const cleaned = session.map((t) => { const { _phase, ...rest } = t; return rest; });
-                    onPlayRoute(cleaned, "set");
-                    onClose();
-                  }} style={{
-                    ...BTN_PRIMARY, flex: 1, maxWidth: 280, borderRadius: radius.md, padding: "16px 28px",
-                  }}>
-                    Play mix
-                  </button>
-                  <button type="button" onClick={handleRegenerate} aria-label="Shuffle again" style={{
-                    width: 52, height: 52, borderRadius: radius.md,
-                    background: glass.fillStrong,
-                    border: `1px solid ${glass.border}`,
-                    color: color.body, fontSize: 18, cursor: "pointer",
-                    display: "flex", alignItems: "center", justifyContent: "center",
-                    boxShadow: `inset 0 1px 0 ${glass.highlight}`,
-                    backdropFilter: glass.blurSoft,
-                    WebkitBackdropFilter: glass.blurSoft,
-                  }}>
-                    ↻
-                  </button>
-                </div>
-                {onSavePlaylist && (
-                  <button
-                    type="button"
-                    onClick={handleSaveToLibrary}
-                    disabled={savedToLibrary}
-                    aria-label={savedToLibrary ? "Saved to Library" : "Save Custom Mix to Library"}
-                    style={{
-                      ...BTN_SECONDARY,
-                      width: "auto",
-                      minWidth: 200,
-                      maxWidth: 332,
-                      borderRadius: radius.md,
-                      padding: "14px 24px",
-                      opacity: savedToLibrary ? 0.72 : 1,
-                      cursor: savedToLibrary ? "default" : "pointer",
-                    }}
-                  >
-                    {savedToLibrary ? "Saved to Library" : "Save to Library"}
-                  </button>
-                )}
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
-
+// Build a set booth → components/set/SetBuilderScreen.jsx
 
 // ─── HARMONIC MAP — 2D visualization of library by key × energy ──────────────
 function HarmonicMap({ tracks, onPlay, currentTrack }) {
@@ -3672,7 +3263,7 @@ export default function App() {
   };
 
   // Play a generated route / night as a queue — session ritual
-  const playRoute = (routeTracks, kind = "night") => {
+  const playRoute = (routeTracks, kind = "night", label) => {
     if (!routeTracks.length) return;
     if (!guardFreePlay()) return;
     unlockAudioElements();
@@ -3686,7 +3277,7 @@ export default function App() {
       tracks: routeTracks,
       startTime: now,
       kind,
-      label: "Your playlist",
+      label: label || (kind === "set" ? "Your set" : "Your playlist"),
     });
     logTrackPlay(first);
     showToast(`Playing ${routeTracks.length} songs`);
@@ -4453,6 +4044,17 @@ export default function App() {
       </Suspense>
     );
   }
+  if (
+    DevSetPreview &&
+    typeof window !== "undefined" &&
+    window.location.hash === "#set-preview"
+  ) {
+    return (
+      <Suspense fallback={<div style={{ minHeight: "100dvh", background: color.canvas }} />}>
+        <DevSetPreview />
+      </Suspense>
+    );
+  }
 
   // ── Loading states ────────────────────────────────────────────────────────
   // Auth restore — keep the HTML boot splash's dark canvas; skip Lottie on the critical path.
@@ -4646,7 +4248,7 @@ export default function App() {
         />
       )}
       {showRouteBuilder && (
-        <SessionBuilderModal
+        <SetBuilderScreen
           tracks={blendPoolForSession(
             resolveListenPool(
               tracks,
@@ -4656,6 +4258,7 @@ export default function App() {
             listenFocus.genre ? [listenFocus.genre] : (profile?.genres || [])
           )}
           initialActivity={sessionInitialActivity || vibeForMixLane(mixLane)}
+          initialGenre={listenFocus.genre || null}
           intentLabel={listenFocus.genre || (profile?.genres?.length ? "Your interests" : null)}
           onClose={() => {
             setShowRouteBuilder(false);
