@@ -1,4 +1,4 @@
-import { color, fontDisplay, fontMono, glassPill, homeSpace, y2k } from "../../theme";
+import { color, fontLcd, fontMono, fontPoster, glassPill, homeSpace, y2k } from "../../theme";
 import { trackHasVideo } from "../../lib/video";
 import ArtFrame from "../ui/ArtFrame";
 
@@ -75,11 +75,14 @@ export default function TrackCard({
               display: "inline-flex",
               alignItems: "center",
               justifyContent: "center",
-              fontFamily: fontDisplay,
-              fontSize: 12,
+              borderRadius: 4,
+              background: "rgba(8,10,13,0.72)",
+              border: "1px solid rgba(101,230,255,0.4)",
+              fontFamily: fontLcd,
+              fontSize: 11,
               fontWeight: 700,
-              letterSpacing: -0.2,
-              color: y2k.chromeBright,
+              letterSpacing: 0.4,
+              color: y2k.cyan,
               zIndex: 1,
             }}
           >
@@ -93,7 +96,7 @@ export default function TrackCard({
           marginTop: 10,
           fontSize: 14,
           fontWeight: 650,
-          fontFamily: fontDisplay,
+          fontFamily: fontPoster,
           letterSpacing: -0.25,
           color: y2k.offWhite,
           overflow: "hidden",

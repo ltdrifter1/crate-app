@@ -533,9 +533,24 @@ const injectStyles = () => {
     }
     .pmp-hero-bezel {
       box-shadow:
-        inset 0 1px 0 rgba(255,255,255,0.16),
-        0 18px 40px rgba(0,0,0,0.42);
+        inset 0 1px 0 rgba(255,255,255,0.28),
+        inset 0 -1px 0 rgba(0,0,0,0.55),
+        0 22px 50px rgba(0,0,0,0.52),
+        0 0 48px rgba(101,230,255,0.1),
+        0 0 0 1px rgba(255,79,216,0.12);
     }
+    .pmp-home-mtv::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      background:
+        radial-gradient(ellipse 85% 42% at 0% 6%, rgba(255,79,216,0.07) 0%, transparent 52%),
+        radial-gradient(ellipse 70% 38% at 100% 8%, rgba(101,230,255,0.09) 0%, transparent 50%),
+        radial-gradient(ellipse 50% 30% at 50% 0%, rgba(200,242,65,0.04) 0%, transparent 48%);
+    }
+    .pmp-home-mtv > * { position: relative; z-index: 1; }
     .pmp-ticker-track {
       animation: stationTicker 22s linear infinite;
     }
@@ -624,7 +639,7 @@ const injectStyles = () => {
     .pmp-hero:hover .pmp-hero-art { transform: scale(1.04); }
     .pmp-hero-sleeve { transition: transform 0.45s ${motion.ease}; }
     .pmp-view-all { transition: color ${motion.fast} ${motion.ease}, transform ${motion.fast} ${motion.ease}; }
-    .pmp-view-all:hover { color: #A9C4FF !important; transform: translateX(1px); }
+    .pmp-view-all:hover { color: ${y2k.cyan} !important; transform: translateX(1px); }
     .pmp-rail { cursor: grab; }
     .pmp-rail:active { cursor: grabbing; }
     @media (prefers-reduced-transparency: reduce) {

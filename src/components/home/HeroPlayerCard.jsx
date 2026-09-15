@@ -3,8 +3,8 @@ import {
   artFrameStyle,
   artShadow,
   broadcast,
-  fontDisplay,
-  fontMono,
+  fontLcd,
+  fontPoster,
   homeSpace,
   radio,
   y2k,
@@ -23,6 +23,7 @@ import CoverImage from "../ui/CoverImage";
 import { IceOrbPlay } from "../player/OrbitalControls";
 import { EnergyShiftControl } from "../listen/EnergyShiftButton";
 import { HERO_IDLE_ART, HERO_IDLE_FOCUS } from "../../lib/channelArt";
+import ScanlineWash from "./ScanlineWash";
 
 const VideoStage = lazy(() => import("../station/VideoStage"));
 
@@ -45,7 +46,7 @@ function MetaChip({ children }) {
         borderRadius: 4,
         border: "1px solid rgba(255,255,255,0.12)",
         background: "rgba(8,10,13,0.45)",
-        fontFamily: fontMono,
+        fontFamily: fontLcd,
         fontSize: 10,
         fontWeight: 700,
         letterSpacing: 0.7,
@@ -91,7 +92,7 @@ function LivePlate({ live }) {
       />
       <span
         style={{
-          fontFamily: fontMono,
+          fontFamily: fontLcd,
           fontSize: 10,
           fontWeight: 800,
           letterSpacing: 1.4,
@@ -121,7 +122,7 @@ function ChannelIdent({ bugLine, slug }) {
       <span
         style={{
           padding: "6px 9px",
-          fontFamily: fontMono,
+          fontFamily: fontLcd,
           fontSize: 11,
           fontWeight: 800,
           letterSpacing: 0.6,
@@ -137,7 +138,7 @@ function ChannelIdent({ bugLine, slug }) {
       <span
         style={{
           padding: "6px 10px",
-          fontFamily: fontMono,
+          fontFamily: fontLcd,
           fontSize: 10,
           fontWeight: 800,
           letterSpacing: 0.9,
@@ -353,6 +354,7 @@ export default function HeroPlayerCard({
         width: "100%",
         cursor: playDisabled && !live ? "default" : "pointer",
         border: broadcast.bezelBorder,
+        boxShadow: broadcast.bezelShadow,
         background: y2k.artGradient,
         WebkitTapHighlightColor: "transparent",
         isolation: "isolate",
@@ -383,12 +385,15 @@ export default function HeroPlayerCard({
             position: "absolute",
             inset: 0,
             background: `
-              radial-gradient(80% 70% at 12% 20%, ${track?.color ? `${track.color}33` : "rgba(101,230,255,0.14)"} 0%, transparent 58%),
-              linear-gradient(180deg, rgba(8,10,13,0.28) 0%, rgba(8,10,13,0.72) 100%)
+              radial-gradient(80% 70% at 12% 20%, ${track?.color ? `${track.color}33` : "rgba(101,230,255,0.16)"} 0%, transparent 58%),
+              radial-gradient(50% 40% at 100% 0%, rgba(255,79,216,0.14) 0%, transparent 55%),
+              linear-gradient(180deg, rgba(8,10,13,0.22) 0%, rgba(8,10,13,0.74) 100%)
             `,
           }}
         />
       </div>
+
+      <ScanlineWash />
 
       <div
         style={{
@@ -405,7 +410,7 @@ export default function HeroPlayerCard({
         <div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0 }}>
           <span
             style={{
-              fontFamily: fontMono,
+              fontFamily: fontLcd,
               fontSize: 11,
               fontWeight: 800,
               letterSpacing: 1.6,
@@ -418,7 +423,7 @@ export default function HeroPlayerCard({
           <span aria-hidden="true" style={{ width: 1, height: 11, background: "rgba(255,255,255,0.18)" }} />
           <span
             style={{
-              fontFamily: fontMono,
+              fontFamily: fontLcd,
               fontSize: 10,
               fontWeight: 700,
               letterSpacing: 1.2,
@@ -438,7 +443,7 @@ export default function HeroPlayerCard({
                 borderRadius: 4,
                 border: "1px solid rgba(200,242,65,0.35)",
                 background: "rgba(200,242,65,0.12)",
-                fontFamily: fontMono,
+                fontFamily: fontLcd,
                 fontSize: 10,
                 fontWeight: 800,
                 letterSpacing: 1.1,
@@ -520,21 +525,27 @@ export default function HeroPlayerCard({
             <span
               aria-hidden="true"
               style={{
-                width: 28,
-                height: 4,
+                display: "inline-flex",
+                width: 36,
+                height: 5,
                 borderRadius: 1,
-                background: y2k.neon,
-                boxShadow: "0 0 10px rgba(200,242,65,0.55)",
+                overflow: "hidden",
+                boxShadow: "0 0 12px rgba(101,230,255,0.35)",
               }}
-            />
+            >
+              <span style={{ flex: 1, background: y2k.cyan }} />
+              <span style={{ flex: 1, background: y2k.magenta }} />
+              <span style={{ flex: 1, background: y2k.neon }} />
+            </span>
             <div
               style={{
-                fontFamily: fontMono,
+                fontFamily: fontLcd,
                 fontSize: 11,
                 fontWeight: 800,
                 letterSpacing: 1.5,
                 textTransform: "uppercase",
-                color: y2k.neon,
+                color: y2k.cyan,
+                textShadow: "0 0 10px rgba(101,230,255,0.4)",
               }}
             >
               {live ? (isRadioMode ? "On air" : "Now playing") : idleEyebrow}
@@ -543,13 +554,14 @@ export default function HeroPlayerCard({
 
           <div
             style={{
-              fontFamily: fontDisplay,
-              fontSize: "clamp(22px, 5.2vw, 34px)",
-              fontWeight: 780,
-              letterSpacing: -0.8,
-              lineHeight: 1.05,
+              fontFamily: fontPoster,
+              fontStyle: "italic",
+              fontSize: "clamp(24px, 5.6vw, 36px)",
+              fontWeight: 800,
+              letterSpacing: -0.9,
+              lineHeight: 1.02,
               color: y2k.offWhite,
-              textShadow: "0 2px 18px rgba(0,0,0,0.45)",
+              textShadow: "0 2px 18px rgba(0,0,0,0.45), 0 0 24px rgba(101,230,255,0.12)",
               overflow: "hidden",
               textOverflow: "ellipsis",
               display: "-webkit-box",
@@ -621,7 +633,7 @@ export default function HeroPlayerCard({
               <div style={{ minWidth: 0 }}>
                 <div
                   style={{
-                    fontFamily: fontMono,
+                    fontFamily: fontLcd,
                     fontSize: 9,
                     fontWeight: 800,
                     letterSpacing: 1.3,
@@ -741,7 +753,7 @@ export default function HeroPlayerCard({
                 </div>
                 <span
                   style={{
-                    fontFamily: fontMono,
+                    fontFamily: fontLcd,
                     fontSize: 11,
                     fontVariantNumeric: "tabular-nums",
                     color: "rgba(244,246,248,0.55)",
@@ -788,10 +800,12 @@ export default function HeroPlayerCard({
                   ? "rgba(60,64,72,0.6)"
                   : "linear-gradient(180deg, #FFFFFF 0%, #E7EBF0 55%, #C8CED6 100%)",
                 color: "#0B0C0F",
-                fontFamily: fontDisplay,
-                fontSize: 14,
-                fontWeight: 700,
-                letterSpacing: 0.15,
+                fontFamily: fontPoster,
+                fontSize: 13,
+                fontWeight: 800,
+                fontStyle: "italic",
+                letterSpacing: 0.6,
+                textTransform: "uppercase",
                 cursor: playDisabled ? "default" : "pointer",
                 display: "flex",
                 alignItems: "center",
@@ -823,7 +837,7 @@ export default function HeroPlayerCard({
               style={{
                 display: "inline-block",
                 whiteSpace: "nowrap",
-                fontFamily: fontMono,
+                fontFamily: fontLcd,
                 fontSize: 11,
                 fontWeight: 600,
                 letterSpacing: 0.4,

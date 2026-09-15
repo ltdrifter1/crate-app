@@ -8,6 +8,12 @@ export const font =
   'system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Helvetica Neue", Helvetica, Arial, sans-serif';
 export const fontMono =
   'ui-monospace, "SF Mono", SFMono-Regular, Menlo, Monaco, Consolas, monospace';
+/** Home / station posters — Y2K MTV wordmark without replacing UI chrome type. */
+export const fontPoster =
+  '"Syne", "Arial Black", system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", Helvetica, Arial, sans-serif';
+/** LCD / channel-bug readout on Home. */
+export const fontLcd =
+  '"IBM Plex Mono", ui-monospace, "SF Mono", SFMono-Regular, Menlo, Monaco, Consolas, monospace';
 
 /** Brand palette — dark broadcast studio, editorial contrast */
 export const color = {
@@ -364,6 +370,17 @@ export const sectionTitle = {
   textTransform: "none",
 };
 
+/** Home band posters — Y2K MTV italic, still the same copy and layout. */
+export const sectionTitlePoster = {
+  ...sectionTitle,
+  fontFamily: fontPoster,
+  fontSize: 24,
+  fontWeight: 800,
+  fontStyle: "italic",
+  letterSpacing: -0.7,
+  lineHeight: 1.08,
+};
+
 export const sectionSubtitle = {
   margin: "4px 0 0",
   fontSize: 14,
@@ -383,6 +400,17 @@ export const sectionEyebrow = {
   color: color.muted,
   margin: "0 0 4px",
   lineHeight: 1.2,
+};
+
+export const sectionEyebrowLcd = {
+  ...sectionEyebrow,
+  fontFamily: fontLcd,
+  fontSize: 11,
+  fontWeight: 700,
+  letterSpacing: 1.6,
+  textTransform: "uppercase",
+  color: y2k.cyan,
+  margin: "0 0 5px",
 };
 
 /** Monitor bezel + LCD used by the Home stage and dock. */
