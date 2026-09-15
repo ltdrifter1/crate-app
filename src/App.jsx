@@ -156,6 +156,10 @@ const DevPlayerPreview =
   process.env.NODE_ENV !== "production"
     ? lazy(() => import("./preview/PlayerPreview"))
     : null;
+const DevExplorePreview =
+  process.env.NODE_ENV !== "production"
+    ? lazy(() => import("./preview/ExplorePreview"))
+    : null;
 const ExploreScreen = lazy(() => import("./screens/ExploreScreen"));
 const SearchScreen = lazy(() => import("./screens/SearchScreen"));
 const FavoritesScreen = lazy(() => import("./screens/FavoritesScreen"));
@@ -4436,6 +4440,17 @@ export default function App() {
     return (
       <Suspense fallback={<div style={{ minHeight: "100dvh", background: color.canvas }} />}>
         <DevPlayerPreview />
+      </Suspense>
+    );
+  }
+  if (
+    DevExplorePreview &&
+    typeof window !== "undefined" &&
+    window.location.hash === "#explore-preview"
+  ) {
+    return (
+      <Suspense fallback={<div style={{ minHeight: "100dvh", background: color.canvas }} />}>
+        <DevExplorePreview />
       </Suspense>
     );
   }

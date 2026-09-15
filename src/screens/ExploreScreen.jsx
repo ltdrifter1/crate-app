@@ -89,6 +89,7 @@ function SearchEntry({ onOpenSearch }) {
         aria-label="Search"
         style={{
           width: "100%",
+          maxWidth: 520,
           display: "flex",
           alignItems: "center",
           gap: 10,
@@ -538,7 +539,7 @@ function ExploreScreen({
           first={false}
           delay={0.12}
           title="Stations"
-          subtitle="The same dial as Home — start a channel from here"
+          subtitle="Tune a channel from here"
         />
       )}
 
