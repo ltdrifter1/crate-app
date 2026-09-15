@@ -16,6 +16,8 @@ import { SCENE_CHANNELS, getShowcaseChannel } from "../lib/sceneChannels";
 import { clearShowcasePromoSeen } from "../lib/station";
 import { brandStoragePrefix } from "../brand/identity";
 import ChartsScreen from "../components/station/ChartsScreen";
+import SetBuilderScreen from "../components/set/SetBuilderScreen";
+import { makeSetPreviewCatalog } from "./SetPreview";
 import { CHANNEL_ART } from "../lib/channelArt";
 import { color, fontDisplay, fontMono, glass, homeSpace } from "../theme";
 import CoverImage from "../components/ui/CoverImage";
@@ -398,6 +400,16 @@ export default function BroadcastPreview() {
         onBuildSet={() => setBuildingSet(true)}
         user={{ name: "Luke" }}
       />
+      {buildingSet && (
+        <SetBuilderScreen
+          tracks={makeSetPreviewCatalog()}
+          initialActivity="night"
+          intentLabel="Broadcast preview"
+          onClose={() => setBuildingSet(false)}
+          onPlayRoute={() => setBuildingSet(false)}
+          onSavePlaylist={() => {}}
+        />
+      )}
       <style>{`
         @media (max-width: 767px) {
           .pmp-preview-rail { display: none !important; }
