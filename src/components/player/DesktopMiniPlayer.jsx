@@ -19,6 +19,7 @@ export default function DesktopMiniPlayer({
   onTogglePlay,
   onSkip,
   onLikeToggle,
+  onDislike = null,
   onSeek,
   OrbitalArtRing,
   IceOrbPlay,
@@ -114,6 +115,7 @@ export default function DesktopMiniPlayer({
         </span>
         <button
           type="button"
+          aria-label={track.liked ? "Unlike" : "Like"}
           onClick={(e) => { e.stopPropagation(); onLikeToggle(); }}
           style={{
             background: "none", border: "none", cursor: "pointer",
@@ -121,6 +123,17 @@ export default function DesktopMiniPlayer({
           }}
         >
           <Icon name={track.liked ? "heart" : "heartempty"} size={16} />
+        </button>
+        <button
+          type="button"
+          aria-label="Dislike this track"
+          onClick={(e) => { e.stopPropagation(); onDislike?.(); }}
+          style={{
+            background: "none", border: "none", cursor: "pointer",
+            color: track.disliked ? color.alert : color.faint, padding: 4,
+          }}
+        >
+          <Icon name={track.disliked ? "dislikefilled" : "dislike"} size={16} />
         </button>
         <span style={{ display: "inline-flex", alignItems: "center", gap: 4, opacity: 0.85 }}>
           <IceOrbPlay

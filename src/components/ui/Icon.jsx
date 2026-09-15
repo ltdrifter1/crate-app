@@ -32,6 +32,7 @@ import {
   FlaskConical,
   Zap,
   Menu,
+  ThumbsDown,
 } from "lucide-react";
 import { color } from "../../theme";
 
@@ -118,6 +119,8 @@ export default function Icon({ name, size = 18 }) {
     flask: <Lucide Cmp={FlaskConical} size={size} />,
     zap: <Lucide Cmp={Zap} size={size} />,
     menu: <Lucide Cmp={Menu} size={size} />,
+    dislike: <Lucide Cmp={ThumbsDown} size={size} />,
+    dislikefilled: <Lucide Cmp={ThumbsDown} size={size} filled />,
   };
   return icons[name] || null;
 }

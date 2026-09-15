@@ -3,6 +3,7 @@ import { camelotCompatible, getEnergyRangeForHour } from "./harmony";
 import { normalizeGenre } from "./genres";
 import { tasteCandidatePool } from "./taste";
 import { pickEnergyTrack } from "./EnergyRecommendationEngine";
+import { applyDislikeToPool, applyDislikeWeight } from "./dislikeTaste";
 
 export function computeHumanState(recentPlays, sessionStartTime) {
   if (!recentPlays.length) return { intensity: 0.5, openness: 0.5, momentum: 0, depth: 0, direction: 0, label: "Just started" };
@@ -151,12 +152,13 @@ export function computeSignalTraits(tracks, recentPlays = []) {
 // ─── WEIGHTED RADIO PICK ──────────────────────────────────────────────────────
 // All tracks eligible; liked tracks get 3× weight
 // Priority: camelot+energy → camelot → energy → anything
-// options: { preferredGenres, signalState, seedTrack, scopedPool, tasteBlend }
+// options: { preferredGenres, signalState, seedTrack, scopedPool, tasteBlend, dislikeTaste }
 //   preferredGenres — profile tastes
 //   tasteBlend      — 95% in-taste / 5% out when preferredGenres set
 //   signalState     — human-state vector steers energy (lift / release / immersion)
 //   seedTrack       — Hypno pocket mode: stay near this track's aura + key
 //   scopedPool      — pool already mix-lane/scene filtered; skip hour energy gate
+//   dislikeTaste    — soft / hard genre+energy avoidance from player dislikes
 export function pickNextTrack(allTracks, currentTrack, memory = null, options = {}) {
   if (!allTracks.length) return null;
   const preferredGenres = Array.isArray(options.preferredGenres)
@@ -169,6 +171,7 @@ export function pickNextTrack(allTracks, currentTrack, memory = null, options = 
   const seedTrack = options.seedTrack || null;
   const anchor = seedTrack || currentTrack;
   const scopedPool = !!options.scopedPool;
+  const dislikeTaste = options.dislikeTaste || null;
 
   // 95/5 taste blend — genres are the user lever; rest is background
   let sourceTracks = allTracks;
@@ -176,6 +179,9 @@ export function pickNextTrack(allTracks, currentTrack, memory = null, options = 
     sourceTracks = tasteCandidatePool(allTracks, preferredGenres).tracks;
     if (!sourceTracks.length) sourceTracks = allTracks;
   }
+  sourceTracks = applyDislikeToPool(sourceTracks, dislikeTaste, {
+    preserveFocus: scopedPool,
+  });
 
   const hour = new Date().getHours();
   // When resolveListenPool already scoped the catalog, don't re-slice by clock hour.
@@ -230,7 +236,9 @@ export function pickNextTrack(allTracks, currentTrack, memory = null, options = 
   // The engine walks the pool toward the pending BPM/Camelot/energy target one
   // musical step at a time instead of the usual hour/taste pools.
   if (options.energyShift?.active && currentTrack) {
-    const energyPick = pickEnergyTrack(pool, currentTrack, options.energyShift);
+    const energyPick = pickEnergyTrack(pool, currentTrack, options.energyShift, Math.random, {
+      dislikeTaste,
+    });
     if (energyPick) return energyPick;
   }
 
@@ -275,10 +283,16 @@ export function pickNextTrack(allTracks, currentTrack, memory = null, options = 
       }
       if (seedTrack?.camelot && t.camelot && camelotCompatible(seedTrack.camelot, t.camelot, 1)) w *= 2;
       if (seedTrack?.genre && t.genre === seedTrack.genre) w = Math.round(w * 1.5);
-      const weight = Math.max(1, Math.round(w));
+      w = applyDislikeWeight(w, t, dislikeTaste, { allowHard: !scopedPool });
+      const weight = Math.max(0, w);
+      if (weight <= 0) {
+        weights[i] = 0;
+        continue;
+      }
       weights[i] = weight;
       total += weight;
     }
+    if (!total) return candidates[0] || null;
     let roll = Math.random() * total;
     for (let i = 0; i < candidates.length; i++) {
       roll -= weights[i];

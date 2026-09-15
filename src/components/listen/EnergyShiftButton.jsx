@@ -3,9 +3,9 @@
 // the background; the UI only dispatches increaseEnergy() / decreaseEnergy().
 
 import React, { useEffect, useRef, useState } from "react";
-import { Zap } from "lucide-react";
 import { color, glass, fontMono, hardware, hardwareKey } from "../../theme";
 import { useEnergyQueue } from "../../useEnergyQueue";
+import FlaskMark from "./FlaskMark";
 
 const PRESS_EASE = "cubic-bezier(0.34, 1.4, 0.64, 1)";
 const LONG_PRESS_MS = 450;
@@ -343,24 +343,9 @@ export function EnergyShiftFeedback({ bottom = "calc(100% + 12px)" }) {
   );
 }
 
-/** Energy shift mark — lightning bolt (tempo / lift). */
-function EnergyZapIcon({ size = 18 }) {
-  return (
-    <Zap
-      size={size}
-      absoluteStrokeWidth
-      strokeWidth={2}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      fill="currentColor"
-      aria-hidden="true"
-    />
-  );
-}
-
 /**
- * Single Energy Shift control — opens a centered slider popup (middle = neutral).
- * Lives on the right of the transport row.
+ * Single Energy Shift control — chemistry beaker opens a slider (middle = neutral).
+ * Lives on the player transport and the mini / dock bar.
  */
 export function EnergyShiftControl({
   size = 40,
@@ -417,7 +402,8 @@ export function EnergyShiftControl({
     >
       <button
         type="button"
-        aria-label="Energy shift"
+        className={`flask-taste-btn energy-shift-flask${active || open ? " is-active" : ""}${labeled ? " is-labeled" : ""}`}
+        aria-label="Energy shift — speed up or slow down the mix"
         aria-expanded={open}
         aria-pressed={active}
         title="Energy shift — ease or lift upcoming picks"
@@ -434,16 +420,16 @@ export function EnergyShiftControl({
           minHeight: labeled ? 40 : size,
           padding: labeled ? "0 12px 0 8px" : 0,
           gap: labeled ? 8 : 0,
-          borderRadius: 4,
+          borderRadius: labeled ? 10 : 8,
           display: "inline-flex",
           alignItems: "center",
           justifyContent: "center",
           cursor: "pointer",
-          color: active || open ? color.accent : color.muted,
+          color: active || open ? color.ink : color.muted,
           boxShadow: active || open
             ? hardware.keyPressed
             : hovered
-              ? `${hardware.keyRaised}, 0 0 0 2px rgba(169,199,228,0.1)`
+              ? `${hardware.keyRaised}, 0 0 0 2px rgba(255,255,255,0.08)`
               : hardware.keyRaised,
           transform: hovered ? "scale(1.04)" : "scale(1)",
           transition: `transform 0.28s ${PRESS_EASE}, box-shadow 0.35s ease, color 0.2s ease, border-color 0.2s ease`,
@@ -452,7 +438,13 @@ export function EnergyShiftControl({
           flexShrink: 0,
         }}
       >
-        <EnergyZapIcon size={Math.round((labeled ? 40 : size) * 0.46)} />
+        <span className="flask-taste-mark" aria-hidden="true" style={{ display: "flex" }}>
+          <FlaskMark
+            size={Math.round((labeled ? 40 : size) * 0.58)}
+            fillLevel={(bias + 20) / 40}
+            active={active || open}
+          />
+        </span>
         {labeled && (
           <span style={{
             fontFamily: fontMono,

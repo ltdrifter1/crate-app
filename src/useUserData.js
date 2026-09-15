@@ -21,6 +21,15 @@ export async function toggleLike(trackId, currentlyLiked) {
   });
 }
 
+/** Persist dislike taste + the disliked track id list. */
+export async function saveDislikeTaste(dislikeTaste, dislikedTracks) {
+  const payload = {};
+  if (dislikeTaste != null) payload.dislikeTaste = dislikeTaste;
+  if (Array.isArray(dislikedTracks)) payload.dislikedTracks = dislikedTracks;
+  if (!Object.keys(payload).length) return;
+  await updateDoc(userRef(), payload);
+}
+
 /**
  * Record a play — prefers Cloud Function (trusted meter + playCount).
  * Falls back to recentTracks-only if the function is unreachable.

@@ -1,7 +1,7 @@
 /**
  * ImmersivePlayer — premium Y2K listening booth.
  * Sleeve-first theater: oversized jewel case → title → aluminum transport.
- * Secondary booth tools (channels, request, session arc) live in a drawer.
+ * Secondary booth tools (channels, dedicate, session arc) live in a drawer.
  * Chrome language is machined aluminum / grey — no ice-blue accents.
  */
 import { useEffect, useRef, useState } from "react";
@@ -196,11 +196,9 @@ function PlayerOnAir({ showTitle = null, daypartLabel = null }) {
   );
 }
 
-/** Quiet booth tools — request / dedicate / locked-in count. */
+/** Quiet booth tools — dedicate / locked-in count. */
 function BoothStrip({
   track,
-  onRequest = null,
-  requested = false,
   onDedicate = null,
 }) {
   const [lockedIn, setLockedIn] = useState(() => estimateLockedIn(track));
@@ -210,7 +208,7 @@ function BoothStrip({
     return () => clearInterval(id);
   }, [track?.id, track?.playCount, track?.likeCount, track?.requestCount]);
 
-  if (!onRequest && !onDedicate) return null;
+  if (!onDedicate) return null;
 
   return (
     <div
@@ -248,29 +246,6 @@ function BoothStrip({
         {lockedIn} locked in
       </div>
       <div style={{ display: "flex", gap: 8 }}>
-        {onRequest && (
-          <button
-            type="button"
-            onClick={onRequest}
-            disabled={requested}
-            style={{
-              padding: "7px 12px",
-              borderRadius: hardware.radius + 2,
-              fontSize: 11,
-              fontWeight: 700,
-              fontFamily: fontMono,
-              letterSpacing: 0.6,
-              textTransform: "uppercase",
-              cursor: requested ? "default" : "pointer",
-              color: requested ? color.faint : y2k.offWhite,
-              background: hardware.keyFace,
-              border: `1px solid ${glass.borderSoft}`,
-              boxShadow: hardware.keyRaised,
-            }}
-          >
-            {requested ? "Requested" : "Request"}
-          </button>
-        )}
         {onDedicate && (
           <button
             type="button"
@@ -323,6 +298,7 @@ export default function ImmersivePlayer({
   signalState,
   onSeek,
   onLike,
+  onDislike = null,
   volume = 1,
   onVolumeChange,
   onHypno,
@@ -345,8 +321,6 @@ export default function ImmersivePlayer({
   countdownRank = null,
   daypart = null,
   tickerText = "",
-  onRequest = null,
-  requested = false,
   onDedicate = null,
   dedicationFlash = null,
   onClearDedication = null,
@@ -364,7 +338,7 @@ export default function ImmersivePlayer({
   const [showBooth, setShowBooth] = useState(false);
   const moreRef = useRef(null);
   const hasVideo = trackHasVideo(currentTrack);
-  const hasBoothTools = !!(onRequest || onDedicate || onTuneSceneChannel || sessionArc?.energies?.length > 1);
+  const hasBoothTools = !!(onDedicate || onTuneSceneChannel || sessionArc?.energies?.length > 1);
 
   useEffect(() => {
     setShowMore(false);
@@ -930,8 +904,6 @@ export default function ImmersivePlayer({
             )}
             <BoothStrip
               track={currentTrack}
-              onRequest={onRequest}
-              requested={requested}
               onDedicate={onDedicate}
             />
             {onTuneSceneChannel && (
@@ -1024,6 +996,14 @@ export default function ImmersivePlayer({
 
             <ChromeIconButton onClick={onSkip} label="Next" size={48}>
               <Icon name="skip" size={20} />
+            </ChromeIconButton>
+
+            <ChromeIconButton
+              onClick={() => onDislike?.()}
+              label="Dislike this track"
+              active={!!currentTrack.disliked}
+            >
+              <Icon name={currentTrack.disliked ? "dislikefilled" : "dislike"} size={18} />
             </ChromeIconButton>
 
             <div style={{ width: 44, display: "flex", justifyContent: "center" }}>
