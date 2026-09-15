@@ -84,7 +84,7 @@ describe("homeCollections", () => {
       userKey: "u-new",
       dayKey: "2026-09-15",
     });
-    expect(coldStart).toBe(true);
+    expect(coldStart).toBe(false);
     expect(picks.every((p) => p.track.genre === "Jazz")).toBe(true);
   });
 

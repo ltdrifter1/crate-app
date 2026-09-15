@@ -74,7 +74,6 @@ export default function OnboardingPreview() {
         taste={taste}
         userKey="preview-fresh"
         recentTrackIds={[]}
-        suppressShowcasePromo
         sceneChannelsActiveId={taste.seedChannelId}
         onTuneSceneChannel={() => {}}
         onPlayTrack={() => {}}

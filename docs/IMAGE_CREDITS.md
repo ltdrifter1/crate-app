@@ -1,6 +1,6 @@
 # Image credits
 
-Planet MP3 editorial photography — Channel Surfing tiles, the Home showcase crop, and the idle Home hero.
+Planet MP3 editorial photography — Channel Surfing tiles, the Home showcase crop, the idle Home hero, and Explore (hero, genre mosaic, mood/scene plates reuse the same stills — no extra photos).
 
 **Not in this set:** catalog album covers from Firebase, brand lockups/mascot (original drawings), or user-uploaded art. Those are left alone.
 
@@ -39,6 +39,12 @@ Crops (`object-position` / baked square crops) are our only adaptations.
 | Idle hero (no sleeve yet) | `src/assets/editorial/hero-idle.jpg` | [Laszlo Barta](https://unsplash.com/@slie_design) | [unsplash.com/photos/wXLBNpTt9rI](https://unsplash.com/photos/dj-performing-for-a-large-crowd-at-a-concert-wXLBNpTt9rI) (`photo-1763630053135-876bbc091a79`) | Unsplash |
 
 The brand lockup still sits on top of this frame. Once a catalog track is on air, the hero uses that track’s cover — not this photo.
+
+## Explore
+
+Explore does not add new photographs. The editorial hero, genre mosaic, mood plates, and scene rail reuse Channel Surfing stills (`CHANNEL_ART`) and `hero-idle.jpg`.
+
+Genre lanes without an honest documentary match (Jazz, Classical, Reggae, Latin) use catalog album-cover mosaics — never generated plates.
 
 ## Charts
 

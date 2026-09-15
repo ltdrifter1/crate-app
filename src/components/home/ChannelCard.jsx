@@ -6,6 +6,7 @@ import Icon from "../ui/Icon";
 /**
  * ChannelCard — art-first station tile (Apple Music / YouTube Music).
  * Generic channel photo, name, blurb, play. No album-cover mosaic.
+ * Local PNW (`showcase` / local-pnw) gets a gold rim — not a Showcase label.
  */
 function ChannelArt({ src, title, size, accent, objectPosition, priority = false, eager = false }) {
   const initial = (title || "?").trim().charAt(0).toUpperCase() || "?";
@@ -60,6 +61,7 @@ export default function ChannelCard({
   const width = size;
   const title = channel.shortTitle || channel.title;
   const { src: photo, focus } = resolveChannelArt(channel);
+  const featured = Boolean(channel.showcase) || channel.id === "local-pnw";
 
   return (
     <button
@@ -70,7 +72,7 @@ export default function ChannelCard({
         e.stopPropagation();
         onClick?.(e);
       }}
-      className="pmp-lift pmp-channel-card"
+      className={`pmp-lift pmp-channel-card${featured ? " pmp-channel-card--gold" : ""}`}
       style={{
         flex: "0 0 auto",
         scrollSnapAlign: "start",
@@ -86,72 +88,86 @@ export default function ChannelCard({
       }}
     >
       <span
+        className="pmp-channel-card-frame"
         style={{
           position: "relative",
           display: "block",
           width,
           height: width,
-          borderRadius: 14,
-          overflow: "hidden",
-          background: y2k.artGradient,
-          boxShadow: active
-            ? "0 0 0 2px rgba(247,248,250,0.92), 0 12px 28px rgba(0,0,0,0.42)"
-            : "0 10px 24px rgba(0,0,0,0.36)",
         }}
       >
-        <ChannelArt
-          src={photo}
-          title={title}
-          size={width}
-          accent={channel.accent}
-          objectPosition={focus}
-          priority={priority}
-          eager={eager}
-        />
-
-        {(active || channel.showcase) && (
-          <span
-            style={{
-              position: "absolute",
-              top: 10,
-              left: 10,
-              zIndex: 2,
-              height: 22,
-              padding: "0 8px",
-              borderRadius: 980,
-              background: "rgba(8,10,13,0.62)",
-              color: y2k.offWhite,
-              fontSize: 11,
-              fontWeight: 600,
-              letterSpacing: -0.1,
-              display: "inline-flex",
-              alignItems: "center",
-            }}
-          >
-            {active ? "Playing" : "Showcase"}
-          </span>
-        )}
-
         <span
-          aria-hidden="true"
+          className="pmp-channel-card-art"
           style={{
-            position: "absolute",
-            right: 10,
-            bottom: 10,
-            zIndex: 2,
-            width: 36,
-            height: 36,
-            borderRadius: "50%",
-            background: "#F7F8FA",
-            color: "#0B0C0F",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            boxShadow: "0 6px 16px rgba(0,0,0,0.35)",
-            paddingLeft: active ? 0 : 1,
+            position: "relative",
+            zIndex: 1,
+            display: "block",
+            width: "100%",
+            height: "100%",
+            borderRadius: 14,
+            overflow: "hidden",
+            background: y2k.artGradient,
+            boxShadow: featured
+              ? "0 10px 24px rgba(0,0,0,0.36)"
+              : active
+                ? "0 0 0 2px rgba(247,248,250,0.92), 0 12px 28px rgba(0,0,0,0.42)"
+                : "0 10px 24px rgba(0,0,0,0.36)",
           }}
         >
-          <Icon name={active ? "pause" : "play"} size={14} />
+          <ChannelArt
+            src={photo}
+            title={title}
+            size={width}
+            accent={channel.accent}
+            objectPosition={focus}
+            priority={priority}
+            eager={eager}
+          />
+
+          {active && (
+            <span
+              style={{
+                position: "absolute",
+                top: 10,
+                left: 10,
+                zIndex: 2,
+                height: 22,
+                padding: "0 8px",
+                borderRadius: 980,
+                background: "rgba(8,10,13,0.62)",
+                color: y2k.offWhite,
+                fontSize: 11,
+                fontWeight: 600,
+                letterSpacing: -0.1,
+                display: "inline-flex",
+                alignItems: "center",
+              }}
+            >
+              Playing
+            </span>
+          )}
+
+          <span
+            aria-hidden="true"
+            style={{
+              position: "absolute",
+              right: 10,
+              bottom: 10,
+              zIndex: 2,
+              width: 36,
+              height: 36,
+              borderRadius: "50%",
+              background: "#F7F8FA",
+              color: "#0B0C0F",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              boxShadow: "0 6px 16px rgba(0,0,0,0.35)",
+              paddingLeft: active ? 0 : 1,
+            }}
+          >
+            <Icon name={active ? "pause" : "play"} size={14} />
+          </span>
         </span>
       </span>
 

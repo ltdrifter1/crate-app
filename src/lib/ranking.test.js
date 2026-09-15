@@ -148,7 +148,7 @@ describe("onboarding → radio / shelves / sets", () => {
       userKey: "fresh",
       dayKey: "2026-09-15",
     });
-    expect(coldStart).toBe(true);
+    expect(coldStart).toBe(false);
     expect(picks.some((p) => p.track.genre === "Jazz")).toBe(true);
     expect(picks[0].track.id).not.toBe("hit");
   });

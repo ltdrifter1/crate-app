@@ -9,7 +9,7 @@ import { countdownScore } from "./station";
  *   01 Y2K Dance             → by genre
  *   02 Variety Mix           → curator shelf (variety pad)
  *   03 Local Pacific Northwest → Audioasis batch upload (`batch` includes audioasis)
- *      **Showcase channel** — featured on Home (popup + pin)
+ *      Featured Channel Surfing station — gold rim on the Home tile (pinned when listing decorated dials)
  *   04 Electronic            → expansions batch / techno–warehouse scenes
  *   05 Drum & Bass           → by genre
  *   06 Emo & Shoegaze        → by genre
@@ -161,7 +161,7 @@ export const VARIETY_CROSS_GENRE_LIMIT = 48;
 export const CHANNEL_SOURCE_NOTES = {
   "y2k-dance": { num: 1, source: "genre", note: "Y2K Dance — match by genre/scene" },
   "variety-mix": { num: 2, source: "variety", note: "Variety Mix — curator batch (`variety-wave-N`) or cross-genre mix" },
-  "local-pnw": { num: 3, source: "audioasis", showcase: true, note: "Local PNW — showcase station; Audioasis batch (`batch` includes audioasis)" },
+  "local-pnw": { num: 3, source: "audioasis", showcase: true, note: "Local PNW — featured Channel Surfing station; Audioasis batch (`batch` includes audioasis)" },
   "electronic-underground": { num: 4, source: "expansions", note: "Electronic — expansions batch (`expansions-wave-N`) + techno/warehouse scenes" },
   "drum-and-bass": { num: 5, source: "genre", note: "Drum & Bass — match by genre/scene" },
   shoegaze: { num: 6, source: "genre", note: "Emo & Shoegaze — match by genre/keywords" },
@@ -371,7 +371,7 @@ export function buildCrossGenreVarietyPool(tracks = [], limit = VARIETY_CROSS_GE
   return out;
 }
 
-/** Featured Channel Surfing dial — Local PNW is the station we push on Home. */
+/** Featured Channel Surfing dial — Local PNW is the station we feature on Home (gold rim). */
 export const SHOWCASE_CHANNEL_ID = "local-pnw";
 
 export const SCENE_CHANNELS = [

@@ -256,30 +256,3 @@ export const STATION_REACTIONS = ["🔥", "💥", "🙌", "📺", "🕺"];
 export function reactionBurstKey(trackId) {
   return storageKey(`react:${trackId || "none"}:${stationDayKey()}`);
 }
-
-const SHOWCASE_PROMO_SUFFIX = "showcase-promo-seen";
-
-/** Once per browser session — Home showcase popup for the local station. */
-export function hasSeenShowcasePromo() {
-  try {
-    return sessionStorage.getItem(storageKey(SHOWCASE_PROMO_SUFFIX)) === "1";
-  } catch {
-    return false;
-  }
-}
-
-export function markShowcasePromoSeen() {
-  try {
-    sessionStorage.setItem(storageKey(SHOWCASE_PROMO_SUFFIX), "1");
-  } catch {
-    /* private mode */
-  }
-}
-
-export function clearShowcasePromoSeen() {
-  try {
-    sessionStorage.removeItem(storageKey(SHOWCASE_PROMO_SUFFIX));
-  } catch {
-    /* private mode */
-  }
-}

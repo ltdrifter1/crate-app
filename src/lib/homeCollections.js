@@ -173,7 +173,10 @@ export function recommendedPicks(
     !!tasteBag.energyBand;
   const hasPersonal = liked.length > 0 || recentSet.size > 0;
   const hasHistory = hasPersonal || hasOnboarding;
-  const coldStart = !hasPersonal && hasOnboarding;
+  // Mute global chart heat when onboarding is the only signal.
+  const onboardingOwned = !hasPersonal && hasOnboarding;
+  // Explore copy: "Fresh picks" only when there is no taste and no history.
+  const coldStart = !hasPersonal && !hasOnboarding;
 
   /** Deterministic shuffle — same user+day always yields the same slate. */
   const seededShuffle = (list, seed) => {
@@ -189,7 +192,7 @@ export function recommendedPicks(
 
   const rotateDaily = (ranked) => {
     // Cold start: don't widen into the global dump — only shuffle the top matches.
-    const window = coldStart
+    const window = onboardingOwned
       ? Math.min(ranked.length, limit)
       : Math.min(ranked.length, Math.max(limit * 3, limit));
     return seededShuffle(ranked.slice(0, window), rotateSeed).slice(0, limit);
@@ -217,13 +220,13 @@ export function recommendedPicks(
       const inTaste = tasteGenres.has(genre);
       const discovery = !t.liked && (t.playCount || 0) === 0 && inTaste;
       let score = scoreTrackForRanking(t, tasteBag, {
-        coldStart,
+        coldStart: onboardingOwned,
         channelHit: hitFn(t),
         dislikeTaste,
         liked: !!t.liked,
         recent: recentSet.has(t.id),
       });
-      if (!coldStart) {
+      if (!onboardingOwned) {
         if (t.liked) score += 8;
         if (recentSet.has(t.id)) score += 10;
         score += Math.min(12, (t.playCount || 0) * 1.5);
@@ -232,12 +235,12 @@ export function recommendedPicks(
       } else {
         score += (t._signal?.grip || 0) * 0.15;
       }
-      if (discovery) score += coldStart ? 4 : 3;
+      if (discovery) score += onboardingOwned ? 4 : 3;
 
       let reason;
       if (t.liked) reason = "Saved";
       else if (recentSet.has(t.id)) reason = "Recent";
-      else if (hitFn(t) && coldStart) reason = "Your station";
+      else if (hitFn(t) && onboardingOwned) reason = "Your station";
       else if (discovery) reason = genre || "New";
       else if (inTaste) reason = genre || null;
       else if ((t.playCount || 0) > 0) reason = null;
@@ -252,10 +255,10 @@ export function recommendedPicks(
   const ranked = audible.length ? audible : scored;
 
   return {
-    coldStart: !hasPersonal,
+    coldStart,
     picks: rotateDaily(ranked).map(({ track, reason }) => ({
       track,
-      reason: reason || (coldStart ? "Made for you" : "For you"),
+      reason: reason || (onboardingOwned ? "Made for you" : "For you"),
     })),
   };
 }

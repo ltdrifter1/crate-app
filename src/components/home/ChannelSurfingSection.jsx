@@ -14,6 +14,8 @@ function ChannelSurfingSection({
   onTuneChannel = null,
   first = true,
   delay = 0.02,
+  title = "Channel Surfing",
+  subtitle = "Flip the dial. Music stays on this stage.",
 }) {
   if (!channels.length) return null;
 
@@ -30,13 +32,13 @@ function ChannelSurfingSection({
       }}
     >
       <HomeBandHeader
-        title="Channel Surfing"
-        subtitle="Flip the dial. Music stays on this stage."
+        title={title}
+        subtitle={subtitle}
         action={null}
         meta={`${channels.length} channels`}
       />
 
-      <Rail gap={homeSpace.shelfGap} padBottom={6}>
+      <Rail gap={homeSpace.shelfGap} padTop={10} padBottom={14}>
         {channels.map((channel, i) => (
           <div
             key={channel.id}
