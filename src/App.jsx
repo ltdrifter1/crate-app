@@ -281,7 +281,24 @@ const injectStyles = () => {
     @keyframes rise { from{opacity:0;transform:translateY(14px)} to{opacity:1;transform:none} }
     @keyframes fadeIn { from{opacity:0} to{opacity:1} }
     @keyframes shimmer { 0%{opacity:0.35} 50%{opacity:0.7} 100%{opacity:0.35} }
-    @keyframes pmpGoldSpin { to { transform: rotate(360deg); } }
+    @keyframes pmpGoldGlow {
+      0%, 100% {
+        opacity: 0.38;
+        transform: scale(1);
+        box-shadow:
+          0 0 0 1px rgba(232, 196, 118, 0.5),
+          0 0 10px 2px rgba(212, 160, 64, 0.22),
+          0 0 20px 7px rgba(176, 118, 36, 0.1);
+      }
+      50% {
+        opacity: 1;
+        transform: scale(1.045);
+        box-shadow:
+          0 0 0 2px rgba(255, 224, 160, 0.95),
+          0 0 18px 5px rgba(232, 176, 64, 0.55),
+          0 0 36px 12px rgba(196, 140, 40, 0.3);
+      }
+    }
     @keyframes stationIn { from{opacity:0;transform:translateY(18px) scale(0.985)} to{opacity:1;transform:none} }
     @keyframes roomEnter { from{opacity:0;transform:translateY(14px)} to{opacity:1;transform:none} }
     @keyframes trackSwap { from{opacity:0;transform:translateY(4px)} to{opacity:1;transform:none} }
@@ -530,69 +547,25 @@ const injectStyles = () => {
     }
     .pmp-lift:hover { transform: translateY(-2px); }
     .pmp-lift:active { transform: translateY(0) scale(0.985); opacity: 1; }
-    /* Local PNW featured rim — warm tungsten hairline + soft halo */
+    /* Local PNW featured rim — gold glow that fades and grows. No spin. */
     .pmp-channel-card--gold .pmp-channel-card-frame {
       border-radius: 16px;
-      box-shadow:
-        0 0 0 1.5px rgba(236, 204, 128, 0.92),
-        0 0 10px 2px rgba(212, 160, 64, 0.5),
-        0 0 22px 4px rgba(176, 118, 36, 0.28);
-      animation: pmpGoldHalo 3.6s ease-in-out infinite;
+      overflow: visible;
     }
     .pmp-channel-card--gold .pmp-channel-card-frame::before {
       content: "";
       position: absolute;
-      inset: -4px;
-      border-radius: 18px;
+      inset: 0;
+      border-radius: 16px;
       z-index: 0;
       pointer-events: none;
-      background: conic-gradient(
-        from 24deg,
-        rgba(255, 220, 150, 0.35) 0deg,
-        rgba(255, 236, 186, 0.95) 40deg,
-        rgba(212, 160, 64, 0.4) 90deg,
-        rgba(255, 228, 170, 0.9) 150deg,
-        rgba(196, 140, 48, 0.35) 210deg,
-        rgba(255, 214, 140, 0.95) 290deg,
-        rgba(255, 220, 150, 0.35) 360deg
-      );
-      -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-      -webkit-mask-composite: xor;
-      mask-composite: exclude;
-      padding: 2px;
-      animation: pmpGoldSpin 8s linear infinite;
-      opacity: 0.9;
-    }
-    .pmp-channel-card--gold .pmp-channel-card-art::after {
-      content: "";
-      position: absolute;
-      inset: 0;
-      border-radius: inherit;
-      pointer-events: none;
-      z-index: 3;
-      box-shadow: inset 0 0 0 1px rgba(255, 224, 160, 0.55);
-      background: linear-gradient(
-        125deg,
-        rgba(255, 236, 190, 0.14) 0%,
-        transparent 28%,
-        transparent 72%,
-        rgba(255, 196, 90, 0.08) 100%
-      );
-      mix-blend-mode: screen;
-    }
-    @keyframes pmpGoldHalo {
-      0%, 100% {
-        box-shadow:
-          0 0 0 1.5px rgba(232, 196, 118, 0.78),
-          0 0 8px 1px rgba(212, 160, 64, 0.4),
-          0 0 18px 3px rgba(176, 118, 36, 0.2);
-      }
-      50% {
-        box-shadow:
-          0 0 0 2px rgba(255, 224, 160, 0.98),
-          0 0 14px 3px rgba(232, 176, 64, 0.62),
-          0 0 28px 6px rgba(196, 140, 40, 0.34);
-      }
+      transform-origin: center;
+      will-change: transform, opacity, box-shadow;
+      box-shadow:
+        0 0 0 1.5px rgba(242, 205, 120, 0.88),
+        0 0 12px 3px rgba(212, 160, 64, 0.42),
+        0 0 28px 10px rgba(184, 128, 40, 0.24);
+      animation: pmpGoldGlow 2.8s ease-in-out infinite;
     }
     .pmp-press { transition: transform ${motion.fast} ${motion.ease}, box-shadow ${motion.base} ${motion.ease}, background ${motion.base}; }
     .pmp-press:active { transform: scale(0.94); opacity: 1; }
