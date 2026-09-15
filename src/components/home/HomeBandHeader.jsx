@@ -1,10 +1,12 @@
 import {
   color,
   fontDisplay,
+  fontLcd,
   homeSpace,
-  sectionEyebrow,
+  sectionEyebrowLcd,
   sectionSubtitle,
-  sectionTitle,
+  sectionTitlePoster,
+  y2k,
 } from "../../theme";
 
 /**
@@ -34,7 +36,7 @@ export default function HomeBandHeader({
         {eyebrow && (
           <div
             style={{
-              ...sectionEyebrow,
+              ...sectionEyebrowLcd,
               overflow: "hidden",
               textOverflow: "ellipsis",
               whiteSpace: "nowrap",
@@ -45,7 +47,7 @@ export default function HomeBandHeader({
         )}
         <h2
           style={{
-            ...sectionTitle,
+            ...sectionTitlePoster,
             overflow: "hidden",
             textOverflow: "ellipsis",
             whiteSpace: "nowrap",
@@ -70,11 +72,12 @@ export default function HomeBandHeader({
       {meta && !action && (
         <div
           style={{
-            fontFamily: sectionSubtitle.fontFamily || "inherit",
-            fontSize: 13,
-            fontWeight: 550,
-            letterSpacing: -0.08,
-            color: color.muted,
+            fontFamily: fontLcd,
+            fontSize: 11,
+            fontWeight: 700,
+            letterSpacing: 1.2,
+            textTransform: "uppercase",
+            color: y2k.cyan,
             paddingBottom: subtitle ? 2 : 4,
             flexShrink: 0,
             whiteSpace: "nowrap",

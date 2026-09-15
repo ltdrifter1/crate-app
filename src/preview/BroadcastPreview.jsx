@@ -181,7 +181,7 @@ export default function BroadcastPreview() {
   }, []);
 
   const home = (
-    <div style={{ maxWidth: 960, margin: "0 auto", width: "100%" }}>
+    <div className="pmp-home-mtv" style={{ maxWidth: 960, margin: "0 auto", width: "100%" }}>
       <HomeHeader
         onOpenSearch={() => {}}
         onOpenProfile={() => setScreen("profile")}

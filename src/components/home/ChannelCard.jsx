@@ -1,4 +1,5 @@
-import { color, fontDisplay, homeSpace, y2k } from "../../theme";
+import { color, fontDisplay, fontLcd, homeSpace, y2k } from "../../theme";
+import { formatChannelNum } from "../../lib/mtvChannel";
 import { resolveChannelArt } from "../../lib/channelArt";
 import CoverImage from "../ui/CoverImage";
 import Icon from "../ui/Icon";
@@ -125,6 +126,33 @@ export default function ChannelCard({
             eager={eager}
           />
 
+          {channel.num != null && (
+            <span
+              aria-hidden="true"
+              style={{
+                position: "absolute",
+                top: 10,
+                right: 10,
+                zIndex: 2,
+                height: 22,
+                padding: "0 7px",
+                borderRadius: 4,
+                background: "rgba(8,10,13,0.72)",
+                border: "1px solid rgba(101,230,255,0.35)",
+                color: y2k.cyan,
+                fontFamily: fontLcd,
+                fontSize: 10,
+                fontWeight: 700,
+                letterSpacing: 0.8,
+                display: "inline-flex",
+                alignItems: "center",
+                boxShadow: "0 0 12px rgba(101,230,255,0.18)",
+              }}
+            >
+              {formatChannelNum(channel.num)}
+            </span>
+          )}
+
           {active && (
             <span
               style={{
@@ -134,12 +162,14 @@ export default function ChannelCard({
                 zIndex: 2,
                 height: 22,
                 padding: "0 8px",
-                borderRadius: 980,
-                background: "rgba(8,10,13,0.62)",
+                borderRadius: 4,
+                background: "rgba(255,51,79,0.82)",
                 color: y2k.offWhite,
-                fontSize: 11,
-                fontWeight: 600,
-                letterSpacing: -0.1,
+                fontFamily: fontLcd,
+                fontSize: 10,
+                fontWeight: 700,
+                letterSpacing: 1.1,
+                textTransform: "uppercase",
                 display: "inline-flex",
                 alignItems: "center",
               }}
@@ -157,8 +187,9 @@ export default function ChannelCard({
               zIndex: 2,
               width: 36,
               height: 36,
-              borderRadius: "50%",
-              background: "#F7F8FA",
+              borderRadius: 8,
+              background:
+                "linear-gradient(180deg, #FFFFFF 0%, #E7EBF0 55%, #C8CED6 100%)",
               color: "#0B0C0F",
               display: "flex",
               alignItems: "center",

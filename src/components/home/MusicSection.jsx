@@ -5,8 +5,10 @@ import {
   homeSpace,
   motion,
   sectionEyebrow,
+  sectionEyebrowLcd,
   sectionSubtitle,
   sectionTitle,
+  sectionTitlePoster,
 } from "../../theme";
 
 /**
@@ -25,8 +27,12 @@ export default function MusicSection({
   style = {},
   /** When true, wrap non-rail children in the shared gutter. */
   inset = false,
+  /** Home bands — italic poster titles. Explore stays editorial. */
+  poster = false,
 }) {
   void accent;
+  const titleStyle = poster ? sectionTitlePoster : sectionTitle;
+  const eyebrowStyle = poster ? sectionEyebrowLcd : sectionEyebrow;
   return (
     <section
       aria-label={title}
@@ -51,7 +57,7 @@ export default function MusicSection({
           {eyebrow && (
             <div
               style={{
-                ...sectionEyebrow,
+                ...eyebrowStyle,
                 overflow: "hidden",
                 textOverflow: "ellipsis",
                 whiteSpace: "nowrap",
@@ -62,7 +68,7 @@ export default function MusicSection({
           )}
           <h2
             style={{
-              ...sectionTitle,
+              ...titleStyle,
               overflow: "hidden",
               textOverflow: "ellipsis",
               whiteSpace: "nowrap",

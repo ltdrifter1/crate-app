@@ -273,6 +273,7 @@ function HomeScreen({
 
   return (
     <div
+      className="pmp-home-mtv"
       style={{
         position: "relative",
         paddingBottom: 56,
@@ -345,6 +346,7 @@ function HomeScreen({
           subtitle={taste?.genres?.length ? "From the stations you tuned" : "A first mix"}
           first={false}
           delay={0.05}
+          poster
         >
           <Rail gap={16}>
             {forYou.map(({ track, reason }) => (
@@ -380,6 +382,7 @@ function HomeScreen({
         <MusicSection
           title="Most Requested"
           subtitle="Tonight's countdown"
+          poster
           first={!hasChannels && !hasTonight}
           action={
             onOpenCharts
@@ -412,6 +415,7 @@ function HomeScreen({
             key={col.id}
             title={col.label}
             subtitle={col.story}
+            poster
             first={!hasChannels && !hasTonight && topRequested.length === 0 && i === 0}
             delay={0.08 + i * 0.02}
           >
