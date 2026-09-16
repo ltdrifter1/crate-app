@@ -20,7 +20,8 @@ export function shouldFireTrackBumper({
   now = Date.now(),
   cooldownMs = BUMPER_COOLDOWN_MS,
 } = {}) {
-  return now - Number(lastFiredAt || 0) >= cooldownMs;
+  if (!lastFiredAt) return true;
+  return now - Number(lastFiredAt) >= cooldownMs;
 }
 
 /**
