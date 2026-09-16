@@ -14,6 +14,7 @@ export default function ArtFrame({
   active = false,
   radius = 14,
   priority = false,
+  eager = false,
   children = null,
   style = {},
 }) {
@@ -55,6 +56,7 @@ export default function ArtFrame({
           width={w}
           height={h}
           priority={priority}
+          eager={eager}
         />
       ) : null}
 

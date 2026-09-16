@@ -40,25 +40,25 @@ export const CHANNEL_ART = {
  * showcase crop keep decks, faces, and crowds in frame.
  */
 export const CHANNEL_ART_FOCUS = {
-  "y2k-dance": "72% 48%",
-  "variety-mix": "42% 28%",
-  "local-pnw": "50% 68%",
+  "y2k-dance": "50% 72%",
+  "variety-mix": "48% 78%",
+  "local-pnw": "50% 32%",
   house: "48% 58%",
   techno: "50% 72%",
   "electronic-underground": "50% 72%",
   "uk-garage": "52% 48%",
   dubstep: "50% 62%",
-  "drum-and-bass": "48% 52%",
-  shoegaze: "22% 48%",
-  metal: "50% 42%",
-  punk: "50% 46%",
-  "country-folk": "42% 58%",
-  downtempo: "38% 48%",
+  "drum-and-bass": "50% 38%",
+  shoegaze: "42% 38%",
+  metal: "42% 46%",
+  punk: "58% 22%",
+  "country-folk": "50% 28%",
+  downtempo: "48% 42%",
 };
 
 /** Idle Home hero — club documentary, not a catalog sleeve. */
 export const HERO_IDLE_ART = heroIdle;
-export const HERO_IDLE_FOCUS = "62% 42%";
+export const HERO_IDLE_FOCUS = "52% 46%";
 
 /**
  * Resolve a Channel Surfing photo without baking webpack image URLs into

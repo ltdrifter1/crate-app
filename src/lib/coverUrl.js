@@ -118,3 +118,12 @@ export function coverDisplayUrl(src, opts = {}) {
   if (mode === "firebase") return firebaseThumbUrl(src, width);
   return cloudflareImageUrl(src, { width, quality });
 }
+
+/** `1x, 2x` srcset so 1× screens skip the retina bucket. */
+export function coverSrcSet(src, cssPx, opts = {}) {
+  if (!src) return "";
+  const one = coverDisplayUrl(src, { ...opts, width: cssPx, dpr: 1 });
+  const two = coverDisplayUrl(src, { ...opts, width: cssPx, dpr: 2 });
+  if (!one || one === two) return "";
+  return `${one} 1x, ${two} 2x`;
+}

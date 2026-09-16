@@ -6,7 +6,7 @@ Home **Channel Surfing** uses thirteen fixed dials (`src/lib/sceneChannels.js`).
 |----|-------|-------------|----------------|
 | 01 | Y2K Dance | Genre / millennial house–garage–disco mix | **by genre** |
 | 02 | Variety Mix | Curator `batch` (`variety-wave-N`) when set; else cross-genre mix | **curator** shelf / playlist |
-| 03 | Local Pacific Northwest | PNW region/keywords + `batch` includes `audioasis` | **Audioasis** batch upload — featured Home tile (gold rim; pinned first when listing decorated dials) |
+| 03 | Local | PNW region/keywords + `batch` includes `audioasis` | **Audioasis** batch upload — featured Home tile (larger broadcast bezel; pinned first when listing decorated dials) |
 | 04 | House | House / deep / tech-house / disco scenes | **by genre** |
 | 05 | Techno | `batch` includes `expansion` / `techno`, else techno–warehouse scenes | **expansions** (was Electronic) |
 | 06 | UK Garage | UKG / 2-step / broken-beat | **by genre** |
@@ -27,7 +27,7 @@ Set `batch` on each track (CSV column or Firestore field), same pattern as Audio
 | Channel | Example `batch` values |
 |---------|------------------------|
 | Variety Mix (CH-02) | `variety-wave-1`, `curator-wave-1` |
-| Local PNW (CH-03) | `audioasis-wave-1`, `audioasis-wave-2` |
+| Local (CH-03) | `audioasis-wave-1`, `audioasis-wave-2` |
 | House (CH-04) | `house-wave-1` |
 | Techno (CH-05) | `expansions-wave-1`, `techno-wave-1` |
 | UK Garage (CH-06) | `ukg-wave-1`, `uk-garage-wave-1` |

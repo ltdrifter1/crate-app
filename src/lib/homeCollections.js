@@ -124,6 +124,39 @@ export function featuredReleases(tracks = [], limit = 10) {
     .slice(0, limit);
 }
 
+/** Cap Home scoring so a full-catalog swap doesn't stall the main thread. */
+export const HOME_SCORE_CANDIDATE_CAP = 160;
+
+function heatOf(track = {}) {
+  return (Number(track.playCount) || 0) + (Number(track.likeCount) || 0) * 2;
+}
+
+/**
+ * Keep likes / recents / in-taste cuts, then fill by heat.
+ * Small pools pass through unchanged.
+ */
+export function homeScoreCandidates(
+  pool = [],
+  { recentTrackIds = [], preferredGenres = [], cap = HOME_SCORE_CANDIDATE_CAP } = {}
+) {
+  const limit = Math.max(12, Number(cap) || HOME_SCORE_CANDIDATE_CAP);
+  if (!Array.isArray(pool) || pool.length <= limit) return pool;
+  const recentSet = new Set(recentTrackIds || []);
+  const preferredSet = new Set(
+    (preferredGenres || []).map((g) => normalizeGenre(g)).filter(Boolean)
+  );
+  const must = [];
+  const rest = [];
+  for (const t of pool) {
+    const genre = normalizeGenre(t.genre);
+    if (t.liked || recentSet.has(t.id) || (genre && preferredSet.has(genre))) must.push(t);
+    else rest.push(t);
+  }
+  if (must.length >= limit) return must.slice(0, limit);
+  rest.sort((a, b) => heatOf(b) - heatOf(a) || String(a.id).localeCompare(String(b.id)));
+  return must.concat(rest.slice(0, limit - must.length));
+}
+
 /**
  * Top recommended from listening history, with a human-readable reason per pick.
  * Uses likes, play counts, preferred genres / full taste bag, and optional recents.
@@ -149,7 +182,10 @@ export function recommendedPicks(
 ) {
   const singles = singlesOnly(tracks);
   const exclude = new Set(excludeIds);
-  const pool = singles.filter((t) => !exclude.has(t.id));
+  const pool = homeScoreCandidates(
+    singles.filter((t) => !exclude.has(t.id)),
+    { recentTrackIds, preferredGenres, cap: HOME_SCORE_CANDIDATE_CAP }
+  );
   const rotateSeed = hashSeed(`${userKey || "guest"}:${dayKey || forYouDayKey()}`);
   const tasteBag = tasteFromProfile({
     ...(taste || {}),

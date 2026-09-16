@@ -295,10 +295,10 @@ export function buildExploreHero({
     return {
       kind: "release",
       id: featured.slug,
-      eyebrow: "Featured release",
+      eyebrow: "",
       title: featured.title,
       subtitle: featured.artist,
-      kicker: featured.count ? `${featured.count} cuts` : null,
+      kicker: featured.count ? `${featured.count} tracks` : null,
       art: featured.coverTrack.albumCover,
       artFocus: "center",
       channel: null,
@@ -346,7 +346,7 @@ export function exploreStations(tracks = []) {
   return decorateSceneChannels(tracks);
 }
 
-export function exploreReleases(tracks = [], limit = 12) {
+export function exploreReleases(tracks = [], limit = 6) {
   return featuredReleases(tracks, limit);
 }
 

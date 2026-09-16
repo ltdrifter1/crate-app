@@ -7,7 +7,8 @@ import Icon from "../ui/Icon";
 /**
  * ChannelCard — art-first station tile (Apple Music / YouTube Music).
  * Generic channel photo, name, blurb, play. No album-cover mosaic.
- * Local PNW (`showcase` / local-pnw) gets a gold rim — not a Showcase label.
+ * Local (`showcase` / local-pnw) is a larger broadcast tile with a
+ * chrome bezel — no glow overlay on the photograph.
  */
 function ChannelArt({ src, title, size, accent, objectPosition, priority = false, eager = false }) {
   const initial = (title || "?").trim().charAt(0).toUpperCase() || "?";
@@ -74,7 +75,7 @@ export default function ChannelCard({
         e.stopPropagation();
         onClick?.(e);
       }}
-      className={`pmp-lift pmp-channel-card${featured ? " pmp-channel-card--gold" : ""}`}
+      className={`pmp-lift pmp-channel-card${featured ? " pmp-channel-card--featured" : ""}`}
       style={{
         flex: "0 0 auto",
         scrollSnapAlign: "start",
@@ -96,6 +97,14 @@ export default function ChannelCard({
           display: "block",
           width,
           height: width,
+          borderRadius: featured ? 16 : 14,
+          overflow: "hidden",
+          background: y2k.artGradient,
+          boxShadow: featured
+            ? "0 0 0 2px rgba(247,248,250,0.92), 0 16px 36px rgba(0,0,0,0.48)"
+            : active
+              ? "0 0 0 2px rgba(247,248,250,0.92), 0 12px 28px rgba(0,0,0,0.42)"
+              : "0 10px 24px rgba(0,0,0,0.36)",
         }}
       >
         <span
@@ -106,14 +115,8 @@ export default function ChannelCard({
             display: "block",
             width: "100%",
             height: "100%",
-            borderRadius: 14,
             overflow: "hidden",
             background: y2k.artGradient,
-            boxShadow: featured
-              ? "0 0 0 1px rgba(242, 205, 120, 0.48), 0 0 8px rgba(232, 184, 74, 0.22), 0 10px 24px rgba(0,0,0,0.36)"
-              : active
-                ? "0 0 0 2px rgba(247,248,250,0.92), 0 12px 28px rgba(0,0,0,0.42)"
-                : "0 10px 24px rgba(0,0,0,0.36)",
           }}
         >
           <ChannelArt
@@ -146,7 +149,6 @@ export default function ChannelCard({
                 letterSpacing: 0.8,
                 display: "inline-flex",
                 alignItems: "center",
-                boxShadow: "0 0 12px rgba(101,230,255,0.18)",
               }}
             >
               {formatChannelNum(channel.num)}
@@ -208,8 +210,8 @@ export default function ChannelCard({
           display: "block",
           marginTop: 10,
           fontFamily: fontDisplay,
-          fontSize: 14,
-          fontWeight: 650,
+          fontSize: featured ? 15 : 14,
+          fontWeight: featured ? 700 : 650,
           letterSpacing: -0.22,
           lineHeight: 1.2,
           color: y2k.offWhite,

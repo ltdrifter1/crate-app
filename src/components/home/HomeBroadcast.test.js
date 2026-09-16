@@ -143,6 +143,7 @@ describe("Home broadcast + four-tab IA", () => {
     });
     expect(div.querySelector("video")).toBeNull();
     expect(div.querySelector(".pmp-hero-sleeve")).toBeTruthy();
+    expect(div.querySelector(".pmp-hero-wash")).toBeTruthy();
     expect(div.textContent).toMatch(/On air/i);
     expect(div.textContent).toMatch(/PMP3/);
     expect(div.textContent).toMatch(/Night Drive/);
@@ -172,7 +173,8 @@ describe("Home broadcast + four-tab IA", () => {
     expect(div.textContent).toMatch(/Morning Signal/);
     expect(div.textContent).toMatch(/Sol Park/);
     expect(div.querySelector('[aria-label*="Up first Morning Signal"]')).toBeTruthy();
-    expect(div.querySelectorAll("img").length).toBeGreaterThanOrEqual(2);
+    expect(div.querySelectorAll("img").length).toBe(1);
+    expect(div.querySelector(".pmp-hero-wash")).toBeTruthy();
   });
 
   test("live hero has energy-shift beaker and dislike, not a Request button", async () => {
@@ -243,14 +245,14 @@ describe("Home broadcast + four-tab IA", () => {
     expect(div.querySelector("[aria-pressed]")).toBeTruthy();
   });
 
-  test("Local PNW tile has a gold rim and no Showcase badge", async () => {
+  test("Local tile is featured without a Showcase badge", async () => {
     await act(async () => {
       root.render(
         React.createElement(ChannelCard, {
           channel: {
             id: "local-pnw",
-            title: "Local Pacific Northwest",
-            shortTitle: "Local PNW",
+            title: "Local",
+            shortTitle: "Local",
             tagline: "Pacific Northwest only",
             showcase: true,
           },
@@ -259,21 +261,22 @@ describe("Home broadcast + four-tab IA", () => {
     });
     const card = div.querySelector(".pmp-channel-card");
     expect(card).toBeTruthy();
-    expect(card.className).toMatch(/pmp-channel-card--gold/);
-    expect(div.textContent).toMatch(/Local PNW/);
+    expect(card.className).toMatch(/pmp-channel-card--featured/);
+    expect(div.textContent).toMatch(/Local/);
     expect(div.textContent).toMatch(/Pacific Northwest only/);
+    expect(div.textContent).not.toMatch(/PNW/);
     expect(div.textContent).not.toMatch(/Showcase/);
     expect(div.querySelector(".pmp-showcase-promo")).toBeNull();
   });
 
-  test("Local PNW playing still says Playing, not Showcase", async () => {
+  test("Local playing still says Playing, not Showcase", async () => {
     await act(async () => {
       root.render(
         React.createElement(ChannelCard, {
           channel: {
             id: "local-pnw",
-            title: "Local Pacific Northwest",
-            shortTitle: "Local PNW",
+            title: "Local",
+            shortTitle: "Local",
             tagline: "Pacific Northwest only",
             showcase: true,
           },
@@ -281,7 +284,7 @@ describe("Home broadcast + four-tab IA", () => {
         })
       );
     });
-    expect(div.querySelector(".pmp-channel-card--gold")).toBeTruthy();
+    expect(div.querySelector(".pmp-channel-card--featured")).toBeTruthy();
     expect(div.textContent).toMatch(/Playing/);
     expect(div.textContent).not.toMatch(/Showcase/);
   });
@@ -325,7 +328,7 @@ describe("Home broadcast + four-tab IA", () => {
     expect(div.textContent).not.toMatch(/Request a song/i);
   });
 
-  test("home does not open a showcase popup for Local PNW", async () => {
+  test("home does not open a showcase popup for Local", async () => {
     const onTuneSceneChannel = jest.fn();
     const tracks = [
       {
@@ -359,19 +362,20 @@ describe("Home broadcast + four-tab IA", () => {
     expect(div.textContent).not.toMatch(/Tune in/);
     const surf = div.querySelector(".pmp-channel-surf");
     expect(surf).toBeTruthy();
-    expect(surf.textContent).toMatch(/Local PNW/);
-    const gold = [...surf.querySelectorAll(".pmp-channel-card")].find((el) =>
-      el.className.includes("pmp-channel-card--gold")
+    expect(surf.textContent).toMatch(/Local/);
+    expect(surf.textContent).not.toMatch(/PNW/);
+    const featured = [...surf.querySelectorAll(".pmp-channel-card")].find((el) =>
+      el.className.includes("pmp-channel-card--featured")
     );
-    expect(gold).toBeTruthy();
-    expect(gold.textContent).toMatch(/Local PNW/);
-    expect(gold.getAttribute("aria-label")).toMatch(/Local Pacific Northwest/);
-    const otherGold = [...surf.querySelectorAll(".pmp-channel-card")].filter(
-      (el) => el.className.includes("pmp-channel-card--gold") && !el.textContent.includes("Local PNW")
+    expect(featured).toBeTruthy();
+    expect(featured.textContent).toMatch(/Local/);
+    expect(featured.getAttribute("aria-label")).toMatch(/Tune Local/);
+    const otherFeatured = [...surf.querySelectorAll(".pmp-channel-card")].filter(
+      (el) => el.className.includes("pmp-channel-card--featured") && !el.textContent.includes("Local")
     );
-    expect(otherGold).toHaveLength(0);
+    expect(otherFeatured).toHaveLength(0);
     await act(async () => {
-      gold.click();
+      featured.click();
     });
     expect(onTuneSceneChannel).toHaveBeenCalled();
     expect(onTuneSceneChannel.mock.calls[0][0].id).toBe("local-pnw");
@@ -389,6 +393,8 @@ describe("Home broadcast + four-tab IA", () => {
     expect(div.querySelector(".pmp-channel-surf")).toBeTruthy();
     expect(div.textContent).toMatch(/Channel Surfing/);
     expect(div.textContent).toMatch(/Y2K Dance/);
+    expect(div.textContent).toMatch(/Stand by/i);
+    expect(div.textContent).toMatch(/Pulling tonight/i);
     expect(div.textContent).not.toMatch(/Shelf is empty/);
     expect(div.textContent).not.toMatch(/Couldn.t pull the shelf/);
     expect(div.querySelector(".pmp-showcase-promo")).toBeNull();

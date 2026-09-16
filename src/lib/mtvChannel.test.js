@@ -139,7 +139,7 @@ describe("sceneChannels", () => {
     expect(SCENE_CHANNELS.map((c) => [c.num, c.title])).toEqual([
       [1, "Y2K Dance"],
       [2, "Variety Mix"],
-      [3, "Local Pacific Northwest"],
+      [3, "Local"],
       [4, "House"],
       [5, "Techno"],
       [6, "UK Garage"],
@@ -225,7 +225,8 @@ describe("sceneChannels", () => {
   test("CH-03 Local is Pacific Northwest only", () => {
     const local = getSceneChannel("local-pnw");
     expect(local.num).toBe(3);
-    expect(local.title).toBe("Local Pacific Northwest");
+    expect(local.title).toBe("Local");
+    expect(local.shortTitle).toBe("Local");
     expect(local.tagline.toLowerCase()).toContain("pacific northwest");
     expect(getSceneChannel("techno-tunnel")?.id).toBe("local-pnw");
 

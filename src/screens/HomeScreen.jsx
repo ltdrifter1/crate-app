@@ -1,9 +1,10 @@
-import { useMemo, useState, useEffect, memo } from "react";
+import { useMemo, useState, useEffect, memo, lazy, Suspense } from "react";
 import {
   BTN_PRIMARY,
   BTN_SECONDARY,
   color,
   fontDisplay,
+  fontLcd,
   glass,
   homeSpace,
   motion,
@@ -15,7 +16,6 @@ import { getSceneChannel, SCENE_CHANNELS } from "../lib/sceneChannels";
 import { buildHomeCollections, recommendedPicks } from "../lib/homeCollections";
 import { rankChannelsForTaste, trackHitsPreferredChannels } from "../lib/onboardingTaste";
 import { runAfterPaint } from "../lib/afterPaint";
-import { TonightDeck } from "../components/station/ShowGuide";
 import { useCurrentTrack } from "../usePlayerTransport";
 import HomeHeader from "../components/home/HomeHeader";
 import HeroPlayerCard from "../components/home/HeroPlayerCard";
@@ -23,6 +23,10 @@ import MusicSection, { Rail } from "../components/home/MusicSection";
 import ChannelSurfingSection from "../components/home/ChannelSurfingSection";
 import TrackCard from "../components/home/TrackCard";
 import CardContainer from "../components/home/CardContainer";
+
+const TonightDeck = lazy(() =>
+  import("../components/station/ShowGuide").then((m) => ({ default: m.TonightDeck }))
+);
 
 function HomeCatalogStatus({ error, isEmpty, playableCount, totalCount, onRetry }) {
   if (!error && !isEmpty) return null;
@@ -92,50 +96,56 @@ function HomeCatalogStatus({ error, isEmpty, playableCount, totalCount, onRetry 
   );
 }
 
-function HomeShelfSkeleton() {
-  const tile = homeSpace.tile;
+function HomeStandBy() {
   return (
     <div
-      aria-hidden="true"
+      role="status"
+      aria-live="polite"
+      aria-label="Pulling the shelf"
       style={{
-        marginTop: homeSpace.sectionGap,
-        padding: `0 ${homeSpace.gutter}px`,
+        margin: `${homeSpace.sectionGap}px ${homeSpace.gutter}px 0`,
+        padding: "18px 20px",
+        borderRadius: radius.xl,
+        border: "1px solid rgba(255,255,255,0.12)",
+        background: `
+          linear-gradient(180deg, rgba(101,230,255,0.08) 0%, transparent 42%),
+          linear-gradient(165deg, #161B22 0%, #0C1016 100%)
+        `,
+        boxShadow: `inset 0 1px 0 ${glass.highlight}, ${glass.shadowSoft}`,
+        display: "flex",
+        alignItems: "center",
+        gap: 14,
       }}
     >
-      <div
+      <span
+        aria-hidden="true"
+        className="pmp-live-led"
         style={{
-          width: 132,
-          height: 14,
-          borderRadius: 4,
-          marginBottom: 16,
-          background: "rgba(255,255,255,0.08)",
-          animation: "shimmer 1.5s ease-in-out infinite",
+          width: 8,
+          height: 8,
+          borderRadius: "50%",
+          background: y2k.live,
+          boxShadow: "0 0 10px rgba(255,51,79,0.8)",
+          flexShrink: 0,
         }}
       />
-      <div style={{ display: "flex", gap: homeSpace.shelfGap, overflow: "hidden" }}>
-        {[0, 1, 2, 3].map((i) => (
-          <div key={i} style={{ flex: "0 0 auto", width: tile }}>
-            <div
-              style={{
-                width: tile,
-                height: tile,
-                borderRadius: 16,
-                background: "rgba(255,255,255,0.06)",
-                animation: "shimmer 1.5s ease-in-out infinite",
-                animationDelay: `${i * 0.08}s`,
-              }}
-            />
-            <div
-              style={{
-                width: tile * 0.72,
-                height: 11,
-                borderRadius: 4,
-                marginTop: 10,
-                background: "rgba(255,255,255,0.05)",
-              }}
-            />
-          </div>
-        ))}
+      <div style={{ minWidth: 0 }}>
+        <div
+          style={{
+            fontFamily: fontLcd,
+            fontSize: 11,
+            fontWeight: 800,
+            letterSpacing: 2.2,
+            textTransform: "uppercase",
+            color: y2k.cyan,
+            marginBottom: 4,
+          }}
+        >
+          Stand by
+        </div>
+        <div style={{ fontSize: 14, fontWeight: 550, color: color.body, letterSpacing: -0.1 }}>
+          Pulling tonight&apos;s shelf
+        </div>
       </div>
     </div>
   );
@@ -364,21 +374,26 @@ function HomeScreen({
 
       {/* ON TONIGHT — EPG band (below-fold; wait a frame so channel photos win the network) */}
       {shelvesReady && catalogReady && hasTonight && (
-        <TonightDeck
-          airing={airing}
-          guide={programGuide}
-          bumper={showBumper}
-          activeShowId={activeShowId}
-          tuned={false}
-          first={false}
-          showNowPlaying={!!(airing?.show && !(activeShowId === airing.show.id && currentTrack))}
-          onTuneIn={() => onTuneShow?.(airing?.show)}
-          onSelectShow={(show) => onTuneShow?.(show)}
-        />
+        <div style={{ contentVisibility: "auto", containIntrinsicSize: "320px" }}>
+          <Suspense fallback={null}>
+            <TonightDeck
+              airing={airing}
+              guide={programGuide}
+              bumper={showBumper}
+              activeShowId={activeShowId}
+              tuned={false}
+              first={false}
+              showNowPlaying={!!(airing?.show && !(activeShowId === airing.show.id && currentTrack))}
+              onTuneIn={() => onTuneShow?.(airing?.show)}
+              onSelectShow={(show) => onTuneShow?.(show)}
+            />
+          </Suspense>
+        </div>
       )}
 
       {/* MOST REQUESTED — larger featured sleeves */}
       {shelvesReady && catalogReady && topRequested.length > 0 && (
+        <div style={{ contentVisibility: "auto", containIntrinsicSize: "280px" }}>
         <MusicSection
           title="Most Requested"
           subtitle="Tonight's countdown"
@@ -406,13 +421,14 @@ function HomeScreen({
             ))}
           </Rail>
         </MusicSection>
+        </div>
       )}
 
       {/* EDITORIAL — Played before */}
       {shelvesReady && catalogReady &&
         editorial.map((col, i) => (
+          <div key={col.id} style={{ contentVisibility: "auto", containIntrinsicSize: "280px" }}>
           <MusicSection
-            key={col.id}
             title={col.label}
             subtitle={col.story}
             poster
@@ -430,9 +446,10 @@ function HomeScreen({
               ))}
             </Rail>
           </MusicSection>
+          </div>
         ))}
 
-      {catalogLoading && <HomeShelfSkeleton />}
+      {catalogLoading && <HomeStandBy />}
 
       {/* Catalog is fine but nothing editorial to show — quiet empty state */}
       {catalogReady &&
