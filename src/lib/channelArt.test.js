@@ -23,18 +23,16 @@ describe("licensed editorial photography", () => {
   });
 
   test("IMAGE_CREDITS records source URLs and licenses", () => {
-    expect(CREDITS).toMatch(/Unsplash License/);
-    expect(CREDITS).toMatch(/Pexels License/);
+    expect(CREDITS).toMatch(/Creative Commons|CC BY/i);
     expect(CREDITS).not.toMatch(/mixmag\.com/i);
+    expect(CREDITS).not.toMatch(/xlr8r\.com/i);
     expect(CREDITS).not.toMatch(/djmag\.com/i);
     [
-      "Marcela Laskoski",
-      "Szymon Shields",
-      "Josh Hild",
-      "Austin Neill",
-      "Laszlo Barta",
-      "Brett Sayles",
-      "Josh Sorenson",
+      "Joe Mabel",
+      "Angie Linder",
+      "Arnold Jaeger Werner",
+      "InSapphoWeTrust",
+      "David E. Lucas",
     ].forEach((name) => {
       expect(CREDITS).toContain(name);
     });

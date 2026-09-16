@@ -243,7 +243,7 @@ describe("Home broadcast + four-tab IA", () => {
     expect(div.querySelector("[aria-pressed]")).toBeTruthy();
   });
 
-  test("Local PNW tile has a gold rim and no Showcase badge", async () => {
+  test("Local PNW tile is featured without a Showcase badge", async () => {
     await act(async () => {
       root.render(
         React.createElement(ChannelCard, {
@@ -259,7 +259,7 @@ describe("Home broadcast + four-tab IA", () => {
     });
     const card = div.querySelector(".pmp-channel-card");
     expect(card).toBeTruthy();
-    expect(card.className).toMatch(/pmp-channel-card--gold/);
+    expect(card.className).toMatch(/pmp-channel-card--featured/);
     expect(div.textContent).toMatch(/Local PNW/);
     expect(div.textContent).toMatch(/Pacific Northwest only/);
     expect(div.textContent).not.toMatch(/Showcase/);
@@ -281,7 +281,7 @@ describe("Home broadcast + four-tab IA", () => {
         })
       );
     });
-    expect(div.querySelector(".pmp-channel-card--gold")).toBeTruthy();
+    expect(div.querySelector(".pmp-channel-card--featured")).toBeTruthy();
     expect(div.textContent).toMatch(/Playing/);
     expect(div.textContent).not.toMatch(/Showcase/);
   });
@@ -360,18 +360,18 @@ describe("Home broadcast + four-tab IA", () => {
     const surf = div.querySelector(".pmp-channel-surf");
     expect(surf).toBeTruthy();
     expect(surf.textContent).toMatch(/Local PNW/);
-    const gold = [...surf.querySelectorAll(".pmp-channel-card")].find((el) =>
-      el.className.includes("pmp-channel-card--gold")
+    const featured = [...surf.querySelectorAll(".pmp-channel-card")].find((el) =>
+      el.className.includes("pmp-channel-card--featured")
     );
-    expect(gold).toBeTruthy();
-    expect(gold.textContent).toMatch(/Local PNW/);
-    expect(gold.getAttribute("aria-label")).toMatch(/Local Pacific Northwest/);
-    const otherGold = [...surf.querySelectorAll(".pmp-channel-card")].filter(
-      (el) => el.className.includes("pmp-channel-card--gold") && !el.textContent.includes("Local PNW")
+    expect(featured).toBeTruthy();
+    expect(featured.textContent).toMatch(/Local PNW/);
+    expect(featured.getAttribute("aria-label")).toMatch(/Local Pacific Northwest/);
+    const otherFeatured = [...surf.querySelectorAll(".pmp-channel-card")].filter(
+      (el) => el.className.includes("pmp-channel-card--featured") && !el.textContent.includes("Local PNW")
     );
-    expect(otherGold).toHaveLength(0);
+    expect(otherFeatured).toHaveLength(0);
     await act(async () => {
-      gold.click();
+      featured.click();
     });
     expect(onTuneSceneChannel).toHaveBeenCalled();
     expect(onTuneSceneChannel.mock.calls[0][0].id).toBe("local-pnw");

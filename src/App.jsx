@@ -290,16 +290,6 @@ const injectStyles = () => {
     @keyframes rise { from{opacity:0;transform:translateY(14px)} to{opacity:1;transform:none} }
     @keyframes fadeIn { from{opacity:0} to{opacity:1} }
     @keyframes shimmer { 0%{opacity:0.35} 50%{opacity:0.7} 100%{opacity:0.35} }
-    @keyframes pmpGoldGlow {
-      0%, 100% {
-        opacity: 0.32;
-        filter: blur(1.5px);
-      }
-      50% {
-        opacity: 0.7;
-        filter: blur(2.5px);
-      }
-    }
     @keyframes stationIn { from{opacity:0;transform:translateY(18px) scale(0.985)} to{opacity:1;transform:none} }
     @keyframes roomEnter { from{opacity:0;transform:translateY(14px)} to{opacity:1;transform:none} }
     @keyframes trackSwap { from{opacity:0;transform:translateY(4px)} to{opacity:1;transform:none} }
@@ -563,32 +553,6 @@ const injectStyles = () => {
     }
     .pmp-lift:hover { transform: translateY(-2px); }
     .pmp-lift:active { transform: translateY(0) scale(0.985); opacity: 1; }
-    /* Local PNW featured rim — hairline gold glow on the border only. No fill bloom. */
-    .pmp-channel-card--gold .pmp-channel-card-frame {
-      border-radius: 16px;
-      overflow: visible;
-    }
-    .pmp-channel-card--gold .pmp-channel-card-frame::before {
-      content: "";
-      position: absolute;
-      inset: -2px;
-      border-radius: 16px;
-      z-index: 0;
-      pointer-events: none;
-      background: #E8B84A;
-      padding: 1.5px;
-      -webkit-mask:
-        linear-gradient(#000 0 0) content-box,
-        linear-gradient(#000 0 0);
-      -webkit-mask-composite: xor;
-      mask:
-        linear-gradient(#000 0 0) content-box,
-        linear-gradient(#000 0 0);
-      mask-composite: exclude;
-      filter: blur(2px);
-      will-change: opacity, filter;
-      animation: pmpGoldGlow 3.2s ease-in-out infinite;
-    }
     .pmp-press { transition: transform ${motion.fast} ${motion.ease}, box-shadow ${motion.base} ${motion.ease}, background ${motion.base}; }
     .pmp-press:active { transform: scale(0.94); opacity: 1; }
     .pmp-live-led {
