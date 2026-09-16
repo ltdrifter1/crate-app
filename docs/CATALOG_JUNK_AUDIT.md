@@ -1,8 +1,6 @@
-# Catalog junk / long-track audit (dry-run)
+# Catalog junk / long-track audit
 
-Planet MP3’s `tracks` collection is publicly readable. This audit **lists** junk and very-long files. It does **not** delete Firestore docs or Storage objects.
-
-Luke asked for a report **before** any deletions. Do not `--apply`. There is no apply path in `audit-junk-tracks.js`.
+Planet MP3’s `tracks` collection is publicly readable. The audit script **lists** junk and very-long files. Apply is a **separate** script and stays dry-run unless you pass `--apply --approve-deletes` with admin credentials.
 
 ## What it flags
 
@@ -44,17 +42,21 @@ node audit-junk-tracks.js --out-dir docs/audits
 
 If REST is blocked, put gitignored `serviceAccountKey.json` in the repo root and re-run; the script uses Admin SDK **read**.
 
-`--apply`, `--delete`, and `--purge` exit immediately and do nothing.
+`--apply`, `--delete`, and `--purge` on `audit-junk-tracks.js` exit immediately and do nothing (that script stays dry-run).
 
-## After Luke approves
+## Apply after approval
 
-Reply **yes / approve deletes** on the PR (or list ids to drop / keep).
+Deletes **only** `action=delete` rows from `docs/audits/catalog-junk-candidates.csv` that still classify as delete on a live rescan. Review rows (unknown artist, broken metadata, duplicates) stay.
 
-A **follow-up** can then:
+```bash
+# dry-run plan (no credentials)
+node apply-junk-tracks.js
 
-1. Re-run `npm run catalog:audit-junk` so the CSV matches live data.
-2. Delete only `action=delete` rows Luke approved (Firestore `tracks/{id}`).
-3. Optionally purge matching Storage objects under `audio/` + `covers/` after confirming URLs.
-4. Leave `action=review` rows unless Luke explicitly includes them.
+# apply Firestore deletes + unused Storage objects
+# needs gitignored serviceAccountKey.json in repo root
+# (Firebase Console → Project Settings → Service Accounts → Generate new private key)
+node apply-junk-tracks.js --apply --approve-deletes
+# or: npm run catalog:audit-junk:apply
+```
 
-Until that reply, **zero live deletions**.
+`--apply` without `--approve-deletes` is refused. Shared covers used by remaining tracks are not purged.
