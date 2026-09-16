@@ -348,7 +348,7 @@ export const homeSpace = {
   /** Default discovery tile — sleeve-first. */
   tile: 160,
   /** Featured / countdown / releases — asymmetric presence. */
-  tileFeatured: 188,
+  tileFeatured: 200,
   /** Channel surfing station tile — art-first, not a ticket stub. */
   tileTicket: 168,
   /** Space under section title stack before the rail. */
