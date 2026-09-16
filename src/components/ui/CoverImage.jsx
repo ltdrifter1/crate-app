@@ -4,7 +4,7 @@
  * (`/cdn-cgi/image/…`) and fall back to the original on error.
  */
 import { useEffect, useState } from "react";
-import { coverDisplayUrl } from "../../lib/coverUrl";
+import { coverDisplayUrl, coverSrcSet } from "../../lib/coverUrl";
 
 /** Intrinsic attrs for a square cover at CSS `size` px. */
 export function coverSizeAttrs(size) {
@@ -64,10 +64,14 @@ export default function CoverImage({
   const displaySrc = (!raw && !useOriginal)
     ? coverDisplayUrl(src, { width: w })
     : src;
+  const srcSet = (!raw && !useOriginal)
+    ? coverSrcSet(src, w)
+    : undefined;
 
   return (
     <img
       src={displaySrc}
+      srcSet={srcSet || undefined}
       alt={alt}
       width={w}
       height={h}

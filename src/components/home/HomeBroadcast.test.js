@@ -143,6 +143,7 @@ describe("Home broadcast + four-tab IA", () => {
     });
     expect(div.querySelector("video")).toBeNull();
     expect(div.querySelector(".pmp-hero-sleeve")).toBeTruthy();
+    expect(div.querySelector(".pmp-hero-wash")).toBeTruthy();
     expect(div.textContent).toMatch(/On air/i);
     expect(div.textContent).toMatch(/PMP3/);
     expect(div.textContent).toMatch(/Night Drive/);
@@ -172,7 +173,8 @@ describe("Home broadcast + four-tab IA", () => {
     expect(div.textContent).toMatch(/Morning Signal/);
     expect(div.textContent).toMatch(/Sol Park/);
     expect(div.querySelector('[aria-label*="Up first Morning Signal"]')).toBeTruthy();
-    expect(div.querySelectorAll("img").length).toBeGreaterThanOrEqual(2);
+    expect(div.querySelectorAll("img").length).toBe(1);
+    expect(div.querySelector(".pmp-hero-wash")).toBeTruthy();
   });
 
   test("live hero has energy-shift beaker and dislike, not a Request button", async () => {
@@ -389,6 +391,8 @@ describe("Home broadcast + four-tab IA", () => {
     expect(div.querySelector(".pmp-channel-surf")).toBeTruthy();
     expect(div.textContent).toMatch(/Channel Surfing/);
     expect(div.textContent).toMatch(/Y2K Dance/);
+    expect(div.textContent).toMatch(/Stand by/i);
+    expect(div.textContent).toMatch(/Pulling tonight/i);
     expect(div.textContent).not.toMatch(/Shelf is empty/);
     expect(div.textContent).not.toMatch(/Couldn.t pull the shelf/);
     expect(div.querySelector(".pmp-showcase-promo")).toBeNull();

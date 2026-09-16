@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback, useMemo, lazy, Suspense } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo, lazy, Suspense, startTransition } from "react";
 import { useNavigate, useLocation }                 from "react-router-dom";
 import { useAuth }                                  from "./useAuth";
 import { toggleLike as fbToggleLike, recordPlay, completeOnboarding, saveTasteProfile, saveDislikeTaste, saveFeatureGuideSeen } from "./useUserData";
@@ -31,7 +31,7 @@ import {
 import { explainPick } from "./lib/explain";
 import { fetchCatalogTracks, fetchHomeLite, isCatalogCacheFresh, readCatalogIdb, writeCatalogIdb } from "./lib/catalogLoad";
 import { hydrateCatalogTracks } from "./lib/catalogHydrate";
-import { runAfterPaint } from "./lib/afterPaint";
+import { runAfterPaint, runWhenIdle } from "./lib/afterPaint";
 import { slugify, findArtist, findAlbum } from "./lib/catalog";
 import {
   resolveListenPool,
@@ -1235,6 +1235,8 @@ export default function App() {
     } catch { /* quota or private mode — IDB is primary */ }
   }, [CATALOG_CACHE_KEY]);
 
+  const catalogIdleStopRef = useRef(() => {});
+  const reloadCatalogRef = useRef(null);
   const reloadCatalog = useCallback(async ({ background = false, full = false } = {}) => {
     if (!background) setTracksLoading(true);
     setTracksLoadError(null);
@@ -1244,8 +1246,11 @@ export default function App() {
         if (lite.tracks.length) {
           setTracks(applyLikedFlags(lite.tracks));
           setTracksLoading(false);
-          // Full catalog hydrates behind first paint. Do not IDB-cache the lite slice.
-          reloadCatalog({ background: true, full: true });
+          // Full catalog waits until Home images have a beat. Do not IDB-cache the lite slice.
+          catalogIdleStopRef.current();
+          catalogIdleStopRef.current = runWhenIdle(() => {
+            reloadCatalogRef.current?.({ background: true, full: true });
+          }, { timeout: 1400 });
           return;
         }
       }
@@ -1253,7 +1258,7 @@ export default function App() {
       const liked = applyLikedFlags(loaded);
       if (background) {
         const hydrated = applyLikedFlags(await hydrateCatalogTracks(loaded));
-        setTracks(hydrated);
+        startTransition(() => setTracks(hydrated));
         writeCatalogCache(hydrated);
       } else {
         setTracks(liked);
@@ -1261,7 +1266,7 @@ export default function App() {
         runAfterPaint(() => {
           hydrateCatalogTracks(loaded).then((enriched) => {
             const hydrated = applyLikedFlags(enriched);
-            setTracks(hydrated);
+            startTransition(() => setTracks(hydrated));
             writeCatalogCache(hydrated);
           });
         });
@@ -1275,6 +1280,7 @@ export default function App() {
     }
     if (!background) setTracksLoading(false);
   }, [applyLikedFlags, writeCatalogCache]);
+  reloadCatalogRef.current = reloadCatalog;
 
   // ── Load tracks once on mount — IDB/local cache instantly, refresh behind ──
   useEffect(() => {
@@ -1298,7 +1304,10 @@ export default function App() {
           });
         }
         if (!isCatalogCacheFresh(cached)) {
-          reloadCatalog({ background: true });
+          catalogIdleStopRef.current = runWhenIdle(
+            () => reloadCatalog({ background: true, full: true }),
+            { timeout: 1400 }
+          );
         }
       } else {
         reloadCatalog();
@@ -1307,6 +1316,7 @@ export default function App() {
     return () => {
       cancelled = true;
       stopHydrateRef.current();
+      catalogIdleStopRef.current();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -1316,14 +1326,23 @@ export default function App() {
     if (!profile || !tracks.length) return;
     const likedSet = new Set(profile.likedTracks || []);
     const dislikedSet = new Set(profile.dislikedTracks || []);
-    setTracks(prev => prev.map(t => ({
-      ...t,
-      liked: likedSet.has(t.id),
-      disliked: dislikedSet.has(t.id),
-      // keep scene enrichment if already present
-      _scene: t._scene,
-      _scenes: t._scenes,
-    })));
+    setTracks((prev) => {
+      let changed = false;
+      const next = prev.map((t) => {
+        const liked = likedSet.has(t.id);
+        const disliked = dislikedSet.has(t.id);
+        if (t.liked === liked && t.disliked === disliked) return t;
+        changed = true;
+        return {
+          ...t,
+          liked,
+          disliked,
+          _scene: t._scene,
+          _scenes: t._scenes,
+        };
+      });
+      return changed ? next : prev;
+    });
     if (profile.playlists) setUserPlaylists(profile.playlists);
   }, [profile?.likedTracks, profile?.dislikedTracks, tracks.length]);
 
@@ -3030,20 +3049,36 @@ export default function App() {
           ...APP_STYLE,
           minHeight: "100dvh",
           display: "flex",
+          flexDirection: "column",
           alignItems: "center",
           justifyContent: "center",
+          gap: 14,
           background: color.canvas,
         }}
       >
-        <img
-          src="/brand/planet-mp3-lockup-512.png"
-          alt=""
-          width={160}
-          height={160}
-          decoding="async"
-          fetchPriority="high"
-          style={{ width: 160, height: 160, objectFit: "contain" }}
+        <span
+          aria-hidden="true"
+          className="pmp-live-led"
+          style={{
+            width: 8,
+            height: 8,
+            borderRadius: "50%",
+            background: y2k.live,
+            boxShadow: "0 0 12px rgba(255,51,79,0.85)",
+          }}
         />
+        <span
+          style={{
+            fontFamily: fontMono,
+            fontSize: 12,
+            fontWeight: 700,
+            letterSpacing: 2.4,
+            textTransform: "uppercase",
+            color: y2k.cyan,
+          }}
+        >
+          On air
+        </span>
       </div>
     );
   }

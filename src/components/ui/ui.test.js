@@ -51,6 +51,8 @@ describe("CoverImage loading", () => {
     const img = div.querySelector("img");
     expect(img.getAttribute("src")).toContain("/cdn-cgi/image/");
     expect(img.getAttribute("src")).toContain(src);
+    expect(img.getAttribute("srcset") || img.srcset).toMatch(/1x/);
+    expect(img.getAttribute("srcset") || img.srcset).toMatch(/2x/);
     await act(async () => root.unmount());
     document.body.removeChild(div);
   });

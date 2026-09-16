@@ -54,7 +54,7 @@ function ChannelSurfingSection({
                 active={activeChannelId === channel.id}
                 size={featured ? featuredTile : tile}
                 priority={i === 0}
-                eager={i > 0 && i < 3}
+                eager={i === 1}
                 onClick={() => onTuneChannel?.(channel)}
               />
             </div>
