@@ -386,13 +386,17 @@ describe("mtvChannel", () => {
 });
 
 describe("bumpers", () => {
-  test("returns ident or contextual bumper", () => {
+  test("returns ident or null — never a modal on every cut", () => {
     expect(STATION_IDENTS.length).toBeGreaterThan(0);
-    const b = pickTrackBumper({
+    const ident = pickTrackBumper({
+      nextTrack: { title: "Next", artist: "A" },
+      date: new Date("2024-06-03T16:00:00"),
+    });
+    expect(ident?.kicker).toBeTruthy();
+    const quiet = pickTrackBumper({
       nextTrack: { title: "Next", artist: "A" },
       date: new Date("2024-06-03T16:04:00"),
     });
-    expect(b.title).toBeTruthy();
-    expect(b.kicker).toBeTruthy();
+    expect(quiet).toBeNull();
   });
 });

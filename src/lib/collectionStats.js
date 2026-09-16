@@ -2,7 +2,7 @@
  * Digital Record Club — collection stats from a member's liked tracks.
  * Album / EP / Single are inferred from release groupings (no releaseType field yet).
  *
- * Rules of thumb (aligned with catalog albumStory):
+ * Rules of thumb:
  * - Single: empty album, "Singles & Unknown", or exactly 1 track in the release
  * - EP: 2–6 tracks
  * - Album: 7+ tracks

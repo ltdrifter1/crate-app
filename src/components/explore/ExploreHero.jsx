@@ -115,6 +115,7 @@ export default function ExploreHero({
             gap: 10,
           }}
         >
+          {(hero.eyebrow || hero.kicker) ? (
           <div
             style={{
               fontFamily: fontMono,
@@ -126,9 +127,9 @@ export default function ExploreHero({
               textShadow: `0 0 12px rgba(${chrome.cyanRgb},0.35)`,
             }}
           >
-            {hero.eyebrow}
-            {hero.kicker ? `  ·  ${hero.kicker}` : ""}
+            {[hero.eyebrow, hero.kicker].filter(Boolean).join("  ·  ")}
           </div>
+          ) : null}
           <h2
             style={{
               margin: 0,

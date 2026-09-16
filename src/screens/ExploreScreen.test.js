@@ -153,7 +153,12 @@ describe("Explore screen", () => {
     expect(div.textContent).toMatch(/Stations/);
     expect(div.textContent).toMatch(/On the board/);
     expect(div.textContent).toMatch(/Warehouse/);
-    expect(div.textContent).toMatch(/Featured releases/);
+    expect(div.querySelector('section[aria-label="Albums"]')).toBeTruthy();
+    expect(div.querySelector(".pmp-release--lead")).toBeTruthy();
+    expect(div.querySelector(".pmp-release--tile, .pmp-release--count")).toBeTruthy();
+    expect(div.textContent).not.toMatch(/Featured releases/);
+    expect(div.textContent).not.toMatch(/Albums worth the needle/);
+    expect(div.textContent).not.toMatch(/\bRelease\b/);
     expect(div.querySelector('button[aria-label="Browse"]')).toBeTruthy();
     const charts = [...div.querySelectorAll("button")].find((b) => b.textContent === "Charts");
     expect(charts).toBeTruthy();

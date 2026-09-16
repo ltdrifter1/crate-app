@@ -1,5 +1,6 @@
 /**
- * Station bumpers & idents — produced moments between cuts.
+ * Station bumpers & idents — sparse produced moments between cuts.
+ * Most track changes should pass silently; the player already has Up Next chrome.
  */
 
 export const STATION_IDENTS = [
@@ -8,6 +9,26 @@ export const STATION_IDENTS = [
   { id: "request-line", kicker: "STATION", title: "REQUEST LINE OPEN", subtitle: "Bump it. Dedicate it. Climb it.", tone: "promo" },
 ];
 
+/** Full-screen interstitial length. */
+export const BUMPER_DURATION_MS = 2400;
+
+/** Minimum gap between full-screen bumpers so skips don't restage the same plate. */
+export const BUMPER_COOLDOWN_MS = 10 * 60 * 1000;
+
+export function shouldFireTrackBumper({
+  lastFiredAt = 0,
+  now = Date.now(),
+  cooldownMs = BUMPER_COOLDOWN_MS,
+} = {}) {
+  if (!lastFiredAt) return true;
+  return now - Number(lastFiredAt) >= cooldownMs;
+}
+
+/**
+ * Pick a rare ident / show sting, or null to keep the cut uninterrupted.
+ * Clock slots rotate the *kind* of sting; they used to fall through to a
+ * full-screen UP NEXT on every other minute, which fired on every song change.
+ */
 export function pickTrackBumper({
   show = null,
   nextTrack = null,
@@ -59,18 +80,7 @@ export function pickTrackBumper({
     };
   }
 
-  if (nextTrack) {
-    return {
-      id: "up-next",
-      kicker: "UP NEXT",
-      title: nextTrack.title || "Next cut",
-      subtitle: nextTrack.artist || "",
-      tone: "upnext",
-      accent: "#A8B0BC",
-    };
-  }
-
-  return STATION_IDENTS[0];
+  // nextTrack is used by the player dock — do not restage it as a modal.
+  void nextTrack;
+  return null;
 }
-
-export const BUMPER_DURATION_MS = 2400;
