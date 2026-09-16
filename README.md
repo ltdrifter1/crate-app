@@ -8,7 +8,7 @@ Living destinations for discovering, collecting, and experiencing music — not 
 
 **Current product IA:** broadcast **Home** (Channel Surfing, live stage, charts) + Explore / Library / Club. Rooms/Paths nav is retired; see archival notes in [`docs/ROOMS_PRODUCT_VISION.md`](docs/ROOMS_PRODUCT_VISION.md).
 
-**UX audit:** [`docs/UX_AUDIT.md`](docs/UX_AUDIT.md) · **Billing:** [`docs/STRIPE_FIREBASE_BILLING.md`](docs/STRIPE_FIREBASE_BILLING.md)
+**UX audit:** [`docs/UX_AUDIT.md`](docs/UX_AUDIT.md) · **Billing:** [`docs/STRIPE_FIREBASE_BILLING.md`](docs/STRIPE_FIREBASE_BILLING.md) · **Catalog junk (dry-run):** [`docs/CATALOG_JUNK_AUDIT.md`](docs/CATALOG_JUNK_AUDIT.md)
 
 ## Stack
 
@@ -39,6 +39,7 @@ Copy `.env.example` for local ingest scripts. Never commit API keys or `serviceA
 | `npm run catalog:normalize-genres:apply` | Write 11 canonical genres to Firestore |
 | `node clean-titles.js` | Dry-run title/artist cleanup → `titles-review.csv` |
 | `node clean-titles.js --apply` | Write cleaned titles/artists to Firestore |
+| `npm run catalog:audit-junk` | Dry-run junk / long-track report → `docs/audits/` (**no deletes**) |
 
 ---
 
