@@ -1,7 +1,10 @@
 import y2kDance from "../assets/channels/y2k-dance.jpg";
 import varietyMix from "../assets/channels/variety-mix.jpg";
 import localPnw from "../assets/channels/local-pnw.jpg";
-import electronic from "../assets/channels/electronic.jpg";
+import house from "../assets/channels/house.jpg";
+import techno from "../assets/channels/techno.jpg";
+import ukGarage from "../assets/channels/uk-garage.jpg";
+import dubstep from "../assets/channels/dubstep.jpg";
 import drumAndBass from "../assets/channels/drum-and-bass.jpg";
 import shoegaze from "../assets/channels/shoegaze.jpg";
 import metal from "../assets/channels/metal.jpg";
@@ -19,7 +22,11 @@ export const CHANNEL_ART = {
   "y2k-dance": y2kDance,
   "variety-mix": varietyMix,
   "local-pnw": localPnw,
-  "electronic-underground": electronic,
+  house,
+  techno,
+  "electronic-underground": techno,
+  "uk-garage": ukGarage,
+  dubstep,
   "drum-and-bass": drumAndBass,
   shoegaze,
   metal,
@@ -36,7 +43,11 @@ export const CHANNEL_ART_FOCUS = {
   "y2k-dance": "50% 72%",
   "variety-mix": "48% 78%",
   "local-pnw": "50% 32%",
-  "electronic-underground": "55% 48%",
+  house: "48% 58%",
+  techno: "50% 72%",
+  "electronic-underground": "50% 72%",
+  "uk-garage": "52% 48%",
+  dubstep: "50% 62%",
   "drum-and-bass": "50% 38%",
   shoegaze: "42% 38%",
   metal: "42% 46%",

@@ -135,18 +135,21 @@ describe("chartHistory", () => {
 });
 
 describe("sceneChannels", () => {
-  test("dials CH-01 through CH-10 with Channel Surfing names", () => {
+  test("dials CH-01 through CH-13 with Channel Surfing names", () => {
     expect(SCENE_CHANNELS.map((c) => [c.num, c.title])).toEqual([
       [1, "Y2K Dance"],
       [2, "Variety Mix"],
       [3, "Local"],
-      [4, "Electronic"],
-      [5, "Drum & Bass"],
-      [6, "Emo & Shoegaze"],
-      [7, "Metal"],
-      [8, "Punk"],
-      [9, "Country & Folk"],
-      [10, "Downtempo"],
+      [4, "House"],
+      [5, "Techno"],
+      [6, "UK Garage"],
+      [7, "Dubstep"],
+      [8, "Drum & Bass"],
+      [9, "Emo & Shoegaze"],
+      [10, "Metal"],
+      [11, "Punk"],
+      [12, "Country & Folk"],
+      [13, "Ambient / Downtempo"],
     ]);
     expect(CHANNEL_SOURCE_NOTES["y2k-dance"].source).toBe("genre");
     expect(CHANNEL_SOURCE_NOTES["local-pnw"].source).toBe("audioasis");
@@ -156,7 +159,10 @@ describe("sceneChannels", () => {
     expect(getSceneChannel("showcase")?.id).toBe("local-pnw");
     expect(getSceneChannel("local-pnw").showcase).toBe(true);
     expect(CHANNEL_SOURCE_NOTES["variety-mix"].source).toBe("variety");
-    expect(CHANNEL_SOURCE_NOTES["electronic-underground"].source).toBe("expansions");
+    expect(CHANNEL_SOURCE_NOTES.techno.source).toBe("expansions");
+    expect(CHANNEL_SOURCE_NOTES.house.source).toBe("genre");
+    expect(CHANNEL_SOURCE_NOTES["uk-garage"].source).toBe("genre");
+    expect(CHANNEL_SOURCE_NOTES.dubstep.source).toBe("genre");
     expect(CHANNEL_SOURCE_NOTES.metal.source).toBe("metal");
     expect(CHANNEL_SOURCE_NOTES.punk.source).toBe("punk");
     expect(CHANNEL_SOURCE_NOTES["country-folk"].source).toBe("country-folk");
@@ -165,10 +171,12 @@ describe("sceneChannels", () => {
     expect(CHANNEL_BATCH_PREFIXES.punk).toContain("punk");
     expect(CHANNEL_BATCH_PREFIXES["country-folk"]).toContain("country-folk");
     expect(CHANNEL_BATCH_PREFIXES.downtempo).toContain("downtempo");
-    expect(SCENE_CHANNELS).toHaveLength(10);
+    expect(CHANNEL_BATCH_PREFIXES.techno).toContain("expansions");
+    expect(SCENE_CHANNELS).toHaveLength(13);
     expect(SCENE_CHANNELS.every((c) => Boolean(c.id))).toBe(true);
     expect(getSceneChannel("variety-mix").tagline.toLowerCase()).not.toContain("evie");
-    expect(getSceneChannel("electronic-underground").tagline.toLowerCase()).not.toContain("expansions");
+    expect(getSceneChannel("techno").tagline.toLowerCase()).not.toContain("expansions");
+    expect(getSceneChannel("electronic-underground")?.id).toBe("techno");
   });
 
   test("builds pools and lists ready channels", () => {
@@ -235,9 +243,9 @@ describe("sceneChannels", () => {
     expect(decorateSceneChannels(tracks, 1)[0].id).toBe("local-pnw");
   });
 
-  test("CH-06 Emo & Shoegaze matches genre keywords only", () => {
+  test("CH-09 Emo & Shoegaze matches genre keywords only", () => {
     const shoe = getSceneChannel("shoegaze");
-    expect(shoe.num).toBe(6);
+    expect(shoe.num).toBe(9);
     expect(shoe.title).toBe("Emo & Shoegaze");
     const tracks = [
       { id: "1", title: "Haze", genre: "Shoegaze", duration: 180, audioUrl: "u" },
@@ -248,14 +256,14 @@ describe("sceneChannels", () => {
     expect(buildSceneChannelPool(tracks, shoe).map((t) => t.id).sort()).toEqual(["1", "2", "4"]);
   });
 
-  test("CH-07/08/09 Metal Punk Country & Folk match their lanes", () => {
+  test("CH-10/11/12 Metal Punk Country & Folk match their lanes", () => {
     const metal = getSceneChannel("metal");
     const punk = getSceneChannel("punk");
     const country = getSceneChannel("country-folk");
-    expect(metal.num).toBe(7);
-    expect(punk.num).toBe(8);
-    expect(country.num).toBe(9);
-    expect(formatChannelNum(metal.num)).toBe("CH-07");
+    expect(metal.num).toBe(10);
+    expect(punk.num).toBe(11);
+    expect(country.num).toBe(12);
+    expect(formatChannelNum(metal.num)).toBe("CH-10");
 
     const tracks = [
       { id: "1", title: "Riff", genre: "Metal", duration: 180, audioUrl: "u" },
@@ -275,7 +283,7 @@ describe("sceneChannels", () => {
     expect(availableSceneChannels(tracks, 1).some((c) => c.id === "country-folk")).toBe(true);
   });
 
-  test("CH-07/08/09 accept Audioasis-style batch tags without genre", () => {
+  test("CH-10/11/12 accept Audioasis-style batch tags without genre", () => {
     const metal = getSceneChannel("metal");
     const punk = getSceneChannel("punk");
     const country = getSceneChannel("country-folk");
@@ -292,9 +300,9 @@ describe("sceneChannels", () => {
     expect(trackMatchesChannel(tracks[3], metal)).toBe(false);
   });
 
-  test("CH-04 Electronic matches expansions batch waves", () => {
-    const electronic = getSceneChannel("electronic-underground");
-    expect(electronic.preferMatch).toBe(true);
+  test("CH-05 Techno matches expansions batch waves", () => {
+    const techno = getSceneChannel("techno");
+    expect(techno.strict).toBe(true);
     const tracks = [
       { id: "e1", title: "Warehouse", artist: "A", duration: 180, audioUrl: "u", batch: "expansions-wave-1" },
       { id: "e2", title: "Soft Pop", artist: "B", genre: "Pop", duration: 180, audioUrl: "u", energy: 3 },
@@ -302,24 +310,25 @@ describe("sceneChannels", () => {
     ];
     expect(isElectronicUndergroundTrack(tracks[0])).toBe(true);
     expect(isElectronicUndergroundTrack(tracks[1])).toBe(false);
-    expect(buildSceneChannelPool(tracks, electronic).map((t) => t.id).sort()).toEqual(["e1", "e3"]);
+    expect(buildSceneChannelPool(tracks, techno).map((t) => t.id).sort()).toEqual(["e1", "e3"]);
+    expect(getSceneChannel("electronic-underground")?.id).toBe("techno");
   });
 
   test("channelCoverUrls prefers explicit art, not webpack photos", () => {
-    const underground = getSceneChannel("electronic-underground");
-    expect(underground.art).toBeUndefined();
-    expect(channelCoverUrls([], underground, 4)).toEqual([]);
-    expect(channelCoverUrls([], { ...underground, art: "/channels/electronic.jpg" }, 4)).toEqual([
-      "/channels/electronic.jpg",
+    const techno = getSceneChannel("techno");
+    expect(techno.art).toBeUndefined();
+    expect(channelCoverUrls([], techno, 4)).toEqual([]);
+    expect(channelCoverUrls([], { ...techno, art: "/channels/techno.jpg" }, 4)).toEqual([
+      "/channels/techno.jpg",
     ]);
-    expect(decorateSceneChannels([], 1)).toHaveLength(10);
+    expect(decorateSceneChannels([], 1)).toHaveLength(13);
     expect(decorateSceneChannels([], 1).some((c) => c.id === "downtempo")).toBe(true);
   });
 
-  test("CH-10 Downtempo matches trip-hop, chill, and ambient", () => {
+  test("CH-13 Ambient / Downtempo matches trip-hop, chill, and ambient", () => {
     const ch = getSceneChannel("downtempo");
-    expect(ch.num).toBe(10);
-    expect(ch.title).toBe("Downtempo");
+    expect(ch.num).toBe(13);
+    expect(ch.title).toBe("Ambient / Downtempo");
     const tracks = [
       { id: "1", title: "Slow", genre: "Downtempo", duration: 180, audioUrl: "u" },
       { id: "2", title: "Trip Hop Night", artist: "X", duration: 180, audioUrl: "u" },
@@ -363,7 +372,42 @@ describe("sceneChannels", () => {
     expect(trackMatchesChannel(fastElectronic, dnb)).toBe(true);
     expect(trackMatchesChannel(midElectronic, dnb)).toBe(false);
     expect(trackMatchesChannel(midElectronic, y2k)).toBe(false);
+    expect(trackMatchesChannel(midElectronic, getSceneChannel("dubstep"))).toBe(false);
     expect(trackMatchesChannel(garage, y2k)).toBe(true);
+    expect(trackMatchesChannel(garage, getSceneChannel("uk-garage"))).toBe(true);
+  });
+
+  test("Electronic split: House / Techno / UK Garage / Dubstep stay distinct", () => {
+    const house = getSceneChannel("house");
+    const techno = getSceneChannel("techno");
+    const ukg = getSceneChannel("uk-garage");
+    const dubstep = getSceneChannel("dubstep");
+    expect(house.num).toBe(4);
+    expect(techno.num).toBe(5);
+    expect(ukg.num).toBe(6);
+    expect(dubstep.num).toBe(7);
+
+    const tracks = [
+      { id: "h", title: "Warm Pad", genre: "Deep House", duration: 180, audioUrl: "u", bpm: 122, energy: 4 },
+      { id: "t", title: "Pulse", genre: "Techno", duration: 180, audioUrl: "u", bpm: 132, energy: 9 },
+      { id: "g", title: "Sincere", genre: "UK Garage", duration: 180, audioUrl: "u", bpm: 132, energy: 6 },
+      { id: "d", title: "Rumble", artist: "Skrillex", genre: "Electronic", duration: 180, audioUrl: "u", bpm: 140, energy: 6 },
+      { id: "false", title: "Pad Job", artist: "Y", genre: "Electronic", duration: 180, audioUrl: "u", bpm: 145, energy: 5 },
+      { id: "x", title: "Riff", genre: "Metal", duration: 180, audioUrl: "u" },
+    ];
+    expect(buildSceneChannelPool(tracks, house).map((t) => t.id)).toEqual(["h"]);
+    expect(buildSceneChannelPool(tracks, techno).map((t) => t.id)).toEqual(["t"]);
+    expect(buildSceneChannelPool(tracks, ukg).map((t) => t.id)).toEqual(["g"]);
+    expect(buildSceneChannelPool(tracks, dubstep).map((t) => t.id)).toEqual(["d"]);
+    expect(trackMatchesChannel(tracks[4], dubstep)).toBe(false);
+    expect(trackMatchesChannel(
+      { title: "Marriage", artist: "The Bug Club", genre: "Rock", duration: 180, audioUrl: "u", bpm: 148, energy: 6 },
+      dubstep
+    )).toBe(false);
+    expect(trackMatchesChannel(
+      { title: "Dubstep", artist: "Swingin Utters", genre: "Punk", duration: 180, audioUrl: "u", bpm: 134, energy: 7 },
+      dubstep
+    )).toBe(false);
   });
 });
 
