@@ -30,7 +30,8 @@ describe("licensed editorial photography", () => {
     [
       "Joe Mabel",
       "Angie Linder",
-      "Arnold Jaeger Werner",
+      "Christian Kadluba",
+      "Jonas Weckschmied",
       "InSapphoWeTrust",
       "David E. Lucas",
       "Aleksandr Popov",

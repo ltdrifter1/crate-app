@@ -71,6 +71,7 @@ describe("Home broadcast + four-tab IA", () => {
     const search = div.querySelector('button[aria-label="Search"]');
     expect(search).toBeTruthy();
     expect(div.querySelector(".pmp-onair-chip")).toBeNull();
+    expect(div.textContent).not.toMatch(/98\.3/);
     expect(div.textContent).not.toMatch(/On air/i);
     await act(async () => {
       search.click();

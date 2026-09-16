@@ -4,7 +4,6 @@
  */
 
 export const STATION_CALLSIGN = "PMP3";
-export const STATION_FREQ = "98.3";
 
 /** Main live feed when not locked to a scene channel. */
 export const MAIN_CHANNEL = {
