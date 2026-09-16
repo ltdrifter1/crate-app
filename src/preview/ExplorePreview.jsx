@@ -4,6 +4,8 @@
  */
 import { useState } from "react";
 import ExploreScreen from "../screens/ExploreScreen";
+import { AlbumPage } from "../components/catalog/ArtistPage";
+import { findAlbum } from "../lib/catalog";
 import { CHANNEL_ART } from "../lib/channelArt";
 import { color } from "../theme";
 
@@ -68,6 +70,30 @@ const SAMPLE_COUNTDOWN = SAMPLE_TRACKS.slice(0, 8).map((track, i) => ({
 
 export default function ExplorePreview() {
   const [log, setLog] = useState("idle");
+  const [albumSlug, setAlbumSlug] = useState(null);
+  const album = albumSlug ? findAlbum(SAMPLE_TRACKS, albumSlug) : null;
+
+  if (albumSlug) {
+    return (
+      <div
+        style={{
+          minHeight: "100dvh",
+          background: color.canvas,
+          color: color.ink,
+        }}
+      >
+        <AlbumPage
+          album={album}
+          onBack={() => setAlbumSlug(null)}
+          onPlay={(track) => setLog(`play:${track?.id}`)}
+          onOpenArtist={() => setLog("artist")}
+        />
+        <div className="sr-only" data-preview-log={log}>
+          {log}
+        </div>
+      </div>
+    );
+  }
   return (
     <div
       style={{
@@ -85,7 +111,10 @@ export default function ExplorePreview() {
         sceneChannelsActiveId={null}
         onPlayTrack={(track) => setLog(`play:${track?.id}`)}
         onOpenSearch={() => setLog("search")}
-        onOpenAlbum={(slug) => setLog(`album:${slug}`)}
+        onOpenAlbum={(slug) => {
+          setLog(`album:${slug}`);
+          setAlbumSlug(slug);
+        }}
         onOpenCharts={() => setLog("charts")}
         onTuneSceneChannel={(ch) => setLog(`tune:${ch?.id}`)}
         onListenIntent={(focus) => setLog(`intent:${focus?.genre || focus?.scene}`)}
