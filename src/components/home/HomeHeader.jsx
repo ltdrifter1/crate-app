@@ -31,15 +31,29 @@ export default function HomeHeader({
   onOpenSearch = null,
   onOpenProfile = null,
   onOpenMenu = null,
+  overlay = false,
 }) {
   return (
     <header
+      className={overlay ? "pmp-home-header-overlay" : undefined}
       style={{
         display: "flex",
         alignItems: "center",
         justifyContent: "space-between",
         gap: 12,
         padding: `calc(10px + env(safe-area-inset-top, 0px)) ${homeSpace.gutter}px 10px`,
+        ...(overlay
+          ? {
+              position: "absolute",
+              top: 0,
+              left: 0,
+              right: 0,
+              zIndex: 8,
+              background:
+                "linear-gradient(180deg, rgba(5,6,8,0.72) 0%, rgba(5,6,8,0.2) 70%, transparent 100%)",
+              pointerEvents: "none",
+            }
+          : null),
       }}
     >
       <div
@@ -48,6 +62,7 @@ export default function HomeHeader({
           alignItems: "center",
           gap: 10,
           minWidth: 0,
+          pointerEvents: "auto",
         }}
       >
         {onOpenMenu && <HeaderButton label="Browse" icon="menu" onClick={onOpenMenu} />}
@@ -66,7 +81,7 @@ export default function HomeHeader({
           Planet MP3
         </span>
       </div>
-      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 8, pointerEvents: "auto" }}>
         <HeaderButton label="Search" icon="search" onClick={onOpenSearch} />
         <HeaderButton label="Profile" icon="profile" onClick={onOpenProfile} />
       </div>

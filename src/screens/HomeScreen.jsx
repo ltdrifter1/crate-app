@@ -18,11 +18,13 @@ import { rankChannelsForTaste, trackHitsPreferredChannels } from "../lib/onboard
 import { runAfterPaint } from "../lib/afterPaint";
 import { useCurrentTrack } from "../usePlayerTransport";
 import HomeHeader from "../components/home/HomeHeader";
-import HeroPlayerCard from "../components/home/HeroPlayerCard";
+import WorldStage from "../components/home/WorldStage";
+import WorldGate from "../components/home/WorldGate";
 import MusicSection, { Rail } from "../components/home/MusicSection";
 import ChannelSurfingSection from "../components/home/ChannelSurfingSection";
 import TrackCard from "../components/home/TrackCard";
 import CardContainer from "../components/home/CardContainer";
+import { hasEnteredWorld, markEnteredWorld } from "../lib/worldGate";
 
 const TonightDeck = lazy(() =>
   import("../components/station/ShowGuide").then((m) => ({ default: m.TonightDeck }))
@@ -243,6 +245,8 @@ function HomeScreen({
   userKey = "",
   recentTrackIds = [],
   dislikeTaste = null,
+  volume = 1,
+  onToggleMute = null,
 }) {
   const currentTrack = useCurrentTrack();
   const activeId = currentTrack?.id;
@@ -251,6 +255,7 @@ function HomeScreen({
   const catalogDepleted = !catalogLoading && !catalogError && tracks.length > 0 && playableCount === 0;
   const catalogReady = !catalogLoading && !catalogError && !catalogEmpty && !catalogDepleted;
   const shelvesReady = useAfterFirstPaint();
+  const [worldEntered, setWorldEntered] = useState(() => hasEnteredWorld());
 
   const channels = useMemo(
     () => rankChannelsForTaste(SCENE_CHANNELS, taste),
@@ -281,43 +286,29 @@ function HomeScreen({
   const featuredSize = homeSpace.tileFeatured;
   const hasChannels = channels.length > 0;
 
+  const enterWorld = () => {
+    markEnteredWorld();
+    setWorldEntered(true);
+    if (!currentTrack && catalogReady) onPlayRadio?.();
+  };
+
   return (
     <div
-      className="pmp-home-mtv"
+      className="pmp-home-mtv pmp-home-world"
       style={{
         position: "relative",
         paddingBottom: 56,
-        maxWidth: 960,
-        margin: "0 auto",
         width: "100%",
       }}
     >
-      <HomeHeader
-        onOpenSearch={onOpenSearch}
-        onOpenProfile={onOpenProfile}
-        onOpenMenu={onOpenMenu}
-      />
-
-      {/* CHANNEL SURFING — top of Home */}
-      {hasChannels && (
-        <ChannelSurfingSection
-          channels={channels}
-          activeChannelId={sceneChannelsActiveId}
-          onTuneChannel={onTuneSceneChannel}
-          first
-          delay={0.02}
+      <div className="pmp-world-frame">
+        <HomeHeader
+          overlay
+          onOpenSearch={onOpenSearch}
+          onOpenProfile={onOpenProfile}
+          onOpenMenu={onOpenMenu}
         />
-      )}
-
-      {/* NOW PLAYING — clean App Store stage card */}
-      <div
-        style={{
-          padding: `0 ${homeSpace.gutter}px`,
-          marginTop: hasChannels ? homeSpace.sectionGap : homeSpace.sectionGapFirst,
-          animation: `rise 0.5s ${motion.ease} 0.04s both`,
-        }}
-      >
-        <HeroPlayerCard
+        <WorldStage
           track={currentTrack}
           previewTrack={radioPreview}
           upNextTrack={radioNext}
@@ -336,8 +327,35 @@ function HomeScreen({
           onVisibilityChange={onStageVisibilityChange}
           onSeek={onSeek}
           tickerText={tickerText}
+          channels={channels}
+          activeChannelId={sceneChannelsActiveId}
+          onTuneChannel={onTuneSceneChannel}
+          muted={volume <= 0}
+          onToggleMute={onToggleMute}
         />
+        {!worldEntered && (
+          <WorldGate onEnter={enterWorld} loading={!!catalogLoading && !catalogReady} />
+        )}
       </div>
+
+      <div
+        className="pmp-home-crate"
+        style={{
+          maxWidth: 960,
+          margin: "0 auto",
+          width: "100%",
+        }}
+      >
+      {/* CHANNEL SURFING — crate below the world */}
+      {hasChannels && (
+        <ChannelSurfingSection
+          channels={channels}
+          activeChannelId={sceneChannelsActiveId}
+          onTuneChannel={onTuneSceneChannel}
+          first
+          delay={0.02}
+        />
+      )}
 
       {(catalogError || catalogEmpty || catalogDepleted) && (
         <HomeCatalogStatus
@@ -464,6 +482,7 @@ function HomeScreen({
             />
           </div>
         )}
+      </div>
     </div>
   );
 }

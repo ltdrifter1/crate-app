@@ -10,6 +10,7 @@ import HeroPlayerCard from "./HeroPlayerCard";
 import ChannelCard from "./ChannelCard";
 import ChannelSurfingSection from "./ChannelSurfingSection";
 import HomeScreen from "../../screens/HomeScreen";
+import WorldStage from "./WorldStage";
 import { PRIMARY_TABS, primaryNavItems } from "../../lib/nav";
 
 jest.mock("../../usePlayerPlayback", () => ({
@@ -32,6 +33,7 @@ describe("Home broadcast + four-tab IA", () => {
   let root;
 
   beforeEach(() => {
+    sessionStorage.clear();
     div = document.createElement("div");
     document.body.appendChild(div);
     root = createRoot(div);
@@ -420,5 +422,116 @@ describe("Home broadcast + four-tab IA", () => {
     expect(imgs[0].getAttribute("loading")).toBe("eager");
     expect(imgs[1].getAttribute("loading")).toBe("eager");
     expect(imgs[3].getAttribute("loading")).toBe("lazy");
+  });
+
+  test("Home world stage is full-bleed with spatial channel hotspots", async () => {
+    await act(async () => {
+      root.render(
+        React.createElement(HomeScreen, {
+          tracks: [
+            {
+              id: "t1",
+              title: "Night Drive",
+              artist: "Signal",
+              duration: 180,
+              audioUrl: "https://cdn.example/n.mp3",
+            },
+          ],
+          isRadioMode: true,
+          onTuneSceneChannel: () => {},
+        })
+      );
+    });
+    expect(div.querySelector(".pmp-world-stage")).toBeTruthy();
+    expect(div.querySelector(".pmp-hero")).toBeNull();
+    expect(div.querySelector(".pmp-world-gate")).toBeTruthy();
+    expect(div.textContent).toMatch(/Enter the world/i);
+    expect(div.querySelectorAll(".pmp-world-hotspot").length).toBeGreaterThanOrEqual(4);
+    expect(div.textContent).toMatch(/CH-01/i);
+  });
+
+  test("entering the world dismisses the gate", async () => {
+    sessionStorage.clear();
+    const onPlayRadio = jest.fn();
+    await act(async () => {
+      root.render(
+        React.createElement(HomeScreen, {
+          tracks: [
+            {
+              id: "t1",
+              title: "Night Drive",
+              artist: "Signal",
+              duration: 180,
+              audioUrl: "https://cdn.example/n.mp3",
+            },
+          ],
+          onPlayRadio,
+        })
+      );
+    });
+    const enter = div.querySelector(".pmp-world-gate-enter");
+    expect(enter).toBeTruthy();
+    await act(async () => {
+      enter.click();
+    });
+    expect(div.querySelector(".pmp-world-gate")).toBeNull();
+  });
+
+  test("world stage mounts video, seek, mute, and energy shift", async () => {
+    const onSeek = jest.fn();
+    const onToggleMute = jest.fn();
+    const track = {
+      id: "t1",
+      title: "Night Drive",
+      artist: "Signal",
+      albumCover: "/brand/planet-mp3-lockup-on-black.png",
+      videoUrl: "https://cdn.example/night-drive.mp4",
+    };
+    await act(async () => {
+      root.render(
+        React.createElement(WorldStage, {
+          track,
+          isRadioMode: true,
+          onSeek,
+          onToggleMute,
+          onDislike: () => {},
+          onLike: () => {},
+          sceneChannel: { id: "rap", num: 3, shortTitle: "Rap City", title: "Rap City" },
+          upNextTrack: { title: "After Hours", artist: "Low Light" },
+          tickerText: "Planet Radio — requests open",
+          channels: [{ id: "y2k-dance", num: 1, title: "Y2K Dance", shortTitle: "Y2K Dance", tagline: "floor" }],
+        })
+      );
+    });
+    await act(async () => {
+      await new Promise((r) => setTimeout(r, 0));
+    });
+    const video = div.querySelector("video");
+    expect(video).toBeTruthy();
+    expect(video.getAttribute("src")).toBe(track.videoUrl);
+    expect(div.textContent).toMatch(/Video/i);
+    expect(div.textContent).toMatch(/Night Drive/);
+    expect(div.textContent).toMatch(/On air/i);
+    expect(div.textContent).toMatch(/Up next/i);
+    expect(div.textContent).toMatch(/After Hours/);
+    expect(div.textContent).toMatch(/Planet Radio — requests open/);
+    expect(div.querySelector('[aria-label="Energy shift — speed up or slow down the mix"]')).toBeTruthy();
+    expect(div.querySelector('[aria-label="Dislike this track"]')).toBeTruthy();
+    expect(div.querySelector('[aria-label="Mute"]')).toBeTruthy();
+    const seek = div.querySelector('[aria-label="Seek"]');
+    expect(seek).toBeTruthy();
+    await act(async () => {
+      const rect = { left: 0, width: 100 };
+      seek.getBoundingClientRect = () => rect;
+      seek.dispatchEvent(new MouseEvent("click", { bubbles: true, clientX: 50 }));
+    });
+    expect(onSeek).toHaveBeenCalled();
+    await act(async () => {
+      div.querySelector('[aria-label="Mute"]').click();
+    });
+    expect(onToggleMute).toHaveBeenCalled();
+    await act(async () => {
+      div.querySelector(".pmp-world-hotspot").click();
+    });
   });
 });
