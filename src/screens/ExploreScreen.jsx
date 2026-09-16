@@ -1,4 +1,4 @@
-import { useMemo, useState, memo } from "react";
+import { useEffect, useMemo, useState, memo } from "react";
 import {
   chrome,
   chromeIconButton,
@@ -16,7 +16,7 @@ import CoverImage from "../components/ui/CoverImage";
 import { useCurrentTrack, useIsPlaying } from "../usePlayerTransport";
 import MusicSection, { Rail } from "../components/home/MusicSection";
 import TrackCard from "../components/home/TrackCard";
-import ReleaseCard from "../components/home/ReleaseCard";
+import { ReleasesBand } from "../components/home/ReleaseCard";
 import ChannelSurfingSection from "../components/home/ChannelSurfingSection";
 import CardContainer from "../components/home/CardContainer";
 import ExploreHero from "../components/explore/ExploreHero";
@@ -64,10 +64,37 @@ const EXPLORE_CSS = `
   }
   .pmp-explore-chart-row:hover { background: rgba(255,255,255,0.04) !important; }
   .pmp-explore-chart-row:active { transform: scale(0.992); }
+  .pmp-releases {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px 12px;
+    padding: 0 ${"{gutter}"}px;
+    align-items: start;
+  }
+  .pmp-release--lead {
+    grid-column: 1 / -1;
+    display: flex !important;
+    flex-direction: row;
+    align-items: center;
+    gap: 16px;
+  }
+  .pmp-release--lead .pmp-release-art {
+    width: 132px;
+    flex-shrink: 0;
+  }
+  .pmp-release--lead .pmp-release-copy { min-width: 0; }
   @media (min-width: 720px) {
     .pmp-explore-mosaic { grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
     .pmp-explore-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
     .pmp-explore-hero { aspect-ratio: 2.15 / 1 !important; min-height: 280px; }
+    .pmp-releases { grid-template-columns: 1.2fr 1fr 1fr; gap: 20px 16px; }
+    .pmp-release--lead {
+      grid-column: 1;
+      grid-row: 1 / span 2;
+      flex-direction: column !important;
+      align-items: stretch !important;
+    }
+    .pmp-release--lead .pmp-release-art { width: 100%; }
   }
   @media (min-width: 1100px) {
     .pmp-explore-mosaic { grid-template-columns: 1fr 1fr 1fr 1fr; }
@@ -76,7 +103,7 @@ const EXPLORE_CSS = `
   @media (prefers-reduced-motion: reduce) {
     .pmp-explore-hero-art { animation: none !important; }
   }
-`.replaceAll("{base}", motion.base).replaceAll("{ease}", motion.ease);
+`.replaceAll("{base}", motion.base).replaceAll("{ease}", motion.ease).replaceAll("{gutter}", String(homeSpace.gutter));
 
 function SearchEntry({ onOpenSearch }) {
   if (!onOpenSearch) return null;
@@ -309,7 +336,7 @@ function ExploreScreen({
   const [focusKey, setFocusKey] = useState(null);
 
   const stations = useMemo(() => exploreStations(tracks), [tracks]);
-  const releases = useMemo(() => exploreReleases(tracks, 12), [tracks]);
+  const releases = useMemo(() => exploreReleases(tracks, 6), [tracks]);
   const genres = useMemo(() => exploreGenrePlates(tracks), [tracks]);
   const moods = useMemo(() => exploreMoodPlates(tracks), [tracks]);
   const scenes = useMemo(() => exploreScenePlates(tracks, 10), [tracks]);
@@ -344,6 +371,10 @@ function ExploreScreen({
     () => resolveExploreFocus(focusKey, tracks),
     [focusKey, tracks]
   );
+
+  useEffect(() => {
+    import("../components/catalog/ArtistPage");
+  }, []);
 
   const heroPlaying =
     hero?.kind === "channel" &&
@@ -545,23 +576,14 @@ function ExploreScreen({
 
       {releases.length > 0 && (
         <MusicSection
-          title="Featured releases"
-          subtitle="Albums worth the needle"
+          title="Albums"
           delay={0.14}
         >
-          <Rail gap={16}>
-            {releases.map((album) => (
-              <ReleaseCard
-                key={album.slug}
-                album={album}
-                size={homeSpace.tileFeatured}
-                onClick={() => {
-                  if (onOpenAlbum) onOpenAlbum(album.slug);
-                  else if (album.coverTrack) onPlayTrack?.(album.coverTrack, album.tracks);
-                }}
-              />
-            ))}
-          </Rail>
+          <ReleasesBand
+            albums={releases}
+            onOpenAlbum={onOpenAlbum}
+            onPlayTrack={onPlayTrack}
+          />
         </MusicSection>
       )}
 
