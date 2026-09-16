@@ -40,7 +40,7 @@ export default function ArtistPage({
   const n = artist.count || 0;
 
   return (
-    <div style={{ minHeight: "100%", animation: "fadeIn 0.28s ease both", fontFamily: font }}>
+    <div style={{ minHeight: "100%", maxWidth: 640, margin: "0 auto", width: "100%", animation: "fadeIn 0.28s ease both", fontFamily: font }}>
       <EntityHero
         onBack={onBack}
         title={artist.name}
@@ -156,7 +156,7 @@ export function AlbumPage({
   const albumArtist = album.artist || "";
 
   return (
-    <div style={{ minHeight: "100%", animation: "fadeIn 0.22s ease both", fontFamily: font }}>
+    <div style={{ minHeight: "100%", maxWidth: 640, margin: "0 auto", width: "100%", animation: "fadeIn 0.22s ease both", fontFamily: font }}>
       <div style={{ padding: "16px 20px 20px" }}>
         <button
           type="button"
