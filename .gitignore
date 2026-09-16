@@ -9,6 +9,7 @@ titles-review.csv
 genres-review.csv
 *.csv
 !tracks.template.csv
+!docs/audits/*.csv
 .env
 .env.*
 !.env.example
