@@ -21,7 +21,7 @@ Crops (`object-position` / baked square crops) are our only adaptations.
 |------|------|--------------|--------|---------|
 | CH-01 Y2K Dance | `y2k-dance.jpg` | Arnold Jaeger Werner | [Bob Beaman DJ booth](https://commons.wikimedia.org/wiki/File:Bob_Beaman_Nightclub_-_DJ_Booth.jpg) (Technics + Pioneer) | CC BY 2.0 |
 | CH-02 Variety Mix | `variety-mix.jpg` | [Joe Mabel](https://commons.wikimedia.org/wiki/User:Jmabel) | [Lake City Record Show](https://commons.wikimedia.org/wiki/File:Lake_City_Record_Show_-_2023-11-18_-_02.jpg) | CC BY-SA 4.0 |
-| CH-03 Local PNW | `local-pnw.jpg` | InSapphoWeTrust | [Space Needle at night, Kerry Park](https://commons.wikimedia.org/wiki/File:Seattle_Space_Needle_at_night,_from_Kerry_Park_(7666889068).jpg) | CC BY-SA 2.0 |
+| CH-03 Local | `local-pnw.jpg` | InSapphoWeTrust | [Space Needle at night, Kerry Park](https://commons.wikimedia.org/wiki/File:Seattle_Space_Needle_at_night,_from_Kerry_Park_(7666889068).jpg) | CC BY-SA 2.0 |
 | CH-04 Electronic | `electronic.jpg` | Angie Linder | [Tresor, Berlin — beatmatching](https://commons.wikimedia.org/wiki/File:Tresor_Nightclub_Berlin_DJ_Beatmatching.jpg) | CC BY-SA 2.0 |
 | CH-05 Drum & Bass | `drum-and-bass.jpg` | [Joe Mabel](https://commons.wikimedia.org/wiki/User:Jmabel) | [Crowd surfing, Pain in the Grass, Seattle 1995](https://commons.wikimedia.org/wiki/File:Seattle_-_Pain_in_the_Grass_-_1995_-_crowd_surfing_01.jpg) | CC BY-SA 3.0 |
 | CH-06 Emo & Shoegaze | `shoegaze.jpg` | [Joe Mabel](https://commons.wikimedia.org/wiki/User:Jmabel) | [7 Year Bitch, Pain in the Grass, Seattle 1995](https://commons.wikimedia.org/wiki/File:Seattle_-_Pain_in_the_Grass_-_1995_-_7_Year_Bitch_01.jpg) | CC BY-SA 3.0 |

@@ -7,7 +7,7 @@ import Icon from "../ui/Icon";
 /**
  * ChannelCard — art-first station tile (Apple Music / YouTube Music).
  * Generic channel photo, name, blurb, play. No album-cover mosaic.
- * Local PNW (`showcase` / local-pnw) is a larger broadcast tile with a
+ * Local (`showcase` / local-pnw) is a larger broadcast tile with a
  * chrome bezel — no glow overlay on the photograph.
  */
 function ChannelArt({ src, title, size, accent, objectPosition, priority = false, eager = false }) {

@@ -6,7 +6,7 @@ Home **Channel Surfing** uses nine fixed dials (`src/lib/sceneChannels.js`).
 |----|-------|-------------|----------------|
 | 01 | Y2K Dance | Genre / house–garage–disco–trance scenes | **by genre** |
 | 02 | Variety Mix | Curator `batch` (`variety-wave-N`) when set; else cross-genre mix | **curator** shelf / playlist |
-| 03 | Local Pacific Northwest | PNW region/keywords + `batch` includes `audioasis` | **Audioasis** batch upload — featured Home tile (larger broadcast bezel; pinned first when listing decorated dials) |
+| 03 | Local | PNW region/keywords + `batch` includes `audioasis` | **Audioasis** batch upload — featured Home tile (larger broadcast bezel; pinned first when listing decorated dials) |
 | 04 | Electronic | `batch` includes `expansion` / `expansions`, else techno–warehouse scenes + energy | **expansions** |
 | 05 | Drum & Bass | DnB / jungle / liquid scenes | **by genre** |
 | 06 | Emo & Shoegaze | Genre + emo/shoegaze keywords | **by genre** |
@@ -21,7 +21,7 @@ Set `batch` on each track (CSV column or Firestore field), same pattern as Audio
 | Channel | Example `batch` values |
 |---------|------------------------|
 | Variety Mix (CH-02) | `variety-wave-1`, `curator-wave-1` |
-| Local PNW (CH-03) | `audioasis-wave-1`, `audioasis-wave-2` |
+| Local (CH-03) | `audioasis-wave-1`, `audioasis-wave-2` |
 | Electronic (CH-04) | `expansions-wave-1` |
 | Metal (CH-07) | `metal-wave-1`, `metal-wave-2` |
 | Punk (CH-08) | `punk-wave-1`, `punk-wave-2` |

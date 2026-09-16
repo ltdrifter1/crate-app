@@ -198,8 +198,8 @@ export default function BroadcastPreview() {
           upNextTrack={SAMPLE_NEXT}
           isRadioMode
           sceneChannel={SCENE_CHANNELS.find((c) => c.id === activeChannelId)}
-          liveShow={{ shortTitle: "Local PNW", title: "Local Pacific Northwest" }}
-          tickerText="Planet Radio — requests open · Local PNW on the dial"
+          liveShow={{ shortTitle: "Local", title: "Local" }}
+          tickerText="Planet Radio — requests open · Local on the dial"
         />
       </div>
     </div>

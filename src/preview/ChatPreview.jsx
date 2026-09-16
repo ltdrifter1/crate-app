@@ -46,7 +46,7 @@ const SAMPLE_MESSAGES = [
     id: "m2",
     uid: "u3",
     displayName: "Jae",
-    text: "Local PNW is on fire tonight",
+    text: "Local is on fire tonight",
     createdAt: NOW - 5 * 60_000,
   },
   {
