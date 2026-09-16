@@ -82,7 +82,7 @@ const SAMPLE_TRACKS = [
     id: "preview-5",
     title: "Warehouse",
     artist: "Gridlock",
-    albumCover: CHANNEL_ART["electronic-underground"] || SAMPLE_COVER,
+    albumCover: CHANNEL_ART.techno || SAMPLE_COVER,
     duration: 241,
     audioUrl: "u",
     genre: "Electronic",

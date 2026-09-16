@@ -16,7 +16,7 @@ import { SCENE_FAMILIES, getScene } from "./scenes";
 
 /** Canonical lane → Channel Surfing photo when the match is honest. */
 export const GENRE_CHANNEL_ART = {
-  Electronic: "electronic-underground",
+  Electronic: "techno",
   "Hip-Hop": "variety-mix",
   "R&B & Soul": "downtempo",
   Pop: "y2k-dance",
@@ -27,7 +27,7 @@ export const GENRE_CHANNEL_ART = {
 
 /** Scene family → documentary still (same licensed set). */
 export const FAMILY_CHANNEL_ART = {
-  dancefloor: "electronic-underground",
+  dancefloor: "house",
   bass: "drum-and-bass",
   afterhours: "downtempo",
   "soul-continuum": "downtempo",
@@ -119,7 +119,7 @@ export const MOOD_DEFS = [
     id: "peak-time",
     label: "Peak time",
     blurb: "The floor at full pressure.",
-    channelId: "electronic-underground",
+    channelId: "techno",
     minEnergy: 7,
     maxEnergy: 10,
   },

@@ -8,7 +8,7 @@ import { CHANNEL_ART } from "../lib/channelArt";
 import { color } from "../theme";
 
 const COVER = {
-  electronic: CHANNEL_ART["electronic-underground"],
+  electronic: CHANNEL_ART.techno,
   y2k: CHANNEL_ART["y2k-dance"],
   variety: CHANNEL_ART["variety-mix"],
   pnw: CHANNEL_ART["local-pnw"],
