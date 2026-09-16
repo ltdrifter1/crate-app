@@ -32,7 +32,7 @@ describe("explore collections", () => {
     const electronic = plates.find((p) => p.lane === "Electronic");
     expect(electronic).toBeTruthy();
     expect(electronic.usePhoto).toBe(true);
-    expect(electronic.photo).toBe(CHANNEL_ART["electronic-underground"]);
+    expect(electronic.photo).toBe(CHANNEL_ART.techno);
     const jazz = plates.find((p) => p.lane === "Jazz");
     expect(jazz.usePhoto).toBe(false);
     expect(jazz.covers.length).toBeGreaterThan(0);
@@ -41,7 +41,7 @@ describe("explore collections", () => {
   test("GENRE_CHANNEL_ART only maps honest documentary matches", () => {
     expect(GENRE_CHANNEL_ART.Jazz).toBeUndefined();
     expect(GENRE_CHANNEL_ART.Classical).toBeUndefined();
-    expect(GENRE_CHANNEL_ART.Electronic).toBe("electronic-underground");
+    expect(GENRE_CHANNEL_ART.Electronic).toBe("techno");
   });
 
   test("mood plates filter by energy and carry licensed photos", () => {

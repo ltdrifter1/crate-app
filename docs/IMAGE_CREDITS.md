@@ -14,6 +14,10 @@ Adaptations: square crops, late-90s film grade (grain, split-tone, vignette). No
 |--------|---------|-------------------|-------------|
 | Wikimedia Commons (CC BY / CC BY-SA) | See file | Yes, with credit | Required |
 | U.S. public domain (DPLA) | Public domain | Yes | Recorded here |
+| [Unsplash License](https://unsplash.com/license) | Free to use | Yes | Appreciated, recorded here |
+| [Pexels License](https://www.pexels.com/license/) | Free to use | Yes | Appreciated, recorded here |
+
+Shared Channel Surfing stills (and the idle hero) are Wikimedia Commons / U.S. public domain documentary photographs. House, Techno, UK Garage, and Dubstep stills are Unsplash / Pexels plates added with the Electronic split — they have not been replaced with Commons stills yet.
 
 ## Channel Surfing
 
@@ -22,19 +26,24 @@ Adaptations: square crops, late-90s film grade (grain, split-tone, vignette). No
 | CH-01 Y2K Dance | `y2k-dance.jpg` | [Christian Kadluba](https://www.flickr.com/people/38235150@N00) | [Rave is King](https://commons.wikimedia.org/wiki/File:Rave_is_King_-_Flickr_-_kadluba.jpg) (Ellen Allien, Vienna 2005 — packed floor, booth, beams) | CC BY-SA 2.0 |
 | CH-02 Variety Mix | `variety-mix.jpg` | [Joe Mabel](https://commons.wikimedia.org/wiki/User:Jmabel) | [Lake City Record Show](https://commons.wikimedia.org/wiki/File:Lake_City_Record_Show_-_2023-11-18_-_02.jpg) (crate-dig crop) | CC BY-SA 4.0 |
 | CH-03 Local | `local-pnw.jpg` | InSapphoWeTrust | [Space Needle at night, Kerry Park](https://commons.wikimedia.org/wiki/File:Seattle_Space_Needle_at_night,_from_Kerry_Park_(7666889068).jpg) | CC BY-SA 2.0 |
-| CH-04 Electronic | `electronic.jpg` | Angie Linder | [Tresor, Berlin — crowd](https://commons.wikimedia.org/wiki/File:Tresor_Nightclub_Berlin_Crowd_1.jpg) | CC BY-SA 2.0 |
-| CH-05 Drum & Bass | `drum-and-bass.jpg` | Jonas Weckschmied | [Crowd, HM1 Nightclub Dresden](https://commons.wikimedia.org/wiki/File:Crowd_HM1_Nightclub_Dresden.jpg) | CC BY 2.0 |
-| CH-06 Emo & Shoegaze | `shoegaze.jpg` | [Joe Mabel](https://commons.wikimedia.org/wiki/User:Jmabel) | [7 Year Bitch, Pain in the Grass, Seattle 1995](https://commons.wikimedia.org/wiki/File:Seattle_-_Pain_in_the_Grass_-_1995_-_7_Year_Bitch_01.jpg) | CC BY-SA 3.0 |
-| CH-07 Metal | `metal.jpg` | [Joe Mabel](https://commons.wikimedia.org/wiki/User:Jmabel) | [Moshing, Pain in the Grass, Seattle 1995](https://commons.wikimedia.org/wiki/File:Moshing_at_Pain_in_the_Grass_-_1995.jpg) | CC BY-SA 3.0 |
-| CH-08 Punk | `punk.jpg` | [Joe Mabel](https://commons.wikimedia.org/wiki/User:Jmabel) | [The Fastbacks, Pain in the Grass, Seattle 1995](https://commons.wikimedia.org/wiki/File:The_Fastbacks_-_Pain_in_the_Grass_-_1995_-_03.jpg) | CC BY-SA 3.0 |
-| CH-09 Country & Folk | `country-folk.jpg` | David E. Lucas / Columbus Metropolitan Library (DPLA) | [Music in the Air, Battelle Riverfront Park, c. 1981](https://commons.wikimedia.org/wiki/File:Music_in_the_Air_at_Battelle_Riverfront_Park_-_DPLA_-_5475228eaebe824fd457b43ce8562870.jpg) | Public domain (US) |
-| CH-10 Downtempo | `downtempo.jpg` | Angie Linder | [Tresor, Berlin — booth, 2015](https://commons.wikimedia.org/wiki/File:Tresor_Nightclub_Berlin_DJ_10.jpg) | CC BY-SA 2.0 |
+| CH-04 House | `house.jpg` | [Aleksandr Popov](https://unsplash.com/@5tep5) | [unsplash.com/photos/hTv8aaPziOQ](https://unsplash.com/photos/hTv8aaPziOQ) (`photo-1516450360452-9312f5e86fc7`) | Unsplash |
+| CH-05 Techno | `techno.jpg` | [Austin Neill](https://unsplash.com/@arstyy) | [images.unsplash.com/photo-1514525253161-7a46d19cd819](https://unsplash.com/photos/people-inside-building-during-daytime-with-lights-turned-on-hgFER2N4cNA) — same still as the former Unsplash Electronic tile | Unsplash |
+| CH-06 UK Garage | `uk-garage.jpg` | [Maurício Mascaro](https://www.pexels.com/@maumascaro/) | [pexels.com/photo/801863](https://www.pexels.com/photo/people-dancing-inside-building-801863/) | Pexels |
+| CH-07 Dubstep | `dubstep.jpg` | [Wendy Wei](https://www.pexels.com/@wendywei/) | [pexels.com/photo/1540406](https://www.pexels.com/photo/1540406/) | Pexels |
+| CH-08 Drum & Bass | `drum-and-bass.jpg` | Jonas Weckschmied | [Crowd, HM1 Nightclub Dresden](https://commons.wikimedia.org/wiki/File:Crowd_HM1_Nightclub_Dresden.jpg) | CC BY 2.0 |
+| CH-09 Emo & Shoegaze | `shoegaze.jpg` | [Joe Mabel](https://commons.wikimedia.org/wiki/User:Jmabel) | [7 Year Bitch, Pain in the Grass, Seattle 1995](https://commons.wikimedia.org/wiki/File:Seattle_-_Pain_in_the_Grass_-_1995_-_7_Year_Bitch_01.jpg) | CC BY-SA 3.0 |
+| CH-10 Metal | `metal.jpg` | [Joe Mabel](https://commons.wikimedia.org/wiki/User:Jmabel) | [Moshing, Pain in the Grass, Seattle 1995](https://commons.wikimedia.org/wiki/File:Moshing_at_Pain_in_the_Grass_-_1995.jpg) | CC BY-SA 3.0 |
+| CH-11 Punk | `punk.jpg` | [Joe Mabel](https://commons.wikimedia.org/wiki/User:Jmabel) | [The Fastbacks, Pain in the Grass, Seattle 1995](https://commons.wikimedia.org/wiki/File:The_Fastbacks_-_Pain_in_the_Grass_-_1995_-_03.jpg) | CC BY-SA 3.0 |
+| CH-12 Country & Folk | `country-folk.jpg` | David E. Lucas / Columbus Metropolitan Library (DPLA) | [Music in the Air, Battelle Riverfront Park, c. 1981](https://commons.wikimedia.org/wiki/File:Music_in_the_Air_at_Battelle_Riverfront_Park_-_DPLA_-_5475228eaebe824fd457b43ce8562870.jpg) | Public domain (US) |
+| CH-13 Ambient / Downtempo | `downtempo.jpg` | Angie Linder | [Tresor, Berlin — booth, 2015](https://commons.wikimedia.org/wiki/File:Tresor_Nightclub_Berlin_DJ_10.jpg) | CC BY-SA 2.0 |
+
+Leftover `electronic.jpg` in the assets tree is a graded Tresor crowd still (Angie Linder, [Tresor Nightclub Berlin Crowd 1](https://commons.wikimedia.org/wiki/File:Tresor_Nightclub_Berlin_Crowd_1.jpg), CC BY-SA 2.0) from the late-90s Channel Surfing pass; it is not on the dial. Techno uses the Unsplash plate above. The idle hero is the earlier Tresor beatmatching landscape.
 
 ## Home idle hero
 
 | Slot | File | Photographer | Source | License |
 |------|------|--------------|--------|---------|
-| Idle hero (no sleeve yet) | `src/assets/editorial/hero-idle.jpg` | Angie Linder | Same Tresor beatmatching still as the previous CH-04 frame, landscape crop | CC BY-SA 2.0 |
+| Idle hero (no sleeve yet) | `src/assets/editorial/hero-idle.jpg` | Angie Linder | Tresor beatmatching landscape crop ([Tresor DJ Beatmatching](https://commons.wikimedia.org/wiki/File:Tresor_Nightclub_Berlin_DJ_Beatmatching.jpg)) | CC BY-SA 2.0 |
 
 The brand lockup still sits on top of this frame. Once a catalog track is on air, the hero uses that track’s cover — not this photo.
 

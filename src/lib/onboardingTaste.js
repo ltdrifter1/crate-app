@@ -25,7 +25,11 @@ export const CHANNEL_GENRE_SEEDS = {
   "y2k-dance": ["Electronic", "Pop"],
   "variety-mix": [],
   "local-pnw": [],
+  house: ["Electronic"],
+  techno: ["Electronic"],
   "electronic-underground": ["Electronic"],
+  "uk-garage": ["Electronic"],
+  dubstep: ["Electronic"],
   "drum-and-bass": ["Electronic"],
   shoegaze: ["Rock"],
   metal: ["Metal"],
@@ -160,7 +164,7 @@ export function rankChannelsForTaste(channels = SCENE_CHANNELS, taste = {}) {
     const overlap = (channel.genres || []).filter((g) => genres.has(g)).length;
     score += overlap * 6;
     if (channel.showcase) score += 2;
-    if (profile.energyBand === "peak" && ["y2k-dance", "electronic-underground", "drum-and-bass", "metal", "punk"].includes(channel.id)) {
+    if (profile.energyBand === "peak" && ["y2k-dance", "house", "techno", "uk-garage", "dubstep", "drum-and-bass", "metal", "punk"].includes(channel.id)) {
       score += 3;
     }
     if (profile.energyBand === "soft" && ["downtempo", "country-folk"].includes(channel.id)) {

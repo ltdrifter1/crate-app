@@ -34,11 +34,15 @@ describe("licensed editorial photography", () => {
       "Jonas Weckschmied",
       "InSapphoWeTrust",
       "David E. Lucas",
+      "Aleksandr Popov",
+      "Austin Neill",
+      "Maurício Mascaro",
+      "Wendy Wei",
     ].forEach((name) => {
       expect(CREDITS).toContain(name);
     });
     SCENE_CHANNELS.forEach((channel) => {
-      const file = channel.id === "electronic-underground" ? "electronic.jpg" : `${channel.id}.jpg`;
+      const file = `${channel.id}.jpg`;
       expect(CREDITS).toContain(file);
     });
   });
