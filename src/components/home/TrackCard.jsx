@@ -1,5 +1,5 @@
 import { memo } from "react";
-import { color, fontLcd, fontMono, fontPoster, glassPill, homeSpace, y2k } from "../../theme";
+import { color, fontDisplay, fontLcd, fontMono, glassPill, homeSpace, y2k } from "../../theme";
 import { trackHasVideo } from "../../lib/video";
 import ArtFrame from "../ui/ArtFrame";
 
@@ -95,10 +95,10 @@ function TrackCard({
         style={{
           display: "block",
           marginTop: 10,
-          fontSize: 14,
-          fontWeight: 650,
-          fontFamily: fontPoster,
-          letterSpacing: -0.25,
+          fontSize: 13,
+          fontWeight: 600,
+          fontFamily: fontDisplay,
+          letterSpacing: -0.22,
           color: y2k.offWhite,
           overflow: "hidden",
           textOverflow: "ellipsis",

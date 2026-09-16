@@ -3,8 +3,8 @@ import {
   artFrameStyle,
   artShadow,
   broadcast,
+  fontDisplay,
   fontLcd,
-  fontPoster,
   homeSpace,
   radio,
   y2k,
@@ -13,7 +13,6 @@ import { usePlayerPlayback } from "../../usePlayerPlayback";
 import { useIsBuffering, useIsPlaying } from "../../usePlayerTransport";
 import {
   STATION_CALLSIGN,
-  STATION_FREQ,
   channelBugLine,
   resolveChannelBug,
 } from "../../lib/mtvChannel";
@@ -406,18 +405,6 @@ export default function HeroPlayerCard({
           >
             {STATION_CALLSIGN}
           </span>
-          <span aria-hidden="true" style={{ width: 1, height: 11, background: "rgba(255,255,255,0.18)" }} />
-          <span
-            style={{
-              fontFamily: fontLcd,
-              fontSize: 10,
-              fontWeight: 700,
-              letterSpacing: 1.2,
-              color: "rgba(244,246,248,0.62)",
-            }}
-          >
-            {STATION_FREQ}
-          </span>
           <LivePlate live={onAir} />
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 8, marginLeft: "auto" }}>
@@ -540,11 +527,11 @@ export default function HeroPlayerCard({
 
           <div
             style={{
-              fontFamily: fontPoster,
-              fontStyle: "italic",
+              fontFamily: fontDisplay,
+              fontStyle: "normal",
               fontSize: "clamp(24px, 5.6vw, 36px)",
-              fontWeight: 800,
-              letterSpacing: -0.9,
+              fontWeight: 700,
+              letterSpacing: -0.7,
               lineHeight: 1.02,
               color: y2k.offWhite,
               textShadow: "0 2px 18px rgba(0,0,0,0.45), 0 0 24px rgba(101,230,255,0.12)",
@@ -786,12 +773,12 @@ export default function HeroPlayerCard({
                   ? "rgba(60,64,72,0.6)"
                   : "linear-gradient(180deg, #FFFFFF 0%, #E7EBF0 55%, #C8CED6 100%)",
                 color: "#0B0C0F",
-                fontFamily: fontPoster,
-                fontSize: 13,
-                fontWeight: 800,
-                fontStyle: "italic",
-                letterSpacing: 0.6,
-                textTransform: "uppercase",
+                fontFamily: fontDisplay,
+                fontSize: 15,
+                fontWeight: 600,
+                fontStyle: "normal",
+                letterSpacing: -0.2,
+                textTransform: "none",
                 cursor: playDisabled ? "default" : "pointer",
                 display: "flex",
                 alignItems: "center",

@@ -5,7 +5,6 @@ import {
   homeSpace,
   motion,
   sectionEyebrow,
-  sectionEyebrowLcd,
   sectionSubtitle,
   sectionTitle,
   sectionTitlePoster,
@@ -27,12 +26,12 @@ export default function MusicSection({
   style = {},
   /** When true, wrap non-rail children in the shared gutter. */
   inset = false,
-  /** Home bands — italic poster titles. Explore stays editorial. */
+  /** Home bands use the same Apple Music title stack as Channel Surfing. */
   poster = false,
 }) {
   void accent;
   const titleStyle = poster ? sectionTitlePoster : sectionTitle;
-  const eyebrowStyle = poster ? sectionEyebrowLcd : sectionEyebrow;
+  const eyebrowStyle = sectionEyebrow;
   return (
     <section
       aria-label={title}

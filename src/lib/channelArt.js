@@ -13,7 +13,8 @@ import heroIdle from "../assets/editorial/hero-idle.jpg";
 /**
  * Webpack-bundled station photos (hashed URLs in production).
  * Channel Surfing must not depend on /channels/* existing on the host.
- * All files are licensed documentary photography — see docs/IMAGE_CREDITS.md.
+ * All files are licensed documentary photography, graded for late-90s print —
+ * see docs/IMAGE_CREDITS.md.
  */
 export const CHANNEL_ART = {
   "y2k-dance": y2kDance,
@@ -33,15 +34,15 @@ export const CHANNEL_ART = {
  * showcase crop keep decks, faces, and crowds in frame.
  */
 export const CHANNEL_ART_FOCUS = {
-  "y2k-dance": "50% 72%",
-  "variety-mix": "48% 78%",
-  "local-pnw": "50% 32%",
-  "electronic-underground": "55% 48%",
-  "drum-and-bass": "50% 38%",
-  shoegaze: "42% 38%",
-  metal: "42% 46%",
-  punk: "58% 22%",
-  "country-folk": "50% 28%",
+  "y2k-dance": "52% 58%",
+  "variety-mix": "38% 42%",
+  "local-pnw": "50% 36%",
+  "electronic-underground": "58% 48%",
+  "drum-and-bass": "58% 42%",
+  shoegaze: "52% 42%",
+  metal: "38% 48%",
+  punk: "28% 40%",
+  "country-folk": "48% 40%",
   downtempo: "48% 42%",
 };
 

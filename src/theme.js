@@ -370,15 +370,9 @@ export const sectionTitle = {
   textTransform: "none",
 };
 
-/** Home band posters — Y2K MTV italic, still the same copy and layout. */
+/** Home band titles — Apple Music clean, same copy and layout. */
 export const sectionTitlePoster = {
   ...sectionTitle,
-  fontFamily: fontPoster,
-  fontSize: 24,
-  fontWeight: 800,
-  fontStyle: "italic",
-  letterSpacing: -0.7,
-  lineHeight: 1.08,
 };
 
 export const sectionSubtitle = {

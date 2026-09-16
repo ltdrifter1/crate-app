@@ -1,17 +1,15 @@
 import {
   color,
   fontDisplay,
-  fontLcd,
   homeSpace,
-  sectionEyebrowLcd,
+  sectionEyebrow,
   sectionSubtitle,
-  sectionTitlePoster,
-  y2k,
+  sectionTitle,
 } from "../../theme";
 
 /**
  * HomeBandHeader — ONE left edge for every Home band.
- * App Store–clean title stack; titles always pad with homeSpace.gutter.
+ * Apple Music–clean title stack; titles always pad with homeSpace.gutter.
  */
 export default function HomeBandHeader({
   title,
@@ -36,7 +34,7 @@ export default function HomeBandHeader({
         {eyebrow && (
           <div
             style={{
-              ...sectionEyebrowLcd,
+              ...sectionEyebrow,
               overflow: "hidden",
               textOverflow: "ellipsis",
               whiteSpace: "nowrap",
@@ -47,7 +45,7 @@ export default function HomeBandHeader({
         )}
         <h2
           style={{
-            ...sectionTitlePoster,
+            ...sectionTitle,
             overflow: "hidden",
             textOverflow: "ellipsis",
             whiteSpace: "nowrap",
@@ -72,12 +70,12 @@ export default function HomeBandHeader({
       {meta && !action && (
         <div
           style={{
-            fontFamily: fontLcd,
-            fontSize: 11,
-            fontWeight: 700,
-            letterSpacing: 1.2,
-            textTransform: "uppercase",
-            color: y2k.cyan,
+            fontFamily: fontDisplay,
+            fontSize: 13,
+            fontWeight: 600,
+            letterSpacing: -0.16,
+            textTransform: "none",
+            color: color.muted,
             paddingBottom: subtitle ? 2 : 4,
             flexShrink: 0,
             whiteSpace: "nowrap",

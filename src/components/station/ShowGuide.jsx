@@ -9,7 +9,7 @@ import {
   resolveShowAt,
   STATION_SHOWS,
 } from "../../lib/shows";
-import { STATION_CALLSIGN, STATION_FREQ } from "../../lib/mtvChannel";
+import { STATION_CALLSIGN } from "../../lib/mtvChannel";
 import HomeBandHeader from "../home/HomeBandHeader";
 
 function HostAvatar({ host, size = 44, lcd = false }) {
@@ -732,7 +732,7 @@ export function TonightDeck({
       <HomeBandHeader
         title="On Tonight"
         subtitle={show?.tagline || "Tonight’s programmed blocks"}
-        meta={`${STATION_CALLSIGN} · ${STATION_FREQ}`}
+        meta={STATION_CALLSIGN}
       />
 
       {hasNow && (

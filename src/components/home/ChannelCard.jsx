@@ -1,14 +1,12 @@
-import { color, fontDisplay, fontLcd, homeSpace, y2k } from "../../theme";
-import { formatChannelNum } from "../../lib/mtvChannel";
+import { color, fontDisplay, homeSpace, y2k } from "../../theme";
 import { resolveChannelArt } from "../../lib/channelArt";
 import CoverImage from "../ui/CoverImage";
 import Icon from "../ui/Icon";
 
 /**
- * ChannelCard — art-first station tile (Apple Music / YouTube Music).
- * Generic channel photo, name, blurb, play. No album-cover mosaic.
- * Local (`showcase` / local-pnw) is a larger broadcast tile with a
- * chrome bezel — no glow overlay on the photograph.
+ * ChannelCard — art-first station tile (Apple Music).
+ * Photograph, name, blurb, play. No LCD stamps or channel bugs on the art.
+ * Local (`showcase` / local-pnw) is a larger broadcast tile.
  */
 function ChannelArt({ src, title, size, accent, objectPosition, priority = false, eager = false }) {
   const initial = (title || "?").trim().charAt(0).toUpperCase() || "?";
@@ -42,9 +40,9 @@ function ChannelArt({ src, title, size, accent, objectPosition, priority = false
           ? `linear-gradient(160deg, ${accent} 0%, #10141A 78%)`
           : y2k.artGradient,
         fontFamily: fontDisplay,
-        fontSize: Math.round(size * 0.34),
-        fontWeight: 650,
-        letterSpacing: -1.2,
+        fontSize: Math.round(size * 0.28),
+        fontWeight: 600,
+        letterSpacing: -0.8,
         color: "rgba(244,246,248,0.82)",
       }}
     >
@@ -97,14 +95,14 @@ export default function ChannelCard({
           display: "block",
           width,
           height: width,
-          borderRadius: featured ? 16 : 14,
+          borderRadius: featured ? 12 : 10,
           overflow: "hidden",
           background: y2k.artGradient,
           boxShadow: featured
-            ? "0 0 0 2px rgba(247,248,250,0.92), 0 16px 36px rgba(0,0,0,0.48)"
+            ? "0 12px 28px rgba(0,0,0,0.42)"
             : active
-              ? "0 0 0 2px rgba(247,248,250,0.92), 0 12px 28px rgba(0,0,0,0.42)"
-              : "0 10px 24px rgba(0,0,0,0.36)",
+              ? "0 0 0 2px rgba(247,248,250,0.88), 0 10px 22px rgba(0,0,0,0.38)"
+              : "0 8px 20px rgba(0,0,0,0.32)",
         }}
       >
         <span
@@ -129,32 +127,6 @@ export default function ChannelCard({
             eager={eager}
           />
 
-          {channel.num != null && (
-            <span
-              aria-hidden="true"
-              style={{
-                position: "absolute",
-                top: 10,
-                right: 10,
-                zIndex: 2,
-                height: 22,
-                padding: "0 7px",
-                borderRadius: 4,
-                background: "rgba(8,10,13,0.72)",
-                border: "1px solid rgba(101,230,255,0.35)",
-                color: y2k.cyan,
-                fontFamily: fontLcd,
-                fontSize: 10,
-                fontWeight: 700,
-                letterSpacing: 0.8,
-                display: "inline-flex",
-                alignItems: "center",
-              }}
-            >
-              {formatChannelNum(channel.num)}
-            </span>
-          )}
-
           {active && (
             <span
               style={{
@@ -163,15 +135,14 @@ export default function ChannelCard({
                 left: 10,
                 zIndex: 2,
                 height: 22,
-                padding: "0 8px",
-                borderRadius: 4,
-                background: "rgba(255,51,79,0.82)",
+                padding: "0 9px",
+                borderRadius: 11,
+                background: "rgba(0,0,0,0.55)",
                 color: y2k.offWhite,
-                fontFamily: fontLcd,
-                fontSize: 10,
-                fontWeight: 700,
-                letterSpacing: 1.1,
-                textTransform: "uppercase",
+                fontFamily: fontDisplay,
+                fontSize: 12,
+                fontWeight: 600,
+                letterSpacing: -0.12,
                 display: "inline-flex",
                 alignItems: "center",
               }}
@@ -187,20 +158,19 @@ export default function ChannelCard({
               right: 10,
               bottom: 10,
               zIndex: 2,
-              width: 36,
-              height: 36,
-              borderRadius: 8,
-              background:
-                "linear-gradient(180deg, #FFFFFF 0%, #E7EBF0 55%, #C8CED6 100%)",
+              width: 32,
+              height: 32,
+              borderRadius: "50%",
+              background: "rgba(255,255,255,0.94)",
               color: "#0B0C0F",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              boxShadow: "0 6px 16px rgba(0,0,0,0.35)",
+              boxShadow: "0 4px 12px rgba(0,0,0,0.28)",
               paddingLeft: active ? 0 : 1,
             }}
           >
-            <Icon name={active ? "pause" : "play"} size={14} />
+            <Icon name={active ? "pause" : "play"} size={13} />
           </span>
         </span>
       </span>
@@ -208,12 +178,12 @@ export default function ChannelCard({
       <span
         style={{
           display: "block",
-          marginTop: 10,
+          marginTop: 8,
           fontFamily: fontDisplay,
-          fontSize: featured ? 15 : 14,
-          fontWeight: featured ? 700 : 650,
+          fontSize: featured ? 15 : 13,
+          fontWeight: 600,
           letterSpacing: -0.22,
-          lineHeight: 1.2,
+          lineHeight: 1.25,
           color: y2k.offWhite,
           overflow: "hidden",
           textOverflow: "ellipsis",
@@ -225,10 +195,11 @@ export default function ChannelCard({
       <span
         style={{
           display: "block",
-          marginTop: 3,
+          marginTop: 2,
+          fontFamily: fontDisplay,
           fontSize: 12,
-          fontWeight: 500,
-          letterSpacing: -0.08,
+          fontWeight: 400,
+          letterSpacing: -0.1,
           lineHeight: 1.3,
           color: color.muted,
           overflow: "hidden",
