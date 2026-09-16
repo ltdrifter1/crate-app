@@ -49,6 +49,8 @@ describe("catalog junk audit heuristics", () => {
     expect(isNonMusic({ title: "I Am A Scientist", artist: "Guided By Voices" })).toBe(false);
     expect(isNonMusic({ title: "California Nights", artist: "Best Coast" })).toBe(false);
     expect(isNonMusic({ title: "How to Be a Confidante", artist: "The Bug Club" })).toBe(false);
+    expect(isNonMusic({ title: "Public Star Party", artist: "Things To Do!" })).toBe(true);
+    expect(isNonMusic({ title: "Campfire Stories", artist: "Baloney Bob" })).toBe(true);
   });
 
   test("teaser is short promo only", () => {
