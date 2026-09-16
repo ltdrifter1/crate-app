@@ -20,6 +20,7 @@ function ChannelSurfingSection({
   if (!channels.length) return null;
 
   const tile = homeSpace.tileTicket;
+  const featuredTile = homeSpace.tileFeatured;
 
   return (
     <section
@@ -38,24 +39,27 @@ function ChannelSurfingSection({
         meta={`${channels.length} channels`}
       />
 
-      <Rail gap={homeSpace.shelfGap} padTop={20} padBottom={26}>
-        {channels.map((channel, i) => (
-          <div
-            key={channel.id}
-            style={{
-              animation: `rise 0.45s ${motion.ease} ${Math.min(i, 8) * 0.035}s both`,
-            }}
-          >
-            <ChannelCard
-              channel={channel}
-              active={activeChannelId === channel.id}
-              size={tile}
-              priority={i === 0}
-              eager={i === 1}
-              onClick={() => onTuneChannel?.(channel)}
-            />
-          </div>
-        ))}
+      <Rail gap={homeSpace.shelfGap} padTop={24} padBottom={26} alignItems="flex-end">
+        {channels.map((channel, i) => {
+          const featured = Boolean(channel.showcase) || channel.id === "local-pnw";
+          return (
+            <div
+              key={channel.id}
+              style={{
+                animation: `rise 0.45s ${motion.ease} ${Math.min(i, 8) * 0.035}s both`,
+              }}
+            >
+              <ChannelCard
+                channel={channel}
+                active={activeChannelId === channel.id}
+                size={featured ? featuredTile : tile}
+                priority={i === 0}
+                eager={i === 1}
+                onClick={() => onTuneChannel?.(channel)}
+              />
+            </div>
+          );
+        })}
       </Rail>
     </section>
   );

@@ -9,7 +9,7 @@ import { countdownScore } from "./station";
  *   01 Y2K Dance             → house/garage/disco scenes (not all Electronic)
  *   02 Variety Mix           → curator shelf (variety pad)
  *   03 Local Pacific Northwest → Audioasis batch upload (`batch` includes audioasis)
- *      Featured Channel Surfing station — gold rim on the Home tile (pinned when listing decorated dials)
+ *      Featured Channel Surfing station — larger broadcast tile (pinned when listing decorated dials)
  *   04 Electronic            → expansions batch / techno–warehouse scenes
  *   05 Drum & Bass           → DnB / jungle / liquid scenes (not all Electronic)
  *   06 Emo & Shoegaze        → by genre
@@ -438,7 +438,7 @@ export function buildCrossGenreVarietyPool(tracks = [], limit = VARIETY_CROSS_GE
   return out;
 }
 
-/** Featured Channel Surfing dial — Local PNW is the station we feature on Home (gold rim). */
+/** Featured Channel Surfing dial — Local PNW is the station we feature on Home. */
 export const SHOWCASE_CHANNEL_ID = "local-pnw";
 
 export const SCENE_CHANNELS = [

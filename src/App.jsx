@@ -95,7 +95,7 @@ import {
   buildSceneChannelPool,
   getSceneChannel,
 } from "./lib/sceneChannels";
-import { pickTrackBumper } from "./lib/bumpers";
+import { pickTrackBumper, shouldFireTrackBumper } from "./lib/bumpers";
 import { trackHasVideo } from "./lib/video";
 import { playbackClock } from "./usePlayerPlayback";
 import { playerPlaybackStore } from "./lib/playerPlaybackStore";
@@ -290,18 +290,6 @@ const injectStyles = () => {
     @keyframes rise { from{opacity:0;transform:translateY(14px)} to{opacity:1;transform:none} }
     @keyframes fadeIn { from{opacity:0} to{opacity:1} }
     @keyframes shimmer { 0%{opacity:0.35} 50%{opacity:0.7} 100%{opacity:0.35} }
-    @keyframes pmpGoldGlow {
-      0%, 100% {
-        opacity: 0.16;
-        transform: scale(0.94);
-        filter: blur(7px);
-      }
-      50% {
-        opacity: 1;
-        transform: scale(1.14);
-        filter: blur(16px);
-      }
-    }
     @keyframes stationIn { from{opacity:0;transform:translateY(18px) scale(0.985)} to{opacity:1;transform:none} }
     @keyframes roomEnter { from{opacity:0;transform:translateY(14px)} to{opacity:1;transform:none} }
     @keyframes trackSwap { from{opacity:0;transform:translateY(4px)} to{opacity:1;transform:none} }
@@ -565,24 +553,6 @@ const injectStyles = () => {
     }
     .pmp-lift:hover { transform: translateY(-2px); }
     .pmp-lift:active { transform: translateY(0) scale(0.985); opacity: 1; }
-    /* Local PNW featured rim — gold glow that fades and grows. No spin. */
-    .pmp-channel-card--gold .pmp-channel-card-frame {
-      border-radius: 16px;
-      overflow: visible;
-    }
-    .pmp-channel-card--gold .pmp-channel-card-frame::before {
-      content: "";
-      position: absolute;
-      inset: -6px;
-      border-radius: 20px;
-      z-index: 0;
-      pointer-events: none;
-      transform-origin: center;
-      background: #E8B84A;
-      filter: blur(10px);
-      will-change: transform, opacity, filter;
-      animation: pmpGoldGlow 2.4s ease-in-out infinite;
-    }
     .pmp-press { transition: transform ${motion.fast} ${motion.ease}, box-shadow ${motion.base} ${motion.ease}, background ${motion.base}; }
     .pmp-press:active { transform: scale(0.94); opacity: 1; }
     .pmp-live-led {
@@ -934,6 +904,7 @@ export default function App() {
   const [activeSceneChannelId, setActiveSceneChannelId] = useState(null);
   const [stationBumper, setStationBumper] = useState(null);
   const lastBumperTrackRef = useRef(null);
+  const lastBumperAtRef = useRef(0);
   // Clock mix lane follows the time of day in the background.
   // Genre focus (from Search) is the only manual listen filter; taste prefs drive 95/5.
   const [mixLane, setMixLane] = useState(() => mixLaneForDate().id);
@@ -2742,7 +2713,8 @@ export default function App() {
 
   const stationUpNext = setNext || (countdown[0]?.track?.id !== currentTrack?.id ? countdown[0]?.track : countdown[1]?.track) || null;
 
-  // Station bumper / ident between cuts while locked to channel or show
+  // Sparse station ident between cuts — skip most changes so the live show
+  // sting (e.g. Most Requested / Dez) does not restage on every song.
   useEffect(() => {
     if (!currentTrack?.id || !isPlayingRef.current) return;
     if (lastBumperTrackRef.current === currentTrack.id) return;
@@ -2750,12 +2722,15 @@ export default function App() {
     lastBumperTrackRef.current = currentTrack.id;
     if (!prev) return; // skip first track of session
     if (!isRadioMode && !activeShowId && !activeSceneChannelId) return;
+    if (!shouldFireTrackBumper({ lastFiredAt: lastBumperAtRef.current })) return;
     const bumper = pickTrackBumper({
       show: liveShow,
       nextTrack: stationUpNext,
       countdownTop: countdown[0] || null,
       sceneChannel: activeSceneChannelId ? getSceneChannel(activeSceneChannelId) : null,
     });
+    if (!bumper) return;
+    lastBumperAtRef.current = Date.now();
     setStationBumper(bumper);
   }, [currentTrackId, isRadioMode, activeShowId, activeSceneChannelId, liveShow, stationUpNext, countdown]);
 
