@@ -140,8 +140,8 @@ Tracks **over 900s** are treated as long mixes and excluded from many radio/brow
 | Step | Command | What it uses from CSV / Firestore |
 |------|---------|-----------------------------------|
 | 1. Prep rows | (you / agent) | `tracks.template.csv` → `tracks.csv` + `audio/` + `covers/` |
-| 2. Bulk upload | `node upload-tracks.js` | title, artist, album, **genre** (normalized to 11 on write), energy, camelot, bpm, files, color; sets duration + URLs |
-| 3. Genre audit | `npm run catalog:normalize-genres` | Re-map any legacy `genre` strings to 11 (`--apply` to write) |
+| 2. Bulk upload | `node upload-tracks.js` | title, artist, album, **genre** (culture label kept as stored), energy, camelot, bpm, files, color, **batch**; sets duration + URLs. Re-run patches `batch`/`genre`/`source` on existing rows. |
+| 3. Genre tidy | `npm run catalog:normalize-genres` | Title-cases known labels; **does not** flatten Techno → Electronic (`--apply` to write) |
 | 4. Title audit | `node clean-titles.js` | title / artist only |
 | 5. Gap-fill genres | `python fix_genres.py` | Reads `tracks.csv` + APIs; writes Firestore — outputs should land in 11 via `to_canonical()` |
 | 6. Missing covers | `python find_missing_covers.py` | `tracks.csv` `coverFile` column |
@@ -166,7 +166,7 @@ When prepping a batch for me (or for yourself), deliver:
 - [ ] `covers/` when available  
 - [ ] MIK: BPM, Camelot key, energy filled per row  
 - [ ] Genre: specific background label, not only “Electronic” unless unknown  
-- [ ] Channel Surfing wave tag in `batch` when uploading for a dial (e.g. `audioasis-wave-1`, `metal-wave-1`, `punk-wave-1`, `country-folk-wave-1`) — see `docs/CHANNEL_SURFING.md`  
+- [ ] Channel Surfing wave tag in `batch` when uploading for a dial (e.g. `audioasis-wave-1`, `y2k-wave-1`, `dnb-wave-1`, `metal-wave-1`) — see `docs/CHANNEL_SURFING.md`  
 - [ ] Titles/artists cleaned per §4  
 - [ ] Note any rows &gt; 15 min (mixes) intentionally  
 
@@ -174,7 +174,9 @@ After prep:
 
 ```bash
 node upload-tracks.js
-npm run catalog:normalize-genres    # dry-run; add :apply if anything to fix
+npm run catalog:normalize-genres    # dry-run; add :apply only to tidy labels, not to flatten scenes
+# Existing catalog + a filled tracks.csv:
+npm run catalog:backfill-batch      # dry-run, then :apply
 ```
 
 ---

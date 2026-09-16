@@ -815,9 +815,24 @@ export function enrichTracksWithScenes(tracks = []) {
 }
 
 /** Does track belong to scene? */
+function explicitSceneIds(track) {
+  const ids = [];
+  const one = String(track?.sceneId || track?.scene || "").trim().toLowerCase();
+  if (one) ids.push(one.replace(/^scene-/, ""));
+  const extra = track?.sceneIds;
+  if (Array.isArray(extra)) {
+    extra.forEach((id) => {
+      const s = String(id || "").trim().toLowerCase().replace(/^scene-/, "");
+      if (s) ids.push(s);
+    });
+  }
+  return ids;
+}
+
 export function trackMatchesScene(track, sceneId) {
   const scene = getScene(sceneId);
   if (!scene) return false;
+  if (explicitSceneIds(track).includes(sceneId)) return true;
   // Prefer precomputed scene tags from enrichTracksWithScenes.
   if (track._scene?.id === sceneId) return true;
   if ((track._scenes || []).includes(sceneId)) return true;

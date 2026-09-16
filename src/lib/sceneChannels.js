@@ -3,35 +3,45 @@ import { normalizeGenre } from "./genres";
 import { countdownScore } from "./station";
 
 /**
- * Scene surfing — dial channels under Channel Surfing (CH-01 … CH-09).
+ * Scene surfing — dial channels under Channel Surfing (CH-01 … CH-10).
  *
  * Source mapping:
- *   01 Y2K Dance             → house/garage/disco scenes (not all Electronic)
+ *   01 Y2K Dance             → y2k-wave batch / house/garage/disco scenes
  *   02 Variety Mix           → curator shelf (variety pad)
  *   03 Local Pacific Northwest → Audioasis batch upload (`batch` includes audioasis)
  *      Featured Channel Surfing station — gold rim on the Home tile (pinned when listing decorated dials)
  *   04 Electronic            → expansions batch / techno–warehouse scenes
- *   05 Drum & Bass           → DnB / jungle / liquid scenes (not all Electronic)
- *   06 Emo & Shoegaze        → by genre
- *   07 Metal                 → metal batch upload (+ genre fallback)
- *   08 Punk                  → punk batch upload (+ keywords)
- *   09 Country & Folk        → country-folk batch upload (+ genre fallback)
- *   10 Downtempo             → downtempo / trip-hop / ambient scenes
+ *   05 Drum & Bass           → dnb-wave batch / DnB-jungle-liquid scenes
+ *   06 Emo & Shoegaze        → shoegaze-wave batch / genre keywords
+ *   07 Metal                 → metal-wave batch (+ genre fallback)
+ *   08 Punk                  → punk-wave batch (+ keywords)
+ *   09 Country & Folk        → country-folk-wave batch (+ genre fallback)
+ *   10 Downtempo             → downtempo-wave batch / trip-hop / ambient scenes
  *
  * Batch uploads: set track.batch (or source) like audioasis-wave-1 —
- *   metal-wave-1 | punk-wave-1 | country-folk-wave-1
+ *   metal-wave-1 | punk-wave-1 | country-folk-wave-1 | y2k-wave-1 | dnb-wave-1
  */
 
 function singlesOnly(tracks = []) {
   return tracks.filter((t) => (t.duration || 0) <= 900 && String(t.audioUrl || "").trim());
 }
 
-/** PNW / Cascadia markers for the Local channel (Audioasis mapping later). */
-const PNW_KEYWORDS = [
+/** Region phrases that are enough on their own. */
+const PNW_STRONG_KEYWORDS = [
   "pacific northwest",
   "pacific-northwest",
   "pnw",
   "cascadia",
+  "audioasis",
+  "puget sound",
+  "willamette",
+  "columbia river",
+  "vancouver wa",
+  "vancouver, wa",
+];
+
+/** City tokens — require artist/location or a live/venue context, not a title that is just the city. */
+const PNW_CITY_KEYWORDS = [
   "seattle",
   "portland",
   "olympia",
@@ -39,13 +49,7 @@ const PNW_KEYWORDS = [
   "bellingham",
   "spokane",
   "boise",
-  "vancouver wa",
-  "vancouver, wa",
   "oregon",
-  "puget sound",
-  "willamette",
-  "columbia river",
-  "audioasis",
 ];
 
 /** Genre / style tokens plus distinctive band names. */
@@ -149,15 +153,22 @@ const Y2K_DANCE_SCENES = [
   "trance",
 ];
 
-/** Batch / source prefixes for channel upload waves (Audioasis-style). */
+/**
+ * Batch / source prefixes for channel upload waves.
+ * Use hyphenated wave tokens (`metal-wave-1`), not bare words (`metal`) —
+ * matching is token-aware so `folk-punk-wave-1` does not hit Country & Folk.
+ */
 export const CHANNEL_BATCH_PREFIXES = {
-  "variety-mix": ["variety", "curator", "variety-mix"],
+  "y2k-dance": ["y2k-wave", "y2k-dance-wave"],
+  "variety-mix": ["variety-wave", "variety-mix", "curator-wave"],
   "local-pnw": ["audioasis"],
-  "electronic-underground": ["expansion", "expansions"],
-  metal: ["metal"],
-  punk: ["punk"],
-  "country-folk": ["country-folk", "countryfolk", "country", "folk"],
-  downtempo: ["downtempo", "trip-hop", "triphop"],
+  "electronic-underground": ["expansions-wave", "expansion-wave", "expansions"],
+  "drum-and-bass": ["dnb-wave", "drum-and-bass-wave", "jungle-wave"],
+  shoegaze: ["shoegaze-wave", "emo-wave"],
+  metal: ["metal-wave"],
+  punk: ["punk-wave"],
+  "country-folk": ["country-folk-wave", "countryfolk-wave", "country-wave", "folk-wave"],
+  downtempo: ["downtempo-wave", "trip-hop-wave", "triphop-wave"],
 };
 
 /** Default Variety Mix pool size when no curator batch is present. */
@@ -165,12 +176,12 @@ export const VARIETY_CROSS_GENRE_LIMIT = 48;
 
 /** Pending catalog-source wiring (curator shelf / Audioasis / expansions / genre batches). */
 export const CHANNEL_SOURCE_NOTES = {
-  "y2k-dance": { num: 1, source: "genre", note: "Y2K Dance — house/garage/disco scenes, not the whole Electronic lane" },
+  "y2k-dance": { num: 1, source: "genre", note: "Y2K Dance — `y2k-wave-N` or house/garage/disco scenes" },
   "variety-mix": { num: 2, source: "variety", note: "Variety Mix — curator batch (`variety-wave-N`) or cross-genre mix" },
   "local-pnw": { num: 3, source: "audioasis", showcase: true, note: "Local PNW — featured Channel Surfing station; Audioasis batch (`batch` includes audioasis)" },
   "electronic-underground": { num: 4, source: "expansions", note: "Electronic — expansions batch (`expansions-wave-N`) + techno/warehouse scenes" },
-  "drum-and-bass": { num: 5, source: "genre", note: "Drum & Bass — DnB/jungle/liquid scenes, not the whole Electronic lane" },
-  shoegaze: { num: 6, source: "genre", note: "Emo & Shoegaze — match by genre/keywords" },
+  "drum-and-bass": { num: 5, source: "genre", note: "Drum & Bass — `dnb-wave-N` or DnB/jungle/liquid scenes" },
+  shoegaze: { num: 6, source: "genre", note: "Emo & Shoegaze — `shoegaze-wave-N` / `emo-wave-N` or genre/keywords" },
   metal: { num: 7, source: "metal", note: "Metal — batch upload (`metal-wave-N`) + genre/scene fallback" },
   punk: { num: 8, source: "punk", note: "Punk — batch upload (`punk-wave-N`) + keywords" },
   "country-folk": { num: 9, source: "country-folk", note: "Country & Folk — batch upload (`country-folk-wave-N`) + genre fallback" },
@@ -236,7 +247,24 @@ function trackBatchSource(track) {
 export function matchesChannelBatch(track, prefixes = []) {
   const batch = trackBatchSource(track);
   if (!batch || !prefixes.length) return false;
-  return prefixes.some((p) => batch.includes(String(p).toLowerCase()));
+  return prefixes.some((p) => batchTokenMatches(batch, p));
+}
+
+function batchTokenMatches(batch, prefix) {
+  const b = String(batch || "").toLowerCase().trim();
+  const p = String(prefix || "").toLowerCase().trim();
+  if (!b || !p) return false;
+  if (b === p || b.startsWith(`${p}-`) || b.startsWith(`${p}_`) || b.startsWith(`${p} `)) return true;
+  const pattern = escapeRegex(p);
+  return new RegExp(`(^|[^a-z0-9])${pattern}([^a-z0-9]|$)`).test(b);
+}
+
+function cityHasLiveContext(blob, city) {
+  const c = escapeRegex(city);
+  return new RegExp(
+    `\\b(live|at|in|on|@|sofar|kexp|krbx|treefort|paramount)\\b[\\s\\S]{0,48}\\b${c}\\b|\\b${c}\\b[\\s\\S]{0,32}\\b(wa|washington|oregon|\\bor\\b|live|kexp)\\b`,
+    "i"
+  ).test(blob);
 }
 
 function isLocalPnwTrack(track) {
@@ -244,18 +272,23 @@ function isLocalPnwTrack(track) {
   const region = String(track.region || track.origin || track.location || "").toLowerCase();
   if (region === "pnw" || region === "pacific northwest" || region === "cascadia") return true;
   if (track.local === true || track.pnw === true) return true;
-  // Audioasis batch upload waves
   if (matchesChannelBatch(track, CHANNEL_BATCH_PREFIXES["local-pnw"])) return true;
+  if (matchesKeywords(track, PNW_STRONG_KEYWORDS)) return true;
+
+  const artistSide = [track.artist, track.album, track.label, track.city].filter(Boolean).join(" ");
+  if (PNW_CITY_KEYWORDS.some((city) => keywordInText(artistSide, city))) return true;
+
   const blob = trackTextBlob(track);
-  // Paris Olympia Theatre / similar venues are not Cascadia
-  const keywords = /olympia\s+theatre/.test(blob)
-    ? PNW_KEYWORDS.filter((kw) => kw !== "olympia")
-    : PNW_KEYWORDS;
-  return matchesKeywords(track, keywords);
+  return PNW_CITY_KEYWORDS.some((city) => {
+    if (city === "olympia" && /olympia\s+theatre/.test(blob)) return false;
+    if (!keywordInText(blob, city)) return false;
+    return cityHasLiveContext(blob, city);
+  });
 }
 
 function isShoegazeTrack(track) {
   if (!track) return false;
+  if (matchesChannelBatch(track, CHANNEL_BATCH_PREFIXES.shoegaze)) return true;
   const rawGenre = String(track.genre || "").toLowerCase();
   if (
     keywordInText(rawGenre, "shoegaze") ||
@@ -357,6 +390,7 @@ export function isDowntempoTrack(track) {
  */
 function isY2kDanceTrack(track) {
   if (!track) return false;
+  if (matchesChannelBatch(track, CHANNEL_BATCH_PREFIXES["y2k-dance"])) return true;
   if (Y2K_DANCE_SCENES.some((sid) => trackMatchesScene(track, sid))) return true;
   if (!trackMatchesScene(track, "house")) return false;
   const raw = String(track.genre || "").trim().toLowerCase();
@@ -366,7 +400,13 @@ function isY2kDanceTrack(track) {
   return bpm >= 118 && bpm <= 130 && energy >= 4 && energy <= 8;
 }
 
-/** Soft expansions hint until batch mapping lands. */
+function isDrumAndBassTrack(track) {
+  if (!track) return false;
+  if (matchesChannelBatch(track, CHANNEL_BATCH_PREFIXES["drum-and-bass"])) return true;
+  return ["drum-and-bass", "jungle", "liquid", "breakbeat"].some((sid) => trackMatchesScene(track, sid));
+}
+
+/** Expansions / techno-warehouse — not every high-energy Electronic cut. */
 export function isElectronicUndergroundTrack(track) {
   if (!track) return false;
   if (matchesChannelBatch(track, CHANNEL_BATCH_PREFIXES["electronic-underground"])) return true;
@@ -374,14 +414,8 @@ export function isElectronicUndergroundTrack(track) {
   if (["techno", "industrial", "minimal", "experimental", "acid"].some((id) => trackMatchesScene(track, id))) {
     return true;
   }
-  const g = normalizeGenre(track.genre);
-  // Electronic lane only when energy/bpm reads underground-leaning
-  if (g === "Electronic") {
-    const energy = Number(track.energy) || 5;
-    const bpm = Number(track.bpm) || 0;
-    if (energy >= 7 || (bpm >= 128 && energy >= 5)) return true;
-  }
-  return false;
+  const raw = String(track.genre || "").toLowerCase();
+  return ["techno", "industrial", "minimal", "experimental", "acid"].some((id) => keywordInText(raw, id));
 }
 
 /**
@@ -505,9 +539,10 @@ export const SCENE_CHANNELS = [
     genres: [],
     vibe: "Electronic",
     source: "expansions",
-    /** Expansions batch (`expansions-wave-N`) preferred; else techno/warehouse match. */
+    /** Expansions batch (`expansions-wave-N`) or techno/warehouse — never pad the catalog. */
     match: isElectronicUndergroundTrack,
     preferMatch: true,
+    strict: true,
     minTracks: 1,
   },
   {
@@ -522,6 +557,8 @@ export const SCENE_CHANNELS = [
     genres: [],
     vibe: "Drum & Bass",
     source: "genre",
+    match: isDrumAndBassTrack,
+    minTracks: 1,
   },
   {
     id: "shoegaze",

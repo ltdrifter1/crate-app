@@ -1,4 +1,4 @@
-import { normalizeGenre, migratePreferredGenres, CANONICAL_GENRES } from './genres';
+import { normalizeGenre, migratePreferredGenres, CANONICAL_GENRES, storeGenreLabel } from './genres';
 
 // eslint-disable-next-line import/no-commonjs
 const shared = require('./genre-normalize.shared.cjs');
@@ -22,4 +22,8 @@ test('shared alias table matches app (Node scripts ↔ bundle)', () => {
   expect(shared.migratePreferredGenres(['House', 'Jazz', 'techno'])).toEqual(
     migratePreferredGenres(['House', 'Jazz', 'techno'])
   );
+  expect(shared.storeGenreLabel("techno")).toBe(storeGenreLabel("techno"));
+  expect(storeGenreLabel("techno")).toBe("Techno");
+  expect(storeGenreLabel("UK Garage")).toBe("UK Garage");
+  expect(normalizeGenre("techno")).toBe("Electronic");
 });

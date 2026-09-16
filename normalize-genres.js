@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 // normalize-genres.js
-// Remap every Firestore track.genre into the canonical 11 (alias table in genre-normalize.shared.cjs).
+// Tidy genre labels. Does NOT collapse Techno/UK Garage/etc. into the 11 taste lanes
+// (those labels power Channel Surfing scenes). Canonical 11 names are title-cased.
 //
 //   node normalize-genres.js           # dry-run → genres-review.csv
 //   node normalize-genres.js --apply   # write Firestore
@@ -8,7 +9,7 @@
 const admin = require("firebase-admin");
 const fs = require("fs");
 const path = require("path");
-const { CANONICAL_GENRES, normalizeGenre } = require("./src/lib/genre-normalize.shared.cjs");
+const { CANONICAL_GENRES, storeGenreLabel } = require("./src/lib/genre-normalize.shared.cjs");
 
 if (!fs.existsSync(path.join(__dirname, "serviceAccountKey.json"))) {
   console.error("\n❌  serviceAccountKey.json not found in repo root.\n");
@@ -33,7 +34,7 @@ async function main() {
   snap.docs.forEach((d) => {
     const data = d.data();
     const before = data.genre || "";
-    const after = normalizeGenre(before);
+    const after = storeGenreLabel(before);
     if (after) counts[after] = (counts[after] || 0) + 1;
     else blank++;
     if (after !== before) {

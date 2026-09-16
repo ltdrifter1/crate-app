@@ -35,8 +35,9 @@ Copy `.env.example` for local ingest scripts. Never commit API keys or `serviceA
 | `npm test` | Unit tests |
 | `npm run build` | Production build |
 | `node upload-tracks.js` | Bulk add audio → Storage + Firestore (deduped) |
-| `npm run catalog:normalize-genres` | Dry-run genre remap → `genres-review.csv` |
-| `npm run catalog:normalize-genres:apply` | Write 11 canonical genres to Firestore |
+| `npm run catalog:normalize-genres` | Dry-run genre label tidy → `genres-review.csv` |
+| `npm run catalog:normalize-genres:apply` | Write tidied culture labels (does not flatten Techno → Electronic) |
+| `npm run catalog:backfill-batch` | Dry-run patch `batch`/`genre` from `tracks.csv` onto existing Firestore rows |
 | `node clean-titles.js` | Dry-run title/artist cleanup → `titles-review.csv` |
 | `node clean-titles.js --apply` | Write cleaned titles/artists to Firestore |
 
@@ -92,10 +93,11 @@ Store **specific culture labels** on each track (`Techno`, `UK Garage`, `Soul`, 
 
 ```bash
 npm run catalog:normalize-genres        # dry-run → genres-review.csv
-npm run catalog:normalize-genres:apply  # updates Firestore
+npm run catalog:normalize-genres:apply  # tidy labels only (keeps Techno / UK Garage)
+npm run catalog:backfill-batch          # dry-run: copy batch/genre from tracks.csv
 ```
 
-Legacy labels (House, Drum and Bass, Funk, etc.) remap via `src/lib/genre-normalize.shared.cjs`; unknown genres are cleared.
+Taste still uses the 11 lanes via `normalizeGenre()`. Channel Surfing scenes read the specific stored string. Unknown genres are left as-is.
 
 ### D. Add a lot more tracks
 

@@ -22,6 +22,8 @@
     "catalog:clean-titles:apply": "node clean-titles.js --apply",
     "catalog:normalize-genres": "node normalize-genres.js",
     "catalog:normalize-genres:apply": "node normalize-genres.js --apply",
+    "catalog:backfill-batch": "node scripts/backfill-channel-batch.js",
+    "catalog:backfill-batch:apply": "node scripts/backfill-channel-batch.js --apply",
     "catalog:delete-unknown-artists": "node delete-unknown-artists.js",
     "catalog:delete-unknown-artists:apply": "node delete-unknown-artists.js --apply"
   },

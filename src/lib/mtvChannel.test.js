@@ -161,10 +161,10 @@ describe("sceneChannels", () => {
     expect(CHANNEL_SOURCE_NOTES.punk.source).toBe("punk");
     expect(CHANNEL_SOURCE_NOTES["country-folk"].source).toBe("country-folk");
     expect(CHANNEL_SOURCE_NOTES.downtempo.source).toBe("genre");
-    expect(CHANNEL_BATCH_PREFIXES.metal).toContain("metal");
-    expect(CHANNEL_BATCH_PREFIXES.punk).toContain("punk");
-    expect(CHANNEL_BATCH_PREFIXES["country-folk"]).toContain("country-folk");
-    expect(CHANNEL_BATCH_PREFIXES.downtempo).toContain("downtempo");
+    expect(CHANNEL_BATCH_PREFIXES.metal).toContain("metal-wave");
+    expect(CHANNEL_BATCH_PREFIXES.punk).toContain("punk-wave");
+    expect(CHANNEL_BATCH_PREFIXES["country-folk"]).toContain("country-folk-wave");
+    expect(CHANNEL_BATCH_PREFIXES.downtempo).toContain("downtempo-wave");
     expect(SCENE_CHANNELS).toHaveLength(10);
     expect(SCENE_CHANNELS.every((c) => Boolean(c.id))).toBe(true);
     expect(getSceneChannel("variety-mix").tagline.toLowerCase()).not.toContain("evie");
@@ -208,7 +208,7 @@ describe("sceneChannels", () => {
     ];
     expect(isVarietyCuratorTrack(tracks[0])).toBe(true);
     expect(isVarietyCuratorTrack(tracks[2])).toBe(false);
-    expect(CHANNEL_BATCH_PREFIXES["variety-mix"]).toContain("variety");
+    expect(CHANNEL_BATCH_PREFIXES["variety-mix"]).toContain("variety-wave");
     const pool = buildSceneChannelPool(tracks, variety);
     expect(pool.map((t) => t.id).sort()).toEqual(["1", "2"]);
     expect(buildCrossGenreVarietyPool(tracks, 3).length).toBe(3);
@@ -363,6 +363,17 @@ describe("sceneChannels", () => {
     expect(trackMatchesChannel(midElectronic, dnb)).toBe(false);
     expect(trackMatchesChannel(midElectronic, y2k)).toBe(false);
     expect(trackMatchesChannel(garage, y2k)).toBe(true);
+    expect(trackMatchesChannel({ title: "Seattle", artist: "Keep Shelly in Athens", genre: "Electronic", duration: 180, audioUrl: "u" }, local)).toBe(false);
+
+    const electronic = getSceneChannel("electronic-underground");
+    expect(trackMatchesChannel({ title: "Club", artist: "Y", genre: "Electronic", duration: 180, audioUrl: "u", bpm: 132, energy: 6 }, electronic)).toBe(false);
+    expect(trackMatchesChannel({ title: "Peak", artist: "Y", genre: "Electronic", duration: 180, audioUrl: "u", sceneId: "techno" }, electronic)).toBe(true);
+    expect(trackMatchesChannel({ title: "Floor", artist: "Y", duration: 180, audioUrl: "u", batch: "y2k-wave-1" }, y2k)).toBe(true);
+    expect(trackMatchesChannel({ title: "Amen", artist: "Y", duration: 180, audioUrl: "u", batch: "dnb-wave-1" }, dnb)).toBe(true);
+    expect(matchesChannelBatch({ batch: "metal" }, CHANNEL_BATCH_PREFIXES.metal)).toBe(false);
+    expect(matchesChannelBatch({ batch: "metal-wave-1" }, CHANNEL_BATCH_PREFIXES.metal)).toBe(true);
+    expect(matchesChannelBatch({ batch: "folk-punk-wave-1" }, CHANNEL_BATCH_PREFIXES["country-folk"])).toBe(false);
+    expect(matchesChannelBatch({ batch: "country-folk-wave-1" }, CHANNEL_BATCH_PREFIXES["country-folk"])).toBe(true);
   });
 });
 

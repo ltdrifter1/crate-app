@@ -7,7 +7,7 @@ import { AlbumArt } from "../components/listen/AlbumArt";
 import { BrandGlyph as DoorGlyph } from "../components/brand/BrandMark";
 import { computeSignalTraits } from "../lib/engine";
 import { enrichTracksWithScenes } from "../lib/scenes";
-import { normalizeGenre } from "../lib/genres";
+import { storeGenreLabel } from "../lib/genres";
 import { COMMUNITY_MIX_TITLE, formatMonthLabel, isCommunityPlaylist } from "../lib/mixes";
 import {
   BTN_PRIMARY,
@@ -191,7 +191,7 @@ export default function AdminScreen({
       if (r.title != null && String(r.title).trim() !== "") updates.title = String(r.title).trim();
       if (r.artist != null && String(r.artist).trim() !== "") updates.artist = String(r.artist).trim();
       if (r.album != null && String(r.album).trim() !== "") updates.album = String(r.album).trim();
-      if (r.genre != null && String(r.genre).trim() !== "") updates.genre = normalizeGenre(r.genre) || String(r.genre).trim();
+      if (r.genre != null && String(r.genre).trim() !== "") updates.genre = storeGenreLabel(r.genre) || String(r.genre).trim();
       if (r.camelot != null && String(r.camelot).trim() !== "") updates.camelot = String(r.camelot).trim();
       if (r.bpm && !isNaN(parseInt(r.bpm, 10))) updates.bpm = parseInt(r.bpm, 10);
       if (r.energy && !isNaN(parseInt(r.energy, 10))) updates.energy = parseInt(r.energy, 10);
@@ -225,7 +225,7 @@ export default function AdminScreen({
         } else if (id) {
           const trackData = {
             title: r.title || "", artist: r.artist || "", album: r.album || "",
-            genre: normalizeGenre(r.genre) || "", camelot: r.camelot || "",
+            genre: storeGenreLabel(r.genre) || r.genre || "", camelot: r.camelot || "",
             energy: parseInt(r.energy, 10) || 5, bpm: parseInt(r.bpm, 10) || null,
             audioUrl: r.audiourl || r.audioUrl || "", albumCover: r.albumcover || r.albumCover || "",
             color: r.color || cols[Math.floor(Math.random() * cols.length)],
@@ -240,7 +240,7 @@ export default function AdminScreen({
         } else {
           const trackData = {
             title: r.title || "", artist: r.artist || "", album: r.album || "",
-            genre: normalizeGenre(r.genre) || "", camelot: r.camelot || "",
+            genre: storeGenreLabel(r.genre) || r.genre || "", camelot: r.camelot || "",
             energy: parseInt(r.energy, 10) || 5, bpm: parseInt(r.bpm, 10) || null,
             audioUrl: r.audiourl || r.audioUrl || "", albumCover: r.albumcover || r.albumCover || "",
             color: r.color || cols[Math.floor(Math.random() * cols.length)],
@@ -489,7 +489,7 @@ export default function AdminScreen({
             </div>
           )}
           <div style={{ padding:"10px 14px", borderRadius:10, background:"rgba(255,255,255,0.06)", border:"1px solid rgba(255,255,255,0.1)", marginBottom:24, fontSize:11, color: color.muted, lineHeight:1.6 }}>
-            <strong style={{ color: color.muted }}>How it works:</strong> Export downloads all tracks as CSV (keep the <code>id</code> column). Edit titles/artists/genres/BPM/Camelot in Sheets, then Import. Matching is by <strong>id first</strong> so renames stick; title+artist is only a fallback when id is blank. New rows without id are created. Columns: id, title, artist, album, genre, energy, camelot, bpm, audioUrl, albumCover, color, duration, <code>batch</code> (Channel Surfing waves: <code>variety-wave-1</code>, <code>audioasis-wave-1</code>, <code>metal-wave-1</code>, <code>punk-wave-1</code>, <code>country-folk-wave-1</code>, <code>downtempo-wave-1</code>), source.
+            <strong style={{ color: color.muted }}>How it works:</strong> Export downloads all tracks as CSV (keep the <code>id</code> column). Edit titles/artists/genres/BPM/Camelot in Sheets, then Import. Matching is by <strong>id first</strong> so renames stick; title+artist is only a fallback when id is blank. New rows without id are created. Keep a specific culture label in <code>genre</code> (Techno, UK Garage) — taste still maps to the 11 lanes. Columns: id, title, artist, album, genre, energy, camelot, bpm, audioUrl, albumCover, color, duration, <code>batch</code> (Channel Surfing waves: <code>variety-wave-1</code>, <code>audioasis-wave-1</code>, <code>expansions-wave-1</code>, <code>y2k-wave-1</code>, <code>dnb-wave-1</code>, <code>shoegaze-wave-1</code>, <code>metal-wave-1</code>, <code>punk-wave-1</code>, <code>country-folk-wave-1</code>, <code>downtempo-wave-1</code>), source.
           </div>
           {(() => {
             const withKey = tracks.filter(t => t.camelot && t.camelot.trim());

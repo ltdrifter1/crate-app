@@ -9,7 +9,7 @@
 const admin = require("firebase-admin");
 const fs    = require("fs");
 const path  = require("path");
-const { normalizeGenre } = require("./src/lib/genre-normalize.shared.cjs");
+const { storeGenreLabel } = require("./src/lib/genre-normalize.shared.cjs");
 
 // ── Startup checks ────────────────────────────────────────────────────────
 if (!fs.existsSync(path.join(__dirname, "serviceAccountKey.json"))) {
@@ -131,6 +131,24 @@ async function loadExistingCatalog() {
   return { byName, byAudioFile, count: snap.size };
 }
 
+async function maybePatchCatalogFields(id, row) {
+  const updates = {};
+  if (row.batch && String(row.batch).trim()) updates.batch = String(row.batch).trim();
+  if (row.source && String(row.source).trim()) updates.source = String(row.source).trim();
+  if (row.genre && String(row.genre).trim()) updates.genre = storeGenreLabel(row.genre);
+  if (!Object.keys(updates).length) return null;
+  const snap = await db.collection("tracks").doc(id).get();
+  if (!snap.exists) return null;
+  const data = snap.data() || {};
+  const diff = {};
+  Object.entries(updates).forEach(([k, v]) => {
+    if (String(data[k] || "") !== String(v)) diff[k] = v;
+  });
+  if (!Object.keys(diff).length) return null;
+  await db.collection("tracks").doc(id).update(diff);
+  return diff;
+}
+
 async function storageExists(destPath) {
   const [exists] = await bucket.file(destPath).exists();
   return exists;
@@ -163,12 +181,18 @@ async function uploadTracks() {
       const audioDest = `audio/${row.audioFile}`;
 
       if (existing.byName.has(key)) {
-        console.log(`    ⏭  Skip — already in Firestore (${existing.byName.get(key)})`);
+        const id = existing.byName.get(key);
+        const diff = await maybePatchCatalogFields(id, row);
+        if (diff) console.log(`    ✎  Updated ${id} (${Object.keys(diff).join(", ")})`);
+        else console.log(`    ⏭  Skip — already in Firestore (${id})`);
         skipped++;
         continue;
       }
       if (existing.byAudioFile.has(row.audioFile)) {
-        console.log(`    ⏭  Skip — audio filename already linked (${existing.byAudioFile.get(row.audioFile)})`);
+        const id = existing.byAudioFile.get(row.audioFile);
+        const diff = await maybePatchCatalogFields(id, row);
+        if (diff) console.log(`    ✎  Updated ${id} (${Object.keys(diff).join(", ")})`);
+        else console.log(`    ⏭  Skip — audio filename already linked (${id})`);
         skipped++;
         continue;
       }
@@ -202,7 +226,7 @@ async function uploadTracks() {
         title:      row.title,
         artist:     row.artist      || "",
         album:      row.album       || "",
-        genre:      normalizeGenre(row.genre) || row.genre || "",
+        genre:      storeGenreLabel(row.genre) || row.genre || "",
         energy:     parseInt(row.energy, 10) || 5,
         camelot:    row.camelot     || null,
         bpm:        parseInt(row.bpm, 10)    || null,
