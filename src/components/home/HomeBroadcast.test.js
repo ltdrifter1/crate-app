@@ -245,14 +245,14 @@ describe("Home broadcast + four-tab IA", () => {
     expect(div.querySelector("[aria-pressed]")).toBeTruthy();
   });
 
-  test("Local PNW tile is featured without a Showcase badge", async () => {
+  test("Local tile is featured without a Showcase badge", async () => {
     await act(async () => {
       root.render(
         React.createElement(ChannelCard, {
           channel: {
             id: "local-pnw",
-            title: "Local Pacific Northwest",
-            shortTitle: "Local PNW",
+            title: "Local",
+            shortTitle: "Local",
             tagline: "Pacific Northwest only",
             showcase: true,
           },
@@ -262,20 +262,21 @@ describe("Home broadcast + four-tab IA", () => {
     const card = div.querySelector(".pmp-channel-card");
     expect(card).toBeTruthy();
     expect(card.className).toMatch(/pmp-channel-card--featured/);
-    expect(div.textContent).toMatch(/Local PNW/);
+    expect(div.textContent).toMatch(/Local/);
     expect(div.textContent).toMatch(/Pacific Northwest only/);
+    expect(div.textContent).not.toMatch(/PNW/);
     expect(div.textContent).not.toMatch(/Showcase/);
     expect(div.querySelector(".pmp-showcase-promo")).toBeNull();
   });
 
-  test("Local PNW playing still says Playing, not Showcase", async () => {
+  test("Local playing still says Playing, not Showcase", async () => {
     await act(async () => {
       root.render(
         React.createElement(ChannelCard, {
           channel: {
             id: "local-pnw",
-            title: "Local Pacific Northwest",
-            shortTitle: "Local PNW",
+            title: "Local",
+            shortTitle: "Local",
             tagline: "Pacific Northwest only",
             showcase: true,
           },
@@ -327,7 +328,7 @@ describe("Home broadcast + four-tab IA", () => {
     expect(div.textContent).not.toMatch(/Request a song/i);
   });
 
-  test("home does not open a showcase popup for Local PNW", async () => {
+  test("home does not open a showcase popup for Local", async () => {
     const onTuneSceneChannel = jest.fn();
     const tracks = [
       {
@@ -361,15 +362,16 @@ describe("Home broadcast + four-tab IA", () => {
     expect(div.textContent).not.toMatch(/Tune in/);
     const surf = div.querySelector(".pmp-channel-surf");
     expect(surf).toBeTruthy();
-    expect(surf.textContent).toMatch(/Local PNW/);
+    expect(surf.textContent).toMatch(/Local/);
+    expect(surf.textContent).not.toMatch(/PNW/);
     const featured = [...surf.querySelectorAll(".pmp-channel-card")].find((el) =>
       el.className.includes("pmp-channel-card--featured")
     );
     expect(featured).toBeTruthy();
-    expect(featured.textContent).toMatch(/Local PNW/);
-    expect(featured.getAttribute("aria-label")).toMatch(/Local Pacific Northwest/);
+    expect(featured.textContent).toMatch(/Local/);
+    expect(featured.getAttribute("aria-label")).toMatch(/Tune Local/);
     const otherFeatured = [...surf.querySelectorAll(".pmp-channel-card")].filter(
-      (el) => el.className.includes("pmp-channel-card--featured") && !el.textContent.includes("Local PNW")
+      (el) => el.className.includes("pmp-channel-card--featured") && !el.textContent.includes("Local")
     );
     expect(otherFeatured).toHaveLength(0);
     await act(async () => {

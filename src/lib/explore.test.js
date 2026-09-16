@@ -67,7 +67,7 @@ describe("explore collections", () => {
     const channels = [
       {
         id: "local-pnw",
-        title: "Local Pacific Northwest",
+        title: "Local",
         tagline: "Pacific Northwest only",
         showcase: true,
         ready: true,
@@ -78,7 +78,7 @@ describe("explore collections", () => {
     ];
     const hero = buildExploreHero({ tracks, channels, releases: [], countdown: [] });
     expect(hero.kind).toBe("channel");
-    expect(hero.title).toMatch(/Pacific Northwest/);
+    expect(hero.title).toBe("Local");
     expect(hero.art).toBe(CHANNEL_ART["local-pnw"]);
     expect(hero.eyebrow).toMatch(/Showcase/);
   });

@@ -35,7 +35,7 @@ describe("onboardingTaste", () => {
     expect(taste.adventurous).toBe(50);
   });
 
-  test("Local PNW does not fake a genre lane", () => {
+  test("Local does not fake a genre lane", () => {
     expect(genresFromChannelIds(["local-pnw"])).toEqual([]);
     const taste = compileOnboardingTaste({ channelIds: ["local-pnw"] });
     expect(taste.genres).toEqual([]);

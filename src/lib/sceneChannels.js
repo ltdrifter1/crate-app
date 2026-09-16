@@ -8,7 +8,7 @@ import { countdownScore } from "./station";
  * Source mapping:
  *   01 Y2K Dance             → house/garage/disco scenes (not all Electronic)
  *   02 Variety Mix           → curator shelf (variety pad)
- *   03 Local Pacific Northwest → Audioasis batch upload (`batch` includes audioasis)
+ *   03 Local → Audioasis batch upload (`batch` includes audioasis)
  *      Featured Channel Surfing station — larger broadcast tile (pinned when listing decorated dials)
  *   04 Electronic            → expansions batch / techno–warehouse scenes
  *   05 Drum & Bass           → DnB / jungle / liquid scenes (not all Electronic)
@@ -167,7 +167,7 @@ export const VARIETY_CROSS_GENRE_LIMIT = 48;
 export const CHANNEL_SOURCE_NOTES = {
   "y2k-dance": { num: 1, source: "genre", note: "Y2K Dance — house/garage/disco scenes, not the whole Electronic lane" },
   "variety-mix": { num: 2, source: "variety", note: "Variety Mix — curator batch (`variety-wave-N`) or cross-genre mix" },
-  "local-pnw": { num: 3, source: "audioasis", showcase: true, note: "Local PNW — featured Channel Surfing station; Audioasis batch (`batch` includes audioasis)" },
+  "local-pnw": { num: 3, source: "audioasis", showcase: true, note: "Local — featured Channel Surfing station; Audioasis batch (`batch` includes audioasis)" },
   "electronic-underground": { num: 4, source: "expansions", note: "Electronic — expansions batch (`expansions-wave-N`) + techno/warehouse scenes" },
   "drum-and-bass": { num: 5, source: "genre", note: "Drum & Bass — DnB/jungle/liquid scenes, not the whole Electronic lane" },
   shoegaze: { num: 6, source: "genre", note: "Emo & Shoegaze — match by genre/keywords" },
@@ -438,7 +438,7 @@ export function buildCrossGenreVarietyPool(tracks = [], limit = VARIETY_CROSS_GE
   return out;
 }
 
-/** Featured Channel Surfing dial — Local PNW is the station we feature on Home. */
+/** Featured Channel Surfing dial — Local is the station we feature on Home. */
 export const SHOWCASE_CHANNEL_ID = "local-pnw";
 
 export const SCENE_CHANNELS = [
@@ -478,14 +478,14 @@ export const SCENE_CHANNELS = [
   {
     id: "local-pnw",
     num: 3,
-    title: "Local Pacific Northwest",
-    shortTitle: "Local PNW",
-    dialSlug: "LOCAL PNW",
+    title: "Local",
+    shortTitle: "Local",
+    dialSlug: "LOCAL",
     tagline: "Pacific Northwest only",
     accent: "#A8B0BC",
     scenes: [],
     genres: [],
-    vibe: "Local Pacific Northwest",
+    vibe: "Local",
     source: "audioasis",
     showcase: true,
     /** Only PNW / Audioasis cuts — never pad with the full catalog. */
