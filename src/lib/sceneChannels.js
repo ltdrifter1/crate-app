@@ -406,11 +406,13 @@ function isDrumAndBassTrack(track) {
   return ["drum-and-bass", "jungle", "liquid", "breakbeat"].some((sid) => trackMatchesScene(track, sid));
 }
 
-/** Expansions / techno-warehouse — not every high-energy Electronic cut. */
+/** Expansions / techno-warehouse — not rock “underground” bands or guitar warehouse gigs. */
 export function isElectronicUndergroundTrack(track) {
   if (!track) return false;
   if (matchesChannelBatch(track, CHANNEL_BATCH_PREFIXES["electronic-underground"])) return true;
-  if (matchesKeywords(track, ["underground", "warehouse", "expansions"])) return true;
+  const lane = normalizeGenre(track.genre);
+  if (lane && lane !== "Electronic") return false;
+  if (matchesKeywords(track, ["warehouse", "expansions"])) return true;
   if (["techno", "industrial", "minimal", "experimental", "acid"].some((id) => trackMatchesScene(track, id))) {
     return true;
   }
@@ -539,9 +541,9 @@ export const SCENE_CHANNELS = [
     genres: [],
     vibe: "Electronic",
     source: "expansions",
-    /** Expansions batch (`expansions-wave-N`) or techno/warehouse — never pad the catalog. */
+    /** Expansions batch (`expansions-wave-N`) or techno/warehouse — never pad; never Rock/Metal. */
     match: isElectronicUndergroundTrack,
-    preferMatch: true,
+    preferMatch: false,
     strict: true,
     minTracks: 1,
   },

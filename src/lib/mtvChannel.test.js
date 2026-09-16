@@ -293,7 +293,7 @@ describe("sceneChannels", () => {
 
   test("CH-04 Electronic matches expansions batch waves", () => {
     const electronic = getSceneChannel("electronic-underground");
-    expect(electronic.preferMatch).toBe(true);
+    expect(electronic.preferMatch).toBe(false);
     const tracks = [
       { id: "e1", title: "Warehouse", artist: "A", duration: 180, audioUrl: "u", batch: "expansions-wave-1" },
       { id: "e2", title: "Soft Pop", artist: "B", genre: "Pop", duration: 180, audioUrl: "u", energy: 3 },
@@ -301,6 +301,28 @@ describe("sceneChannels", () => {
     ];
     expect(isElectronicUndergroundTrack(tracks[0])).toBe(true);
     expect(isElectronicUndergroundTrack(tracks[1])).toBe(false);
+    expect(isElectronicUndergroundTrack({
+      title: "Pale Blue Eyes",
+      artist: "The Velvet Underground",
+      genre: "Rock",
+      duration: 180,
+      audioUrl: "u",
+    })).toBe(false);
+    expect(isElectronicUndergroundTrack({
+      title: "Absinthe Party at the Fly Honey Warehouse",
+      artist: "Minus The Bear",
+      genre: "Rock",
+      duration: 180,
+      audioUrl: "u",
+    })).toBe(false);
+    expect(isElectronicUndergroundTrack({
+      title: "Villains",
+      artist: "Bam Bam",
+      genre: "Metal",
+      album: "The U.S. Underground",
+      duration: 180,
+      audioUrl: "u",
+    })).toBe(false);
     expect(buildSceneChannelPool(tracks, electronic).map((t) => t.id).sort()).toEqual(["e1", "e3"]);
   });
 
