@@ -63,7 +63,6 @@ export function buildArtists(tracks = []) {
         coverTrack,
         avgEnergy: Math.round(avgEnergy * 10) / 10,
         albums,
-        story: artistStory(a.name, topGenre, a.tracks.length),
       };
     })
     .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
@@ -101,7 +100,6 @@ function enrichAlbum(al) {
     avgEnergy: Math.round(avgEnergy * 10) / 10,
     avgBpm,
     keys,
-    story: albumStory(al.title, al.artist, al.tracks.length),
   };
 }
 
@@ -143,24 +141,6 @@ export function findArtist(tracks, slug) {
 export function findAlbum(tracks, slug) {
   if (!slug) return null;
   return getCatalogEntities(tracks).albums.find((a) => a.slug === slug) || null;
-}
-
-export function artistStory(name, genre, count) {
-  const first = String(name || "This artist").split(/\s+/)[0];
-  if (genre && count >= 8) {
-    return `${first} keeps showing up in ${genre} — a crate you can live in for a while.`;
-  }
-  if (genre) {
-    return `Most often filed under ${genre}. ${count} cut${count === 1 ? "" : "s"} worth knowing by name.`;
-  }
-  return `${count} track${count === 1 ? "" : "s"} in your rooms — follow the sleeve, not the folder.`;
-}
-
-export function albumStory(title, artist, count) {
-  if (count <= 3) {
-    return `A short release from ${artist} — treat it as one sitting.`;
-  }
-  return `“${title}” as an object: ${count} tracks from ${artist}, meant to be heard in order when you can.`;
 }
 
 /** Search hits that are entities, not only tracks. */
