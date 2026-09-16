@@ -329,6 +329,41 @@ describe("sceneChannels", () => {
     expect(buildSceneChannelPool(tracks, ch).map((t) => t.id).sort()).toEqual(["1", "2", "3", "5"]);
     expect(availableSceneChannels(tracks, 1).some((c) => c.id === "downtempo")).toBe(true);
   });
+
+  test("channel keywords use whole tokens, not substrings", () => {
+    const local = getSceneChannel("local-pnw");
+    const metal = getSceneChannel("metal");
+    const punk = getSceneChannel("punk");
+    const shoe = getSceneChannel("shoegaze");
+    const country = getSceneChannel("country-folk");
+    const y2k = getSceneChannel("y2k-dance");
+    const dnb = getSceneChannel("drum-and-bass");
+
+    expect(trackMatchesChannel({ title: "The Bends", artist: "Radiohead", genre: "Rock", duration: 180, audioUrl: "u" }, local)).toBe(false);
+    expect(trackMatchesChannel({ title: "Just The Two Of Us", artist: "Grover Washington Jr.", genre: "R&B & Soul", duration: 180, audioUrl: "u" }, local)).toBe(false);
+    expect(trackMatchesChannel({ title: "Fog Cut", artist: "Seattle Dual", genre: "Electronic", duration: 180, audioUrl: "u" }, local)).toBe(true);
+
+    expect(trackMatchesChannel({ title: "Rhymes Like Dimes", artist: "MF DOOM", genre: "Hip-Hop", duration: 180, audioUrl: "u" }, metal)).toBe(false);
+    expect(trackMatchesChannel({ title: "Honey Bucket", artist: "Melvins", genre: "Metal", duration: 180, audioUrl: "u" }, metal)).toBe(true);
+    expect(trackMatchesChannel({ title: "Electrified Teenybop!", artist: "Stereolab", album: "Instant Holograms On Metal Film", genre: "Rock", duration: 180, audioUrl: "u" }, metal)).toBe(false);
+
+    expect(trackMatchesChannel({ title: "One More Time", artist: "Daft Punk", genre: "Electronic", duration: 180, audioUrl: "u" }, punk)).toBe(false);
+    expect(trackMatchesChannel({ title: "Sheena Is a Punk Rocker", artist: "Ramones", genre: "Rock", duration: 180, audioUrl: "u" }, punk)).toBe(true);
+
+    expect(trackMatchesChannel({ title: "Ceremony", artist: "Wussy", genre: "Rock", duration: 180, audioUrl: "u" }, shoe)).toBe(false);
+    expect(trackMatchesChannel({ title: "Sleigh Ride", artist: "The Ventures", genre: "Rock", duration: 180, audioUrl: "u" }, shoe)).toBe(false);
+    expect(trackMatchesChannel({ title: "Only Shallow", artist: "My Bloody Valentine", duration: 180, audioUrl: "u" }, shoe)).toBe(true);
+
+    expect(trackMatchesChannel({ title: "Star/Pointro", artist: "The Roots", genre: "Hip-Hop", duration: 180, audioUrl: "u" }, country)).toBe(false);
+
+    const fastElectronic = { title: "Break Science", artist: "X", genre: "Electronic", duration: 180, audioUrl: "u", bpm: 174, energy: 6 };
+    const midElectronic = { title: "Pad Job", artist: "Y", genre: "Electronic", duration: 180, audioUrl: "u", bpm: 145, energy: 5 };
+    const garage = { title: "Garage", artist: "Z", genre: "Electronic", duration: 180, audioUrl: "u", bpm: 132, energy: 6 };
+    expect(trackMatchesChannel(fastElectronic, dnb)).toBe(true);
+    expect(trackMatchesChannel(midElectronic, dnb)).toBe(false);
+    expect(trackMatchesChannel(midElectronic, y2k)).toBe(false);
+    expect(trackMatchesChannel(garage, y2k)).toBe(true);
+  });
 });
 
 describe("mtvChannel", () => {

@@ -6,12 +6,12 @@ import { countdownScore } from "./station";
  * Scene surfing — dial channels under Channel Surfing (CH-01 … CH-09).
  *
  * Source mapping:
- *   01 Y2K Dance             → by genre
+ *   01 Y2K Dance             → house/garage/disco scenes (not all Electronic)
  *   02 Variety Mix           → curator shelf (variety pad)
  *   03 Local Pacific Northwest → Audioasis batch upload (`batch` includes audioasis)
  *      Featured Channel Surfing station — gold rim on the Home tile (pinned when listing decorated dials)
  *   04 Electronic            → expansions batch / techno–warehouse scenes
- *   05 Drum & Bass           → by genre
+ *   05 Drum & Bass           → DnB / jungle / liquid scenes (not all Electronic)
  *   06 Emo & Shoegaze        → by genre
  *   07 Metal                 → metal batch upload (+ genre fallback)
  *   08 Punk                  → punk batch upload (+ keywords)
@@ -38,13 +38,9 @@ const PNW_KEYWORDS = [
   "tacoma",
   "bellingham",
   "spokane",
-  "eugene",
-  "salem",
-  "bend",
   "boise",
   "vancouver wa",
   "vancouver, wa",
-  "washington",
   "oregon",
   "puget sound",
   "willamette",
@@ -52,6 +48,7 @@ const PNW_KEYWORDS = [
   "audioasis",
 ];
 
+/** Genre / style tokens plus distinctive band names. */
 const SHOEGAZE_KEYWORDS = [
   "shoegaze",
   "shoe gaze",
@@ -61,9 +58,7 @@ const SHOEGAZE_KEYWORDS = [
   "slowdive",
   "my bloody valentine",
   "mbv",
-  "ride",
   "chapterhouse",
-  "lush",
   "category 4",
   "nu gaze",
   "nugaze",
@@ -76,10 +71,12 @@ const SHOEGAZE_KEYWORDS = [
   "cap'n jazz",
   "dashboard confessional",
   "taking back sunday",
-  "brand new",
   "paramore",
   "jimmy eat world",
 ];
+
+/** Band names that are also everyday words — match artist only. */
+const SHOEGAZE_ARTISTS = ["ride", "lush", "brand new"];
 
 const METAL_KEYWORDS = [
   "metal",
@@ -100,6 +97,7 @@ const METAL_KEYWORDS = [
 
 const PUNK_KEYWORDS = [
   "punk",
+  "punks",
   "punk rock",
   "post-punk",
   "post punk",
@@ -126,7 +124,6 @@ const COUNTRY_FOLK_KEYWORDS = [
   "singer songwriter",
   "honky tonk",
   "outlaw country",
-  "roots",
   "country folk",
 ];
 
@@ -138,9 +135,18 @@ const DOWNTOMPO_KEYWORDS = [
   "chillout",
   "chill-out",
   "chill out",
-  "lounge",
   "lo-fi",
   "lofi",
+];
+
+const Y2K_DANCE_SCENES = [
+  "uk-garage",
+  "deep-house",
+  "tech-house",
+  "broken-beat",
+  "disco",
+  "progressive",
+  "trance",
 ];
 
 /** Batch / source prefixes for channel upload waves (Audioasis-style). */
@@ -159,11 +165,11 @@ export const VARIETY_CROSS_GENRE_LIMIT = 48;
 
 /** Pending catalog-source wiring (curator shelf / Audioasis / expansions / genre batches). */
 export const CHANNEL_SOURCE_NOTES = {
-  "y2k-dance": { num: 1, source: "genre", note: "Y2K Dance — match by genre/scene" },
+  "y2k-dance": { num: 1, source: "genre", note: "Y2K Dance — house/garage/disco scenes, not the whole Electronic lane" },
   "variety-mix": { num: 2, source: "variety", note: "Variety Mix — curator batch (`variety-wave-N`) or cross-genre mix" },
   "local-pnw": { num: 3, source: "audioasis", showcase: true, note: "Local PNW — featured Channel Surfing station; Audioasis batch (`batch` includes audioasis)" },
   "electronic-underground": { num: 4, source: "expansions", note: "Electronic — expansions batch (`expansions-wave-N`) + techno/warehouse scenes" },
-  "drum-and-bass": { num: 5, source: "genre", note: "Drum & Bass — match by genre/scene" },
+  "drum-and-bass": { num: 5, source: "genre", note: "Drum & Bass — DnB/jungle/liquid scenes, not the whole Electronic lane" },
   shoegaze: { num: 6, source: "genre", note: "Emo & Shoegaze — match by genre/keywords" },
   metal: { num: 7, source: "metal", note: "Metal — batch upload (`metal-wave-N`) + genre/scene fallback" },
   punk: { num: 8, source: "punk", note: "Punk — batch upload (`punk-wave-N`) + keywords" },
@@ -192,11 +198,34 @@ function trackTextBlob(track) {
     .toLowerCase();
 }
 
+function escapeRegex(s) {
+  return String(s).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+/** Whole-token match so "emo" does not hit "ceremony" / "memory". */
+function keywordInText(text, keyword) {
+  const blob = String(text || "").toLowerCase();
+  const kw = String(keyword || "").trim().toLowerCase();
+  if (!blob || !kw) return false;
+  const pattern = escapeRegex(kw).replace(/ +/g, "\\s+");
+  return new RegExp(`(^|[^a-z0-9])${pattern}([^a-z0-9]|$)`).test(blob);
+}
+
 function matchesKeywords(track, keywords = []) {
   if (!keywords.length) return false;
   const blob = trackTextBlob(track);
   if (!blob) return false;
-  return keywords.some((kw) => blob.includes(String(kw).toLowerCase()));
+  return keywords.some((kw) => keywordInText(blob, kw));
+}
+
+function artistHitsBand(track, bands = []) {
+  const artist = String(track?.artist || "").toLowerCase();
+  if (!artist || !bands.length) return false;
+  return bands.some((band) => {
+    const name = String(band || "").toLowerCase();
+    if (name === "brand new" && artist.includes("heavies")) return false;
+    return keywordInText(artist, name);
+  });
 }
 
 function trackBatchSource(track) {
@@ -217,35 +246,51 @@ function isLocalPnwTrack(track) {
   if (track.local === true || track.pnw === true) return true;
   // Audioasis batch upload waves
   if (matchesChannelBatch(track, CHANNEL_BATCH_PREFIXES["local-pnw"])) return true;
-  return matchesKeywords(track, PNW_KEYWORDS);
+  const blob = trackTextBlob(track);
+  // Paris Olympia Theatre / similar venues are not Cascadia
+  const keywords = /olympia\s+theatre/.test(blob)
+    ? PNW_KEYWORDS.filter((kw) => kw !== "olympia")
+    : PNW_KEYWORDS;
+  return matchesKeywords(track, keywords);
 }
 
 function isShoegazeTrack(track) {
   if (!track) return false;
   const rawGenre = String(track.genre || "").toLowerCase();
   if (
-    rawGenre.includes("shoegaze") ||
-    rawGenre.includes("dream pop") ||
-    rawGenre.includes("dreampop") ||
-    rawGenre.includes("emo") ||
-    rawGenre.includes("screamo") ||
-    rawGenre.includes("post-hardcore") ||
-    rawGenre.includes("post hardcore")
+    keywordInText(rawGenre, "shoegaze") ||
+    keywordInText(rawGenre, "dream pop") ||
+    keywordInText(rawGenre, "dreampop") ||
+    keywordInText(rawGenre, "emo") ||
+    keywordInText(rawGenre, "screamo") ||
+    keywordInText(rawGenre, "post-hardcore") ||
+    keywordInText(rawGenre, "post hardcore")
   ) {
     return true;
   }
+  if (artistHitsBand(track, SHOEGAZE_ARTISTS)) return true;
   return matchesKeywords(track, SHOEGAZE_KEYWORDS);
 }
 
 function isMetalTrack(track) {
   if (!track) return false;
+  // "Instant Holograms On Metal Film" is photography, not metal
+  const t = {
+    ...track,
+    title: String(track.title || "").replace(/metal\s+film/gi, " "),
+    album: String(track.album || "").replace(/metal\s+film/gi, " "),
+  };
   // Metal batch uploads (Audioasis-style waves)
-  if (matchesChannelBatch(track, CHANNEL_BATCH_PREFIXES.metal)) return true;
-  if (normalizeGenre(track.genre) === "Metal") return true;
-  if (trackMatchesScene(track, "metal")) return true;
-  const rawGenre = String(track.genre || "").toLowerCase();
-  if (rawGenre.includes("metal") || rawGenre.includes("thrash") || rawGenre.includes("doom")) return true;
-  return matchesKeywords(track, METAL_KEYWORDS);
+  if (matchesChannelBatch(t, CHANNEL_BATCH_PREFIXES.metal)) return true;
+  if (normalizeGenre(t.genre) === "Metal") return true;
+  if (trackMatchesScene(t, "metal")) return true;
+  const rawGenre = String(t.genre || "").toLowerCase();
+  if (keywordInText(rawGenre, "metal") || keywordInText(rawGenre, "thrash") || keywordInText(rawGenre, "doom")) {
+    return true;
+  }
+  // MF DOOM / Doomtree are hip-hop, not the metal subgenre
+  if (normalizeGenre(t.genre) === "Hip-Hop") return false;
+  return matchesKeywords(t, METAL_KEYWORDS);
 }
 
 /** Punk maps into Rock in normalizeGenre — match batch, raw labels + keywords. */
@@ -254,13 +299,20 @@ function isPunkTrack(track) {
   if (matchesChannelBatch(track, CHANNEL_BATCH_PREFIXES.punk)) return true;
   const rawGenre = String(track.genre || "").toLowerCase();
   if (
-    rawGenre.includes("punk") ||
+    keywordInText(rawGenre, "punk") ||
     rawGenre === "hardcore" ||
-    rawGenre.includes("hardcore punk")
+    keywordInText(rawGenre, "hardcore punk")
   ) {
     return true;
   }
-  return matchesKeywords(track, PUNK_KEYWORDS);
+  // Daft Punk is French house, not a punk band
+  const stripped = {
+    ...track,
+    artist: String(track.artist || "").replace(/daft\s+punk/gi, " "),
+    title: String(track.title || "").replace(/daft\s+punk/gi, " "),
+    album: String(track.album || "").replace(/daft\s+punk/gi, " "),
+  };
+  return matchesKeywords(stripped, PUNK_KEYWORDS);
 }
 
 function isCountryFolkTrack(track) {
@@ -270,10 +322,10 @@ function isCountryFolkTrack(track) {
   if (trackMatchesScene(track, "folk")) return true;
   const rawGenre = String(track.genre || "").toLowerCase();
   if (
-    rawGenre.includes("country") ||
-    rawGenre.includes("folk") ||
-    rawGenre.includes("americana") ||
-    rawGenre.includes("bluegrass")
+    keywordInText(rawGenre, "country") ||
+    keywordInText(rawGenre, "folk") ||
+    keywordInText(rawGenre, "americana") ||
+    keywordInText(rawGenre, "bluegrass")
   ) {
     return true;
   }
@@ -287,16 +339,31 @@ export function isDowntempoTrack(track) {
   if (trackMatchesScene(track, "ambient")) return true;
   const rawGenre = String(track.genre || "").toLowerCase();
   if (
-    rawGenre.includes("downtempo") ||
-    rawGenre.includes("trip-hop") ||
-    rawGenre.includes("trip hop") ||
-    rawGenre.includes("chill") ||
-    rawGenre.includes("ambient") ||
-    rawGenre.includes("lounge")
+    keywordInText(rawGenre, "downtempo") ||
+    keywordInText(rawGenre, "trip-hop") ||
+    keywordInText(rawGenre, "trip hop") ||
+    keywordInText(rawGenre, "chill") ||
+    keywordInText(rawGenre, "ambient")
   ) {
     return true;
   }
   return matchesKeywords(track, DOWNTOMPO_KEYWORDS);
+}
+
+/**
+ * Y2K Dance — house/garage/disco scenes, not the entire Electronic lane.
+ * Coarse `genre: Electronic` used to last-resort infer as house and dump
+ * the whole catalog onto CH-01 (and, with genres:["Electronic"], CH-05).
+ */
+function isY2kDanceTrack(track) {
+  if (!track) return false;
+  if (Y2K_DANCE_SCENES.some((sid) => trackMatchesScene(track, sid))) return true;
+  if (!trackMatchesScene(track, "house")) return false;
+  const raw = String(track.genre || "").trim().toLowerCase();
+  if (raw && raw !== "electronic") return true;
+  const bpm = Number(track.bpm) || 0;
+  const energy = Number(track.energy) || 5;
+  return bpm >= 118 && bpm <= 130 && energy >= 4 && energy <= 8;
 }
 
 /** Soft expansions hint until batch mapping lands. */
@@ -384,9 +451,11 @@ export const SCENE_CHANNELS = [
     tagline: "Millennium dancefloor — house, garage, disco",
     accent: "#9AA3B0",
     scenes: ["house", "uk-garage", "deep-house", "tech-house", "broken-beat", "disco", "progressive", "trance"],
-    genres: ["Electronic", "Pop"],
+    genres: [],
     vibe: "Y2K Dance",
     source: "genre",
+    /** Scene/BPM dancefloor — never the whole Electronic lane. */
+    match: isY2kDanceTrack,
   },
   {
     id: "variety-mix",
@@ -450,7 +519,7 @@ export const SCENE_CHANNELS = [
     tagline: "DnB, jungle, liquid",
     accent: "#8A919C",
     scenes: ["drum-and-bass", "jungle", "liquid", "breakbeat"],
-    genres: ["Electronic"],
+    genres: [],
     vibe: "Drum & Bass",
     source: "genre",
   },
