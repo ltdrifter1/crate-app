@@ -165,6 +165,43 @@ export const GENRE_ALIASES = {
   world: "Latin",
 };
 
+function titleishGenre(lower) {
+  return String(lower).replace(/\b[a-z]/g, (c) => c.toUpperCase());
+}
+
+const STORE_LABEL_OVERRIDES = {
+  "uk garage": "UK Garage",
+  ukg: "UK Garage",
+  dnb: "Drum and Bass",
+  "d&b": "Drum and Bass",
+  "d & b": "Drum and Bass",
+  "drum&bass": "Drum and Bass",
+  "drum & bass": "Drum and Bass",
+  "drum and bass": "Drum and Bass",
+  rnb: "R&B",
+  "r&b": "R&B",
+  "r and b": "R&B",
+  "k-pop": "K-Pop",
+  kpop: "K-Pop",
+};
+
+/**
+ * Label to persist on a track. Keeps culture names (Techno, UK Garage)
+ * instead of collapsing them to the 11 taste lanes.
+ */
+export function storeGenreLabel(raw) {
+  if (raw == null) return "";
+  const trimmed = String(raw).trim();
+  if (!trimmed) return "";
+  const lower = trimmed.toLowerCase().replace(/\s+/g, " ");
+  if (CANONICAL_SET.has(lower)) {
+    return CANONICAL_GENRES.find((g) => g.toLowerCase() === lower) || trimmed;
+  }
+  if (STORE_LABEL_OVERRIDES[lower]) return STORE_LABEL_OVERRIDES[lower];
+  if (GENRE_ALIASES[lower]) return titleishGenre(lower);
+  return trimmed;
+}
+
 /**
  * Map any free-text genre to the canonical set, or "" if unknown/empty.
  * Legacy store values (House, Soul, Country…) normalize into the 11.

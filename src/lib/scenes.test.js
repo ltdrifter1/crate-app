@@ -73,6 +73,11 @@ describe("scene taxonomy", () => {
     expect(twice).toBe(once);
   });
 
+  test("trackMatchesScene honors stored sceneId", () => {
+    expect(trackMatchesScene({ genre: "Rock", sceneId: "uk-garage" }, "uk-garage")).toBe(true);
+    expect(trackMatchesScene({ genre: "Rock", sceneIds: ["techno"] }, "techno")).toBe(true);
+  });
+
   test("trackMatchesScene + relatedScenes", () => {
     const t = { genre: "UK Garage", energy: 6, bpm: 132 };
     expect(trackMatchesScene(t, "uk-garage")).toBe(true);
