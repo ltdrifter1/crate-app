@@ -2,7 +2,7 @@
 
 Fetched: `2026-09-16T16:00:52.735Z`
 Source: `firestore-rest-public`
-Approved CSV: `/workspace/docs/audits/catalog-junk-candidates.csv`
+Approved CSV: `docs/audits/catalog-junk-candidates.csv`
 
 Live catalog: **15164**
 Approved delete ids in CSV: **38**
