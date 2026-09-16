@@ -6,6 +6,8 @@ import {
   featuredReleases,
   recommendedTracks,
   recommendedPicks,
+  homeScoreCandidates,
+  HOME_SCORE_CANDIDATE_CAP,
 } from "./homeCollections";
 
 describe("homeCollections", () => {
@@ -162,5 +164,17 @@ describe("homeCollections", () => {
     expect(aAgain).toEqual(a);
     expect(a.join(",")).not.toEqual(b.join(","));
     expect(a.join(",")).not.toEqual(aNextDay.join(","));
+  });
+
+  test("homeScoreCandidates caps a large pool and keeps liked cuts", () => {
+    const pool = Array.from({ length: HOME_SCORE_CANDIDATE_CAP + 40 }, (_, i) => ({
+      id: `t${i}`,
+      genre: i === 3 ? "Jazz" : "Pop",
+      liked: i === 3,
+      playCount: i,
+    }));
+    const capped = homeScoreCandidates(pool, { preferredGenres: ["Jazz"], cap: 20 });
+    expect(capped).toHaveLength(20);
+    expect(capped.some((t) => t.id === "t3")).toBe(true);
   });
 });

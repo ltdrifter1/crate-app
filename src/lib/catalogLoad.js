@@ -6,6 +6,8 @@
 import { collection, doc, getDoc, getDocs, query, orderBy, limit } from "firebase/firestore";
 
 export const HOME_LITE_LIMIT = 48;
+/** Hottest cuts reserved in the lite shelf so Most Requested isn't only newest. */
+export const HOME_LITE_HEAT_LIMIT = 16;
 export const HOME_LITE_DOC_PATH = ["catalog", "homeLite"];
 
 /** Fields Home / play need on first paint. Extra keys are kept if present. */
@@ -49,6 +51,31 @@ export function sortTracksNewestFirst(tracks = []) {
   });
 }
 
+/**
+ * Home lite shelf: keep a heat window so countdown works before the full
+ * catalog arrives, then fill with newest.
+ */
+export function mergeHomeLiteTracks(newest = [], hottest = [], limit = HOME_LITE_LIMIT) {
+  const seen = new Set();
+  const out = [];
+  const push = (track) => {
+    const row = toLiteTrack(track) || (track?.id ? track : null);
+    if (!row?.id || seen.has(row.id)) return false;
+    seen.add(row.id);
+    out.push(row);
+    return out.length >= limit;
+  };
+  const heatCap = Math.min(HOME_LITE_HEAT_LIMIT, limit);
+  for (const t of hottest) {
+    if (out.length >= heatCap) break;
+    if (push(t)) return out;
+  }
+  for (const t of newest) {
+    if (push(t)) return out;
+  }
+  return out;
+}
+
 export async function fetchCatalogTracks(db) {
   try {
     const q = query(collection(db, "tracks"), orderBy("createdAt", "desc"));
@@ -81,28 +108,29 @@ async function fetchHomeLiteDoc(db) {
   };
 }
 
+async function queryTracksBy(db, field, n) {
+  const q = query(collection(db, "tracks"), orderBy(field, "desc"), limit(n));
+  const snap = await getDocs(q);
+  return snap.docs.map(mapTrackDoc);
+}
+
 async function fetchHomeLiteQuery(db) {
-  try {
-    const q = query(
-      collection(db, "tracks"),
-      orderBy("createdAt", "desc"),
-      limit(HOME_LITE_LIMIT)
-    );
-    const snap = await getDocs(q);
-    const tracks = sortTracksNewestFirst(snap.docs.map(mapTrackDoc));
-    if (!tracks.length) return null;
-    return { tracks, source: "lite-query" };
-  } catch {
-    try {
-      const q = query(collection(db, "tracks"), limit(HOME_LITE_LIMIT));
-      const snap = await getDocs(q);
-      const tracks = sortTracksNewestFirst(snap.docs.map(mapTrackDoc));
-      if (!tracks.length) return null;
-      return { tracks, source: "lite-query-unordered" };
-    } catch {
-      return null;
-    }
-  }
+  const newestJob = queryTracksBy(db, "createdAt", HOME_LITE_LIMIT)
+    .then((tracks) => ({ tracks, source: "lite-query" }))
+    .catch(async () => {
+      try {
+        const q = query(collection(db, "tracks"), limit(HOME_LITE_LIMIT));
+        const snap = await getDocs(q);
+        return { tracks: snap.docs.map(mapTrackDoc), source: "lite-query-unordered" };
+      } catch {
+        return { tracks: [], source: "lite-query" };
+      }
+    });
+  const hottestJob = queryTracksBy(db, "playCount", HOME_LITE_HEAT_LIMIT).catch(() => []);
+  const [newestResult, hottest] = await Promise.all([newestJob, hottestJob]);
+  const tracks = mergeHomeLiteTracks(newestResult.tracks, hottest);
+  if (!tracks.length) return null;
+  return { tracks, source: newestResult.source };
 }
 
 /**

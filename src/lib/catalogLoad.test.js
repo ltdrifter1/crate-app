@@ -6,7 +6,9 @@ import {
   toLiteTrack,
   fetchHomeLite,
   HOME_LITE_LIMIT,
+  HOME_LITE_HEAT_LIMIT,
   CATALOG_CACHE_TTL_MS,
+  mergeHomeLiteTracks,
 } from "./catalogLoad";
 
 jest.mock("firebase/firestore", () => ({
@@ -95,7 +97,7 @@ describe("catalogLoad", () => {
 
   test("fetchHomeLite falls back to a limited query", async () => {
     getDoc.mockResolvedValueOnce({ exists: () => false });
-    getDocs.mockResolvedValueOnce({
+    getDocs.mockResolvedValue({
       docs: [
         { id: "z", data: () => ({ title: "Z", createdAt: { seconds: 3 }, audioUrl: "https://x/z.mp3" }) },
       ],
@@ -104,5 +106,18 @@ describe("catalogLoad", () => {
     expect(result.source).toBe("lite-query");
     expect(result.tracks).toHaveLength(1);
     expect(HOME_LITE_LIMIT).toBe(48);
+    expect(HOME_LITE_HEAT_LIMIT).toBe(16);
+    expect(getDocs).toHaveBeenCalled();
+  });
+
+  test("mergeHomeLiteTracks reserves hottest cuts then fills with newest", () => {
+    const newest = [
+      { id: "n1", title: "New" },
+      { id: "hot", title: "Also new" },
+    ];
+    const hottest = [{ id: "hot", title: "Heat", playCount: 40 }];
+    const merged = mergeHomeLiteTracks(newest, hottest, 3);
+    expect(merged[0].id).toBe("hot");
+    expect(merged.map((t) => t.id)).toEqual(["hot", "n1"]);
   });
 });

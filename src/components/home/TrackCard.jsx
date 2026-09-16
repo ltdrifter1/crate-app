@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { color, fontLcd, fontMono, fontPoster, glassPill, homeSpace, y2k } from "../../theme";
 import { trackHasVideo } from "../../lib/video";
 import ArtFrame from "../ui/ArtFrame";
@@ -6,7 +7,7 @@ import ArtFrame from "../ui/ArtFrame";
  * TrackCard — square artwork tile for Discover / Recently Played rails.
  * Optional rank badge (countdown) and reason chip (recommendations).
  */
-export default function TrackCard({
+function TrackCard({
   track,
   onClick = null,
   rank = null,
@@ -130,3 +131,5 @@ export default function TrackCard({
     </button>
   );
 }
+
+export default memo(TrackCard);

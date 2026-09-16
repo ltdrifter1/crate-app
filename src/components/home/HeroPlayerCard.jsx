@@ -190,7 +190,7 @@ function ChromeIconButton({ label, icon, active = false, onClick, size = 42, ico
   );
 }
 
-function JewelSleeve({ src, idleSrc, playing, priority, size = 148 }) {
+function JewelSleeve({ src, idleSrc, playing, eager = false, size = 148 }) {
   const art = src || idleSrc;
   return (
     <span
@@ -206,10 +206,10 @@ function JewelSleeve({ src, idleSrc, playing, priority, size = 148 }) {
           key={art}
           src={art}
           alt=""
-          width={size * 2}
-          height={size * 2}
-          priority={priority}
-          eager={!priority}
+          width={size}
+          height={size}
+          priority={false}
+          eager={eager}
           raw={!src}
           objectPosition={!src ? HERO_IDLE_FOCUS : undefined}
           className="pmp-hero-art"
@@ -221,7 +221,6 @@ function JewelSleeve({ src, idleSrc, playing, priority, size = 148 }) {
             animation: "fadeIn 0.55s ease both",
             transform: playing ? "scale(1.04)" : "scale(1)",
             transition: "transform 12s ease",
-            filter: playing ? "saturate(1.14) contrast(1.08)" : "saturate(1.05) contrast(1.04)",
           }}
         />
       ) : (
@@ -362,36 +361,23 @@ export default function HeroPlayerCard({
         flexDirection: "column",
       }}
     >
-      <div aria-hidden="true" style={{ position: "absolute", inset: 0, zIndex: 0, overflow: "hidden" }}>
-        <CoverImage
-          src={art || HERO_IDLE_ART}
-          alt=""
-          width={720}
-          height={720}
-          eager
-          raw={!art}
-          objectPosition={!art ? HERO_IDLE_FOCUS : "center"}
-          style={{
-            width: "100%",
-            height: "100%",
-            objectFit: "cover",
-            transform: "scale(1.18)",
-            filter: "blur(28px) saturate(1.2) brightness(0.42)",
-            opacity: 0.9,
-          }}
-        />
-        <div
-          style={{
-            position: "absolute",
-            inset: 0,
-            background: `
-              radial-gradient(80% 70% at 12% 20%, ${track?.color ? `${track.color}33` : "rgba(101,230,255,0.16)"} 0%, transparent 58%),
-              radial-gradient(50% 40% at 100% 0%, rgba(255,79,216,0.14) 0%, transparent 55%),
-              linear-gradient(180deg, rgba(8,10,13,0.22) 0%, rgba(8,10,13,0.74) 100%)
-            `,
-          }}
-        />
-      </div>
+      <div
+        aria-hidden="true"
+        className="pmp-hero-wash"
+        style={{
+          position: "absolute",
+          inset: 0,
+          zIndex: 0,
+          overflow: "hidden",
+          background: `
+            radial-gradient(80% 70% at 12% 20%, ${track?.color ? `${track.color}40` : "rgba(101,230,255,0.18)"} 0%, transparent 58%),
+            radial-gradient(55% 45% at 100% 0%, rgba(255,79,216,0.16) 0%, transparent 55%),
+            radial-gradient(40% 36% at 70% 100%, rgba(200,242,65,0.08) 0%, transparent 60%),
+            linear-gradient(180deg, rgba(18,22,28,0.2) 0%, rgba(8,10,13,0.82) 100%),
+            ${y2k.artGradient}
+          `,
+        }}
+      />
 
       <ScanlineWash />
 
@@ -498,7 +484,7 @@ export default function HeroPlayerCard({
             src={art}
             idleSrc={art ? null : HERO_IDLE_ART}
             playing={live && isPlaying}
-            priority
+            eager={!!art}
             size={168}
           />
         )}
@@ -666,7 +652,7 @@ export default function HeroPlayerCard({
           <JewelSleeve
             src={art}
             playing={live && isPlaying}
-            priority={false}
+            eager={false}
             size={96}
           />
         )}

@@ -1,4 +1,4 @@
-import { runAfterPaint } from "./afterPaint";
+import { runAfterPaint, runWhenIdle } from "./afterPaint";
 
 describe("runAfterPaint", () => {
   let originalRaf;
@@ -45,5 +45,48 @@ describe("runAfterPaint", () => {
     frames[0]();
     frames[1]?.();
     expect(fn).not.toHaveBeenCalled();
+  });
+});
+
+describe("runWhenIdle", () => {
+  let originalIdle;
+  let originalCancel;
+
+  beforeEach(() => {
+    originalIdle = global.requestIdleCallback;
+    originalCancel = global.cancelIdleCallback;
+  });
+
+  afterEach(() => {
+    global.requestIdleCallback = originalIdle;
+    global.cancelIdleCallback = originalCancel;
+  });
+
+  test("uses requestIdleCallback when available", () => {
+    const fn = jest.fn();
+    const idle = jest.fn((cb) => {
+      cb();
+      return 7;
+    });
+    global.requestIdleCallback = idle;
+    global.cancelIdleCallback = jest.fn();
+    runWhenIdle(fn, { timeout: 500 });
+    expect(idle).toHaveBeenCalledWith(expect.any(Function), { timeout: 500 });
+    expect(fn).toHaveBeenCalledTimes(1);
+  });
+
+  test("cancel prevents the idle callback", () => {
+    const fn = jest.fn();
+    let stored;
+    global.requestIdleCallback = (cb) => {
+      stored = cb;
+      return 3;
+    };
+    global.cancelIdleCallback = jest.fn();
+    const cancel = runWhenIdle(fn);
+    cancel();
+    stored();
+    expect(fn).not.toHaveBeenCalled();
+    expect(global.cancelIdleCallback).toHaveBeenCalledWith(3);
   });
 });

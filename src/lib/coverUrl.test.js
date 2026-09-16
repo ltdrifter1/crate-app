@@ -4,6 +4,7 @@ import {
   firebaseThumbUrl,
   cloudflareImageUrl,
   coverDisplayUrl,
+  coverSrcSet,
   nearestFirebaseThumbSize,
 } from "./coverUrl";
 
@@ -43,5 +44,13 @@ describe("coverUrl", () => {
     expect(coverDisplayUrl("/brand/logo-mark.svg", { mode: "cf" })).toBe("/brand/logo-mark.svg");
     expect(coverDisplayUrl(src, { width: 168, mode: "off" })).toBe(src);
     expect(coverDisplayUrl(src, { width: 168, dpr: 2, mode: "firebase" })).toContain("_400x400.jpg");
+  });
+
+  test("coverSrcSet emits 1x and 2x buckets", () => {
+    const src = "https://storage.googleapis.com/b/covers/art.jpg";
+    const set = coverSrcSet(src, 168, { mode: "cf" });
+    expect(set).toMatch(/ 1x/);
+    expect(set).toMatch(/ 2x/);
+    expect(coverSrcSet("/brand/logo-mark.svg", 168, { mode: "cf" })).toBe("");
   });
 });
