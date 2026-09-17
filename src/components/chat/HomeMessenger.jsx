@@ -7,15 +7,12 @@ import { useEffect, useMemo, useState } from "react";
 import {
   chatLayoutForWidth,
   desktopMessengerPlacement,
-  mergeChatMessages,
   mobileChatPillBottomPx,
   readRailOpen,
   writeRailOpen,
   CHAT_NUB_WIDTH,
 } from "../../lib/stationChat";
-import { mergePresence } from "../../lib/stationBots";
 import { useStationChat } from "./useStationChat";
-import { useStationBots } from "./useStationBots";
 import {
   MessengerNub,
   MessengerPill,
@@ -36,7 +33,6 @@ export default function HomeMessenger({
   onSend: onSendProp = null,
   live = true,
   embedded = false,
-  roomBots = true,
 }) {
   const isMobile = variant === "mobile" || chatLayoutForWidth(viewportWidth) === "mobile-sheet";
   const [open, setOpen] = useState(() => {
@@ -68,13 +64,8 @@ export default function HomeMessenger({
     enabled: live,
   });
 
-  const bots = useStationBots({
-    nowPlaying,
-    enabled: roomBots && (open || !isMobile),
-  });
-
-  const messages = mergeChatMessages(messagesProp || chat.messages, roomBots ? bots.messages : []);
-  const presence = mergePresence(presenceProp || chat.presence, roomBots ? bots.presence : []);
+  const messages = messagesProp || chat.messages;
+  const presence = presenceProp || chat.presence;
   const send = onSendProp || chat.send;
 
   const toggle = (next) => {
@@ -95,7 +86,6 @@ export default function HomeMessenger({
       onMinimize={() => toggle(false)}
       onClose={() => toggle(false)}
       composerAutoFocus={open}
-      typing={roomBots ? bots.typing : null}
     />
   );
 
