@@ -68,6 +68,7 @@ describe("Home broadcast + four-tab IA", () => {
       );
     });
     expect(div.querySelector('button[aria-label="Charts"]')).toBeNull();
+    expect(div.textContent).not.toMatch(/Planet MP3/);
     const search = div.querySelector('button[aria-label="Search"]');
     expect(search).toBeTruthy();
     expect(div.querySelector(".pmp-onair-chip")).toBeNull();

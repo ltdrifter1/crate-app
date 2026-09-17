@@ -1,4 +1,4 @@
-import { chromeIconButton, color, homeSpace, type, y2k } from "../../theme";
+import { chromeIconButton, color, homeSpace, type } from "../../theme";
 import Icon from "../ui/Icon";
 import BetaBadge from "../billing/BetaLaunchNotice";
 import { BETA_LAUNCH } from "../../lib/entitlements";
@@ -32,7 +32,7 @@ function formatStoreDate(date = new Date()) {
 }
 
 /**
- * HomeHeader — App Store large title: date caption + product name.
+ * HomeHeader — date + chrome actions. Product name lives in the mark, not here.
  */
 export default function HomeHeader({
   onOpenSearch = null,
@@ -43,13 +43,14 @@ export default function HomeHeader({
     <header
       style={{
         display: "flex",
-        alignItems: "flex-end",
+        alignItems: "center",
         justifyContent: "space-between",
         gap: 12,
         padding: `calc(18px + env(safe-area-inset-top, 0px)) ${homeSpace.gutter}px 6px`,
       }}
     >
-      <div style={{ minWidth: 0 }}>
+      <h1 className="sr-only">Home</h1>
+      <div style={{ minWidth: 0, display: "flex", alignItems: "center", gap: 8 }}>
         <div
           style={{
             ...type.footnote,
@@ -57,29 +58,21 @@ export default function HomeHeader({
             letterSpacing: -0.2,
             textTransform: "none",
             color: color.muted,
-            marginBottom: 4,
           }}
         >
           {formatStoreDate()}
         </div>
-        <h1
-          style={{
-            ...type.largeTitle,
-            margin: 0,
-            color: y2k.offWhite,
-            whiteSpace: "nowrap",
-            overflow: "hidden",
-            textOverflow: "ellipsis",
-            display: "flex",
-            alignItems: "center",
-            gap: 10,
-          }}
-        >
-          Planet MP3
-          {BETA_LAUNCH && <BetaBadge />}
-        </h1>
+        {BETA_LAUNCH && (
+          <BetaBadge
+            style={{
+              border: "1px solid rgba(28,32,40,0.12)",
+              background: "rgba(255,255,255,0.72)",
+              color: color.muted,
+            }}
+          />
+        )}
       </div>
-      <div style={{ display: "flex", alignItems: "center", gap: 8, paddingBottom: 4 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
         {onOpenMenu && <HeaderButton label="Browse" icon="menu" onClick={onOpenMenu} />}
         <HeaderButton label="Search" icon="search" onClick={onOpenSearch} />
         <HeaderButton label="Profile" icon="profile" onClick={onOpenProfile} />
