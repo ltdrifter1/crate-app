@@ -675,7 +675,7 @@ export function StationHeatBar({
                 <span style={{
                   position: "absolute", top: -6, right: 4,
                   fontSize: 11, fontFamily: fontMono, fontWeight: 800,
-                  background: color.ink, color: color.onAccent,
+                  background: color.accent, color: color.onAccent,
                   padding: "1px 5px",
                   borderRadius: radius.pill,
                   boxShadow: "0 2px 6px rgba(18,20,26,0.16)",

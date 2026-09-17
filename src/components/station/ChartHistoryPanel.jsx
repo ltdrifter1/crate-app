@@ -147,16 +147,16 @@ function Segmented({ items, activeId, onChange, ariaLabel }) {
               border: "none",
               borderRadius: 8,
               background: active
-                ? "linear-gradient(180deg, #6FB4F8 0%, #1E6FE8 100%)"
+                ? "linear-gradient(180deg, #D4FF6E 0%, #B8F24A 100%)"
                 : "transparent",
-              color: active ? "#FFFFFF" : color.muted,
+              color: active ? color.onAccent : color.muted,
               fontFamily: fontDisplay,
               fontSize: 13,
               fontWeight: active ? 650 : 520,
               letterSpacing: -0.2,
               cursor: "pointer",
               boxShadow: active
-                ? "inset 0 1px 0 rgba(255,255,255,0.35), 0 3px 8px rgba(30,111,232,0.28)"
+                ? "inset 0 1px 0 rgba(255,255,255,0.28), 0 3px 8px rgba(184,242,74,0.22)"
                 : "none",
               transition: `color ${motion.fast}, background ${motion.base}, box-shadow ${motion.base}`,
               WebkitTapHighlightColor: "transparent",
@@ -584,15 +584,15 @@ function ChartHero({ entry, active, onPlay, onAdd, onMore, onContextMenu }) {
         borderRadius: radius.lg,
         overflow: "hidden",
         border: active
-          ? "1px solid rgba(30,111,232,0.35)"
-          : "1px solid rgba(28,32,40,0.12)",
+          ? "1px solid rgba(184,242,74,0.4)"
+          : "1px solid rgba(232,234,238,0.12)",
         background: `
-          radial-gradient(120% 80% at 0% 0%, rgba(111,191,58,0.1) 0%, transparent 46%),
-          linear-gradient(165deg, #FFFFFF 0%, #E8EBEF 100%)
+          radial-gradient(120% 80% at 0% 0%, rgba(184,242,74,0.12) 0%, transparent 46%),
+          linear-gradient(165deg, #1A1D24 0%, #101218 100%)
         `,
         boxShadow: `
-          inset 0 1px 0 rgba(255,255,255,0.95),
-          inset 0 -1px 0 rgba(28,32,40,0.06),
+          inset 0 1px 0 rgba(255,255,255,0.08),
+          inset 0 -1px 0 rgba(0,0,0,0.4),
           ${glass.shadowSoft}
         `,
         backdropFilter: glass.blurSoft,

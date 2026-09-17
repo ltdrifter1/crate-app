@@ -1,4 +1,4 @@
-import { chromeIconButton, color, homeSpace, type, y2k } from "../../theme";
+import { chromeIconButton, color, fontMono, homeSpace, type, y2k } from "../../theme";
 import Icon from "../ui/Icon";
 import BetaBadge from "../billing/BetaLaunchNotice";
 import { BETA_LAUNCH } from "../../lib/entitlements";
@@ -11,28 +11,15 @@ function HeaderButton({ label, icon, onClick }) {
       aria-label={label}
       onClick={onClick}
       className="pmp-press"
-      style={{
-        ...chromeIconButton(36),
-        background: "linear-gradient(180deg, #FFFFFF 0%, #E8EBEF 55%, #D4D8E0 100%)",
-        border: "1px solid rgba(28,32,40,0.12)",
-        boxShadow: "inset 0 1px 0 rgba(255,255,255,0.95), 0 1px 3px rgba(28,32,40,0.12)",
-      }}
+      style={chromeIconButton(36)}
     >
       <Icon name={icon} size={16} />
     </button>
   );
 }
 
-function formatStoreDate(date = new Date()) {
-  return date.toLocaleDateString("en-US", {
-    weekday: "long",
-    month: "long",
-    day: "numeric",
-  });
-}
-
 /**
- * HomeHeader — App Store large title: date caption + product name.
+ * HomeHeader — device masthead, not App Store date title.
  */
 export default function HomeHeader({
   onOpenSearch = null,
@@ -52,15 +39,16 @@ export default function HomeHeader({
       <div style={{ minWidth: 0 }}>
         <div
           style={{
-            ...type.footnote,
-            fontWeight: 600,
-            letterSpacing: -0.2,
-            textTransform: "none",
-            color: color.muted,
-            marginBottom: 4,
+            fontFamily: fontMono,
+            fontSize: 11,
+            fontWeight: 700,
+            letterSpacing: 0.14,
+            textTransform: "uppercase",
+            color: color.accent,
+            marginBottom: 6,
           }}
         >
-          {formatStoreDate()}
+          PLANET / 003
         </div>
         <h1
           style={{

@@ -55,16 +55,16 @@ function ChromeIconButton({
       style={{
         width: size,
         height: size,
-        borderRadius: "50%",
+        borderRadius: 8,
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
         cursor: "pointer",
-        color: lit ? color.ink : color.muted,
+        color: lit ? color.onAccent : color.muted,
         background: lit
-          ? "linear-gradient(180deg, #FFFFFF 0%, #E8EBEF 100%)"
-          : "rgba(255,255,255,0.55)",
-        border: `1px solid ${lit ? "rgba(28,32,40,0.16)" : "rgba(28,32,40,0.1)"}`,
+          ? "linear-gradient(180deg, #D4FF6E 0%, #B8F24A 100%)"
+          : "linear-gradient(180deg, rgba(255,255,255,0.1) 0%, rgba(16,18,24,0.85) 100%)",
+        border: `1px solid ${lit ? "rgba(184,242,74,0.45)" : "rgba(232,234,238,0.12)"}`,
         boxShadow: "none",
         transition: `transform ${motion.fast} ${EASE}, color ${motion.fast}, background ${motion.base}`,
         padding: 0,
@@ -97,7 +97,7 @@ function ChromeSeek({
           height: 3,
           marginTop: -1.5,
           borderRadius: 999,
-          background: "rgba(28,32,40,0.12)",
+          background: "rgba(232,234,238,0.12)",
           pointerEvents: "none",
           overflow: "hidden",
         }}
@@ -107,7 +107,7 @@ function ChromeSeek({
             height: "100%",
             width: `${pct}%`,
             borderRadius: 999,
-            background: "linear-gradient(90deg, #6FBF3A 0%, #1E6FE8 100%)",
+            background: "linear-gradient(90deg, #9AD62E 0%, #B8F24A 100%)",
             transition: "width 0.08s linear",
           }}
         />
@@ -371,12 +371,12 @@ export default function ImmersivePlayer({
   const circleChrome = {
     width: 42,
     height: 42,
-    borderRadius: "50%",
+    borderRadius: 8,
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
     background: hardware.keyFace,
-    border: "1px solid rgba(28,32,40,0.16)",
+    border: "1px solid rgba(232,234,238,0.14)",
     boxShadow: hardware.keyRaised,
     color: y2k.offWhite,
     cursor: "pointer",
@@ -408,7 +408,7 @@ export default function ImmersivePlayer({
             backgroundSize: "cover",
             backgroundPosition: "center",
             filter: "blur(48px) saturate(1.08)",
-            opacity: artLoaded ? 0.22 : 0.08,
+            opacity: artLoaded ? 0.38 : 0.12,
             transform: isPlaying ? "scale(1.05)" : "scale(1.02)",
             transition: "opacity 0.8s ease, transform 12s ease",
           }}
@@ -423,11 +423,11 @@ export default function ImmersivePlayer({
             radial-gradient(ellipse 85% 50% at 50% 16%, rgba(${rgb},0.12) 0%, transparent 55%),
             radial-gradient(ellipse 60% 40% at 50% 70%, ${y2k.chromeWash} 0%, transparent 70%),
             linear-gradient(180deg,
-              rgba(247,248,250,0.55) 0%,
-              rgba(230,233,239,0.28) 30%,
-              rgba(230,233,239,0.12) 48%,
-              rgba(230,233,239,0.55) 78%,
-              rgba(226,230,236,0.92) 100%
+              rgba(9,10,13,0.55) 0%,
+              rgba(9,10,13,0.28) 30%,
+              rgba(9,10,13,0.12) 48%,
+              rgba(9,10,13,0.55) 78%,
+              rgba(9,10,13,0.92) 100%
             )
           `,
         }}
@@ -440,7 +440,7 @@ export default function ImmersivePlayer({
           left: 0,
           right: 0,
           height: 120,
-          background: "linear-gradient(180deg, rgba(255,255,255,0.55) 0%, transparent 100%)",
+          background: "linear-gradient(180deg, rgba(9,10,13,0.55) 0%, transparent 100%)",
           pointerEvents: "none",
           zIndex: 1,
         }}

@@ -34,22 +34,25 @@ export function IceOrbPlay({
         position: "relative",
         width: size,
         height: size,
-        borderRadius: "50%",
+        borderRadius: 8,
         background: disabled
-          ? "linear-gradient(180deg, #E2E5EC 0%, #C5CAD3 100%)"
-          : "linear-gradient(180deg, #FFFFFF 0%, #E8EBEF 48%, #C5CAD3 100%)",
-        border: "1px solid rgba(28,32,40,0.16)",
+          ? "linear-gradient(180deg, #2A2E38 0%, #16181E 100%)"
+          : glowing
+            ? "linear-gradient(180deg, #D4FF6E 0%, #B8F24A 100%)"
+            : "linear-gradient(180deg, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0.02) 48%, transparent 100%), linear-gradient(180deg, #2A2E38 0%, #16181E 100%)",
+        border: `1px solid ${glowing ? "rgba(184,242,74,0.55)" : "rgba(232,234,238,0.14)"}`,
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        color: disabled ? color.faint : color.ink,
+        color: disabled ? color.faint : glowing ? color.onAccent : color.ink,
         cursor: disabled ? "not-allowed" : "pointer",
         flexShrink: 0,
         boxShadow: disabled
           ? "none"
           : glowing
-            ? "inset 0 1px 0 rgba(255,255,255,0.95), 0 0 0 4px rgba(30,111,232,0.18), 0 8px 18px rgba(28,32,40,0.16)"
-            : "inset 0 1px 0 rgba(255,255,255,0.95), inset 0 -1px 0 rgba(28,32,40,0.12), 0 6px 14px rgba(28,32,40,0.16)",
+          : glowing
+            ? "inset 0 1px 0 rgba(255,255,255,0.45), 0 0 0 4px rgba(184,242,74,0.18), 0 8px 18px rgba(0,0,0,0.4)"
+            : "inset 0 1px 0 rgba(255,255,255,0.14), inset 0 -1px 0 rgba(0,0,0,0.45), 0 6px 14px rgba(0,0,0,0.4)",
         transition: `transform ${motion.fast} ${motion.ease}, box-shadow ${motion.base} ${motion.ease}, background ${motion.fast} ${motion.ease}`,
       }}
     >
