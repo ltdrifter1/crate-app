@@ -4,7 +4,7 @@ import Icon from "../ui/Icon";
 
 const CHART_CSS = `
   .pmp-chart-row { transition: background ${"{base}"} ${"{ease}"}, box-shadow ${"{base}"}; }
-  .pmp-chart-row:hover { background: rgba(255,255,255,0.04) !important; }
+  .pmp-chart-row:hover { background: rgba(30,111,232,0.08) !important; }
   .pmp-chart-row:active { transform: scale(0.992); }
   .pmp-chart-scan {
     position: absolute; inset: 0; pointer-events: none;
@@ -13,7 +13,7 @@ const CHART_CSS = `
       transparent 0px, transparent 2px,
       rgba(101,230,255,0.05) 2px, rgba(101,230,255,0.05) 3px
     );
-    mix-blend-mode: screen; opacity: 0.55;
+    mix-blend-mode: multiply; opacity: 0.12;
   }
   @keyframes pmpRankUp {
     from { transform: translateY(7px); opacity: 0.25; }
@@ -61,9 +61,8 @@ export default function ChartsScreen({
           inset: 0,
           pointerEvents: "none",
           background: `
-            radial-gradient(ellipse 80% 48% at 8% -10%, rgba(${chrome.cyanRgb},0.1) 0%, transparent 50%),
-            radial-gradient(ellipse 60% 36% at 100% 8%, rgba(123,167,255,0.06) 0%, transparent 46%),
-            linear-gradient(180deg, rgba(18,22,28,0.4) 0%, transparent 36%)
+            radial-gradient(ellipse 80% 48% at 8% -10%, rgba(30,111,232,0.08) 0%, transparent 50%),
+            radial-gradient(ellipse 60% 36% at 100% 8%, rgba(111,191,58,0.06) 0%, transparent 46%)
           `,
         }}
       />

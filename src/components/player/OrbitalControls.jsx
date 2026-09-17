@@ -36,18 +36,20 @@ export function IceOrbPlay({
         height: size,
         borderRadius: "50%",
         background: disabled
-          ? "rgba(40,44,52,0.9)"
-          : "rgba(247,248,250,0.96)",
-        border: "none",
+          ? "linear-gradient(180deg, #E2E5EC 0%, #C5CAD3 100%)"
+          : "linear-gradient(180deg, #FFFFFF 0%, #E8EBEF 48%, #C5CAD3 100%)",
+        border: "1px solid rgba(28,32,40,0.16)",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        color: disabled ? color.faint : color.onAccent,
+        color: disabled ? color.faint : color.ink,
         cursor: disabled ? "not-allowed" : "pointer",
         flexShrink: 0,
         boxShadow: disabled
           ? "none"
-          : "0 6px 18px rgba(0,0,0,0.32)",
+          : glowing
+            ? "inset 0 1px 0 rgba(255,255,255,0.95), 0 0 0 4px rgba(30,111,232,0.18), 0 8px 18px rgba(28,32,40,0.16)"
+            : "inset 0 1px 0 rgba(255,255,255,0.95), inset 0 -1px 0 rgba(28,32,40,0.12), 0 6px 14px rgba(28,32,40,0.16)",
         transition: `transform ${motion.fast} ${motion.ease}, box-shadow ${motion.base} ${motion.ease}, background ${motion.fast} ${motion.ease}`,
       }}
     >
@@ -58,8 +60,8 @@ export function IceOrbPlay({
             width: Math.round(size * 0.38),
             height: Math.round(size * 0.38),
             borderRadius: "50%",
-            border: "2px solid rgba(8,10,13,0.18)",
-            borderTopColor: color.onAccent,
+            border: "2px solid rgba(28,32,40,0.16)",
+            borderTopColor: color.ink,
             animation: "spin 0.7s linear infinite",
           }}
         />

@@ -314,11 +314,11 @@ function OnAirStage({
         <TechLabel color={chrome.live} style={{ letterSpacing: 1.8 }}>
           On air
         </TechLabel>
-        <span aria-hidden="true" style={{ color: "rgba(255,255,255,0.16)" }}>·</span>
+        <span aria-hidden="true" style={{ color: color.lineStrong }}>·</span>
         <TechLabel color={color.muted}>
           Prog {programIndex(show.id)}
         </TechLabel>
-        <span aria-hidden="true" style={{ color: "rgba(255,255,255,0.16)" }}>·</span>
+        <span aria-hidden="true" style={{ color: color.lineStrong }}>·</span>
         <TechLabel color={color.faint}>
           {show.timeLabel}
         </TechLabel>

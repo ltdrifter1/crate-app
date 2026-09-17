@@ -125,7 +125,7 @@ export default function GenreMosaic({ plates = [], onOpen = null }) {
                 fontWeight: 700,
                 letterSpacing: -0.4,
                 lineHeight: 1.1,
-                color: y2k.offWhite,
+                color: color.onDark,
               }}
             >
               {plate.lane}
@@ -223,7 +223,7 @@ export function MoodRail({ plates = [], onOpen = null }) {
                 fontSize: 16,
                 fontWeight: 700,
                 letterSpacing: -0.35,
-                color: y2k.offWhite,
+                color: color.onDark,
                 lineHeight: 1.15,
               }}
             >
@@ -331,7 +331,7 @@ export function SceneRail({ plates = [], onOpen = null }) {
                 fontSize: 15,
                 fontWeight: 700,
                 letterSpacing: -0.3,
-                color: y2k.offWhite,
+                color: color.onDark,
               }}
             >
               {scene.label}

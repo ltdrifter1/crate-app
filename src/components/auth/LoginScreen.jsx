@@ -264,10 +264,10 @@ export default function LoginScreen({
             flexDirection: "column",
             gap: 12,
             padding: "22px 20px 20px",
-            background: "rgba(28,28,30,0.78)",
-            border: "1px solid rgba(255,255,255,0.08)",
+            background: "rgba(255,255,255,0.86)",
+            border: "1px solid rgba(28,32,40,0.1)",
             borderRadius: 18,
-            boxShadow: "0 16px 44px rgba(0,0,0,0.4)",
+            boxShadow: "inset 0 1px 0 rgba(255,255,255,0.95), 0 16px 44px rgba(28,32,40,0.12)",
             backdropFilter: glass.blurHeavy,
             WebkitBackdropFilter: glass.blurHeavy,
           }}
@@ -293,7 +293,7 @@ export default function LoginScreen({
             }}
           >
             <GoogleMark />
-            <span style={{ fontSize: 16, fontWeight: 600, color: color.onAccent }}>
+            <span style={{ fontSize: 16, fontWeight: 600, color: color.ink }}>
               {loading && notice?.includes("Google") ? "Connecting…" : "Continue with Google"}
             </span>
           </button>

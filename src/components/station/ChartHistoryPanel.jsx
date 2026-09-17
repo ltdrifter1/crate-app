@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import {
   color, font, fontDisplay, glass, homeSpace, motion, artShadow, artFrameStyle,
-  chrome, y2k, radio, BTN_PRIMARY, chromeIconButton, radius,
+  chrome, radio, BTN_PRIMARY, chromeIconButton, radius,
 } from "../../theme";
 import {
   biggestClimbers,
@@ -124,11 +124,10 @@ function Segmented({ items, activeId, onChange, ariaLabel }) {
         padding: 3,
         borderRadius: 10,
         background: `
-          linear-gradient(180deg, rgba(255,255,255,0.04) 0%, transparent 50%),
-          rgba(10,12,16,0.72)
+          linear-gradient(180deg, rgba(255,255,255,0.7) 0%, rgba(226,230,236,0.9) 100%)
         `,
         border: `1px solid ${glass.border}`,
-        boxShadow: `inset 0 1px 0 ${glass.highlight}, inset 0 2px 8px rgba(0,0,0,0.4)`,
+        boxShadow: `inset 0 1px 0 ${glass.highlight}, inset 0 2px 6px rgba(28,32,40,0.08)`,
       }}
     >
       {items.map((item) => {
@@ -148,19 +147,16 @@ function Segmented({ items, activeId, onChange, ariaLabel }) {
               border: "none",
               borderRadius: 8,
               background: active
-                ? `
-                  linear-gradient(180deg, rgba(255,255,255,0.16) 0%, rgba(255,255,255,0.04) 100%),
-                  rgba(42,46,54,0.96)
-                `
+                ? "linear-gradient(180deg, #6FB4F8 0%, #1E6FE8 100%)"
                 : "transparent",
-              color: active ? y2k.offWhite : color.muted,
+              color: active ? "#FFFFFF" : color.muted,
               fontFamily: fontDisplay,
               fontSize: 13,
               fontWeight: active ? 650 : 520,
               letterSpacing: -0.2,
               cursor: "pointer",
               boxShadow: active
-                ? "inset 0 1px 0 rgba(255,255,255,0.22), 0 3px 10px rgba(0,0,0,0.32)"
+                ? "inset 0 1px 0 rgba(255,255,255,0.35), 0 3px 8px rgba(30,111,232,0.28)"
                 : "none",
               transition: `color ${motion.fast}, background ${motion.base}, box-shadow ${motion.base}`,
               WebkitTapHighlightColor: "transparent",
@@ -185,7 +181,7 @@ function UnderlineRail({ items, activeId, onChange, ariaLabel }) {
         display: "flex",
         gap: 2,
         overflowX: "auto",
-        borderBottom: "1px solid rgba(255,255,255,0.08)",
+        borderBottom: "1px solid rgba(28,32,40,0.1)",
         marginBottom: 14,
       }}
     >
@@ -588,16 +584,15 @@ function ChartHero({ entry, active, onPlay, onAdd, onMore, onContextMenu }) {
         borderRadius: radius.lg,
         overflow: "hidden",
         border: active
-          ? "1px solid rgba(101,230,255,0.28)"
-          : "1px solid rgba(231,235,240,0.16)",
+          ? "1px solid rgba(30,111,232,0.35)"
+          : "1px solid rgba(28,32,40,0.12)",
         background: `
-          radial-gradient(120% 80% at 0% 0%, rgba(101,230,255,0.12) 0%, transparent 46%),
-          linear-gradient(165deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.02) 36%, transparent 70%),
-          linear-gradient(145deg, rgba(40,46,56,0.72) 0%, rgba(16,18,22,0.88) 100%)
+          radial-gradient(120% 80% at 0% 0%, rgba(111,191,58,0.1) 0%, transparent 46%),
+          linear-gradient(165deg, #FFFFFF 0%, #E8EBEF 100%)
         `,
         boxShadow: `
-          inset 0 1px 0 rgba(255,255,255,0.2),
-          inset 0 -1px 0 rgba(0,0,0,0.4),
+          inset 0 1px 0 rgba(255,255,255,0.95),
+          inset 0 -1px 0 rgba(28,32,40,0.06),
           ${glass.shadowSoft}
         `,
         backdropFilter: glass.blurSoft,
@@ -663,7 +658,7 @@ function ChartHero({ entry, active, onPlay, onAdd, onMore, onContextMenu }) {
           lineHeight: 0.9,
           marginBottom: 8,
           fontVariantNumeric: "tabular-nums",
-          textShadow: `0 0 28px rgba(${chrome.cyanRgb},0.35)`,
+          textShadow: "none",
         }}>
           {entry.rank}
         </div>

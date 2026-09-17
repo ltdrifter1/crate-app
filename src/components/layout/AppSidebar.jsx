@@ -20,19 +20,23 @@ function NavRow({ item, active, onClick }) {
         width: "100%",
         minHeight: 40,
         borderRadius: radius.sm,
-        background: active ? "rgba(10, 132, 255, 0.22)" : "transparent",
+        background: active
+          ? "linear-gradient(180deg, #6FB4F8 0%, #1E6FE8 100%)"
+          : "transparent",
         border: "1px solid transparent",
-        color: active ? color.ink : color.body,
+        color: active ? "#FFFFFF" : color.body,
         cursor: "pointer",
         display: "flex",
         alignItems: "center",
         gap: 10,
         padding: "8px 10px",
         textAlign: "left",
-        boxShadow: "none",
+        boxShadow: active
+          ? "inset 0 1px 0 rgba(255,255,255,0.35), 0 2px 6px rgba(30,111,232,0.25)"
+          : "none",
       }}
     >
-      <span style={{ width: 18, display: "flex", justifyContent: "center", flexShrink: 0, color: active ? color.accent : color.muted }}>
+      <span style={{ width: 18, display: "flex", justifyContent: "center", flexShrink: 0, color: active ? "#FFFFFF" : color.muted }}>
         <Icon name={item.icon} size={16} />
       </span>
       <span
@@ -85,9 +89,11 @@ export default function AppSidebar({
         height: "100%",
         background: isDrawer
           ? color.canvas
-          : "rgba(28, 28, 30, 0.72)",
-        borderRight: isDrawer ? "none" : "1px solid rgba(255,255,255,0.06)",
-        boxShadow: "none",
+          : `
+            linear-gradient(180deg, #E8ECF2 0%, #D6DCE6 100%)
+          `,
+        borderRight: isDrawer ? "none" : `1px solid ${glass.border}`,
+        boxShadow: isDrawer ? "none" : `inset -1px 0 0 ${glass.highlight}`,
         display: "flex",
         flexDirection: "column",
         padding: isDrawer ? "8px 12px 20px" : "18px 12px 16px",
