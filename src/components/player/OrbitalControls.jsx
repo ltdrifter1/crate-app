@@ -50,7 +50,6 @@ export function IceOrbPlay({
         boxShadow: disabled
           ? "none"
           : glowing
-          : glowing
             ? "inset 0 1px 0 rgba(255,255,255,0.45), 0 0 0 4px rgba(184,242,74,0.18), 0 8px 18px rgba(0,0,0,0.4)"
             : "inset 0 1px 0 rgba(255,255,255,0.14), inset 0 -1px 0 rgba(0,0,0,0.45), 0 6px 14px rgba(0,0,0,0.4)",
         transition: `transform ${motion.fast} ${motion.ease}, box-shadow ${motion.base} ${motion.ease}, background ${motion.fast} ${motion.ease}`,
