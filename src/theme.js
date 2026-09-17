@@ -1,19 +1,114 @@
-// Design tokens — premium modern MTV × iOS.
-// Graphite studio, clean system type, restrained chrome.
-// Taste over novelty — no ticket stubs, LED stamps, or costume jewelry.
+// Design tokens — App Store / Apple Music system type on a dark studio canvas.
+// SF Pro throughout. No LCD mono, no display posters, no costume jewelry.
 
 export const fontDisplay =
-  'system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", Helvetica, Arial, sans-serif';
+  '-apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", Helvetica, Arial, sans-serif';
 export const font =
-  'system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Helvetica Neue", Helvetica, Arial, sans-serif';
+  '-apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Helvetica Neue", Helvetica, Arial, sans-serif';
 export const fontMono =
   'ui-monospace, "SF Mono", SFMono-Regular, Menlo, Monaco, Consolas, monospace';
-/** Home / station posters — Y2K MTV wordmark without replacing UI chrome type. */
-export const fontPoster =
-  '"Syne", "Arial Black", system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", Helvetica, Arial, sans-serif';
-/** LCD / channel-bug readout on Home. */
-export const fontLcd =
-  '"IBM Plex Mono", ui-monospace, "SF Mono", SFMono-Regular, Menlo, Monaco, Consolas, monospace';
+/** Same as display — App Store never swaps in a costume headline face. */
+export const fontPoster = fontDisplay;
+/** Same as text — keep the token so station chrome can restyle without LCD. */
+export const fontLcd = font;
+
+/**
+ * App Store type scale (Dark Mode).
+ * Tracking is optical, not costume: tight on large titles, nearly 0 on captions.
+ */
+export const type = {
+  largeTitle: {
+    fontFamily: fontDisplay,
+    fontSize: 34,
+    fontWeight: 700,
+    letterSpacing: -0.9,
+    lineHeight: 1.12,
+  },
+  title1: {
+    fontFamily: fontDisplay,
+    fontSize: 28,
+    fontWeight: 700,
+    letterSpacing: -0.6,
+    lineHeight: 1.14,
+  },
+  title2: {
+    fontFamily: fontDisplay,
+    fontSize: 22,
+    fontWeight: 700,
+    letterSpacing: -0.4,
+    lineHeight: 1.18,
+  },
+  title3: {
+    fontFamily: fontDisplay,
+    fontSize: 20,
+    fontWeight: 600,
+    letterSpacing: -0.32,
+    lineHeight: 1.2,
+  },
+  headline: {
+    fontFamily: font,
+    fontSize: 17,
+    fontWeight: 600,
+    letterSpacing: -0.24,
+    lineHeight: 1.25,
+  },
+  body: {
+    fontFamily: font,
+    fontSize: 17,
+    fontWeight: 400,
+    letterSpacing: -0.24,
+    lineHeight: 1.35,
+  },
+  callout: {
+    fontFamily: font,
+    fontSize: 16,
+    fontWeight: 400,
+    letterSpacing: -0.2,
+    lineHeight: 1.3,
+  },
+  subhead: {
+    fontFamily: font,
+    fontSize: 15,
+    fontWeight: 400,
+    letterSpacing: -0.16,
+    lineHeight: 1.3,
+  },
+  footnote: {
+    fontFamily: font,
+    fontSize: 13,
+    fontWeight: 400,
+    letterSpacing: -0.08,
+    lineHeight: 1.3,
+  },
+  caption: {
+    fontFamily: font,
+    fontSize: 12,
+    fontWeight: 400,
+    letterSpacing: 0,
+    lineHeight: 1.25,
+  },
+  tileTitle: {
+    fontFamily: font,
+    fontSize: 13,
+    fontWeight: 600,
+    letterSpacing: -0.14,
+    lineHeight: 1.25,
+  },
+  tileMeta: {
+    fontFamily: font,
+    fontSize: 13,
+    fontWeight: 400,
+    letterSpacing: -0.08,
+    lineHeight: 1.25,
+  },
+  seeAll: {
+    fontFamily: font,
+    fontSize: 17,
+    fontWeight: 400,
+    letterSpacing: -0.2,
+    lineHeight: 1.2,
+  },
+};
 
 /** Brand palette — dark broadcast studio, editorial contrast */
 export const color = {
@@ -28,10 +123,10 @@ export const color = {
   surfaceRaised: "rgba(28, 32, 38, 0.96)",
   canvas: "#080A0D",
   canvasEdge: "#06070A",
-  /** Technical blue — interface accent */
-  accent: "#7BA7FF",
-  accentSoft: "rgba(123, 167, 255, 0.12)",
-  accentGlow: "rgba(123, 167, 255, 0.22)",
+  /** iOS system blue — See All, links, focus */
+  accent: "#0A84FF",
+  accentSoft: "rgba(10, 132, 255, 0.14)",
+  accentGlow: "rgba(10, 132, 255, 0.28)",
   onAccent: "#080A0D",
   onDark: "#F2F4F7",
   onDarkMuted: "rgba(242,244,247,0.62)",
@@ -213,11 +308,11 @@ export const radio = {
     "linear-gradient(90deg, rgba(101,230,255,0.45) 0%, rgba(101,230,255,0.95) 55%, rgba(231,235,240,0.95) 100%)",
   lcdGlow: "0 0 12px rgba(101,230,255,0.45)",
   label: {
-    fontFamily: fontMono,
-    fontSize: 10,
-    fontWeight: 700,
-    letterSpacing: 1.4,
-    textTransform: "uppercase",
+    fontFamily: font,
+    fontSize: 13,
+    fontWeight: 600,
+    letterSpacing: -0.08,
+    textTransform: "none",
   },
 };
 
@@ -284,11 +379,11 @@ export function hardwareKey(opts = { pressed: false, size: "md" }) {
     background: hardware.keyFace,
     boxShadow: pressed ? hardware.keyPressed : hardware.keyRaised,
     color: pressed ? y2k.chromeBright : color.body,
-    fontFamily: fontMono,
-    fontSize: 11,
-    fontWeight: 800,
-    letterSpacing: 0.9,
-    textTransform: "uppercase",
+    fontFamily: font,
+    fontSize: 13,
+    fontWeight: 600,
+    letterSpacing: -0.1,
+    textTransform: "none",
     cursor: "pointer",
     WebkitTapHighlightColor: "transparent",
   };
@@ -299,7 +394,7 @@ export const artShadow = {
   quiet: "0 2px 4px rgba(0,0,0,0.3), 0 12px 28px rgba(0,0,0,0.45)",
   raised:
     "0 4px 10px rgba(0,0,0,0.35), 0 20px 44px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.1), inset 0 -1px 0 rgba(0,0,0,0.35)",
-  active: `0 0 0 1px rgba(232,236,242,0.5), 0 0 20px ${y2k.chromeGlow}, 0 8px 20px rgba(0,0,0,0.45), 0 18px 40px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.16)`,
+  active: `0 0 0 2px rgba(247,248,250,0.92), 0 8px 20px rgba(0,0,0,0.45), 0 18px 40px rgba(0,0,0,0.45)`,
 };
 
 /**
@@ -332,7 +427,7 @@ export function artFrameStyle({
   };
 }
 
-/** Home rhythm — App Store breathing room, title sits close to its row. */
+/** Home rhythm — App Store shelves: large title, tight title-to-rail. */
 export const homeSpace = {
   gutter: 20,
   bandPadY: 32,
@@ -356,55 +451,38 @@ export const homeSpace = {
 };
 
 /**
- * Section title — clean iOS editorial, flush with rail gutter.
+ * Section title — App Store “Apps We Love” / Music shelf header.
  * Shared optical left edge across Channel Surfing / shelves / tonight.
  */
 export const sectionTitle = {
-  fontFamily: fontDisplay,
-  fontSize: 22,
-  fontWeight: 700,
-  letterSpacing: -0.45,
-  lineHeight: 1.15,
+  ...type.title2,
   color: y2k.offWhite,
   margin: 0,
   textTransform: "none",
 };
 
-/** Home band titles — Apple Music clean, same copy and layout. */
+/** Home band titles — same SF Pro stack as every other shelf. */
 export const sectionTitlePoster = {
   ...sectionTitle,
 };
 
 export const sectionSubtitle = {
-  margin: "4px 0 0",
-  fontSize: 14,
-  fontWeight: 500,
-  letterSpacing: -0.08,
-  lineHeight: 1.35,
+  ...type.subhead,
+  margin: "3px 0 0",
   color: color.muted,
 };
 
-/** Quiet label above a Home band title — iOS editorial, not a stamp. */
+/** Quiet label above a Home band title — App Store date/caption, not a stamp. */
 export const sectionEyebrow = {
-  fontFamily: font,
-  fontSize: 13,
+  ...type.footnote,
   fontWeight: 600,
-  letterSpacing: -0.08,
   textTransform: "none",
   color: color.muted,
   margin: "0 0 4px",
-  lineHeight: 1.2,
 };
 
 export const sectionEyebrowLcd = {
   ...sectionEyebrow,
-  fontFamily: fontLcd,
-  fontSize: 11,
-  fontWeight: 700,
-  letterSpacing: 1.6,
-  textTransform: "uppercase",
-  color: y2k.cyan,
-  margin: "0 0 5px",
 };
 
 /** Monitor bezel + LCD used by the Home stage and dock. */
@@ -604,12 +682,11 @@ export function brandGlassHalo(size = 280) {
   };
 }
 
-/** App shell — studio bloom: cyan tuner, acid spark, magenta rim. */
+/** App shell — near-black App Store canvas, no neon bloom. */
 export const APP_STYLE = {
   fontFamily: font,
   background: `
-    radial-gradient(ellipse 110% 65% at 50% -18%, rgba(255,255,255,0.04) 0%, transparent 55%),
-    radial-gradient(ellipse 70% 45% at 100% 100%, rgba(123,167,255,0.035) 0%, transparent 50%),
+    radial-gradient(ellipse 110% 55% at 50% -18%, rgba(255,255,255,0.035) 0%, transparent 52%),
     ${color.canvas}
   `,
   color: color.ink,

@@ -246,7 +246,7 @@ describe("Home broadcast + four-tab IA", () => {
     expect(div.querySelector("[aria-pressed]")).toBeTruthy();
   });
 
-  test("Local tile is featured without a Showcase badge", async () => {
+  test("Local tile matches other stations — no featured halo", async () => {
     await act(async () => {
       root.render(
         React.createElement(ChannelCard, {
@@ -262,7 +262,8 @@ describe("Home broadcast + four-tab IA", () => {
     });
     const card = div.querySelector(".pmp-channel-card");
     expect(card).toBeTruthy();
-    expect(card.className).toMatch(/pmp-channel-card--featured/);
+    expect(card.className).not.toMatch(/pmp-channel-card--featured/);
+    expect(card.className).not.toMatch(/pmp-channel-card--gold/);
     expect(div.textContent).toMatch(/Local/);
     expect(div.textContent).toMatch(/Pacific Northwest only/);
     expect(div.textContent).not.toMatch(/PNW/);
@@ -285,7 +286,8 @@ describe("Home broadcast + four-tab IA", () => {
         })
       );
     });
-    expect(div.querySelector(".pmp-channel-card--featured")).toBeTruthy();
+    expect(div.querySelector(".pmp-channel-card--featured")).toBeNull();
+    expect(div.querySelector(".pmp-channel-card--gold")).toBeNull();
     expect(div.textContent).toMatch(/Playing/);
     expect(div.textContent).not.toMatch(/Showcase/);
   });
@@ -365,18 +367,20 @@ describe("Home broadcast + four-tab IA", () => {
     expect(surf).toBeTruthy();
     expect(surf.textContent).toMatch(/Local/);
     expect(surf.textContent).not.toMatch(/PNW/);
-    const featured = [...surf.querySelectorAll(".pmp-channel-card")].find((el) =>
-      el.className.includes("pmp-channel-card--featured")
+    const local = [...surf.querySelectorAll(".pmp-channel-card")].find((el) =>
+      el.textContent.includes("Local")
     );
-    expect(featured).toBeTruthy();
-    expect(featured.textContent).toMatch(/Local/);
-    expect(featured.getAttribute("aria-label")).toMatch(/Tune Local/);
-    const otherFeatured = [...surf.querySelectorAll(".pmp-channel-card")].filter(
-      (el) => el.className.includes("pmp-channel-card--featured") && !el.textContent.includes("Local")
+    expect(local).toBeTruthy();
+    expect(local.className).not.toMatch(/pmp-channel-card--featured/);
+    expect(local.className).not.toMatch(/pmp-channel-card--gold/);
+    expect(local.textContent).toMatch(/Local/);
+    expect(local.getAttribute("aria-label")).toMatch(/Tune Local/);
+    const featured = [...surf.querySelectorAll(".pmp-channel-card")].filter((el) =>
+      el.className.includes("pmp-channel-card--featured") || el.className.includes("pmp-channel-card--gold")
     );
-    expect(otherFeatured).toHaveLength(0);
+    expect(featured).toHaveLength(0);
     await act(async () => {
-      featured.click();
+      local.click();
     });
     expect(onTuneSceneChannel).toHaveBeenCalled();
     expect(onTuneSceneChannel.mock.calls[0][0].id).toBe("local-pnw");

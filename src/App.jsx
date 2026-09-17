@@ -198,8 +198,7 @@ const injectStyles = () => {
     body {
       font-family: var(--font);
       background:
-        radial-gradient(ellipse 110% 65% at 50% -18%, rgba(255,255,255,0.04) 0%, transparent 55%),
-        radial-gradient(ellipse 70% 45% at 100% 100%, rgba(123,167,255,0.035) 0%, transparent 50%),
+        radial-gradient(ellipse 110% 55% at 50% -18%, rgba(255,255,255,0.035) 0%, transparent 52%),
         var(--canvas);
       color: var(--ink);
     }
@@ -529,22 +528,38 @@ const injectStyles = () => {
       box-shadow:
         inset 0 1px 0 rgba(255,255,255,0.28),
         inset 0 -1px 0 rgba(0,0,0,0.55),
-        0 22px 50px rgba(0,0,0,0.52),
-        0 0 48px rgba(101,230,255,0.1),
-        0 0 0 1px rgba(255,79,216,0.12);
+        0 22px 50px rgba(0,0,0,0.52);
     }
-    .pmp-home-mtv::before {
-      content: "";
-      position: absolute;
-      inset: 0;
-      pointer-events: none;
-      z-index: 0;
-      background:
-        radial-gradient(ellipse 85% 42% at 0% 6%, rgba(255,79,216,0.07) 0%, transparent 52%),
-        radial-gradient(ellipse 70% 38% at 100% 8%, rgba(101,230,255,0.09) 0%, transparent 50%),
-        radial-gradient(ellipse 50% 30% at 50% 0%, rgba(200,242,65,0.04) 0%, transparent 48%);
-    }
+    .pmp-home-mtv::before { display: none; }
     .pmp-home-mtv > * { position: relative; z-index: 1; }
+    /* Kill leftover Local gold bloom from older builds. No halo, no pulse. */
+    @keyframes pmpGoldGlow {
+      0%, 100% { opacity: 0; }
+      50% { opacity: 0; }
+    }
+    .pmp-channel-card--gold,
+    .pmp-channel-card--featured {
+      filter: none !important;
+    }
+    .pmp-channel-card-frame,
+    .pmp-channel-card--gold .pmp-channel-card-frame,
+    .pmp-channel-card--featured .pmp-channel-card-frame {
+      overflow: hidden !important;
+      filter: none !important;
+    }
+    .pmp-channel-card-frame::before,
+    .pmp-channel-card-frame::after,
+    .pmp-channel-card--gold .pmp-channel-card-frame::before,
+    .pmp-channel-card--gold .pmp-channel-card-frame::after,
+    .pmp-channel-card--featured .pmp-channel-card-frame::before,
+    .pmp-channel-card--featured .pmp-channel-card-frame::after {
+      content: none !important;
+      display: none !important;
+      animation: none !important;
+      background: none !important;
+      box-shadow: none !important;
+      filter: none !important;
+    }
     .pmp-ticker-track {
       animation: stationTicker 22s linear infinite;
     }
@@ -615,7 +630,7 @@ const injectStyles = () => {
     .pmp-hero:hover .pmp-hero-art { transform: scale(1.04); }
     .pmp-hero-sleeve { transition: transform 0.45s ${motion.ease}; }
     .pmp-view-all { transition: color ${motion.fast} ${motion.ease}, transform ${motion.fast} ${motion.ease}; }
-    .pmp-view-all:hover { color: ${y2k.cyan} !important; transform: translateX(1px); }
+    .pmp-view-all:hover { color: #64B5FF !important; transform: none; }
     .pmp-rail { cursor: grab; }
     .pmp-rail:active { cursor: grabbing; }
     @media (prefers-reduced-transparency: reduce) {

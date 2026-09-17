@@ -12,16 +12,16 @@ export function brandStoragePrefix() {
 }
 
 export const brandWordmark = {
-  letterSpacing: -0.2,
+  letterSpacing: -0.9,
   weight: 700,
   transform: "none",
 };
 
 export const brandTaglineStyle = {
-  font: "mono",
-  letterSpacing: 0.12,
-  transform: "uppercase",
-  size: 11,
+  font: "text",
+  letterSpacing: -0.16,
+  transform: "none",
+  size: 15,
 };
 
 /** @deprecated single-brand app — kept for imports */

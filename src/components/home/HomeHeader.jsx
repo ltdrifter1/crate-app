@@ -1,5 +1,4 @@
-import { chromeIconButton, fontDisplay, homeSpace, y2k } from "../../theme";
-import { BrandGlyph } from "../brand/BrandGlyphs";
+import { chromeIconButton, color, homeSpace, type, y2k } from "../../theme";
 import Icon from "../ui/Icon";
 
 function HeaderButton({ label, icon, onClick }) {
@@ -12,11 +11,9 @@ function HeaderButton({ label, icon, onClick }) {
       className="pmp-press"
       style={{
         ...chromeIconButton(36),
-        borderRadius: 10,
-        border: "1px solid rgba(255,255,255,0.16)",
-        background:
-          "linear-gradient(180deg, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0.04) 100%), rgba(18,20,24,0.55)",
-        boxShadow: "inset 0 1px 0 rgba(255,255,255,0.22), inset 0 -1px 0 rgba(0,0,0,0.4)",
+        background: "rgba(255,255,255,0.12)",
+        border: "none",
+        boxShadow: "none",
       }}
     >
       <Icon name={icon} size={16} />
@@ -24,8 +21,16 @@ function HeaderButton({ label, icon, onClick }) {
   );
 }
 
+function formatStoreDate(date = new Date()) {
+  return date.toLocaleDateString("en-US", {
+    weekday: "long",
+    month: "long",
+    day: "numeric",
+  });
+}
+
 /**
- * HomeHeader — Apple Music–clean wordmark. Search / Browse / Profile unchanged.
+ * HomeHeader — App Store large title: date caption + product name.
  */
 export default function HomeHeader({
   onOpenSearch = null,
@@ -36,37 +41,40 @@ export default function HomeHeader({
     <header
       style={{
         display: "flex",
-        alignItems: "center",
+        alignItems: "flex-end",
         justifyContent: "space-between",
         gap: 12,
-        padding: `calc(10px + env(safe-area-inset-top, 0px)) ${homeSpace.gutter}px 10px`,
+        padding: `calc(18px + env(safe-area-inset-top, 0px)) ${homeSpace.gutter}px 6px`,
       }}
     >
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          gap: 10,
-          minWidth: 0,
-        }}
-      >
-        {onOpenMenu && <HeaderButton label="Browse" icon="menu" onClick={onOpenMenu} />}
-        <BrandGlyph size={26} />
-        <span
+      <div style={{ minWidth: 0 }}>
+        <div
           style={{
-            fontFamily: fontDisplay,
-            fontSize: 21,
-            fontWeight: 700,
-            letterSpacing: -0.55,
-            lineHeight: 1,
+            ...type.footnote,
+            fontWeight: 600,
+            letterSpacing: 0.2,
+            textTransform: "uppercase",
+            color: color.muted,
+            marginBottom: 4,
+          }}
+        >
+          {formatStoreDate()}
+        </div>
+        <h1
+          style={{
+            ...type.largeTitle,
+            margin: 0,
             color: y2k.offWhite,
             whiteSpace: "nowrap",
+            overflow: "hidden",
+            textOverflow: "ellipsis",
           }}
         >
           Planet MP3
-        </span>
+        </h1>
       </div>
-      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 8, paddingBottom: 4 }}>
+        {onOpenMenu && <HeaderButton label="Browse" icon="menu" onClick={onOpenMenu} />}
         <HeaderButton label="Search" icon="search" onClick={onOpenSearch} />
         <HeaderButton label="Profile" icon="profile" onClick={onOpenProfile} />
       </div>

@@ -1,11 +1,11 @@
 import { memo } from "react";
-import { color, fontDisplay, fontLcd, fontMono, glassPill, homeSpace, y2k } from "../../theme";
+import { color, homeSpace, type, y2k } from "../../theme";
 import { trackHasVideo } from "../../lib/video";
 import ArtFrame from "../ui/ArtFrame";
 
 /**
- * TrackCard — square artwork tile for Discover / Recently Played rails.
- * Optional rank badge (countdown) and reason chip (recommendations).
+ * TrackCard — App Store / Apple Music square tile.
+ * Optional rank badge (countdown) and reason line (recommendations).
  */
 function TrackCard({
   track,
@@ -37,26 +37,24 @@ function TrackCard({
         src={track.albumCover || null}
         size={size}
         active={active}
-        radius={16}
+        radius={12}
       >
         {trackHasVideo(track) && (
           <span
             aria-hidden="true"
             style={{
-              ...glassPill({ compact: true }),
               position: "absolute",
               top: 8,
               right: 8,
               height: 22,
               padding: "0 8px",
+              borderRadius: 11,
+              background: "rgba(0,0,0,0.55)",
               display: "inline-flex",
               alignItems: "center",
-              fontFamily: fontMono,
-              fontSize: 9,
-              fontWeight: 800,
-              letterSpacing: 1.1,
-              textTransform: "uppercase",
-              color: y2k.chromeBright,
+              ...type.caption,
+              fontWeight: 600,
+              color: y2k.offWhite,
               zIndex: 1,
             }}
           >
@@ -66,7 +64,6 @@ function TrackCard({
         {rank != null && (
           <span
             style={{
-              ...glassPill({ compact: true }),
               position: "absolute",
               top: 8,
               left: 8,
@@ -76,14 +73,11 @@ function TrackCard({
               display: "inline-flex",
               alignItems: "center",
               justifyContent: "center",
-              borderRadius: 4,
-              background: "rgba(8,10,13,0.72)",
-              border: "1px solid rgba(101,230,255,0.4)",
-              fontFamily: fontLcd,
-              fontSize: 11,
+              borderRadius: 12,
+              background: "rgba(0,0,0,0.55)",
+              ...type.caption,
               fontWeight: 700,
-              letterSpacing: 0.4,
-              color: y2k.cyan,
+              color: y2k.offWhite,
               zIndex: 1,
             }}
           >
@@ -94,11 +88,8 @@ function TrackCard({
       <span
         style={{
           display: "block",
-          marginTop: 10,
-          fontSize: 13,
-          fontWeight: 600,
-          fontFamily: fontDisplay,
-          letterSpacing: -0.22,
+          marginTop: 8,
+          ...type.tileTitle,
           color: y2k.offWhite,
           overflow: "hidden",
           textOverflow: "ellipsis",
@@ -110,22 +101,15 @@ function TrackCard({
       <span
         style={{
           display: "block",
-          marginTop: 3,
-          fontSize: 12,
-          fontWeight: 500,
-          letterSpacing: -0.05,
+          marginTop: 2,
+          ...type.tileMeta,
           color: color.muted,
           overflow: "hidden",
           textOverflow: "ellipsis",
           whiteSpace: "nowrap",
         }}
       >
-        {reason ? (
-          <span style={{ fontFamily: fontMono, fontSize: 9, letterSpacing: 1.1, textTransform: "uppercase", color: y2k.chromeBright }}>
-            {reason}
-            <span style={{ color: color.muted }}> · </span>
-          </span>
-        ) : null}
+        {reason ? `${reason} · ` : null}
         {track.artist}
       </span>
     </button>
