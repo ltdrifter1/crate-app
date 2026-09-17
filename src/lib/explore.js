@@ -12,6 +12,7 @@ import {
   SCENE_CHANNELS,
 } from "./sceneChannels";
 import { featuredReleases, recommendedPicks, trendingTracks } from "./homeCollections";
+import { buildArtists } from "./catalog";
 import { SCENE_FAMILIES, getScene } from "./scenes";
 
 /** Canonical lane → Channel Surfing photo when the match is honest. */
@@ -349,6 +350,20 @@ export function exploreStations(tracks = []) {
 
 export function exploreReleases(tracks = [], limit = 6) {
   return featuredReleases(tracks, limit);
+}
+
+/**
+ * Artist faces for Explore — Home stays broadcast-only.
+ * Prefer sleeves + more than one cut so the rail isn't a dump of unknowns.
+ */
+export function exploreArtists(tracks = [], limit = 16) {
+  return buildArtists(tracks)
+    .filter((a) => {
+      const name = String(a.name || "").trim();
+      if (!name || /^unknown$/i.test(name)) return false;
+      return !!(a.coverTrack?.albumCover) && (a.count || 0) >= 1;
+    })
+    .slice(0, Math.max(1, limit));
 }
 
 export function exploreChartsTeaser(countdown = [], limit = 8) {

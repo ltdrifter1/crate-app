@@ -53,6 +53,7 @@ export function wishlistish(tracks = [], limit = 12) {
 /**
  * Quiet home shelves — Saved is rendered separately on Home.
  * One curated rail so the wall doesn't sprawl (Late booth retired).
+ * Broadcast Home no longer mounts these; Explore owns artist/album discovery.
  */
 export function buildHomeCollections(tracks = []) {
   const singles = tracks.filter((t) => (t.duration || 0) <= 900);

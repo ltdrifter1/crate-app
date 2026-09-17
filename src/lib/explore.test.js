@@ -9,6 +9,7 @@ import {
   recentlyPlayedTracks,
   resolveExploreFocus,
   tracksForMood,
+  exploreArtists,
   GENRE_CHANNEL_ART,
 } from "./explore";
 import { CHANNEL_ART } from "./channelArt";
@@ -155,5 +156,18 @@ describe("explore collections", () => {
   test("artForChannelId returns licensed stills", () => {
     expect(artForChannelId("y2k-dance").src).toBe(CHANNEL_ART["y2k-dance"]);
     expect(artForChannelId("missing").src).toBeNull();
+  });
+
+  test("exploreArtists skips unknown names and prefers sleeved acts", () => {
+    const list = exploreArtists(
+      [
+        ...tracks,
+        { id: "u", title: "X", artist: "Unknown", albumCover: "u.jpg", duration: 180 },
+      ],
+      8
+    );
+    expect(list.every((a) => a.name !== "Unknown")).toBe(true);
+    expect(list.every((a) => a.coverTrack?.albumCover)).toBe(true);
+    expect(list.some((a) => a.name === "C")).toBe(true);
   });
 });

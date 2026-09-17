@@ -12,7 +12,6 @@ import {
 } from "../theme";
 import { countPlayableTracks } from "../lib/catalogLoad";
 import { getSceneChannel, SCENE_CHANNELS } from "../lib/sceneChannels";
-import { buildHomeCollections } from "../lib/homeCollections";
 import { rankChannelsForTaste } from "../lib/onboardingTaste";
 import { runAfterPaint } from "../lib/afterPaint";
 import { useCurrentTrack } from "../usePlayerTransport";
@@ -261,8 +260,6 @@ function HomeScreen({
     [taste]
   );
 
-  const editorial = useMemo(() => buildHomeCollections(tracks), [tracks]);
-
   const topRequested = useMemo(() => countdown.slice(0, 10), [countdown]);
   const liveShow = channelShow || airing?.show || null;
   const activeChannel = sceneChannelsActiveId
@@ -392,39 +389,13 @@ function HomeScreen({
         </div>
       )}
 
-      {/* EDITORIAL — Played before */}
-      {shelvesReady && catalogReady &&
-        editorial.map((col, i) => (
-          <div key={col.id} style={{ contentVisibility: "auto", containIntrinsicSize: "280px" }}>
-          <MusicSection
-            title={col.label}
-            subtitle={col.story}
-            poster
-            first={!hasChannels && !hasTonight && topRequested.length === 0 && i === 0}
-            delay={0.08 + i * 0.02}
-          >
-            <Rail gap={16}>
-              {col.tracks.map((track) => (
-                <TrackCard
-                  key={track.id}
-                  track={track}
-                  active={activeId === track.id}
-                  onClick={() => onPlayTrack?.(track, col.tracks)}
-                />
-              ))}
-            </Rail>
-          </MusicSection>
-          </div>
-        ))}
-
       {catalogLoading && <HomeStandBy />}
 
       {/* Catalog is fine but nothing editorial to show — quiet empty state */}
       {catalogReady &&
         channels.length === 0 &&
         !hasTonight &&
-        topRequested.length === 0 &&
-        editorial.length === 0 && (
+        topRequested.length === 0 && (
           <div style={{ marginTop: 32 }}>
             <EmptyShelfCard
               title="Nothing here yet"

@@ -23,6 +23,7 @@ import GenreMosaic, { MoodRail, SceneRail } from "../components/explore/GenreMos
 import ExploreFocus from "../components/explore/ExploreFocus";
 import {
   buildExploreHero,
+  exploreArtists,
   exploreChartsTeaser,
   exploreForYou,
   exploreGenrePlates,
@@ -33,6 +34,7 @@ import {
   recentlyPlayedTracks,
   resolveExploreFocus,
 } from "../lib/explore";
+import ArtistCard from "../components/catalog/ArtistCard";
 
 const EXPLORE_CSS = `
   .pmp-explore-hero { isolation: isolate; }
@@ -323,6 +325,7 @@ function ExploreScreen({
   onPlayTrack = null,
   onOpenSearch = null,
   onOpenAlbum = null,
+  onOpenArtist = null,
   onOpenMenu = null,
   onOpenCharts = null,
   onTuneSceneChannel = null,
@@ -336,6 +339,7 @@ function ExploreScreen({
 
   const stations = useMemo(() => exploreStations(tracks), [tracks]);
   const releases = useMemo(() => exploreReleases(tracks, 6), [tracks]);
+  const artists = useMemo(() => exploreArtists(tracks, 16), [tracks]);
   const genres = useMemo(() => exploreGenrePlates(tracks), [tracks]);
   const moods = useMemo(() => exploreMoodPlates(tracks), [tracks]);
   const scenes = useMemo(() => exploreScenePlates(tracks, 10), [tracks]);
@@ -413,6 +417,7 @@ function ExploreScreen({
     scenes.length > 0 ||
     stations.some((c) => c.ready) ||
     releases.length > 0 ||
+    artists.length > 0 ||
     forYou.tracks.length > 0 ||
     recents.length > 0 ||
     charts.length > 0;
@@ -565,6 +570,24 @@ function ExploreScreen({
           title="Stations"
           subtitle="Live from here"
         />
+      )}
+
+      {artists.length > 0 && (
+        <MusicSection
+          title="Artists"
+          subtitle="Open a page"
+          delay={0.13}
+        >
+          <Rail gap={14}>
+            {artists.map((artist) => (
+              <ArtistCard
+                key={artist.slug}
+                artist={artist}
+                onClick={() => onOpenArtist?.(artist.slug)}
+              />
+            ))}
+          </Rail>
+        </MusicSection>
       )}
 
       {releases.length > 0 && (

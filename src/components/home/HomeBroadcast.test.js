@@ -387,6 +387,32 @@ describe("Home broadcast + four-tab IA", () => {
     expect(div.textContent).not.toMatch(/Made for you/i);
   });
 
+  test("home does not render an Artists or Played before shelf", async () => {
+    const rediscovered = [
+      {
+        id: "heard-1",
+        title: "Heard Cut",
+        artist: "Fog",
+        genre: "Jazz",
+        duration: 180,
+        audioUrl: "https://cdn.example/heard.mp3",
+        liked: true,
+        playCount: 2,
+        albumCover: "heard.jpg",
+      },
+    ];
+    await act(async () => {
+      root.render(
+        React.createElement(HomeScreen, {
+          tracks: rediscovered,
+        })
+      );
+    });
+    expect(div.querySelector('section[aria-label="Artists"]')).toBeNull();
+    expect(div.textContent).not.toMatch(/Played before/);
+    expect(div.textContent).not.toMatch(/Cuts you’ve spun/);
+  });
+
   test("Home paints Channel Surfing before the catalog arrives", async () => {
     await act(async () => {
       root.render(

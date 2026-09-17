@@ -156,6 +156,8 @@ describe("Explore screen", () => {
     expect(div.textContent).not.toMatch(/Showcase station/i);
     expect(div.textContent).not.toMatch(/on the dial/i);
     expect(div.querySelector('section[aria-label="Albums"]')).toBeTruthy();
+    expect(div.querySelector('section[aria-label="Artists"]')).toBeTruthy();
+    expect(div.textContent).toMatch(/Willow/);
     expect(div.querySelector(".pmp-release--lead")).toBeTruthy();
     expect(div.querySelector(".pmp-release--tile, .pmp-release--count")).toBeTruthy();
     expect(div.textContent).not.toMatch(/Featured releases/);
