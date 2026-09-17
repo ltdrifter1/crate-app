@@ -395,9 +395,9 @@ describe("Home broadcast + four-tab IA", () => {
     expect(div.textContent).toMatch(/Channel Surfing/);
     expect(div.textContent).toMatch(/Y2K Dance/);
     expect(div.textContent).toMatch(/Stand by/i);
-    expect(div.textContent).toMatch(/Pulling tonight/i);
-    expect(div.textContent).not.toMatch(/Shelf is empty/);
-    expect(div.textContent).not.toMatch(/Couldn.t pull the shelf/);
+    expect(div.textContent).toMatch(/Pulling the station/i);
+    expect(div.textContent).not.toMatch(/Nothing here yet/);
+    expect(div.textContent).not.toMatch(/Couldn.t load/);
     expect(div.querySelector(".pmp-showcase-promo")).toBeNull();
   });
 

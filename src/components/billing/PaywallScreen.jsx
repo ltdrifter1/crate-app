@@ -18,7 +18,7 @@ import {
 } from "../../lib/entitlements";
 import { startCheckout, openBillingPortal } from "../../lib/billing";
 import BrandMark from "../brand/BrandMark";
-import BetaLaunchNotice from "./BetaLaunchNotice";
+import BetaBadge from "./BetaLaunchNotice";
 
 export default function PaywallScreen({
   access = null,
@@ -43,7 +43,7 @@ export default function PaywallScreen({
       return;
     }
     if (!billingLive) {
-      setError("Payments aren’t live yet — this beta is a free trial.");
+      setError("Not available yet.");
       return;
     }
     if (typeof onSubscribe === "function") {
@@ -63,7 +63,7 @@ export default function PaywallScreen({
   async function handleManageBilling() {
     setError(null);
     if (!billingLive) {
-      setError("Billing management is coming soon.");
+      setError("Not available yet.");
       return;
     }
     setBusyPlan("portal");
@@ -98,16 +98,18 @@ export default function PaywallScreen({
           <BrandMark size={40} />
         </div>
 
-        <div style={{
-          fontSize: 12,
-          fontWeight: 650,
-          letterSpacing: 1.4,
-          textTransform: "uppercase",
-          color: color.muted,
-          marginBottom: 12,
-          fontFamily: fontMono,
-        }}>
-          {summary}
+        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
+          <div style={{
+            fontSize: 12,
+            fontWeight: 650,
+            letterSpacing: 1.4,
+            textTransform: "uppercase",
+            color: color.muted,
+            fontFamily: fontMono,
+          }}>
+            {summary}
+          </div>
+          {BETA_LAUNCH && <BetaBadge />}
         </div>
 
         <h1 style={{
@@ -119,28 +121,20 @@ export default function PaywallScreen({
           fontFamily: fontDisplay,
           color: color.ink,
         }}>
-          {BETA_LAUNCH
-            ? "Beta launch"
-            : mode === "manage"
-              ? "Your membership"
-              : "Pick your level"}
+          {mode === "manage" ? "Membership" : "Membership"}
         </h1>
 
         <p style={{
-          margin: "0 0 20px",
+          margin: "0 0 24px",
           fontSize: 16,
           lineHeight: 1.5,
           color: color.body,
           maxWidth: 360,
         }}>
           {BETA_LAUNCH
-            ? BETA_LAUNCH_COPY.blurb
-            : "Free keeps limited streaming. Club unlocks the full crate and your card. Premium adds Club Credit for Club Copy editions."}
+            ? BETA_LAUNCH_COPY.profileNote
+            : "Choose the plan that fits how you listen."}
         </p>
-
-        {(BETA_LAUNCH || PRICING_COMING_SOON) && (
-          <BetaLaunchNotice style={{ marginBottom: 20 }} />
-        )}
 
         <div style={{ display: "flex", flexDirection: "column", gap: 12, marginBottom: 20 }}>
           {plans.map((plan) => {
@@ -181,7 +175,7 @@ export default function PaywallScreen({
                         letterSpacing: 1,
                         textTransform: "uppercase",
                       }}>
-                        {BETA_LAUNCH && plan.id === PLAN_IDS.FREE ? "Trial" : "Current"}
+                        {plan.id === PLAN_IDS.FREE ? "Included" : "Current"}
                       </span>
                     )}
                   </div>
@@ -222,27 +216,11 @@ export default function PaywallScreen({
                     }}
                   >
                     {busy
-                      ? "Opening Stripe…"
+                      ? "Opening…"
                       : plan.id === PLAN_IDS.CLUB
-                        ? `Join Club — ${plan.price}`
-                        : `Go Premium — ${plan.price}`}
+                        ? "Join Club"
+                        : "Go Premium"}
                   </button>
-                )}
-                {!current && paidPlan && !billingLive && (
-                  <div
-                    style={{
-                      ...BTN_SECONDARY,
-                      width: "100%",
-                      borderRadius: radius.md,
-                      fontSize: 14,
-                      opacity: 0.72,
-                      cursor: "default",
-                      textAlign: "center",
-                      pointerEvents: "none",
-                    }}
-                  >
-                    Coming soon
-                  </div>
                 )}
                 {plan.id === PLAN_IDS.FREE && onContinueFree && (
                   <button
@@ -255,7 +233,7 @@ export default function PaywallScreen({
                       fontSize: 15,
                     }}
                   >
-                    {BETA_LAUNCH ? "Keep listening — free trial" : "Continue on Free"}
+                    Continue
                   </button>
                 )}
               </div>
@@ -334,8 +312,8 @@ export default function PaywallScreen({
 
         <p style={{ marginTop: 16, fontSize: 12, color: color.faint, lineHeight: 1.45 }}>
           {PRICING_COMING_SOON
-            ? "No payment is required during this beta launch. Club, Premium, and Club Copy checkout are coming soon."
-            : "Secure checkout via Stripe when billing is live."}
+            ? BETA_LAUNCH_COPY.profileNote
+            : "Secure checkout when membership is live."}
         </p>
       </div>
     </div>

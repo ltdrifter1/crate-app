@@ -30,7 +30,7 @@ describe("entitlements three-tier", () => {
     expect(access.streaming).toBe("full");
     expect(access.canUpgradeClub).toBe(false);
     expect(access.canUpgradePremium).toBe(false);
-    expect(membershipSummary(access)).toBe("Beta · free trial");
+    expect(membershipSummary(access)).toBe("Beta");
   });
 
   test("prices match Free / Club / Premium", () => {
@@ -163,14 +163,14 @@ describe("entitlements three-tier", () => {
   test("beta launch hides dollar prices in marketing copy", () => {
     expect(BETA_LAUNCH).toBe(true);
     expect(PRICING_COMING_SOON).toBe(true);
-    expect(marketingPriceLabel("club")).toBe("Coming soon");
-    expect(marketingPriceLabel("premium")).toBe("Coming soon");
+    expect(marketingPriceLabel("club")).toBe("—");
+    expect(marketingPriceLabel("premium")).toBe("—");
     expect(marketingPriceLabel("free")).toBe("$0");
     const plans = planMarketingCopy();
-    expect(plans.find((p) => p.id === "club").price).toBe("Coming soon");
-    expect(plans.find((p) => p.id === "premium").price).toBe("Coming soon");
-    expect(plans.find((p) => p.id === "premium").blurb).toMatch(/coming soon/i);
-    expect(plans.find((p) => p.id === "free").name).toBe("Beta trial");
+    expect(plans.find((p) => p.id === "club").price).toBe("—");
+    expect(plans.find((p) => p.id === "premium").price).toBe("—");
+    expect(plans.find((p) => p.id === "premium").blurb).toMatch(/Club Credit/i);
+    expect(plans.find((p) => p.id === "free").name).toBe("Listening");
   });
 
   test("addTrialDays still works", () => {

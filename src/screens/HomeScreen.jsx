@@ -18,7 +18,6 @@ import { rankChannelsForTaste, trackHitsPreferredChannels } from "../lib/onboard
 import { runAfterPaint } from "../lib/afterPaint";
 import { useCurrentTrack } from "../usePlayerTransport";
 import HomeHeader from "../components/home/HomeHeader";
-import BetaLaunchNotice from "../components/billing/BetaLaunchNotice";
 import HeroPlayerCard from "../components/home/HeroPlayerCard";
 import MusicSection, { Rail } from "../components/home/MusicSection";
 import ChannelSurfingSection from "../components/home/ChannelSurfingSection";
@@ -47,11 +46,19 @@ function HomeCatalogStatus({ error, isEmpty, playableCount, totalCount, onRetry 
     >
       {error ? (
         <>
-          <div style={{ fontSize: 15, fontWeight: 700, fontFamily: fontDisplay, color: color.ink, marginBottom: 6 }}>
-            Couldn&apos;t pull the shelf
+          <div
+            style={{
+              fontSize: 15,
+              fontWeight: 700,
+              fontFamily: fontDisplay,
+              color: color.ink,
+              marginBottom: 6,
+            }}
+          >
+            Couldn&apos;t load
           </div>
           <div style={{ fontSize: 13, color: color.body, lineHeight: 1.45, marginBottom: 12 }}>
-            Check your connection and try again. If this keeps happening, the catalog may need a moment to sync.
+            Check your connection, then try again.
           </div>
           <button
             type="button"
@@ -70,13 +77,13 @@ function HomeCatalogStatus({ error, isEmpty, playableCount, totalCount, onRetry 
         <>
           <div style={{ fontSize: 15, fontWeight: 700, fontFamily: fontDisplay, color: color.ink, marginBottom: 6 }}>
             {totalCount > 0 && playableCount === 0
-              ? "Tracks need audio"
-              : "Shelf is empty"}
+              ? "Audio isn’t ready"
+              : "Nothing here yet"}
           </div>
           <div style={{ fontSize: 13, color: color.body, lineHeight: 1.45 }}>
             {totalCount > 0 && playableCount === 0
-              ? "Catalog rows loaded, but none have a playable audio URL yet."
-              : "Add cuts in Admin and they land on the dial."}
+              ? "Titles loaded, but none have playable audio yet."
+              : "New music will appear here."}
           </div>
           <button
             type="button"
@@ -145,7 +152,7 @@ function HomeStandBy() {
           Stand by
         </div>
         <div style={{ fontSize: 14, fontWeight: 550, color: color.body, letterSpacing: -0.1 }}>
-          Pulling tonight&apos;s shelf
+          Pulling the station
         </div>
       </div>
     </div>
@@ -299,10 +306,6 @@ function HomeScreen({
         onOpenMenu={onOpenMenu}
       />
 
-      <div style={{ padding: `0 ${homeSpace.gutter}px`, marginTop: 4 }}>
-        <BetaLaunchNotice compact />
-      </div>
-
       {/* CHANNEL SURFING — top of Home */}
       {hasChannels && (
         <ChannelSurfingSection
@@ -358,7 +361,7 @@ function HomeScreen({
       {shelvesReady && catalogReady && forYou.length > 0 && (
         <MusicSection
           title="Made for you"
-          subtitle={taste?.genres?.length ? "From the stations you tuned" : "A first mix"}
+          subtitle={taste?.genres?.length ? "From stations you chose" : "A first mix"}
           first={false}
           delay={0.05}
           poster
@@ -464,8 +467,8 @@ function HomeScreen({
         editorial.length === 0 && (
           <div style={{ marginTop: 32 }}>
             <EmptyShelfCard
-              title="Nothing on the shelf"
-              body="Add cuts to the catalog and they land here."
+              title="Nothing here yet"
+              body="New music will appear here."
             />
           </div>
         )}

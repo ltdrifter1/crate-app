@@ -1,6 +1,8 @@
 import { chromeIconButton, fontDisplay, homeSpace, y2k } from "../../theme";
 import { BrandGlyph } from "../brand/BrandGlyphs";
 import Icon from "../ui/Icon";
+import BetaBadge from "../billing/BetaLaunchNotice";
+import { BETA_LAUNCH } from "../../lib/entitlements";
 
 function HeaderButton({ label, icon, onClick }) {
   if (!onClick) return null;
@@ -65,6 +67,7 @@ export default function HomeHeader({
         >
           Planet MP3
         </span>
+        {BETA_LAUNCH && <BetaBadge />}
       </div>
       <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
         <HeaderButton label="Search" icon="search" onClick={onOpenSearch} />

@@ -534,7 +534,7 @@ function ExploreScreen({
       {genres.length > 0 && (
         <MusicSection
           title="Genres"
-          subtitle="Tap a lane and go in"
+          subtitle="Pick a genre"
           first
           delay={0.06}
         >
@@ -545,7 +545,7 @@ function ExploreScreen({
       {moods.length > 0 && (
         <MusicSection
           title="Moods & moments"
-          subtitle="Energy rooms for right now"
+          subtitle="For this hour"
           delay={0.08}
         >
           <MoodRail plates={moods} onOpen={setFocusKey} />
@@ -555,7 +555,7 @@ function ExploreScreen({
       {scenes.length > 0 && (
         <MusicSection
           title="Scenes"
-          subtitle="Culture as a graph — not a filter chip"
+          subtitle="Where the music lives"
           delay={0.1}
         >
           <SceneRail plates={scenes} onOpen={setFocusKey} />
@@ -570,7 +570,7 @@ function ExploreScreen({
           first={false}
           delay={0.12}
           title="Stations"
-          subtitle="Tune a channel from here"
+          subtitle="Live from here"
         />
       )}
 
@@ -590,7 +590,7 @@ function ExploreScreen({
       {forYou.tracks.length > 0 && (
         <MusicSection
           title={forYou.coldStart ? "Fresh picks" : "Selected for you"}
-          subtitle={forYou.coldStart ? "Start anywhere — the dial learns fast" : "Tuned to your taste"}
+          subtitle={forYou.coldStart ? "A place to begin" : "Chosen for you"}
           delay={0.16}
           action={onOpenSearch ? { label: "Search", onClick: onOpenSearch } : null}
         >
@@ -611,7 +611,7 @@ function ExploreScreen({
       {charts.length > 0 && (
         <MusicSection
           title="On the board"
-          subtitle="This month’s climbers"
+          subtitle="Most requested"
           delay={0.18}
           action={onOpenCharts ? { label: "Charts", onClick: onOpenCharts } : null}
         >
