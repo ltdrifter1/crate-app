@@ -24,7 +24,7 @@ import {
   homeSpace,
   motion,
   radius,
-  sectionTitle,
+  type,
 } from "../theme";
 
 function CoverMosaic({ covers = [], title = "", size = homeSpace.tile }) {
@@ -792,14 +792,13 @@ function FavoritesScreen({
                 </button>
               )}
               <div style={{ minWidth: 0 }}>
-                <h1 style={{ ...sectionTitle, fontSize: 32, letterSpacing: -0.7, fontWeight: 700 }}>
+                <h1 style={{ ...type.largeTitle, margin: 0 }}>
                   Library
                 </h1>
                 <div style={{
                   marginTop: 4,
-                  fontSize: 14,
+                  ...type.subhead,
                   color: color.muted,
-                  fontFamily: fontDisplay,
                 }}>
                   {userPlaylists.length} playlist{userPlaylists.length === 1 ? "" : "s"}
                   {saved.length ? ` · ${saved.length} liked` : ""}

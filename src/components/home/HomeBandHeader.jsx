@@ -1,10 +1,10 @@
 import {
   color,
-  fontDisplay,
   homeSpace,
   sectionEyebrow,
   sectionSubtitle,
   sectionTitle,
+  type,
 } from "../../theme";
 
 /**
@@ -70,11 +70,7 @@ export default function HomeBandHeader({
       {meta && !action && (
         <div
           style={{
-            fontFamily: fontDisplay,
-            fontSize: 13,
-            fontWeight: 600,
-            letterSpacing: -0.16,
-            textTransform: "none",
+            ...type.subhead,
             color: color.muted,
             paddingBottom: subtitle ? 2 : 4,
             flexShrink: 0,
@@ -99,10 +95,7 @@ export default function HomeBandHeader({
             border: "none",
             background: "transparent",
             color: color.accent,
-            fontFamily: fontDisplay,
-            fontSize: 15,
-            fontWeight: 600,
-            letterSpacing: -0.2,
+            ...type.seeAll,
             display: "inline-flex",
             alignItems: "center",
             gap: 2,

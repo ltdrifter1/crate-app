@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { color, fontDisplay, fontMono, homeSpace, y2k } from "../../theme";
+import { color, fontDisplay, homeSpace, type, y2k } from "../../theme";
 import ArtFrame from "../ui/ArtFrame";
 
 /**
@@ -55,11 +55,11 @@ export default function PlaylistCard({ playlist, tracks = [], onClick = null, si
               alignItems: "center",
               justifyContent: "center",
               fontFamily: fontDisplay,
-              fontStyle: "italic",
+              fontStyle: "normal",
               fontSize: 44,
-              fontWeight: 800,
+              fontWeight: 700,
               color: "rgba(242,239,230,0.85)",
-              textShadow: `0 0 20px ${y2k.chromeGlow}`,
+              textShadow: "none",
               zIndex: 1,
             }}
           >
@@ -72,11 +72,8 @@ export default function PlaylistCard({ playlist, tracks = [], onClick = null, si
             left: 10,
             bottom: 8,
             zIndex: 1,
-            fontFamily: fontMono,
-            fontSize: 9,
-            fontWeight: 800,
-            letterSpacing: 1.4,
-            textTransform: "uppercase",
+            ...type.caption,
+            fontWeight: 600,
             color: "rgba(244,246,248,0.8)",
           }}
         >
@@ -86,11 +83,8 @@ export default function PlaylistCard({ playlist, tracks = [], onClick = null, si
       <span
         style={{
           display: "block",
-          marginTop: 9,
-          fontSize: 13,
-          fontWeight: 650,
-          fontFamily: fontDisplay,
-          letterSpacing: -0.2,
+          marginTop: 8,
+          ...type.tileTitle,
           color: y2k.offWhite,
           overflow: "hidden",
           textOverflow: "ellipsis",
@@ -102,9 +96,8 @@ export default function PlaylistCard({ playlist, tracks = [], onClick = null, si
       <span
         style={{
           display: "block",
-          marginTop: 3,
-          fontSize: 11,
-          fontWeight: 500,
+          marginTop: 2,
+          ...type.tileMeta,
           color: color.muted,
         }}
       >
