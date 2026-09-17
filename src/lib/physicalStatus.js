@@ -7,7 +7,7 @@
  * Flip when Club Copy checkout / credit spend ships.
  * Status + pricing can still display as “coming”; purchase CTAs stay off until live.
  */
-export const PHYSICAL_COMMERCE_LIVE = true;
+export const PHYSICAL_COMMERCE_LIVE = false;
 
 export const PHYSICAL_STATUSES = [
   { id: "digital", label: "Digital", blurb: "Listen now" },
@@ -80,7 +80,7 @@ export function canPurchasePhysical(status) {
 export function physicalCommerceHint(status) {
   if (!canBuyPhysical(status)) return null;
   if (PHYSICAL_COMMERCE_LIVE) return null;
-  return "Club Copy buying with Club Credit is coming soon";
+  return "Club Copy buying is coming soon — pricing isn’t live during this beta trial";
 }
 
 /** Member price helper — Club editions discount vs retail. */

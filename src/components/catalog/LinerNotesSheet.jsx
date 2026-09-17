@@ -110,7 +110,6 @@ export default function LinerNotesSheet({
             {!purchasable && commerceHint && (
               <div style={{ marginTop: 8, fontSize: 12, color: color.muted, lineHeight: 1.4 }}>
                 {commerceHint}
-                {price != null ? ` · from $${price.toFixed(2)}` : ""}
               </div>
             )}
             {purchasable && onPurchase && price != null && (

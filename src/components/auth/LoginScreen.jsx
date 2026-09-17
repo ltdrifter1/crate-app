@@ -253,11 +253,9 @@ export default function LoginScreen({
               margin: 0,
             }}
           />
-          {mode === "signup" && (
-            <div style={{ fontSize: 15, color: color.body, lineHeight: 1.5, maxWidth: 280 }}>
-              Join free — Club is $0.99/mo. Premium is $10/yr with Club Credit ready for Club Copy.
-            </div>
-          )}
+          <div style={{ fontSize: 15, color: color.body, lineHeight: 1.5, maxWidth: 300 }}>
+            Beta launch — free trial. Club, Premium, and payments are coming soon.
+          </div>
         </div>
 
         <div

@@ -1,14 +1,17 @@
 /**
  * Membership entitlements — three levels:
  *   free     — limited digital streaming
- *   club     — $0.99/mo full streaming + membership card
- *   premium  — $10/year Club Credits for physical purchases
+ *   club     — full streaming + membership card (price TBD)
+ *   premium  — Club Credits for physical purchases (price TBD)
  *
- * Checkout goes through Firebase Cloud Functions (Stripe Checkout Sessions).
- * Payment Links are an unused fallback unless configured.
+ * Checkout goes through Firebase Cloud Functions (Stripe Checkout Sessions)
+ * once billing is live. Until then, the product ships as a beta free trial.
  *
  * PAYWALL_ENABLED: set false to give every account unlimited streaming
  * and hide Club/Premium upgrade surfaces. Flip back to restore gating.
+ *
+ * BETA_LAUNCH / PRICING_COMING_SOON: hide dollar amounts and checkout CTAs
+ * while Stripe products/prices are unfinished.
  */
 
 export const PLAN_IDS = {
@@ -19,6 +22,20 @@ export const PLAN_IDS = {
 
 /** Temporary: crate is open — all accounts stream unlimited. */
 export const PAYWALL_ENABLED = false;
+
+/** Public beta: full listening, no charges. */
+export const BETA_LAUNCH = true;
+
+/** Hide Club / Premium / Club Copy dollar amounts until Stripe is configured. */
+export const PRICING_COMING_SOON = true;
+
+export const BETA_LAUNCH_COPY = {
+  kicker: "Beta launch",
+  title: "Free trial period",
+  blurb:
+    "This is a beta launch. Listen as much as you like — Club, Premium, and payments are coming soon.",
+  priceLabel: "Coming soon",
+};
 
 export const BILLING = {
   currency: "USD",
@@ -75,6 +92,17 @@ export function formatPriceClub(billing = BILLING) {
 
 export function formatPricePremium(billing = BILLING) {
   return `${formatMoney(billing.premium.price, billing)}/yr`;
+}
+
+/** What to show in UI for a plan — dollar amounts only when billing is live. */
+export function marketingPriceLabel(planId, billing = BILLING) {
+  const id = normalizePlanId(planId);
+  if (PRICING_COMING_SOON && id !== PLAN_IDS.FREE) {
+    return BETA_LAUNCH_COPY.priceLabel;
+  }
+  if (id === PLAN_IDS.PREMIUM) return formatPricePremium(billing);
+  if (id === PLAN_IDS.CLUB) return formatPriceClub(billing);
+  return formatMoney(0, billing);
 }
 
 export function toIso(value) {
@@ -322,58 +350,81 @@ export function membershipSummary(access) {
   if (!access) return "Membership";
   if (access.reason === "admin") return "Admin · full access";
   if (access.reason === "premium") {
+    if (PRICING_COMING_SOON) return "Premium · coming soon";
     const bal = Number(access.creditBalance) || 0;
     return bal > 0
       ? `Premium · ${formatMoney(bal)} credit`
       : `Premium · ${access.premiumPriceLabel || formatPricePremium()}`;
   }
-  if (access.reason === "club") return `Club · ${access.priceLabel || formatPriceClub()}`;
+  if (access.reason === "club") {
+    return PRICING_COMING_SOON
+      ? "Club · coming soon"
+      : `Club · ${access.priceLabel || formatPriceClub()}`;
+  }
   if (access.reason === "trial") {
     const n = access.daysLeft ?? 0;
     return n <= 1 ? "Club trial · 1 day left" : `Club trial · ${n} days left`;
   }
   if (access.reason === "free") {
+    if (BETA_LAUNCH) return "Beta · free trial";
     if (access.streaming === "full") return "Free";
     return `Free · ${access.freePlaysPerDay || BILLING.freePlaysPerDay} plays/day`;
   }
-  return "Free";
+  return BETA_LAUNCH ? "Beta · free trial" : "Free";
 }
 
 export function planMarketingCopy() {
+  const comingSoon = PRICING_COMING_SOON;
   return [
     {
       id: PLAN_IDS.FREE,
-      name: "Free",
-      price: "\$0",
-      blurb: "Limited digital streaming.",
-      perks: [
-        `${BILLING.freePlaysPerDay} plays per day`,
-        "Browse the catalog",
-        "Save likes & taste",
-      ],
+      name: BETA_LAUNCH ? "Beta trial" : "Free",
+      price: BETA_LAUNCH ? "Free now" : "\$0",
+      blurb: BETA_LAUNCH
+        ? "Full streaming during the beta launch free trial."
+        : "Limited digital streaming.",
+      perks: BETA_LAUNCH
+        ? [
+            "Unlimited listening while we are in beta",
+            "Browse the catalog",
+            "Save likes & taste",
+          ]
+        : [
+            `${BILLING.freePlaysPerDay} plays per day`,
+            "Browse the catalog",
+            "Save likes & taste",
+          ],
     },
     {
       id: PLAN_IDS.CLUB,
       name: "Club",
-      price: formatPriceClub(),
-      blurb: "Full streaming plus your membership card.",
+      price: comingSoon ? BETA_LAUNCH_COPY.priceLabel : formatPriceClub(),
+      blurb: comingSoon
+        ? "Full streaming and your membership card. Pricing coming soon."
+        : "Full streaming plus your membership card.",
       perks: [
         "Unlimited streaming",
         "Digital membership card",
         "Early access when Club Copy drops",
-        "This month’s picks",
+        comingSoon ? "Checkout coming soon" : "This month’s picks",
       ],
     },
     {
       id: PLAN_IDS.PREMIUM,
       name: "Premium",
-      price: formatPricePremium(),
-      blurb: `Pay ${formatMoney(BILLING.premium.price)} once a year — get ${formatMoney(BILLING.premium.creditGrant)} Club Credit for Club Copy editions.`,
+      price: comingSoon ? BETA_LAUNCH_COPY.priceLabel : formatPricePremium(),
+      blurb: comingSoon
+        ? "Club Credit for Club Copy editions. Payments and pricing coming soon."
+        : `Pay ${formatMoney(BILLING.premium.price)} once a year — get ${formatMoney(BILLING.premium.creditGrant)} Club Credit for Club Copy editions.`,
       perks: [
         "Everything in Club",
-        `${formatMoney(BILLING.premium.creditGrant)} Club Credit on file`,
-        "Buy Club Copy with credit on liner notes",
-        "Good for 12 months",
+        comingSoon
+          ? "Club Credit — coming soon"
+          : `${formatMoney(BILLING.premium.creditGrant)} Club Credit on file`,
+        comingSoon
+          ? "Club Copy checkout coming soon"
+          : "Buy Club Copy with credit on liner notes",
+        comingSoon ? "No charges during the beta trial" : "Good for 12 months",
       ],
     },
   ];

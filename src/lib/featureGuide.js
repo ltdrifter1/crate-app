@@ -43,11 +43,11 @@ export const FEATURE_GUIDE_STEPS = [
     title: "Energy + dislike",
     body: "The beaker shifts the next cut. Dislike trains the mix away from that neighborhood.",
   },
-  {
+    {
     id: "club",
     kicker: "Club",
     title: "Your profile",
-    body: "Membership card, interests, and this guide — replay anytime.",
+    body: "Beta launch free trial. Membership, pricing, and Club Copy checkout are coming soon.",
   },
   {
     id: "chat",

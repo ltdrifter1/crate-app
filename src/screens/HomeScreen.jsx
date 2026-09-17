@@ -18,6 +18,7 @@ import { rankChannelsForTaste, trackHitsPreferredChannels } from "../lib/onboard
 import { runAfterPaint } from "../lib/afterPaint";
 import { useCurrentTrack } from "../usePlayerTransport";
 import HomeHeader from "../components/home/HomeHeader";
+import BetaLaunchNotice from "../components/billing/BetaLaunchNotice";
 import HeroPlayerCard from "../components/home/HeroPlayerCard";
 import MusicSection, { Rail } from "../components/home/MusicSection";
 import ChannelSurfingSection from "../components/home/ChannelSurfingSection";
@@ -297,6 +298,10 @@ function HomeScreen({
         onOpenProfile={onOpenProfile}
         onOpenMenu={onOpenMenu}
       />
+
+      <div style={{ padding: `0 ${homeSpace.gutter}px`, marginTop: 4 }}>
+        <BetaLaunchNotice compact />
+      </div>
 
       {/* CHANNEL SURFING — top of Home */}
       {hasChannels && (
