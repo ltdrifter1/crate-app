@@ -8,7 +8,7 @@ import {
   homeSpace,
   motion,
   radius,
-  sectionTitle,
+  type,
   y2k,
 } from "../theme";
 import Icon from "../components/ui/Icon";
@@ -487,23 +487,18 @@ function ExploreScreen({
             <div style={{ minWidth: 0 }}>
               <h1
                 style={{
-                  ...sectionTitle,
-                  fontSize: 32,
-                  letterSpacing: -0.7,
-                  fontWeight: 700,
+                  ...type.largeTitle,
+                  margin: 0,
+                  color: y2k.offWhite,
                 }}
               >
                 Explore
               </h1>
               <p
                 style={{
+                  ...type.subhead,
                   margin: "4px 0 0",
-                  fontSize: 14,
-                  fontWeight: 500,
-                  fontFamily: font,
-                  letterSpacing: -0.08,
                   color: color.muted,
-                  lineHeight: 1.4,
                 }}
               >
                 Stations, scenes, and sleeves — start anywhere.

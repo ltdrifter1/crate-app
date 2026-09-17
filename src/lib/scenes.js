@@ -555,6 +555,30 @@ export const SCENES = [
 
   // ── Rock & roots ────────────────────────────────────────────
   {
+    id: "psychedelic-rock",
+    label: "Psychedelic Rock",
+    familyId: "rock-roots",
+    lane: "Rock",
+    story: "Swirl, fuzz, and the long jam — Fillmore inheritance.",
+    atmosphere: "heat-haze",
+    energy: [4, 8],
+    bpm: [70, 140],
+    aliases: [
+      "psychedelic rock",
+      "psych rock",
+      "psych-rock",
+      "acid rock",
+      "krautrock",
+      "space rock",
+      "neo-psych",
+      "neopsych",
+      "psychedelia",
+    ],
+    keywords: ["psychedelic", "psych-rock", "acid rock", "krautrock", "space rock"],
+    related: ["rock", "folk"],
+    cities: ["San Francisco", "London", "Austin"],
+  },
+  {
     id: "rock",
     label: "Rock",
     familyId: "rock-roots",
@@ -565,7 +589,7 @@ export const SCENES = [
     bpm: [90, 160],
     aliases: ["rock", "alternative", "indie", "indie rock", "punk", "post-punk", "grunge"],
     keywords: ["rock", "punk", "indie", "grunge"],
-    related: ["metal", "folk", "soul"],
+    related: ["metal", "folk", "soul", "psychedelic-rock"],
     cities: ["London", "Seattle", "New York"],
   },
   {

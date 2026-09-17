@@ -1,7 +1,6 @@
 import {
   color,
   homeSpace,
-  sectionAction,
   sectionEyebrow,
   sectionSubtitle,
   sectionTitle,
@@ -95,7 +94,8 @@ export default function HomeBandHeader({
             height: 32,
             border: "none",
             background: "transparent",
-            ...sectionAction,
+            color: color.accent,
+            ...type.seeAll,
             display: "inline-flex",
             alignItems: "center",
             gap: 2,

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import {
-  fontDisplay, fontMono, color, glass, motion,
+  fontDisplay, color, glass, motion, type,
 } from "../../theme";
 import { BrandGlyph as DoorGlyph } from "../brand/BrandMark";
 
@@ -76,20 +76,17 @@ export default function CollapsingHeader({ title, subtitle }) {
         <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 10 }}>
           <DoorGlyph size={28} title="Planet MP3" />
           <div style={{
-            fontSize: 10, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase",
-            color: color.faint, fontFamily: fontMono,
+            ...type.footnote,
+            fontWeight: 600,
+            color: color.muted,
           }}>
             Planet MP3
           </div>
         </div>
         <h1 style={{
           margin: 0,
-          fontSize: 34,
-          fontWeight: 700,
-          fontFamily: fontDisplay,
-          letterSpacing: -1,
+          ...type.largeTitle,
           color: color.ink,
-          lineHeight: 1.05,
         }}>
           {title}
         </h1>

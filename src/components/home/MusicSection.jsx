@@ -1,12 +1,13 @@
 import { useCallback, useRef } from "react";
 import {
+  color,
   homeSpace,
   motion,
-  sectionAction,
   sectionEyebrow,
   sectionSubtitle,
   sectionTitle,
   sectionTitlePoster,
+  type,
 } from "../../theme";
 
 /**
@@ -97,8 +98,12 @@ export default function MusicSection({
               marginTop: 1,
               cursor: "pointer",
               padding: "6px 2px",
-              ...sectionAction,
+              ...type.seeAll,
+              textTransform: "none",
               display: "inline-flex",
+              alignItems: "center",
+              gap: 2,
+              color: color.accent,
               height: 32,
               border: "none",
               background: "transparent",

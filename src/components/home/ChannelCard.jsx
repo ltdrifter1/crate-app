@@ -1,12 +1,11 @@
-import { color, fontDisplay, homeSpace, y2k } from "../../theme";
+import { color, homeSpace, type, y2k } from "../../theme";
 import { resolveChannelArt } from "../../lib/channelArt";
 import CoverImage from "../ui/CoverImage";
 import Icon from "../ui/Icon";
 
 /**
- * ChannelCard — art-first station tile (Apple Music).
- * Photograph, name, blurb, play. No LCD stamps or channel bugs on the art.
- * Local (`showcase` / local-pnw) is a larger broadcast tile.
+ * ChannelCard — App Store / Apple Music art tile.
+ * Photograph, name, blurb, play. Local is the same card as every other station.
  */
 function ChannelArt({ src, title, size, accent, objectPosition, priority = false, eager = false }) {
   const initial = (title || "?").trim().charAt(0).toUpperCase() || "?";
@@ -39,7 +38,7 @@ function ChannelArt({ src, title, size, accent, objectPosition, priority = false
         background: accent
           ? `linear-gradient(160deg, ${accent} 0%, #10141A 78%)`
           : y2k.artGradient,
-        fontFamily: fontDisplay,
+        fontFamily: type.title2.fontFamily,
         fontSize: Math.round(size * 0.28),
         fontWeight: 600,
         letterSpacing: -0.8,
@@ -62,7 +61,6 @@ export default function ChannelCard({
   const width = size;
   const title = channel.shortTitle || channel.title;
   const { src: photo, focus } = resolveChannelArt(channel);
-  const featured = Boolean(channel.showcase) || channel.id === "local-pnw";
 
   return (
     <button
@@ -73,7 +71,7 @@ export default function ChannelCard({
         e.stopPropagation();
         onClick?.(e);
       }}
-      className={`pmp-lift pmp-channel-card${featured ? " pmp-channel-card--featured" : ""}`}
+      className="pmp-lift pmp-channel-card"
       style={{
         flex: "0 0 auto",
         scrollSnapAlign: "start",
@@ -95,14 +93,12 @@ export default function ChannelCard({
           display: "block",
           width,
           height: width,
-          borderRadius: featured ? 12 : 10,
+          borderRadius: 12,
           overflow: "hidden",
           background: y2k.artGradient,
-          boxShadow: featured
-            ? "0 12px 28px rgba(0,0,0,0.42)"
-            : active
-              ? "0 0 0 2px rgba(247,248,250,0.88), 0 10px 22px rgba(0,0,0,0.38)"
-              : "0 8px 20px rgba(0,0,0,0.32)",
+          boxShadow: active
+            ? "0 0 0 2px rgba(247,248,250,0.92), 0 10px 22px rgba(0,0,0,0.38)"
+            : "0 8px 18px rgba(0,0,0,0.28)",
         }}
       >
         <span
@@ -139,10 +135,8 @@ export default function ChannelCard({
                 borderRadius: 11,
                 background: "rgba(0,0,0,0.55)",
                 color: y2k.offWhite,
-                fontFamily: fontDisplay,
-                fontSize: 12,
+                ...type.caption,
                 fontWeight: 600,
-                letterSpacing: -0.12,
                 display: "inline-flex",
                 alignItems: "center",
               }}
@@ -179,11 +173,7 @@ export default function ChannelCard({
         style={{
           display: "block",
           marginTop: 8,
-          fontFamily: fontDisplay,
-          fontSize: featured ? 15 : 13,
-          fontWeight: 600,
-          letterSpacing: -0.22,
-          lineHeight: 1.25,
+          ...type.tileTitle,
           color: y2k.offWhite,
           overflow: "hidden",
           textOverflow: "ellipsis",
@@ -196,11 +186,7 @@ export default function ChannelCard({
         style={{
           display: "block",
           marginTop: 2,
-          fontFamily: fontDisplay,
-          fontSize: 12,
-          fontWeight: 400,
-          letterSpacing: -0.1,
-          lineHeight: 1.3,
+          ...type.tileMeta,
           color: color.muted,
           overflow: "hidden",
           textOverflow: "ellipsis",

@@ -23,6 +23,7 @@ export const ONBOARDING_VERSION = 2;
 /** Genre seeds when a station's `genres` array is empty or incomplete. */
 export const CHANNEL_GENRE_SEEDS = {
   "y2k-dance": ["Electronic", "Pop"],
+  "psychedelic-rock": ["Rock"],
   "variety-mix": [],
   "local-pnw": [],
   house: ["Electronic"],

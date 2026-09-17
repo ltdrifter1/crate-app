@@ -106,10 +106,7 @@ function HomeStandBy() {
         padding: "18px 20px",
         borderRadius: radius.xl,
         border: "1px solid rgba(255,255,255,0.12)",
-        background: `
-          linear-gradient(180deg, rgba(101,230,255,0.08) 0%, transparent 42%),
-          linear-gradient(165deg, #161B22 0%, #0C1016 100%)
-        `,
+        background: glass.plate,
         boxShadow: `inset 0 1px 0 ${glass.highlight}, ${glass.shadowSoft}`,
         display: "flex",
         alignItems: "center",
@@ -124,7 +121,7 @@ function HomeStandBy() {
           height: 8,
           borderRadius: "50%",
           background: y2k.live,
-          boxShadow: "0 0 10px rgba(255,51,79,0.8)",
+          boxShadow: "none",
           flexShrink: 0,
         }}
       />
@@ -132,9 +129,9 @@ function HomeStandBy() {
         <div
           style={{
             fontFamily: fontDisplay,
-            fontSize: 12,
+            fontSize: 13,
             fontWeight: 600,
-            letterSpacing: "-0.01em",
+            letterSpacing: -0.08,
             textTransform: "none",
             color: color.muted,
             marginBottom: 4,
@@ -142,7 +139,7 @@ function HomeStandBy() {
         >
           Stand by
         </div>
-        <div style={{ fontSize: 17, fontWeight: 400, color: color.body, letterSpacing: "-0.022em" }}>
+        <div style={{ fontSize: 14, fontWeight: 550, color: color.body, letterSpacing: -0.1 }}>
           Pulling tonight&apos;s shelf
         </div>
       </div>

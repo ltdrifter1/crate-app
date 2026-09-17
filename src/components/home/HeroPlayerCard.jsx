@@ -48,7 +48,7 @@ function MetaChip({ children }) {
         fontFamily: fontDisplay,
         fontSize: 12,
         fontWeight: 600,
-        letterSpacing: "-0.01em",
+        letterSpacing: -0.08,
         textTransform: "none",
         color: "rgba(244,246,248,0.78)",
         overflow: "hidden",
@@ -74,7 +74,7 @@ function LivePlate({ live }) {
         border: live
           ? "1px solid rgba(255,51,79,0.55)"
           : "1px solid rgba(255,255,255,0.12)",
-        boxShadow: live ? "0 0 16px rgba(255,51,79,0.18)" : "none",
+        boxShadow: "none",
         flexShrink: 0,
       }}
     >
@@ -86,7 +86,7 @@ function LivePlate({ live }) {
           height: 6,
           borderRadius: "50%",
           background: live ? y2k.live : "rgba(247,248,250,0.35)",
-          boxShadow: live ? "0 0 8px rgba(255,51,79,0.85)" : "none",
+          boxShadow: "none",
         }}
       />
       <span
@@ -94,7 +94,7 @@ function LivePlate({ live }) {
           fontFamily: fontDisplay,
           fontSize: 12,
           fontWeight: 600,
-          letterSpacing: "-0.01em",
+          letterSpacing: -0.08,
           textTransform: "none",
           color: live ? y2k.offWhite : "rgba(244,246,248,0.55)",
         }}
@@ -124,11 +124,10 @@ function ChannelIdent({ bugLine, slug }) {
           fontFamily: fontDisplay,
           fontSize: 12,
           fontWeight: 600,
-          letterSpacing: "-0.012em",
-          color: y2k.cyan,
+          letterSpacing: -0.08,
+          color: y2k.offWhite,
           borderRight: "1px solid rgba(255,255,255,0.1)",
-          background:
-            "linear-gradient(180deg, rgba(101,230,255,0.12) 0%, rgba(8,10,13,0.2) 100%)",
+          background: "rgba(255,255,255,0.06)",
           whiteSpace: "nowrap",
         }}
       >
@@ -140,7 +139,7 @@ function ChannelIdent({ bugLine, slug }) {
           fontFamily: fontDisplay,
           fontSize: 12,
           fontWeight: 600,
-          letterSpacing: "-0.01em",
+          letterSpacing: -0.08,
           textTransform: "none",
           color: y2k.offWhite,
           overflow: "hidden",
@@ -369,9 +368,7 @@ export default function HeroPlayerCard({
           zIndex: 0,
           overflow: "hidden",
           background: `
-            radial-gradient(80% 70% at 12% 20%, ${track?.color ? `${track.color}40` : "rgba(101,230,255,0.18)"} 0%, transparent 58%),
-            radial-gradient(55% 45% at 100% 0%, rgba(255,79,216,0.16) 0%, transparent 55%),
-            radial-gradient(40% 36% at 70% 100%, rgba(200,242,65,0.08) 0%, transparent 60%),
+            radial-gradient(80% 70% at 12% 20%, ${track?.color ? `${track.color}28` : "rgba(255,255,255,0.08)"} 0%, transparent 58%),
             linear-gradient(180deg, rgba(18,22,28,0.2) 0%, rgba(8,10,13,0.82) 100%),
             ${y2k.artGradient}
           `,
@@ -396,11 +393,10 @@ export default function HeroPlayerCard({
           <span
             style={{
               fontFamily: fontDisplay,
-              fontSize: 12,
+              fontSize: 13,
               fontWeight: 600,
-              letterSpacing: "-0.01em",
-              color: color.muted,
-              textShadow: "0 0 12px rgba(101,230,255,0.35)",
+              letterSpacing: -0.16,
+              color: y2k.offWhite,
             }}
           >
             {STATION_CALLSIGN}
@@ -413,15 +409,15 @@ export default function HeroPlayerCard({
               aria-hidden="true"
               style={{
                 padding: "5px 8px",
-                borderRadius: 4,
-                border: "1px solid rgba(200,242,65,0.35)",
-                background: "rgba(200,242,65,0.12)",
+                borderRadius: 12,
+                border: "none",
+                background: "rgba(0,0,0,0.45)",
                 fontFamily: fontDisplay,
-                fontSize: 11,
+                fontSize: 12,
                 fontWeight: 600,
-                letterSpacing: "-0.01em",
+                letterSpacing: -0.08,
                 textTransform: "none",
-                color: y2k.neon,
+                color: y2k.offWhite,
               }}
             >
               Video
@@ -498,27 +494,21 @@ export default function HeroPlayerCard({
             <span
               aria-hidden="true"
               style={{
-                display: "inline-flex",
-                width: 36,
-                height: 5,
-                borderRadius: 1,
-                overflow: "hidden",
-                boxShadow: "0 0 12px rgba(101,230,255,0.35)",
+                width: 4,
+                height: 4,
+                borderRadius: "50%",
+                background: y2k.offWhite,
+                opacity: 0.55,
               }}
-            >
-              <span style={{ flex: 1, background: y2k.cyan }} />
-              <span style={{ flex: 1, background: y2k.magenta }} />
-              <span style={{ flex: 1, background: y2k.neon }} />
-            </span>
+            />
             <div
               style={{
                 fontFamily: fontDisplay,
-                fontSize: 12,
+                fontSize: 13,
                 fontWeight: 600,
-                letterSpacing: "-0.01em",
+                letterSpacing: -0.12,
                 textTransform: "none",
-                color: y2k.cyan,
-                textShadow: "0 0 10px rgba(101,230,255,0.4)",
+                color: color.muted,
               }}
             >
               {live ? (isRadioMode ? "On air" : "Now playing") : idleEyebrow}
@@ -529,12 +519,12 @@ export default function HeroPlayerCard({
             style={{
               fontFamily: fontDisplay,
               fontStyle: "normal",
-              fontSize: "clamp(28px, 6vw, 40px)",
-              fontWeight: 600,
-              letterSpacing: "-0.03em",
-              lineHeight: 1.05,
+              fontSize: "clamp(24px, 5.6vw, 36px)",
+              fontWeight: 700,
+              letterSpacing: -0.7,
+              lineHeight: 1.02,
               color: y2k.offWhite,
-              textShadow: "0 2px 18px rgba(0,0,0,0.45), 0 0 24px rgba(101,230,255,0.12)",
+              textShadow: "0 8px 28px rgba(0,0,0,0.45)",
               overflow: "hidden",
               textOverflow: "ellipsis",
               display: "-webkit-box",
@@ -547,9 +537,8 @@ export default function HeroPlayerCard({
           <div
             style={{
               marginTop: 6,
-              fontSize: 17,
-              fontWeight: 400,
-              letterSpacing: "-0.022em",
+              fontSize: 15,
+              fontWeight: 600,
               color: "rgba(244,246,248,0.78)",
               overflow: "hidden",
               textOverflow: "ellipsis",
@@ -610,9 +599,9 @@ export default function HeroPlayerCard({
                     fontFamily: fontDisplay,
                     fontSize: 12,
                     fontWeight: 600,
-                    letterSpacing: "-0.01em",
+                    letterSpacing: -0.08,
                     textTransform: "none",
-                    color: color.muted,
+                    color: "rgba(244,246,248,0.55)",
                   }}
                 >
                   Up next
@@ -728,10 +717,10 @@ export default function HeroPlayerCard({
                 <span
                   style={{
                     fontFamily: fontDisplay,
-                    fontSize: 11,
+                    fontSize: 12,
                     fontVariantNumeric: "tabular-nums",
                     color: "rgba(244,246,248,0.55)",
-                    letterSpacing: 0,
+                    letterSpacing: -0.08,
                     flexShrink: 0,
                   }}
                 >
@@ -812,11 +801,11 @@ export default function HeroPlayerCard({
                 display: "inline-block",
                 whiteSpace: "nowrap",
                 fontFamily: fontDisplay,
-                fontSize: 12,
+                fontSize: 13,
                 fontWeight: 400,
-                letterSpacing: "-0.01em",
+                letterSpacing: -0.08,
                 textTransform: "none",
-                color: "rgba(101,230,255,0.7)",
+                color: "rgba(244,246,248,0.5)",
               }}
             >
               {tickerText} · {tickerText} ·

@@ -5,7 +5,7 @@ import {
 
 test('theme exports core tokens', () => {
   expect(color.ink).toBeTruthy();
-  expect(color.accent).toMatch(/#7BA7FF/i);
+  expect(color.accent).toMatch(/#0A84FF/i);
   expect(color.onAccent).toMatch(/#080A0D/i);
   expect(color.canvas).toMatch(/#080A0D/i);
   expect(color.alert).toBeTruthy();
@@ -18,8 +18,8 @@ test('theme exports core tokens', () => {
   expect(fontDisplay).toMatch(/SF Pro Display/);
   expect(font).not.toMatch(/^system-ui/);
   expect(fontLcd).toMatch(/Inter/);
-  expect(type.title.fontWeight).toBe(600);
-  expect(sectionTitle.fontSize).toBe(28);
+  expect(type.title2.fontWeight).toBe(700);
+  expect(sectionTitle.fontSize).toBe(22);
   expect(y2k.chromeBright).toBeTruthy();
   expect(y2k.chrome).toMatch(/#B8BEC7/i);
   expect(y2k.cyan).toMatch(/#65E6FF/i);

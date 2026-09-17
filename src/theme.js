@@ -1,99 +1,123 @@
-// Design tokens — premium modern MTV × iOS.
-// Graphite studio, Apple Store type, restrained chrome.
-// Taste over novelty — no ticket stubs, LED stamps, or costume jewelry.
-//
-// Type: Inter is loaded as a webfont (public/index.html) and MUST sit first.
-// `system-ui` previously led every stack, so named faces (SF Pro, Syne, Inter)
-// never painted — Apple OS already maps system-ui to San Francisco, everyone
-// else got Segoe/Roboto, and Google Fonts looked like a no-op.
+// Design tokens — App Store / Apple Music system type on a dark studio canvas.
+// Inter is loaded as a webfont (public/index.html) and MUST sit first so the
+// face actually paints. Named “SF Pro” is not a web font; -apple-system maps
+// to San Francisco on Apple OS only. Inter is the licensed SF analog elsewhere.
 
-const FONT_SANS =
-  '"Inter", -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Segoe UI", "Helvetica Neue", Helvetica, Arial, sans-serif';
-
-export const fontDisplay = FONT_SANS;
-export const font = FONT_SANS;
-/** Same face as UI — Apple Store does not switch to a poster/display novelty. */
-export const fontPoster = FONT_SANS;
-/** Station bugs / times — same face, tabular figures. Not a second type OS. */
-export const fontLcd = FONT_SANS;
+export const fontDisplay =
+  '"Inter", -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", Helvetica, Arial, sans-serif';
+export const font =
+  '"Inter", -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Helvetica Neue", Helvetica, Arial, sans-serif';
 export const fontMono =
   'ui-monospace, "SF Mono", SFMono-Regular, Menlo, Monaco, Consolas, monospace';
+/** Same as display — App Store never swaps in a costume headline face. */
+export const fontPoster = fontDisplay;
+/** Same as text — keep the token so station chrome can restyle without LCD. */
+export const fontLcd = font;
 
-/** Apple Store tracking / weight / size. Use these instead of one-off stacks. */
+/**
+ * App Store type scale (Dark Mode).
+ * Tracking is optical, not costume: tight on large titles, nearly 0 on captions.
+ */
 export const type = {
-  hero: {
-    fontFamily: FONT_SANS,
+  largeTitle: {
+    fontFamily: fontDisplay,
     fontSize: 34,
-    fontWeight: 600,
-    letterSpacing: "-0.03em",
-    lineHeight: 1.1,
+    fontWeight: 700,
+    letterSpacing: -0.9,
+    lineHeight: 1.12,
   },
-  title: {
-    fontFamily: FONT_SANS,
+  title1: {
+    fontFamily: fontDisplay,
     fontSize: 28,
-    fontWeight: 600,
-    letterSpacing: "-0.025em",
+    fontWeight: 700,
+    letterSpacing: -0.6,
     lineHeight: 1.14,
   },
-  headline: {
-    fontFamily: FONT_SANS,
-    fontSize: 21,
+  title2: {
+    fontFamily: fontDisplay,
+    fontSize: 22,
+    fontWeight: 700,
+    letterSpacing: -0.4,
+    lineHeight: 1.18,
+  },
+  title3: {
+    fontFamily: fontDisplay,
+    fontSize: 20,
     fontWeight: 600,
-    letterSpacing: "-0.022em",
+    letterSpacing: -0.32,
     lineHeight: 1.2,
   },
+  headline: {
+    fontFamily: font,
+    fontSize: 17,
+    fontWeight: 600,
+    letterSpacing: -0.24,
+    lineHeight: 1.25,
+  },
   body: {
-    fontFamily: FONT_SANS,
+    fontFamily: font,
     fontSize: 17,
     fontWeight: 400,
-    letterSpacing: "-0.022em",
-    lineHeight: 1.47,
+    letterSpacing: -0.24,
+    lineHeight: 1.35,
   },
   callout: {
-    fontFamily: FONT_SANS,
+    fontFamily: font,
     fontSize: 16,
-    fontWeight: 600,
-    letterSpacing: "-0.02em",
+    fontWeight: 400,
+    letterSpacing: -0.2,
     lineHeight: 1.3,
   },
   subhead: {
-    fontFamily: FONT_SANS,
-    fontSize: 14,
+    fontFamily: font,
+    fontSize: 15,
     fontWeight: 400,
-    letterSpacing: "-0.016em",
-    lineHeight: 1.43,
+    letterSpacing: -0.16,
+    lineHeight: 1.3,
   },
   footnote: {
-    fontFamily: FONT_SANS,
+    fontFamily: font,
     fontSize: 13,
     fontWeight: 400,
-    letterSpacing: "-0.008em",
-    lineHeight: 1.38,
+    letterSpacing: -0.08,
+    lineHeight: 1.3,
   },
   caption: {
-    fontFamily: FONT_SANS,
+    fontFamily: font,
     fontSize: 12,
     fontWeight: 400,
-    letterSpacing: "-0.01em",
-    lineHeight: 1.33,
+    letterSpacing: 0,
+    lineHeight: 1.25,
   },
-  tab: {
-    fontFamily: FONT_SANS,
-    fontSize: 10,
-    fontWeight: 500,
-    letterSpacing: "-0.01em",
+  tileTitle: {
+    fontFamily: font,
+    fontSize: 13,
+    fontWeight: 600,
+    letterSpacing: -0.14,
+    lineHeight: 1.25,
+  },
+  tileMeta: {
+    fontFamily: font,
+    fontSize: 13,
+    fontWeight: 400,
+    letterSpacing: -0.08,
+    lineHeight: 1.25,
+  },
+  seeAll: {
+    fontFamily: font,
+    fontSize: 17,
+    fontWeight: 400,
+    letterSpacing: -0.2,
     lineHeight: 1.2,
   },
 };
 
 /** Brand palette — dark broadcast studio, editorial contrast */
 export const color = {
-  ink: "#F5F5F7",
-  body: "#A1A1A6",
-  muted: "#86868B",
-  faint: "#6E6E73",
-  /** Apple Store dark-mode link */
-  link: "#2997FF",
+  ink: "#F7F8FA",
+  body: "#C9CED6",
+  muted: "#A4AAB4",
+  faint: "#6E7683",
   line: "rgba(255, 255, 255, 0.08)",
   lineStrong: "rgba(255, 255, 255, 0.14)",
   surface: "rgba(21, 24, 28, 0.72)",
@@ -101,10 +125,10 @@ export const color = {
   surfaceRaised: "rgba(28, 32, 38, 0.96)",
   canvas: "#080A0D",
   canvasEdge: "#06070A",
-  /** Technical blue — interface accent */
-  accent: "#7BA7FF",
-  accentSoft: "rgba(123, 167, 255, 0.12)",
-  accentGlow: "rgba(123, 167, 255, 0.22)",
+  /** iOS system blue — See All, links, focus */
+  accent: "#0A84FF",
+  accentSoft: "rgba(10, 132, 255, 0.14)",
+  accentGlow: "rgba(10, 132, 255, 0.28)",
   onAccent: "#080A0D",
   onDark: "#F2F4F7",
   onDarkMuted: "rgba(242,244,247,0.62)",
@@ -287,9 +311,9 @@ export const radio = {
   lcdGlow: "0 0 12px rgba(101,230,255,0.45)",
   label: {
     fontFamily: font,
-    fontSize: 11,
+    fontSize: 13,
     fontWeight: 600,
-    letterSpacing: 0.04,
+    letterSpacing: -0.08,
     textTransform: "none",
   },
 };
@@ -360,7 +384,7 @@ export function hardwareKey(opts = { pressed: false, size: "md" }) {
     fontFamily: font,
     fontSize: 13,
     fontWeight: 600,
-    letterSpacing: -0.16,
+    letterSpacing: -0.1,
     textTransform: "none",
     cursor: "pointer",
     WebkitTapHighlightColor: "transparent",
@@ -372,7 +396,7 @@ export const artShadow = {
   quiet: "0 2px 4px rgba(0,0,0,0.3), 0 12px 28px rgba(0,0,0,0.45)",
   raised:
     "0 4px 10px rgba(0,0,0,0.35), 0 20px 44px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.1), inset 0 -1px 0 rgba(0,0,0,0.35)",
-  active: `0 0 0 1px rgba(232,236,242,0.5), 0 0 20px ${y2k.chromeGlow}, 0 8px 20px rgba(0,0,0,0.45), 0 18px 40px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.16)`,
+  active: `0 0 0 2px rgba(247,248,250,0.92), 0 8px 20px rgba(0,0,0,0.45), 0 18px 40px rgba(0,0,0,0.45)`,
 };
 
 /**
@@ -405,7 +429,7 @@ export function artFrameStyle({
   };
 }
 
-/** Home rhythm — App Store breathing room, title sits close to its row. */
+/** Home rhythm — App Store shelves: large title, tight title-to-rail. */
 export const homeSpace = {
   gutter: 20,
   bandPadY: 32,
@@ -429,32 +453,30 @@ export const homeSpace = {
 };
 
 /**
- * Section title — Apple Store product header, flush with rail gutter.
+ * Section title — App Store “Apps We Love” / Music shelf header.
  * Shared optical left edge across Channel Surfing / shelves / tonight.
  */
 export const sectionTitle = {
-  ...type.title,
+  ...type.title2,
   color: y2k.offWhite,
   margin: 0,
   textTransform: "none",
 };
 
-/** Home band titles — same Apple Store face as every other headline. */
+/** Home band titles — same SF Pro stack as every other shelf. */
 export const sectionTitlePoster = {
   ...sectionTitle,
 };
 
 export const sectionSubtitle = {
-  ...type.body,
-  margin: "6px 0 0",
-  fontSize: 17,
-  fontWeight: 400,
+  ...type.subhead,
+  margin: "3px 0 0",
   color: color.muted,
 };
 
-/** Quiet label above a Home band title — Store kicker, not a stamp. */
+/** Quiet label above a Home band title — App Store date/caption, not a stamp. */
 export const sectionEyebrow = {
-  ...type.caption,
+  ...type.footnote,
   fontWeight: 600,
   textTransform: "none",
   color: color.muted,
@@ -463,15 +485,6 @@ export const sectionEyebrow = {
 
 export const sectionEyebrowLcd = {
   ...sectionEyebrow,
-};
-
-export const sectionAction = {
-  fontFamily: font,
-  fontSize: 17,
-  fontWeight: 400,
-  letterSpacing: "-0.022em",
-  textTransform: "none",
-  color: color.link,
 };
 
 /** Monitor bezel + LCD used by the Home stage and dock. */
@@ -671,12 +684,11 @@ export function brandGlassHalo(size = 280) {
   };
 }
 
-/** App shell — studio bloom: cyan tuner, acid spark, magenta rim. */
+/** App shell — near-black App Store canvas, no neon bloom. */
 export const APP_STYLE = {
   fontFamily: font,
   background: `
-    radial-gradient(ellipse 110% 65% at 50% -18%, rgba(255,255,255,0.04) 0%, transparent 55%),
-    radial-gradient(ellipse 70% 45% at 100% 100%, rgba(123,167,255,0.035) 0%, transparent 50%),
+    radial-gradient(ellipse 110% 55% at 50% -18%, rgba(255,255,255,0.035) 0%, transparent 52%),
     ${color.canvas}
   `,
   color: color.ink,

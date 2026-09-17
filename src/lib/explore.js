@@ -20,7 +20,7 @@ export const GENRE_CHANNEL_ART = {
   "Hip-Hop": "variety-mix",
   "R&B & Soul": "downtempo",
   Pop: "y2k-dance",
-  Rock: "punk",
+  Rock: "psychedelic-rock",
   Metal: "metal",
   "Country & Folk": "country-folk",
 };
@@ -32,7 +32,7 @@ export const FAMILY_CHANNEL_ART = {
   afterhours: "downtempo",
   "soul-continuum": "downtempo",
   "jazz-world": "shoegaze",
-  "rock-roots": "punk",
+  "rock-roots": "psychedelic-rock",
   "classical-score": "country-folk",
 };
 

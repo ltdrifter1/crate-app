@@ -135,21 +135,22 @@ describe("chartHistory", () => {
 });
 
 describe("sceneChannels", () => {
-  test("dials CH-01 through CH-13 with Channel Surfing names", () => {
+  test("dials CH-01 through CH-14 with Channel Surfing names", () => {
     expect(SCENE_CHANNELS.map((c) => [c.num, c.title])).toEqual([
       [1, "Y2K Dance"],
-      [2, "Variety Mix"],
-      [3, "Local"],
-      [4, "House"],
-      [5, "Techno"],
-      [6, "UK Garage"],
-      [7, "Dubstep"],
-      [8, "Drum & Bass"],
-      [9, "Emo & Shoegaze"],
-      [10, "Metal"],
-      [11, "Punk"],
-      [12, "Country & Folk"],
-      [13, "Ambient / Downtempo"],
+      [2, "Psychedelic Rock"],
+      [3, "Variety Mix"],
+      [4, "Local"],
+      [5, "House"],
+      [6, "Techno"],
+      [7, "UK Garage"],
+      [8, "Dubstep"],
+      [9, "Drum & Bass"],
+      [10, "Emo & Shoegaze"],
+      [11, "Metal"],
+      [12, "Punk"],
+      [13, "Country & Folk"],
+      [14, "Ambient / Downtempo"],
     ]);
     expect(CHANNEL_SOURCE_NOTES["y2k-dance"].source).toBe("genre");
     expect(CHANNEL_SOURCE_NOTES["local-pnw"].source).toBe("audioasis");
@@ -172,7 +173,7 @@ describe("sceneChannels", () => {
     expect(CHANNEL_BATCH_PREFIXES["country-folk"]).toContain("country-folk");
     expect(CHANNEL_BATCH_PREFIXES.downtempo).toContain("downtempo");
     expect(CHANNEL_BATCH_PREFIXES.techno).toContain("expansions");
-    expect(SCENE_CHANNELS).toHaveLength(13);
+    expect(SCENE_CHANNELS).toHaveLength(14);
     expect(SCENE_CHANNELS.every((c) => Boolean(c.id))).toBe(true);
     expect(getSceneChannel("variety-mix").tagline.toLowerCase()).not.toContain("evie");
     expect(getSceneChannel("techno").tagline.toLowerCase()).not.toContain("expansions");
@@ -195,7 +196,7 @@ describe("sceneChannels", () => {
     expect(getSceneChannel("house-ukg")?.id).toBe("y2k-dance");
 
     const variety = getSceneChannel("variety-mix");
-    expect(variety.num).toBe(2);
+    expect(variety.num).toBe(3);
     expect(availableSceneChannels(tracks, 2).some((c) => c.id === "variety-mix")).toBe(true);
     expect(getSceneChannel("rap-city")?.id).toBe("variety-mix");
     const varietyPool = buildSceneChannelPool(tracks, variety);
@@ -206,7 +207,25 @@ describe("sceneChannels", () => {
     expect(genres.size).toBeGreaterThanOrEqual(2);
   });
 
-  test("CH-02 Variety Mix prefers curator batch when present", () => {
+  test("CH-02 Psychedelic Rock matches psych, not the whole Rock lane", () => {
+    const psych = getSceneChannel("psychedelic-rock");
+    expect(psych.num).toBe(2);
+    expect(psych.title).toBe("Psychedelic Rock");
+    expect(formatChannelNum(psych.num)).toBe("CH-02");
+    const tracks = [
+      { id: "1", title: "White Rabbit", artist: "Jefferson Airplane", genre: "Rock", duration: 180, audioUrl: "u" },
+      { id: "2", title: "Psychedelic Rock Cut", artist: "X", duration: 180, audioUrl: "u" },
+      { id: "3", title: "Indie", artist: "Y", genre: "Rock", duration: 180, audioUrl: "u" },
+      { id: "4", title: "Goa", artist: "Z", genre: "Psytrance", duration: 180, audioUrl: "u" },
+      { id: "5", title: "Batch Swirl", artist: "A", duration: 180, audioUrl: "u", batch: "psych-wave-1" },
+      { id: "6", title: "Echoes", artist: "Pink Floyd", genre: "Rock", duration: 240, audioUrl: "u" },
+    ];
+    expect(buildSceneChannelPool(tracks, psych).map((t) => t.id).sort()).toEqual(["1", "2", "5", "6"]);
+    expect(trackMatchesChannel(tracks[3], psych)).toBe(false);
+    expect(availableSceneChannels(tracks, 1).some((c) => c.id === "psychedelic-rock")).toBe(true);
+  });
+
+  test("CH-03 Variety Mix prefers curator batch when present", () => {
     const variety = getSceneChannel("variety-mix");
     const tracks = [
       { id: "1", title: "A", genre: "Rock", duration: 180, audioUrl: "u", batch: "variety-wave-1" },
@@ -222,9 +241,9 @@ describe("sceneChannels", () => {
     expect(buildCrossGenreVarietyPool(tracks, 3).length).toBe(3);
   });
 
-  test("CH-03 Local is Pacific Northwest only", () => {
+  test("CH-04 Local is Pacific Northwest only", () => {
     const local = getSceneChannel("local-pnw");
-    expect(local.num).toBe(3);
+    expect(local.num).toBe(4);
     expect(local.title).toBe("Local");
     expect(local.shortTitle).toBe("Local");
     expect(local.tagline.toLowerCase()).toContain("pacific northwest");
@@ -243,9 +262,9 @@ describe("sceneChannels", () => {
     expect(decorateSceneChannels(tracks, 1)[0].id).toBe("local-pnw");
   });
 
-  test("CH-09 Emo & Shoegaze matches genre keywords only", () => {
+  test("CH-10 Emo & Shoegaze matches genre keywords only", () => {
     const shoe = getSceneChannel("shoegaze");
-    expect(shoe.num).toBe(9);
+    expect(shoe.num).toBe(10);
     expect(shoe.title).toBe("Emo & Shoegaze");
     const tracks = [
       { id: "1", title: "Haze", genre: "Shoegaze", duration: 180, audioUrl: "u" },
@@ -256,14 +275,14 @@ describe("sceneChannels", () => {
     expect(buildSceneChannelPool(tracks, shoe).map((t) => t.id).sort()).toEqual(["1", "2", "4"]);
   });
 
-  test("CH-10/11/12 Metal Punk Country & Folk match their lanes", () => {
+  test("CH-11/12/13 Metal Punk Country & Folk match their lanes", () => {
     const metal = getSceneChannel("metal");
     const punk = getSceneChannel("punk");
     const country = getSceneChannel("country-folk");
-    expect(metal.num).toBe(10);
-    expect(punk.num).toBe(11);
-    expect(country.num).toBe(12);
-    expect(formatChannelNum(metal.num)).toBe("CH-10");
+    expect(metal.num).toBe(11);
+    expect(punk.num).toBe(12);
+    expect(country.num).toBe(13);
+    expect(formatChannelNum(metal.num)).toBe("CH-11");
 
     const tracks = [
       { id: "1", title: "Riff", genre: "Metal", duration: 180, audioUrl: "u" },
@@ -283,7 +302,7 @@ describe("sceneChannels", () => {
     expect(availableSceneChannels(tracks, 1).some((c) => c.id === "country-folk")).toBe(true);
   });
 
-  test("CH-10/11/12 accept Audioasis-style batch tags without genre", () => {
+  test("CH-11/12/13 accept Audioasis-style batch tags without genre", () => {
     const metal = getSceneChannel("metal");
     const punk = getSceneChannel("punk");
     const country = getSceneChannel("country-folk");
@@ -300,7 +319,7 @@ describe("sceneChannels", () => {
     expect(trackMatchesChannel(tracks[3], metal)).toBe(false);
   });
 
-  test("CH-05 Techno matches expansions batch waves", () => {
+  test("CH-06 Techno matches expansions batch waves", () => {
     const techno = getSceneChannel("techno");
     expect(techno.strict).toBe(true);
     const tracks = [
@@ -321,13 +340,13 @@ describe("sceneChannels", () => {
     expect(channelCoverUrls([], { ...techno, art: "/channels/techno.jpg" }, 4)).toEqual([
       "/channels/techno.jpg",
     ]);
-    expect(decorateSceneChannels([], 1)).toHaveLength(13);
+    expect(decorateSceneChannels([], 1)).toHaveLength(14);
     expect(decorateSceneChannels([], 1).some((c) => c.id === "downtempo")).toBe(true);
   });
 
-  test("CH-13 Ambient / Downtempo matches trip-hop, chill, and ambient", () => {
+  test("CH-14 Ambient / Downtempo matches trip-hop, chill, and ambient", () => {
     const ch = getSceneChannel("downtempo");
-    expect(ch.num).toBe(13);
+    expect(ch.num).toBe(14);
     expect(ch.title).toBe("Ambient / Downtempo");
     const tracks = [
       { id: "1", title: "Slow", genre: "Downtempo", duration: 180, audioUrl: "u" },
@@ -382,10 +401,10 @@ describe("sceneChannels", () => {
     const techno = getSceneChannel("techno");
     const ukg = getSceneChannel("uk-garage");
     const dubstep = getSceneChannel("dubstep");
-    expect(house.num).toBe(4);
-    expect(techno.num).toBe(5);
-    expect(ukg.num).toBe(6);
-    expect(dubstep.num).toBe(7);
+    expect(house.num).toBe(5);
+    expect(techno.num).toBe(6);
+    expect(ukg.num).toBe(7);
+    expect(dubstep.num).toBe(8);
 
     const tracks = [
       { id: "h", title: "Warm Pad", genre: "Deep House", duration: 180, audioUrl: "u", bpm: 122, energy: 4 },
@@ -425,7 +444,7 @@ describe("mtvChannel", () => {
     const scene = resolveChannelBug({
       sceneChannel: getSceneChannel("local-pnw"),
     });
-    expect(scene.ch).toBe("CH-03");
+    expect(scene.ch).toBe("CH-04");
     expect(scene.slug).toContain("LOCAL");
   });
 });
