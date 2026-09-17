@@ -38,7 +38,7 @@ export function IceOrbPlay({
         background: disabled
           ? "rgba(40,44,52,0.9)"
           : "rgba(247,248,250,0.96)",
-        border: `1px solid ${disabled ? "rgba(255,255,255,0.08)" : "rgba(255,255,255,0.55)"}`,
+        border: "none",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
@@ -47,9 +47,7 @@ export function IceOrbPlay({
         flexShrink: 0,
         boxShadow: disabled
           ? "none"
-          : glowing
-            ? `0 0 0 1px rgba(169,199,228,0.35), 0 10px 28px rgba(0,0,0,0.4), 0 0 28px rgba(169,199,228,0.22)`
-            : `0 8px 22px rgba(0,0,0,0.38)`,
+          : "0 6px 18px rgba(0,0,0,0.32)",
         transition: `transform ${motion.fast} ${motion.ease}, box-shadow ${motion.base} ${motion.ease}, background ${motion.fast} ${motion.ease}`,
       }}
     >

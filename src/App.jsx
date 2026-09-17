@@ -198,9 +198,7 @@ const injectStyles = () => {
     }
     body {
       font-family: var(--font);
-      background:
-        radial-gradient(ellipse 110% 55% at 50% -18%, rgba(255,255,255,0.035) 0%, transparent 52%),
-        var(--canvas);
+      background: var(--canvas);
       color: var(--ink);
     }
     ::-webkit-scrollbar { width: 8px; height: 8px; }
@@ -495,41 +493,22 @@ const injectStyles = () => {
     }
     .glass-dock {
       background: ${glass.fillHeavy};
-      border: 1px solid ${glass.border};
-      box-shadow:
-        inset 0 1px 0 ${glass.highlight},
-        inset 0 -1px 0 rgba(0, 0, 0, 0.35),
-        0 18px 48px rgba(0, 0, 0, 0.55),
-        0 4px 12px rgba(0, 0, 0, 0.35);
+      border: 1px solid ${glass.borderSoft};
+      box-shadow: 0 12px 36px rgba(0, 0, 0, 0.4);
       -webkit-backdrop-filter: ${glass.blurHeavy};
       backdrop-filter: ${glass.blurHeavy};
       transition: background 0.6s ease, box-shadow 0.35s ease;
     }
-    /* ── Premium Home kit ─────────────────────────────────────────────── */
+    /* ── Music.app chrome ─────────────────────────────────────────────── */
     .pill-nav {
-      background:
-        linear-gradient(180deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.02) 42%, transparent 100%),
-        ${glass.fillHeavy};
-      border: 1px solid rgba(231,235,240,0.2);
-      box-shadow:
-        inset 0 1px 0 rgba(255,255,255,0.24),
-        inset 0 -1px 0 rgba(0, 0, 0, 0.4),
-        0 18px 48px rgba(0, 0, 0, 0.55),
-        0 4px 12px rgba(0, 0, 0, 0.35);
+      background: ${glass.fillHeavy};
+      border: 1px solid rgba(255,255,255,0.08);
+      box-shadow: 0 12px 36px rgba(0, 0, 0, 0.4);
       -webkit-backdrop-filter: ${glass.blurHeavy};
       backdrop-filter: ${glass.blurHeavy};
     }
-    .glass-dock {
-      border: 1px solid rgba(231,235,240,0.18);
-      box-shadow:
-        inset 0 1px 0 rgba(255,255,255,0.2),
-        0 16px 40px rgba(0,0,0,0.48);
-    }
     .pmp-hero-bezel {
-      box-shadow:
-        inset 0 1px 0 rgba(255,255,255,0.28),
-        inset 0 -1px 0 rgba(0,0,0,0.55),
-        0 22px 50px rgba(0,0,0,0.52);
+      box-shadow: 0 12px 36px rgba(0,0,0,0.32);
     }
     .pmp-home-mtv::before { display: none; }
     .pmp-home-mtv > * { position: relative; z-index: 1; }
@@ -583,31 +562,20 @@ const injectStyles = () => {
         color ${motion.fast};
     }
     .pmp-tune-key:hover {
-      filter: brightness(1.05);
-      box-shadow:
-        inset 0 1px 0 rgba(255,255,255,0.72),
-        inset 0 -1px 0 rgba(0,0,0,0.2),
-        0 0 0 1px rgba(101,230,255,0.18),
-        0 8px 20px rgba(0,0,0,0.4) !important;
+      filter: brightness(1.06);
+      box-shadow: 0 6px 16px rgba(0,0,0,0.28) !important;
     }
     .pmp-tune-key:active {
-      transform: translateY(1px) scale(0.985);
-      filter: brightness(0.96);
-      box-shadow:
-        inset 0 2px 4px rgba(0,0,0,0.28),
-        inset 0 1px 0 rgba(0,0,0,0.12) !important;
+      transform: scale(0.97);
+      filter: none;
+      box-shadow: none !important;
     }
     .pmp-tune-key--locked:hover {
-      box-shadow:
-        inset 0 1px 0 rgba(255,255,255,0.14),
-        0 0 20px rgba(101,230,255,0.18) !important;
+      box-shadow: 0 6px 16px rgba(0,0,0,0.28) !important;
     }
     .pmp-schedule-cell:hover {
-      border-color: rgba(101,230,255,0.32) !important;
-      box-shadow:
-        inset 0 1px 0 rgba(255,255,255,0.14),
-        0 0 14px rgba(101,230,255,0.08),
-        0 6px 16px rgba(0,0,0,0.34) !important;
+      border-color: rgba(255,255,255,0.16) !important;
+      box-shadow: 0 6px 16px rgba(0,0,0,0.28) !important;
     }
     .pmp-dial-cell:hover {
       color: #F7F8FA;
@@ -645,7 +613,7 @@ const injectStyles = () => {
       transition: background ${motion.base} ${motion.ease}, color ${motion.base} ${motion.ease}, transform ${motion.fast};
     }
     .nav-rail-btn:hover {
-      background: ${color.accentSoft} !important;
+      background: rgba(255,255,255,0.08) !important;
       color: ${color.ink} !important;
     }
     .custom-mix {

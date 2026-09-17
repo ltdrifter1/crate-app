@@ -1,6 +1,6 @@
 import { lazy, Suspense } from "react";
 import {
-  color, dock, fontDisplay, fontMono, motion, y2k,
+  color, dock, fontDisplay, fontMono, motion,
 } from "../../theme";
 import Icon from "../ui/Icon";
 import BottomNavigation from "../home/BottomNavigation";
@@ -99,7 +99,7 @@ export default function GlassDock({
                 linear-gradient(180deg, rgba(255,255,255,0.08) 0%, transparent 100%)
               `,
               boxShadow: isRadioMode || hypnoPocket
-                ? `inset 2px 0 0 ${y2k.chromeBright}`
+                ? `inset 2px 0 0 ${color.accent}`
                 : "none",
             }}
           >
@@ -119,8 +119,8 @@ export default function GlassDock({
                 {(isRadioMode || hypnoPocket) && (
                   <span style={{
                     display: "inline-block", width: 6, height: 6, borderRadius: "50%",
-                    background: y2k.neon, marginRight: 8, verticalAlign: "middle",
-                    boxShadow: isPlaying ? `0 0 10px ${y2k.neon}` : "none",
+                    background: color.alert, marginRight: 8, verticalAlign: "middle",
+                    boxShadow: "none",
                     animation: isPlaying ? "stageLiveDot 1.6s ease-in-out infinite" : "none",
                   }}/>
                 )}

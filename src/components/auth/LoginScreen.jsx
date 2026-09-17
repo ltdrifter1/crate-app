@@ -191,7 +191,7 @@ export default function LoginScreen({
           position: "absolute",
           inset: 0,
           background:
-            "radial-gradient(ellipse 90% 55% at 50% 8%, rgba(180,190,205,0.12) 0%, transparent 58%), radial-gradient(ellipse 70% 40% at 80% 90%, rgba(101,230,255,0.05) 0%, transparent 55%)",
+            "radial-gradient(ellipse 90% 55% at 50% 8%, rgba(255,255,255,0.06) 0%, transparent 58%)",
         }}
       />
       {/* Soft brand wash — oversized transparent lockup, barely there */}
@@ -263,11 +263,11 @@ export default function LoginScreen({
             display: "flex",
             flexDirection: "column",
             gap: 12,
-            padding: "20px 18px 18px",
-            background: glass.plate,
-            border: `1px solid ${glass.border}`,
-            borderRadius: radius.xl,
-            boxShadow: `inset 0 1px 0 ${glass.highlight}, ${glass.shadowLift}`,
+            padding: "22px 20px 20px",
+            background: "rgba(28,28,30,0.78)",
+            border: "1px solid rgba(255,255,255,0.08)",
+            borderRadius: 18,
+            boxShadow: "0 16px 44px rgba(0,0,0,0.4)",
             backdropFilter: glass.blurHeavy,
             WebkitBackdropFilter: glass.blurHeavy,
           }}
@@ -284,13 +284,10 @@ export default function LoginScreen({
               gap: 10,
               width: "100%",
               padding: "14px 20px",
-              borderRadius: radius.md,
-              border: "1px solid rgba(22,24,30,0.2)",
-              background: `
-                linear-gradient(180deg, rgba(255,255,255,0.2) 0%, transparent 42%),
-                linear-gradient(165deg, #EDF0F4 0%, #C4CBD4 100%)
-              `,
-              boxShadow: `inset 0 1px 0 rgba(255,255,255,0.28), ${glass.shadowSoft}`,
+              borderRadius: 980,
+              border: "none",
+              background: "#F5F5F7",
+              boxShadow: "0 4px 16px rgba(0,0,0,0.28)",
               cursor: loading ? "wait" : "pointer",
               opacity: loading ? 0.7 : 1,
             }}

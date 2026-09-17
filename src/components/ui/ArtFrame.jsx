@@ -1,8 +1,8 @@
-import { artFrameStyle, y2k } from "../../theme";
+import { artFrameStyle, color } from "../../theme";
 import CoverImage from "./CoverImage";
 
 /**
- * ArtFrame — shared jewel-case sleeve chrome for Home discovery.
+ * ArtFrame — Music.app sleeve: modest radius, soft shadow, no jewel bevel.
  * Optional 2×2 mosaic when `covers` has 4+ URLs; otherwise single `src`.
  */
 export default function ArtFrame({
@@ -12,7 +12,7 @@ export default function ArtFrame({
   width = null,
   height = null,
   active = false,
-  radius = 14,
+  radius = 8,
   priority = false,
   eager = false,
   children = null,
@@ -60,21 +60,6 @@ export default function ArtFrame({
         />
       ) : null}
 
-      {/* Soft bevel wash — physical media edge */}
-      <span
-        aria-hidden="true"
-        style={{
-          position: "absolute",
-          inset: 0,
-          pointerEvents: "none",
-          background: `
-            linear-gradient(135deg, rgba(255,255,255,0.12) 0%, transparent 42%),
-            linear-gradient(180deg, transparent 55%, rgba(10,11,13,0.32) 100%)
-          `,
-          boxShadow: "inset 0 1px 0 rgba(255,255,255,0.12), inset 0 -1px 0 rgba(0,0,0,0.25)",
-        }}
-      />
-
       {active && (
         <span
           aria-hidden="true"
@@ -85,9 +70,7 @@ export default function ArtFrame({
             width: 8,
             height: 8,
             borderRadius: "50%",
-            background: y2k.neon,
-            boxShadow: `0 0 8px ${y2k.neon}`,
-            animation: "stageLiveDot 1.6s ease-in-out infinite",
+            background: color.accent,
           }}
         />
       )}

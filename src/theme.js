@@ -1,15 +1,14 @@
-// Design tokens — App Store / Apple Music system type on a dark studio canvas.
-// Inter is loaded as a webfont (public/index.html) and MUST sit first so the
-// face actually paints. Named “SF Pro” is not a web font; -apple-system maps
-// to San Francisco on Apple OS only. Inter is the licensed SF analog elsewhere.
+// Design tokens — Music.app / modern iTunes.
+// system-ui first so San Francisco paints on Apple OS and Segoe / Roboto
+// elsewhere. No webfont costume. Named “SF Pro” is not a web font.
 
 export const fontDisplay =
-  '"Inter", -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", Helvetica, Arial, sans-serif';
+  'system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", "Helvetica Neue", Helvetica, Arial, sans-serif';
 export const font =
-  '"Inter", -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Helvetica Neue", Helvetica, Arial, sans-serif';
+  'system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", "Helvetica Neue", Helvetica, Arial, sans-serif';
 export const fontMono =
   'ui-monospace, "SF Mono", SFMono-Regular, Menlo, Monaco, Consolas, monospace';
-/** Same as display — App Store never swaps in a costume headline face. */
+/** Same as display — Music.app never swaps in a costume headline face. */
 export const fontPoster = fontDisplay;
 /** Same as text — keep the token so station chrome can restyle without LCD. */
 export const fontLcd = font;
@@ -112,32 +111,32 @@ export const type = {
   },
 };
 
-/** Brand palette — dark broadcast studio, editorial contrast */
+/** Brand palette — Music.app dark: black canvas, grouped surfaces, system blue. */
 export const color = {
-  ink: "#F7F8FA",
-  body: "#C9CED6",
-  muted: "#A4AAB4",
-  faint: "#6E7683",
-  line: "rgba(255, 255, 255, 0.08)",
-  lineStrong: "rgba(255, 255, 255, 0.14)",
-  surface: "rgba(21, 24, 28, 0.72)",
-  surfaceSolid: "rgba(21, 24, 28, 0.94)",
-  surfaceRaised: "rgba(28, 32, 38, 0.96)",
-  canvas: "#080A0D",
-  canvasEdge: "#06070A",
+  ink: "#F5F5F7",
+  body: "rgba(235, 235, 245, 0.78)",
+  muted: "rgba(235, 235, 245, 0.6)",
+  faint: "rgba(235, 235, 245, 0.38)",
+  line: "rgba(84, 84, 88, 0.45)",
+  lineStrong: "rgba(84, 84, 88, 0.65)",
+  surface: "rgba(28, 28, 30, 0.72)",
+  surfaceSolid: "#1C1C1E",
+  surfaceRaised: "#2C2C2E",
+  canvas: "#000000",
+  canvasEdge: "#000000",
   /** iOS system blue — See All, links, focus */
   accent: "#0A84FF",
-  accentSoft: "rgba(10, 132, 255, 0.14)",
+  accentSoft: "rgba(10, 132, 255, 0.18)",
   accentGlow: "rgba(10, 132, 255, 0.28)",
-  onAccent: "#080A0D",
-  onDark: "#F2F4F7",
-  onDarkMuted: "rgba(242,244,247,0.62)",
-  /** Broadcast red — LIVE + destructive only, never chrome */
-  alert: "#FF334F",
-  station: "#15181C",
-  /** Soft selection wash */
-  select: "rgba(101, 230, 255, 0.08)",
-  selectStrong: "rgba(101, 230, 255, 0.14)",
+  onAccent: "#000000",
+  onDark: "#F5F5F7",
+  onDarkMuted: "rgba(235,235,245,0.6)",
+  /** Live + destructive only, never chrome */
+  alert: "#FF453A",
+  station: "#1C1C1E",
+  /** Soft selection wash — Music.app row highlight */
+  select: "rgba(10, 132, 255, 0.18)",
+  selectStrong: "rgba(10, 132, 255, 0.28)",
 };
 
 /**
@@ -145,19 +144,19 @@ export const color = {
  * hot = live / request / rank signal; bright = chart / highlight; steel = plates.
  */
 export const chrome = {
-  hot: "#8B939F",
-  bright: "#E7EBF0",
-  steel: "#5A6270",
-  plate: "#15181C",
-  deep: "#0C0E12",
-  live: "#FF334F",
-  signal: "#65E6FF",
-  inkPlate: "#080A0D",
+  hot: "#8E8E93",
+  bright: "#F5F5F7",
+  steel: "#636366",
+  plate: "#1C1C1E",
+  deep: "#000000",
+  live: "#FF453A",
+  signal: "#0A84FF",
+  inkPlate: "#000000",
   /** rgba helpers for overlays */
-  hotRgb: "139,147,159",
-  brightRgb: "231,235,240",
-  liveRgb: "255,51,79",
-  cyanRgb: "101,230,255",
+  hotRgb: "142,142,147",
+  brightRgb: "245,245,247",
+  liveRgb: "255,69,58",
+  cyanRgb: "10,132,255",
 };
 
 /**
@@ -165,150 +164,93 @@ export const chrome = {
  * MTV meets pirate radio meets Japanese audio hardware.
  * No purple anywhere on player or home chrome.
  */
-/** Modern ice — frosted cyan glass for live station chat. */
+/** Messages-style pane for live station chat — grouped, not LCD. */
 export const ice = {
-  frost: "rgba(214, 236, 248, 0.14)",
-  frostStrong: "rgba(224, 242, 254, 0.22)",
-  rim: "rgba(186, 230, 253, 0.32)",
-  rimSoft: "rgba(186, 230, 253, 0.16)",
-  glow: "rgba(125, 211, 252, 0.28)",
-  mist: "rgba(14, 32, 44, 0.72)",
-  pane: `
-    linear-gradient(180deg, rgba(214,236,248,0.12) 0%, rgba(214,236,248,0.03) 28%, transparent 58%),
-    linear-gradient(165deg, rgba(18,36,48,0.88) 0%, rgba(8,14,20,0.94) 100%)
-  `,
-  thread: `
-    radial-gradient(120% 80% at 50% -10%, rgba(125,211,252,0.16) 0%, transparent 46%),
-    linear-gradient(180deg, #0B141C 0%, #070C11 100%)
-  `,
-  bubble: "rgba(186, 230, 253, 0.1)",
-  bubbleMine: "rgba(125, 211, 252, 0.18)",
-  ink: "#E7F4FB",
-  mute: "rgba(186, 214, 230, 0.62)",
-  pip: "#7DD3FC",
+  frost: "rgba(255, 255, 255, 0.08)",
+  frostStrong: "rgba(255, 255, 255, 0.12)",
+  rim: "rgba(255, 255, 255, 0.12)",
+  rimSoft: "rgba(255, 255, 255, 0.06)",
+  glow: "rgba(10, 132, 255, 0.18)",
+  mist: "rgba(28, 28, 30, 0.82)",
+  pane: "rgba(28, 28, 30, 0.88)",
+  thread: "linear-gradient(180deg, #1C1C1E 0%, #000000 100%)",
+  bubble: "rgba(44, 44, 46, 0.92)",
+  bubbleMine: "rgba(10, 132, 255, 0.28)",
+  ink: "#F5F5F7",
+  mute: "rgba(235, 235, 245, 0.55)",
+  pip: "#0A84FF",
 };
 
 export const y2k = {
-  /** Aluminum / light metal — CTAs, active states, chrome faces */
-  chrome: "#B8BEC7",
-  chromeBright: "#E7EBF0",
-  chromeMid: "#8B939F",
-  chromeDeep: "#3A414C",
-  chromeSoft: "rgba(184, 190, 199, 0.16)",
-  chromeGlow: "rgba(231, 235, 240, 0.28)",
-  chromeWash: "rgba(184, 190, 199, 0.08)",
-  /** Electric cyan — LCD / tuner illumination */
-  cyan: "#65E6FF",
-  cyanSoft: "rgba(101, 230, 255, 0.14)",
-  cyanGlow: "rgba(101, 230, 255, 0.32)",
-  /** Technical blue — secondary readout */
-  techBlue: "#7BA7FF",
-  techBlueSoft: "rgba(123, 167, 255, 0.14)",
-  /** Neon zap / acid — tiny highlights only */
-  neon: "#C8F241",
-  neonSoft: "rgba(200, 242, 65, 0.16)",
-  /** Optional Y2K magenta — sparingly */
-  magenta: "#FF4FD8",
-  magentaSoft: "rgba(255, 79, 216, 0.14)",
-  /** Cool studio off-white for headline ink */
-  offWhite: "#F4F6F8",
-  charcoal: "#15181C",
-  charcoalRaised: "#1C2026",
-  graphite: "#15181C",
-  nearBlack: "#080A0D",
-  metal: "#B8BEC7",
-  lightMetal: "#E7EBF0",
-  live: "#FF334F",
-  /** Neutral ink used on glass bugs / lower-thirds */
-  inkGlass: "rgba(8, 10, 13, 0.78)",
-  inkGlassSoft: "rgba(8, 10, 13, 0.52)",
-  /** Hero / card art fallback wash — brushed steel, no purple cast */
+  /** Quiet metal leftovers — mapped to Music.app labels, never LCD. */
+  chrome: "#D1D1D6",
+  chromeBright: "#F5F5F7",
+  chromeMid: "#8E8E93",
+  chromeDeep: "#3A3A3C",
+  chromeSoft: "rgba(255, 255, 255, 0.08)",
+  chromeGlow: "rgba(255, 255, 255, 0.08)",
+  chromeWash: "rgba(255, 255, 255, 0.04)",
+  /** Was LCD cyan — now system-blue adjacent, no glow */
+  cyan: "#0A84FF",
+  cyanSoft: "rgba(10, 132, 255, 0.14)",
+  cyanGlow: "rgba(10, 132, 255, 0.18)",
+  techBlue: "#0A84FF",
+  techBlueSoft: "rgba(10, 132, 255, 0.14)",
+  neon: "#F5F5F7",
+  neonSoft: "rgba(255, 255, 255, 0.1)",
+  magenta: "#FF375F",
+  magentaSoft: "rgba(255, 55, 95, 0.14)",
+  offWhite: "#F5F5F7",
+  charcoal: "#1C1C1E",
+  charcoalRaised: "#2C2C2E",
+  graphite: "#1C1C1E",
+  nearBlack: "#000000",
+  metal: "#D1D1D6",
+  lightMetal: "#F5F5F7",
+  live: "#FF453A",
+  inkGlass: "rgba(0, 0, 0, 0.62)",
+  inkGlassSoft: "rgba(0, 0, 0, 0.42)",
+  /** Cover fallback — dark grouped, no costume wash */
   artGradient:
-    "radial-gradient(120% 90% at 20% 0%, rgba(184,190,199,0.28) 0%, transparent 55%), radial-gradient(100% 80% at 90% 100%, rgba(58,65,76,0.55) 0%, transparent 60%), linear-gradient(160deg, #1C2026 0%, #080A0D 100%)",
+    "linear-gradient(160deg, #3A3A3C 0%, #1C1C1E 55%, #000000 100%)",
 };
 
 /**
- * Radio / media-player module surfaces — Y2K chassis + premium glass.
- * LCD insets, chrome bezels, frosted panels — engineered, not SaaS cards.
+ * Media module surfaces — Music.app grouped containers.
+ * Soft fill, hairline, no LCD / bezel / machined aluminum.
  */
 export const radio = {
-  /** 8–14px engineered corners — never pill */
-  radius: 14,
-  radiusTight: 8,
-  radiusControl: 10,
-  radiusLcd: 6,
-  border: "1px solid rgba(255,255,255,0.16)",
-  borderLive: "1px solid rgba(101,230,255,0.38)",
-  borderQuiet: "1px solid rgba(255,255,255,0.1)",
-  borderChrome: "1px solid rgba(231,235,240,0.22)",
-  /** Premium frosted glass chassis */
-  glassFace: `
-    linear-gradient(165deg, rgba(255,255,255,0.14) 0%, rgba(255,255,255,0.03) 38%, transparent 68%),
-    linear-gradient(145deg, rgba(40,46,56,0.55) 0%, rgba(18,22,28,0.72) 48%, rgba(10,12,16,0.78) 100%)
-  `,
-  glassFaceLive: `
-    radial-gradient(120% 80% at 0% 0%, rgba(101,230,255,0.14) 0%, transparent 45%),
-    radial-gradient(90% 70% at 100% 100%, rgba(123,167,255,0.1) 0%, transparent 50%),
-    linear-gradient(165deg, rgba(255,255,255,0.16) 0%, rgba(255,255,255,0.04) 36%, transparent 70%),
-    linear-gradient(145deg, rgba(44,52,64,0.58) 0%, rgba(20,24,30,0.76) 50%, rgba(10,12,16,0.82) 100%)
-  `,
-  glassBlur: "blur(28px) saturate(1.35)",
-  glassShadow:
-    "inset 0 1px 0 rgba(255,255,255,0.22), inset 0 -1px 0 rgba(0,0,0,0.4), 0 12px 36px rgba(0,0,0,0.45), 0 0 0 1px rgba(255,255,255,0.04)",
-  glassShadowLive:
-    "inset 0 1px 0 rgba(255,255,255,0.24), inset 0 -1px 0 rgba(0,0,0,0.45), 0 0 40px rgba(101,230,255,0.12), 0 14px 40px rgba(0,0,0,0.5), 0 0 0 1px rgba(101,230,255,0.1)",
-  /** Deep LCD screen inset */
-  lcdFace: `
-    linear-gradient(180deg, rgba(101,230,255,0.06) 0%, transparent 40%),
-    linear-gradient(160deg, #0A1016 0%, #06090E 55%, #04060A 100%)
-  `,
-  lcdBorder: "1px solid rgba(101,230,255,0.22)",
-  lcdShadow:
-    "inset 0 2px 8px rgba(0,0,0,0.65), inset 0 1px 0 rgba(101,230,255,0.08), 0 0 20px rgba(101,230,255,0.06)",
-  /** Translucent graphite chassis with internal highlight */
-  moduleFace: `
-    linear-gradient(180deg, rgba(255,255,255,0.09) 0%, rgba(255,255,255,0.02) 36%, transparent 70%),
-    linear-gradient(145deg, rgba(36,40,46,0.95) 0%, rgba(21,24,28,0.96) 48%, rgba(14,16,20,0.98) 100%)
-  `,
-  moduleFaceLive: `
-    linear-gradient(180deg, rgba(101,230,255,0.08) 0%, transparent 42%),
-    linear-gradient(180deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.02) 36%, transparent 70%),
-    linear-gradient(145deg, rgba(40,46,54,0.97) 0%, rgba(22,26,32,0.98) 50%, rgba(12,14,18,0.99) 100%)
-  `,
-  moduleShadow:
-    "inset 0 1px 0 rgba(255,255,255,0.16), inset 0 -1px 0 rgba(0,0,0,0.45), inset 1px 0 0 rgba(255,255,255,0.04), inset -1px 0 0 rgba(0,0,0,0.3), 0 8px 24px rgba(0,0,0,0.4)",
-  moduleShadowLive:
-    "inset 0 1px 0 rgba(255,255,255,0.18), inset 0 -1px 0 rgba(0,0,0,0.5), 0 0 0 1px rgba(101,230,255,0.12), 0 0 28px rgba(101,230,255,0.1), 0 10px 28px rgba(0,0,0,0.45)",
-  stripFace: `
-    linear-gradient(180deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.02) 42%, transparent 100%),
-    rgba(18,22,28,0.45)
-  `,
-  stripFaceLive: `
-    linear-gradient(180deg, rgba(101,230,255,0.14) 0%, transparent 48%),
-    linear-gradient(180deg, rgba(255,255,255,0.1) 0%, transparent 40%),
-    rgba(22,28,36,0.55)
-  `,
-  stripShadow:
-    "inset 0 1px 0 rgba(255,255,255,0.16), inset 0 -1px 0 rgba(0,0,0,0.35), 0 4px 14px rgba(0,0,0,0.28)",
-  stripShadowLive:
-    "inset 0 1px 0 rgba(255,255,255,0.2), inset 0 -1px 0 rgba(0,0,0,0.4), 0 0 22px rgba(101,230,255,0.16), 0 6px 16px rgba(0,0,0,0.32)",
-  /** Metallic Tune-In key */
-  tuneFace: `
-    linear-gradient(180deg, rgba(255,255,255,0.5) 0%, rgba(255,255,255,0.12) 34%, transparent 55%),
-    linear-gradient(165deg, #F4F6F8 0%, #C8CED6 42%, #8E96A2 100%)
-  `,
-  tuneFacePressed: `
-    linear-gradient(180deg, rgba(0,0,0,0.08) 0%, transparent 40%),
-    linear-gradient(165deg, #D8DDE4 0%, #A8B0BB 50%, #6E7683 100%)
-  `,
-  tuneShadow:
-    "inset 0 1px 0 rgba(255,255,255,0.7), inset 0 -1px 0 rgba(0,0,0,0.22), 0 1px 0 rgba(255,255,255,0.14), 0 8px 20px rgba(0,0,0,0.38)",
-  tuneShadowPressed:
-    "inset 0 2px 4px rgba(0,0,0,0.28), inset 0 1px 0 rgba(0,0,0,0.12)",
-  lcdTrack: "rgba(101,230,255,0.1)",
-  lcdFill:
-    "linear-gradient(90deg, rgba(101,230,255,0.45) 0%, rgba(101,230,255,0.95) 55%, rgba(231,235,240,0.95) 100%)",
-  lcdGlow: "0 0 12px rgba(101,230,255,0.45)",
+  radius: 16,
+  radiusTight: 10,
+  radiusControl: 12,
+  radiusLcd: 8,
+  border: "1px solid rgba(255,255,255,0.08)",
+  borderLive: "1px solid rgba(255,255,255,0.12)",
+  borderQuiet: "1px solid rgba(255,255,255,0.06)",
+  borderChrome: "1px solid rgba(255,255,255,0.08)",
+  glassFace: "rgba(28, 28, 30, 0.72)",
+  glassFaceLive: "rgba(28, 28, 30, 0.82)",
+  glassBlur: "blur(40px) saturate(1.4)",
+  glassShadow: "0 8px 28px rgba(0,0,0,0.28)",
+  glassShadowLive: "0 10px 32px rgba(0,0,0,0.32)",
+  lcdFace: "rgba(44, 44, 46, 0.9)",
+  lcdBorder: "1px solid rgba(255,255,255,0.08)",
+  lcdShadow: "none",
+  moduleFace: "rgba(28, 28, 30, 0.72)",
+  moduleFaceLive: "rgba(28, 28, 30, 0.82)",
+  moduleShadow: "0 8px 24px rgba(0,0,0,0.22)",
+  moduleShadowLive: "0 10px 28px rgba(0,0,0,0.28)",
+  stripFace: "rgba(44, 44, 46, 0.55)",
+  stripFaceLive: "rgba(44, 44, 46, 0.65)",
+  stripShadow: "none",
+  stripShadowLive: "none",
+  tuneFace: "#F5F5F7",
+  tuneFacePressed: "#E5E5EA",
+  tuneShadow: "0 4px 14px rgba(0,0,0,0.22)",
+  tuneShadowPressed: "none",
+  lcdTrack: "rgba(255,255,255,0.14)",
+  lcdFill: "rgba(255,255,255,0.92)",
+  lcdGlow: "none",
   label: {
     fontFamily: font,
     fontSize: 13,
@@ -318,69 +260,58 @@ export const radio = {
   },
 };
 
-/** Dark glass — blurred studio panels, hairline borders, soft top light. */
+/** Dark glass — Music.app frosted panes, hairline only, no bevel. */
 export const glass = {
-  fill: "rgba(24, 27, 32, 0.55)",
-  fillStrong: "rgba(24, 27, 32, 0.82)",
-  fillQuiet: "rgba(30, 34, 40, 0.4)",
-  fillHeavy: "rgba(18, 20, 23, 0.9)",
+  fill: "rgba(28, 28, 30, 0.62)",
+  fillStrong: "rgba(28, 28, 30, 0.82)",
+  fillQuiet: "rgba(44, 44, 46, 0.45)",
+  fillHeavy: "rgba(28, 28, 30, 0.92)",
   border: "rgba(255, 255, 255, 0.1)",
   borderSoft: "rgba(255, 255, 255, 0.08)",
   borderFaint: "rgba(255, 255, 255, 0.05)",
-  highlight: "rgba(255, 255, 255, 0.09)",
-  blur: "blur(32px) saturate(1.1)",
-  blurSoft: "blur(20px) saturate(1.06)",
-  blurHeavy: "blur(48px) saturate(1.08)",
-  blurEdge: "blur(24px) saturate(1.08)",
-  shadow: "0 14px 40px rgba(0, 0, 0, 0.42), 0 2px 8px rgba(0, 0, 0, 0.28)",
-  shadowSoft: "0 8px 28px rgba(0, 0, 0, 0.32)",
-  shadowLift: "0 18px 48px rgba(0, 0, 0, 0.5), 0 4px 12px rgba(0, 0, 0, 0.3)",
-  /** Machined-aluminum control face — MiniDisc / iPod wheel finish */
-  chrome:
-    "linear-gradient(160deg, rgba(46,51,59,0.92) 0%, rgba(32,36,42,0.88) 42%, rgba(22,25,30,0.9) 100%)",
-  /** Soft plate used by sheets / cards */
-  plate:
-    "linear-gradient(165deg, rgba(28,31,37,0.92) 0%, rgba(22,25,30,0.9) 55%, rgba(17,19,23,0.92) 100%)",
-  /** Beveled hardware frame wash */
-  frame:
-    "linear-gradient(145deg, rgba(38,42,49,0.95) 0%, rgba(26,29,34,0.9) 38%, rgba(18,20,24,0.88) 72%, rgba(30,34,40,0.92) 100%)",
+  highlight: "rgba(255, 255, 255, 0.06)",
+  blur: "blur(40px) saturate(1.4)",
+  blurSoft: "blur(24px) saturate(1.2)",
+  blurHeavy: "blur(50px) saturate(1.5)",
+  blurEdge: "blur(28px) saturate(1.3)",
+  shadow: "0 12px 36px rgba(0, 0, 0, 0.35)",
+  shadowSoft: "0 8px 24px rgba(0, 0, 0, 0.28)",
+  shadowLift: "0 16px 44px rgba(0, 0, 0, 0.4)",
+  chrome: "rgba(44, 44, 46, 0.72)",
+  plate: "rgba(28, 28, 30, 0.78)",
+  frame: "rgba(28, 28, 30, 0.72)",
 };
 
-/** Hard, unblurred controls and plates used around playback chrome. */
+/** Soft iOS fills for playback chrome — no machined keys. */
 export const hardware = {
-  radius: 4,
-  keyFace:
-    "linear-gradient(180deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.025) 38%, rgba(0,0,0,0.12) 100%), linear-gradient(145deg, #343A43 0%, #24282F 48%, #171A1F 100%)",
-  keyRaised:
-    "inset 0 1px 0 rgba(255,255,255,0.14), inset 0 -1px 0 rgba(0,0,0,0.55), inset 1px 0 0 rgba(255,255,255,0.05), inset -1px 0 0 rgba(0,0,0,0.35)",
-  keyPressed:
-    "inset 0 2px 4px rgba(0,0,0,0.55), inset 0 1px 0 rgba(0,0,0,0.35)",
-  plateEdge:
-    "inset 0 1px 0 rgba(255,255,255,0.12), inset 0 -1px 0 rgba(0,0,0,0.5)",
-  rule:
-    "linear-gradient(90deg, transparent, rgba(255,255,255,0.14), transparent)",
+  radius: 10,
+  keyFace: "rgba(255,255,255,0.1)",
+  keyRaised: "none",
+  keyPressed: "inset 0 0 0 1000px rgba(255,255,255,0.06)",
+  plateEdge: "none",
+  rule: "linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent)",
 };
 
 /**
- * Raised aluminum key face. Intentionally excludes backdrop-filter so keys
- * read as physical controls instead of floating glass.
+ * Soft iOS control. Intentionally excludes backdrop-filter so keys
+ * stay cheap to paint over scrolling shelves.
  */
 export function hardwareKey(opts = { pressed: false, size: "md" }) {
   const pressed = opts?.pressed === true;
   const size = opts?.size || "md";
   const metrics = {
-    sm: { minHeight: 32, padding: "0 10px" },
-    md: { minHeight: 36, padding: "0 13px" },
-    lg: { minHeight: 44, padding: "0 15px" },
-  }[size] || { minHeight: 36, padding: "0 13px" };
+    sm: { minHeight: 32, padding: "0 12px" },
+    md: { minHeight: 36, padding: "0 14px" },
+    lg: { minHeight: 44, padding: "0 16px" },
+  }[size] || { minHeight: 36, padding: "0 14px" };
 
   return {
     ...metrics,
     borderRadius: hardware.radius,
-    border: "1px solid rgba(255,255,255,0.14)",
-    background: hardware.keyFace,
+    border: "1px solid rgba(255,255,255,0.08)",
+    background: pressed ? "rgba(255,255,255,0.16)" : hardware.keyFace,
     boxShadow: pressed ? hardware.keyPressed : hardware.keyRaised,
-    color: pressed ? y2k.chromeBright : color.body,
+    color: pressed ? color.ink : color.body,
     fontFamily: font,
     fontSize: 13,
     fontWeight: 600,
@@ -391,22 +322,21 @@ export function hardwareKey(opts = { pressed: false, size: "md" }) {
   };
 }
 
-/** Deep jewel-case shadow for album art — lit from the studio above. */
+/** Soft album-art shadow — Music.app sleeve, not a jewel case. */
 export const artShadow = {
-  quiet: "0 2px 4px rgba(0,0,0,0.3), 0 12px 28px rgba(0,0,0,0.45)",
-  raised:
-    "0 4px 10px rgba(0,0,0,0.35), 0 20px 44px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.1), inset 0 -1px 0 rgba(0,0,0,0.35)",
-  active: `0 0 0 2px rgba(247,248,250,0.92), 0 8px 20px rgba(0,0,0,0.45), 0 18px 40px rgba(0,0,0,0.45)`,
+  quiet: "0 4px 14px rgba(0,0,0,0.28)",
+  raised: "0 8px 22px rgba(0,0,0,0.38)",
+  active: "0 0 0 3px rgba(255,255,255,0.92), 0 10px 28px rgba(0,0,0,0.4)",
 };
 
 /**
- * Shared jewel-case art frame — dual-tone chrome edge, raised sleeve shadow.
+ * Shared cover frame — modest radius, soft drop shadow, no chrome bevel.
  * Use on Home tiles, channels, stacks, and featured releases.
  */
 export function artFrameStyle({
   size,
   active = false,
-  radius: frameRadius = 12,
+  radius: frameRadius = 8,
   width = null,
   height = null,
 } = {}) {
@@ -419,37 +349,29 @@ export function artFrameStyle({
     height: h,
     borderRadius: frameRadius,
     overflow: "hidden",
-    border: `1px solid ${
-      active ? "rgba(232,236,242,0.55)" : "rgba(184,192,204,0.28)"
-    }`,
+    border: "none",
     background: y2k.artGradient,
-    boxShadow: active
-      ? artShadow.active
-      : `${artShadow.raised}, 0 0 0 1px rgba(184,192,204,0.06)`,
+    boxShadow: active ? artShadow.active : artShadow.raised,
   };
 }
 
-/** Home rhythm — App Store shelves: large title, tight title-to-rail. */
+/** Home rhythm — Music.app shelves: large title, cover-first tiles. */
 export const homeSpace = {
-  gutter: 20,
-  bandPadY: 32,
-  sectionPadTop: 36,
-  sectionPadBottom: 28,
-  /** First shelf after a prior band/rule — keep tight; the break lives above. */
+  gutter: 22,
+  bandPadY: 28,
+  sectionPadTop: 32,
+  sectionPadBottom: 24,
   sectionPadTopFirst: 8,
-  /** Gap between Home MusicSection bands (row → next title). */
-  sectionGap: 28,
-  /** First Home shelf after header / prior hero band. */
-  sectionGapFirst: 12,
-  shelfGap: 14,
+  sectionGap: 32,
+  sectionGapFirst: 16,
+  shelfGap: 16,
   /** Default discovery tile — sleeve-first. */
-  tile: 160,
+  tile: 172,
   /** Featured / countdown / releases — asymmetric presence. */
-  tileFeatured: 200,
-  /** Channel surfing station tile — art-first, not a ticket stub. */
-  tileTicket: 168,
-  /** Space under section title stack before the rail. */
-  titleToRail: 12,
+  tileFeatured: 220,
+  /** Channel surfing station tile — art-first. */
+  tileTicket: 176,
+  titleToRail: 14,
 };
 
 /**
@@ -487,35 +409,27 @@ export const sectionEyebrowLcd = {
   ...sectionEyebrow,
 };
 
-/** Monitor bezel + LCD used by the Home stage and dock. */
+/** Soft stage used by the Home now-playing card and dock. */
 export const broadcast = {
-  bezelBorder: "1px solid rgba(231,235,240,0.22)",
-  bezelShadow: `
-    inset 0 1px 0 rgba(255,255,255,0.28),
-    inset 0 -1px 0 rgba(0,0,0,0.55),
-    inset 1px 0 0 rgba(255,255,255,0.08),
-    inset -1px 0 0 rgba(0,0,0,0.35),
-    0 22px 50px rgba(0,0,0,0.52),
-    0 0 40px rgba(101,230,255,0.06)
-  `,
-  lcdTrack: "rgba(101,230,255,0.14)",
-  lcdFill:
-    "linear-gradient(90deg, rgba(101,230,255,0.55) 0%, rgba(101,230,255,0.95) 55%, rgba(231,235,240,0.95) 100%)",
-  lcdGlow: "0 0 10px rgba(101,230,255,0.45)",
+  bezelBorder: "1px solid rgba(255,255,255,0.08)",
+  bezelShadow: "0 12px 36px rgba(0,0,0,0.32)",
+  lcdTrack: "rgba(255,255,255,0.14)",
+  lcdFill: "rgba(255,255,255,0.92)",
+  lcdGlow: "none",
 };
 
-/** Circular chrome glass control — header / Explore / Charts. */
+/** Circular glass control — header / Explore / Charts. */
 export function chromeIconButton(size = 36) {
   return {
     width: size,
     height: size,
     padding: 0,
     borderRadius: "50%",
-    border: "1px solid rgba(255,255,255,0.1)",
-    background: "rgba(255,255,255,0.08)",
+    border: "none",
+    background: "rgba(255,255,255,0.1)",
     boxShadow: "none",
-    backdropFilter: "blur(16px)",
-    WebkitBackdropFilter: "blur(16px)",
+    backdropFilter: "blur(20px)",
+    WebkitBackdropFilter: "blur(20px)",
     color: y2k.offWhite,
     display: "flex",
     alignItems: "center",
@@ -526,58 +440,51 @@ export function chromeIconButton(size = 36) {
   };
 }
 
-/** Frosted glass control — header buttons, view-all, CH bugs. */
+/** Frosted glass control — header buttons, view-all, chips. */
 export function glassPill(opts = {}) {
   const active = opts.active === true;
   const compact = opts.compact === true;
   return {
-    border: `1px solid ${
-      active ? "rgba(232,236,242,0.42)" : "rgba(255,255,255,0.16)"
-    }`,
-    background: active
-      ? "linear-gradient(180deg, rgba(255,255,255,0.16) 0%, rgba(255,255,255,0.06) 100%), rgba(28,32,38,0.55)"
-      : "linear-gradient(180deg, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0.03) 100%), rgba(18,20,24,0.42)",
-    backdropFilter: "blur(18px) saturate(1.35)",
-    WebkitBackdropFilter: "blur(18px) saturate(1.35)",
-    boxShadow: active
-      ? `inset 0 1px 0 rgba(255,255,255,0.28), 0 0 16px ${y2k.chromeGlow}, 0 6px 18px rgba(0,0,0,0.35)`
-      : "inset 0 1px 0 rgba(255,255,255,0.22), inset 0 -1px 0 rgba(0,0,0,0.35), 0 4px 14px rgba(0,0,0,0.28)",
+    border: "none",
+    background: active ? "rgba(255,255,255,0.16)" : "rgba(255,255,255,0.08)",
+    backdropFilter: "blur(20px) saturate(1.4)",
+    WebkitBackdropFilter: "blur(20px) saturate(1.4)",
+    boxShadow: "none",
     color: active ? y2k.chromeBright : y2k.offWhite,
     borderRadius: compact ? 980 : radius.md,
     WebkitTapHighlightColor: "transparent",
   };
 }
 
-/** Floating premium dock — blurred shell for mini-player + tabs. */
+/** Floating Music.app dock — frosted shell for mini-player + tabs. */
 export const dock = {
-  insetX: 14,
-  insetBottom: 12,
-  radius: 20,
-  tabH: 54,
-  playerH: 66,
-  /** Content clearances (tabs only / with player), excluding safe-area. */
-  clearTabs: 88,
-  clearPlayer: 176,
+  insetX: 12,
+  insetBottom: 10,
+  radius: 16,
+  tabH: 52,
+  playerH: 64,
+  clearTabs: 84,
+  clearPlayer: 168,
 };
 
 /** Prefer radio.radius for media modules; keep these for sheets / legacy chrome. */
-export const radius = { sm: 8, md: 12, lg: 14, xl: 16, pill: 980 };
+export const radius = { sm: 8, md: 12, lg: 16, xl: 18, pill: 980 };
 
 export const space = (n) => n * 4;
 
-/** Quiet elevated panel — hairline edge + blur over the studio floor. */
+/** Quiet elevated panel — grouped iOS fill. */
 export const panel = {
   background: glass.plate,
   border: `1px solid ${glass.borderSoft}`,
   borderRadius: radius.lg,
-  boxShadow: `inset 0 1px 0 ${glass.highlight}, ${glass.shadowSoft}`,
+  boxShadow: glass.shadowSoft,
   backdropFilter: glass.blur,
   WebkitBackdropFilter: glass.blur,
 };
 
 export const panelQuiet = {
   background: glass.fillQuiet,
-  border: `1px solid ${glass.borderFaint}`,
+  border: "none",
   borderRadius: radius.md,
   backdropFilter: glass.blurSoft,
   WebkitBackdropFilter: glass.blurSoft,
@@ -588,7 +495,7 @@ export const glassSheet = {
   background: glass.plate,
   border: `1px solid ${glass.border}`,
   borderRadius: `${radius.xl}px ${radius.xl}px 0 0`,
-  boxShadow: `inset 0 1px 0 ${glass.highlight}, ${glass.shadowLift}`,
+  boxShadow: glass.shadowLift,
   backdropFilter: glass.blurHeavy,
   WebkitBackdropFilter: glass.blurHeavy,
 };
@@ -596,42 +503,35 @@ export const glassSheet = {
 /** Interactive glass control — playlists, chips, sheets. */
 export const glassControl = {
   background: glass.chrome,
-  border: `1px solid ${glass.border}`,
+  border: "none",
   borderRadius: radius.md,
-  boxShadow: `inset 0 1px 0 ${glass.highlight}, ${glass.shadowSoft}`,
+  boxShadow: "none",
   backdropFilter: glass.blurEdge,
   WebkitBackdropFilter: glass.blurEdge,
 };
 
 /**
- * Machined hardware plate — beveled inset for home bands / featured CTAs.
+ * Soft grouped plate — Home bands / featured CTAs.
  */
 export function chromeFrame(opts = {}) {
   const sharp = opts.sharp === true;
   return {
-    border: `1px solid ${glass.border}`,
-    borderRadius: sharp ? 2 : radius.xl,
+    border: `1px solid ${glass.borderSoft}`,
+    borderRadius: sharp ? 8 : radius.xl,
     background: glass.frame,
-    boxShadow: `
-      inset 0 1px 0 rgba(255,255,255,0.1),
-      inset 0 -1px 0 rgba(0,0,0,0.35),
-      inset 1px 0 0 rgba(255,255,255,0.05),
-      inset -1px 0 0 rgba(0,0,0,0.25),
-      ${glass.shadow}
-    `,
+    boxShadow: glass.shadowSoft,
     backdropFilter: glass.blurSoft,
     WebkitBackdropFilter: glass.blurSoft,
   };
 }
 
-/** Hairline broadcast separator. */
+/** Hairline Music.app separator. */
 export function sectionRule(inset = homeSpace.gutter) {
   return {
     height: 1,
     margin: `0 ${inset}px`,
     border: "none",
-    background:
-      "linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.05) 18%, rgba(255,255,255,0.12) 50%, rgba(255,255,255,0.05) 82%, transparent 100%)",
+    background: "rgba(84, 84, 88, 0.45)",
   };
 }
 
@@ -642,29 +542,29 @@ export const motion = {
   ease: "cubic-bezier(0.22, 1, 0.36, 1)",
 };
 
-/** Studio atmosphere that shifts with the hour — always deep, never OLED-flat. */
+/** Music.app atmosphere — always black, a quiet lift toward the header. */
 export function timeOfDayGradient(date = new Date()) {
   const h = date.getHours();
   const late = h >= 22 || h <= 4;
   const dawn = h >= 5 && h <= 8;
   const day = h >= 9 && h <= 16;
   if (late) {
-    return `radial-gradient(ellipse at 50% -10%, #15181C 0%, #0C0E12 42%, #080A0D 100%)`;
+    return `radial-gradient(ellipse at 50% -10%, #1C1C1E 0%, #000000 52%)`;
   }
   if (dawn) {
-    return `radial-gradient(ellipse at 70% 0%, #171B22 0%, #080A0D 48%, #0C0E12 100%)`;
+    return `radial-gradient(ellipse at 70% 0%, #2C2C2E 0%, #000000 55%)`;
   }
   if (day) {
-    return `radial-gradient(ellipse at 40% -5%, #1A1F27 0%, #0C0E12 50%, #080A0D 100%)`;
+    return `radial-gradient(ellipse at 40% -5%, #2C2C2E 0%, #000000 55%)`;
   }
-  return `radial-gradient(ellipse at 55% 0%, #161A20 0%, #0C0E11 45%, #080A0D 100%)`;
+  return `radial-gradient(ellipse at 55% 0%, #1C1C1E 0%, #000000 52%)`;
 }
 
-/** Brushed dark-aluminum wash for chrome bands / Cover Stage. */
+/** Quiet dark wash for Cover Stage — no brushed aluminum. */
 export function aluminumGradient() {
   return `
-    linear-gradient(180deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0) 44%),
-    linear-gradient(135deg, #23272E 0%, #14171C 48%, #0E1013 100%)
+    radial-gradient(ellipse 80% 50% at 50% 0%, rgba(44,44,46,0.55) 0%, transparent 60%),
+    #000000
   `;
 }
 
@@ -684,13 +584,10 @@ export function brandGlassHalo(size = 280) {
   };
 }
 
-/** App shell — near-black App Store canvas, no neon bloom. */
+/** App shell — Music.app black canvas. */
 export const APP_STYLE = {
   fontFamily: font,
-  background: `
-    radial-gradient(ellipse 110% 55% at 50% -18%, rgba(255,255,255,0.035) 0%, transparent 52%),
-    ${color.canvas}
-  `,
+  background: color.canvas,
   color: color.ink,
   minHeight: "100dvh",
   display: "flex",
@@ -703,63 +600,60 @@ export const INPUT_ST = {
   width: "100%",
   padding: "14px 16px",
   borderRadius: radius.md,
-  border: `1px solid ${glass.border}`,
-  background: "rgba(24,27,32,0.7)",
+  border: "1px solid rgba(255,255,255,0.08)",
+  background: "rgba(44,44,46,0.72)",
   color: color.ink,
   fontSize: 16,
   fontFamily: font,
-  boxShadow: `inset 0 1px 0 ${glass.highlight}, inset 0 2px 6px rgba(0,0,0,0.25)`,
+  boxShadow: "none",
   backdropFilter: glass.blurSoft,
   WebkitBackdropFilter: glass.blurSoft,
   outline: "none",
   transition: `border-color ${motion.base} ${motion.ease}, box-shadow ${motion.base} ${motion.ease}, background ${motion.base}`,
 };
 
-/** Primary CTA — machined-silver hero plate, dark inscription. */
+/** Primary CTA — Music.app filled white play plate. */
 export const BTN_PRIMARY = {
   width: "100%",
   padding: "14px 22px",
-  borderRadius: radius.lg,
-  border: `1px solid rgba(255, 255, 255, 0.18)`,
-  background: `
-    linear-gradient(180deg, rgba(255,255,255,0.38) 0%, transparent 42%),
-    linear-gradient(165deg, #E7EBF0 0%, #B8BEC7 100%)
-  `,
+  borderRadius: radius.pill,
+  border: "none",
+  background: "#F5F5F7",
   color: color.onAccent,
   fontSize: 16,
   fontWeight: 600,
   cursor: "pointer",
   fontFamily: font,
-  letterSpacing: -0.15,
-  boxShadow: `inset 0 1px 0 rgba(255,255,255,0.6), ${glass.shadowSoft}`,
+  letterSpacing: -0.2,
+  boxShadow: "0 4px 16px rgba(0,0,0,0.28)",
   transition: `transform ${motion.fast} ${motion.ease}, box-shadow ${motion.base}, opacity ${motion.fast}`,
 };
 
-/** Secondary CTA — dark glass plate. */
+/** Secondary CTA — grouped fill. */
 export const BTN_SECONDARY = {
   width: "100%",
   padding: "14px 22px",
-  borderRadius: radius.lg,
-  border: `1px solid ${glass.border}`,
-  background: glass.chrome,
+  borderRadius: radius.pill,
+  border: "none",
+  background: "rgba(255,255,255,0.1)",
   color: color.body,
   fontSize: 16,
   fontWeight: 600,
   cursor: "pointer",
   fontFamily: font,
-  letterSpacing: -0.15,
+  letterSpacing: -0.2,
   backdropFilter: glass.blurEdge,
   WebkitBackdropFilter: glass.blurEdge,
-  boxShadow: `inset 0 1px 0 ${glass.highlight}, ${glass.shadowSoft}`,
+  boxShadow: "none",
   transition: `transform ${motion.fast} ${motion.ease}, box-shadow ${motion.base}, background ${motion.base}`,
 };
 
 /** Quiet tertiary control — glass chip. */
 export const BTN_GHOST = {
   padding: "10px 14px",
-  borderRadius: radius.md,
-  border: `1px solid ${glass.borderSoft}`,
-  background: glass.fillQuiet,
+  borderRadius: radius.pill,
+  border: "none",
+  background: "rgba(255,255,255,0.06)",
   color: color.muted,
   fontSize: 13,
   fontWeight: 600,
@@ -767,13 +661,13 @@ export const BTN_GHOST = {
   fontFamily: font,
   backdropFilter: glass.blurSoft,
   WebkitBackdropFilter: glass.blurSoft,
-  boxShadow: `inset 0 1px 0 ${glass.highlight}`,
+  boxShadow: "none",
 };
 
 export const CTRL_BTN = {
-  background: glass.fillQuiet,
-  border: `1px solid ${glass.borderFaint}`,
-  borderRadius: radius.sm,
+  background: "rgba(255,255,255,0.08)",
+  border: "none",
+  borderRadius: radius.pill,
   cursor: "pointer",
   padding: 8,
   display: "flex",
@@ -782,7 +676,7 @@ export const CTRL_BTN = {
   color: color.muted,
   backdropFilter: glass.blurSoft,
   WebkitBackdropFilter: glass.blurSoft,
-  boxShadow: `inset 0 1px 0 ${glass.highlight}`,
+  boxShadow: "none",
   transition: `background ${motion.base}, color ${motion.fast}, transform ${motion.fast}`,
 };
 

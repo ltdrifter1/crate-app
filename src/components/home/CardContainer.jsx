@@ -1,13 +1,13 @@
-import { glassPill, radio } from "../../theme";
+import { glass, radius } from "../../theme";
 
 /**
- * CardContainer — machined Home surface.
- * Graphite plate + hairline rim + restrained bevel (hardware module, not soft glass).
+ * CardContainer — Music.app grouped surface.
+ * Soft fill, hairline, no machined bevel.
  */
 export default function CardContainer({
   children,
   padding = 20,
-  rounded = radio.radius,
+  rounded = radius.lg,
   interactive = false,
   onClick = null,
   ariaLabel = null,
@@ -17,9 +17,9 @@ export default function CardContainer({
   const base = {
     position: "relative",
     borderRadius: rounded,
-    border: radio.border,
-    background: radio.moduleFace,
-    boxShadow: radio.moduleShadow,
+    border: `1px solid ${glass.borderSoft}`,
+    background: glass.plate,
+    boxShadow: glass.shadowSoft,
     padding,
     ...style,
   };
@@ -52,4 +52,4 @@ export default function CardContainer({
   );
 }
 
-export { glassPill };
+export { glassPill } from "../../theme";

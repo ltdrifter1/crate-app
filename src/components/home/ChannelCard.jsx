@@ -93,12 +93,12 @@ export default function ChannelCard({
           display: "block",
           width,
           height: width,
-          borderRadius: 12,
+          borderRadius: 8,
           overflow: "hidden",
           background: y2k.artGradient,
           boxShadow: active
-            ? "0 0 0 2px rgba(247,248,250,0.92), 0 10px 22px rgba(0,0,0,0.38)"
-            : "0 8px 18px rgba(0,0,0,0.28)",
+            ? "0 0 0 3px rgba(245,245,247,0.92), 0 10px 24px rgba(0,0,0,0.38)"
+            : "0 8px 22px rgba(0,0,0,0.32)",
         }}
       >
         <span
