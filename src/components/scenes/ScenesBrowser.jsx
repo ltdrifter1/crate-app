@@ -142,7 +142,7 @@ export default function ScenesBrowser({
               Related scenes
             </div>
             <div style={{ fontSize: 12, color: color.muted, marginBottom: 12 }}>
-              Culture as a graph — not a flat genre list
+              Culture, not a filter
             </div>
             {related.map((s) => (
               <button

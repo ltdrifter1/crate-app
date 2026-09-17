@@ -1,56 +1,53 @@
-import { fontDisplay, fontMono, color, radius, glass } from "../../theme";
-import { BETA_LAUNCH, BETA_LAUNCH_COPY, PRICING_COMING_SOON } from "../../lib/entitlements";
+import { fontDisplay, color } from "../../theme";
+import { BETA_LAUNCH, BETA_LAUNCH_COPY } from "../../lib/entitlements";
 
-/**
- * Honest beta copy — full listening, no prices, payments coming soon.
- */
-export default function BetaLaunchNotice({ compact = false, style = null }) {
-  if (!BETA_LAUNCH && !PRICING_COMING_SOON) return null;
+const badgeStyle = {
+  display: "inline-flex",
+  alignItems: "center",
+  justifyContent: "center",
+  height: 20,
+  padding: "0 8px",
+  borderRadius: 6,
+  border: "1px solid rgba(255,255,255,0.14)",
+  background: "rgba(255,255,255,0.08)",
+  color: "rgba(247,248,250,0.78)",
+  fontFamily: fontDisplay,
+  fontSize: 11,
+  fontWeight: 600,
+  letterSpacing: 0.02,
+  lineHeight: 1,
+};
 
+/** Quiet Apple-style mark. Use on chrome — never a paragraph. */
+export default function BetaBadge({ style = null }) {
+  if (!BETA_LAUNCH) return null;
   return (
-    <div
-      role="status"
+    <span data-testid="beta-badge" style={{ ...badgeStyle, ...style }}>
+      {BETA_LAUNCH_COPY.badge}
+    </span>
+  );
+}
+
+/** One-line trial note for profile details only. */
+export function ProfileBetaNote({ style = null }) {
+  if (!BETA_LAUNCH) return null;
+  return (
+    <p
       data-testid="beta-launch-notice"
       style={{
-        padding: compact ? "12px 14px" : "16px 18px",
-        borderRadius: radius.lg,
-        border: `1px solid ${glass.borderSoft}`,
-        background: `
-          linear-gradient(180deg, rgba(123,167,255,0.10) 0%, transparent 58%),
-          ${glass.plate}
-        `,
-        boxShadow: `inset 0 1px 0 ${glass.highlight}, ${glass.shadowSoft}`,
+        margin: 0,
+        fontSize: 13,
+        fontWeight: 500,
+        letterSpacing: -0.1,
+        lineHeight: 1.45,
+        color: color.muted,
+        maxWidth: 340,
         ...style,
       }}
     >
-      <div
-        style={{
-          fontSize: 10,
-          fontWeight: 700,
-          letterSpacing: 1.6,
-          textTransform: "uppercase",
-          color: color.accent,
-          fontFamily: fontMono,
-          marginBottom: compact ? 4 : 8,
-        }}
-      >
-        {BETA_LAUNCH_COPY.kicker}
-      </div>
-      <div
-        style={{
-          fontSize: compact ? 15 : 17,
-          fontWeight: 700,
-          fontFamily: fontDisplay,
-          color: color.ink,
-          letterSpacing: -0.3,
-          marginBottom: compact ? 2 : 6,
-        }}
-      >
-        {BETA_LAUNCH_COPY.title}
-      </div>
-      <div style={{ fontSize: compact ? 13 : 14, color: color.body, lineHeight: 1.45 }}>
-        {BETA_LAUNCH_COPY.blurb}
-      </div>
-    </div>
+      {BETA_LAUNCH_COPY.profileNote}
+    </p>
   );
 }
+
+export { badgeStyle as betaBadgeStyle };

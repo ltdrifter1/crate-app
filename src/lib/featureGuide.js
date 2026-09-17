@@ -1,7 +1,6 @@
 /**
  * First-login feature tour + Profile guide.
- * Taste onboarding (TasteTuner) owns the mix. This is a short map of the crate —
- * not another survey. Auto-shows once per featureGuideVersion after taste is done/skipped.
+ * Taste onboarding (TasteTuner) owns the mix. This is a short map of the app.
  */
 
 export const FEATURE_GUIDE_VERSION = 1;
@@ -11,49 +10,49 @@ export const FEATURE_GUIDE_STEPS = [
     id: "home",
     kicker: "Home",
     title: "Channel Surfing",
-    body: "Home is live radio. Tap a station photo to tune in.",
+    body: "Live radio. Tap a station to tune in.",
   },
   {
     id: "explore",
     kicker: "Explore",
-    title: "Find a crate",
-    body: "Genres, moods, and scenes — pick a room, then play.",
+    title: "Browse",
+    body: "Genres, moods, and scenes. Pick one, then play.",
   },
   {
     id: "library",
     kicker: "Library",
-    title: "Your shelf",
-    body: "Likes, mixes, and recents live here.",
+    title: "Your library",
+    body: "Likes, mixes, and recents.",
   },
   {
     id: "set",
-    kicker: "Build a set",
+    kicker: "Set",
     title: "The booth",
-    body: "Sculpt length, vibe, and genre — then hit Play set.",
+    body: "Shape length, vibe, and genre — then play.",
   },
   {
     id: "charts",
     kicker: "Charts",
-    title: "What’s climbing",
-    body: "The daily board. Play the chart or add a cut to your queue.",
+    title: "Most requested",
+    body: "Today’s board. Play a track or add it to your queue.",
   },
   {
     id: "player",
     kicker: "Player",
     title: "Energy + dislike",
-    body: "The beaker shifts the next cut. Dislike trains the mix away from that neighborhood.",
+    body: "The beaker guides what plays next. Dislike steers the mix away.",
   },
-    {
+  {
     id: "club",
     kicker: "Club",
     title: "Your profile",
-    body: "Beta launch free trial. Membership, pricing, and Club Copy checkout are coming soon.",
+    body: "Your card, your tastes, and this guide.",
   },
   {
     id: "chat",
-    kicker: "Live chat",
-    title: "Who’s listening",
-    body: "The messenger on Home. Optional. Say hi while the station plays.",
+    kicker: "Chat",
+    title: "Listening together",
+    body: "The messenger on Home. Optional. Say hello while you listen.",
   },
 ];
 

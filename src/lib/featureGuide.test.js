@@ -73,6 +73,6 @@ describe("featureGuide gate", () => {
     expect(blob).toMatch(/Channel Surfing/);
     expect(blob).toMatch(/beaker/i);
     expect(blob).toMatch(/Dislike/);
-    expect(blob).toMatch(/beta launch/i);
+    expect(blob).toMatch(/messenger/i);
   });
 });

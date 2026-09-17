@@ -88,7 +88,7 @@ describe("ClubScreen feature guide", () => {
     expect(tab.getAttribute("aria-selected")).toBe("true");
   });
 
-  test("Club tab shows beta free trial and coming-soon payments", async () => {
+  test("Club tab shows a Beta mark and a quiet trial note", async () => {
     await act(async () => {
       root.render(
         React.createElement(ClubScreen, {
@@ -100,9 +100,9 @@ describe("ClubScreen feature guide", () => {
         })
       );
     });
-    expect(div.textContent).toMatch(/Beta launch/i);
-    expect(div.textContent).toMatch(/Free trial period/i);
-    expect(div.textContent).toMatch(/coming soon/i);
+    expect(div.querySelector("[data-testid='beta-badge']")?.textContent).toMatch(/Beta/);
+    expect(div.textContent).toMatch(/Planet MP3 is in beta/);
+    expect(div.textContent).toMatch(/trial period/);
     expect(div.textContent).not.toMatch(/\$0\.99/);
     expect(div.textContent).not.toMatch(/\$10\/yr/);
     expect(div.querySelector("[data-testid='beta-launch-notice']")).toBeTruthy();

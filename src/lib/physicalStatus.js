@@ -80,7 +80,7 @@ export function canPurchasePhysical(status) {
 export function physicalCommerceHint(status) {
   if (!canBuyPhysical(status)) return null;
   if (PHYSICAL_COMMERCE_LIVE) return null;
-  return "Club Copy buying is coming soon — pricing isn’t live during this beta trial";
+  return "Purchasing isn’t available yet.";
 }
 
 /** Member price helper — Club editions discount vs retail. */

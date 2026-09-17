@@ -1,5 +1,7 @@
 import { chromeIconButton, color, homeSpace, type, y2k } from "../../theme";
 import Icon from "../ui/Icon";
+import BetaBadge from "../billing/BetaLaunchNotice";
+import { BETA_LAUNCH } from "../../lib/entitlements";
 
 function HeaderButton({ label, icon, onClick }) {
   if (!onClick) return null;
@@ -68,9 +70,13 @@ export default function HomeHeader({
             whiteSpace: "nowrap",
             overflow: "hidden",
             textOverflow: "ellipsis",
+            display: "flex",
+            alignItems: "center",
+            gap: 10,
           }}
         >
           Planet MP3
+          {BETA_LAUNCH && <BetaBadge />}
         </h1>
       </div>
       <div style={{ display: "flex", alignItems: "center", gap: 8, paddingBottom: 4 }}>
