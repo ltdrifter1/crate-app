@@ -2,7 +2,7 @@ import { color, fontDisplay, motion } from "../../theme";
 import Icon from "../ui/Icon";
 
 /**
- * BottomNavigation — iPod click-wheel chassis + iTunes Aqua active tab.
+ * BottomNavigation — dark device selector, acid active pip.
  */
 export default function BottomNavigation({ items = [], activeId, onSelect }) {
   return (
@@ -13,7 +13,7 @@ export default function BottomNavigation({ items = [], activeId, onSelect }) {
         display: "flex",
         gap: 4,
         padding: 6,
-        borderRadius: 18,
+        borderRadius: 14,
         pointerEvents: "auto",
       }}
     >
@@ -31,15 +31,13 @@ export default function BottomNavigation({ items = [], activeId, onSelect }) {
               flex: 1,
               minWidth: 0,
               height: 50,
-              borderRadius: 14,
+              borderRadius: 10,
               border: "1px solid transparent",
-              background: active
-                ? "linear-gradient(180deg, #6FB4F8 0%, #1E6FE8 100%)"
-                : "none",
+              background: active ? "rgba(184,242,74,0.14)" : "none",
               boxShadow: active
-                ? "inset 0 1px 0 rgba(255,255,255,0.35), 0 4px 10px rgba(30,111,232,0.28)"
+                ? "inset 0 1px 0 rgba(255,255,255,0.08), 0 0 0 1px rgba(184,242,74,0.28)"
                 : "none",
-              color: active ? "#FFFFFF" : color.muted,
+              color: active ? color.accent : color.muted,
               cursor: "pointer",
               display: "flex",
               flexDirection: "column",

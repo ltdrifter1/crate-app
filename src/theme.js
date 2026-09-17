@@ -1,6 +1,6 @@
-// Design tokens — modern iPod / early-2000s iTunes.
-// White-aluminum chassis, Aqua source-list blue, LCD-green playing signal.
-// Lucida Grande / Helvetica Neue first (iTunes), Inter as the web fallback.
+// Design tokens — alternate-2003 MP3 device.
+// Dark digital chassis, silver metal, acid-green signal.
+// Lucida Grande / Helvetica Neue first (technical sans), Inter as the web fallback.
 
 export const fontDisplay =
   '"Lucida Grande", "Lucida Sans Unicode", "Helvetica Neue", Helvetica, Inter, -apple-system, BlinkMacSystemFont, Arial, sans-serif';
@@ -112,202 +112,191 @@ export const type = {
 };
 
 /**
- * Brand palette — pearl aluminum, iPod menu ink, Aqua blue.
- * Not a dark studio. White chassis with a small LCD for now-playing.
+ * Brand palette — near-black studio, silver metal, acid computer green.
+ * Album artwork supplies additional colour. Aqua is retired.
  */
 export const color = {
-  ink: "#1C1F24",
-  body: "#3E4550",
-  muted: "#6B7380",
-  faint: "#8E96A3",
-  line: "rgba(28, 32, 40, 0.10)",
-  lineStrong: "rgba(28, 32, 40, 0.16)",
-  surface: "rgba(255, 255, 255, 0.72)",
-  surfaceSolid: "rgba(247, 248, 250, 0.96)",
-  surfaceRaised: "rgba(255, 255, 255, 0.98)",
-  canvas: "#E6E9EF",
-  canvasEdge: "#D4D8E0",
-  /** iTunes / Aqua source-list blue */
-  accent: "#1E6FE8",
-  accentSoft: "rgba(30, 111, 232, 0.14)",
-  accentGlow: "rgba(30, 111, 232, 0.28)",
-  onAccent: "#FFFFFF",
+  ink: "#E8EAEE",
+  body: "#B4BAC4",
+  muted: "#8B939F",
+  faint: "#6B7380",
+  line: "rgba(232, 234, 238, 0.10)",
+  lineStrong: "rgba(232, 234, 238, 0.16)",
+  surface: "rgba(18, 20, 26, 0.72)",
+  surfaceSolid: "rgba(16, 18, 24, 0.96)",
+  surfaceRaised: "rgba(22, 25, 32, 0.98)",
+  canvas: "#090A0D",
+  canvasEdge: "#12141A",
+  /** Acid / computer green — play, progress, focus, selected */
+  accent: "#B8F24A",
+  accentSoft: "rgba(184, 242, 74, 0.16)",
+  accentGlow: "rgba(184, 242, 74, 0.32)",
+  onAccent: "#0C1008",
   onDark: "#F4F6F8",
   onDarkMuted: "rgba(244,246,248,0.72)",
   /** Broadcast red — LIVE + destructive only */
   alert: "#E0314A",
-  station: "#F4F5F7",
-  /** Classic iTunes selected-row wash */
-  select: "rgba(30, 111, 232, 0.12)",
-  selectStrong: "rgba(30, 111, 232, 0.22)",
+  station: "#101218",
+  /** Selected-row wash */
+  select: "rgba(184, 242, 74, 0.12)",
+  selectStrong: "rgba(184, 242, 74, 0.22)",
 };
 
 /**
- * Station / broadcast chrome — silver over pearl, LCD green for live.
+ * Station / broadcast chrome — silver over graphite, acid for signal.
  */
 export const chrome = {
   hot: "#8B939F",
-  bright: "#F7F8FA",
+  bright: "#E8EAEE",
   steel: "#7A8290",
-  plate: "#F4F5F7",
-  deep: "#C5CAD3",
+  plate: "#16181E",
+  deep: "#2A2E38",
   live: "#E0314A",
-  signal: "#6FBF3A",
-  inkPlate: "#1C1F24",
+  signal: "#B8F24A",
+  inkPlate: "#E8EAEE",
   hotRgb: "139,147,159",
-  brightRgb: "247,248,250",
+  brightRgb: "232,234,238",
   liveRgb: "224,49,74",
-  cyanRgb: "111,191,58",
+  cyanRgb: "184,242,74",
 };
 
 /**
- * Frosted iChat / iTunes light ice — station chat on a white chassis.
+ * Frosted dark glass — station chat on a night chassis.
  */
 export const ice = {
-  frost: "rgba(255, 255, 255, 0.72)",
-  frostStrong: "rgba(255, 255, 255, 0.88)",
-  rim: "rgba(30, 111, 232, 0.22)",
-  rimSoft: "rgba(30, 111, 232, 0.12)",
-  glow: "rgba(30, 111, 232, 0.18)",
-  mist: "rgba(230, 233, 239, 0.86)",
+  frost: "rgba(16, 18, 24, 0.72)",
+  frostStrong: "rgba(22, 25, 32, 0.88)",
+  rim: "rgba(184, 242, 74, 0.28)",
+  rimSoft: "rgba(184, 242, 74, 0.14)",
+  glow: "rgba(184, 242, 74, 0.18)",
+  mist: "rgba(12, 14, 18, 0.86)",
   pane: `
-    linear-gradient(180deg, rgba(255,255,255,0.92) 0%, rgba(255,255,255,0.55) 28%, transparent 58%),
-    linear-gradient(165deg, rgba(244,246,250,0.96) 0%, rgba(230,233,239,0.94) 100%)
+    linear-gradient(180deg, rgba(28,32,40,0.72) 0%, rgba(16,18,24,0.42) 28%, transparent 58%),
+    linear-gradient(165deg, rgba(18,20,26,0.96) 0%, rgba(10,12,16,0.94) 100%)
   `,
   thread: `
-    radial-gradient(120% 80% at 50% -10%, rgba(30,111,232,0.08) 0%, transparent 46%),
-    linear-gradient(180deg, #F7F8FA 0%, #E6E9EF 100%)
+    radial-gradient(120% 80% at 50% -10%, rgba(184,242,74,0.08) 0%, transparent 46%),
+    linear-gradient(180deg, #12141A 0%, #090A0D 100%)
   `,
-  bubble: "rgba(30, 111, 232, 0.08)",
-  bubbleMine: "rgba(30, 111, 232, 0.16)",
-  ink: "#1C1F24",
-  mute: "rgba(62, 69, 80, 0.72)",
-  pip: "#1E6FE8",
+  bubble: "rgba(184, 242, 74, 0.08)",
+  bubbleMine: "rgba(184, 242, 74, 0.16)",
+  ink: "#E8EAEE",
+  mute: "rgba(180, 186, 196, 0.72)",
+  pip: "#B8F24A",
 };
 
 /**
- * Click-wheel aluminum + LCD green. No purple. No dark studio.
+ * Dark metal + acid LCD. Cyan/neon aliases stay for existing call sites.
  */
 export const y2k = {
-  /** Aluminum / light metal — CTAs, active states, chrome faces */
   chrome: "#C5CAD3",
-  chromeBright: "#F4F6F8",
+  chromeBright: "#E8EAEE",
   chromeMid: "#8B939F",
   chromeDeep: "#6B7380",
-  chromeSoft: "rgba(197, 202, 211, 0.45)",
-  chromeGlow: "rgba(30, 111, 232, 0.22)",
-  chromeWash: "rgba(197, 202, 211, 0.28)",
-  /** iPod LCD green — playing pip / tuner illumination */
-  cyan: "#6FBF3A",
-  cyanSoft: "rgba(111, 191, 58, 0.16)",
-  cyanGlow: "rgba(111, 191, 58, 0.32)",
-  /** Aqua blue — secondary readout / iTunes links */
-  techBlue: "#1E6FE8",
-  techBlueSoft: "rgba(30, 111, 232, 0.14)",
-  /** Tiny highlighter — keep acid off chrome */
-  neon: "#6FBF3A",
-  neonSoft: "rgba(111, 191, 58, 0.16)",
+  chromeSoft: "rgba(197, 202, 211, 0.18)",
+  chromeGlow: "rgba(184, 242, 74, 0.28)",
+  chromeWash: "rgba(197, 202, 211, 0.10)",
+  cyan: "#B8F24A",
+  cyanSoft: "rgba(184, 242, 74, 0.16)",
+  cyanGlow: "rgba(184, 242, 74, 0.36)",
+  techBlue: "#B8F24A",
+  techBlueSoft: "rgba(184, 242, 74, 0.14)",
+  neon: "#B8F24A",
+  neonSoft: "rgba(184, 242, 74, 0.16)",
   magenta: "#E0314A",
   magentaSoft: "rgba(224, 49, 74, 0.12)",
-  /** Headline ink on the light chassis (legacy name: used as title color) */
-  offWhite: "#1C1F24",
-  charcoal: "#F4F5F7",
-  charcoalRaised: "#FFFFFF",
-  graphite: "#E6E9EF",
-  nearBlack: "#1C1F24",
+  /** Headline colour on the dark chassis (legacy name) */
+  offWhite: "#E8EAEE",
+  charcoal: "#12141A",
+  charcoalRaised: "#1A1D24",
+  graphite: "#090A0D",
+  nearBlack: "#07080A",
   metal: "#C5CAD3",
-  lightMetal: "#F4F6F8",
+  lightMetal: "#E8EAEE",
   live: "#E0314A",
-  /** Dark glass used on artwork overlays */
-  inkGlass: "rgba(28, 32, 40, 0.72)",
-  inkGlassSoft: "rgba(28, 32, 40, 0.48)",
-  /** Hero / card art fallback — brushed pearl, not graphite */
+  inkGlass: "rgba(8, 10, 14, 0.72)",
+  inkGlassSoft: "rgba(8, 10, 14, 0.48)",
   artGradient:
-    "radial-gradient(120% 90% at 20% 0%, rgba(255,255,255,0.85) 0%, transparent 55%), radial-gradient(100% 80% at 90% 100%, rgba(197,202,211,0.55) 0%, transparent 60%), linear-gradient(160deg, #F7F8FA 0%, #D5DAE2 100%)",
+    "radial-gradient(120% 90% at 20% 0%, rgba(184,242,74,0.12) 0%, transparent 55%), radial-gradient(100% 80% at 90% 100%, rgba(197,202,211,0.12) 0%, transparent 60%), linear-gradient(160deg, #1A1D24 0%, #0C0E12 100%)",
 };
 
 /**
  * Radio / media-player module surfaces — iPod chassis + frosted glass.
- * LCD insets stay a small dark screen; everything around them is light metal.
+ * LCD is the acid readout; chassis around it is dark metal.
  */
 export const radio = {
   /** 8–14px engineered corners — never pill */
-  radius: 14,
+  radius: 12,
   radiusTight: 8,
-  radiusControl: 10,
+  radiusControl: 8,
   radiusLcd: 6,
-  border: "1px solid rgba(28,32,40,0.12)",
-  borderLive: "1px solid rgba(111,191,58,0.45)",
-  borderQuiet: "1px solid rgba(28,32,40,0.08)",
-  borderChrome: "1px solid rgba(28,32,40,0.16)",
-  /** Frosted white glass chassis */
+  border: "1px solid rgba(232,234,238,0.12)",
+  borderLive: "1px solid rgba(184,242,74,0.45)",
+  borderQuiet: "1px solid rgba(232,234,238,0.08)",
+  borderChrome: "1px solid rgba(232,234,238,0.16)",
   glassFace: `
-    linear-gradient(165deg, rgba(255,255,255,0.92) 0%, rgba(255,255,255,0.45) 38%, transparent 68%),
-    linear-gradient(145deg, rgba(247,248,250,0.92) 0%, rgba(230,233,239,0.88) 100%)
+    linear-gradient(165deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.02) 38%, transparent 68%),
+    linear-gradient(145deg, rgba(28,32,40,0.92) 0%, rgba(12,14,18,0.88) 100%)
   `,
   glassFaceLive: `
-    radial-gradient(120% 80% at 0% 0%, rgba(111,191,58,0.12) 0%, transparent 45%),
-    radial-gradient(90% 70% at 100% 100%, rgba(30,111,232,0.08) 0%, transparent 50%),
-    linear-gradient(165deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.5) 36%, transparent 70%),
-    linear-gradient(145deg, rgba(247,248,250,0.94) 0%, rgba(230,233,239,0.9) 100%)
+    radial-gradient(120% 80% at 0% 0%, rgba(184,242,74,0.14) 0%, transparent 45%),
+    linear-gradient(165deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.02) 36%, transparent 70%),
+    linear-gradient(145deg, rgba(28,32,40,0.94) 0%, rgba(12,14,18,0.9) 100%)
   `,
-  glassBlur: "blur(28px) saturate(1.2)",
+  glassBlur: "blur(28px) saturate(1.15)",
   glassShadow:
-    "inset 0 1px 0 rgba(255,255,255,0.95), inset 0 -1px 0 rgba(28,32,40,0.08), 0 12px 28px rgba(28,32,40,0.12), 0 0 0 1px rgba(28,32,40,0.06)",
+    "inset 0 1px 0 rgba(255,255,255,0.1), inset 0 -1px 0 rgba(0,0,0,0.45), 0 12px 28px rgba(0,0,0,0.45), 0 0 0 1px rgba(255,255,255,0.06)",
   glassShadowLive:
-    "inset 0 1px 0 rgba(255,255,255,0.95), inset 0 -1px 0 rgba(28,32,40,0.08), 0 0 28px rgba(111,191,58,0.12), 0 14px 32px rgba(28,32,40,0.14), 0 0 0 1px rgba(111,191,58,0.16)",
-  /** Classic iPod LCD — the one dark rectangle on a white body */
+    "inset 0 1px 0 rgba(255,255,255,0.1), inset 0 -1px 0 rgba(0,0,0,0.45), 0 0 28px rgba(184,242,74,0.12), 0 14px 32px rgba(0,0,0,0.5), 0 0 0 1px rgba(184,242,74,0.22)",
   lcdFace: `
-    linear-gradient(180deg, rgba(111,191,58,0.08) 0%, transparent 40%),
-    linear-gradient(160deg, #1A2218 0%, #121610 55%, #0C0E0B 100%)
+    linear-gradient(180deg, rgba(184,242,74,0.1) 0%, transparent 40%),
+    linear-gradient(160deg, #121810 0%, #0A0E09 55%, #070807 100%)
   `,
-  lcdBorder: "1px solid rgba(18, 22, 16, 0.55)",
+  lcdBorder: "1px solid rgba(184, 242, 74, 0.22)",
   lcdShadow:
-    "inset 0 2px 8px rgba(0,0,0,0.55), inset 0 1px 0 rgba(111,191,58,0.12), 0 0 0 1px rgba(255,255,255,0.4)",
-  /** Translucent pearl chassis with internal highlight */
+    "inset 0 2px 8px rgba(0,0,0,0.65), inset 0 1px 0 rgba(184,242,74,0.16), 0 0 0 1px rgba(255,255,255,0.06)",
   moduleFace: `
-    linear-gradient(180deg, rgba(255,255,255,0.92) 0%, rgba(255,255,255,0.35) 36%, transparent 70%),
-    linear-gradient(145deg, rgba(247,248,250,0.96) 0%, rgba(226,230,236,0.94) 100%)
+    linear-gradient(180deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.02) 36%, transparent 70%),
+    linear-gradient(145deg, rgba(24,28,34,0.96) 0%, rgba(12,14,18,0.94) 100%)
   `,
   moduleFaceLive: `
-    linear-gradient(180deg, rgba(111,191,58,0.08) 0%, transparent 42%),
-    linear-gradient(180deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.4) 36%, transparent 70%),
-    linear-gradient(145deg, rgba(247,248,250,0.97) 0%, rgba(226,230,236,0.95) 100%)
+    linear-gradient(180deg, rgba(184,242,74,0.1) 0%, transparent 42%),
+    linear-gradient(180deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.02) 36%, transparent 70%),
+    linear-gradient(145deg, rgba(24,28,34,0.97) 0%, rgba(12,14,18,0.95) 100%)
   `,
   moduleShadow:
-    "inset 0 1px 0 rgba(255,255,255,0.95), inset 0 -1px 0 rgba(28,32,40,0.08), 0 8px 20px rgba(28,32,40,0.1)",
+    "inset 0 1px 0 rgba(255,255,255,0.1), inset 0 -1px 0 rgba(0,0,0,0.4), 0 8px 20px rgba(0,0,0,0.35)",
   moduleShadowLive:
-    "inset 0 1px 0 rgba(255,255,255,0.95), inset 0 -1px 0 rgba(28,32,40,0.08), 0 0 0 1px rgba(111,191,58,0.16), 0 0 22px rgba(111,191,58,0.1), 0 10px 24px rgba(28,32,40,0.12)",
+    "inset 0 1px 0 rgba(255,255,255,0.1), inset 0 -1px 0 rgba(0,0,0,0.4), 0 0 0 1px rgba(184,242,74,0.2), 0 0 22px rgba(184,242,74,0.1), 0 10px 24px rgba(0,0,0,0.4)",
   stripFace: `
-    linear-gradient(180deg, rgba(255,255,255,0.85) 0%, rgba(255,255,255,0.2) 42%, transparent 100%),
-    rgba(247,248,250,0.72)
+    linear-gradient(180deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.02) 42%, transparent 100%),
+    rgba(16,18,24,0.72)
   `,
   stripFaceLive: `
-    linear-gradient(180deg, rgba(111,191,58,0.12) 0%, transparent 48%),
-    linear-gradient(180deg, rgba(255,255,255,0.85) 0%, transparent 40%),
-    rgba(247,248,250,0.8)
+    linear-gradient(180deg, rgba(184,242,74,0.12) 0%, transparent 48%),
+    linear-gradient(180deg, rgba(255,255,255,0.06) 0%, transparent 40%),
+    rgba(16,18,24,0.8)
   `,
   stripShadow:
-    "inset 0 1px 0 rgba(255,255,255,0.9), inset 0 -1px 0 rgba(28,32,40,0.08), 0 4px 12px rgba(28,32,40,0.08)",
+    "inset 0 1px 0 rgba(255,255,255,0.08), inset 0 -1px 0 rgba(0,0,0,0.4), 0 4px 12px rgba(0,0,0,0.28)",
   stripShadowLive:
-    "inset 0 1px 0 rgba(255,255,255,0.9), inset 0 -1px 0 rgba(28,32,40,0.08), 0 0 18px rgba(111,191,58,0.14), 0 6px 14px rgba(28,32,40,0.1)",
-  /** Metallic Tune-In key — click-wheel plastic */
+    "inset 0 1px 0 rgba(255,255,255,0.08), inset 0 -1px 0 rgba(0,0,0,0.4), 0 0 18px rgba(184,242,74,0.14), 0 6px 14px rgba(0,0,0,0.32)",
   tuneFace: `
-    linear-gradient(180deg, rgba(255,255,255,0.85) 0%, rgba(255,255,255,0.2) 34%, transparent 55%),
-    linear-gradient(165deg, #F7F8FA 0%, #D8DCE3 42%, #B8BEC7 100%)
+    linear-gradient(180deg, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0.02) 34%, transparent 55%),
+    linear-gradient(165deg, #2A2E38 0%, #181B22 42%, #101218 100%)
   `,
   tuneFacePressed: `
-    linear-gradient(180deg, rgba(28,32,40,0.08) 0%, transparent 40%),
-    linear-gradient(165deg, #D8DCE3 0%, #B8BEC7 50%, #8B939F 100%)
+    linear-gradient(180deg, rgba(0,0,0,0.35) 0%, transparent 40%),
+    linear-gradient(165deg, #181B22 0%, #101218 50%, #0A0C10 100%)
   `,
   tuneShadow:
-    "inset 0 1px 0 rgba(255,255,255,0.95), inset 0 -1px 0 rgba(28,32,40,0.16), 0 1px 0 rgba(255,255,255,0.6), 0 6px 14px rgba(28,32,40,0.14)",
+    "inset 0 1px 0 rgba(255,255,255,0.14), inset 0 -1px 0 rgba(0,0,0,0.5), 0 6px 14px rgba(0,0,0,0.4)",
   tuneShadowPressed:
-    "inset 0 2px 4px rgba(28,32,40,0.22), inset 0 1px 0 rgba(28,32,40,0.1)",
-  lcdTrack: "rgba(111,191,58,0.18)",
+    "inset 0 2px 4px rgba(0,0,0,0.55), inset 0 1px 0 rgba(0,0,0,0.3)",
+  lcdTrack: "rgba(184,242,74,0.18)",
   lcdFill:
-    "linear-gradient(90deg, rgba(111,191,58,0.55) 0%, rgba(111,191,58,0.95) 55%, rgba(244,246,248,0.95) 100%)",
-  lcdGlow: "0 0 10px rgba(111,191,58,0.4)",
+    "linear-gradient(90deg, rgba(184,242,74,0.55) 0%, rgba(184,242,74,0.95) 70%, rgba(232,234,238,0.85) 100%)",
+  lcdGlow: "0 0 10px rgba(184,242,74,0.4)",
   label: {
     fontFamily: font,
     fontSize: 13,
@@ -317,47 +306,44 @@ export const radio = {
   },
 };
 
-/** Frosted white glass — iTunes window panes, hairline bezels, top light. */
+/** Dark glass — hairline silver bezels, faint top light. */
 export const glass = {
-  fill: "rgba(255, 255, 255, 0.58)",
-  fillStrong: "rgba(247, 248, 250, 0.88)",
-  fillQuiet: "rgba(255, 255, 255, 0.42)",
-  fillHeavy: "rgba(236, 238, 242, 0.94)",
-  border: "rgba(28, 32, 40, 0.12)",
-  borderSoft: "rgba(28, 32, 40, 0.08)",
-  borderFaint: "rgba(28, 32, 40, 0.06)",
-  highlight: "rgba(255, 255, 255, 0.92)",
-  blur: "blur(32px) saturate(1.08)",
-  blurSoft: "blur(20px) saturate(1.04)",
-  blurHeavy: "blur(48px) saturate(1.06)",
-  blurEdge: "blur(24px) saturate(1.06)",
-  shadow: "0 14px 36px rgba(28, 32, 40, 0.14), 0 2px 8px rgba(28, 32, 40, 0.08)",
-  shadowSoft: "0 8px 22px rgba(28, 32, 40, 0.1)",
-  shadowLift: "0 18px 40px rgba(28, 32, 40, 0.16), 0 4px 12px rgba(28, 32, 40, 0.08)",
-  /** Machined-aluminum control face — click-wheel finish */
+  fill: "rgba(16, 18, 24, 0.58)",
+  fillStrong: "rgba(18, 20, 26, 0.88)",
+  fillQuiet: "rgba(12, 14, 18, 0.42)",
+  fillHeavy: "rgba(22, 25, 32, 0.94)",
+  border: "rgba(232, 234, 238, 0.12)",
+  borderSoft: "rgba(232, 234, 238, 0.08)",
+  borderFaint: "rgba(232, 234, 238, 0.06)",
+  highlight: "rgba(255, 255, 255, 0.1)",
+  blur: "blur(32px) saturate(1.12)",
+  blurSoft: "blur(20px) saturate(1.08)",
+  blurHeavy: "blur(48px) saturate(1.1)",
+  blurEdge: "blur(24px) saturate(1.08)",
+  shadow: "0 14px 36px rgba(0, 0, 0, 0.45), 0 2px 8px rgba(0, 0, 0, 0.28)",
+  shadowSoft: "0 8px 22px rgba(0, 0, 0, 0.32)",
+  shadowLift: "0 18px 40px rgba(0, 0, 0, 0.5), 0 4px 12px rgba(0, 0, 0, 0.3)",
   chrome:
-    "linear-gradient(160deg, rgba(255,255,255,0.95) 0%, rgba(232,236,242,0.9) 42%, rgba(197,202,211,0.88) 100%)",
-  /** Soft plate used by sheets / cards */
+    "linear-gradient(160deg, rgba(255,255,255,0.1) 0%, rgba(28,32,40,0.92) 42%, rgba(12,14,18,0.96) 100%)",
   plate:
-    "linear-gradient(165deg, rgba(255,255,255,0.96) 0%, rgba(244,246,250,0.94) 55%, rgba(230,233,239,0.92) 100%)",
-  /** Beveled hardware frame wash — iTunes titlebar */
+    "linear-gradient(165deg, rgba(28,32,40,0.96) 0%, rgba(18,20,26,0.94) 55%, rgba(12,14,18,0.92) 100%)",
   frame:
-    "linear-gradient(180deg, #F7F8FA 0%, #E2E5EC 48%, #D0D5DE 100%)",
+    "linear-gradient(180deg, #1C2028 0%, #14161C 48%, #0E1014 100%)",
 };
 
-/** Hard, unblurred controls — click-wheel plastic, not dark metal. */
+/** Hard, unblurred controls — dark metal keys. */
 export const hardware = {
-  radius: 4,
+  radius: 6,
   keyFace:
-    "linear-gradient(180deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.35) 38%, rgba(197,202,211,0.45) 100%), linear-gradient(145deg, #F7F8FA 0%, #E2E5EC 48%, #C5CAD3 100%)",
+    "linear-gradient(180deg, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0.03) 38%, transparent 100%), linear-gradient(145deg, #2A2E38 0%, #181B22 48%, #101218 100%)",
   keyRaised:
-    "inset 0 1px 0 rgba(255,255,255,0.95), inset 0 -1px 0 rgba(28,32,40,0.14), inset 1px 0 0 rgba(255,255,255,0.5), inset -1px 0 0 rgba(28,32,40,0.08)",
+    "inset 0 1px 0 rgba(255,255,255,0.16), inset 0 -1px 0 rgba(0,0,0,0.45), inset 1px 0 0 rgba(255,255,255,0.06), inset -1px 0 0 rgba(0,0,0,0.25)",
   keyPressed:
-    "inset 0 2px 4px rgba(28,32,40,0.2), inset 0 1px 0 rgba(28,32,40,0.1)",
+    "inset 0 2px 4px rgba(0,0,0,0.5), inset 0 1px 0 rgba(0,0,0,0.3)",
   plateEdge:
-    "inset 0 1px 0 rgba(255,255,255,0.9), inset 0 -1px 0 rgba(28,32,40,0.1)",
+    "inset 0 1px 0 rgba(255,255,255,0.1), inset 0 -1px 0 rgba(0,0,0,0.4)",
   rule:
-    "linear-gradient(90deg, transparent, rgba(28,32,40,0.12), transparent)",
+    "linear-gradient(90deg, transparent, rgba(232,234,238,0.12), transparent)",
 };
 
 /**
@@ -376,7 +362,7 @@ export function hardwareKey(opts = { pressed: false, size: "md" }) {
   return {
     ...metrics,
     borderRadius: hardware.radius,
-    border: "1px solid rgba(28,32,40,0.16)",
+    border: "1px solid rgba(232,234,238,0.14)",
     background: hardware.keyFace,
     boxShadow: pressed ? hardware.keyPressed : hardware.keyRaised,
     color: pressed ? color.ink : color.body,
@@ -390,12 +376,12 @@ export function hardwareKey(opts = { pressed: false, size: "md" }) {
   };
 }
 
-/** Jewel-case shadow for album art — lit from a window, not a nightclub. */
+/** Jewel-case shadow — sleeves float over the dark studio. */
 export const artShadow = {
-  quiet: "0 2px 4px rgba(28,32,40,0.12), 0 10px 22px rgba(28,32,40,0.14)",
+  quiet: "0 2px 4px rgba(0,0,0,0.35), 0 10px 22px rgba(0,0,0,0.4)",
   raised:
-    "0 4px 8px rgba(28,32,40,0.12), 0 16px 32px rgba(28,32,40,0.16), inset 0 1px 0 rgba(255,255,255,0.55), inset 0 -1px 0 rgba(28,32,40,0.1)",
-  active: `0 0 0 2px rgba(30,111,232,0.85), 0 8px 18px rgba(28,32,40,0.16), 0 16px 32px rgba(28,32,40,0.12)`,
+    "0 4px 8px rgba(0,0,0,0.4), 0 16px 32px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.12), inset 0 -1px 0 rgba(0,0,0,0.4)",
+  active: `0 0 0 2px rgba(184,242,74,0.9), 0 8px 18px rgba(0,0,0,0.4), 0 0 24px rgba(184,242,74,0.18)`,
 };
 
 /**
@@ -405,7 +391,7 @@ export const artShadow = {
 export function artFrameStyle({
   size,
   active = false,
-  radius: frameRadius = 12,
+  radius: frameRadius = 6,
   width = null,
   height = null,
 } = {}) {
@@ -419,12 +405,12 @@ export function artFrameStyle({
     borderRadius: frameRadius,
     overflow: "hidden",
     border: `1px solid ${
-      active ? "rgba(30,111,232,0.45)" : "rgba(28,32,40,0.14)"
+      active ? "rgba(184,242,74,0.55)" : "rgba(232,234,238,0.12)"
     }`,
     background: y2k.artGradient,
     boxShadow: active
       ? artShadow.active
-      : `${artShadow.raised}, 0 0 0 1px rgba(255,255,255,0.4)`,
+      : `${artShadow.raised}, 0 0 0 1px rgba(255,255,255,0.06)`,
   };
 }
 
@@ -485,34 +471,32 @@ export const sectionEyebrowLcd = {
   ...sectionEyebrow,
 };
 
-/** iPod bezel + LCD used by the Home stage and dock. */
+/** Device bezel + LCD used by the Home stage and dock. */
 export const broadcast = {
-  bezelBorder: "1px solid rgba(28,32,40,0.14)",
+  bezelBorder: "1px solid rgba(232,234,238,0.12)",
   bezelShadow: `
-    inset 0 1px 0 rgba(255,255,255,0.95),
-    inset 0 -1px 0 rgba(28,32,40,0.1),
-    inset 1px 0 0 rgba(255,255,255,0.5),
-    inset -1px 0 0 rgba(28,32,40,0.06),
-    0 18px 40px rgba(28,32,40,0.14)
+    inset 0 1px 0 rgba(255,255,255,0.1),
+    inset 0 -1px 0 rgba(0,0,0,0.45),
+    0 18px 40px rgba(0,0,0,0.4)
   `,
-  lcdTrack: "rgba(111,191,58,0.18)",
+  lcdTrack: "rgba(184,242,74,0.18)",
   lcdFill:
-    "linear-gradient(90deg, rgba(111,191,58,0.6) 0%, rgba(111,191,58,0.95) 55%, rgba(244,246,248,0.95) 100%)",
-  lcdGlow: "0 0 8px rgba(111,191,58,0.4)",
+    "linear-gradient(90deg, rgba(184,242,74,0.65) 0%, rgba(184,242,74,0.95) 70%, rgba(232,234,238,0.85) 100%)",
+  lcdGlow: "0 0 8px rgba(184,242,74,0.4)",
 };
 
-/** Circular chrome glass control — header / Explore / Charts. */
+/** Hardware icon key — header / Explore / Charts. */
 export function chromeIconButton(size = 36) {
   return {
     width: size,
     height: size,
     padding: 0,
-    borderRadius: "50%",
-    border: "1px solid rgba(28,32,40,0.12)",
+    borderRadius: 8,
+    border: "1px solid rgba(232,234,238,0.12)",
     background:
-      "linear-gradient(180deg, #FFFFFF 0%, #E8EBEF 55%, #D4D8E0 100%)",
+      "linear-gradient(180deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.02) 55%, transparent 100%), linear-gradient(180deg, #2A2E38 0%, #16181E 100%)",
     boxShadow:
-      "inset 0 1px 0 rgba(255,255,255,0.95), 0 1px 3px rgba(28,32,40,0.12)",
+      "inset 0 1px 0 rgba(255,255,255,0.14), 0 1px 3px rgba(0,0,0,0.4)",
     backdropFilter: "none",
     WebkitBackdropFilter: "none",
     color: color.ink,
@@ -525,33 +509,33 @@ export function chromeIconButton(size = 36) {
   };
 }
 
-/** Frosted glass control — header buttons, view-all, CH bugs. */
+/** Dark glass control — header buttons, view-all, CH bugs. */
 export function glassPill(opts = {}) {
   const active = opts.active === true;
   const compact = opts.compact === true;
   return {
     border: `1px solid ${
-      active ? "rgba(30,111,232,0.45)" : "rgba(28,32,40,0.12)"
+      active ? "rgba(184,242,74,0.45)" : "rgba(232,234,238,0.12)"
     }`,
     background: active
-      ? "linear-gradient(180deg, #6FB4F8 0%, #1E6FE8 100%)"
-      : "linear-gradient(180deg, rgba(255,255,255,0.92) 0%, rgba(232,236,242,0.78) 100%)",
+      ? "linear-gradient(180deg, #D4FF6E 0%, #B8F24A 100%)"
+      : "linear-gradient(180deg, rgba(255,255,255,0.08) 0%, rgba(16,18,24,0.78) 100%)",
     backdropFilter: "blur(18px) saturate(1.15)",
     WebkitBackdropFilter: "blur(18px) saturate(1.15)",
     boxShadow: active
-      ? "inset 0 1px 0 rgba(255,255,255,0.35), 0 4px 12px rgba(30,111,232,0.28)"
-      : "inset 0 1px 0 rgba(255,255,255,0.95), inset 0 -1px 0 rgba(28,32,40,0.08), 0 3px 10px rgba(28,32,40,0.08)",
-    color: active ? "#FFFFFF" : color.ink,
-    borderRadius: compact ? 980 : radius.md,
+      ? "inset 0 1px 0 rgba(255,255,255,0.35), 0 4px 12px rgba(184,242,74,0.22)"
+      : "inset 0 1px 0 rgba(255,255,255,0.1), inset 0 -1px 0 rgba(0,0,0,0.4), 0 3px 10px rgba(0,0,0,0.28)",
+    color: active ? color.onAccent : color.ink,
+    borderRadius: compact ? 8 : radius.md,
     WebkitTapHighlightColor: "transparent",
   };
 }
 
-/** Floating premium dock — aluminum iPod chassis for mini-player + tabs. */
+/** Floating dock — dark metal chassis for mini-player + tabs. */
 export const dock = {
   insetX: 14,
   insetBottom: 12,
-  radius: 20,
+  radius: 16,
   tabH: 54,
   playerH: 66,
   /** Content clearances (tabs only / with player), excluding safe-area. */
@@ -612,10 +596,8 @@ export function chromeFrame(opts = {}) {
     borderRadius: sharp ? 2 : radius.xl,
     background: glass.frame,
     boxShadow: `
-      inset 0 1px 0 rgba(255,255,255,0.9),
-      inset 0 -1px 0 rgba(28,32,40,0.1),
-      inset 1px 0 0 rgba(255,255,255,0.4),
-      inset -1px 0 0 rgba(28,32,40,0.06),
+      inset 0 1px 0 rgba(255,255,255,0.1),
+      inset 0 -1px 0 rgba(0,0,0,0.4),
       ${glass.shadow}
     `,
     backdropFilter: glass.blurSoft,
@@ -630,7 +612,7 @@ export function sectionRule(inset = homeSpace.gutter) {
     margin: `0 ${inset}px`,
     border: "none",
     background:
-      "linear-gradient(90deg, transparent 0%, rgba(28,32,40,0.06) 18%, rgba(28,32,40,0.14) 50%, rgba(28,32,40,0.06) 82%, transparent 100%)",
+      "linear-gradient(90deg, transparent 0%, rgba(232,234,238,0.04) 18%, rgba(232,234,238,0.14) 50%, rgba(232,234,238,0.04) 82%, transparent 100%)",
   };
 }
 
@@ -641,29 +623,29 @@ export const motion = {
   ease: "cubic-bezier(0.22, 1, 0.36, 1)",
 };
 
-/** Daylight aluminum that shifts with the hour — always light, never OLED. */
+/** Night studio wash that shifts slightly with the hour. */
 export function timeOfDayGradient(date = new Date()) {
   const h = date.getHours();
   const late = h >= 22 || h <= 4;
   const dawn = h >= 5 && h <= 8;
   const day = h >= 9 && h <= 16;
   if (late) {
-    return `radial-gradient(ellipse at 50% -10%, #EEF1F6 0%, #DDE2EA 42%, #E6E9EF 100%)`;
+    return `radial-gradient(ellipse at 50% -10%, #16181E 0%, #0C0E12 42%, #090A0D 100%)`;
   }
   if (dawn) {
-    return `radial-gradient(ellipse at 70% 0%, #F6F1EA 0%, #E6E9EF 48%, #E3E7EE 100%)`;
+    return `radial-gradient(ellipse at 70% 0%, #1A1814 0%, #0C0E12 48%, #090A0D 100%)`;
   }
   if (day) {
-    return `radial-gradient(ellipse at 40% -5%, #F7F8FA 0%, #E8EBEF 50%, #E6E9EF 100%)`;
+    return `radial-gradient(ellipse at 40% -5%, #181B22 0%, #101218 50%, #090A0D 100%)`;
   }
-  return `radial-gradient(ellipse at 55% 0%, #F0F3F8 0%, #E2E6ED 45%, #E6E9EF 100%)`;
+  return `radial-gradient(ellipse at 55% 0%, #16181E 0%, #0E1014 45%, #090A0D 100%)`;
 }
 
-/** Brushed light-aluminum wash for chrome bands / Cover Stage / iTunes titlebar. */
+/** Dark metal wash for chrome bands / Cover Stage. */
 export function aluminumGradient() {
   return `
-    linear-gradient(180deg, rgba(255,255,255,0.7) 0%, rgba(255,255,255,0) 44%),
-    linear-gradient(180deg, #F7F8FA 0%, #D8DCE3 48%, #C5CAD3 100%)
+    linear-gradient(180deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0) 44%),
+    linear-gradient(180deg, #16181E 0%, #101218 48%, #090A0D 100%)
   `;
 }
 
@@ -683,11 +665,11 @@ export function brandGlassHalo(size = 280) {
   };
 }
 
-/** App shell — pearl iTunes window, no neon bloom. */
+/** App shell — dark digital studio, acid signal. */
 export const APP_STYLE = {
   fontFamily: font,
   background: `
-    radial-gradient(ellipse 110% 55% at 50% -18%, rgba(255,255,255,0.7) 0%, transparent 52%),
+    radial-gradient(ellipse 110% 55% at 50% -18%, rgba(184,242,74,0.06) 0%, transparent 52%),
     ${color.canvas}
   `,
   color: color.ink,
@@ -703,26 +685,26 @@ export const INPUT_ST = {
   padding: "14px 16px",
   borderRadius: radius.md,
   border: `1px solid ${glass.border}`,
-  background: "rgba(255,255,255,0.88)",
+  background: "rgba(12, 14, 18, 0.88)",
   color: color.ink,
   fontSize: 16,
   fontFamily: font,
-  boxShadow: `inset 0 1px 0 ${glass.highlight}, inset 0 2px 6px rgba(28,32,40,0.06)`,
+  boxShadow: `inset 0 1px 0 ${glass.highlight}, inset 0 2px 6px rgba(0,0,0,0.35)`,
   backdropFilter: glass.blurSoft,
   WebkitBackdropFilter: glass.blurSoft,
   outline: "none",
   transition: `border-color ${motion.base} ${motion.ease}, box-shadow ${motion.base} ${motion.ease}, background ${motion.base}`,
 };
 
-/** Primary CTA — Aqua iTunes button, white inscription. */
+/** Primary CTA — acid plate, dark inscription. */
 export const BTN_PRIMARY = {
   width: "100%",
   padding: "14px 22px",
-  borderRadius: radius.lg,
-  border: `1px solid rgba(18, 64, 150, 0.35)`,
+  borderRadius: radius.md,
+  border: `1px solid rgba(184, 242, 74, 0.45)`,
   background: `
-    linear-gradient(180deg, rgba(255,255,255,0.28) 0%, transparent 42%),
-    linear-gradient(180deg, #6FB4F8 0%, #1E6FE8 100%)
+    linear-gradient(180deg, rgba(255,255,255,0.22) 0%, transparent 42%),
+    linear-gradient(180deg, #D4FF6E 0%, #B8F24A 100%)
   `,
   color: color.onAccent,
   fontSize: 16,
@@ -730,7 +712,7 @@ export const BTN_PRIMARY = {
   cursor: "pointer",
   fontFamily: font,
   letterSpacing: -0.15,
-  boxShadow: `inset 0 1px 0 rgba(255,255,255,0.45), 0 6px 16px rgba(30,111,232,0.28)`,
+  boxShadow: `inset 0 1px 0 rgba(255,255,255,0.35), 0 6px 16px rgba(184,242,74,0.22)`,
   transition: `transform ${motion.fast} ${motion.ease}, box-shadow ${motion.base}, opacity ${motion.fast}`,
 };
 

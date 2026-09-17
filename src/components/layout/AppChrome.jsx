@@ -34,8 +34,8 @@ export function AmbientNetworkPill({ isOffline }) {
       transform: "translateX(-50%)",
       zIndex: 120,
       display: "flex", alignItems: "center", gap: 8,
-      background: isOffline ? color.ink : "rgba(255,255,255,0.92)",
-      color: isOffline ? color.onDark : color.body,
+      background: isOffline ? color.canvasEdge : color.surfaceRaised,
+      color: isOffline ? color.ink : color.body,
       border: `1px solid ${glass.border}`,
       borderRadius: 980,
       padding: "7px 14px",
@@ -58,10 +58,10 @@ export function CatalogSkeleton() {
   const tile = homeSpace.tile;
   const bone = (opts) => ({
     background: opts.strong
-      ? "rgba(28,32,40,0.12)"
+      ? "rgba(232,234,238,0.12)"
       : opts.mid
-        ? "rgba(28,32,40,0.08)"
-        : "rgba(28,32,40,0.05)",
+        ? "rgba(232,234,238,0.08)"
+        : "rgba(232,234,238,0.05)",
     animation: "shimmer 1.5s ease-in-out infinite",
     animationDelay: opts.delay || "0s",
   });

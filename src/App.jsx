@@ -204,7 +204,7 @@ const injectStyles = () => {
     ::-webkit-scrollbar { width: 8px; height: 8px; }
     ::-webkit-scrollbar-track { background: transparent; }
     ::-webkit-scrollbar-thumb {
-      background: rgba(28,32,40,0.22);
+      background: rgba(232,234,238,0.18);
       border-radius: 8px;
       border: 2px solid transparent;
       background-clip: padding-box;
@@ -236,28 +236,28 @@ const injectStyles = () => {
     input:focus {
       outline: none;
       border-color: ${glass.border} !important;
-      background: #FFFFFF !important;
+      background: ${color.surfaceRaised} !important;
       box-shadow: inset 0 1px 0 ${glass.highlight}, 0 0 0 3px ${color.accentSoft} !important;
     }
-    input[type="range"] { -webkit-appearance: none; height: 4px; background: rgba(28,32,40,0.12); border-radius: 2px; outline: none; cursor: pointer; }
-    input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; border-radius: 50%; background: ${color.accent}; border: 2px solid #fff; box-shadow: 0 1px 4px rgba(26,29,36,0.25); cursor: pointer; }
-    input[type="range"]::-moz-range-thumb { width: 14px; height: 14px; border-radius: 50%; background: ${color.accent}; border: 2px solid #fff; box-shadow: 0 1px 4px rgba(26,29,36,0.25); cursor: pointer; }
+    input[type="range"] { -webkit-appearance: none; height: 4px; background: rgba(232,234,238,0.12); border-radius: 2px; outline: none; cursor: pointer; }
+    input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; border-radius: 50%; background: ${color.accent}; border: 2px solid ${color.onAccent}; box-shadow: 0 1px 4px rgba(0,0,0,0.45); cursor: pointer; }
+    input[type="range"]::-moz-range-thumb { width: 14px; height: 14px; border-radius: 50%; background: ${color.accent}; border: 2px solid ${color.onAccent}; box-shadow: 0 1px 4px rgba(0,0,0,0.45); cursor: pointer; }
     input.chrome-seek { -webkit-appearance: none; appearance: none; background: transparent !important; height: 28px !important; }
     input.chrome-seek::-webkit-slider-runnable-track { height: 6px; background: transparent; border: none; }
     input.chrome-seek::-moz-range-track { height: 6px; background: transparent; border: none; }
     input.chrome-seek::-webkit-slider-thumb {
       -webkit-appearance: none; appearance: none; width: 18px; height: 18px; margin-top: -6px;
       border-radius: 50%;
-      background: linear-gradient(160deg, #FFFFFF 0%, #E8ECF2 45%, #C5CAD3 100%);
-      border: 1px solid rgba(22,24,30,0.16);
-      box-shadow: inset 0 1px 0 rgba(255,255,255,0.95), 0 2px 6px rgba(0,0,0,0.4);
+      background: linear-gradient(160deg, #F4FFE0 0%, ${color.accent} 100%);
+      border: 1px solid rgba(12,16,8,0.45);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.45), 0 2px 6px rgba(0,0,0,0.5);
       cursor: pointer;
     }
     input.chrome-seek::-moz-range-thumb {
       width: 18px; height: 18px; border-radius: 50%;
-      background: linear-gradient(160deg, #FFFFFF 0%, #E8ECF2 45%, #C5CAD3 100%);
-      border: 1px solid rgba(22,24,30,0.16);
-      box-shadow: inset 0 1px 0 rgba(255,255,255,0.95), 0 2px 6px rgba(0,0,0,0.4);
+      background: linear-gradient(160deg, #F4FFE0 0%, ${color.accent} 100%);
+      border: 1px solid rgba(12,16,8,0.45);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.45), 0 2px 6px rgba(0,0,0,0.5);
       cursor: pointer;
     }
     .hide-scroll { -ms-overflow-style: none; scrollbar-width: none; }
@@ -493,31 +493,31 @@ const injectStyles = () => {
     }
     .glass-dock {
       background:
-        linear-gradient(180deg, rgba(255,255,255,0.92) 0%, rgba(232,236,242,0.9) 100%);
-      border: 1px solid rgba(28,32,40,0.12);
+        linear-gradient(180deg, rgba(36,40,48,0.92) 0%, rgba(16,18,24,0.94) 100%);
+      border: 1px solid rgba(232,234,238,0.12);
       box-shadow:
-        inset 0 1px 0 rgba(255,255,255,0.95),
-        0 14px 32px rgba(28,32,40,0.16);
+        inset 0 1px 0 rgba(255,255,255,0.1),
+        0 14px 32px rgba(0,0,0,0.5);
       -webkit-backdrop-filter: ${glass.blurHeavy};
       backdrop-filter: ${glass.blurHeavy};
       transition: background 0.6s ease, box-shadow 0.35s ease;
     }
-    /* ── iPod / iTunes chrome ─────────────────────────────────────────── */
+    /* ── Dark device chrome ─────────────────────────────────────────── */
     .pill-nav {
       background:
-        linear-gradient(180deg, #F7F8FA 0%, #E2E5EC 52%, #D0D5DE 100%);
-      border: 1px solid rgba(28,32,40,0.14);
+        linear-gradient(180deg, #1C2028 0%, #14161C 52%, #0E1014 100%);
+      border: 1px solid rgba(232,234,238,0.12);
       box-shadow:
-        inset 0 1px 0 rgba(255,255,255,0.9),
-        inset 0 -1px 0 rgba(28,32,40,0.08),
-        0 12px 28px rgba(28,32,40,0.14);
+        inset 0 1px 0 rgba(255,255,255,0.1),
+        inset 0 -1px 0 rgba(0,0,0,0.4),
+        0 12px 28px rgba(0,0,0,0.4);
       -webkit-backdrop-filter: ${glass.blurHeavy};
       backdrop-filter: ${glass.blurHeavy};
     }
     .pmp-hero-bezel {
       box-shadow:
-        inset 0 1px 0 rgba(255,255,255,0.95),
-        0 16px 36px rgba(28,32,40,0.14);
+        inset 0 1px 0 rgba(255,255,255,0.1),
+        0 16px 36px rgba(0,0,0,0.45);
     }
     .pmp-home-mtv::before { display: none; }
     .pmp-home-mtv > * { position: relative; z-index: 1; }
@@ -583,8 +583,8 @@ const injectStyles = () => {
       box-shadow: 0 6px 16px rgba(0,0,0,0.28) !important;
     }
     .pmp-schedule-cell:hover {
-      border-color: rgba(30,111,232,0.35) !important;
-      box-shadow: 0 6px 16px rgba(28,32,40,0.12) !important;
+      border-color: rgba(184,242,74,0.35) !important;
+      box-shadow: 0 6px 16px rgba(0,0,0,0.35) !important;
     }
     .pmp-dial-cell:hover {
       color: ${color.ink};
@@ -633,11 +633,11 @@ const injectStyles = () => {
         box-shadow ${motion.base} ${motion.ease};
     }
     .custom-mix:hover {
-      background: #FFFFFF !important;
-      border-color: rgba(28,32,40,0.14) !important;
+      background: ${color.surfaceRaised} !important;
+      border-color: rgba(232,234,238,0.16) !important;
       box-shadow:
-        inset 0 1px 0 rgba(255,255,255,0.95),
-        0 12px 28px rgba(28,32,40,0.12) !important;
+        inset 0 1px 0 rgba(255,255,255,0.1),
+        0 12px 28px rgba(0,0,0,0.4) !important;
       transform: translateY(-1px);
     }
     .custom-mix:hover .custom-mix-play {
@@ -3180,9 +3180,9 @@ export default function App() {
               width: 40,
               height: 40,
               borderRadius: 12,
-              border: "1px solid rgba(28,32,40,0.14)",
-              background: "rgba(247,248,250,0.96)",
-              color: "#1C1F24",
+              border: "1px solid rgba(232,234,238,0.14)",
+              background: "rgba(22,25,32,0.96)",
+              color: "#E8EAEE",
               fontSize: 20,
               cursor: "pointer",
             }}
