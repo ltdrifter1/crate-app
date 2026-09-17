@@ -43,6 +43,8 @@ import {
   getAccessState,
   BILLING,
   PAYWALL_ENABLED,
+  PRICING_COMING_SOON,
+  BETA_LAUNCH_COPY,
 } from "./lib/entitlements";
 import { startCheckout, settleBillingReturn, stripBillingQuery } from "./lib/billing";
 import {
@@ -52,7 +54,7 @@ import {
 } from "./lib/freePlays";
 import { spendClubCredit } from "./lib/listeningApi";
 import { usableCreditBalance } from "./lib/clubCredit";
-import { memberPrice } from "./lib/physicalStatus";
+import { memberPrice, PHYSICAL_COMMERCE_LIVE } from "./lib/physicalStatus";
 import {
   buildCommunityMix,
   buildMixFromPlaylist,
@@ -1408,6 +1410,10 @@ export default function App() {
   // Free is a real tier — never hard-block the app. Plans are an upgrade sheet.
 
   const handleSubscribe = useCallback(async (linkOrPlan, maybePlan) => {
+    if (PRICING_COMING_SOON) {
+      showToast(BETA_LAUNCH_COPY.blurb);
+      return;
+    }
     let plan = "club";
     if (typeof linkOrPlan === "string" && !linkOrPlan.startsWith("http")) {
       plan = linkOrPlan;
@@ -1428,6 +1434,10 @@ export default function App() {
 
   const handlePurchasePhysical = useCallback(async (track, amount) => {
     if (!track?.id) return;
+    if (!PHYSICAL_COMMERCE_LIVE || PRICING_COMING_SOON) {
+      showToast("Club Copy buying is coming soon — this beta is a free trial");
+      return;
+    }
     if (!firebaseUser) {
       showToast("Sign in to buy with Club Credit");
       return;

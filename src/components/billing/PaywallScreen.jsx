@@ -1,24 +1,24 @@
 /**
- * Membership plans — Free / Club ($0.99/mo) / Premium ($10/yr with credits).
- * Soft upgrade surface (Free is always allowed into the app).
- * Checkout goes through Firebase → Stripe Checkout Sessions.
+ * Membership plans — during beta, prices and checkout are coming soon.
+ * Soft upgrade surface (Free/beta trial is always allowed into the app).
  */
 import { useState } from "react";
 import {
-  font, fontDisplay, fontMono, color, radius, glass,
-  APP_STYLE, BTN_PRIMARY, BTN_SECONDARY, BRAND_NAME,
+  fontDisplay, fontMono, color, radius, glass,
+  APP_STYLE, BTN_PRIMARY, BTN_SECONDARY,
 } from "../../theme";
 import {
-  BILLING,
   PLAN_IDS,
-  formatPriceClub,
-  formatPricePremium,
   formatMoney,
   membershipSummary,
   planMarketingCopy,
+  PRICING_COMING_SOON,
+  BETA_LAUNCH,
+  BETA_LAUNCH_COPY,
 } from "../../lib/entitlements";
 import { startCheckout, openBillingPortal } from "../../lib/billing";
 import BrandMark from "../brand/BrandMark";
+import BetaLaunchNotice from "./BetaLaunchNotice";
 
 export default function PaywallScreen({
   access = null,
@@ -34,6 +34,7 @@ export default function PaywallScreen({
   const tier = access?.tier || PLAN_IDS.FREE;
   const [busyPlan, setBusyPlan] = useState(null);
   const [error, setError] = useState(null);
+  const billingLive = !PRICING_COMING_SOON;
 
   async function handlePlan(planId) {
     setError(null);
@@ -41,8 +42,11 @@ export default function PaywallScreen({
       onContinueFree?.();
       return;
     }
+    if (!billingLive) {
+      setError("Payments aren’t live yet — this beta is a free trial.");
+      return;
+    }
     if (typeof onSubscribe === "function") {
-      // Parent wires Cloud Function checkout
       onSubscribe(null, planId);
       return;
     }
@@ -58,6 +62,10 @@ export default function PaywallScreen({
 
   async function handleManageBilling() {
     setError(null);
+    if (!billingLive) {
+      setError("Billing management is coming soon.");
+      return;
+    }
     setBusyPlan("portal");
     try {
       await openBillingPortal();
@@ -111,26 +119,34 @@ export default function PaywallScreen({
           fontFamily: fontDisplay,
           color: color.ink,
         }}>
-          {mode === "manage" ? "Your membership" : "Pick your level"}
+          {BETA_LAUNCH
+            ? "Beta launch"
+            : mode === "manage"
+              ? "Your membership"
+              : "Pick your level"}
         </h1>
 
         <p style={{
-          margin: "0 0 24px",
+          margin: "0 0 20px",
           fontSize: 16,
           lineHeight: 1.5,
           color: color.body,
           maxWidth: 360,
         }}>
-          Free keeps limited streaming. Club unlocks the full crate and your card.
-          Premium adds Club Credit to buy Club Copy editions on {BRAND_NAME}.
+          {BETA_LAUNCH
+            ? BETA_LAUNCH_COPY.blurb
+            : "Free keeps limited streaming. Club unlocks the full crate and your card. Premium adds Club Credit for Club Copy editions."}
         </p>
+
+        {(BETA_LAUNCH || PRICING_COMING_SOON) && (
+          <BetaLaunchNotice style={{ marginBottom: 20 }} />
+        )}
 
         <div style={{ display: "flex", flexDirection: "column", gap: 12, marginBottom: 20 }}>
           {plans.map((plan) => {
-            const current = plan.id === tier;
-            const isClub = plan.id === PLAN_IDS.CLUB;
-            const isPremium = plan.id === PLAN_IDS.PREMIUM;
+            const current = plan.id === tier || (BETA_LAUNCH && plan.id === PLAN_IDS.FREE);
             const busy = busyPlan === plan.id;
+            const paidPlan = plan.id !== PLAN_IDS.FREE;
             return (
               <div
                 key={plan.id}
@@ -165,15 +181,15 @@ export default function PaywallScreen({
                         letterSpacing: 1,
                         textTransform: "uppercase",
                       }}>
-                        Current
+                        {BETA_LAUNCH && plan.id === PLAN_IDS.FREE ? "Trial" : "Current"}
                       </span>
                     )}
                   </div>
                   <div style={{
-                    fontSize: 18,
+                    fontSize: 16,
                     fontWeight: 700,
                     fontFamily: fontDisplay,
-                    color: color.ink,
+                    color: paidPlan && PRICING_COMING_SOON ? color.muted : color.ink,
                   }}>
                     {plan.price}
                   </div>
@@ -192,13 +208,13 @@ export default function PaywallScreen({
                     <li key={p}>{p}</li>
                   ))}
                 </ul>
-                {!current && plan.id !== PLAN_IDS.FREE && (
+                {!current && paidPlan && billingLive && (
                   <button
                     type="button"
                     disabled={!!busyPlan}
                     onClick={() => handlePlan(plan.id)}
                     style={{
-                      ...(isPremium ? BTN_PRIMARY : BTN_SECONDARY),
+                      ...(plan.id === PLAN_IDS.PREMIUM ? BTN_PRIMARY : BTN_SECONDARY),
                       width: "100%",
                       borderRadius: radius.md,
                       fontSize: 15,
@@ -207,12 +223,28 @@ export default function PaywallScreen({
                   >
                     {busy
                       ? "Opening Stripe…"
-                      : isClub
-                        ? `Join Club — ${formatPriceClub()}`
-                        : `Go Premium — ${formatPricePremium()}`}
+                      : plan.id === PLAN_IDS.CLUB
+                        ? `Join Club — ${plan.price}`
+                        : `Go Premium — ${plan.price}`}
                   </button>
                 )}
-                {!current && plan.id === PLAN_IDS.FREE && onContinueFree && tier === PLAN_IDS.FREE && (
+                {!current && paidPlan && !billingLive && (
+                  <div
+                    style={{
+                      ...BTN_SECONDARY,
+                      width: "100%",
+                      borderRadius: radius.md,
+                      fontSize: 14,
+                      opacity: 0.72,
+                      cursor: "default",
+                      textAlign: "center",
+                      pointerEvents: "none",
+                    }}
+                  >
+                    Coming soon
+                  </div>
+                )}
+                {plan.id === PLAN_IDS.FREE && onContinueFree && (
                   <button
                     type="button"
                     onClick={() => handlePlan(PLAN_IDS.FREE)}
@@ -223,21 +255,7 @@ export default function PaywallScreen({
                       fontSize: 15,
                     }}
                   >
-                    Continue on Free
-                  </button>
-                )}
-                {current && plan.id === PLAN_IDS.FREE && onContinueFree && (
-                  <button
-                    type="button"
-                    onClick={() => handlePlan(PLAN_IDS.FREE)}
-                    style={{
-                      ...BTN_SECONDARY,
-                      width: "100%",
-                      borderRadius: radius.md,
-                      fontSize: 15,
-                    }}
-                  >
-                    Keep listening on Free
+                    {BETA_LAUNCH ? "Keep listening — free trial" : "Continue on Free"}
                   </button>
                 )}
               </div>
@@ -251,7 +269,7 @@ export default function PaywallScreen({
           </p>
         )}
 
-        {access?.tier === PLAN_IDS.PREMIUM && (
+        {access?.tier === PLAN_IDS.PREMIUM && !PRICING_COMING_SOON && (
           <p style={{ fontSize: 13, color: color.body, lineHeight: 1.45, marginBottom: 16 }}>
             Club Credit on file: {formatMoney(access.creditBalance || 0)}
             {access.creditExpiresAt
@@ -260,7 +278,7 @@ export default function PaywallScreen({
           </p>
         )}
 
-        {(tier === PLAN_IDS.CLUB || tier === PLAN_IDS.PREMIUM || access?.reason === "trial") && (
+        {billingLive && (tier === PLAN_IDS.CLUB || tier === PLAN_IDS.PREMIUM || access?.reason === "trial") && (
           <button
             type="button"
             onClick={handleManageBilling}
@@ -276,7 +294,7 @@ export default function PaywallScreen({
           </button>
         )}
 
-        {onRefresh && (
+        {billingLive && onRefresh && (
           <button
             type="button"
             className="btn-secondary"
@@ -303,7 +321,7 @@ export default function PaywallScreen({
               border: "none",
               color: color.faint,
               fontSize: 14,
-              fontFamily: font,
+              fontFamily: fontDisplay,
               cursor: "pointer",
               padding: "8px 0",
               width: "100%",
@@ -315,9 +333,9 @@ export default function PaywallScreen({
         )}
 
         <p style={{ marginTop: 16, fontSize: 12, color: color.faint, lineHeight: 1.45 }}>
-          Secure checkout via Stripe. Free includes {BILLING.freePlaysPerDay} plays/day.
-          Club is {formatPriceClub()}. Premium is {formatPricePremium()} with{" "}
-          {formatMoney(BILLING.premium.creditGrant)} Club Credit for Club Copy.
+          {PRICING_COMING_SOON
+            ? "No payment is required during this beta launch. Club, Premium, and Club Copy checkout are coming soon."
+            : "Secure checkout via Stripe when billing is live."}
         </p>
       </div>
     </div>

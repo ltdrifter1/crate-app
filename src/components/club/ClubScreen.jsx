@@ -9,12 +9,13 @@ import {
 } from "../../theme";
 import {
   membershipSummary,
-  formatPriceClub,
-  formatPricePremium,
   formatMoney,
   PLAN_IDS,
   BILLING,
   PAYWALL_ENABLED,
+  PRICING_COMING_SOON,
+  BETA_LAUNCH,
+  BETA_LAUNCH_COPY,
 } from "../../lib/entitlements";
 import { creditSummaryLine } from "../../lib/clubCredit";
 import { collectionStats } from "../../lib/collectionStats";
@@ -32,6 +33,7 @@ import { InterestsPanel } from "../listen/InterestsPanel";
 import FeatureGuidePanel from "../guide/FeatureGuidePanel";
 import CollectorPanel from "./CollectorPanel";
 import FreePlaysMeter from "../billing/FreePlaysMeter";
+import BetaLaunchNotice from "../billing/BetaLaunchNotice";
 import { freePlaysRemaining, freePlaysMeterLabel } from "../../lib/freePlays";
 import { TASTE_AXIS_DEFAULT } from "../../lib/tasteProfile";
 
@@ -47,19 +49,28 @@ const PRIVILEGES_BY_TIER = {
     {
       id: "upgrade",
       label: "Upgrade anytime",
-      blurb: "Club unlocks the full crate and your membership card",
+      blurb: PRICING_COMING_SOON
+        ? "Club and Premium pricing is coming soon"
+        : "Club unlocks the full crate and your membership card",
     },
   ],
   freeOpen: [
     {
       id: "crate",
       label: "Full streaming",
-      blurb: "Unlimited listening — every account is open for now",
+      blurb: BETA_LAUNCH
+        ? "Unlimited listening during the beta launch free trial"
+        : "Unlimited listening — every account is open for now",
     },
     {
       id: "save",
       label: "Save your taste",
       blurb: "Likes, mixes, and interests stay on your account",
+    },
+    {
+      id: "billing",
+      label: "Payments coming soon",
+      blurb: "Club, Premium, and Club Copy checkout aren’t live yet",
     },
   ],
   club: [
@@ -83,12 +94,16 @@ const PRIVILEGES_BY_TIER = {
     {
       id: "credit",
       label: "Club Credit",
-      blurb: `${formatMoney(BILLING.premium.creditGrant)} to spend on Club Copy from liner notes`,
+      blurb: PRICING_COMING_SOON
+        ? "Club Credit for Club Copy — coming soon"
+        : `${formatMoney(BILLING.premium.creditGrant)} to spend on Club Copy from liner notes`,
     },
     {
       id: "physical",
       label: "Physical access",
-      blurb: "Member pricing and Club Copy editions",
+      blurb: PRICING_COMING_SOON
+        ? "Member pricing for Club Copy — coming soon"
+        : "Member pricing and Club Copy editions",
     },
   ],
 };
@@ -233,6 +248,9 @@ export default function ClubScreen({
           <FeatureGuidePanel onReplayTour={onReplayTour} />
         ) : (
           <>
+        {(BETA_LAUNCH || PRICING_COMING_SOON) && (
+          <BetaLaunchNotice compact style={{ marginBottom: 18 }} />
+        )}
         {/* Collectible membership card */}
         <div
           role="group"
@@ -460,8 +478,8 @@ export default function ClubScreen({
             {floor.blurb}{" "}
             {hasCard
               ? "Your membership keeps the crate unlocked."
-              : !PAYWALL_ENABLED || access?.streaming === "full"
-                ? "The crate is open — listen as much as you like."
+              : BETA_LAUNCH || !PAYWALL_ENABLED || access?.streaming === "full"
+                ? "Beta free trial — the crate is open. Listen as much as you like."
                 : playsLabel
                   ? `${playsLabel}.`
                   : `Free plan · ${BILLING.freePlaysPerDay} plays/day.`}
@@ -611,20 +629,22 @@ export default function ClubScreen({
             {memberLine}
           </div>
           <div style={{ fontSize: 14, color: color.muted, lineHeight: 1.45, marginBottom: 8 }}>
-            {tier === PLAN_IDS.PREMIUM
-              ? `Premium · ${formatPricePremium()}. ${creditLine}.`
-              : tier === PLAN_IDS.CLUB || access?.reason === "trial"
-                ? `Club · ${formatPriceClub()}. Add Premium for Club Credit on Club Copy.`
-                : PAYWALL_ENABLED
-                  ? `Free · limited streaming. Club is ${formatPriceClub()}. Premium is ${formatPricePremium()}.`
-                  : "Free · full streaming. Club and Premium billing are paused for now."}
+            {PRICING_COMING_SOON || BETA_LAUNCH
+              ? BETA_LAUNCH_COPY.blurb
+              : tier === PLAN_IDS.PREMIUM
+                ? `Premium. ${creditLine}.`
+                : tier === PLAN_IDS.CLUB || access?.reason === "trial"
+                  ? "Club membership. Add Premium for Club Credit on Club Copy when billing is live."
+                  : PAYWALL_ENABLED
+                    ? "Free · limited streaming. Club and Premium unlock more."
+                    : "Free · full streaming."}
           </div>
-          {tier === PLAN_IDS.PREMIUM && (
+          {tier === PLAN_IDS.PREMIUM && !PRICING_COMING_SOON && (
             <div style={{ fontSize: 13, color: color.body, marginBottom: 14, lineHeight: 1.4 }}>
               {creditLine}
             </div>
           )}
-          {(access?.canUpgradeClub || access?.canUpgradePremium) && (onOpenPlans || onSubscribe) && (
+          {!PRICING_COMING_SOON && (access?.canUpgradeClub || access?.canUpgradePremium) && (onOpenPlans || onSubscribe) && (
             <button
               type="button"
               onClick={() => (onOpenPlans ? onOpenPlans() : onSubscribe?.())}
@@ -635,7 +655,7 @@ export default function ClubScreen({
                 marginBottom: 4,
               }}
             >
-              {access?.canUpgradeClub ? `Join Club — ${formatPriceClub()}` : `Go Premium — ${formatPricePremium()}`}
+              {access?.canUpgradeClub ? "Join Club" : "Go Premium"}
             </button>
           )}
         </section>

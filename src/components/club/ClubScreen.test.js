@@ -87,4 +87,24 @@ describe("ClubScreen feature guide", () => {
     const tab = [...div.querySelectorAll('[role="tab"]')].find((b) => b.textContent === "Guide");
     expect(tab.getAttribute("aria-selected")).toBe("true");
   });
+
+  test("Club tab shows beta free trial and coming-soon payments", async () => {
+    await act(async () => {
+      root.render(
+        React.createElement(ClubScreen, {
+          user,
+          tracks: [],
+          onLogout: jest.fn(),
+          profile,
+          access: { tier: "free", reason: "free", streaming: "full" },
+        })
+      );
+    });
+    expect(div.textContent).toMatch(/Beta launch/i);
+    expect(div.textContent).toMatch(/Free trial period/i);
+    expect(div.textContent).toMatch(/coming soon/i);
+    expect(div.textContent).not.toMatch(/\$0\.99/);
+    expect(div.textContent).not.toMatch(/\$10\/yr/);
+    expect(div.querySelector("[data-testid='beta-launch-notice']")).toBeTruthy();
+  });
 });
