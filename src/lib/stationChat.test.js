@@ -13,6 +13,8 @@ import {
   mobileChatPillBottomPx,
   buildChatPayload,
   onlineBuddies,
+  recentChatMessages,
+  CHAT_HISTORY_MS,
   CHAT_MAX_TEXT,
   CHAT_MIN_INTERVAL_MS,
   CHAT_NUB_WIDTH,
@@ -77,6 +79,20 @@ describe("stationChat sanitize + send", () => {
     ];
     const merged = mergeChatMessages(remote, optimistic);
     expect(merged.map((m) => m.text)).toEqual(["first", "hello station"]);
+  });
+
+  test("recentChatMessages keeps only the last 30 minutes", () => {
+    const now = 10_000_000;
+    const rows = recentChatMessages(
+      [
+        { id: "old", text: "last night", createdAt: now - CHAT_HISTORY_MS - 1 },
+        { id: "edge", text: "just inside", createdAt: now - CHAT_HISTORY_MS },
+        { id: "fresh", text: "now", createdAt: now - 60_000 },
+        { id: "pending", text: "sending", createdAt: 0 },
+      ],
+      now
+    );
+    expect(rows.map((m) => m.id)).toEqual(["edge", "fresh", "pending"]);
   });
 });
 

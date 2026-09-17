@@ -12,16 +12,21 @@ import {
   query,
   serverTimestamp,
   setDoc,
+  Timestamp,
+  where,
 } from "firebase/firestore";
 import { db } from "../../firebase";
 import {
   buildChatPayload,
   canSendAt,
   CHAT_HEARTBEAT_MS,
+  CHAT_HISTORY_MS,
   CHAT_MESSAGE_LIMIT,
   CHAT_ROOM_ID,
   mapChatDoc,
   mergeChatMessages,
+  recentChatMessages,
+  isChatHistoryFresh,
   newClientId,
   sanitizeDisplayName,
 } from "../../lib/stationChat";
@@ -59,8 +64,10 @@ export function useStationChat({
       return undefined;
     }
     setStatus("loading");
+    const cutoff = Timestamp.fromMillis(Date.now() - CHAT_HISTORY_MS);
     const q = query(
       messagesCol(roomId),
+      where("createdAt", ">=", cutoff),
       orderBy("createdAt", "desc"),
       limit(CHAT_MESSAGE_LIMIT)
     );
@@ -69,7 +76,7 @@ export function useStationChat({
       (snap) => {
         const rows = snap.docs
           .map((d) => mapChatDoc(d.id, d.data()))
-          .filter((m) => m.text)
+          .filter((m) => m.text && isChatHistoryFresh(m.createdAt))
           .reverse();
         setMessages(rows);
         setStatus("live");
@@ -205,9 +212,15 @@ export function useStationChat({
     [uid, displayName, roomId]
   );
 
+  const [nowTick, setNowTick] = useState(() => Date.now());
+  useEffect(() => {
+    const id = window.setInterval(() => setNowTick(Date.now()), 15_000);
+    return () => window.clearInterval(id);
+  }, []);
+
   const thread = useMemo(
-    () => mergeChatMessages(messages, optimistic),
-    [messages, optimistic]
+    () => recentChatMessages(mergeChatMessages(messages, optimistic), nowTick),
+    [messages, optimistic, nowTick]
   );
 
   return {

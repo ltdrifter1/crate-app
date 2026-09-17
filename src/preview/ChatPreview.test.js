@@ -20,6 +20,8 @@ jest.mock("firebase/firestore", () => ({
   query: jest.fn(),
   serverTimestamp: jest.fn(),
   setDoc: jest.fn(),
+  Timestamp: { fromMillis: (ms) => ({ toMillis: () => ms }) },
+  where: jest.fn(),
 }));
 
 jest.mock("../usePlayerPlayback", () => ({

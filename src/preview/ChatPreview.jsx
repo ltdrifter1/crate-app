@@ -31,7 +31,7 @@ const SAMPLE_TRACK = {
   genre: "Electronic",
 };
 
-const NOW = Date.parse("2026-09-15T18:04:00");
+const NOW = Date.now();
 
 const SAMPLE_MESSAGES = [
   {
