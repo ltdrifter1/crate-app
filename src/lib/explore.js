@@ -259,7 +259,8 @@ export function exploreForYou(tracks = [], opts = {}) {
 
 /**
  * Editorial hero — photography first.
- * Showcase channel when the dial is live; else a featured sleeve; else idle club still.
+ * Featured station when the dial is live; else a featured sleeve; else idle club still.
+ * No “showcase station / N on the dial” chrome — title and tagline only.
  */
 export function buildExploreHero({
   tracks = [],
@@ -277,10 +278,10 @@ export function buildExploreHero({
     return {
       kind: "channel",
       id: showcase.id,
-      eyebrow: showcase.showcase ? "Showcase station" : "On the dial",
+      eyebrow: "",
       title: showcase.title,
       subtitle: showcase.tagline,
-      kicker: showcase.count ? `${showcase.count} on the dial` : null,
+      kicker: null,
       art: showcase.art || art.src,
       artFocus: showcase.artFocus || art.focus,
       channel: showcase,

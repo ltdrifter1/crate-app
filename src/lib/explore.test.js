@@ -80,7 +80,8 @@ describe("explore collections", () => {
     expect(hero.kind).toBe("channel");
     expect(hero.title).toBe("Local");
     expect(hero.art).toBe(CHANNEL_ART["local-pnw"]);
-    expect(hero.eyebrow).toMatch(/Showcase/);
+    expect(hero.eyebrow).toBe("");
+    expect(hero.kicker).toBeNull();
   });
 
   test("hero falls back to idle club still when the catalog is empty", () => {

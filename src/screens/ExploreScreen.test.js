@@ -153,6 +153,8 @@ describe("Explore screen", () => {
     expect(div.textContent).toMatch(/Stations/);
     expect(div.textContent).toMatch(/On the board/);
     expect(div.textContent).toMatch(/Warehouse/);
+    expect(div.textContent).not.toMatch(/Showcase station/i);
+    expect(div.textContent).not.toMatch(/on the dial/i);
     expect(div.querySelector('section[aria-label="Albums"]')).toBeTruthy();
     expect(div.querySelector(".pmp-release--lead")).toBeTruthy();
     expect(div.querySelector(".pmp-release--tile, .pmp-release--count")).toBeTruthy();
