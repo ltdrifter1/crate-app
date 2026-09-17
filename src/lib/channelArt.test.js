@@ -38,6 +38,7 @@ describe("licensed editorial photography", () => {
       "Austin Neill",
       "Maurício Mascaro",
       "Wendy Wei",
+      "naleck",
     ].forEach((name) => {
       expect(CREDITS).toContain(name);
     });

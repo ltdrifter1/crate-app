@@ -24,7 +24,7 @@ describe("scene taxonomy", () => {
   });
 
   test("matchSceneFromText restores labels normalizeGenre flattens", () => {
-    expect(matchSceneFromText("UK Garage")?.id).toBe("uk-garage");
+    expect(matchSceneFromText("psychedelic rock")?.id).toBe("psychedelic-rock");
     expect(matchSceneFromText("techno")?.id).toBe("techno");
     expect(matchSceneFromText("ambient")?.id).toBe("ambient");
     expect(matchSceneFromText("2-step")?.id).toBe("uk-garage");

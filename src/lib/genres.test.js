@@ -28,6 +28,8 @@ test('normalizeGenre maps aliases into the 11', () => {
   expect(normalizeGenre('Soul')).toBe('R&B & Soul');
   expect(normalizeGenre('R&B')).toBe('R&B & Soul');
   expect(normalizeGenre('indie')).toBe('Rock');
+  expect(normalizeGenre('psychedelic rock')).toBe('Rock');
+  expect(normalizeGenre('acid rock')).toBe('Rock');
   expect(normalizeGenre('folk')).toBe('Country & Folk');
   expect(normalizeGenre('Country')).toBe('Country & Folk');
   expect(normalizeGenre('dancehall')).toBe('Reggae');

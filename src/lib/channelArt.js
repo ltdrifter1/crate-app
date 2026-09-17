@@ -1,4 +1,5 @@
 import y2kDance from "../assets/channels/y2k-dance.jpg";
+import psychedelicRock from "../assets/channels/psychedelic-rock.jpg";
 import varietyMix from "../assets/channels/variety-mix.jpg";
 import localPnw from "../assets/channels/local-pnw.jpg";
 import house from "../assets/channels/house.jpg";
@@ -21,6 +22,7 @@ import heroIdle from "../assets/editorial/hero-idle.jpg";
  */
 export const CHANNEL_ART = {
   "y2k-dance": y2kDance,
+  "psychedelic-rock": psychedelicRock,
   "variety-mix": varietyMix,
   "local-pnw": localPnw,
   house,
@@ -42,6 +44,7 @@ export const CHANNEL_ART = {
  */
 export const CHANNEL_ART_FOCUS = {
   "y2k-dance": "52% 58%",
+  "psychedelic-rock": "38% 52%",
   "variety-mix": "38% 42%",
   "local-pnw": "50% 36%",
   house: "48% 58%",
