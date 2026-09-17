@@ -1,5 +1,5 @@
 import { memo } from "react";
-import { color, fontDisplay, fontLcd, fontMono, glassPill, homeSpace, y2k } from "../../theme";
+import { color, fontDisplay, glassPill, homeSpace, y2k } from "../../theme";
 import { trackHasVideo } from "../../lib/video";
 import ArtFrame from "../ui/ArtFrame";
 
@@ -51,11 +51,11 @@ function TrackCard({
               padding: "0 8px",
               display: "inline-flex",
               alignItems: "center",
-              fontFamily: fontMono,
-              fontSize: 9,
-              fontWeight: 800,
-              letterSpacing: 1.1,
-              textTransform: "uppercase",
+              fontFamily: fontDisplay,
+              fontSize: 11,
+              fontWeight: 600,
+              letterSpacing: "-0.01em",
+              textTransform: "none",
               color: y2k.chromeBright,
               zIndex: 1,
             }}
@@ -79,10 +79,10 @@ function TrackCard({
               borderRadius: 4,
               background: "rgba(8,10,13,0.72)",
               border: "1px solid rgba(101,230,255,0.4)",
-              fontFamily: fontLcd,
-              fontSize: 11,
-              fontWeight: 700,
-              letterSpacing: 0.4,
+              fontFamily: fontDisplay,
+              fontSize: 12,
+              fontWeight: 600,
+              letterSpacing: "-0.01em",
               color: y2k.cyan,
               zIndex: 1,
             }}
@@ -98,7 +98,7 @@ function TrackCard({
           fontSize: 13,
           fontWeight: 600,
           fontFamily: fontDisplay,
-          letterSpacing: -0.22,
+          letterSpacing: "-0.016em",
           color: y2k.offWhite,
           overflow: "hidden",
           textOverflow: "ellipsis",
@@ -121,7 +121,7 @@ function TrackCard({
         }}
       >
         {reason ? (
-          <span style={{ fontFamily: fontMono, fontSize: 9, letterSpacing: 1.1, textTransform: "uppercase", color: y2k.chromeBright }}>
+          <span style={{ fontFamily: fontDisplay, fontSize: 12, letterSpacing: "-0.01em", color: color.muted }}>
             {reason}
             <span style={{ color: color.muted }}> · </span>
           </span>

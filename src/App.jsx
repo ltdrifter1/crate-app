@@ -191,9 +191,16 @@ const injectStyles = () => {
       --font: ${font}; --font-display: ${fontDisplay};
       --ink: ${color.ink}; --muted: ${color.muted}; --faint: ${color.faint};
       --line: ${color.line}; --canvas: ${color.canvas}; --accent: ${color.accent};
-      --body: ${color.body}; --surface-raised: ${color.surfaceRaised};
+      --link: ${color.link}; --body: ${color.body}; --surface-raised: ${color.surfaceRaised};
       --glass-fill: ${glass.fillStrong}; --glass-border: ${glass.border};
       --glass-blur: ${glass.blur}; --glass-highlight: ${glass.highlight};
+    }
+    html, body, #root {
+      font-family: var(--font);
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      text-rendering: optimizeLegibility;
+      font-feature-settings: "kern" 1, "liga" 1, "calt" 1;
     }
     body {
       font-family: var(--font);
@@ -202,6 +209,14 @@ const injectStyles = () => {
         radial-gradient(ellipse 70% 45% at 100% 100%, rgba(123,167,255,0.035) 0%, transparent 50%),
         var(--canvas);
       color: var(--ink);
+    }
+    button, input, textarea, select {
+      font-family: inherit;
+    }
+    h1, h2, h3, h4 {
+      font-family: var(--font-display);
+      font-weight: 600;
+      letter-spacing: -0.022em;
     }
     ::-webkit-scrollbar { width: 8px; height: 8px; }
     ::-webkit-scrollbar-track { background: transparent; }
@@ -615,7 +630,7 @@ const injectStyles = () => {
     .pmp-hero:hover .pmp-hero-art { transform: scale(1.04); }
     .pmp-hero-sleeve { transition: transform 0.45s ${motion.ease}; }
     .pmp-view-all { transition: color ${motion.fast} ${motion.ease}, transform ${motion.fast} ${motion.ease}; }
-    .pmp-view-all:hover { color: ${y2k.cyan} !important; transform: translateX(1px); }
+    .pmp-view-all:hover { color: ${color.link} !important; opacity: 0.85; }
     .pmp-rail { cursor: grab; }
     .pmp-rail:active { cursor: grabbing; }
     @media (prefers-reduced-transparency: reduce) {

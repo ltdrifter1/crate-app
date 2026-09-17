@@ -3,8 +3,8 @@ import {
   artFrameStyle,
   artShadow,
   broadcast,
+  color,
   fontDisplay,
-  fontLcd,
   homeSpace,
   radio,
   y2k,
@@ -45,11 +45,11 @@ function MetaChip({ children }) {
         borderRadius: 4,
         border: "1px solid rgba(255,255,255,0.12)",
         background: "rgba(8,10,13,0.45)",
-        fontFamily: fontLcd,
-        fontSize: 10,
-        fontWeight: 700,
-        letterSpacing: 0.7,
-        textTransform: "uppercase",
+        fontFamily: fontDisplay,
+        fontSize: 12,
+        fontWeight: 600,
+        letterSpacing: "-0.01em",
+        textTransform: "none",
         color: "rgba(244,246,248,0.78)",
         overflow: "hidden",
         textOverflow: "ellipsis",
@@ -91,11 +91,11 @@ function LivePlate({ live }) {
       />
       <span
         style={{
-          fontFamily: fontLcd,
-          fontSize: 10,
-          fontWeight: 800,
-          letterSpacing: 1.4,
-          textTransform: "uppercase",
+          fontFamily: fontDisplay,
+          fontSize: 12,
+          fontWeight: 600,
+          letterSpacing: "-0.01em",
+          textTransform: "none",
           color: live ? y2k.offWhite : "rgba(244,246,248,0.55)",
         }}
       >
@@ -121,10 +121,10 @@ function ChannelIdent({ bugLine, slug }) {
       <span
         style={{
           padding: "6px 9px",
-          fontFamily: fontLcd,
-          fontSize: 11,
-          fontWeight: 800,
-          letterSpacing: 0.6,
+          fontFamily: fontDisplay,
+          fontSize: 12,
+          fontWeight: 600,
+          letterSpacing: "-0.012em",
           color: y2k.cyan,
           borderRight: "1px solid rgba(255,255,255,0.1)",
           background:
@@ -137,11 +137,11 @@ function ChannelIdent({ bugLine, slug }) {
       <span
         style={{
           padding: "6px 10px",
-          fontFamily: fontLcd,
-          fontSize: 10,
-          fontWeight: 800,
-          letterSpacing: 0.9,
-          textTransform: "uppercase",
+          fontFamily: fontDisplay,
+          fontSize: 12,
+          fontWeight: 600,
+          letterSpacing: "-0.01em",
+          textTransform: "none",
           color: y2k.offWhite,
           overflow: "hidden",
           textOverflow: "ellipsis",
@@ -395,11 +395,11 @@ export default function HeroPlayerCard({
         <div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0 }}>
           <span
             style={{
-              fontFamily: fontLcd,
-              fontSize: 11,
-              fontWeight: 800,
-              letterSpacing: 1.6,
-              color: y2k.cyan,
+              fontFamily: fontDisplay,
+              fontSize: 12,
+              fontWeight: 600,
+              letterSpacing: "-0.01em",
+              color: color.muted,
               textShadow: "0 0 12px rgba(101,230,255,0.35)",
             }}
           >
@@ -416,11 +416,11 @@ export default function HeroPlayerCard({
                 borderRadius: 4,
                 border: "1px solid rgba(200,242,65,0.35)",
                 background: "rgba(200,242,65,0.12)",
-                fontFamily: fontLcd,
-                fontSize: 10,
-                fontWeight: 800,
-                letterSpacing: 1.1,
-                textTransform: "uppercase",
+                fontFamily: fontDisplay,
+                fontSize: 11,
+                fontWeight: 600,
+                letterSpacing: "-0.01em",
+                textTransform: "none",
                 color: y2k.neon,
               }}
             >
@@ -512,11 +512,11 @@ export default function HeroPlayerCard({
             </span>
             <div
               style={{
-                fontFamily: fontLcd,
-                fontSize: 11,
-                fontWeight: 800,
-                letterSpacing: 1.5,
-                textTransform: "uppercase",
+                fontFamily: fontDisplay,
+                fontSize: 12,
+                fontWeight: 600,
+                letterSpacing: "-0.01em",
+                textTransform: "none",
                 color: y2k.cyan,
                 textShadow: "0 0 10px rgba(101,230,255,0.4)",
               }}
@@ -529,10 +529,10 @@ export default function HeroPlayerCard({
             style={{
               fontFamily: fontDisplay,
               fontStyle: "normal",
-              fontSize: "clamp(24px, 5.6vw, 36px)",
-              fontWeight: 700,
-              letterSpacing: -0.7,
-              lineHeight: 1.02,
+              fontSize: "clamp(28px, 6vw, 40px)",
+              fontWeight: 600,
+              letterSpacing: "-0.03em",
+              lineHeight: 1.05,
               color: y2k.offWhite,
               textShadow: "0 2px 18px rgba(0,0,0,0.45), 0 0 24px rgba(101,230,255,0.12)",
               overflow: "hidden",
@@ -547,8 +547,9 @@ export default function HeroPlayerCard({
           <div
             style={{
               marginTop: 6,
-              fontSize: 15,
-              fontWeight: 600,
+              fontSize: 17,
+              fontWeight: 400,
+              letterSpacing: "-0.022em",
               color: "rgba(244,246,248,0.78)",
               overflow: "hidden",
               textOverflow: "ellipsis",
@@ -606,12 +607,12 @@ export default function HeroPlayerCard({
               <div style={{ minWidth: 0 }}>
                 <div
                   style={{
-                    fontFamily: fontLcd,
-                    fontSize: 9,
-                    fontWeight: 800,
-                    letterSpacing: 1.3,
-                    textTransform: "uppercase",
-                    color: "rgba(101,230,255,0.85)",
+                    fontFamily: fontDisplay,
+                    fontSize: 12,
+                    fontWeight: 600,
+                    letterSpacing: "-0.01em",
+                    textTransform: "none",
+                    color: color.muted,
                   }}
                 >
                   Up next
@@ -726,7 +727,7 @@ export default function HeroPlayerCard({
                 </div>
                 <span
                   style={{
-                    fontFamily: fontLcd,
+                    fontFamily: fontDisplay,
                     fontSize: 11,
                     fontVariantNumeric: "tabular-nums",
                     color: "rgba(244,246,248,0.55)",
@@ -810,11 +811,11 @@ export default function HeroPlayerCard({
               style={{
                 display: "inline-block",
                 whiteSpace: "nowrap",
-                fontFamily: fontLcd,
-                fontSize: 11,
-                fontWeight: 600,
-                letterSpacing: 0.4,
-                textTransform: "uppercase",
+                fontFamily: fontDisplay,
+                fontSize: 12,
+                fontWeight: 400,
+                letterSpacing: "-0.01em",
+                textTransform: "none",
                 color: "rgba(101,230,255,0.7)",
               }}
             >

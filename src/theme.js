@@ -1,26 +1,99 @@
 // Design tokens — premium modern MTV × iOS.
-// Graphite studio, clean system type, restrained chrome.
+// Graphite studio, Apple Store type, restrained chrome.
 // Taste over novelty — no ticket stubs, LED stamps, or costume jewelry.
+//
+// Type: Inter is loaded as a webfont (public/index.html) and MUST sit first.
+// `system-ui` previously led every stack, so named faces (SF Pro, Syne, Inter)
+// never painted — Apple OS already maps system-ui to San Francisco, everyone
+// else got Segoe/Roboto, and Google Fonts looked like a no-op.
 
-export const fontDisplay =
-  'system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", Helvetica, Arial, sans-serif';
-export const font =
-  'system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Helvetica Neue", Helvetica, Arial, sans-serif';
+const FONT_SANS =
+  '"Inter", -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Segoe UI", "Helvetica Neue", Helvetica, Arial, sans-serif';
+
+export const fontDisplay = FONT_SANS;
+export const font = FONT_SANS;
+/** Same face as UI — Apple Store does not switch to a poster/display novelty. */
+export const fontPoster = FONT_SANS;
+/** Station bugs / times — same face, tabular figures. Not a second type OS. */
+export const fontLcd = FONT_SANS;
 export const fontMono =
   'ui-monospace, "SF Mono", SFMono-Regular, Menlo, Monaco, Consolas, monospace';
-/** Home / station posters — Y2K MTV wordmark without replacing UI chrome type. */
-export const fontPoster =
-  '"Syne", "Arial Black", system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", Helvetica, Arial, sans-serif';
-/** LCD / channel-bug readout on Home. */
-export const fontLcd =
-  '"IBM Plex Mono", ui-monospace, "SF Mono", SFMono-Regular, Menlo, Monaco, Consolas, monospace';
+
+/** Apple Store tracking / weight / size. Use these instead of one-off stacks. */
+export const type = {
+  hero: {
+    fontFamily: FONT_SANS,
+    fontSize: 34,
+    fontWeight: 600,
+    letterSpacing: "-0.03em",
+    lineHeight: 1.1,
+  },
+  title: {
+    fontFamily: FONT_SANS,
+    fontSize: 28,
+    fontWeight: 600,
+    letterSpacing: "-0.025em",
+    lineHeight: 1.14,
+  },
+  headline: {
+    fontFamily: FONT_SANS,
+    fontSize: 21,
+    fontWeight: 600,
+    letterSpacing: "-0.022em",
+    lineHeight: 1.2,
+  },
+  body: {
+    fontFamily: FONT_SANS,
+    fontSize: 17,
+    fontWeight: 400,
+    letterSpacing: "-0.022em",
+    lineHeight: 1.47,
+  },
+  callout: {
+    fontFamily: FONT_SANS,
+    fontSize: 16,
+    fontWeight: 600,
+    letterSpacing: "-0.02em",
+    lineHeight: 1.3,
+  },
+  subhead: {
+    fontFamily: FONT_SANS,
+    fontSize: 14,
+    fontWeight: 400,
+    letterSpacing: "-0.016em",
+    lineHeight: 1.43,
+  },
+  footnote: {
+    fontFamily: FONT_SANS,
+    fontSize: 13,
+    fontWeight: 400,
+    letterSpacing: "-0.008em",
+    lineHeight: 1.38,
+  },
+  caption: {
+    fontFamily: FONT_SANS,
+    fontSize: 12,
+    fontWeight: 400,
+    letterSpacing: "-0.01em",
+    lineHeight: 1.33,
+  },
+  tab: {
+    fontFamily: FONT_SANS,
+    fontSize: 10,
+    fontWeight: 500,
+    letterSpacing: "-0.01em",
+    lineHeight: 1.2,
+  },
+};
 
 /** Brand palette — dark broadcast studio, editorial contrast */
 export const color = {
-  ink: "#F7F8FA",
-  body: "#C9CED6",
-  muted: "#A4AAB4",
-  faint: "#6E7683",
+  ink: "#F5F5F7",
+  body: "#A1A1A6",
+  muted: "#86868B",
+  faint: "#6E6E73",
+  /** Apple Store dark-mode link */
+  link: "#2997FF",
   line: "rgba(255, 255, 255, 0.08)",
   lineStrong: "rgba(255, 255, 255, 0.14)",
   surface: "rgba(21, 24, 28, 0.72)",
@@ -213,11 +286,11 @@ export const radio = {
     "linear-gradient(90deg, rgba(101,230,255,0.45) 0%, rgba(101,230,255,0.95) 55%, rgba(231,235,240,0.95) 100%)",
   lcdGlow: "0 0 12px rgba(101,230,255,0.45)",
   label: {
-    fontFamily: fontMono,
-    fontSize: 10,
-    fontWeight: 700,
-    letterSpacing: 1.4,
-    textTransform: "uppercase",
+    fontFamily: font,
+    fontSize: 11,
+    fontWeight: 600,
+    letterSpacing: 0.04,
+    textTransform: "none",
   },
 };
 
@@ -284,11 +357,11 @@ export function hardwareKey(opts = { pressed: false, size: "md" }) {
     background: hardware.keyFace,
     boxShadow: pressed ? hardware.keyPressed : hardware.keyRaised,
     color: pressed ? y2k.chromeBright : color.body,
-    fontFamily: fontMono,
-    fontSize: 11,
-    fontWeight: 800,
-    letterSpacing: 0.9,
-    textTransform: "uppercase",
+    fontFamily: font,
+    fontSize: 13,
+    fontWeight: 600,
+    letterSpacing: -0.16,
+    textTransform: "none",
     cursor: "pointer",
     WebkitTapHighlightColor: "transparent",
   };
@@ -356,55 +429,49 @@ export const homeSpace = {
 };
 
 /**
- * Section title — clean iOS editorial, flush with rail gutter.
+ * Section title — Apple Store product header, flush with rail gutter.
  * Shared optical left edge across Channel Surfing / shelves / tonight.
  */
 export const sectionTitle = {
-  fontFamily: fontDisplay,
-  fontSize: 22,
-  fontWeight: 700,
-  letterSpacing: -0.45,
-  lineHeight: 1.15,
+  ...type.title,
   color: y2k.offWhite,
   margin: 0,
   textTransform: "none",
 };
 
-/** Home band titles — Apple Music clean, same copy and layout. */
+/** Home band titles — same Apple Store face as every other headline. */
 export const sectionTitlePoster = {
   ...sectionTitle,
 };
 
 export const sectionSubtitle = {
-  margin: "4px 0 0",
-  fontSize: 14,
-  fontWeight: 500,
-  letterSpacing: -0.08,
-  lineHeight: 1.35,
+  ...type.body,
+  margin: "6px 0 0",
+  fontSize: 17,
+  fontWeight: 400,
   color: color.muted,
 };
 
-/** Quiet label above a Home band title — iOS editorial, not a stamp. */
+/** Quiet label above a Home band title — Store kicker, not a stamp. */
 export const sectionEyebrow = {
-  fontFamily: font,
-  fontSize: 13,
+  ...type.caption,
   fontWeight: 600,
-  letterSpacing: -0.08,
   textTransform: "none",
   color: color.muted,
   margin: "0 0 4px",
-  lineHeight: 1.2,
 };
 
 export const sectionEyebrowLcd = {
   ...sectionEyebrow,
-  fontFamily: fontLcd,
-  fontSize: 11,
-  fontWeight: 700,
-  letterSpacing: 1.6,
-  textTransform: "uppercase",
-  color: y2k.cyan,
-  margin: "0 0 5px",
+};
+
+export const sectionAction = {
+  fontFamily: font,
+  fontSize: 17,
+  fontWeight: 400,
+  letterSpacing: "-0.022em",
+  textTransform: "none",
+  color: color.link,
 };
 
 /** Monitor bezel + LCD used by the Home stage and dock. */

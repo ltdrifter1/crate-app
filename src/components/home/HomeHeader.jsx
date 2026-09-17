@@ -55,9 +55,9 @@ export default function HomeHeader({
         <span
           style={{
             fontFamily: fontDisplay,
-            fontSize: 21,
-            fontWeight: 700,
-            letterSpacing: -0.55,
+            fontSize: 22,
+            fontWeight: 600,
+            letterSpacing: "-0.025em",
             lineHeight: 1,
             color: y2k.offWhite,
             whiteSpace: "nowrap",

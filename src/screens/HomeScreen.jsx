@@ -4,7 +4,6 @@ import {
   BTN_SECONDARY,
   color,
   fontDisplay,
-  fontLcd,
   glass,
   homeSpace,
   motion,
@@ -13,8 +12,8 @@ import {
 } from "../theme";
 import { countPlayableTracks } from "../lib/catalogLoad";
 import { getSceneChannel, SCENE_CHANNELS } from "../lib/sceneChannels";
-import { buildHomeCollections, recommendedPicks } from "../lib/homeCollections";
-import { rankChannelsForTaste, trackHitsPreferredChannels } from "../lib/onboardingTaste";
+import { buildHomeCollections } from "../lib/homeCollections";
+import { rankChannelsForTaste } from "../lib/onboardingTaste";
 import { runAfterPaint } from "../lib/afterPaint";
 import { useCurrentTrack } from "../usePlayerTransport";
 import HomeHeader from "../components/home/HomeHeader";
@@ -132,18 +131,18 @@ function HomeStandBy() {
       <div style={{ minWidth: 0 }}>
         <div
           style={{
-            fontFamily: fontLcd,
-            fontSize: 11,
-            fontWeight: 800,
-            letterSpacing: 2.2,
-            textTransform: "uppercase",
-            color: y2k.cyan,
+            fontFamily: fontDisplay,
+            fontSize: 12,
+            fontWeight: 600,
+            letterSpacing: "-0.01em",
+            textTransform: "none",
+            color: color.muted,
             marginBottom: 4,
           }}
         >
           Stand by
         </div>
-        <div style={{ fontSize: 14, fontWeight: 550, color: color.body, letterSpacing: -0.1 }}>
+        <div style={{ fontSize: 17, fontWeight: 400, color: color.body, letterSpacing: "-0.022em" }}>
           Pulling tonight&apos;s shelf
         </div>
       </div>
@@ -258,19 +257,6 @@ function HomeScreen({
   );
 
   const editorial = useMemo(() => buildHomeCollections(tracks), [tracks]);
-  const forYou = useMemo(() => {
-    if (!shelvesReady) return [];
-    const channelIds = taste?.channelIds || [];
-    return recommendedPicks(tracks, {
-      preferredGenres: taste?.genres || [],
-      taste,
-      userKey,
-      recentTrackIds,
-      dislikeTaste,
-      limit: 10,
-      channelHit: (t) => trackHitsPreferredChannels(t, channelIds),
-    }).picks;
-  }, [shelvesReady, tracks, taste, userKey, recentTrackIds, dislikeTaste]);
 
   const topRequested = useMemo(() => countdown.slice(0, 10), [countdown]);
   const liveShow = channelShow || airing?.show || null;
@@ -347,29 +333,6 @@ function HomeScreen({
           totalCount={tracks.length}
           onRetry={onRetryCatalog}
         />
-      )}
-
-      {/* MADE FOR YOU — onboarding-seeded slate */}
-      {shelvesReady && catalogReady && forYou.length > 0 && (
-        <MusicSection
-          title="Made for you"
-          subtitle={taste?.genres?.length ? "From the stations you tuned" : "A first mix"}
-          first={false}
-          delay={0.05}
-          poster
-        >
-          <Rail gap={16}>
-            {forYou.map(({ track, reason }) => (
-              <TrackCard
-                key={track.id}
-                track={track}
-                reason={reason}
-                active={activeId === track.id}
-                onClick={() => onPlayTrack?.(track, forYou.map((p) => p.track))}
-              />
-            ))}
-          </Rail>
-        </MusicSection>
       )}
 
       {/* ON TONIGHT — EPG band (below-fold; wait a frame so channel photos win the network) */}
