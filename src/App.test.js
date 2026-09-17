@@ -1,20 +1,25 @@
 import {
-  color, font, fontDisplay, ADMIN_UID, timeOfDayGradient, BRAND_TAGLINE,
+  color, font, fontDisplay, fontLcd, type, sectionTitle, ADMIN_UID, timeOfDayGradient, BRAND_TAGLINE,
   BRAND_NAME, dock, artShadow, aluminumGradient, hardware, hardwareKey, y2k, homeSpace
 } from './theme';
 
 test('theme exports core tokens', () => {
   expect(color.ink).toBeTruthy();
-  expect(color.accent).toMatch(/#7BA7FF/i);
+  expect(color.accent).toMatch(/#0A84FF/i);
   expect(color.onAccent).toMatch(/#080A0D/i);
   expect(color.canvas).toMatch(/#080A0D/i);
   expect(color.alert).toBeTruthy();
   expect(color.select).toMatch(/rgba/);
   expect(BRAND_TAGLINE).toMatch(/YOUR WORLD/i);
   expect(BRAND_NAME).toBe("Planet MP3");
-  expect(font).toMatch(/system-ui/);
+  expect(font).toMatch(/^"Inter"/);
   expect(font).toMatch(/-apple-system/);
+  expect(fontDisplay).toMatch(/Inter/);
   expect(fontDisplay).toMatch(/SF Pro Display/);
+  expect(font).not.toMatch(/^system-ui/);
+  expect(fontLcd).toMatch(/Inter/);
+  expect(type.title2.fontWeight).toBe(700);
+  expect(sectionTitle.fontSize).toBe(22);
   expect(y2k.chromeBright).toBeTruthy();
   expect(y2k.chrome).toMatch(/#B8BEC7/i);
   expect(y2k.cyan).toMatch(/#65E6FF/i);

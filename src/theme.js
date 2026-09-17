@@ -1,10 +1,12 @@
 // Design tokens — App Store / Apple Music system type on a dark studio canvas.
-// SF Pro throughout. No LCD mono, no display posters, no costume jewelry.
+// Inter is loaded as a webfont (public/index.html) and MUST sit first so the
+// face actually paints. Named “SF Pro” is not a web font; -apple-system maps
+// to San Francisco on Apple OS only. Inter is the licensed SF analog elsewhere.
 
 export const fontDisplay =
-  '-apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", Helvetica, Arial, sans-serif';
+  '"Inter", -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", Helvetica, Arial, sans-serif';
 export const font =
-  '-apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Helvetica Neue", Helvetica, Arial, sans-serif';
+  '"Inter", -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Helvetica Neue", Helvetica, Arial, sans-serif';
 export const fontMono =
   'ui-monospace, "SF Mono", SFMono-Regular, Menlo, Monaco, Consolas, monospace';
 /** Same as display — App Store never swaps in a costume headline face. */

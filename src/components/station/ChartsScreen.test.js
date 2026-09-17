@@ -59,14 +59,14 @@ describe("ChartsScreen", () => {
     });
     const h1 = div.querySelector("h1");
     expect(h1.textContent).toBe("Charts");
-    expect(h1.style.fontFamily).toContain("system-ui");
+    expect(h1.style.fontFamily).toContain("Inter");
     expect(h1.style.textTransform).not.toBe("uppercase");
 
     const scope = [...div.querySelectorAll('[aria-label="Chart scope"] [role="tab"]')].map((el) => el.textContent);
     expect(scope).toEqual(["Overall", "Channel", "Genre"]);
     scope.forEach((_, i) => {
       const btn = div.querySelectorAll('[aria-label="Chart scope"] [role="tab"]')[i];
-      expect(btn.style.fontFamily).toContain("system-ui");
+      expect(btn.style.fontFamily).toContain("Inter");
       expect(btn.style.textTransform).not.toBe("uppercase");
     });
 
@@ -120,7 +120,7 @@ describe("ChartsScreen", () => {
     const genres = [...div.querySelectorAll('[aria-label="Genre"] [role="tab"]')];
     expect(genres.map((el) => el.textContent)).toEqual(expect.arrayContaining(["Electronic", "Rock", "Metal"]));
     expect(genres[0].style.borderRadius).toBeFalsy();
-    expect(genres[0].style.fontFamily).toContain("system-ui");
+    expect(genres[0].style.fontFamily).toContain("Inter");
     expect(genres[0].style.textTransform).not.toBe("uppercase");
   });
 
@@ -155,9 +155,10 @@ describe("ChartsScreen", () => {
 });
 
 describe("Charts type tokens", () => {
-  test("display stack is iOS system-ui", () => {
-    expect(fontDisplay).toMatch(/system-ui/);
+  test("display stack is Inter-first Apple Store type", () => {
+    expect(fontDisplay).toMatch(/^"Inter"/);
     expect(fontDisplay).toMatch(/-apple-system/);
     expect(fontDisplay).toMatch(/SF Pro Display/);
+    expect(fontDisplay).not.toMatch(/^system-ui/);
   });
 });

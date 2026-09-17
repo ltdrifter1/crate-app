@@ -60,8 +60,8 @@ export default function BottomNavigation({ items = [], activeId, onSelect }) {
               style={{
                 fontFamily: fontDisplay,
                 fontSize: 10,
-                fontWeight: active ? 650 : 550,
-                letterSpacing: -0.08,
+                fontWeight: active ? 600 : 500,
+                letterSpacing: "-0.01em",
                 textTransform: "none",
                 overflow: "hidden",
                 textOverflow: "ellipsis",

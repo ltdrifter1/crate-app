@@ -384,6 +384,7 @@ describe("Home broadcast + four-tab IA", () => {
     });
     expect(onTuneSceneChannel).toHaveBeenCalled();
     expect(onTuneSceneChannel.mock.calls[0][0].id).toBe("local-pnw");
+    expect(div.textContent).not.toMatch(/Made for you/i);
   });
 
   test("Home paints Channel Surfing before the catalog arrives", async () => {
