@@ -197,10 +197,9 @@ export function railStorageKey() {
 export function readRailOpen() {
   try {
     const v = localStorage.getItem(railStorageKey());
-    if (v === "collapsed") return false;
-    return true;
+    return v === "open";
   } catch {
-    return true;
+    return false;
   }
 }
 

@@ -141,6 +141,26 @@ describe("HomeMessenger layout breakpoints", () => {
     expect(div.querySelector("[data-testid='messenger-pill']")).toBeNull();
   });
 
+  test("desktop starts collapsed on first visit", async () => {
+    localStorage.removeItem("planetmp3.stationChat.rail");
+    await act(async () => {
+      root.render(
+        React.createElement(HomeMessenger, {
+          variant: "desktop",
+          viewportWidth: 1280,
+          live: false,
+          uid: "u1",
+          presence: SAMPLE_PRESENCE,
+        })
+      );
+    });
+    expect(div.querySelector("[data-testid='home-messenger']").getAttribute("data-open")).toBe(
+      "false"
+    );
+    expect(div.querySelector("[data-testid='messenger-nub']")).toBeTruthy();
+    expect(div.querySelector("[data-testid='messenger-window']")).toBeNull();
+  });
+
   test("desktop open docks chat in the right column", async () => {
     await act(async () => {
       root.render(

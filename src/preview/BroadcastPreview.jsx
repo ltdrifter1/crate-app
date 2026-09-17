@@ -246,7 +246,7 @@ export default function BroadcastPreview() {
         <HomeMessenger
           variant="desktop"
           viewportWidth={1280}
-          defaultOpen
+          defaultOpen={false}
           live={false}
           uid="u1"
           displayName="Luke"

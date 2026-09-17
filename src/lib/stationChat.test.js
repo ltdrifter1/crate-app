@@ -14,6 +14,9 @@ import {
   buildChatPayload,
   onlineBuddies,
   recentChatMessages,
+  readRailOpen,
+  writeRailOpen,
+  railStorageKey,
   CHAT_HISTORY_MS,
   CHAT_MAX_TEXT,
   CHAT_MIN_INTERVAL_MS,
@@ -125,6 +128,15 @@ describe("stationChat layout breakpoints", () => {
     expect(mobileChatPillBottomPx(false)).toBe(dock.clearTabs + 10);
     expect(mobileChatPillBottomPx(true)).toBe(dock.clearPlayer + 10);
     expect(mobileChatPillBottomPx(true)).toBeGreaterThan(mobileChatPillBottomPx(false));
+  });
+
+  test("chat rail starts collapsed until the listener opens it", () => {
+    localStorage.removeItem(railStorageKey());
+    expect(readRailOpen()).toBe(false);
+    writeRailOpen(true);
+    expect(readRailOpen()).toBe(true);
+    writeRailOpen(false);
+    expect(readRailOpen()).toBe(false);
   });
 });
 
