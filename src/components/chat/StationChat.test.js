@@ -125,7 +125,6 @@ describe("HomeMessenger layout breakpoints", () => {
           viewportWidth: 1280,
           defaultOpen: false,
           live: false,
-          roomBots: false,
           uid: "u1",
           presence: SAMPLE_PRESENCE,
         })
@@ -148,7 +147,6 @@ describe("HomeMessenger layout breakpoints", () => {
           viewportWidth: 1280,
           defaultOpen: true,
           live: false,
-          roomBots: false,
           uid: "u1",
           messages: SAMPLE_MESSAGES,
           presence: SAMPLE_PRESENCE,
@@ -169,7 +167,6 @@ describe("HomeMessenger layout breakpoints", () => {
           viewportWidth: 390,
           defaultOpen: false,
           live: false,
-          roomBots: false,
           uid: "u1",
           hasDockPlayer: true,
           presence: SAMPLE_PRESENCE,
@@ -202,7 +199,6 @@ describe("HomeMessenger layout breakpoints", () => {
           viewportWidth: 1600,
           defaultOpen: true,
           live: false,
-          roomBots: false,
           uid: "u1",
           messages: SAMPLE_MESSAGES,
         })
@@ -221,7 +217,6 @@ describe("HomeMessenger layout breakpoints", () => {
           viewportWidth: CHAT_DESKTOP_MIN - 20,
           defaultOpen: false,
           live: false,
-          roomBots: false,
         })
       );
     });
@@ -231,7 +226,7 @@ describe("HomeMessenger layout breakpoints", () => {
     expect(div.querySelector("[data-testid='messenger-pill']")).toBeTruthy();
   });
 
-  test("human-like bots keep the ice room active", async () => {
+  test("chat is humans only — no seeded bot thread", async () => {
     await act(async () => {
       root.render(
         React.createElement(HomeMessenger, {
@@ -239,14 +234,14 @@ describe("HomeMessenger layout breakpoints", () => {
           viewportWidth: 1280,
           defaultOpen: true,
           live: false,
-          roomBots: true,
         })
       );
     });
     expect(div.textContent).toMatch(/Live chat/);
-    expect(div.textContent).toMatch(/Rio/);
-    expect(div.textContent).toMatch(/Sable/);
-    expect(div.textContent).toMatch(/this is the one i needed tonight/);
-    expect(div.querySelector("[data-testid='chat-message']")).toBeTruthy();
+    expect(div.textContent).toMatch(/Quiet on the station/);
+    expect(div.textContent).not.toMatch(/Rio/);
+    expect(div.textContent).not.toMatch(/Sable/);
+    expect(div.textContent).not.toMatch(/this is the one i needed tonight/);
+    expect(div.querySelector("[data-testid='chat-message']")).toBeNull();
   });
 });
