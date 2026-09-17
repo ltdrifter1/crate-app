@@ -149,14 +149,14 @@ export default function GlassDock({
 
             <button type="button" aria-label={track.liked ? "Unlike" : "Like"}
               onClick={(e) => { e.stopPropagation(); onLike(); }}
-              style={{ background: "none", border: "none", cursor: "pointer", color: track.liked ? y2k.chromeBright : color.faint, padding: 8 }}>
+              style={{ background: "none", border: "none", cursor: "pointer", color: track.liked ? color.ink : color.faint, padding: 8 }}>
               <span style={{ display: "flex", animation: track.liked ? "likePop 0.25s ease" : "none" }}>
                 <Icon name={track.liked ? "heart" : "heartempty"} size={16}/>
               </span>
             </button>
             <button type="button" aria-label="Dislike this track"
               onClick={(e) => { e.stopPropagation(); onDislike?.(); }}
-              style={{ background: "none", border: "none", cursor: "pointer", color: track.disliked ? color.alert || y2k.chromeBright : color.faint, padding: 8 }}>
+              style={{ background: "none", border: "none", cursor: "pointer", color: track.disliked ? color.alert : color.faint, padding: 8 }}>
               <Icon name={track.disliked ? "dislikefilled" : "dislike"} size={16}/>
             </button>
             {onShowQueue && (
