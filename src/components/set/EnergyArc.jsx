@@ -1,4 +1,4 @@
-import { y2k, chrome, fontMono, color } from "../../theme";
+import { y2k, chrome, fontMono } from "../../theme";
 import { energyArcPath, energyWaveformBars } from "../../lib/setBuilder";
 
 /**
@@ -32,11 +32,11 @@ export default function EnergyArc({
         borderRadius: 8,
         overflow: "hidden",
         background: `
-          linear-gradient(180deg, rgba(${tintRgb},0.08) 0%, transparent 42%),
-          linear-gradient(160deg, #0A1016 0%, #06090E 55%, #04060A 100%)
+          linear-gradient(180deg, rgba(111,191,58,0.1) 0%, transparent 42%),
+          linear-gradient(160deg, #1A2218 0%, #121610 55%, #0C0E0B 100%)
         `,
-        border: "1px solid rgba(101,230,255,0.18)",
-        boxShadow: "inset 0 2px 8px rgba(0,0,0,0.65), inset 0 1px 0 rgba(101,230,255,0.08)",
+        border: "1px solid rgba(18, 22, 16, 0.45)",
+        boxShadow: "inset 0 2px 8px rgba(0,0,0,0.45), inset 0 1px 0 rgba(111,191,58,0.12), 0 0 0 1px rgba(255,255,255,0.4)",
       }}
     >
       <svg
@@ -102,7 +102,7 @@ export default function EnergyArc({
               fontWeight: 700,
               letterSpacing: 0.8,
               textTransform: "uppercase",
-              color: color.faint,
+              color: y2k.cyan,
               overflow: "hidden",
               textOverflow: "ellipsis",
               whiteSpace: "nowrap",
