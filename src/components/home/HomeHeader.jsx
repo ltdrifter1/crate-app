@@ -54,8 +54,8 @@ export default function HomeHeader({
           style={{
             ...type.footnote,
             fontWeight: 600,
-            letterSpacing: 0.2,
-            textTransform: "uppercase",
+            letterSpacing: -0.2,
+            textTransform: "none",
             color: color.muted,
             marginBottom: 4,
           }}

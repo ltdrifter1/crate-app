@@ -20,8 +20,8 @@ function NavRow({ item, active, onClick }) {
         width: "100%",
         minHeight: 40,
         borderRadius: radius.sm,
-        background: active ? color.select : "transparent",
-        border: active ? `1px solid ${color.accentSoft}` : "1px solid transparent",
+        background: active ? "rgba(10, 132, 255, 0.22)" : "transparent",
+        border: "1px solid transparent",
         color: active ? color.ink : color.body,
         cursor: "pointer",
         display: "flex",
@@ -29,7 +29,7 @@ function NavRow({ item, active, onClick }) {
         gap: 10,
         padding: "8px 10px",
         textAlign: "left",
-        boxShadow: active ? `inset 0 1px 0 ${glass.highlight}` : "none",
+        boxShadow: "none",
       }}
     >
       <span style={{ width: 18, display: "flex", justifyContent: "center", flexShrink: 0, color: active ? color.accent : color.muted }}>
@@ -85,12 +85,9 @@ export default function AppSidebar({
         height: "100%",
         background: isDrawer
           ? color.canvas
-          : `
-            linear-gradient(180deg, rgba(38,43,51,0.8) 0%, rgba(26,29,35,0.45) 100%),
-            ${color.surfaceRaised}
-          `,
-        borderRight: isDrawer ? "none" : `1px solid ${glass.border}`,
-        boxShadow: isDrawer ? "none" : `inset -1px 0 0 ${glass.highlight}`,
+          : "rgba(28, 28, 30, 0.72)",
+        borderRight: isDrawer ? "none" : "1px solid rgba(255,255,255,0.06)",
+        boxShadow: "none",
         display: "flex",
         flexDirection: "column",
         padding: isDrawer ? "8px 12px 20px" : "18px 12px 16px",
@@ -173,8 +170,8 @@ export default function AppSidebar({
             width: "100%",
             height: 44,
             borderRadius: radius.sm,
-            background: activeId === "profile" ? color.select : "transparent",
-            border: `1px solid ${activeId === "profile" ? color.accentSoft : "transparent"}`,
+            background: activeId === "profile" ? "rgba(10, 132, 255, 0.22)" : "transparent",
+            border: "1px solid transparent",
             display: "flex",
             alignItems: "center",
             gap: 10,

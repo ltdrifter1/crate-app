@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState, memo } from "react";
 import {
-  chrome,
   chromeIconButton,
   color,
   font,
@@ -182,8 +181,8 @@ function ChartsTeaser({ rows = [], onPlayTrack, onOpenCharts, activeId }) {
                 fontWeight: 700,
                 fontVariantNumeric: "tabular-nums",
                 letterSpacing: -0.3,
-                color: rank === 1 ? y2k.cyan : color.muted,
-                textShadow: rank === 1 ? `0 0 10px rgba(${chrome.cyanRgb},0.35)` : "none",
+                color: rank === 1 ? color.ink : color.muted,
+                textShadow: "none",
               }}
             >
               {rank}
@@ -451,8 +450,7 @@ function ExploreScreen({
           inset: 0,
           pointerEvents: "none",
           background: `
-            radial-gradient(ellipse 80% 42% at 12% -8%, rgba(${chrome.cyanRgb},0.09) 0%, transparent 52%),
-            radial-gradient(ellipse 50% 30% at 100% 0%, rgba(123,167,255,0.05) 0%, transparent 46%)
+            radial-gradient(ellipse 80% 42% at 12% -8%, rgba(255,255,255,0.04) 0%, transparent 52%)
           `,
         }}
       />
@@ -511,8 +509,8 @@ function ExploreScreen({
           style={{
             marginTop: 16,
             height: 1,
-            background: `linear-gradient(90deg, rgba(${chrome.cyanRgb},0.4) 0%, rgba(255,255,255,0.1) 42%, transparent 100%)`,
-            boxShadow: `0 0 10px rgba(${chrome.cyanRgb},0.16)`,
+            background: "rgba(84, 84, 88, 0.45)",
+            boxShadow: "none",
           }}
         />
       </header>

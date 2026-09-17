@@ -2,11 +2,9 @@ import { useEffect, useRef, lazy, Suspense } from "react";
 import {
   artFrameStyle,
   artShadow,
-  broadcast,
   color,
   fontDisplay,
   homeSpace,
-  radio,
   y2k,
 } from "../../theme";
 import { usePlayerPlayback } from "../../usePlayerPlayback";
@@ -42,9 +40,9 @@ function MetaChip({ children }) {
         alignItems: "center",
         maxWidth: "100%",
         padding: "3px 8px",
-        borderRadius: 4,
-        border: "1px solid rgba(255,255,255,0.12)",
-        background: "rgba(8,10,13,0.45)",
+        borderRadius: 980,
+        border: "none",
+        background: "rgba(255,255,255,0.08)",
         fontFamily: fontDisplay,
         fontSize: 12,
         fontWeight: 600,
@@ -68,12 +66,10 @@ function LivePlate({ live }) {
         display: "inline-flex",
         alignItems: "center",
         gap: 7,
-        padding: "5px 9px 5px 8px",
-        borderRadius: 4,
-        background: live ? "rgba(255,51,79,0.16)" : "rgba(8,10,13,0.55)",
-        border: live
-          ? "1px solid rgba(255,51,79,0.55)"
-          : "1px solid rgba(255,255,255,0.12)",
+        padding: "4px 9px 4px 8px",
+        borderRadius: 980,
+        background: live ? "rgba(255,69,58,0.16)" : "rgba(255,255,255,0.08)",
+        border: "none",
         boxShadow: "none",
         flexShrink: 0,
       }}
@@ -112,9 +108,9 @@ function ChannelIdent({ bugLine, slug }) {
         display: "inline-flex",
         alignItems: "stretch",
         overflow: "hidden",
-        borderRadius: 4,
-        border: "1px solid rgba(255,255,255,0.16)",
-        background: "rgba(8,10,13,0.62)",
+        borderRadius: 980,
+        border: "none",
+        background: "rgba(255,255,255,0.08)",
         maxWidth: "100%",
       }}
     >
@@ -167,19 +163,15 @@ function ChromeIconButton({ label, icon, active = false, onClick, size = 42, ico
       style={{
         width: size,
         height: size,
-        borderRadius: 8,
+        borderRadius: "50%",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
         cursor: "pointer",
-        border: `1px solid ${active ? "rgba(231,235,240,0.32)" : "rgba(255,255,255,0.12)"}`,
-        background: active
-          ? "linear-gradient(180deg, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0.06) 100%)"
-          : radio.moduleFace,
+        border: "none",
+        background: active ? "rgba(255,255,255,0.16)" : "rgba(255,255,255,0.08)",
         color: y2k.offWhite,
-        boxShadow: active
-          ? "inset 0 1px 0 rgba(255,255,255,0.28), 0 0 14px rgba(101,230,255,0.12)"
-          : "inset 0 1px 0 rgba(255,255,255,0.14), inset 0 -1px 0 rgba(0,0,0,0.45)",
+        boxShadow: "none",
         flexShrink: 0,
       }}
     >
@@ -194,7 +186,7 @@ function JewelSleeve({ src, idleSrc, playing, eager = false, size = 148 }) {
     <span
       className="pmp-hero-sleeve"
       style={{
-        ...artFrameStyle({ size, radius: 10, active: playing }),
+        ...artFrameStyle({ size, radius: 8, active: playing }),
         flexShrink: 0,
         boxShadow: playing ? artShadow.active : artShadow.raised,
       }}
@@ -246,10 +238,9 @@ function JewelSleeve({ src, idleSrc, playing, eager = false, size = 148 }) {
           inset: 0,
           pointerEvents: "none",
           background: `
-            linear-gradient(135deg, rgba(255,255,255,0.18) 0%, transparent 38%),
-            linear-gradient(180deg, transparent 58%, rgba(8,10,13,0.38) 100%)
+            linear-gradient(180deg, transparent 62%, rgba(0,0,0,0.28) 100%)
           `,
-          boxShadow: "inset 0 1px 0 rgba(255,255,255,0.2), inset 0 0 0 1px rgba(255,255,255,0.08)",
+          boxShadow: "none",
         }}
       />
     </span>
@@ -257,8 +248,8 @@ function JewelSleeve({ src, idleSrc, playing, eager = false, size = 148 }) {
 }
 
 /**
- * HeroPlayerCard — Home stage.
- * Modern MTV deck: framed sleeve (not full-bleed), channel ident, lower-third copy, hardware transport.
+ * HeroPlayerCard — Home now-playing.
+ * Music.app featured cut: cover-first, soft container, restrained chrome.
  */
 export default function HeroPlayerCard({
   track = null,
@@ -345,14 +336,14 @@ export default function HeroPlayerCard({
       className="pmp-hero pmp-hero-bezel"
       style={{
         position: "relative",
-        borderRadius: 16,
+        borderRadius: 18,
         overflow: "hidden",
-        minHeight: 280,
+        minHeight: 300,
         width: "100%",
         cursor: playDisabled && !live ? "default" : "pointer",
-        border: broadcast.bezelBorder,
-        boxShadow: broadcast.bezelShadow,
-        background: y2k.artGradient,
+        border: "1px solid rgba(255,255,255,0.08)",
+        boxShadow: "0 12px 36px rgba(0,0,0,0.32)",
+        background: "rgba(28,28,30,0.72)",
         WebkitTapHighlightColor: "transparent",
         isolation: "isolate",
         display: "flex",
@@ -368,9 +359,8 @@ export default function HeroPlayerCard({
           zIndex: 0,
           overflow: "hidden",
           background: `
-            radial-gradient(80% 70% at 12% 20%, ${track?.color ? `${track.color}28` : "rgba(255,255,255,0.08)"} 0%, transparent 58%),
-            linear-gradient(180deg, rgba(18,22,28,0.2) 0%, rgba(8,10,13,0.82) 100%),
-            ${y2k.artGradient}
+            radial-gradient(70% 80% at 18% 20%, ${track?.color ? `${track.color}22` : "rgba(255,255,255,0.06)"} 0%, transparent 58%),
+            rgba(28,28,30,0.55)
           `,
         }}
       />
@@ -468,7 +458,7 @@ export default function HeroPlayerCard({
             idleSrc={art ? null : HERO_IDLE_ART}
             playing={live && isPlaying}
             eager={!!art}
-            size={168}
+            size={220}
           />
         )}
 
@@ -524,7 +514,7 @@ export default function HeroPlayerCard({
               letterSpacing: -0.7,
               lineHeight: 1.02,
               color: y2k.offWhite,
-              textShadow: "0 8px 28px rgba(0,0,0,0.45)",
+              textShadow: "none",
               overflow: "hidden",
               textOverflow: "ellipsis",
               display: "-webkit-box",
@@ -571,10 +561,10 @@ export default function HeroPlayerCard({
                 alignItems: "center",
                 gap: 10,
                 width: "100%",
-                padding: "8px 10px",
-                borderRadius: 8,
-                border: "1px solid rgba(255,255,255,0.1)",
-                background: "rgba(8,10,13,0.42)",
+                padding: "8px 0 0",
+                borderRadius: 0,
+                border: "none",
+                background: "transparent",
               }}
             >
               {upNextTrack.albumCover ? (
@@ -640,13 +630,10 @@ export default function HeroPlayerCard({
           position: "relative",
           zIndex: 3,
           marginTop: "auto",
-          padding: `10px ${homeSpace.gutter - 6}px 12px`,
-          background: `
-            linear-gradient(180deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.02) 36%, transparent 100%),
-            rgba(8,10,13,0.55)
-          `,
-          borderTop: "1px solid rgba(255,255,255,0.1)",
-          boxShadow: "inset 0 1px 0 rgba(255,255,255,0.08)",
+          padding: `12px ${homeSpace.gutter - 6}px 14px`,
+          background: "transparent",
+          borderTop: "1px solid rgba(255,255,255,0.06)",
+          boxShadow: "none",
         }}
       >
         <div
@@ -696,20 +683,20 @@ export default function HeroPlayerCard({
                   aria-hidden="true"
                   style={{
                     flex: 1,
-                    height: 3,
+                    height: 4,
                     borderRadius: 999,
-                    background: broadcast.lcdTrack,
+                    background: "rgba(255,255,255,0.14)",
                     overflow: "hidden",
-                    boxShadow: "inset 0 1px 2px rgba(0,0,0,0.45)",
+                    boxShadow: "none",
                   }}
                 >
                   <div
                     style={{
                       height: "100%",
                       width: `${pct * 100}%`,
-                      background: broadcast.lcdFill,
+                      background: "rgba(255,255,255,0.92)",
                       borderRadius: 999,
-                      boxShadow: broadcast.lcdGlow,
+                      boxShadow: "none",
                       transition: "width 0.2s linear",
                     }}
                   />
@@ -755,16 +742,16 @@ export default function HeroPlayerCard({
               }}
               className="pmp-press play-primary"
               style={{
-                height: 46,
-                padding: "0 20px",
-                borderRadius: 10,
-                border: "1px solid rgba(255,255,255,0.5)",
+                height: 44,
+                padding: "0 22px",
+                borderRadius: 980,
+                border: "none",
                 background: playDisabled
-                  ? "rgba(60,64,72,0.6)"
-                  : "linear-gradient(180deg, #FFFFFF 0%, #E7EBF0 55%, #C8CED6 100%)",
-                color: "#0B0C0F",
+                  ? "rgba(255,255,255,0.12)"
+                  : "#F5F5F7",
+                color: "#000000",
                 fontFamily: fontDisplay,
-                fontSize: 15,
+                fontSize: 16,
                 fontWeight: 600,
                 fontStyle: "normal",
                 letterSpacing: -0.2,
@@ -772,10 +759,10 @@ export default function HeroPlayerCard({
                 cursor: playDisabled ? "default" : "pointer",
                 display: "flex",
                 alignItems: "center",
-                gap: 10,
+                gap: 8,
                 boxShadow: playDisabled
                   ? "none"
-                  : "inset 0 1px 0 rgba(255,255,255,0.85), 0 10px 24px rgba(0,0,0,0.38)",
+                  : "0 6px 18px rgba(0,0,0,0.28)",
                 opacity: playDisabled ? 0.6 : 1,
               }}
             >

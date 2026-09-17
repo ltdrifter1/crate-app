@@ -1,5 +1,5 @@
 import {
-  chrome, color, dock, fontMono, glass, homeSpace, motion, radius,
+  chrome, color, dock, font, glass, homeSpace, motion, radius,
 } from "../../theme";
 import { hexToRgbStr } from "../../lib/harmony";
 import { useIsBuffering, useIsPlaying } from "../../usePlayerTransport";
@@ -118,11 +118,10 @@ export function CatalogSkeleton() {
         />
         <span
           style={{
-            fontFamily: fontMono,
-            fontSize: 11,
-            fontWeight: 700,
-            letterSpacing: 2,
-            textTransform: "uppercase",
+            fontFamily: font,
+            fontSize: 13,
+            fontWeight: 600,
+            letterSpacing: -0.08,
             color: color.muted,
           }}
         >

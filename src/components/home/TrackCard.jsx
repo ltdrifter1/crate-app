@@ -37,7 +37,7 @@ function TrackCard({
         src={track.albumCover || null}
         size={size}
         active={active}
-        radius={12}
+        radius={8}
       >
         {trackHasVideo(track) && (
           <span
