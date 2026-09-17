@@ -20,7 +20,7 @@ import {
 import { fmtTime, hexToRgbStr } from "../../lib/harmony";
 import { usePlayerPlayback } from "../../usePlayerPlayback";
 import { useIsPlaying } from "../../usePlayerTransport";
-import { EnergyShiftFeedback, EnergyShiftControl } from "../listen/EnergyShiftButton";
+import { EnergyShiftFeedback, EnergyShiftButton } from "../listen/EnergyShiftButton";
 import Icon from "../ui/Icon";
 import { IceOrbPlay } from "./OrbitalControls";
 import {
@@ -975,15 +975,7 @@ export default function ImmersivePlayer({
           >
             <EnergyShiftFeedback bottom="calc(100% + 14px)" />
 
-            <ChromeIconButton
-              onClick={() => onLike?.(currentTrack.id)}
-              label={currentTrack.liked ? "Unlike" : "Like"}
-              active={!!currentTrack.liked}
-            >
-              <span style={{ display: "flex", animation: currentTrack.liked ? "likePop 0.25s ease" : "none" }}>
-                <Icon name={currentTrack.liked ? "heart" : "heartempty"} size={18} />
-              </span>
-            </ChromeIconButton>
+            <EnergyShiftButton direction="down" size={56} stopPropagation={false} />
 
             <ChromeIconButton onClick={onPrev} label="Previous" size={48}>
               <Icon name="prev" size={20} />
@@ -1000,6 +992,27 @@ export default function ImmersivePlayer({
               <Icon name="skip" size={20} />
             </ChromeIconButton>
 
+            <EnergyShiftButton direction="up" size={56} stopPropagation={false} />
+          </div>
+
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 10,
+              marginTop: 12,
+            }}
+          >
+            <ChromeIconButton
+              onClick={() => onLike?.(currentTrack.id)}
+              label={currentTrack.liked ? "Unlike" : "Like"}
+              active={!!currentTrack.liked}
+            >
+              <span style={{ display: "flex", animation: currentTrack.liked ? "likePop 0.25s ease" : "none" }}>
+                <Icon name={currentTrack.liked ? "heart" : "heartempty"} size={18} />
+              </span>
+            </ChromeIconButton>
             <ChromeIconButton
               onClick={() => onDislike?.()}
               label="Dislike this track"
@@ -1007,10 +1020,6 @@ export default function ImmersivePlayer({
             >
               <Icon name={currentTrack.disliked ? "dislikefilled" : "dislike"} size={18} />
             </ChromeIconButton>
-
-            <div style={{ width: 44, display: "flex", justifyContent: "center" }}>
-              <EnergyShiftControl size={36} stopPropagation={false} />
-            </div>
           </div>
 
           <div

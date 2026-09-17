@@ -150,6 +150,10 @@ describe("Home broadcast + four-tab IA", () => {
     expect(div.textContent).toMatch(/Night Drive/);
     expect(div.textContent).toMatch(/Up next/i);
     expect(div.textContent).toMatch(/After Hours/);
+    expect(div.querySelector('[aria-label*="ease the pace"]')).toBeTruthy();
+    expect(div.querySelector('[aria-label*="lift the pace"]')).toBeTruthy();
+    expect(div.textContent).toMatch(/Ease/i);
+    expect(div.textContent).toMatch(/Lift/i);
     const seek = div.querySelector('[aria-label="Seek"]');
     expect(seek).toBeTruthy();
     await act(async () => {
@@ -178,7 +182,7 @@ describe("Home broadcast + four-tab IA", () => {
     expect(div.querySelector(".pmp-hero-wash")).toBeTruthy();
   });
 
-  test("live hero has energy-shift beaker and dislike, not a Request button", async () => {
+  test("live hero has turtle/rabbit paddles and dislike, not a Request button", async () => {
     await act(async () => {
       root.render(
         React.createElement(HeroPlayerCard, {
@@ -195,7 +199,8 @@ describe("Home broadcast + four-tab IA", () => {
       );
     });
     expect(div.textContent).not.toMatch(/\bRequest\b/);
-    expect(div.querySelector('[aria-label="Energy shift — speed up or slow down the mix"]')).toBeTruthy();
+    expect(div.querySelector('[aria-label*="ease the pace"]')).toBeTruthy();
+    expect(div.querySelector('[aria-label*="lift the pace"]')).toBeTruthy();
     expect(div.querySelector('[aria-label="Dislike this track"]')).toBeTruthy();
   });
 

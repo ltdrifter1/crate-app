@@ -18,7 +18,7 @@ import { trackHasVideo } from "../../lib/video";
 import Icon from "../ui/Icon";
 import CoverImage from "../ui/CoverImage";
 import { IceOrbPlay } from "../player/OrbitalControls";
-import { EnergyShiftControl } from "../listen/EnergyShiftButton";
+import { EnergyShiftFeedback, EnergyShiftButton } from "../listen/EnergyShiftButton";
 import { HERO_IDLE_ART, HERO_IDLE_FOCUS } from "../../lib/channelArt";
 import ScanlineWash from "./ScanlineWash";
 
@@ -460,7 +460,7 @@ export default function HeroPlayerCard({
             idleSrc={art ? null : HERO_IDLE_ART}
             playing={live && isPlaying}
             eager={!!art}
-            size={220}
+            size={248}
           />
         )}
 
@@ -648,6 +648,7 @@ export default function HeroPlayerCard({
         >
           {live ? (
             <>
+              <EnergyShiftButton direction="down" size={52} stopPropagation={false} />
               <ChromeIconButton label="Previous" icon="prev" onClick={onPrev} />
               <IceOrbPlay
                 isPlaying={isPlaying}
@@ -658,6 +659,7 @@ export default function HeroPlayerCard({
                 stopPropagation
               />
               <ChromeIconButton label="Next" icon="skip" onClick={onSkip} />
+              <EnergyShiftButton direction="up" size={52} stopPropagation={false} />
               <div
                 role={onSeek && duration ? "slider" : undefined}
                 aria-label={onSeek && duration ? "Seek" : undefined}
@@ -731,7 +733,6 @@ export default function HeroPlayerCard({
                   onClick={() => onDislike()}
                 />
               )}
-              <EnergyShiftControl size={40} stopPropagation={false} />
             </>
           ) : (
             <button
