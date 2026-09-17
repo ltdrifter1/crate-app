@@ -150,6 +150,10 @@ describe("Home broadcast + four-tab IA", () => {
     expect(div.textContent).toMatch(/Night Drive/);
     expect(div.textContent).toMatch(/Up next/i);
     expect(div.textContent).toMatch(/After Hours/);
+    expect(div.querySelector('[aria-label*="ease the pace"]')).toBeTruthy();
+    expect(div.querySelector('[aria-label*="lift the pace"]')).toBeTruthy();
+    expect(div.textContent).toMatch(/Ease/i);
+    expect(div.textContent).toMatch(/Lift/i);
     const seek = div.querySelector('[aria-label="Seek"]');
     expect(seek).toBeTruthy();
     await act(async () => {

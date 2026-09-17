@@ -7,7 +7,7 @@ import { color, glass, fontMono, hardware, hardwareKey } from "../../theme";
 import { useEnergyQueue } from "../../useEnergyQueue";
 import FlaskMark from "./FlaskMark";
 
-const PRESS_EASE = "cubic-bezier(0.34, 1.4, 0.64, 1)";
+const PRESS_EASE = "cubic-bezier(0.2, 0.8, 0.2, 1)";
 const LONG_PRESS_MS = 450;
 const PILL_MS = 1500;
 const CHIP_MS = 3200;
@@ -41,11 +41,17 @@ function TurtleIcon({ size = 15 }) {
 }
 
 /**
- * One energy-shift control. direction: "up" (rabbit) | "down" (turtle).
+ * One energy-shift paddle. direction: "up" (rabbit) | "down" (turtle).
  * Tap = ±10 BPM · long-press = ±5 / ±10 / ±20.
- * showLabel: tiny Lift/Ease caption under the icon (Cover Stage).
+ * Hardware key with EASE / LIFT + BPM — not a circular gimmick.
  */
-export function EnergyShiftButton({ direction = "up", size = 30, stopPropagation = true, showLabel = false }) {
+export function EnergyShiftButton({
+  direction = "up",
+  size = 48,
+  stopPropagation = true,
+  showLabel = true,
+  compact = false,
+}) {
   const up = direction === "up";
   const { increaseEnergy, decreaseEnergy, energyShift } = useEnergyQueue();
   const [pressed, setPressed] = useState(false);
@@ -57,6 +63,12 @@ export function EnergyShiftButton({ direction = "up", size = 30, stopPropagation
   const firedLongPress = useRef(false);
 
   const activeHere = energyShift.active && energyShift.direction === (up ? 1 : -1);
+  const bpmShown = activeHere
+    ? `${energyShift.bpmDelta > 0 ? "+" : "\u2212"}${Math.abs(Math.round(energyShift.bpmDelta || 10))} BPM`
+    : "\u00b110";
+  const label = up ? "Lift" : "Ease";
+  const paddleW = compact ? Math.max(40, size) : Math.max(52, size);
+  const paddleH = compact ? Math.max(40, size) : showLabel ? 56 : Math.max(44, size);
 
   const dispatch = (bpmStep) => {
     haptic(up ? 8 : [6, 30, 6]);
@@ -107,47 +119,62 @@ export function EnergyShiftButton({ direction = "up", size = 30, stopPropagation
         onClick={(e) => { if (stopPropagation) e.stopPropagation(); }}
         onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); dispatch(10); } }}
         style={{
-          width: size,
-          height: size,
-          borderRadius: "50%",
+          width: paddleW,
+          height: paddleH,
+          borderRadius: 8,
           display: "flex",
+          flexDirection: "column",
           alignItems: "center",
           justifyContent: "center",
+          gap: showLabel && !compact ? 2 : 0,
           cursor: "pointer",
-          color: activeHere ? color.ink : color.muted,
+          color: activeHere ? color.accent : color.ink,
           background: activeHere
-            ? `linear-gradient(180deg, rgba(40,45,53,0.82) 0%, rgba(28,32,38,0.55) 100%)`
-            : glass.fillStrong,
-          border: `1px solid ${activeHere ? color.lineStrong : glass.border}`,
-          backdropFilter: glass.blurSoft,
-          WebkitBackdropFilter: glass.blurSoft,
-          boxShadow: hovered || activeHere
-            ? `inset 0 1px 0 ${glass.highlight}, 0 0 0 3px ${color.accentSoft}, 0 4px 14px rgba(0,0,0,0.4)`
-            : `inset 0 1px 0 ${glass.highlight}, ${glass.shadowSoft}`,
-          transform: pressed ? "scale(0.88)" : hovered ? "scale(1.06)" : "scale(1)",
-          transition: `transform 0.28s ${PRESS_EASE}, box-shadow 0.35s ease, color 0.2s ease, border-color 0.2s ease`,
+            ? "linear-gradient(180deg, rgba(184,242,74,0.18) 0%, rgba(16,18,24,0.92) 100%)"
+            : hardware.keyFace,
+          border: `1px solid ${activeHere ? "rgba(184,242,74,0.5)" : "rgba(232,234,238,0.14)"}`,
+          boxShadow: activeHere
+            ? `${hardware.keyRaised}, 0 0 0 1px rgba(184,242,74,0.25)`
+            : hovered
+              ? `${hardware.keyRaised}, 0 0 0 2px ${color.accentSoft}`
+              : hardware.keyRaised,
+          transform: pressed ? "scale(0.96)" : "scale(1)",
+          transition: `transform 0.12s ${PRESS_EASE}, box-shadow 0.2s ease, color 0.2s ease, border-color 0.2s ease`,
           WebkitTapHighlightColor: "transparent",
           touchAction: "manipulation",
-          padding: 0,
+          padding: compact ? 0 : "4px 6px",
           flexShrink: 0,
         }}
       >
-        {up ? <RabbitIcon size={Math.round(size * 0.52)} /> : <TurtleIcon size={Math.round(size * 0.52)} />}
+        {up ? <RabbitIcon size={compact ? 15 : 17} /> : <TurtleIcon size={compact ? 15 : 17} />}
+        {showLabel && (
+          <span aria-hidden="true" style={{
+            fontSize: compact ? 8 : 9,
+            fontWeight: 800,
+            letterSpacing: compact ? 0.6 : 0.9,
+            textTransform: "uppercase",
+            fontFamily: fontMono,
+            color: activeHere ? color.accent : color.muted,
+            lineHeight: 1,
+            marginTop: 2,
+          }}>
+            {label}
+          </span>
+        )}
+        {showLabel && !compact && (
+          <span aria-hidden="true" style={{
+            fontSize: 9,
+            fontWeight: 700,
+            letterSpacing: 0.4,
+            fontFamily: fontMono,
+            fontVariantNumeric: "tabular-nums",
+            color: activeHere ? color.accent : color.faint,
+            lineHeight: 1,
+          }}>
+            {bpmShown}
+          </span>
+        )}
       </button>
-
-      {showLabel && (
-        <span aria-hidden="true" style={{
-          fontSize: 9,
-          fontWeight: 700,
-          letterSpacing: 0.8,
-          textTransform: "uppercase",
-          fontFamily: fontMono,
-          color: activeHere ? color.ink : color.faint,
-          lineHeight: 1,
-        }}>
-          {up ? "Lift" : "Ease"}
-        </span>
-      )}
 
       {showTip && (
         <span
@@ -546,6 +573,34 @@ export function EnergyShiftControl({
         </div>
       )}
     </span>
+  );
+}
+
+/**
+ * Turtle / Rabbit bookends for the device transport row.
+ */
+export function EnergyShiftPaddles({
+  compact = false,
+  stopPropagation = true,
+  size = 48,
+}) {
+  return (
+    <>
+      <EnergyShiftButton
+        direction="down"
+        size={size}
+        compact={compact}
+        showLabel
+        stopPropagation={stopPropagation}
+      />
+      <EnergyShiftButton
+        direction="up"
+        size={size}
+        compact={compact}
+        showLabel
+        stopPropagation={stopPropagation}
+      />
+    </>
   );
 }
 

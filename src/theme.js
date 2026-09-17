@@ -537,10 +537,10 @@ export const dock = {
   insetBottom: 12,
   radius: 16,
   tabH: 54,
-  playerH: 66,
+  playerH: 76,
   /** Content clearances (tabs only / with player), excluding safe-area. */
   clearTabs: 88,
-  clearPlayer: 176,
+  clearPlayer: 186,
 };
 
 /** Prefer radio.radius for media modules; keep these for sheets / legacy chrome. */

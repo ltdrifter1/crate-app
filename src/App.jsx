@@ -3389,8 +3389,8 @@ export default function App() {
     /></Suspense>
   ) : null;
 
-  // Cover Stage owns transport on Home while visible — sticky dock returns after scroll.
-  const hideDockPlayer = screen === "home" && !!currentTrack && !immersive && homeStageVisible;
+  // Mini-device stays visible on Home — hero is display, dock is transport.
+  const hideDockPlayer = false;
 
   // ── Ambient status — SR announcements, offline banner, buffering pill ────
   const ambientStatus = (
@@ -3509,7 +3509,7 @@ export default function App() {
             uid={firebaseUser?.uid || null}
             displayName={profile?.displayName || profile?.username || firebaseUser?.displayName || "Listener"}
             nowPlaying={currentTrack}
-            hasDockPlayer={!!currentTrack && !hideDockPlayer}
+            hasDockPlayer={!!currentTrack}
           />
         </Suspense>
       )}
@@ -3573,8 +3573,8 @@ export default function App() {
           maxWidth: (screen==="home" || screen==="explore" || screen==="charts" || screen==="favorites" || screen==="artist" || screen==="album") ? "none" : 960,
           margin:"0 auto",
           padding: (screen==="home" || screen==="explore" || screen==="charts" || screen==="favorites" || screen==="artist" || screen==="album")
-            ? `0 0 ${currentTrack && !(screen === "home" && homeStageVisible) ? 120 : 24}px`
-            : `24px 32px ${currentTrack && !(screen === "home" && homeStageVisible) ? 120 : 24}px`,
+            ? `0 0 ${currentTrack && !immersive ? 120 : 24}px`
+            : `24px 32px ${currentTrack && !immersive ? 120 : 24}px`,
         }}>
           <BgMist color={currentTrack?.color}/>
           <Pulse track={currentTrack}/>
@@ -3650,7 +3650,7 @@ export default function App() {
         </div>
         </>
         {/* Desktop mini-player — sticky when Cover Stage scrolls away on Home */}
-        {currentTrack && !immersive && !(screen === "home" && homeStageVisible) && (
+        {currentTrack && !immersive && (
           <Suspense fallback={null}>
           <DesktopMiniPlayer
             track={currentTrack}

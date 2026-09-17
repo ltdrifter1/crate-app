@@ -21,7 +21,7 @@ import HeroPlayerCard from "../components/home/HeroPlayerCard";
 import MusicSection, { Rail } from "../components/home/MusicSection";
 import ChannelSurfingSection from "../components/home/ChannelSurfingSection";
 import TrackCard from "../components/home/TrackCard";
-import CardContainer from "../components/home/CardContainer";
+import FeaturedPoster from "../components/home/FeaturedPoster";
 
 const TonightDeck = lazy(() =>
   import("../components/station/ShowGuide").then((m) => ({ default: m.TonightDeck }))
@@ -361,7 +361,7 @@ function HomeScreen({
 
       {/* MOST REQUESTED — larger featured sleeves */}
       {shelvesReady && catalogReady && topRequested.length > 0 && (
-        <div style={{ contentVisibility: "auto", containIntrinsicSize: "280px" }}>
+        <div style={{ contentVisibility: "auto", containIntrinsicSize: "360px" }}>
         <MusicSection
           title="Most Requested"
           subtitle="Tonight's countdown"
@@ -376,8 +376,17 @@ function HomeScreen({
           }
           delay={0.06}
         >
+          <FeaturedPoster
+            track={topRequested[0].track}
+            rank={topRequested[0].rank}
+            reason="Tonight's countdown"
+            active={activeId === topRequested[0].track.id}
+            onClick={() => onPlayTrack?.(topRequested[0].track, topRequested.map((e) => e.track))}
+          />
+          {topRequested.length > 1 && (
+          <div style={{ marginTop: 16 }}>
           <Rail gap={16}>
-            {topRequested.map(({ rank, track }) => (
+            {topRequested.slice(1).map(({ rank, track }) => (
               <TrackCard
                 key={track.id}
                 track={track}
@@ -388,6 +397,8 @@ function HomeScreen({
               />
             ))}
           </Rail>
+          </div>
+          )}
         </MusicSection>
         </div>
       )}
