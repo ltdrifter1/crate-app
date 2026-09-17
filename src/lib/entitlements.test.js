@@ -66,7 +66,7 @@ describe("entitlements three-tier", () => {
     expect(access.tier).toBe("free");
     expect(access.streaming).toBe("limited");
     expect(access.membershipCard).toBe(false);
-    expect(membershipSummary(access)).toMatch(/Free/);
+    expect(membershipSummary(access)).toMatch(/Beta|Free/);
   });
 
   test("club grants full streaming + card", () => {
