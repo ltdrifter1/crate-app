@@ -7,22 +7,24 @@ import { countdownScore } from "./station";
  *
  * Source mapping:
  *   01 Y2K Dance             → millennial house/garage/disco mix (not all Electronic)
- *   02 Variety Mix           → curator shelf (variety pad)
- *   03 Local                 → Audioasis batch upload (`batch` includes audioasis)
+ *   02 Psychedelic Rock      → psych / acid / space-rock (not the whole Rock lane)
+ *   03 Variety Mix           → curator shelf (variety pad)
+ *   04 Local                 → Audioasis batch upload (`batch` includes audioasis)
  *      Featured Channel Surfing station — larger broadcast tile (pinned when listing decorated dials)
- *   04 House                 → house / deep / tech-house / disco scenes
- *   05 Techno                → expansions batch / techno–warehouse scenes (was Electronic)
- *   06 UK Garage             → UKG / 2-step / broken-beat
- *   07 Dubstep               → dubstep / UK bass (not a 140bpm dump)
- *   08 Drum & Bass           → DnB / jungle / liquid scenes
- *   09 Emo & Shoegaze        → by genre
- *   10 Metal                 → metal batch upload (+ genre fallback)
- *   11 Punk                  → punk batch upload (+ keywords)
- *   12 Country & Folk        → country-folk batch upload (+ genre fallback)
- *   13 Ambient / Downtempo   → downtempo / trip-hop / ambient scenes
+ *   05 House                 → house / deep / tech-house / disco scenes
+ *   06 Techno                → expansions batch / techno–warehouse scenes (was Electronic)
+ *   07 UK Garage             → UKG / 2-step / broken-beat
+ *   08 Dubstep               → dubstep / UK bass (not a 140bpm dump)
+ *   09 Drum & Bass           → DnB / jungle / liquid scenes
+ *   10 Emo & Shoegaze        → by genre
+ *   11 Metal                 → metal batch upload (+ genre fallback)
+ *   12 Punk                  → punk batch upload (+ keywords)
+ *   13 Country & Folk        → country-folk batch upload (+ genre fallback)
+ *   14 Ambient / Downtempo   → downtempo / trip-hop / ambient scenes
  *
  * Batch uploads: set track.batch (or source) like audioasis-wave-1 —
  *   metal-wave-1 | punk-wave-1 | country-folk-wave-1 | house-wave-1 | techno-wave-1
+ *   | psych-wave-1
  */
 
 function singlesOnly(tracks = []) {
@@ -151,6 +153,47 @@ const HOUSE_GENRE_KEYWORDS = ["house", "deep house", "tech house", "disco", "ama
 const TECHNO_GENRE_KEYWORDS = ["techno", "minimal", "industrial", "acid"];
 const UK_GARAGE_GENRE_KEYWORDS = ["uk garage", "ukg", "2-step", "2 step", "speed garage", "broken beat"];
 const DUBSTEP_KEYWORDS = ["dubstep", "brostep", "post-dubstep", "post dubstep", "wobble"];
+const PSYCH_KEYWORDS = [
+  "psychedelic rock",
+  "psychedelic",
+  "psychedelia",
+  "psych-rock",
+  "psych rock",
+  "acid rock",
+  "acid-rock",
+  "krautrock",
+  "space rock",
+  "space-rock",
+  "garage psych",
+  "neo-psych",
+  "neopsych",
+  "lysergic",
+  "paisley underground",
+];
+
+const PSYCH_ARTISTS = [
+  "grateful dead",
+  "jefferson airplane",
+  "13th floor elevators",
+  "jimi hendrix",
+  "the jimi hendrix experience",
+  "pink floyd",
+  "tame impala",
+  "king gizzard",
+  "ty segall",
+  "wooden shjips",
+  "unknown mortal orchestra",
+  "brian jonestown massacre",
+  "spacemen 3",
+  "spiritualized",
+  "os mutantes",
+  "hawkwind",
+  "the doors",
+  "quicksilver messenger service",
+  "kikagaku moyo",
+  "the black angels",
+];
+
 const DUBSTEP_ARTISTS = [
   "skrillex",
   "burial",
@@ -195,6 +238,7 @@ const Y2K_DANCE_SCENES = [
 
 /** Batch / source prefixes for channel upload waves (Audioasis-style). */
 export const CHANNEL_BATCH_PREFIXES = {
+  "psychedelic-rock": ["psych-wave", "psychedelic", "acid-rock"],
   "variety-mix": ["variety", "curator", "variety-mix"],
   "local-pnw": ["audioasis"],
   house: ["house"],
@@ -215,18 +259,19 @@ export const VARIETY_CROSS_GENRE_LIMIT = 48;
 /** Pending catalog-source wiring (curator shelf / Audioasis / expansions / genre batches). */
 export const CHANNEL_SOURCE_NOTES = {
   "y2k-dance": { num: 1, source: "genre", note: "Y2K Dance — millennial house/garage/disco mix, not the whole Electronic lane" },
-  "variety-mix": { num: 2, source: "variety", note: "Variety Mix — curator batch (`variety-wave-N`) or cross-genre mix" },
-  "local-pnw": { num: 3, source: "audioasis", showcase: true, note: "Local — featured Channel Surfing station; Audioasis batch (`batch` includes audioasis)" },
-  house: { num: 4, source: "genre", note: "House — house/deep/tech-house/disco scenes, not the whole Electronic lane" },
-  techno: { num: 5, source: "expansions", note: "Techno — expansions batch (`expansions-wave-N`) + techno/warehouse scenes" },
-  "uk-garage": { num: 6, source: "genre", note: "UK Garage — UKG / 2-step / broken-beat, not the whole Electronic lane" },
-  dubstep: { num: 7, source: "genre", note: "Dubstep — dubstep/UK bass keywords + artists, not a 140bpm dump" },
-  "drum-and-bass": { num: 8, source: "genre", note: "Drum & Bass — DnB/jungle/liquid scenes, not the whole Electronic lane" },
-  shoegaze: { num: 9, source: "genre", note: "Emo & Shoegaze — match by genre/keywords" },
-  metal: { num: 10, source: "metal", note: "Metal — batch upload (`metal-wave-N`) + genre/scene fallback" },
-  punk: { num: 11, source: "punk", note: "Punk — batch upload (`punk-wave-N`) + keywords" },
-  "country-folk": { num: 12, source: "country-folk", note: "Country & Folk — batch upload (`country-folk-wave-N`) + genre fallback" },
-  downtempo: { num: 13, source: "genre", note: "Ambient / Downtempo — trip-hop / chill / ambient scenes" },
+  "psychedelic-rock": { num: 2, source: "genre", note: "Psychedelic Rock — psych/acid/space-rock, not the whole Rock lane" },
+  "variety-mix": { num: 3, source: "variety", note: "Variety Mix — curator batch (`variety-wave-N`) or cross-genre mix" },
+  "local-pnw": { num: 4, source: "audioasis", showcase: true, note: "Local — featured Channel Surfing station; Audioasis batch (`batch` includes audioasis)" },
+  house: { num: 5, source: "genre", note: "House — house/deep/tech-house/disco scenes, not the whole Electronic lane" },
+  techno: { num: 6, source: "expansions", note: "Techno — expansions batch (`expansions-wave-N`) + techno/warehouse scenes" },
+  "uk-garage": { num: 7, source: "genre", note: "UK Garage — UKG / 2-step / broken-beat, not the whole Electronic lane" },
+  dubstep: { num: 8, source: "genre", note: "Dubstep — dubstep/UK bass keywords + artists, not a 140bpm dump" },
+  "drum-and-bass": { num: 9, source: "genre", note: "Drum & Bass — DnB/jungle/liquid scenes, not the whole Electronic lane" },
+  shoegaze: { num: 10, source: "genre", note: "Emo & Shoegaze — match by genre/keywords" },
+  metal: { num: 11, source: "metal", note: "Metal — batch upload (`metal-wave-N`) + genre/scene fallback" },
+  punk: { num: 12, source: "punk", note: "Punk — batch upload (`punk-wave-N`) + keywords" },
+  "country-folk": { num: 13, source: "country-folk", note: "Country & Folk — batch upload (`country-folk-wave-N`) + genre fallback" },
+  downtempo: { num: 14, source: "genre", note: "Ambient / Downtempo — trip-hop / chill / ambient scenes" },
 };
 
 function trackTextBlob(track) {
@@ -406,7 +451,7 @@ export function isDowntempoTrack(track) {
 /**
  * Y2K Dance — millennial house/garage/disco mix, not the entire Electronic lane.
  * Coarse `genre: Electronic` used to last-resort infer as house and dump
- * the whole catalog onto CH-01 (and, with genres:["Electronic"], CH-05).
+ * the whole catalog onto CH-01 (and, with genres:["Electronic"], CH-06).
  */
 function isY2kDanceTrack(track) {
   if (!track) return false;
@@ -417,6 +462,36 @@ function isY2kDanceTrack(track) {
   const bpm = Number(track.bpm) || 0;
   const energy = Number(track.energy) || 5;
   return bpm >= 118 && bpm <= 130 && energy >= 4 && energy <= 8;
+}
+
+/**
+ * Psychedelic Rock — swirl and long-form guitar, not the entire Rock lane.
+ * Coarse `genre: Rock` used to dump indie/punk onto any guitar station.
+ */
+export function isPsychedelicRockTrack(track) {
+  if (!track) return false;
+  if (matchesChannelBatch(track, CHANNEL_BATCH_PREFIXES["psychedelic-rock"])) return true;
+  const rawGenre = String(track.genre || "").toLowerCase();
+  // Goa / psytrance is a dancefloor lane, not this station.
+  if (
+    keywordInText(rawGenre, "psytrance") ||
+    keywordInText(rawGenre, "psy trance") ||
+    keywordInText(rawGenre, "goa") ||
+    keywordInText(rawGenre, "goa trance")
+  ) {
+    return false;
+  }
+  if (trackMatchesScene(track, "psychedelic-rock")) return true;
+  if (genreHitsKeywords(track, PSYCH_KEYWORDS)) return true;
+  if (artistHitsBand(track, PSYCH_ARTISTS)) {
+    const g = normalizeGenre(track.genre);
+    if (!g || g === "Rock" || g === "Pop") return true;
+    return false;
+  }
+  if (!matchesKeywords(track, PSYCH_KEYWORDS)) return false;
+  const g = normalizeGenre(track.genre);
+  if (g === "Electronic" || g === "Metal" || g === "Hip-Hop") return false;
+  return true;
 }
 
 function genreHitsKeywords(track, keywords = []) {
@@ -565,8 +640,24 @@ export const SCENE_CHANNELS = [
     match: isY2kDanceTrack,
   },
   {
-    id: "variety-mix",
+    id: "psychedelic-rock",
     num: 2,
+    title: "Psychedelic Rock",
+    shortTitle: "Psychedelic Rock",
+    dialSlug: "PSYCH ROCK",
+    tagline: "Fuzz, swirl, and the long jam",
+    accent: "#9A7A98",
+    scenes: ["psychedelic-rock"],
+    genres: [],
+    vibe: "Psychedelic Rock",
+    source: "genre",
+    strict: true,
+    match: isPsychedelicRockTrack,
+    minTracks: 1,
+  },
+  {
+    id: "variety-mix",
+    num: 3,
     title: "Variety Mix",
     shortTitle: "Variety Mix",
     dialSlug: "VARIETY",
@@ -584,7 +675,7 @@ export const SCENE_CHANNELS = [
   },
   {
     id: "local-pnw",
-    num: 3,
+    num: 4,
     title: "Local",
     shortTitle: "Local",
     dialSlug: "LOCAL",
@@ -602,7 +693,7 @@ export const SCENE_CHANNELS = [
   },
   {
     id: "house",
-    num: 4,
+    num: 5,
     title: "House",
     shortTitle: "House",
     dialSlug: "HOUSE",
@@ -618,7 +709,7 @@ export const SCENE_CHANNELS = [
   },
   {
     id: "techno",
-    num: 5,
+    num: 6,
     title: "Techno",
     shortTitle: "Techno",
     dialSlug: "TECHNO",
@@ -634,7 +725,7 @@ export const SCENE_CHANNELS = [
   },
   {
     id: "uk-garage",
-    num: 6,
+    num: 7,
     title: "UK Garage",
     shortTitle: "UK Garage",
     dialSlug: "UK GARAGE",
@@ -650,7 +741,7 @@ export const SCENE_CHANNELS = [
   },
   {
     id: "dubstep",
-    num: 7,
+    num: 8,
     title: "Dubstep",
     shortTitle: "Dubstep",
     dialSlug: "DUBSTEP",
@@ -666,7 +757,7 @@ export const SCENE_CHANNELS = [
   },
   {
     id: "drum-and-bass",
-    num: 8,
+    num: 9,
     title: "Drum & Bass",
     shortTitle: "Drum & Bass",
     dialSlug: "DRUM BASS",
@@ -679,7 +770,7 @@ export const SCENE_CHANNELS = [
   },
   {
     id: "shoegaze",
-    num: 9,
+    num: 10,
     title: "Emo & Shoegaze",
     shortTitle: "Emo & Shoegaze",
     dialSlug: "EMO SHOE",
@@ -695,7 +786,7 @@ export const SCENE_CHANNELS = [
   },
   {
     id: "metal",
-    num: 10,
+    num: 11,
     title: "Metal",
     shortTitle: "Metal",
     dialSlug: "METAL",
@@ -712,7 +803,7 @@ export const SCENE_CHANNELS = [
   },
   {
     id: "punk",
-    num: 11,
+    num: 12,
     title: "Punk",
     shortTitle: "Punk",
     dialSlug: "PUNK",
@@ -729,7 +820,7 @@ export const SCENE_CHANNELS = [
   },
   {
     id: "country-folk",
-    num: 12,
+    num: 13,
     title: "Country & Folk",
     shortTitle: "Country & Folk",
     dialSlug: "COUNTRY",
@@ -746,7 +837,7 @@ export const SCENE_CHANNELS = [
   },
   {
     id: "downtempo",
-    num: 13,
+    num: 14,
     title: "Ambient / Downtempo",
     shortTitle: "Ambient / Downtempo",
     dialSlug: "DOWNTEMPO",
