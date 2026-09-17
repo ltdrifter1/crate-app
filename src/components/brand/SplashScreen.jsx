@@ -1,96 +1,16 @@
 /**
- * SplashScreen — initial auth boot.
- * Brand lockup stays hero-level; optional Lottie is a ring overlay only
- * when splash-loader.json is a real (non-PLACEHOLDER) animation.
+ * SplashScreen — auth / boot loading.
+ * CSS-only spinning planet (no Lottie on the critical path).
  */
-import { useEffect, useState, lazy, Suspense } from "react";
-import { BRAND_NAME, chrome, fontMono, motion, y2k } from "../../theme";
-import {
-  BRAND_LOCKUP_SRC,
-  BRAND_LOCKUP_SRCSET,
-  BRAND_LOCKUP_WEBP,
-} from "./BrandGlyphs";
-
-const PUBLIC_LOTTIE_URL = "/brand/splash-loader.json";
-
-const LazyLottie = lazy(() =>
-  import("lottie-react").then((m) => ({ default: m.default }))
-);
-
-function usePrefersReducedMotion() {
-  const [reduced, setReduced] = useState(false);
-  useEffect(() => {
-    if (typeof window === "undefined" || !window.matchMedia) return undefined;
-    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
-    const sync = () => setReduced(!!mq.matches);
-    sync();
-    mq.addEventListener?.("change", sync);
-    return () => mq.removeEventListener?.("change", sync);
-  }, []);
-  return reduced;
-}
-
-function isPlaceholderAnimation(data) {
-  if (!data || typeof data !== "object") return true;
-  const nm = String(data.nm || "");
-  return !nm || nm.startsWith("PLACEHOLDER");
-}
-
-function StaticLockup({ size, edge, reduced }) {
-  const sizes = typeof edge === "string" ? edge : `${size}px`;
-  return (
-    <picture>
-      <source type="image/webp" srcSet={BRAND_LOCKUP_WEBP} sizes={sizes} />
-      <img
-        src={BRAND_LOCKUP_SRC}
-        srcSet={BRAND_LOCKUP_SRCSET}
-        sizes={sizes}
-        alt={BRAND_NAME}
-        width={size}
-        height={size}
-        draggable={false}
-        decoding="async"
-        fetchPriority="high"
-        style={{
-          width: "100%",
-          height: "100%",
-          display: "block",
-          objectFit: "contain",
-          background: "transparent",
-          position: "relative",
-          zIndex: 1,
-          animation: reduced ? "none" : `splashLockupIn 0.7s ${motion.ease} both`,
-        }}
-      />
-    </picture>
-  );
-}
+import { color, font, motion } from "../../theme";
 
 /**
  * @param {object} [props]
- * @param {number} [props.size=220] — logo edge length (responsive capped)
- * @param {string} [props.label="Loading…"] — visible boot status copy
+ * @param {number} [props.size=176] — planet edge length (responsive capped)
+ * @param {string} [props.label="Loading"] — visible boot status copy
  */
-export default function SplashScreen({ size = 220, label = "Loading…" } = {}) {
-  const reduced = usePrefersReducedMotion();
-  const [animation, setAnimation] = useState(null);
-
-  useEffect(() => {
-    let cancelled = false;
-    fetch(PUBLIC_LOTTIE_URL, { cache: "no-cache" })
-      .then((r) => (r.ok ? r.json() : null))
-      .then((data) => {
-        if (cancelled) return;
-        if (data && !isPlaceholderAnimation(data)) {
-          setAnimation(data);
-        }
-      })
-      .catch(() => {});
-    return () => { cancelled = true; };
-  }, []);
-
-  const edge = `min(${size}px, 56vw)`;
-  const playLottie = !!animation && !reduced;
+export default function SplashScreen({ size = 176, label = "Loading" } = {}) {
+  const edge = `min(${size}px, 46vw)`;
 
   return (
     <div
@@ -98,6 +18,7 @@ export default function SplashScreen({ size = 220, label = "Loading…" } = {}) 
       aria-live="polite"
       aria-busy="true"
       aria-label={label}
+      className="pmp-splash"
       style={{
         minHeight: "100dvh",
         width: "100%",
@@ -105,8 +26,12 @@ export default function SplashScreen({ size = 220, label = "Loading…" } = {}) 
         flexDirection: "column",
         alignItems: "center",
         justifyContent: "center",
-        gap: 22,
-        background: "transparent",
+        gap: 28,
+        background: `
+          radial-gradient(ellipse 70% 48% at 50% 42%, rgba(184,242,74,0.07) 0%, transparent 58%),
+          radial-gradient(ellipse 90% 70% at 50% 100%, rgba(18,20,26,0.9) 0%, transparent 55%),
+          ${color.canvas}
+        `,
         position: "relative",
         overflow: "hidden",
         margin: 0,
@@ -114,96 +39,36 @@ export default function SplashScreen({ size = 220, label = "Loading…" } = {}) 
         boxSizing: "border-box",
       }}
     >
-      <style>{`
-        @keyframes splashLockupIn {
-          from { opacity: 0; transform: scale(0.94); }
-          to { opacity: 1; transform: scale(1); }
-        }
-        @keyframes splashRing {
-          0%, 100% { opacity: 0.35; transform: scale(0.92); }
-          50% { opacity: 0.7; transform: scale(1); }
-        }
-      `}</style>
       <div
-        style={{
-          width: edge,
-          height: edge,
-          maxWidth: "100%",
-          position: "relative",
-          flexShrink: 0,
-          userSelect: "none",
-          pointerEvents: "none",
-        }}
+        className="pmp-spin-planet"
+        aria-hidden="true"
+        style={{ width: edge, height: edge }}
       >
-        {/* Soft tuner ring — presence without replacing the brand lockup */}
-        <div
-          aria-hidden="true"
-          style={{
-            position: "absolute",
-            inset: "-8%",
-            borderRadius: "50%",
-            border: `1.5px solid rgba(${chrome.cyanRgb}, 0.45)`,
-            boxShadow: `0 0 24px rgba(${chrome.cyanRgb}, 0.18)`,
-            animation: reduced ? "none" : `splashRing 1.8s ${motion.ease} infinite`,
-            zIndex: 0,
-          }}
-        />
-        {playLottie && (
-          <Suspense fallback={null}>
-            <div
-              aria-hidden
-              style={{
-                position: "absolute",
-                inset: "-6%",
-                zIndex: 0,
-                opacity: 0.55,
-              }}
-            >
-              <LazyLottie
-                animationData={animation}
-                loop
-                autoplay
-                rendererSettings={{
-                  preserveAspectRatio: "xMidYMid meet",
-                  clearCanvas: true,
-                  progressiveLoad: true,
-                  hideOnTransparent: true,
-                }}
-                style={{ width: "100%", height: "100%", background: "transparent" }}
-              />
-            </div>
-          </Suspense>
-        )}
-        <StaticLockup size={size} edge={edge} reduced={reduced} />
+        <span className="pmp-spin-planet__bloom" />
+        <span className="pmp-spin-planet__ring" />
+        <span className="pmp-spin-planet__core">
+          <span className="pmp-spin-planet__map" />
+          <span className="pmp-spin-planet__shade" />
+          <span className="pmp-spin-planet__spec" />
+          <span className="pmp-spin-planet__limb" />
+        </span>
+        <span className="pmp-spin-planet__ring pmp-spin-planet__ring--inner" />
       </div>
-
       <p
+        className="pmp-splash-label"
         style={{
           margin: 0,
-          fontFamily: fontMono,
-          fontSize: 11,
-          fontWeight: 700,
-          letterSpacing: 2.4,
+          fontFamily: font,
+          fontSize: 13,
+          fontWeight: 500,
+          letterSpacing: "0.42em",
           textTransform: "uppercase",
-          color: y2k.chromeMid || "#8B939F",
-          animation: reduced ? "none" : `breathe 1.4s ${motion.ease} infinite`,
+          color: color.muted,
+          animation: `pmpSplashPulse 2.4s ${motion.ease} infinite`,
         }}
       >
         {label}
       </p>
-
-      {/* Quiet cyan hairline under the status — tuner signal */}
-      <div
-        aria-hidden="true"
-        style={{
-          width: 48,
-          height: 2,
-          borderRadius: 1,
-          background: `linear-gradient(90deg, transparent, rgba(${chrome.cyanRgb},0.65), transparent)`,
-          boxShadow: `0 0 12px rgba(${chrome.cyanRgb},0.35)`,
-          animation: reduced ? "none" : `breathe 1.4s ${motion.ease} infinite`,
-        }}
-      />
     </div>
   );
 }

@@ -26,3 +26,113 @@ body::before { display: none; }
     transition-duration: 0.01ms !important;
   }
 }
+
+/* Premium spinning planet — auth / HTML boot splash */
+.pmp-spin-planet {
+  position: relative;
+  flex-shrink: 0;
+  user-select: none;
+  pointer-events: none;
+  isolation: isolate;
+  perspective: 920px;
+  transform-style: preserve-3d;
+}
+.pmp-spin-planet__bloom {
+  position: absolute;
+  inset: 8%;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(184,242,74,0.22) 0%, rgba(184,242,74,0.05) 42%, transparent 70%);
+  filter: blur(12px);
+  z-index: 0;
+}
+.pmp-spin-planet__core {
+  position: absolute;
+  inset: 18%;
+  border-radius: 50%;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 34% 30%, #f3f5f8 0%, #b7c0cc 24%, #6d7786 52%, #2c333d 78%, #12151a 100%);
+  box-shadow:
+    0 28px 48px rgba(0,0,0,0.55),
+    0 0 0 1px rgba(255,255,255,0.08),
+    0 0 36px rgba(184,242,74,0.12);
+  z-index: 2;
+}
+.pmp-spin-planet__map {
+  position: absolute;
+  top: -12%;
+  bottom: -12%;
+  left: 0;
+  width: 200%;
+  background-image:
+    radial-gradient(ellipse 18% 14% at 16% 38%, rgba(18,22,28,0.42) 0 62%, transparent 64%),
+    radial-gradient(ellipse 22% 11% at 38% 58%, rgba(18,22,28,0.36) 0 60%, transparent 62%),
+    radial-gradient(ellipse 14% 18% at 58% 34%, rgba(18,22,28,0.4) 0 58%, transparent 60%),
+    radial-gradient(ellipse 20% 12% at 78% 62%, rgba(18,22,28,0.34) 0 60%, transparent 62%),
+    radial-gradient(ellipse 18% 14% at 66% 38%, rgba(18,22,28,0.42) 0 62%, transparent 64%),
+    radial-gradient(ellipse 22% 11% at 88% 58%, rgba(18,22,28,0.36) 0 60%, transparent 62%),
+    repeating-linear-gradient(90deg, transparent 0 26px, rgba(8,10,14,0.14) 26px 28px);
+  background-size: 50% 100%;
+  animation: pmpPlanetSpin 16s linear infinite;
+}
+.pmp-spin-planet__shade {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background:
+    linear-gradient(118deg, rgba(255,255,255,0.28) 0%, transparent 34%, transparent 55%, rgba(6,8,10,0.55) 100%);
+}
+.pmp-spin-planet__spec {
+  position: absolute;
+  width: 28%;
+  height: 16%;
+  left: 22%;
+  top: 16%;
+  border-radius: 50%;
+  background: radial-gradient(ellipse, rgba(255,255,255,0.55) 0%, transparent 70%);
+  filter: blur(1px);
+}
+.pmp-spin-planet__limb {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  box-shadow:
+    inset 0 0 0 1px rgba(184,242,74,0.18),
+    inset -10px -8px 18px rgba(184,242,74,0.08);
+  pointer-events: none;
+}
+.pmp-spin-planet__ring {
+  position: absolute;
+  left: -6%;
+  right: -6%;
+  height: 28%;
+  top: 36%;
+  border-radius: 50%;
+  border: 1.5px solid rgba(232,234,238,0.22);
+  transform: rotateX(72deg) rotateZ(-16deg);
+  box-shadow: 0 0 18px rgba(184,242,74,0.1);
+  animation: pmpPlanetRing 18s linear infinite;
+  z-index: 1;
+}
+.pmp-spin-planet__ring--inner {
+  left: 4%;
+  right: 4%;
+  height: 20%;
+  top: 40%;
+  border-color: rgba(184,242,74,0.28);
+  z-index: 3;
+  animation-duration: 12s;
+  animation-direction: reverse;
+}
+@keyframes pmpPlanetSpin {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+@keyframes pmpPlanetRing {
+  from { transform: rotateX(72deg) rotateZ(-16deg); }
+  to { transform: rotateX(72deg) rotateZ(344deg); }
+}
+@keyframes pmpSplashPulse {
+  0%, 100% { opacity: 0.42; }
+  50% { opacity: 0.92; }
+}
