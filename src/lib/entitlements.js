@@ -30,11 +30,10 @@ export const BETA_LAUNCH = true;
 export const PRICING_COMING_SOON = true;
 
 export const BETA_LAUNCH_COPY = {
-  kicker: "Beta launch",
-  title: "Free trial period",
-  blurb:
-    "This is a beta launch. Listen as much as you like — Club, Premium, and payments are coming soon.",
-  priceLabel: "Coming soon",
+  badge: "Beta",
+  profileNote:
+    "Planet MP3 is in beta. Full access is included during this trial period.",
+  priceLabel: "—",
 };
 
 export const BILLING = {
@@ -350,7 +349,7 @@ export function membershipSummary(access) {
   if (!access) return "Membership";
   if (access.reason === "admin") return "Admin · full access";
   if (access.reason === "premium") {
-    if (PRICING_COMING_SOON) return "Premium · coming soon";
+    if (PRICING_COMING_SOON) return "Premium";
     const bal = Number(access.creditBalance) || 0;
     return bal > 0
       ? `Premium · ${formatMoney(bal)} credit`
@@ -358,19 +357,19 @@ export function membershipSummary(access) {
   }
   if (access.reason === "club") {
     return PRICING_COMING_SOON
-      ? "Club · coming soon"
+      ? "Club"
       : `Club · ${access.priceLabel || formatPriceClub()}`;
   }
   if (access.reason === "trial") {
     const n = access.daysLeft ?? 0;
-    return n <= 1 ? "Club trial · 1 day left" : `Club trial · ${n} days left`;
+    return n <= 1 ? "Trial · 1 day left" : `Trial · ${n} days left`;
   }
   if (access.reason === "free") {
-    if (BETA_LAUNCH) return "Beta · free trial";
-    if (access.streaming === "full") return "Free";
+    if (BETA_LAUNCH) return "Beta";
+    if (access.streaming === "full") return "Member";
     return `Free · ${access.freePlaysPerDay || BILLING.freePlaysPerDay} plays/day`;
   }
-  return BETA_LAUNCH ? "Beta · free trial" : "Free";
+  return BETA_LAUNCH ? "Beta" : "Member";
 }
 
 export function planMarketingCopy() {
@@ -378,21 +377,17 @@ export function planMarketingCopy() {
   return [
     {
       id: PLAN_IDS.FREE,
-      name: BETA_LAUNCH ? "Beta trial" : "Free",
-      price: BETA_LAUNCH ? "Free now" : "\$0",
+      name: BETA_LAUNCH ? "Listening" : "Free",
+      price: BETA_LAUNCH ? "Included" : "\$0",
       blurb: BETA_LAUNCH
-        ? "Full streaming during the beta launch free trial."
+        ? "The full catalog, unlimited."
         : "Limited digital streaming.",
       perks: BETA_LAUNCH
-        ? [
-            "Unlimited listening while we are in beta",
-            "Browse the catalog",
-            "Save likes & taste",
-          ]
+        ? ["Unlimited listening", "Your likes and tastes", "Radio, charts, and sets"]
         : [
             `${BILLING.freePlaysPerDay} plays per day`,
             "Browse the catalog",
-            "Save likes & taste",
+            "Save likes and tastes",
           ],
     },
     {
@@ -400,13 +395,13 @@ export function planMarketingCopy() {
       name: "Club",
       price: comingSoon ? BETA_LAUNCH_COPY.priceLabel : formatPriceClub(),
       blurb: comingSoon
-        ? "Full streaming and your membership card. Pricing coming soon."
+        ? "Membership card and early Club Copy."
         : "Full streaming plus your membership card.",
       perks: [
-        "Unlimited streaming",
+        "Unlimited listening",
         "Digital membership card",
-        "Early access when Club Copy drops",
-        comingSoon ? "Checkout coming soon" : "This month’s picks",
+        "Early Club Copy access",
+        comingSoon ? "Available later" : "This month’s picks",
       ],
     },
     {
@@ -414,17 +409,15 @@ export function planMarketingCopy() {
       name: "Premium",
       price: comingSoon ? BETA_LAUNCH_COPY.priceLabel : formatPricePremium(),
       blurb: comingSoon
-        ? "Club Credit for Club Copy editions. Payments and pricing coming soon."
+        ? "Club Credit for physical editions."
         : `Pay ${formatMoney(BILLING.premium.price)} once a year — get ${formatMoney(BILLING.premium.creditGrant)} Club Credit for Club Copy editions.`,
       perks: [
         "Everything in Club",
         comingSoon
-          ? "Club Credit — coming soon"
+          ? "Club Credit"
           : `${formatMoney(BILLING.premium.creditGrant)} Club Credit on file`,
-        comingSoon
-          ? "Club Copy checkout coming soon"
-          : "Buy Club Copy with credit on liner notes",
-        comingSoon ? "No charges during the beta trial" : "Good for 12 months",
+        comingSoon ? "Physical editions" : "Buy Club Copy with credit on liner notes",
+        comingSoon ? "Available later" : "Good for 12 months",
       ],
     },
   ];

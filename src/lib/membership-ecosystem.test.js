@@ -46,7 +46,7 @@ describe("physicalStatus", () => {
   test("purchase stays off until commerce is live", () => {
     expect(PHYSICAL_COMMERCE_LIVE).toBe(false);
     expect(canPurchasePhysical(normalizePhysicalStatus("preorder"))).toBe(false);
-    expect(physicalCommerceHint(normalizePhysicalStatus("announced"))).toMatch(/coming soon/i);
+    expect(physicalCommerceHint(normalizePhysicalStatus("announced"))).toMatch(/isn’t available/i);
   });
 });
 

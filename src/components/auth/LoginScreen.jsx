@@ -9,6 +9,7 @@ import {
 import { authErrorMessage } from "../../lib/phone";
 import BrandTagline from "../brand/BrandTagline";
 import { BrandLockup } from "../brand/BrandGlyphs";
+import BetaBadge from "../billing/BetaLaunchNotice";
 
 /** Re-enable when Firebase phone + reCAPTCHA are configured for production. */
 const ENABLE_PHONE_SIGN_IN = false;
@@ -253,9 +254,7 @@ export default function LoginScreen({
               margin: 0,
             }}
           />
-          <div style={{ fontSize: 15, color: color.body, lineHeight: 1.5, maxWidth: 300 }}>
-            Beta launch — free trial. Club, Premium, and payments are coming soon.
-          </div>
+          <BetaBadge />
         </div>
 
         <div

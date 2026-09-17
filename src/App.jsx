@@ -44,7 +44,6 @@ import {
   BILLING,
   PAYWALL_ENABLED,
   PRICING_COMING_SOON,
-  BETA_LAUNCH_COPY,
 } from "./lib/entitlements";
 import { startCheckout, settleBillingReturn, stripBillingQuery } from "./lib/billing";
 import {
@@ -1411,7 +1410,7 @@ export default function App() {
 
   const handleSubscribe = useCallback(async (linkOrPlan, maybePlan) => {
     if (PRICING_COMING_SOON) {
-      showToast(BETA_LAUNCH_COPY.blurb);
+      showToast("Not available yet.");
       return;
     }
     let plan = "club";
@@ -1435,7 +1434,7 @@ export default function App() {
   const handlePurchasePhysical = useCallback(async (track, amount) => {
     if (!track?.id) return;
     if (!PHYSICAL_COMMERCE_LIVE || PRICING_COMING_SOON) {
-      showToast("Club Copy buying is coming soon — this beta is a free trial");
+      showToast("Not available yet.");
       return;
     }
     if (!firebaseUser) {

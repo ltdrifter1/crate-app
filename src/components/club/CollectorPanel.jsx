@@ -29,7 +29,7 @@ export default function CollectorPanel({
           color: color.body,
           lineHeight: 1.45,
         }}>
-          When Club Copy editions land, they show up here. Buying and pricing are coming soon — this beta is a free trial.
+          When Club Copy editions arrive, they’ll appear here.
         </div>
       </section>
     );
@@ -83,7 +83,7 @@ export default function CollectorPanel({
               </div>
               <div style={{ fontSize: 13, color: color.body, lineHeight: 1.4, marginBottom: 8 }}>
                 {c.cta?.line || c.label}
-                {memberPricing ? " · Club member pricing coming soon" : ""}
+                {memberPricing ? " · Member price" : ""}
               </div>
               <div style={{
                 fontSize: 11,

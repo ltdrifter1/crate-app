@@ -15,7 +15,6 @@ import {
   PAYWALL_ENABLED,
   PRICING_COMING_SOON,
   BETA_LAUNCH,
-  BETA_LAUNCH_COPY,
 } from "../../lib/entitlements";
 import { creditSummaryLine } from "../../lib/clubCredit";
 import { collectionStats } from "../../lib/collectionStats";
@@ -33,7 +32,7 @@ import { InterestsPanel } from "../listen/InterestsPanel";
 import FeatureGuidePanel from "../guide/FeatureGuidePanel";
 import CollectorPanel from "./CollectorPanel";
 import FreePlaysMeter from "../billing/FreePlaysMeter";
-import BetaLaunchNotice from "../billing/BetaLaunchNotice";
+import BetaBadge, { ProfileBetaNote } from "../billing/BetaLaunchNotice";
 import { freePlaysRemaining, freePlaysMeterLabel } from "../../lib/freePlays";
 import { TASTE_AXIS_DEFAULT } from "../../lib/tasteProfile";
 
@@ -43,67 +42,58 @@ const PRIVILEGES_BY_TIER = {
   free: [
     {
       id: "limited",
-      label: "Limited streaming",
-      blurb: `${BILLING.freePlaysPerDay} plays per day · browse and save taste`,
+      label: "Limited listening",
+      blurb: `${BILLING.freePlaysPerDay} plays a day`,
     },
     {
       id: "upgrade",
-      label: "Upgrade anytime",
-      blurb: PRICING_COMING_SOON
-        ? "Club and Premium pricing is coming soon"
-        : "Club unlocks the full crate and your membership card",
+      label: "Club",
+      blurb: "Unlock the full catalog and your card",
     },
   ],
   freeOpen: [
     {
       id: "crate",
-      label: "Full streaming",
-      blurb: BETA_LAUNCH
-        ? "Unlimited listening during the beta launch free trial"
-        : "Unlimited listening — every account is open for now",
+      label: "Unlimited listening",
+      blurb: "The full catalog, anytime",
     },
     {
       id: "save",
-      label: "Save your taste",
-      blurb: "Likes, mixes, and interests stay on your account",
-    },
-    {
-      id: "billing",
-      label: "Payments coming soon",
-      blurb: "Club, Premium, and Club Copy checkout aren’t live yet",
+      label: "Your library",
+      blurb: "Likes, mixes, and tastes stay with you",
     },
   ],
   club: [
     {
       id: "crate",
-      label: "Full streaming",
-      blurb: "Unlimited listening · harmonic radio · listening booth",
+      label: "Unlimited listening",
+      blurb: "Radio, booth, and the full catalog",
     },
     {
       id: "card",
       label: "Membership card",
-      blurb: "Digital card now · member pricing on Club Copy",
+      blurb: "Your number. Your shelf.",
     },
   ],
   premium: [
     {
       id: "crate",
-      label: "Full streaming",
-      blurb: "Everything in Club, unlimited",
+      label: "Unlimited listening",
+      blurb: "Everything in Club",
     },
     {
       id: "credit",
       label: "Club Credit",
       blurb: PRICING_COMING_SOON
-        ? "Club Credit for Club Copy — coming soon"
-        : `${formatMoney(BILLING.premium.creditGrant)} to spend on Club Copy from liner notes`,
+        ? "For physical editions"
+        : `${formatMoney(BILLING.premium.creditGrant)} toward Club Copy`,
     },
     {
       id: "physical",
-      label: "Physical access",
+      label: "Club Copy",
       blurb: PRICING_COMING_SOON
-        ? "Member pricing for Club Copy — coming soon"
-        : "Member pricing and Club Copy editions",
+        ? "Physical editions, later"
+        : "Member pricing on physical editions",
     },
   ],
 };
@@ -248,9 +238,6 @@ export default function ClubScreen({
           <FeatureGuidePanel onReplayTour={onReplayTour} />
         ) : (
           <>
-        {(BETA_LAUNCH || PRICING_COMING_SOON) && (
-          <BetaLaunchNotice compact style={{ marginBottom: 18 }} />
-        )}
         {/* Collectible membership card */}
         <div
           role="group"
@@ -341,18 +328,27 @@ export default function ClubScreen({
             </div>
             <div style={{
               flexShrink: 0,
-              padding: "6px 10px",
-              borderRadius: 8,
-              border: `1px solid ${glass.borderSoft}`,
-              background: "rgba(38,43,51,0.8)",
-              fontSize: 10,
-              fontWeight: 700,
-              letterSpacing: 1.4,
-              textTransform: "uppercase",
-              color: hasCard ? color.accent : color.muted,
-              fontFamily: fontMono,
+              display: "flex",
+              alignItems: "center",
             }}>
-              {tier === PLAN_IDS.PREMIUM ? "Premium" : hasCard ? "Club" : "Free"}
+              {BETA_LAUNCH && !hasCard ? (
+                <BetaBadge />
+              ) : (
+                <div style={{
+                  padding: "6px 10px",
+                  borderRadius: 8,
+                  border: `1px solid ${glass.borderSoft}`,
+                  background: "rgba(38,43,51,0.8)",
+                  fontSize: 10,
+                  fontWeight: 700,
+                  letterSpacing: 1.4,
+                  textTransform: "uppercase",
+                  color: hasCard ? color.accent : color.muted,
+                  fontFamily: fontMono,
+                }}>
+                  {tier === PLAN_IDS.PREMIUM ? "Premium" : hasCard ? "Club" : "Member"}
+                </div>
+              )}
             </div>
           </div>
 
@@ -443,6 +439,19 @@ export default function ClubScreen({
               Featured curator · {formatMonthLabel(curatorBadge)}
             </div>
           )}
+
+          {BETA_LAUNCH && (
+            <div
+              style={{
+                marginTop: 16,
+                paddingTop: 14,
+                borderTop: `1px solid ${glass.borderSoft}`,
+                position: "relative",
+              }}
+            >
+              <ProfileBetaNote />
+            </div>
+          )}
         </div>
 
         {/* Floor phase — record club “what’s on” */}
@@ -472,17 +481,17 @@ export default function ClubScreen({
             letterSpacing: -0.2,
             marginBottom: 4,
           }}>
-            The booth is open
+            The room is open
           </div>
           <div style={{ fontSize: 13, color: color.body, lineHeight: 1.45 }}>
             {floor.blurb}{" "}
             {hasCard
-              ? "Your membership keeps the crate unlocked."
-              : BETA_LAUNCH || !PAYWALL_ENABLED || access?.streaming === "full"
-                ? "Beta free trial — the crate is open. Listen as much as you like."
+              ? "Your membership keeps everything unlocked."
+              : !PAYWALL_ENABLED || access?.streaming === "full"
+                ? "Listen without limits."
                 : playsLabel
                   ? `${playsLabel}.`
-                  : `Free plan · ${BILLING.freePlaysPerDay} plays/day.`}
+                  : `${BILLING.freePlaysPerDay} plays a day.`}
           </div>
           {!hasCard && PAYWALL_ENABLED && (
             <div style={{ marginTop: 12 }}>
@@ -571,7 +580,7 @@ export default function ClubScreen({
 
         {/* Membership privileges */}
         <section style={{ marginBottom: 26 }}>
-          <div style={sectionLabel}>Member privileges</div>
+          <div style={sectionLabel}>Included</div>
           <ul style={{ listStyle: "none", margin: 0, padding: 0 }}>
             {privileges.map((p, i) => (
               <li
@@ -628,17 +637,17 @@ export default function ClubScreen({
           <div style={{ fontSize: 15, color: color.body, lineHeight: 1.45, marginBottom: 6 }}>
             {memberLine}
           </div>
-          <div style={{ fontSize: 14, color: color.muted, lineHeight: 1.45, marginBottom: 8 }}>
-            {PRICING_COMING_SOON || BETA_LAUNCH
-              ? BETA_LAUNCH_COPY.blurb
-              : tier === PLAN_IDS.PREMIUM
+          {!BETA_LAUNCH && (
+            <div style={{ fontSize: 14, color: color.muted, lineHeight: 1.45, marginBottom: 8 }}>
+              {tier === PLAN_IDS.PREMIUM
                 ? `Premium. ${creditLine}.`
                 : tier === PLAN_IDS.CLUB || access?.reason === "trial"
-                  ? "Club membership. Add Premium for Club Credit on Club Copy when billing is live."
+                  ? "Club membership."
                   : PAYWALL_ENABLED
-                    ? "Free · limited streaming. Club and Premium unlock more."
-                    : "Free · full streaming."}
-          </div>
+                    ? "Limited listening. Club unlocks the rest."
+                    : "Unlimited listening."}
+            </div>
+          )}
           {tier === PLAN_IDS.PREMIUM && !PRICING_COMING_SOON && (
             <div style={{ fontSize: 13, color: color.body, marginBottom: 14, lineHeight: 1.4 }}>
               {creditLine}
@@ -690,7 +699,7 @@ export default function ClubScreen({
               Review the guide
             </div>
             <div style={{ fontSize: 14, color: color.body, lineHeight: 1.4 }}>
-              Home, Explore, Library, the booth, Charts, the player, Club, and live chat — replay the short tour anytime.
+              A short tour of Home, Explore, Library, and the rest of the app.
             </div>
           </button>
         </section>

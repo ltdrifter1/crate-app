@@ -7,7 +7,7 @@ import { act } from "react-dom/test-utils";
 import PaywallScreen from "./PaywallScreen";
 
 describe("PaywallScreen beta", () => {
-  test("shows coming soon instead of prices or checkout", async () => {
+  test("shows membership without prices or checkout", async () => {
     const div = document.createElement("div");
     document.body.appendChild(div);
     const root = createRoot(div);
@@ -19,12 +19,12 @@ describe("PaywallScreen beta", () => {
         })
       );
     });
-    expect(div.textContent).toMatch(/Beta launch/i);
-    expect(div.textContent).toMatch(/Free trial period/i);
-    expect(div.textContent).toMatch(/Coming soon/);
+    expect(div.textContent).toMatch(/Membership/);
+    expect(div.textContent).toMatch(/Planet MP3 is in beta/);
     expect(div.textContent).not.toMatch(/\$0\.99/);
     expect(div.textContent).not.toMatch(/Opening Stripe/);
     expect(div.textContent).not.toMatch(/Manage billing in Stripe/);
+    expect(div.querySelector("[data-testid='beta-badge']")).toBeTruthy();
     await act(async () => {
       root.unmount();
     });

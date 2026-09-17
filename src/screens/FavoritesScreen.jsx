@@ -516,7 +516,7 @@ function FavoritesScreen({
           <div style={{ fontSize: 15, color: color.faint, paddingTop: 32, textAlign: "center" }}>
             {community
               ? "This playlist is empty"
-              : "This stack is empty — tap Add songs to file cuts."}
+              : "No songs yet. Add a few to get started."}
           </div>
         ) : openPlaylistTracks.map((t, index) => (
           <div key={t.id} style={{ display: "flex", alignItems: "stretch", gap: 4 }}>
@@ -1213,14 +1213,14 @@ function FavoritesScreen({
                   color: color.ink,
                   marginBottom: 8,
                 }}>
-                  {q ? `No liked songs match “${libQuery.trim()}”` : "Nothing liked yet"}
+                  {q ? `No songs match “${libQuery.trim()}”` : "No liked songs"}
                 </div>
                 <div style={{
                   fontSize: 14,
                   color: color.muted,
                   lineHeight: 1.45,
                 }}>
-                  {q ? "Try a different search." : "Heart a track anywhere and it lands here."}
+                  {q ? "Try another search." : "Songs you love live here."}
                 </div>
               </div>
             )}
