@@ -14,6 +14,8 @@ export const CHAT_MIN_INTERVAL_MS = 2500;
 export const CHAT_PRESENCE_TTL_MS = 90_000;
 export const CHAT_HEARTBEAT_MS = 25_000;
 export const CHAT_MESSAGE_LIMIT = 80;
+/** Live thread only keeps this much history. */
+export const CHAT_HISTORY_MS = 30 * 60 * 1000;
 export const CHAT_DESKTOP_MIN = 768;
 export const CHAT_WIDE_BOTH = 1440;
 export const CHAT_NUB_WIDTH = 52;
@@ -107,6 +109,16 @@ export function mapChatDoc(id, data = {}, now = Date.now()) {
     trackTitle: data.trackTitle ? String(data.trackTitle).slice(0, 80) : null,
     clientId: data.clientId ? String(data.clientId).slice(0, 40) : null,
   };
+}
+
+export function isChatHistoryFresh(createdAt, now = Date.now(), windowMs = CHAT_HISTORY_MS) {
+  const t = toMillis(createdAt, 0);
+  if (!t) return true;
+  return now - t <= windowMs;
+}
+
+export function recentChatMessages(messages = [], now = Date.now(), windowMs = CHAT_HISTORY_MS) {
+  return messages.filter((m) => m && isChatHistoryFresh(m.createdAt, now, windowMs));
 }
 
 export function mergeChatMessages(remote = [], optimistic = []) {

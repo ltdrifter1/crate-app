@@ -9,6 +9,7 @@ import {
   desktopMessengerPlacement,
   mobileChatPillBottomPx,
   readRailOpen,
+  recentChatMessages,
   writeRailOpen,
   CHAT_NUB_WIDTH,
 } from "../../lib/stationChat";
@@ -64,7 +65,7 @@ export default function HomeMessenger({
     enabled: live,
   });
 
-  const messages = messagesProp || chat.messages;
+  const messages = recentChatMessages(messagesProp || chat.messages);
   const presence = presenceProp || chat.presence;
   const send = onSendProp || chat.send;
 

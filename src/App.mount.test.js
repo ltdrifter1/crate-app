@@ -58,6 +58,7 @@ jest.mock("firebase/firestore", () => ({
   increment: jest.fn(),
   where: jest.fn(),
   limit: jest.fn(),
+  Timestamp: { fromMillis: (ms) => ({ toMillis: () => ms }) },
 }));
 
 test("App mounts without TDZ (toggleLike / keyboard shortcuts)", async () => {

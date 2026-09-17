@@ -20,6 +20,8 @@ jest.mock("firebase/firestore", () => ({
   query: jest.fn(() => ({})),
   serverTimestamp: jest.fn(() => ({ seconds: 1 })),
   setDoc: jest.fn(async () => {}),
+  Timestamp: { fromMillis: (ms) => ({ toMillis: () => ms }) },
+  where: jest.fn(() => ({})),
 }));
 
 import HomeMessenger from "./HomeMessenger";
@@ -243,5 +245,39 @@ describe("HomeMessenger layout breakpoints", () => {
     expect(div.textContent).not.toMatch(/Sable/);
     expect(div.textContent).not.toMatch(/this is the one i needed tonight/);
     expect(div.querySelector("[data-testid='chat-message']")).toBeNull();
+  });
+
+  test("only shows messages from the last 30 minutes", async () => {
+    const now = Date.now();
+    await act(async () => {
+      root.render(
+        React.createElement(HomeMessenger, {
+          variant: "desktop",
+          viewportWidth: 1280,
+          defaultOpen: true,
+          live: false,
+          uid: "u1",
+          messages: [
+            {
+              id: "old",
+              uid: "u2",
+              displayName: "Mira",
+              text: "from last night",
+              createdAt: now - 31 * 60_000,
+            },
+            {
+              id: "fresh",
+              uid: "u1",
+              displayName: "Luke",
+              text: "still on this channel",
+              createdAt: now - 5 * 60_000,
+            },
+          ],
+        })
+      );
+    });
+    expect(div.textContent).toMatch(/still on this channel/);
+    expect(div.textContent).not.toMatch(/from last night/);
+    expect(div.querySelectorAll("[data-testid='chat-message']")).toHaveLength(1);
   });
 });
