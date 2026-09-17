@@ -42,13 +42,13 @@ function MetaChip({ children }) {
         padding: "3px 8px",
         borderRadius: 980,
         border: "none",
-        background: "rgba(255,255,255,0.08)",
+        background: "rgba(255,255,255,0.72)",
         fontFamily: fontDisplay,
         fontSize: 12,
         fontWeight: 600,
         letterSpacing: -0.08,
         textTransform: "none",
-        color: "rgba(244,246,248,0.78)",
+        color: color.ink,
         overflow: "hidden",
         textOverflow: "ellipsis",
         whiteSpace: "nowrap",
@@ -68,7 +68,7 @@ function LivePlate({ live }) {
         gap: 7,
         padding: "4px 9px 4px 8px",
         borderRadius: 980,
-        background: live ? "rgba(255,69,58,0.16)" : "rgba(255,255,255,0.08)",
+        background: live ? "rgba(224,49,74,0.12)" : "rgba(255,255,255,0.72)",
         border: "none",
         boxShadow: "none",
         flexShrink: 0,
@@ -81,7 +81,7 @@ function LivePlate({ live }) {
           width: 6,
           height: 6,
           borderRadius: "50%",
-          background: live ? y2k.live : "rgba(247,248,250,0.35)",
+          background: live ? y2k.live : "rgba(28,32,40,0.28)",
           boxShadow: "none",
         }}
       />
@@ -92,7 +92,7 @@ function LivePlate({ live }) {
           fontWeight: 600,
           letterSpacing: -0.08,
           textTransform: "none",
-          color: live ? y2k.offWhite : "rgba(244,246,248,0.55)",
+          color: live ? y2k.live : color.muted,
         }}
       >
         {live ? "Live" : "Standby"}
@@ -110,7 +110,7 @@ function ChannelIdent({ bugLine, slug }) {
         overflow: "hidden",
         borderRadius: 980,
         border: "none",
-        background: "rgba(255,255,255,0.08)",
+        background: "rgba(255,255,255,0.78)",
         maxWidth: "100%",
       }}
     >
@@ -122,8 +122,8 @@ function ChannelIdent({ bugLine, slug }) {
           fontWeight: 600,
           letterSpacing: -0.08,
           color: y2k.offWhite,
-          borderRight: "1px solid rgba(255,255,255,0.1)",
-          background: "rgba(255,255,255,0.06)",
+          borderRight: "1px solid rgba(28,32,40,0.1)",
+          background: "rgba(255,255,255,0.55)",
           whiteSpace: "nowrap",
         }}
       >
@@ -169,7 +169,9 @@ function ChromeIconButton({ label, icon, active = false, onClick, size = 42, ico
         justifyContent: "center",
         cursor: "pointer",
         border: "none",
-        background: active ? "rgba(255,255,255,0.16)" : "rgba(255,255,255,0.08)",
+        background: active
+          ? "linear-gradient(180deg, #FFFFFF 0%, #E8EBEF 100%)"
+          : "linear-gradient(180deg, rgba(255,255,255,0.88) 0%, rgba(232,236,242,0.78) 100%)",
         color: y2k.offWhite,
         boxShadow: "none",
         flexShrink: 0,
@@ -341,9 +343,9 @@ export default function HeroPlayerCard({
         minHeight: 300,
         width: "100%",
         cursor: playDisabled && !live ? "default" : "pointer",
-        border: "1px solid rgba(255,255,255,0.08)",
-        boxShadow: "0 12px 36px rgba(0,0,0,0.32)",
-        background: "rgba(28,28,30,0.72)",
+        border: "1px solid rgba(28,32,40,0.12)",
+        boxShadow: "0 16px 36px rgba(28,32,40,0.12)",
+        background: "linear-gradient(180deg, #F7F8FA 0%, #E8EBEF 100%)",
         WebkitTapHighlightColor: "transparent",
         isolation: "isolate",
         display: "flex",
@@ -359,8 +361,8 @@ export default function HeroPlayerCard({
           zIndex: 0,
           overflow: "hidden",
           background: `
-            radial-gradient(70% 80% at 18% 20%, ${track?.color ? `${track.color}22` : "rgba(255,255,255,0.06)"} 0%, transparent 58%),
-            rgba(28,28,30,0.55)
+            radial-gradient(70% 80% at 18% 20%, ${track?.color ? `${track.color}22` : "rgba(30,111,232,0.08)"} 0%, transparent 58%),
+            linear-gradient(180deg, rgba(255,255,255,0.55) 0%, rgba(232,236,242,0.35) 100%)
           `,
         }}
       />
@@ -400,14 +402,14 @@ export default function HeroPlayerCard({
               style={{
                 padding: "5px 8px",
                 borderRadius: 12,
-                border: "none",
-                background: "rgba(0,0,0,0.45)",
+                border: "1px solid rgba(28,32,40,0.1)",
+                background: "rgba(255,255,255,0.78)",
                 fontFamily: fontDisplay,
                 fontSize: 12,
                 fontWeight: 600,
                 letterSpacing: -0.08,
                 textTransform: "none",
-                color: y2k.offWhite,
+                color: color.ink,
               }}
             >
               Video
@@ -529,7 +531,7 @@ export default function HeroPlayerCard({
               marginTop: 6,
               fontSize: 15,
               fontWeight: 600,
-              color: "rgba(244,246,248,0.78)",
+              color: color.body,
               overflow: "hidden",
               textOverflow: "ellipsis",
               whiteSpace: "nowrap",
@@ -632,7 +634,7 @@ export default function HeroPlayerCard({
           marginTop: "auto",
           padding: `12px ${homeSpace.gutter - 6}px 14px`,
           background: "transparent",
-          borderTop: "1px solid rgba(255,255,255,0.06)",
+          borderTop: "1px solid rgba(28,32,40,0.08)",
           boxShadow: "none",
         }}
       >
@@ -685,7 +687,7 @@ export default function HeroPlayerCard({
                     flex: 1,
                     height: 4,
                     borderRadius: 999,
-                    background: "rgba(255,255,255,0.14)",
+                    background: "rgba(28,32,40,0.12)",
                     overflow: "hidden",
                     boxShadow: "none",
                   }}
@@ -694,7 +696,7 @@ export default function HeroPlayerCard({
                     style={{
                       height: "100%",
                       width: `${pct * 100}%`,
-                      background: "rgba(255,255,255,0.92)",
+                      background: "linear-gradient(90deg, #6FBF3A 0%, #8CD45A 100%)",
                       borderRadius: 999,
                       boxShadow: "none",
                       transition: "width 0.2s linear",
@@ -747,9 +749,9 @@ export default function HeroPlayerCard({
                 borderRadius: 980,
                 border: "none",
                 background: playDisabled
-                  ? "rgba(255,255,255,0.12)"
-                  : "#F5F5F7",
-                color: "#000000",
+                  ? "rgba(197,202,211,0.65)"
+                  : "linear-gradient(180deg, #6FB4F8 0%, #1E6FE8 100%)",
+                color: playDisabled ? color.muted : "#FFFFFF",
                 fontFamily: fontDisplay,
                 fontSize: 16,
                 fontWeight: 600,
@@ -762,7 +764,7 @@ export default function HeroPlayerCard({
                 gap: 8,
                 boxShadow: playDisabled
                   ? "none"
-                  : "0 6px 18px rgba(0,0,0,0.28)",
+                  : "inset 0 1px 0 rgba(255,255,255,0.4), 0 6px 16px rgba(30,111,232,0.28)",
                 opacity: playDisabled ? 0.6 : 1,
               }}
             >

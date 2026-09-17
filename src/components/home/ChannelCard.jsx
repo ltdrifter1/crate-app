@@ -134,7 +134,7 @@ export default function ChannelCard({
                 padding: "0 9px",
                 borderRadius: 11,
                 background: "rgba(0,0,0,0.55)",
-                color: y2k.offWhite,
+                color: color.onDark,
                 ...type.caption,
                 fontWeight: 600,
                 display: "inline-flex",

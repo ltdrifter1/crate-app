@@ -122,7 +122,7 @@ export default function ExploreFocus({
                 fontSize: 28,
                 fontWeight: 750,
                 letterSpacing: -0.6,
-                color: y2k.offWhite,
+                color: color.onDark,
               }}
             >
               {focus.label}
@@ -228,7 +228,7 @@ export default function ExploreFocus({
                   fontSize: 13,
                   fontWeight: 650,
                   letterSpacing: -0.2,
-                  color: y2k.offWhite,
+                  color: color.ink,
                   overflow: "hidden",
                   textOverflow: "ellipsis",
                   whiteSpace: "nowrap",

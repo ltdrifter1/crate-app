@@ -5,10 +5,10 @@
     <link rel="icon" href="%PUBLIC_URL%/favicon.svg" type="image/svg+xml" />
     <link rel="icon" href="%PUBLIC_URL%/favicon.png" type="image/png" sizes="32x32" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <meta name="theme-color" content="#000000" />
+    <meta name="theme-color" content="#E6E9EF" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="apple-mobile-web-app-title" content="Planet MP3" />
     <meta
       name="description"
@@ -31,6 +31,12 @@
     <meta name="twitter:image" content="%PUBLIC_URL%/icon-512.png" />
     <link rel="apple-touch-icon" href="%PUBLIC_URL%/apple-touch-icon.png" />
     <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap"
+    />
     <link rel="preconnect" href="https://crate-app-58494.firebasestorage.app" crossorigin />
     <link rel="preconnect" href="https://firebasestorage.googleapis.com" crossorigin />
     <link rel="dns-prefetch" href="https://firestore.googleapis.com" />
@@ -46,9 +52,9 @@
       }
       body {
         margin: 0;
-        background: #000000;
-        color: #F5F5F7;
-        font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", "Helvetica Neue", Helvetica, Arial, sans-serif;
+        background: #E6E9EF;
+        color: #1C1F24;
+        font-family: "Lucida Grande", "Lucida Sans Unicode", "Helvetica Neue", Helvetica, Inter, -apple-system, BlinkMacSystemFont, Arial, sans-serif;
         -webkit-font-smoothing: antialiased;
         -moz-osx-font-smoothing: grayscale;
       }
@@ -67,7 +73,9 @@
         gap: 22px;
         box-sizing: border-box;
         padding: 24px;
-        background: #000000;
+        background:
+          radial-gradient(ellipse 90% 55% at 50% -10%, rgba(255,255,255,0.9) 0%, transparent 55%),
+          linear-gradient(180deg, #F7F8FA 0%, #E6E9EF 100%);
       }
       #boot-splash img {
         width: min(200px, 48vw);
@@ -78,11 +86,11 @@
         -webkit-user-drag: none;
       }
       #boot-splash .boot-label {
-        font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", "Helvetica Neue", Helvetica, Arial, sans-serif;
+        font-family: "Lucida Grande", "Lucida Sans Unicode", "Helvetica Neue", Helvetica, Inter, -apple-system, BlinkMacSystemFont, Arial, sans-serif;
         font-size: 17px;
         font-weight: 400;
         letter-spacing: -0.022em;
-        color: #A4AAB4;
+        color: #6B7380;
         margin: 0;
         animation: bootPulse 1.4s ease-in-out infinite;
       }

@@ -13,9 +13,9 @@ function HeaderButton({ label, icon, onClick }) {
       className="pmp-press"
       style={{
         ...chromeIconButton(36),
-        background: "rgba(255,255,255,0.12)",
-        border: "none",
-        boxShadow: "none",
+        background: "linear-gradient(180deg, #FFFFFF 0%, #E8EBEF 55%, #D4D8E0 100%)",
+        border: "1px solid rgba(28,32,40,0.12)",
+        boxShadow: "inset 0 1px 0 rgba(255,255,255,0.95), 0 1px 3px rgba(28,32,40,0.12)",
       }}
     >
       <Icon name={icon} size={16} />

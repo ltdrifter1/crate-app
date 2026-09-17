@@ -1,9 +1,8 @@
-import { color, fontDisplay, motion, y2k } from "../../theme";
+import { color, fontDisplay, motion } from "../../theme";
 import Icon from "../ui/Icon";
 
 /**
- * BottomNavigation — iOS tab bar.
- * Active destination is brighter off-white, no LED glow.
+ * BottomNavigation — iPod click-wheel chassis + iTunes Aqua active tab.
  */
 export default function BottomNavigation({ items = [], activeId, onSelect }) {
   return (
@@ -34,9 +33,13 @@ export default function BottomNavigation({ items = [], activeId, onSelect }) {
               height: 50,
               borderRadius: 14,
               border: "1px solid transparent",
-              background: active ? "rgba(255,255,255,0.08)" : "none",
-              boxShadow: "none",
-              color: active ? y2k.offWhite : color.muted,
+              background: active
+                ? "linear-gradient(180deg, #6FB4F8 0%, #1E6FE8 100%)"
+                : "none",
+              boxShadow: active
+                ? "inset 0 1px 0 rgba(255,255,255,0.35), 0 4px 10px rgba(30,111,232,0.28)"
+                : "none",
+              color: active ? "#FFFFFF" : color.muted,
               cursor: "pointer",
               display: "flex",
               flexDirection: "column",

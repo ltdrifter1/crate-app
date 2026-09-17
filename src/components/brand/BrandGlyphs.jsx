@@ -116,8 +116,8 @@ export function BrandLockup({
         userSelect: "none",
         borderRadius: 0,
         filter: compact
-          ? "drop-shadow(0 8px 18px rgba(0,0,0,0.45))"
-          : "drop-shadow(0 14px 32px rgba(0,0,0,0.55))",
+          ? "drop-shadow(0 6px 14px rgba(28,32,40,0.16))"
+          : "drop-shadow(0 10px 24px rgba(28,32,40,0.18))",
       }}
     />
   );

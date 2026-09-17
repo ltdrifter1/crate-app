@@ -204,7 +204,7 @@ const injectStyles = () => {
     ::-webkit-scrollbar { width: 8px; height: 8px; }
     ::-webkit-scrollbar-track { background: transparent; }
     ::-webkit-scrollbar-thumb {
-      background: rgba(255,255,255,0.14);
+      background: rgba(28,32,40,0.22);
       border-radius: 8px;
       border: 2px solid transparent;
       background-clip: padding-box;
@@ -236,10 +236,10 @@ const injectStyles = () => {
     input:focus {
       outline: none;
       border-color: ${glass.border} !important;
-      background: rgba(42,47,55,0.85) !important;
+      background: #FFFFFF !important;
       box-shadow: inset 0 1px 0 ${glass.highlight}, 0 0 0 3px ${color.accentSoft} !important;
     }
-    input[type="range"] { -webkit-appearance: none; height: 4px; background: rgba(255,255,255,0.12); border-radius: 2px; outline: none; cursor: pointer; }
+    input[type="range"] { -webkit-appearance: none; height: 4px; background: rgba(28,32,40,0.12); border-radius: 2px; outline: none; cursor: pointer; }
     input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; border-radius: 50%; background: ${color.accent}; border: 2px solid #fff; box-shadow: 0 1px 4px rgba(26,29,36,0.25); cursor: pointer; }
     input[type="range"]::-moz-range-thumb { width: 14px; height: 14px; border-radius: 50%; background: ${color.accent}; border: 2px solid #fff; box-shadow: 0 1px 4px rgba(26,29,36,0.25); cursor: pointer; }
     input.chrome-seek { -webkit-appearance: none; appearance: none; background: transparent !important; height: 28px !important; }
@@ -278,7 +278,7 @@ const injectStyles = () => {
       backdrop-filter: ${glass.blur};
     }
     .glass-row:hover {
-      background: rgba(32,36,43,0.65) !important;
+      background: ${color.select} !important;
       box-shadow: inset 0 1px 0 ${glass.highlight};
     }
     @keyframes spin { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
@@ -492,23 +492,32 @@ const injectStyles = () => {
       .dock-xtra { display: none !important; }
     }
     .glass-dock {
-      background: ${glass.fillHeavy};
-      border: 1px solid ${glass.borderSoft};
-      box-shadow: 0 12px 36px rgba(0, 0, 0, 0.4);
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.92) 0%, rgba(232,236,242,0.9) 100%);
+      border: 1px solid rgba(28,32,40,0.12);
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,0.95),
+        0 14px 32px rgba(28,32,40,0.16);
       -webkit-backdrop-filter: ${glass.blurHeavy};
       backdrop-filter: ${glass.blurHeavy};
       transition: background 0.6s ease, box-shadow 0.35s ease;
     }
-    /* ── Music.app chrome ─────────────────────────────────────────────── */
+    /* ── iPod / iTunes chrome ─────────────────────────────────────────── */
     .pill-nav {
-      background: ${glass.fillHeavy};
-      border: 1px solid rgba(255,255,255,0.08);
-      box-shadow: 0 12px 36px rgba(0, 0, 0, 0.4);
+      background:
+        linear-gradient(180deg, #F7F8FA 0%, #E2E5EC 52%, #D0D5DE 100%);
+      border: 1px solid rgba(28,32,40,0.14);
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,0.9),
+        inset 0 -1px 0 rgba(28,32,40,0.08),
+        0 12px 28px rgba(28,32,40,0.14);
       -webkit-backdrop-filter: ${glass.blurHeavy};
       backdrop-filter: ${glass.blurHeavy};
     }
     .pmp-hero-bezel {
-      box-shadow: 0 12px 36px rgba(0,0,0,0.32);
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,0.95),
+        0 16px 36px rgba(28,32,40,0.14);
     }
     .pmp-home-mtv::before { display: none; }
     .pmp-home-mtv > * { position: relative; z-index: 1; }
@@ -574,11 +583,11 @@ const injectStyles = () => {
       box-shadow: 0 6px 16px rgba(0,0,0,0.28) !important;
     }
     .pmp-schedule-cell:hover {
-      border-color: rgba(255,255,255,0.16) !important;
-      box-shadow: 0 6px 16px rgba(0,0,0,0.28) !important;
+      border-color: rgba(30,111,232,0.35) !important;
+      box-shadow: 0 6px 16px rgba(28,32,40,0.12) !important;
     }
     .pmp-dial-cell:hover {
-      color: #F7F8FA;
+      color: ${color.ink};
     }
     .pmp-dial-cell:hover > div:nth-child(2),
     .pmp-dial-cell:hover > div:nth-child(3) {
@@ -599,7 +608,7 @@ const injectStyles = () => {
     .pmp-hero:hover .pmp-hero-art { transform: scale(1.04); }
     .pmp-hero-sleeve { transition: transform 0.45s ${motion.ease}; }
     .pmp-view-all { transition: color ${motion.fast} ${motion.ease}, transform ${motion.fast} ${motion.ease}; }
-    .pmp-view-all:hover { color: #64B5FF !important; transform: none; }
+    .pmp-view-all:hover { color: ${color.accent} !important; transform: none; }
     .pmp-rail { cursor: grab; }
     .pmp-rail:active { cursor: grabbing; }
     @media (prefers-reduced-transparency: reduce) {
@@ -613,7 +622,7 @@ const injectStyles = () => {
       transition: background ${motion.base} ${motion.ease}, color ${motion.base} ${motion.ease}, transform ${motion.fast};
     }
     .nav-rail-btn:hover {
-      background: rgba(255,255,255,0.08) !important;
+      background: ${color.select} !important;
       color: ${color.ink} !important;
     }
     .custom-mix {
@@ -624,11 +633,11 @@ const injectStyles = () => {
         box-shadow ${motion.base} ${motion.ease};
     }
     .custom-mix:hover {
-      background: rgba(48,53,62,0.9) !important;
-      border-color: rgba(255,255,255,0.14) !important;
+      background: #FFFFFF !important;
+      border-color: rgba(28,32,40,0.14) !important;
       box-shadow:
-        inset 0 1px 0 rgba(255,255,255,0.12),
-        0 16px 40px rgba(0,0,0,0.45) !important;
+        inset 0 1px 0 rgba(255,255,255,0.95),
+        0 12px 28px rgba(28,32,40,0.12) !important;
       transform: translateY(-1px);
     }
     .custom-mix:hover .custom-mix-play {
@@ -3171,9 +3180,9 @@ export default function App() {
               width: 40,
               height: 40,
               borderRadius: 12,
-              border: "1px solid rgba(255,255,255,0.14)",
-              background: "rgba(24,27,32,0.9)",
-              color: "#F7F8FA",
+              border: "1px solid rgba(28,32,40,0.14)",
+              background: "rgba(247,248,250,0.96)",
+              color: "#1C1F24",
               fontSize: 20,
               cursor: "pointer",
             }}

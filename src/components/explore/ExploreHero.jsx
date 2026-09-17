@@ -138,7 +138,7 @@ export default function ExploreHero({
               fontWeight: 750,
               letterSpacing: -0.9,
               lineHeight: 1.05,
-              color: y2k.offWhite,
+              color: color.onDark,
               maxWidth: 560,
             }}
           >
@@ -153,7 +153,7 @@ export default function ExploreHero({
                 fontWeight: 500,
                 letterSpacing: -0.1,
                 lineHeight: 1.4,
-                color: "rgba(244,246,248,0.78)",
+                color: color.onDarkMuted,
                 maxWidth: 420,
               }}
             >
@@ -198,7 +198,7 @@ export default function ExploreHero({
                   borderRadius: 980,
                   fontSize: 15,
                   fontWeight: 600,
-                  color: y2k.offWhite,
+                  color: color.onDark,
                 }}
               >
                 Open album

@@ -61,8 +61,10 @@ function ChromeIconButton({
         justifyContent: "center",
         cursor: "pointer",
         color: lit ? color.ink : color.muted,
-        background: lit ? "rgba(255,255,255,0.14)" : "rgba(255,255,255,0.05)",
-        border: `1px solid ${lit ? "rgba(255,255,255,0.22)" : "rgba(255,255,255,0.1)"}`,
+        background: lit
+          ? "linear-gradient(180deg, #FFFFFF 0%, #E8EBEF 100%)"
+          : "rgba(255,255,255,0.55)",
+        border: `1px solid ${lit ? "rgba(28,32,40,0.16)" : "rgba(28,32,40,0.1)"}`,
         boxShadow: "none",
         transition: `transform ${motion.fast} ${EASE}, color ${motion.fast}, background ${motion.base}`,
         padding: 0,
@@ -95,7 +97,7 @@ function ChromeSeek({
           height: 3,
           marginTop: -1.5,
           borderRadius: 999,
-          background: "rgba(255,255,255,0.14)",
+          background: "rgba(28,32,40,0.12)",
           pointerEvents: "none",
           overflow: "hidden",
         }}
@@ -105,7 +107,7 @@ function ChromeSeek({
             height: "100%",
             width: `${pct}%`,
             borderRadius: 999,
-            background: "rgba(247,248,250,0.92)",
+            background: "linear-gradient(90deg, #6FBF3A 0%, #1E6FE8 100%)",
             transition: "width 0.08s linear",
           }}
         />
@@ -172,7 +174,7 @@ function PlayerOnAir({ showTitle = null, daypartLabel = null }) {
           fontWeight: 800,
           letterSpacing: 1.5,
           textTransform: "uppercase",
-          color: y2k.offWhite,
+          color: color.onDark,
           flexShrink: 0,
         }}
       >
@@ -374,7 +376,7 @@ export default function ImmersivePlayer({
     alignItems: "center",
     justifyContent: "center",
     background: hardware.keyFace,
-    border: "1px solid rgba(255,255,255,0.16)",
+    border: "1px solid rgba(28,32,40,0.16)",
     boxShadow: hardware.keyRaised,
     color: y2k.offWhite,
     cursor: "pointer",
@@ -394,7 +396,7 @@ export default function ImmersivePlayer({
         flexDirection: "column",
       }}
     >
-      {/* Atmosphere — dark broadcast studio + sleeve bloom */}
+      {/* Atmosphere — pearl iPod chassis + sleeve bloom */}
       <div aria-hidden="true" style={{ position: "absolute", inset: 0, background: aluminumGradient() }} />
       {currentTrack.albumCover && (
         <div
@@ -405,8 +407,8 @@ export default function ImmersivePlayer({
             backgroundImage: `url(${currentTrack.albumCover})`,
             backgroundSize: "cover",
             backgroundPosition: "center",
-            filter: "blur(48px) saturate(1.12)",
-            opacity: artLoaded ? 0.38 : 0.1,
+            filter: "blur(48px) saturate(1.08)",
+            opacity: artLoaded ? 0.22 : 0.08,
             transform: isPlaying ? "scale(1.05)" : "scale(1.02)",
             transition: "opacity 0.8s ease, transform 12s ease",
           }}
@@ -418,14 +420,14 @@ export default function ImmersivePlayer({
           position: "absolute",
           inset: 0,
           background: `
-            radial-gradient(ellipse 85% 50% at 50% 16%, rgba(${rgb},0.14) 0%, transparent 55%),
+            radial-gradient(ellipse 85% 50% at 50% 16%, rgba(${rgb},0.12) 0%, transparent 55%),
             radial-gradient(ellipse 60% 40% at 50% 70%, ${y2k.chromeWash} 0%, transparent 70%),
             linear-gradient(180deg,
-              rgba(5,6,8,0.78) 0%,
-              rgba(5,6,8,0.22) 30%,
-              rgba(5,6,8,0.1) 48%,
-              rgba(5,6,8,0.72) 78%,
-              rgba(5,6,8,0.96) 100%
+              rgba(247,248,250,0.55) 0%,
+              rgba(230,233,239,0.28) 30%,
+              rgba(230,233,239,0.12) 48%,
+              rgba(230,233,239,0.55) 78%,
+              rgba(226,230,236,0.92) 100%
             )
           `,
         }}
@@ -438,7 +440,7 @@ export default function ImmersivePlayer({
           left: 0,
           right: 0,
           height: 120,
-          background: "linear-gradient(180deg, rgba(255,255,255,0.055) 0%, transparent 100%)",
+          background: "linear-gradient(180deg, rgba(255,255,255,0.55) 0%, transparent 100%)",
           pointerEvents: "none",
           zIndex: 1,
         }}
@@ -523,7 +525,7 @@ export default function ImmersivePlayer({
                   top: "112%",
                   right: 0,
                   minWidth: 200,
-                  background: "rgba(28,32,38,0.96)",
+                  background: "rgba(255,255,255,0.96)",
                   border: `1px solid ${glass.border}`,
                   borderRadius: radius.lg,
                   padding: "6px 0",
@@ -603,7 +605,7 @@ export default function ImmersivePlayer({
                         borderRadius: 11,
                         flexShrink: 0,
                         position: "relative",
-                        background: crossfadeOn ? y2k.chrome : "rgba(26,29,36,0.45)",
+                        background: crossfadeOn ? color.accent : "rgba(197,202,211,0.85)",
                         transition: `background ${motion.base} ${EASE}`,
                         boxShadow: crossfadeOn ? `0 0 10px ${y2k.chromeGlow}` : "none",
                       }}
@@ -681,7 +683,7 @@ export default function ImmersivePlayer({
             borderRadius: 16,
             padding: 3,
             background: `
-              linear-gradient(145deg, rgba(232,236,242,0.55) 0%, rgba(184,192,204,0.35) 42%, rgba(46,51,60,0.95) 100%)
+              linear-gradient(145deg, rgba(255,255,255,0.95) 0%, rgba(197,202,211,0.55) 42%, rgba(184,190,199,0.85) 100%)
             `,
             boxShadow: isPlaying ? artShadow.raised : artShadow.quiet,
             animation: isPlaying
@@ -862,9 +864,9 @@ export default function ImmersivePlayer({
               padding: "12px 14px 14px",
               borderRadius: 16,
               background: `
-                linear-gradient(165deg, rgba(30,34,40,0.92) 0%, rgba(18,20,24,0.88) 100%)
+                linear-gradient(165deg, rgba(255,255,255,0.94) 0%, rgba(232,236,242,0.9) 100%)
               `,
-              border: "1px solid rgba(255,255,255,0.12)",
+              border: "1px solid rgba(28,32,40,0.12)",
               boxShadow: `inset 0 1px 0 ${glass.highlight}, ${glass.shadowSoft}`,
               backdropFilter: glass.blurSoft,
               WebkitBackdropFilter: glass.blurSoft,

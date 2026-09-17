@@ -133,7 +133,7 @@ function StationCard({ channel, on, onToggle, index }) {
             fontWeight: 720,
             fontFamily: fontDisplay,
             letterSpacing: -0.35,
-            color: y2k.offWhite || color.onDark,
+            color: color.onDark,
             lineHeight: 1.15,
           }}
         >

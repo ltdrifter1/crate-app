@@ -54,7 +54,7 @@ function TrackCard({
               alignItems: "center",
               ...type.caption,
               fontWeight: 600,
-              color: y2k.offWhite,
+              color: color.onDark,
               zIndex: 1,
             }}
           >
@@ -77,7 +77,7 @@ function TrackCard({
               background: "rgba(0,0,0,0.55)",
               ...type.caption,
               fontWeight: 700,
-              color: y2k.offWhite,
+              color: color.onDark,
               zIndex: 1,
             }}
           >
