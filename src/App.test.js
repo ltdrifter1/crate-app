@@ -17,7 +17,8 @@ test('theme exports core tokens', () => {
   expect(font).not.toMatch(/^system-ui/);
   expect(fontLcd).toMatch(/IBM Plex Mono/);
   expect(STYLE_CHASSIS).toBe("aqua-device-20260918");
-  expect(type.title2.fontWeight).toBe(700);
+  expect(type.lcd.fontFamily).toMatch(/IBM Plex Mono/);
+  expect(type.lcd.fontSize).toBe(11);
   expect(sectionTitle.fontSize).toBe(22);
   expect(y2k.chromeBright).toBeTruthy();
   expect(y2k.chrome).toMatch(/#C5CAD3/i);

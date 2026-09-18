@@ -2,7 +2,7 @@ import { color, fontDisplay, motion } from "../../theme";
 import Icon from "../ui/Icon";
 
 /**
- * BottomNavigation — dark device selector, Aqua active pip.
+ * BottomNavigation — dark device selector, accent pip.
  */
 export default function BottomNavigation({ items = [], activeId, onSelect }) {
   return (
@@ -60,7 +60,7 @@ export default function BottomNavigation({ items = [], activeId, onSelect }) {
             <span
               style={{
                 fontFamily: fontDisplay,
-                fontSize: 10,
+                fontSize: 11,
                 fontWeight: active ? 600 : 500,
                 letterSpacing: "-0.01em",
                 textTransform: "none",

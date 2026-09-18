@@ -1,26 +1,25 @@
 /**
- * ImmersivePlayer — premium Y2K listening booth.
- * Sleeve-first theater: oversized jewel case → title → aluminum transport.
- * Secondary booth tools (channels, dedicate, session arc) live in a drawer.
- * Chrome language is machined aluminum / grey — no ice-blue accents.
+ * ImmersivePlayer — alternate-2003 MP3 device.
+ * Artwork window + LCD (title, BPM, Camelot, seek) + hardware transport
+ * with Turtle / Bunny paddles. Booth tools stay in a drawer.
  */
 import { useEffect, useRef, useState } from "react";
 import {
   fontDisplay,
   fontMono,
   color,
-  radius,
   motion,
   glass,
   artShadow,
   aluminumGradient,
   hardware,
+  radio,
   y2k,
 } from "../../theme";
 import { fmtTime, hexToRgbStr } from "../../lib/harmony";
 import { usePlayerPlayback } from "../../usePlayerPlayback";
 import { useIsPlaying } from "../../usePlayerTransport";
-import { EnergyShiftFeedback, EnergyShiftControl } from "../listen/EnergyShiftButton";
+import { EnergyShiftFeedback, EnergyShiftButton } from "../listen/EnergyShiftButton";
 import Icon from "../ui/Icon";
 import { IceOrbPlay } from "./OrbitalControls";
 import {
@@ -33,108 +32,17 @@ import SceneSurfRail from "../station/SceneSurfRail";
 import { trackHasVideo } from "../../lib/video";
 import { estimateLockedIn } from "../../lib/station";
 import CoverImage from "../ui/CoverImage";
+import {
+  DeviceCatalogMark,
+  HardwareIconButton as ChromeIconButton,
+  LcdMetaLine,
+  LcdPanel,
+  LcdSeek as ChromeSeek,
+  LcdTimes,
+  trackLcdBits,
+} from "./DeviceChrome";
 
 const EASE = motion.ease;
-
-/** Soft circular secondary control. */
-function ChromeIconButton({
-  onClick,
-  label,
-  pressed = false,
-  active = false,
-  children,
-  size = 44,
-}) {
-  const lit = active || pressed;
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      aria-label={label}
-      aria-pressed={pressed || undefined}
-      style={{
-        width: size,
-        height: size,
-        borderRadius: 8,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        cursor: "pointer",
-        color: lit ? color.onAccent : color.muted,
-        background: lit
-          ? "linear-gradient(180deg, #6FB4F8 0%, #1E6FE8 100%)"
-          : "linear-gradient(180deg, rgba(255,255,255,0.1) 0%, rgba(16,18,24,0.85) 100%)",
-        border: `1px solid ${lit ? "rgba(30,111,232,0.45)" : "rgba(232,234,238,0.12)"}`,
-        boxShadow: "none",
-        transition: `transform ${motion.fast} ${EASE}, color ${motion.fast}, background ${motion.base}`,
-        padding: 0,
-        flexShrink: 0,
-      }}
-    >
-      {children}
-    </button>
-  );
-}
-
-/** Thin modern seek — soft track, no aluminum groove. */
-function ChromeSeek({
-  value = 0,
-  max = 1,
-  onChange,
-  label = "Seek",
-  valueText,
-}) {
-  const pct = max > 0 ? Math.max(0, Math.min(1, value / max)) * 100 : 0;
-  return (
-    <div style={{ width: "100%", position: "relative" }}>
-      <div
-        aria-hidden="true"
-        style={{
-          position: "absolute",
-          left: 0,
-          right: 0,
-          top: "50%",
-          height: 3,
-          marginTop: -1.5,
-          borderRadius: 999,
-          background: "rgba(232,234,238,0.12)",
-          pointerEvents: "none",
-          overflow: "hidden",
-        }}
-      >
-        <div
-          style={{
-            height: "100%",
-            width: `${pct}%`,
-            borderRadius: 999,
-            background: "linear-gradient(90deg, #1470D4 0%, #1E6FE8 100%)",
-            transition: "width 0.08s linear",
-          }}
-        />
-      </div>
-      <input
-        type="range"
-        className="chrome-seek"
-        min={0}
-        max={max || 1}
-        step={0.1}
-        value={value}
-        onChange={(e) => onChange?.(parseFloat(e.target.value))}
-        aria-label={label}
-        aria-valuetext={valueText}
-        style={{
-          position: "relative",
-          width: "100%",
-          margin: 0,
-          height: 28,
-          background: "transparent",
-          cursor: "pointer",
-          zIndex: 1,
-        }}
-      />
-    </div>
-  );
-}
 
 function PlayerOnAir({ showTitle = null, daypartLabel = null }) {
   const secondary = showTitle || daypartLabel;
@@ -359,14 +267,11 @@ export default function ImmersivePlayer({
   if (!currentTrack) return null;
 
   const rgb = hexToRgbStr(currentTrack.color);
-  const metaBits = [
-    currentTrack.bpm ? `${Math.round(currentTrack.bpm)} BPM` : null,
-    currentTrack.camelot || null,
-    currentTrack.energy != null ? `E${currentTrack.energy}` : null,
+  const metaBits = trackLcdBits(currentTrack, [
     countdownRank ? `#${countdownRank}` : null,
     hasVideo ? "Video" : null,
     liveShow?.host?.name || liveShow?.host?.handle || null,
-  ].filter(Boolean);
+  ]);
 
   const circleChrome = {
     width: 42,
@@ -396,7 +301,7 @@ export default function ImmersivePlayer({
         flexDirection: "column",
       }}
     >
-      {/* Atmosphere — pearl iPod chassis + sleeve bloom */}
+      {/* Atmosphere — dark chassis + sleeve bloom */}
       <div aria-hidden="true" style={{ position: "absolute", inset: 0, background: aluminumGradient() }} />
       {currentTrack.albumCover && (
         <div
@@ -409,8 +314,8 @@ export default function ImmersivePlayer({
             backgroundPosition: "center",
             filter: "blur(48px) saturate(1.08)",
             opacity: artLoaded ? 0.38 : 0.12,
-            transform: isPlaying ? "scale(1.05)" : "scale(1.02)",
-            transition: "opacity 0.8s ease, transform 12s ease",
+            transform: isPlaying ? "scale(1.02)" : "scale(1)",
+            transition: "opacity 0.35s ease, transform 0.35s ease",
           }}
         />
       )}
@@ -475,6 +380,7 @@ export default function ImmersivePlayer({
           daypartLabel={daypart?.label}
         />
 
+        <DeviceCatalogMark />
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
           {hasBoothTools && (
             <button
@@ -487,17 +393,17 @@ export default function ImmersivePlayer({
                 width: "auto",
                 minWidth: 42,
                 padding: "0 12px",
-                borderRadius: 980,
+                borderRadius: 8,
                 gap: 6,
-                color: showBooth ? y2k.chromeBright : y2k.offWhite,
+                color: showBooth ? color.accent : y2k.offWhite,
                 boxShadow: showBooth
-                  ? `${hardware.keyRaised}, 0 0 14px ${y2k.chromeGlow}`
+                  ? `${hardware.keyRaised}, 0 0 14px ${color.accentGlow}`
                   : hardware.keyRaised,
-                border: `1px solid ${showBooth ? "rgba(232,236,242,0.4)" : "rgba(255,255,255,0.16)"}`,
+                border: `1px solid ${showBooth ? color.accentGlow : "rgba(255,255,255,0.16)"}`,
                 fontFamily: fontMono,
-                fontSize: 10,
+                fontSize: 11,
                 fontWeight: 800,
-                letterSpacing: 1.2,
+                letterSpacing: 0.12,
                 textTransform: "uppercase",
               }}
             >
@@ -525,9 +431,9 @@ export default function ImmersivePlayer({
                   top: "112%",
                   right: 0,
                   minWidth: 200,
-                  background: "rgba(255,255,255,0.96)",
+                  background: radio.moduleFace,
                   border: `1px solid ${glass.border}`,
-                  borderRadius: radius.lg,
+                  borderRadius: 8,
                   padding: "6px 0",
                   zIndex: 8,
                   boxShadow: `inset 0 1px 0 ${glass.highlight}, 0 18px 48px rgba(0,0,0,0.45)`,
@@ -678,13 +584,11 @@ export default function ImmersivePlayer({
           key={currentTrack.id}
           style={{
             position: "relative",
-            width: hasVideo ? "min(42vw, 168px)" : "min(84vw, 360px)",
+            width: hasVideo ? "min(42vw, 168px)" : "min(72vw, 320px)",
             aspectRatio: "1 / 1",
-            borderRadius: 16,
+            borderRadius: 6,
             padding: 3,
-            background: `
-              linear-gradient(145deg, rgba(255,255,255,0.95) 0%, rgba(197,202,211,0.55) 42%, rgba(184,190,199,0.85) 100%)
-            `,
+            background: hardware.keyFace,
             boxShadow: isPlaying ? artShadow.raised : artShadow.quiet,
             animation: isPlaying
               ? `coverSettle 1.1s ${EASE} both, trackSwap 0.45s ${EASE} both`
@@ -700,7 +604,7 @@ export default function ImmersivePlayer({
               position: "relative",
               width: "100%",
               height: "100%",
-              borderRadius: 13,
+              borderRadius: 4,
               overflow: "hidden",
               background: y2k.charcoalRaised,
               border: "1px solid rgba(184,192,204,0.22)",
@@ -751,27 +655,29 @@ export default function ImmersivePlayer({
         </div>
 
         {/* Title hierarchy */}
-        <div
+        <LcdPanel
+          live={isPlaying}
           style={{
             width: "100%",
             maxWidth: 420,
-            textAlign: "center",
-            animation: `trackSwap 0.4s ${EASE} both`,
+            padding: "12px 14px 10px",
+            animation: `trackSwap 0.35s ${EASE} both`,
           }}
         >
           <div
             style={{
               fontFamily: fontDisplay,
-              fontSize: "clamp(24px, 6vw, 34px)",
+              fontSize: "clamp(20px, 5vw, 28px)",
               fontWeight: 750,
-              letterSpacing: -0.8,
+              letterSpacing: -0.6,
               color: y2k.offWhite,
-              lineHeight: 1.1,
-              marginBottom: 8,
+              lineHeight: 1.12,
+              marginBottom: 6,
               overflow: "hidden",
               display: "-webkit-box",
               WebkitLineClamp: 2,
               WebkitBoxOrient: "vertical",
+              paddingRight: 14,
             }}
           >
             {currentTrack.title}
@@ -785,7 +691,7 @@ export default function ImmersivePlayer({
                 border: "none",
                 padding: 0,
                 color: color.body,
-                fontSize: 16,
+                fontSize: 15,
                 fontWeight: 600,
                 cursor: "pointer",
                 letterSpacing: -0.2,
@@ -794,34 +700,21 @@ export default function ImmersivePlayer({
               {currentTrack.artist}
             </button>
           ) : (
-            <div style={{ fontSize: 16, fontWeight: 600, color: color.body, letterSpacing: -0.2 }}>
+            <div style={{ fontSize: 15, fontWeight: 600, color: color.body, letterSpacing: -0.2 }}>
               {currentTrack.artist}
             </div>
           )}
 
-          {metaBits.length > 0 && (
-            <div
-              style={{
-                marginTop: 10,
-                fontFamily: fontMono,
-                fontSize: 11,
-                fontWeight: 650,
-                letterSpacing: 1.1,
-                textTransform: "uppercase",
-                color: y2k.chromeMid,
-                lineHeight: 1.35,
-              }}
-            >
-              {metaBits.join(" · ")}
-            </div>
-          )}
+          <div style={{ marginTop: 8 }}>
+            <LcdMetaLine bits={metaBits} />
+          </div>
 
           {upNextTrack && (
             <button
               type="button"
               onClick={() => onShowQueue?.()}
               style={{
-                marginTop: 12,
+                marginTop: 10,
                 background: "none",
                 border: "none",
                 padding: 0,
@@ -829,7 +722,7 @@ export default function ImmersivePlayer({
                 fontFamily: fontMono,
                 fontSize: 11,
                 fontWeight: 650,
-                letterSpacing: 0.8,
+                letterSpacing: 0.08,
                 textTransform: "uppercase",
                 color: color.muted,
                 maxWidth: "100%",
@@ -838,12 +731,12 @@ export default function ImmersivePlayer({
                 whiteSpace: "nowrap",
               }}
             >
-              <span style={{ color: y2k.chromeBright }}>Up next</span>
+              <span style={{ color: color.accent }}>Up next</span>
               {" · "}
               {upNextTrack.title}
             </button>
           )}
-        </div>
+        </LcdPanel>
       </div>
 
       {/* Booth drawer — demoted secondary tools */}
@@ -862,12 +755,10 @@ export default function ImmersivePlayer({
               maxWidth: 420,
               margin: "0 auto",
               padding: "12px 14px 14px",
-              borderRadius: 16,
-              background: `
-                linear-gradient(165deg, rgba(255,255,255,0.94) 0%, rgba(232,236,242,0.9) 100%)
-              `,
-              border: "1px solid rgba(28,32,40,0.12)",
-              boxShadow: `inset 0 1px 0 ${glass.highlight}, ${glass.shadowSoft}`,
+              borderRadius: 10,
+              background: radio.moduleFace,
+              border: radio.border,
+              boxShadow: radio.moduleShadow,
               backdropFilter: glass.blurSoft,
               WebkitBackdropFilter: glass.blurSoft,
               display: "flex",
@@ -945,22 +836,7 @@ export default function ImmersivePlayer({
               label="Seek"
               valueText={`${fmtTime(progress)} of ${fmtTime(duration)}`}
             />
-            <div
-              style={{
-                marginTop: 2,
-                display: "flex",
-                justifyContent: "space-between",
-                fontSize: 11,
-                color: color.muted,
-                fontFamily: fontMono,
-                fontVariantNumeric: "tabular-nums",
-                letterSpacing: 0.3,
-                padding: "0 2px",
-              }}
-            >
-              <span>{fmtTime(progress)}</span>
-              <span>{fmtTime(duration)}</span>
-            </div>
+            <LcdTimes progress={progress} duration={duration} />
           </div>
 
           <div
@@ -969,21 +845,14 @@ export default function ImmersivePlayer({
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              gap: 12,
+              gap: 8,
               marginTop: 10,
+              flexWrap: "wrap",
             }}
           >
             <EnergyShiftFeedback bottom="calc(100% + 14px)" />
 
-            <ChromeIconButton
-              onClick={() => onLike?.(currentTrack.id)}
-              label={currentTrack.liked ? "Unlike" : "Like"}
-              active={!!currentTrack.liked}
-            >
-              <span style={{ display: "flex", animation: currentTrack.liked ? "likePop 0.25s ease" : "none" }}>
-                <Icon name={currentTrack.liked ? "heart" : "heartempty"} size={18} />
-              </span>
-            </ChromeIconButton>
+            <EnergyShiftButton direction="down" size={48} stopPropagation={false} showLabel />
 
             <ChromeIconButton onClick={onPrev} label="Previous" size={48}>
               <Icon name="prev" size={20} />
@@ -1000,17 +869,7 @@ export default function ImmersivePlayer({
               <Icon name="skip" size={20} />
             </ChromeIconButton>
 
-            <ChromeIconButton
-              onClick={() => onDislike?.()}
-              label="Dislike this track"
-              active={!!currentTrack.disliked}
-            >
-              <Icon name={currentTrack.disliked ? "dislikefilled" : "dislike"} size={18} />
-            </ChromeIconButton>
-
-            <div style={{ width: 44, display: "flex", justifyContent: "center" }}>
-              <EnergyShiftControl size={36} stopPropagation={false} />
-            </div>
+            <EnergyShiftButton direction="up" size={48} stopPropagation={false} showLabel />
           </div>
 
           <div
@@ -1023,6 +882,24 @@ export default function ImmersivePlayer({
               gap: 8,
             }}
           >
+            <ChromeIconButton
+              onClick={() => onLike?.(currentTrack.id)}
+              label={currentTrack.liked ? "Unlike" : "Like"}
+              active={!!currentTrack.liked}
+              size={40}
+            >
+              <span style={{ display: "flex", animation: currentTrack.liked ? "likePop 0.25s ease" : "none" }}>
+                <Icon name={currentTrack.liked ? "heart" : "heartempty"} size={16} />
+              </span>
+            </ChromeIconButton>
+            <ChromeIconButton
+              onClick={() => onDislike?.()}
+              label="Dislike this track"
+              active={!!currentTrack.disliked}
+              size={40}
+            >
+              <Icon name={currentTrack.disliked ? "dislikefilled" : "dislike"} size={16} />
+            </ChromeIconButton>
             {!isRadioMode && onToggleShuffle ? (
               <ChromeIconButton
                 onClick={onToggleShuffle}

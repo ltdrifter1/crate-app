@@ -1,11 +1,11 @@
 import { lazy, Suspense } from "react";
 import {
-  color, dock, fontDisplay, fontMono, motion,
+  color, dock, fontDisplay, motion, radio,
 } from "../../theme";
 import Icon from "../ui/Icon";
 import BottomNavigation from "../home/BottomNavigation";
 import { TrackActionsMenu, TrackMoreButton, useTrackMenu } from "../listen/TrackRow";
-import { IceOrbPlay, OrbitalArtRing } from "../player/OrbitalControls";
+import { IceOrbPlay } from "../player/OrbitalControls";
 import { fmtTime } from "../../lib/harmony";
 import { primaryNavItems, dockActiveTab } from "../../lib/nav";
 import FreePlaysMeter from "../billing/FreePlaysMeter";
@@ -15,12 +15,14 @@ import {
 } from "../../usePlayerTransport";
 import { usePlayerPlayback } from "../../usePlayerPlayback";
 import { dockTintStyle } from "../../lib/dockTint";
+import CoverImage from "../ui/CoverImage";
+import { LcdMetaLine, LcdSeek, trackLcdBits } from "./DeviceChrome";
 
 const EnergyShiftFeedback = lazy(() =>
   import("../listen/EnergyShiftButton").then((m) => ({ default: m.EnergyShiftFeedback }))
 );
-const EnergyShiftControl = lazy(() =>
-  import("../listen/EnergyShiftButton").then((m) => ({ default: m.EnergyShiftControl }))
+const EnergyShiftButton = lazy(() =>
+  import("../listen/EnergyShiftButton").then((m) => ({ default: m.EnergyShiftButton }))
 );
 
 export default function GlassDock({
@@ -43,6 +45,7 @@ export default function GlassDock({
   const tint = dockTintStyle(track);
 
   const activeTab = dockActiveTab(screen, { hasAdmin: showAdmin });
+  const bits = trackLcdBits(track);
 
   return (
     <div
@@ -89,26 +92,47 @@ export default function GlassDock({
             aria-label="Open now playing"
             style={{
               position: "relative",
-              height: dock.playerH,
-              padding: "8px 14px 8px 12px",
+              minHeight: dock.playerH,
+              padding: "8px 10px 8px 10px",
               display: "flex",
               alignItems: "center",
-              gap: 12,
+              gap: 10,
               cursor: "pointer",
-              background: `
-                linear-gradient(180deg, rgba(255,255,255,0.08) 0%, transparent 100%)
-              `,
+              background: radio.stripFace,
               boxShadow: isRadioMode || hypnoPocket
                 ? `inset 2px 0 0 ${color.accent}`
                 : "none",
             }}
           >
-            <OrbitalArtRing
-              track={track}
-              size={42}
-              onSeek={onSeek}
-              artRadius={9}
-            />
+            <div
+              style={{
+                width: 48,
+                height: 48,
+                borderRadius: 6,
+                overflow: "hidden",
+                flexShrink: 0,
+                border: "1px solid rgba(232,234,238,0.12)",
+                background: "#101218",
+              }}
+            >
+              {track.albumCover ? (
+                <CoverImage
+                  src={track.albumCover}
+                  alt=""
+                  width={48}
+                  height={48}
+                  style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                />
+              ) : (
+                <div style={{
+                  width: "100%", height: "100%", display: "flex",
+                  alignItems: "center", justifyContent: "center",
+                  fontFamily: fontDisplay, fontWeight: 700, color: color.muted, fontSize: 16,
+                }}>
+                  {(track.title || "P")[0]}
+                </div>
+              )}
+            </div>
 
             <div key={track.id} style={{ flex: 1, minWidth: 0, animation: "fadeIn 0.3s ease both" }}>
               <div style={{
@@ -120,80 +144,62 @@ export default function GlassDock({
                   <span style={{
                     display: "inline-block", width: 6, height: 6, borderRadius: "50%",
                     background: color.alert, marginRight: 8, verticalAlign: "middle",
-                    boxShadow: "none",
                     animation: isPlaying ? "stageLiveDot 1.6s ease-in-out infinite" : "none",
                   }}/>
                 )}
                 {track.title}
               </div>
               <div style={{
-                fontSize: 11, color: color.muted, marginTop: 3,
+                fontSize: 12, color: color.muted, marginTop: 2,
                 overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
-                display: "flex", alignItems: "center", gap: 8,
               }}>
-                <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                  {track.artist}
-                </span>
-                <span style={{
-                  flexShrink: 0,
-                  fontFamily: fontMono,
-                  fontSize: 10,
-                  fontVariantNumeric: "tabular-nums",
-                  letterSpacing: 0.2,
-                  color: color.faint,
-                }}>
-                  {fmtTime(progress)}{duration ? ` / ${fmtTime(duration)}` : ""}
-                </span>
+                {track.artist}
               </div>
+              <LcdMetaLine bits={[
+                ...bits,
+                `${fmtTime(progress)}${duration ? ` / ${fmtTime(duration)}` : ""}`,
+              ]} />
             </div>
 
             <button type="button" aria-label={track.liked ? "Unlike" : "Like"}
+              className="dock-xtra"
               onClick={(e) => { e.stopPropagation(); onLike(); }}
-              style={{ background: "none", border: "none", cursor: "pointer", color: track.liked ? color.ink : color.faint, padding: 8 }}>
+              style={{ background: "none", border: "none", cursor: "pointer", color: track.liked ? color.accent : color.faint, padding: 8 }}>
               <span style={{ display: "flex", animation: track.liked ? "likePop 0.25s ease" : "none" }}>
                 <Icon name={track.liked ? "heart" : "heartempty"} size={16}/>
               </span>
             </button>
-            <button type="button" aria-label="Dislike this track"
-              onClick={(e) => { e.stopPropagation(); onDislike?.(); }}
-              style={{ background: "none", border: "none", cursor: "pointer", color: track.disliked ? color.alert : color.faint, padding: 8 }}>
-              <Icon name={track.disliked ? "dislikefilled" : "dislike"} size={16}/>
-            </button>
-            {onShowQueue && (
-              <span className="dock-xtra" style={{ display: "flex" }}>
-                <button type="button" aria-label="Up Next"
-                  onClick={(e) => { e.stopPropagation(); onShowQueue(); }}
-                  style={{ background: "none", border: "none", cursor: "pointer", color: color.faint, padding: 8 }}>
-                  <Icon name="queue" size={16}/>
-                </button>
-              </span>
-            )}
             <span className="dock-xtra" style={{ display: "flex" }}>
               <TrackMoreButton onClick={(e) => openFromButton(e, track)} />
             </span>
-            <button type="button" aria-label="Previous"
-              onClick={(e) => { e.stopPropagation(); onPrev?.(); }}
-              style={{ background: "none", border: "none", cursor: "pointer", color: color.muted, padding: 8 }}>
-              <Icon name="prev" size={16}/>
-            </button>
             <IceOrbPlay
               isPlaying={isPlaying}
               buffering={isBuffering}
               onClick={onTogglePlay}
-              size={34}
-              iconSize={14}
+              size={40}
+              iconSize={16}
               stopPropagation
+              glowing={isPlaying && !isBuffering}
             />
-            <button type="button" aria-label="Next"
-              onClick={(e) => { e.stopPropagation(); onSkip(); }}
-              style={{ background: "none", border: "none", cursor: "pointer", color: color.muted, padding: 8 }}>
-              <Icon name="skip" size={16}/>
-            </button>
-            <span style={{ display: "flex" }}>
+            <span style={{ display: "flex", gap: 4 }} onClick={(e) => e.stopPropagation()}>
               <Suspense fallback={null}>
-                <EnergyShiftControl size={30} />
+                <EnergyShiftButton direction="down" size={34} />
+                <EnergyShiftButton direction="up" size={34} />
               </Suspense>
             </span>
+          </div>
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{ padding: "0 12px 6px" }}
+          >
+            <LcdSeek
+              value={progress}
+              max={duration || 1}
+              onChange={onSeek}
+              label="Seek"
+              stopPropagation
+              height={4}
+            />
           </div>
         </div>
       )}

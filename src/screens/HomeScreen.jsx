@@ -300,7 +300,7 @@ function HomeScreen({
         />
       )}
 
-      {/* NOW PLAYING — clean App Store stage card */}
+      {/* NOW PLAYING — device stage */}
       <div
         style={{
           padding: `0 ${homeSpace.gutter}px`,
