@@ -11,7 +11,7 @@ const CHART_CSS = `
     background: repeating-linear-gradient(
       to bottom,
       transparent 0px, transparent 2px,
-      rgba(101,230,255,0.05) 2px, rgba(101,230,255,0.05) 3px
+      rgba(255,106,43,0.05) 2px, rgba(255,106,43,0.05) 3px
     );
     mix-blend-mode: multiply; opacity: 0.12;
   }
@@ -131,7 +131,7 @@ export default function ChartsScreen({
             borderRadius: radius.lg,
             border: `1px solid ${glass.borderSoft}`,
             background: `
-              linear-gradient(180deg, rgba(101,230,255,0.06) 0%, transparent 44%),
+              linear-gradient(180deg, rgba(255,106,43,0.06) 0%, transparent 44%),
               ${glass.fill}
             `,
             boxShadow: `inset 0 1px 0 ${glass.highlight}`,

@@ -47,7 +47,7 @@ export default function FeatureTour({
         justifyContent: "center",
         padding: "16px",
         background: `
-          radial-gradient(ellipse 80% 70% at 20% 0%, rgba(101,230,255,0.10) 0%, transparent 55%),
+          radial-gradient(ellipse 80% 70% at 20% 0%, rgba(255,106,43,0.10) 0%, transparent 55%),
           radial-gradient(ellipse 50% 50% at 90% 10%, rgba(123,167,255,0.08) 0%, transparent 50%),
           ${color.canvas}
         `,

@@ -369,7 +369,7 @@ export default function TasteTuner({
           right: 0,
           height: "42vh",
           background:
-            "radial-gradient(ellipse at 50% 0%, rgba(101,230,255,0.08) 0%, transparent 55%)",
+            "radial-gradient(ellipse at 50% 0%, rgba(255,106,43,0.08) 0%, transparent 55%)",
           pointerEvents: "none",
         }}
       />

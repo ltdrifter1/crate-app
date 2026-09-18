@@ -550,7 +550,7 @@ function Empty({ note }) {
         borderRadius: radius.lg,
         border: `1px solid ${glass.borderSoft}`,
         background: `
-          linear-gradient(180deg, rgba(101,230,255,0.05) 0%, transparent 42%),
+          linear-gradient(180deg, rgba(255,106,43,0.05) 0%, transparent 42%),
           ${glass.fill}
         `,
         boxShadow: `inset 0 1px 0 ${glass.highlight}`,
@@ -734,7 +734,7 @@ function ChartList({ entries, nowPlayingId, onPlay, onAdd, onMore, onContext }) 
                 margin: "0 -8px",
                 padding: "8px 8px",
                 borderRadius: 10,
-                background: active ? "rgba(101,230,255,0.06)" : "transparent",
+                background: active ? "rgba(255,106,43,0.06)" : "transparent",
                 boxShadow: active ? `inset 2px 0 0 ${chrome.signal}` : "none",
               }}
             >
@@ -785,7 +785,7 @@ function ChartList({ entries, nowPlayingId, onPlay, onAdd, onMore, onContext }) 
                   overflow: "hidden",
                   background: color.surfaceRaised,
                   boxShadow: artShadow.quiet,
-                  border: `1px solid ${active ? "rgba(101,230,255,0.28)" : "rgba(184,192,204,0.2)"}`,
+                  border: `1px solid ${active ? "rgba(255,106,43,0.28)" : "rgba(184,192,204,0.2)"}`,
                 }}>
                   <CoverImage src={e.albumCover} width={52} height={52} alt="" />
                 </div>
