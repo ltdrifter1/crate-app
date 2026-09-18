@@ -295,7 +295,7 @@ export function EnergyShiftModeChip({ style = null }) {
         alignItems: "center",
         gap: 7,
         padding: "5px 11px",
-        borderRadius: 980,
+        borderRadius: 8,
         background: "rgba(48,53,62,0.9)",
         border: `1px solid ${glass.border}`,
         boxShadow: `inset 0 1px 0 ${glass.highlight}, 0 6px 18px rgba(0,0,0,0.35)`,
@@ -353,7 +353,7 @@ export function EnergyShiftFeedback({ bottom = "calc(100% + 12px)" }) {
       {pillVisible && (
         <div style={{
           display: "flex", alignItems: "center", gap: 7,
-          padding: "8px 15px", borderRadius: 999,
+          padding: "8px 15px", borderRadius: 8,
           background: "rgba(56,62,72,0.94)",
           border: `1px solid ${glass.border}`,
           boxShadow: `inset 0 1px 0 ${glass.highlight}, 0 10px 28px rgba(0,0,0,0.4)`,
@@ -371,7 +371,7 @@ export function EnergyShiftFeedback({ bottom = "calc(100% + 12px)" }) {
       {chipVisible && !neutral && (
         <div style={{
           display: "flex", alignItems: "center", gap: 4,
-          padding: "3px 9px", borderRadius: 999,
+          padding: "3px 9px", borderRadius: 8,
           background: "rgba(255,255,255,0.06)",
           border: `1px solid ${glass.borderSoft}`,
           color: color.ink,
@@ -594,7 +594,7 @@ export function EnergyShiftControl({
 }
 
 /**
- * Secondary pace control — tucked above primary transport so the ice orb stays the jewel.
+ * Secondary pace control — compact Turtle / Bunny pair.
  */
 export function EnergyShiftCapsule({ stopPropagation = false }) {
   return (
@@ -606,7 +606,7 @@ export function EnergyShiftCapsule({ stopPropagation = false }) {
         alignItems: "center",
         gap: 6,
         padding: "5px 8px",
-        borderRadius: 999,
+        borderRadius: 8,
         background: "rgba(32,36,43,0.65)",
         border: `1px solid ${glass.borderSoft}`,
         boxShadow: `inset 0 1px 0 ${glass.highlight}, ${glass.shadowSoft}`,

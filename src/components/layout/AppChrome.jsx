@@ -37,7 +37,7 @@ export function AmbientNetworkPill({ isOffline }) {
       background: isOffline ? color.canvasEdge : color.surfaceRaised,
       color: isOffline ? color.ink : color.body,
       border: `1px solid ${glass.border}`,
-      borderRadius: 980,
+      borderRadius: 8,
       padding: "7px 14px",
       fontSize: 12.5, fontWeight: 600,
       boxShadow: glass.shadowSoft,

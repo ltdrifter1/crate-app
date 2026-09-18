@@ -32,7 +32,7 @@ import { useIsPlaying } from "../../usePlayerTransport";
 /**
  * Home Cover Stage atmosphere.
  * Idle → brushed aluminum. Live → full-bleed sleeve as the visual plane
- * (Cover Flow / iTunes memory — never an inset Spotify card).
+ * (full-bleed sleeve — never an inset streaming card).
  */
 export function CoverStageAtmosphere({ track = null, playing = false, live = false }) {
   const hasArt = !!(live && track?.albumCover);

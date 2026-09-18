@@ -140,3 +140,36 @@ body::before { display: none; }
   50% { opacity: 1; }
 }
 .pmp-lcd-pip { animation: pmpLcdPip 1.6s ease-in-out infinite; }
+@keyframes pmpMarquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+.pmp-lcd-marquee {
+  overflow: hidden;
+  white-space: nowrap;
+}
+.pmp-lcd-marquee > span {
+  display: inline-block;
+  padding-right: 2.5em;
+  animation: pmpMarquee 14s linear infinite;
+}
+.pmp-sleeve-crossfade {
+  animation: trackSwap 0.32s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@media (min-width: 860px) {
+  .pmp-device-stage {
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 36px !important;
+  }
+  .pmp-device-sleeve {
+    max-height: 56vh !important;
+    width: min(42vw, 380px) !important;
+  }
+}
+@media (max-width: 560px) {
+  .pmp-crate-spread {
+    grid-template-columns: 1fr !important;
+  }
+}

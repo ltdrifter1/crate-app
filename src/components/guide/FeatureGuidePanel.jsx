@@ -125,7 +125,7 @@ export default function FeatureGuidePanel({
           style={{
             ...BTN_PRIMARY,
             width: "100%",
-            borderRadius: 980,
+            borderRadius: 8,
           }}
         >
           Replay the tour

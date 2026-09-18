@@ -6,7 +6,7 @@ import HomeBandHeader from "./HomeBandHeader";
 
 /**
  * Channel surfing — first Home destination band.
- * Equal App Store tiles; Local is not featured or haloed.
+ * Equal station tiles; Local is not featured or haloed.
  */
 function ChannelSurfingSection({
   channels = [],

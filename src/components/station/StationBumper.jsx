@@ -61,7 +61,7 @@ export default function StationBumper({ bumper = null, onDone = null, durationMs
           gap: 8,
           padding: "6px 12px",
           marginBottom: 16,
-          borderRadius: radius.pill,
+          borderRadius: radius.md,
           background: glass.chrome,
           border: `1px solid ${glass.border}`,
           boxShadow: `inset 0 1px 0 ${glass.highlight}`,
@@ -103,7 +103,7 @@ export default function StationBumper({ bumper = null, onDone = null, durationMs
           margin: "22px auto 0",
           width: 120,
           height: 3,
-          borderRadius: 999,
+          borderRadius: 2,
           background: `linear-gradient(90deg, transparent, ${accent}, transparent)`,
           animation: "stationBar 0.8s ease-in-out infinite alternate",
         }} />

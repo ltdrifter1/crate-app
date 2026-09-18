@@ -660,7 +660,7 @@ export default function ClubScreen({
               style={{
                 ...BTN_PRIMARY,
                 width: "100%",
-                borderRadius: 980,
+                borderRadius: 8,
                 marginBottom: 4,
               }}
             >
@@ -707,7 +707,7 @@ export default function ClubScreen({
         <button
           type="button"
           onClick={onLogout}
-          style={{ ...BTN_SECONDARY, width: "100%", borderRadius: 980 }}
+          style={{ ...BTN_SECONDARY, width: "100%", borderRadius: 8 }}
         >
           Sign Out
         </button>

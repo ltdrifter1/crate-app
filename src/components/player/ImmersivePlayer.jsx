@@ -21,7 +21,7 @@ import { usePlayerPlayback } from "../../usePlayerPlayback";
 import { useIsPlaying } from "../../usePlayerTransport";
 import { EnergyShiftFeedback, EnergyShiftButton } from "../listen/EnergyShiftButton";
 import Icon from "../ui/Icon";
-import { IceOrbPlay } from "./OrbitalControls";
+import { PlayKey } from "./OrbitalControls";
 import {
   DedicationFlash,
   HypnoVisualizer,
@@ -560,8 +560,9 @@ export default function ImmersivePlayer({
         </div>
       )}
 
-      {/* Center — sleeve theater */}
+      {/* Center — sleeve + LCD (row on desktop) */}
       <div
+        className="pmp-device-stage"
         style={{
           position: "relative",
           zIndex: 2,
@@ -581,6 +582,7 @@ export default function ImmersivePlayer({
 
         {/* Jewel-case sleeve — dominant stage */}
         <div
+          className="pmp-device-sleeve pmp-sleeve-crossfade"
           key={currentTrack.id}
           style={{
             position: "relative",
@@ -665,6 +667,7 @@ export default function ImmersivePlayer({
           }}
         >
           <div
+            className={currentTrack.title?.length > 22 ? "pmp-lcd-marquee" : undefined}
             style={{
               fontFamily: fontDisplay,
               fontSize: "clamp(20px, 5vw, 28px)",
@@ -674,13 +677,17 @@ export default function ImmersivePlayer({
               lineHeight: 1.12,
               marginBottom: 6,
               overflow: "hidden",
-              display: "-webkit-box",
-              WebkitLineClamp: 2,
-              WebkitBoxOrient: "vertical",
+              whiteSpace: currentTrack.title?.length > 22 ? "nowrap" : undefined,
+              display: currentTrack.title?.length > 22 ? "block" : "-webkit-box",
+              WebkitLineClamp: currentTrack.title?.length > 22 ? undefined : 2,
+              WebkitBoxOrient: currentTrack.title?.length > 22 ? undefined : "vertical",
               paddingRight: 14,
             }}
           >
-            {currentTrack.title}
+            <span>{currentTrack.title}</span>
+            {currentTrack.title?.length > 22 ? (
+              <span aria-hidden="true">{currentTrack.title}</span>
+            ) : null}
           </div>
           {onOpenArtist ? (
             <button
@@ -858,7 +865,7 @@ export default function ImmersivePlayer({
               <Icon name="prev" size={20} />
             </ChromeIconButton>
 
-            <IceOrbPlay
+            <PlayKey
               isPlaying={isPlaying}
               onClick={onTogglePlay}
               size={68}

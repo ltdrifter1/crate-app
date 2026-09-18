@@ -250,18 +250,18 @@ const injectStyles = () => {
     input.chrome-seek::-webkit-slider-runnable-track { height: 6px; background: transparent; border: none; }
     input.chrome-seek::-moz-range-track { height: 6px; background: transparent; border: none; }
     input.chrome-seek::-webkit-slider-thumb {
-      -webkit-appearance: none; appearance: none; width: 18px; height: 18px; margin-top: -6px;
-      border-radius: 50%;
-      background: linear-gradient(160deg, #F4FFE0 0%, ${color.accent} 100%);
-      border: 1px solid rgba(12,16,8,0.45);
-      box-shadow: inset 0 1px 0 rgba(255,255,255,0.45), 0 2px 6px rgba(0,0,0,0.5);
+      -webkit-appearance: none; appearance: none; width: 3px; height: 12px; margin-top: -3px;
+      border-radius: 1px;
+      background: ${color.accent};
+      border: none;
+      box-shadow: 0 0 8px ${color.accentGlow || "rgba(30,111,232,0.55)"};
       cursor: pointer;
     }
     input.chrome-seek::-moz-range-thumb {
-      width: 18px; height: 18px; border-radius: 50%;
-      background: linear-gradient(160deg, #F4FFE0 0%, ${color.accent} 100%);
-      border: 1px solid rgba(12,16,8,0.45);
-      box-shadow: inset 0 1px 0 rgba(255,255,255,0.45), 0 2px 6px rgba(0,0,0,0.5);
+      width: 3px; height: 12px; border-radius: 1px;
+      background: ${color.accent};
+      border: none;
+      box-shadow: 0 0 8px ${color.accentGlow || "rgba(30,111,232,0.55)"};
       cursor: pointer;
     }
     .hide-scroll { -ms-overflow-style: none; scrollbar-width: none; }
@@ -3496,7 +3496,7 @@ export default function App() {
   // ── Mobile: render as-is ─────────────────────────────────────────────────
   if (!isDesktop) return innerApp;
 
-  // ── Desktop: 3-column shell (iTunes-style source list) ───────────────────
+  // ── Desktop: 3-column shell (source list) ───────────────────
   const recentTracks = [...tracks].slice(0, 6);
 
   // Build queue/next-up from current context
@@ -3514,7 +3514,7 @@ export default function App() {
   return (
     <div style={{ display:"flex", height:"100dvh", background: color.canvas, overflow:"hidden", fontFamily: font }}>
 
-      {/* ── LEFT SOURCE LIST (iTunes-style) ───────────────────────────── */}
+      {/* ── LEFT SOURCE LIST ───────────────────────────── */}
       <Suspense fallback={null}>
       <AppSidebar
         screen={screen}

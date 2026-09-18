@@ -7,7 +7,7 @@
 
 This is **not** a UX/feature audit. See `docs/UX_AUDIT.md` for ergonomics, search, stacks, and a11y.
 
-**Status:** Audit only. No visual implementation until this document is approved. Preserve playback, routing, Club, billing, and recommendation engine. Reuse existing components; no IA rewrite.
+**Status:** Phases 1–3 implemented on the shipped Aqua chassis (`STYLE_CHASSIS = aqua-device-20260918`). Preserve playback, routing, Club, billing, and recommendation engine. Reuse existing components; no IA rewrite.
 
 ---
 

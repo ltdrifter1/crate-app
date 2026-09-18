@@ -19,7 +19,7 @@ import {
 import { trackHasVideo } from "../../lib/video";
 import Icon from "../ui/Icon";
 import CoverImage from "../ui/CoverImage";
-import { IceOrbPlay } from "../player/OrbitalControls";
+import { PlayKey } from "../player/OrbitalControls";
 import { EnergyShiftButton } from "../listen/EnergyShiftButton";
 import { HERO_IDLE_ART, HERO_IDLE_FOCUS } from "../../lib/channelArt";
 import ScanlineWash from "./ScanlineWash";
@@ -629,9 +629,9 @@ export default function HeroPlayerCard({
           {live ? (
             <div style={{ display: "flex", flexDirection: "column", gap: 8, width: "100%" }}>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, flexWrap: "wrap" }}>
-                <EnergyShiftButton direction="down" size={40} stopPropagation showLabel={false} />
+                <EnergyShiftButton direction="down" size={40} stopPropagation showLabel />
                 <ChromeIconButton label="Previous" icon="prev" onClick={onPrev} />
-                <IceOrbPlay
+                <PlayKey
                   isPlaying={isPlaying}
                   buffering={isBuffering}
                   onClick={onTogglePlay}
@@ -640,7 +640,7 @@ export default function HeroPlayerCard({
                   stopPropagation
                 />
                 <ChromeIconButton label="Next" icon="skip" onClick={onSkip} />
-                <EnergyShiftButton direction="up" size={40} stopPropagation showLabel={false} />
+                <EnergyShiftButton direction="up" size={40} stopPropagation showLabel />
               </div>
               <div onClick={(e) => e.stopPropagation()} style={{ width: "100%" }}>
                 <LcdSeek

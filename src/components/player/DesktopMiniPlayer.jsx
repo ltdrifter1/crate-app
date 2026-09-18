@@ -11,7 +11,7 @@ import { EnergyShiftFeedback, EnergyShiftButton } from "../listen/EnergyShiftBut
 import FreePlaysMeter from "../billing/FreePlaysMeter";
 import { freePlaysMeterLabel } from "../../lib/freePlays";
 import Icon from "../ui/Icon";
-import { IceOrbPlay } from "./OrbitalControls";
+import { PlayKey } from "./OrbitalControls";
 import { dockTintStyle } from "../../lib/dockTint";
 import CoverImage from "../ui/CoverImage";
 import { LcdMetaLine, LcdSeek, LcdTimes, trackLcdBits } from "./DeviceChrome";
@@ -128,7 +128,7 @@ export default function DesktopMiniPlayer({
           <Icon name={track.liked ? "heart" : "heartempty"} size={16} />
         </button>
         <EnergyShiftButton direction="down" size={36} />
-        <IceOrbPlay
+        <PlayKey
           isPlaying={isPlaying}
           onClick={onTogglePlay}
           size={40}

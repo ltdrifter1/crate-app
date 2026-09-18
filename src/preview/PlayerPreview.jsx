@@ -5,7 +5,7 @@
 import { useEffect, useState } from "react";
 import DesktopMiniPlayer from "../components/player/DesktopMiniPlayer";
 import ImmersivePlayer from "../components/player/ImmersivePlayer";
-import { IceOrbPlay, OrbitalArtRing } from "../components/player/OrbitalControls";
+import { PlayKey, OrbitalArtRing } from "../components/player/OrbitalControls";
 import Icon from "../components/ui/Icon";
 import { playerPlaybackStore } from "../lib/playerPlaybackStore";
 import { playerTransportStore } from "../lib/playerTransportStore";
@@ -109,7 +109,7 @@ export default function PlayerPreview() {
           onDislike={() => setTrack((t) => ({ ...t, disliked: true, liked: false }))}
           onSeek={(n) => playerPlaybackStore.setProgress(n)}
           OrbitalArtRing={OrbitalArtRing}
-          IceOrbPlay={IceOrbPlay}
+          PlayKey={PlayKey}
           Icon={Icon}
           dockTintStyle={dockTintStyle}
         />
@@ -127,7 +127,7 @@ export default function PlayerPreview() {
           onDislike={() => setTrack((t) => ({ ...t, disliked: true, liked: false }))}
           isRadioMode
           Icon={Icon}
-          IceOrbPlay={IceOrbPlay}
+          PlayKey={PlayKey}
         />
       )}
 

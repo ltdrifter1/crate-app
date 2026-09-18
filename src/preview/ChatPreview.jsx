@@ -147,7 +147,7 @@ export default function ChatPreview() {
         display: "flex",
         gap: 6,
         padding: 4,
-        borderRadius: 980,
+        borderRadius: 10,
         background: "rgba(18,20,24,0.78)",
         border: `1px solid ${glass.border}`,
       }}

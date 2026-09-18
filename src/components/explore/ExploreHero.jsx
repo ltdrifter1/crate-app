@@ -47,7 +47,7 @@ export default function ExploreHero({
         className="pmp-explore-hero"
         style={{
           position: "relative",
-          borderRadius: 18,
+          borderRadius: 10,
           overflow: "hidden",
           minHeight: 240,
           aspectRatio: "16 / 10",
@@ -173,7 +173,7 @@ export default function ExploreHero({
                   width: "auto",
                   minHeight: 44,
                   padding: "0 18px",
-                  borderRadius: 980,
+                  borderRadius: 8,
                   fontSize: 15,
                   fontWeight: 650,
                   display: "inline-flex",
@@ -195,7 +195,7 @@ export default function ExploreHero({
                   width: "auto",
                   minHeight: 44,
                   padding: "0 16px",
-                  borderRadius: 980,
+                  borderRadius: 8,
                   fontSize: 15,
                   fontWeight: 600,
                   color: color.onDark,

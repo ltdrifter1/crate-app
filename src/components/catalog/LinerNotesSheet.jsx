@@ -120,7 +120,7 @@ export default function LinerNotesSheet({
                 style={{
                   marginTop: 12,
                   padding: "10px 14px",
-                  borderRadius: radius.pill,
+                  borderRadius: radius.md,
                   border: "none",
                   background: canAfford || needsPremium ? color.accent : "rgba(255,255,255,0.12)",
                   color: canAfford || needsPremium ? color.onAccent || "#111" : color.faint,
@@ -209,7 +209,7 @@ function Chip({ children, onClick }) {
       onClick={onClick}
       style={{
         padding: "10px 14px",
-        borderRadius: radius.pill,
+        borderRadius: radius.sm,
         border: `1px solid ${glass.borderSoft}`,
         background: `
           linear-gradient(165deg, rgba(38,43,51,0.82) 0%, rgba(28,32,38,0.5) 100%)

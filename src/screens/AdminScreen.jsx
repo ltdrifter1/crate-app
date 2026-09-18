@@ -50,12 +50,12 @@ function AnalyticsRow({ rank, track, value, label, max, color: trackColor, accen
         <div style={{
           marginTop:6,
           background: "rgba(18,20,26,0.08)",
-          borderRadius:999,
+          borderRadius:4,
           height:4,
           overflow:"hidden",
           boxShadow: "inset 0 1px 1px rgba(18,20,26,0.08)",
         }}>
-          <div style={{ height:"100%", width:`${pct}%`, borderRadius:999, background: accent || trackColor || color.accent, transition:"width 0.4s ease" }}/>
+          <div style={{ height:"100%", width:`${pct}%`, borderRadius:4, background: accent || trackColor || color.accent, transition:"width 0.4s ease" }}/>
         </div>
       </div>
       <div style={{ flexShrink:0, textAlign:"right" }}>
@@ -549,8 +549,8 @@ export default function AdminScreen({
                       <div key={label} style={{ padding:"14px 12px", background:"rgba(255,255,255,0.1)", backdropFilter:"blur(32px)", borderRadius:14, border:"1px solid rgba(255,255,255,0.14)" }}>
                         <div style={{ fontSize:11, fontWeight:600, color: color.ink, letterSpacing:0.5, marginBottom:8, textTransform:"uppercase" }}>{label}</div>
                         <div style={{ fontSize:28, fontWeight:700, color: color.ink }}>{has}<span style={{ fontSize:14, color: color.muted }}>/{total}</span></div>
-                        <div style={{ height:5, background:"rgba(18,20,26,0.08)", borderRadius:999, marginTop:8, overflow:"hidden", boxShadow: "inset 0 1px 1px rgba(18,20,26,0.08)" }}>
-                          <div style={{ width:`${pct}%`, height:"100%", background: pct === 100 ? color.accent : pct > 50 ? color.surfaceRaised : color.faint, borderRadius:999, transition:"width 0.5s" }}/>
+                        <div style={{ height:5, background:"rgba(18,20,26,0.08)", borderRadius:4, marginTop:8, overflow:"hidden", boxShadow: "inset 0 1px 1px rgba(18,20,26,0.08)" }}>
+                          <div style={{ width:`${pct}%`, height:"100%", background: pct === 100 ? color.accent : pct > 50 ? color.surfaceRaised : color.faint, borderRadius:4, transition:"width 0.5s" }}/>
                         </div>
                         <div style={{ fontSize:10, color: color.muted, marginTop:4 }}>{pct}% covered</div>
                       </div>
@@ -666,7 +666,7 @@ export default function AdminScreen({
                     ownerName: clubCurator.trim() || pl.ownerName || undefined,
                   });
                 }}
-                style={{ ...BTN_PRIMARY, borderRadius: 980, padding: "10px 14px", fontSize: 13 }}
+                style={{ ...BTN_PRIMARY, borderRadius: 8, padding: "10px 14px", fontSize: 13 }}
               >
                 Make Community Mix
               </button>

@@ -34,7 +34,7 @@ function clampMenuPos(x, y, w = 240, h = 320) {
   return { left, top };
 }
 
-/** Spotify/iTunes-style track menu — ⋯ or right-click. Portaled so it never clips. */
+/** Track menu — ⋯ or right-click. Portaled so it never clips. */
 export function TrackActionsMenu({ track, playlistCtx, activePlaylistId, x, y, onClose }) {
   const ctx = playlistCtx || PlaylistCtx;
   const [newPlName, setNewPlName] = useState("");

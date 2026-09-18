@@ -501,7 +501,9 @@ function FavoritesScreen({
                   onClick={() => playlistCtx.onAdd(t.id, openPlaylist.id)}
                   aria-label={`Add ${t.title} to ${openPlaylist.name}`}
                   style={{
-                    background: color.accentSoft, border: "none", borderRadius: 980,
+                    background: color.accentSoft,
+                    border: "none",
+                    borderRadius: 8,
                     width: 34, height: 34, display: "flex", alignItems: "center", justifyContent: "center",
                     color: color.accent, cursor: "pointer", flexShrink: 0,
                   }}

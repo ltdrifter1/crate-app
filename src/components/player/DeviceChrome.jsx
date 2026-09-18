@@ -218,9 +218,11 @@ export function DeviceCatalogMark({ style = {} }) {
 }
 
 export function LcdTitle({ children, as: Tag = "div" }) {
+  const text = typeof children === "string" ? children : "";
+  const marquee = text.length > 22;
   return (
     <Tag
-      className="pmp-lcd-title"
+      className={marquee ? "pmp-lcd-marquee" : "pmp-lcd-title"}
       style={{
         fontFamily: fontDisplay,
         fontSize: 16,
@@ -228,12 +230,13 @@ export function LcdTitle({ children, as: Tag = "div" }) {
         letterSpacing: -0.3,
         color: color.ink,
         overflow: "hidden",
-        textOverflow: "ellipsis",
+        textOverflow: marquee ? undefined : "ellipsis",
         whiteSpace: "nowrap",
         margin: 0,
       }}
     >
-      {children}
+      <span>{children}</span>
+      {marquee ? <span aria-hidden="true">{children}</span> : null}
     </Tag>
   );
 }

@@ -12,7 +12,7 @@ import {
 
 /**
  * MusicSection — Home / Explore shelf shell.
- * App Store–clean titles align to the same left edge as the Rail.
+ * Titles share the same left edge as the Rail.
  */
 export default function MusicSection({
   title,
@@ -26,7 +26,7 @@ export default function MusicSection({
   style = {},
   /** When true, wrap non-rail children in the shared gutter. */
   inset = false,
-  /** Home bands use the same Apple Music title stack as Channel Surfing. */
+  /** Home bands use the same title stack as Channel Surfing. */
   poster = false,
 }) {
   void accent;

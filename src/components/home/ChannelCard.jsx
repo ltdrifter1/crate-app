@@ -4,7 +4,7 @@ import CoverImage from "../ui/CoverImage";
 import Icon from "../ui/Icon";
 
 /**
- * ChannelCard — iTunes-style square tile.
+ * ChannelCard — square station tile.
  * Original icon, name, blurb, play. Local is the same card as every other station.
  */
 function ChannelArt({ src, title, size, accent, objectPosition, priority = false, eager = false }) {
