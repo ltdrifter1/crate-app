@@ -38,13 +38,13 @@ describe("explore collections", () => {
     expect(jazz.covers.length).toBeGreaterThan(0);
   });
 
-  test("GENRE_CHANNEL_ART only maps honest documentary matches", () => {
+  test("GENRE_CHANNEL_ART only maps honest channel-icon matches", () => {
     expect(GENRE_CHANNEL_ART.Jazz).toBeUndefined();
     expect(GENRE_CHANNEL_ART.Classical).toBeUndefined();
     expect(GENRE_CHANNEL_ART.Electronic).toBe("techno");
   });
 
-  test("mood plates filter by energy and carry licensed photos", () => {
+  test("mood plates filter by energy and carry channel icons", () => {
     const moods = exploreMoodPlates(tracks, 1);
     const ids = moods.map((m) => m.id);
     expect(ids).toEqual(expect.arrayContaining(["after-hours", "peak-time", "drive"]));
@@ -63,7 +63,7 @@ describe("explore collections", () => {
     }
   });
 
-  test("hero prefers a live showcase channel photo over idle art", () => {
+  test("hero prefers a live showcase channel icon over idle art", () => {
     const channels = [
       {
         id: "local-pnw",

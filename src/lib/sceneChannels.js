@@ -941,7 +941,7 @@ export function availableSceneChannels(tracks = [], minTracks = 3) {
 /**
  * Distinct album-cover URLs for a channel tile mosaic (up to `limit`).
  * Prefers an explicit `channel.art` override, then direct matches, then the pool.
- * Bundled Channel Surfing photos live in `channelArt.js` so App's scene-channel
+ * Bundled Channel Surfing icons live in `channelArt.js` so App's scene-channel
  * import does not pull image bytes onto the Home-critical JS graph.
  */
 export function channelCoverUrls(tracks = [], channel, limit = 4) {

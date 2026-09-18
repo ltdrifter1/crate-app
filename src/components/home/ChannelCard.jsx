@@ -4,8 +4,8 @@ import CoverImage from "../ui/CoverImage";
 import Icon from "../ui/Icon";
 
 /**
- * ChannelCard — App Store / Apple Music art tile.
- * Photograph, name, blurb, play. Local is the same card as every other station.
+ * ChannelCard — iTunes-style square tile.
+ * Original icon, name, blurb, play. Local is the same card as every other station.
  */
 function ChannelArt({ src, title, size, accent, objectPosition, priority = false, eager = false }) {
   const initial = (title || "?").trim().charAt(0).toUpperCase() || "?";
