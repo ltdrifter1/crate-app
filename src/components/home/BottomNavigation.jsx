@@ -13,7 +13,7 @@ export default function BottomNavigation({ items = [], activeId, onSelect }) {
         display: "flex",
         gap: 4,
         padding: 6,
-        borderRadius: 14,
+        borderRadius: 10,
         pointerEvents: "auto",
       }}
     >
@@ -31,13 +31,15 @@ export default function BottomNavigation({ items = [], activeId, onSelect }) {
               flex: 1,
               minWidth: 0,
               height: 50,
-              borderRadius: 10,
-              border: "1px solid transparent",
-              background: active ? "rgba(184,242,74,0.14)" : "none",
+              borderRadius: 8,
+              border: active
+                ? `1px solid ${color.accentGlow}`
+                : "1px solid transparent",
+              background: active ? "rgba(255,106,43,0.08)" : "none",
               boxShadow: active
-                ? "inset 0 1px 0 rgba(255,255,255,0.08), 0 0 0 1px rgba(184,242,74,0.28)"
+                ? "inset 2px 0 0 #FF6A2B, inset 0 1px 0 rgba(255,255,255,0.08)"
                 : "none",
-              color: active ? color.accent : color.muted,
+              color: active ? color.ink : color.muted,
               cursor: "pointer",
               display: "flex",
               flexDirection: "column",

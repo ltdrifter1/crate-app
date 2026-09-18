@@ -33,7 +33,7 @@ export default function FlaskTasteButton({
         background: active
           ? `
             linear-gradient(180deg, rgba(255,255,255,0.22) 0%, transparent 48%),
-            linear-gradient(180deg, #D4FF7A 0%, #B8F24A 100%)
+            linear-gradient(180deg, #FFB347 0%, #FF6A2B 100%)
           `
           : aluminumGradient(),
         color: active ? color.onAccent : color.ink,

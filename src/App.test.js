@@ -5,25 +5,25 @@ import {
 
 test('theme exports core tokens', () => {
   expect(color.ink).toBeTruthy();
-  expect(color.accent).toMatch(/#B8F24A/i);
-  expect(color.onAccent).toMatch(/#0C1008/i);
-  expect(color.canvas).toMatch(/#090A0D/i);
+  expect(color.accent).toMatch(/#FF6A2B/i);
+  expect(color.onAccent).toMatch(/#1A0A06/i);
+  expect(color.canvas).toMatch(/#110E16/i);
   expect(color.alert).toBeTruthy();
   expect(color.select).toMatch(/rgba/);
   expect(BRAND_TAGLINE).toMatch(/YOUR WORLD/i);
   expect(BRAND_NAME).toBe("Planet MP3");
-  expect(font).toMatch(/IBM Plex Sans/);
-  expect(fontDisplay).toMatch(/IBM Plex Sans/);
+  expect(font).toMatch(/Space Grotesk/);
+  expect(fontDisplay).toMatch(/Space Grotesk/);
   expect(font).not.toMatch(/^system-ui/);
   expect(fontLcd).toMatch(/IBM Plex Mono/);
-  expect(STYLE_CHASSIS).toBe("acid-device-20260918");
+  expect(STYLE_CHASSIS).toBe("ps1-discman-20260918");
   expect(type.lcd.fontFamily).toMatch(/IBM Plex Mono/);
   expect(type.lcd.fontSize).toBe(11);
   expect(sectionTitle.fontSize).toBe(22);
   expect(y2k.chromeBright).toBeTruthy();
-  expect(y2k.chrome).toMatch(/#C5CAD3/i);
-  expect(y2k.cyan).toMatch(/#B8F24A/i);
-  expect(y2k.artGradient).not.toMatch(/139,\s*92,\s*246|purple/i);
+  expect(y2k.chrome).toMatch(/#C4BDB4/i);
+  expect(y2k.cyan).toMatch(/#FF6A2B/i);
+  expect(y2k.artGradient).not.toMatch(/139,\s*92,\s*246|#B8F24A/i);
   expect(homeSpace.sectionGap).toBeLessThanOrEqual(32);
   expect(homeSpace.sectionGap).toBeGreaterThan(0);
   expect(homeSpace.titleToRail).toBeGreaterThan(0);
@@ -45,11 +45,11 @@ test('radio module tokens are hardware-shaped', () => {
   expect(radio.moduleFace).toMatch(/linear-gradient/);
   expect(radio.glassFace || radio.moduleFace).toMatch(/linear-gradient/);
   expect(radio.tuneFace).toMatch(/linear-gradient/);
-  expect(radio.lcdFill).toMatch(/184,\s*242,\s*74/);
+  expect(radio.lcdFill).toMatch(/255,\s*106,\s*43/);
 });
 
-test('canvas is a dark digital studio', () => {
-  expect(color.canvas).toMatch(/#090A0D/i);
-  expect(color.ink).toMatch(/#E8EAEE/i);
-  expect(y2k.offWhite).toMatch(/#E8EAEE/i);
+test('canvas is a CRT Discman studio', () => {
+  expect(color.canvas).toMatch(/#110E16/i);
+  expect(color.ink).toMatch(/#F3EDE4/i);
+  expect(y2k.offWhite).toMatch(/#F3EDE4/i);
 });

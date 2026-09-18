@@ -254,14 +254,14 @@ const injectStyles = () => {
       border-radius: 1px;
       background: ${color.accent};
       border: none;
-      box-shadow: 0 0 8px ${color.accentGlow || "rgba(184,242,74,0.55)"};
+      box-shadow: 0 0 8px ${color.accentGlow || "rgba(255,106,43,0.55)"};
       cursor: pointer;
     }
     input.chrome-seek::-moz-range-thumb {
       width: 3px; height: 12px; border-radius: 1px;
       background: ${color.accent};
       border: none;
-      box-shadow: 0 0 8px ${color.accentGlow || "rgba(184,242,74,0.55)"};
+      box-shadow: 0 0 8px ${color.accentGlow || "rgba(255,106,43,0.55)"};
       cursor: pointer;
     }
     .hide-scroll { -ms-overflow-style: none; scrollbar-width: none; }
@@ -509,7 +509,7 @@ const injectStyles = () => {
     /* ── Dark device chrome ─────────────────────────────────────────── */
     .pill-nav {
       background:
-        linear-gradient(180deg, #1C2028 0%, #14161C 52%, #0E1014 100%);
+        linear-gradient(180deg, #2A2432 0%, #1C1824 52%, #16121A 100%);
       border: 1px solid rgba(232,234,238,0.12);
       box-shadow:
         inset 0 1px 0 rgba(255,255,255,0.1),
@@ -587,7 +587,7 @@ const injectStyles = () => {
       box-shadow: 0 6px 16px rgba(0,0,0,0.28) !important;
     }
     .pmp-schedule-cell:hover {
-      border-color: rgba(184,242,74,0.35) !important;
+      border-color: rgba(255,106,43,0.35) !important;
       box-shadow: 0 6px 16px rgba(0,0,0,0.35) !important;
     }
     .pmp-dial-cell:hover {
@@ -3145,7 +3145,7 @@ export default function App() {
               borderRadius: 12,
               border: "1px solid rgba(232,234,238,0.14)",
               background: "rgba(22,25,32,0.96)",
-              color: "#E8EAEE",
+              color: color.ink,
               fontSize: 20,
               cursor: "pointer",
             }}

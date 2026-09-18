@@ -147,7 +147,7 @@ function Segmented({ items, activeId, onChange, ariaLabel }) {
               border: "none",
               borderRadius: 8,
               background: active
-                ? "linear-gradient(180deg, #D4FF7A 0%, #B8F24A 100%)"
+                ? "linear-gradient(180deg, #FFB347 0%, #FF6A2B 100%)"
                 : "transparent",
               color: active ? color.onAccent : color.muted,
               fontFamily: fontDisplay,
@@ -156,7 +156,7 @@ function Segmented({ items, activeId, onChange, ariaLabel }) {
               letterSpacing: -0.2,
               cursor: "pointer",
               boxShadow: active
-                ? "inset 0 1px 0 rgba(255,255,255,0.28), 0 3px 8px rgba(184,242,74,0.22)"
+                ? "inset 0 1px 0 rgba(255,255,255,0.28), 0 3px 8px rgba(255,106,43,0.22)"
                 : "none",
               transition: `color ${motion.fast}, background ${motion.base}, box-shadow ${motion.base}`,
               WebkitTapHighlightColor: "transparent",
@@ -584,10 +584,10 @@ function ChartHero({ entry, active, onPlay, onAdd, onMore, onContextMenu }) {
         borderRadius: radius.lg,
         overflow: "hidden",
         border: active
-          ? "1px solid rgba(184,242,74,0.4)"
+          ? "1px solid rgba(255,106,43,0.4)"
           : "1px solid rgba(232,234,238,0.12)",
         background: `
-          radial-gradient(120% 80% at 0% 0%, rgba(184,242,74,0.12) 0%, transparent 46%),
+          radial-gradient(120% 80% at 0% 0%, rgba(255,106,43,0.12) 0%, transparent 46%),
           linear-gradient(165deg, #1A1D24 0%, #101218 100%)
         `,
         boxShadow: `
