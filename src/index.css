@@ -5,11 +5,11 @@ html, body, #root {
   min-height: 100%;
 }
 body {
-  font-family: "Space Grotesk", "Lucida Grande", "Helvetica Neue", Helvetica, Inter, -apple-system, BlinkMacSystemFont, Arial, sans-serif;
+  font-family: "IBM Plex Sans", "Lucida Grande", "Helvetica Neue", Helvetica, Inter, -apple-system, BlinkMacSystemFont, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background: #110E16;
-  color: #F3EDE4;
+  background: #E4E7EE;
+  color: #1C2028;
 }
 code {
   font-family: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Monaco, Consolas, monospace;
@@ -42,7 +42,7 @@ body::before { display: none; }
   position: absolute;
   inset: 8%;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(255,106,43,0.22) 0%, rgba(255,106,43,0.05) 42%, transparent 70%);
+  background: radial-gradient(circle, rgba(90,98,112,0.22) 0%, rgba(90,98,112,0.05) 42%, transparent 70%);
   filter: blur(12px);
   z-index: 0;
 }
@@ -56,7 +56,7 @@ body::before { display: none; }
   box-shadow:
     0 28px 48px rgba(0,0,0,0.55),
     0 0 0 1px rgba(255,255,255,0.08),
-    0 0 36px rgba(255,106,43,0.12);
+    0 0 36px rgba(90,98,112,0.12);
   z-index: 2;
 }
 .pmp-spin-planet__map {
@@ -98,8 +98,8 @@ body::before { display: none; }
   inset: 0;
   border-radius: 50%;
   box-shadow:
-    inset 0 0 0 1px rgba(255,106,43,0.18),
-    inset -10px -8px 18px rgba(255,106,43,0.08);
+    inset 0 0 0 1px rgba(90,98,112,0.18),
+    inset -10px -8px 18px rgba(90,98,112,0.08);
   pointer-events: none;
 }
 .pmp-spin-planet__ring {
@@ -110,9 +110,9 @@ body::before { display: none; }
   top: 29%;
   border-radius: 50%;
   border: 1.5px solid rgba(232,234,238,0.38);
-  border-top-color: rgba(255,106,43,0.35);
+  border-top-color: rgba(90,98,112,0.35);
   transform: rotateX(64deg) rotateZ(-18deg);
-  box-shadow: 0 0 22px rgba(255,106,43,0.16);
+  box-shadow: 0 0 22px rgba(90,98,112,0.16);
   animation: pmpPlanetRing 18s linear infinite;
   z-index: 1;
 }
@@ -121,7 +121,7 @@ body::before { display: none; }
   right: -16%;
   height: 32%;
   top: 34%;
-  border-color: rgba(255,106,43,0.42);
+  border-color: rgba(90,98,112,0.42);
   border-bottom-color: rgba(232,234,238,0.28);
   z-index: 3;
   animation-duration: 12s;

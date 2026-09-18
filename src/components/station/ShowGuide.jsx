@@ -32,7 +32,7 @@ function HostAvatar({ host, size = 44, lcd = false }) {
         color: lcd ? y2k.cyan : y2k.lightMetal,
         background: lcd
           ? `
-            linear-gradient(160deg, rgba(255,106,43,0.12) 0%, transparent 50%),
+            linear-gradient(160deg, rgba(101,230,255,0.12) 0%, transparent 50%),
             linear-gradient(145deg, #121820 0%, #070A0E 100%)
           `
           : `
@@ -175,7 +175,7 @@ function BroadcastTimeline({ progress = 0, startLabel, endLabel }) {
                 width: 1,
                 height: t === 0 || t === 100 || t === 50 ? 7 : 4,
                 background: t <= pct
-                  ? "rgba(255,106,43,0.7)"
+                  ? "rgba(101,230,255,0.7)"
                   : "rgba(255,255,255,0.14)",
               }}
             />
@@ -222,7 +222,7 @@ function BroadcastTimeline({ progress = 0, startLabel, endLabel }) {
       </div>
       <div style={{ display: "flex", justifyContent: "space-between", marginTop: 4 }}>
         <TechLabel color={y2k.cyan}>{startLabel}</TechLabel>
-        <TechLabel color="rgba(255,106,43,0.4)">{endLabel}</TechLabel>
+        <TechLabel color="rgba(101,230,255,0.4)">{endLabel}</TechLabel>
       </div>
     </div>
   );
@@ -244,7 +244,7 @@ function TuneInKey({ tuned, onTuneIn, compact = false }) {
         padding: compact ? "11px 16px" : "13px 16px",
         borderRadius: radio.radiusControl,
         border: tuned
-          ? "1px solid rgba(255,106,43,0.45)"
+          ? "1px solid rgba(101,230,255,0.45)"
           : "1px solid rgba(255,255,255,0.32)",
         cursor: "pointer",
         fontFamily: fontMono,
@@ -254,10 +254,10 @@ function TuneInKey({ tuned, onTuneIn, compact = false }) {
         textTransform: "uppercase",
         color: tuned ? y2k.cyan : "#0A0C10",
         background: tuned
-          ? "linear-gradient(180deg, rgba(255,106,43,0.12) 0%, rgba(255,255,255,0.04) 100%), rgba(8,12,16,0.7)"
+          ? "linear-gradient(180deg, rgba(101,230,255,0.12) 0%, rgba(255,255,255,0.04) 100%), rgba(8,12,16,0.7)"
           : radio.tuneFace,
         boxShadow: tuned
-          ? "inset 0 1px 0 rgba(255,255,255,0.12), 0 0 18px rgba(255,106,43,0.14)"
+          ? "inset 0 1px 0 rgba(255,255,255,0.12), 0 0 18px rgba(101,230,255,0.14)"
           : radio.tuneShadow,
         flexShrink: 0,
         WebkitTapHighlightColor: "transparent",
@@ -681,7 +681,7 @@ export function ShowGuideRail({
                   fontWeight: 700,
                   letterSpacing: 0.7,
                   textTransform: "uppercase",
-                  color: lit ? "rgba(255,106,43,0.7)" : color.faint,
+                  color: lit ? "rgba(101,230,255,0.7)" : color.faint,
                   overflow: "hidden",
                   textOverflow: "ellipsis",
                   whiteSpace: "nowrap",
