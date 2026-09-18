@@ -5,8 +5,8 @@ import { SCENE_CHANNELS } from "./sceneChannels";
 
 const CREDITS = readFileSync(join(__dirname, "../../docs/IMAGE_CREDITS.md"), "utf8");
 
-describe("licensed editorial photography", () => {
-  test("every channel ships a bundled photo and a crop focus", () => {
+describe("original channel icons", () => {
+  test("every channel ships a bundled icon and a crop focus", () => {
     SCENE_CHANNELS.forEach((channel) => {
       const art = resolveChannelArt(channel);
       expect(art.src).toBeTruthy();
@@ -17,33 +17,18 @@ describe("licensed editorial photography", () => {
     });
   });
 
-  test("idle hero is a real photo, not a generated gradient plate", () => {
+  test("idle hero is an original iPod icon", () => {
     expect(HERO_IDLE_ART).toBeTruthy();
     expect(HERO_IDLE_FOCUS).toMatch(/%/);
   });
 
-  test("IMAGE_CREDITS records source URLs and licenses", () => {
-    expect(CREDITS).toMatch(/Creative Commons|CC BY/i);
+  test("IMAGE_CREDITS records original icons, not magazine scans", () => {
+    expect(CREDITS).toMatch(/original illustrated icons/i);
     expect(CREDITS).not.toMatch(/mixmag\.com/i);
     expect(CREDITS).not.toMatch(/xlr8r\.com/i);
     expect(CREDITS).not.toMatch(/djmag\.com/i);
-    [
-      "Joe Mabel",
-      "Angie Linder",
-      "Christian Kadluba",
-      "Jonas Weckschmied",
-      "InSapphoWeTrust",
-      "David E. Lucas",
-      "Aleksandr Popov",
-      "Austin Neill",
-      "Maurício Mascaro",
-      "Wendy Wei",
-      "naleck",
-    ].forEach((name) => {
-      expect(CREDITS).toContain(name);
-    });
     SCENE_CHANNELS.forEach((channel) => {
-      const file = `${channel.id}.jpg`;
+      const file = `${channel.id}.png`;
       expect(CREDITS).toContain(file);
     });
   });

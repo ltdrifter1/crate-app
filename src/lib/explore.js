@@ -1,7 +1,7 @@
 /**
  * Explore destination — editorial collections for discovery.
- * Photography comes from licensed Channel Surfing stills (channelArt),
- * never generated plates. Catalog sleeves fill gaps with no honest photo.
+ * Channel art comes from original Channel Surfing icons (channelArt).
+ * Catalog sleeves fill gaps when a lane has no matching channel icon.
  */
 
 import { CHANNEL_ART, CHANNEL_ART_FOCUS, HERO_IDLE_ART, HERO_IDLE_FOCUS } from "./channelArt";
@@ -14,7 +14,7 @@ import {
 import { featuredReleases, recommendedPicks, trendingTracks } from "./homeCollections";
 import { SCENE_FAMILIES, getScene } from "./scenes";
 
-/** Canonical lane → Channel Surfing photo when the match is honest. */
+/** Canonical lane → Channel Surfing icon when the match is honest. */
 export const GENRE_CHANNEL_ART = {
   Electronic: "techno",
   "Hip-Hop": "variety-mix",
@@ -25,7 +25,7 @@ export const GENRE_CHANNEL_ART = {
   "Country & Folk": "country-folk",
 };
 
-/** Scene family → documentary still (same licensed set). */
+/** Scene family → Channel Surfing icon (same original set). */
 export const FAMILY_CHANNEL_ART = {
   dancefloor: "house",
   bass: "drum-and-bass",
