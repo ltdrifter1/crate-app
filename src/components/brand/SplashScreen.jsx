@@ -9,8 +9,8 @@ import { color, font, motion } from "../../theme";
  * @param {number} [props.size=176] — planet edge length (responsive capped)
  * @param {string} [props.label="Loading"] — visible boot status copy
  */
-export default function SplashScreen({ size = 176, label = "Loading" } = {}) {
-  const edge = `min(${size}px, 46vw)`;
+export default function SplashScreen({ size = 220, label = "Loading" } = {}) {
+  const edge = `min(${size}px, 52vw)`;
 
   return (
     <div
@@ -61,9 +61,9 @@ export default function SplashScreen({ size = 176, label = "Loading" } = {}) {
           fontFamily: font,
           fontSize: 13,
           fontWeight: 500,
-          letterSpacing: "0.42em",
+          letterSpacing: "0.36em",
           textTransform: "uppercase",
-          color: color.muted,
+          color: color.body,
           animation: `pmpSplashPulse 2.4s ${motion.ease} infinite`,
         }}
       >

@@ -34,6 +34,7 @@ body::before { display: none; }
   user-select: none;
   pointer-events: none;
   isolation: isolate;
+  overflow: visible;
   perspective: 920px;
   transform-style: preserve-3d;
 }
@@ -65,12 +66,12 @@ body::before { display: none; }
   left: 0;
   width: 200%;
   background-image:
-    radial-gradient(ellipse 18% 14% at 16% 38%, rgba(18,22,28,0.42) 0 62%, transparent 64%),
-    radial-gradient(ellipse 22% 11% at 38% 58%, rgba(18,22,28,0.36) 0 60%, transparent 62%),
-    radial-gradient(ellipse 14% 18% at 58% 34%, rgba(18,22,28,0.4) 0 58%, transparent 60%),
-    radial-gradient(ellipse 20% 12% at 78% 62%, rgba(18,22,28,0.34) 0 60%, transparent 62%),
-    radial-gradient(ellipse 18% 14% at 66% 38%, rgba(18,22,28,0.42) 0 62%, transparent 64%),
-    radial-gradient(ellipse 22% 11% at 88% 58%, rgba(18,22,28,0.36) 0 60%, transparent 62%),
+    radial-gradient(ellipse 28% 16% at 18% 40%, rgba(18,22,28,0.48) 0 58%, transparent 62%),
+    radial-gradient(ellipse 16% 22% at 40% 58%, rgba(18,22,28,0.4) 0 52%, transparent 56%),
+    radial-gradient(ellipse 22% 12% at 62% 34%, rgba(18,22,28,0.36) 0 50%, transparent 54%),
+    radial-gradient(ellipse 18% 10% at 82% 64%, rgba(18,22,28,0.34) 0 50%, transparent 54%),
+    radial-gradient(ellipse 28% 16% at 68% 40%, rgba(18,22,28,0.48) 0 58%, transparent 62%),
+    radial-gradient(ellipse 16% 22% at 90% 58%, rgba(18,22,28,0.4) 0 52%, transparent 56%),
     repeating-linear-gradient(90deg, transparent 0 26px, rgba(8,10,14,0.14) 26px 28px);
   background-size: 50% 100%;
   animation: pmpPlanetSpin 16s linear infinite;
@@ -103,23 +104,25 @@ body::before { display: none; }
 }
 .pmp-spin-planet__ring {
   position: absolute;
-  left: -6%;
-  right: -6%;
-  height: 28%;
-  top: 36%;
+  left: -28%;
+  right: -28%;
+  height: 42%;
+  top: 29%;
   border-radius: 50%;
-  border: 1.5px solid rgba(232,234,238,0.22);
-  transform: rotateX(72deg) rotateZ(-16deg);
-  box-shadow: 0 0 18px rgba(184,242,74,0.1);
+  border: 1.5px solid rgba(232,234,238,0.38);
+  border-top-color: rgba(184,242,74,0.35);
+  transform: rotateX(64deg) rotateZ(-18deg);
+  box-shadow: 0 0 22px rgba(184,242,74,0.16);
   animation: pmpPlanetRing 18s linear infinite;
   z-index: 1;
 }
 .pmp-spin-planet__ring--inner {
-  left: 4%;
-  right: 4%;
-  height: 20%;
-  top: 40%;
-  border-color: rgba(184,242,74,0.28);
+  left: -16%;
+  right: -16%;
+  height: 32%;
+  top: 34%;
+  border-color: rgba(184,242,74,0.42);
+  border-bottom-color: rgba(232,234,238,0.28);
   z-index: 3;
   animation-duration: 12s;
   animation-direction: reverse;
@@ -129,8 +132,8 @@ body::before { display: none; }
   to { transform: translateX(-50%); }
 }
 @keyframes pmpPlanetRing {
-  from { transform: rotateX(72deg) rotateZ(-16deg); }
-  to { transform: rotateX(72deg) rotateZ(344deg); }
+  from { transform: rotateX(64deg) rotateZ(-18deg); }
+  to { transform: rotateX(64deg) rotateZ(342deg); }
 }
 @keyframes pmpSplashPulse {
   0%, 100% { opacity: 0.42; }
