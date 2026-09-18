@@ -5,9 +5,9 @@ import {
 
 test('theme exports core tokens', () => {
   expect(color.ink).toBeTruthy();
-  expect(color.accent).toMatch(/#5A6270/i);
-  expect(color.onAccent).toMatch(/#F4F5F7/i);
-  expect(color.canvas).toMatch(/#E4E7EE/i);
+  expect(color.accent).toMatch(/#5B6574/i);
+  expect(color.onAccent).toMatch(/#D8DFE8/i);
+  expect(color.canvas).toMatch(/#C5CBD6/i);
   expect(color.alert).toBeTruthy();
   expect(color.select).toMatch(/rgba/);
   expect(BRAND_TAGLINE).toMatch(/YOUR WORLD/i);
@@ -16,13 +16,13 @@ test('theme exports core tokens', () => {
   expect(fontDisplay).toMatch(/IBM Plex Sans/);
   expect(font).not.toMatch(/^system-ui/);
   expect(fontLcd).toMatch(/IBM Plex Mono/);
-  expect(STYLE_CHASSIS).toBe("steel-y2k-20260918");
+  expect(STYLE_CHASSIS).toBe("steel-chrome-20260918");
   expect(type.lcd.fontFamily).toMatch(/IBM Plex Mono/);
   expect(type.lcd.fontSize).toBe(11);
   expect(sectionTitle.fontSize).toBe(22);
   expect(y2k.chromeBright).toBeTruthy();
-  expect(y2k.chrome).toMatch(/#C5CAD3/i);
-  expect(y2k.cyan).toMatch(/#5A6270/i);
+  expect(y2k.chrome).toMatch(/#A8B2C0/i);
+  expect(y2k.cyan).toMatch(/#5B6574/i);
   expect(y2k.artGradient).not.toMatch(/139,\s*92,\s*246|purple/i);
   expect(homeSpace.sectionGap).toBeLessThanOrEqual(32);
   expect(homeSpace.sectionGap).toBeGreaterThan(0);
@@ -45,12 +45,12 @@ test('radio module tokens are hardware-shaped', () => {
   expect(radio.moduleFace).toMatch(/linear-gradient/);
   expect(radio.glassFace || radio.moduleFace).toMatch(/linear-gradient/);
   expect(radio.tuneFace).toMatch(/linear-gradient/);
-  expect(radio.lcdFill).toMatch(/90,\s*98,\s*112/);
+  expect(radio.lcdFill).toMatch(/#8B95A4|#C5CDD8|#D8DFE8/i);
 });
 
 test('canvas is a light steel chassis', () => {
-  expect(color.canvas).toMatch(/#E4E7EE/i);
-  expect(color.ink).toMatch(/#1C2028/i);
-  expect(y2k.offWhite).toMatch(/#1C2028/i);
+  expect(color.canvas).toMatch(/#C5CBD6/i);
+  expect(color.ink).toMatch(/#3D4654/i);
+  expect(y2k.offWhite).toMatch(/#3D4654/i);
   expect(color.accent).not.toMatch(/#B8F24A/i);
 });

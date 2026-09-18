@@ -1,26 +1,66 @@
-import { color, homeSpace, type, y2k } from "../../theme";
+import { color, hardware, homeSpace, type, y2k } from "../../theme";
 import { resolveChannelArt } from "../../lib/channelArt";
 import CoverImage from "../ui/CoverImage";
 import Icon from "../ui/Icon";
 
 /**
  * ChannelCard — square station tile.
- * Original icon, name, blurb, play. Local is the same card as every other station.
+ * Catalog sleeves first; Channel Surfing pictogram is a corner bug.
  */
-function ChannelArt({ src, title, size, accent, objectPosition, priority = false, eager = false }) {
+function ChannelArt({
+  src,
+  covers = [],
+  title,
+  size,
+  accent,
+  objectPosition,
+  priority = false,
+  eager = false,
+}) {
+  const mosaic = (covers || []).filter(Boolean).slice(0, 4);
   const initial = (title || "?").trim().charAt(0).toUpperCase() || "?";
 
-  if (src) {
+  if (mosaic.length >= 2) {
+    return (
+      <span
+        aria-hidden="true"
+        style={{
+          display: "grid",
+          gridTemplateColumns: "1fr 1fr",
+          gridTemplateRows: mosaic.length >= 4 ? "1fr 1fr" : "1fr",
+          width: "100%",
+          height: "100%",
+        }}
+      >
+        {mosaic.slice(0, 4).map((url, i) => (
+          <span key={`${url}-${i}`} style={{ overflow: "hidden" }}>
+            <CoverImage
+              src={url}
+              alt=""
+              width={Math.round(size / 2)}
+              height={Math.round(size / 2)}
+              priority={priority && i === 0}
+              eager={eager && i < 2}
+              style={{ width: "100%", height: "100%", objectFit: "cover" }}
+            />
+          </span>
+        ))}
+      </span>
+    );
+  }
+
+  const lead = mosaic[0] || src;
+  if (lead) {
     return (
       <CoverImage
-        src={src}
+        src={lead}
         alt=""
         width={size}
         height={size}
         priority={priority}
         eager={eager}
-        raw
-        objectPosition={objectPosition}
+        raw={!mosaic[0]}
+        objectPosition={mosaic[0] ? "center" : objectPosition}
         style={{ width: "100%", height: "100%", objectFit: "cover" }}
       />
     );
@@ -36,13 +76,13 @@ function ChannelArt({ src, title, size, accent, objectPosition, priority = false
         alignItems: "center",
         justifyContent: "center",
         background: accent
-          ? `linear-gradient(160deg, ${accent} 0%, #10141A 78%)`
+          ? `linear-gradient(160deg, ${accent} 0%, #6A7482 78%)`
           : y2k.artGradient,
         fontFamily: type.title2.fontFamily,
         fontSize: Math.round(size * 0.28),
         fontWeight: 600,
         letterSpacing: -0.8,
-        color: "rgba(244,246,248,0.82)",
+        color: color.lcdInk,
       }}
     >
       {initial}
@@ -52,6 +92,7 @@ function ChannelArt({ src, title, size, accent, objectPosition, priority = false
 
 export default function ChannelCard({
   channel,
+  covers = [],
   active = false,
   onClick = null,
   size = Math.round(homeSpace.tileTicket),
@@ -61,6 +102,8 @@ export default function ChannelCard({
   const width = size;
   const title = channel.shortTitle || channel.title;
   const { src: photo, focus } = resolveChannelArt(channel);
+  const sleeves = (covers || []).filter(Boolean);
+  const showBug = sleeves.length > 0 && photo;
 
   return (
     <button
@@ -97,9 +140,9 @@ export default function ChannelCard({
           overflow: "hidden",
           background: y2k.artGradient,
           boxShadow: active
-            ? `0 0 0 2px ${color.accent}, 0 10px 24px rgba(0,0,0,0.38)`
-            : "inset 0 1px 0 rgba(255,255,255,0.08), 0 8px 22px rgba(0,0,0,0.32)",
-          border: "1px solid rgba(232,234,238,0.12)",
+            ? `0 0 0 2px ${color.accent}, 0 10px 24px rgba(58,66,80,0.28)`
+            : "inset 0 1px 0 rgba(216,223,232,0.45), 0 8px 22px rgba(58,66,80,0.22)",
+          border: "1px solid rgba(91,101,116,0.22)",
         }}
       >
         <span
@@ -116,6 +159,7 @@ export default function ChannelCard({
         >
           <ChannelArt
             src={photo}
+            covers={sleeves}
             title={title}
             size={width}
             accent={channel.accent}
@@ -123,6 +167,35 @@ export default function ChannelCard({
             priority={priority}
             eager={eager}
           />
+
+          {showBug && (
+            <span
+              aria-hidden="true"
+              style={{
+                position: "absolute",
+                top: 8,
+                right: 8,
+                zIndex: 2,
+                width: 28,
+                height: 28,
+                borderRadius: 6,
+                overflow: "hidden",
+                border: "1px solid rgba(91,101,116,0.35)",
+                boxShadow: "0 4px 10px rgba(58,66,80,0.28)",
+                background: y2k.artGradient,
+              }}
+            >
+              <CoverImage
+                src={photo}
+                alt=""
+                width={28}
+                height={28}
+                raw
+                objectPosition={focus}
+                style={{ width: "100%", height: "100%", objectFit: "cover" }}
+              />
+            </span>
+          )}
 
           {active && (
             <span
@@ -134,8 +207,8 @@ export default function ChannelCard({
                 height: 20,
                 padding: "0 7px",
                 borderRadius: 4,
-                background: "rgba(8,10,14,0.72)",
-                color: color.accent,
+                background: "rgba(74,83,96,0.88)",
+                color: color.lcdInk,
                 letterSpacing: 0.1,
                 textTransform: "uppercase",
                 ...type.caption,
@@ -158,12 +231,15 @@ export default function ChannelCard({
               width: 32,
               height: 32,
               borderRadius: 8,
-              background: active ? color.accent : "rgba(16,18,24,0.86)",
+              background: active ? color.accent : hardware.keyFace,
               color: active ? color.onAccent : color.ink,
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              boxShadow: "inset 0 1px 0 rgba(255,255,255,0.12), 0 4px 12px rgba(0,0,0,0.28)",
+              boxShadow: active
+                ? hardware.keyPressed
+                : hardware.keyRaised,
+              border: `1px solid ${active ? "rgba(91,101,116,0.45)" : "rgba(91,101,116,0.22)"}`,
               paddingLeft: active ? 0 : 1,
             }}
           >
@@ -177,7 +253,7 @@ export default function ChannelCard({
           display: "block",
           marginTop: 8,
           ...type.tileTitle,
-          color: y2k.offWhite,
+          color: color.ink,
           overflow: "hidden",
           textOverflow: "ellipsis",
           whiteSpace: "nowrap",

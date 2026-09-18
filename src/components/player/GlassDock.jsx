@@ -111,8 +111,8 @@ export default function GlassDock({
                 borderRadius: 6,
                 overflow: "hidden",
                 flexShrink: 0,
-                border: "1px solid rgba(232,234,238,0.12)",
-                background: "#101218",
+                border: "1px solid rgba(91,101,116,0.12)",
+                background: color.surfaceRaised,
               }}
             >
               {track.albumCover ? (

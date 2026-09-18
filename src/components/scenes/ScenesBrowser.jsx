@@ -106,7 +106,7 @@ export default function ScenesBrowser({
                   borderRadius: radius.lg,
                   fontWeight: 650,
                   fontSize: 13,
-                  boxShadow: `inset 0 1px 0 rgba(255,255,255,0.22), ${glass.shadowSoft}`,
+                  boxShadow: `inset 0 1px 0 rgba(216,223,232,0.22), ${glass.shadowSoft}`,
                 }}
               >
                 Play scene
@@ -119,7 +119,7 @@ export default function ScenesBrowser({
                   borderRadius: radius.lg,
                   border: `1px solid ${glass.border}`,
                   background: `
-                    linear-gradient(165deg, rgba(38,43,51,0.8) 0%, rgba(28,32,38,0.5) 100%)
+                    linear-gradient(165deg, rgba(184,191,202,0.8) 0%, rgba(180,187,198,0.5) 100%)
                   `,
                   boxShadow: `inset 0 1px 0 ${glass.highlight}`,
                   backdropFilter: glass.blurSoft,
@@ -156,7 +156,7 @@ export default function ScenesBrowser({
                   padding: "14px 14px",
                   marginBottom: 6,
                   background: `
-                    linear-gradient(165deg, rgba(32,36,43,0.68) 0%, rgba(28,32,38,0.38) 100%)
+                    linear-gradient(165deg, rgba(184,191,202,0.68) 0%, rgba(180,187,198,0.38) 100%)
                   `,
                   border: `1px solid ${glass.borderSoft}`,
                   borderRadius: radius.lg,
@@ -235,7 +235,7 @@ export default function ScenesBrowser({
                 padding: "14px 14px",
                 marginBottom: 6,
                 background: `
-                  linear-gradient(165deg, rgba(32,36,43,0.68) 0%, rgba(28,32,38,0.38) 100%)
+                  linear-gradient(165deg, rgba(184,191,202,0.68) 0%, rgba(180,187,198,0.38) 100%)
                 `,
                 border: `1px solid ${glass.borderSoft}`,
                 borderRadius: radius.lg,

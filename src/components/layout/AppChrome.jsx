@@ -58,10 +58,10 @@ export function CatalogSkeleton() {
   const tile = homeSpace.tile;
   const bone = (opts) => ({
     background: opts.strong
-      ? "rgba(232,234,238,0.12)"
+      ? "rgba(91,101,116,0.12)"
       : opts.mid
-        ? "rgba(232,234,238,0.08)"
-        : "rgba(232,234,238,0.05)",
+        ? "rgba(91,101,116,0.08)"
+        : "rgba(91,101,116,0.05)",
     animation: "shimmer 1.5s ease-in-out infinite",
     animationDelay: opts.delay || "0s",
   });
@@ -166,7 +166,7 @@ export function ToastEl({ msg, onDismiss = null }) {
       left:"50%", transform:"translateX(-50%)",
       background: color.surfaceRaised, color: color.ink, padding:"10px 18px", borderRadius: radius.md,
       fontSize:13, zIndex:200, whiteSpace:"nowrap", fontWeight:550,
-      border:`1px solid ${color.lineStrong}`, boxShadow:"0 12px 32px rgba(0,0,0,0.4)",
+      border:`1px solid ${color.lineStrong}`, boxShadow:"0 12px 32px rgba(58,66,80,0.4)",
       cursor: onDismiss ? "pointer" : "default",
       animation: "rise 0.25s cubic-bezier(0.22,1,0.36,1) both",
     }}>{msg}</div>

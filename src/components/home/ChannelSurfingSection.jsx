@@ -1,5 +1,6 @@
 import { memo } from "react";
 import { homeSpace, motion } from "../../theme";
+import { channelCoverUrls } from "../../lib/sceneChannels";
 import { Rail } from "./MusicSection";
 import ChannelCard from "./ChannelCard";
 import HomeBandHeader from "./HomeBandHeader";
@@ -7,9 +8,11 @@ import HomeBandHeader from "./HomeBandHeader";
 /**
  * Channel surfing — first Home destination band.
  * Equal station tiles; Local is not featured or haloed.
+ * Sleeves lead; Channel pictograms sit as bugs on the tile.
  */
 function ChannelSurfingSection({
   channels = [],
+  tracks = [],
   activeChannelId = null,
   onTuneChannel = null,
   first = true,
@@ -50,6 +53,7 @@ function ChannelSurfingSection({
           >
             <ChannelCard
               channel={channel}
+              covers={channelCoverUrls(tracks, channel, 4)}
               active={activeChannelId === channel.id}
               size={i === 0 ? lead : tile}
               priority={i === 0}

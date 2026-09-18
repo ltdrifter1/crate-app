@@ -300,7 +300,7 @@ export function AlbumPage({
                   padding: "6px 8px",
                   borderRadius: 8,
                   cursor: "pointer",
-                  background: active ? "rgba(255,255,255,0.06)" : "transparent",
+                  background: active ? "rgba(216,223,232,0.06)" : "transparent",
                   color: color.ink,
                 }}
               >

@@ -46,7 +46,7 @@ export default function FreePlaysMeter({
           marginBottom: 8,
           borderRadius: radius.md || 12,
           border: `1px solid ${glass.borderSoft}`,
-          background: "rgba(27,31,37,0.72)",
+          background: "rgba(168,178,192,0.72)",
           boxShadow: `inset 0 1px 0 ${glass.highlight}`,
           color: color.ink,
           cursor: onUpgrade ? "pointer" : "default",

@@ -29,11 +29,11 @@ export default function FlaskTasteButton({
         padding: labeled ? "0 14px 0 8px" : 0,
         gap: labeled ? 9 : 0,
         borderRadius: labeled ? radius.md : radius.sm,
-        border: `1px solid ${active ? "rgba(255,255,255,0.2)" : glass.border}`,
+        border: `1px solid ${active ? "rgba(216,223,232,0.2)" : glass.border}`,
         background: active
           ? `
-            linear-gradient(180deg, rgba(255,255,255,0.22) 0%, transparent 48%),
-            linear-gradient(180deg, #C5CAD3 0%, #5A6270 100%)
+            linear-gradient(180deg, rgba(216,223,232,0.22) 0%, transparent 48%),
+            linear-gradient(180deg, #A8B2C0 0%, #5B6574 100%)
           `
           : aluminumGradient(),
         color: active ? color.onAccent : color.ink,
@@ -42,7 +42,7 @@ export default function FlaskTasteButton({
         alignItems: "center",
         justifyContent: "center",
         boxShadow: active
-          ? `inset 0 1px 0 rgba(255,255,255,0.22), 0 8px 20px rgba(26,29,36,0.22)`
+          ? `inset 0 1px 0 rgba(216,223,232,0.22), 0 8px 20px rgba(91,101,116,0.22)`
           : `inset 0 1px 0 ${glass.highlight}, ${glass.shadowSoft}`,
         backdropFilter: glass.blurSoft,
         WebkitBackdropFilter: glass.blurSoft,

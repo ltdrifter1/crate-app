@@ -45,7 +45,7 @@ export function VinylRecord({ track, isPlaying, size=190 }) {
   return (
     <div style={{ width:size, height:size, borderRadius:"50%", position:"relative", overflow:"hidden",
       animation:isPlaying?"spin 2.8s linear infinite":"none",
-      boxShadow:"0 8px 32px rgba(0,0,0,0.25)",
+      boxShadow:"0 8px 32px rgba(58,66,80,0.25)",
     }}>
       {track.albumCover
         ? <CoverImage src={track.albumCover} alt="" width={size} height={size} priority />
@@ -53,11 +53,11 @@ export function VinylRecord({ track, isPlaying, size=190 }) {
         : <div style={{ width:"100%", height:"100%", background:`linear-gradient(135deg,rgba(${hexToRgbStr(track.color)},0.4),#141416)` }}/>
       }
       <svg style={{ position:"absolute", inset:0 }} width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
-        <circle cx={c} cy={c} r={c} fill="rgba(0,0,0,0.52)"/>
+        <circle cx={c} cy={c} r={c} fill="rgba(58,66,80,0.52)"/>
         {grooves.map((g,i)=><circle key={i} cx={c} cy={c} r={g.r} fill="none" stroke={track.color} strokeWidth="0.7" opacity={g.op}/>)}
-        <circle cx={c} cy={c} r={size*0.17} fill="rgba(0,0,0,0.65)"/>
+        <circle cx={c} cy={c} r={size*0.17} fill="rgba(58,66,80,0.65)"/>
         <circle cx={c} cy={c} r={size*0.17} fill={`rgba(${hexToRgbStr(track.color)},0.2)`}/>
-        <circle cx={c} cy={c} r={3.5} fill="#0f1011"/>
+        <circle cx={c} cy={c} r={3.5} fill="#4A5360"/>
         <circle cx={c} cy={c} r={1.4} fill={track.color} opacity="0.7"/>
       </svg>
     </div>

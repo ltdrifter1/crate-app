@@ -69,8 +69,8 @@ export default function ExploreFocus({
             minHeight: 180,
             aspectRatio: "16 / 8",
             background: y2k.artGradient,
-            border: "1px solid rgba(255,255,255,0.1)",
-            boxShadow: "0 16px 40px rgba(0,0,0,0.4)",
+            border: "1px solid rgba(216,223,232,0.1)",
+            boxShadow: "0 16px 40px rgba(58,66,80,0.4)",
           }}
         >
           {art && (
@@ -90,7 +90,7 @@ export default function ExploreFocus({
               position: "absolute",
               inset: 0,
               background:
-                "linear-gradient(180deg, rgba(8,10,13,0.1) 0%, rgba(8,10,13,0.82) 100%)",
+                "linear-gradient(180deg, rgba(58,66,80,0.1) 0%, rgba(58,66,80,0.82) 100%)",
             }}
           />
           <div
@@ -133,7 +133,7 @@ export default function ExploreFocus({
                   margin: "6px 0 0",
                   fontSize: 14,
                   fontWeight: 500,
-                  color: "rgba(244,246,248,0.72)",
+                  color: "rgba(216,223,232,0.72)",
                   lineHeight: 1.4,
                   maxWidth: 420,
                   fontFamily: font,

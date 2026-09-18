@@ -43,7 +43,7 @@ export function TimedMixMark({ size = 28, accent = color.accent }) {
   const arc = c * 0.72;
   return (
     <svg width={size} height={size} viewBox="0 0 32 32" fill="none" aria-hidden="true">
-      <circle cx="16" cy="16" r={r} stroke="rgba(255,255,255,0.16)" strokeWidth="1.6" />
+      <circle cx="16" cy="16" r={r} stroke="rgba(216,223,232,0.16)" strokeWidth="1.6" />
       <circle
         cx="16" cy="16" r={r}
         stroke={accent}
@@ -55,7 +55,7 @@ export function TimedMixMark({ size = 28, accent = color.accent }) {
         style={{ animation: "dialArc 1.1s cubic-bezier(0.22,1,0.36,1) both" }}
       />
       <rect x="10.2" y="12.1" width="11.6" height="1.7" rx="0.85" fill="rgba(48,53,62,0.9)" />
-      <rect x="10.2" y="15.15" width="8.4" height="1.7" rx="0.85" fill="rgba(32,36,43,0.65)" />
+      <rect x="10.2" y="15.15" width="8.4" height="1.7" rx="0.85" fill="rgba(184,191,202,0.65)" />
       <rect x="10.2" y="18.2" width="5.6" height="1.7" rx="0.85" fill={accent} />
     </svg>
   );

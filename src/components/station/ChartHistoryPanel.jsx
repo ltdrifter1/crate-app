@@ -124,7 +124,7 @@ function Segmented({ items, activeId, onChange, ariaLabel }) {
         padding: 3,
         borderRadius: 10,
         background: `
-          linear-gradient(180deg, rgba(255,255,255,0.7) 0%, rgba(226,230,236,0.9) 100%)
+          linear-gradient(180deg, rgba(216,223,232,0.7) 0%, rgba(226,230,236,0.9) 100%)
         `,
         border: `1px solid ${glass.border}`,
         boxShadow: `inset 0 1px 0 ${glass.highlight}, inset 0 2px 6px rgba(28,32,40,0.08)`,
@@ -147,7 +147,7 @@ function Segmented({ items, activeId, onChange, ariaLabel }) {
               border: "none",
               borderRadius: 8,
               background: active
-                ? "linear-gradient(180deg, #C5CAD3 0%, #5A6270 100%)"
+                ? "linear-gradient(180deg, #A8B2C0 0%, #5B6574 100%)"
                 : "transparent",
               color: active ? color.onAccent : color.muted,
               fontFamily: fontDisplay,
@@ -156,7 +156,7 @@ function Segmented({ items, activeId, onChange, ariaLabel }) {
               letterSpacing: -0.2,
               cursor: "pointer",
               boxShadow: active
-                ? "inset 0 1px 0 rgba(255,255,255,0.28), 0 3px 8px rgba(90,98,112,0.22)"
+                ? "inset 0 1px 0 rgba(216,223,232,0.28), 0 3px 8px rgba(91,101,116,0.22)"
                 : "none",
               transition: `color ${motion.fast}, background ${motion.base}, box-shadow ${motion.base}`,
               WebkitTapHighlightColor: "transparent",
@@ -550,7 +550,7 @@ function Empty({ note }) {
         borderRadius: radius.lg,
         border: `1px solid ${glass.borderSoft}`,
         background: `
-          linear-gradient(180deg, rgba(101,230,255,0.05) 0%, transparent 42%),
+          linear-gradient(180deg, rgba(91,101,116,0.05) 0%, transparent 42%),
           ${glass.fill}
         `,
         boxShadow: `inset 0 1px 0 ${glass.highlight}`,
@@ -584,15 +584,15 @@ function ChartHero({ entry, active, onPlay, onAdd, onMore, onContextMenu }) {
         borderRadius: radius.lg,
         overflow: "hidden",
         border: active
-          ? "1px solid rgba(90,98,112,0.4)"
-          : "1px solid rgba(232,234,238,0.12)",
+          ? "1px solid rgba(91,101,116,0.4)"
+          : "1px solid rgba(91,101,116,0.12)",
         background: `
-          radial-gradient(120% 80% at 0% 0%, rgba(90,98,112,0.12) 0%, transparent 46%),
-          linear-gradient(165deg, #1A1D24 0%, #101218 100%)
+          radial-gradient(120% 80% at 0% 0%, rgba(91,101,116,0.12) 0%, transparent 46%),
+          linear-gradient(165deg, #7A8492 0%, #6A7482 100%)
         `,
         boxShadow: `
-          inset 0 1px 0 rgba(255,255,255,0.08),
-          inset 0 -1px 0 rgba(0,0,0,0.4),
+          inset 0 1px 0 rgba(216,223,232,0.08),
+          inset 0 -1px 0 rgba(58,66,80,0.4),
           ${glass.shadowSoft}
         `,
         backdropFilter: glass.blurSoft,
@@ -628,7 +628,7 @@ function ChartHero({ entry, active, onPlay, onAdd, onMore, onContextMenu }) {
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            background: "linear-gradient(180deg, transparent 46%, rgba(8,10,13,0.38) 100%)",
+            background: "linear-gradient(180deg, transparent 46%, rgba(58,66,80,0.38) 100%)",
             opacity: 1,
           }}
         >
@@ -720,7 +720,7 @@ function ChartList({ entries, nowPlayingId, onPlay, onAdd, onMore, onContext }) 
             key={`${e.id}-${e.rank}`}
             style={{
               animation: `rise 0.42s ${motion.ease} ${Math.min(i, 12) * 0.028}s both`,
-              borderBottom: "1px solid rgba(255,255,255,0.06)",
+              borderBottom: "1px solid rgba(216,223,232,0.06)",
             }}
           >
             <div
@@ -734,7 +734,7 @@ function ChartList({ entries, nowPlayingId, onPlay, onAdd, onMore, onContext }) 
                 margin: "0 -8px",
                 padding: "8px 8px",
                 borderRadius: 10,
-                background: active ? "rgba(101,230,255,0.06)" : "transparent",
+                background: active ? "rgba(91,101,116,0.06)" : "transparent",
                 boxShadow: active ? `inset 2px 0 0 ${chrome.signal}` : "none",
               }}
             >
@@ -785,7 +785,7 @@ function ChartList({ entries, nowPlayingId, onPlay, onAdd, onMore, onContext }) 
                   overflow: "hidden",
                   background: color.surfaceRaised,
                   boxShadow: artShadow.quiet,
-                  border: `1px solid ${active ? "rgba(101,230,255,0.28)" : "rgba(184,192,204,0.2)"}`,
+                  border: `1px solid ${active ? "rgba(91,101,116,0.28)" : "rgba(184,192,204,0.2)"}`,
                 }}>
                   <CoverImage src={e.albumCover} width={52} height={52} alt="" />
                 </div>

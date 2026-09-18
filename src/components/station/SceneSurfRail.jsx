@@ -147,8 +147,8 @@ function SceneSurfRail({
                     linear-gradient(160deg, rgba(41,46,54,0.96) 0%, rgba(21,24,29,0.98) 72%)
                   `,
                 boxShadow: active
-                  ? `inset 4px 0 0 ${color.accent}, inset 0 1px 0 ${glass.highlight}, inset 0 -1px 0 rgba(0,0,0,0.5)`
-                  : `inset 0 1px 0 ${glass.highlight}, inset 0 -1px 0 rgba(0,0,0,0.5)`,
+                  ? `inset 4px 0 0 ${color.accent}, inset 0 1px 0 ${glass.highlight}, inset 0 -1px 0 rgba(58,66,80,0.5)`
+                  : `inset 0 1px 0 ${glass.highlight}, inset 0 -1px 0 rgba(58,66,80,0.5)`,
                 overflow: "hidden",
                 animation: zapping ? "channelZap 0.42s ease both" : undefined,
                 color: color.ink,
@@ -163,7 +163,7 @@ function SceneSurfRail({
                 alignItems: "baseline",
                 gap: 6,
                 background: `
-                  linear-gradient(180deg, rgba(255,255,255,0.07) 0%, transparent 100%)
+                  linear-gradient(180deg, rgba(216,223,232,0.07) 0%, transparent 100%)
                 `,
               }}>
                 <span style={{

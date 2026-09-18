@@ -41,7 +41,7 @@ export default function LinerNotesSheet({
         style={{
           position: "absolute",
           inset: 0,
-          background: "rgba(255,255,255,0.2)",
+          background: "rgba(216,223,232,0.2)",
           backdropFilter: glass.blurSoft,
           WebkitBackdropFilter: glass.blurSoft,
         }}
@@ -122,7 +122,7 @@ export default function LinerNotesSheet({
                   padding: "10px 14px",
                   borderRadius: radius.md,
                   border: "none",
-                  background: canAfford || needsPremium ? color.accent : "rgba(255,255,255,0.12)",
+                  background: canAfford || needsPremium ? color.accent : "rgba(216,223,232,0.12)",
                   color: canAfford || needsPremium ? color.onAccent || "#111" : color.faint,
                   fontSize: 13,
                   fontWeight: 700,
@@ -212,7 +212,7 @@ function Chip({ children, onClick }) {
         borderRadius: radius.sm,
         border: `1px solid ${glass.borderSoft}`,
         background: `
-          linear-gradient(165deg, rgba(38,43,51,0.82) 0%, rgba(28,32,38,0.5) 100%)
+          linear-gradient(165deg, rgba(184,191,202,0.82) 0%, rgba(180,187,198,0.5) 100%)
         `,
         boxShadow: `inset 0 1px 0 ${glass.highlight}`,
         backdropFilter: glass.blurSoft,

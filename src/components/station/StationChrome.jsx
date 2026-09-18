@@ -80,7 +80,7 @@ export function OnAirBadge({
         border: integrated ? "none" : `1px solid ${glass.border}`,
         boxShadow: integrated
           ? "none"
-          : `inset 0 1px 0 ${glass.highlight}, inset 0 -1px 0 rgba(0,0,0,0.45)`,
+          : `inset 0 1px 0 ${glass.highlight}, inset 0 -1px 0 rgba(58,66,80,0.45)`,
         color: color.ink,
         pointerEvents: "none",
       }}
@@ -173,7 +173,7 @@ export function ChannelBug({
         pointerEvents: "none",
         boxShadow: integrated
           ? "none"
-          : `inset 0 1px 0 ${glass.highlight}, inset 0 -1px 0 rgba(0,0,0,0.45)`,
+          : `inset 0 1px 0 ${glass.highlight}, inset 0 -1px 0 rgba(58,66,80,0.45)`,
         animation: `channelBugIn 0.4s ${motion.ease} both`,
         maxWidth: compact ? 168 : 210,
         border: integrated ? "none" : `1px solid ${glass.border}`,
@@ -194,7 +194,7 @@ export function ChannelBug({
         display: "flex",
         alignItems: "center",
         borderRight: `1px solid ${glass.borderSoft}`,
-        boxShadow: "inset 0 1px 0 rgba(255,255,255,0.08), inset -1px 0 0 rgba(0,0,0,0.4)",
+        boxShadow: "inset 0 1px 0 rgba(216,223,232,0.08), inset -1px 0 0 rgba(58,66,80,0.4)",
       }}>
         {bug.ch}
       </div>
@@ -245,8 +245,8 @@ export function StationTicker({ text = "", dense = false }) {
         overflow: "hidden",
         width: "100%",
         background: "rgba(8,9,11,0.94)",
-        borderTop: "1px solid rgba(255,255,255,0.06)",
-        borderBottom: "1px solid rgba(0,0,0,0.7)",
+        borderTop: "1px solid rgba(216,223,232,0.06)",
+        borderBottom: "1px solid rgba(58,66,80,0.7)",
         boxShadow: "none",
         color: color.body,
         height: dense ? 18 : 22,
@@ -311,7 +311,7 @@ export function LowerThird({
           borderRadius: 3,
           background: "rgba(8,9,11,0.48)",
           border: `1px solid ${glass.borderSoft}`,
-          boxShadow: "inset 0 1px 0 rgba(255,255,255,0.05), inset 0 -1px 0 rgba(0,0,0,0.5)",
+          boxShadow: "inset 0 1px 0 rgba(216,223,232,0.05), inset 0 -1px 0 rgba(58,66,80,0.5)",
           fontFamily: fontMono,
           fontSize: 11,
           fontWeight: 800,
@@ -422,8 +422,8 @@ export function LowerThird({
         padding: "14px 16px 15px",
         borderRadius: 8,
         background: glass.frame,
-        border: `1px solid rgba(255,255,255,0.14)`,
-        boxShadow: `inset 0 1px 0 ${glass.highlight}, inset 0 -1px 0 rgba(0,0,0,0.45), ${glass.shadowSoft}`,
+        border: `1px solid rgba(216,223,232,0.14)`,
+        boxShadow: `inset 0 1px 0 ${glass.highlight}, inset 0 -1px 0 rgba(58,66,80,0.45), ${glass.shadowSoft}`,
         animation: `stationLowerIn 0.45s ${motion.ease} both`,
       }}
     >
@@ -446,11 +446,11 @@ export function UpNextBumper({ track = null }) {
         padding: "8px 12px 8px 8px",
         borderRadius: 5,
         background: `
-          repeating-linear-gradient(90deg, rgba(255,255,255,0.014) 0 1px, transparent 1px 4px),
+          repeating-linear-gradient(90deg, rgba(216,223,232,0.014) 0 1px, transparent 1px 4px),
           ${hardware.keyFace}
         `,
-        border: `1px solid rgba(255,255,255,0.14)`,
-        boxShadow: `${hardware.plateEdge}, 0 8px 22px rgba(0,0,0,0.34)`,
+        border: `1px solid rgba(216,223,232,0.14)`,
+        boxShadow: `${hardware.plateEdge}, 0 8px 22px rgba(58,66,80,0.34)`,
         pointerEvents: "none",
         animation: `rise 0.4s ${motion.ease} both`,
         overflow: "hidden",
@@ -467,7 +467,7 @@ export function UpNextBumper({ track = null }) {
         padding: "5px 7px",
         borderRadius: 3,
         background: "rgba(8,9,11,0.42)",
-        border: `1px solid rgba(255,255,255,0.12)`,
+        border: `1px solid rgba(216,223,232,0.12)`,
         boxShadow: hardware.plateEdge,
       }}>
         Up Next
@@ -699,7 +699,7 @@ export function StationHeatBar({
           fontWeight: 900,
           letterSpacing: 2,
           color: color.ink,
-          textShadow: "0 2px 12px rgba(0,0,0,0.5)",
+          textShadow: "0 2px 12px rgba(58,66,80,0.5)",
           animation: "stationBurst 0.7s ease forwards",
           pointerEvents: "none",
           zIndex: 6,

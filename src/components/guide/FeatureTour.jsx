@@ -47,8 +47,8 @@ export default function FeatureTour({
         justifyContent: "center",
         padding: "16px",
         background: `
-          radial-gradient(ellipse 80% 70% at 20% 0%, rgba(101,230,255,0.10) 0%, transparent 55%),
-          radial-gradient(ellipse 50% 50% at 90% 10%, rgba(123,167,255,0.08) 0%, transparent 50%),
+          radial-gradient(ellipse 80% 70% at 20% 0%, rgba(91,101,116,0.10) 0%, transparent 55%),
+          radial-gradient(ellipse 50% 50% at 90% 10%, rgba(91,101,116,0.08) 0%, transparent 50%),
           ${color.canvas}
         `,
         overflow: "auto",
@@ -69,7 +69,7 @@ export default function FeatureTour({
           borderRadius: radius.xl,
           border: `1px solid ${glass.border}`,
           background: glass.plate || color.surfaceSolid,
-          boxShadow: `inset 0 1px 0 ${glass.highlight}, ${glass.shadowLift || "0 24px 60px rgba(0,0,0,0.45)"}`,
+          boxShadow: `inset 0 1px 0 ${glass.highlight}, ${glass.shadowLift || "0 24px 60px rgba(58,66,80,0.45)"}`,
           backdropFilter: glass.blur,
           WebkitBackdropFilter: glass.blur,
         }}
@@ -189,7 +189,7 @@ export default function FeatureTour({
                   width: i === index ? 20 : 6,
                   height: 6,
                   borderRadius: 99,
-                  background: i <= index ? y2k.cyan : "rgba(255,255,255,0.12)",
+                  background: i <= index ? y2k.cyan : "rgba(216,223,232,0.12)",
                   boxShadow: i === index ? `0 0 10px ${y2k.cyanGlow}` : "none",
                   transition: `width ${motion.fast} ${motion.ease}, background ${motion.base}`,
                 }}

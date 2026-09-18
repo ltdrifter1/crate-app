@@ -28,7 +28,7 @@ export default function SplashScreen({ size = 220, label = "Loading" } = {}) {
         justifyContent: "center",
         gap: 28,
         background: `
-          radial-gradient(ellipse 70% 48% at 50% 42%, rgba(90,98,112,0.08) 0%, transparent 58%),
+          radial-gradient(ellipse 70% 48% at 50% 42%, rgba(91,101,116,0.08) 0%, transparent 58%),
           radial-gradient(ellipse 90% 70% at 50% 100%, rgba(197,202,211,0.35) 0%, transparent 55%),
           ${color.canvas}
         `,

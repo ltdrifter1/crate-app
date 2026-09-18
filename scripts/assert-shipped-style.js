@@ -7,7 +7,7 @@ const fs = require("fs");
 const path = require("path");
 
 const ROOT = path.join(__dirname, "..");
-const CHASSIS = "steel-y2k-20260918";
+const CHASSIS = "steel-chrome-20260918";
 const htmlPath = path.join(ROOT, "build", "index.html");
 
 if (!fs.existsSync(htmlPath)) {
@@ -26,9 +26,9 @@ const css = cssFiles
 
 const need = [
   [`pmp-chassis ${CHASSIS}`, html.includes(`content="${CHASSIS}"`) || html.includes(`content='${CHASSIS}'`)],
-  ["steel canvas #E4E7EE", /#E4E7EE/i.test(html)],
+  ["steel canvas #C5CBD6", /#C5CBD6/i.test(html)],
   ["IBM Plex", /IBM\+Plex|IBM Plex/i.test(html)],
-  ["steel splash 90,98,112", /90\s*,\s*98\s*,\s*112/.test(html)],
+  ["steel splash 91,101,116", /91\s*,\s*101\s*,\s*116/.test(html)],
 ];
 
 const forbid = [

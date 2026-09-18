@@ -1,4 +1,4 @@
-import { color, fontDisplay, glass, radius } from "../../theme";
+import { color, fontDisplay, glass, radio, radius } from "../../theme";
 import { BrandLockup } from "../brand/BrandMark";
 import Icon from "../ui/Icon";
 import {
@@ -21,7 +21,7 @@ function NavRow({ item, active, onClick }) {
         minHeight: 40,
         borderRadius: radius.sm,
         background: active
-          ? "rgba(90,98,112,0.12)"
+          ? "rgba(91,101,116,0.12)"
           : "transparent",
         border: "1px solid transparent",
         color: active ? color.accent : color.body,
@@ -32,7 +32,7 @@ function NavRow({ item, active, onClick }) {
         padding: "8px 10px",
         textAlign: "left",
         boxShadow: active
-          ? "inset 2px 0 0 #5A6270, inset 0 1px 0 rgba(255,255,255,0.06)"
+          ? "inset 2px 0 0 #5B6574, inset 0 1px 0 rgba(216,223,232,0.35)"
           : "none",
       }}
     >
@@ -89,9 +89,7 @@ export default function AppSidebar({
         height: "100%",
         background: isDrawer
           ? color.canvas
-          : `
-            linear-gradient(180deg, #16181E 0%, #0C0E12 100%)
-          `,
+          : radio.moduleFace,
         borderRight: isDrawer ? "none" : `1px solid ${glass.border}`,
         boxShadow: isDrawer ? "none" : `inset -1px 0 0 ${glass.highlight}`,
         display: "flex",
@@ -136,7 +134,7 @@ export default function AppSidebar({
         style={{
           height: 1,
           margin: "12px 8px",
-          background: "rgba(255,255,255,0.08)",
+          background: "rgba(91,101,116,0.18)",
         }}
       />
 
@@ -176,7 +174,7 @@ export default function AppSidebar({
             width: "100%",
             height: 44,
             borderRadius: radius.sm,
-            background: activeId === "profile" ? "rgba(10, 132, 255, 0.22)" : "transparent",
+            background: activeId === "profile" ? "rgba(91, 101, 116, 0.16)" : "transparent",
             border: "1px solid transparent",
             display: "flex",
             alignItems: "center",

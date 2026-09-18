@@ -1,4 +1,4 @@
-import { color, fontMono } from "../../theme";
+import { color, fontMono, radio } from "../../theme";
 import { CAMELOT_SLOTS, tracksForCamelotSlot } from "../../lib/harmony";
 
 /** Compact Camelot wheel — 12 slots, A/B share a number. */
@@ -41,9 +41,10 @@ export default function CamelotKeyRail({
               height: 32,
               padding: "0 8px",
               borderRadius: 4,
-              border: "1px solid rgba(232,234,238,0.12)",
-              background: "rgba(8,10,14,0.55)",
-              color: color.accent,
+              border: radio.lcdBorder,
+              background: radio.lcdFace,
+              color: color.lcdInk,
+              boxShadow: radio.lcdShadow,
               fontFamily: fontMono,
               fontSize: 11,
               fontWeight: 700,

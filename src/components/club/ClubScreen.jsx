@@ -212,7 +212,7 @@ export default function ClubScreen({
             borderRadius: radius.lg,
             border: `1px solid ${glass.border}`,
             background: `
-              linear-gradient(165deg, rgba(32,36,43,0.65) 0%, rgba(28,32,38,0.4) 100%)
+              linear-gradient(165deg, rgba(184,191,202,0.65) 0%, rgba(180,187,198,0.4) 100%)
             `,
             boxShadow: `inset 0 1px 0 ${glass.highlight}, ${glass.shadowSoft}`,
             backdropFilter: glass.blurSoft,
@@ -254,7 +254,7 @@ export default function ClubScreen({
             WebkitBackdropFilter: glass.blur,
             boxShadow: `
               inset 0 1px 0 ${glass.highlight},
-              inset 0 -1px 0 rgba(26,29,36,0.04),
+              inset 0 -1px 0 rgba(91,101,116,0.04),
               ${glass.shadowLift}
             `,
             animation: `rise 0.55s ${motion.ease} both`,
@@ -270,9 +270,9 @@ export default function ClubScreen({
             borderRadius: "50%",
             border: `1px solid ${glass.borderSoft}`,
             boxShadow: `
-              inset 0 0 0 14px rgba(26,29,35,0.45),
+              inset 0 0 0 14px rgba(91,101,116,0.45),
               inset 0 0 0 28px rgba(190,198,210,0.12),
-              inset 0 0 0 42px rgba(255,255,255,0.25),
+              inset 0 0 0 42px rgba(216,223,232,0.25),
               inset 0 0 0 56px rgba(190,198,210,0.1)
             `,
             pointerEvents: "none",
@@ -286,10 +286,10 @@ export default function ClubScreen({
             height: 28,
             borderRadius: "50%",
             background: `
-              radial-gradient(circle at 35% 30%, #F7F8FA 0%, #C5CAD3 45%, #8B929E 100%)
+              radial-gradient(circle at 35% 30%, #D0D6E0 0%, #A8B2C0 45%, #8B929E 100%)
             `,
             border: `1px solid ${glass.border}`,
-            boxShadow: `inset 0 1px 0 rgba(255,255,255,0.12)`,
+            boxShadow: `inset 0 1px 0 rgba(216,223,232,0.12)`,
             pointerEvents: "none",
           }} />
 
@@ -338,7 +338,7 @@ export default function ClubScreen({
                   padding: "6px 10px",
                   borderRadius: 8,
                   border: `1px solid ${glass.borderSoft}`,
-                  background: "rgba(38,43,51,0.8)",
+                  background: "rgba(184,191,202,0.8)",
                   fontSize: 10,
                   fontWeight: 700,
                   letterSpacing: 1.4,
@@ -375,7 +375,7 @@ export default function ClubScreen({
             borderRadius: 8,
             border: `1px solid ${glass.border}`,
             background: `
-              linear-gradient(180deg, rgba(56,62,72,0.95) 0%, rgba(232,236,242,0.9) 100%)
+              linear-gradient(180deg, rgba(168,178,192,0.95) 0%, rgba(232,236,242,0.9) 100%)
             `,
             boxShadow: `inset 0 1px 0 ${glass.highlight}`,
             position: "relative",
@@ -520,12 +520,12 @@ export default function ClubScreen({
               textAlign: "left",
               marginBottom: 26,
               padding: 0,
-              border: `1px solid rgba(255,255,255,0.14)`,
+              border: `1px solid rgba(216,223,232,0.14)`,
               borderRadius: radius.xl,
               overflow: "hidden",
               cursor: "pointer",
               background: `
-                linear-gradient(165deg, rgba(38,43,51,0.82) 0%, rgba(28,32,38,0.5) 100%)
+                linear-gradient(165deg, rgba(184,191,202,0.82) 0%, rgba(180,187,198,0.5) 100%)
               `,
               boxShadow: `inset 0 1px 0 ${glass.highlight}, ${glass.shadowLift}`,
               backdropFilter: glass.blur,
@@ -564,7 +564,7 @@ export default function ClubScreen({
             </div>
             <div style={{
               padding: "11px 18px",
-              background: "rgba(27,31,37,0.52)",
+              background: "rgba(168,178,192,0.52)",
               borderTop: `1px solid ${glass.borderSoft}`,
               fontSize: 12,
               fontWeight: 650,
@@ -592,7 +592,7 @@ export default function ClubScreen({
                   marginBottom: 6,
                   borderRadius: radius.lg,
                   background: `
-                    linear-gradient(165deg, rgba(32,36,43,0.68) 0%, rgba(28,32,38,0.38) 100%)
+                    linear-gradient(165deg, rgba(184,191,202,0.68) 0%, rgba(180,187,198,0.38) 100%)
                   `,
                   border: `1px solid ${glass.borderSoft}`,
                   boxShadow: `inset 0 1px 0 ${glass.highlight}`,

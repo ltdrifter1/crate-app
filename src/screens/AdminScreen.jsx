@@ -32,7 +32,7 @@ function AnalyticsRow({ rank, track, value, label, max, color: trackColor, accen
     <div style={{
       display:"flex", alignItems:"center", gap:10, padding:"12px 14px",
       background: `
-        linear-gradient(165deg, rgba(38,43,51,0.8) 0%, rgba(28,32,38,0.48) 100%)
+        linear-gradient(165deg, rgba(184,191,202,0.8) 0%, rgba(180,187,198,0.48) 100%)
       `,
       borderRadius: radius.lg,
       marginBottom: 6,
@@ -314,17 +314,17 @@ export default function AdminScreen({
       {tab==="tracks"&&(
         <div>
           {editTrack&&(
-            <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.55)", backdropFilter:"blur(8px)", zIndex:100, display:"flex", alignItems:"center", justifyContent:"center", padding:24 }}>
+            <div style={{ position:"fixed", inset:0, background:"rgba(58,66,80,0.55)", backdropFilter:"blur(8px)", zIndex:100, display:"flex", alignItems:"center", justifyContent:"center", padding:24 }}>
               <div style={{
                 background: `
-                  linear-gradient(165deg, rgba(48,53,62,0.9) 0%, rgba(28,32,38,0.72) 100%)
+                  linear-gradient(165deg, rgba(48,53,62,0.9) 0%, rgba(180,187,198,0.72) 100%)
                 `,
                 borderRadius: radius.xl,
                 padding:24,
                 width:"100%",
                 maxWidth:380,
                 boxShadow: `inset 0 1px 0 ${glass.highlight}, ${glass.shadowLift}`,
-                border:`1px solid rgba(255,255,255,0.14)`,
+                border:`1px solid rgba(216,223,232,0.14)`,
                 backdropFilter: glass.blur,
                 WebkitBackdropFilter: glass.blur,
               }}>
@@ -384,7 +384,7 @@ export default function AdminScreen({
             estimateSize={60}
             maxHeight={Math.min(560, Math.max(240, tracks.length * 60))}
             renderItem={(t) => (
-              <div style={{ display:"flex", alignItems:"center", gap:10, padding:"10px 12px", background:"rgba(255,255,255,0.15)", backdropFilter:"blur(32px)", borderRadius:10, marginBottom:4, border:"1px solid rgba(255,255,255,0.16)", height: 56, boxSizing: "border-box" }}>
+              <div style={{ display:"flex", alignItems:"center", gap:10, padding:"10px 12px", background:"rgba(216,223,232,0.15)", backdropFilter:"blur(32px)", borderRadius:10, marginBottom:4, border:"1px solid rgba(216,223,232,0.16)", height: 56, boxSizing: "border-box" }}>
                 <div style={{ width:36, height:36, borderRadius:7, overflow:"hidden", flexShrink:0 }}><AlbumArt track={t} size={36} borderRadius={0}/></div>
                 <div style={{ flex:1, minWidth:0 }}>
                   <div style={{ fontSize:14, fontWeight:500, color: color.ink, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{t.title}</div>
@@ -393,8 +393,8 @@ export default function AdminScreen({
                 <div style={{ display:"flex", gap:4, flexShrink:0, flexWrap:"wrap", justifyContent:"flex-end", maxWidth:180 }}>
                   {t.genre&&<span style={{ fontSize:10, fontWeight:500, padding:"2px 8px", borderRadius:6, background:"rgba(26,29,38,0.06)", color: color.ink }}>{t.genre}</span>}
                   {t.camelot&&<span style={{ fontSize:10, fontWeight:600, padding:"2px 8px", borderRadius:6, background:"rgba(26,29,38,0.08)", color: color.ink }}>{t.camelot}</span>}
-                  {t.bpm&&<span style={{ fontSize:10, fontWeight:500, padding:"2px 8px", borderRadius:6, background:"rgba(0,0,0,0.04)", color: color.muted }}>{t.bpm}bpm</span>}
-                  {t.energy&&<span style={{ fontSize:10, fontWeight:500, padding:"2px 8px", borderRadius:6, background:"rgba(0,0,0,0.04)", color: color.muted }}>E{t.energy}</span>}
+                  {t.bpm&&<span style={{ fontSize:10, fontWeight:500, padding:"2px 8px", borderRadius:6, background:"rgba(58,66,80,0.04)", color: color.muted }}>{t.bpm}bpm</span>}
+                  {t.energy&&<span style={{ fontSize:10, fontWeight:500, padding:"2px 8px", borderRadius:6, background:"rgba(58,66,80,0.04)", color: color.muted }}>E{t.energy}</span>}
                 </div>
                 <button type="button" onClick={()=>setEditTrack(t)} style={{ background:"none",border:"none",cursor:"pointer",color: color.muted,padding:6 }}><Icon name="edit" size={14}/></button>
                 <button type="button" onClick={()=>handleDeleteTrack(t)} style={{ background:"none",border:"none",cursor:"pointer",color: color.alert,padding:6 }}><Icon name="trash" size={14}/></button>
@@ -409,7 +409,7 @@ export default function AdminScreen({
           <SectionLabel>Overview</SectionLabel>
           <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:8, marginBottom:24 }}>
             {[["Tracks",tracks.length],["Liked",tracks.filter(t=>t.liked).length],["Genres",[...new Set(tracks.map(t=>t.genre))].length],["BPMs",[...new Set(tracks.filter(t=>t.bpm).map(t=>t.bpm))].length]].map(([l,v])=>(
-              <div key={l} style={{ padding:"14px 16px", background: color.surfaceSolid, borderRadius:14, border:"0.5px solid rgba(60,60,67,0.12)", boxShadow:"0 1px 4px rgba(0,0,0,0.04)" }}>
+              <div key={l} style={{ padding:"14px 16px", background: color.surfaceSolid, borderRadius:14, border:"0.5px solid rgba(60,60,67,0.12)", boxShadow:"0 1px 4px rgba(58,66,80,0.04)" }}>
                 <div style={{ fontSize:11, fontWeight:600, letterSpacing:0.5, color: color.faint, textTransform:"uppercase", marginBottom:4 }}>{l}</div>
                 <div style={{ fontSize:28, fontWeight:700, letterSpacing:-0.5, color: color.ink }}>{v}</div>
               </div>
@@ -477,18 +477,18 @@ export default function AdminScreen({
               Export CSV ({tracks.length} tracks)
             </button>
             <button onClick={()=>fileInputRef.current?.click()} disabled={importing}
-              style={{ flex:1, padding:"14px", borderRadius:14, background:"rgba(255,255,255,0.12)", backdropFilter:"blur(32px)", color: color.ink, border:"1px solid rgba(255,255,255,0.18)", fontSize:14, fontWeight:600, cursor:importing?"wait":"pointer" }}>
+              style={{ flex:1, padding:"14px", borderRadius:14, background:"rgba(216,223,232,0.12)", backdropFilter:"blur(32px)", color: color.ink, border:"1px solid rgba(216,223,232,0.18)", fontSize:14, fontWeight:600, cursor:importing?"wait":"pointer" }}>
               {importing ? "Importing..." : "Import CSV"}
             </button>
             <input ref={fileInputRef} type="file" accept=".csv" style={{ display:"none" }}
               onChange={e => { if(e.target.files[0]) importCSV(e.target.files[0]); e.target.value=""; }}/>
           </div>
           {importProgress && (
-            <div style={{ padding:"10px 14px", borderRadius:10, background:"rgba(255,255,255,0.08)", border:"1px solid rgba(255,255,255,0.12)", marginBottom:16, fontSize:12, color: color.muted }}>
+            <div style={{ padding:"10px 14px", borderRadius:10, background:"rgba(216,223,232,0.08)", border:"1px solid rgba(216,223,232,0.12)", marginBottom:16, fontSize:12, color: color.muted }}>
               {importProgress}
             </div>
           )}
-          <div style={{ padding:"10px 14px", borderRadius:10, background:"rgba(255,255,255,0.06)", border:"1px solid rgba(255,255,255,0.1)", marginBottom:24, fontSize:11, color: color.muted, lineHeight:1.6 }}>
+          <div style={{ padding:"10px 14px", borderRadius:10, background:"rgba(216,223,232,0.06)", border:"1px solid rgba(216,223,232,0.1)", marginBottom:24, fontSize:11, color: color.muted, lineHeight:1.6 }}>
             <strong style={{ color: color.muted }}>How it works:</strong> Export downloads all tracks as CSV (keep the <code>id</code> column). Edit titles/artists/genres/BPM/Camelot in Sheets, then Import. Matching is by <strong>id first</strong> so renames stick; title+artist is only a fallback when id is blank. New rows without id are created. Columns: id, title, artist, album, genre, energy, camelot, bpm, audioUrl, albumCover, color, duration, <code>batch</code> (Channel Surfing waves: <code>variety-wave-1</code>, <code>audioasis-wave-1</code>, <code>house-wave-1</code>, <code>expansions-wave-1</code>, <code>ukg-wave-1</code>, <code>dubstep-wave-1</code>, <code>metal-wave-1</code>, <code>punk-wave-1</code>, <code>country-folk-wave-1</code>, <code>downtempo-wave-1</code>), source.
           </div>
           {(() => {
@@ -546,7 +546,7 @@ export default function AdminScreen({
                   ].map(([label, has, total]) => {
                     const pct = total ? Math.round(has/total*100) : 0;
                     return (
-                      <div key={label} style={{ padding:"14px 12px", background:"rgba(255,255,255,0.1)", backdropFilter:"blur(32px)", borderRadius:14, border:"1px solid rgba(255,255,255,0.14)" }}>
+                      <div key={label} style={{ padding:"14px 12px", background:"rgba(216,223,232,0.1)", backdropFilter:"blur(32px)", borderRadius:14, border:"1px solid rgba(216,223,232,0.14)" }}>
                         <div style={{ fontSize:11, fontWeight:600, color: color.ink, letterSpacing:0.5, marginBottom:8, textTransform:"uppercase" }}>{label}</div>
                         <div style={{ fontSize:28, fontWeight:700, color: color.ink }}>{has}<span style={{ fontSize:14, color: color.muted }}>/{total}</span></div>
                         <div style={{ height:5, background:"rgba(18,20,26,0.08)", borderRadius:4, marginTop:8, overflow:"hidden", boxShadow: "inset 0 1px 1px rgba(18,20,26,0.08)" }}>
@@ -564,7 +564,7 @@ export default function AdminScreen({
                     <SectionLabel>Key Distribution</SectionLabel>
                     <div style={{ display:"flex", flexWrap:"wrap", gap:6, marginBottom:24 }}>
                       {sortedKeys.map(([key, count]) => (
-                        <div key={key} style={{ padding:"6px 12px", borderRadius:8, background:"rgba(255,255,255,0.1)", border:"1px solid rgba(255,255,255,0.14)", fontSize:12 }}>
+                        <div key={key} style={{ padding:"6px 12px", borderRadius:8, background:"rgba(216,223,232,0.1)", border:"1px solid rgba(216,223,232,0.14)", fontSize:12 }}>
                           <span style={{ fontWeight:700, color: color.ink, marginRight:4 }}>{key}</span>
                           <span style={{ color: color.muted }}>{count}</span>
                         </div>
@@ -579,7 +579,7 @@ export default function AdminScreen({
                   <div style={{ padding:"24px 0", textAlign:"center", color: color.muted, fontSize:13 }}>All tracks have Camelot keys assigned</div>
                 ) : (
                   <>
-                    <div style={{ padding:"12px 14px", borderRadius:14, background:"rgba(255,255,255,0.08)", border:"1px solid rgba(255,255,255,0.12)", marginBottom:12 }}>
+                    <div style={{ padding:"12px 14px", borderRadius:14, background:"rgba(216,223,232,0.08)", border:"1px solid rgba(216,223,232,0.12)", marginBottom:12 }}>
                       <div style={{ fontSize:12, color: color.ink, fontWeight:600, marginBottom:4 }}>{withoutKey.length} tracks missing keys</div>
                       <div style={{ fontSize:11, color: color.muted, lineHeight:1.5, marginBottom:12 }}>You can batch-assign estimated keys based on BPM and genre. These are rough estimates — for accurate keys, use DJ software like Mixed In Key or Rekordbox to analyze audio.</div>
                       <button onClick={batchAssign} disabled={assigning}

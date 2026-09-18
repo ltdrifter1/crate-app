@@ -7,7 +7,7 @@ export function dockTintStyle(track) {
   const rgb = hexToRgbStr(track.color);
   return {
     background: `
-      linear-gradient(165deg, rgba(${rgb},0.28) 0%, rgba(${rgb},0.08) 42%, rgba(16,18,24,0.92) 78%),
+      linear-gradient(165deg, rgba(${rgb},0.28) 0%, rgba(${rgb},0.08) 42%, rgba(74,83,96,0.92) 78%),
       ${glass.fillHeavy}
     `,
   };

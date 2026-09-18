@@ -37,7 +37,7 @@ function Progress({ step }) {
             width: idx === i ? 22 : 6,
             height: 6,
             borderRadius: 99,
-            background: idx <= i ? y2k.cyan : "rgba(255,255,255,0.12)",
+            background: idx <= i ? y2k.cyan : "rgba(216,223,232,0.12)",
             boxShadow: idx === i ? `0 0 10px ${y2k.cyanGlow}` : "none",
             transition: `width ${motion.fast} ${motion.ease}, background ${motion.base}`,
           }}
@@ -67,7 +67,7 @@ function StationCard({ channel, on, onToggle, index }) {
         textAlign: "left",
         color: color.onDark,
         boxShadow: on
-          ? `0 0 0 1px ${y2k.cyan}, 0 12px 28px rgba(0,0,0,0.4)`
+          ? `0 0 0 1px ${y2k.cyan}, 0 12px 28px rgba(58,66,80,0.4)`
           : `inset 0 1px 0 ${glass.highlight}`,
         animation: `rise 0.45s ${motion.ease} ${Math.min(index, 8) * 0.03}s both`,
       }}
@@ -89,7 +89,7 @@ function StationCard({ channel, on, onToggle, index }) {
           style={{
             position: "absolute",
             inset: 0,
-            background: `linear-gradient(160deg, ${channel.accent || "#3A414C"} 0%, #10141A 80%)`,
+            background: `linear-gradient(160deg, ${channel.accent || "#8B95A4"} 0%, #6A7482 80%)`,
           }}
         />
       )}
@@ -99,7 +99,7 @@ function StationCard({ channel, on, onToggle, index }) {
           position: "absolute",
           inset: 0,
           background:
-            "linear-gradient(180deg, rgba(8,10,13,0.08) 20%, rgba(8,10,13,0.92) 100%)",
+            "linear-gradient(180deg, rgba(58,66,80,0.08) 20%, rgba(58,66,80,0.92) 100%)",
         }}
       />
       <div
@@ -251,8 +251,8 @@ function ChoiceCard({ choice, on, onPick, art }) {
           position: "absolute",
           inset: 0,
           background: on
-            ? "linear-gradient(180deg, rgba(8,10,13,0.15), rgba(8,10,13,0.88))"
-            : "linear-gradient(180deg, rgba(8,10,13,0.25), rgba(8,10,13,0.92))",
+            ? "linear-gradient(180deg, rgba(58,66,80,0.15), rgba(58,66,80,0.88))"
+            : "linear-gradient(180deg, rgba(58,66,80,0.25), rgba(58,66,80,0.92))",
         }}
       />
       <div style={{ position: "relative", zIndex: 1, padding: "18px 18px 20px", minHeight: 148, display: "flex", flexDirection: "column", justifyContent: "flex-end" }}>
@@ -369,7 +369,7 @@ export default function TasteTuner({
           right: 0,
           height: "42vh",
           background:
-            "radial-gradient(ellipse at 50% 0%, rgba(101,230,255,0.08) 0%, transparent 55%)",
+            "radial-gradient(ellipse at 50% 0%, rgba(91,101,116,0.08) 0%, transparent 55%)",
           pointerEvents: "none",
         }}
       />
@@ -546,7 +546,7 @@ export default function TasteTuner({
               style={{
                 position: "absolute",
                 inset: 0,
-                background: "linear-gradient(180deg, rgba(8,10,13,0.1), rgba(8,10,13,0.92))",
+                background: "linear-gradient(180deg, rgba(58,66,80,0.1), rgba(58,66,80,0.92))",
               }}
             />
             <div style={{ position: "relative", zIndex: 1, padding: "28px 22px", minHeight: 220, display: "flex", flexDirection: "column", justifyContent: "flex-end" }}>

@@ -48,7 +48,7 @@ export function HardwareIconButton({
         background: lit
           ? `linear-gradient(180deg, ${color.accent} 0%, ${color.accent} 100%)`
           : hardware.keyFace,
-        border: `1px solid ${lit ? color.accentGlow : "rgba(232,234,238,0.14)"}`,
+        border: `1px solid ${lit ? color.accentGlow : "rgba(91,101,116,0.14)"}`,
         boxShadow: lit ? hardware.keyPressed : hardware.keyRaised,
         transition: `transform ${motion.fast} ${motion.ease}, color ${motion.fast}, background ${motion.base}`,
         padding: 0,
@@ -83,7 +83,7 @@ export function LcdSeek({
           marginTop: -(height / 2),
           borderRadius: 2,
           background: radio.lcdTrack,
-          boxShadow: "inset 0 1px 3px rgba(0,0,0,0.55)",
+          boxShadow: "inset 0 1px 3px rgba(58,66,80,0.55)",
           pointerEvents: "none",
           overflow: "hidden",
         }}
@@ -139,7 +139,7 @@ export function LcdTimes({ progress = 0, duration = 0 }) {
         ...type.lcd,
         fontVariantNumeric: "tabular-nums",
         letterSpacing: 0.08,
-        color: color.accent,
+        color: color.lcdInk,
         padding: "0 1px",
       }}
     >
@@ -155,7 +155,7 @@ export function LcdMetaLine({ bits = [] }) {
     <div
       style={{
         ...type.lcd,
-        color: color.accent,
+        color: color.lcdInk,
         letterSpacing: 0.14,
         lineHeight: 1.35,
       }}
@@ -190,7 +190,7 @@ export function LcdPanel({ children, live = false, style = {} }) {
             width: 6,
             height: 6,
             borderRadius: "50%",
-            background: color.accent,
+            background: color.lcdInk,
             boxShadow: `0 0 8px ${color.accentGlow}`,
             zIndex: 2,
           }}
@@ -228,7 +228,7 @@ export function LcdTitle({ children, as: Tag = "div" }) {
         fontSize: 16,
         fontWeight: 700,
         letterSpacing: -0.3,
-        color: color.ink,
+        color: color.lcdInk,
         overflow: "hidden",
         textOverflow: marquee ? undefined : "ellipsis",
         whiteSpace: "nowrap",
@@ -249,7 +249,7 @@ export function LcdArtist({ children }) {
         fontFamily: fontDisplay,
         fontSize: 13,
         fontWeight: 500,
-        color: color.body,
+        color: color.lcdMute,
         overflow: "hidden",
         textOverflow: "ellipsis",
         whiteSpace: "nowrap",

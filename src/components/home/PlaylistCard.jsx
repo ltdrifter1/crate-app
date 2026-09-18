@@ -74,7 +74,7 @@ export default function PlaylistCard({ playlist, tracks = [], onClick = null, si
             zIndex: 1,
             ...type.caption,
             fontWeight: 600,
-            color: "rgba(244,246,248,0.8)",
+            color: "rgba(216,223,232,0.8)",
           }}
         >
           {count} {count === 1 ? "cut" : "cuts"}

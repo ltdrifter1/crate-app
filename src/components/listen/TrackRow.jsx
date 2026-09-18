@@ -98,7 +98,7 @@ export function TrackActionsMenu({ track, playlistCtx, activePlaylistId, x, y, o
         maxWidth: 280,
         maxHeight: "min(70vh, 420px)",
         overflowY: "auto",
-        boxShadow: `inset 0 1px 0 ${glass.highlight}, 0 16px 40px rgba(26,29,36,0.16)`,
+        boxShadow: `inset 0 1px 0 ${glass.highlight}, 0 16px 40px rgba(91,101,116,0.16)`,
         backdropFilter: glass.blur,
         WebkitBackdropFilter: glass.blur,
         animation: "fadeIn 0.12s ease both",
@@ -323,10 +323,10 @@ export function TrackRow({ track, onPlay, active, isPlaying, onLike, extraAction
           cursor: "pointer", marginBottom: 4,
           background: active
             ? `
-              linear-gradient(165deg, rgba(42,47,55,0.92) 0%, rgba(28,32,38,0.72) 100%)
+              linear-gradient(165deg, rgba(42,47,55,0.92) 0%, rgba(180,187,198,0.72) 100%)
             `
             : `
-              linear-gradient(165deg, rgba(255,255,255,0.045) 0%, rgba(28,32,38,0.22) 100%)
+              linear-gradient(165deg, rgba(216,223,232,0.045) 0%, rgba(180,187,198,0.22) 100%)
             `,
           border: active ? `1px solid ${glass.border}` : `1px solid ${glass.borderFaint}`,
           boxShadow: active

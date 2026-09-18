@@ -6,7 +6,7 @@ import { collection, addDoc } from "firebase/firestore";
 import { db }                                       from "./firebase";
 import {
   font, fontDisplay, fontMono, color, chrome, radius, motion,
-  glass, glassControl, homeSpace, dock, sectionRule,
+  glass, glassControl, homeSpace, dock, sectionRule, radio,
   artShadow, aluminumGradient, chromeFrame,
   APP_STYLE, INPUT_ST, BTN_PRIMARY, BTN_SECONDARY, CTRL_BTN, ADMIN_UID,
   BRAND_NAME, brandStoragePrefix, STYLE_CHASSIS,
@@ -214,7 +214,7 @@ const injectStyles = () => {
     ::-webkit-scrollbar { width: 8px; height: 8px; }
     ::-webkit-scrollbar-track { background: transparent; }
     ::-webkit-scrollbar-thumb {
-      background: rgba(232,234,238,0.18);
+      background: rgba(91,101,116,0.18);
       border-radius: 8px;
       border: 2px solid transparent;
       background-clip: padding-box;
@@ -232,7 +232,7 @@ const injectStyles = () => {
     }
     button.btn-primary:hover {
       transform: translateY(-1px);
-      box-shadow: inset 0 1px 0 rgba(255,255,255,0.6), ${glass.shadowLift} !important;
+      box-shadow: inset 0 1px 0 rgba(216,223,232,0.6), ${glass.shadowLift} !important;
     }
     button.btn-secondary:hover {
       background: ${glass.fillHeavy} !important;
@@ -249,9 +249,9 @@ const injectStyles = () => {
       background: ${color.surfaceRaised} !important;
       box-shadow: inset 0 1px 0 ${glass.highlight}, 0 0 0 3px ${color.accentSoft} !important;
     }
-    input[type="range"] { -webkit-appearance: none; height: 4px; background: rgba(232,234,238,0.12); border-radius: 2px; outline: none; cursor: pointer; }
-    input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; border-radius: 50%; background: ${color.accent}; border: 2px solid ${color.onAccent}; box-shadow: 0 1px 4px rgba(0,0,0,0.45); cursor: pointer; }
-    input[type="range"]::-moz-range-thumb { width: 14px; height: 14px; border-radius: 50%; background: ${color.accent}; border: 2px solid ${color.onAccent}; box-shadow: 0 1px 4px rgba(0,0,0,0.45); cursor: pointer; }
+    input[type="range"] { -webkit-appearance: none; height: 4px; background: rgba(91,101,116,0.12); border-radius: 2px; outline: none; cursor: pointer; }
+    input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; border-radius: 50%; background: ${color.accent}; border: 2px solid ${color.onAccent}; box-shadow: 0 1px 4px rgba(58,66,80,0.45); cursor: pointer; }
+    input[type="range"]::-moz-range-thumb { width: 14px; height: 14px; border-radius: 50%; background: ${color.accent}; border: 2px solid ${color.onAccent}; box-shadow: 0 1px 4px rgba(58,66,80,0.45); cursor: pointer; }
     input.chrome-seek { -webkit-appearance: none; appearance: none; background: transparent !important; height: 28px !important; }
     input.chrome-seek::-webkit-slider-runnable-track { height: 6px; background: transparent; border: none; }
     input.chrome-seek::-moz-range-track { height: 6px; background: transparent; border: none; }
@@ -260,14 +260,14 @@ const injectStyles = () => {
       border-radius: 1px;
       background: ${color.accent};
       border: none;
-      box-shadow: 0 0 8px ${color.accentGlow || "rgba(90,98,112,0.55)"};
+      box-shadow: 0 0 8px ${color.accentGlow || "rgba(91,101,116,0.55)"};
       cursor: pointer;
     }
     input.chrome-seek::-moz-range-thumb {
       width: 3px; height: 12px; border-radius: 1px;
       background: ${color.accent};
       border: none;
-      box-shadow: 0 0 8px ${color.accentGlow || "rgba(90,98,112,0.55)"};
+      box-shadow: 0 0 8px ${color.accentGlow || "rgba(91,101,116,0.55)"};
       cursor: pointer;
     }
     .hide-scroll { -ms-overflow-style: none; scrollbar-width: none; }
@@ -334,8 +334,8 @@ const injectStyles = () => {
       50% { transform: translate(-50%, -50%) scale(1.035); opacity: 1; }
     }
     @keyframes brandLockupBreathe {
-      0%, 100% { transform: scale(1); filter: drop-shadow(0 12px 28px rgba(26,29,36,0.18)); }
-      50% { transform: scale(1.028); filter: drop-shadow(0 16px 36px rgba(26,29,36,0.22)); }
+      0%, 100% { transform: scale(1); filter: drop-shadow(0 12px 28px rgba(91,101,116,0.18)); }
+      50% { transform: scale(1.028); filter: drop-shadow(0 16px 36px rgba(91,101,116,0.22)); }
     }
     @keyframes stageBloom {
       0%, 100% { opacity: 0.55; }
@@ -351,7 +351,7 @@ const injectStyles = () => {
     }
     @keyframes playGlow {
       0%, 100% { box-shadow: 0 4px 14px rgba(22,24,30,0.2), 0 1px 0 rgba(30,34,41,0.6) inset; }
-      50% { box-shadow: 0 6px 18px rgba(255,255,255,0.2), 0 1px 0 rgba(32,36,43,0.65) inset; }
+      50% { box-shadow: 0 6px 18px rgba(216,223,232,0.2), 0 1px 0 rgba(184,191,202,0.65) inset; }
     }
     @keyframes coverFloat {
       0%, 100% { transform: translateY(0); }
@@ -449,7 +449,7 @@ const injectStyles = () => {
     }
     .flask-taste-btn:hover:not(:disabled) {
       transform: translateY(-1px);
-      box-shadow: inset 0 1px 0 rgba(255,255,255,0.12), 0 10px 22px rgba(0,0,0,0.45) !important;
+      box-shadow: inset 0 1px 0 rgba(216,223,232,0.12), 0 10px 22px rgba(58,66,80,0.45) !important;
     }
     .flask-taste-btn:active:not(:disabled) {
       transform: translateY(0) scale(0.97);
@@ -502,32 +502,30 @@ const injectStyles = () => {
       .dock-xtra { display: none !important; }
     }
     .glass-dock {
-      background:
-        linear-gradient(180deg, rgba(36,40,48,0.92) 0%, rgba(16,18,24,0.94) 100%);
-      border: 1px solid rgba(232,234,238,0.12);
+      background: ${radio.stripFace};
+      border: 1px solid rgba(91,101,116,0.22);
       box-shadow:
-        inset 0 1px 0 rgba(255,255,255,0.1),
-        0 14px 32px rgba(0,0,0,0.5);
+        inset 0 1px 0 rgba(216,223,232,0.45),
+        0 14px 32px rgba(58,66,80,0.22);
       -webkit-backdrop-filter: ${glass.blurHeavy};
       backdrop-filter: ${glass.blurHeavy};
       transition: background 0.6s ease, box-shadow 0.35s ease;
     }
-    /* ── Dark device chrome ─────────────────────────────────────────── */
+    /* ── Steel device chrome ─────────────────────────────────────────── */
     .pill-nav {
-      background:
-        linear-gradient(180deg, #1C2028 0%, #14161C 52%, #0E1014 100%);
-      border: 1px solid rgba(232,234,238,0.12);
+      background: ${radio.moduleFace};
+      border: 1px solid rgba(91,101,116,0.22);
       box-shadow:
-        inset 0 1px 0 rgba(255,255,255,0.1),
-        inset 0 -1px 0 rgba(0,0,0,0.4),
-        0 12px 28px rgba(0,0,0,0.4);
+        inset 0 1px 0 rgba(216,223,232,0.45),
+        inset 0 -1px 0 rgba(58,66,80,0.16),
+        0 12px 28px rgba(58,66,80,0.2);
       -webkit-backdrop-filter: ${glass.blurHeavy};
       backdrop-filter: ${glass.blurHeavy};
     }
     .pmp-hero-bezel {
       box-shadow:
-        inset 0 1px 0 rgba(255,255,255,0.1),
-        0 16px 36px rgba(0,0,0,0.45);
+        inset 0 1px 0 rgba(216,223,232,0.1),
+        0 16px 36px rgba(58,66,80,0.45);
     }
     .pmp-home-mtv::before { display: none; }
     .pmp-home-mtv > * { position: relative; z-index: 1; }
@@ -582,7 +580,7 @@ const injectStyles = () => {
     }
     .pmp-tune-key:hover {
       filter: brightness(1.06);
-      box-shadow: 0 6px 16px rgba(0,0,0,0.28) !important;
+      box-shadow: 0 6px 16px rgba(58,66,80,0.28) !important;
     }
     .pmp-tune-key:active {
       transform: scale(0.97);
@@ -590,11 +588,11 @@ const injectStyles = () => {
       box-shadow: none !important;
     }
     .pmp-tune-key--locked:hover {
-      box-shadow: 0 6px 16px rgba(0,0,0,0.28) !important;
+      box-shadow: 0 6px 16px rgba(58,66,80,0.28) !important;
     }
     .pmp-schedule-cell:hover {
-      border-color: rgba(90,98,112,0.35) !important;
-      box-shadow: 0 6px 16px rgba(0,0,0,0.35) !important;
+      border-color: rgba(91,101,116,0.35) !important;
+      box-shadow: 0 6px 16px rgba(58,66,80,0.35) !important;
     }
     .pmp-dial-cell:hover {
       color: ${color.ink};
@@ -644,15 +642,15 @@ const injectStyles = () => {
     }
     .custom-mix:hover {
       background: ${color.surfaceRaised} !important;
-      border-color: rgba(232,234,238,0.16) !important;
+      border-color: rgba(91,101,116,0.16) !important;
       box-shadow:
-        inset 0 1px 0 rgba(255,255,255,0.1),
-        0 12px 28px rgba(0,0,0,0.4) !important;
+        inset 0 1px 0 rgba(216,223,232,0.1),
+        0 12px 28px rgba(58,66,80,0.4) !important;
       transform: translateY(-1px);
     }
     .custom-mix:hover .custom-mix-play {
       transform: scale(1.04);
-      box-shadow: 0 8px 20px rgba(0,0,0,0.4) !important;
+      box-shadow: 0 8px 20px rgba(58,66,80,0.4) !important;
     }
     .custom-mix:active {
       transform: scale(0.992);
@@ -3149,9 +3147,9 @@ export default function App() {
               width: 40,
               height: 40,
               borderRadius: 12,
-              border: "1px solid rgba(232,234,238,0.14)",
+              border: "1px solid rgba(91,101,116,0.14)",
               background: "rgba(22,25,32,0.96)",
-              color: "#E8EAEE",
+              color: "#D0D6E0",
               fontSize: 20,
               cursor: "pointer",
             }}
@@ -3645,7 +3643,7 @@ export default function App() {
         width: 336,
         flexShrink: 0,
         background: `
-          linear-gradient(180deg, rgba(40,45,53,0.82) 0%, rgba(27,31,37,0.5) 100%),
+          linear-gradient(180deg, rgba(40,45,53,0.82) 0%, rgba(168,178,192,0.5) 100%),
           ${color.surfaceRaised}
         `,
         borderLeft: `1px solid ${glass.border}`,
@@ -3808,7 +3806,7 @@ export default function App() {
                       borderRadius: 5,
                       overflow: "hidden",
                       flexShrink: 0,
-                      boxShadow: "0 4px 14px rgba(0,0,0,0.35)",
+                      boxShadow: "0 4px 14px rgba(58,66,80,0.35)",
                       outline: active ? `1px solid ${color.accentSoft}` : "1px solid transparent",
                       background: color.surfaceRaised,
                     }}>

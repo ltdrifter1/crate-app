@@ -191,7 +191,7 @@ export default function LoginScreen({
           position: "absolute",
           inset: 0,
           background:
-            "radial-gradient(ellipse 90% 55% at 50% 8%, rgba(255,255,255,0.06) 0%, transparent 58%)",
+            "radial-gradient(ellipse 90% 55% at 50% 8%, rgba(216,223,232,0.06) 0%, transparent 58%)",
         }}
       />
       {/* Soft brand wash — oversized transparent lockup, barely there */}
@@ -264,10 +264,10 @@ export default function LoginScreen({
             flexDirection: "column",
             gap: 12,
             padding: "22px 20px 20px",
-            background: "rgba(16,18,24,0.86)",
-            border: "1px solid rgba(232,234,238,0.12)",
+            background: "rgba(74,83,96,0.86)",
+            border: "1px solid rgba(91,101,116,0.12)",
             borderRadius: 14,
-            boxShadow: "inset 0 1px 0 rgba(255,255,255,0.08), 0 16px 44px rgba(0,0,0,0.4)",
+            boxShadow: "inset 0 1px 0 rgba(216,223,232,0.08), 0 16px 44px rgba(58,66,80,0.4)",
             backdropFilter: glass.blurHeavy,
             WebkitBackdropFilter: glass.blurHeavy,
           }}
@@ -285,9 +285,9 @@ export default function LoginScreen({
               width: "100%",
               padding: "14px 20px",
               borderRadius: 10,
-              border: "1px solid rgba(232,234,238,0.14)",
-              background: "linear-gradient(180deg, #2A2E38 0%, #16181E 100%)",
-              boxShadow: "inset 0 1px 0 rgba(255,255,255,0.1), 0 4px 16px rgba(0,0,0,0.4)",
+              border: "1px solid rgba(91,101,116,0.14)",
+              background: "linear-gradient(180deg, #6A7482 0%, #5B6574 100%)",
+              boxShadow: "inset 0 1px 0 rgba(216,223,232,0.1), 0 4px 16px rgba(58,66,80,0.4)",
               cursor: loading ? "wait" : "pointer",
               opacity: loading ? 0.7 : 1,
             }}

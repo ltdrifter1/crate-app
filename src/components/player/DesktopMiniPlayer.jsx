@@ -72,7 +72,7 @@ export default function DesktopMiniPlayer({
             borderRadius: 6,
             overflow: "hidden",
             flexShrink: 0,
-            border: "1px solid rgba(232,234,238,0.12)",
+            border: "1px solid rgba(91,101,116,0.12)",
           }}
         >
           {track.albumCover ? (

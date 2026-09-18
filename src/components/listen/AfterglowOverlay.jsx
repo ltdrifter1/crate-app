@@ -15,7 +15,7 @@ export default function AfterglowOverlay({ data, onClose, onSavePlaylist }) {
 
   return (
     <div style={{ position:"fixed", inset:0, zIndex:95, display:"flex", alignItems:"center", justifyContent:"center", padding:32 }}>
-      <div style={{ position:"absolute", inset:0, background:"rgba(26,29,36,0.42)", backdropFilter:"blur(10px)" }} onClick={onClose}/>
+      <div style={{ position:"absolute", inset:0, background:"rgba(91,101,116,0.42)", backdropFilter:"blur(10px)" }} onClick={onClose}/>
       <div style={{
         position:"relative", zIndex:1, maxWidth:420, width:"100%", textAlign:"center",
         animation:"rise 0.45s cubic-bezier(0.22,1,0.36,1) both",
@@ -23,7 +23,7 @@ export default function AfterglowOverlay({ data, onClose, onSavePlaylist }) {
         border: `1px solid ${glass.border}`,
         borderRadius: radius.lg,
         padding: "28px 24px",
-        boxShadow: `inset 0 1px 0 ${glass.highlight}, 0 20px 48px rgba(26,29,36,0.16)`,
+        boxShadow: `inset 0 1px 0 ${glass.highlight}, 0 20px 48px rgba(91,101,116,0.16)`,
       }}>
         <div style={{ fontSize:12, fontWeight:700, letterSpacing:0.4, color: color.accent, marginBottom:12 }}>Set rundown</div>
         <div style={{ fontSize:36, fontWeight:800, color: color.ink, letterSpacing:-1, marginBottom:8, fontFamily: fontDisplay }}>{data.durationMins} minutes</div>

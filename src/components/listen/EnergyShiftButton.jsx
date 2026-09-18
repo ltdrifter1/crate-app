@@ -3,7 +3,7 @@
 // the background; the UI only dispatches increaseEnergy() / decreaseEnergy().
 
 import React, { useEffect, useRef, useState } from "react";
-import { color, glass, fontMono, hardware, hardwareKey, motion } from "../../theme";
+import { color, glass, fontMono, hardware, hardwareKey, motion, radio } from "../../theme";
 import { useEnergyQueue } from "../../useEnergyQueue";
 import FlaskMark from "./FlaskMark";
 
@@ -123,7 +123,7 @@ export function EnergyShiftButton({
           justifyContent: "center",
           cursor: "pointer",
           color: activeHere ? color.accent : color.ink,
-          border: `1px solid ${activeHere ? color.accentGlow : "rgba(232,234,238,0.14)"}`,
+          border: `1px solid ${activeHere ? color.accentGlow : "rgba(91,101,116,0.14)"}`,
           boxShadow: activeHere
             ? `${hardware.keyPressed}, 0 0 0 2px ${color.accentSoft}`
             : hovered
@@ -173,9 +173,9 @@ export function EnergyShiftButton({
             whiteSpace: "nowrap",
             padding: "6px 11px",
             borderRadius: 8,
-            background: "rgba(16,18,24,0.96)",
+            background: radio.moduleFace,
             border: `1px solid ${glass.border}`,
-            boxShadow: `inset 0 1px 0 ${glass.highlight}, 0 8px 22px rgba(0,0,0,0.4)`,
+            boxShadow: `inset 0 1px 0 ${glass.highlight}, 0 8px 22px rgba(58,66,80,0.22)`,
             backdropFilter: glass.blurSoft,
             WebkitBackdropFilter: glass.blurSoft,
             color: color.ink,
@@ -208,9 +208,9 @@ export function EnergyShiftButton({
             minWidth: 118,
             padding: 4,
             borderRadius: 8,
-            background: "rgba(12,14,18,0.96)",
+            background: radio.moduleFace,
             border: `1px solid ${glass.border}`,
-            boxShadow: `inset 0 1px 0 ${glass.highlight}, 0 14px 34px rgba(0,0,0,0.45)`,
+            boxShadow: `inset 0 1px 0 ${glass.highlight}, 0 14px 34px rgba(58,66,80,0.22)`,
             backdropFilter: glass.blur,
             WebkitBackdropFilter: glass.blur,
             animation: `energyMenuIn 0.24s ${PRESS_EASE} both`,
@@ -229,7 +229,7 @@ export function EnergyShiftButton({
                 cursor: "pointer", color: color.ink, fontSize: 12.5, fontWeight: 650,
                 fontVariantNumeric: "tabular-nums",
               }}
-              onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(255,255,255,0.06)"; }}
+              onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(216,223,232,0.06)"; }}
               onMouseLeave={(e) => { e.currentTarget.style.background = "none"; }}
             >
               <span>{up ? "Bunny" : "Turtle"}</span>
@@ -296,9 +296,9 @@ export function EnergyShiftModeChip({ style = null }) {
         gap: 7,
         padding: "5px 11px",
         borderRadius: 8,
-        background: "rgba(48,53,62,0.9)",
+        background: radio.moduleFace,
         border: `1px solid ${glass.border}`,
-        boxShadow: `inset 0 1px 0 ${glass.highlight}, 0 6px 18px rgba(0,0,0,0.35)`,
+        boxShadow: `inset 0 1px 0 ${glass.highlight}, 0 6px 18px rgba(58,66,80,0.18)`,
         backdropFilter: glass.blurSoft,
         WebkitBackdropFilter: glass.blurSoft,
         color: color.ink,
@@ -354,9 +354,9 @@ export function EnergyShiftFeedback({ bottom = "calc(100% + 12px)" }) {
         <div style={{
           display: "flex", alignItems: "center", gap: 7,
           padding: "8px 15px", borderRadius: 8,
-          background: "rgba(56,62,72,0.94)",
+          background: "rgba(168,178,192,0.94)",
           border: `1px solid ${glass.border}`,
-          boxShadow: `inset 0 1px 0 ${glass.highlight}, 0 10px 28px rgba(0,0,0,0.4)`,
+          boxShadow: `inset 0 1px 0 ${glass.highlight}, 0 10px 28px rgba(58,66,80,0.4)`,
           backdropFilter: glass.blur, WebkitBackdropFilter: glass.blur,
           color: color.ink, fontSize: 12.5, fontWeight: 650, letterSpacing: -0.1,
           animation: `energyPillLife ${PILL_MS}ms cubic-bezier(0.22, 1, 0.36, 1) both`,
@@ -372,7 +372,7 @@ export function EnergyShiftFeedback({ bottom = "calc(100% + 12px)" }) {
         <div style={{
           display: "flex", alignItems: "center", gap: 4,
           padding: "3px 9px", borderRadius: 8,
-          background: "rgba(255,255,255,0.06)",
+          background: "rgba(216,223,232,0.06)",
           border: `1px solid ${glass.borderSoft}`,
           color: color.ink,
           fontSize: 10.5, fontWeight: 700, fontFamily: fontMono, letterSpacing: 0.3,
@@ -473,7 +473,7 @@ export function EnergyShiftControl({
           boxShadow: active || open
             ? hardware.keyPressed
             : hovered
-              ? `${hardware.keyRaised}, 0 0 0 2px rgba(255,255,255,0.08)`
+              ? `${hardware.keyRaised}, 0 0 0 2px rgba(216,223,232,0.08)`
               : hardware.keyRaised,
           transform: hovered ? "scale(1.04)" : "scale(1)",
           transition: `transform 0.28s ${PRESS_EASE}, box-shadow 0.35s ease, color 0.2s ease, border-color 0.2s ease`,
@@ -515,9 +515,9 @@ export function EnergyShiftControl({
             width: 220,
             padding: "14px 14px 12px",
             borderRadius: 14,
-            background: "rgba(56,62,72,0.96)",
+            background: "rgba(168,178,192,0.96)",
             border: `1px solid ${glass.border}`,
-            boxShadow: `inset 0 1px 0 ${glass.highlight}, 0 16px 36px rgba(0,0,0,0.45)`,
+            boxShadow: `inset 0 1px 0 ${glass.highlight}, 0 16px 36px rgba(58,66,80,0.45)`,
             backdropFilter: glass.blur,
             WebkitBackdropFilter: glass.blur,
             animation: `energyMenuIn 0.24s ${PRESS_EASE} both`,
@@ -607,7 +607,7 @@ export function EnergyShiftCapsule({ stopPropagation = false }) {
         gap: 6,
         padding: "5px 8px",
         borderRadius: 8,
-        background: "rgba(32,36,43,0.65)",
+        background: "rgba(184,191,202,0.65)",
         border: `1px solid ${glass.borderSoft}`,
         boxShadow: `inset 0 1px 0 ${glass.highlight}, ${glass.shadowSoft}`,
         backdropFilter: glass.blurSoft,

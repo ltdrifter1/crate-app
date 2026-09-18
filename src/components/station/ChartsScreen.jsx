@@ -4,14 +4,14 @@ import Icon from "../ui/Icon";
 
 const CHART_CSS = `
   .pmp-chart-row { transition: background ${"{base}"} ${"{ease}"}, box-shadow ${"{base}"}; }
-  .pmp-chart-row:hover { background: rgba(90,98,112,0.08) !important; }
+  .pmp-chart-row:hover { background: rgba(91,101,116,0.08) !important; }
   .pmp-chart-row:active { transform: scale(0.992); }
   .pmp-chart-scan {
     position: absolute; inset: 0; pointer-events: none;
     background: repeating-linear-gradient(
       to bottom,
       transparent 0px, transparent 2px,
-      rgba(101,230,255,0.05) 2px, rgba(101,230,255,0.05) 3px
+      rgba(91,101,116,0.05) 2px, rgba(91,101,116,0.05) 3px
     );
     mix-blend-mode: multiply; opacity: 0.12;
   }
@@ -61,7 +61,7 @@ export default function ChartsScreen({
           inset: 0,
           pointerEvents: "none",
           background: `
-            radial-gradient(ellipse 80% 48% at 8% -10%, rgba(90,98,112,0.08) 0%, transparent 50%),
+            radial-gradient(ellipse 80% 48% at 8% -10%, rgba(91,101,116,0.08) 0%, transparent 50%),
             radial-gradient(ellipse 60% 36% at 100% 8%, rgba(111,191,58,0.06) 0%, transparent 46%)
           `,
         }}
@@ -116,7 +116,7 @@ export default function ChartsScreen({
         <div aria-hidden="true" style={{
           marginTop: 16,
           height: 1,
-          background: `linear-gradient(90deg, rgba(${chrome.cyanRgb},0.4) 0%, rgba(255,255,255,0.1) 42%, transparent 100%)`,
+          background: `linear-gradient(90deg, rgba(${chrome.cyanRgb},0.4) 0%, rgba(216,223,232,0.1) 42%, transparent 100%)`,
           boxShadow: `0 0 10px rgba(${chrome.cyanRgb},0.16)`,
         }} />
       </header>
@@ -131,7 +131,7 @@ export default function ChartsScreen({
             borderRadius: radius.lg,
             border: `1px solid ${glass.borderSoft}`,
             background: `
-              linear-gradient(180deg, rgba(101,230,255,0.06) 0%, transparent 44%),
+              linear-gradient(180deg, rgba(91,101,116,0.06) 0%, transparent 44%),
               ${glass.fill}
             `,
             boxShadow: `inset 0 1px 0 ${glass.highlight}`,

@@ -33,9 +33,9 @@ export default function BottomNavigation({ items = [], activeId, onSelect }) {
               height: 50,
               borderRadius: 10,
               border: "1px solid transparent",
-              background: active ? "rgba(90,98,112,0.14)" : "none",
+              background: active ? "rgba(91,101,116,0.14)" : "none",
               boxShadow: active
-                ? "inset 0 1px 0 rgba(255,255,255,0.08), 0 0 0 1px rgba(90,98,112,0.28)"
+                ? "inset 0 1px 0 rgba(216,223,232,0.08), 0 0 0 1px rgba(91,101,116,0.28)"
                 : "none",
               color: active ? color.accent : color.muted,
               cursor: "pointer",

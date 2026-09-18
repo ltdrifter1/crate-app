@@ -42,7 +42,7 @@ export default function OnboardingRitual({ tracks, onComplete, onSkip }) {
           left: 0,
           right: 0,
           height: "42vh",
-          background: "radial-gradient(ellipse at 40% 0%, rgba(169,199,228,0.1) 0%, rgba(255,255,255,0.04) 45%, transparent 100%)",
+          background: "radial-gradient(ellipse at 40% 0%, rgba(169,199,228,0.1) 0%, rgba(216,223,232,0.04) 45%, transparent 100%)",
           pointerEvents: "none",
         }}
       />
@@ -158,7 +158,7 @@ export default function OnboardingRitual({ tracks, onComplete, onSkip }) {
                     position: "absolute",
                     inset: 0,
                     background:
-                      "linear-gradient(180deg, transparent 20%, rgba(12,11,10,0.92) 100%)",
+                      "linear-gradient(180deg, transparent 20%, rgba(58,66,80,0.92) 100%)",
                   }}
                 />
                 <div

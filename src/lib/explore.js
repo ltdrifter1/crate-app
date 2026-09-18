@@ -1,7 +1,6 @@
 /**
  * Explore destination — editorial collections for discovery.
- * Channel art comes from original Channel Surfing icons (channelArt).
- * Catalog sleeves fill gaps when a lane has no matching channel icon.
+ * Catalog sleeves lead. Channel pictograms are bugs when a lane has no cover.
  */
 
 import { CHANNEL_ART, CHANNEL_ART_FOCUS, HERO_IDLE_ART, HERO_IDLE_FOCUS } from "./channelArt";
@@ -65,27 +64,27 @@ export function artForChannelId(channelId) {
   };
 }
 
+function sleeveFirstVisual(channelPhoto, pool = []) {
+  const covers = coverUrlsForTracks(pool, 4);
+  const sleeve = covers[0] || null;
+  return {
+    photo: sleeve || channelPhoto.src,
+    photoFocus: sleeve ? "center" : channelPhoto.focus,
+    covers,
+    /** Single sleeve (or pictogram fallback). False when a mosaic of covers should lead. */
+    usePhoto: covers.length <= 1 && !!(sleeve || channelPhoto.src),
+    bug: channelPhoto.src,
+  };
+}
+
 export function visualForGenre(lane, pool = []) {
   const channelId = GENRE_CHANNEL_ART[lane] || null;
-  const photo = artForChannelId(channelId);
-  const covers = coverUrlsForTracks(pool, 4);
-  return {
-    photo: photo.src,
-    photoFocus: photo.focus,
-    covers,
-    usePhoto: !!photo.src,
-  };
+  return sleeveFirstVisual(artForChannelId(channelId), pool);
 }
 
 export function visualForFamily(familyId, pool = []) {
   const channelId = FAMILY_CHANNEL_ART[familyId] || null;
-  const photo = artForChannelId(channelId);
-  return {
-    photo: photo.src,
-    photoFocus: photo.focus,
-    covers: coverUrlsForTracks(pool, 4),
-    usePhoto: !!photo.src,
-  };
+  return sleeveFirstVisual(artForChannelId(channelId), pool);
 }
 
 /** Genre mosaic rows — only lanes that have catalog, plus art. */
@@ -176,12 +175,15 @@ export function exploreMoodPlates(tracks = [], minTracks = 2) {
   return MOOD_DEFS.map((def) => {
     const pool = tracksForMood(tracks, def.id);
     const art = artForChannelId(def.channelId);
+    const covers = coverUrlsForTracks(pool, 4);
+    const sleeve = covers[0] || null;
     return {
       ...def,
       pool,
       count: pool.length,
-      photo: art.src,
-      photoFocus: art.focus,
+      photo: sleeve || art.src,
+      photoFocus: sleeve ? "center" : art.focus,
+      covers,
     };
   }).filter((m) => m.count >= minTracks);
 }
@@ -195,6 +197,8 @@ export function exploreScenePlates(tracks = [], limit = 10) {
     const pool = playable.filter((t) => trackMatchesScene(t, scene.id));
     if (!pool.length) continue;
     const art = artForChannelId(FAMILY_CHANNEL_ART[scene.familyId]);
+    const covers = coverUrlsForTracks(pool, 4);
+    const sleeve = covers[0] || null;
     scored.push({
       id: scene.id,
       label: scene.label,
@@ -204,9 +208,9 @@ export function exploreScenePlates(tracks = [], limit = 10) {
       cities: scene.cities || [],
       count: pool.length,
       pool,
-      photo: art.src,
-      photoFocus: art.focus,
-      covers: coverUrlsForTracks(pool, 4),
+      photo: sleeve || art.src,
+      photoFocus: sleeve ? "center" : art.focus,
+      covers,
     });
   }
   return scored
@@ -262,8 +266,9 @@ export function exploreForYou(tracks = [], opts = {}) {
 }
 
 /**
- * Editorial hero — photography first.
- * Featured station when the dial is live; else a featured sleeve; else idle club still.
+ * Editorial hero — sleeves first.
+ * Featured station when the dial is live (pool cover when catalog has art);
+ * else a featured sleeve; else idle cassette drawing.
  * No “showcase station / N on the dial” chrome — title and tagline only.
  */
 export function buildExploreHero({
@@ -278,6 +283,8 @@ export function buildExploreHero({
   if (showcase) {
     const channel = SCENE_CHANNELS.find((c) => c.id === showcase.id) || showcase;
     const pool = buildSceneChannelPool(tracks, channel);
+    const covers = coverUrlsForTracks(pool, 4);
+    const sleeve = covers[0] || null;
     const art = artForChannelId(showcase.id);
     return {
       kind: "channel",
@@ -286,8 +293,8 @@ export function buildExploreHero({
       title: showcase.title,
       subtitle: showcase.tagline,
       kicker: null,
-      art: showcase.art || art.src,
-      artFocus: showcase.artFocus || art.focus,
+      art: sleeve || showcase.art || art.src,
+      artFocus: sleeve ? "center" : showcase.artFocus || art.focus,
       channel: showcase,
       album: null,
       track: pool[0] || null,
@@ -396,6 +403,7 @@ export function resolveExploreFocus(focus, tracks = []) {
     if (!def) return null;
     const pool = tracksForMood(tracks, def.id);
     const art = artForChannelId(def.channelId);
+    const visual = sleeveFirstVisual(art, pool);
     return {
       type: "mood",
       id: def.id,
@@ -403,10 +411,7 @@ export function resolveExploreFocus(focus, tracks = []) {
       eyebrow: "Mood",
       story: def.blurb,
       pool,
-      photo: art.src,
-      photoFocus: art.focus,
-      covers: coverUrlsForTracks(pool, 4),
-      usePhoto: !!art.src,
+      ...visual,
     };
   }
   return null;
