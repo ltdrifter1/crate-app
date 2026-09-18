@@ -2,7 +2,7 @@
 
 Planet MP3 Channel Surfing tiles, the idle Home hero, and Explore plates that reuse the same slots are **original illustrated icons** — not photographs.
 
-Style: simple black-and-white street stencils on wheatpaste paper. No colour, no photographs, no type burned into the artwork.
+Style: bold filled pictograms on coloured studio plates (genre-icon sheet energy, Planet MP3 culture hues + Aqua/silver hardware). No photographs, no type burned into the artwork. Regenerated from `scripts/render-channel-art.py`.
 
 **Not in this set:** catalog album covers from Firebase, brand lockups/mascot (original drawings), or user-uploaded art.
 
@@ -18,20 +18,20 @@ Style: simple black-and-white street stencils on wheatpaste paper. No colour, no
 
 | Slot | File | Notes |
 |------|------|--------|
-| CH-01 Y2K Dance | `y2k-dance.png` | Disco ball + burst |
-| CH-02 Psychedelic Rock | `psychedelic-rock.png` | Swirl + neck |
-| CH-03 Variety Mix | `variety-mix.png` | Stacked CDs |
-| CH-04 Local | `local-pnw.png` | Geometric tower |
-| CH-05 House | `house.png` | Four-to-the-floor pads |
-| CH-06 Techno | `techno.png` | 3×3 machine grid |
-| CH-07 UK Garage | `uk-garage.png` | 2-step blocks + mic |
-| CH-08 Dubstep | `dubstep.png` | Speaker stack |
-| CH-09 Drum & Bass | `drum-and-bass.png` | Drum + bolt |
-| CH-10 Emo & Shoegaze | `shoegaze.png` | Cloud guitar |
-| CH-11 Metal | `metal.png` | Lightning |
-| CH-12 Punk | `punk.png` | Safety pin |
-| CH-13 Country & Folk | `country-folk.png` | Acoustic |
-| CH-14 Ambient / Downtempo | `downtempo.png` | Moon + headphones |
+| CH-01 Y2K Dance | `y2k-dance.png` | Magenta plate · star + eighth note |
+| CH-02 Psychedelic Rock | `psychedelic-rock.png` | Violet plate · swirl guitar + bolt |
+| CH-03 Variety Mix | `variety-mix.png` | Graphite plate · stacked vinyls |
+| CH-04 Local | `local-pnw.png` | Moss plate · needle tower + evergreens |
+| CH-05 House | `house.png` | Chicago orange · four-to-the-floor pads |
+| CH-06 Techno | `techno.png` | Steel plate · Aqua/silver machine grid |
+| CH-07 UK Garage | `uk-garage.png` | Night-bus yellow · 2-step + mic |
+| CH-08 Dubstep | `dubstep.png` | Bass purple · speaker stack |
+| CH-09 Drum & Bass | `drum-and-bass.png` | Jungle green · drum + bolt |
+| CH-10 Emo & Shoegaze | `shoegaze.png` | Dusty rose · cloud guitar |
+| CH-11 Metal | `metal.png` | Near-black · horns + crimson bolt |
+| CH-12 Punk | `punk.png` | Black plate · mohawk + safety pin |
+| CH-13 Country & Folk | `country-folk.png` | Amber plate · acoustic |
+| CH-14 Ambient / Downtempo | `downtempo.png` | Indigo plate · moon + headphones |
 
 Leftover documentary stills were removed from the dial. Techno uses the machine-grid icon.
 
