@@ -1,4 +1,4 @@
-// useEnergyQueue — React binding for the Energy Shift feature.
+// useEnergyQueue — React binding for Pace (Ease / Lift upcoming picks).
 // The UI only ever dispatches increaseEnergy() / decreaseEnergy(); everything
 // else (targets, sweep, scoring) happens in the background stores/engine.
 

@@ -250,7 +250,7 @@ export function pickNextTrack(allTracks, currentTrack, memory = null, options = 
     return wide[Math.floor(Math.random() * wide.length)];
   }
 
-  // Energy Shift (Rabbit / Turtle) — when a sweep is active it owns the pick.
+  // Pace (Ease / Lift) — when a sweep is active it owns the pick.
   // The engine walks the pool toward the pending BPM/Camelot/energy target one
   // musical step at a time instead of the usual hour/taste pools.
   if (options.energyShift?.active && currentTrack) {

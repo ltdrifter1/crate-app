@@ -4,6 +4,7 @@
  */
 import { color, fontDisplay, hardware, motion, radio, type } from "../../theme";
 import { fmtTime } from "../../lib/harmony";
+import { useEnergyQueue } from "../../useEnergyQueue";
 import ScanlineWash from "../home/ScanlineWash";
 import Icon from "../ui/Icon";
 
@@ -167,7 +168,12 @@ export function LcdTimes({ progress = 0, duration = 0, on = "lcd" }) {
 
 /** on: "lcd" = pearl on smoked well; "metal" = graphite on aluminum. */
 export function LcdMetaLine({ bits = [], on = "lcd" }) {
-  if (!bits.length) return null;
+  const { energyShift } = useEnergyQueue();
+  const pace = energyShift?.active
+    ? (energyShift.direction > 0 ? "LIFT" : "EASE")
+    : null;
+  const all = pace ? [...bits.filter(Boolean), pace] : bits.filter(Boolean);
+  if (!all.length) return null;
   const ink = on === "metal" ? color.accent : color.lcdInk;
   return (
     <div
@@ -178,7 +184,7 @@ export function LcdMetaLine({ bits = [], on = "lcd" }) {
         lineHeight: 1.35,
       }}
     >
-      {bits.join(" · ")}
+      {all.join(" · ")}
     </div>
   );
 }

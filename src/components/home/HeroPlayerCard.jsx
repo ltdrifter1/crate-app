@@ -238,7 +238,7 @@ function JewelSleeve({ src, idleSrc, playing, eager = false, size = 148 }) {
 
 /**
  * HeroPlayerCard — Home now-playing device.
- * Artwork window + LCD metadata + Turtle/Bunny transport.
+ * Artwork window + LCD metadata + Ease/Lift pace paddles.
  */
 export default function HeroPlayerCard({
   track = null,
