@@ -480,7 +480,7 @@ export function MessengerWindow({
             fontFamily: font,
             fontSize: 15,
             outline: "none",
-            boxShadow: `inset 0 1px 0 rgba(90,98,112,0.08), 0 0 0 3px transparent`,
+            boxShadow: `inset 0 1px 0 rgba(255,106,43,0.08), 0 0 0 3px transparent`,
           }}
         />
         <button
@@ -491,9 +491,9 @@ export function MessengerWindow({
             height: 40,
             padding: "0 16px",
             borderRadius: 8,
-            border: "1px solid rgba(90,98,112,0.4)",
+            border: "1px solid rgba(255,106,43,0.4)",
             background: draft.trim()
-              ? "linear-gradient(180deg, #C5CAD3 0%, #5A6270 100%)"
+              ? "linear-gradient(180deg, #FFB347 0%, #FF6A2B 100%)"
               : ice.frost,
             color: draft.trim() ? color.onAccent : ice.mute,
             fontFamily: font,

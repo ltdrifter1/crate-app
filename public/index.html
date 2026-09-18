@@ -5,11 +5,11 @@
     <link rel="icon" href="%PUBLIC_URL%/favicon.svg" type="image/svg+xml" />
     <link rel="icon" href="%PUBLIC_URL%/favicon.png" type="image/png" sizes="32x32" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <meta name="theme-color" content="#E4E7EE" />
-    <meta name="pmp-chassis" content="steel-y2k-20260918" />
+    <meta name="theme-color" content="#110E16" />
+    <meta name="pmp-chassis" content="ps1-discman-20260918" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="Planet MP3" />
     <meta
       name="description"
@@ -36,7 +36,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
       rel="stylesheet"
-      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600;700&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600;700&display=swap"
     />
     <link rel="preconnect" href="https://crate-app-58494.firebasestorage.app" crossorigin />
     <link rel="preconnect" href="https://firebasestorage.googleapis.com" crossorigin />
@@ -53,9 +53,9 @@
       }
       body {
         margin: 0;
-        background: #E4E7EE;
-        color: #1C2028;
-        font-family: "IBM Plex Sans", "Lucida Grande", "Helvetica Neue", Helvetica, Inter, -apple-system, BlinkMacSystemFont, Arial, sans-serif;
+        background: #110E16;
+        color: #F3EDE4;
+        font-family: "Space Grotesk", "Lucida Grande", "Helvetica Neue", Helvetica, Inter, -apple-system, BlinkMacSystemFont, Arial, sans-serif;
         -webkit-font-smoothing: antialiased;
         -moz-osx-font-smoothing: grayscale;
       }
@@ -75,9 +75,9 @@
         box-sizing: border-box;
         padding: 24px;
         background:
-          radial-gradient(ellipse 70% 48% at 50% 42%, rgba(255,255,255,0.7) 0%, transparent 58%),
-          radial-gradient(ellipse 90% 70% at 50% 100%, rgba(197,202,211,0.45) 0%, transparent 55%),
-          #E4E7EE;
+          radial-gradient(ellipse 70% 48% at 50% 42%, rgba(255,106,43,0.07) 0%, transparent 58%),
+          radial-gradient(ellipse 90% 70% at 50% 100%, rgba(18,20,26,0.9) 0%, transparent 55%),
+          #110E16;
       }
       .pmp-spin-planet {
         width: min(220px, 52vw);
@@ -92,7 +92,7 @@
         position: absolute;
         inset: 8%;
         border-radius: 50%;
-        background: radial-gradient(circle, rgba(90,98,112,0.22) 0%, rgba(90,98,112,0.05) 42%, transparent 70%);
+        background: radial-gradient(circle, rgba(255,106,43,0.22) 0%, rgba(255,106,43,0.05) 42%, transparent 70%);
         filter: blur(12px);
         z-index: 0;
       }
@@ -106,7 +106,7 @@
         box-shadow:
           0 28px 48px rgba(0,0,0,0.55),
           0 0 0 1px rgba(255,255,255,0.08),
-          0 0 36px rgba(90,98,112,0.12);
+          0 0 36px rgba(255,106,43,0.12);
         z-index: 2;
       }
       .pmp-spin-planet__map {
@@ -148,8 +148,8 @@
         inset: 0;
         border-radius: 50%;
         box-shadow:
-          inset 0 0 0 1px rgba(90,98,112,0.18),
-          inset -10px -8px 18px rgba(90,98,112,0.08);
+          inset 0 0 0 1px rgba(255,106,43,0.18),
+          inset -10px -8px 18px rgba(255,106,43,0.08);
       }
       .pmp-spin-planet__ring {
         position: absolute;
@@ -159,9 +159,9 @@
         top: 29%;
         border-radius: 50%;
         border: 1.5px solid rgba(232,234,238,0.38);
-        border-top-color: rgba(90,98,112,0.35);
+        border-top-color: rgba(255,106,43,0.35);
         transform: rotateX(64deg) rotateZ(-18deg);
-        box-shadow: 0 0 22px rgba(90,98,112,0.16);
+        box-shadow: 0 0 22px rgba(255,106,43,0.16);
         animation: pmpPlanetRing 18s linear infinite;
         z-index: 1;
       }
@@ -170,14 +170,14 @@
         right: -16%;
         height: 32%;
         top: 34%;
-        border-color: rgba(90,98,112,0.42);
+        border-color: rgba(255,106,43,0.42);
         border-bottom-color: rgba(232,234,238,0.28);
         z-index: 3;
         animation-duration: 12s;
         animation-direction: reverse;
       }
       #boot-splash .boot-label {
-        font-family: "IBM Plex Sans", "Lucida Grande", "Helvetica Neue", Helvetica, Inter, -apple-system, BlinkMacSystemFont, Arial, sans-serif;
+        font-family: "Space Grotesk", "Lucida Grande", "Helvetica Neue", Helvetica, Inter, -apple-system, BlinkMacSystemFont, Arial, sans-serif;
         font-size: 13px;
         font-weight: 500;
         letter-spacing: 0.36em;

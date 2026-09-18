@@ -21,10 +21,10 @@ function NavRow({ item, active, onClick }) {
         minHeight: 40,
         borderRadius: radius.sm,
         background: active
-          ? "rgba(90,98,112,0.12)"
+          ? "rgba(255,106,43,0.08)"
           : "transparent",
         border: "1px solid transparent",
-        color: active ? color.accent : color.body,
+        color: active ? color.ink : color.body,
         cursor: "pointer",
         display: "flex",
         alignItems: "center",
@@ -32,7 +32,7 @@ function NavRow({ item, active, onClick }) {
         padding: "8px 10px",
         textAlign: "left",
         boxShadow: active
-          ? "inset 2px 0 0 #5A6270, inset 0 1px 0 rgba(255,255,255,0.06)"
+          ? "inset 2px 0 0 #FF6A2B, inset 0 1px 0 rgba(255,255,255,0.06)"
           : "none",
       }}
     >
@@ -176,7 +176,7 @@ export default function AppSidebar({
             width: "100%",
             height: 44,
             borderRadius: radius.sm,
-            background: activeId === "profile" ? "rgba(10, 132, 255, 0.22)" : "transparent",
+            background: activeId === "profile" ? "rgba(255,106,43,0.08)" : "transparent",
             border: "1px solid transparent",
             display: "flex",
             alignItems: "center",

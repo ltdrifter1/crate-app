@@ -174,7 +174,7 @@ function EmptyShelfCard({ title, body, actionLabel = null, onAction = null }) {
         rounded={18}
         style={{
           background: `
-            linear-gradient(135deg, rgba(90,98,112,0.08) 0%, transparent 50%),
+            linear-gradient(135deg, rgba(255,106,43,0.08) 0%, transparent 50%),
             linear-gradient(165deg, #1A1D24 0%, #101218 100%)
           `,
           border: `1px solid rgba(232,234,238,0.1)`,

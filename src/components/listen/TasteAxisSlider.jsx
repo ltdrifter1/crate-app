@@ -115,7 +115,7 @@ export default function TasteAxisSlider({
           style={{
             height: "100%",
             width: `${v}%`,
-            background: `linear-gradient(90deg, ${color.accent} 0%, #C5CAD3 100%)`,
+            background: `linear-gradient(90deg, ${color.accent} 0%, #FFB347 100%)`,
             borderRadius: radius.sm,
           }}
         />

@@ -147,13 +147,7 @@ const DevOnboardingPreview =
   process.env.NODE_ENV !== "production"
     ? lazy(() => import("./preview/OnboardingPreview"))
     : null;
-const loadExploreScreen = () => import("./screens/ExploreScreen");
-const ExploreScreen = lazy(loadExploreScreen);
-if (typeof requestIdleCallback === "function") {
-  requestIdleCallback(() => loadExploreScreen(), { timeout: 2200 });
-} else {
-  setTimeout(loadExploreScreen, 900);
-}
+const ExploreScreen = lazy(() => import("./screens/ExploreScreen"));
 const SearchScreen = lazy(() => import("./screens/SearchScreen"));
 const FavoritesScreen = lazy(() => import("./screens/FavoritesScreen"));
 const AdminScreen = lazy(() => import("./screens/AdminScreen"));
@@ -260,14 +254,14 @@ const injectStyles = () => {
       border-radius: 1px;
       background: ${color.accent};
       border: none;
-      box-shadow: 0 0 8px ${color.accentGlow || "rgba(90,98,112,0.55)"};
+      box-shadow: 0 0 8px ${color.accentGlow || "rgba(255,106,43,0.55)"};
       cursor: pointer;
     }
     input.chrome-seek::-moz-range-thumb {
       width: 3px; height: 12px; border-radius: 1px;
       background: ${color.accent};
       border: none;
-      box-shadow: 0 0 8px ${color.accentGlow || "rgba(90,98,112,0.55)"};
+      box-shadow: 0 0 8px ${color.accentGlow || "rgba(255,106,43,0.55)"};
       cursor: pointer;
     }
     .hide-scroll { -ms-overflow-style: none; scrollbar-width: none; }
@@ -515,7 +509,7 @@ const injectStyles = () => {
     /* ── Dark device chrome ─────────────────────────────────────────── */
     .pill-nav {
       background:
-        linear-gradient(180deg, #1C2028 0%, #14161C 52%, #0E1014 100%);
+        linear-gradient(180deg, #2A2432 0%, #1C1824 52%, #16121A 100%);
       border: 1px solid rgba(232,234,238,0.12);
       box-shadow:
         inset 0 1px 0 rgba(255,255,255,0.1),
@@ -593,7 +587,7 @@ const injectStyles = () => {
       box-shadow: 0 6px 16px rgba(0,0,0,0.28) !important;
     }
     .pmp-schedule-cell:hover {
-      border-color: rgba(90,98,112,0.35) !important;
+      border-color: rgba(255,106,43,0.35) !important;
       box-shadow: 0 6px 16px rgba(0,0,0,0.35) !important;
     }
     .pmp-dial-cell:hover {
@@ -3151,7 +3145,7 @@ export default function App() {
               borderRadius: 12,
               border: "1px solid rgba(232,234,238,0.14)",
               background: "rgba(22,25,32,0.96)",
-              color: "#E8EAEE",
+              color: color.ink,
               fontSize: 20,
               cursor: "pointer",
             }}
@@ -3377,7 +3371,7 @@ export default function App() {
       <BgMist color={currentTrack?.color}/>
       {ambientStatus}
       {toast && <ToastEl msg={toast} onDismiss={()=>setToast(null)}/>}
-      {tracksLoading && screen !== "home" && screen !== "explore" && (
+      {tracksLoading && screen !== "home" && (
         <>
           <div className="sr-only" role="status">Loading your catalog…</div>
           <div style={{ position:"absolute", inset:0, zIndex:50, overflow:"hidden" }}>
@@ -3389,7 +3383,7 @@ export default function App() {
         <Suspense fallback={<div style={{ padding: 32, color: color.muted }}>Loading…</div>}>
         <ScreenPane key={screen === "artist" ? `artist:${artistSlug}` : screen === "album" ? `album:${albumSlug}` : screen === "mix" ? `mix:${mixId}` : screen}>
         {screen==="home"      && <HomeScreen catalogLoading={tracksLoading} tracks={tracks} onPlayRadio={playRadio} onTogglePlay={togglePlay} onPlayTrack={playTrack} onLike={toggleLike} isRadioMode={isRadioMode} hypnoPocket={!!hypnoSeed} playlistCtx={playlistCtx} mixLane={mixLane} radioPreview={heroPreview} radioNext={setNext} onSkipRadio={handleSkip} onPrevRadio={handlePrev} onOpenPlayer={()=>setImmersive(true)} catalogError={tracksLoadError} onRetryCatalog={reloadCatalog} onStageVisibilityChange={onHomeStageVisibilityChange} onSeek={handleSeek} countdown={countdown} onTuneCountdown={tuneCountdown} daypart={activeDaypart} tickerText={stationTicker} onDislike={dislikeCurrentTrack} onDedicate={()=>setShowDedicate(true)} dedicationFlash={dedicationFlash} onClearDedication={()=>setDedicationFlash(null)} airing={liveAiring} programGuide={programGuide} activeShowId={activeShowId} onTuneShow={playShow} showBumper={showBumper} channelShow={liveShow} sceneChannelsActiveId={activeSceneChannelId} onTuneSceneChannel={playSceneChannel} taste={profileTaste} dislikeTaste={profile?.dislikeTaste} recentTrackIds={(profile?.recentTracks||[]).map(r=>r.trackId||r)} playlists={libraryPlaylists.filter((pl)=>!isCommunityPlaylist(pl))} preferredGenres={user.genres||[]} userKey={firebaseUser?.uid||""} onOpenSearch={()=>setScreen("search")} onOpenProfile={()=>setScreen("profile")} onOpenLibrary={()=>setScreen("favorites")} onOpenCharts={()=>setScreen("charts")} onOpenMenu={()=>setShowNavDrawer(true)} onOpenPlaylist={(id)=>openStack(id)} onOpenAlbum={(slug)=>openAlbum(slug)}/>}
-        {screen==="explore"   && <Suspense fallback={<div style={{ padding: 32, color: color.muted }}>Loading explore…</div>}><ExploreScreen catalogLoading={tracksLoading} tracks={tracks} preferredGenres={user.genres||[]} recentTrackIds={(profile?.recentTracks||[]).map(r=>r.trackId||r)} userKey={firebaseUser?.uid||""} countdown={countdown} sceneChannelsActiveId={activeSceneChannelId} onPlayTrack={playTrack} onOpenSearch={()=>setScreen("search")} onOpenAlbum={(slug)=>openAlbum(slug)} onOpenCharts={()=>setScreen("charts")} onTuneSceneChannel={playSceneChannel} onListenIntent={(focus)=>{ const next={ genre: focus.genre || null, scene: focus.scene || null }; setListenFocus(next); playRadio(null, createListenIntent({ mixLane, ...next })); }} onOpenMenu={()=>setShowNavDrawer(true)}/></Suspense>}
+        {screen==="explore"   && !tracksLoading && <Suspense fallback={<div style={{ padding: 32, color: color.muted }}>Loading explore…</div>}><ExploreScreen tracks={tracks} preferredGenres={user.genres||[]} recentTrackIds={(profile?.recentTracks||[]).map(r=>r.trackId||r)} userKey={firebaseUser?.uid||""} countdown={countdown} sceneChannelsActiveId={activeSceneChannelId} onPlayTrack={playTrack} onOpenSearch={()=>setScreen("search")} onOpenAlbum={(slug)=>openAlbum(slug)} onOpenCharts={()=>setScreen("charts")} onTuneSceneChannel={playSceneChannel} onListenIntent={(focus)=>{ const next={ genre: focus.genre || null, scene: focus.scene || null }; setListenFocus(next); playRadio(null, createListenIntent({ mixLane, ...next })); }} onOpenMenu={()=>setShowNavDrawer(true)}/></Suspense>}
         {screen==="charts"    && !tracksLoading && <Suspense fallback={<div style={{ padding: 32, color: color.muted, fontFamily: font, fontSize: 15 }}>Loading charts…</div>}><LazyChartsScreen countdown={countdown} tracks={tracks} onPlayTrack={playTrack} onTuneMonthly={playMonthlyChart} onAddToQueue={addTrackToQueue} playlistCtx={playlistCtx} nowPlayingId={currentTrackId} onOpenMenu={()=>setShowNavDrawer(true)}/></Suspense>}
         {screen==="search"    && <SearchScreen query={searchQuery} setQuery={setSearch} tracks={tracks} onPlay={(t,pool)=>{ recordRecentSearch(searchQuery); playTrack(t,pool||tracks); }} onListenIntent={(focus)=>{ const next={ genre: focus.genre || null, scene: null }; setListenFocus(next); playRadio(null, createListenIntent({ mixLane, ...next })); }} onLike={toggleLike} playlistCtx={playlistCtx} onOpenArtist={(slug)=>{ recordRecentSearch(searchQuery); openArtist(slug); }} onOpenAlbum={(slug)=>{ recordRecentSearch(searchQuery); openAlbum(slug); }} recentSearches={recentSearches} onPickRecent={(q)=>setSearch(q)} onClearRecent={clearRecentSearches} onBack={()=>setScreen("explore")}/>}
         {screen==="favorites" && <FavoritesScreen tracks={tracks} onPlay={t=>{setIsRadioMode(false);playTrack(t,tracks);}} onPlayTrack={(t,pool)=>{setIsRadioMode(false);playTrack(t,pool||tracks);}} onLike={toggleLike} playlistCtx={playlistCtx} userPlaylists={libraryPlaylists} onCreatePlaylist={createPlaylist} onDeletePlaylist={deletePlaylist} onRenamePlaylist={renamePlaylist} onSharePlaylist={sharePlaylistToClub} stackId={stackId} onOpenStack={openStack} onCloseStack={closeStack} onReorderPlaylist={reorderPlaylistTrack} communityMix={communityMix} onOpenMix={()=>communityMix && openMix(communityMix.id)} onCustomMix={openCustomMix} onOpenCharts={()=>setScreen("charts")} onOpenMenu={()=>setShowNavDrawer(true)} showLibraryDestinations preferredGenres={user.genres} recentTrackIds={(profile?.recentTracks||[]).map(r=>r.trackId||r)} userKey={firebaseUser?.uid || ""}/>}
@@ -3549,7 +3543,7 @@ export default function App() {
           <Pulse track={currentTrack}/>
           {ambientStatus}
           {toast && <ToastEl msg={toast} onDismiss={()=>setToast(null)}/>}
-          {tracksLoading && screen !== "home" && screen !== "explore" ? (
+          {tracksLoading && screen !== "home" ? (
             <>
               <div className="sr-only" role="status">Loading your catalog…</div>
               <CatalogSkeleton/>
@@ -3558,7 +3552,7 @@ export default function App() {
             <Suspense fallback={<div style={{ padding: 32, color: color.muted }}>Loading…</div>}>
             <ScreenPane key={screen === "artist" ? `artist:${artistSlug}` : screen === "album" ? `album:${albumSlug}` : screen === "mix" ? `mix:${mixId}` : screen}>
               {screen==="home"      && <HomeScreen catalogLoading={tracksLoading} tracks={tracks} onPlayRadio={playRadio} onTogglePlay={togglePlay} onPlayTrack={playTrack} onLike={toggleLike} isRadioMode={isRadioMode} hypnoPocket={!!hypnoSeed} playlistCtx={playlistCtx} mixLane={mixLane} radioPreview={heroPreview} radioNext={setNext} onSkipRadio={handleSkip} onPrevRadio={handlePrev} onOpenPlayer={()=>setImmersive(true)} catalogError={tracksLoadError} onRetryCatalog={reloadCatalog} onStageVisibilityChange={onHomeStageVisibilityChange} onSeek={handleSeek} countdown={countdown} onTuneCountdown={tuneCountdown} daypart={activeDaypart} tickerText={stationTicker} onDislike={dislikeCurrentTrack} onDedicate={()=>setShowDedicate(true)} dedicationFlash={dedicationFlash} onClearDedication={()=>setDedicationFlash(null)} airing={liveAiring} programGuide={programGuide} activeShowId={activeShowId} onTuneShow={playShow} showBumper={showBumper} channelShow={liveShow} sceneChannelsActiveId={activeSceneChannelId} onTuneSceneChannel={playSceneChannel} taste={profileTaste} dislikeTaste={profile?.dislikeTaste} recentTrackIds={(profile?.recentTracks||[]).map(r=>r.trackId||r)} playlists={libraryPlaylists.filter((pl)=>!isCommunityPlaylist(pl))} preferredGenres={user.genres||[]} userKey={firebaseUser?.uid||""} onOpenSearch={()=>setScreen("search")} onOpenProfile={()=>setScreen("profile")} onOpenLibrary={()=>setScreen("favorites")} onOpenCharts={()=>setScreen("charts")} onOpenPlaylist={(id)=>openStack(id)} onOpenAlbum={(slug)=>openAlbum(slug)}/>}
-              {screen==="explore"   && <Suspense fallback={<div style={{ padding: 32, color: color.muted }}>Loading explore…</div>}><ExploreScreen catalogLoading={tracksLoading} tracks={tracks} preferredGenres={user.genres||[]} recentTrackIds={(profile?.recentTracks||[]).map(r=>r.trackId||r)} userKey={firebaseUser?.uid||""} countdown={countdown} sceneChannelsActiveId={activeSceneChannelId} onPlayTrack={playTrack} onOpenSearch={()=>setScreen("search")} onOpenAlbum={(slug)=>openAlbum(slug)} onOpenCharts={()=>setScreen("charts")} onTuneSceneChannel={playSceneChannel} onListenIntent={(focus)=>{ const next={ genre: focus.genre || null, scene: focus.scene || null }; setListenFocus(next); playRadio(null, createListenIntent({ mixLane, ...next })); }}/></Suspense>}
+              {screen==="explore"   && <Suspense fallback={<div style={{ padding: 32, color: color.muted }}>Loading explore…</div>}><ExploreScreen tracks={tracks} preferredGenres={user.genres||[]} recentTrackIds={(profile?.recentTracks||[]).map(r=>r.trackId||r)} userKey={firebaseUser?.uid||""} countdown={countdown} sceneChannelsActiveId={activeSceneChannelId} onPlayTrack={playTrack} onOpenSearch={()=>setScreen("search")} onOpenAlbum={(slug)=>openAlbum(slug)} onOpenCharts={()=>setScreen("charts")} onTuneSceneChannel={playSceneChannel} onListenIntent={(focus)=>{ const next={ genre: focus.genre || null, scene: focus.scene || null }; setListenFocus(next); playRadio(null, createListenIntent({ mixLane, ...next })); }}/></Suspense>}
               {screen==="charts"    && <Suspense fallback={<div style={{ padding: 32, color: color.muted, fontFamily: font, fontSize: 15 }}>Loading charts…</div>}><LazyChartsScreen countdown={countdown} tracks={tracks} onPlayTrack={playTrack} onTuneMonthly={playMonthlyChart} onAddToQueue={addTrackToQueue} playlistCtx={playlistCtx} nowPlayingId={currentTrackId}/></Suspense>}
               {screen==="search"    && <SearchScreen query={searchQuery} setQuery={setSearch} tracks={tracks} onPlay={(t,pool)=>{ recordRecentSearch(searchQuery); playTrack(t,pool||tracks); }} onListenIntent={(focus)=>{ const next={ genre: focus.genre || null, scene: null }; setListenFocus(next); playRadio(null, createListenIntent({ mixLane, ...next })); }} onLike={toggleLike} playlistCtx={playlistCtx} onOpenArtist={(slug)=>{ recordRecentSearch(searchQuery); openArtist(slug); }} onOpenAlbum={(slug)=>{ recordRecentSearch(searchQuery); openAlbum(slug); }} recentSearches={recentSearches} onPickRecent={(q)=>setSearch(q)} onClearRecent={clearRecentSearches} onBack={()=>setScreen("explore")}/>}
               {screen==="favorites" && <FavoritesScreen tracks={tracks} onPlay={t=>{setIsRadioMode(false);playTrack(t,tracks);}} onPlayTrack={(t,pool)=>{setIsRadioMode(false);playTrack(t,pool||tracks);}} onLike={toggleLike} playlistCtx={playlistCtx} userPlaylists={libraryPlaylists} onCreatePlaylist={createPlaylist} onDeletePlaylist={deletePlaylist} onRenamePlaylist={renamePlaylist} onSharePlaylist={sharePlaylistToClub} stackId={stackId} onOpenStack={openStack} onCloseStack={closeStack} onReorderPlaylist={reorderPlaylistTrack} communityMix={communityMix} onOpenMix={()=>communityMix && openMix(communityMix.id)} onCustomMix={openCustomMix} preferredGenres={user.genres} recentTrackIds={(profile?.recentTracks||[]).map(r=>r.trackId||r)} userKey={firebaseUser?.uid || ""}/>}
