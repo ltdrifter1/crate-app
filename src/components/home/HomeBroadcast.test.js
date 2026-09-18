@@ -146,6 +146,8 @@ describe("Home broadcast + four-tab IA", () => {
     expect(div.querySelector(".pmp-hero-sleeve")).toBeTruthy();
     expect(div.querySelector(".pmp-hero-stage")).toBeTruthy();
     expect(div.querySelector(".pmp-hero-copy")).toBeTruthy();
+    expect(div.querySelector(".pmp-hero-upnext")).toBeTruthy();
+    expect(div.querySelector(".pmp-hero-transport")).toBeTruthy();
     expect(div.querySelector(".pmp-hero-wash")).toBeTruthy();
     expect(div.textContent).toMatch(/On air/i);
     expect(div.textContent).toMatch(/PMP3/);

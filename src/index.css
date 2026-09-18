@@ -194,4 +194,14 @@ body::before { display: none; }
     min-width: 0 !important;
     flex: 1 1 auto !important;
   }
+  .pmp-hero-upnext,
+  .pmp-hero-ticker {
+    display: none !important;
+  }
+  .pmp-hero-transport {
+    padding: 8px 12px 10px !important;
+  }
+  .pmp-channel-surf {
+    margin-top: 12px !important;
+  }
 }

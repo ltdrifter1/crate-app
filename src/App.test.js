@@ -61,6 +61,7 @@ test('mobile Home compacts the device so Channel Surfing can peek above the dock
   const css = readFileSync(join(__dirname, 'index.css'), 'utf8');
   expect(css).toMatch(/max-width:\s*720px/);
   expect(css).toMatch(/pmp-hero-sleeve/);
+  expect(css).toMatch(/pmp-hero-upnext/);
   expect(css).toMatch(/112px/);
   expect(dock.clearPlayer).toBeGreaterThanOrEqual(198);
 });
