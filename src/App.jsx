@@ -6,7 +6,7 @@ import { collection, addDoc } from "firebase/firestore";
 import { db }                                       from "./firebase";
 import {
   font, fontDisplay, fontMono, color, chrome, radius, motion,
-  glass, glassControl, homeSpace, dock, sectionRule, radio, hardware,
+  glass, glassControl, homeSpace, dock, sectionRule, radio,
   artShadow, aluminumGradient, chromeFrame,
   APP_STYLE, INPUT_ST, BTN_PRIMARY, BTN_SECONDARY, CTRL_BTN, ADMIN_UID,
   BRAND_NAME, brandStoragePrefix, STYLE_CHASSIS,
@@ -227,7 +227,7 @@ const injectStyles = () => {
     button.play-primary:active,
     button.pmp-hw-key:active {
       transform: translateY(1px) !important;
-      box-shadow: ${hardware.keyPressed} !important;
+      box-shadow: inset 0 2px 4px rgba(58, 66, 80, 0.28), inset 0 1px 0 rgba(58, 66, 80, 0.16) !important;
       opacity: 1;
     }
     button.glass-control:hover {

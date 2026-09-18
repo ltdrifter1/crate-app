@@ -90,6 +90,8 @@ function ChannelArt({
           width={Math.round(size * 0.56)}
           height={Math.round(size * 0.56)}
           raw
+          priority={priority}
+          eager={eager}
           objectPosition={objectPosition}
           style={{
             width: "56%",

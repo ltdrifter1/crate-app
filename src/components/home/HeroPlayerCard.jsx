@@ -487,13 +487,19 @@ export default function HeroPlayerCard({
               }}
             />
             {!live && (
-              <img
-                src="/brand/planet-mascot.svg"
-                alt=""
-                width={18}
-                height={18}
-                draggable={false}
-                style={{ width: 18, height: 18, display: "block", opacity: 0.92 }}
+              <span
+                aria-hidden="true"
+                style={{
+                  width: 18,
+                  height: 18,
+                  display: "block",
+                  backgroundImage: "url(/brand/planet-mascot.svg)",
+                  backgroundSize: "contain",
+                  backgroundRepeat: "no-repeat",
+                  backgroundPosition: "center",
+                  opacity: 0.92,
+                  flexShrink: 0,
+                }}
               />
             )}
             <div
