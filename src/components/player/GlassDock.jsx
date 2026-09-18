@@ -1,6 +1,6 @@
 import { lazy, Suspense } from "react";
 import {
-  color, dock, fontDisplay, motion, radio,
+  color, dock, fontDisplay, motion,
 } from "../../theme";
 import Icon from "../ui/Icon";
 import BottomNavigation from "../home/BottomNavigation";
@@ -16,13 +16,13 @@ import {
 import { usePlayerPlayback } from "../../usePlayerPlayback";
 import { dockTintStyle } from "../../lib/dockTint";
 import CoverImage from "../ui/CoverImage";
-import { LcdMetaLine, LcdPanel, LcdSeek, formatBitrate, trackLcdBits } from "./DeviceChrome";
+import { HardwareIconButton, LcdMetaLine, LcdSeek, formatBitrate, trackLcdBits } from "./DeviceChrome";
 
 const EnergyShiftFeedback = lazy(() =>
   import("../listen/EnergyShiftButton").then((m) => ({ default: m.EnergyShiftFeedback }))
 );
-const EnergyShiftButton = lazy(() =>
-  import("../listen/EnergyShiftButton").then((m) => ({ default: m.EnergyShiftButton }))
+const PaceSlider = lazy(() =>
+  import("../listen/EnergyShiftButton").then((m) => ({ default: m.PaceSlider }))
 );
 
 export default function GlassDock({
@@ -98,7 +98,7 @@ export default function GlassDock({
               alignItems: "center",
               gap: 10,
               cursor: "pointer",
-              background: radio.stripFace,
+              background: "transparent",
               boxShadow: isRadioMode || hypnoPocket
                 ? `inset 2px 0 0 ${color.accent}`
                 : "none",
@@ -155,12 +155,12 @@ export default function GlassDock({
               }}>
                 {track.artist}
               </div>
-              <LcdPanel style={{ marginTop: 6, padding: "5px 8px", minHeight: 28 }}>
-                <LcdMetaLine bits={[
-                  ...bits,
-                  `${fmtTime(progress)}${duration ? ` / ${fmtTime(duration)}` : ""}`,
-                ]} />
-              </LcdPanel>
+              <LcdMetaLine
+                tone="strip"
+                bits={[
+                ...bits,
+                `${fmtTime(progress)}${duration ? ` / ${fmtTime(duration)}` : ""}`,
+              ]} />
             </div>
 
             <button type="button" aria-label={track.liked ? "Unlike" : "Like"}
@@ -174,6 +174,14 @@ export default function GlassDock({
             <span className="dock-xtra" style={{ display: "flex" }}>
               <TrackMoreButton onClick={(e) => openFromButton(e, track)} />
             </span>
+            <HardwareIconButton
+              label="Previous"
+              onClick={onPrev}
+              size={32}
+              stopPropagation
+            >
+              <Icon name="prev" size={14} />
+            </HardwareIconButton>
             <PlayKey
               isPlaying={isPlaying}
               buffering={isBuffering}
@@ -183,16 +191,18 @@ export default function GlassDock({
               stopPropagation
               glowing={isPlaying && !isBuffering}
             />
-            <span style={{ display: "flex", gap: 4 }} onClick={(e) => e.stopPropagation()}>
-              <Suspense fallback={null}>
-                <EnergyShiftButton direction="down" size={34} showLabel />
-                <EnergyShiftButton direction="up" size={34} showLabel />
-              </Suspense>
-            </span>
+            <HardwareIconButton
+              label="Next"
+              onClick={onSkip}
+              size={32}
+              stopPropagation
+            >
+              <Icon name="skip" size={14} />
+            </HardwareIconButton>
           </div>
           <div
             onClick={(e) => e.stopPropagation()}
-            style={{ padding: "0 12px 6px" }}
+            style={{ padding: "0 12px 8px" }}
           >
             <LcdSeek
               value={progress}
@@ -202,6 +212,9 @@ export default function GlassDock({
               stopPropagation
               height={4}
             />
+            <Suspense fallback={null}>
+              <PaceSlider compact stopPropagation />
+            </Suspense>
           </div>
         </div>
       )}

@@ -3,7 +3,7 @@
 // IBM Plex Sans + Mono (technical, not costume iTunes Lucida).
 
 /** Bump this when the visual OS changes. Copied into public/index.html + the shipped build. */
-export const STYLE_CHASSIS = "steel-sleeve-20260918";
+export const STYLE_CHASSIS = "steel-glass-20260918";
 
 /** Chrome specular — cool pearl steel, never pure white. */
 const SPEC = "216, 223, 232";
@@ -157,13 +157,18 @@ export const color = {
   /** Chrome glyphs on the recessed LCD well */
   lcdInk: "#D8DFE8",
   lcdMute: "#A7B1BE",
+  /** Ice-glass LCD signal — luminous chrome, never green */
+  lcdSignal: "#E8F1F8",
+  lcdSignalGlow: "rgba(216, 223, 232, 0.62)",
+  /** Meta on a light strip / dock (not the well) */
+  stripInk: "#3D4654",
   /**
-   * LCD-only phosphor — seek fill, pip, selected key.
-   * Cool mint, never a page accent, never acid #B8F24A.
+   * LCD pip / selected key — ice chrome aliases so main call sites
+   * stay on this chassis. Not mint phosphor.
    */
-  lcdPhosphor: "#7ED9B8",
-  lcdPhosphorSoft: "rgba(126, 217, 184, 0.28)",
-  lcdPhosphorGlow: "0 0 10px rgba(126, 217, 184, 0.55)",
+  lcdPhosphor: "#E8F1F8",
+  lcdPhosphorSoft: "rgba(232, 241, 248, 0.28)",
+  lcdPhosphorGlow: "0 0 10px rgba(216, 223, 232, 0.55)",
 };
 
 /**
@@ -319,8 +324,8 @@ export const radio = {
     `inset 0 2px 4px rgba(${SHADE},0.28), inset 0 1px 0 rgba(${SHADE},0.16)`,
   lcdTrack: "rgba(61,70,84,0.28)",
   lcdFill:
-    "linear-gradient(90deg, #4E9A7A 0%, #7ED9B8 68%, #C8F5E4 100%)",
-  lcdGlow: "0 0 10px rgba(126, 217, 184, 0.55)",
+    "linear-gradient(90deg, #8B95A4 0%, #C5CDD8 70%, #D8DFE8 100%)",
+  lcdGlow: "0 0 14px rgba(216,223,232,0.55)",
   label: {
     fontFamily: font,
     fontSize: 13,
@@ -330,20 +335,20 @@ export const radio = {
   },
 };
 
-/** Frosted steel — hairline bezels, chrome top light. */
+/** Frosted steel — hairline bezels, chrome top light, modern glass. */
 export const glass = {
-  fill: "rgba(206, 213, 222, 0.72)",
-  fillStrong: "rgba(200, 208, 218, 0.92)",
-  fillQuiet: "rgba(216, 223, 232, 0.38)",
-  fillHeavy: "rgba(208, 214, 224, 0.96)",
+  fill: "rgba(206, 213, 222, 0.58)",
+  fillStrong: "rgba(200, 208, 218, 0.82)",
+  fillQuiet: "rgba(216, 223, 232, 0.32)",
+  fillHeavy: "rgba(208, 214, 224, 0.88)",
   border: "rgba(61, 70, 84, 0.16)",
   borderSoft: "rgba(61, 70, 84, 0.10)",
   borderFaint: "rgba(61, 70, 84, 0.08)",
-  highlight: `rgba(${SPEC}, 0.55)`,
-  blur: "blur(32px) saturate(1.08)",
-  blurSoft: "blur(20px) saturate(1.06)",
-  blurHeavy: "blur(48px) saturate(1.08)",
-  blurEdge: "blur(24px) saturate(1.06)",
+  highlight: `rgba(${SPEC}, 0.62)`,
+  blur: "blur(40px) saturate(1.16)",
+  blurSoft: "blur(24px) saturate(1.1)",
+  blurHeavy: "blur(56px) saturate(1.18)",
+  blurEdge: "blur(28px) saturate(1.12)",
   shadow: `0 14px 36px rgba(${SHADE}, 0.22), 0 2px 8px rgba(${SHADE}, 0.14)`,
   shadowSoft: `0 8px 22px rgba(${SHADE}, 0.16)`,
   shadowLift: `0 18px 40px rgba(${SHADE}, 0.24), 0 4px 12px rgba(${SHADE}, 0.14)`,
@@ -505,8 +510,8 @@ export const broadcast = {
   `,
   lcdTrack: "rgba(61,70,84,0.28)",
   lcdFill:
-    "linear-gradient(90deg, #4E9A7A 0%, #7ED9B8 68%, #C8F5E4 100%)",
-  lcdGlow: "0 0 8px rgba(126, 217, 184, 0.5)",
+    "linear-gradient(90deg, #8B95A4 0%, #C5CDD8 70%, #D8DFE8 100%)",
+  lcdGlow: "0 0 12px rgba(216,223,232,0.5)",
 };
 
 /** Hardware icon key — header / Explore / Charts. */
@@ -555,16 +560,16 @@ export function glassPill(opts = {}) {
   };
 }
 
-/** Floating dock — light metal chassis for mini-player + tabs. */
+/** Floating dock — frosted mini-device + tabs. */
 export const dock = {
   insetX: 14,
   insetBottom: 12,
-  radius: 12,
+  radius: 16,
   tabH: 54,
-  playerH: 88,
+  playerH: 112,
   /** Content clearances (tabs only / with player), excluding safe-area. */
   clearTabs: 88,
-  clearPlayer: 198,
+  clearPlayer: 228,
 };
 
 /** Prefer radio.radius for media modules; keep these for sheets / legacy chrome. */

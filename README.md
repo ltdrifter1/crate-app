@@ -8,7 +8,7 @@ Living destinations for discovering, collecting, and experiencing music — not 
 
 **Current product IA:** broadcast **Home** (Channel Surfing, live stage, charts) + Explore / Library / Club. Rooms/Paths nav is retired; see archival notes in [`docs/ROOMS_PRODUCT_VISION.md`](docs/ROOMS_PRODUCT_VISION.md).
 
-**UX audit:** [`docs/UX_AUDIT.md`](docs/UX_AUDIT.md) · **Billing:** [`docs/STRIPE_FIREBASE_BILLING.md`](docs/STRIPE_FIREBASE_BILLING.md) · **Catalog junk (dry-run):** [`docs/CATALOG_JUNK_AUDIT.md`](docs/CATALOG_JUNK_AUDIT.md)
+**UX audit:** [`docs/UX_AUDIT.md`](docs/UX_AUDIT.md) · **Creative & UX V2 (steel-chrome):** [`docs/CREATIVE_UX_AUDIT_V2.md`](docs/CREATIVE_UX_AUDIT_V2.md) · **Billing:** [`docs/STRIPE_FIREBASE_BILLING.md`](docs/STRIPE_FIREBASE_BILLING.md) · **Catalog junk (dry-run):** [`docs/CATALOG_JUNK_AUDIT.md`](docs/CATALOG_JUNK_AUDIT.md)
 
 ## Stack
 
@@ -132,6 +132,6 @@ firebase deploy --only firestore:rules,storage
 
 ## Cloudflare Pages
 
-**Current setup:** `build/` is committed so Pages can deploy with an empty build command. **Always rebuild `build/` after visual changes** — hashed CSS/JS is cached forever, and a stale `build/index.html` will keep serving the previous chassis. Confirm the live HTML includes `<meta name="pmp-chassis" content="steel-chrome-20260918">`.
+**Current setup:** `build/` is committed so Pages can deploy with an empty build command. **Always rebuild `build/` after visual changes** — hashed CSS/JS is cached forever, and a stale `build/index.html` will keep serving the previous chassis. Confirm the live HTML includes `<meta name="pmp-chassis" content="steel-glass-20260918">`.
 
 **Recommended (optional):** set Build command `npm run build`, output `build`, Node 22, `CI=false`, then stop committing `build/`.

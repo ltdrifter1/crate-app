@@ -1,4 +1,4 @@
-// Pace paddles — Ease / Lift upcoming picks (not playback speed).
+// Pace transport — Ease / Middle / Lift slider on the device.
 // First-class aluminum glass beside play/pause. Recommendation work stays in
 // the background; the UI only dispatches increaseEnergy() / decreaseEnergy().
 
@@ -594,7 +594,159 @@ export function EnergyShiftControl({
   );
 }
 
-/** Compact Pace pair with Ease / Lift paddles. */
+/**
+ * Inline Pace slider — Ease ↔ Lift. Replaces Turtle / Bunny paddles on the device.
+ * Glass plate, ice fill from center, middle = neutral.
+ */
+export function PaceSlider({
+  compact = false,
+  stopPropagation = true,
+  style = null,
+}) {
+  const { energyShift, setEnergyBias } = useEnergyQueue();
+  const bias = Math.round(energyShift?.bpmDelta || 0);
+  const clamped = Math.max(-20, Math.min(20, bias));
+  const tone = clamped > 0 ? "Lift" : clamped < 0 ? "Ease" : "Middle";
+  const fillPct = Math.abs(clamped) / 20 * 50;
+
+  return (
+    <div
+      role="group"
+      aria-label="Pace — ease or lift upcoming picks"
+      onClick={(e) => {
+        if (stopPropagation) e.stopPropagation();
+      }}
+      onPointerDown={(e) => {
+        if (stopPropagation) e.stopPropagation();
+      }}
+      style={{
+        width: "100%",
+        padding: compact ? "8px 10px 6px" : "10px 12px 8px",
+        borderRadius: 12,
+        background: "linear-gradient(180deg, rgba(216,223,232,0.42) 0%, rgba(200,208,218,0.22) 100%)",
+        border: "1px solid rgba(216,223,232,0.45)",
+        boxShadow: `inset 0 1px 0 rgba(255,255,255,0.45), 0 8px 22px rgba(58,66,80,0.12)`,
+        backdropFilter: glass.blurSoft,
+        WebkitBackdropFilter: glass.blurSoft,
+        ...style,
+      }}
+    >
+      <div
+        style={{
+          display: "flex",
+          alignItems: "baseline",
+          justifyContent: "space-between",
+          gap: 8,
+          marginBottom: compact ? 4 : 6,
+        }}
+      >
+        <span
+          style={{
+            fontFamily: fontMono,
+            fontSize: 10,
+            fontWeight: 800,
+            letterSpacing: 1.1,
+            textTransform: "uppercase",
+            color: color.muted,
+          }}
+        >
+          Pace
+        </span>
+        <span
+          style={{
+            fontFamily: fontMono,
+            fontSize: 11,
+            fontWeight: 700,
+            letterSpacing: 0.2,
+            color: color.ink,
+            fontVariantNumeric: "tabular-nums",
+          }}
+        >
+          {clamped === 0 ? "Middle" : `${clamped > 0 ? "+" : "\u2212"}${Math.abs(clamped)} BPM`}
+        </span>
+      </div>
+      <div style={{ position: "relative", height: compact ? 22 : 26 }}>
+        <div
+          aria-hidden="true"
+          style={{
+            position: "absolute",
+            left: 0,
+            right: 0,
+            top: "50%",
+            height: 4,
+            marginTop: -2,
+            borderRadius: 2,
+            background: radio.lcdTrack,
+            boxShadow: "inset 0 1px 2px rgba(58,66,80,0.35)",
+            overflow: "hidden",
+            pointerEvents: "none",
+          }}
+        >
+          <div
+            style={{
+              position: "absolute",
+              top: 0,
+              bottom: 0,
+              left: clamped < 0 ? `${50 - fillPct}%` : "50%",
+              width: `${fillPct}%`,
+              borderRadius: 2,
+              background: radio.lcdFill,
+              boxShadow: radio.lcdGlow,
+            }}
+          />
+        </div>
+        <input
+          type="range"
+          className="chrome-seek pace-range"
+          min={-20}
+          max={20}
+          step={5}
+          value={clamped}
+          aria-valuemin={-20}
+          aria-valuemax={20}
+          aria-valuenow={clamped}
+          aria-valuetext={`${tone}, ${clamped === 0 ? "middle" : `${Math.abs(clamped)} BPM ${clamped > 0 ? "lift" : "ease"}`}`}
+          aria-label="Pace"
+          onChange={(e) => {
+            const next = Math.max(-20, Math.min(20, Math.round(Number(e.target.value) || 0)));
+            setEnergyBias(
+              next,
+              next > 0 ? "Lift" : next < 0 ? "Ease" : "Middle"
+            );
+          }}
+          style={{
+            position: "relative",
+            width: "100%",
+            margin: 0,
+            height: compact ? 22 : 26,
+            background: "transparent",
+            cursor: "pointer",
+            zIndex: 1,
+          }}
+        />
+      </div>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          marginTop: 2,
+          fontFamily: fontMono,
+          fontSize: 9,
+          fontWeight: 800,
+          letterSpacing: 0.9,
+          textTransform: "uppercase",
+          color: color.faint,
+        }}
+      >
+        <span style={{ color: clamped < 0 ? color.ink : color.faint }}>Ease</span>
+        <span style={{ color: clamped === 0 ? color.ink : color.faint }}>Middle</span>
+        <span style={{ color: clamped > 0 ? color.ink : color.faint }}>Lift</span>
+      </div>
+    </div>
+  );
+}
+
+/** Compact Pace pair with Ease / Lift paddles (not the primary device control). */
 export function EnergyShiftCapsule({ stopPropagation = false }) {
   return (
     <div

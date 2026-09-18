@@ -10,14 +10,13 @@ import Icon from "../components/ui/Icon";
 import { playerPlaybackStore } from "../lib/playerPlaybackStore";
 import { playerTransportStore } from "../lib/playerTransportStore";
 import { color } from "../theme";
-
-const SAMPLE_COVER = "/brand/planet-mp3-lockup-on-black.png";
+import { PREVIEW_SLEEVES } from "./sleeves";
 
 const SAMPLE_TRACK = {
   id: "preview-1",
   title: "Night Drive",
   artist: "Signal",
-  albumCover: SAMPLE_COVER,
+  albumCover: PREVIEW_SLEEVES.y2k,
   color: "#C9CED6",
   liked: false,
   disliked: false,

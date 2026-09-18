@@ -1,4 +1,4 @@
-import { color, hardware, homeSpace, type, y2k } from "../../theme";
+import { color, glass, hardware, homeSpace, type, y2k } from "../../theme";
 import { catalogSleeveUrl, resolveChannelArt } from "../../lib/channelArt";
 import CoverImage from "../ui/CoverImage";
 import Icon from "../ui/Icon";
@@ -152,13 +152,13 @@ export default function ChannelCard({
           display: "block",
           width,
           height: width,
-          borderRadius: 8,
+          borderRadius: 10,
           overflow: "hidden",
           background: y2k.artGradient,
           boxShadow: active
-            ? `0 0 0 2px ${color.accent}, 0 10px 24px rgba(58,66,80,0.28)`
-            : "inset 0 1px 0 rgba(216,223,232,0.45), 0 8px 22px rgba(58,66,80,0.22)",
-          border: "1px solid rgba(91,101,116,0.22)",
+            ? `0 0 0 2px ${color.accent}, 0 14px 32px rgba(58,66,80,0.28), inset 0 1px 0 rgba(255,255,255,0.45)`
+            : "inset 0 1px 0 rgba(255,255,255,0.5), 0 10px 26px rgba(58,66,80,0.2)",
+          border: "1px solid rgba(216,223,232,0.42)",
         }}
       >
         <span
@@ -184,6 +184,18 @@ export default function ChannelCard({
             eager={eager}
           />
 
+          <span
+            aria-hidden="true"
+            style={{
+              pointerEvents: "none",
+              position: "absolute",
+              inset: 0,
+              zIndex: 1,
+              background:
+                "linear-gradient(165deg, rgba(255,255,255,0.28) 0%, rgba(232,241,248,0.06) 32%, transparent 58%)",
+            }}
+          />
+
           {showBug && (
             <span
               aria-hidden="true"
@@ -194,11 +206,13 @@ export default function ChannelCard({
                 zIndex: 2,
                 width: 28,
                 height: 28,
-                borderRadius: 6,
+                borderRadius: 8,
                 overflow: "hidden",
-                border: "1px solid rgba(91,101,116,0.35)",
-                boxShadow: "0 4px 10px rgba(58,66,80,0.28)",
-                background: y2k.artGradient,
+                border: "1px solid rgba(216,223,232,0.5)",
+                boxShadow: "inset 0 1px 0 rgba(255,255,255,0.4), 0 4px 10px rgba(58,66,80,0.28)",
+                background: glass.fillStrong,
+                backdropFilter: glass.blurSoft,
+                WebkitBackdropFilter: glass.blurSoft,
               }}
             >
               <CoverImage
@@ -223,7 +237,10 @@ export default function ChannelCard({
                 height: 20,
                 padding: "0 7px",
                 borderRadius: 4,
-                background: "rgba(74,83,96,0.88)",
+                background: "rgba(74,83,96,0.55)",
+                backdropFilter: "blur(12px) saturate(1.12)",
+                WebkitBackdropFilter: "blur(12px) saturate(1.12)",
+                border: "1px solid rgba(216,223,232,0.35)",
                 color: color.lcdInk,
                 letterSpacing: 0.1,
                 textTransform: "uppercase",

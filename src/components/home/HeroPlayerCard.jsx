@@ -21,7 +21,7 @@ import { trackHasVideo } from "../../lib/video";
 import Icon from "../ui/Icon";
 import CoverImage from "../ui/CoverImage";
 import { PlayKey } from "../player/OrbitalControls";
-import { EnergyShiftButton } from "../listen/EnergyShiftButton";
+import { PaceSlider } from "../listen/EnergyShiftButton";
 import { HERO_IDLE_ART, HERO_IDLE_FOCUS } from "../../lib/channelArt";
 import ScanlineWash from "./ScanlineWash";
 import {
@@ -238,7 +238,7 @@ function JewelSleeve({ src, idleSrc, playing, eager = false, size = 148 }) {
 
 /**
  * HeroPlayerCard — Home now-playing device.
- * Artwork window + LCD metadata + Ease/Lift pace paddles.
+ * Artwork window + LCD metadata + Pace slider transport.
  */
 export default function HeroPlayerCard({
   track = null,
@@ -648,8 +648,9 @@ export default function HeroPlayerCard({
           {live ? (
             <div style={{ display: "flex", flexDirection: "column", gap: 8, width: "100%" }}>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, flexWrap: "wrap" }}>
-                <EnergyShiftButton direction="down" size={40} stopPropagation showLabel />
-                <ChromeIconButton label="Previous" icon="prev" onClick={onPrev} />
+                <HardwareIconButton label="Previous" onClick={onPrev} stopPropagation>
+                  <Icon name="prev" size={16} />
+                </HardwareIconButton>
                 <PlayKey
                   isPlaying={isPlaying}
                   buffering={isBuffering}
@@ -658,9 +659,11 @@ export default function HeroPlayerCard({
                   glowing={isPlaying && !isBuffering}
                   stopPropagation
                 />
-                <ChromeIconButton label="Next" icon="skip" onClick={onSkip} />
-                <EnergyShiftButton direction="up" size={40} stopPropagation showLabel />
+                <HardwareIconButton label="Next" onClick={onSkip} stopPropagation>
+                  <Icon name="skip" size={16} />
+                </HardwareIconButton>
               </div>
+              <PaceSlider stopPropagation />
               <div onClick={(e) => e.stopPropagation()} style={{ width: "100%" }}>
                 <LcdSeek
                   value={progress}

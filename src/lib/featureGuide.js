@@ -39,8 +39,8 @@ export const FEATURE_GUIDE_STEPS = [
   {
     id: "player",
     kicker: "Player",
-    title: "Energy + dislike",
-    body: "The beaker guides what plays next. Dislike steers the mix away.",
+    title: "Pace + dislike",
+    body: "Pace eases or lifts what plays next. Dislike steers the mix away.",
   },
   {
     id: "club",

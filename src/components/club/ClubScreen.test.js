@@ -83,7 +83,7 @@ describe("ClubScreen feature guide", () => {
       );
     });
     expect(div.querySelector("[data-testid='feature-guide-panel']")).toBeTruthy();
-    expect(div.textContent).toMatch(/Energy \+ dislike/);
+    expect(div.textContent).toMatch(/Pace \+ dislike/);
     const tab = [...div.querySelectorAll('[role="tab"]')].find((b) => b.textContent === "Guide");
     expect(tab.getAttribute("aria-selected")).toBe("true");
   });

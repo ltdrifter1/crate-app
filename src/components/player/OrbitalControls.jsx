@@ -38,20 +38,20 @@ export function PlayKey({
         background: disabled
           ? hardware.keyFace
           : glowing
-            ? `linear-gradient(180deg, ${color.accent} 0%, ${color.accent} 100%)`
+            ? `linear-gradient(180deg, rgba(232,241,248,0.92) 0%, rgba(200,214,226,0.78) 100%)`
             : hardware.keyFace,
-        border: `1px solid ${glowing ? color.accentGlow : "rgba(91,101,116,0.22)"}`,
+        border: `1px solid ${glowing ? "rgba(216,223,232,0.7)" : "rgba(91,101,116,0.22)"}`,
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        color: disabled ? color.faint : glowing ? color.onAccent : color.ink,
+        color: disabled ? color.faint : color.ink,
         cursor: disabled ? "not-allowed" : "pointer",
         flexShrink: 0,
         opacity: disabled ? 0.55 : 1,
         boxShadow: disabled
           ? "none"
           : glowing
-            ? `inset 0 1px 0 rgba(216,223,232,0.45), 0 0 0 4px ${color.accentSoft}, 0 8px 18px rgba(58,66,80,0.2)`
+            ? `inset 0 1px 0 rgba(255,255,255,0.55), 0 0 0 4px ${color.accentSoft}, 0 0 22px ${color.lcdSignalGlow}`
             : hardware.keyRaised,
         transition: `transform ${motion.fast} ${motion.ease}, box-shadow ${motion.base} ${motion.ease}, background ${motion.fast} ${motion.ease}`,
       }}

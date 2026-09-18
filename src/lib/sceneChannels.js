@@ -973,6 +973,8 @@ export function channelCoverUrls(tracks = [], channel, limit = 4) {
   }
   const direct = singlesOnly(tracks).filter((t) => matchesChannel(t, channel));
   if (push(direct)) return out;
-  push(buildSceneChannelPool(tracks, channel));
+  if (push(buildSceneChannelPool(tracks, channel))) return out;
+  const fallback = catalogCoverUrl(channel?.art);
+  if (fallback && !seen.has(fallback)) out.push(fallback);
   return out;
 }

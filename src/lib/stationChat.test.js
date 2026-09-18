@@ -14,6 +14,9 @@ import {
   buildChatPayload,
   onlineBuddies,
   recentChatMessages,
+  readRailOpen,
+  writeRailOpen,
+  railStorageKey,
   CHAT_HISTORY_MS,
   CHAT_MAX_TEXT,
   CHAT_MIN_INTERVAL_MS,
@@ -104,27 +107,37 @@ describe("stationChat layout breakpoints", () => {
     expect(chatLayoutForWidth(1280)).toBe("desktop-rail");
   });
 
-  test("open chat docks in the queue column; collapsed is a slim nub", () => {
+  test("open chat overlays the stage; collapsed is a slim nub", () => {
     const collapsed = desktopMessengerPlacement(1280, false);
     expect(collapsed.mode).toBe("nub");
     expect(collapsed.flexWidth).toBe(CHAT_NUB_WIDTH);
     expect(collapsed.overlay).toBe(false);
 
     const laptop = desktopMessengerPlacement(1280, true);
-    expect(laptop.mode).toBe("dock");
-    expect(laptop.flexWidth).toBe(336);
-    expect(laptop.overlay).toBe(false);
+    expect(laptop.mode).toBe("overlay");
+    expect(laptop.flexWidth).toBe(CHAT_NUB_WIDTH);
+    expect(laptop.overlay).toBe(true);
+    expect(laptop.overlayWidth).toBe(336);
 
     const wide = desktopMessengerPlacement(1600, true);
-    expect(wide.mode).toBe("dock");
-    expect(wide.flexWidth).toBe(336);
-    expect(wide.overlay).toBe(false);
+    expect(wide.mode).toBe("overlay");
+    expect(wide.flexWidth).toBe(CHAT_NUB_WIDTH);
+    expect(wide.overlay).toBe(true);
   });
 
   test("mobile pill sits above dock tabs / player", () => {
     expect(mobileChatPillBottomPx(false)).toBe(dock.clearTabs + 10);
     expect(mobileChatPillBottomPx(true)).toBe(dock.clearPlayer + 10);
     expect(mobileChatPillBottomPx(true)).toBeGreaterThan(mobileChatPillBottomPx(false));
+  });
+
+  test("readRailOpen defaults collapsed so chat stays hidden on first load", () => {
+    localStorage.removeItem(railStorageKey());
+    expect(readRailOpen()).toBe(false);
+    writeRailOpen(true);
+    expect(readRailOpen()).toBe(true);
+    writeRailOpen(false);
+    expect(readRailOpen()).toBe(false);
   });
 });
 

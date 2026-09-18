@@ -103,11 +103,38 @@ export default function GenreMosaic({ plates = [], onOpen = null }) {
               position: "absolute",
               inset: 0,
               background: `
+                linear-gradient(165deg, rgba(255,255,255,0.22) 0%, transparent 36%),
                 linear-gradient(180deg, rgba(58,66,80,0.05) 0%, rgba(58,66,80,0.55) 100%),
                 linear-gradient(90deg, rgba(58,66,80,0.28) 0%, transparent 60%)
               `,
             }}
           />
+          {plate.bug && (plate.covers || []).length > 0 && (
+            <span
+              aria-hidden="true"
+              style={{
+                position: "absolute",
+                top: 8,
+                right: 8,
+                zIndex: 2,
+                width: 26,
+                height: 26,
+                borderRadius: 7,
+                overflow: "hidden",
+                border: "1px solid rgba(216,223,232,0.5)",
+                boxShadow: "inset 0 1px 0 rgba(255,255,255,0.35), 0 4px 10px rgba(58,66,80,0.28)",
+              }}
+            >
+              <CoverImage
+                src={plate.bug}
+                alt=""
+                width={26}
+                height={26}
+                raw
+                style={{ width: "100%", height: "100%", objectFit: "cover" }}
+              />
+            </span>
+          )}
           <span
             style={{
               position: "absolute",

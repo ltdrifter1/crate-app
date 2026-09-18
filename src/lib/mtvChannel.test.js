@@ -333,10 +333,26 @@ describe("sceneChannels", () => {
     expect(getSceneChannel("electronic-underground")?.id).toBe("techno");
   });
 
-  test("channelCoverUrls never returns pictograms as sleeves", () => {
+  test("channelCoverUrls prefers catalog sleeves and never returns pictograms", () => {
     const techno = getSceneChannel("techno");
     expect(techno.art).toBeUndefined();
     expect(channelCoverUrls([], techno, 4)).toEqual([]);
+    expect(
+      channelCoverUrls(
+        [
+          {
+            id: "e1",
+            title: "Warehouse",
+            duration: 180,
+            audioUrl: "u",
+            sceneId: "techno",
+            albumCover: "sleeve.jpg",
+          },
+        ],
+        techno,
+        4
+      )
+    ).toEqual(["sleeve.jpg"]);
     expect(channelCoverUrls([], { ...techno, art: "/channels/techno.jpg" }, 4)).toEqual([]);
     expect(channelCoverUrls([], { ...techno, covers: ["/channels/techno.jpg", "sleeve.jpg"] }, 4)).toEqual([
       "sleeve.jpg",

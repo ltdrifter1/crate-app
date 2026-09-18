@@ -169,8 +169,8 @@ export function chatLayoutForWidth(width) {
 }
 
 /**
- * Desktop right chrome: chat owns the old queue column when open.
- * Queue stays hidden on Home; a slim nub is the only collapsed state.
+ * Desktop right chrome: chat overlays the stage so it never steals the device.
+ * Collapsed (and loading) is a slim nub only.
  */
 export function desktopMessengerPlacement(width, open) {
   void width;
@@ -178,10 +178,10 @@ export function desktopMessengerPlacement(width, open) {
     return { mode: "nub", flexWidth: CHAT_NUB_WIDTH, overlay: false, overlayWidth: 0 };
   }
   return {
-    mode: "dock",
-    flexWidth: CHAT_QUEUE_WIDTH,
-    overlay: false,
-    overlayWidth: 0,
+    mode: "overlay",
+    flexWidth: CHAT_NUB_WIDTH,
+    overlay: true,
+    overlayWidth: CHAT_QUEUE_WIDTH,
   };
 }
 
@@ -197,10 +197,10 @@ export function railStorageKey() {
 export function readRailOpen() {
   try {
     const v = localStorage.getItem(railStorageKey());
-    if (v === "collapsed") return false;
-    return true;
+    if (v === "open") return true;
+    return false;
   } catch {
-    return true;
+    return false;
   }
 }
 

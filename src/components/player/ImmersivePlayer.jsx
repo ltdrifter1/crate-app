@@ -1,7 +1,7 @@
 /**
  * ImmersivePlayer — alternate-2003 MP3 device.
  * Artwork window + LCD (title, BPM, Camelot, seek) + hardware transport
- * with Ease / Lift pace paddles. Booth tools stay in a drawer.
+ * with Pace slider. Booth tools stay in a drawer.
  */
 import { useEffect, useRef, useState } from "react";
 import {
@@ -19,7 +19,7 @@ import {
 import { fmtTime, hexToRgbStr } from "../../lib/harmony";
 import { usePlayerPlayback } from "../../usePlayerPlayback";
 import { useIsPlaying } from "../../usePlayerTransport";
-import { EnergyShiftFeedback, EnergyShiftButton } from "../listen/EnergyShiftButton";
+import { EnergyShiftFeedback, PaceSlider } from "../listen/EnergyShiftButton";
 import Icon from "../ui/Icon";
 import { PlayKey } from "./OrbitalControls";
 import {
@@ -574,9 +574,16 @@ export default function ImmersivePlayer({
           flexDirection: "column",
           alignItems: "center",
           justifyContent: "center",
-          padding: "4px 20px 6px",
+          padding: "18px 22px 12px",
           minHeight: 0,
           gap: 16,
+          margin: "0 16px",
+          borderRadius: 18,
+          background: glass.fillStrong,
+          border: `1px solid ${glass.border}`,
+          boxShadow: `inset 0 1px 0 ${glass.highlight}, ${glass.shadowLift}`,
+          backdropFilter: glass.blur,
+          WebkitBackdropFilter: glass.blur,
         }}
       >
         {dedicationFlash && (
@@ -819,20 +826,26 @@ export default function ImmersivePlayer({
         </div>
       )}
 
-      {/* Transport — flat controls on the canvas */}
+      {/* Transport — same device chassis */}
       <div
         style={{
           position: "relative",
           zIndex: 3,
-          padding: "0 20px calc(20px + env(safe-area-inset-bottom, 0px))",
+          padding: "0 16px calc(16px + env(safe-area-inset-bottom, 0px))",
           flexShrink: 0,
         }}
       >
         <div
           style={{
-            maxWidth: 720,
+            width: "min(92vw, 1100px)",
             margin: "0 auto",
-            padding: "8px 4px 4px",
+            padding: "12px 16px 10px",
+            borderRadius: 18,
+            background: glass.fillStrong,
+            border: `1px solid ${glass.border}`,
+            boxShadow: `inset 0 1px 0 ${glass.highlight}, ${glass.shadowSoft}`,
+            backdropFilter: glass.blur,
+            WebkitBackdropFilter: glass.blur,
             animation: `dockRise 0.5s ${EASE} both`,
           }}
         >
@@ -860,8 +873,6 @@ export default function ImmersivePlayer({
           >
             <EnergyShiftFeedback bottom="calc(100% + 14px)" />
 
-            <EnergyShiftButton direction="down" size={48} stopPropagation={false} showLabel />
-
             <ChromeIconButton onClick={onPrev} label="Previous" size={48}>
               <Icon name="prev" size={20} />
             </ChromeIconButton>
@@ -876,8 +887,10 @@ export default function ImmersivePlayer({
             <ChromeIconButton onClick={onSkip} label="Next" size={48}>
               <Icon name="skip" size={20} />
             </ChromeIconButton>
+          </div>
 
-            <EnergyShiftButton direction="up" size={48} stopPropagation={false} showLabel />
+          <div style={{ marginTop: 12 }}>
+            <PaceSlider stopPropagation={false} />
           </div>
 
           <div

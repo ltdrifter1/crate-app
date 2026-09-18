@@ -60,12 +60,14 @@ export function HardwareIconButton({
         alignItems: "center",
         justifyContent: "center",
         cursor: "pointer",
-        color: lit ? color.onAccent : color.ink,
+        color: lit ? color.ink : color.ink,
         background: lit
-          ? `linear-gradient(180deg, ${color.accent} 0%, ${color.accent} 100%)`
+          ? `linear-gradient(180deg, rgba(232,241,248,0.9) 0%, rgba(200,214,226,0.78) 100%)`
           : hardware.keyFace,
-        border: `1px solid ${lit ? color.accentGlow : "rgba(91,101,116,0.14)"}`,
-        boxShadow: lit ? hardware.keyPressed : hardware.keyRaised,
+        border: `1px solid ${lit ? "rgba(216,223,232,0.65)" : "rgba(91,101,116,0.14)"}`,
+        boxShadow: lit
+          ? `${hardware.keyPressed}, 0 0 16px ${color.lcdSignalGlow}`
+          : hardware.keyRaised,
         transition: `transform ${motion.fast} ${motion.ease}, color ${motion.fast}, background ${motion.base}, box-shadow ${motion.fast}`,
         padding: 0,
         flexShrink: 0,
@@ -146,8 +148,9 @@ export function LcdSeek({
   );
 }
 
-export function LcdTimes({ progress = 0, duration = 0, on = "lcd" }) {
-  const ink = on === "metal" ? color.accent : color.lcdInk;
+export function LcdTimes({ progress = 0, duration = 0, tone = "well", on }) {
+  const surface = on || (tone === "strip" ? "metal" : "lcd");
+  const ink = surface === "metal" ? (color.stripInk || color.accent) : color.lcdInk;
   return (
     <div
       style={{
@@ -166,15 +169,16 @@ export function LcdTimes({ progress = 0, duration = 0, on = "lcd" }) {
   );
 }
 
-/** on: "lcd" = pearl on smoked well; "metal" = graphite on aluminum. */
-export function LcdMetaLine({ bits = [], on = "lcd" }) {
+/** on: "lcd" = pearl on smoked well; "metal" = graphite on aluminum. tone: "strip"|"well" alias. */
+export function LcdMetaLine({ bits = [], tone = "well", on }) {
   const { energyShift } = useEnergyQueue();
   const pace = energyShift?.active
     ? (energyShift.direction > 0 ? "LIFT" : "EASE")
     : null;
   const all = pace ? [...bits.filter(Boolean), pace] : bits.filter(Boolean);
   if (!all.length) return null;
-  const ink = on === "metal" ? color.accent : color.lcdInk;
+  const surface = on || (tone === "strip" ? "metal" : "lcd");
+  const ink = surface === "metal" ? (color.stripInk || color.accent) : color.lcdInk;
   return (
     <div
       style={{
