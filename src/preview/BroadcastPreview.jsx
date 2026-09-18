@@ -187,12 +187,7 @@ export default function BroadcastPreview() {
         onOpenProfile={() => setScreen("profile")}
         onOpenMenu={isDesktop ? null : () => setDrawer(true)}
       />
-      <ChannelSurfingSection
-        channels={channels}
-        activeChannelId={activeChannelId}
-        onTuneChannel={(ch) => setActiveChannelId(ch.id)}
-      />
-      <div style={{ padding: `0 ${homeSpace.gutter}px`, marginTop: homeSpace.sectionGap }}>
+      <div style={{ padding: `0 ${homeSpace.gutter}px`, marginTop: homeSpace.sectionGapFirst }}>
         <HeroPlayerCard
           track={SAMPLE_TRACK}
           upNextTrack={SAMPLE_NEXT}
@@ -202,6 +197,13 @@ export default function BroadcastPreview() {
           tickerText="Planet Radio — requests open · Local on the dial"
         />
       </div>
+      <ChannelSurfingSection
+        channels={channels}
+        activeChannelId={activeChannelId}
+        onTuneChannel={(ch) => setActiveChannelId(ch.id)}
+        first={false}
+        featured
+      />
     </div>
   );
 
