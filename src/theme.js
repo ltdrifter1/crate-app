@@ -1,21 +1,22 @@
 // Design tokens — alternate-2003 MP3 device.
 // Dark digital chassis, silver metal, acid-green signal.
-// Lucida Grande / Helvetica Neue first (technical sans), Inter as the web fallback.
+// IBM Plex Sans + Mono (technical, not costume iTunes Lucida / not Aqua).
+
+/** Bump this when the visual OS changes. Copied into public/index.html + the shipped build. */
+export const STYLE_CHASSIS = "acid-device-20260918";
 
 export const fontDisplay =
-  '"Lucida Grande", "Lucida Sans Unicode", "Helvetica Neue", Helvetica, Inter, -apple-system, BlinkMacSystemFont, Arial, sans-serif';
-export const font =
-  '"Lucida Grande", "Lucida Sans Unicode", "Helvetica Neue", Helvetica, Inter, -apple-system, BlinkMacSystemFont, Arial, sans-serif';
+  '"IBM Plex Sans", "Lucida Grande", "Helvetica Neue", Helvetica, Inter, -apple-system, BlinkMacSystemFont, Arial, sans-serif';
+export const font = fontDisplay;
 export const fontMono =
-  'ui-monospace, "SF Mono", SFMono-Regular, Menlo, Monaco, Consolas, monospace';
-/** Same as display — iTunes never swapped in a costume headline face. */
+  '"IBM Plex Mono", ui-monospace, "SF Mono", SFMono-Regular, Menlo, Monaco, Consolas, monospace';
 export const fontPoster = fontDisplay;
-/** LCD / now-playing readout — iPod menu voice. */
-export const fontLcd = font;
+/** LCD / now-playing readout — firmware voice. */
+export const fontLcd = fontMono;
 
 /**
- * iTunes / Aqua type scale.
- * Tracking is optical: tight on large titles, nearly 0 on captions.
+ * Compact device type scale.
+ * Tracking is optical: tight on large titles, open on captions.
  */
 export const type = {
   largeTitle: {
@@ -414,7 +415,7 @@ export function artFrameStyle({
   };
 }
 
-/** Home rhythm — iTunes shelves: large title, tight title-to-rail. */
+/** Home rhythm — shelf title, tight title-to-rail. */
 export const homeSpace = {
   gutter: 20,
   bandPadY: 32,
@@ -438,7 +439,7 @@ export const homeSpace = {
 };
 
 /**
- * Section title — iTunes source / library shelf header.
+ * Section title — library shelf header.
  */
 export const sectionTitle = {
   ...type.title2,
@@ -447,7 +448,7 @@ export const sectionTitle = {
   textTransform: "none",
 };
 
-/** Home band titles — same Lucida/Helvetica stack as every other shelf. */
+/** Home band titles — same stack as every other shelf. */
 export const sectionTitlePoster = {
   ...sectionTitle,
 };
@@ -458,7 +459,7 @@ export const sectionSubtitle = {
   color: color.muted,
 };
 
-/** Quiet label above a Home band title — iTunes date/caption. */
+/** Quiet label above a Home band title. */
 export const sectionEyebrow = {
   ...type.footnote,
   fontWeight: 600,
@@ -605,7 +606,7 @@ export function chromeFrame(opts = {}) {
   };
 }
 
-/** Hairline iTunes separator. */
+/** Hairline shelf separator. */
 export function sectionRule(inset = homeSpace.gutter) {
   return {
     height: 1,
@@ -716,7 +717,7 @@ export const BTN_PRIMARY = {
   transition: `transform ${motion.fast} ${motion.ease}, box-shadow ${motion.base}, opacity ${motion.fast}`,
 };
 
-/** Secondary CTA — click-wheel aluminum plate. */
+/** Secondary CTA — dark metal plate. */
 export const BTN_SECONDARY = {
   width: "100%",
   padding: "14px 22px",

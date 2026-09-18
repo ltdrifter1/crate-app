@@ -12,7 +12,7 @@ export function brandStoragePrefix() {
 }
 
 export const brandWordmark = {
-  letterSpacing: -0.9,
+  letterSpacing: -0.6,
   weight: 700,
   transform: "none",
 };

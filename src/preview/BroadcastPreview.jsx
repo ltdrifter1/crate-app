@@ -27,7 +27,7 @@ const SAMPLE_TRACK = {
   title: "Night Drive",
   artist: "Signal",
   albumCover: CHANNEL_ART["y2k-dance"] || SAMPLE_COVER,
-  color: "#65E6FF",
+  color: "#B8F24A",
   liked: true,
   duration: 214,
   audioUrl: "u",

@@ -51,7 +51,7 @@ export default function BrandMark({
             lineHeight: 1.05,
             fontFamily: fontDisplay,
             textTransform: brandWordmark.transform,
-            fontStyle: "italic",
+            fontStyle: "normal",
           }}
         >
           {BRAND_NAME}

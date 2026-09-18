@@ -1,6 +1,6 @@
 import {
   color, font, fontDisplay, fontLcd, type, sectionTitle, ADMIN_UID, timeOfDayGradient, BRAND_TAGLINE,
-  BRAND_NAME, dock, artShadow, aluminumGradient, hardware, hardwareKey, y2k, homeSpace
+  BRAND_NAME, dock, artShadow, aluminumGradient, hardware, hardwareKey, y2k, homeSpace, STYLE_CHASSIS
 } from './theme';
 
 test('theme exports core tokens', () => {
@@ -12,13 +12,11 @@ test('theme exports core tokens', () => {
   expect(color.select).toMatch(/rgba/);
   expect(BRAND_TAGLINE).toMatch(/YOUR WORLD/i);
   expect(BRAND_NAME).toBe("Planet MP3");
-  expect(font).toMatch(/Lucida Grande/);
-  expect(font).toMatch(/Helvetica Neue/);
-  expect(font).toMatch(/Inter/);
-  expect(fontDisplay).toMatch(/Lucida Grande/);
-  expect(fontDisplay).toMatch(/Helvetica Neue/);
+  expect(font).toMatch(/IBM Plex Sans/);
+  expect(fontDisplay).toMatch(/IBM Plex Sans/);
   expect(font).not.toMatch(/^system-ui/);
-  expect(fontLcd).toMatch(/Lucida Grande/);
+  expect(fontLcd).toMatch(/IBM Plex Mono/);
+  expect(STYLE_CHASSIS).toBe("acid-device-20260918");
   expect(type.title2.fontWeight).toBe(700);
   expect(sectionTitle.fontSize).toBe(22);
   expect(y2k.chromeBright).toBeTruthy();

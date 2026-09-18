@@ -264,11 +264,11 @@ export function InterestsPanel({
                 </span>
               </div>
               <div style={{
-                height: 6, borderRadius: 4, background: "rgba(22,24,30,0.07)", overflow: "hidden",
+                height: 6, borderRadius: 4, background: "rgba(232,234,238,0.08)", overflow: "hidden",
               }}>
                 <div style={{
                   height: "100%", width: `${row.pct}%`, borderRadius: 4,
-                  background: `linear-gradient(90deg, #A9C7E4 0%, #7FA3C4 100%)`,
+                  background: "linear-gradient(90deg, #B8F24A 0%, #D4FF6E 100%)",
                 }}/>
               </div>
             </div>
@@ -374,11 +374,11 @@ export function InterestsPanel({
                   </span>
                 </div>
                 <div style={{
-                  height: 6, borderRadius: 4, background: "rgba(22,24,30,0.07)", overflow: "hidden",
+                  height: 6, borderRadius: 4, background: "rgba(232,234,238,0.08)", overflow: "hidden",
                 }}>
                   <div style={{
                     height: "100%", width: `${g.pct}%`, borderRadius: 4,
-                    background: `linear-gradient(90deg, #A9C7E4 0%, #7FA3C4 100%)`,
+                    background: "linear-gradient(90deg, #B8F24A 0%, #D4FF6E 100%)",
                     transition: "width 0.5s ease",
                   }}/>
                 </div>

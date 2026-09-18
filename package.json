@@ -14,7 +14,8 @@
   },
   "scripts": {
     "start": "react-scripts start",
-    "build": "react-scripts build",
+    "build": "react-scripts build && node scripts/assert-shipped-style.js",
+    "style:assert-build": "node scripts/assert-shipped-style.js",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
     "catalog:upload": "node upload-tracks.js",
