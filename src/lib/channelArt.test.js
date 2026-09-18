@@ -1,6 +1,14 @@
 import { readFileSync } from "fs";
 import { join } from "path";
-import { CHANNEL_ART, CHANNEL_ART_FOCUS, HERO_IDLE_ART, HERO_IDLE_FOCUS, resolveChannelArt } from "./channelArt";
+import {
+  CHANNEL_ART,
+  CHANNEL_ART_FOCUS,
+  HERO_IDLE_ART,
+  HERO_IDLE_FOCUS,
+  catalogSleeve,
+  isChannelPictogram,
+  resolveChannelArt,
+} from "./channelArt";
 import { SCENE_CHANNELS } from "./sceneChannels";
 
 const CREDITS = readFileSync(join(__dirname, "../../docs/IMAGE_CREDITS.md"), "utf8");
@@ -33,5 +41,14 @@ describe("channel icons", () => {
       const file = `${channel.id}.png`;
       expect(CREDITS).toContain(file);
     });
+  });
+
+  test("catalogSleeve skips Channel Surfing pictograms", () => {
+    expect(isChannelPictogram(null)).toBe(true);
+    expect(isChannelPictogram(CHANNEL_ART.techno)).toBe(true);
+    expect(isChannelPictogram(HERO_IDLE_ART)).toBe(true);
+    expect(isChannelPictogram("/preview/sleeves/afterglow.svg")).toBe(false);
+    expect(catalogSleeve([CHANNEL_ART.techno, "b.jpg"])).toBe("b.jpg");
+    expect(catalogSleeve([CHANNEL_ART["local-pnw"]])).toBeNull();
   });
 });

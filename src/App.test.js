@@ -2,6 +2,8 @@ import {
   color, font, fontDisplay, fontLcd, type, sectionTitle, ADMIN_UID, timeOfDayGradient, BRAND_TAGLINE,
   BRAND_NAME, dock, artShadow, aluminumGradient, hardware, hardwareKey, y2k, homeSpace, STYLE_CHASSIS
 } from './theme';
+import { readFileSync } from 'fs';
+import { join } from 'path';
 
 test('theme exports core tokens', () => {
   expect(color.ink).toBeTruthy();
@@ -53,4 +55,13 @@ test('canvas is a light steel chassis', () => {
   expect(color.ink).toMatch(/#3D4654/i);
   expect(y2k.offWhite).toMatch(/#3D4654/i);
   expect(color.accent).not.toMatch(/#B8F24A/i);
+});
+
+test('mobile Home compacts the device so Channel Surfing can peek above the dock', () => {
+  const css = readFileSync(join(__dirname, 'index.css'), 'utf8');
+  expect(css).toMatch(/max-width:\s*720px/);
+  expect(css).toMatch(/pmp-hero-sleeve/);
+  expect(css).toMatch(/pmp-hero-upnext/);
+  expect(css).toMatch(/112px/);
+  expect(dock.clearPlayer).toBeGreaterThanOrEqual(198);
 });

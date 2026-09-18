@@ -411,6 +411,7 @@ export default function HeroPlayerCard({
       </div>
 
       <div
+        className="pmp-hero-stage"
         style={{
           position: "relative",
           zIndex: 2,
@@ -457,6 +458,7 @@ export default function HeroPlayerCard({
 
         <div
           key={track?.id || previewTrack?.id || "idle"}
+          className="pmp-hero-copy"
           style={{
             flex: "1 1 0%",
             minWidth: 200,
@@ -539,6 +541,7 @@ export default function HeroPlayerCard({
 
           {live && upNextTrack?.title && (
             <div
+              className="pmp-hero-upnext"
               style={{
                 marginTop: "auto",
                 display: "flex",
@@ -610,6 +613,7 @@ export default function HeroPlayerCard({
       </div>
 
       <div
+        className="pmp-hero-transport"
         style={{
           position: "relative",
           zIndex: 3,
@@ -702,6 +706,7 @@ export default function HeroPlayerCard({
         {tickerText ? (
           <div
             aria-hidden="true"
+            className="pmp-hero-ticker"
             style={{
               marginTop: 10,
               overflow: "hidden",
