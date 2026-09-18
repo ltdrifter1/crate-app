@@ -62,9 +62,9 @@ function ChromeIconButton({
         cursor: "pointer",
         color: lit ? color.onAccent : color.muted,
         background: lit
-          ? "linear-gradient(180deg, #D4FF6E 0%, #B8F24A 100%)"
+          ? "linear-gradient(180deg, #6FB4F8 0%, #1E6FE8 100%)"
           : "linear-gradient(180deg, rgba(255,255,255,0.1) 0%, rgba(16,18,24,0.85) 100%)",
-        border: `1px solid ${lit ? "rgba(184,242,74,0.45)" : "rgba(232,234,238,0.12)"}`,
+        border: `1px solid ${lit ? "rgba(30,111,232,0.45)" : "rgba(232,234,238,0.12)"}`,
         boxShadow: "none",
         transition: `transform ${motion.fast} ${EASE}, color ${motion.fast}, background ${motion.base}`,
         padding: 0,
@@ -107,7 +107,7 @@ function ChromeSeek({
             height: "100%",
             width: `${pct}%`,
             borderRadius: 999,
-            background: "linear-gradient(90deg, #9AD62E 0%, #B8F24A 100%)",
+            background: "linear-gradient(90deg, #1470D4 0%, #1E6FE8 100%)",
             transition: "width 0.08s linear",
           }}
         />

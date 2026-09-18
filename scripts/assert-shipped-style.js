@@ -7,7 +7,7 @@ const fs = require("fs");
 const path = require("path");
 
 const ROOT = path.join(__dirname, "..");
-const CHASSIS = "acid-device-20260918";
+const CHASSIS = "aqua-device-20260918";
 const htmlPath = path.join(ROOT, "build", "index.html");
 
 if (!fs.existsSync(htmlPath)) {
@@ -28,13 +28,14 @@ const need = [
   [`pmp-chassis ${CHASSIS}`, html.includes(`content="${CHASSIS}"`) || html.includes(`content='${CHASSIS}'`)],
   ["dark canvas #090A0D", /#090A0D/i.test(html)],
   ["IBM Plex", /IBM\+Plex|IBM Plex/i.test(html)],
-  ["acid splash 184,242,74", /184\s*,\s*242\s*,\s*74/.test(html)],
+  ["Aqua splash 30,111,232", /30\s*,\s*111\s*,\s*232/.test(html)],
 ];
 
 const forbid = [
   ["old Syne face", /family=Syne/i.test(html)],
   ["old cyan boot splash", /101\s*,\s*230\s*,\s*255/.test(html)],
-  ["old aqua #1E6FE8", /#1E6FE8/i.test(html + css)],
+  ["acid green #B8F24A", /#B8F24A/i.test(html + css)],
+  ["acid splash 184,242,74", /184\s*,\s*242\s*,\s*74/.test(html + css)],
   ["old pearl #E6E9EF", /#E6E9EF/i.test(html + css)],
 ];
 

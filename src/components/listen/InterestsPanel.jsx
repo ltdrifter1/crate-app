@@ -268,7 +268,7 @@ export function InterestsPanel({
               }}>
                 <div style={{
                   height: "100%", width: `${row.pct}%`, borderRadius: 4,
-                  background: "linear-gradient(90deg, #B8F24A 0%, #D4FF6E 100%)",
+                  background: "linear-gradient(90deg, #1E6FE8 0%, #6FB4F8 100%)",
                 }}/>
               </div>
             </div>
@@ -378,7 +378,7 @@ export function InterestsPanel({
                 }}>
                   <div style={{
                     height: "100%", width: `${g.pct}%`, borderRadius: 4,
-                    background: "linear-gradient(90deg, #B8F24A 0%, #D4FF6E 100%)",
+                    background: "linear-gradient(90deg, #1E6FE8 0%, #6FB4F8 100%)",
                     transition: "width 0.5s ease",
                   }}/>
                 </div>
