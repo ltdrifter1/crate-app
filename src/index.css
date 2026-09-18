@@ -161,17 +161,24 @@ body::before { display: none; }
     flex-direction: row !important;
     align-items: center !important;
     justify-content: center !important;
-    gap: 40px !important;
+    gap: 36px !important;
     width: min(92vw, 1100px) !important;
     margin: 0 auto !important;
   }
   .pmp-device-sleeve {
-    max-height: 64vh !important;
-    width: min(38vw, 480px) !important;
+    max-height: 68vh !important;
+    width: min(42vw, 520px) !important;
   }
 }
 @media (max-width: 560px) {
   .pmp-crate-spread {
     grid-template-columns: 1fr !important;
+  }
+  .pmp-hero-sleeve {
+    width: min(42vw, 168px) !important;
+    height: min(42vw, 168px) !important;
+  }
+  .pmp-hero {
+    min-height: 0 !important;
   }
 }

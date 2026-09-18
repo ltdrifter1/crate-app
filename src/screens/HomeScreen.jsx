@@ -328,6 +328,18 @@ function HomeScreen({
         />
       )}
 
+      {hasChannels && (
+        <ChannelSurfingSection
+          channels={channels}
+          tracks={tracks}
+          activeChannelId={sceneChannelsActiveId}
+          onTuneChannel={onTuneSceneChannel}
+          first
+          delay={0.05}
+          featured
+        />
+      )}
+
       {/* One crate spread per Home — countdown if that's the only band, else first editorial */}
       {shelvesReady && catalogReady && (editorial[0]?.tracks?.length > 0 || topRequested.length > 0) && (
         <CrateSpread
@@ -347,18 +359,6 @@ function HomeScreen({
                 ? { label: "Tune In", onClick: onTuneCountdown }
                 : null
           }
-        />
-      )}
-
-      {hasChannels && (
-        <ChannelSurfingSection
-          channels={channels}
-          tracks={tracks}
-          activeChannelId={sceneChannelsActiveId}
-          onTuneChannel={onTuneSceneChannel}
-          first={false}
-          delay={0.08}
-          featured
         />
       )}
 

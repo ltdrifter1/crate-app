@@ -502,11 +502,11 @@ const injectStyles = () => {
       .dock-xtra { display: none !important; }
     }
     .glass-dock {
-      background: ${radio.stripFace};
-      border: 1px solid rgba(91,101,116,0.22);
+      background: linear-gradient(180deg, rgba(216,223,232,0.52) 0%, rgba(200,208,218,0.78) 100%);
+      border: 1px solid rgba(216,223,232,0.48);
       box-shadow:
-        inset 0 1px 0 rgba(216,223,232,0.45),
-        0 14px 32px rgba(58,66,80,0.22);
+        inset 0 1px 0 rgba(255,255,255,0.5),
+        0 18px 40px rgba(58,66,80,0.2);
       -webkit-backdrop-filter: ${glass.blurHeavy};
       backdrop-filter: ${glass.blurHeavy};
       transition: background 0.6s ease, box-shadow 0.35s ease;
@@ -837,7 +837,13 @@ export default function App() {
     setHomeStageVisible(!!visible);
   }, []);
   const [homeChatReady, setHomeChatReady] = useState(false);
-  useEffect(() => runAfterPaint(() => setHomeChatReady(true)), []);
+  useEffect(() => {
+    if (tracksLoading) {
+      setHomeChatReady(false);
+      return undefined;
+    }
+    return runAfterPaint(() => setHomeChatReady(true));
+  }, [tracksLoading]);
   useEffect(() => {
     if (screen !== "home") setHomeStageVisible(true);
   }, [screen]);
@@ -3626,6 +3632,7 @@ export default function App() {
             onOpen={() => setImmersive(true)}
             onTogglePlay={togglePlay}
             onSkip={handleSkip}
+            onPrev={handlePrev}
             onLikeToggle={onLikeToggle}
             onDislike={dislikeCurrentTrack}
             onSeek={handleSeek}
@@ -3643,10 +3650,12 @@ export default function App() {
         width: 336,
         flexShrink: 0,
         background: `
-          linear-gradient(180deg, rgba(40,45,53,0.82) 0%, rgba(168,178,192,0.5) 100%),
-          ${color.surfaceRaised}
+          linear-gradient(180deg, rgba(216,223,232,0.48) 0%, rgba(197,203,214,0.82) 100%)
         `,
         borderLeft: `1px solid ${glass.border}`,
+        backdropFilter: glass.blur,
+        WebkitBackdropFilter: glass.blur,
+        boxShadow: `inset 1px 0 0 ${glass.highlight}`,
         display: "flex",
         flexDirection: "column",
         overflowY: "auto",
@@ -3659,7 +3668,7 @@ export default function App() {
           left: 0,
           right: 0,
           height: 1,
-          background: "linear-gradient(90deg, transparent, rgba(46,51,60,0.88), transparent)",
+          background: "linear-gradient(90deg, transparent, rgba(216,223,232,0.55), transparent)",
           pointerEvents: "none",
           zIndex: 2,
         }}/>

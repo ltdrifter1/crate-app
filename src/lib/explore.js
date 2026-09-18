@@ -3,7 +3,13 @@
  * Catalog sleeves lead. Channel pictograms are bugs when a lane has no cover.
  */
 
-import { CHANNEL_ART, CHANNEL_ART_FOCUS, HERO_IDLE_ART, HERO_IDLE_FOCUS } from "./channelArt";
+import {
+  CHANNEL_ART,
+  CHANNEL_ART_FOCUS,
+  HERO_IDLE_ART,
+  HERO_IDLE_FOCUS,
+  isChannelPictogram,
+} from "./channelArt";
 import { genreStory, scenesForLane, tracksForGenreLane, tracksForScenePool } from "./browse";
 import { CANONICAL_GENRES, normalizeGenre } from "./genres";
 import {
@@ -48,7 +54,7 @@ export function coverUrlsForTracks(list = [], limit = 4) {
   const out = [];
   for (const t of list) {
     const url = t?.albumCover;
-    if (!url || seen.has(url)) continue;
+    if (!url || seen.has(url) || isChannelPictogram(url)) continue;
     seen.add(url);
     out.push(url);
     if (out.length >= max) break;
@@ -68,11 +74,11 @@ function sleeveFirstVisual(channelPhoto, pool = []) {
   const covers = coverUrlsForTracks(pool, 4);
   const sleeve = covers[0] || null;
   return {
-    photo: sleeve || channelPhoto.src,
+    photo: sleeve || null,
     photoFocus: sleeve ? "center" : channelPhoto.focus,
     covers,
-    /** Single sleeve (or pictogram fallback). False when a mosaic of covers should lead. */
-    usePhoto: covers.length <= 1 && !!(sleeve || channelPhoto.src),
+    /** Single sleeve. False when a mosaic of covers should lead. Pictograms are bugs. */
+    usePhoto: covers.length === 1 && !!sleeve,
     bug: channelPhoto.src,
   };
 }
@@ -181,9 +187,10 @@ export function exploreMoodPlates(tracks = [], minTracks = 2) {
       ...def,
       pool,
       count: pool.length,
-      photo: sleeve || art.src,
+      photo: sleeve || null,
       photoFocus: sleeve ? "center" : art.focus,
       covers,
+      bug: art.src,
     };
   }).filter((m) => m.count >= minTracks);
 }
@@ -208,9 +215,10 @@ export function exploreScenePlates(tracks = [], limit = 10) {
       cities: scene.cities || [],
       count: pool.length,
       pool,
-      photo: sleeve || art.src,
+      photo: sleeve || null,
       photoFocus: sleeve ? "center" : art.focus,
       covers,
+      bug: art.src,
     });
   }
   return scored
@@ -277,7 +285,7 @@ export function buildExploreHero({
   releases = [],
   countdown = [],
 } = {}) {
-  const ready = (channels || []).filter((c) => c.ready !== false && (c.art || CHANNEL_ART[c.id]));
+  const ready = (channels || []).filter((c) => c.ready !== false);
   const showcase = ready.find((c) => c.showcase) || ready[0] || null;
 
   if (showcase) {
@@ -285,21 +293,25 @@ export function buildExploreHero({
     const pool = buildSceneChannelPool(tracks, channel);
     const covers = coverUrlsForTracks(pool, 4);
     const sleeve = covers[0] || null;
-    const art = artForChannelId(showcase.id);
-    return {
-      kind: "channel",
-      id: showcase.id,
-      eyebrow: "",
-      title: showcase.title,
-      subtitle: showcase.tagline,
-      kicker: null,
-      art: sleeve || showcase.art || art.src,
-      artFocus: sleeve ? "center" : showcase.artFocus || art.focus,
-      channel: showcase,
-      album: null,
-      track: pool[0] || null,
-      pool,
-    };
+    const photoOverride =
+      showcase.art && !isChannelPictogram(showcase.art) ? showcase.art : null;
+    const art = sleeve || photoOverride;
+    if (art) {
+      return {
+        kind: "channel",
+        id: showcase.id,
+        eyebrow: "",
+        title: showcase.title,
+        subtitle: showcase.tagline,
+        kicker: null,
+        art,
+        artFocus: sleeve ? "center" : showcase.artFocus || "center",
+        channel: showcase,
+        album: null,
+        track: pool[0] || null,
+        pool,
+      };
+    }
   }
 
   const featured = (releases || [])[0];
@@ -329,8 +341,12 @@ export function buildExploreHero({
       title: chartTop.title,
       subtitle: chartTop.artist,
       kicker: "#1 this month",
-      art: chartTop.albumCover || HERO_IDLE_ART,
-      artFocus: chartTop.albumCover ? "center" : HERO_IDLE_FOCUS,
+      art: (chartTop.albumCover && !isChannelPictogram(chartTop.albumCover)
+        ? chartTop.albumCover
+        : HERO_IDLE_ART),
+      artFocus: chartTop.albumCover && !isChannelPictogram(chartTop.albumCover)
+        ? "center"
+        : HERO_IDLE_FOCUS,
       channel: null,
       album: null,
       track: chartTop,

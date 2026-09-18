@@ -2,7 +2,7 @@ import React from "react";
 import { createRoot } from "react-dom/client";
 import { act } from "react-dom/test-utils";
 import { LcdMetaLine, LcdTitle, trackLcdBits } from "./DeviceChrome";
-import { EnergyShiftPaddles } from "../listen/EnergyShiftButton";
+import { PaceSlider } from "../listen/EnergyShiftButton";
 
 test("trackLcdBits prefers BPM, Camelot, energy", () => {
   expect(trackLcdBits({
@@ -38,19 +38,18 @@ test("LcdMetaLine joins bits", async () => {
   document.body.removeChild(div);
 });
 
-test("EnergyShiftPaddles expose turtle and bunny controls", async () => {
+test("PaceSlider exposes ease / lift control", async () => {
   const div = document.createElement("div");
   document.body.appendChild(div);
   const root = createRoot(div);
   await act(async () => {
-    root.render(React.createElement(EnergyShiftPaddles, { showLabel: true }));
+    root.render(React.createElement(PaceSlider, { compact: true }));
   });
-  const buttons = [...div.querySelectorAll("button")];
-  expect(buttons.length).toBeGreaterThanOrEqual(2);
-  expect(buttons.some((b) => /turtle/i.test(b.getAttribute("aria-label") || ""))).toBe(true);
-  expect(buttons.some((b) => /bunny/i.test(b.getAttribute("aria-label") || ""))).toBe(true);
-  expect(div.textContent).toMatch(/Turtle/i);
-  expect(div.textContent).toMatch(/Bunny/i);
+  const slider = div.querySelector('input[aria-label="Pace"]');
+  expect(slider).toBeTruthy();
+  expect(div.textContent).toMatch(/Ease/i);
+  expect(div.textContent).toMatch(/Lift/i);
+  expect(div.textContent).not.toMatch(/Turtle|Bunny/i);
   await act(async () => root.unmount());
   document.body.removeChild(div);
 });

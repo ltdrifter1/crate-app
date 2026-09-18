@@ -71,7 +71,8 @@ describe("featureGuide gate", () => {
     const blob = FEATURE_GUIDE_STEPS.map((s) => `${s.title} ${s.body}`).join(" ");
     expect(blob).not.toMatch(/favourite genres|Enter the club|How adventurous/i);
     expect(blob).toMatch(/Channel Surfing/);
-    expect(blob).toMatch(/beaker/i);
+    expect(blob).toMatch(/Pace/);
+    expect(blob).not.toMatch(/beaker/i);
     expect(blob).toMatch(/Dislike/);
     expect(blob).toMatch(/messenger/i);
   });

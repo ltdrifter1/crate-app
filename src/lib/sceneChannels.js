@@ -940,12 +940,11 @@ export function availableSceneChannels(tracks = [], minTracks = 3) {
 
 /**
  * Distinct album-cover URLs for a channel tile mosaic (up to `limit`).
- * Prefers an explicit `channel.art` override, then direct matches, then the pool.
- * Bundled Channel Surfing icons live in `channelArt.js` so App's scene-channel
- * import does not pull image bytes onto the Home-critical JS graph.
+ * Catalog sleeves first. Explicit `channel.art` is a last-resort photo only —
+ * Channel Surfing pictograms stay bugs via `resolveChannelArt`, not sleeves.
+ * Bundled icons live in `channelArt.js` so this module stays off the image graph.
  */
 export function channelCoverUrls(tracks = [], channel, limit = 4) {
-  if (channel?.art) return [channel.art];
   const max = Math.max(1, limit);
   const seen = new Set();
   const out = [];
@@ -961,6 +960,7 @@ export function channelCoverUrls(tracks = [], channel, limit = 4) {
   };
   const direct = singlesOnly(tracks).filter((t) => matchesChannel(t, channel));
   if (push(direct)) return out;
-  push(buildSceneChannelPool(tracks, channel));
+  if (push(buildSceneChannelPool(tracks, channel))) return out;
+  if (channel?.art && !seen.has(channel.art)) out.push(channel.art);
   return out;
 }

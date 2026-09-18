@@ -1,6 +1,6 @@
 /**
  * Home station chat host — lazy-loaded from App.
- * Desktop: ice rail occupies the right column (queue is hidden on Home).
+ * Desktop: ice overlay module (nub until opened). Hidden until catalog is ready.
  * Mobile: floating pill → bottom sheet.
  */
 import { useEffect, useMemo, useState } from "react";
@@ -11,7 +11,6 @@ import {
   readRailOpen,
   recentChatMessages,
   writeRailOpen,
-  CHAT_NUB_WIDTH,
 } from "../../lib/stationChat";
 import { useStationChat } from "./useStationChat";
 import {
@@ -127,25 +126,37 @@ export default function HomeMessenger({
       data-open={open ? "true" : "false"}
       style={{
         overflow: "visible",
-        width: open ? placement.flexWidth : CHAT_NUB_WIDTH,
+        width: placement.flexWidth,
         flexShrink: 0,
         position: "relative",
         alignSelf: "stretch",
         zIndex: 30,
+        pointerEvents: "none",
         transition: "width 0.28s cubic-bezier(0.22, 1, 0.36, 1)",
       }}
     >
       {open ? (
         <div
           style={{
-            height: "100%",
-            padding: "8px 8px 8px 0",
+            pointerEvents: "auto",
+            height: placement.overlay ? undefined : "100%",
+            position: placement.overlay ? "absolute" : "relative",
+            top: placement.overlay ? 10 : undefined,
+            right: placement.overlay ? 8 : undefined,
+            bottom: placement.overlay ? 10 : undefined,
+            width: placement.overlay ? placement.overlayWidth : "100%",
+            padding: placement.overlay ? 0 : "8px 8px 8px 0",
+            filter: placement.overlay
+              ? "drop-shadow(0 18px 40px rgba(58,66,80,0.28))"
+              : undefined,
           }}
         >
           {windowEl}
         </div>
       ) : (
-        <MessengerNub presence={presence} onOpen={() => toggle(true)} />
+        <div style={{ pointerEvents: "auto", height: "100%" }}>
+          <MessengerNub presence={presence} onOpen={() => toggle(true)} />
+        </div>
       )}
     </div>
   );

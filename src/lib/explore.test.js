@@ -66,7 +66,23 @@ describe("explore collections", () => {
     }
   });
 
-  test("hero prefers a live showcase channel icon over idle art", () => {
+  test("hero prefers a catalog sleeve from the showcase pool", () => {
+    const tracksWithLocal = [
+      ...tracks,
+      {
+        id: "local1",
+        title: "Cascade",
+        artist: "Rain City",
+        album: "Highways",
+        albumCover: "local.jpg",
+        energy: 5,
+        genre: "Rock",
+        region: "pnw",
+        duration: 180,
+        audioUrl: "u",
+        playCount: 12,
+      },
+    ];
     const channels = [
       {
         id: "local-pnw",
@@ -74,15 +90,14 @@ describe("explore collections", () => {
         tagline: "Pacific Northwest only",
         showcase: true,
         ready: true,
-        art: CHANNEL_ART["local-pnw"],
-        artFocus: "50% 68%",
         count: 12,
       },
     ];
-    const hero = buildExploreHero({ tracks, channels, releases: [], countdown: [] });
+    const hero = buildExploreHero({ tracks: tracksWithLocal, channels, releases: [], countdown: [] });
     expect(hero.kind).toBe("channel");
     expect(hero.title).toBe("Local");
-    expect(hero.art).toBe(CHANNEL_ART["local-pnw"]);
+    expect(hero.art).toBe("local.jpg");
+    expect(hero.art).not.toBe(CHANNEL_ART["local-pnw"]);
     expect(hero.eyebrow).toBe("");
     expect(hero.kicker).toBeNull();
   });

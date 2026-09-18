@@ -16,7 +16,7 @@ test('theme exports core tokens', () => {
   expect(fontDisplay).toMatch(/IBM Plex Sans/);
   expect(font).not.toMatch(/^system-ui/);
   expect(fontLcd).toMatch(/IBM Plex Mono/);
-  expect(STYLE_CHASSIS).toBe("steel-chrome-20260918");
+  expect(STYLE_CHASSIS).toBe("steel-glass-20260918");
   expect(type.lcd.fontFamily).toMatch(/IBM Plex Mono/);
   expect(type.lcd.fontSize).toBe(11);
   expect(sectionTitle.fontSize).toBe(22);
@@ -52,5 +52,6 @@ test('canvas is a light steel chassis', () => {
   expect(color.canvas).toMatch(/#C5CBD6/i);
   expect(color.ink).toMatch(/#3D4654/i);
   expect(y2k.offWhite).toMatch(/#3D4654/i);
+  expect(color.lcdSignal).toMatch(/#E8F1F8/i);
   expect(color.accent).not.toMatch(/#B8F24A/i);
 });

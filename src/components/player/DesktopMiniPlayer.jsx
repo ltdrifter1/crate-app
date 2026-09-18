@@ -2,19 +2,19 @@
  * Desktop sticky mini-player — same device language as the dock / hero.
  */
 import {
-  fontDisplay, color, dock, motion, radio,
+  fontDisplay, color, dock, glass, motion,
 } from "../../theme";
 import { fmtTime } from "../../lib/harmony";
 import { usePlayerPlayback } from "../../usePlayerPlayback";
 import { useIsPlaying } from "../../usePlayerTransport";
-import { EnergyShiftFeedback, EnergyShiftButton } from "../listen/EnergyShiftButton";
+import { EnergyShiftFeedback, PaceSlider } from "../listen/EnergyShiftButton";
 import FreePlaysMeter from "../billing/FreePlaysMeter";
 import { freePlaysMeterLabel } from "../../lib/freePlays";
 import Icon from "../ui/Icon";
 import { PlayKey } from "./OrbitalControls";
 import { dockTintStyle } from "../../lib/dockTint";
 import CoverImage from "../ui/CoverImage";
-import { LcdMetaLine, LcdSeek, LcdTimes, trackLcdBits } from "./DeviceChrome";
+import { LcdMetaLine, LcdSeek, LcdTimes, HardwareIconButton, trackLcdBits } from "./DeviceChrome";
 
 export default function DesktopMiniPlayer({
   track,
@@ -22,6 +22,7 @@ export default function DesktopMiniPlayer({
   onOpen,
   onTogglePlay,
   onSkip,
+  onPrev = null,
   onLikeToggle,
   onDislike = null,
   onSeek,
@@ -39,7 +40,7 @@ export default function DesktopMiniPlayer({
   ]);
 
   return (
-    <div style={{ position: "fixed", bottom: 12, left: 232, right: 348, zIndex: 80 }}>
+    <div style={{ position: "fixed", bottom: 12, left: 244, right: 72, zIndex: 80 }}>
       <FreePlaysMeter
         variant="banner"
         remaining={playsRemaining}
@@ -54,17 +55,20 @@ export default function DesktopMiniPlayer({
         style={{
           borderRadius: dock.radius,
           display: "flex",
-          alignItems: "center",
-          gap: 12,
+          flexDirection: "column",
+          gap: 8,
           cursor: "pointer",
           overflow: "hidden",
           position: "relative",
           animation: `dockRise 0.4s ${motion.ease} both`,
-          padding: "10px 16px",
-          background: radio.stripFace,
+          padding: "10px 16px 8px",
+          background: glass.fillStrong,
+          backdropFilter: glass.blurHeavy,
+          WebkitBackdropFilter: glass.blurHeavy,
           ...dockTintStyle(track),
         }}
       >
+        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
         <div
           style={{
             width: 48,
@@ -106,7 +110,7 @@ export default function DesktopMiniPlayer({
           }}>
             {track.artist}
           </div>
-          <LcdMetaLine bits={bits} />
+          <LcdMetaLine bits={bits} tone="strip" />
           <div onClick={(e) => e.stopPropagation()} style={{ marginTop: 4 }}>
             <LcdSeek
               value={progress}
@@ -116,7 +120,7 @@ export default function DesktopMiniPlayer({
               stopPropagation
               height={4}
             />
-            <LcdTimes progress={progress} duration={duration} />
+            <LcdTimes progress={progress} duration={duration} tone="strip" />
           </div>
         </div>
         <button
@@ -130,7 +134,16 @@ export default function DesktopMiniPlayer({
         >
           <Icon name={track.liked ? "heart" : "heartempty"} size={16} />
         </button>
-        <EnergyShiftButton direction="down" size={36} showLabel />
+        {onPrev && (
+          <HardwareIconButton
+            label="Previous"
+            onClick={onPrev}
+            size={32}
+            stopPropagation
+          >
+            <Icon name="prev" size={14} />
+          </HardwareIconButton>
+        )}
         <PlayKey
           isPlaying={isPlaying}
           onClick={onTogglePlay}
@@ -139,15 +152,18 @@ export default function DesktopMiniPlayer({
           stopPropagation
           glowing={isPlaying}
         />
-        <button
-          type="button"
-          onClick={(e) => { e.stopPropagation(); onSkip(); }}
-          aria-label="Next"
-          style={{ background: "none", border: "none", cursor: "pointer", color: color.ink, padding: 4 }}
+        <HardwareIconButton
+          label="Next"
+          onClick={onSkip}
+          size={32}
+          stopPropagation
         >
-          <Icon name="skip" size={16} />
-        </button>
-        <EnergyShiftButton direction="up" size={36} showLabel />
+          <Icon name="skip" size={14} />
+        </HardwareIconButton>
+        </div>
+      <div onClick={(e) => e.stopPropagation()} style={{ padding: "0 2px 2px" }}>
+        <PaceSlider compact stopPropagation />
+      </div>
       </div>
     </div>
   );

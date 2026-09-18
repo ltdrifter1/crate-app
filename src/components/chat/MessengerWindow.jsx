@@ -52,7 +52,7 @@ function BuddyNub({ person, size = 26 }) {
         alignItems: "center",
         justifyContent: "center",
         border: `1px solid ${ice.rim}`,
-        boxShadow: `0 0 0 1px rgba(8,16,22,0.55), 0 0 12px ${ice.glow}`,
+        boxShadow: `0 0 0 1px rgba(216,223,232,0.35), 0 0 12px ${ice.glow}`,
         flexShrink: 0,
         letterSpacing: -0.2,
       }}
@@ -361,8 +361,8 @@ export function MessengerWindow({
           0 0 40px ${ice.glow},
           0 18px 48px rgba(58,66,80,0.38)
         `,
-        backdropFilter: "blur(28px) saturate(1.35)",
-        WebkitBackdropFilter: "blur(28px) saturate(1.35)",
+        backdropFilter: "blur(40px) saturate(1.2)",
+        WebkitBackdropFilter: "blur(40px) saturate(1.2)",
       }}
     >
       <TitleBar

@@ -1,6 +1,6 @@
 import { readFileSync } from "fs";
 import { join } from "path";
-import { CHANNEL_ART, CHANNEL_ART_FOCUS, HERO_IDLE_ART, HERO_IDLE_FOCUS, resolveChannelArt } from "./channelArt";
+import { CHANNEL_ART, CHANNEL_ART_FOCUS, HERO_IDLE_ART, HERO_IDLE_FOCUS, isChannelPictogram, resolveChannelArt } from "./channelArt";
 import { SCENE_CHANNELS } from "./sceneChannels";
 
 const CREDITS = readFileSync(join(__dirname, "../../docs/IMAGE_CREDITS.md"), "utf8");
@@ -20,6 +20,13 @@ describe("channel icons", () => {
   test("idle hero is a cassette drawing on steel", () => {
     expect(HERO_IDLE_ART).toBeTruthy();
     expect(HERO_IDLE_FOCUS).toMatch(/%/);
+  });
+
+  test("channel pictograms are not treated as catalog sleeves", () => {
+    expect(isChannelPictogram(CHANNEL_ART.metal)).toBe(true);
+    expect(isChannelPictogram(HERO_IDLE_ART)).toBe(true);
+    expect(isChannelPictogram("https://cdn.example/sleeve.jpg")).toBe(false);
+    expect(isChannelPictogram("/channels/techno.jpg")).toBe(false);
   });
 
   test("IMAGE_CREDITS records Game Icons drawings on steel plates", () => {

@@ -72,3 +72,14 @@ export function resolveChannelArt(channel) {
   const focus = channel.artFocus || CHANNEL_ART_FOCUS[channel.id] || "center";
   return { src, focus };
 }
+
+const PICTOGRAM_URLS = new Set([
+  ...Object.values(CHANNEL_ART),
+  HERO_IDLE_ART,
+]);
+
+/** True when a URL is a Channel Surfing drawing — never a catalog sleeve. */
+export function isChannelPictogram(url) {
+  if (!url) return false;
+  return PICTOGRAM_URLS.has(url);
+}

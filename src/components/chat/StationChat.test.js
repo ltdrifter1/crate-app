@@ -141,7 +141,7 @@ describe("HomeMessenger layout breakpoints", () => {
     expect(div.querySelector("[data-testid='messenger-pill']")).toBeNull();
   });
 
-  test("desktop open docks chat in the right column", async () => {
+  test("desktop open overlays chat over the stage", async () => {
     await act(async () => {
       root.render(
         React.createElement(HomeMessenger, {
@@ -156,7 +156,7 @@ describe("HomeMessenger layout breakpoints", () => {
       );
     });
     const host = div.querySelector("[data-testid='home-messenger']");
-    expect(host.getAttribute("data-mode")).toBe("dock");
+    expect(host.getAttribute("data-mode")).toBe("overlay");
     expect(div.querySelector("[data-testid='messenger-window']")).toBeTruthy();
     expect(div.textContent).toMatch(/On the station/);
   });
@@ -193,7 +193,7 @@ describe("HomeMessenger layout breakpoints", () => {
     expect(div.querySelector("[data-testid='messenger-pill']")).toBeNull();
   });
 
-  test("wide desktop docks the window without overlay", async () => {
+  test("wide desktop overlays the window without stealing the column", async () => {
     await act(async () => {
       root.render(
         React.createElement(HomeMessenger, {
@@ -207,7 +207,7 @@ describe("HomeMessenger layout breakpoints", () => {
       );
     });
     expect(div.querySelector("[data-testid='home-messenger']").getAttribute("data-mode")).toBe(
-      "dock"
+      "overlay"
     );
   });
 
