@@ -16,8 +16,9 @@ import heroIdle from "../assets/editorial/hero-idle.png";
 
 /**
  * Original Channel Surfing icons (hashed URLs in production).
- * Bold filled pictograms on coloured studio plates — not photographs,
- * not black-and-white wheatpaste.
+ * Published Game Icons drawings on steel plates — not photographs,
+ * not generated stickers.
+
  * Channel Surfing must not depend on /channels/* existing on the host.
  */
 export const CHANNEL_ART = {

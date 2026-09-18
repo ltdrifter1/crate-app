@@ -21,7 +21,7 @@ function NavRow({ item, active, onClick }) {
         minHeight: 40,
         borderRadius: radius.sm,
         background: active
-          ? "rgba(184,242,74,0.12)"
+          ? "rgba(90,98,112,0.12)"
           : "transparent",
         border: "1px solid transparent",
         color: active ? color.accent : color.body,
@@ -32,7 +32,7 @@ function NavRow({ item, active, onClick }) {
         padding: "8px 10px",
         textAlign: "left",
         boxShadow: active
-          ? "inset 2px 0 0 #B8F24A, inset 0 1px 0 rgba(255,255,255,0.06)"
+          ? "inset 2px 0 0 #5A6270, inset 0 1px 0 rgba(255,255,255,0.06)"
           : "none",
       }}
     >

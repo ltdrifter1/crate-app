@@ -19,3 +19,5 @@ genres-review.csv
 # has an empty build command (output dir = build). Once you set
 # Build command to `npm run build`, add `build/` here again.
 .tools/
+
+scripts/.icon-cache/

@@ -20,9 +20,9 @@ export default function PlaybackProgressHairline() {
         height: "100%",
         width: `${pct}%`,
         background: `
-          linear-gradient(90deg, rgba(184,242,74,0.65) 0%, #B8F24A 100%)
+          linear-gradient(90deg, rgba(90,98,112,0.65) 0%, #5A6270 100%)
         `,
-        boxShadow: "0 0 8px rgba(184,242,74,0.35)",
+        boxShadow: "0 0 8px rgba(90,98,112,0.35)",
         transition: "width 1s linear",
         borderRadius: 2,
       }} />
