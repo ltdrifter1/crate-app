@@ -20,6 +20,7 @@ import { CANONICAL_GENRES } from "../../lib/genres";
 import { SCENE_CHANNELS } from "../../lib/sceneChannels";
 import CoverImage from "../ui/CoverImage";
 import Icon from "../ui/Icon";
+import { catalogSleeveUrl } from "../../lib/channelArt";
 import { TrackActionsMenu, TrackMoreButton, useTrackMenu } from "../listen/TrackRow";
 
 function formatDayLabel(dayKey) {
@@ -569,7 +570,8 @@ function Empty({ note }) {
 }
 
 function ChartHero({ entry, active, onPlay, onAdd, onMore, onContextMenu }) {
-  const art = 160;
+  const art = 180;
+  const sleeve = catalogSleeveUrl(entry.albumCover);
   return (
     <article
       aria-label={`#${entry.rank} ${entry.title} by ${entry.artist}`}
@@ -612,7 +614,7 @@ function ChartHero({ entry, active, onPlay, onAdd, onMore, onContextMenu }) {
         }}
       >
         <CoverImage
-          src={entry.albumCover}
+          src={sleeve}
           width={art}
           height={art}
           alt=""
@@ -620,6 +622,33 @@ function ChartHero({ entry, active, onPlay, onAdd, onMore, onContextMenu }) {
           style={{ width: "100%", height: "100%", objectFit: "cover" }}
         />
         <span aria-hidden="true" className="pmp-chart-scan" />
+        <span
+          aria-hidden="true"
+          style={{
+            position: "absolute",
+            top: 8,
+            left: 8,
+            zIndex: 2,
+            minWidth: 36,
+            height: 28,
+            padding: "0 8px",
+            borderRadius: 4,
+            display: "inline-flex",
+            alignItems: "center",
+            justifyContent: "center",
+            background: radio.lcdFace,
+            border: radio.lcdBorder,
+            boxShadow: radio.lcdShadow,
+            color: color.lcdPhosphor,
+            fontFamily: fontDisplay,
+            fontSize: 13,
+            fontWeight: 800,
+            letterSpacing: 0.08,
+            fontVariantNumeric: "tabular-nums",
+          }}
+        >
+          #{entry.rank}
+        </span>
         <span
           aria-hidden="true"
           style={{
@@ -787,7 +816,7 @@ function ChartList({ entries, nowPlayingId, onPlay, onAdd, onMore, onContext }) 
                   boxShadow: artShadow.quiet,
                   border: `1px solid ${active ? "rgba(91,101,116,0.28)" : "rgba(184,192,204,0.2)"}`,
                 }}>
-                  <CoverImage src={e.albumCover} width={52} height={52} alt="" />
+                  <CoverImage src={catalogSleeveUrl(e.albumCover)} width={52} height={52} alt="" />
                 </div>
 
                 <div style={{ minWidth: 0, flex: 1 }}>

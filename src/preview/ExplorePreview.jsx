@@ -6,20 +6,20 @@ import { useState } from "react";
 import ExploreScreen from "../screens/ExploreScreen";
 import { AlbumPage } from "../components/catalog/ArtistPage";
 import { findAlbum } from "../lib/catalog";
-import { CHANNEL_ART } from "../lib/channelArt";
 import { color } from "../theme";
+import { previewSleeve } from "./sleeves";
 
 const COVER = {
-  electronic: CHANNEL_ART.techno,
-  y2k: CHANNEL_ART["y2k-dance"],
-  variety: CHANNEL_ART["variety-mix"],
-  pnw: CHANNEL_ART["local-pnw"],
-  dnb: CHANNEL_ART["drum-and-bass"],
-  shoe: CHANNEL_ART.shoegaze,
-  metal: CHANNEL_ART.metal,
-  punk: CHANNEL_ART.punk,
-  folk: CHANNEL_ART["country-folk"],
-  down: CHANNEL_ART.downtempo,
+  electronic: previewSleeve("electronic", "Night Shift"),
+  y2k: previewSleeve("y2k", "Afterglow"),
+  variety: previewSleeve("variety", "Y2K"),
+  pnw: previewSleeve("pnw", "Highways"),
+  dnb: previewSleeve("dnb", "Weight"),
+  shoe: previewSleeve("shoe", "Walls"),
+  metal: previewSleeve("metal", "Gain"),
+  punk: previewSleeve("punk", "Unpolished"),
+  folk: previewSleeve("folk", "Open Road"),
+  down: previewSleeve("down", "Late"),
 };
 
 function t(partial) {

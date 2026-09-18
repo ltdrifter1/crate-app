@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 import { color, fontDisplay, homeSpace, type, y2k } from "../../theme";
+import { catalogSleeveUrl } from "../../lib/channelArt";
 import ArtFrame from "../ui/ArtFrame";
 
 /**
@@ -11,7 +12,7 @@ export default function PlaylistCard({ playlist, tracks = [], onClick = null, si
     const byId = new Map(tracks.map((t) => [t.id, t]));
     const out = [];
     for (const id of playlist.trackIds || []) {
-      const cover = byId.get(id)?.albumCover;
+      const cover = catalogSleeveUrl(byId.get(id)?.albumCover);
       if (cover && !out.includes(cover)) out.push(cover);
       if (out.length >= 4) break;
     }
@@ -43,7 +44,7 @@ export default function PlaylistCard({ playlist, tracks = [], onClick = null, si
         covers={covers.length >= 4 ? covers : null}
         src={covers.length > 0 && covers.length < 4 ? covers[0] : null}
         size={size}
-        radius={12}
+        radius={6}
       >
         {covers.length === 0 && (
           <span

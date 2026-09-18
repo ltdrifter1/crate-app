@@ -1,5 +1,5 @@
 import { color, hardware, homeSpace, type, y2k } from "../../theme";
-import { resolveChannelArt } from "../../lib/channelArt";
+import { catalogSleeveUrl, resolveChannelArt } from "../../lib/channelArt";
 import CoverImage from "../ui/CoverImage";
 import Icon from "../ui/Icon";
 
@@ -8,16 +8,16 @@ import Icon from "../ui/Icon";
  * Catalog sleeves first; Channel Surfing pictogram is a corner bug.
  */
 function ChannelArt({
-  src,
   covers = [],
   title,
   size,
   accent,
+  bug = null,
   objectPosition,
   priority = false,
   eager = false,
 }) {
-  const mosaic = (covers || []).filter(Boolean).slice(0, 4);
+  const mosaic = (covers || []).map(catalogSleeveUrl).filter(Boolean).slice(0, 4);
   const initial = (title || "?").trim().charAt(0).toUpperCase() || "?";
 
   if (mosaic.length >= 2) {
@@ -49,18 +49,16 @@ function ChannelArt({
     );
   }
 
-  const lead = mosaic[0] || src;
-  if (lead) {
+  if (mosaic[0]) {
     return (
       <CoverImage
-        src={lead}
+        src={mosaic[0]}
         alt=""
         width={size}
         height={size}
         priority={priority}
         eager={eager}
-        raw={!mosaic[0]}
-        objectPosition={mosaic[0] ? "center" : objectPosition}
+        objectPosition="center"
         style={{ width: "100%", height: "100%", objectFit: "cover" }}
       />
     );
@@ -85,7 +83,23 @@ function ChannelArt({
         color: color.lcdInk,
       }}
     >
-      {initial}
+      {bug ? (
+        <CoverImage
+          src={bug}
+          alt=""
+          width={Math.round(size * 0.56)}
+          height={Math.round(size * 0.56)}
+          raw
+          objectPosition={objectPosition}
+          style={{
+            width: "56%",
+            height: "56%",
+            objectFit: "contain",
+          }}
+        />
+      ) : (
+        initial
+      )}
     </span>
   );
 }
@@ -102,7 +116,7 @@ export default function ChannelCard({
   const width = size;
   const title = channel.shortTitle || channel.title;
   const { src: photo, focus } = resolveChannelArt(channel);
-  const sleeves = (covers || []).filter(Boolean);
+  const sleeves = (covers || []).map(catalogSleeveUrl).filter(Boolean);
   const showBug = sleeves.length > 0 && photo;
 
   return (
@@ -158,11 +172,11 @@ export default function ChannelCard({
           }}
         >
           <ChannelArt
-            src={photo}
             covers={sleeves}
             title={title}
             size={width}
             accent={channel.accent}
+            bug={photo}
             objectPosition={focus}
             priority={priority}
             eager={eager}

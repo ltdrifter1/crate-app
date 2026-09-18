@@ -1,6 +1,6 @@
 import { readFileSync } from "fs";
 import { join } from "path";
-import { CHANNEL_ART, CHANNEL_ART_FOCUS, HERO_IDLE_ART, HERO_IDLE_FOCUS, resolveChannelArt } from "./channelArt";
+import { CHANNEL_ART, CHANNEL_ART_FOCUS, HERO_IDLE_ART, HERO_IDLE_FOCUS, resolveChannelArt, catalogSleeveUrl, isChannelPictogram } from "./channelArt";
 import { SCENE_CHANNELS } from "./sceneChannels";
 
 const CREDITS = readFileSync(join(__dirname, "../../docs/IMAGE_CREDITS.md"), "utf8");
@@ -15,6 +15,14 @@ describe("channel icons", () => {
       expect(CHANNEL_ART_FOCUS[channel.id]).toBe(art.focus);
       expect(channel.art).toBeUndefined();
     });
+  });
+
+  test("catalogSleeveUrl rejects channel pictograms and the idle cassette", () => {
+    expect(isChannelPictogram(CHANNEL_ART.techno)).toBe(true);
+    expect(catalogSleeveUrl(CHANNEL_ART.techno)).toBeNull();
+    expect(catalogSleeveUrl(HERO_IDLE_ART)).toBeNull();
+    expect(catalogSleeveUrl("/channels/house.png")).toBeNull();
+    expect(catalogSleeveUrl("https://cdn.example/sleeves/night.jpg")).toBe("https://cdn.example/sleeves/night.jpg");
   });
 
   test("idle hero is a cassette drawing on steel", () => {

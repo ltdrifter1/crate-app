@@ -5,7 +5,6 @@ import React from "react";
 import { createRoot } from "react-dom/client";
 import { act } from "react-dom/test-utils";
 import ExploreScreen from "./ExploreScreen";
-import { CHANNEL_ART } from "../lib/channelArt";
 
 jest.mock("../usePlayerTransport", () => ({
   useCurrentTrack: () => null,
@@ -203,25 +202,25 @@ describe("Explore screen", () => {
     expect(div.textContent).toMatch(/Genres/);
   });
 
-  test("hero Tune in hands off to the channel dial", async () => {
-    const onTune = jest.fn();
+  test("hero Play hands off to a catalog sleeve", async () => {
+    const onPlayTrack = jest.fn();
     await act(async () => {
       root.render(
         React.createElement(ExploreScreen, {
           tracks: catalog,
-          onTuneSceneChannel: onTune,
+          countdown: [{ rank: 1, track: catalog[0] }],
+          onPlayTrack,
         })
       );
     });
-    const tune = div.querySelector('button[aria-label^="Tune in"]');
-    expect(tune).toBeTruthy();
+    const play = div.querySelector('button[aria-label="Play Warehouse"]');
+    expect(play).toBeTruthy();
+    expect(play.getAttribute("aria-label")).toMatch(/Warehouse/);
     await act(async () => {
-      tune.click();
+      play.click();
     });
-    expect(onTune).toHaveBeenCalled();
-    const channel = onTune.mock.calls[0][0];
-    expect(channel.id).toBeTruthy();
-    expect(CHANNEL_ART[channel.id] || channel.art).toBeTruthy();
+    expect(onPlayTrack).toHaveBeenCalled();
+    expect(onPlayTrack.mock.calls[0][0].id).toBe("t1");
   });
 
   test("catalog loading shows a crate status instead of the empty hole", async () => {

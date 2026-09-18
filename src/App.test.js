@@ -16,7 +16,8 @@ test('theme exports core tokens', () => {
   expect(fontDisplay).toMatch(/IBM Plex Sans/);
   expect(font).not.toMatch(/^system-ui/);
   expect(fontLcd).toMatch(/IBM Plex Mono/);
-  expect(STYLE_CHASSIS).toBe("steel-chrome-20260918");
+  expect(STYLE_CHASSIS).toBe("steel-sleeve-20260918");
+  expect(color.lcdPhosphor).toMatch(/#7ED9B8/i);
   expect(type.lcd.fontFamily).toMatch(/IBM Plex Mono/);
   expect(type.lcd.fontSize).toBe(11);
   expect(sectionTitle.fontSize).toBe(22);
@@ -45,7 +46,7 @@ test('radio module tokens are hardware-shaped', () => {
   expect(radio.moduleFace).toMatch(/linear-gradient/);
   expect(radio.glassFace || radio.moduleFace).toMatch(/linear-gradient/);
   expect(radio.tuneFace).toMatch(/linear-gradient/);
-  expect(radio.lcdFill).toMatch(/#8B95A4|#C5CDD8|#D8DFE8/i);
+  expect(radio.lcdFill).toMatch(/#7ED9B8|#4E9A7A|#C8F5E4/i);
 });
 
 test('canvas is a light steel chassis', () => {

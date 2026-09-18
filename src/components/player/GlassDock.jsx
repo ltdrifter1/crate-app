@@ -16,7 +16,7 @@ import {
 import { usePlayerPlayback } from "../../usePlayerPlayback";
 import { dockTintStyle } from "../../lib/dockTint";
 import CoverImage from "../ui/CoverImage";
-import { LcdMetaLine, LcdSeek, trackLcdBits } from "./DeviceChrome";
+import { LcdMetaLine, LcdPanel, LcdSeek, formatBitrate, trackLcdBits } from "./DeviceChrome";
 
 const EnergyShiftFeedback = lazy(() =>
   import("../listen/EnergyShiftButton").then((m) => ({ default: m.EnergyShiftFeedback }))
@@ -45,7 +45,7 @@ export default function GlassDock({
   const tint = dockTintStyle(track);
 
   const activeTab = dockActiveTab(screen, { hasAdmin: showAdmin });
-  const bits = trackLcdBits(track, [track.bitrate ? String(track.bitrate) : "MP3"]);
+  const bits = trackLcdBits(track, [formatBitrate(track)]);
 
   return (
     <div
@@ -155,10 +155,12 @@ export default function GlassDock({
               }}>
                 {track.artist}
               </div>
-              <LcdMetaLine bits={[
-                ...bits,
-                `${fmtTime(progress)}${duration ? ` / ${fmtTime(duration)}` : ""}`,
-              ]} />
+              <LcdPanel style={{ marginTop: 6, padding: "5px 8px", minHeight: 28 }}>
+                <LcdMetaLine bits={[
+                  ...bits,
+                  `${fmtTime(progress)}${duration ? ` / ${fmtTime(duration)}` : ""}`,
+                ]} />
+              </LcdPanel>
             </div>
 
             <button type="button" aria-label={track.liked ? "Unlike" : "Like"}

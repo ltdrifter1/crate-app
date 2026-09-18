@@ -11,6 +11,7 @@ import {
 import { useCurrentTrack } from "../usePlayerTransport";
 import { savedTracks } from "../lib/homeCollections";
 import { isCommunityPlaylist } from "../lib/mixes";
+import { catalogSleeveUrl } from "../lib/channelArt";
 import {
   BTN_PRIMARY,
   BTN_SECONDARY,
@@ -21,6 +22,7 @@ import {
   fontDisplay,
   fontMono,
   glass,
+  hardware,
   homeSpace,
   motion,
   radius,
@@ -28,7 +30,7 @@ import {
 } from "../theme";
 
 function CoverMosaic({ covers = [], title = "", size = homeSpace.tile }) {
-  const tiles = covers.filter((c) => c?.albumCover).slice(0, 4);
+  const tiles = covers.filter((c) => catalogSleeveUrl(c?.albumCover)).slice(0, 4);
   const half = Math.round(size / 2);
   const initial = (title || "P").trim().charAt(0).toUpperCase() || "P";
 
@@ -110,7 +112,7 @@ function LibraryDestination({ icon, title, subtitle, onClick }) {
         padding: "12px 0",
         background: "none",
         border: "none",
-        borderBottom: "1px solid rgba(216,223,232,0.06)",
+        borderBottom: `1px solid ${color.line}`,
         color: color.ink,
         cursor: "pointer",
         textAlign: "left",
@@ -846,7 +848,7 @@ function FavoritesScreen({
             aria-label="Library sections"
             style={{
               display: "flex",
-              borderBottom: "1px solid rgba(216,223,232,0.08)",
+              borderBottom: `1px solid ${color.line}`,
               marginBottom: 14,
             }}
           >
@@ -876,8 +878,8 @@ function FavoritesScreen({
                 padding: "11px 14px 11px 36px",
                 fontSize: 16,
                 borderRadius: 10,
-                background: "rgba(216,223,232,0.06)",
-                border: "1px solid rgba(216,223,232,0.08)",
+                background: color.surface,
+                border: `1px solid ${color.line}`,
               }}
             />
           </div>
@@ -961,11 +963,11 @@ function FavoritesScreen({
                   aria-label="Sort playlists"
                   style={{
                     display: "inline-flex",
-                    gap: 2,
-                    padding: 3,
-                    borderRadius: radius.sm,
-                    background: "rgba(22,24,30,0.06)",
-                    border: `1px solid ${glass.borderSoft}`,
+                    gap: 4,
+                    padding: 0,
+                    borderRadius: 0,
+                    background: "transparent",
+                    border: "none",
                   }}
                 >
                   {[
@@ -981,16 +983,18 @@ function FavoritesScreen({
                         onClick={() => setPlSort(opt.id)}
                         aria-pressed={on}
                         style={{
-                          border: "none",
-                          borderRadius: 8,
+                          border: `1px solid ${on ? "rgba(91,101,116,0.28)" : "rgba(91,101,116,0.16)"}`,
+                          borderRadius: hardware.radius,
                           padding: "6px 10px",
-                          fontSize: 13,
-                          fontWeight: on ? 650 : 520,
+                          fontSize: 11,
+                          fontWeight: on ? 700 : 600,
                           cursor: "pointer",
-                          background: on ? "rgba(216,223,232,0.1)" : "transparent",
+                          background: on ? hardware.keyFace : "transparent",
                           color: on ? color.ink : color.muted,
-                          fontFamily: fontDisplay,
-                          letterSpacing: -0.1,
+                          fontFamily: fontMono,
+                          letterSpacing: 0.1,
+                          textTransform: "uppercase",
+                          boxShadow: on ? hardware.keyRaised : "none",
                         }}
                       >
                         {opt.label}

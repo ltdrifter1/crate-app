@@ -3,7 +3,7 @@
  */
 import { useEffect, useRef, useState } from "react";
 import {
-  color, font, fontDisplay, ice, motion,
+  color, font, fontDisplay, ice, motion, hardware,
 } from "../../theme";
 import {
   buddyColor,
@@ -489,19 +489,18 @@ export function MessengerWindow({
           disabled={!canSend || !draft.trim()}
           style={{
             height: 40,
-            padding: "0 16px",
-            borderRadius: 8,
-            border: "1px solid rgba(91,101,116,0.4)",
-            background: draft.trim()
-              ? "linear-gradient(180deg, #A8B2C0 0%, #5B6574 100%)"
-              : ice.frost,
-            color: draft.trim() ? color.onAccent : ice.mute,
-            fontFamily: font,
+            padding: "0 14px",
+            borderRadius: hardware.radius,
+            border: "1px solid rgba(91,101,116,0.22)",
+            background: draft.trim() ? hardware.keyFace : ice.frost,
+            color: draft.trim() ? color.ink : ice.mute,
+            fontFamily: fontDisplay,
             fontSize: 13,
             fontWeight: 700,
-            letterSpacing: -0.1,
+            letterSpacing: 0.1,
+            textTransform: "uppercase",
             cursor: draft.trim() && canSend ? "pointer" : "default",
-            boxShadow: draft.trim() ? `0 0 18px ${ice.glow}` : "none",
+            boxShadow: draft.trim() ? hardware.keyRaised : "none",
           }}
         >
           Send

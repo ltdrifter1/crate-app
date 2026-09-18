@@ -15,8 +15,8 @@ import CoverImage from "../ui/CoverImage";
 import Icon from "../ui/Icon";
 
 /**
- * Editorial hero — Mixmag-scale photography, iOS type, one Play.
- * Art is a licensed channel still or a catalog sleeve — never a generated plate.
+ * Editorial hero — Mixmag-scale photography, one Play.
+ * Art is a catalog sleeve or the idle cassette — never a channel pictogram.
  */
 export default function ExploreHero({
   hero,

@@ -1,7 +1,7 @@
 import React from "react";
 import { createRoot } from "react-dom/client";
 import { act } from "react-dom/test-utils";
-import { LcdMetaLine, LcdTitle, trackLcdBits } from "./DeviceChrome";
+import { LcdMetaLine, LcdTitle, formatBitrate, trackLcdBits } from "./DeviceChrome";
 import { EnergyShiftPaddles } from "../listen/EnergyShiftButton";
 
 test("trackLcdBits prefers BPM, Camelot, energy", () => {
@@ -23,6 +23,13 @@ test("LcdTitle marquees long titles", async () => {
   expect(div.querySelectorAll("span").length).toBeGreaterThanOrEqual(2);
   await act(async () => root.unmount());
   document.body.removeChild(div);
+});
+
+test("formatBitrate prefers a real kbps readout", () => {
+  expect(formatBitrate({})).toBe("MP3");
+  expect(formatBitrate({ bitrate: 320 })).toBe("320 kbps");
+  expect(formatBitrate({ bitrate: "192" })).toBe("192 kbps");
+  expect(formatBitrate({ bitrate: "256 kbps" })).toBe("256 kbps");
 });
 
 test("LcdMetaLine joins bits", async () => {

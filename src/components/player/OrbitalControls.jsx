@@ -22,7 +22,7 @@ export function PlayKey({
   return (
     <button
       type="button"
-      className="play-primary"
+      className="play-primary pmp-hw-key"
       aria-label={ariaLabel || (busy ? "Buffering" : isPlaying ? "Pause" : "Play")}
       aria-busy={busy || undefined}
       disabled={disabled}

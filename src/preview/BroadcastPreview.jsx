@@ -16,17 +16,17 @@ import { brandStoragePrefix } from "../brand/identity";
 import ChartsScreen from "../components/station/ChartsScreen";
 import SetBuilderScreen from "../components/set/SetBuilderScreen";
 import { makeSetPreviewCatalog } from "./SetPreview";
-import { CHANNEL_ART } from "../lib/channelArt";
 import { color, homeSpace } from "../theme";
 import HomeMessenger from "../components/chat/HomeMessenger";
+import { previewSleeve } from "./sleeves";
 
-const SAMPLE_COVER = "/brand/planet-mp3-lockup-on-black.png";
+const SAMPLE_COVER = previewSleeve("night-drive", "Night Drive");
 
 const SAMPLE_TRACK = {
   id: "preview-1",
   title: "Night Drive",
   artist: "Signal",
-  albumCover: CHANNEL_ART["y2k-dance"] || SAMPLE_COVER,
+  albumCover: SAMPLE_COVER,
   color: "#5B6574",
   liked: true,
   duration: 214,
@@ -42,7 +42,7 @@ const SAMPLE_NEXT = {
   id: "preview-2",
   title: "After Hours",
   artist: "Low Light",
-  albumCover: CHANNEL_ART.downtempo || SAMPLE_COVER,
+  albumCover: previewSleeve("after-hours", "After Hours"),
   liked: true,
   duration: 198,
   audioUrl: "u",
@@ -58,7 +58,7 @@ const SAMPLE_TRACKS = [
     id: "preview-3",
     title: "Millennium",
     artist: "Sol Park",
-    albumCover: CHANNEL_ART["variety-mix"] || SAMPLE_COVER,
+    albumCover: previewSleeve("millennium", "Millennium"),
     liked: true,
     duration: 187,
     audioUrl: "u",
@@ -70,7 +70,7 @@ const SAMPLE_TRACKS = [
     id: "preview-4",
     title: "Cascade",
     artist: "Rain City",
-    albumCover: CHANNEL_ART["local-pnw"] || SAMPLE_COVER,
+    albumCover: previewSleeve("cascade", "Highways"),
     duration: 203,
     audioUrl: "u",
     genre: "Rock",
@@ -82,7 +82,7 @@ const SAMPLE_TRACKS = [
     id: "preview-5",
     title: "Warehouse",
     artist: "Gridlock",
-    albumCover: CHANNEL_ART.techno || SAMPLE_COVER,
+    albumCover: previewSleeve("warehouse", "Night Shift"),
     duration: 241,
     audioUrl: "u",
     genre: "Electronic",
@@ -93,7 +93,7 @@ const SAMPLE_TRACKS = [
     id: "preview-6",
     title: "Amen Break",
     artist: "Two-Step",
-    albumCover: CHANNEL_ART["drum-and-bass"] || SAMPLE_COVER,
+    albumCover: previewSleeve("amen", "Weight"),
     duration: 176,
     audioUrl: "u",
     genre: "Electronic",
@@ -104,7 +104,7 @@ const SAMPLE_TRACKS = [
     id: "preview-7",
     title: "Haze",
     artist: "Chapterhouse",
-    albumCover: CHANNEL_ART.shoegaze || SAMPLE_COVER,
+    albumCover: previewSleeve("haze", "Walls"),
     duration: 255,
     audioUrl: "u",
     genre: "Rock",
@@ -115,7 +115,7 @@ const SAMPLE_TRACKS = [
     id: "preview-8",
     title: "Iron Lung",
     artist: "Foundry",
-    albumCover: CHANNEL_ART.metal || SAMPLE_COVER,
+    albumCover: previewSleeve("iron-lung", "Gain"),
     duration: 221,
     audioUrl: "u",
     genre: "Metal",
