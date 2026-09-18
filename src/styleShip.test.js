@@ -4,7 +4,7 @@ import { STYLE_CHASSIS, color } from "./theme";
 
 const root = path.join(__dirname, "..");
 
-test("boot HTML stamps the current acid chassis", () => {
+test("boot HTML stamps the current steel chassis", () => {
   const html = fs.readFileSync(path.join(root, "public/index.html"), "utf8");
   expect(html).toContain(`content="${STYLE_CHASSIS}"`);
   expect(html).toContain(color.canvas);

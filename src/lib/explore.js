@@ -5,14 +5,15 @@
  */
 
 import { CHANNEL_ART, CHANNEL_ART_FOCUS, HERO_IDLE_ART, HERO_IDLE_FOCUS } from "./channelArt";
-import { genreBrowseRows, genreStory, tracksForGenreLane, tracksForScenePool } from "./browse";
+import { genreStory, scenesForLane, tracksForGenreLane, tracksForScenePool } from "./browse";
+import { CANONICAL_GENRES, normalizeGenre } from "./genres";
 import {
   buildSceneChannelPool,
   decorateSceneChannels,
   SCENE_CHANNELS,
 } from "./sceneChannels";
 import { featuredReleases, recommendedPicks, trendingTracks } from "./homeCollections";
-import { SCENE_FAMILIES, getScene } from "./scenes";
+import { SCENE_FAMILIES, SCENES, getScene, trackMatchesScene } from "./scenes";
 
 /** Canonical lane → Channel Surfing icon when the match is honest. */
 export const GENRE_CHANNEL_ART = {
@@ -89,15 +90,25 @@ export function visualForFamily(familyId, pool = []) {
 
 /** Genre mosaic rows — only lanes that have catalog, plus art. */
 export function exploreGenrePlates(tracks = []) {
-  return genreBrowseRows(tracks)
-    .filter((row) => row.trackCount > 0)
-    .map((row) => {
-    const pool = tracksForGenreLane(tracks, row.lane);
-    const visual = visualForGenre(row.lane, pool);
+  const playable = singles(tracks);
+  const byLane = new Map();
+  for (const t of playable) {
+    const lane = normalizeGenre(t.genre);
+    if (!lane) continue;
+    const list = byLane.get(lane);
+    if (list) list.push(t);
+    else byLane.set(lane, [t]);
+  }
+  return CANONICAL_GENRES.filter((lane) => (byLane.get(lane) || []).length > 0).map((lane) => {
+    const pool = byLane.get(lane) || [];
+    const visual = visualForGenre(lane, pool);
     return {
-      ...row,
+      lane,
+      story: genreStory(lane),
+      sceneCount: scenesForLane(lane).length,
+      trackCount: pool.length,
+      scenes: scenesForLane(lane),
       ...visual,
-      story: genreStory(row.lane),
     };
   });
 }
@@ -177,33 +188,26 @@ export function exploreMoodPlates(tracks = [], minTracks = 2) {
 
 /** Culture scenes with live counts — ranked by depth, photography from family. */
 export function exploreScenePlates(tracks = [], limit = 10) {
+  const playable = singles(tracks);
+  const familyLabel = Object.fromEntries(SCENE_FAMILIES.map((f) => [f.id, f.label]));
   const scored = [];
-  for (const family of SCENE_FAMILIES) {
-    const channelId = FAMILY_CHANNEL_ART[family.id];
-    const art = artForChannelId(channelId);
-    const familyScenes = [];
-    // Pull from browse rows' scene lists so we don't re-scan the whole graph blindly
-    for (const row of genreBrowseRows(tracks)) {
-      for (const scene of row.scenes || []) {
-        if (scene.familyId !== family.id) continue;
-        const pool = tracksForScenePool(tracks, scene.id);
-        if (!pool.length) continue;
-        familyScenes.push({
-          id: scene.id,
-          label: scene.label,
-          familyId: family.id,
-          familyLabel: family.label,
-          story: scene.story,
-          cities: scene.cities || [],
-          count: pool.length,
-          pool,
-          photo: art.src,
-          photoFocus: art.focus,
-          covers: coverUrlsForTracks(pool, 4),
-        });
-      }
-    }
-    scored.push(...familyScenes);
+  for (const scene of SCENES) {
+    const pool = playable.filter((t) => trackMatchesScene(t, scene.id));
+    if (!pool.length) continue;
+    const art = artForChannelId(FAMILY_CHANNEL_ART[scene.familyId]);
+    scored.push({
+      id: scene.id,
+      label: scene.label,
+      familyId: scene.familyId,
+      familyLabel: familyLabel[scene.familyId] || scene.familyId,
+      story: scene.story,
+      cities: scene.cities || [],
+      count: pool.length,
+      pool,
+      photo: art.src,
+      photoFocus: art.focus,
+      covers: coverUrlsForTracks(pool, 4),
+    });
   }
   return scored
     .sort((a, b) => b.count - a.count || a.label.localeCompare(b.label))

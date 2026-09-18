@@ -5,7 +5,7 @@ import { SCENE_CHANNELS } from "./sceneChannels";
 
 const CREDITS = readFileSync(join(__dirname, "../../docs/IMAGE_CREDITS.md"), "utf8");
 
-describe("original channel icons", () => {
+describe("channel icons", () => {
   test("every channel ships a bundled icon and a crop focus", () => {
     SCENE_CHANNELS.forEach((channel) => {
       const art = resolveChannelArt(channel);
@@ -17,14 +17,15 @@ describe("original channel icons", () => {
     });
   });
 
-  test("idle hero is an original iPod stencil", () => {
+  test("idle hero is a cassette drawing on steel", () => {
     expect(HERO_IDLE_ART).toBeTruthy();
     expect(HERO_IDLE_FOCUS).toMatch(/%/);
   });
 
-  test("IMAGE_CREDITS records original icons, not magazine scans", () => {
-    expect(CREDITS).toMatch(/original illustrated icons/i);
-    expect(CREDITS).toMatch(/coloured studio plates/i);
+  test("IMAGE_CREDITS records Game Icons drawings on steel plates", () => {
+    expect(CREDITS).toMatch(/published music drawings/i);
+    expect(CREDITS).toMatch(/brushed aluminum/i);
+    expect(CREDITS).toMatch(/CC BY 3\.0/i);
     expect(CREDITS).not.toMatch(/mixmag\.com/i);
     expect(CREDITS).not.toMatch(/xlr8r\.com/i);
     expect(CREDITS).not.toMatch(/djmag\.com/i);
