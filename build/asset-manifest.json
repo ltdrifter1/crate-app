@@ -1,7 +1,7 @@
 {
   "files": {
-    "main.css": "/static/css/main.f4b7cc19.css",
-    "main.js": "/static/js/main.8e8af5c1.js",
+    "main.css": "/static/css/main.eae9ea60.css",
+    "main.js": "/static/js/main.1af59c26.js",
     "static/js/317.8e19476d.chunk.js": "/static/js/317.8e19476d.chunk.js",
     "static/js/420.4da5f41a.chunk.js": "/static/js/420.4da5f41a.chunk.js",
     "static/js/80.cac8e1e9.chunk.js": "/static/js/80.cac8e1e9.chunk.js",
@@ -49,8 +49,8 @@
     "static/media/house.jpg": "/static/media/house.7c49acfe9fda83dc6167.jpg",
     "static/media/uk-garage.jpg": "/static/media/uk-garage.e8fd84318e7ed6f0d1c8.jpg",
     "index.html": "/index.html",
-    "main.f4b7cc19.css.map": "/static/css/main.f4b7cc19.css.map",
-    "main.8e8af5c1.js.map": "/static/js/main.8e8af5c1.js.map",
+    "main.eae9ea60.css.map": "/static/css/main.eae9ea60.css.map",
+    "main.1af59c26.js.map": "/static/js/main.1af59c26.js.map",
     "317.8e19476d.chunk.js.map": "/static/js/317.8e19476d.chunk.js.map",
     "420.4da5f41a.chunk.js.map": "/static/js/420.4da5f41a.chunk.js.map",
     "80.cac8e1e9.chunk.js.map": "/static/js/80.cac8e1e9.chunk.js.map",
@@ -84,7 +84,7 @@
     "252.5401b7a5.chunk.js.map": "/static/js/252.5401b7a5.chunk.js.map"
   },
   "entrypoints": [
-    "static/css/main.f4b7cc19.css",
-    "static/js/main.8e8af5c1.js"
+    "static/css/main.eae9ea60.css",
+    "static/js/main.1af59c26.js"
   ]
 }

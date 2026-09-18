@@ -8,7 +8,7 @@ import {
   font, fontDisplay, fontMono, color, chrome, radius, motion,
   glass, glassControl, homeSpace, dock, sectionRule,
   artShadow, aluminumGradient, chromeFrame,
-  APP_STYLE, INPUT_ST, BTN_PRIMARY, BTN_SECONDARY, CTRL_BTN, ADMIN_UID, y2k,
+  APP_STYLE, INPUT_ST, BTN_PRIMARY, BTN_SECONDARY, CTRL_BTN, ADMIN_UID,
   BRAND_NAME, brandStoragePrefix, STYLE_CHASSIS,
 } from "./theme";
 import CoverImage from "./components/ui/CoverImage";
@@ -107,6 +107,7 @@ import {
 } from "./usePlayerTransport";
 import { signalFlags } from "./usePlayerSignal";
 import GlassDock from "./components/player/GlassDock";
+import SplashScreen from "./components/brand/SplashScreen";
 import {
   ScreenPane,
   contentPadBottom,
@@ -3041,50 +3042,9 @@ export default function App() {
   }
 
   // ── Loading states ────────────────────────────────────────────────────────
-  // Auth restore — keep the HTML boot splash's dark canvas; skip Lottie on the critical path.
+  // Auth restore — CSS planet only; skip Lottie on the critical path.
   if (authLoading) {
-    return (
-      <div
-        role="status"
-        aria-live="polite"
-        aria-busy="true"
-        aria-label="Loading"
-        style={{
-          ...APP_STYLE,
-          minHeight: "100dvh",
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          justifyContent: "center",
-          gap: 14,
-          background: color.canvas,
-        }}
-      >
-        <span
-          aria-hidden="true"
-          className="pmp-live-led"
-          style={{
-            width: 8,
-            height: 8,
-            borderRadius: "50%",
-            background: y2k.live,
-            boxShadow: "0 0 12px rgba(255,51,79,0.85)",
-          }}
-        />
-        <span
-          style={{
-            fontFamily: fontMono,
-            fontSize: 12,
-            fontWeight: 700,
-            letterSpacing: 2.4,
-            textTransform: "uppercase",
-            color: y2k.cyan,
-          }}
-        >
-          On air
-        </span>
-      </div>
-    );
+    return <SplashScreen />;
   }
 
   // Not logged in — show login screen
