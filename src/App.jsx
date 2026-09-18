@@ -3496,7 +3496,7 @@ export default function App() {
   // ── Mobile: render as-is ─────────────────────────────────────────────────
   if (!isDesktop) return innerApp;
 
-  // ── Desktop: 3-column shell (iTunes-style source list) ───────────────────
+  // ── Desktop: 3-column shell (source list) ───────────────────
   const recentTracks = [...tracks].slice(0, 6);
 
   // Build queue/next-up from current context
@@ -3514,7 +3514,7 @@ export default function App() {
   return (
     <div style={{ display:"flex", height:"100dvh", background: color.canvas, overflow:"hidden", fontFamily: font }}>
 
-      {/* ── LEFT SOURCE LIST (iTunes-style) ───────────────────────────── */}
+      {/* ── LEFT SOURCE LIST ───────────────────────────── */}
       <Suspense fallback={null}>
       <AppSidebar
         screen={screen}

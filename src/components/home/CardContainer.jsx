@@ -1,7 +1,7 @@
 import { glass, radius } from "../../theme";
 
 /**
- * CardContainer — Music.app grouped surface.
+ * CardContainer — grouped module surface.
  * Soft fill, hairline, no machined bevel.
  */
 export default function CardContainer({

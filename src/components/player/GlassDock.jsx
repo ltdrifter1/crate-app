@@ -5,7 +5,7 @@ import {
 import Icon from "../ui/Icon";
 import BottomNavigation from "../home/BottomNavigation";
 import { TrackActionsMenu, TrackMoreButton, useTrackMenu } from "../listen/TrackRow";
-import { IceOrbPlay } from "../player/OrbitalControls";
+import { PlayKey } from "../player/OrbitalControls";
 import { fmtTime } from "../../lib/harmony";
 import { primaryNavItems, dockActiveTab } from "../../lib/nav";
 import FreePlaysMeter from "../billing/FreePlaysMeter";
@@ -172,7 +172,7 @@ export default function GlassDock({
             <span className="dock-xtra" style={{ display: "flex" }}>
               <TrackMoreButton onClick={(e) => openFromButton(e, track)} />
             </span>
-            <IceOrbPlay
+            <PlayKey
               isPlaying={isPlaying}
               buffering={isBuffering}
               onClick={onTogglePlay}

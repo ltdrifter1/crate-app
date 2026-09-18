@@ -202,7 +202,7 @@ export default function FeatureTour({
             style={{
               ...BTN_PRIMARY,
               width: "100%",
-              borderRadius: 980,
+              borderRadius: 8,
             }}
           >
             {last ? "Got it" : "Next"}

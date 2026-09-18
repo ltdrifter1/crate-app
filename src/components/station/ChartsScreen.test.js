@@ -155,7 +155,8 @@ describe("ChartsScreen", () => {
 });
 
 describe("Charts type tokens", () => {
-  test("display stack is iTunes Lucida / Helvetica type", () => {
+  test("display stack is IBM Plex with Lucida / Helvetica fallbacks", () => {
+    expect(fontDisplay).toMatch(/IBM Plex Sans/);
     expect(fontDisplay).toMatch(/Lucida Grande/);
     expect(fontDisplay).toMatch(/Helvetica Neue/);
     expect(fontDisplay).toMatch(/-apple-system/);

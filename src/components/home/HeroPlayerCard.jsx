@@ -19,7 +19,7 @@ import {
 import { trackHasVideo } from "../../lib/video";
 import Icon from "../ui/Icon";
 import CoverImage from "../ui/CoverImage";
-import { IceOrbPlay } from "../player/OrbitalControls";
+import { PlayKey } from "../player/OrbitalControls";
 import { EnergyShiftButton } from "../listen/EnergyShiftButton";
 import { HERO_IDLE_ART, HERO_IDLE_FOCUS } from "../../lib/channelArt";
 import ScanlineWash from "./ScanlineWash";
@@ -631,7 +631,7 @@ export default function HeroPlayerCard({
               <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, flexWrap: "wrap" }}>
                 <EnergyShiftButton direction="down" size={40} stopPropagation showLabel={false} />
                 <ChromeIconButton label="Previous" icon="prev" onClick={onPrev} />
-                <IceOrbPlay
+                <PlayKey
                   isPlaying={isPlaying}
                   buffering={isBuffering}
                   onClick={onTogglePlay}

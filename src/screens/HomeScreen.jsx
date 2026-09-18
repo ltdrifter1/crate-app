@@ -22,6 +22,7 @@ import MusicSection, { Rail } from "../components/home/MusicSection";
 import ChannelSurfingSection from "../components/home/ChannelSurfingSection";
 import TrackCard from "../components/home/TrackCard";
 import CardContainer from "../components/home/CardContainer";
+import CrateSpread from "../components/home/CrateSpread";
 
 const TonightDeck = lazy(() =>
   import("../components/station/ShowGuide").then((m) => ({ default: m.TonightDeck }))
@@ -392,16 +393,24 @@ function HomeScreen({
         </div>
       )}
 
-      {/* EDITORIAL — Played before */}
+      {/* EDITORIAL — first band is a crate spread; the rest stay rails */}
+      {shelvesReady && catalogReady && editorial[0] && (
+        <CrateSpread
+          title={editorial[0].label}
+          subtitle={editorial[0].story}
+          tracks={editorial[0].tracks}
+          activeId={activeId}
+          onPlayTrack={onPlayTrack}
+        />
+      )}
       {shelvesReady && catalogReady &&
-        editorial.map((col, i) => (
+        editorial.slice(1).map((col, i) => (
           <div key={col.id} style={{ contentVisibility: "auto", containIntrinsicSize: "280px" }}>
           <MusicSection
             title={col.label}
             subtitle={col.story}
             poster
-            first={!hasChannels && !hasTonight && topRequested.length === 0 && i === 0}
-            delay={0.08 + i * 0.02}
+            delay={0.1 + i * 0.02}
           >
             <Rail gap={16}>
               {col.tracks.map((track) => (

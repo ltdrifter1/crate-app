@@ -677,7 +677,7 @@ export function StationHeatBar({
                   fontSize: 11, fontFamily: fontMono, fontWeight: 800,
                   background: color.accent, color: color.onAccent,
                   padding: "1px 5px",
-                  borderRadius: radius.pill,
+                  borderRadius: radius.md,
                   boxShadow: "0 2px 6px rgba(18,20,26,0.16)",
                 }}>
                   {reactCounts[emoji]}

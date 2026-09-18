@@ -5,8 +5,8 @@ import { color, glass, motion } from "../../theme";
 
 // ─── Shared transport primitives (soft modern play + linear-friendly progress) ─
 
-/** Soft circular primary play — shared by hero, dock, immersive, desktop. */
-export function IceOrbPlay({
+/** Hardware play key — shared by hero, dock, immersive, desktop. */
+export function PlayKey({
   isPlaying = false,
   buffering = false,
   onClick,
@@ -73,6 +73,9 @@ export function IceOrbPlay({
     </button>
   );
 }
+
+/** @deprecated alias — use PlayKey */
+export const IceOrbPlay = PlayKey;
 
 /**
  * Album art with a thin progress ring — dock scrub language (kept light).
@@ -245,7 +248,7 @@ export function OrbitalPlayControl({
         }}
       />
       <div style={{ position: "relative", zIndex: 1 }}>
-        <IceOrbPlay
+        <PlayKey
           isPlaying={isPlaying}
           onClick={onToggle}
           size={size}

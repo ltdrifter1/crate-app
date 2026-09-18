@@ -8,6 +8,7 @@ import {
   artShadow,
   BTN_PRIMARY,
   BTN_SECONDARY,
+  type,
 } from "../../theme";
 import { AlbumArt } from "../listen/AlbumArt";
 import { TrackMoreButton, TrackRow, useTrackMenu, TrackActionsMenu } from "../listen/TrackRow";
@@ -117,6 +118,8 @@ function albumMeta(album) {
   const total = tracks.reduce((s, t) => s + (Number(t.duration) || 0), 0);
   if (total >= 60) bits.push(`${Math.round(total / 60)} min`);
   if (album?.avgBpm) bits.push(`${album.avgBpm} BPM`);
+  const key = tracks.map((t) => t.camelot).find(Boolean);
+  if (key) bits.push(key);
   const year = tracks.map((t) => t.year || t.releaseYear).find(Boolean);
   if (year) bits.push(String(year));
   return bits.join(" · ");
@@ -231,7 +234,15 @@ export function AlbumPage({
                 {albumArtist}
               </button>
             ) : null}
-            <div style={{ marginTop: 8, fontSize: 13, color: color.muted }}>
+            <div style={{
+              marginTop: 8,
+              fontFamily: fontMono,
+              fontSize: 11,
+              fontWeight: 700,
+              letterSpacing: 0.12,
+              textTransform: "uppercase",
+              color: color.accent,
+            }}>
               {albumMeta(album)}
             </div>
             {cover && (
@@ -245,7 +256,7 @@ export function AlbumPage({
                   marginTop: 14,
                   minHeight: 40,
                   padding: "0 16px",
-                  borderRadius: 980,
+                  borderRadius: 8,
                   fontSize: 14,
                   fontWeight: 650,
                   display: "inline-flex",
@@ -493,7 +504,15 @@ function EntityHero({
           </h1>
           {subtitle}
           {meta && (
-            <div style={{ marginTop: 8, fontSize: 13, color: color.muted }}>
+            <div
+              style={{
+                marginTop: 8,
+                ...type.lcd,
+                color: color.accent,
+                letterSpacing: 0.12,
+                textTransform: "uppercase",
+              }}
+            >
               {meta}
             </div>
           )}
@@ -508,7 +527,7 @@ function EntityHero({
                 marginTop: 14,
                 minHeight: 40,
                 padding: "0 16px",
-                borderRadius: 980,
+                borderRadius: 8,
                 fontSize: 14,
                 fontWeight: 650,
                 display: "inline-flex",

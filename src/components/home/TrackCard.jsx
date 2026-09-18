@@ -1,7 +1,8 @@
 import { memo } from "react";
-import { color, homeSpace, type, y2k } from "../../theme";
+import { color, homeSpace, type, y2k, fontMono } from "../../theme";
 import { trackHasVideo } from "../../lib/video";
 import ArtFrame from "../ui/ArtFrame";
+import { trackLcdBits } from "../player/DeviceChrome";
 
 /**
  * TrackCard — crate tile: jewel sleeve + title + artist.
@@ -15,6 +16,7 @@ function TrackCard({
   active = false,
   size = homeSpace.tile,
 }) {
+  const lcd = trackLcdBits(track);
   return (
     <button
       type="button"
@@ -112,6 +114,25 @@ function TrackCard({
         {reason ? `${reason} · ` : null}
         {track.artist}
       </span>
+      {lcd.length > 0 && (
+        <span
+          style={{
+            display: "block",
+            marginTop: 3,
+            fontFamily: fontMono,
+            fontSize: 11,
+            fontWeight: 700,
+            letterSpacing: 0.1,
+            textTransform: "uppercase",
+            color: color.accent,
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            whiteSpace: "nowrap",
+          }}
+        >
+          {lcd.join(" · ")}
+        </span>
+      )}
     </button>
   );
 }

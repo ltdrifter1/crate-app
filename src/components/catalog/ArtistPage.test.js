@@ -31,6 +31,8 @@ const album = {
       artist: "Signal",
       albumCover: "cover-a.jpg",
       duration: 200,
+      camelot: "8A",
+      bpm: 120,
     },
     {
       id: "t2",
@@ -76,6 +78,7 @@ describe("AlbumPage", () => {
     expect(div.textContent).toMatch(/Night Shift/);
     expect(div.textContent).toMatch(/Signal/);
     expect(div.textContent).toMatch(/2 tracks/);
+    expect(div.textContent).toMatch(/8A/);
     expect(div.textContent).toMatch(/Warehouse/);
     expect(div.textContent).toMatch(/Guest Cut/);
     expect(div.textContent).toMatch(/Lumen/);

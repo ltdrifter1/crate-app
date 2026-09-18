@@ -43,7 +43,7 @@ function SearchScreen({
       linear-gradient(165deg, rgba(38,43,51,0.82) 0%, rgba(28,32,38,0.5) 100%)
     `,
     border: `1px solid ${glass.borderSoft}`,
-    borderRadius: 980,
+    borderRadius: 8,
     padding: "7px 13px",
     fontSize: 12.5,
     fontWeight: 600,

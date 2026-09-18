@@ -173,7 +173,7 @@ export default function ExploreFocus({
                 width: "auto",
                 minHeight: 40,
                 padding: "0 16px",
-                borderRadius: 980,
+                borderRadius: 8,
                 fontSize: 14,
                 fontWeight: 650,
                 display: "inline-flex",

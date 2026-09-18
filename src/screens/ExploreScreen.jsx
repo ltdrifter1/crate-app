@@ -15,6 +15,7 @@ import CoverImage from "../components/ui/CoverImage";
 import { useCurrentTrack, useIsPlaying } from "../usePlayerTransport";
 import MusicSection, { Rail } from "../components/home/MusicSection";
 import TrackCard from "../components/home/TrackCard";
+import CrateSpread from "../components/home/CrateSpread";
 import { ReleasesBand } from "../components/home/ReleaseCard";
 import ChannelSurfingSection from "../components/home/ChannelSurfingSection";
 import CardContainer from "../components/home/CardContainer";
@@ -581,24 +582,13 @@ function ExploreScreen({
       )}
 
       {forYou.tracks.length > 0 && (
-        <MusicSection
+        <CrateSpread
           title={forYou.coldStart ? "Fresh picks" : "Selected for you"}
           subtitle={forYou.coldStart ? "A place to begin" : "Chosen for you"}
-          delay={0.16}
-          action={onOpenSearch ? { label: "Search", onClick: onOpenSearch } : null}
-        >
-          <Rail gap={14}>
-            {forYou.tracks.map((track) => (
-              <TrackCard
-                key={track.id}
-                track={track}
-                reason={forYou.reasons[track.id] || null}
-                active={activeId === track.id}
-                onClick={() => onPlayTrack?.(track, forYou.tracks)}
-              />
-            ))}
-          </Rail>
-        </MusicSection>
+          tracks={forYou.tracks}
+          activeId={activeId}
+          onPlayTrack={onPlayTrack}
+        />
       )}
 
       {charts.length > 0 && (

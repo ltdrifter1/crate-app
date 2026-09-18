@@ -101,7 +101,7 @@ export function VideoBadge({ track, dark = false }) {
       alignItems: "center",
       gap: 5,
       padding: "4px 9px",
-      borderRadius: radius.pill,
+      borderRadius: radius.md,
       background: dark
         ? "rgba(255,255,255,0.14)"
         : `

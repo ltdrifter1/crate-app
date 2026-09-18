@@ -1,7 +1,7 @@
 import React from "react";
 import { createRoot } from "react-dom/client";
 import { act } from "react-dom/test-utils";
-import { LcdMetaLine, trackLcdBits } from "./DeviceChrome";
+import { LcdMetaLine, LcdTitle, trackLcdBits } from "./DeviceChrome";
 import { EnergyShiftPaddles } from "../listen/EnergyShiftButton";
 
 test("trackLcdBits prefers BPM, Camelot, energy", () => {
@@ -10,6 +10,19 @@ test("trackLcdBits prefers BPM, Camelot, energy", () => {
     camelot: "8A",
     energy: 7,
   })).toEqual(["124 BPM", "8A", "E7"]);
+});
+
+test("LcdTitle marquees long titles", async () => {
+  const div = document.createElement("div");
+  document.body.appendChild(div);
+  const root = createRoot(div);
+  await act(async () => {
+    root.render(React.createElement(LcdTitle, null, "A Very Long Track Title For The LCD"));
+  });
+  expect(div.querySelector(".pmp-lcd-marquee")).toBeTruthy();
+  expect(div.querySelectorAll("span").length).toBeGreaterThanOrEqual(2);
+  await act(async () => root.unmount());
+  document.body.removeChild(div);
 });
 
 test("LcdMetaLine joins bits", async () => {
