@@ -52,4 +52,5 @@ test('canvas is a CRT Discman studio', () => {
   expect(color.canvas).toMatch(/#110E16/i);
   expect(color.ink).toMatch(/#F3EDE4/i);
   expect(y2k.offWhite).toMatch(/#F3EDE4/i);
+  expect(color.accent).not.toMatch(/#B8F24A/i);
 });

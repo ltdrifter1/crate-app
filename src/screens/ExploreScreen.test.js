@@ -224,6 +224,19 @@ describe("Explore screen", () => {
     expect(CHANNEL_ART[channel.id] || channel.art).toBeTruthy();
   });
 
+  test("catalog loading shows a crate status instead of the empty hole", async () => {
+    await act(async () => {
+      root.render(
+        React.createElement(ExploreScreen, {
+          tracks: [],
+          catalogLoading: true,
+        })
+      );
+    });
+    expect(div.textContent).toMatch(/Tuning the crate/);
+    expect(div.textContent).not.toMatch(/Nothing to dig yet/);
+  });
+
   test("does not render CoverFlow dump or leftover search icon chrome", async () => {
     await act(async () => {
       root.render(React.createElement(ExploreScreen, { tracks: catalog }));

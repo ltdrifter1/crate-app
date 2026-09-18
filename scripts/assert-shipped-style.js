@@ -39,6 +39,7 @@ const forbid = [
   ["retired Aqua splash 30,111,232", /30\s*,\s*111\s*,\s*232/.test(html + css)],
   ["old pearl #E6E9EF", /#E6E9EF/i.test(html + css)],
   ["retired acid LCD", /184\s*,\s*242\s*,\s*74/.test(html + css)],
+  ["retired void canvas #090A0D", /#090A0D/i.test(html + css)],
 ];
 
 let failed = false;

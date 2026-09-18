@@ -60,10 +60,10 @@ const EXPLORE_CSS = `
     transition: border-color ${"{base}"} ${"{ease}"}, background ${"{base}"}, box-shadow ${"{base}"};
   }
   .pmp-explore-search:hover {
-    border-color: rgba(255,255,255,0.16) !important;
-    background: rgba(255,255,255,0.07) !important;
+    border-color: rgba(28,32,40,0.16) !important;
+    background: rgba(255,255,255,0.88) !important;
   }
-  .pmp-explore-chart-row:hover { background: rgba(255,255,255,0.04) !important; }
+  .pmp-explore-chart-row:hover { background: rgba(28,32,40,0.04) !important; }
   .pmp-explore-chart-row:active { transform: scale(0.992); }
   .pmp-releases {
     display: grid;
@@ -124,8 +124,8 @@ function SearchEntry({ onOpenSearch }) {
           minHeight: 44,
           padding: "0 14px",
           borderRadius: radius.lg,
-          border: "1px solid rgba(255,255,255,0.1)",
-          background: "rgba(255,255,255,0.055)",
+          border: "1px solid rgba(28,32,40,0.12)",
+          background: "rgba(255,255,255,0.72)",
           color: color.muted,
           cursor: "pointer",
           textAlign: "left",
@@ -168,7 +168,7 @@ function ChartsTeaser({ rows = [], onPlayTrack, onOpenCharts, activeId }) {
               gap: 12,
               padding: "8px 4px",
               border: "none",
-              borderBottom: "1px solid rgba(255,255,255,0.06)",
+              borderBottom: "1px solid rgba(28,32,40,0.08)",
               background: "transparent",
               color: color.ink,
               cursor: "pointer",
@@ -317,6 +317,7 @@ function EmptyExplore({ onOpenSearch }) {
  */
 function ExploreScreen({
   tracks = [],
+  catalogLoading = false,
   preferredGenres = [],
   recentTrackIds = [],
   userKey = "",
@@ -335,27 +336,54 @@ function ExploreScreen({
   const activeId = currentTrack?.id;
   const dayKey = new Date().toISOString().slice(0, 10);
   const [focusKey, setFocusKey] = useState(null);
+  const [deepReady, setDeepReady] = useState(process.env.NODE_ENV === "test");
 
-  const stations = useMemo(() => exploreStations(tracks), [tracks]);
-  const releases = useMemo(() => exploreReleases(tracks, 6), [tracks]);
+  useEffect(() => {
+    if (process.env.NODE_ENV === "test") return undefined;
+    let inner = 0;
+    const outer = requestAnimationFrame(() => {
+      inner = requestAnimationFrame(() => setDeepReady(true));
+    });
+    return () => {
+      cancelAnimationFrame(outer);
+      cancelAnimationFrame(inner);
+    };
+  }, []);
+
   const genres = useMemo(() => exploreGenrePlates(tracks), [tracks]);
-  const moods = useMemo(() => exploreMoodPlates(tracks), [tracks]);
-  const scenes = useMemo(() => exploreScenePlates(tracks, 10), [tracks]);
   const charts = useMemo(() => exploreChartsTeaser(countdown, 6), [countdown]);
+  const stations = useMemo(
+    () => (deepReady ? exploreStations(tracks) : []),
+    [tracks, deepReady]
+  );
+  const releases = useMemo(
+    () => (deepReady ? exploreReleases(tracks, 6) : []),
+    [tracks, deepReady]
+  );
+  const moods = useMemo(
+    () => (deepReady ? exploreMoodPlates(tracks) : []),
+    [tracks, deepReady]
+  );
+  const scenes = useMemo(
+    () => (deepReady ? exploreScenePlates(tracks, 10) : []),
+    [tracks, deepReady]
+  );
   const recents = useMemo(
-    () => recentlyPlayedTracks(tracks, recentTrackIds, 12),
-    [tracks, recentTrackIds]
+    () => (deepReady ? recentlyPlayedTracks(tracks, recentTrackIds, 12) : []),
+    [tracks, recentTrackIds, deepReady]
   );
   const forYou = useMemo(
     () =>
-      exploreForYou(tracks, {
-        preferredGenres,
-        recentTrackIds,
-        userKey,
-        dayKey,
-        limit: 16,
-      }),
-    [tracks, preferredGenres, recentTrackIds, userKey, dayKey]
+      deepReady
+        ? exploreForYou(tracks, {
+            preferredGenres,
+            recentTrackIds,
+            userKey,
+            dayKey,
+            limit: 16,
+          })
+        : { tracks: [], reasons: {}, coldStart: true },
+    [tracks, preferredGenres, recentTrackIds, userKey, dayKey, deepReady]
   );
   const hero = useMemo(
     () =>
@@ -372,10 +400,6 @@ function ExploreScreen({
     () => resolveExploreFocus(focusKey, tracks),
     [focusKey, tracks]
   );
-
-  useEffect(() => {
-    import("../components/catalog/ArtistPage");
-  }, []);
 
   const heroPlaying =
     hero?.kind === "channel" &&
@@ -452,7 +476,7 @@ function ExploreScreen({
           inset: 0,
           pointerEvents: "none",
           background: `
-            radial-gradient(ellipse 80% 42% at 12% -8%, rgba(255,255,255,0.04) 0%, transparent 52%)
+            radial-gradient(ellipse 80% 42% at 12% -8%, rgba(255,255,255,0.72) 0%, transparent 52%)
           `,
         }}
       />
@@ -511,7 +535,7 @@ function ExploreScreen({
           style={{
             marginTop: 16,
             height: 1,
-            background: "rgba(84, 84, 88, 0.45)",
+            background: "rgba(28, 32, 40, 0.12)",
             boxShadow: "none",
           }}
         />
@@ -519,9 +543,11 @@ function ExploreScreen({
 
       <SearchEntry onOpenSearch={onOpenSearch} />
 
-      <div style={{ padding: `0 ${homeSpace.gutter}px` }}>
-        <CamelotKeyRail tracks={tracks} onPlayPool={onPlayTrack} label="Keys" />
-      </div>
+      {deepReady && (
+        <div style={{ padding: `0 ${homeSpace.gutter}px` }}>
+          <CamelotKeyRail tracks={tracks} onPlayPool={onPlayTrack} label="Keys" />
+        </div>
+      )}
 
       <ExploreHero
         hero={hero}
@@ -631,7 +657,21 @@ function ExploreScreen({
         </MusicSection>
       )}
 
-      {!hasBody && <EmptyExplore onOpenSearch={onOpenSearch} />}
+      {!hasBody && catalogLoading && (
+        <div
+          role="status"
+          style={{
+            marginTop: homeSpace.sectionGap,
+            padding: `12px ${homeSpace.gutter}px`,
+            color: color.muted,
+            fontSize: 14,
+            fontWeight: 500,
+          }}
+        >
+          Tuning the crate…
+        </div>
+      )}
+      {!hasBody && !catalogLoading && <EmptyExplore onOpenSearch={onOpenSearch} />}
     </div>
   );
 }
