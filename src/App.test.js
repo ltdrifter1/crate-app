@@ -5,8 +5,8 @@ import {
 
 test('theme exports core tokens', () => {
   expect(color.ink).toBeTruthy();
-  expect(color.accent).toMatch(/#B8F24A/i);
-  expect(color.onAccent).toMatch(/#0C1008/i);
+  expect(color.accent).toMatch(/#1E6FE8/i);
+  expect(color.onAccent).toMatch(/#FFFFFF/i);
   expect(color.canvas).toMatch(/#090A0D/i);
   expect(color.alert).toBeTruthy();
   expect(color.select).toMatch(/rgba/);
@@ -16,12 +16,12 @@ test('theme exports core tokens', () => {
   expect(fontDisplay).toMatch(/IBM Plex Sans/);
   expect(font).not.toMatch(/^system-ui/);
   expect(fontLcd).toMatch(/IBM Plex Mono/);
-  expect(STYLE_CHASSIS).toBe("acid-device-20260918");
+  expect(STYLE_CHASSIS).toBe("aqua-device-20260918");
   expect(type.title2.fontWeight).toBe(700);
   expect(sectionTitle.fontSize).toBe(22);
   expect(y2k.chromeBright).toBeTruthy();
   expect(y2k.chrome).toMatch(/#C5CAD3/i);
-  expect(y2k.cyan).toMatch(/#B8F24A/i);
+  expect(y2k.cyan).toMatch(/#1E6FE8/i);
   expect(y2k.artGradient).not.toMatch(/139,\s*92,\s*246|purple/i);
   expect(homeSpace.sectionGap).toBeLessThanOrEqual(32);
   expect(homeSpace.sectionGap).toBeGreaterThan(0);
@@ -44,7 +44,7 @@ test('radio module tokens are hardware-shaped', () => {
   expect(radio.moduleFace).toMatch(/linear-gradient/);
   expect(radio.glassFace || radio.moduleFace).toMatch(/linear-gradient/);
   expect(radio.tuneFace).toMatch(/linear-gradient/);
-  expect(radio.lcdFill).toMatch(/184,\s*242,\s*74/);
+  expect(radio.lcdFill).toMatch(/30,\s*111,\s*232/);
 });
 
 test('canvas is a dark digital studio', () => {

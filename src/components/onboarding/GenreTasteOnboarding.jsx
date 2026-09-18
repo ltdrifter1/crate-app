@@ -249,7 +249,7 @@ export default function GenreTasteOnboarding({
                   style={{
                     height: 6,
                     borderRadius: 4,
-                    background: "rgba(184,242,74,0.10)",
+                    background: "rgba(30,111,232,0.10)",
                     overflow: "hidden",
                   }}
                 >
@@ -259,7 +259,7 @@ export default function GenreTasteOnboarding({
                       width: `${row.pct}%`,
                       borderRadius: 4,
                       background:
-                        "linear-gradient(90deg, #B8F24A 0%, #D4FF6E 100%)",
+                        "linear-gradient(90deg, #1E6FE8 0%, #6FB4F8 100%)",
                     }}
                   />
                 </div>

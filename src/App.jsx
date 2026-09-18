@@ -587,7 +587,7 @@ const injectStyles = () => {
       box-shadow: 0 6px 16px rgba(0,0,0,0.28) !important;
     }
     .pmp-schedule-cell:hover {
-      border-color: rgba(184,242,74,0.35) !important;
+      border-color: rgba(30,111,232,0.35) !important;
       box-shadow: 0 6px 16px rgba(0,0,0,0.35) !important;
     }
     .pmp-dial-cell:hover {

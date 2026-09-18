@@ -2,7 +2,7 @@
 
 Planet MP3 Channel Surfing tiles, the idle Home hero, and Explore plates that reuse the same slots are **original illustrated icons** — not photographs.
 
-Style: simple MTV-era graphic shapes on a light iPod / iTunes 2000 palette (pearl, aqua, banana, pink, tangerine). No green. No type burned into the artwork. Not generated to look like real cameras or club photography.
+Style: simple black-and-white street stencils on wheatpaste paper. No colour, no photographs, no type burned into the artwork.
 
 **Not in this set:** catalog album covers from Firebase, brand lockups/mascot (original drawings), or user-uploaded art.
 
