@@ -123,7 +123,7 @@ function ChannelIdent({ bugLine, slug }) {
           letterSpacing: 0.08,
           color: color.accent,
           borderRight: "1px solid rgba(232,234,238,0.1)",
-          background: "rgba(184,242,74,0.1)",
+          background: "rgba(30,111,232,0.1)",
           whiteSpace: "nowrap",
         }}
       >
@@ -170,7 +170,7 @@ function ChromeIconButton({ label, icon, active = false, onClick, size = 42, ico
         cursor: "pointer",
         border: "1px solid rgba(232,234,238,0.12)",
         background: active
-          ? "linear-gradient(180deg, #D4FF6E 0%, #B8F24A 100%)"
+          ? "linear-gradient(180deg, #6FB4F8 0%, #1E6FE8 100%)"
           : "linear-gradient(180deg, rgba(255,255,255,0.1) 0%, rgba(16,18,24,0.9) 100%)",
         color: active ? color.onAccent : y2k.offWhite,
         boxShadow: "none",
@@ -361,7 +361,7 @@ export default function HeroPlayerCard({
           zIndex: 0,
           overflow: "hidden",
           background: `
-            radial-gradient(70% 80% at 18% 20%, ${track?.color ? `${track.color}33` : "rgba(184,242,74,0.1)"} 0%, transparent 58%),
+            radial-gradient(70% 80% at 18% 20%, ${track?.color ? `${track.color}33` : "rgba(30,111,232,0.1)"} 0%, transparent 58%),
             linear-gradient(180deg, rgba(255,255,255,0.04) 0%, rgba(8,10,14,0.35) 100%)
           `,
         }}
@@ -696,7 +696,7 @@ export default function HeroPlayerCard({
                     style={{
                       height: "100%",
                       width: `${pct * 100}%`,
-                      background: "linear-gradient(90deg, #9AD62E 0%, #B8F24A 100%)",
+                      background: "linear-gradient(90deg, #1470D4 0%, #1E6FE8 100%)",
                       borderRadius: 999,
                       boxShadow: "none",
                       transition: "width 0.2s linear",
@@ -750,7 +750,7 @@ export default function HeroPlayerCard({
                 border: "none",
                 background: playDisabled
                   ? "rgba(42,46,56,0.85)"
-                  : "linear-gradient(180deg, #D4FF6E 0%, #B8F24A 100%)",
+                  : "linear-gradient(180deg, #6FB4F8 0%, #1E6FE8 100%)",
                 color: playDisabled ? color.muted : color.onAccent,
                 fontFamily: fontDisplay,
                 fontSize: 16,
@@ -764,7 +764,7 @@ export default function HeroPlayerCard({
                 gap: 8,
                 boxShadow: playDisabled
                   ? "none"
-                  : "inset 0 1px 0 rgba(255,255,255,0.35), 0 6px 16px rgba(184,242,74,0.22)",
+                  : "inset 0 1px 0 rgba(255,255,255,0.35), 0 6px 16px rgba(30,111,232,0.22)",
                 opacity: playDisabled ? 0.6 : 1,
               }}
             >

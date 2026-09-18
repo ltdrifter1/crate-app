@@ -16,7 +16,7 @@ import heroIdle from "../assets/editorial/hero-idle.png";
 
 /**
  * Original Channel Surfing icons (hashed URLs in production).
- * Flat MTV-'90s / iTunes-2000 pictograms — not photographs.
+ * Simple black-and-white street stencils — not photographs.
  * Channel Surfing must not depend on /channels/* existing on the host.
  */
 export const CHANNEL_ART = {

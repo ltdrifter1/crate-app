@@ -17,7 +17,7 @@ describe("original channel icons", () => {
     });
   });
 
-  test("idle hero is an original iPod icon", () => {
+  test("idle hero is an original iPod stencil", () => {
     expect(HERO_IDLE_ART).toBeTruthy();
     expect(HERO_IDLE_FOCUS).toMatch(/%/);
   });
