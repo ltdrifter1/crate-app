@@ -3,6 +3,7 @@ import { createRoot } from "react-dom/client";
 import { act } from "react-dom/test-utils";
 import { LcdMetaLine, LcdTitle, formatBitrate, trackLcdBits } from "./DeviceChrome";
 import { EnergyShiftPaddles } from "../listen/EnergyShiftButton";
+import { playerEnergyStore } from "../../lib/playerEnergyStore";
 
 test("trackLcdBits prefers BPM, Camelot, energy", () => {
   expect(trackLcdBits({
@@ -33,6 +34,7 @@ test("formatBitrate prefers a real kbps readout", () => {
 });
 
 test("LcdMetaLine joins bits", async () => {
+  playerEnergyStore._resetForTests();
   const div = document.createElement("div");
   document.body.appendChild(div);
   const root = createRoot(div);
@@ -41,11 +43,28 @@ test("LcdMetaLine joins bits", async () => {
   });
   expect(div.textContent).toMatch(/124 BPM/);
   expect(div.textContent).toMatch(/8A/);
+  expect(div.textContent).not.toMatch(/LIFT|EASE/);
   await act(async () => root.unmount());
   document.body.removeChild(div);
 });
 
-test("EnergyShiftPaddles expose turtle and bunny controls", async () => {
+test("LcdMetaLine shows LIFT when pace is steering upcoming picks", async () => {
+  playerEnergyStore._resetForTests();
+  playerEnergyStore.shiftEnergy(1, 10);
+  const div = document.createElement("div");
+  document.body.appendChild(div);
+  const root = createRoot(div);
+  await act(async () => {
+    root.render(React.createElement(LcdMetaLine, { bits: ["124 BPM"] }));
+  });
+  expect(div.textContent).toMatch(/124 BPM/);
+  expect(div.textContent).toMatch(/LIFT/);
+  await act(async () => root.unmount());
+  playerEnergyStore._resetForTests();
+  document.body.removeChild(div);
+});
+
+test("EnergyShiftPaddles expose Ease and Lift pace controls", async () => {
   const div = document.createElement("div");
   document.body.appendChild(div);
   const root = createRoot(div);
@@ -54,10 +73,12 @@ test("EnergyShiftPaddles expose turtle and bunny controls", async () => {
   });
   const buttons = [...div.querySelectorAll("button")];
   expect(buttons.length).toBeGreaterThanOrEqual(2);
-  expect(buttons.some((b) => /turtle/i.test(b.getAttribute("aria-label") || ""))).toBe(true);
-  expect(buttons.some((b) => /bunny/i.test(b.getAttribute("aria-label") || ""))).toBe(true);
-  expect(div.textContent).toMatch(/Turtle/i);
-  expect(div.textContent).toMatch(/Bunny/i);
+  expect(buttons.some((b) => /ease upcoming/i.test(b.getAttribute("aria-label") || ""))).toBe(true);
+  expect(buttons.some((b) => /lift upcoming/i.test(b.getAttribute("aria-label") || ""))).toBe(true);
+  expect(div.textContent).toMatch(/Ease/i);
+  expect(div.textContent).toMatch(/Lift/i);
+  expect(div.textContent).not.toMatch(/Turtle/i);
+  expect(div.textContent).not.toMatch(/Bunny/i);
   await act(async () => root.unmount());
   document.body.removeChild(div);
 });

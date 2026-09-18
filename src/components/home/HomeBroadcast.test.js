@@ -178,7 +178,7 @@ describe("Home broadcast + four-tab IA", () => {
     expect(div.querySelector(".pmp-hero-wash")).toBeTruthy();
   });
 
-  test("live hero has turtle/bunny paddles and dislike, not a Request button", async () => {
+  test("live hero has Ease/Lift paddles and dislike, not a Request button", async () => {
     await act(async () => {
       root.render(
         React.createElement(HeroPlayerCard, {
@@ -195,8 +195,8 @@ describe("Home broadcast + four-tab IA", () => {
       );
     });
     expect(div.textContent).not.toMatch(/\bRequest\b/);
-    expect(div.querySelector('[aria-label*="Turtle"]')).toBeTruthy();
-    expect(div.querySelector('[aria-label*="Bunny"]')).toBeTruthy();
+    expect(div.querySelector('[aria-label*="Ease upcoming"]')).toBeTruthy();
+    expect(div.querySelector('[aria-label*="Lift upcoming"]')).toBeTruthy();
     expect(div.querySelector('[aria-label="Dislike this track"]')).toBeTruthy();
   });
 

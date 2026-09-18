@@ -1,7 +1,7 @@
 /**
  * ImmersivePlayer — alternate-2003 MP3 device.
  * Artwork window + LCD (title, BPM, Camelot, seek) + hardware transport
- * with Turtle / Bunny paddles. Booth tools stay in a drawer.
+ * with Ease / Lift pace paddles. Booth tools stay in a drawer.
  */
 import { useEffect, useRef, useState } from "react";
 import {
