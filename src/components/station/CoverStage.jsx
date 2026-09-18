@@ -5,7 +5,7 @@ import BrandTagline from "../brand/BrandTagline";
 import {
   EnergyShiftFeedback,
   EnergyShiftModeChip,
-  EnergyShiftControl,
+  EnergyShiftButton,
 } from "../listen/EnergyShiftButton";
 import { OrbitalPlayControl } from "../player/OrbitalControls";
 import {
@@ -497,8 +497,11 @@ export default function CoverStage({
                   right: 0,
                   top: "50%",
                   transform: "translateY(-50%)",
+                  display: "flex",
+                  gap: 6,
                 }}>
-                  <EnergyShiftControl size={40} stopPropagation={false} />
+                  <EnergyShiftButton direction="down" size={40} stopPropagation={false} />
+                  <EnergyShiftButton direction="up" size={40} stopPropagation={false} />
                 </div>
               </div>
 
@@ -652,8 +655,11 @@ export default function CoverStage({
                   right: 0,
                   top: "50%",
                   transform: "translateY(-50%)",
+                  display: "flex",
+                  gap: 6,
                 }}>
-                  <EnergyShiftControl size={40} stopPropagation={false} />
+                  <EnergyShiftButton direction="down" size={40} stopPropagation={false} />
+                  <EnergyShiftButton direction="up" size={40} stopPropagation={false} />
                 </div>
               </div>
 

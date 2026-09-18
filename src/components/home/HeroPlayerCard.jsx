@@ -7,6 +7,7 @@ import {
   fontMono,
   homeSpace,
   y2k,
+  BTN_PRIMARY,
 } from "../../theme";
 import { usePlayerPlayback } from "../../usePlayerPlayback";
 import { useIsBuffering, useIsPlaying } from "../../usePlayerTransport";
@@ -19,18 +20,20 @@ import { trackHasVideo } from "../../lib/video";
 import Icon from "../ui/Icon";
 import CoverImage from "../ui/CoverImage";
 import { IceOrbPlay } from "../player/OrbitalControls";
-import { EnergyShiftControl } from "../listen/EnergyShiftButton";
+import { EnergyShiftButton } from "../listen/EnergyShiftButton";
 import { HERO_IDLE_ART, HERO_IDLE_FOCUS } from "../../lib/channelArt";
 import ScanlineWash from "./ScanlineWash";
+import {
+  DeviceCatalogMark,
+  HardwareIconButton,
+  LcdMetaLine,
+  LcdPanel,
+  LcdSeek,
+  LcdTimes,
+  trackLcdBits,
+} from "../player/DeviceChrome";
 
 const VideoStage = lazy(() => import("../station/VideoStage"));
-
-function fmtTime(secs = 0) {
-  if (!Number.isFinite(secs) || secs < 0) secs = 0;
-  const m = Math.floor(secs / 60);
-  const s = Math.floor(secs % 60);
-  return `${m}:${String(s).padStart(2, "0")}`;
-}
 
 function MetaChip({ children }) {
   if (!children) return null;
@@ -124,7 +127,7 @@ function ChannelIdent({ bugLine, slug }) {
           letterSpacing: 0.08,
           color: color.accent,
           borderRight: "1px solid rgba(232,234,238,0.1)",
-          background: "rgba(30,111,232,0.1)",
+          background: color.accentSoft,
           whiteSpace: "nowrap",
         }}
       >
@@ -152,34 +155,15 @@ function ChannelIdent({ bugLine, slug }) {
 
 function ChromeIconButton({ label, icon, active = false, onClick, size = 42, iconSize = 16 }) {
   return (
-    <button
-      type="button"
-      aria-label={label}
-      aria-pressed={active || undefined}
-      onClick={(e) => {
-        e.stopPropagation();
-        onClick?.();
-      }}
-      className="pmp-press"
-      style={{
-        width: size,
-        height: size,
-        borderRadius: 8,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        cursor: "pointer",
-        border: "1px solid rgba(232,234,238,0.12)",
-        background: active
-          ? "linear-gradient(180deg, #6FB4F8 0%, #1E6FE8 100%)"
-          : "linear-gradient(180deg, rgba(255,255,255,0.1) 0%, rgba(16,18,24,0.9) 100%)",
-        color: active ? color.onAccent : y2k.offWhite,
-        boxShadow: "none",
-        flexShrink: 0,
-      }}
+    <HardwareIconButton
+      label={label}
+      active={active}
+      size={size}
+      stopPropagation
+      onClick={onClick}
     >
       <Icon name={icon} size={iconSize} />
-    </button>
+    </HardwareIconButton>
   );
 }
 
@@ -189,7 +173,7 @@ function JewelSleeve({ src, idleSrc, playing, eager = false, size = 148 }) {
     <span
       className="pmp-hero-sleeve"
       style={{
-        ...artFrameStyle({ size, radius: 8, active: playing }),
+        ...artFrameStyle({ size, radius: 6, active: playing }),
         flexShrink: 0,
         boxShadow: playing ? artShadow.active : artShadow.raised,
       }}
@@ -251,8 +235,8 @@ function JewelSleeve({ src, idleSrc, playing, eager = false, size = 148 }) {
 }
 
 /**
- * HeroPlayerCard — Home now-playing.
- * Music.app featured cut: cover-first, soft container, restrained chrome.
+ * HeroPlayerCard — Home now-playing device.
+ * Artwork window + LCD metadata + Turtle/Bunny transport.
  */
 export default function HeroPlayerCard({
   track = null,
@@ -292,8 +276,11 @@ export default function HeroPlayerCard({
   const artist = live ? track.artist : idleArtist;
   const album = displayTrack?.album;
   const genre = displayTrack?.genre;
-  const bpm = displayTrack?.bpm;
-  const pct = duration > 0 ? Math.min(1, progress / duration) : 0;
+  const lcdBits = trackLcdBits(displayTrack, [
+    album || null,
+    genre || null,
+    hasVideo ? "Video" : null,
+  ]);
 
   useEffect(() => {
     if (!onVisibilityChange) return undefined;
@@ -362,7 +349,7 @@ export default function HeroPlayerCard({
           zIndex: 0,
           overflow: "hidden",
           background: `
-            radial-gradient(70% 80% at 18% 20%, ${track?.color ? `${track.color}33` : "rgba(30,111,232,0.1)"} 0%, transparent 58%),
+            radial-gradient(70% 80% at 18% 20%, ${track?.color ? `${track.color}33` : color.accentSoft} 0%, transparent 58%),
             linear-gradient(180deg, rgba(255,255,255,0.04) 0%, rgba(8,10,14,0.35) 100%)
           `,
         }}
@@ -416,6 +403,7 @@ export default function HeroPlayerCard({
               Video
             </span>
           )}
+          <DeviceCatalogMark />
           <ChannelIdent bugLine={bugLine} slug={channelBug.slug} />
         </div>
       </div>
@@ -461,7 +449,7 @@ export default function HeroPlayerCard({
             idleSrc={art ? null : HERO_IDLE_ART}
             playing={live && isPlaying}
             eager={!!art}
-            size={220}
+            size={240}
           />
         )}
 
@@ -476,6 +464,7 @@ export default function HeroPlayerCard({
             animation: "trackSwap 0.35s ease both",
           }}
         >
+          <LcdPanel live={live && isPlaying} style={{ padding: "10px 12px 12px" }}>
           <div
             style={{
               display: "inline-flex",
@@ -490,18 +479,18 @@ export default function HeroPlayerCard({
                 width: 4,
                 height: 4,
                 borderRadius: "50%",
-                background: y2k.offWhite,
-                opacity: 0.55,
+                background: live ? color.accent : y2k.offWhite,
+                opacity: 0.85,
               }}
             />
             <div
               style={{
-                fontFamily: fontDisplay,
-                fontSize: 13,
-                fontWeight: 600,
-                letterSpacing: -0.12,
-                textTransform: "none",
-                color: color.muted,
+                fontFamily: fontMono,
+                fontSize: 11,
+                fontWeight: 700,
+                letterSpacing: 0.12,
+                textTransform: "uppercase",
+                color: color.accent,
               }}
             >
               {live ? (isRadioMode ? "On air" : "Now playing") : idleEyebrow}
@@ -512,17 +501,17 @@ export default function HeroPlayerCard({
             style={{
               fontFamily: fontDisplay,
               fontStyle: "normal",
-              fontSize: "clamp(24px, 5.6vw, 36px)",
+              fontSize: "clamp(22px, 5vw, 32px)",
               fontWeight: 700,
-              letterSpacing: -0.7,
-              lineHeight: 1.02,
+              letterSpacing: -0.6,
+              lineHeight: 1.05,
               color: y2k.offWhite,
-              textShadow: "none",
               overflow: "hidden",
               textOverflow: "ellipsis",
               display: "-webkit-box",
               WebkitLineClamp: 2,
               WebkitBoxOrient: "vertical",
+              paddingRight: 12,
             }}
           >
             {title}
@@ -541,20 +530,10 @@ export default function HeroPlayerCard({
             {artist}
           </div>
 
-          <div
-            style={{
-              marginTop: 12,
-              display: "flex",
-              flexWrap: "wrap",
-              gap: 6,
-            }}
-          >
-            {album ? <MetaChip>{album}</MetaChip> : null}
-            {genre ? <MetaChip>{genre}</MetaChip> : null}
-            {bpm ? <MetaChip>{Math.round(Number(bpm))} BPM</MetaChip> : null}
-            {live ? <MetaChip>Stereo</MetaChip> : <MetaChip>{STATION_CALLSIGN} Live</MetaChip>}
-            {hasVideo ? <MetaChip>Music video</MetaChip> : null}
+          <div style={{ marginTop: 10 }}>
+            <LcdMetaLine bits={lcdBits} />
           </div>
+          </LcdPanel>
 
           {live && upNextTrack?.title && (
             <div
@@ -648,92 +627,48 @@ export default function HeroPlayerCard({
           }}
         >
           {live ? (
-            <>
-              <ChromeIconButton label="Previous" icon="prev" onClick={onPrev} />
-              <IceOrbPlay
-                isPlaying={isPlaying}
-                buffering={isBuffering}
-                onClick={onTogglePlay}
-                size={52}
-                glowing={isPlaying && !isBuffering}
-                stopPropagation
-              />
-              <ChromeIconButton label="Next" icon="skip" onClick={onSkip} />
-              <div
-                role={onSeek && duration ? "slider" : undefined}
-                aria-label={onSeek && duration ? "Seek" : undefined}
-                aria-valuemin={onSeek && duration ? 0 : undefined}
-                aria-valuemax={onSeek && duration ? Math.floor(duration) : undefined}
-                aria-valuenow={onSeek && duration ? Math.floor(progress) : undefined}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  if (!onSeek || !duration) return;
-                  const rect = e.currentTarget.getBoundingClientRect();
-                  const x = (e.clientX - rect.left) / Math.max(1, rect.width);
-                  onSeek(Math.max(0, Math.min(1, x)) * duration);
-                }}
-                style={{
-                  flex: "1 1 140px",
-                  minWidth: 120,
-                  height: onSeek && duration ? 14 : 12,
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 10,
-                  cursor: onSeek && duration ? "pointer" : "default",
-                }}
-              >
-                <div
-                  aria-hidden="true"
-                  style={{
-                    flex: 1,
-                    height: 4,
-                    borderRadius: 999,
-                    background: "rgba(232,234,238,0.12)",
-                    overflow: "hidden",
-                    boxShadow: "none",
-                  }}
-                >
-                  <div
-                    style={{
-                      height: "100%",
-                      width: `${pct * 100}%`,
-                      background: "linear-gradient(90deg, #1470D4 0%, #1E6FE8 100%)",
-                      borderRadius: 999,
-                      boxShadow: "none",
-                      transition: "width 0.2s linear",
-                    }}
-                  />
-                </div>
-                <span
-                  style={{
-                    fontFamily: fontDisplay,
-                    fontSize: 12,
-                    fontVariantNumeric: "tabular-nums",
-                    color: "rgba(244,246,248,0.55)",
-                    letterSpacing: -0.08,
-                    flexShrink: 0,
-                  }}
-                >
-                  {fmtTime(progress)}
-                  {duration ? ` / ${fmtTime(duration)}` : ""}
-                </span>
-              </div>
-              <ChromeIconButton
-                label={track.liked ? "Unlike" : "Like"}
-                icon={track.liked ? "heart" : "heartempty"}
-                active={!!track.liked}
-                onClick={() => onLike?.(track.id)}
-              />
-              {onDislike && (
-                <ChromeIconButton
-                  label="Dislike this track"
-                  icon={track.disliked ? "dislikefilled" : "dislike"}
-                  active={!!track.disliked}
-                  onClick={() => onDislike()}
+            <div style={{ display: "flex", flexDirection: "column", gap: 8, width: "100%" }}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, flexWrap: "wrap" }}>
+                <EnergyShiftButton direction="down" size={40} stopPropagation showLabel={false} />
+                <ChromeIconButton label="Previous" icon="prev" onClick={onPrev} />
+                <IceOrbPlay
+                  isPlaying={isPlaying}
+                  buffering={isBuffering}
+                  onClick={onTogglePlay}
+                  size={52}
+                  glowing={isPlaying && !isBuffering}
+                  stopPropagation
                 />
-              )}
-              <EnergyShiftControl size={40} stopPropagation={false} />
-            </>
+                <ChromeIconButton label="Next" icon="skip" onClick={onSkip} />
+                <EnergyShiftButton direction="up" size={40} stopPropagation showLabel={false} />
+              </div>
+              <div onClick={(e) => e.stopPropagation()} style={{ width: "100%" }}>
+                <LcdSeek
+                  value={progress}
+                  max={duration || 1}
+                  onChange={onSeek}
+                  label="Seek"
+                  stopPropagation
+                />
+                <LcdTimes progress={progress} duration={duration} />
+              </div>
+              <div style={{ display: "flex", justifyContent: "center", gap: 8 }}>
+                <ChromeIconButton
+                  label={track.liked ? "Unlike" : "Like"}
+                  icon={track.liked ? "heart" : "heartempty"}
+                  active={!!track.liked}
+                  onClick={() => onLike?.(track.id)}
+                />
+                {onDislike && (
+                  <ChromeIconButton
+                    label="Dislike this track"
+                    icon={track.disliked ? "dislikefilled" : "dislike"}
+                    active={!!track.disliked}
+                    onClick={() => onDislike()}
+                  />
+                )}
+              </div>
+            </div>
           ) : (
             <button
               type="button"
@@ -745,28 +680,15 @@ export default function HeroPlayerCard({
               }}
               className="pmp-press play-primary"
               style={{
+                ...BTN_PRIMARY,
+                width: "auto",
                 height: 44,
                 padding: "0 22px",
-                borderRadius: 8,
-                border: "none",
-                background: playDisabled
-                  ? "rgba(42,46,56,0.85)"
-                  : "linear-gradient(180deg, #6FB4F8 0%, #1E6FE8 100%)",
-                color: playDisabled ? color.muted : color.onAccent,
-                fontFamily: fontDisplay,
-                fontSize: 16,
-                fontWeight: 600,
-                fontStyle: "normal",
-                letterSpacing: -0.2,
-                textTransform: "none",
+                opacity: playDisabled ? 0.6 : 1,
                 cursor: playDisabled ? "default" : "pointer",
                 display: "flex",
                 alignItems: "center",
                 gap: 8,
-                boxShadow: playDisabled
-                  ? "none"
-                  : "inset 0 1px 0 rgba(255,255,255,0.35), 0 6px 16px rgba(30,111,232,0.22)",
-                opacity: playDisabled ? 0.6 : 1,
               }}
             >
               <Icon name="play" size={15} />

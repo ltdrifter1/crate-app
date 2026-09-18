@@ -3,11 +3,11 @@
 // the background; the UI only dispatches increaseEnergy() / decreaseEnergy().
 
 import React, { useEffect, useRef, useState } from "react";
-import { color, glass, fontMono, hardware, hardwareKey } from "../../theme";
+import { color, glass, fontMono, hardware, hardwareKey, motion } from "../../theme";
 import { useEnergyQueue } from "../../useEnergyQueue";
 import FlaskMark from "./FlaskMark";
 
-const PRESS_EASE = "cubic-bezier(0.34, 1.4, 0.64, 1)";
+const PRESS_EASE = motion.ease;
 const LONG_PRESS_MS = 450;
 const PILL_MS = 1500;
 const CHIP_MS = 3200;
@@ -41,11 +41,16 @@ function TurtleIcon({ size = 15 }) {
 }
 
 /**
- * One energy-shift control. direction: "up" (rabbit) | "down" (turtle).
+ * One energy-shift paddle. direction: "up" (bunny) | "down" (turtle).
  * Tap = ±10 BPM · long-press = ±5 / ±10 / ±20.
- * showLabel: tiny Lift/Ease caption under the icon (Cover Stage).
+ * showLabel: TURTLE / BUNNY + ±10 BPM under the key.
  */
-export function EnergyShiftButton({ direction = "up", size = 30, stopPropagation = true, showLabel = false }) {
+export function EnergyShiftButton({
+  direction = "up",
+  size = 44,
+  stopPropagation = true,
+  showLabel = false,
+}) {
   const up = direction === "up";
   const { increaseEnergy, decreaseEnergy, energyShift } = useEnergyQueue();
   const [pressed, setPressed] = useState(false);
@@ -94,9 +99,9 @@ export function EnergyShiftButton({ direction = "up", size = 30, stopPropagation
     <span style={{ position: "relative", display: "inline-flex", flexDirection: "column", alignItems: "center", gap: showLabel ? 4 : 0 }}>
       <button
         type="button"
-        aria-label={up ? "Energy shift — lift the pace of upcoming tracks" : "Energy shift — ease the pace of upcoming tracks"}
+        aria-label={up ? "Bunny — speed up upcoming tracks by 10 BPM" : "Turtle — slow down upcoming tracks by 10 BPM"}
         aria-pressed={activeHere}
-        title={up ? "Lift — next picks get livelier" : "Ease — next picks slow down"}
+        title={up ? "Bunny — next picks get livelier (+10 BPM)" : "Turtle — next picks slow down (−10 BPM)"}
         onPointerDown={startPress}
         onPointerUp={endPress}
         onPointerLeave={(e) => { if (pressed) endPress(e, true); setHovered(false); }}
@@ -107,29 +112,30 @@ export function EnergyShiftButton({ direction = "up", size = 30, stopPropagation
         onClick={(e) => { if (stopPropagation) e.stopPropagation(); }}
         onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); dispatch(10); } }}
         style={{
+          ...hardwareKey({ pressed: pressed || activeHere, size: "md" }),
           width: size,
           height: size,
-          borderRadius: "50%",
+          minHeight: size,
+          padding: 0,
+          borderRadius: 8,
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
           cursor: "pointer",
-          color: activeHere ? color.ink : color.muted,
-          background: activeHere
-            ? `linear-gradient(180deg, rgba(40,45,53,0.82) 0%, rgba(28,32,38,0.55) 100%)`
-            : glass.fillStrong,
-          border: `1px solid ${activeHere ? color.lineStrong : glass.border}`,
-          backdropFilter: glass.blurSoft,
-          WebkitBackdropFilter: glass.blurSoft,
-          boxShadow: hovered || activeHere
-            ? `inset 0 1px 0 ${glass.highlight}, 0 0 0 3px ${color.accentSoft}, 0 4px 14px rgba(0,0,0,0.4)`
-            : `inset 0 1px 0 ${glass.highlight}, ${glass.shadowSoft}`,
-          transform: pressed ? "scale(0.88)" : hovered ? "scale(1.06)" : "scale(1)",
-          transition: `transform 0.28s ${PRESS_EASE}, box-shadow 0.35s ease, color 0.2s ease, border-color 0.2s ease`,
+          color: activeHere ? color.accent : color.ink,
+          border: `1px solid ${activeHere ? color.accentGlow : "rgba(232,234,238,0.14)"}`,
+          boxShadow: activeHere
+            ? `${hardware.keyPressed}, 0 0 0 2px ${color.accentSoft}`
+            : hovered
+              ? `${hardware.keyRaised}, 0 0 0 2px ${color.accentSoft}`
+              : hardware.keyRaised,
+          transform: pressed ? "translateY(1px)" : "none",
+          transition: `transform ${motion.fast} ${PRESS_EASE}, box-shadow ${motion.base} ${PRESS_EASE}, color ${motion.fast}`,
           WebkitTapHighlightColor: "transparent",
           touchAction: "manipulation",
-          padding: 0,
           flexShrink: 0,
+          backdropFilter: "none",
+          WebkitBackdropFilter: "none",
         }}
       >
         {up ? <RabbitIcon size={Math.round(size * 0.52)} /> : <TurtleIcon size={Math.round(size * 0.52)} />}
@@ -137,15 +143,19 @@ export function EnergyShiftButton({ direction = "up", size = 30, stopPropagation
 
       {showLabel && (
         <span aria-hidden="true" style={{
-          fontSize: 9,
-          fontWeight: 700,
-          letterSpacing: 0.8,
+          fontSize: 11,
+          fontWeight: 800,
+          letterSpacing: 0.12,
           textTransform: "uppercase",
           fontFamily: fontMono,
-          color: activeHere ? color.ink : color.faint,
-          lineHeight: 1,
+          color: activeHere ? color.accent : color.muted,
+          lineHeight: 1.1,
+          textAlign: "center",
         }}>
-          {up ? "Lift" : "Ease"}
+          {up ? "Bunny" : "Turtle"}
+          <span style={{ display: "block", fontSize: 10, letterSpacing: 0.08, marginTop: 2, color: color.faint }}>
+            {up ? "+10 BPM" : "−10 BPM"}
+          </span>
         </span>
       )}
 
@@ -162,8 +172,8 @@ export function EnergyShiftButton({ direction = "up", size = 30, stopPropagation
             gap: 6,
             whiteSpace: "nowrap",
             padding: "6px 11px",
-            borderRadius: 999,
-            background: "rgba(56,62,72,0.95)",
+            borderRadius: 8,
+            background: "rgba(16,18,24,0.96)",
             border: `1px solid ${glass.border}`,
             boxShadow: `inset 0 1px 0 ${glass.highlight}, 0 8px 22px rgba(0,0,0,0.4)`,
             backdropFilter: glass.blurSoft,
@@ -197,8 +207,8 @@ export function EnergyShiftButton({ direction = "up", size = 30, stopPropagation
             flexDirection: "column",
             minWidth: 118,
             padding: 4,
-            borderRadius: 12,
-            background: "rgba(56,62,72,0.95)",
+            borderRadius: 8,
+            background: "rgba(12,14,18,0.96)",
             border: `1px solid ${glass.border}`,
             boxShadow: `inset 0 1px 0 ${glass.highlight}, 0 14px 34px rgba(0,0,0,0.45)`,
             backdropFilter: glass.blur,
@@ -222,7 +232,7 @@ export function EnergyShiftButton({ direction = "up", size = 30, stopPropagation
               onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(255,255,255,0.06)"; }}
               onMouseLeave={(e) => { e.currentTarget.style.background = "none"; }}
             >
-              <span>{up ? "Lift" : "Ease"}</span>
+              <span>{up ? "Bunny" : "Turtle"}</span>
               <span style={{ fontFamily: fontMono, fontSize: 11, color: color.muted }}>
                 {up ? "+" : "\u2212"}{step} BPM
               </span>
@@ -231,6 +241,40 @@ export function EnergyShiftButton({ direction = "up", size = 30, stopPropagation
         </div>
       )}
     </span>
+  );
+}
+
+/** Bookend paddles for the device transport row. */
+export function EnergyShiftPaddles({
+  size = 44,
+  stopPropagation = true,
+  showLabel = false,
+  gap = 0,
+}) {
+  return (
+    <div
+      role="group"
+      aria-label="Pace — turtle slows upcoming tracks, bunny speeds them up"
+      style={{
+        display: "inline-flex",
+        alignItems: "flex-end",
+        gap: gap || (showLabel ? 8 : 6),
+        flexShrink: 0,
+      }}
+    >
+      <EnergyShiftButton
+        direction="down"
+        size={size}
+        stopPropagation={stopPropagation}
+        showLabel={showLabel}
+      />
+      <EnergyShiftButton
+        direction="up"
+        size={size}
+        stopPropagation={stopPropagation}
+        showLabel={showLabel}
+      />
+    </div>
   );
 }
 

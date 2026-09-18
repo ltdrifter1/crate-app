@@ -38,9 +38,9 @@ export function IceOrbPlay({
         background: disabled
           ? "linear-gradient(180deg, #2A2E38 0%, #16181E 100%)"
           : glowing
-            ? "linear-gradient(180deg, #6FB4F8 0%, #1E6FE8 100%)"
+            ? `linear-gradient(180deg, ${color.accent} 0%, ${color.accent} 100%)`
             : "linear-gradient(180deg, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0.02) 48%, transparent 100%), linear-gradient(180deg, #2A2E38 0%, #16181E 100%)",
-        border: `1px solid ${glowing ? "rgba(30,111,232,0.55)" : "rgba(232,234,238,0.14)"}`,
+        border: `1px solid ${glowing ? color.accentGlow : "rgba(232,234,238,0.14)"}`,
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
@@ -50,7 +50,7 @@ export function IceOrbPlay({
         boxShadow: disabled
           ? "none"
           : glowing
-            ? "inset 0 1px 0 rgba(255,255,255,0.45), 0 0 0 4px rgba(30,111,232,0.18), 0 8px 18px rgba(0,0,0,0.4)"
+            ? `inset 0 1px 0 rgba(255,255,255,0.45), 0 0 0 4px ${color.accentSoft}, 0 8px 18px rgba(0,0,0,0.4)`
             : "inset 0 1px 0 rgba(255,255,255,0.14), inset 0 -1px 0 rgba(0,0,0,0.45), 0 6px 14px rgba(0,0,0,0.4)",
         transition: `transform ${motion.fast} ${motion.ease}, box-shadow ${motion.base} ${motion.ease}, background ${motion.fast} ${motion.ease}`,
       }}

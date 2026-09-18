@@ -1,19 +1,20 @@
 /**
- * Desktop sticky mini-player — subscribes to playback clock so App root
- * does not re-render on timeupdate.
+ * Desktop sticky mini-player — same device language as the dock / hero.
  */
 import {
-  fontDisplay, fontMono, color, dock, motion,
+  fontDisplay, color, dock, motion, radio,
 } from "../../theme";
 import { fmtTime } from "../../lib/harmony";
 import { usePlayerPlayback } from "../../usePlayerPlayback";
 import { useIsPlaying } from "../../usePlayerTransport";
-import { EnergyShiftFeedback, EnergyShiftControl } from "../listen/EnergyShiftButton";
+import { EnergyShiftFeedback, EnergyShiftButton } from "../listen/EnergyShiftButton";
 import FreePlaysMeter from "../billing/FreePlaysMeter";
 import { freePlaysMeterLabel } from "../../lib/freePlays";
 import Icon from "../ui/Icon";
-import { IceOrbPlay, OrbitalArtRing } from "./OrbitalControls";
+import { IceOrbPlay } from "./OrbitalControls";
 import { dockTintStyle } from "../../lib/dockTint";
+import CoverImage from "../ui/CoverImage";
+import { LcdMetaLine, LcdSeek, LcdTimes, trackLcdBits } from "./DeviceChrome";
 
 export default function DesktopMiniPlayer({
   track,
@@ -32,6 +33,7 @@ export default function DesktopMiniPlayer({
   const isPlaying = useIsPlaying();
   if (!track) return null;
   const playsLabel = freePlaysMeterLabel(playsRemaining, access);
+  const bits = trackLcdBits(track, [playsLabel]);
 
   return (
     <div style={{ position: "fixed", bottom: 12, left: 232, right: 348, zIndex: 80 }}>
@@ -56,17 +58,30 @@ export default function DesktopMiniPlayer({
           position: "relative",
           animation: `dockRise 0.4s ${motion.ease} both`,
           padding: "10px 16px",
+          background: radio.stripFace,
           ...dockTintStyle(track),
         }}
       >
-        <OrbitalArtRing
-          track={track}
-          progress={progress}
-          duration={duration}
-          size={44}
-          onSeek={onSeek}
-          artRadius={8}
-        />
+        <div
+          style={{
+            width: 48,
+            height: 48,
+            borderRadius: 6,
+            overflow: "hidden",
+            flexShrink: 0,
+            border: "1px solid rgba(232,234,238,0.12)",
+          }}
+        >
+          {track.albumCover ? (
+            <CoverImage
+              src={track.albumCover}
+              alt=""
+              width={48}
+              height={48}
+              style={{ width: "100%", height: "100%", objectFit: "cover" }}
+            />
+          ) : null}
+        </div>
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{
             fontSize: 14, fontWeight: 650, color: color.ink,
@@ -76,42 +91,31 @@ export default function DesktopMiniPlayer({
             {isRadioMode && (
               <span style={{
                 display: "inline-block", width: 6, height: 6, borderRadius: "50%",
-                background: color.accent, marginRight: 8, verticalAlign: "middle",
-                boxShadow: isPlaying ? `0 0 0 3px ${color.accentSoft}` : "none",
+                background: color.alert, marginRight: 8, verticalAlign: "middle",
                 animation: isPlaying ? "breathe 2s ease-in-out infinite" : "none",
               }} />
             )}
             {track.title}
           </div>
           <div style={{
-            fontSize: 11, color: color.muted, marginTop: 2,
-            display: "flex", alignItems: "center", gap: 8,
-            overflow: "hidden",
+            fontSize: 12, color: color.muted, marginTop: 2,
+            overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
           }}>
-            <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-              {track.artist}
-            </span>
-            {playsLabel && (
-              <span style={{
-                flexShrink: 0,
-                fontFamily: fontMono,
-                fontSize: 10,
-                fontWeight: 700,
-                letterSpacing: 0.6,
-                textTransform: "uppercase",
-                color: color.faint,
-              }}>
-                {playsLabel}
-              </span>
-            )}
+            {track.artist}
+          </div>
+          <LcdMetaLine bits={bits} />
+          <div onClick={(e) => e.stopPropagation()} style={{ marginTop: 4 }}>
+            <LcdSeek
+              value={progress}
+              max={duration || 1}
+              onChange={onSeek}
+              label="Seek"
+              stopPropagation
+              height={4}
+            />
+            <LcdTimes progress={progress} duration={duration} />
           </div>
         </div>
-        <span style={{
-          fontSize: 10, color: color.faint, fontFamily: fontMono,
-          fontVariantNumeric: "tabular-nums", flexShrink: 0, letterSpacing: 0.2,
-        }}>
-          {fmtTime(progress)}{duration ? ` / ${fmtTime(duration)}` : ""}
-        </span>
         <button
           type="button"
           aria-label={track.liked ? "Unlike" : "Like"}
@@ -123,34 +127,24 @@ export default function DesktopMiniPlayer({
         >
           <Icon name={track.liked ? "heart" : "heartempty"} size={16} />
         </button>
+        <EnergyShiftButton direction="down" size={36} />
+        <IceOrbPlay
+          isPlaying={isPlaying}
+          onClick={onTogglePlay}
+          size={40}
+          iconSize={16}
+          stopPropagation
+          glowing={isPlaying}
+        />
         <button
           type="button"
-          aria-label="Dislike this track"
-          onClick={(e) => { e.stopPropagation(); onDislike?.(); }}
-          style={{
-            background: "none", border: "none", cursor: "pointer",
-            color: track.disliked ? color.alert : color.faint, padding: 4,
-          }}
+          onClick={(e) => { e.stopPropagation(); onSkip(); }}
+          aria-label="Next"
+          style={{ background: "none", border: "none", cursor: "pointer", color: color.ink, padding: 4 }}
         >
-          <Icon name={track.disliked ? "dislikefilled" : "dislike"} size={16} />
+          <Icon name="skip" size={16} />
         </button>
-        <span style={{ display: "inline-flex", alignItems: "center", gap: 4, opacity: 0.85 }}>
-          <IceOrbPlay
-            isPlaying={isPlaying}
-            onClick={onTogglePlay}
-            size={36}
-            iconSize={15}
-            stopPropagation
-          />
-          <button
-            type="button"
-            onClick={(e) => { e.stopPropagation(); onSkip(); }}
-            style={{ background: "none", border: "none", cursor: "pointer", color: color.muted, padding: 4 }}
-          >
-            <Icon name="skip" size={16} />
-          </button>
-          <EnergyShiftControl size={30} />
-        </span>
+        <EnergyShiftButton direction="up" size={36} />
       </div>
     </div>
   );

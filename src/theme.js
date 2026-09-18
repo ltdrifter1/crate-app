@@ -89,6 +89,15 @@ export const type = {
     letterSpacing: 0,
     lineHeight: 1.25,
   },
+  /** Firmware / LCD metadata — BPM, key, time, catalog. */
+  lcd: {
+    fontFamily: fontMono,
+    fontSize: 11,
+    fontWeight: 700,
+    letterSpacing: 0.12,
+    lineHeight: 1.2,
+    textTransform: "uppercase",
+  },
   tileTitle: {
     fontFamily: font,
     fontSize: 13,
@@ -538,10 +547,10 @@ export const dock = {
   insetBottom: 12,
   radius: 16,
   tabH: 54,
-  playerH: 66,
+  playerH: 72,
   /** Content clearances (tabs only / with player), excluding safe-area. */
   clearTabs: 88,
-  clearPlayer: 176,
+  clearPlayer: 182,
 };
 
 /** Prefer radio.radius for media modules; keep these for sheets / legacy chrome. */

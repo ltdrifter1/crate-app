@@ -135,7 +135,8 @@ body::before { display: none; }
   from { transform: rotateX(64deg) rotateZ(-18deg); }
   to { transform: rotateX(64deg) rotateZ(342deg); }
 }
-@keyframes pmpSplashPulse {
-  0%, 100% { opacity: 0.42; }
-  50% { opacity: 0.92; }
+@keyframes pmpLcdPip {
+  0%, 100% { opacity: 0.45; }
+  50% { opacity: 1; }
 }
+.pmp-lcd-pip { animation: pmpLcdPip 1.6s ease-in-out infinite; }

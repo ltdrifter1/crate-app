@@ -4,7 +4,7 @@ import { trackHasVideo } from "../../lib/video";
 import ArtFrame from "../ui/ArtFrame";
 
 /**
- * TrackCard — App Store / Apple Music square tile.
+ * TrackCard — crate tile: jewel sleeve + title + artist.
  * Optional rank badge (countdown) and reason line (recommendations).
  */
 function TrackCard({
@@ -37,7 +37,7 @@ function TrackCard({
         src={track.albumCover || null}
         size={size}
         active={active}
-        radius={8}
+        radius={6}
       >
         {trackHasVideo(track) && (
           <span
@@ -48,7 +48,7 @@ function TrackCard({
               right: 8,
               height: 22,
               padding: "0 8px",
-              borderRadius: 11,
+              borderRadius: 4,
               background: "rgba(0,0,0,0.55)",
               display: "inline-flex",
               alignItems: "center",
@@ -73,7 +73,7 @@ function TrackCard({
               display: "inline-flex",
               alignItems: "center",
               justifyContent: "center",
-              borderRadius: 12,
+              borderRadius: 4,
               background: "rgba(0,0,0,0.55)",
               ...type.caption,
               fontWeight: 700,

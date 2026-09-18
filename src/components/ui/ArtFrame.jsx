@@ -2,7 +2,7 @@ import { artFrameStyle, color } from "../../theme";
 import CoverImage from "./CoverImage";
 
 /**
- * ArtFrame — Music.app sleeve: modest radius, soft shadow, no jewel bevel.
+ * ArtFrame — jewel-case sleeve: tight radius, raised shadow, acid/Aqua pip when playing.
  * Optional 2×2 mosaic when `covers` has 4+ URLs; otherwise single `src`.
  */
 export default function ArtFrame({
@@ -12,7 +12,7 @@ export default function ArtFrame({
   width = null,
   height = null,
   active = false,
-  radius = 8,
+  radius = 6,
   priority = false,
   eager = false,
   children = null,
