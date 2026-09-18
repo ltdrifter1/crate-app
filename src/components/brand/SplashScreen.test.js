@@ -2,58 +2,29 @@ import React from "react";
 import { createRoot } from "react-dom/client";
 import { act } from "react-dom/test-utils";
 
-jest.mock("lottie-react", () => {
-  return function MockLottie() {
-    return <div data-testid="splash-lottie" />;
-  };
-});
-
 import SplashScreen from "./SplashScreen";
-import placeholder from "./splash-loader.json";
 
 describe("SplashScreen", () => {
-  beforeEach(() => {
-    global.fetch = jest.fn(() =>
-      Promise.resolve({
-        ok: true,
-        json: () => Promise.resolve(placeholder),
-      })
-    );
-  });
-
-  afterEach(() => {
-    jest.restoreAllMocks();
-  });
-
   test("exports a splash loader", () => {
     expect(typeof SplashScreen).toBe("function");
   });
 
-  test("ships a replaceable splash-loader placeholder", () => {
-    expect(placeholder.nm).toMatch(/^PLACEHOLDER/);
-    expect(placeholder.w).toBe(512);
-    expect(placeholder.h).toBe(512);
-  });
-
-  test("renders lockup with visible Loading… indicator", async () => {
+  test("renders a spinning planet with Loading copy", async () => {
     const div = document.createElement("div");
     document.body.appendChild(div);
     const root = createRoot(div);
     await act(async () => {
-      root.render(<SplashScreen size={200} />);
-    });
-    await act(async () => {
-      await Promise.resolve();
+      root.render(<SplashScreen size={176} />);
     });
     const status = div.querySelector('[role="status"]');
     expect(status).toBeTruthy();
     expect(status.getAttribute("aria-busy")).toBe("true");
-    expect(status.style.background).toBe("transparent");
-    expect(div.textContent).toMatch(/Loading/i);
-    // Placeholder Lottie → static brand lockup
-    const img = div.querySelector("img");
-    expect(img).toBeTruthy();
-    expect(img.getAttribute("alt")).toMatch(/Planet/i);
+    expect(status.getAttribute("aria-label")).toBe("Loading");
+    expect(div.querySelector(".pmp-splash-label").textContent).toBe("Loading");
+    expect(div.textContent).not.toMatch(/On air/i);
+    expect(div.querySelector(".pmp-spin-planet")).toBeTruthy();
+    expect(div.querySelector(".pmp-spin-planet__map")).toBeTruthy();
+    expect(div.querySelector("img")).toBeNull();
     await act(async () => {
       root.unmount();
     });
