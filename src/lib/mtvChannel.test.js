@@ -333,12 +333,13 @@ describe("sceneChannels", () => {
     expect(getSceneChannel("electronic-underground")?.id).toBe("techno");
   });
 
-  test("channelCoverUrls prefers explicit art, not webpack photos", () => {
+  test("channelCoverUrls never returns pictograms as sleeves", () => {
     const techno = getSceneChannel("techno");
     expect(techno.art).toBeUndefined();
     expect(channelCoverUrls([], techno, 4)).toEqual([]);
-    expect(channelCoverUrls([], { ...techno, art: "/channels/techno.jpg" }, 4)).toEqual([
-      "/channels/techno.jpg",
+    expect(channelCoverUrls([], { ...techno, art: "/channels/techno.jpg" }, 4)).toEqual([]);
+    expect(channelCoverUrls([], { ...techno, covers: ["/channels/techno.jpg", "sleeve.jpg"] }, 4)).toEqual([
+      "sleeve.jpg",
     ]);
     expect(decorateSceneChannels([], 1)).toHaveLength(14);
     expect(decorateSceneChannels([], 1).some((c) => c.id === "downtempo")).toBe(true);

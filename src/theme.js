@@ -3,7 +3,7 @@
 // IBM Plex Sans + Mono (technical, not costume iTunes Lucida).
 
 /** Bump this when the visual OS changes. Copied into public/index.html + the shipped build. */
-export const STYLE_CHASSIS = "steel-chrome-20260918";
+export const STYLE_CHASSIS = "steel-sleeve-20260918";
 
 /** Chrome specular — cool pearl steel, never pure white. */
 const SPEC = "216, 223, 232";
@@ -157,6 +157,13 @@ export const color = {
   /** Chrome glyphs on the recessed LCD well */
   lcdInk: "#D8DFE8",
   lcdMute: "#A7B1BE",
+  /**
+   * LCD-only phosphor — seek fill, pip, selected key.
+   * Cool mint, never a page accent, never acid #B8F24A.
+   */
+  lcdPhosphor: "#7ED9B8",
+  lcdPhosphorSoft: "rgba(126, 217, 184, 0.28)",
+  lcdPhosphorGlow: "0 0 10px rgba(126, 217, 184, 0.55)",
 };
 
 /**
@@ -312,8 +319,8 @@ export const radio = {
     `inset 0 2px 4px rgba(${SHADE},0.28), inset 0 1px 0 rgba(${SHADE},0.16)`,
   lcdTrack: "rgba(61,70,84,0.28)",
   lcdFill:
-    "linear-gradient(90deg, #8B95A4 0%, #C5CDD8 70%, #D8DFE8 100%)",
-  lcdGlow: "0 0 10px rgba(168,178,192,0.45)",
+    "linear-gradient(90deg, #4E9A7A 0%, #7ED9B8 68%, #C8F5E4 100%)",
+  lcdGlow: "0 0 10px rgba(126, 217, 184, 0.55)",
   label: {
     fontFamily: font,
     fontSize: 13,
@@ -498,8 +505,8 @@ export const broadcast = {
   `,
   lcdTrack: "rgba(61,70,84,0.28)",
   lcdFill:
-    "linear-gradient(90deg, #8B95A4 0%, #C5CDD8 70%, #D8DFE8 100%)",
-  lcdGlow: "0 0 8px rgba(168,178,192,0.4)",
+    "linear-gradient(90deg, #4E9A7A 0%, #7ED9B8 68%, #C8F5E4 100%)",
+  lcdGlow: "0 0 8px rgba(126, 217, 184, 0.5)",
 };
 
 /** Hardware icon key — header / Explore / Charts. */

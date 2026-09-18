@@ -7,6 +7,20 @@ import { fmtTime } from "../../lib/harmony";
 import ScanlineWash from "../home/ScanlineWash";
 import Icon from "../ui/Icon";
 
+/** MP3 as format glyph; real kbps when the catalog has a number. */
+export function formatBitrate(track) {
+  const raw = track?.bitrate;
+  if (raw == null || raw === "") return "MP3";
+  const n = Number(raw);
+  if (Number.isFinite(n) && n > 0) return `${Math.round(n)} kbps`;
+  const s = String(raw).trim();
+  if (!s) return "MP3";
+  if (/kbps|mp3/i.test(s)) return s.replace(/\s+/g, " ");
+  const parsed = parseInt(s, 10);
+  if (Number.isFinite(parsed) && parsed > 0) return `${parsed} kbps`;
+  return s;
+}
+
 export function trackLcdBits(track, extra = []) {
   if (!track) return extra.filter(Boolean);
   return [
@@ -36,6 +50,7 @@ export function HardwareIconButton({
       }}
       aria-label={label}
       aria-pressed={pressed || active || undefined}
+      className="pmp-hw-key"
       style={{
         width: size,
         height: size,
@@ -50,7 +65,7 @@ export function HardwareIconButton({
           : hardware.keyFace,
         border: `1px solid ${lit ? color.accentGlow : "rgba(91,101,116,0.14)"}`,
         boxShadow: lit ? hardware.keyPressed : hardware.keyRaised,
-        transition: `transform ${motion.fast} ${motion.ease}, color ${motion.fast}, background ${motion.base}`,
+        transition: `transform ${motion.fast} ${motion.ease}, color ${motion.fast}, background ${motion.base}, box-shadow ${motion.fast}`,
         padding: 0,
         flexShrink: 0,
       }}
@@ -94,7 +109,7 @@ export function LcdSeek({
             width: `${pct}%`,
             borderRadius: 2,
             background: radio.lcdFill,
-            boxShadow: radio.lcdGlow,
+            boxShadow: radio.lcdGlow || color.lcdPhosphorGlow,
             transition: "width 0.08s linear",
           }}
         />
@@ -130,7 +145,8 @@ export function LcdSeek({
   );
 }
 
-export function LcdTimes({ progress = 0, duration = 0 }) {
+export function LcdTimes({ progress = 0, duration = 0, on = "lcd" }) {
+  const ink = on === "metal" ? color.accent : color.lcdInk;
   return (
     <div
       style={{
@@ -139,7 +155,7 @@ export function LcdTimes({ progress = 0, duration = 0 }) {
         ...type.lcd,
         fontVariantNumeric: "tabular-nums",
         letterSpacing: 0.08,
-        color: color.lcdInk,
+        color: ink,
         padding: "0 1px",
       }}
     >
@@ -149,13 +165,15 @@ export function LcdTimes({ progress = 0, duration = 0 }) {
   );
 }
 
-export function LcdMetaLine({ bits = [] }) {
+/** on: "lcd" = pearl on smoked well; "metal" = graphite on aluminum. */
+export function LcdMetaLine({ bits = [], on = "lcd" }) {
   if (!bits.length) return null;
+  const ink = on === "metal" ? color.accent : color.lcdInk;
   return (
     <div
       style={{
         ...type.lcd,
-        color: color.lcdInk,
+        color: ink,
         letterSpacing: 0.14,
         lineHeight: 1.35,
       }}
@@ -190,8 +208,8 @@ export function LcdPanel({ children, live = false, style = {} }) {
             width: 6,
             height: 6,
             borderRadius: "50%",
-            background: color.lcdInk,
-            boxShadow: `0 0 8px ${color.accentGlow}`,
+            background: color.lcdPhosphor,
+            boxShadow: color.lcdPhosphorGlow,
             zIndex: 2,
           }}
         />

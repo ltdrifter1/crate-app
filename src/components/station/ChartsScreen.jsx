@@ -62,7 +62,7 @@ export default function ChartsScreen({
           pointerEvents: "none",
           background: `
             radial-gradient(ellipse 80% 48% at 8% -10%, rgba(91,101,116,0.08) 0%, transparent 50%),
-            radial-gradient(ellipse 60% 36% at 100% 8%, rgba(111,191,58,0.06) 0%, transparent 46%)
+            radial-gradient(ellipse 60% 36% at 100% 8%, rgba(91,101,116,0.06) 0%, transparent 46%)
           `,
         }}
       />

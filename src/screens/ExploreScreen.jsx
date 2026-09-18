@@ -1,4 +1,6 @@
 import { useEffect, useMemo, useState, memo } from "react";
+import { runWhenIdle } from "../lib/afterPaint";
+import { catalogSleeveUrl } from "../lib/channelArt";
 import {
   chromeIconButton,
   color,
@@ -62,10 +64,10 @@ const EXPLORE_CSS = `
     transition: border-color ${"{base}"} ${"{ease}"}, background ${"{base}"}, box-shadow ${"{base}"};
   }
   .pmp-explore-search:hover {
-    border-color: rgba(28,32,40,0.16) !important;
+    border-color: rgba(61,70,84,0.2) !important;
     background: rgba(216,223,232,0.88) !important;
   }
-  .pmp-explore-chart-row:hover { background: rgba(28,32,40,0.04) !important; }
+  .pmp-explore-chart-row:hover { background: rgba(61,70,84,0.06) !important; }
   .pmp-explore-chart-row:active { transform: scale(0.992); }
   .pmp-releases {
     display: grid;
@@ -201,8 +203,8 @@ function ChartsTeaser({ rows = [], onPlayTrack, onOpenCharts, activeId }) {
                 boxShadow: activeId === track.id ? "0 0 0 1px rgba(247,248,250,0.7)" : "none",
               }}
             >
-              {track.albumCover ? (
-                <CoverImage src={track.albumCover} alt="" width={48} height={48} />
+              {catalogSleeveUrl(track.albumCover) ? (
+                <CoverImage src={catalogSleeveUrl(track.albumCover)} alt="" width={48} height={48} />
               ) : null}
             </span>
             <span style={{ minWidth: 0 }}>
@@ -339,14 +341,7 @@ function ExploreScreen({
 
   useEffect(() => {
     if (process.env.NODE_ENV === "test") return undefined;
-    let inner = 0;
-    const outer = requestAnimationFrame(() => {
-      inner = requestAnimationFrame(() => setDeepReady(true));
-    });
-    return () => {
-      cancelAnimationFrame(outer);
-      cancelAnimationFrame(inner);
-    };
+    return runWhenIdle(() => setDeepReady(true), { timeout: 480 });
   }, []);
 
   const genres = useMemo(() => exploreGenrePlates(tracks), [tracks]);
@@ -388,11 +383,11 @@ function ExploreScreen({
     () =>
       buildExploreHero({
         tracks,
-        channels: stations,
-        releases,
+        channels: [],
+        releases: [],
         countdown,
       }),
-    [tracks, stations, releases, countdown]
+    [tracks, countdown]
   );
 
   const focus = useMemo(
@@ -596,6 +591,7 @@ function ExploreScreen({
           delay={0.12}
           title="Stations"
           subtitle="Live from here"
+          featured
         />
       )}
 

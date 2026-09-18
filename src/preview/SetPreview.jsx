@@ -3,9 +3,16 @@
  */
 import SetBuilderScreen from "../components/set/SetBuilderScreen";
 import { CANONICAL_GENRES } from "../lib/genres";
-import { CHANNEL_ART } from "../lib/channelArt";
+import { previewSleeve } from "./sleeves";
 
-const COVERS = Object.values(CHANNEL_ART);
+const COVERS = [
+  previewSleeve("set-0", "Night Drive"),
+  previewSleeve("set-1", "Cascade"),
+  previewSleeve("set-2", "Iron Lung"),
+  previewSleeve("set-3", "Haze"),
+  previewSleeve("set-4", "Millennium"),
+  previewSleeve("set-5", "After Hours"),
+];
 
 export function makeSetPreviewCatalog() {
   return Array.from({ length: 48 }, (_, i) => ({

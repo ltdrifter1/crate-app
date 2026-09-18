@@ -23,6 +23,7 @@ const SAMPLE_TRACK = {
   disliked: false,
   duration: 214,
   bpm: 124,
+  bitrate: 320,
   energy: 6,
   camelot: "8A",
   genre: "Electronic",

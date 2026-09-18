@@ -7,7 +7,7 @@ import HomeBandHeader from "./HomeBandHeader";
 
 /**
  * Channel surfing — first Home destination band.
- * Equal station tiles; Local is not featured or haloed.
+ * First tile is art-forward and larger when `featured`; Local is not gold-haloed.
  * Sleeves lead; Channel pictograms sit as bugs on the tile.
  */
 function ChannelSurfingSection({

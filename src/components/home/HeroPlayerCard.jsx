@@ -31,6 +31,7 @@ import {
   LcdPanel,
   LcdSeek,
   LcdTimes,
+  formatBitrate,
   trackLcdBits,
 } from "../player/DeviceChrome";
 
@@ -278,7 +279,7 @@ export default function HeroPlayerCard({
   const album = displayTrack?.album;
   const genre = displayTrack?.genre;
   const lcdBits = trackLcdBits(displayTrack, [
-    displayTrack?.bitrate ? String(displayTrack.bitrate) : "MP3",
+    formatBitrate(displayTrack),
     album || null,
     genre || null,
     hasVideo ? "Video" : null,
@@ -351,7 +352,7 @@ export default function HeroPlayerCard({
           zIndex: 0,
           overflow: "hidden",
           background: `
-            radial-gradient(70% 80% at 18% 20%, ${track?.color ? `${track.color}33` : color.accentSoft} 0%, transparent 58%),
+            radial-gradient(70% 80% at 18% 20%, ${track?.color ? `${track.color}66` : color.accentSoft} 0%, transparent 62%),
             linear-gradient(180deg, rgba(216,223,232,0.28) 0%, rgba(74, 83, 96, 0.18) 100%)
           `,
         }}
@@ -485,6 +486,22 @@ export default function HeroPlayerCard({
                 opacity: 0.85,
               }}
             />
+            {!live && (
+              <span
+                aria-hidden="true"
+                style={{
+                  width: 18,
+                  height: 18,
+                  display: "block",
+                  backgroundImage: "url(/brand/planet-mascot.svg)",
+                  backgroundSize: "contain",
+                  backgroundRepeat: "no-repeat",
+                  backgroundPosition: "center",
+                  opacity: 0.92,
+                  flexShrink: 0,
+                }}
+              />
+            )}
             <div
               style={{
                 fontFamily: fontMono,
@@ -652,7 +669,7 @@ export default function HeroPlayerCard({
                   label="Seek"
                   stopPropagation
                 />
-                <LcdTimes progress={progress} duration={duration} />
+                <LcdTimes progress={progress} duration={duration} on="metal" />
               </div>
               <div style={{ display: "flex", justifyContent: "center", gap: 8 }}>
                 <ChromeIconButton

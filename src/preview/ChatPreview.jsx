@@ -10,18 +10,18 @@ import AppSidebar from "../components/layout/AppSidebar";
 import BottomNavigation from "../components/home/BottomNavigation";
 import { primaryNavItems } from "../lib/nav";
 import { SCENE_CHANNELS } from "../lib/sceneChannels";
-import { CHANNEL_ART } from "../lib/channelArt";
 import { color, font, glass, homeSpace } from "../theme";
 import HomeMessenger from "../components/chat/HomeMessenger";
 import { CHAT_DESKTOP_MIN } from "../lib/stationChat";
+import { previewSleeve } from "./sleeves";
 
-const SAMPLE_COVER = "/brand/planet-mp3-lockup-on-black.png";
+const SAMPLE_COVER = previewSleeve("night-drive", "Night Drive");
 
 const SAMPLE_TRACK = {
   id: "preview-1",
   title: "Night Drive",
   artist: "Signal",
-  albumCover: CHANNEL_ART["y2k-dance"] || SAMPLE_COVER,
+  albumCover: SAMPLE_COVER,
   color: "#5B6574",
   liked: true,
   duration: 214,

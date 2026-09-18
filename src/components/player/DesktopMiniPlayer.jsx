@@ -14,7 +14,7 @@ import Icon from "../ui/Icon";
 import { PlayKey } from "./OrbitalControls";
 import { dockTintStyle } from "../../lib/dockTint";
 import CoverImage from "../ui/CoverImage";
-import { LcdMetaLine, LcdSeek, LcdTimes, trackLcdBits } from "./DeviceChrome";
+import { LcdMetaLine, LcdPanel, LcdSeek, LcdTimes, formatBitrate, trackLcdBits } from "./DeviceChrome";
 
 export default function DesktopMiniPlayer({
   track,
@@ -34,7 +34,7 @@ export default function DesktopMiniPlayer({
   if (!track) return null;
   const playsLabel = freePlaysMeterLabel(playsRemaining, access);
   const bits = trackLcdBits(track, [
-    track.bitrate ? String(track.bitrate) : "MP3",
+    formatBitrate(track),
     playsLabel,
   ]);
 
@@ -106,18 +106,20 @@ export default function DesktopMiniPlayer({
           }}>
             {track.artist}
           </div>
-          <LcdMetaLine bits={bits} />
-          <div onClick={(e) => e.stopPropagation()} style={{ marginTop: 4 }}>
-            <LcdSeek
-              value={progress}
-              max={duration || 1}
-              onChange={onSeek}
-              label="Seek"
-              stopPropagation
-              height={4}
-            />
-            <LcdTimes progress={progress} duration={duration} />
-          </div>
+          <LcdPanel style={{ marginTop: 6, padding: "6px 8px 4px" }}>
+            <LcdMetaLine bits={bits} />
+            <div onClick={(e) => e.stopPropagation()} style={{ marginTop: 2 }}>
+              <LcdSeek
+                value={progress}
+                max={duration || 1}
+                onChange={onSeek}
+                label="Seek"
+                stopPropagation
+                height={4}
+              />
+              <LcdTimes progress={progress} duration={duration} />
+            </div>
+          </LcdPanel>
         </div>
         <button
           type="button"

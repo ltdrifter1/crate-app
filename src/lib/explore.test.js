@@ -66,7 +66,7 @@ describe("explore collections", () => {
     }
   });
 
-  test("hero prefers a live showcase channel icon over idle art", () => {
+  test("hero never uses a channel pictogram as magazine art", () => {
     const channels = [
       {
         id: "local-pnw",
@@ -80,11 +80,29 @@ describe("explore collections", () => {
       },
     ];
     const hero = buildExploreHero({ tracks, channels, releases: [], countdown: [] });
+    expect(hero.kind).not.toBe("channel");
+    expect(hero.art).not.toBe(CHANNEL_ART["local-pnw"]);
+    expect(hero.art).toBe("b.jpg");
+    expect(hero.eyebrow).toBe("");
+  });
+
+  test("hero uses a channel when it already has catalog sleeves", () => {
+    const channels = [
+      {
+        id: "local-pnw",
+        title: "Local",
+        tagline: "Pacific Northwest only",
+        showcase: true,
+        ready: true,
+        art: CHANNEL_ART["local-pnw"],
+        covers: ["pnw-sleeve.jpg"],
+        count: 12,
+      },
+    ];
+    const hero = buildExploreHero({ tracks: [], channels, releases: [], countdown: [] });
     expect(hero.kind).toBe("channel");
     expect(hero.title).toBe("Local");
-    expect(hero.art).toBe(CHANNEL_ART["local-pnw"]);
-    expect(hero.eyebrow).toBe("");
-    expect(hero.kicker).toBeNull();
+    expect(hero.art).toBe("pnw-sleeve.jpg");
   });
 
   test("hero falls back to idle club still when the catalog is empty", () => {
