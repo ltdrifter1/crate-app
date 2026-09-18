@@ -9,7 +9,7 @@ import {
   glass, glassControl, homeSpace, dock, sectionRule,
   artShadow, aluminumGradient, chromeFrame,
   APP_STYLE, INPUT_ST, BTN_PRIMARY, BTN_SECONDARY, CTRL_BTN, ADMIN_UID,
-  BRAND_NAME, brandStoragePrefix,
+  BRAND_NAME, brandStoragePrefix, STYLE_CHASSIS,
 } from "./theme";
 import CoverImage from "./components/ui/CoverImage";
 import { camelotCompatible, getEnergyRangeForHour, hexToRgbStr } from "./lib/harmony";
@@ -186,6 +186,9 @@ const injectStyles = () => {
     s = document.createElement("style");
     s.id = "rooms-app-global-styles";
     document.head.appendChild(s);
+  }
+  if (typeof document !== "undefined") {
+    document.documentElement.setAttribute("data-pmp-chassis", STYLE_CHASSIS);
   }
   s.textContent = `
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -440,7 +443,7 @@ const injectStyles = () => {
     }
     .flask-taste-btn:hover:not(:disabled) {
       transform: translateY(-1px);
-      box-shadow: inset 0 1px 0 rgba(255,255,255,0.12), 0 10px 22px rgba(26,29,36,0.16) !important;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.12), 0 10px 22px rgba(0,0,0,0.45) !important;
     }
     .flask-taste-btn:active:not(:disabled) {
       transform: translateY(0) scale(0.97);

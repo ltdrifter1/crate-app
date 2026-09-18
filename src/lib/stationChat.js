@@ -22,7 +22,7 @@ export const CHAT_NUB_WIDTH = 52;
 export const CHAT_WINDOW_WIDTH = 328;
 export const CHAT_QUEUE_WIDTH = 336;
 
-const BUDDY_COLORS = ["#65E6FF", "#C8F241", "#7BA7FF", "#B8BEC7"];
+const BUDDY_COLORS = ["#B8F24A", "#C5CAD3", "#8B939F", "#E8EAEE"];
 
 export function toMillis(ts, fallback = 0) {
   if (ts == null) return fallback;

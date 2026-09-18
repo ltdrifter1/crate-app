@@ -4,6 +4,7 @@ import {
   artShadow,
   color,
   fontDisplay,
+  fontMono,
   homeSpace,
   y2k,
 } from "../../theme";
@@ -43,7 +44,7 @@ function MetaChip({ children }) {
         borderRadius: 4,
         border: "1px solid rgba(232,234,238,0.12)",
         background: "rgba(8,10,14,0.55)",
-        fontFamily: fontDisplay,
+        fontFamily: fontMono,
         fontSize: 11,
         fontWeight: 600,
         letterSpacing: 0.06,

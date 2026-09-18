@@ -44,7 +44,7 @@ function BuddyNub({ person, size = 26 }) {
           linear-gradient(160deg, rgba(255,255,255,0.45) 0%, transparent 46%),
           ${fill}
         `,
-        color: "#07202C",
+        color: color.onAccent,
         fontFamily: fontDisplay,
         fontSize: size < 24 ? 8 : 10,
         fontWeight: 700,
@@ -480,7 +480,7 @@ export function MessengerWindow({
             fontFamily: font,
             fontSize: 15,
             outline: "none",
-            boxShadow: `inset 0 1px 0 rgba(224,242,254,0.08), 0 0 0 3px transparent`,
+            boxShadow: `inset 0 1px 0 rgba(184,242,74,0.08), 0 0 0 3px transparent`,
           }}
         />
         <button
@@ -490,12 +490,12 @@ export function MessengerWindow({
           style={{
             height: 40,
             padding: "0 16px",
-            borderRadius: 980,
-            border: "1px solid rgba(186,230,253,0.4)",
+            borderRadius: 8,
+            border: "1px solid rgba(184,242,74,0.4)",
             background: draft.trim()
-              ? "linear-gradient(180deg, rgba(186,230,253,0.95) 0%, rgba(125,211,252,0.88) 100%)"
+              ? "linear-gradient(180deg, #D4FF6E 0%, #B8F24A 100%)"
               : ice.frost,
-            color: draft.trim() ? "#06202C" : ice.mute,
+            color: draft.trim() ? color.onAccent : ice.mute,
             fontFamily: font,
             fontSize: 13,
             fontWeight: 700,

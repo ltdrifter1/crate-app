@@ -90,7 +90,7 @@ export default function AppSidebar({
         background: isDrawer
           ? color.canvas
           : `
-            linear-gradient(180deg, #E8ECF2 0%, #D6DCE6 100%)
+            linear-gradient(180deg, #16181E 0%, #0C0E12 100%)
           `,
         borderRight: isDrawer ? "none" : `1px solid ${glass.border}`,
         boxShadow: isDrawer ? "none" : `inset -1px 0 0 ${glass.highlight}`,
