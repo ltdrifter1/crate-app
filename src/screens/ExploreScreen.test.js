@@ -205,10 +205,26 @@ describe("Explore screen", () => {
 
   test("hero Tune in hands off to the channel dial", async () => {
     const onTune = jest.fn();
+    const withLocal = [
+      ...catalog,
+      {
+        id: "t-pnw",
+        title: "Cascade",
+        artist: "Rain City",
+        album: "Highways",
+        albumCover: "cover-pnw.jpg",
+        genre: "Rock",
+        region: "pnw",
+        energy: 5,
+        duration: 200,
+        playCount: 4,
+        audioUrl: "https://cdn.example/pnw.mp3",
+      },
+    ];
     await act(async () => {
       root.render(
         React.createElement(ExploreScreen, {
-          tracks: catalog,
+          tracks: withLocal,
           onTuneSceneChannel: onTune,
         })
       );
@@ -220,7 +236,7 @@ describe("Explore screen", () => {
     });
     expect(onTune).toHaveBeenCalled();
     const channel = onTune.mock.calls[0][0];
-    expect(channel.id).toBeTruthy();
+    expect(channel.id).toBe("local-pnw");
     expect(CHANNEL_ART[channel.id] || channel.art).toBeTruthy();
   });
 
