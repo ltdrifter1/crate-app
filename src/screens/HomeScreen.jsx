@@ -174,7 +174,7 @@ function EmptyShelfCard({ title, body, actionLabel = null, onAction = null }) {
         rounded={18}
         style={{
           background: `
-            linear-gradient(135deg, rgba(30,111,232,0.08) 0%, transparent 50%),
+            linear-gradient(135deg, rgba(184,242,74,0.08) 0%, transparent 50%),
             linear-gradient(165deg, #1A1D24 0%, #101218 100%)
           `,
           border: `1px solid rgba(232,234,238,0.1)`,
@@ -290,22 +290,11 @@ function HomeScreen({
         onOpenMenu={onOpenMenu}
       />
 
-      {/* CHANNEL SURFING — top of Home */}
-      {hasChannels && (
-        <ChannelSurfingSection
-          channels={channels}
-          activeChannelId={sceneChannelsActiveId}
-          onTuneChannel={onTuneSceneChannel}
-          first
-          delay={0.02}
-        />
-      )}
-
-      {/* NOW PLAYING — device stage */}
+      {/* NOW PLAYING — device stage first */}
       <div
         style={{
           padding: `0 ${homeSpace.gutter}px`,
-          marginTop: hasChannels ? homeSpace.sectionGap : homeSpace.sectionGapFirst,
+          marginTop: homeSpace.sectionGapFirst,
           animation: `rise 0.5s ${motion.ease} 0.04s both`,
         }}
       >
@@ -341,25 +330,6 @@ function HomeScreen({
         />
       )}
 
-      {/* ON TONIGHT — EPG band (below-fold; wait a frame so channel photos win the network) */}
-      {shelvesReady && catalogReady && hasTonight && (
-        <div style={{ contentVisibility: "auto", containIntrinsicSize: "320px" }}>
-          <Suspense fallback={null}>
-            <TonightDeck
-              airing={airing}
-              guide={programGuide}
-              bumper={showBumper}
-              activeShowId={activeShowId}
-              tuned={false}
-              first={false}
-              showNowPlaying={!!(airing?.show && !(activeShowId === airing.show.id && currentTrack))}
-              onTuneIn={() => onTuneShow?.(airing?.show)}
-              onSelectShow={(show) => onTuneShow?.(show)}
-            />
-          </Suspense>
-        </div>
-      )}
-
       {/* One crate spread per Home — countdown if that's the only band, else first editorial */}
       {shelvesReady && catalogReady && (editorial[0]?.tracks?.length > 0 || topRequested.length > 0) && (
         <CrateSpread
@@ -380,6 +350,35 @@ function HomeScreen({
                 : null
           }
         />
+      )}
+
+      {hasChannels && (
+        <ChannelSurfingSection
+          channels={channels}
+          activeChannelId={sceneChannelsActiveId}
+          onTuneChannel={onTuneSceneChannel}
+          first={false}
+          delay={0.08}
+          featured
+        />
+      )}
+
+      {shelvesReady && catalogReady && hasTonight && (
+        <div style={{ contentVisibility: "auto", containIntrinsicSize: "320px" }}>
+          <Suspense fallback={null}>
+            <TonightDeck
+              airing={airing}
+              guide={programGuide}
+              bumper={showBumper}
+              activeShowId={activeShowId}
+              tuned={false}
+              first={false}
+              showNowPlaying={!!(airing?.show && !(activeShowId === airing.show.id && currentTrack))}
+              onTuneIn={() => onTuneShow?.(airing?.show)}
+              onSelectShow={(show) => onTuneShow?.(show)}
+            />
+          </Suspense>
+        </div>
       )}
 
       {shelvesReady && catalogReady && editorial[0]?.tracks?.length > 0 && topRequested.length > 0 && (

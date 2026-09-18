@@ -45,7 +45,7 @@ export default function GlassDock({
   const tint = dockTintStyle(track);
 
   const activeTab = dockActiveTab(screen, { hasAdmin: showAdmin });
-  const bits = trackLcdBits(track);
+  const bits = trackLcdBits(track, [track.bitrate ? String(track.bitrate) : "MP3"]);
 
   return (
     <div
@@ -183,8 +183,8 @@ export default function GlassDock({
             />
             <span style={{ display: "flex", gap: 4 }} onClick={(e) => e.stopPropagation()}>
               <Suspense fallback={null}>
-                <EnergyShiftButton direction="down" size={34} />
-                <EnergyShiftButton direction="up" size={34} />
+                <EnergyShiftButton direction="down" size={34} showLabel />
+                <EnergyShiftButton direction="up" size={34} showLabel />
               </Suspense>
             </span>
           </div>

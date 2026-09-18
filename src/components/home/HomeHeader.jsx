@@ -40,7 +40,7 @@ export default function HomeHeader({
         <div
           style={{
             fontFamily: fontMono,
-            fontSize: 11,
+            fontSize: 13,
             fontWeight: 700,
             letterSpacing: 0.14,
             textTransform: "uppercase",
@@ -53,6 +53,8 @@ export default function HomeHeader({
         <h1
           style={{
             ...type.largeTitle,
+            fontSize: 22,
+            letterSpacing: -0.4,
             margin: 0,
             color: y2k.offWhite,
             whiteSpace: "nowrap",

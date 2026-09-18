@@ -277,6 +277,7 @@ export default function HeroPlayerCard({
   const album = displayTrack?.album;
   const genre = displayTrack?.genre;
   const lcdBits = trackLcdBits(displayTrack, [
+    displayTrack?.bitrate ? String(displayTrack.bitrate) : "MP3",
     album || null,
     genre || null,
     hasVideo ? "Video" : null,

@@ -254,14 +254,14 @@ const injectStyles = () => {
       border-radius: 1px;
       background: ${color.accent};
       border: none;
-      box-shadow: 0 0 8px ${color.accentGlow || "rgba(30,111,232,0.55)"};
+      box-shadow: 0 0 8px ${color.accentGlow || "rgba(184,242,74,0.55)"};
       cursor: pointer;
     }
     input.chrome-seek::-moz-range-thumb {
       width: 3px; height: 12px; border-radius: 1px;
       background: ${color.accent};
       border: none;
-      box-shadow: 0 0 8px ${color.accentGlow || "rgba(30,111,232,0.55)"};
+      box-shadow: 0 0 8px ${color.accentGlow || "rgba(184,242,74,0.55)"};
       cursor: pointer;
     }
     .hide-scroll { -ms-overflow-style: none; scrollbar-width: none; }
@@ -559,7 +559,7 @@ const injectStyles = () => {
     .pmp-lift {
       transition: transform ${motion.settle} ${motion.ease}, box-shadow ${motion.settle} ${motion.ease}, border-color ${motion.base} ${motion.ease};
     }
-    .pmp-lift:hover { transform: translateY(-2px); }
+    .pmp-lift:hover { transform: none; }
     .pmp-lift:active { transform: translateY(0) scale(0.985); opacity: 1; }
     .pmp-press { transition: transform ${motion.fast} ${motion.ease}, box-shadow ${motion.base} ${motion.ease}, background ${motion.base}; }
     .pmp-press:active { transform: scale(0.94); opacity: 1; }
@@ -587,7 +587,7 @@ const injectStyles = () => {
       box-shadow: 0 6px 16px rgba(0,0,0,0.28) !important;
     }
     .pmp-schedule-cell:hover {
-      border-color: rgba(30,111,232,0.35) !important;
+      border-color: rgba(184,242,74,0.35) !important;
       box-shadow: 0 6px 16px rgba(0,0,0,0.35) !important;
     }
     .pmp-dial-cell:hover {
@@ -3352,8 +3352,8 @@ export default function App() {
     /></Suspense>
   ) : null;
 
-  // Cover Stage owns transport on Home while visible — sticky dock returns after scroll.
-  const hideDockPlayer = screen === "home" && !!currentTrack && !immersive && homeStageVisible;
+  // Mini-device stays persistent so Home hero and the dock share one transport.
+  const hideDockPlayer = false;
 
   // ── Ambient status — SR announcements, offline banner, buffering pill ────
   const ambientStatus = (
@@ -3445,7 +3445,7 @@ export default function App() {
         <GlassDock
           screen={screen}
           setScreen={setScreen}
-          showAdmin={firebaseUser?.uid === ADMIN_UID}
+          showAdmin={false}
           track={currentTrack}
          
           onTogglePlay={togglePlay}
@@ -3536,8 +3536,8 @@ export default function App() {
           maxWidth: (screen==="home" || screen==="explore" || screen==="charts" || screen==="favorites" || screen==="artist" || screen==="album") ? "none" : 960,
           margin:"0 auto",
           padding: (screen==="home" || screen==="explore" || screen==="charts" || screen==="favorites" || screen==="artist" || screen==="album")
-            ? `0 0 ${currentTrack && !(screen === "home" && homeStageVisible) ? 120 : 24}px`
-            : `24px 32px ${currentTrack && !(screen === "home" && homeStageVisible) ? 120 : 24}px`,
+            ? `0 0 ${currentTrack ? 120 : 24}px`
+            : `24px 32px ${currentTrack ? 120 : 24}px`,
         }}>
           <BgMist color={currentTrack?.color}/>
           <Pulse track={currentTrack}/>
@@ -3613,7 +3613,7 @@ export default function App() {
         </div>
         </>
         {/* Desktop mini-player — sticky when Cover Stage scrolls away on Home */}
-        {currentTrack && !immersive && !(screen === "home" && homeStageVisible) && (
+        {currentTrack && !immersive && (
           <Suspense fallback={null}>
           <DesktopMiniPlayer
             track={currentTrack}

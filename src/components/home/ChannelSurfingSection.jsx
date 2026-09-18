@@ -16,10 +16,12 @@ function ChannelSurfingSection({
   delay = 0.02,
   title = "Channel Surfing",
   subtitle = "Flip the dial. Music stays on this stage.",
+  featured = false,
 }) {
   if (!channels.length) return null;
 
-  const tile = homeSpace.tileTicket;
+  const tile = featured ? Math.round(homeSpace.tileTicket * 0.92) : homeSpace.tileTicket;
+  const lead = featured ? homeSpace.tileFeatured : tile;
 
   return (
     <section
@@ -49,7 +51,7 @@ function ChannelSurfingSection({
             <ChannelCard
               channel={channel}
               active={activeChannelId === channel.id}
-              size={tile}
+              size={i === 0 ? lead : tile}
               priority={i === 0}
               eager={i === 1}
               onClick={() => onTuneChannel?.(channel)}

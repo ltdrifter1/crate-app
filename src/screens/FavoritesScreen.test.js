@@ -37,7 +37,7 @@ describe("Library screen", () => {
       );
     });
     expect(div.textContent).toMatch(/Library/);
-    expect(div.textContent).toMatch(/Playlists/);
+    expect(div.textContent).toMatch(/Stacks/);
     expect(div.textContent).toMatch(/Night Drive/);
     expect(div.textContent).not.toMatch(/Length · Vibe · Preview/);
     expect(div.textContent).not.toMatch(/Custom mix/);

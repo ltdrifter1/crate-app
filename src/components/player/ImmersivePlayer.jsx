@@ -268,6 +268,7 @@ export default function ImmersivePlayer({
 
   const rgb = hexToRgbStr(currentTrack.color);
   const metaBits = trackLcdBits(currentTrack, [
+    currentTrack.bitrate ? String(currentTrack.bitrate) : "MP3",
     countdownRank ? `#${countdownRank}` : null,
     hasVideo ? "Video" : null,
     liveShow?.host?.name || liveShow?.host?.handle || null,

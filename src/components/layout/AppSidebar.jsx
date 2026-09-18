@@ -21,10 +21,10 @@ function NavRow({ item, active, onClick }) {
         minHeight: 40,
         borderRadius: radius.sm,
         background: active
-          ? "linear-gradient(180deg, #6FB4F8 0%, #1E6FE8 100%)"
+          ? "rgba(184,242,74,0.12)"
           : "transparent",
         border: "1px solid transparent",
-        color: active ? color.onAccent : color.body,
+        color: active ? color.accent : color.body,
         cursor: "pointer",
         display: "flex",
         alignItems: "center",
@@ -32,11 +32,11 @@ function NavRow({ item, active, onClick }) {
         padding: "8px 10px",
         textAlign: "left",
         boxShadow: active
-          ? "inset 0 1px 0 rgba(255,255,255,0.28), 0 2px 6px rgba(30,111,232,0.22)"
+          ? "inset 2px 0 0 #B8F24A, inset 0 1px 0 rgba(255,255,255,0.06)"
           : "none",
       }}
     >
-      <span style={{ width: 18, display: "flex", justifyContent: "center", flexShrink: 0, color: active ? color.onAccent : color.muted }}>
+      <span style={{ width: 18, display: "flex", justifyContent: "center", flexShrink: 0, color: active ? color.accent : color.muted }}>
         <Icon name={item.icon} size={16} />
       </span>
       <span

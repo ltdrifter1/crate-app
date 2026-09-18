@@ -97,8 +97,9 @@ export default function ChannelCard({
           overflow: "hidden",
           background: y2k.artGradient,
           boxShadow: active
-            ? "0 0 0 3px rgba(245,245,247,0.92), 0 10px 24px rgba(0,0,0,0.38)"
-            : "0 8px 22px rgba(0,0,0,0.32)",
+            ? `0 0 0 2px ${color.accent}, 0 10px 24px rgba(0,0,0,0.38)`
+            : "inset 0 1px 0 rgba(255,255,255,0.08), 0 8px 22px rgba(0,0,0,0.32)",
+          border: "1px solid rgba(232,234,238,0.12)",
         }}
       >
         <span
@@ -130,11 +131,13 @@ export default function ChannelCard({
                 top: 10,
                 left: 10,
                 zIndex: 2,
-                height: 22,
-                padding: "0 9px",
-                borderRadius: 11,
-                background: "rgba(0,0,0,0.55)",
-                color: color.onDark,
+                height: 20,
+                padding: "0 7px",
+                borderRadius: 4,
+                background: "rgba(8,10,14,0.72)",
+                color: color.accent,
+                letterSpacing: 0.1,
+                textTransform: "uppercase",
                 ...type.caption,
                 fontWeight: 600,
                 display: "inline-flex",
@@ -154,13 +157,13 @@ export default function ChannelCard({
               zIndex: 2,
               width: 32,
               height: 32,
-              borderRadius: "50%",
-              background: "rgba(255,255,255,0.94)",
-              color: "#0B0C0F",
+              borderRadius: 8,
+              background: active ? color.accent : "rgba(16,18,24,0.86)",
+              color: active ? color.onAccent : color.ink,
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              boxShadow: "0 4px 12px rgba(0,0,0,0.28)",
+              boxShadow: "inset 0 1px 0 rgba(255,255,255,0.12), 0 4px 12px rgba(0,0,0,0.28)",
               paddingLeft: active ? 0 : 1,
             }}
           >

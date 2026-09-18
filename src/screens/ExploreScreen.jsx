@@ -22,6 +22,7 @@ import CardContainer from "../components/home/CardContainer";
 import ExploreHero from "../components/explore/ExploreHero";
 import GenreMosaic, { MoodRail, SceneRail } from "../components/explore/GenreMosaic";
 import ExploreFocus from "../components/explore/ExploreFocus";
+import CamelotKeyRail from "../components/search/CamelotKeyRail";
 import {
   buildExploreHero,
   exploreChartsTeaser,
@@ -517,6 +518,10 @@ function ExploreScreen({
       </header>
 
       <SearchEntry onOpenSearch={onOpenSearch} />
+
+      <div style={{ padding: `0 ${homeSpace.gutter}px` }}>
+        <CamelotKeyRail tracks={tracks} onPlayPool={onPlayTrack} label="Keys" />
+      </div>
 
       <ExploreHero
         hero={hero}
