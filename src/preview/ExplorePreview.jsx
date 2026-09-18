@@ -34,11 +34,11 @@ function t(partial) {
 }
 
 const SAMPLE_TRACKS = [
-  t({ id: "e1", title: "Warehouse", artist: "Gridlock", album: "Night Shift", albumCover: COVER.electronic, genre: "Techno", energy: 9, playCount: 40 }),
+  t({ id: "e1", title: "Warehouse", artist: "Gridlock", album: "Night Shift", albumCover: COVER.electronic, genre: "Techno", energy: 9, playCount: 40, camelot: "8A", bpm: 132 }),
   t({ id: "e2", title: "Concrete", artist: "Gridlock", album: "Night Shift", albumCover: COVER.electronic, genre: "Techno", energy: 8, playCount: 22 }),
-  t({ id: "h1", title: "Deep Floor", artist: "Sol Park", album: "Afterglow", albumCover: COVER.y2k, genre: "House", energy: 6, playCount: 18 }),
+  t({ id: "h1", title: "Deep Floor", artist: "Sol Park", album: "Afterglow", albumCover: COVER.y2k, genre: "House", energy: 6, playCount: 18, camelot: "9A", bpm: 124 }),
   t({ id: "h2", title: "Mirrorball", artist: "Sol Park", album: "Afterglow", albumCover: COVER.y2k, genre: "Disco", energy: 7, playCount: 15 }),
-  t({ id: "p1", title: "Millennium", artist: "Signal", album: "Y2K", albumCover: COVER.variety, genre: "Pop", energy: 6, playCount: 28 }),
+  t({ id: "p1", title: "Millennium", artist: "Signal", album: "Y2K", albumCover: COVER.variety, genre: "Pop", energy: 6, playCount: 28, camelot: "5B", bpm: 118 }),
   t({ id: "p2", title: "Chrome", artist: "Signal", album: "Y2K", albumCover: COVER.variety, genre: "Pop", energy: 5, playCount: 12 }),
   t({ id: "r1", title: "Cascade", artist: "Rain City", album: "Highways", albumCover: COVER.pnw, genre: "Rock", region: "pnw", energy: 5, playCount: 19 }),
   t({ id: "r2", title: "Ferry", artist: "Rain City", album: "Highways", albumCover: COVER.pnw, genre: "Rock", region: "seattle", energy: 4, playCount: 9 }),

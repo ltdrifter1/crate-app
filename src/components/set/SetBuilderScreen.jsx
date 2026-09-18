@@ -654,7 +654,7 @@ function hardwareChip(selected, tintRgb) {
       ? `1px solid rgba(${tintRgb},0.55)`
       : "1px solid rgba(255,255,255,0.12)",
     background: selected
-      ? `linear-gradient(180deg, rgba(255,255,255,0.18) 0%, transparent 42%), linear-gradient(165deg, #6FB4F8 0%, #1E6FE8 100%)`
+      ? `linear-gradient(180deg, rgba(255,255,255,0.18) 0%, transparent 42%), linear-gradient(165deg, #D4FF7A 0%, #B8F24A 100%)`
       : "rgba(255,255,255,0.05)",
     color: selected ? color.onAccent : color.body,
     boxShadow: selected

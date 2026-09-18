@@ -4,7 +4,7 @@ import Icon from "../ui/Icon";
 
 const CHART_CSS = `
   .pmp-chart-row { transition: background ${"{base}"} ${"{ease}"}, box-shadow ${"{base}"}; }
-  .pmp-chart-row:hover { background: rgba(30,111,232,0.08) !important; }
+  .pmp-chart-row:hover { background: rgba(184,242,74,0.08) !important; }
   .pmp-chart-row:active { transform: scale(0.992); }
   .pmp-chart-scan {
     position: absolute; inset: 0; pointer-events: none;
@@ -61,7 +61,7 @@ export default function ChartsScreen({
           inset: 0,
           pointerEvents: "none",
           background: `
-            radial-gradient(ellipse 80% 48% at 8% -10%, rgba(30,111,232,0.08) 0%, transparent 50%),
+            radial-gradient(ellipse 80% 48% at 8% -10%, rgba(184,242,74,0.08) 0%, transparent 50%),
             radial-gradient(ellipse 60% 36% at 100% 8%, rgba(111,191,58,0.06) 0%, transparent 46%)
           `,
         }}

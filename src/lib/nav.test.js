@@ -50,14 +50,13 @@ describe("product nav IA", () => {
     expect(dockActiveTab("admin", { hasAdmin: true })).toBe("admin");
   });
 
-  test("primaryNavItems optionally appends Admin", () => {
+  test("primaryNavItems never puts Admin on the consumer dock", () => {
     expect(primaryNavItems()).toHaveLength(4);
     expect(primaryNavItems({ showAdmin: true }).map((t) => t.id)).toEqual([
       "home",
       "explore",
       "favorites",
       "profile",
-      "admin",
     ]);
   });
 });

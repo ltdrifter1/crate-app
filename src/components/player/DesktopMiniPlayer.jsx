@@ -33,7 +33,10 @@ export default function DesktopMiniPlayer({
   const isPlaying = useIsPlaying();
   if (!track) return null;
   const playsLabel = freePlaysMeterLabel(playsRemaining, access);
-  const bits = trackLcdBits(track, [playsLabel]);
+  const bits = trackLcdBits(track, [
+    track.bitrate ? String(track.bitrate) : "MP3",
+    playsLabel,
+  ]);
 
   return (
     <div style={{ position: "fixed", bottom: 12, left: 232, right: 348, zIndex: 80 }}>
@@ -127,7 +130,7 @@ export default function DesktopMiniPlayer({
         >
           <Icon name={track.liked ? "heart" : "heartempty"} size={16} />
         </button>
-        <EnergyShiftButton direction="down" size={36} />
+        <EnergyShiftButton direction="down" size={36} showLabel />
         <PlayKey
           isPlaying={isPlaying}
           onClick={onTogglePlay}
@@ -144,7 +147,7 @@ export default function DesktopMiniPlayer({
         >
           <Icon name="skip" size={16} />
         </button>
-        <EnergyShiftButton direction="up" size={36} />
+        <EnergyShiftButton direction="up" size={36} showLabel />
       </div>
     </div>
   );

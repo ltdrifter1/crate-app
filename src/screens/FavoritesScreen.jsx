@@ -802,7 +802,7 @@ function FavoritesScreen({
                   ...type.subhead,
                   color: color.muted,
                 }}>
-                  {userPlaylists.length} playlist{userPlaylists.length === 1 ? "" : "s"}
+                  Stacks — your playlists
                   {saved.length ? ` · ${saved.length} liked` : ""}
                 </div>
               </div>
@@ -850,7 +850,7 @@ function FavoritesScreen({
               marginBottom: 14,
             }}
           >
-            {segmentBtn("playlists", "Playlists")}
+            {segmentBtn("playlists", "Stacks")}
             {segmentBtn("liked", "Liked")}
           </div>
 
@@ -869,8 +869,8 @@ function FavoritesScreen({
             <input
               value={libQuery}
               onChange={(e) => setLibQuery(e.target.value)}
-              placeholder={libTab === "playlists" ? "Search playlists" : "Search liked songs"}
-              aria-label={libTab === "playlists" ? "Search playlists" : "Search liked songs"}
+              placeholder={libTab === "playlists" ? "Search stacks" : "Search liked songs"}
+              aria-label={libTab === "playlists" ? "Search stacks" : "Search liked songs"}
               style={{
                 ...INPUT_ST,
                 padding: "11px 14px 11px 36px",
@@ -954,7 +954,7 @@ function FavoritesScreen({
                   color: color.ink,
                   fontFamily: fontDisplay,
                 }}>
-                  Playlists
+                  Stacks
                 </div>
                 <div
                   role="group"
@@ -1014,7 +1014,7 @@ function FavoritesScreen({
                   letterSpacing: -0.45,
                   marginBottom: 8,
                 }}>
-                  No playlists yet
+                  No stacks yet
                 </div>
                 <div style={{
                   fontSize: 15,
@@ -1054,7 +1054,7 @@ function FavoritesScreen({
                 fontSize: 14,
                 color: color.muted,
               }}>
-                No playlists match “{libQuery.trim()}”
+                No stacks match “{libQuery.trim()}”
               </div>
             ) : (
               <div style={{

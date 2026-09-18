@@ -1,6 +1,7 @@
 /**
- * Product IA — YouTube Music–style four dock destinations.
+ * Product IA — four dock destinations (device selector).
  * Charts and Build a set live in the left source list (desktop rail / mobile drawer).
+ * Admin stays in the source list / Club, not on the consumer dock.
  */
 
 export const PRIMARY_TABS = [
@@ -46,8 +47,6 @@ export function sidebarActiveId(screen, { buildingSet = false } = {}) {
   return dockActiveTab(screen);
 }
 
-export function primaryNavItems({ showAdmin = false } = {}) {
-  const items = PRIMARY_TABS.slice();
-  if (showAdmin) items.push({ id: "admin", label: "Admin", icon: "settings" });
-  return items;
+export function primaryNavItems(_opts = {}) {
+  return PRIMARY_TABS.slice();
 }

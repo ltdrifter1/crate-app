@@ -16,6 +16,14 @@ export function parseCamelot(key) {
  * - Same number (incl. relative major/minor 8A↔8B) always mixes
  * - Number steps within `range` require the same letter (A/A or B/B)
  */
+/** Wheel positions 1–12 (A/B share a slot). */
+export const CAMELOT_SLOTS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+
+export function tracksForCamelotSlot(tracks = [], slot) {
+  const num = Number(slot);
+  return tracks.filter((t) => parseCamelot(t.camelot)?.num === num);
+}
+
 export function camelotCompatible(keyA, keyB, range = 2) {
   const a = parseCamelot(keyA);
   const b = parseCamelot(keyB);
