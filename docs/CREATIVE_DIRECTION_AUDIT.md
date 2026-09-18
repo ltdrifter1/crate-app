@@ -1,410 +1,433 @@
-# PlanetMP3 — Creative / UI Audit
+# PlanetMP3 — Creative / UI Audit (current chassis)
 
-**Date:** 17 Sep 2026  
-**Scope:** Visual identity, typography, colour, player, artwork, motion, cohesion. Functionality is in good shape and is **out of scope** for this pass.  
-**North star (this brief):** *“A futuristic MP3 player from an alternate 2003.”*  
-**Mix:** 40% modern product design · 25% Y2K digital culture · 20% underground music culture · 15% PlanetMP3 weirdness.
+**Date:** 18 Sep 2026  
+**Scope:** Visual identity, Y2K, underground culture, typography, colour, artwork, player, originality, motion, cohesion. Functionality is out of scope except where it *reads* as identity (Bunny/Turtle, metadata, dual transports).  
+**North star:** *A futuristic MP3 player from an alternate 2003* — not a Spotify clone, not a fake-retro website, not Apple Music in a dark skin.  
+**Mix:** 40% modern product design · 25% Y2K digital culture · 20% underground music culture · 15% PlanetMP3 personality.
 
-This is **not** a UX/feature audit. See `docs/UX_AUDIT.md` for ergonomics. This is an art-direction audit against the new brief.
+This is **not** a UX/feature audit. See `docs/UX_AUDIT.md` for ergonomics, search, stacks, and a11y.
 
-**Current shipped direction (main):** light iPod / iTunes / Music.app — see `src/theme.js` and recent commits *“Refresh Planet MP3 to a modern iPod / early-2000s iTunes look”* and *“Unify UI to modern iTunes / Music.app.”* That work is coherent. It is also the wrong chassis for this brief.
+**Status:** Audit only. No visual implementation until this document is approved. Preserve playback, routing, Club, billing, and recommendation engine. Reuse existing components; no IA rewrite.
 
-**Status:** Audit only. No visual implementation until this document is approved.
+---
+
+## What changed since the 17 Sep audit
+
+The 17 Sep document scored the **light iPod / Aqua** OS. That chassis is gone.
+
+Shipped on main (`STYLE_CHASSIS = acid-device-20260918`):
+
+- Dark canvas `#090A0D`, acid accent `#B8F24A`, IBM Plex Sans + Mono (`src/theme.js`, `public/index.html`, `src/index.css`)
+- Boot splash / spinning planet with acid bloom
+- Home masthead `PLANET / 003` (no calendar date)
+- Bottom nav acid pip (not Aqua fill)
+- Hero meta chips: hairline boxes, mono, acid
+- Play control restyled as a 8px hardware key (`IceOrbPlay` — name leftover)
+- Jewel-case `artFrameStyle` + acid active ring
+- Home width 960, featured tiles 200, collections wired
+
+**The environment flipped. The product grammar did not.** Home is still App Store rails. The player is still a phone theater with a Spotify-density dock. Bunny/Turtle were demoted to a chemistry flask slider. Light-pearl leftovers remain in ImmersivePlayer booth chrome.
+
+This audit scores **today’s dark chassis against the brief**, not against generic polish.
 
 ---
 
 ## 1. Scorecard
 
-Scored against the **target feeling**, not against generic polish. Craft that is excellent *as iTunes* still scores low if it fights the brief.
+| Category | Score | Band | vs 17 Sep |
+|---|---:|---|---|
+| Visual identity | **6** | Improve | +1 |
+| Y2K influence | **6** | Improve | +1 |
+| Underground music culture | **5** | Improve | 0 |
+| Typography | **7** | Refine | +2 |
+| Colour system | **7** | Refine | +4 |
+| Artwork treatment | **6** | Improve | 0 |
+| Music player | **5** | Improve | −1 |
+| UI originality | **5** | Improve | +1 |
+| Motion & interaction | **6** | Improve | 0 |
+| Overall cohesion | **6** | Improve | +1 |
+| **Overall average** | **5.9 / 10** | **Improve** | was 5.0 |
 
-| Category | Score | Band |
-|---|---:|---|
-| PlanetMP3 visual identity | **5** | Needs meaningful improvement |
-| Y2K / early-digital influence | **5** | Needs meaningful improvement |
-| Music / underground culture | **5** | Needs meaningful improvement |
-| Typography | **5** | Needs meaningful improvement |
-| Colour system | **3** | Redesign priority |
-| Album artwork / imagery | **6** | Needs meaningful improvement |
-| Music player experience | **6** | Needs meaningful improvement |
-| UI originality | **4** | Redesign priority |
-| Motion / interaction | **6** | Needs meaningful improvement |
-| Overall cohesion | **5** | Needs meaningful improvement |
-| **Overall average** | **5.0 / 10** | **Needs meaningful improvement** |
+**9–10 Preserve · 7–8 Refine · 5–6 Improve · 0–4 Redesign priority**
 
-**9–10** Strong / preserve · **7–8** Good / refine · **5–6** Needs meaningful improvement · **0–4** Redesign priority
+**Read of the mix today (approx.):** 50% modern dark streaming shell · 20% acid-device tokens · 15% broadcast/station vocabulary · 10% leftover iTunes/App Store comments and patterns · 5% Planet weirdness (flask, PLANET/003, spinning planet).
 
-**Read of the mix today (approx.):** 55% Apple Music / App Store 2020s patterns · 30% iTunes / iPod 2003 consumer chrome · 10% broadcast station vocabulary · 5% underground / PlanetMP3 weirdness.
-
-**Target mix:** 40 / 25 / 20 / 15. The product is currently over-indexed on Apple retail and under-indexed on dark digital, club culture, and PlanetMP3-specific strangeness.
+**Target mix:** 40 / 25 / 20 / 15. Colour and type moved. Layout, player object, and culture surfaces still read as a dark Apple Music clone with a green LED.
 
 ---
 
 ## 2. Category notes
 
-### PlanetMP3 visual identity — 5/10
+### Visual identity — 6/10
 
-**Works**
-- Real brand objects exist: lockup (`BrandLockup` / `public/brand/`), mascot Lottie, tagline *YOUR WORLD, YOUR MUSIC.*, member numbers, station callsign.
-- Product language is distinctive when it is allowed to speak: crate, stacks, cuts, on air, dedicate, energy shift, scene channels.
-- Theme file is a genuine token system with a written point of view — identity is *specified*, not accidental.
+**Working**
+- Tokens now *say* Planet: dark studio, silver metal, acid signal (`theme.js` header).
+- Brand objects: lockup, mascot Lottie, tagline *YOUR WORLD, YOUR MUSIC.*, member numbers, `PLANET / 003` masthead, station callsign, spinning-planet splash.
+- Vocabulary still distinctive: crate, stacks, cuts, on air, dedicate, channel bugs, energy shift.
+- Primary CTA is acid plate + dark inscription (`BTN_PRIMARY`).
 
 **Generic / off-brand**
-- The visual OS is iTunes, not Planet. `theme.js` opens: *“modern iPod / early-2000s iTunes. White-aluminum chassis, Aqua source-list blue.”*
-- Primary accent is Aqua `#1E6FE8`. That is Apple’s 2003 *consumer* signal, not Planet’s.
-- Home header is App Store large-title + calendar date (`HomeHeader.jsx`). Wordmark is italic Lucida, not a device / magazine masthead.
-- Token names lie: `y2k.offWhite` is `#1C1F24` ink; `y2k.charcoal` is `#F4F5F7` pearl. The “Y2K” object is a light iPod, renamed.
+- Component comments still cite App Store, Music.app, iTunes source list (`TrackCard`, `ChannelCard`, `CardContainer`, `HomeScreen`, `App.jsx` desktop shell, `ArtFrame`).
+- `IceOrbPlay` / `glassPill` / `pill-nav` names describe a previous product.
+- Identity lives in chrome (header, accent, splash) more than in destinations. Library / Search / Club are dark skins of the same streaming shell.
+- Mascot and planet are splash-only; they barely appear in the listening OS.
 
 **Should change**
-- Stop treating iTunes as the brand. Keep Planet lockup, mascot, vocabulary, BPM/key/member metadata.
-- Make **acid green on near-black** the signature, aluminum/silver as *hardware*, artwork as *colour*.
-- Give the wordmark a device/magazine treatment (compact, tracking, PLANET / 003 energy) instead of App Store title.
+- Treat the **player chassis** as the brand object, not the splash.
+- One visual OS from Home → Explore → Library → Club → Player (already one *palette*; not yet one *grammar*).
+- Keep vocabulary; put catalog numbers and firmware labels on the device, not only the Home h1.
 
 **Implementation**
-- Phase 1 token rewrite in `src/theme.js` + `public/index.html` theme-color / boot splash. Do not restyle every screen by hand first — swap canvas, ink, accent, primary buttons, dock, nav. Then hunt leftovers.
+- Do not rename every component in Phase 1. Restyle `HeroPlayerCard` / `ImmersivePlayer` / `GlassDock` as one device drawing. Hunt leftover pearl fills. Leave `IceOrbPlay` name until a later rename PR.
 
 ---
 
-### Y2K / early-digital influence — 5/10
+### Y2K influence — 6/10
 
-**Works**
-- Period craft is real: Lucida Grande, click-wheel aluminum, LCD tokens (`radio.lcdFace`, `chrome.signal` `#6FBF3A`), Aqua selected-row wash, hardware key faces.
-- Broadcast leftovers: LIVE LED, channel bugs, ticker CSS (`.pmp-ticker-track`), On Air plate in the immersive player.
-- Motion tokens are “rhythm over bounce” — closer to devices than to Dribbble bounce.
+**Working**
+- Hardware keys, hairline bezels, LCD tokens (`radio.lcdFace`, `broadcast.lcdFill`), LIVE LED, channel ident, ticker CSS, `ScanlineWash` restored on LCD-adjacent surfaces.
+- IBM Plex reads as firmware, not costume Lucida.
+- Motion: “rhythm over bounce” still documented.
 
 **Generic / off-brand**
-- This is **Apple Store 2003**, not **Winamp / Napster / club-CD / LCD handheld / early-web** 2003.
-- `ScanlineWash.jsx` is a stub: *“Hairline CRT wash — disabled. Music.app has no scanlines.”* Y2K digital was explicitly removed to match Music.app.
-- Aqua blue + pearl aluminum + circular glass orbs = consumer electronics brochure, not underground digital culture.
-- Pill nav active state is iTunes Aqua gradient (`BottomNavigation.jsx`: `#6FB4F8` → `#1E6FE8`).
+- Y2K here is **token flavour**, not **interface archaeology**. Winamp / MiniDisc / early-web / club-CD energy is not the layout.
+- `ScanlineWash` exists; it is not a branded LCD readout (title/BPM/key/time in a recessed green window).
+- Seek bars remain iOS capsules (`borderRadius: 999`).
+- Channel Surfing uses original iTunes/MTV pictograms (commit `#227`) — period-correct *illustration*, still not a crate or flyer.
+- Desktop shell comment: “iTunes-style source list.”
 
 **Should change**
-- Keep LCD, hardware bevels, LIVE, tickers, technical metadata.
-- Drop Aqua as identity. Drop Music.app “no scanlines / no dark studio” rules.
-- Re-enable *subtle* digital artifacts (scanlines on LCDs only, marquee metadata, pulsing play pip) — not a fake Windows 95 website, not CRT-over-everything.
+- LCD as a real rectangle: title marquee, BPM, Camelot, elapsed — acid glyphs on olive-black, scanlines *inside*.
+- Hardware transport row, not a row of soft glass icons.
+- Subtle digital artifacts only on LCDs and progress. No fake OS desktop, no full-page CRT.
 
 **Implementation**
-- Restore LCD as the dark rectangle on the player (tokens already exist: `radio.lcdFace`). Put scanlines **inside the LCD**, not across the whole Home.
-- Replace Aqua tab/CTA with acid-green indicator + silver hardware.
+- Apply existing `radio.lcd*` tokens to hero + immersive + dock readouts. Replace capsule seek with `broadcast.lcdTrack` / `lcdFill` (already defined, underused).
 
 ---
 
-### Music / underground culture — 5/10
+### Underground music culture — 5/10
 
-**Works**
-- The *product* is underground-capable: Camelot keys, BPM, energy 1–10, rabbit/turtle pacing, scene channels, Club, mixes, dedicate, liner notes, charts, Harmonic search grammar (`124bpm`, `8A`).
-- Scene/channel photography and Explore mosaics give a path to editorial culture.
-- Empty-state voice (“Pulling the station”, crate language) is closer to a record shop than to Spotify.
+**Working**
+- Product is DJ-grade: Camelot, BPM, energy 1–10, harmonic search (`124bpm`, `8A`), scene channels, Club, mixes, dedicate, liner notes, countdown.
+- Empty-state voice is closer to a shop than to Spotify.
+- Explore has Mixmag-scale hero photography and mosaics — the most cultural surface.
 
 **Generic / off-brand**
-- `TrackCard.jsx` and `ChannelCard.jsx` document themselves as *“App Store / Apple Music square tile.”*
-- Scene accents in `sceneChannels.js` are muted greys (`#9AA3B0`, `#8A919C`) — record-shop flyers they are not.
-- Genre colours in `genres.js` are near-black browns. Artwork is not allowed to stain the UI except a faint hero wash.
-- Club / Mix / Charts still sit in the same pearl chassis. Culture is a feature, not a room.
+- Metadata is still a caption, not identity. Hero chips include album/genre/BPM/Stereo; **Camelot is missing** on the Home hero (`HeroPlayerCard` MetaChip row). Immersive `metaBits` has BPM/key/energy but at footnote size.
+- `TrackCard` is “App Store / Apple Music square tile” with rank/video as black pills.
+- Scene/channel presentation is equal tiles, not flyers.
+- Club / Mix / Charts sit in the same module language as Home rails — culture as a tab, not a room.
+- **Bunny/Turtle — the most underground-player gesture — are no longer first-class on the transport.** Player, dock, desktop mini, CoverStage, and hero use `EnergyShiftControl` (chemistry flask + hidden slider). Rabbit/Turtle SVGs still exist in `EnergyShiftButton` but are unused on those surfaces.
 
 **Should change**
-- Treat BPM / key / bitrate / member ID as **visible identity**, not 10px faint captions.
-- Let sleeves colour the environment (already started on dock tint — push it).
-- Editorial layouts for Explore/Home: magazine spread + crate grid, not infinite equal rails.
+- Restore Bunny / Turtle as labeled hardware paddles with ±BPM. Flask can remain for *taste* (`FlaskTasteButton` on interests), not tempo.
+- Show `124 BPM · 8A · E7` as LCD type on every now-playing surface.
+- One editorial/crate spread per destination (Explore already closest; Home still rail-stack).
 
 **Implementation**
-- Meta chips: `124 BPM` · `8A` · `320 KBPS` · `PLANET / 003` in `fontMono`, acid on dark, hairline boxes — not white pills (`HeroPlayerCard` `MetaChip` is a rounded white capsule).
-- One featured editorial band on Home (countdown or release) at poster scale; keep other rails.
+- Swap `EnergyShiftControl` back to a pair of `EnergyShiftButton`s (or a new paddle wrapper using those icons) on hero, immersive, dock, desktop. Keep `setEnergyBias` / long-press menu. Restyle buttons: radius 8, `hardwareKey`, labels `TURTLE` / `BUNNY` or `EASE` / `LIFT`, `±10 BPM`.
 
 ---
 
-### Typography — 5/10
+### Typography — 7/10
 
-**Works**
-- One stack, consistently applied: Lucida Grande / Helvetica Neue / Inter. Tight tracking on large titles. Tabular mono for times.
-- Type scale in `theme.js` (`type.largeTitle` → `caption`) is real and Apple-like in a good structural way.
-- Mono appears on On Air, times, energy labels — a seed of “technical metadata.”
-
-**Generic / off-brand**
-- Lucida Grande *is* iTunes. As the only display voice it reads as costume Apple, not Planet.
-- Inter is loaded from Google Fonts and is the web fallback — default SaaS.
-- Micro labels 9–11px, weight 600, colour `faint` `#8E96A3` on `#E6E9EF` — weak contrast, not a magazine masthead.
-- Home title is sentence-case product name at 34px, not compact technical identity.
-- Italic wordmark (`BrandMark`) is lifestyle, not device firmware.
-
-**Should change**
-- Keep a humanist/technical sans for UI (modern 40%). Add a **compact bold** display for titles and a **mono** layer for all music metadata (Y2K 25% + underground 20%).
-- Stop italicizing the wordmark. Use letterspacing and a catalog number instead.
-
-**Implementation (recommended faces — web-safe first)**
-- **UI:** keep Lucida/Helvetica *or* swap Inter load for **IBM Plex Sans** (or Geist) — compact, technical, not costume.
-- **Meta / LCD:** IBM Plex Mono or the existing `fontMono` stack, 11–13px, tracking `0.08–0.16em`, uppercase only on *device* labels (`ON AIR`, `BPM`), not on track titles.
-- **Never** costume headline fonts (Comic, Papyrus, fake pixel display for body). LCD type stays on the LCD.
-
----
-
-### Colour system — 3/10
-
-**Works**
-- Palette is internally consistent: pearl `#E6E9EF`, ink `#1C1F24`, Aqua `#1E6FE8`, LCD green `#6FBF3A`, live red `#E0314A`.
-- Artwork tint on the dock (`dockTintStyle`) is the right idea: music brings colour.
-- LCD green already exists as `chrome.signal` / `y2k.cyan` / `y2k.neon` — the signature accent is in the file, not on the product.
+**Working**
+- IBM Plex Sans + Mono is the right stack for the brief (technical, compact, not Inter-SaaS, not costume Lucida).
+- Type scale in `theme.js` is real (`largeTitle` → `caption`). Tight tracking on titles.
+- Device labels exist: `PLANET / 003`, `ON AIR`, Live plate, channel ident.
+- Mono used for times, energy labels, meta chips.
 
 **Generic / off-brand**
-- Brief: *dark digital environment, black / near-black / dark grey / off-white silver, acid green.* Shipped: *“Not a dark studio. White chassis.”* (`theme.js`)
-- Primary CTAs, focus rings, selected rows, nav, likes-on-desktop, seek gradient all run **Aqua**. Seek in immersive is even `#6FBF3A` → `#1E6FE8` (lime-to-blue SaaS progress).
-- `timeOfDayGradient()` is *“always light, never OLED.”* Opposite of the brief.
-- Boot splash, `theme-color`, `index.css` body: `#E6E9EF`.
+- Home h1 is still 34px product name — App Store large title with a firmware eyebrow taped on.
+- Nav labels 10px (`BottomNavigation`) — below the 11px floor from `docs/UX_AUDIT.md`.
+- Energy paddle captions 9px when `showLabel`.
+- Track titles are good; section titles still Music.app “See All” grammar (`type.seeAll`).
+- Charts tests may still assert Lucida (`ChartsScreen.test.js`) — drift vs shipped Plex.
 
 **Should change**
-- Invert the environment. Silver becomes metal highlight, not the page.
-- Acid green becomes the *only* brand accent (play pip, progress, live-adjacent digital, focus). Red stays LIVE/destructive only.
-- Artwork supplies the rest of the colour. No second brand hue (retire Aqua).
+- Masthead: compact wordmark + catalog line as *the* title; drop competing 34px “Planet MP3” if the catalog line is doing the job (or invert: wordmark compact, catalog larger).
+- Metadata always mono 11–13px, tracking 0.08–0.14em. Uppercase only on device labels.
+- Floor informational type at 11px.
 
 **Implementation**
-See Design System below. First files: `theme.js`, `index.css`, `public/index.html`, `BTN_PRIMARY`, `BottomNavigation`, `IceOrbPlay`, `glassPill`.
+- Token: add `type.lcd` / `type.bug`. Raise nav caption to 11. No new webfont.
 
 ---
 
-### Album artwork / imagery — 6/10
+### Colour system — 7/10
 
-**Works**
-- Shared `ArtFrame` / `artFrameStyle` / jewel shadows. Tile sizes 160 / 168 / 200.
-- Immersive player and Artist/Album heroes treat sleeves as objects (blur bloom, full-bleed).
-- Explore lead release + mosaic; channel photography; CoverImage lazy/priority pipeline.
-- Video stage is a real dark rectangle when a clip exists.
+**Working**
+- Brief palette is specified and mostly shipped: void/chassis/raised, silver hairlines, off-white ink, acid `#B8F24A`, live red `#E0314A` only.
+- Aqua `#1E6FE8` / pearl `#E6E9EF` are **build-gated out** (`scripts/assert-shipped-style.js`).
+- Artwork tint on dock (`dockTintStyle`) is the right idea.
+- Focus/selected/play/progress share acid.
 
 **Generic / off-brand**
-- Default discovery is still a **row of equal squares with two lines of caption** — Apple Music shelf.
-- Home hero sleeve is ~148px inside an 18px-radius light card, not a device screen or a magazine cover.
-- Rank/video badges are generic black pills.
-- Art frames use 8–12px rounding and pearl fallback gradients — jewel case as iTunes widget, not crate.
+- Acid is used as *paint* (active tab wash, glowing play key, CTA) more than as *signal* (LCD glyphs, pip, progress). Easy to look like “Spotify green, different hex.”
+- Immersive booth drawer is still **light pearl**: `linear-gradient(... rgba(255,255,255,0.94) ... rgba(232,236,242,0.9))` — a hole in the OS.
+- `y2k.cyan` / `techBlue` / `neon` all alias to acid — names still lie.
+- Flask/energy popovers use mid-grey glass `rgba(56,62,72,0.95)` that reads as leftover aluminum, not LCD.
+- Seek fill is acid; the *track* is still a 3px iOS capsule.
 
 **Should change**
-- One large artwork moment per destination (Home hero, Explore hero, player, album page). Rails can stay, but they cannot all be the same size.
-- Sharper corners on sleeves (2–6px) so they read as CD/jewel, not app icons.
-- Let the playing sleeve stain the dark canvas (already in immersive at 0.22 opacity — raise it on dark).
+- Acid = play pip, progress, focus ring, LCD text, selected row. Metal = keys. Artwork = atmosphere. Red = LIVE only.
+- Kill remaining light panels in ImmersivePlayer.
+- Do not introduce a second brand hue for Club.
 
 **Implementation**
-- Hero: artwork as the primary panel (min ~240px / full-width on mobile), chrome *around* it like a player bezel.
-- Explore already has Ken Burns hero + lead release — keep; restyle chrome, don’t rebuild IA.
+- Grep `255,255,255,0.94`, `232,236,242`, `borderRadius: 999`, `borderRadius: 980`. Recolor booth to `radio.moduleFace`. Keep token names to avoid a 200-file rename.
 
 ---
 
-### Music player experience — 6/10
+### Artwork treatment — 6/10
 
-**Works**
-- Player is the most designed object in the app: immersive booth, dock, desktop mini, energy shift, seek, shuffle/repeat/volume, On Air, BPM/key/energy in `metaBits`.
-- Rabbit / Turtle is a real differentiator with tap vs long-press BPM steps — the *idea* is Planet.
-- Transport plumbing (crossfade, Media Session, unlock) is not the problem.
+**Working**
+- Shared `ArtFrame` / `artFrameStyle` / jewel shadows; active acid pip.
+- Tile sizes 160 / 168 / 200; mosaics for channels/stacks.
+- Immersive + artist/album + Explore hero treat sleeves as large objects (blur bloom, Ken Burns).
+- CoverImage lazy/priority pipeline.
+- Video stage is a real dark rectangle.
 
 **Generic / off-brand**
-- Immersive comment: *“premium Y2K listening booth… aluminum transport… no ice-blue.”* It is still a **light iPod theater**: pearl canvas, circular aluminum play (`IceOrbPlay`), circular icon buttons, iOS-style 3px rounded seek.
-- Dock is a frosted mini-bar with ~10 controls — Spotify/Apple mini-player density, not a device.
-- Bunny/Turtle are 30px glass circles jammed beside skip. They read as gimmick icons, not hardware.
-- Home hides the dock player when the hero is visible (`hideDockPlayer`) — two players, neither feels like *the* machine.
-- Desktop immersive stays phone-column. Mini-player is a glass strip, not a deck.
+- Default discovery is still **equal square rails with two caption lines**.
+- Hero sleeve is 220px inside a padded card — better than 148px, still not a device window or magazine cover.
+- `ArtFrame` default radius 8; comment still “Music.app sleeve… no jewel bevel” while `artFrameStyle` *does* bevel.
+- Rank/video badges are generic black pills (`borderRadius: 11–12`).
+- Playing-state stain is timid (immersive art opacity 0.38 with heavy dark veil).
 
 **Should change**
-- Make one **device**: dark chassis, LCD (title/artist/BPM/key/time), artwork window, hardware transport, rabbit/turtle as labeled paddles with BPM delta.
-- Progress = LCD bar + optional hardware thumb, not a white-dot iOS slider.
-- Keep one persistent mini-device (dock) that looks like a smaller version of the same object.
+- One oversized artwork moment per destination. Rails OK as secondary.
+- Sleeve corners 4–6px. Badges = hairline bugs, not pills.
+- Let the playing sleeve colour the chassis (dock tint + player bloom). Do not let acid compete with the cover.
 
 **Implementation**
-- Restyle `ImmersivePlayer`, `HeroPlayerCard`, `GlassDock`, `DesktopMiniPlayer`, `OrbitalControls`, `EnergyShiftButton` against the same device drawing. Do not merge the files; share a `PlayerChassis` visual language from tokens.
+- Hero: art as primary panel (~full width on mobile / 280–320px device window). `ArtFrame` default radius 6. Featured Home band stays 200; secondary 160.
 
 ---
 
-### UI originality — 4/10
+### Music player — 5/10
 
-**Works**
-- Energy rabbit/turtle, station/channel surfing, dedicate, member numbers, harmonic search, Club credits — original *product*.
-- Broadcast vocabulary on Home is not a Spotify clone in IA.
+**Working**
+- Player is still the most designed object: immersive theater, dock, desktop mini, seek, shuffle/repeat/volume, On Air, session arc, dedicate, video.
+- Transport plumbing (crossfade, Media Session, unlock, playback store) is solid.
+- Home hero is now a two-column art + meta + transport module — closest to “device.”
+- Play key is hardware-shaped (8px), acid when playing.
 
 **Generic / off-brand**
-- Visual comments and components repeatedly cite App Store, Apple Music, iPod click-wheel, iTunes Aqua, Music.app.
-- Patterns: large title + date, horizontal snapping rails, circular chrome icon buttons (`chromeIconButton` = 50% radius), pill chips (`radius.pill` 980), frosted glass sheets, Aqua selected states, 14–18px card radii.
-- Bottom nav is a generic 5-tab bar with a bright filled pill.
-- Primary button is Aqua gloss. Secondary is aluminum capsule.
+- Immersive is **phone theater**: full-bleed blur, circular-era comments, iOS seek, 6+ icon buttons, energy flask jammed at the end. Not a physical MP3/DJ unit.
+- Dock is a 66px streaming mini-bar (art ring + title + like + play + flask). Spotify/Apple density.
+- `hideDockPlayer` on Home when hero is visible — two machines, split muscle memory (`App.jsx`).
+- Desktop mini is a glass strip, not a smaller drawing of the same device. Immersive stays single-column on desktop.
+- `OrbitalArtRing` is click-wheel residue — clever, off-brief if the player is a 2003 handheld.
+- **Bunny/Turtle demoted.** Flask + range slider is lab UI, not a player. The brief: *preserve and elevate* them.
 
 **Should change**
-- Prefer **panels, modules, lists, grids, dividers, overlays, editorial spreads**. Tight radii (4–10px). Hairline silver borders. No pill soup.
-- Nav can stay 4–5 destinations; it should look like a device selector, not iOS tabs.
+- One device drawing, three sizes: immersive / hero / dock.
+- LCD + artwork window + hardware keys + turtle/prev/play/next/bunny.
+- Progress = LCD bar (tokens exist). Times in mono.
+- Persistent mini-device that matches the hero (do not hide dock *or* make dock a true sibling of the hero visually).
 
 **Implementation**
-- `radius`: sm 4, md 8, lg 10, xl 12; retire pill except true FABs if any.
-- `glassPill` / Aqua active tabs → inset LCD selected state or acid underline/pip.
+- Restyle in place: `ImmersivePlayer`, `HeroPlayerCard`, `GlassDock`, `DesktopMiniPlayer`, `OrbitalControls`. Do not merge files. Share tokens only (`radio.*`, `hardware.*`). Restore paddles. Fix pearl booth. Desktop immersive: CSS two-column (art | LCD+keys) without a new IA.
 
 ---
 
-### Motion / interaction — 6/10
+### UI originality — 5/10
 
-**Works**
-- Documented principles (`src/motion/tokens.js`): fast, no elastic bounce, reduced motion honored globally.
-- Dock rise, like pop, live LED pulse, press/lift classes, art load fade, Explore Ken Burns, buffering spinner.
-- Player progress already updates independently of App root (playback store) — the UI can animate without jank if we keep that.
+**Working**
+- Original *product*: energy shift, channel surfing, dedicate, member numbers, harmonic search, Club credits, countdown, scene channels.
+- Broadcast bugs and PLANET/003 are not Spotify.
+- Hardware key language is more original than glass orbs were.
 
 **Generic / off-brand**
-- Scanlines and CRT intentionally off. Marquee/ticker present in CSS but not a brand moment.
-- Seek is a utilitarian width animation. Artwork transitions are slow bloom (12s transform) — Apple Music, not a deck.
-- Energy control uses a slightly bouncy cubic-bezier (`0.34, 1.4, 0.64, 1`) — fights “rhythm over bounce.”
-- Too many equal micro-lifts on every tile (`.pmp-lift`) — App Store hover, not a machine.
+- Layout tropes: snapping horizontal rails, See All, equal tiles, frosted sheets, pill leftovers (`radius.pill` 980, energy chips, VideoStage, StationBumper, LinerNotes).
+- Bottom nav is still a 5-tab bar (acid wash instead of Aqua fill).
+- Home comment: “clean App Store stage card.”
+- Flask as the energy metaphor collides with Planet’s animal paddles and with taste-flask — two flasks, zero bunnies on the player.
 
 **Should change**
-- Fast digital: LCD digits, progress fill, pip pulse, panel slide, metadata marquee when titles overflow, sleeve crossfade on track change.
-- Less tile-lift. More device feedback (key press inset, LED, bar).
+- Panels, modules, lists, grids, overlays, editorial spreads. Radius 4–12. Hairlines. No pill soup.
+- Nav can stay 4–5 destinations; look like a device selector (closer now) not iOS tabs (labels still tiny, capsule container `borderRadius: 14`).
+- Originality should come from **the player + metadata + paddles + crate layouts**, not from a new mascot on the splash.
 
 **Implementation**
-- Keep duration tokens. Add `lcdPulse`, `marquee`, `pip`. Re-enable scanlines as a 2–3% opacity overlay **on LCD surfaces only**.
+- Phase 1 does not redesign Home IA. It restyles the player object and kills pills on transport. Phase 2 introduces one magazine/crate module using existing `buildHomeCollections` / Explore mosaics as the pattern.
 
 ---
 
-### Overall cohesion — 5/10
+### Motion & interaction — 6/10
 
-**Works**
-- After the iTunes unification, Home / Player / Library / Login actually share one chassis. Previous purple-vs-ice split is largely gone. That cohesion is valuable — we should **repoint it**, not fragment it again.
+**Working**
+- Documented principles; reduced motion global kill-switch.
+- Dock rise, like pop, live LED, press/lift, trackSwap, Explore Ken Burns, buffering spinner, planet spin on splash.
+- Progress isolated in playback store — good.
 
 **Generic / off-brand**
-- Cohesive around the wrong movie. Explore hover CSS still uses `rgba(255,255,255,0.04)` (dark-UI leftovers) on a light product — small proof of incomplete eras.
-- `y2k.*` tokens are light-theme aliases. New work will keep fighting old names until tokens are renamed or documented.
-- Mascot / lockup / acid-green-capable LCD vs Aqua CTAs vs App Store header = three brands in one app.
+- Energy still uses bounce easing `cubic-bezier(0.34, 1.4, 0.64, 1)` and `scale(1.06)` hover — fights “rhythm over bounce.”
+- Seek is a width animation on a capsule; not an LCD fill.
+- Title marquee / ticker is not a brand moment on the player LCD.
+- 12s art bloom on immersive is Apple Music, not a deck.
+- `.pmp-lift` on every tile = App Store hover.
 
 **Should change**
-- One environment: dark studio. One accent: acid green. One metal: silver. One player object. One type stack. Artwork for hue.
-- Preserve IA, playback, Club, billing. Restyle the shell.
+- Fast digital: LCD digits, progress fill, pip pulse, panel slide, overflow marquee, sleeve crossfade (~200–350ms).
+- Key press = 1px inset, not elastic scale.
+- Gate ambient loops (planet, Ken Burns, live dot) to visible + playing.
 
 **Implementation**
-- Token-first. Then player. Then Home/nav. Then remaining screens. No third accent “just for Club.”
+- Replace `PRESS_EASE` with `motion.ease`. Add CSS `lcdPulse` / `pmp-ticker` on player title when truncated. Keep `ScanlineWash` opacity ~0.04 on LCD only.
 
 ---
 
-## 3. Top 10 changes (highest impact first)
+### Overall cohesion — 6/10
 
-1. **Invert the environment to dark digital** — canvas, chrome, boot splash, theme-color. Highest identity swing; tokens first.
-2. **Replace Aqua with acid / computer green** as the only brand accent (progress, play pip, focus, selected, primary CTA).
-3. **Treat the player as a physical MP3 / DJ device** — LCD + artwork window + hardware keys; restyle immersive + dock + hero as one object.
-4. **Promote Bunny / Turtle to labeled hardware paddles** with BPM readout (not 30px glass icons in a crowded dock).
-5. **Make metadata typographic identity** — `124 BPM` / `8A` / `320 KBPS` / `PLANET / 003` in compact mono, on dark, everywhere a track appears.
-6. **Artwork at poster/device scale** — hero and player first; sharper sleeve corners; art-driven ambient colour.
-7. **Kill App Store / Music.app layout tropes** — date+large title header, Aqua pill tabs, circular chrome orbs, pill chips, equal square rails as the only rhythm.
-8. **Editorial Home/Explore modules** — one magazine/crate spread per page plus lists/grids; keep existing data (`buildHomeCollections`, countdown, scenes).
-9. **Restore digital motion on LCDs** — scanline inside LCD, title marquee, pip pulse, fast sleeve crossfade. Do not restore a fake OS desktop.
-10. **Align wordmark and chrome with Planet, not iTunes** — compact lockup, no italic lifestyle title, silver bezels, member/catalog numbers in the header.
+**Working**
+- One dark + acid token file. Home / nav / splash / primary buttons agree.
+- Previous purple-vs-ice and Aqua-vs-LCD splits are largely dead. That is valuable — **do not fragment it again.**
+
+**Generic / off-brand**
+- Cohesive *palette*, split *objects*: hero card vs immersive theater vs dock strip vs flask popover vs pearl booth vs Explore 18px-radius poster.
+- Token aliases (`y2k.cyan` = green) and component names (`IceOrbPlay`) keep the team designing the previous movie.
+- Tests/docs still mention Lucida, iTunes, Music.app in places.
+
+**Should change**
+- One environment, one accent, one metal, **one player object**, one type stack, artwork for hue.
+- Preserve IA and engines. Restyle the shell and player.
 
 ---
 
-## 4. Quick wins (no IA / no rewrites)
+## 3. Top 10 highest-impact improvements
 
-These can ship by token and CSS-class swaps. Playback, routing, Club, billing untouched.
+1. **One player-as-device** — LCD + artwork window + hardware transport, shared by immersive / hero / dock / desktop mini. Highest identity swing now that colour already flipped.
+2. **Restore and elevate Bunny / Turtle** — labeled metal paddles with ±BPM on the transport row; demote flask to taste, not tempo.
+3. **LCD metadata as identity** — `124 BPM · 8A · E7 · time` in Plex Mono on every now-playing surface (add Camelot to Home hero).
+4. **Kill light-pearl leftovers** — Immersive booth drawer and any white modules; they puncture the OS.
+5. **Acid as signal, not Spotify paint** — progress/LCD/pip/focus; metal keys; artwork atmosphere.
+6. **Artwork at device/poster scale** on Home hero + player; sharper 4–6px sleeves; bug badges not pills.
+7. **Persistent mini-device** — stop hiding the dock on Home *or* make hero/dock the same object so muscle memory holds.
+8. **Editorial module on Home/Explore** — one magazine/crate spread using existing collections/mosaics; rails become secondary.
+9. **Digital motion on LCDs** — scanline-in-LCD, title marquee, pip pulse, fast sleeve crossfade; remove energy bounce.
+10. **Nav + masthead as firmware** — 11px+ labels, catalog lockup, device-selector tabs; stop App Store large-title competition.
+
+---
+
+## 4. Quick wins (minimal code, no IA)
 
 | Win | Where | Notes |
 |---|---|---|
-| Dark canvas + light ink | `theme.js` `color.canvas/ink`, `index.css`, `index.html` | Instant environment flip |
-| Accent `#B8F24A` (or punchier `#C8F241`) | `color.accent`, `BTN_PRIMARY`, focus rings | Retire `#1E6FE8` |
-| Nav active = acid pip, not Aqua fill | `BottomNavigation.jsx` | Keep 5 tabs |
-| Meta chips: square, mono, acid | `HeroPlayerCard` `MetaChip`, immersive `metaBits` | Drop `borderRadius: 980` |
-| Seek bar: single acid fill, no blue | `ImmersivePlayer` `ChromeSeek`, range CSS in `App.jsx` | |
-| Re-enable LCD scanlines (LCD only) | `ScanlineWash` as child of LCD, 2% opacity | Do not wash the whole Home |
-| Header: drop calendar date; add `PLANET /` catalog line | `HomeHeader.jsx` | |
-| Sleeve radius 4–6px | `artFrameStyle`, `TrackCard`, `JewelSleeve` | |
-| Primary play: square-ish hardware key, not Aqua glow orb | `IceOrbPlay` | Can stay circular *if* it looks like a device button on dark metal |
-| Dock like-heart uses ink/acid, not Aqua | `DesktopMiniPlayer` | Desktop currently tints like with `color.accent` |
+| Recolor immersive booth to `radio.moduleFace` | `ImmersivePlayer.jsx` ~860 | Removes pearl hole |
+| Camelot + energy chips on hero | `HeroPlayerCard` MetaChip row | Data already on track |
+| Seek: `radio.lcdFill` + radius 2–4 | `ChromeSeek`, hero bar | Tokens exist |
+| `ArtFrame` / TrackCard radius 6 | `ArtFrame.jsx`, `TrackCard` | Jewel not app-icon |
+| Nav label 11px | `BottomNavigation.jsx` | Contrast/legibility |
+| Energy bounce → `motion.ease` | `EnergyShiftButton.jsx` `PRESS_EASE` | One constant |
+| Restyle flask control as two paddles | Player/dock/hero call sites | Reuse `EnergyShiftButton` + Rabbit/Turtle SVGs |
+| Meta chip radius 4 (already ~4) + add `8A` | Hero | Tiny |
+| Badge pills → 4px bugs | `TrackCard` rank/video | |
+| Update stale comments | TrackCard, ArtFrame, HomeScreen | Stops the next PR from designing iTunes |
+
+Playback, routing, Club, billing untouched.
 
 ---
 
-## 5. Design system (target)
+## 5. Recommended design system
 
 ### Colour
 
 | Role | Hex | Use |
 |---|---|---|
-| Void | `#07080A` | App canvas |
-| Chassis | `#101218` | Panels, dock, player body |
+| Void | `#07080A` / canvas `#090A0D` | App floor |
+| Chassis | `#101218` | Player body, dock, panels |
 | Raised | `#181B22` | Modules, lists |
-| Hairline | `rgba(232,234,238,0.12)` | Dividers, bezels |
-| Silver | `#C5CAD3` | Metal edges, secondary labels, hardware |
+| Hairline | `rgba(232,234,238,0.12)` | Bezels, dividers |
+| Silver | `#C5CAD3` | Metal, secondary labels |
 | Off-white | `#E8EAEE` | Primary text |
-| Mute | `#8B939F` | Secondary text |
-| **Acid** | `#B8F24A` | Play, progress, focus, selected, LCD glyphs |
-| Acid dim | `rgba(184,242,74,0.16)` | Selection wash |
-| Live | `#E0314A` | ON AIR / destructive only |
-| Artwork | track colour | Washes, dock tint — never a second brand hue |
+| Mute | `#8B939F` | Secondary |
+| **Acid** | `#B8F24A` | LCD glyphs, play pip, progress, focus, selected |
+| Acid dim | `rgba(184,242,74,0.16)` | Selection wash only |
+| On-acid | `#0C1008` | Text on primary CTA |
+| Live | `#E0314A` | ON AIR / destructive |
+| Artwork | track colour | Bloom, dock tint — never a second brand hue |
 
-**Do not:** Aqua `#1E6FE8` as identity. Purple. Gradients on primary buttons that go blue. Light gray page.
+Do not: Aqua, purple, light gray page, acid-everywhere gradients on keys.
 
 ### Typography
 
-- **UI / titles:** compact technical sans, weight 600–700, tracking −0.02em to −0.04em on large type. Lucida/Helvetica is acceptable for the “modern 40%” if the *environment* goes dark; otherwise IBM Plex Sans.
-- **Metadata / LCD:** mono, 11–13px, tracking 0.08–0.14em. `124 BPM` · `8A` · `320 KBPS` · `E7` · `PLANET / 003`.
-- **Track titles:** sentence case, high contrast, no uppercase shouting.
-- **Device labels only** in uppercase: `ON AIR`, `REC`, `BPM`, `SEEK`.
+- **UI / titles:** IBM Plex Sans, 600–700, tracking −0.02 to −0.04em on large type.
+- **Metadata / LCD:** IBM Plex Mono, 11–13px, tracking 0.08–0.14em. `124 BPM` · `8A` · `E7` · `PLANET / 003`.
+- **Track titles:** sentence case, high contrast, never all-caps.
+- **Device labels only** uppercase: `ON AIR`, `BPM`, `SEEK`, `BUNNY`, `TURTLE`.
 
-### Borders / spacing / radius
+### Spacing / radius / borders
 
-- Radius: **4 / 8 / 10 / 12**. Player hardware **4**. Sleeves **4–6**. Sheets **12** top only.
-- Borders: 1px silver hairline. Inset highlight on metal keys (`hardware.keyRaised` already good — recolor for dark).
-- Space: keep `space(n)` 4px grid and `homeSpace.gutter` 20.
+- 4px grid (`space(n)`). `homeSpace.gutter` 20.
+- Radius: **4 / 8 / 10 / 12**. Sleeves **4–6**. Hardware keys **8**. Sheets **12** top. **No 980 pills** on transport.
+- 1px silver hairline. Inset highlight on metal (`hardware.keyRaised`).
 
-### Buttons
+### Icons / buttons
 
-- **Primary:** acid fill, near-black label, radius 8, no Aqua gloss.
-- **Secondary:** dark metal plate, silver hairline, off-white label.
-- **Icon keys:** hardware bevel, 40–44px, radius 8 (not 50% unless it is a click-wheel *quote* used once).
-- **Pressed:** inset shadow, 1px translate, no bounce.
+- Keep `Icon` stroke set. Recolor silver / acid / off-white.
+- Primary: acid fill, dark label, radius 8.
+- Secondary: dark metal plate.
+- Icon keys: 40–44px, radius 8, pressed inset.
+- **Bunny/Turtle:** custom SVGs already in `EnergyShiftButton.jsx` — enlarge, label, show `±10 BPM`.
 
-### Cards / panels
+### Components
 
-- Dark modules with hairline + optional top silver edge.
-- Lists and grids over stacked rounded white cards.
-- Editorial: one large sleeve + column of metadata, not a card-in-card.
+- **Panel:** dark module, hairline, optional top silver edge (`radio.moduleFace`).
+- **LCD:** `radio.lcdFace` + `ScanlineWash` + mono glyphs.
+- **Tile:** ArtFrame + title + one meta line (BPM/key), not two generic captions only.
+- **Nav:** device selector, acid pip, 11px labels.
 
-### Icons
-
-- Keep the existing `Icon` set (stroke). Recolor to silver / acid / off-white.
-- Rabbit/Turtle stay custom SVGs — enlarge, label `LIFT` / `EASE`, show `±10 BPM`.
-
-### Player
+### Player (canonical drawing)
 
 ```
-┌─────────────────────────────────────────┐
-│  ON AIR · CH03              PLANET/003  │
-│  ┌──────────┐  TITLE                    │
-│  │          │  Artist                   │
-│  │  ARTWORK │  124 BPM  8A  320 KBPS    │
-│  │          │  ────────●──────── SEEK   │
-│  └──────────┘  01:14 / 03:42            │
-│  [TURTLE]  [PREV] [PLAY] [NEXT] [RABBIT]│
-└─────────────────────────────────────────┘
+┌──────────────────────────────────────────────┐
+│  ON AIR · CH03                    PLANET/003 │
+│  ┌────────────┐  TITLE (marquee if overflow) │
+│  │            │  Artist                      │
+│  │  ARTWORK   │  124 BPM   8A   E7           │
+│  │            │  ████████░░░░  SEEK          │
+│  └────────────┘  01:14 / 03:42               │
+│  [TURTLE] [PREV] [ PLAY ] [NEXT] [BUNNY]     │
+│           −10 BPM                    +10 BPM │
+└──────────────────────────────────────────────┘
 ```
 
-Mini-dock = the same drawing at 64–72px height, not a different component language.
+Dock = same drawing at ~72px (art | LCD stack | play | paddles). Not a different component language.
 
 ---
 
-## 6. Implementation plan
+## 6. Phased implementation plan
 
-Preserve playback, auth, Club, billing, routing, recommendation engine. Restyle; don’t rewrite.
+Preserve functionality. Reuse components. No App.jsx decomposition, no new IA, no engine changes.
 
-### Phase 1 — Highest impact (tokens + player + shell)
+### Phase 1 — Highest impact (player object + leftovers)
 
-1. Rewrite `color`, `y2k`, `glass`, `chrome`, `BTN_*`, `dock`, `artShadow` for dark + acid. Keep token *names* where possible so 200+ inline styles flip.
-2. Boot splash, `theme-color`, `index.css`.
-3. `IceOrbPlay`, `BottomNavigation`, `glassPill`, range-input CSS, focus rings.
-4. `ImmersivePlayer` + `HeroPlayerCard` + `GlassDock` + `DesktopMiniPlayer` as one device.
-5. Energy paddles: size, labels, BPM, placement on the transport row.
-6. `HomeHeader` masthead.
+1. Restyle `ImmersivePlayer` + `HeroPlayerCard` + `GlassDock` + `DesktopMiniPlayer` to the drawing above (tokens, not new architecture).
+2. Restore Bunny/Turtle paddles on those four surfaces; keep long-press BPM menu + `playerEnergyStore`.
+3. LCD readout: title, artist, BPM, Camelot, energy, time; scanline inside LCD.
+4. Recolor pearl booth; LCD seek; hardware keys; no bounce.
+5. Optional: stop hiding dock **or** visually twin hero/dock — pick one in implementation, don’t invent a third player.
 
-**Risk:** inline styles that hardcode `#1E6FE8`, `#FFFFFF`, `borderRadius: 980`, `rgba(255,255,255,…)`. Grep and replace after tokens.
+**Risk:** control density on small phones. If dock can’t fit paddles, keep play + art + LCD meta on dock; paddles on hero/immersive only — but they must be *visible brand*, not a flask.
 
 ### Phase 2 — Refinement (surfaces)
 
-1. Home rails / `TrackCard` / `ChannelCard` / `MusicSection` — darker modules, sharper art, metadata line.
-2. Explore, Search, Library, Club, Login, Paywall — same tokens, no new IA.
-3. Artist/Album heroes: dark already-friendly (blurred art); retune accents.
-4. Meta chips + Catalog numbers + member line in profile.
-5. Desktop: wider editorial Home; immersive two-column (art + LCD stack).
+1. Home/Explore: one editorial/crate module; sharper tiles; meta line on `TrackCard`.
+2. Search, Library, Club, Login, Paywall: same tokens, kill pill leftovers.
+3. Artist/Album: already art-forward; retune badges and LCD-style meta.
+4. Desktop: two-column immersive (CSS); Home stays 960 unless a featured poster needs 1120.
+5. Masthead/nav type floor.
 
 ### Phase 3 — Polish
 
-1. LCD scanline + title marquee + pip pulse + sleeve crossfade.
-2. Artwork-driven ambient colour on dark (dock tint + player bloom).
-3. Icon/hardware consistency pass; kill leftover Aqua and white pills.
-4. Motion: remove bounce on energy; keep reduced-motion.
-5. Screenshot pass: mobile player, Home, Explore, Library, Login.
+1. Title marquee, pip pulse, sleeve crossfade, gated ambient loops.
+2. Stronger art-driven bloom on dark (without washing acid LCDs).
+3. Comment/name cleanup (`IceOrbPlay` → `PlayKey` in a dedicated PR).
+4. Screenshot pass: mobile player, Home, Explore, Library, Login.
+5. Motion audit vs `prefers-reduced-motion`.
 
 ---
 
@@ -412,25 +435,27 @@ Preserve playback, auth, Club, billing, routing, recommendation engine. Restyle;
 
 | Preserve | Kill / demote |
 |---|---|
-| Lockup, mascot, tagline, member numbers | Aqua as brand colour |
-| Crate / stacks / cuts / on air vocabulary | App Store date + large title as Home identity |
-| BPM, Camelot, energy, rabbit/turtle *behavior* | Music.app “no scanlines / no dark studio” rule |
-| Scene channels, countdown, Club, dedicate | Pill chips and 980px radii as default |
-| Token file, motion principles, reduced motion | Equal square rails as the only Home rhythm |
-| ArtFrame pipeline, CoverImage, dock tint | Dual player languages (hero vs dock) |
-| 4–5 tab IA | iTunes source-list blue selected states |
+| Dark + acid token chassis | Flask as the *player* energy control |
+| Lockup, mascot, tagline, member numbers, PLANET/003 | Pearl/light booth leftovers |
+| Crate / stacks / cuts / on air vocabulary | App Store rail as the only Home rhythm |
+| BPM, Camelot, energy *data* and search grammar | iOS capsule seek as the progress language |
+| Rabbit/Turtle *behavior* and SVGs | Dual player languages (theater vs strip vs flask) |
+| Scene channels, countdown, Club, dedicate | `radius.pill` on transport and badges |
+| ArtFrame, CoverImage, dock tint, playback stores | Aqua / purple / second brand hue |
+| 4–5 tab IA, existing screens | Full rewrite of App.jsx / new architecture |
 
 ---
 
 ## 8. Approval gate
 
-No major structural changes until this direction is approved.
+No major structural or architectural changes until confirmed.
 
 **Please confirm:**
 
-1. Dark canvas + acid green as the new OS (retire light iTunes chassis).
-2. Player-as-device is Phase 1, not a later polish.
-3. Type: keep Lucida for UI **or** introduce IBM Plex Sans + Mono (recommend Plex/Geist if we are allowed one font change).
-4. Scope of Phase 1: tokens + player + nav/header only, vs. full-app recolor in the same PR.
+1. Phase 1 is **player-as-device + Bunny/Turtle restoration** (tokens already dark/acid — do not re-litigate the environment).
+2. Flask stays on **taste/interests** only; tempo uses paddles.
+3. Dock: keep always-on mini-device vs keep `hideDockPlayer` but match hero visually — recommend **match visually first**, always-on dock as a follow-up if density allows.
+4. Type: **keep IBM Plex** (already shipped). No third display font.
+5. Scope of first implementation PR: player + hero + dock + pearl leftover + meta chips — **not** a full Home IA redesign.
 
 Until then, this document is the only change on the branch.
