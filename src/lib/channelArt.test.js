@@ -24,6 +24,7 @@ describe("original channel icons", () => {
 
   test("IMAGE_CREDITS records original icons, not magazine scans", () => {
     expect(CREDITS).toMatch(/original illustrated icons/i);
+    expect(CREDITS).toMatch(/coloured studio plates/i);
     expect(CREDITS).not.toMatch(/mixmag\.com/i);
     expect(CREDITS).not.toMatch(/xlr8r\.com/i);
     expect(CREDITS).not.toMatch(/djmag\.com/i);
