@@ -27,6 +27,8 @@ export default function CrateSpread({
       style={{
         marginTop: homeSpace.sectionGap,
         padding: `0 ${homeSpace.gutter}px`,
+        contentVisibility: "auto",
+        containIntrinsicSize: "320px",
       }}
     >
       <div style={{ marginBottom: 12, display: "flex", alignItems: "flex-end", justifyContent: "space-between", gap: 12 }}>
@@ -174,7 +176,7 @@ export default function CrateSpread({
           ))}
           {rest.length > 4 ? (
             <div style={{ overflowX: "auto", display: "flex", gap: 12, paddingTop: 6 }}>
-              {rest.slice(4).map((track) => (
+              {rest.slice(4, 8).map((track) => (
                 <TrackCard
                   key={track.id}
                   track={track}

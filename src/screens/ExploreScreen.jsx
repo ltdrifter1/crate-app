@@ -572,7 +572,7 @@ function ExploreScreen({
         <CrateSpread
           title={forYou.coldStart ? "Fresh picks" : "Selected for you"}
           subtitle={forYou.coldStart ? "A place to begin" : "Chosen for you"}
-          tracks={forYou.tracks}
+          tracks={forYou.tracks.slice(0, 8)}
           activeId={activeId}
           onPlayTrack={onPlayTrack}
         />
