@@ -568,6 +568,16 @@ function ExploreScreen({
         />
       )}
 
+      {forYou.tracks.length > 0 && (
+        <CrateSpread
+          title={forYou.coldStart ? "Fresh picks" : "Selected for you"}
+          subtitle={forYou.coldStart ? "A place to begin" : "Chosen for you"}
+          tracks={forYou.tracks}
+          activeId={activeId}
+          onPlayTrack={onPlayTrack}
+        />
+      )}
+
       {releases.length > 0 && (
         <MusicSection
           title="Albums"
@@ -579,16 +589,6 @@ function ExploreScreen({
             onPlayTrack={onPlayTrack}
           />
         </MusicSection>
-      )}
-
-      {forYou.tracks.length > 0 && (
-        <CrateSpread
-          title={forYou.coldStart ? "Fresh picks" : "Selected for you"}
-          subtitle={forYou.coldStart ? "A place to begin" : "Chosen for you"}
-          tracks={forYou.tracks}
-          activeId={activeId}
-          onPlayTrack={onPlayTrack}
-        />
       )}
 
       {charts.length > 0 && (

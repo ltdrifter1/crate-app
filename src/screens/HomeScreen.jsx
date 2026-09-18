@@ -360,14 +360,35 @@ function HomeScreen({
         </div>
       )}
 
-      {/* MOST REQUESTED — larger featured sleeves */}
-      {shelvesReady && catalogReady && topRequested.length > 0 && (
+      {/* One crate spread per Home — countdown if that's the only band, else first editorial */}
+      {shelvesReady && catalogReady && (editorial[0]?.tracks?.length > 0 || topRequested.length > 0) && (
+        <CrateSpread
+          title={editorial[0]?.tracks?.length ? editorial[0].label : "Most Requested"}
+          subtitle={editorial[0]?.tracks?.length ? editorial[0].story : "Tonight's countdown"}
+          tracks={
+            editorial[0]?.tracks?.length
+              ? editorial[0].tracks
+              : topRequested.map((e) => e.track)
+          }
+          activeId={activeId}
+          onPlayTrack={onPlayTrack}
+          action={
+            !editorial[0]?.tracks?.length && onOpenCharts
+              ? { label: "See All", onClick: onOpenCharts }
+              : !editorial[0]?.tracks?.length && onTuneCountdown
+                ? { label: "Tune In", onClick: onTuneCountdown }
+                : null
+          }
+        />
+      )}
+
+      {shelvesReady && catalogReady && editorial[0]?.tracks?.length > 0 && topRequested.length > 0 && (
         <div style={{ contentVisibility: "auto", containIntrinsicSize: "280px" }}>
         <MusicSection
           title="Most Requested"
           subtitle="Tonight's countdown"
           poster
-          first={!hasChannels && !hasTonight}
+          first={false}
           action={
             onOpenCharts
               ? { label: "See All", onClick: onOpenCharts }
@@ -393,18 +414,8 @@ function HomeScreen({
         </div>
       )}
 
-      {/* EDITORIAL — first band is a crate spread; the rest stay rails */}
-      {shelvesReady && catalogReady && editorial[0] && (
-        <CrateSpread
-          title={editorial[0].label}
-          subtitle={editorial[0].story}
-          tracks={editorial[0].tracks}
-          activeId={activeId}
-          onPlayTrack={onPlayTrack}
-        />
-      )}
       {shelvesReady && catalogReady &&
-        editorial.slice(1).map((col, i) => (
+        editorial.slice(editorial[0]?.tracks?.length ? 1 : 0).map((col, i) => (
           <div key={col.id} style={{ contentVisibility: "auto", containIntrinsicSize: "280px" }}>
           <MusicSection
             title={col.label}

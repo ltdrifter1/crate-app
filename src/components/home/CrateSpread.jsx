@@ -14,6 +14,7 @@ export default function CrateSpread({
   activeId = null,
   onPlayTrack = null,
   leadSize = 220,
+  action = null,
 }) {
   if (!tracks.length) return null;
   const [lead, ...rest] = tracks;
@@ -28,10 +29,31 @@ export default function CrateSpread({
         padding: `0 ${homeSpace.gutter}px`,
       }}
     >
-      <div style={{ marginBottom: 12 }}>
+      <div style={{ marginBottom: 12, display: "flex", alignItems: "flex-end", justifyContent: "space-between", gap: 12 }}>
+        <div>
         <h2 style={{ ...type.title2, margin: 0, color: y2k.offWhite }}>{title}</h2>
         {subtitle ? (
           <p style={{ ...type.subhead, margin: "4px 0 0", color: color.muted }}>{subtitle}</p>
+        ) : null}
+        </div>
+        {action?.onClick ? (
+          <button
+            type="button"
+            onClick={action.onClick}
+            style={{
+              background: "none",
+              border: "none",
+              padding: 0,
+              cursor: "pointer",
+              fontFamily: fontDisplay,
+              fontSize: 13,
+              fontWeight: 650,
+              color: color.accent,
+              flexShrink: 0,
+            }}
+          >
+            {action.label || "See All"}
+          </button>
         ) : null}
       </div>
       <div
