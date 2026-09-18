@@ -6,20 +6,22 @@ import { useState } from "react";
 import ExploreScreen from "../screens/ExploreScreen";
 import { AlbumPage } from "../components/catalog/ArtistPage";
 import { findAlbum } from "../lib/catalog";
-import { CHANNEL_ART } from "../lib/channelArt";
+import { PREVIEW_SLEEVES } from "./previewSleeves";
 import { color } from "../theme";
 
 const COVER = {
-  electronic: CHANNEL_ART.techno,
-  y2k: CHANNEL_ART["y2k-dance"],
-  variety: CHANNEL_ART["variety-mix"],
-  pnw: CHANNEL_ART["local-pnw"],
-  dnb: CHANNEL_ART["drum-and-bass"],
-  shoe: CHANNEL_ART.shoegaze,
-  metal: CHANNEL_ART.metal,
-  punk: CHANNEL_ART.punk,
-  folk: CHANNEL_ART["country-folk"],
-  down: CHANNEL_ART.downtempo,
+  electronic: PREVIEW_SLEEVES.nightShift,
+  y2k: PREVIEW_SLEEVES.afterglow,
+  variety: PREVIEW_SLEEVES.y2k,
+  pnw: PREVIEW_SLEEVES.highways,
+  dnb: PREVIEW_SLEEVES.weight,
+  shoe: PREVIEW_SLEEVES.walls,
+  metal: PREVIEW_SLEEVES.gain,
+  punk: PREVIEW_SLEEVES.unpolished,
+  folk: PREVIEW_SLEEVES.openRoad,
+  down: PREVIEW_SLEEVES.late,
+  hiphop: PREVIEW_SLEEVES.voice,
+  gloss: PREVIEW_SLEEVES.gloss,
 };
 
 function t(partial) {
@@ -56,10 +58,10 @@ const SAMPLE_TRACKS = [
   t({ id: "u2", title: "Stitches", artist: "Ashcan", album: "Unpolished", albumCover: COVER.punk, genre: "Punk", energy: 9, playCount: 5 }),
   t({ id: "j1", title: "Modal Room", artist: "Lumen", album: "Elsewhere", albumCover: COVER.down, genre: "Jazz", energy: 3, playCount: 9 }),
   t({ id: "j2", title: "Late Trio", artist: "Lumen", album: "Elsewhere", albumCover: COVER.down, genre: "Jazz", energy: 2, playCount: 4 }),
-  t({ id: "hh1", title: "Sample Archaeology", artist: "Block", album: "Voice as Drum", albumCover: COVER.variety, genre: "Hip-Hop", energy: 6, playCount: 20 }),
-  t({ id: "hh2", title: "Boom", artist: "Block", album: "Voice as Drum", albumCover: COVER.variety, genre: "Rap", energy: 7, playCount: 11 }),
-  t({ id: "rb1", title: "Quiet Storm", artist: "Pearl", album: "Gloss", albumCover: COVER.y2k, genre: "R&B & Soul", energy: 3, playCount: 8 }),
-  t({ id: "rb2", title: "Pocket", artist: "Pearl", album: "Gloss", albumCover: COVER.y2k, genre: "Soul", energy: 4, playCount: 6 }),
+  t({ id: "hh1", title: "Sample Archaeology", artist: "Block", album: "Voice as Drum", albumCover: COVER.hiphop, genre: "Hip-Hop", energy: 6, playCount: 20 }),
+  t({ id: "hh2", title: "Boom", artist: "Block", album: "Voice as Drum", albumCover: COVER.hiphop, genre: "Rap", energy: 7, playCount: 11 }),
+  t({ id: "rb1", title: "Quiet Storm", artist: "Pearl", album: "Gloss", albumCover: COVER.gloss, genre: "R&B & Soul", energy: 3, playCount: 8 }),
+  t({ id: "rb2", title: "Pocket", artist: "Pearl", album: "Gloss", albumCover: COVER.gloss, genre: "Soul", energy: 4, playCount: 6 }),
 ];
 
 const SAMPLE_COUNTDOWN = SAMPLE_TRACKS.slice(0, 8).map((track, i) => ({

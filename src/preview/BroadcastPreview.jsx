@@ -3,30 +3,28 @@
  * Exercises left source list (Charts + Build a set), Library, and Home Channel Surfing.
  */
 import { useEffect, useState } from "react";
-import BottomNavigation from "../components/home/BottomNavigation";
 import HomeHeader from "../components/home/HomeHeader";
 import HeroPlayerCard from "../components/home/HeroPlayerCard";
 import ChannelSurfingSection from "../components/home/ChannelSurfingSection";
 import AppSidebar from "../components/layout/AppSidebar";
 import MobileNavDrawer from "../components/layout/MobileNavDrawer";
 import FavoritesScreen from "../screens/FavoritesScreen";
-import { primaryNavItems } from "../lib/nav";
 import { SCENE_CHANNELS } from "../lib/sceneChannels";
 import { brandStoragePrefix } from "../brand/identity";
 import ChartsScreen from "../components/station/ChartsScreen";
 import SetBuilderScreen from "../components/set/SetBuilderScreen";
 import { makeSetPreviewCatalog } from "./SetPreview";
-import { CHANNEL_ART } from "../lib/channelArt";
+import { PREVIEW_SLEEVES } from "./previewSleeves";
 import { color, homeSpace } from "../theme";
 import HomeMessenger from "../components/chat/HomeMessenger";
-
-const SAMPLE_COVER = "/brand/planet-mp3-lockup-on-black.png";
+import GlassDock from "../components/player/GlassDock";
+import { contentPadBottom } from "../components/layout/AppChrome";
 
 const SAMPLE_TRACK = {
   id: "preview-1",
   title: "Night Drive",
   artist: "Signal",
-  albumCover: CHANNEL_ART["y2k-dance"] || SAMPLE_COVER,
+  albumCover: PREVIEW_SLEEVES.afterglow,
   color: "#5B6574",
   liked: true,
   duration: 214,
@@ -42,7 +40,7 @@ const SAMPLE_NEXT = {
   id: "preview-2",
   title: "After Hours",
   artist: "Low Light",
-  albumCover: CHANNEL_ART.downtempo || SAMPLE_COVER,
+  albumCover: PREVIEW_SLEEVES.late,
   liked: true,
   duration: 198,
   audioUrl: "u",
@@ -58,7 +56,7 @@ const SAMPLE_TRACKS = [
     id: "preview-3",
     title: "Millennium",
     artist: "Sol Park",
-    albumCover: CHANNEL_ART["variety-mix"] || SAMPLE_COVER,
+    albumCover: PREVIEW_SLEEVES.y2k,
     liked: true,
     duration: 187,
     audioUrl: "u",
@@ -70,7 +68,7 @@ const SAMPLE_TRACKS = [
     id: "preview-4",
     title: "Cascade",
     artist: "Rain City",
-    albumCover: CHANNEL_ART["local-pnw"] || SAMPLE_COVER,
+    albumCover: PREVIEW_SLEEVES.highways,
     duration: 203,
     audioUrl: "u",
     genre: "Rock",
@@ -82,7 +80,7 @@ const SAMPLE_TRACKS = [
     id: "preview-5",
     title: "Warehouse",
     artist: "Gridlock",
-    albumCover: CHANNEL_ART.techno || SAMPLE_COVER,
+    albumCover: PREVIEW_SLEEVES.nightShift,
     duration: 241,
     audioUrl: "u",
     genre: "Electronic",
@@ -93,7 +91,7 @@ const SAMPLE_TRACKS = [
     id: "preview-6",
     title: "Amen Break",
     artist: "Two-Step",
-    albumCover: CHANNEL_ART["drum-and-bass"] || SAMPLE_COVER,
+    albumCover: PREVIEW_SLEEVES.weight,
     duration: 176,
     audioUrl: "u",
     genre: "Electronic",
@@ -104,7 +102,7 @@ const SAMPLE_TRACKS = [
     id: "preview-7",
     title: "Haze",
     artist: "Chapterhouse",
-    albumCover: CHANNEL_ART.shoegaze || SAMPLE_COVER,
+    albumCover: PREVIEW_SLEEVES.walls,
     duration: 255,
     audioUrl: "u",
     genre: "Rock",
@@ -115,7 +113,7 @@ const SAMPLE_TRACKS = [
     id: "preview-8",
     title: "Iron Lung",
     artist: "Foundry",
-    albumCover: CHANNEL_ART.metal || SAMPLE_COVER,
+    albumCover: PREVIEW_SLEEVES.gain,
     duration: 221,
     audioUrl: "u",
     genre: "Metal",
@@ -219,7 +217,7 @@ export default function BroadcastPreview() {
           user={{ name: "Luke" }}
         />
       </div>
-      <div style={{ flex: 1, minWidth: 0, position: "relative", overflow: "auto", paddingBottom: 120 }}>
+      <div style={{ flex: 1, minWidth: 0, position: "relative", overflow: "auto", paddingBottom: contentPadBottom(true) }}>
         {screen === "favorites" ? (
           <FavoritesScreen
             tracks={SAMPLE_TRACKS}
@@ -257,23 +255,19 @@ export default function BroadcastPreview() {
         />
       )}
       {isDesktop ? null : (
-      <div
-        style={{
-          position: "fixed",
-          left: 16,
-          right: 16,
-          bottom: 16,
-          zIndex: 20,
-          maxWidth: 560,
-          margin: "0 auto",
-        }}
-      >
-        <BottomNavigation
-          items={primaryNavItems()}
-          activeId={screen === "favorites" ? "favorites" : "home"}
-          onSelect={setScreen}
+        <GlassDock
+          screen={screen === "favorites" ? "favorites" : screen === "charts" ? "home" : "home"}
+          setScreen={setScreen}
+          track={SAMPLE_TRACK}
+          onTogglePlay={() => {}}
+          onSkip={() => {}}
+          onPrev={() => {}}
+          onLike={() => {}}
+          onDislike={() => {}}
+          onSeek={() => {}}
+          isRadioMode
+          onOpen={() => {}}
         />
-      </div>
       )}
       <MobileNavDrawer
         open={drawer}

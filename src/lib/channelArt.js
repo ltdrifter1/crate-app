@@ -62,6 +62,24 @@ export const CHANNEL_ART_FOCUS = {
 export const HERO_IDLE_ART = heroIdle;
 export const HERO_IDLE_FOCUS = "50% 50%";
 
+const PICTOGRAM_SRC = new Set(
+  [...Object.values(CHANNEL_ART), HERO_IDLE_ART].filter(Boolean)
+);
+
+/** True when `src` is a Channel Surfing / idle drawing, not a catalog sleeve. */
+export function isChannelPictogram(src) {
+  if (!src) return true;
+  return PICTOGRAM_SRC.has(src);
+}
+
+/** First URL in `urls` that is a real sleeve (not a channel pictogram). */
+export function catalogSleeve(urls = []) {
+  for (const url of urls) {
+    if (url && !isChannelPictogram(url)) return url;
+  }
+  return null;
+}
+
 /**
  * Resolve a Channel Surfing icon without baking webpack image URLs into
  * the scene-channel catalog module (that module is on App's critical path).

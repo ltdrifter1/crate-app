@@ -3,9 +3,9 @@
  */
 import SetBuilderScreen from "../components/set/SetBuilderScreen";
 import { CANONICAL_GENRES } from "../lib/genres";
-import { CHANNEL_ART } from "../lib/channelArt";
+import { PREVIEW_SLEEVE_LIST } from "./previewSleeves";
 
-const COVERS = Object.values(CHANNEL_ART);
+const COVERS = PREVIEW_SLEEVE_LIST;
 
 export function makeSetPreviewCatalog() {
   return Array.from({ length: 48 }, (_, i) => ({

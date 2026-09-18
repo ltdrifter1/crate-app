@@ -87,6 +87,83 @@ describe("explore collections", () => {
     expect(hero.kicker).toBeNull();
   });
 
+  test("hero prefers a direct-channel catalog sleeve over the showcase pictogram", () => {
+    const channels = [
+      {
+        id: "local-pnw",
+        title: "Local",
+        tagline: "Pacific Northwest only",
+        showcase: true,
+        ready: true,
+        art: CHANNEL_ART["local-pnw"],
+        count: 12,
+      },
+    ];
+    const withPnw = [
+      ...tracks,
+      {
+        id: "pnw",
+        title: "Cascade",
+        artist: "Rain City",
+        album: "Highways",
+        albumCover: "pnw.jpg",
+        energy: 5,
+        genre: "Rock",
+        region: "pnw",
+        duration: 200,
+        playCount: 4,
+      },
+    ];
+    const hero = buildExploreHero({ tracks: withPnw, channels, releases: [], countdown: [] });
+    expect(hero.kind).toBe("channel");
+    expect(hero.title).toBe("Local");
+    expect(hero.art).toBe("pnw.jpg");
+    expect(hero.art).not.toBe(CHANNEL_ART["local-pnw"]);
+  });
+
+  test("hero uses a featured sleeve when the showcase channel has no catalog art", () => {
+    const channels = [
+      {
+        id: "local-pnw",
+        title: "Local",
+        tagline: "Pacific Northwest only",
+        showcase: true,
+        ready: true,
+        art: CHANNEL_ART["local-pnw"],
+      },
+    ];
+    const releases = [
+      {
+        slug: "beta",
+        title: "Beta",
+        artist: "C",
+        count: 2,
+        coverTrack: { albumCover: "b.jpg" },
+        tracks: [tracks[1], tracks[2]],
+      },
+    ];
+    const hero = buildExploreHero({ tracks, channels, releases, countdown: [] });
+    expect(hero.kind).toBe("release");
+    expect(hero.title).toBe("Beta");
+    expect(hero.art).toBe("b.jpg");
+  });
+
+  test("hero does not steal a padded non-channel sleeve for the showcase", () => {
+    const channels = [
+      {
+        id: "local-pnw",
+        title: "Local",
+        tagline: "Pacific Northwest only",
+        showcase: true,
+        ready: true,
+        art: CHANNEL_ART["local-pnw"],
+      },
+    ];
+    const hero = buildExploreHero({ tracks, channels, releases: [], countdown: [] });
+    expect(hero.art).toBe(CHANNEL_ART["local-pnw"]);
+    expect(hero.art).not.toBe("a.jpg");
+  });
+
   test("hero falls back to idle club still when the catalog is empty", () => {
     const hero = buildExploreHero({ tracks: [], channels: [], releases: [], countdown: [] });
     expect(hero.kind).toBe("idle");

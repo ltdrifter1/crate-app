@@ -10,18 +10,17 @@ import AppSidebar from "../components/layout/AppSidebar";
 import BottomNavigation from "../components/home/BottomNavigation";
 import { primaryNavItems } from "../lib/nav";
 import { SCENE_CHANNELS } from "../lib/sceneChannels";
-import { CHANNEL_ART } from "../lib/channelArt";
+import { PREVIEW_SLEEVES } from "./previewSleeves";
 import { color, font, glass, homeSpace } from "../theme";
 import HomeMessenger from "../components/chat/HomeMessenger";
 import { CHAT_DESKTOP_MIN } from "../lib/stationChat";
-
-const SAMPLE_COVER = "/brand/planet-mp3-lockup-on-black.png";
+import { contentPadBottom } from "../components/layout/AppChrome";
 
 const SAMPLE_TRACK = {
   id: "preview-1",
   title: "Night Drive",
   artist: "Signal",
-  albumCover: CHANNEL_ART["y2k-dance"] || SAMPLE_COVER,
+  albumCover: PREVIEW_SLEEVES.afterglow,
   color: "#5B6574",
   liked: true,
   duration: 214,
@@ -207,7 +206,7 @@ export default function ChatPreview() {
             boxShadow: "0 24px 60px rgba(58,66,80,0.5)",
           }}
         >
-          <div style={{ height: "100%", overflow: "auto", paddingBottom: 100 }}>
+          <div style={{ height: "100%", overflow: "auto", paddingBottom: contentPadBottom(true) }}>
             {home}
           </div>
           {messenger}

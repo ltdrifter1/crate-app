@@ -175,3 +175,23 @@ body::before { display: none; }
     grid-template-columns: 1fr !important;
   }
 }
+/* Compact Home device so Channel Surfing peeks above the mini-dock on 390px. */
+@media (max-width: 720px) {
+  .pmp-hero {
+    min-height: 0 !important;
+  }
+  .pmp-hero-stage {
+    flex-wrap: nowrap !important;
+    align-items: center !important;
+    gap: 10px !important;
+    padding: 10px 12px 4px !important;
+  }
+  .pmp-hero-sleeve {
+    width: 112px !important;
+    height: 112px !important;
+  }
+  .pmp-hero-copy {
+    min-width: 0 !important;
+    flex: 1 1 auto !important;
+  }
+}
