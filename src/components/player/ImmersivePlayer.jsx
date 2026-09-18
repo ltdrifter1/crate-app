@@ -662,7 +662,7 @@ export default function ImmersivePlayer({
           live={isPlaying}
           style={{
             width: "100%",
-            maxWidth: 560,
+            maxWidth: 720,
             padding: "12px 14px 10px",
             animation: `trackSwap 0.35s ${EASE} both`,
           }}
@@ -760,7 +760,7 @@ export default function ImmersivePlayer({
         >
           <div
             style={{
-              maxWidth: 560,
+              maxWidth: 720,
               margin: "0 auto",
               padding: "12px 14px 14px",
               borderRadius: 10,
@@ -830,7 +830,7 @@ export default function ImmersivePlayer({
       >
         <div
           style={{
-            maxWidth: 560,
+            maxWidth: 720,
             margin: "0 auto",
             padding: "8px 4px 4px",
             animation: `dockRise 0.5s ${EASE} both`,

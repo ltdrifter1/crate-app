@@ -161,11 +161,13 @@ body::before { display: none; }
     flex-direction: row !important;
     align-items: center !important;
     justify-content: center !important;
-    gap: 36px !important;
+    gap: 40px !important;
+    width: min(92vw, 1100px) !important;
+    margin: 0 auto !important;
   }
   .pmp-device-sleeve {
-    max-height: 56vh !important;
-    width: min(42vw, 380px) !important;
+    max-height: 64vh !important;
+    width: min(38vw, 480px) !important;
   }
 }
 @media (max-width: 560px) {
