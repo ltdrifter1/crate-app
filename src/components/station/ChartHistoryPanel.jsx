@@ -639,7 +639,7 @@ function ChartHero({ entry, active, onPlay, onAdd, onMore, onContextMenu }) {
             background: radio.lcdFace,
             border: radio.lcdBorder,
             boxShadow: radio.lcdShadow,
-            color: color.lcdPhosphor,
+            color: color.lcdSignal,
             fontFamily: fontDisplay,
             fontSize: 13,
             fontWeight: 800,

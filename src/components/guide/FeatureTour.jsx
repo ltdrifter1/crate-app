@@ -189,8 +189,8 @@ export default function FeatureTour({
                   width: i === index ? 16 : 6,
                   height: 6,
                   borderRadius: 2,
-                  background: i <= index ? color.lcdPhosphor : "rgba(61,70,84,0.16)",
-                  boxShadow: i === index ? color.lcdPhosphorGlow : "none",
+                  background: i <= index ? color.lcdSignal : "rgba(61,70,84,0.16)",
+                  boxShadow: i === index ? radio.lcdGlow : "none",
                   transition: `width ${motion.fast} ${motion.ease}, background ${motion.base}`,
                 }}
               />

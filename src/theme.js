@@ -157,18 +157,12 @@ export const color = {
   /** Chrome glyphs on the recessed LCD well */
   lcdInk: "#D8DFE8",
   lcdMute: "#A7B1BE",
-  /** Ice-glass LCD signal — luminous chrome, never green */
+  /** Ice-glass LCD signal — luminous chrome, never green, never mint phosphor */
   lcdSignal: "#E8F1F8",
   lcdSignalGlow: "rgba(216, 223, 232, 0.62)",
+  lcdSignalSoft: "rgba(232, 241, 248, 0.28)",
   /** Meta on a light strip / dock (not the well) */
   stripInk: "#3D4654",
-  /**
-   * LCD pip / selected key — ice chrome aliases so main call sites
-   * stay on this chassis. Not mint phosphor.
-   */
-  lcdPhosphor: "#E8F1F8",
-  lcdPhosphorSoft: "rgba(232, 241, 248, 0.28)",
-  lcdPhosphorGlow: "0 0 10px rgba(216, 223, 232, 0.55)",
 };
 
 /**

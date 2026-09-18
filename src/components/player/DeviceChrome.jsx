@@ -112,7 +112,7 @@ export function LcdSeek({
             width: `${pct}%`,
             borderRadius: 2,
             background: radio.lcdFill,
-            boxShadow: radio.lcdGlow || color.lcdPhosphorGlow,
+            boxShadow: radio.lcdGlow,
             transition: "width 0.08s linear",
           }}
         />
@@ -218,8 +218,8 @@ export function LcdPanel({ children, live = false, style = {} }) {
             width: 6,
             height: 6,
             borderRadius: "50%",
-            background: color.lcdPhosphor,
-            boxShadow: color.lcdPhosphorGlow,
+            background: color.lcdSignal,
+            boxShadow: radio.lcdGlow,
             zIndex: 2,
           }}
         />

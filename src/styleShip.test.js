@@ -29,4 +29,29 @@ test("committed Pages build matches the current chassis", () => {
   expect(html).toMatch(/IBM\+Plex|IBM Plex/);
   expect(html).not.toContain("family=Syne");
   expect(html).not.toMatch(/101\s*,\s*230\s*,\s*255/);
+  expect(html).not.toMatch(/#7ED9B8/i);
+});
+
+test("theme source does not ship mint phosphor", () => {
+  const theme = fs.readFileSync(path.join(root, "src/theme.js"), "utf8");
+  expect(theme).not.toMatch(/#7ED9B8/i);
+  expect(theme).not.toMatch(/#4E9A7A/i);
+  expect(theme).not.toMatch(/#C8F5E4/i);
+  expect(theme).toMatch(/lcdSignal/);
+  expect(theme).not.toMatch(/lcdPhosphor/);
+});
+
+test("player surfaces use the Pace slider, not energy paddles", () => {
+  const files = [
+    "src/components/player/ImmersivePlayer.jsx",
+    "src/components/player/GlassDock.jsx",
+    "src/components/player/DesktopMiniPlayer.jsx",
+    "src/components/home/HeroPlayerCard.jsx",
+  ];
+  for (const rel of files) {
+    const src = fs.readFileSync(path.join(root, rel), "utf8");
+    expect(src).toMatch(/PaceSlider/);
+    expect(src).not.toMatch(/EnergyShiftPaddles/);
+    expect(src).not.toMatch(/EnergyShiftCapsule/);
+  }
 });
