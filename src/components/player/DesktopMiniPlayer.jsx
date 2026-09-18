@@ -14,7 +14,7 @@ import Icon from "../ui/Icon";
 import { PlayKey } from "./OrbitalControls";
 import { dockTintStyle } from "../../lib/dockTint";
 import CoverImage from "../ui/CoverImage";
-import { LcdMetaLine, LcdSeek, LcdTimes, HardwareIconButton, trackLcdBits } from "./DeviceChrome";
+import { LcdMetaLine, LcdSeek, LcdTimes, HardwareIconButton, formatBitrate, trackLcdBits } from "./DeviceChrome";
 
 export default function DesktopMiniPlayer({
   track,
@@ -35,7 +35,7 @@ export default function DesktopMiniPlayer({
   if (!track) return null;
   const playsLabel = freePlaysMeterLabel(playsRemaining, access);
   const bits = trackLcdBits(track, [
-    track.bitrate ? String(track.bitrate) : "MP3",
+    formatBitrate(track),
     playsLabel,
   ]);
 

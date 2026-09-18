@@ -62,6 +62,27 @@ export const CHANNEL_ART_FOCUS = {
 export const HERO_IDLE_ART = heroIdle;
 export const HERO_IDLE_FOCUS = "50% 50%";
 
+const PICTOGRAM_URLS = new Set([
+  ...Object.values(CHANNEL_ART),
+  HERO_IDLE_ART,
+]);
+
+/** Game Icons / channel plates — bugs, never album covers. */
+export function isChannelPictogram(url) {
+  if (!url || typeof url !== "string") return false;
+  if (PICTOGRAM_URLS.has(url)) return true;
+  if (/\/channels\/[^/?#]+\.(png|jpe?g|webp)$/i.test(url)) return true;
+  return false;
+}
+
+/** Catalog sleeve URL, or null when the src is a channel pictogram / idle cassette. */
+export function catalogSleeveUrl(url) {
+  if (!url || typeof url !== "string") return null;
+  if (url === HERO_IDLE_ART) return null;
+  if (isChannelPictogram(url)) return null;
+  return url;
+}
+
 /**
  * Resolve a Channel Surfing icon without baking webpack image URLs into
  * the scene-channel catalog module (that module is on App's critical path).
@@ -71,15 +92,4 @@ export function resolveChannelArt(channel) {
   const src = channel.art || CHANNEL_ART[channel.id] || null;
   const focus = channel.artFocus || CHANNEL_ART_FOCUS[channel.id] || "center";
   return { src, focus };
-}
-
-const PICTOGRAM_URLS = new Set([
-  ...Object.values(CHANNEL_ART),
-  HERO_IDLE_ART,
-]);
-
-/** True when a URL is a Channel Surfing drawing — never a catalog sleeve. */
-export function isChannelPictogram(url) {
-  if (!url) return false;
-  return PICTOGRAM_URLS.has(url);
 }

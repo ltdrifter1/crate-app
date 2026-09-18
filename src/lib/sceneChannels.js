@@ -938,11 +938,17 @@ export function availableSceneChannels(tracks = [], minTracks = 3) {
   return decorateSceneChannels(tracks, minTracks).filter((c) => c.ready);
 }
 
+function catalogCoverUrl(url) {
+  if (!url || typeof url !== "string") return null;
+  /** Channel pictograms are bugs, never mosaic photos. Avoid importing channelArt (images) here. */
+  if (/\/channels\/[^/?#]+\.(png|jpe?g|webp)$/i.test(url)) return null;
+  return url;
+}
+
 /**
- * Distinct album-cover URLs for a channel tile mosaic (up to `limit`).
- * Catalog sleeves first. Explicit `channel.art` is a last-resort photo only —
- * Channel Surfing pictograms stay bugs via `resolveChannelArt`, not sleeves.
- * Bundled icons live in `channelArt.js` so this module stays off the image graph.
+ * Distinct catalog-sleeve URLs for a channel tile mosaic (up to `limit`).
+ * Never returns Channel Surfing pictograms — those stay corner bugs.
+ * Bundled icons live in `channelArt.js` so this module stays off Home's image graph.
  */
 export function channelCoverUrls(tracks = [], channel, limit = 4) {
   const max = Math.max(1, limit);
@@ -950,7 +956,7 @@ export function channelCoverUrls(tracks = [], channel, limit = 4) {
   const out = [];
   const push = (list) => {
     for (const t of list || []) {
-      const url = t?.albumCover;
+      const url = catalogCoverUrl(t?.albumCover);
       if (!url || seen.has(url)) continue;
       seen.add(url);
       out.push(url);
@@ -958,9 +964,17 @@ export function channelCoverUrls(tracks = [], channel, limit = 4) {
     }
     return false;
   };
+  const pre = (channel?.covers || []).map(catalogCoverUrl).filter(Boolean);
+  for (const url of pre) {
+    if (seen.has(url)) continue;
+    seen.add(url);
+    out.push(url);
+    if (out.length >= max) return out;
+  }
   const direct = singlesOnly(tracks).filter((t) => matchesChannel(t, channel));
   if (push(direct)) return out;
   if (push(buildSceneChannelPool(tracks, channel))) return out;
-  if (channel?.art && !seen.has(channel.art)) out.push(channel.art);
+  const fallback = catalogCoverUrl(channel?.art);
+  if (fallback && !seen.has(fallback)) out.push(fallback);
   return out;
 }

@@ -42,9 +42,10 @@ function NavRow({ item, active, onClick }) {
       <span
         style={{
           fontFamily: fontDisplay,
-          fontSize: 14,
-          fontWeight: active ? 650 : 520,
-          letterSpacing: -0.18,
+          fontSize: 13,
+          fontWeight: active ? 700 : 600,
+          letterSpacing: 0.08,
+          textTransform: "uppercase",
           lineHeight: 1.2,
         }}
       >
@@ -55,7 +56,7 @@ function NavRow({ item, active, onClick }) {
 }
 
 /**
- * Left source list — desktop rail and mobile drawer share this IA.
+ * Left faceplate — desktop rail and mobile drawer share this IA.
  * Home / Explore / Library stay the four-tab dock; Charts + Build a set live here.
  */
 export default function AppSidebar({
@@ -82,7 +83,7 @@ export default function AppSidebar({
 
   return (
     <nav
-      aria-label={isDrawer ? "Browse" : "Source list"}
+      aria-label={isDrawer ? "Faceplate" : "Faceplate"}
       style={{
         width: isDrawer ? "100%" : 232,
         flexShrink: 0,
@@ -107,14 +108,15 @@ export default function AppSidebar({
         <div
           style={{
             fontFamily: fontDisplay,
-            fontSize: 13,
-            fontWeight: 600,
-            letterSpacing: -0.08,
+            fontSize: 11,
+            fontWeight: 700,
+            letterSpacing: 0.14,
+            textTransform: "uppercase",
             color: color.muted,
             padding: "10px 10px 8px",
           }}
         >
-          Browse
+          Faceplate
         </div>
       )}
 

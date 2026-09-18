@@ -10,7 +10,7 @@ import Icon from "../components/ui/Icon";
 import { playerPlaybackStore } from "../lib/playerPlaybackStore";
 import { playerTransportStore } from "../lib/playerTransportStore";
 import { color } from "../theme";
-import { PREVIEW_SLEEVES } from "./previewSleeves";
+import { PREVIEW_SLEEVES } from "./sleeves";
 
 const SAMPLE_TRACK = {
   id: "preview-1",
@@ -22,6 +22,7 @@ const SAMPLE_TRACK = {
   disliked: false,
   duration: 214,
   bpm: 124,
+  bitrate: 320,
   energy: 6,
   camelot: "8A",
   genre: "Electronic",

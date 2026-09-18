@@ -17,6 +17,7 @@ test('theme exports core tokens', () => {
   expect(font).not.toMatch(/^system-ui/);
   expect(fontLcd).toMatch(/IBM Plex Mono/);
   expect(STYLE_CHASSIS).toBe("steel-glass-20260918");
+  expect(color.lcdPhosphor).toMatch(/#E8F1F8/i);
   expect(type.lcd.fontFamily).toMatch(/IBM Plex Mono/);
   expect(type.lcd.fontSize).toBe(11);
   expect(sectionTitle.fontSize).toBe(22);

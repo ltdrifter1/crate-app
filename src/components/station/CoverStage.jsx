@@ -1,3 +1,8 @@
+/**
+ * @deprecated Quarantined — unused production route.
+ * Dark cinematic veil from a previous OS. Do not import into Home,
+ * Explore, or the player. HeroPlayerCard is the listening object.
+ */
 import { useEffect, useRef } from "react";
 import Icon from "../ui/Icon";
 import PlanetMascot from "../brand/PlanetMascot";

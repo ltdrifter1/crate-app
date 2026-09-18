@@ -10,16 +10,18 @@ import AppSidebar from "../components/layout/AppSidebar";
 import BottomNavigation from "../components/home/BottomNavigation";
 import { primaryNavItems } from "../lib/nav";
 import { SCENE_CHANNELS } from "../lib/sceneChannels";
-import { PREVIEW_SLEEVES } from "./previewSleeves";
 import { color, font, glass, homeSpace } from "../theme";
 import HomeMessenger from "../components/chat/HomeMessenger";
 import { CHAT_DESKTOP_MIN } from "../lib/stationChat";
+import { previewSleeve } from "./sleeves";
+
+const SAMPLE_COVER = previewSleeve("night-drive", "Night Drive");
 
 const SAMPLE_TRACK = {
   id: "preview-1",
   title: "Night Drive",
   artist: "Signal",
-  albumCover: PREVIEW_SLEEVES.y2k,
+  albumCover: SAMPLE_COVER,
   color: "#5B6574",
   liked: true,
   duration: 214,

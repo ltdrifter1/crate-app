@@ -18,32 +18,31 @@ function haptic(pattern = 8) {
   } catch (e) { /* best-effort */ }
 }
 
-function RabbitIcon({ size = 15 }) {
+/** Three-bar ramp: descending = Ease, ascending = Lift. */
+function PaceRampIcon({ size = 15, lift = false }) {
+  const heights = lift ? [7, 11.5, 16] : [16, 11.5, 7];
+  const xs = [5.5, 12, 18.5];
   return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d="M9.5 10.5C8.6 7.4 8.2 4.4 9.4 3.6c1.2-.8 2.6 1.6 3.2 4.6" />
-      <path d="M13.6 9.8c-.3-3.2.1-6.1 1.5-6.5 1.4-.4 2.2 2.3 2.2 5.4" />
-      <path d="M6.5 16.2c0-3.4 2.7-5.8 6-5.8 3.4 0 6 2.4 6 5.5 0 2.6-2.1 4.4-5.4 4.6l-6.9.3c-1.5.1-2.4-.7-2.4-1.7 0-.9.7-1.6 1.7-1.8" />
-      <circle cx="15.9" cy="14.6" r="0.4" fill="currentColor" stroke="none" />
-    </svg>
-  );
-}
-
-function TurtleIcon({ size = 15 }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d="M5 15.5c0-3.6 3-6.5 6.7-6.5s6.6 2.9 6.6 6.5" />
-      <path d="M3.5 15.5h17" />
-      <path d="M20.5 15.5c1 0 1.8-.8 1.8-1.8 0-.9-.7-1.7-1.7-1.7-.5 0-1 .2-1.3.6" />
-      <path d="M6.5 15.5l-1 3M17 15.5l1 3M11.7 9v6.5M8.2 11l1.6 4.5M15.2 11l-1.6 4.5" />
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      {xs.map((x, i) => (
+        <rect
+          key={i}
+          x={x - 1.65}
+          y={19.2 - heights[i]}
+          width={3.3}
+          height={heights[i]}
+          rx={1.15}
+          fill="currentColor"
+        />
+      ))}
     </svg>
   );
 }
 
 /**
- * One energy-shift paddle. direction: "up" (bunny) | "down" (turtle).
- * Tap = ±10 BPM · long-press = ±5 / ±10 / ±20.
- * showLabel: TURTLE / BUNNY + ±10 BPM under the key.
+ * One pace paddle. direction: "up" (Lift) | "down" (Ease).
+ * Tap = ±10 BPM on upcoming picks · long-press = ±5 / ±10 / ±20.
+ * showLabel: Ease / Lift under the key.
  */
 export function EnergyShiftButton({
   direction = "up",
@@ -52,6 +51,7 @@ export function EnergyShiftButton({
   showLabel = false,
 }) {
   const up = direction === "up";
+  const verb = up ? "Lift" : "Ease";
   const { increaseEnergy, decreaseEnergy, energyShift } = useEnergyQueue();
   const [pressed, setPressed] = useState(false);
   const [hovered, setHovered] = useState(false);
@@ -99,9 +99,9 @@ export function EnergyShiftButton({
     <span style={{ position: "relative", display: "inline-flex", flexDirection: "column", alignItems: "center", gap: showLabel ? 4 : 0 }}>
       <button
         type="button"
-        aria-label={up ? "Bunny — speed up upcoming tracks by 10 BPM" : "Turtle — slow down upcoming tracks by 10 BPM"}
+        aria-label={up ? "Lift upcoming tracks" : "Ease upcoming tracks"}
         aria-pressed={activeHere}
-        title={up ? "Bunny — next picks get livelier (+10 BPM)" : "Turtle — next picks slow down (−10 BPM)"}
+        title={up ? "Lift upcoming picks" : "Ease upcoming picks"}
         onPointerDown={startPress}
         onPointerUp={endPress}
         onPointerLeave={(e) => { if (pressed) endPress(e, true); setHovered(false); }}
@@ -138,24 +138,21 @@ export function EnergyShiftButton({
           WebkitBackdropFilter: "none",
         }}
       >
-        {up ? <RabbitIcon size={Math.round(size * 0.52)} /> : <TurtleIcon size={Math.round(size * 0.52)} />}
+        <PaceRampIcon size={Math.round(size * 0.5)} lift={up} />
       </button>
 
       {showLabel && (
         <span aria-hidden="true" style={{
           fontSize: 11,
           fontWeight: 800,
-          letterSpacing: 0.12,
+          letterSpacing: 0.16,
           textTransform: "uppercase",
           fontFamily: fontMono,
           color: activeHere ? color.accent : color.muted,
           lineHeight: 1.1,
           textAlign: "center",
         }}>
-          {up ? "Bunny" : "Turtle"}
-          <span style={{ display: "block", fontSize: 10, letterSpacing: 0.08, marginTop: 2, color: color.faint }}>
-            {up ? "+10 BPM" : "−10 BPM"}
-          </span>
+          {verb}
         </span>
       )}
 
@@ -187,9 +184,9 @@ export function EnergyShiftButton({
             animation: `energyPillIn 0.18s ${PRESS_EASE} both`,
           }}
         >
-          Next picks
+          Upcoming
           <span style={{ fontFamily: fontMono, fontSize: 10, fontWeight: 700, letterSpacing: 0.6, textTransform: "uppercase", color: color.muted }}>
-            {up ? "Lift" : "Ease"}
+            {verb}
           </span>
         </span>
       )}
@@ -205,7 +202,7 @@ export function EnergyShiftButton({
             transform: "translateX(-50%)",
             display: "flex",
             flexDirection: "column",
-            minWidth: 118,
+            minWidth: 148,
             padding: 4,
             borderRadius: 8,
             background: radio.moduleFace,
@@ -217,14 +214,18 @@ export function EnergyShiftButton({
             zIndex: 40,
           }}
         >
-          {[5, 10, 20].map((step) => (
+          {[
+            { step: 5, word: up ? "Lift a little" : "Ease a little" },
+            { step: 10, word: verb },
+            { step: 20, word: up ? "Lift more" : "Ease more" },
+          ].map((item) => (
             <button
-              key={step}
+              key={item.step}
               type="button"
               role="menuitem"
-              onClick={(e) => { e.stopPropagation(); setMenuOpen(false); dispatch(step); }}
+              onClick={(e) => { e.stopPropagation(); setMenuOpen(false); dispatch(item.step); }}
               style={{
-                display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10,
+                display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12,
                 padding: "9px 12px", background: "none", border: "none", borderRadius: 8,
                 cursor: "pointer", color: color.ink, fontSize: 12.5, fontWeight: 650,
                 fontVariantNumeric: "tabular-nums",
@@ -232,9 +233,9 @@ export function EnergyShiftButton({
               onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(216,223,232,0.06)"; }}
               onMouseLeave={(e) => { e.currentTarget.style.background = "none"; }}
             >
-              <span>{up ? "Bunny" : "Turtle"}</span>
+              <span>{item.word}</span>
               <span style={{ fontFamily: fontMono, fontSize: 11, color: color.muted }}>
-                {up ? "+" : "\u2212"}{step} BPM
+                {up ? "+" : "\u2212"}{item.step}
               </span>
             </button>
           ))}
@@ -254,7 +255,7 @@ export function EnergyShiftPaddles({
   return (
     <div
       role="group"
-      aria-label="Pace — turtle slows upcoming tracks, bunny speeds them up"
+      aria-label="Pace — Ease or Lift upcoming tracks"
       style={{
         display: "inline-flex",
         alignItems: "flex-end",
@@ -279,7 +280,7 @@ export function EnergyShiftPaddles({
 }
 
 /**
- * Persistent chrome chip when Energy Shift is steering upcoming picks.
+ * Persistent chrome chip when Pace is steering upcoming picks.
  */
 export function EnergyShiftModeChip({ style = null }) {
   const { energyShift } = useEnergyQueue();
@@ -317,13 +318,13 @@ export function EnergyShiftModeChip({ style = null }) {
       <span style={{ fontFamily: fontMono, fontSize: 10, fontWeight: 700, letterSpacing: 0.7, textTransform: "uppercase", color: color.muted }}>
         {up ? "Lift" : "Ease"}
       </span>
-      <span>next picks</span>
+      <span>upcoming</span>
     </div>
   );
 }
 
 /**
- * Floating feedback above the player after an energy shift.
+ * Floating feedback above the player after a pace nudge.
  */
 export function EnergyShiftFeedback({ bottom = "calc(100% + 12px)" }) {
   const { energyShift } = useEnergyQueue();
@@ -364,8 +365,8 @@ export function EnergyShiftFeedback({ bottom = "calc(100% + 12px)" }) {
           {neutral
             ? "Back to your usual pace"
             : up
-              ? "Next picks get livelier\u2026"
-              : "Next picks slow down\u2026"}
+              ? "Upcoming tracks lift"
+              : "Upcoming tracks ease off"}
         </div>
       )}
       {chipVisible && !neutral && (
@@ -380,7 +381,7 @@ export function EnergyShiftFeedback({ bottom = "calc(100% + 12px)" }) {
           animation: `energyPillIn 0.3s ${PRESS_EASE} both`,
         }}>
           <span aria-hidden="true">{up ? "\u2191" : "\u2193"}</span>
-          {up ? "+" : "\u2212"}{Math.abs(lastAction.bpmStep)} BPM
+          {up ? "+" : "\u2212"}{Math.abs(lastAction.bpmStep)}
         </div>
       )}
     </div>
@@ -388,8 +389,8 @@ export function EnergyShiftFeedback({ bottom = "calc(100% + 12px)" }) {
 }
 
 /**
- * Single Energy Shift control — chemistry beaker opens a slider (middle = neutral).
- * Lives on the player transport and the mini / dock bar.
+ * Unused flask slider — paddles are the product control. Kept so older
+ * call sites do not break if reintroduced; do not wire this to transport.
  */
 export function EnergyShiftControl({
   size = 40,
@@ -447,10 +448,10 @@ export function EnergyShiftControl({
       <button
         type="button"
         className={`flask-taste-btn energy-shift-flask${active || open ? " is-active" : ""}${labeled ? " is-labeled" : ""}`}
-        aria-label="Energy shift — speed up or slow down the mix"
+        aria-label="Pace — ease or lift upcoming picks"
         aria-expanded={open}
         aria-pressed={active}
-        title="Energy shift — ease or lift upcoming picks"
+        title="Pace — ease or lift upcoming picks"
         onClick={(e) => {
           if (stopPropagation) e.stopPropagation();
           setOpen((v) => !v);
@@ -498,7 +499,7 @@ export function EnergyShiftControl({
             textTransform: "uppercase",
             lineHeight: 1,
           }}>
-            Shift
+            Pace
           </span>
         )}
       </button>
@@ -506,7 +507,7 @@ export function EnergyShiftControl({
       {open && (
         <div
           role="dialog"
-          aria-label="Energy shift"
+          aria-label="Pace"
           onPointerDown={(e) => e.stopPropagation()}
           style={{
             position: "absolute",
@@ -539,7 +540,7 @@ export function EnergyShiftControl({
               textTransform: "uppercase",
               color: color.faint,
             }}>
-              Energy shift
+              Pace
             </div>
             <div style={{
               fontFamily: fontMono,
@@ -549,7 +550,7 @@ export function EnergyShiftControl({
               color: color.ink,
               fontVariantNumeric: "tabular-nums",
             }}>
-              {draft === 0 ? "0" : `${draft > 0 ? "+" : "\u2212"}${Math.abs(draft)}`} BPM
+              {draft === 0 ? "0" : `${draft > 0 ? "+" : "\u2212"}${Math.abs(draft)}`}
             </div>
           </div>
 
@@ -562,7 +563,7 @@ export function EnergyShiftControl({
             aria-valuemin={-20}
             aria-valuemax={20}
             aria-valuenow={draft}
-            aria-valuetext={`${tone}, ${draft === 0 ? "middle" : `${Math.abs(draft)} BPM ${draft > 0 ? "lift" : "ease"}`}`}
+            aria-valuetext={`${tone}, ${draft === 0 ? "middle" : `${Math.abs(draft)} ${draft > 0 ? "lift" : "ease"}`}`}
             onChange={(e) => apply(e.target.value)}
             style={{
               width: "100%",
@@ -745,14 +746,12 @@ export function PaceSlider({
   );
 }
 
-/**
- * Secondary pace control — compact Turtle / Bunny pair.
- */
+/** Compact Pace pair with Ease / Lift paddles (not the primary device control). */
 export function EnergyShiftCapsule({ stopPropagation = false }) {
   return (
     <div
       role="group"
-      aria-label="Pace — ease or lift upcoming picks"
+      aria-label="Pace — Ease or Lift upcoming picks"
       style={{
         display: "inline-flex",
         alignItems: "center",

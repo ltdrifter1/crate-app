@@ -16,15 +16,17 @@ import { brandStoragePrefix } from "../brand/identity";
 import ChartsScreen from "../components/station/ChartsScreen";
 import SetBuilderScreen from "../components/set/SetBuilderScreen";
 import { makeSetPreviewCatalog } from "./SetPreview";
-import { PREVIEW_SLEEVES } from "./previewSleeves";
 import { color, homeSpace } from "../theme";
 import HomeMessenger from "../components/chat/HomeMessenger";
+import { previewSleeve } from "./sleeves";
+
+const SAMPLE_COVER = previewSleeve("night-drive", "Night Drive");
 
 const SAMPLE_TRACK = {
   id: "preview-1",
   title: "Night Drive",
   artist: "Signal",
-  albumCover: PREVIEW_SLEEVES.y2k,
+  albumCover: SAMPLE_COVER,
   color: "#5B6574",
   liked: true,
   duration: 214,
@@ -40,7 +42,7 @@ const SAMPLE_NEXT = {
   id: "preview-2",
   title: "After Hours",
   artist: "Low Light",
-  albumCover: PREVIEW_SLEEVES.down,
+  albumCover: previewSleeve("after-hours", "After Hours"),
   liked: true,
   duration: 198,
   audioUrl: "u",
@@ -56,7 +58,7 @@ const SAMPLE_TRACKS = [
     id: "preview-3",
     title: "Millennium",
     artist: "Sol Park",
-    albumCover: PREVIEW_SLEEVES.variety,
+    albumCover: previewSleeve("millennium", "Millennium"),
     liked: true,
     duration: 187,
     audioUrl: "u",
@@ -68,7 +70,7 @@ const SAMPLE_TRACKS = [
     id: "preview-4",
     title: "Cascade",
     artist: "Rain City",
-    albumCover: PREVIEW_SLEEVES.pnw,
+    albumCover: previewSleeve("cascade", "Highways"),
     duration: 203,
     audioUrl: "u",
     genre: "Rock",
@@ -80,7 +82,7 @@ const SAMPLE_TRACKS = [
     id: "preview-5",
     title: "Warehouse",
     artist: "Gridlock",
-    albumCover: PREVIEW_SLEEVES.electronic,
+    albumCover: previewSleeve("warehouse", "Night Shift"),
     duration: 241,
     audioUrl: "u",
     genre: "Electronic",
@@ -91,7 +93,7 @@ const SAMPLE_TRACKS = [
     id: "preview-6",
     title: "Amen Break",
     artist: "Two-Step",
-    albumCover: PREVIEW_SLEEVES.dnb,
+    albumCover: previewSleeve("amen", "Weight"),
     duration: 176,
     audioUrl: "u",
     genre: "Electronic",
@@ -102,7 +104,7 @@ const SAMPLE_TRACKS = [
     id: "preview-7",
     title: "Haze",
     artist: "Chapterhouse",
-    albumCover: PREVIEW_SLEEVES.shoe,
+    albumCover: previewSleeve("haze", "Walls"),
     duration: 255,
     audioUrl: "u",
     genre: "Rock",
@@ -113,7 +115,7 @@ const SAMPLE_TRACKS = [
     id: "preview-8",
     title: "Iron Lung",
     artist: "Foundry",
-    albumCover: PREVIEW_SLEEVES.metal,
+    albumCover: previewSleeve("iron-lung", "Gain"),
     duration: 221,
     audioUrl: "u",
     genre: "Metal",
@@ -247,7 +249,7 @@ export default function BroadcastPreview() {
         <HomeMessenger
           variant="desktop"
           viewportWidth={1280}
-          defaultOpen={false}
+          defaultOpen
           live={false}
           uid="u1"
           displayName="Luke"

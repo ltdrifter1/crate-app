@@ -39,6 +39,8 @@ import {
   LcdPanel,
   LcdSeek as ChromeSeek,
   LcdTimes,
+  LcdArtist,
+  formatBitrate,
   trackLcdBits,
 } from "./DeviceChrome";
 
@@ -268,7 +270,7 @@ export default function ImmersivePlayer({
 
   const rgb = hexToRgbStr(currentTrack.color);
   const metaBits = trackLcdBits(currentTrack, [
-    currentTrack.bitrate ? String(currentTrack.bitrate) : "MP3",
+    formatBitrate(currentTrack),
     countdownRank ? `#${countdownRank}` : null,
     hasVideo ? "Video" : null,
     liveShow?.host?.name || liveShow?.host?.handle || null,
@@ -715,9 +717,7 @@ export default function ImmersivePlayer({
               {currentTrack.artist}
             </button>
           ) : (
-            <div style={{ fontSize: 15, fontWeight: 600, color: color.lcdMute, letterSpacing: -0.2 }}>
-              {currentTrack.artist}
-            </div>
+            <LcdArtist>{currentTrack.artist}</LcdArtist>
           )}
 
           <div style={{ marginTop: 8 }}>
@@ -857,7 +857,7 @@ export default function ImmersivePlayer({
               label="Seek"
               valueText={`${fmtTime(progress)} of ${fmtTime(duration)}`}
             />
-            <LcdTimes progress={progress} duration={duration} />
+            <LcdTimes progress={progress} duration={duration} on="metal" />
           </div>
 
           <div

@@ -16,7 +16,7 @@ import {
 import { usePlayerPlayback } from "../../usePlayerPlayback";
 import { dockTintStyle } from "../../lib/dockTint";
 import CoverImage from "../ui/CoverImage";
-import { HardwareIconButton, LcdMetaLine, LcdSeek, trackLcdBits } from "./DeviceChrome";
+import { HardwareIconButton, LcdMetaLine, LcdSeek, formatBitrate, trackLcdBits } from "./DeviceChrome";
 
 const EnergyShiftFeedback = lazy(() =>
   import("../listen/EnergyShiftButton").then((m) => ({ default: m.EnergyShiftFeedback }))
@@ -45,7 +45,7 @@ export default function GlassDock({
   const tint = dockTintStyle(track);
 
   const activeTab = dockActiveTab(screen, { hasAdmin: showAdmin });
-  const bits = trackLcdBits(track, [track.bitrate ? String(track.bitrate) : "MP3"]);
+  const bits = trackLcdBits(track, [formatBitrate(track)]);
 
   return (
     <div

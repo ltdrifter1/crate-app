@@ -13,6 +13,13 @@ test("boot HTML stamps the current steel chassis", () => {
   expect(html).not.toMatch(/101\s*,\s*230\s*,\s*255/);
 });
 
+test("Home does not import the quarantined CoverStage", () => {
+  const home = fs.readFileSync(path.join(root, "src/screens/HomeScreen.jsx"), "utf8");
+  expect(home).not.toMatch(/CoverStage/);
+  const cover = fs.readFileSync(path.join(root, "src/components/station/CoverStage.jsx"), "utf8");
+  expect(cover).toMatch(/Quarantined/);
+});
+
 test("committed Pages build matches the current chassis", () => {
   const htmlPath = path.join(root, "build/index.html");
   expect(fs.existsSync(htmlPath)).toBe(true);

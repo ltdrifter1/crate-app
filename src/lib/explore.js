@@ -3,20 +3,10 @@
  * Catalog sleeves lead. Channel pictograms are bugs when a lane has no cover.
  */
 
-import {
-  CHANNEL_ART,
-  CHANNEL_ART_FOCUS,
-  HERO_IDLE_ART,
-  HERO_IDLE_FOCUS,
-  isChannelPictogram,
-} from "./channelArt";
+import { CHANNEL_ART, CHANNEL_ART_FOCUS, HERO_IDLE_ART, HERO_IDLE_FOCUS, catalogSleeveUrl } from "./channelArt";
 import { genreStory, scenesForLane, tracksForGenreLane, tracksForScenePool } from "./browse";
 import { CANONICAL_GENRES, normalizeGenre } from "./genres";
-import {
-  buildSceneChannelPool,
-  decorateSceneChannels,
-  SCENE_CHANNELS,
-} from "./sceneChannels";
+import { decorateSceneChannels } from "./sceneChannels";
 import { featuredReleases, recommendedPicks, trendingTracks } from "./homeCollections";
 import { SCENE_FAMILIES, SCENES, getScene, trackMatchesScene } from "./scenes";
 
@@ -53,8 +43,8 @@ export function coverUrlsForTracks(list = [], limit = 4) {
   const seen = new Set();
   const out = [];
   for (const t of list) {
-    const url = t?.albumCover;
-    if (!url || seen.has(url) || isChannelPictogram(url)) continue;
+    const url = catalogSleeveUrl(t?.albumCover);
+    if (!url || seen.has(url)) continue;
     seen.add(url);
     out.push(url);
     if (out.length >= max) break;
@@ -74,12 +64,12 @@ function sleeveFirstVisual(channelPhoto, pool = []) {
   const covers = coverUrlsForTracks(pool, 4);
   const sleeve = covers[0] || null;
   return {
-    photo: sleeve || null,
-    photoFocus: sleeve ? "center" : channelPhoto.focus,
+    photo: sleeve,
+    photoFocus: "center",
     covers,
     /** Single sleeve. False when a mosaic of covers should lead. Pictograms are bugs. */
-    usePhoto: covers.length === 1 && !!sleeve,
-    bug: channelPhoto.src,
+    usePhoto: !!sleeve && covers.length <= 1,
+    bug: channelPhoto?.src || null,
   };
 }
 
@@ -187,8 +177,8 @@ export function exploreMoodPlates(tracks = [], minTracks = 2) {
       ...def,
       pool,
       count: pool.length,
-      photo: sleeve || null,
-      photoFocus: sleeve ? "center" : art.focus,
+      photo: sleeve,
+      photoFocus: "center",
       covers,
       bug: art.src,
     };
@@ -215,8 +205,8 @@ export function exploreScenePlates(tracks = [], limit = 10) {
       cities: scene.cities || [],
       count: pool.length,
       pool,
-      photo: sleeve || null,
-      photoFocus: sleeve ? "center" : art.focus,
+      photo: sleeve,
+      photoFocus: "center",
       covers,
       bug: art.src,
     });
@@ -274,10 +264,8 @@ export function exploreForYou(tracks = [], opts = {}) {
 }
 
 /**
- * Editorial hero — sleeves first.
- * Featured station when the dial is live (pool cover when catalog has art);
- * else a featured sleeve; else idle cassette drawing.
- * No “showcase station / N on the dial” chrome — title and tagline only.
+ * Editorial hero — catalog sleeves only. Fast: no scene-pool builds.
+ * Channel pictograms stay bugs. Idle cassette is the device fallback.
  */
 export function buildExploreHero({
   tracks = [],
@@ -285,37 +273,28 @@ export function buildExploreHero({
   releases = [],
   countdown = [],
 } = {}) {
-  const ready = (channels || []).filter((c) => c.ready !== false);
-  const showcase = ready.find((c) => c.showcase) || ready[0] || null;
-
-  if (showcase) {
-    const channel = SCENE_CHANNELS.find((c) => c.id === showcase.id) || showcase;
-    const pool = buildSceneChannelPool(tracks, channel);
-    const covers = coverUrlsForTracks(pool, 4);
-    const sleeve = covers[0] || null;
-    const photoOverride =
-      showcase.art && !isChannelPictogram(showcase.art) ? showcase.art : null;
-    const art = sleeve || photoOverride;
-    if (art) {
-      return {
-        kind: "channel",
-        id: showcase.id,
-        eyebrow: "",
-        title: showcase.title,
-        subtitle: showcase.tagline,
-        kicker: null,
-        art,
-        artFocus: sleeve ? "center" : showcase.artFocus || "center",
-        channel: showcase,
-        album: null,
-        track: pool[0] || null,
-        pool,
-      };
-    }
+  const chartTop = countdown?.[0]?.track;
+  const chartSleeve = catalogSleeveUrl(chartTop?.albumCover);
+  if (chartTop && chartSleeve) {
+    return {
+      kind: "chart",
+      id: chartTop.id,
+      eyebrow: "On the board",
+      title: chartTop.title,
+      subtitle: chartTop.artist,
+      kicker: "#1 this month",
+      art: chartSleeve,
+      artFocus: "center",
+      channel: null,
+      album: null,
+      track: chartTop,
+      pool: (countdown || []).map((c) => c.track).filter(Boolean),
+    };
   }
 
   const featured = (releases || [])[0];
-  if (featured?.coverTrack?.albumCover) {
+  const releaseSleeve = catalogSleeveUrl(featured?.coverTrack?.albumCover);
+  if (featured && releaseSleeve) {
     return {
       kind: "release",
       id: featured.slug,
@@ -323,7 +302,7 @@ export function buildExploreHero({
       title: featured.title,
       subtitle: featured.artist,
       kicker: featured.count ? `${featured.count} tracks` : null,
-      art: featured.coverTrack.albumCover,
+      art: releaseSleeve,
       artFocus: "center",
       channel: null,
       album: featured,
@@ -332,25 +311,46 @@ export function buildExploreHero({
     };
   }
 
-  const chartTop = countdown?.[0]?.track;
-  if (chartTop) {
+  const ready = (channels || []).filter((c) => c.ready !== false);
+  const showcase = ready.find((c) => c.showcase) || ready[0] || null;
+  if (showcase) {
+    const preCovers = (showcase.covers || []).map(catalogSleeveUrl).filter(Boolean);
+    const sleeve = preCovers[0] || catalogSleeveUrl(showcase.art);
+    if (sleeve) {
+      return {
+        kind: "channel",
+        id: showcase.id,
+        eyebrow: "",
+        title: showcase.title,
+        subtitle: showcase.tagline,
+        kicker: null,
+        art: sleeve,
+        artFocus: "center",
+        channel: showcase,
+        album: null,
+        track: showcase.track || null,
+        pool: showcase.pool || [],
+      };
+    }
+  }
+
+  const best = singles(tracks)
+    .filter((t) => catalogSleeveUrl(t.albumCover))
+    .sort((a, b) => (b.playCount || 0) - (a.playCount || 0))[0];
+  if (best) {
     return {
-      kind: "chart",
-      id: chartTop.id,
-      eyebrow: "On the board",
-      title: chartTop.title,
-      subtitle: chartTop.artist,
-      kicker: "#1 this month",
-      art: (chartTop.albumCover && !isChannelPictogram(chartTop.albumCover)
-        ? chartTop.albumCover
-        : HERO_IDLE_ART),
-      artFocus: chartTop.albumCover && !isChannelPictogram(chartTop.albumCover)
-        ? "center"
-        : HERO_IDLE_FOCUS,
+      kind: "sleeve",
+      id: best.id,
+      eyebrow: "",
+      title: best.title,
+      subtitle: best.artist,
+      kicker: best.album || null,
+      art: catalogSleeveUrl(best.albumCover),
+      artFocus: "center",
       channel: null,
       album: null,
-      track: chartTop,
-      pool: (countdown || []).map((c) => c.track).filter(Boolean),
+      track: best,
+      pool: [best],
     };
   }
 

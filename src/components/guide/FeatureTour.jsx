@@ -4,7 +4,7 @@
  */
 import { useState } from "react";
 import {
-  font, fontDisplay, fontMono, color, y2k, glass, radius,
+  font, fontDisplay, fontMono, color, y2k, glass, radio,
   BTN_PRIMARY, motion,
 } from "../../theme";
 import { FEATURE_GUIDE_STEPS } from "../../lib/featureGuide";
@@ -66,12 +66,12 @@ export default function FeatureTour({
           display: "flex",
           flexDirection: "column",
           padding: "18px 22px 22px",
-          borderRadius: radius.xl,
-          border: `1px solid ${glass.border}`,
-          background: glass.plate || color.surfaceSolid,
+          borderRadius: radio.radiusTight,
+          border: radio.borderChrome,
+          background: radio.moduleFace,
           boxShadow: `inset 0 1px 0 ${glass.highlight}, ${glass.shadowLift || "0 24px 60px rgba(58,66,80,0.45)"}`,
-          backdropFilter: glass.blur,
-          WebkitBackdropFilter: glass.blur,
+          backdropFilter: "none",
+          WebkitBackdropFilter: "none",
         }}
       >
         <div
@@ -93,7 +93,7 @@ export default function FeatureTour({
               fontFamily: fontMono,
             }}
           >
-            {replay ? "Replay" : "Quick tour"}
+            {String(index + 1).padStart(2, "0")} {replay ? "Replay" : "Insert"}
           </span>
           <button
             type="button"
@@ -186,11 +186,11 @@ export default function FeatureTour({
               <span
                 key={s.id}
                 style={{
-                  width: i === index ? 20 : 6,
+                  width: i === index ? 16 : 6,
                   height: 6,
-                  borderRadius: 99,
-                  background: i <= index ? y2k.cyan : "rgba(216,223,232,0.12)",
-                  boxShadow: i === index ? `0 0 10px ${y2k.cyanGlow}` : "none",
+                  borderRadius: 2,
+                  background: i <= index ? color.lcdPhosphor : "rgba(61,70,84,0.16)",
+                  boxShadow: i === index ? color.lcdPhosphorGlow : "none",
                   transition: `width ${motion.fast} ${motion.ease}, background ${motion.base}`,
                 }}
               />

@@ -1,5 +1,5 @@
-// Player energy store — framework-independent state for the Energy Shift
-// feature ("Rabbit" / "Turtle" transport controls).
+// Player energy store — framework-independent state for Pace
+// (Ease / Lift upcoming picks). Preset ids `rabbit` / `turtle` stay stable.
 //
 // Holds the pending energy-shift vector (BPM / energy / Camelot deltas) that
 // the recommendation engine sweeps through gradually — lawnmower traversal,
@@ -15,8 +15,8 @@ const ENERGY_SETTLE = 0.5;
 
 /** Named shift presets — future modes plug in here without touching the UI. */
 export const ENERGY_PRESETS = {
-  rabbit: { label: "Picking up the pace", bpm: +10, energy: +1.5, camelot: +2 },
-  turtle: { label: "Slowing things down", bpm: -10, energy: -1.5, camelot: -2 },
+  rabbit: { label: "Lifting upcoming tracks", bpm: +10, energy: +1.5, camelot: +2 },
+  turtle: { label: "Easing upcoming tracks", bpm: -10, energy: -1.5, camelot: -2 },
   buildUp: { label: "Build up", bpm: +16, energy: +2.5, camelot: +3 },
   coolDown: { label: "Cool down", bpm: -16, energy: -2.5, camelot: -3 },
   sunrise: { label: "Sunrise", bpm: +6, energy: +1, camelot: +1 },
@@ -55,7 +55,7 @@ function createPlayerEnergyStore() {
     emit();
   }
 
-  /** Nudge the target vector. direction: +1 (rabbit) or -1 (turtle). */
+  /** Nudge the target vector. direction: +1 (Lift) or -1 (Ease). */
   function shiftEnergy(direction, bpmStep = 10, label = null) {
     const dir = direction >= 0 ? 1 : -1;
     const scale = Math.abs(bpmStep) / 10;

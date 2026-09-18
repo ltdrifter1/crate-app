@@ -162,6 +162,13 @@ export const color = {
   lcdSignalGlow: "rgba(216, 223, 232, 0.62)",
   /** Meta on a light strip / dock (not the well) */
   stripInk: "#3D4654",
+  /**
+   * LCD pip / selected key — ice chrome aliases so main call sites
+   * stay on this chassis. Not mint phosphor.
+   */
+  lcdPhosphor: "#E8F1F8",
+  lcdPhosphorSoft: "rgba(232, 241, 248, 0.28)",
+  lcdPhosphorGlow: "0 0 10px rgba(216, 223, 232, 0.55)",
 };
 
 /**

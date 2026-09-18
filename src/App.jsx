@@ -224,7 +224,12 @@ const injectStyles = () => {
       font-family: var(--font);
     }
     button:active { opacity: 0.78; }
-    button.play-primary:active { transform: scale(0.96); opacity: 0.9; }
+    button.play-primary:active,
+    button.pmp-hw-key:active {
+      transform: translateY(1px) !important;
+      box-shadow: inset 0 2px 4px rgba(58, 66, 80, 0.28), inset 0 1px 0 rgba(58, 66, 80, 0.16) !important;
+      opacity: 1;
+    }
     button.glass-control:hover {
       background: ${glass.fillHeavy} !important;
       border-color: ${glass.border} !important;
@@ -3363,7 +3368,8 @@ export default function App() {
   ) : null;
 
   // Mini-device stays persistent so Home hero and the dock share one transport.
-  const hideDockPlayer = false;
+  // When the Home hero is on screen, the dock is tabs-only — one play key.
+  const hideDockPlayer = screen === "home" && homeStageVisible;
 
   // ── Ambient status — SR announcements, offline banner, buffering pill ────
   const ambientStatus = (
@@ -3623,7 +3629,7 @@ export default function App() {
         </div>
         </>
         {/* Desktop mini-player — sticky when Cover Stage scrolls away on Home */}
-        {currentTrack && !immersive && (
+        {currentTrack && !immersive && !hideDockPlayer && (
           <Suspense fallback={null}>
           <DesktopMiniPlayer
             track={currentTrack}

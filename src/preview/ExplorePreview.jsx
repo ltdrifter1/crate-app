@@ -6,20 +6,20 @@ import { useState } from "react";
 import ExploreScreen from "../screens/ExploreScreen";
 import { AlbumPage } from "../components/catalog/ArtistPage";
 import { findAlbum } from "../lib/catalog";
-import { PREVIEW_SLEEVES } from "./previewSleeves";
 import { color } from "../theme";
+import { previewSleeve } from "./sleeves";
 
 const COVER = {
-  electronic: PREVIEW_SLEEVES.electronic,
-  y2k: PREVIEW_SLEEVES.y2k,
-  variety: PREVIEW_SLEEVES.variety,
-  pnw: PREVIEW_SLEEVES.pnw,
-  dnb: PREVIEW_SLEEVES.dnb,
-  shoe: PREVIEW_SLEEVES.shoe,
-  metal: PREVIEW_SLEEVES.metal,
-  punk: PREVIEW_SLEEVES.punk,
-  folk: PREVIEW_SLEEVES.folk,
-  down: PREVIEW_SLEEVES.down,
+  electronic: previewSleeve("electronic", "Night Shift"),
+  y2k: previewSleeve("y2k", "Afterglow"),
+  variety: previewSleeve("variety", "Y2K"),
+  pnw: previewSleeve("pnw", "Highways"),
+  dnb: previewSleeve("dnb", "Weight"),
+  shoe: previewSleeve("shoe", "Walls"),
+  metal: previewSleeve("metal", "Gain"),
+  punk: previewSleeve("punk", "Unpolished"),
+  folk: previewSleeve("folk", "Open Road"),
+  down: previewSleeve("down", "Late"),
 };
 
 function t(partial) {

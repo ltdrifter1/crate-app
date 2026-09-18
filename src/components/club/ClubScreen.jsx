@@ -4,7 +4,7 @@
  */
 import { useEffect, useMemo, useState } from "react";
 import {
-  fontDisplay, fontMono, color, radius, glass, motion,
+  fontDisplay, fontMono, color, radius, glass, motion, radio,
   BTN_PRIMARY, BTN_SECONDARY, homeSpace,
 } from "../../theme";
 import {
@@ -170,13 +170,13 @@ export default function ClubScreen({
           border: "none",
           borderRadius: radius.lg,
           cursor: "pointer",
-          background: active ? glass.fillHeavy : "transparent",
+            background: active ? glass.fillHeavy : "transparent",
           color: active ? color.ink : color.muted,
-          boxShadow: active ? `inset 0 1px 0 ${glass.highlight}, ${glass.shadowSoft}` : "none",
-          fontSize: 14,
-          fontWeight: active ? 700 : 550,
+          boxShadow: active ? `inset 0 1px 0 ${glass.highlight}` : "none",
+          fontSize: 11,
+          fontWeight: active ? 700 : 600,
           fontFamily: fontDisplay,
-          letterSpacing: -0.1,
+          letterSpacing: 0.12,
           textTransform: "uppercase",
           transition: `background ${motion.fast} ${motion.ease}, color ${motion.fast} ${motion.ease}`,
         }}
@@ -208,15 +208,13 @@ export default function ClubScreen({
             display: "flex",
             gap: 4,
             padding: 4,
-            marginBottom: 18,
-            borderRadius: radius.lg,
+            marginBottom: 14,
+            borderRadius: 8,
             border: `1px solid ${glass.border}`,
-            background: `
-              linear-gradient(165deg, rgba(184,191,202,0.65) 0%, rgba(180,187,198,0.4) 100%)
-            `,
-            boxShadow: `inset 0 1px 0 ${glass.highlight}, ${glass.shadowSoft}`,
-            backdropFilter: glass.blurSoft,
-            WebkitBackdropFilter: glass.blurSoft,
+            background: radio.moduleFace,
+            boxShadow: `inset 0 1px 0 ${glass.highlight}`,
+            backdropFilter: "none",
+            WebkitBackdropFilter: "none",
           }}
         >
           {SETTINGS_TABS.map((t) => segmentBtn(t.id, t.label))}

@@ -2,7 +2,7 @@ import { color, fontDisplay, motion } from "../../theme";
 import Icon from "../ui/Icon";
 
 /**
- * BottomNavigation — dark device selector, accent pip.
+ * BottomNavigation — four-tab device selector.
  */
 export default function BottomNavigation({ items = [], activeId, onSelect }) {
   return (

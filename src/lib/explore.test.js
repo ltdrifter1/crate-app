@@ -66,23 +66,7 @@ describe("explore collections", () => {
     }
   });
 
-  test("hero prefers a catalog sleeve from the showcase pool", () => {
-    const tracksWithLocal = [
-      ...tracks,
-      {
-        id: "local1",
-        title: "Cascade",
-        artist: "Rain City",
-        album: "Highways",
-        albumCover: "local.jpg",
-        energy: 5,
-        genre: "Rock",
-        region: "pnw",
-        duration: 180,
-        audioUrl: "u",
-        playCount: 12,
-      },
-    ];
+  test("hero never uses a channel pictogram as magazine art", () => {
     const channels = [
       {
         id: "local-pnw",
@@ -90,16 +74,35 @@ describe("explore collections", () => {
         tagline: "Pacific Northwest only",
         showcase: true,
         ready: true,
+        art: CHANNEL_ART["local-pnw"],
+        artFocus: "50% 68%",
         count: 12,
       },
     ];
-    const hero = buildExploreHero({ tracks: tracksWithLocal, channels, releases: [], countdown: [] });
+    const hero = buildExploreHero({ tracks, channels, releases: [], countdown: [] });
+    expect(hero.kind).not.toBe("channel");
+    expect(hero.art).not.toBe(CHANNEL_ART["local-pnw"]);
+    expect(hero.art).toBe("b.jpg");
+    expect(hero.eyebrow).toBe("");
+  });
+
+  test("hero uses a channel when it already has catalog sleeves", () => {
+    const channels = [
+      {
+        id: "local-pnw",
+        title: "Local",
+        tagline: "Pacific Northwest only",
+        showcase: true,
+        ready: true,
+        art: CHANNEL_ART["local-pnw"],
+        covers: ["pnw-sleeve.jpg"],
+        count: 12,
+      },
+    ];
+    const hero = buildExploreHero({ tracks: [], channels, releases: [], countdown: [] });
     expect(hero.kind).toBe("channel");
     expect(hero.title).toBe("Local");
-    expect(hero.art).toBe("local.jpg");
-    expect(hero.art).not.toBe(CHANNEL_ART["local-pnw"]);
-    expect(hero.eyebrow).toBe("");
-    expect(hero.kicker).toBeNull();
+    expect(hero.art).toBe("pnw-sleeve.jpg");
   });
 
   test("hero falls back to idle club still when the catalog is empty", () => {
