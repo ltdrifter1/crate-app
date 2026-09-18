@@ -147,7 +147,7 @@ function Segmented({ items, activeId, onChange, ariaLabel }) {
               border: "none",
               borderRadius: 8,
               background: active
-                ? "linear-gradient(180deg, #FFB347 0%, #FF6A2B 100%)"
+                ? "linear-gradient(180deg, #C5CAD3 0%, #5A6270 100%)"
                 : "transparent",
               color: active ? color.onAccent : color.muted,
               fontFamily: fontDisplay,
@@ -156,7 +156,7 @@ function Segmented({ items, activeId, onChange, ariaLabel }) {
               letterSpacing: -0.2,
               cursor: "pointer",
               boxShadow: active
-                ? "inset 0 1px 0 rgba(255,255,255,0.28), 0 3px 8px rgba(255,106,43,0.22)"
+                ? "inset 0 1px 0 rgba(255,255,255,0.28), 0 3px 8px rgba(90,98,112,0.22)"
                 : "none",
               transition: `color ${motion.fast}, background ${motion.base}, box-shadow ${motion.base}`,
               WebkitTapHighlightColor: "transparent",
@@ -550,7 +550,7 @@ function Empty({ note }) {
         borderRadius: radius.lg,
         border: `1px solid ${glass.borderSoft}`,
         background: `
-          linear-gradient(180deg, rgba(255,106,43,0.05) 0%, transparent 42%),
+          linear-gradient(180deg, rgba(101,230,255,0.05) 0%, transparent 42%),
           ${glass.fill}
         `,
         boxShadow: `inset 0 1px 0 ${glass.highlight}`,
@@ -584,10 +584,10 @@ function ChartHero({ entry, active, onPlay, onAdd, onMore, onContextMenu }) {
         borderRadius: radius.lg,
         overflow: "hidden",
         border: active
-          ? "1px solid rgba(255,106,43,0.4)"
+          ? "1px solid rgba(90,98,112,0.4)"
           : "1px solid rgba(232,234,238,0.12)",
         background: `
-          radial-gradient(120% 80% at 0% 0%, rgba(255,106,43,0.12) 0%, transparent 46%),
+          radial-gradient(120% 80% at 0% 0%, rgba(90,98,112,0.12) 0%, transparent 46%),
           linear-gradient(165deg, #1A1D24 0%, #101218 100%)
         `,
         boxShadow: `
@@ -734,7 +734,7 @@ function ChartList({ entries, nowPlayingId, onPlay, onAdd, onMore, onContext }) 
                 margin: "0 -8px",
                 padding: "8px 8px",
                 borderRadius: 10,
-                background: active ? "rgba(255,106,43,0.06)" : "transparent",
+                background: active ? "rgba(101,230,255,0.06)" : "transparent",
                 boxShadow: active ? `inset 2px 0 0 ${chrome.signal}` : "none",
               }}
             >
@@ -785,7 +785,7 @@ function ChartList({ entries, nowPlayingId, onPlay, onAdd, onMore, onContext }) 
                   overflow: "hidden",
                   background: color.surfaceRaised,
                   boxShadow: artShadow.quiet,
-                  border: `1px solid ${active ? "rgba(255,106,43,0.28)" : "rgba(184,192,204,0.2)"}`,
+                  border: `1px solid ${active ? "rgba(101,230,255,0.28)" : "rgba(184,192,204,0.2)"}`,
                 }}>
                   <CoverImage src={e.albumCover} width={52} height={52} alt="" />
                 </div>

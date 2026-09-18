@@ -30,16 +30,16 @@ export const SET_VIBE_ORDER = [
 
 /** Cyan / metal / neon tints — restrained Y2K, no purple. */
 export const SET_VIBE_TINT = {
-  night: { rgb: "255,106,43" },
+  night: { rgb: "101,230,255" },
   party: { rgb: "200,242,65" },
   workout: { rgb: "123,167,255" },
   run: { rgb: "231,235,240" },
   predrinks: { rgb: "255,79,216" },
   drive: { rgb: "123,167,255" },
   dinner: { rgb: "184,190,199" },
-  focus: { rgb: "255,106,43" },
+  focus: { rgb: "101,230,255" },
   study: { rgb: "139,147,159" },
-  chill: { rgb: "255,106,43" },
+  chill: { rgb: "101,230,255" },
   recovery: { rgb: "139,147,159" },
 };
 

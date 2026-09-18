@@ -4,12 +4,11 @@ import { STYLE_CHASSIS, color } from "./theme";
 
 const root = path.join(__dirname, "..");
 
-test("boot HTML stamps the current PS1 Discman chassis", () => {
+test("boot HTML stamps the current steel chassis", () => {
   const html = fs.readFileSync(path.join(root, "public/index.html"), "utf8");
   expect(html).toContain(`content="${STYLE_CHASSIS}"`);
   expect(html).toContain(color.canvas);
-  expect(html).toMatch(/Space\+Grotesk|Space Grotesk/);
-  expect(html).toMatch(/IBM\+Plex\+Mono|IBM Plex Mono/);
+  expect(html).toMatch(/IBM\+Plex|IBM Plex/);
   expect(html).not.toContain("family=Syne");
   expect(html).not.toMatch(/101\s*,\s*230\s*,\s*255/);
 });
@@ -20,8 +19,7 @@ test("committed Pages build matches the current chassis", () => {
   const html = fs.readFileSync(htmlPath, "utf8");
   expect(html).toContain(`content="${STYLE_CHASSIS}"`);
   expect(html).toContain(color.canvas);
-  expect(html).toMatch(/Space\+Grotesk|Space Grotesk/);
-  expect(html).toMatch(/IBM\+Plex\+Mono|IBM Plex Mono/);
+  expect(html).toMatch(/IBM\+Plex|IBM Plex/);
   expect(html).not.toContain("family=Syne");
   expect(html).not.toMatch(/101\s*,\s*230\s*,\s*255/);
 });

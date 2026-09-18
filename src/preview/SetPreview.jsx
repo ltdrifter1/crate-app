@@ -21,7 +21,7 @@ export function makeSetPreviewCatalog() {
     camelot: `${(i % 12) + 1}A`,
     genre: CANONICAL_GENRES[i % CANONICAL_GENRES.length],
     audioUrl: "u",
-    color: "#FF6A2B",
+    color: "#5A6270",
   }));
 }
 

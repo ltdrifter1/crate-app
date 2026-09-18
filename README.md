@@ -132,6 +132,6 @@ firebase deploy --only firestore:rules,storage
 
 ## Cloudflare Pages
 
-**Current setup:** `build/` is committed so Pages can deploy with an empty build command. **Always rebuild `build/` after visual changes** — hashed CSS/JS is cached forever, and a stale `build/index.html` will keep serving the previous chassis. Confirm the live HTML includes `<meta name="pmp-chassis" content="ps1-discman-20260918">`.
+**Current setup:** `build/` is committed so Pages can deploy with an empty build command. **Always rebuild `build/` after visual changes** — hashed CSS/JS is cached forever, and a stale `build/index.html` will keep serving the previous chassis. Confirm the live HTML includes `<meta name="pmp-chassis" content="steel-y2k-20260918">`.
 
 **Recommended (optional):** set Build command `npm run build`, output `build`, Node 22, `CI=false`, then stop committing `build/`.
