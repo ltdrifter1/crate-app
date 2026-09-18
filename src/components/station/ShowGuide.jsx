@@ -32,17 +32,17 @@ function HostAvatar({ host, size = 44, lcd = false }) {
         color: lcd ? y2k.cyan : y2k.lightMetal,
         background: lcd
           ? `
-            linear-gradient(160deg, rgba(101,230,255,0.12) 0%, transparent 50%),
-            linear-gradient(145deg, #121820 0%, #070A0E 100%)
+            linear-gradient(160deg, rgba(91,101,116,0.12) 0%, transparent 50%),
+            linear-gradient(145deg, #5B6574 0%, #4A5360 100%)
           `
           : `
-            linear-gradient(160deg, rgba(255,255,255,0.16) 0%, transparent 42%),
-            linear-gradient(145deg, #3A414C 0%, #15181C 100%)
+            linear-gradient(160deg, rgba(216,223,232,0.16) 0%, transparent 42%),
+            linear-gradient(145deg, #8B95A4 0%, #5B6574 100%)
           `,
-        border: lcd ? radio.lcdBorder : "1px solid rgba(255,255,255,0.16)",
+        border: lcd ? radio.lcdBorder : "1px solid rgba(216,223,232,0.16)",
         boxShadow: lcd
           ? radio.lcdShadow
-          : "inset 0 1px 0 rgba(255,255,255,0.16), 0 4px 10px rgba(0,0,0,0.35)",
+          : "inset 0 1px 0 rgba(216,223,232,0.16), 0 4px 10px rgba(58,66,80,0.35)",
       }}
     >
       {host.monogram}
@@ -133,7 +133,7 @@ export function HostCreditChip({ show, compact = false, onClick = null, tone = "
     padding: compact ? "5px 12px 5px 5px" : "6px 12px 6px 6px",
     borderRadius: radio.radiusTight,
     background: hardware.keyFace,
-    border: "1px solid rgba(255,255,255,0.14)",
+    border: "1px solid rgba(216,223,232,0.14)",
     boxShadow: hardware.plateEdge,
     maxWidth: 240,
     cursor: onClick ? "pointer" : "default",
@@ -175,8 +175,8 @@ function BroadcastTimeline({ progress = 0, startLabel, endLabel }) {
                 width: 1,
                 height: t === 0 || t === 100 || t === 50 ? 7 : 4,
                 background: t <= pct
-                  ? "rgba(101,230,255,0.7)"
-                  : "rgba(255,255,255,0.14)",
+                  ? "rgba(91,101,116,0.7)"
+                  : "rgba(216,223,232,0.14)",
               }}
             />
           ))}
@@ -188,7 +188,7 @@ function BroadcastTimeline({ progress = 0, startLabel, endLabel }) {
             height: 3,
             marginTop: 8,
             borderRadius: 2,
-            background: "rgba(255,255,255,0.08)",
+            background: "rgba(216,223,232,0.08)",
             overflow: "visible",
           }}
         >
@@ -222,7 +222,7 @@ function BroadcastTimeline({ progress = 0, startLabel, endLabel }) {
       </div>
       <div style={{ display: "flex", justifyContent: "space-between", marginTop: 4 }}>
         <TechLabel color={y2k.cyan}>{startLabel}</TechLabel>
-        <TechLabel color="rgba(101,230,255,0.4)">{endLabel}</TechLabel>
+        <TechLabel color="rgba(91,101,116,0.4)">{endLabel}</TechLabel>
       </div>
     </div>
   );
@@ -244,20 +244,20 @@ function TuneInKey({ tuned, onTuneIn, compact = false }) {
         padding: compact ? "11px 16px" : "13px 16px",
         borderRadius: radio.radiusControl,
         border: tuned
-          ? "1px solid rgba(101,230,255,0.45)"
-          : "1px solid rgba(255,255,255,0.32)",
+          ? "1px solid rgba(91,101,116,0.45)"
+          : "1px solid rgba(216,223,232,0.32)",
         cursor: "pointer",
         fontFamily: fontMono,
         fontSize: 11,
         fontWeight: 800,
         letterSpacing: 1.6,
         textTransform: "uppercase",
-        color: tuned ? y2k.cyan : "#0A0C10",
+        color: tuned ? y2k.cyan : "#3D4654",
         background: tuned
-          ? "linear-gradient(180deg, rgba(101,230,255,0.12) 0%, rgba(255,255,255,0.04) 100%), rgba(8,12,16,0.7)"
+          ? "linear-gradient(180deg, rgba(91,101,116,0.12) 0%, rgba(216,223,232,0.04) 100%), rgba(58,66,80,0.7)"
           : radio.tuneFace,
         boxShadow: tuned
-          ? "inset 0 1px 0 rgba(255,255,255,0.12), 0 0 18px rgba(101,230,255,0.14)"
+          ? "inset 0 1px 0 rgba(216,223,232,0.12), 0 0 18px rgba(91,101,116,0.14)"
           : radio.tuneShadow,
         flexShrink: 0,
         WebkitTapHighlightColor: "transparent",
@@ -271,7 +271,7 @@ function TuneInKey({ tuned, onTuneIn, compact = false }) {
           borderRadius: "50%",
           border: tuned ? `2px solid ${y2k.cyan}` : "2px solid #1A1E24",
           boxShadow: tuned
-            ? `inset 0 0 0 2px rgba(8,10,13,0.9), 0 0 8px rgba(${chrome.cyanRgb},0.5)`
+            ? `inset 0 0 0 2px rgba(58,66,80,0.9), 0 0 8px rgba(${chrome.cyanRgb},0.5)`
             : "inset 0 0 0 2px rgba(232,236,242,0.9)",
           background: tuned ? y2k.cyan : "transparent",
         }}
@@ -568,8 +568,8 @@ export function ShowGuideRail({
           padding: `0 ${homeSpace.gutter}px 2px`,
           scrollSnapType: "x mandatory",
           WebkitOverflowScrolling: "touch",
-          borderTop: "1px solid rgba(255,255,255,0.08)",
-          borderBottom: "1px solid rgba(255,255,255,0.06)",
+          borderTop: "1px solid rgba(216,223,232,0.08)",
+          borderBottom: "1px solid rgba(216,223,232,0.06)",
         }}
       >
         {guide.map((show, i) => {
@@ -595,7 +595,7 @@ export function ShowGuideRail({
                 borderRadius: 0,
                 cursor: "pointer",
                 border: "none",
-                borderRight: "1px solid rgba(255,255,255,0.06)",
+                borderRight: "1px solid rgba(216,223,232,0.06)",
                 background: "transparent",
                 boxShadow: "none",
                 position: "relative",
@@ -681,7 +681,7 @@ export function ShowGuideRail({
                   fontWeight: 700,
                   letterSpacing: 0.7,
                   textTransform: "uppercase",
-                  color: lit ? "rgba(101,230,255,0.7)" : color.faint,
+                  color: lit ? "rgba(91,101,116,0.7)" : color.faint,
                   overflow: "hidden",
                   textOverflow: "ellipsis",
                   whiteSpace: "nowrap",

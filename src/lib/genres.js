@@ -239,13 +239,13 @@ export function migratePreferredGenres(genres = []) {
 
 /** Warm charcoal tones for genre tiles — only canonical keys. */
 export const GENRE_TONES = {
-  Electronic: "#1A1612",
+  Electronic: "#5B6574",
   "Hip-Hop": "#181614",
-  "R&B & Soul": "#1C1814",
+  "R&B & Soul": "#5B6574",
   Pop: "#1A1816",
   Rock: "#1A1614",
   Metal: "#141210",
-  Jazz: "#1A1612",
+  Jazz: "#5B6574",
   Classical: "#181614",
   "Country & Folk": "#1A1814",
   Reggae: "#1A1812",

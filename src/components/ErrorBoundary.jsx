@@ -43,9 +43,9 @@ export default class ErrorBoundary extends React.Component {
             padding: "28px 24px",
             borderRadius: 24,
             background: `
-              linear-gradient(165deg, rgba(42,47,55,0.85) 0%, rgba(28,32,38,0.55) 100%)
+              linear-gradient(165deg, rgba(42,47,55,0.85) 0%, rgba(180,187,198,0.55) 100%)
             `,
-            border: `1px solid rgba(255,255,255,0.14)`,
+            border: `1px solid rgba(216,223,232,0.14)`,
             boxShadow: `inset 0 1px 0 ${glass.highlight}, ${glass.shadowLift}`,
             backdropFilter: glass.blurHeavy,
             WebkitBackdropFilter: glass.blurHeavy,
@@ -94,7 +94,7 @@ export default class ErrorBoundary extends React.Component {
                 marginBottom: 16,
                 padding: "10px 12px",
                 borderRadius: radius.md,
-                background: "rgba(28,32,38,0.55)",
+                background: "rgba(180,187,198,0.55)",
                 border: `1px solid ${glass.borderSoft}`,
               }}
             >

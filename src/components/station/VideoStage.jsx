@@ -36,7 +36,7 @@ export default function VideoStage({
         inset: 0,
         zIndex: 1,
         overflow: "hidden",
-        background: "#0a0b0e",
+        background: "#4A5360",
       }}
     >
       <video
@@ -77,13 +77,13 @@ export default function VideoStage({
           padding: "4px 8px",
           borderRadius: 4,
           background: "rgba(139,147,159,0.92)",
-          color: "#fff",
+          color: color.lcdInk,
           fontFamily: fontMono,
           fontSize: 9,
           fontWeight: 800,
           letterSpacing: 1.4,
           textTransform: "uppercase",
-          boxShadow: "0 6px 16px rgba(0,0,0,0.35)",
+          boxShadow: "0 6px 16px rgba(58,66,80,0.35)",
         }}>
           Video
         </div>
@@ -103,12 +103,12 @@ export function VideoBadge({ track, dark = false }) {
       padding: "4px 9px",
       borderRadius: radius.md,
       background: dark
-        ? "rgba(255,255,255,0.14)"
+        ? "rgba(216,223,232,0.14)"
         : `
-          linear-gradient(165deg, rgba(38,43,51,0.82) 0%, rgba(28,32,38,0.5) 100%)
+          linear-gradient(165deg, rgba(184,191,202,0.82) 0%, rgba(180,187,198,0.5) 100%)
         `,
       color: dark ? color.onDark : color.ink,
-      border: dark ? "1px solid rgba(255,255,255,0.18)" : `1px solid ${glass.borderSoft}`,
+      border: dark ? "1px solid rgba(216,223,232,0.18)" : `1px solid ${glass.borderSoft}`,
       boxShadow: dark ? "none" : `inset 0 1px 0 ${glass.highlight}`,
       fontFamily: fontMono,
       fontSize: 9,

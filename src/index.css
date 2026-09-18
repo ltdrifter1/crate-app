@@ -8,8 +8,8 @@ body {
   font-family: "IBM Plex Sans", "Lucida Grande", "Helvetica Neue", Helvetica, Inter, -apple-system, BlinkMacSystemFont, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background: #E4E7EE;
-  color: #1C2028;
+  background: #C5CBD6;
+  color: #3D4654;
 }
 code {
   font-family: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Monaco, Consolas, monospace;
@@ -42,7 +42,7 @@ body::before { display: none; }
   position: absolute;
   inset: 8%;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(90,98,112,0.22) 0%, rgba(90,98,112,0.05) 42%, transparent 70%);
+  background: radial-gradient(circle, rgba(91,101,116,0.22) 0%, rgba(91,101,116,0.05) 42%, transparent 70%);
   filter: blur(12px);
   z-index: 0;
 }
@@ -52,11 +52,11 @@ body::before { display: none; }
   border-radius: 50%;
   overflow: hidden;
   background:
-    radial-gradient(circle at 34% 30%, #f3f5f8 0%, #b7c0cc 24%, #6d7786 52%, #2c333d 78%, #12151a 100%);
+    radial-gradient(circle at 34% 30%, #D8DFE8 0%, #b7c0cc 24%, #6d7786 52%, #6A7482 78%, #4A5360 100%);
   box-shadow:
-    0 28px 48px rgba(0,0,0,0.55),
-    0 0 0 1px rgba(255,255,255,0.08),
-    0 0 36px rgba(90,98,112,0.12);
+    0 28px 48px rgba(58,66,80,0.4),
+    0 0 0 1px rgba(216,223,232,0.22),
+    0 0 36px rgba(91,101,116,0.12);
   z-index: 2;
 }
 .pmp-spin-planet__map {
@@ -66,13 +66,13 @@ body::before { display: none; }
   left: 0;
   width: 200%;
   background-image:
-    radial-gradient(ellipse 28% 16% at 18% 40%, rgba(18,22,28,0.48) 0 58%, transparent 62%),
-    radial-gradient(ellipse 16% 22% at 40% 58%, rgba(18,22,28,0.4) 0 52%, transparent 56%),
-    radial-gradient(ellipse 22% 12% at 62% 34%, rgba(18,22,28,0.36) 0 50%, transparent 54%),
-    radial-gradient(ellipse 18% 10% at 82% 64%, rgba(18,22,28,0.34) 0 50%, transparent 54%),
-    radial-gradient(ellipse 28% 16% at 68% 40%, rgba(18,22,28,0.48) 0 58%, transparent 62%),
-    radial-gradient(ellipse 16% 22% at 90% 58%, rgba(18,22,28,0.4) 0 52%, transparent 56%),
-    repeating-linear-gradient(90deg, transparent 0 26px, rgba(8,10,14,0.14) 26px 28px);
+    radial-gradient(ellipse 28% 16% at 18% 40%, rgba(74,83,96,0.48) 0 58%, transparent 62%),
+    radial-gradient(ellipse 16% 22% at 40% 58%, rgba(74,83,96,0.4) 0 52%, transparent 56%),
+    radial-gradient(ellipse 22% 12% at 62% 34%, rgba(74,83,96,0.36) 0 50%, transparent 54%),
+    radial-gradient(ellipse 18% 10% at 82% 64%, rgba(74,83,96,0.34) 0 50%, transparent 54%),
+    radial-gradient(ellipse 28% 16% at 68% 40%, rgba(74,83,96,0.48) 0 58%, transparent 62%),
+    radial-gradient(ellipse 16% 22% at 90% 58%, rgba(74,83,96,0.4) 0 52%, transparent 56%),
+    repeating-linear-gradient(90deg, transparent 0 26px, rgba(58,66,80,0.14) 26px 28px);
   background-size: 50% 100%;
   animation: pmpPlanetSpin 16s linear infinite;
 }
@@ -81,7 +81,7 @@ body::before { display: none; }
   inset: 0;
   border-radius: 50%;
   background:
-    linear-gradient(118deg, rgba(255,255,255,0.28) 0%, transparent 34%, transparent 55%, rgba(6,8,10,0.55) 100%);
+    linear-gradient(118deg, rgba(216,223,232,0.42) 0%, transparent 34%, transparent 55%, rgba(58,66,80,0.55) 100%);
 }
 .pmp-spin-planet__spec {
   position: absolute;
@@ -90,7 +90,7 @@ body::before { display: none; }
   left: 22%;
   top: 16%;
   border-radius: 50%;
-  background: radial-gradient(ellipse, rgba(255,255,255,0.55) 0%, transparent 70%);
+  background: radial-gradient(ellipse, rgba(216,223,232,0.55) 0%, transparent 70%);
   filter: blur(1px);
 }
 .pmp-spin-planet__limb {
@@ -98,8 +98,8 @@ body::before { display: none; }
   inset: 0;
   border-radius: 50%;
   box-shadow:
-    inset 0 0 0 1px rgba(90,98,112,0.18),
-    inset -10px -8px 18px rgba(90,98,112,0.08);
+    inset 0 0 0 1px rgba(91,101,116,0.18),
+    inset -10px -8px 18px rgba(91,101,116,0.08);
   pointer-events: none;
 }
 .pmp-spin-planet__ring {
@@ -109,10 +109,10 @@ body::before { display: none; }
   height: 42%;
   top: 29%;
   border-radius: 50%;
-  border: 1.5px solid rgba(232,234,238,0.38);
-  border-top-color: rgba(90,98,112,0.35);
+  border: 1.5px solid rgba(91,101,116,0.38);
+  border-top-color: rgba(91,101,116,0.35);
   transform: rotateX(64deg) rotateZ(-18deg);
-  box-shadow: 0 0 22px rgba(90,98,112,0.16);
+  box-shadow: 0 0 22px rgba(91,101,116,0.16);
   animation: pmpPlanetRing 18s linear infinite;
   z-index: 1;
 }
@@ -121,8 +121,8 @@ body::before { display: none; }
   right: -16%;
   height: 32%;
   top: 34%;
-  border-color: rgba(90,98,112,0.42);
-  border-bottom-color: rgba(232,234,238,0.28);
+  border-color: rgba(91,101,116,0.42);
+  border-bottom-color: rgba(91,101,116,0.28);
   z-index: 3;
   animation-duration: 12s;
   animation-direction: reverse;
@@ -151,7 +151,7 @@ body::before { display: none; }
 .pmp-lcd-marquee > span {
   display: inline-block;
   padding-right: 2.5em;
-  animation: pmpMarquee 14s linear infinite;
+  animation: pmpMarquee 8s linear infinite;
 }
 .pmp-sleeve-crossfade {
   animation: trackSwap 0.32s cubic-bezier(0.22, 1, 0.36, 1) both;
@@ -161,11 +161,13 @@ body::before { display: none; }
     flex-direction: row !important;
     align-items: center !important;
     justify-content: center !important;
-    gap: 36px !important;
+    gap: 40px !important;
+    width: min(92vw, 1100px) !important;
+    margin: 0 auto !important;
   }
   .pmp-device-sleeve {
-    max-height: 56vh !important;
-    width: min(42vw, 380px) !important;
+    max-height: 64vh !important;
+    width: min(38vw, 480px) !important;
   }
 }
 @media (max-width: 560px) {

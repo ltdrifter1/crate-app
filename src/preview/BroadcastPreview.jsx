@@ -27,7 +27,7 @@ const SAMPLE_TRACK = {
   title: "Night Drive",
   artist: "Signal",
   albumCover: CHANNEL_ART["y2k-dance"] || SAMPLE_COVER,
-  color: "#5A6270",
+  color: "#5B6574",
   liked: true,
   duration: 214,
   audioUrl: "u",
@@ -199,6 +199,7 @@ export default function BroadcastPreview() {
       </div>
       <ChannelSurfingSection
         channels={channels}
+        tracks={SAMPLE_TRACKS}
         activeChannelId={activeChannelId}
         onTuneChannel={(ch) => setActiveChannelId(ch.id)}
         first={false}

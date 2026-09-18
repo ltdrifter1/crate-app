@@ -84,7 +84,7 @@ export default function GenreMosaic({ plates = [], onOpen = null }) {
             display: "block",
             width: "100%",
             padding: 0,
-            border: "1px solid rgba(255,255,255,0.12)",
+            border: "1px solid rgba(216,223,232,0.12)",
             borderRadius: 14,
             overflow: "hidden",
             aspectRatio: "16 / 10",
@@ -93,7 +93,7 @@ export default function GenreMosaic({ plates = [], onOpen = null }) {
             textAlign: "left",
             WebkitTapHighlightColor: "transparent",
             animation: `rise 0.45s ${motion.ease} ${Math.min(i, 8) * 0.03}s both`,
-            boxShadow: "0 10px 24px rgba(0,0,0,0.32)",
+            boxShadow: "0 10px 24px rgba(58,66,80,0.32)",
           }}
         >
           <PlateArt plate={plate} />
@@ -103,8 +103,8 @@ export default function GenreMosaic({ plates = [], onOpen = null }) {
               position: "absolute",
               inset: 0,
               background: `
-                linear-gradient(180deg, rgba(8,10,13,0.05) 0%, rgba(8,10,13,0.55) 100%),
-                linear-gradient(90deg, rgba(8,10,13,0.28) 0%, transparent 60%)
+                linear-gradient(180deg, rgba(58,66,80,0.05) 0%, rgba(58,66,80,0.55) 100%),
+                linear-gradient(90deg, rgba(58,66,80,0.28) 0%, transparent 60%)
               `,
             }}
           />
@@ -136,7 +136,7 @@ export default function GenreMosaic({ plates = [], onOpen = null }) {
                 marginTop: 3,
                 fontSize: 12,
                 fontWeight: 500,
-                color: "rgba(244,246,248,0.7)",
+                color: "rgba(216,223,232,0.7)",
               }}
             >
               {plate.trackCount} {plate.trackCount === 1 ? "cut" : "cuts"}
@@ -190,8 +190,8 @@ export function MoodRail({ plates = [], onOpen = null }) {
               borderRadius: 14,
               overflow: "hidden",
               background: y2k.artGradient,
-              boxShadow: "0 10px 24px rgba(0,0,0,0.36)",
-              border: "1px solid rgba(255,255,255,0.1)",
+              boxShadow: "0 10px 24px rgba(58,66,80,0.36)",
+              border: "1px solid rgba(216,223,232,0.1)",
             }}
           >
             {mood.photo && (
@@ -210,7 +210,7 @@ export function MoodRail({ plates = [], onOpen = null }) {
                 position: "absolute",
                 inset: 0,
                 background:
-                  "linear-gradient(180deg, rgba(8,10,13,0.05) 20%, rgba(8,10,13,0.82) 100%)",
+                  "linear-gradient(180deg, rgba(58,66,80,0.05) 20%, rgba(58,66,80,0.82) 100%)",
               }}
             />
             <span
@@ -290,8 +290,8 @@ export function SceneRail({ plates = [], onOpen = null }) {
               borderRadius: 12,
               overflow: "hidden",
               background: y2k.artGradient,
-              boxShadow: "0 10px 22px rgba(0,0,0,0.34)",
-              border: "1px solid rgba(255,255,255,0.1)",
+              boxShadow: "0 10px 22px rgba(58,66,80,0.34)",
+              border: "1px solid rgba(216,223,232,0.1)",
             }}
           >
             {scene.photo ? (
@@ -318,7 +318,7 @@ export function SceneRail({ plates = [], onOpen = null }) {
                 position: "absolute",
                 inset: 0,
                 background:
-                  "linear-gradient(180deg, transparent 30%, rgba(8,10,13,0.78) 100%)",
+                  "linear-gradient(180deg, transparent 30%, rgba(58,66,80,0.78) 100%)",
               }}
             />
             <span

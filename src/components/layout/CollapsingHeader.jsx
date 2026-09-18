@@ -49,12 +49,12 @@ export default function CollapsingHeader({ title, subtitle }) {
           justifyContent: "center",
           gap: 8,
           background: `
-            linear-gradient(165deg, rgba(38,43,51,0.82) 0%, rgba(28,32,38,0.5) 100%)
+            linear-gradient(165deg, rgba(184,191,202,0.82) 0%, rgba(180,187,198,0.5) 100%)
           `,
           WebkitBackdropFilter: glass.blurSoft,
           backdropFilter: glass.blurSoft,
           borderBottom: compact ? `1px solid ${glass.borderSoft}` : "none",
-          boxShadow: compact ? `inset 0 1px 0 ${glass.highlight}, 0 8px 24px rgba(26,29,36,0.06)` : "none",
+          boxShadow: compact ? `inset 0 1px 0 ${glass.highlight}, 0 8px 24px rgba(91,101,116,0.06)` : "none",
           transition: `opacity ${motion.base} ${motion.ease}`,
         }}
       >

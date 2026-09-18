@@ -41,7 +41,7 @@ function SearchScreen({
   const useVirtual = showAllResults && results.length > RESULT_CAP;
   const hintChip = {
     background: `
-      linear-gradient(165deg, rgba(38,43,51,0.82) 0%, rgba(28,32,38,0.5) 100%)
+      linear-gradient(165deg, rgba(184,191,202,0.82) 0%, rgba(180,187,198,0.5) 100%)
     `,
     border: `1px solid ${glass.borderSoft}`,
     borderRadius: 4,
@@ -91,7 +91,7 @@ function SearchScreen({
             paddingRight: query ? 42 : 16,
             borderRadius: radius.xl,
             background: `
-              linear-gradient(165deg, rgba(38,43,51,0.82) 0%, rgba(28,32,38,0.5) 100%)
+              linear-gradient(165deg, rgba(184,191,202,0.82) 0%, rgba(180,187,198,0.5) 100%)
             `,
           }}
           value={query}
@@ -137,7 +137,7 @@ function SearchScreen({
                 display:"flex", alignItems:"center", gap:12, width:"100%", padding:"12px 12px",
                 marginBottom: 6,
                 background: `
-                  linear-gradient(165deg, rgba(32,36,43,0.68) 0%, rgba(28,32,38,0.38) 100%)
+                  linear-gradient(165deg, rgba(184,191,202,0.68) 0%, rgba(180,187,198,0.38) 100%)
                 `,
                 border: `1px solid ${glass.borderSoft}`,
                 borderRadius: radius.lg,
@@ -166,7 +166,7 @@ function SearchScreen({
                 display:"flex", alignItems:"center", gap:12, width:"100%", padding:"12px 12px",
                 marginBottom: 6,
                 background: `
-                  linear-gradient(165deg, rgba(32,36,43,0.68) 0%, rgba(28,32,38,0.38) 100%)
+                  linear-gradient(165deg, rgba(184,191,202,0.68) 0%, rgba(180,187,198,0.38) 100%)
                 `,
                 border: `1px solid ${glass.borderSoft}`,
                 borderRadius: radius.lg,

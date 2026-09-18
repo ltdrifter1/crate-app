@@ -55,7 +55,7 @@ export const VJ_HOSTS = {
     handle: "@dez",
     title: "Countdown Host",
     bio: "Keeps the chart honest. If it’s climbing, Dez is already on it.",
-    accent: "#C5CAD3",
+    accent: "#A8B2C0",
     monogram: "DR",
   },
   sol: {
@@ -91,7 +91,7 @@ export const VJ_HOSTS = {
     handle: "@planetmp3",
     title: "Station Desk",
     bio: "Editorial continuity — Community Mix hours and station IDs.",
-    accent: "#16181E",
+    accent: "#5B6574",
     monogram: "PM",
   },
 };

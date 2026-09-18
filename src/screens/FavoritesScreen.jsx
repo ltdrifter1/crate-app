@@ -41,7 +41,7 @@ function CoverMosaic({ covers = [], title = "", size = homeSpace.tile }) {
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          background: "linear-gradient(160deg, #2A3038 0%, #14181E 100%)",
+          background: "linear-gradient(160deg, #8B95A4 0%, #5B6574 100%)",
           color: color.muted,
           fontFamily: fontDisplay,
           fontSize: Math.round(size * 0.34),
@@ -110,7 +110,7 @@ function LibraryDestination({ icon, title, subtitle, onClick }) {
         padding: "12px 0",
         background: "none",
         border: "none",
-        borderBottom: "1px solid rgba(255,255,255,0.06)",
+        borderBottom: "1px solid rgba(216,223,232,0.06)",
         color: color.ink,
         cursor: "pointer",
         textAlign: "left",
@@ -121,7 +121,7 @@ function LibraryDestination({ icon, title, subtitle, onClick }) {
           width: 40,
           height: 40,
           borderRadius: 10,
-          background: "rgba(255,255,255,0.06)",
+          background: "rgba(216,223,232,0.06)",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
@@ -642,8 +642,8 @@ function FavoritesScreen({
             color: color.muted,
             fontSize: 36,
             fontWeight: 200,
-            background: "rgba(255,255,255,0.05)",
-            border: "1px dashed rgba(255,255,255,0.16)",
+            background: "rgba(216,223,232,0.05)",
+            border: "1px dashed rgba(216,223,232,0.16)",
           }}>
             +
           </div>
@@ -728,7 +728,7 @@ function FavoritesScreen({
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                boxShadow: "0 8px 18px rgba(0,0,0,0.35)",
+                boxShadow: "0 8px 18px rgba(58,66,80,0.35)",
                 cursor: "pointer",
                 padding: 0,
               }}
@@ -846,7 +846,7 @@ function FavoritesScreen({
             aria-label="Library sections"
             style={{
               display: "flex",
-              borderBottom: "1px solid rgba(255,255,255,0.08)",
+              borderBottom: "1px solid rgba(216,223,232,0.08)",
               marginBottom: 14,
             }}
           >
@@ -876,8 +876,8 @@ function FavoritesScreen({
                 padding: "11px 14px 11px 36px",
                 fontSize: 16,
                 borderRadius: 10,
-                background: "rgba(255,255,255,0.06)",
-                border: "1px solid rgba(255,255,255,0.08)",
+                background: "rgba(216,223,232,0.06)",
+                border: "1px solid rgba(216,223,232,0.08)",
               }}
             />
           </div>
@@ -987,7 +987,7 @@ function FavoritesScreen({
                           fontSize: 13,
                           fontWeight: on ? 650 : 520,
                           cursor: "pointer",
-                          background: on ? "rgba(255,255,255,0.1)" : "transparent",
+                          background: on ? "rgba(216,223,232,0.1)" : "transparent",
                           color: on ? color.ink : color.muted,
                           fontFamily: fontDisplay,
                           letterSpacing: -0.1,

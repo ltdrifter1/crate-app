@@ -258,7 +258,7 @@ export default function SetBuilderScreen({
           flexShrink: 0,
           padding: `12px ${homeSpace.gutter}px calc(16px + env(safe-area-inset-bottom, 0px))`,
           background: `
-            linear-gradient(180deg, rgba(8,10,13,0.2) 0%, ${color.canvas} 36%),
+            linear-gradient(180deg, rgba(58,66,80,0.2) 0%, ${color.canvas} 36%),
             ${color.canvas}
           `,
           borderTop: `1px solid ${glass.borderSoft}`,
@@ -346,8 +346,8 @@ function BoothAtmosphere({ covers, tintRgb }) {
         inset: 0,
         background: `
           radial-gradient(ellipse 70% 42% at 18% -8%, rgba(${tintRgb},0.16) 0%, transparent 52%),
-          radial-gradient(ellipse 50% 36% at 100% 8%, rgba(123,167,255,0.08) 0%, transparent 46%),
-          linear-gradient(180deg, rgba(8,10,13,0.35) 0%, rgba(8,10,13,0.88) 100%)
+          radial-gradient(ellipse 50% 36% at 100% 8%, rgba(91,101,116,0.08) 0%, transparent 46%),
+          linear-gradient(180deg, rgba(58,66,80,0.35) 0%, rgba(58,66,80,0.88) 100%)
         `,
       }} />
     </>
@@ -382,7 +382,7 @@ function BoothStage({
         position: "absolute",
         inset: 0,
         background: `
-          linear-gradient(180deg, rgba(8,10,13,0.15) 0%, rgba(8,10,13,0.2) 40%, rgba(8,10,13,0.92) 100%)
+          linear-gradient(180deg, rgba(58,66,80,0.15) 0%, rgba(58,66,80,0.2) 40%, rgba(58,66,80,0.92) 100%)
         `,
       }} />
       <div style={{
@@ -391,8 +391,8 @@ function BoothStage({
         top: 14,
         padding: "5px 8px",
         borderRadius: 5,
-        background: "rgba(8,10,13,0.62)",
-        border: "1px solid rgba(255,255,255,0.14)",
+        background: "rgba(58,66,80,0.62)",
+        border: "1px solid rgba(216,223,232,0.14)",
         fontFamily: fontMono,
         fontSize: 9,
         fontWeight: 800,
@@ -581,7 +581,7 @@ function BoothConsole({
                 fontWeight: 500,
                 fontFamily: font,
                 letterSpacing: 0,
-                color: on ? "rgba(8,10,13,0.62)" : color.muted,
+                color: on ? "rgba(58,66,80,0.62)" : color.muted,
                 lineHeight: 1.3,
                 maxWidth: 140,
                 overflow: "hidden",
@@ -652,14 +652,14 @@ function hardwareChip(selected, tintRgb) {
     borderRadius: 8,
     border: selected
       ? `1px solid rgba(${tintRgb},0.55)`
-      : "1px solid rgba(255,255,255,0.12)",
+      : "1px solid rgba(216,223,232,0.12)",
     background: selected
-      ? `linear-gradient(180deg, rgba(255,255,255,0.18) 0%, transparent 42%), linear-gradient(165deg, #C5CAD3 0%, #5A6270 100%)`
-      : "rgba(255,255,255,0.05)",
+      ? `linear-gradient(180deg, rgba(216,223,232,0.18) 0%, transparent 42%), linear-gradient(165deg, #A8B2C0 0%, #5B6574 100%)`
+      : "rgba(216,223,232,0.05)",
     color: selected ? color.onAccent : color.body,
     boxShadow: selected
-      ? "inset 0 1px 0 rgba(255,255,255,0.62), 0 8px 18px rgba(0,0,0,0.28)"
-      : "inset 0 1px 0 rgba(255,255,255,0.06)",
+      ? "inset 0 1px 0 rgba(216,223,232,0.62), 0 8px 18px rgba(58,66,80,0.28)"
+      : "inset 0 1px 0 rgba(216,223,232,0.06)",
     cursor: "pointer",
     fontWeight: 650,
     fontSize: 13,
@@ -731,7 +731,7 @@ function SetPreview({ session, phases, stats, tintRgb }) {
               height: 64,
               borderRadius: 8,
               overflow: "hidden",
-              boxShadow: `0 8px 18px rgba(0,0,0,0.4), 0 0 0 1px rgba(${tintRgb},0.18)`,
+              boxShadow: `0 8px 18px rgba(58,66,80,0.4), 0 0 0 1px rgba(${tintRgb},0.18)`,
             }}>
               <AlbumArt track={t} size={64} borderRadius={8} />
             </div>

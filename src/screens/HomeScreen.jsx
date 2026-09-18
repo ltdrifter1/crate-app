@@ -8,6 +8,7 @@ import {
   homeSpace,
   motion,
   radius,
+  radio,
   y2k,
 } from "../theme";
 import { countPlayableTracks } from "../lib/catalogLoad";
@@ -37,7 +38,7 @@ function HomeCatalogStatus({ error, isEmpty, playableCount, totalCount, onRetry 
         margin: `20px ${homeSpace.gutter}px 0`,
         padding: "18px 20px",
         borderRadius: radius.xl,
-        border: `1px solid ${error ? "rgba(255,51,79,0.22)" : "rgba(255,255,255,0.1)"}`,
+        border: `1px solid ${error ? "rgba(255,51,79,0.22)" : "rgba(216,223,232,0.1)"}`,
         background: glass.plate,
         boxShadow: `inset 0 1px 0 ${glass.highlight}, ${glass.shadowSoft}`,
         backdropFilter: glass.blurSoft,
@@ -114,7 +115,7 @@ function HomeStandBy() {
         margin: `${homeSpace.sectionGap}px ${homeSpace.gutter}px 0`,
         padding: "18px 20px",
         borderRadius: radius.xl,
-        border: "1px solid rgba(255,255,255,0.12)",
+        border: "1px solid rgba(216,223,232,0.12)",
         background: glass.plate,
         boxShadow: `inset 0 1px 0 ${glass.highlight}, ${glass.shadowSoft}`,
         display: "flex",
@@ -173,12 +174,9 @@ function EmptyShelfCard({ title, body, actionLabel = null, onAction = null }) {
         padding="22px 20px"
         rounded={18}
         style={{
-          background: `
-            linear-gradient(135deg, rgba(90,98,112,0.08) 0%, transparent 50%),
-            linear-gradient(165deg, #1A1D24 0%, #101218 100%)
-          `,
-          border: `1px solid rgba(232,234,238,0.1)`,
-          boxShadow: `inset 0 1px 0 rgba(255,255,255,0.08), 0 12px 28px rgba(0,0,0,0.35)`,
+          background: radio.moduleFace,
+          border: `1px solid ${glass.borderSoft}`,
+          boxShadow: `inset 0 1px 0 ${glass.highlight}, 0 12px 28px rgba(58,66,80,0.18)`,
         }}
       >
         <div
@@ -355,6 +353,7 @@ function HomeScreen({
       {hasChannels && (
         <ChannelSurfingSection
           channels={channels}
+          tracks={tracks}
           activeChannelId={sceneChannelsActiveId}
           onTuneChannel={onTuneSceneChannel}
           first={false}

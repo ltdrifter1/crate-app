@@ -5,8 +5,8 @@
     <link rel="icon" href="%PUBLIC_URL%/favicon.svg" type="image/svg+xml" />
     <link rel="icon" href="%PUBLIC_URL%/favicon.png" type="image/png" sizes="32x32" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <meta name="theme-color" content="#E4E7EE" />
-    <meta name="pmp-chassis" content="steel-y2k-20260918" />
+    <meta name="theme-color" content="#C5CBD6" />
+    <meta name="pmp-chassis" content="steel-chrome-20260918" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
@@ -53,8 +53,8 @@
       }
       body {
         margin: 0;
-        background: #E4E7EE;
-        color: #1C2028;
+        background: #C5CBD6;
+        color: #3D4654;
         font-family: "IBM Plex Sans", "Lucida Grande", "Helvetica Neue", Helvetica, Inter, -apple-system, BlinkMacSystemFont, Arial, sans-serif;
         -webkit-font-smoothing: antialiased;
         -moz-osx-font-smoothing: grayscale;
@@ -75,9 +75,9 @@
         box-sizing: border-box;
         padding: 24px;
         background:
-          radial-gradient(ellipse 70% 48% at 50% 42%, rgba(255,255,255,0.7) 0%, transparent 58%),
-          radial-gradient(ellipse 90% 70% at 50% 100%, rgba(197,202,211,0.45) 0%, transparent 55%),
-          #E4E7EE;
+          radial-gradient(ellipse 70% 48% at 50% 42%, rgba(216,223,232,0.55) 0%, transparent 58%),
+          radial-gradient(ellipse 90% 70% at 50% 100%, rgba(168,178,192,0.4) 0%, transparent 55%),
+          #C5CBD6;
       }
       .pmp-spin-planet {
         width: min(220px, 52vw);
@@ -92,7 +92,7 @@
         position: absolute;
         inset: 8%;
         border-radius: 50%;
-        background: radial-gradient(circle, rgba(90,98,112,0.22) 0%, rgba(90,98,112,0.05) 42%, transparent 70%);
+        background: radial-gradient(circle, rgba(91,101,116,0.22) 0%, rgba(91,101,116,0.05) 42%, transparent 70%);
         filter: blur(12px);
         z-index: 0;
       }
@@ -102,11 +102,11 @@
         border-radius: 50%;
         overflow: hidden;
         background:
-          radial-gradient(circle at 34% 30%, #f3f5f8 0%, #b7c0cc 24%, #6d7786 52%, #2c333d 78%, #12151a 100%);
+          radial-gradient(circle at 34% 30%, #D8DFE8 0%, #b7c0cc 24%, #6d7786 52%, #6A7482 78%, #4A5360 100%);
         box-shadow:
-          0 28px 48px rgba(0,0,0,0.55),
-          0 0 0 1px rgba(255,255,255,0.08),
-          0 0 36px rgba(90,98,112,0.12);
+          0 28px 48px rgba(58,66,80,0.4),
+          0 0 0 1px rgba(216,223,232,0.22),
+          0 0 36px rgba(91,101,116,0.16);
         z-index: 2;
       }
       .pmp-spin-planet__map {
@@ -116,13 +116,13 @@
         left: 0;
         width: 200%;
         background-image:
-          radial-gradient(ellipse 28% 16% at 18% 40%, rgba(18,22,28,0.48) 0 58%, transparent 62%),
-          radial-gradient(ellipse 16% 22% at 40% 58%, rgba(18,22,28,0.4) 0 52%, transparent 56%),
-          radial-gradient(ellipse 22% 12% at 62% 34%, rgba(18,22,28,0.36) 0 50%, transparent 54%),
-          radial-gradient(ellipse 18% 10% at 82% 64%, rgba(18,22,28,0.34) 0 50%, transparent 54%),
-          radial-gradient(ellipse 28% 16% at 68% 40%, rgba(18,22,28,0.48) 0 58%, transparent 62%),
-          radial-gradient(ellipse 16% 22% at 90% 58%, rgba(18,22,28,0.4) 0 52%, transparent 56%),
-          repeating-linear-gradient(90deg, transparent 0 26px, rgba(8,10,14,0.14) 26px 28px);
+          radial-gradient(ellipse 28% 16% at 18% 40%, rgba(74,83,96,0.48) 0 58%, transparent 62%),
+          radial-gradient(ellipse 16% 22% at 40% 58%, rgba(74,83,96,0.4) 0 52%, transparent 56%),
+          radial-gradient(ellipse 22% 12% at 62% 34%, rgba(74,83,96,0.36) 0 50%, transparent 54%),
+          radial-gradient(ellipse 18% 10% at 82% 64%, rgba(74,83,96,0.34) 0 50%, transparent 54%),
+          radial-gradient(ellipse 28% 16% at 68% 40%, rgba(74,83,96,0.48) 0 58%, transparent 62%),
+          radial-gradient(ellipse 16% 22% at 90% 58%, rgba(74,83,96,0.4) 0 52%, transparent 56%),
+          repeating-linear-gradient(90deg, transparent 0 26px, rgba(58,66,80,0.14) 26px 28px);
         background-size: 50% 100%;
         animation: pmpPlanetSpin 16s linear infinite;
       }
@@ -131,7 +131,7 @@
         inset: 0;
         border-radius: 50%;
         background:
-          linear-gradient(118deg, rgba(255,255,255,0.28) 0%, transparent 34%, transparent 55%, rgba(6,8,10,0.55) 100%);
+          linear-gradient(118deg, rgba(216,223,232,0.42) 0%, transparent 34%, transparent 55%, rgba(58,66,80,0.55) 100%);
       }
       .pmp-spin-planet__spec {
         position: absolute;
@@ -140,7 +140,7 @@
         left: 22%;
         top: 16%;
         border-radius: 50%;
-        background: radial-gradient(ellipse, rgba(255,255,255,0.55) 0%, transparent 70%);
+        background: radial-gradient(ellipse, rgba(216,223,232,0.55) 0%, transparent 70%);
         filter: blur(1px);
       }
       .pmp-spin-planet__limb {
@@ -148,8 +148,8 @@
         inset: 0;
         border-radius: 50%;
         box-shadow:
-          inset 0 0 0 1px rgba(90,98,112,0.18),
-          inset -10px -8px 18px rgba(90,98,112,0.08);
+          inset 0 0 0 1px rgba(91,101,116),0.18),
+          inset -10px -8px 18px rgba(91,101,116),0.08);
       }
       .pmp-spin-planet__ring {
         position: absolute;
@@ -158,10 +158,10 @@
         height: 42%;
         top: 29%;
         border-radius: 50%;
-        border: 1.5px solid rgba(232,234,238,0.38);
-        border-top-color: rgba(90,98,112,0.35);
+        border: 1.5px solid rgba(91,101,116),0.38);
+        border-top-color: rgba(91,101,116),0.35);
         transform: rotateX(64deg) rotateZ(-18deg);
-        box-shadow: 0 0 22px rgba(90,98,112,0.16);
+        box-shadow: 0 0 22px rgba(91,101,116),0.16);
         animation: pmpPlanetRing 18s linear infinite;
         z-index: 1;
       }
@@ -170,8 +170,8 @@
         right: -16%;
         height: 32%;
         top: 34%;
-        border-color: rgba(90,98,112,0.42);
-        border-bottom-color: rgba(232,234,238,0.28);
+        border-color: rgba(91,101,116),0.42);
+        border-bottom-color: rgba(91,101,116),0.28);
         z-index: 3;
         animation-duration: 12s;
         animation-direction: reverse;

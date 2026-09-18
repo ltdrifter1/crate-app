@@ -46,7 +46,7 @@ export function CoverStageAtmosphere({ track = null, playing = false, live = fal
         position: "absolute",
         inset: 0,
         background: `
-          linear-gradient(115deg, rgba(34,38,45,0.72) 0%, transparent 40%, transparent 60%, rgba(26,29,36,0.045) 100%),
+          linear-gradient(115deg, rgba(34,38,45,0.72) 0%, transparent 40%, transparent 60%, rgba(91,101,116,0.045) 100%),
           radial-gradient(ellipse 90% 55% at 50% -8%, rgba(42,47,55,0.85) 0%, transparent 62%)
         `,
         opacity: hasArt ? 0.35 : 1,
@@ -210,11 +210,11 @@ export default function CoverStage({
             paddingTop: "env(safe-area-inset-top, 0px)",
             pointerEvents: "none",
             background: `
-              repeating-linear-gradient(90deg, rgba(255,255,255,0.018) 0 1px, transparent 1px 4px),
+              repeating-linear-gradient(90deg, rgba(216,223,232,0.018) 0 1px, transparent 1px 4px),
               ${glass.frame}
             `,
-            borderBottom: "1px solid rgba(0,0,0,0.72)",
-            boxShadow: "inset 0 1px 0 rgba(255,255,255,0.1), 0 6px 16px rgba(0,0,0,0.34)",
+            borderBottom: "1px solid rgba(58,66,80,0.72)",
+            boxShadow: "inset 0 1px 0 rgba(216,223,232,0.1), 0 6px 16px rgba(58,66,80,0.34)",
           }}
         >
           <div style={{
@@ -303,20 +303,20 @@ export default function CoverStage({
               borderRadius: "6px 6px 0 0",
               padding: "14px 16px 10px",
               background: `
-                repeating-linear-gradient(90deg, rgba(255,255,255,0.014) 0 1px, transparent 1px 4px),
+                repeating-linear-gradient(90deg, rgba(216,223,232,0.014) 0 1px, transparent 1px 4px),
                 linear-gradient(180deg,
                   rgba(45,50,58,0.98) 0%,
                   rgba(25,28,34,0.98) 38%,
                   rgba(12,14,17,0.99) 100%)
               `,
               border: "none",
-              borderTop: `1px solid rgba(255,255,255,0.2)`,
+              borderTop: `1px solid rgba(216,223,232,0.2)`,
               boxShadow: `
                 ${hardware.plateEdge},
-                inset 1px 0 0 rgba(255,255,255,0.05),
-                inset -1px 0 0 rgba(0,0,0,0.28),
-                inset 0 -1px 0 rgba(0,0,0,0.55),
-                0 -12px 28px rgba(0,0,0,0.42)
+                inset 1px 0 0 rgba(216,223,232,0.05),
+                inset -1px 0 0 rgba(58,66,80,0.28),
+                inset 0 -1px 0 rgba(58,66,80,0.55),
+                0 -12px 28px rgba(58,66,80,0.42)
               `,
               animation: `dockRise 0.55s ${motion.ease} both`,
               position: "relative",
@@ -332,10 +332,10 @@ export default function CoverStage({
                 borderRadius: "6px 6px 0 0",
                 pointerEvents: "none",
                 background: `
-                  linear-gradient(180deg, rgba(255,255,255,0.055) 0%, transparent 18%),
-                  repeating-linear-gradient(0deg, transparent 0 2px, rgba(255,255,255,0.008) 2px 3px)
+                  linear-gradient(180deg, rgba(216,223,232,0.055) 0%, transparent 18%),
+                  repeating-linear-gradient(0deg, transparent 0 2px, rgba(216,223,232,0.008) 2px 3px)
                 `,
-                boxShadow: "inset 1px 0 0 rgba(255,255,255,0.05), inset -1px 0 0 rgba(0,0,0,0.28)",
+                boxShadow: "inset 1px 0 0 rgba(216,223,232,0.05), inset -1px 0 0 rgba(58,66,80,0.28)",
               }}
             />
 
@@ -377,7 +377,7 @@ export default function CoverStage({
                 height: 1,
                 margin: "10px 0 7px",
                 background: hardware.rule,
-                boxShadow: "0 1px 0 rgba(0,0,0,0.55)",
+                boxShadow: "0 1px 0 rgba(58,66,80,0.55)",
               }}
             />
 
@@ -394,7 +394,7 @@ export default function CoverStage({
                 height: 1,
                 margin: "7px 0 6px",
                 background: hardware.rule,
-                boxShadow: "0 1px 0 rgba(0,0,0,0.55)",
+                boxShadow: "0 1px 0 rgba(58,66,80,0.55)",
               }}
             />
 
@@ -450,7 +450,7 @@ export default function CoverStage({
                     padding: 3,
                     borderRadius: "50%",
                     background: `
-                      linear-gradient(145deg, rgba(56,62,72,0.95) 0%, rgba(200,208,220,0.55) 100%)
+                      linear-gradient(145deg, rgba(168,178,192,0.95) 0%, rgba(200,208,220,0.55) 100%)
                     `,
                     boxShadow: `inset 0 1px 0 ${glass.highlight}, 0 10px 28px rgba(18,20,26,0.12)`,
                   }}>

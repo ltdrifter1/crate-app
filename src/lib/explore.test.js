@@ -31,11 +31,13 @@ describe("explore collections", () => {
     expect(plates.every((p) => p.trackCount > 0)).toBe(true);
     const electronic = plates.find((p) => p.lane === "Electronic");
     expect(electronic).toBeTruthy();
+    expect(electronic.covers[0]).toBe("b.jpg");
+    expect(electronic.photo).toBe("b.jpg");
     expect(electronic.usePhoto).toBe(true);
-    expect(electronic.photo).toBe(CHANNEL_ART.techno);
     const jazz = plates.find((p) => p.lane === "Jazz");
-    expect(jazz.usePhoto).toBe(false);
     expect(jazz.covers.length).toBeGreaterThan(0);
+    expect(jazz.photo).toBe("a.jpg");
+    expect(jazz.usePhoto).toBe(true);
   });
 
   test("GENRE_CHANNEL_ART only maps honest channel-icon matches", () => {
@@ -44,12 +46,13 @@ describe("explore collections", () => {
     expect(GENRE_CHANNEL_ART.Electronic).toBe("techno");
   });
 
-  test("mood plates filter by energy and carry channel icons", () => {
+  test("mood plates filter by energy and lead with catalog sleeves", () => {
     const moods = exploreMoodPlates(tracks, 1);
     const ids = moods.map((m) => m.id);
     expect(ids).toEqual(expect.arrayContaining(["after-hours", "peak-time", "drive"]));
     const after = moods.find((m) => m.id === "after-hours");
-    expect(after.photo).toBe(CHANNEL_ART.downtempo);
+    expect(after.covers.length).toBeGreaterThan(0);
+    expect(after.photo).toBe(after.covers[0]);
     expect(after.pool.every((t) => (t.energy ?? 5) <= 4)).toBe(true);
     expect(tracksForMood(tracks, "peak-time").every((t) => (t.energy ?? 5) >= 7)).toBe(true);
   });

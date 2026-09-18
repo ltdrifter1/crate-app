@@ -1,7 +1,7 @@
 import { useRef } from "react";
 import Icon from "../ui/Icon";
 import { AlbumArt } from "../listen/AlbumArt";
-import { color, glass, motion } from "../../theme";
+import { color, glass, hardware, motion } from "../../theme";
 
 // ─── Shared transport primitives (soft modern play + linear-friendly progress) ─
 
@@ -36,22 +36,23 @@ export function PlayKey({
         height: size,
         borderRadius: 8,
         background: disabled
-          ? "linear-gradient(180deg, #2A2E38 0%, #16181E 100%)"
+          ? hardware.keyFace
           : glowing
             ? `linear-gradient(180deg, ${color.accent} 0%, ${color.accent} 100%)`
-            : "linear-gradient(180deg, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0.02) 48%, transparent 100%), linear-gradient(180deg, #2A2E38 0%, #16181E 100%)",
-        border: `1px solid ${glowing ? color.accentGlow : "rgba(232,234,238,0.14)"}`,
+            : hardware.keyFace,
+        border: `1px solid ${glowing ? color.accentGlow : "rgba(91,101,116,0.22)"}`,
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
         color: disabled ? color.faint : glowing ? color.onAccent : color.ink,
         cursor: disabled ? "not-allowed" : "pointer",
         flexShrink: 0,
+        opacity: disabled ? 0.55 : 1,
         boxShadow: disabled
           ? "none"
           : glowing
-            ? `inset 0 1px 0 rgba(255,255,255,0.45), 0 0 0 4px ${color.accentSoft}, 0 8px 18px rgba(0,0,0,0.4)`
-            : "inset 0 1px 0 rgba(255,255,255,0.14), inset 0 -1px 0 rgba(0,0,0,0.45), 0 6px 14px rgba(0,0,0,0.4)",
+            ? `inset 0 1px 0 rgba(216,223,232,0.45), 0 0 0 4px ${color.accentSoft}, 0 8px 18px rgba(58,66,80,0.2)`
+            : hardware.keyRaised,
         transition: `transform ${motion.fast} ${motion.ease}, box-shadow ${motion.base} ${motion.ease}, background ${motion.fast} ${motion.ease}`,
       }}
     >
@@ -138,7 +139,7 @@ export function OrbitalArtRing({
           cy={svgSize / 2}
           r={r}
           fill="none"
-          stroke="rgba(255,255,255,0.12)"
+          stroke="rgba(216,223,232,0.12)"
           strokeWidth={stroke}
         />
         <circle
@@ -218,7 +219,7 @@ export function OrbitalPlayControl({
         aria-hidden="true"
         style={{ position: "absolute", inset: 0, transform: "rotate(-90deg)", pointerEvents: "none" }}
       >
-        <circle cx={ring / 2} cy={ring / 2} r={r} fill="none" stroke="rgba(255,255,255,0.12)" strokeWidth={stroke} />
+        <circle cx={ring / 2} cy={ring / 2} r={r} fill="none" stroke="rgba(216,223,232,0.12)" strokeWidth={stroke} />
         <circle
           cx={ring / 2}
           cy={ring / 2}

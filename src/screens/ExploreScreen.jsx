@@ -4,8 +4,10 @@ import {
   color,
   font,
   fontDisplay,
+  glass,
   homeSpace,
   motion,
+  radio,
   radius,
   type,
   y2k,
@@ -61,7 +63,7 @@ const EXPLORE_CSS = `
   }
   .pmp-explore-search:hover {
     border-color: rgba(28,32,40,0.16) !important;
-    background: rgba(255,255,255,0.88) !important;
+    background: rgba(216,223,232,0.88) !important;
   }
   .pmp-explore-chart-row:hover { background: rgba(28,32,40,0.04) !important; }
   .pmp-explore-chart-row:active { transform: scale(0.992); }
@@ -125,7 +127,7 @@ function SearchEntry({ onOpenSearch }) {
           padding: "0 14px",
           borderRadius: radius.lg,
           border: "1px solid rgba(28,32,40,0.12)",
-          background: "rgba(255,255,255,0.72)",
+          background: "rgba(216,223,232,0.72)",
           color: color.muted,
           cursor: "pointer",
           textAlign: "left",
@@ -265,11 +267,8 @@ function EmptyExplore({ onOpenSearch }) {
       <CardContainer
         padding="22px 20px"
         style={{
-          background: `
-            radial-gradient(110% 120% at 0% 0%, ${y2k.chromeWash} 0%, transparent 55%),
-            linear-gradient(165deg, ${y2k.charcoalRaised} 0%, #101116 100%)
-          `,
-          border: "1px solid rgba(255,255,255,0.1)",
+          background: radio.moduleFace,
+          border: `1px solid ${glass.borderSoft}`,
         }}
       >
         <div
@@ -476,7 +475,7 @@ function ExploreScreen({
           inset: 0,
           pointerEvents: "none",
           background: `
-            radial-gradient(ellipse 80% 42% at 12% -8%, rgba(255,255,255,0.72) 0%, transparent 52%)
+            radial-gradient(ellipse 80% 42% at 12% -8%, rgba(216,223,232,0.72) 0%, transparent 52%)
           `,
         }}
       />
@@ -590,6 +589,7 @@ function ExploreScreen({
       {stations.length > 0 && (
         <ChannelSurfingSection
           channels={stations}
+          tracks={tracks}
           activeChannelId={sceneChannelsActiveId}
           onTuneChannel={onTuneSceneChannel}
           first={false}

@@ -22,7 +22,7 @@ const SAMPLE_TRACK = {
   title: "Night Drive",
   artist: "Signal",
   albumCover: CHANNEL_ART["y2k-dance"] || SAMPLE_COVER,
-  color: "#5A6270",
+  color: "#5B6574",
   liked: true,
   duration: 214,
   audioUrl: "u",
@@ -92,6 +92,7 @@ export default function ChatPreview() {
       <HomeHeader onOpenSearch={() => {}} onOpenProfile={() => {}} />
       <ChannelSurfingSection
         channels={channels}
+        tracks={[SAMPLE_TRACK]}
         activeChannelId="local-pnw"
         onTuneChannel={() => {}}
         first
@@ -185,7 +186,7 @@ export default function ChatPreview() {
         data-testid="chat-preview"
         style={{
           minHeight: "100dvh",
-          background: "#05070a",
+          background: color.canvas,
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
@@ -203,7 +204,7 @@ export default function ChatPreview() {
             borderRadius: 28,
             border: `1px solid ${glass.border}`,
             background: color.canvas,
-            boxShadow: "0 24px 60px rgba(0,0,0,0.5)",
+            boxShadow: "0 24px 60px rgba(58,66,80,0.5)",
           }}
         >
           <div style={{ height: "100%", overflow: "auto", paddingBottom: 100 }}>

@@ -76,7 +76,7 @@ export function pickTrackBumper({
       title: `#1 — ${countdownTop.track.title}`,
       subtitle: countdownTop.track.artist,
       tone: "chart",
-      accent: "#C5CAD3",
+      accent: "#A8B2C0",
     };
   }
 

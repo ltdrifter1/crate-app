@@ -106,7 +106,7 @@ export default function DedicateSheet({ track, defaultName = "Listener", onClose
               background: text.trim()
                 ? `linear-gradient(165deg, ${chrome.bright} 0%, ${chrome.steel} 100%)`
                 : color.surfaceRaised,
-              color: text.trim() ? "#fff" : color.faint,
+              color: text.trim() ? color.ink : color.faint,
               fontWeight: 700, cursor: text.trim() ? "pointer" : "default",
             }}
           >

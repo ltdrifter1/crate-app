@@ -8,21 +8,21 @@ export default function PlaybackProgressHairline() {
   return (
     <div style={{
       height: 4,
-      background: "rgba(232,234,238,0.10)",
+      background: "rgba(91,101,116,0.10)",
       marginBottom: 16,
       overflow: "hidden",
       position: "relative",
       borderRadius: 2,
-      boxShadow: "inset 0 1px 2px rgba(0,0,0,0.45)",
+      boxShadow: "inset 0 1px 2px rgba(58,66,80,0.45)",
       border: `1px solid ${glass.borderSoft}`,
     }}>
       <div style={{
         height: "100%",
         width: `${pct}%`,
         background: `
-          linear-gradient(90deg, rgba(90,98,112,0.65) 0%, #5A6270 100%)
+          linear-gradient(90deg, rgba(91,101,116,0.65) 0%, #5B6574 100%)
         `,
-        boxShadow: "0 0 8px rgba(90,98,112,0.35)",
+        boxShadow: "0 0 8px rgba(91,101,116,0.35)",
         transition: "width 1s linear",
         borderRadius: 2,
       }} />

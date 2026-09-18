@@ -91,7 +91,7 @@ export default function CountdownRail({
               letterSpacing: 1.1,
               textTransform: "uppercase",
               cursor: "pointer",
-              boxShadow: `inset 0 1px 0 ${glass.highlight}, inset 0 -1px 0 rgba(0,0,0,0.5)`,
+              boxShadow: `inset 0 1px 0 ${glass.highlight}, inset 0 -1px 0 rgba(58,66,80,0.5)`,
             }}
           >
             Tune in
@@ -131,7 +131,7 @@ export default function CountdownRail({
                     : "linear-gradient(90deg, rgba(37,42,49,0.96) 0%, rgba(20,23,28,0.98) 72%)",
                   boxShadow: active
                     ? `inset 4px 0 0 ${color.accent}, inset 0 1px 0 ${glass.highlight}`
-                    : `inset 0 1px 0 ${glass.highlight}, inset 0 -1px 0 rgba(0,0,0,0.5)`,
+                    : `inset 0 1px 0 ${glass.highlight}, inset 0 -1px 0 rgba(58,66,80,0.5)`,
                   cursor: "pointer",
                   textAlign: "left",
                 }}
@@ -152,7 +152,7 @@ export default function CountdownRail({
                   width: 56, height: 56, borderRadius: 0, flexShrink: 0,
                   overflow: "hidden",
                   background: color.surfaceRaised,
-                  boxShadow: "inset 1px 0 0 rgba(255,255,255,0.08), inset -1px 0 0 rgba(0,0,0,0.35)",
+                  boxShadow: "inset 1px 0 0 rgba(216,223,232,0.08), inset -1px 0 0 rgba(58,66,80,0.35)",
                   outline: active && isPlaying ? `2px solid ${color.accent}` : "none",
                   outlineOffset: -2,
                 }}>

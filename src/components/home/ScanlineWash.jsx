@@ -12,7 +12,7 @@ export default function ScanlineWash() {
         zIndex: 1,
         opacity: 0.045,
         backgroundImage:
-          "repeating-linear-gradient(180deg, rgba(255,255,255,0.35) 0px, rgba(255,255,255,0.35) 1px, transparent 1px, transparent 3px)",
+          "repeating-linear-gradient(180deg, rgba(216,223,232,0.35) 0px, rgba(216,223,232,0.35) 1px, transparent 1px, transparent 3px)",
         mixBlendMode: "overlay",
       }}
     />

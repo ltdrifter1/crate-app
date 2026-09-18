@@ -56,8 +56,8 @@ function PlayerOnAir({ showTitle = null, daypartLabel = null }) {
         padding: "7px 12px",
         borderRadius: 6,
         background: y2k.inkGlass,
-        border: "1px solid rgba(255,255,255,0.16)",
-        boxShadow: "inset 0 1px 0 rgba(255,255,255,0.1), inset 0 -1px 0 rgba(0,0,0,0.35)",
+        border: "1px solid rgba(216,223,232,0.16)",
+        boxShadow: "inset 0 1px 0 rgba(216,223,232,0.1), inset 0 -1px 0 rgba(58,66,80,0.35)",
         backdropFilter: "blur(14px)",
         WebkitBackdropFilter: "blur(14px)",
         pointerEvents: "none",
@@ -282,9 +282,9 @@ export default function ImmersivePlayer({
     alignItems: "center",
     justifyContent: "center",
     background: hardware.keyFace,
-    border: "1px solid rgba(232,234,238,0.14)",
+    border: "1px solid rgba(91,101,116,0.22)",
     boxShadow: hardware.keyRaised,
-    color: y2k.offWhite,
+    color: color.ink,
     cursor: "pointer",
     padding: 0,
     flexShrink: 0,
@@ -329,11 +329,11 @@ export default function ImmersivePlayer({
             radial-gradient(ellipse 85% 50% at 50% 16%, rgba(${rgb},0.12) 0%, transparent 55%),
             radial-gradient(ellipse 60% 40% at 50% 70%, ${y2k.chromeWash} 0%, transparent 70%),
             linear-gradient(180deg,
-              rgba(9,10,13,0.55) 0%,
-              rgba(9,10,13,0.28) 30%,
-              rgba(9,10,13,0.12) 48%,
-              rgba(9,10,13,0.55) 78%,
-              rgba(9,10,13,0.92) 100%
+              rgba(197,203,214,0.18) 0%,
+              rgba(197,203,214,0.06) 30%,
+              transparent 48%,
+              rgba(180,187,198,0.22) 78%,
+              rgba(180,187,198,0.45) 100%
             )
           `,
         }}
@@ -346,7 +346,7 @@ export default function ImmersivePlayer({
           left: 0,
           right: 0,
           height: 120,
-          background: "linear-gradient(180deg, rgba(9,10,13,0.55) 0%, transparent 100%)",
+          background: "linear-gradient(180deg, rgba(197,203,214,0.45) 0%, transparent 100%)",
           pointerEvents: "none",
           zIndex: 1,
         }}
@@ -400,7 +400,7 @@ export default function ImmersivePlayer({
                 boxShadow: showBooth
                   ? `${hardware.keyRaised}, 0 0 14px ${color.accentGlow}`
                   : hardware.keyRaised,
-                border: `1px solid ${showBooth ? color.accentGlow : "rgba(255,255,255,0.16)"}`,
+                border: `1px solid ${showBooth ? color.accentGlow : "rgba(216,223,232,0.16)"}`,
                 fontFamily: fontMono,
                 fontSize: 11,
                 fontWeight: 800,
@@ -437,7 +437,7 @@ export default function ImmersivePlayer({
                   borderRadius: 8,
                   padding: "6px 0",
                   zIndex: 8,
-                  boxShadow: `inset 0 1px 0 ${glass.highlight}, 0 18px 48px rgba(0,0,0,0.45)`,
+                  boxShadow: `inset 0 1px 0 ${glass.highlight}, 0 18px 48px rgba(58,66,80,0.45)`,
                   backdropFilter: glass.blur,
                   WebkitBackdropFilter: glass.blur,
                   animation: `rise 0.22s ${EASE} both`,
@@ -526,7 +526,7 @@ export default function ImmersivePlayer({
                           height: 18,
                           borderRadius: "50%",
                           background: crossfadeOn ? y2k.offWhite : color.surfaceSolid,
-                          boxShadow: "0 1px 3px rgba(0,0,0,0.35)",
+                          boxShadow: "0 1px 3px rgba(58,66,80,0.35)",
                           transition: `left ${motion.base} ${EASE}`,
                         }}
                       />
@@ -648,8 +648,8 @@ export default function ImmersivePlayer({
                 position: "absolute",
                 inset: 0,
                 background: `
-                  linear-gradient(135deg, rgba(255,255,255,0.14) 0%, transparent 40%),
-                  linear-gradient(180deg, transparent 55%, rgba(10,11,13,0.28) 100%)
+                  linear-gradient(135deg, rgba(216,223,232,0.35) 0%, transparent 40%),
+                  linear-gradient(180deg, transparent 55%, rgba(74,83,96,0.22) 100%)
                 `,
                 pointerEvents: "none",
               }}
@@ -662,7 +662,7 @@ export default function ImmersivePlayer({
           live={isPlaying}
           style={{
             width: "100%",
-            maxWidth: 420,
+            maxWidth: 720,
             padding: "12px 14px 10px",
             animation: `trackSwap 0.35s ${EASE} both`,
           }}
@@ -674,7 +674,7 @@ export default function ImmersivePlayer({
               fontSize: "clamp(20px, 5vw, 28px)",
               fontWeight: 750,
               letterSpacing: -0.6,
-              color: y2k.offWhite,
+              color: color.lcdInk,
               lineHeight: 1.12,
               marginBottom: 6,
               overflow: "hidden",
@@ -760,7 +760,7 @@ export default function ImmersivePlayer({
         >
           <div
             style={{
-              maxWidth: 420,
+              maxWidth: 720,
               margin: "0 auto",
               padding: "12px 14px 14px",
               borderRadius: 10,
@@ -830,7 +830,7 @@ export default function ImmersivePlayer({
       >
         <div
           style={{
-            maxWidth: 420,
+            maxWidth: 720,
             margin: "0 auto",
             padding: "8px 4px 4px",
             animation: `dockRise 0.5s ${EASE} both`,

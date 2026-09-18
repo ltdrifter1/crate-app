@@ -298,7 +298,7 @@ function GenreToggleList({ selected, onToggle }) {
                   linear-gradient(165deg, rgba(48,53,62,0.9) 0%, rgba(25,28,34,0.7) 100%)
                 `
                 : `
-                  linear-gradient(165deg, rgba(32,36,43,0.65) 0%, rgba(28,32,38,0.35) 100%)
+                  linear-gradient(165deg, rgba(184,191,202,0.65) 0%, rgba(180,187,198,0.35) 100%)
                 `,
               border: `1px solid ${on ? glass.border : glass.borderSoft}`,
               borderRadius: radius.lg,

@@ -55,7 +55,7 @@ function Sleeve({ track, size, active, playing }) {
         borderRadius: radius.md,
         overflow: "hidden",
         background: color.surfaceRaised,
-        border: `1px solid ${active ? "rgba(255,255,255,0.2)" : glass.borderSoft}`,
+        border: `1px solid ${active ? "rgba(216,223,232,0.2)" : glass.borderSoft}`,
         boxShadow: active ? artShadow.raised : artShadow.quiet,
         position: "relative",
       }}
@@ -63,12 +63,12 @@ function Sleeve({ track, size, active, playing }) {
       <SleeveArt track={track} size={size} />
       <div aria-hidden="true" style={{
         pointerEvents: "none", position: "absolute", inset: 0, borderRadius: radius.md,
-        boxShadow: "inset 0 1px 0 rgba(255,255,255,0.08)",
-        background: "linear-gradient(135deg, rgba(255,255,255,0.18) 0%, transparent 42%)",
+        boxShadow: "inset 0 1px 0 rgba(216,223,232,0.08)",
+        background: "linear-gradient(135deg, rgba(216,223,232,0.18) 0%, transparent 42%)",
       }}/>
       {active && playing && (
         <div style={{
-          position: "absolute", inset: 0, background: "rgba(26,29,36,0.22)",
+          position: "absolute", inset: 0, background: "rgba(91,101,116,0.22)",
           display: "flex", alignItems: "center", justifyContent: "center",
         }}>
           <div style={{
@@ -190,8 +190,8 @@ export default function CoverFlow({
             height: Math.round(size * 0.28),
             borderRadius: "50%",
             background: `
-              radial-gradient(ellipse at 50% 30%, rgba(32,36,43,0.65) 0%, rgba(255,255,255,0.12) 42%, transparent 72%),
-              linear-gradient(180deg, rgba(255,255,255,0.05) 0%, transparent 100%)
+              radial-gradient(ellipse at 50% 30%, rgba(184,191,202,0.65) 0%, rgba(216,223,232,0.12) 42%, transparent 72%),
+              linear-gradient(180deg, rgba(216,223,232,0.05) 0%, transparent 100%)
             `,
             filter: "blur(2px)",
             pointerEvents: "none",
@@ -280,8 +280,8 @@ export default function CoverFlow({
                         borderRadius: `0 0 ${radius.md}px ${radius.md}px`,
                         opacity: 0.42,
                         pointerEvents: "none",
-                        maskImage: "linear-gradient(180deg, rgba(0,0,0,0.55) 0%, transparent 88%)",
-                        WebkitMaskImage: "linear-gradient(180deg, rgba(0,0,0,0.55) 0%, transparent 88%)",
+                        maskImage: "linear-gradient(180deg, rgba(58,66,80,0.55) 0%, transparent 88%)",
+                        WebkitMaskImage: "linear-gradient(180deg, rgba(58,66,80,0.55) 0%, transparent 88%)",
                       }}
                     >
                       <div style={{
