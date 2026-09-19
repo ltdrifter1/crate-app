@@ -19,6 +19,7 @@ import SetBuilderScreen from "../components/set/SetBuilderScreen";
 import { makeSetPreviewCatalog } from "./SetPreview";
 import { color, homeSpace } from "../theme";
 import { previewSleeve } from "./sleeves";
+import { TonightDeck } from "../components/station/ShowGuide";
 
 const SAMPLE_COVER = previewSleeve("night-drive", "Night Drive");
 
@@ -50,6 +51,41 @@ const SAMPLE_NEXT = {
   playCount: 31,
   requestCount: 11,
 };
+
+const SAMPLE_AIRING = {
+  show: {
+    id: "countdown",
+    title: "Most Requested Live",
+    tagline: "Prime-time countdown with Dez",
+    timeLabel: "8–10 PM",
+    startHour: 20,
+    endHour: 22,
+    host: { name: "Dez Rivera", monogram: "DR" },
+  },
+  host: { name: "Dez Rivera", monogram: "DR" },
+  remainingMinutes: 42,
+  progress: 0.35,
+  nextShow: { id: "late", shortTitle: "Late Signal", title: "Late Signal", startHour: 22 },
+};
+
+const SAMPLE_GUIDE = [
+  {
+    id: "countdown",
+    title: "Most Requested Live",
+    shortTitle: "Most Requested",
+    status: "live",
+    startHour: 20,
+    endHour: 22,
+  },
+  {
+    id: "late",
+    title: "Late Signal",
+    shortTitle: "Late Signal",
+    status: "up-next",
+    startHour: 22,
+    endHour: 24,
+  },
+];
 
 const SAMPLE_TRACKS = [
   SAMPLE_TRACK,
@@ -197,6 +233,12 @@ export default function BroadcastPreview() {
           tickerText="Planet Radio — requests open · Local on the dial"
         />
       </div>
+      <TonightDeck
+        airing={SAMPLE_AIRING}
+        guide={SAMPLE_GUIDE}
+        onTuneIn={() => {}}
+        onSelectShow={() => {}}
+      />
       <ChannelSurfingSection
         channels={channels}
         tracks={SAMPLE_TRACKS}
