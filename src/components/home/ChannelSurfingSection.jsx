@@ -1,14 +1,18 @@
-import { memo, useMemo } from "react";
+import { memo, useEffect, useMemo, useState } from "react";
 import { homeSpace, motion } from "../../theme";
+import { runAfterDelay } from "../../lib/afterPaint";
 import { channelCoverUrls } from "../../lib/sceneChannels";
 import { Rail } from "./MusicSection";
 import ChannelCard from "./ChannelCard";
 import HomeBandHeader from "./HomeBandHeader";
 
+/** First paint: a handful of stations. The rest wait until the browser is idle. */
+export const FIRST_STATIONS = 6;
+
 /**
  * Channel surfing — first Home destination band.
- * One catalog sleeve per tile (not a 4-up mosaic) so Home does not fire
- * dozens of cover requests on first paint. Pictogram stays the bug / backup.
+ * One catalog sleeve per tile. Pictograms never load here — missing art
+ * uses the disc fallback so Home does not fetch 14 channel PNGs.
  */
 function ChannelSurfingSection({
   channels = [],
@@ -21,13 +25,22 @@ function ChannelSurfingSection({
   subtitle = "Flip the dial. Music stays on this stage.",
   featured = false,
 }) {
+  const [showAll, setShowAll] = useState(process.env.NODE_ENV === "test");
+  useEffect(() => {
+    if (process.env.NODE_ENV === "test") return undefined;
+    if (channels.length <= FIRST_STATIONS) return undefined;
+    return runAfterDelay(() => setShowAll(true), 1800);
+  }, [channels.length]);
+
+  const visible = showAll ? channels : channels.slice(0, FIRST_STATIONS);
+
   const coverById = useMemo(() => {
     const map = {};
-    for (const channel of channels) {
+    for (const channel of visible) {
       map[channel.id] = channelCoverUrls(tracks, channel, 1);
     }
     return map;
-  }, [channels, tracks]);
+  }, [visible, tracks]);
 
   if (!channels.length) return null;
 
@@ -52,7 +65,7 @@ function ChannelSurfingSection({
       />
 
       <Rail gap={homeSpace.shelfGap} padTop={24} padBottom={26} alignItems="flex-end">
-        {channels.map((channel, i) => (
+        {visible.map((channel, i) => (
           <div
             key={channel.id}
             style={{

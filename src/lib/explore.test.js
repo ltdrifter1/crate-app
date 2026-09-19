@@ -1,6 +1,7 @@
 import {
   artForChannelId,
   buildExploreHero,
+  coverUrlsForTracks,
   exploreChartsTeaser,
   exploreForYou,
   exploreGenrePlates,
@@ -44,6 +45,12 @@ describe("explore collections", () => {
     expect(GENRE_CHANNEL_ART.Jazz).toBeUndefined();
     expect(GENRE_CHANNEL_ART.Classical).toBeUndefined();
     expect(GENRE_CHANNEL_ART.Electronic).toBe("techno");
+  });
+
+  test("coverUrlsForTracks defaults to one sleeve, not a mosaic", () => {
+    const urls = coverUrlsForTracks(tracks);
+    expect(urls).toHaveLength(1);
+    expect(urls[0]).toBe("a.jpg");
   });
 
   test("mood plates filter by energy and lead with catalog sleeves", () => {
@@ -173,8 +180,9 @@ describe("explore collections", () => {
     expect(resolveExploreFocus({ type: "nope", id: "x" }, tracks)).toBeNull();
   });
 
-  test("artForChannelId returns licensed stills", () => {
-    expect(artForChannelId("y2k-dance").src).toBe(CHANNEL_ART["y2k-dance"]);
+  test("artForChannelId does not pull bundled channel PNGs", () => {
+    expect(artForChannelId("y2k-dance").channelId).toBe("y2k-dance");
+    expect(artForChannelId("y2k-dance").src).toBeNull();
     expect(artForChannelId("missing").src).toBeNull();
   });
 });

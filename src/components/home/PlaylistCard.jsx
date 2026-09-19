@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { color, fontDisplay, homeSpace, type, y2k } from "../../theme";
-import { catalogSleeveUrl } from "../../lib/channelArt";
+import { catalogSleeveUrl } from "../../lib/catalogSleeve";
 import ArtFrame from "../ui/ArtFrame";
 
 /**

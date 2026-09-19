@@ -22,7 +22,7 @@ import Icon from "../ui/Icon";
 import CoverImage from "../ui/CoverImage";
 import { PlayKey } from "../player/OrbitalControls";
 import { PaceSlider } from "../listen/EnergyShiftButton";
-import { HERO_IDLE_ART, HERO_IDLE_FOCUS } from "../../lib/channelArt";
+import { HERO_IDLE_ART, HERO_IDLE_FOCUS } from "../../lib/heroIdle";
 import ScanlineWash from "./ScanlineWash";
 import {
   DeviceCatalogMark,

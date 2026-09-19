@@ -118,9 +118,11 @@ function SpreadSleeve({
 }
 
 /**
- * One crate spread: #1 sleeve spans 2×2, #2–5 fill the rest of that block,
- * remaining cuts continue on the same 4-column sleeve grid.
+ * One crate spread: #1 sleeve spans 2×2, #2–5 fill that block.
+ * Five sleeves is a complete bento without a second image row.
  */
+export const CRATE_SPREAD_LIMIT = 5;
+
 export default function CrateSpread({
   title,
   subtitle = null,
@@ -131,7 +133,7 @@ export default function CrateSpread({
   action = null,
 }) {
   if (!tracks.length) return null;
-  const shown = tracks.slice(0, 9);
+  const shown = tracks.slice(0, CRATE_SPREAD_LIMIT);
   const rankAt = (i) => (Array.isArray(ranks) ? ranks[i] : null);
 
   return (

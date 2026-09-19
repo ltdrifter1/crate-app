@@ -95,12 +95,12 @@ test("CrateSpread lays out a countdown as one sleeve grid with ranks", async () 
       })
     );
   });
-  expect(div.querySelectorAll(".pmp-crate-cell")).toHaveLength(8);
+  expect(div.querySelectorAll(".pmp-crate-cell")).toHaveLength(4);
   expect(div.querySelector(".pmp-crate-lead").getAttribute("aria-label")).toMatch(/#1 Cut 1/);
   expect(div.textContent).toMatch(/#1/);
   expect(div.textContent).toMatch(/#5/);
-  expect(div.textContent).toMatch(/#9/);
-  expect(div.querySelectorAll("button[aria-label^='Play']")).toHaveLength(9);
+  expect(div.textContent).not.toMatch(/#9/);
+  expect(div.querySelectorAll("button[aria-label^='Play']")).toHaveLength(5);
   const fifth = div.querySelector('button[aria-label="Play #5 Cut 5 by Signal"]');
   expect(fifth).toBeTruthy();
   await act(async () => {

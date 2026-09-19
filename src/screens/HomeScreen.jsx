@@ -262,7 +262,7 @@ function HomeScreen({
 
   const editorial = useMemo(() => buildHomeCollections(tracks), [tracks]);
 
-  const topRequested = useMemo(() => countdown.slice(0, 10), [countdown]);
+  const topRequested = useMemo(() => countdown.slice(0, 5), [countdown]);
   const liveShow = channelShow || airing?.show || null;
   const activeChannel = sceneChannelsActiveId
     ? getSceneChannel(sceneChannelsActiveId)
@@ -402,7 +402,7 @@ function HomeScreen({
           delay={0.06}
         >
           <Rail gap={16}>
-            {topRequested.map(({ rank, track }) => (
+            {topRequested.slice(0, 6).map(({ rank, track }) => (
               <TrackCard
                 key={track.id}
                 track={track}

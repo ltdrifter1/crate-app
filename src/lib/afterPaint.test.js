@@ -1,4 +1,4 @@
-import { runAfterPaint, runWhenIdle } from "./afterPaint";
+import { runAfterPaint, runWhenIdle, runAfterDelay } from "./afterPaint";
 
 describe("runAfterPaint", () => {
   let originalRaf;
@@ -70,8 +70,8 @@ describe("runWhenIdle", () => {
     });
     global.requestIdleCallback = idle;
     global.cancelIdleCallback = jest.fn();
-    runWhenIdle(fn, { timeout: 500 });
-    expect(idle).toHaveBeenCalledWith(expect.any(Function), { timeout: 500 });
+    runWhenIdle(fn, { timeout: 8000 });
+    expect(idle).toHaveBeenCalledWith(expect.any(Function), { timeout: 8000 });
     expect(fn).toHaveBeenCalledTimes(1);
   });
 
@@ -88,5 +88,29 @@ describe("runWhenIdle", () => {
     stored();
     expect(fn).not.toHaveBeenCalled();
     expect(global.cancelIdleCallback).toHaveBeenCalledWith(3);
+  });
+});
+
+describe("runAfterDelay", () => {
+  test("waits the given ms before running", () => {
+    jest.useFakeTimers();
+    const fn = jest.fn();
+    runAfterDelay(fn, 2400);
+    expect(fn).not.toHaveBeenCalled();
+    jest.advanceTimersByTime(2399);
+    expect(fn).not.toHaveBeenCalled();
+    jest.advanceTimersByTime(1);
+    expect(fn).toHaveBeenCalledTimes(1);
+    jest.useRealTimers();
+  });
+
+  test("cancel prevents the delayed callback", () => {
+    jest.useFakeTimers();
+    const fn = jest.fn();
+    const cancel = runAfterDelay(fn, 1800);
+    cancel();
+    jest.advanceTimersByTime(2000);
+    expect(fn).not.toHaveBeenCalled();
+    jest.useRealTimers();
   });
 });

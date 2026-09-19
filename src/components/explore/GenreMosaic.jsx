@@ -1,66 +1,28 @@
 import { color, fontDisplay, homeSpace, motion, y2k } from "../../theme";
 import CoverImage from "../ui/CoverImage";
+import DefaultSleeve from "../ui/DefaultSleeve";
 
-function PlateArt({ plate }) {
-  if (plate.usePhoto && plate.photo) {
+function PlateArt({ plate, eager = false }) {
+  const sleeve = plate.photo || plate.covers?.[0] || null;
+  if (sleeve) {
     return (
       <CoverImage
-        src={plate.photo}
+        src={sleeve}
         alt=""
-        width={640}
-        height={400}
+        width={320}
+        height={200}
+        eager={eager}
         objectPosition={plate.photoFocus || "center"}
         style={{ width: "100%", height: "100%", objectFit: "cover" }}
       />
     );
   }
-  const covers = (plate.covers || []).slice(0, 4);
-  if (covers.length >= 2) {
-    return (
-      <span
-        aria-hidden="true"
-        style={{
-          position: "absolute",
-          inset: 0,
-          display: "grid",
-          gridTemplateColumns: "1fr 1fr",
-          gridTemplateRows: covers.length >= 4 ? "1fr 1fr" : "1fr",
-        }}
-      >
-        {covers.slice(0, 4).map((url, i) => (
-          <span key={`${url}-${i}`} style={{ overflow: "hidden" }}>
-            <CoverImage src={url} alt="" width={200} height={200} />
-          </span>
-        ))}
-      </span>
-    );
-  }
-  if (covers[0]) {
-    return (
-      <CoverImage
-        src={covers[0]}
-        alt=""
-        width={640}
-        height={400}
-        style={{ width: "100%", height: "100%", objectFit: "cover" }}
-      />
-    );
-  }
-  return (
-    <span
-      aria-hidden="true"
-      style={{
-        position: "absolute",
-        inset: 0,
-        background: y2k.artGradient,
-      }}
-    />
-  );
+  return <DefaultSleeve size={160} />;
 }
 
 /**
  * Genre mosaic — Apple Music Browse density, Mixmag photography.
- * Two columns on phone, up to four on desktop. No colored pills.
+ * Two columns on phone, up to four on desktop. One sleeve per plate.
  */
 export default function GenreMosaic({ plates = [], onOpen = null }) {
   if (!plates.length) return null;
@@ -96,7 +58,7 @@ export default function GenreMosaic({ plates = [], onOpen = null }) {
             boxShadow: "0 10px 24px rgba(58,66,80,0.32)",
           }}
         >
-          <PlateArt plate={plate} />
+          <PlateArt plate={plate} eager={i < 2} />
           <span
             aria-hidden="true"
             style={{
@@ -109,32 +71,6 @@ export default function GenreMosaic({ plates = [], onOpen = null }) {
               `,
             }}
           />
-          {plate.bug && (plate.covers || []).length > 0 && (
-            <span
-              aria-hidden="true"
-              style={{
-                position: "absolute",
-                top: 8,
-                right: 8,
-                zIndex: 2,
-                width: 26,
-                height: 26,
-                borderRadius: 7,
-                overflow: "hidden",
-                border: "1px solid rgba(216,223,232,0.5)",
-                boxShadow: "inset 0 1px 0 rgba(255,255,255,0.35), 0 4px 10px rgba(58,66,80,0.28)",
-              }}
-            >
-              <CoverImage
-                src={plate.bug}
-                alt=""
-                width={26}
-                height={26}
-                raw
-                style={{ width: "100%", height: "100%", objectFit: "cover" }}
-              />
-            </span>
-          )}
           <span
             style={{
               position: "absolute",
@@ -221,15 +157,17 @@ export function MoodRail({ plates = [], onOpen = null }) {
               border: "1px solid rgba(216,223,232,0.1)",
             }}
           >
-            {mood.photo && (
+            {mood.photo ? (
               <CoverImage
                 src={mood.photo}
                 alt=""
-                width={296}
-                height={392}
+                width={160}
+                height={212}
                 objectPosition={mood.photoFocus}
                 style={{ width: "100%", height: "100%", objectFit: "cover" }}
               />
+            ) : (
+              <DefaultSleeve size={148} />
             )}
             <span
               aria-hidden="true"
@@ -321,24 +259,18 @@ export function SceneRail({ plates = [], onOpen = null }) {
               border: "1px solid rgba(216,223,232,0.1)",
             }}
           >
-            {scene.photo ? (
+            {scene.photo || scene.covers?.[0] ? (
               <CoverImage
-                src={scene.photo}
+                src={scene.photo || scene.covers[0]}
                 alt=""
-                width={336}
-                height={224}
+                width={168}
+                height={112}
                 objectPosition={scene.photoFocus}
                 style={{ width: "100%", height: "100%", objectFit: "cover" }}
               />
-            ) : scene.covers?.[0] ? (
-              <CoverImage
-                src={scene.covers[0]}
-                alt=""
-                width={336}
-                height={224}
-                style={{ width: "100%", height: "100%", objectFit: "cover" }}
-              />
-            ) : null}
+            ) : (
+              <DefaultSleeve size={112} />
+            )}
             <span
               aria-hidden="true"
               style={{

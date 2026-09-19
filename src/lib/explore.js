@@ -1,9 +1,11 @@
 /**
  * Explore destination — editorial collections for discovery.
- * Catalog sleeves lead. Channel pictograms are bugs when a lane has no cover.
+ * Catalog sleeves lead. Pictograms stay off this module so Explore
+ * does not pull the Channel Surfing PNG graph onto first paint.
  */
 
-import { CHANNEL_ART, CHANNEL_ART_FOCUS, HERO_IDLE_ART, HERO_IDLE_FOCUS, catalogSleeveUrl } from "./channelArt";
+import { catalogSleeveUrl } from "./catalogSleeve";
+import { HERO_IDLE_ART, HERO_IDLE_FOCUS } from "./heroIdle";
 import { genreStory, scenesForLane, tracksForGenreLane, tracksForScenePool } from "./browse";
 import { CANONICAL_GENRES, normalizeGenre } from "./genres";
 import { decorateSceneChannels } from "./sceneChannels";
@@ -38,7 +40,7 @@ function singles(tracks = []) {
   return tracks.filter(PLAYABLE);
 }
 
-export function coverUrlsForTracks(list = [], limit = 4) {
+export function coverUrlsForTracks(list = [], limit = 1) {
   const max = Math.max(1, limit);
   const seen = new Set();
   const out = [];
@@ -53,38 +55,36 @@ export function coverUrlsForTracks(list = [], limit = 4) {
 }
 
 export function artForChannelId(channelId) {
-  if (!channelId) return { src: null, focus: "center" };
+  if (!channelId) return { src: null, focus: "center", channelId: null };
   return {
-    src: CHANNEL_ART[channelId] || null,
-    focus: CHANNEL_ART_FOCUS[channelId] || "center",
+    src: null,
+    focus: "center",
+    channelId,
   };
 }
 
-function sleeveFirstVisual(channelPhoto, pool = []) {
-  const covers = coverUrlsForTracks(pool, 4);
+function sleeveFirstVisual(pool = []) {
+  const covers = coverUrlsForTracks(pool, 1);
   const sleeve = covers[0] || null;
   return {
     photo: sleeve,
     photoFocus: "center",
     covers,
-    /** Single sleeve. False when a mosaic of covers should lead. Pictograms are bugs. */
-    usePhoto: !!sleeve && covers.length <= 1,
-    bug: channelPhoto?.src || null,
+    usePhoto: !!sleeve,
+    bug: null,
   };
 }
 
 export function visualForGenre(lane, pool = []) {
-  const channelId = GENRE_CHANNEL_ART[lane] || null;
-  return sleeveFirstVisual(artForChannelId(channelId), pool);
+  return sleeveFirstVisual(pool);
 }
 
 export function visualForFamily(familyId, pool = []) {
-  const channelId = FAMILY_CHANNEL_ART[familyId] || null;
-  return sleeveFirstVisual(artForChannelId(channelId), pool);
+  return sleeveFirstVisual(pool);
 }
 
 /** Genre mosaic rows — only lanes that have catalog, plus art. */
-export function exploreGenrePlates(tracks = []) {
+export function exploreGenrePlates(tracks = [], limit = Infinity) {
   const playable = singles(tracks);
   const byLane = new Map();
   for (const t of playable) {
@@ -94,7 +94,7 @@ export function exploreGenrePlates(tracks = []) {
     if (list) list.push(t);
     else byLane.set(lane, [t]);
   }
-  return CANONICAL_GENRES.filter((lane) => (byLane.get(lane) || []).length > 0).map((lane) => {
+  const plates = CANONICAL_GENRES.filter((lane) => (byLane.get(lane) || []).length > 0).map((lane) => {
     const pool = byLane.get(lane) || [];
     const visual = visualForGenre(lane, pool);
     return {
@@ -106,6 +106,8 @@ export function exploreGenrePlates(tracks = []) {
       ...visual,
     };
   });
+  if (Number.isFinite(limit)) return plates.slice(0, Math.max(0, limit));
+  return plates;
 }
 
 /**
@@ -170,8 +172,7 @@ export function tracksForMood(tracks = [], moodId) {
 export function exploreMoodPlates(tracks = [], minTracks = 2) {
   return MOOD_DEFS.map((def) => {
     const pool = tracksForMood(tracks, def.id);
-    const art = artForChannelId(def.channelId);
-    const covers = coverUrlsForTracks(pool, 4);
+    const covers = coverUrlsForTracks(pool, 1);
     const sleeve = covers[0] || null;
     return {
       ...def,
@@ -180,21 +181,20 @@ export function exploreMoodPlates(tracks = [], minTracks = 2) {
       photo: sleeve,
       photoFocus: "center",
       covers,
-      bug: art.src,
+      bug: null,
     };
   }).filter((m) => m.count >= minTracks);
 }
 
 /** Culture scenes with live counts — ranked by depth, photography from family. */
-export function exploreScenePlates(tracks = [], limit = 10) {
+export function exploreScenePlates(tracks = [], limit = 8) {
   const playable = singles(tracks);
   const familyLabel = Object.fromEntries(SCENE_FAMILIES.map((f) => [f.id, f.label]));
   const scored = [];
   for (const scene of SCENES) {
     const pool = playable.filter((t) => trackMatchesScene(t, scene.id));
     if (!pool.length) continue;
-    const art = artForChannelId(FAMILY_CHANNEL_ART[scene.familyId]);
-    const covers = coverUrlsForTracks(pool, 4);
+    const covers = coverUrlsForTracks(pool, 1);
     const sleeve = covers[0] || null;
     scored.push({
       id: scene.id,
@@ -208,7 +208,7 @@ export function exploreScenePlates(tracks = [], limit = 10) {
       photo: sleeve,
       photoFocus: "center",
       covers,
-      bug: art.src,
+      bug: null,
     });
   }
   return scored
@@ -216,7 +216,7 @@ export function exploreScenePlates(tracks = [], limit = 10) {
     .slice(0, limit);
 }
 
-export function recentlyPlayedTracks(tracks = [], recentTrackIds = [], limit = 12) {
+export function recentlyPlayedTracks(tracks = [], recentTrackIds = [], limit = 6) {
   if (!recentTrackIds.length) return [];
   const byId = new Map(tracks.map((t) => [t.id, t]));
   const seen = new Set();
@@ -232,7 +232,7 @@ export function recentlyPlayedTracks(tracks = [], recentTrackIds = [], limit = 1
 }
 
 export function exploreForYou(tracks = [], opts = {}) {
-  const { preferredGenres = [], recentTrackIds = [], userKey = "", dayKey, limit = 16 } = opts;
+  const { preferredGenres = [], recentTrackIds = [], userKey = "", dayKey, limit = 8 } = opts;
   const { picks, coldStart } = recommendedPicks(tracks, {
     preferredGenres,
     recentTrackIds,
@@ -374,11 +374,11 @@ export function exploreStations(tracks = []) {
   return decorateSceneChannels(tracks);
 }
 
-export function exploreReleases(tracks = [], limit = 6) {
+export function exploreReleases(tracks = [], limit = 4) {
   return featuredReleases(tracks, limit);
 }
 
-export function exploreChartsTeaser(countdown = [], limit = 8) {
+export function exploreChartsTeaser(countdown = [], limit = 5) {
   return (countdown || []).slice(0, limit);
 }
 
@@ -418,8 +418,7 @@ export function resolveExploreFocus(focus, tracks = []) {
     const def = MOOD_DEFS.find((m) => m.id === focus.id);
     if (!def) return null;
     const pool = tracksForMood(tracks, def.id);
-    const art = artForChannelId(def.channelId);
-    const visual = sleeveFirstVisual(art, pool);
+    const visual = sleeveFirstVisual(pool);
     return {
       type: "mood",
       id: def.id,

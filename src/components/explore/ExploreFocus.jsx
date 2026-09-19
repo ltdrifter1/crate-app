@@ -77,8 +77,8 @@ export default function ExploreFocus({
             <CoverImage
               src={art}
               alt=""
-              width={1200}
-              height={600}
+              width={800}
+              height={400}
               objectPosition={focus.photoFocus || "center"}
               priority
               style={{ width: "100%", height: "100%", objectFit: "cover" }}

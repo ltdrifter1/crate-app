@@ -28,6 +28,9 @@ export function runAfterPaint(fn) {
 /**
  * Run after the first paints + network have had a beat.
  * Full-catalog hydrate uses this so Home images aren't fighting Firestore.
+ *
+ * `timeout` is a deadline for requestIdleCallback, not a minimum delay.
+ * Quiet pages fire immediately. Use runAfterDelay when work must wait.
  */
 export function runWhenIdle(fn, { timeout = 1200 } = {}) {
   if (typeof fn !== "function") return () => {};
@@ -42,10 +45,17 @@ export function runWhenIdle(fn, { timeout = 1200 } = {}) {
       if (typeof cancelIdleCallback === "function") cancelIdleCallback(id);
     };
   }
-  const delay = Math.max(0, Math.min(Number(timeout) || 1200, 1200));
+  const delay = Math.max(0, Number(timeout) || 1200);
   const id = setTimeout(run, delay);
   return () => {
     cancelled = true;
     clearTimeout(id);
   };
+}
+
+/** Minimum wait — images get a head start before the next catalog/JS wave. */
+export function runAfterDelay(fn, ms) {
+  if (typeof fn !== "function") return () => {};
+  const id = setTimeout(fn, Math.max(0, Number(ms) || 0));
+  return () => clearTimeout(id);
 }
