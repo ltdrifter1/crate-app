@@ -7,6 +7,7 @@ import BottomNavigation from "../components/home/BottomNavigation";
 import HomeHeader from "../components/home/HomeHeader";
 import HeroPlayerCard from "../components/home/HeroPlayerCard";
 import ChannelSurfingSection from "../components/home/ChannelSurfingSection";
+import CrateSpread from "../components/home/CrateSpread";
 import AppSidebar from "../components/layout/AppSidebar";
 import MobileNavDrawer from "../components/layout/MobileNavDrawer";
 import FavoritesScreen from "../screens/FavoritesScreen";
@@ -204,6 +205,15 @@ export default function BroadcastPreview() {
         onTuneChannel={(ch) => setActiveChannelId(ch.id)}
         first={false}
         featured
+      />
+      <CrateSpread
+        title="Most Requested"
+        subtitle="Tonight's countdown"
+        tracks={SAMPLE_COUNTDOWN.map((e) => e.track)}
+        ranks={SAMPLE_COUNTDOWN.map((e) => e.rank)}
+        activeId={SAMPLE_TRACK.id}
+        onPlayTrack={() => {}}
+        action={{ label: "See All", onClick: () => setScreen("charts") }}
       />
     </div>
   );
