@@ -27,7 +27,7 @@ describe("Library screen", () => {
     document.body.removeChild(div);
   });
 
-  test("is a clean playlists/liked library without the buried Build a set card", async () => {
+  test("is a simple playlists and saved library", async () => {
     await act(async () => {
       root.render(
         React.createElement(FavoritesScreen, {
@@ -37,38 +37,51 @@ describe("Library screen", () => {
       );
     });
     expect(div.textContent).toMatch(/Library/);
-    expect(div.textContent).toMatch(/Stacks/);
+    expect(div.textContent).toMatch(/Saved tracks and playlists/);
+    expect(div.textContent).toMatch(/Playlists/);
+    expect(div.textContent).toMatch(/Saved/);
     expect(div.textContent).toMatch(/Night Drive/);
+    expect(div.textContent).not.toMatch(/No stacks yet/);
+    expect(div.textContent).not.toMatch(/Planet Club/);
     expect(div.textContent).not.toMatch(/Length · Vibe · Preview/);
     expect(div.textContent).not.toMatch(/Custom mix/);
     expect(div.querySelector(".custom-mix")).toBeNull();
   });
 
-  test("mobile destinations expose Charts and Build a set", async () => {
-    const onOpenCharts = jest.fn();
-    const onCustomMix = jest.fn();
+  test("empty playlists show a new playlist tile instead of Club copy", async () => {
     await act(async () => {
       root.render(
         React.createElement(FavoritesScreen, {
           tracks: [],
           userPlaylists: [],
-          showLibraryDestinations: true,
-          onOpenCharts,
-          onCustomMix,
         })
       );
     });
-    expect(div.textContent).toMatch(/Charts/);
-    expect(div.textContent).toMatch(/Build a set/);
-    const dests = [...div.querySelectorAll('[aria-label="Library destinations"] button')];
-    expect(dests.map((el) => el.textContent)).toEqual(
-      expect.arrayContaining([expect.stringMatching(/Charts/), expect.stringMatching(/Build a set/)])
-    );
+    expect(div.textContent).toMatch(/New playlist/);
+    expect(div.textContent).not.toMatch(/No stacks yet/);
+    expect(div.textContent).not.toMatch(/share it with Planet Club/i);
+    expect(div.textContent).not.toMatch(/Charts/);
+    expect(div.textContent).not.toMatch(/Build a set/);
+    expect(div.querySelector('[aria-label="Library destinations"]')).toBeNull();
+  });
+
+  test("saved tab is quiet when empty", async () => {
     await act(async () => {
-      dests[0].click();
-      dests[1].click();
+      root.render(
+        React.createElement(FavoritesScreen, {
+          tracks: [],
+          userPlaylists: [],
+        })
+      );
     });
-    expect(onOpenCharts).toHaveBeenCalled();
-    expect(onCustomMix).toHaveBeenCalled();
+    const saved = [...div.querySelectorAll('[role="tablist"] button')].find((b) =>
+      /Saved/.test(b.textContent)
+    );
+    expect(saved).toBeTruthy();
+    await act(async () => {
+      saved.click();
+    });
+    expect(div.textContent).toMatch(/No saved tracks/);
+    expect(div.textContent).not.toMatch(/Songs you love live here/);
   });
 });
