@@ -51,22 +51,22 @@ export function HardwareIconButton({
       }}
       aria-label={label}
       aria-pressed={pressed || active || undefined}
-      className="pmp-hw-key"
+      className={`pmp-hw-key${lit ? " pmp-hw-key--lit" : ""}`}
       style={{
         width: size,
         height: size,
-        borderRadius: hardware.radius + 2,
+        borderRadius: hardware.radius,
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
         cursor: "pointer",
-        color: lit ? color.ink : color.ink,
+        color: color.ink,
         background: lit
-          ? `linear-gradient(180deg, rgba(232,241,248,0.9) 0%, rgba(200,214,226,0.78) 100%)`
+          ? `linear-gradient(145deg, rgba(228,247,250,0.92) 0%, rgba(183,228,238,0.42) 38%, rgba(200,214,226,0.88) 100%)`
           : hardware.keyFace,
-        border: `1px solid ${lit ? "rgba(216,223,232,0.65)" : "rgba(91,101,116,0.14)"}`,
+        border: `1px solid ${lit ? "rgba(90,196,214,0.55)" : "rgba(91,101,116,0.22)"}`,
         boxShadow: lit
-          ? `${hardware.keyPressed}, 0 0 16px ${color.lcdSignalGlow}`
+          ? `${hardware.keyPressed}, 0 0 14px ${color.lcdSignalGlow}`
           : hardware.keyRaised,
         transition: `transform ${motion.fast} ${motion.ease}, color ${motion.fast}, background ${motion.base}, box-shadow ${motion.fast}`,
         padding: 0,
@@ -86,34 +86,29 @@ export function LcdSeek({
   valueText,
   stopPropagation = false,
   height = 6,
+  ticks = false,
 }) {
   const pct = max > 0 ? Math.max(0, Math.min(1, value / max)) * 100 : 0;
   return (
-    <div style={{ width: "100%", position: "relative" }}>
+    <div className="pmp-seek">
       <div
         aria-hidden="true"
-        style={{
-          position: "absolute",
-          left: 0,
-          right: 0,
-          top: "50%",
-          height,
-          marginTop: -(height / 2),
-          borderRadius: 2,
-          background: radio.lcdTrack,
-          boxShadow: "inset 0 1px 3px rgba(58,66,80,0.55)",
-          pointerEvents: "none",
-          overflow: "hidden",
-        }}
+        className="pmp-seek__well"
+        style={{ height }}
       >
+        {ticks ? (
+          <div className="pmp-seek__ticks">
+            {[25, 50, 75].map((mark) => (
+              <span key={mark} style={{ left: `${mark}%` }} />
+            ))}
+          </div>
+        ) : null}
         <div
+          className="pmp-seek__fill"
           style={{
-            height: "100%",
             width: `${pct}%`,
-            borderRadius: 2,
             background: radio.lcdFill,
             boxShadow: radio.lcdGlow,
-            transition: "width 0.08s linear",
           }}
         />
       </div>
@@ -138,7 +133,7 @@ export function LcdSeek({
           position: "relative",
           width: "100%",
           margin: 0,
-          height: 28,
+          height: 32,
           background: "transparent",
           cursor: "pointer",
           zIndex: 1,
@@ -184,10 +179,10 @@ export function LcdTimeline({
     ...type.lcd,
     color: ink,
     fontVariantNumeric: "tabular-nums",
-    letterSpacing: 0.08,
+    letterSpacing: 0.1,
     textTransform: "none",
     flexShrink: 0,
-    minWidth: 36,
+    minWidth: 38,
   };
   return (
     <div
@@ -209,7 +204,8 @@ export function LcdTimeline({
         onChange={onChange}
         label={label}
         stopPropagation={stopPropagation}
-        height={height}
+        height={height ?? 10}
+        ticks
       />
       <span style={{ ...timeStyle, textAlign: "right" }}>
         {duration ? fmtTime(duration) : "—:—"}

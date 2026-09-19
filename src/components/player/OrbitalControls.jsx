@@ -51,8 +51,8 @@ export function PlayKey({
         boxShadow: disabled
           ? "none"
           : glowing
-            ? `inset 0 2px 0 rgba(255,255,255,0.72), inset 0 -3px 5px rgba(58,66,80,0.28), 0 0 0 3px rgba(54,127,199,0.2), 0 0 22px rgba(184,196,48,0.38), 0 8px 16px rgba(58,66,80,0.22)`
-            : `inset 0 2px 0 rgba(255,255,255,0.58), inset 0 -2px 4px rgba(58,66,80,0.22), ${hardware.keyRaised}`,
+            ? `inset 0 3px 0 rgba(255,255,255,0.78), inset 0 -4px 8px rgba(58,66,80,0.3), 0 0 0 4px rgba(183,228,238,0.28), 0 0 22px rgba(90,196,214,0.42), 0 0 18px rgba(184,196,48,0.28), 0 8px 16px rgba(58,66,80,0.22)`
+            : `inset 0 3px 0 rgba(255,255,255,0.62), inset 0 -3px 6px rgba(58,66,80,0.24), 0 0 0 3px rgba(255,255,255,0.22), ${hardware.keyRaised}`,
         transition: `transform ${motion.fast} ${motion.ease}, box-shadow ${motion.base} ${motion.ease}, background ${motion.fast} ${motion.ease}`,
       }}
     >

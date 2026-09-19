@@ -202,8 +202,7 @@ export default function GlassDock({
           </div>
           <div
             onClick={(e) => e.stopPropagation()}
-            className="pmp-deck"
-            style={{ padding: "0 12px 8px" }}
+            className="pmp-deck pmp-deck-plate"
           >
             <div className="pmp-timeline">
               <LcdSeek
@@ -212,7 +211,8 @@ export default function GlassDock({
                 onChange={onSeek}
                 label="Seek"
                 stopPropagation
-                height={4}
+                height={10}
+                ticks
               />
             </div>
             <Suspense fallback={null}>

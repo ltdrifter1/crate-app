@@ -73,7 +73,8 @@ test("LcdTimeline flanks seek with elapsed and remaining", async () => {
     root.render(React.createElement(LcdTimeline, { progress: 48, duration: 214 }));
   });
   expect(div.querySelector('[aria-label="Seek"]')).toBeTruthy();
-  expect(div.querySelector(".pmp-timeline")).toBeTruthy();
+  expect(div.querySelector(".pmp-seek")).toBeTruthy();
+  expect(div.querySelector(".pmp-seek__ticks")).toBeTruthy();
   expect(div.textContent).toMatch(/0:48/);
   expect(div.textContent).toMatch(/3:34/);
   await act(async () => root.unmount());
