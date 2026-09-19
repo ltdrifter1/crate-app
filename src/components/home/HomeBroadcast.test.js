@@ -318,12 +318,13 @@ describe("Home broadcast + four-tab IA", () => {
     });
     div.querySelector(".pmp-channel-card").click();
     expect(onClick).toHaveBeenCalledTimes(1);
-    expect(div.querySelectorAll("img")).toHaveLength(0);
-    expect(div.querySelector("[data-testid='cover-fallback']")).toBeTruthy();
+    const img = div.querySelector("img");
+    expect(img).toBeTruthy();
+    expect(img.getAttribute("src")).toMatch(/\/channels\/downtempo\.png/);
     expect(div.querySelector("[style*='grid-template-columns']")).toBeNull();
   });
 
-  test("Channel Surfing loads one sleeve per station, not a 4-up mosaic", async () => {
+  test("Channel Surfing loads one PS1 plate per station, not a 4-up mosaic", async () => {
     await act(async () => {
       root.render(
         React.createElement(ChannelSurfingSection, {
@@ -460,7 +461,7 @@ describe("Home broadcast + four-tab IA", () => {
     expect(imgs[3].getAttribute("loading")).toBe("lazy");
   });
 
-  test("station tiles without sleeves use the disc fallback, not pictograms", async () => {
+  test("station tiles use PS1 plates, not album sleeves", async () => {
     await act(async () => {
       root.render(
         React.createElement(ChannelCard, {
@@ -473,7 +474,9 @@ describe("Home broadcast + four-tab IA", () => {
         })
       );
     });
-    expect(div.querySelectorAll("img")).toHaveLength(1);
+    const img = div.querySelector("img");
+    expect(img).toBeTruthy();
+    expect(img.getAttribute("src")).toMatch(/\/channels\/techno\.png/);
     expect(div.querySelector("[data-testid='cover-fallback']")).toBeNull();
     await act(async () => {
       root.render(
@@ -486,7 +489,7 @@ describe("Home broadcast + four-tab IA", () => {
         })
       );
     });
-    expect(div.querySelectorAll("img")).toHaveLength(0);
-    expect(div.querySelector("[data-testid='cover-fallback']")).toBeTruthy();
+    expect(div.querySelector("img").getAttribute("src")).toMatch(/\/channels\/techno\.png/);
+    expect(div.querySelector("[data-testid='cover-fallback']")).toBeNull();
   });
 });

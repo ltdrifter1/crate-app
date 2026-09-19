@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
-"""Composite published Game Icons (CC BY 3.0) onto steel Y2K plates.
+"""Legacy Game Icons compositor.
 
-Icons are fetched from the Iconify CDN (game-icons collection) — real
-published drawings, not generated art. Plates are brushed aluminum, not
-neon. Output is 512px so Channel Surfing / Explore stay light.
+Channel Surfing now ships PS1-style 256px plates in public/channels/.
+Keep this script only as the previous steel-plate recipe.
 """
 
 from __future__ import annotations

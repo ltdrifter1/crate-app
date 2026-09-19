@@ -1,31 +1,32 @@
 import { color, hardware, homeSpace, type, y2k } from "../../theme";
-import { catalogSleeveUrl } from "../../lib/catalogSleeve";
+import { resolveChannelArt } from "../../lib/channelArt";
 import CoverImage from "../ui/CoverImage";
 import DefaultSleeve from "../ui/DefaultSleeve";
 import Icon from "../ui/Icon";
 
 /**
  * ChannelCard — square station tile.
- * One catalog sleeve. Missing art uses the disc plate — no pictogram fetch.
+ * PS1 plate from /channels/*.png. Missing art uses the disc fallback.
  */
 function ChannelArt({
-  covers = [],
+  channel,
   size,
   priority = false,
   eager = false,
 }) {
-  const sleeve = (covers || []).map(catalogSleeveUrl).filter(Boolean)[0] || null;
+  const { src, focus } = resolveChannelArt(channel);
 
-  if (sleeve) {
+  if (src) {
     return (
       <CoverImage
-        src={sleeve}
+        src={src}
         alt=""
         width={size}
         height={size}
         priority={priority}
         eager={eager}
-        objectPosition="center"
+        raw
+        objectPosition={focus}
         style={{ width: "100%", height: "100%", objectFit: "cover" }}
       />
     );
@@ -45,7 +46,6 @@ export default function ChannelCard({
 }) {
   const width = size;
   const title = channel.shortTitle || channel.title;
-  const sleeves = (covers || []).map(catalogSleeveUrl).filter(Boolean).slice(0, 1);
 
   return (
     <button
@@ -100,7 +100,7 @@ export default function ChannelCard({
           }}
         >
           <ChannelArt
-            covers={sleeves}
+            channel={channel}
             size={width}
             priority={priority}
             eager={eager}

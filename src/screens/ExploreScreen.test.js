@@ -125,7 +125,7 @@ describe("Explore screen", () => {
     expect(onOpenSearch).toHaveBeenCalled();
   });
 
-  test("loaded catalog shows hero, genres, moods, stations, and charts teaser", async () => {
+  test("loaded catalog shows hero, genres, moods, and stations without Most Requested", async () => {
     const onOpenCharts = jest.fn();
     const onTune = jest.fn();
     await act(async () => {
@@ -150,10 +150,11 @@ describe("Explore screen", () => {
     expect(div.textContent).toMatch(/Moods & moments/);
     expect(div.textContent).toMatch(/Peak time/);
     expect(div.textContent).toMatch(/Stations/);
-    expect(div.textContent).toMatch(/On the board/);
     expect(div.textContent).toMatch(/Warehouse/);
     expect(div.textContent).not.toMatch(/Showcase station/i);
     expect(div.textContent).not.toMatch(/on the dial/i);
+    expect(div.textContent).not.toMatch(/Most requested/i);
+    expect(div.textContent).not.toMatch(/On the board/);
     expect(div.querySelector(".pmp-crate-spread")).toBeTruthy();
     expect(div.textContent).toMatch(/Fresh picks|Selected for you/);
     expect(div.querySelector('section[aria-label="Albums"]')).toBeTruthy();
@@ -164,11 +165,8 @@ describe("Explore screen", () => {
     expect(div.textContent).not.toMatch(/\bRelease\b/);
     expect(div.querySelector('button[aria-label="Browse"]')).toBeTruthy();
     const charts = [...div.querySelectorAll("button")].find((b) => b.textContent === "Charts");
-    expect(charts).toBeTruthy();
-    await act(async () => {
-      charts.click();
-    });
-    expect(onOpenCharts).toHaveBeenCalled();
+    expect(charts).toBeFalsy();
+    expect(onOpenCharts).not.toHaveBeenCalled();
   });
 
   test("opening a genre crate stays on Explore and can play the pool", async () => {

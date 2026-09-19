@@ -1,4 +1,4 @@
-import { readFileSync } from "fs";
+import { existsSync, readFileSync } from "fs";
 import { join } from "path";
 import { CHANNEL_ART, CHANNEL_ART_FOCUS, HERO_IDLE_ART, HERO_IDLE_FOCUS, resolveChannelArt, catalogSleeveUrl, isChannelPictogram } from "./channelArt";
 import { SCENE_CHANNELS } from "./sceneChannels";
@@ -11,6 +11,8 @@ describe("channel icons", () => {
       const art = resolveChannelArt(channel);
       expect(art.src).toBeTruthy();
       expect(CHANNEL_ART[channel.id]).toBeTruthy();
+      expect(art.src).toMatch(new RegExp(`/channels/${channel.id}\\.png$`));
+      expect(existsSync(join(__dirname, "../../public/channels", `${channel.id}.png`))).toBe(true);
       expect(art.focus).toMatch(/%/);
       expect(CHANNEL_ART_FOCUS[channel.id]).toBe(art.focus);
       expect(channel.art).toBeUndefined();
@@ -30,10 +32,9 @@ describe("channel icons", () => {
     expect(HERO_IDLE_FOCUS).toMatch(/%/);
   });
 
-  test("IMAGE_CREDITS records Game Icons drawings on steel plates", () => {
-    expect(CREDITS).toMatch(/published music drawings/i);
+  test("IMAGE_CREDITS records PS1 plates on steel, not magazine scans", () => {
+    expect(CREDITS).toMatch(/PS1/i);
     expect(CREDITS).toMatch(/brushed aluminum/i);
-    expect(CREDITS).toMatch(/CC BY 3\.0/i);
     expect(CREDITS).not.toMatch(/mixmag\.com/i);
     expect(CREDITS).not.toMatch(/xlr8r\.com/i);
     expect(CREDITS).not.toMatch(/djmag\.com/i);

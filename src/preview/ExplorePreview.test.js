@@ -23,7 +23,8 @@ describe("Explore preview", () => {
     expect(div.textContent).toMatch(/Genres/);
     expect(div.textContent).toMatch(/Moods & moments/);
     expect(div.textContent).toMatch(/Stations/);
-    expect(div.textContent).toMatch(/On the board/);
+    expect(div.textContent).not.toMatch(/On the board/);
+    expect(div.textContent).not.toMatch(/Most requested/i);
     expect(div.textContent).not.toMatch(/Showcase station/i);
     expect(div.textContent).not.toMatch(/on the dial/i);
     await act(async () => {
