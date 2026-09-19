@@ -350,6 +350,11 @@ function HomeScreen({
               ? editorial[0].tracks
               : topRequested.map((e) => e.track)
           }
+          ranks={
+            editorial[0]?.tracks?.length
+              ? null
+              : topRequested.map((e) => e.rank)
+          }
           activeId={activeId}
           onPlayTrack={onPlayTrack}
           action={
