@@ -40,7 +40,7 @@ export default function GenreMosaic({ plates = [], onOpen = null }) {
           type="button"
           className="pmp-lift pmp-explore-genre"
           onClick={() => onOpen?.({ type: "genre", id: plate.lane })}
-          aria-label={`${plate.lane} — ${plate.trackCount} cuts`}
+          aria-label={plate.lane}
           style={{
             position: "relative",
             display: "block",
@@ -92,17 +92,6 @@ export default function GenreMosaic({ plates = [], onOpen = null }) {
               }}
             >
               {plate.lane}
-            </span>
-            <span
-              style={{
-                display: "block",
-                marginTop: 3,
-                fontSize: 12,
-                fontWeight: 500,
-                color: "rgba(216,223,232,0.7)",
-              }}
-            >
-              {plate.trackCount} {plate.trackCount === 1 ? "cut" : "cuts"}
             </span>
           </span>
         </button>
@@ -233,7 +222,7 @@ export function SceneRail({ plates = [], onOpen = null }) {
           type="button"
           className="pmp-lift"
           onClick={() => onOpen?.({ type: "scene", id: scene.id })}
-          aria-label={`${scene.label} — ${scene.count} cuts`}
+          aria-label={scene.label}
           style={{
             flex: "0 0 auto",
             scrollSnapAlign: "start",
@@ -308,7 +297,6 @@ export function SceneRail({ plates = [], onOpen = null }) {
             }}
           >
             {scene.cities?.[0] || scene.familyLabel}
-            {scene.count ? ` · ${scene.count}` : ""}
           </span>
         </button>
       ))}

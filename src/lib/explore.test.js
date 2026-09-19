@@ -35,6 +35,7 @@ describe("explore collections", () => {
     expect(electronic.covers[0]).toBe("b.jpg");
     expect(electronic.photo).toBe("b.jpg");
     expect(electronic.usePhoto).toBe(true);
+    expect(electronic.scenes).toBeUndefined();
     const jazz = plates.find((p) => p.lane === "Jazz");
     expect(jazz.covers.length).toBeGreaterThan(0);
     expect(jazz.photo).toBe("a.jpg");

@@ -2,11 +2,7 @@ import { color, fontDisplay, homeSpace, y2k } from "../../theme";
 import ArtFrame from "../ui/ArtFrame";
 
 /**
- * Album sleeve tile. No overlay labels — the cover is the point.
- * `variant` changes shape so a band of albums doesn't read as copy-paste rows.
- *   lead  — large sleeve, title + artist + track count
- *   tile  — square sleeve, title + artist
- *   count — square sleeve, title + track count
+ * Album sleeve tile. The cover is the point — title and artist sit under it.
  */
 export default function ReleaseCard({
   album,
@@ -17,24 +13,21 @@ export default function ReleaseCard({
   const cover = album?.coverTrack?.albumCover || null;
   const title = album?.title || "Untitled";
   const artist = album?.artist || "";
-  const count = album?.count || 0;
   const isLead = variant === "lead";
-  const showArtist = variant !== "count";
-  const showCount = isLead || variant === "count";
   const frame = isLead ? 168 : size;
 
   const titleStyle = {
     display: "block",
-    marginTop: isLead ? 0 : 8,
-    fontSize: isLead ? 17 : 13,
+    marginTop: 8,
+    fontSize: isLead ? 16 : 13,
     fontWeight: isLead ? 700 : 650,
     fontFamily: fontDisplay,
-    letterSpacing: isLead ? -0.35 : -0.2,
+    letterSpacing: isLead ? -0.3 : -0.2,
     lineHeight: 1.2,
     color: y2k.offWhite,
     overflow: "hidden",
     textOverflow: "ellipsis",
-    whiteSpace: isLead ? "normal" : "nowrap",
+    whiteSpace: "nowrap",
   };
   const metaStyle = {
     display: "block",
@@ -46,12 +39,6 @@ export default function ReleaseCard({
     textOverflow: "ellipsis",
     whiteSpace: "nowrap",
   };
-  const meta = [
-    showArtist ? artist : null,
-    showCount && count ? `${count} tracks` : null,
-  ]
-    .filter(Boolean)
-    .join(" · ");
 
   return (
     <button
@@ -61,6 +48,7 @@ export default function ReleaseCard({
       className={`pmp-lift pmp-release pmp-release--${variant}`}
       style={{
         width: "100%",
+        minWidth: 0,
         background: "none",
         border: "none",
         padding: 0,
@@ -73,20 +61,20 @@ export default function ReleaseCard({
         <ArtFrame
           src={cover}
           size={frame}
-          radius={isLead ? 12 : 10}
+          radius={10}
           eager={isLead}
           style={{ width: "100%", height: "auto", aspectRatio: "1 / 1" }}
         />
       </span>
       <span className="pmp-release-copy">
         <span style={titleStyle}>{title}</span>
-        {meta ? <span style={metaStyle}>{meta}</span> : null}
+        {artist ? <span style={metaStyle}>{artist}</span> : null}
       </span>
     </button>
   );
 }
 
-/** Mixed album band — one large sleeve, then tiles that don't all look the same. */
+/** Even sleeve wall — one size, title + artist, no lead spanning rows. */
 export function ReleasesBand({ albums = [], onOpenAlbum = null, onPlayTrack = null }) {
   if (!albums.length) return null;
 
@@ -95,17 +83,13 @@ export function ReleasesBand({ albums = [], onOpenAlbum = null, onPlayTrack = nu
     else if (album.coverTrack) onPlayTrack?.(album.coverTrack, album.tracks);
   };
 
-  const [lead, ...rest] = albums;
-
   return (
     <div className="pmp-releases">
-      <ReleaseCard album={lead} variant="lead" onClick={() => open(lead)} />
-      {rest.map((album, i) => (
+      {albums.map((album) => (
         <ReleaseCard
           key={album.slug}
           album={album}
-          variant={i % 2 === 0 ? "tile" : "count"}
-          size={i % 3 === 0 ? 148 : 128}
+          variant="tile"
           onClick={() => open(album)}
         />
       ))}
