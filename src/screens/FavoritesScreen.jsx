@@ -11,7 +11,7 @@ import {
 import { useCurrentTrack } from "../usePlayerTransport";
 import { savedTracks } from "../lib/homeCollections";
 import { isCommunityPlaylist } from "../lib/mixes";
-import { catalogSleeveUrl } from "../lib/channelArt";
+import { catalogSleeveUrl } from "../lib/catalogSleeve";
 import {
   BTN_PRIMARY,
   BTN_SECONDARY,
