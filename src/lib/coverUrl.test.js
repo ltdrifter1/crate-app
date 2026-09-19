@@ -6,9 +6,15 @@ import {
   coverDisplayUrl,
   coverSrcSet,
   nearestFirebaseThumbSize,
+  markCloudflareResizeUnavailable,
+  isCloudflareResizeAvailable,
+  resetCloudflareResizeForTests,
 } from "./coverUrl";
 
 describe("coverUrl", () => {
+  beforeEach(() => {
+    resetCloudflareResizeForTests();
+  });
   test("isRemoteCoverUrl only matches Firebase / GCS hosts", () => {
     expect(isRemoteCoverUrl("https://storage.googleapis.com/crate-app-58494.firebasestorage.app/covers/a.jpg")).toBe(true);
     expect(isRemoteCoverUrl("https://crate-app-58494.firebasestorage.app/covers/a.jpg")).toBe(true);
@@ -52,5 +58,15 @@ describe("coverUrl", () => {
     expect(set).toMatch(/ 1x/);
     expect(set).toMatch(/ 2x/);
     expect(coverSrcSet("/brand/logo-mark.svg", 168, { mode: "cf" })).toBe("");
+  });
+
+  test("one Cloudflare miss disables /cdn-cgi/image for the session", () => {
+    const src = "https://storage.googleapis.com/b/covers/art.jpg";
+    expect(isCloudflareResizeAvailable()).toBe(true);
+    expect(coverDisplayUrl(src, { width: 168, mode: "cf" })).toContain("/cdn-cgi/image/");
+    markCloudflareResizeUnavailable();
+    expect(isCloudflareResizeAvailable()).toBe(false);
+    expect(coverDisplayUrl(src, { width: 168, mode: "cf" })).toBe(src);
+    expect(coverSrcSet(src, 168, { mode: "cf" })).toBe("");
   });
 });

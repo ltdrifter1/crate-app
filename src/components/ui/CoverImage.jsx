@@ -1,10 +1,16 @@
 /**
  * Shared cover art image — always sized, lazy by default.
  * Remote Firebase Storage covers go through Cloudflare Image Resizing
- * (`/cdn-cgi/image/…`) and fall back to the original on error.
+ * (`/cdn-cgi/image/…`). One CF 404 disables resize for the session so Home
+ * does not double-request every sleeve. Failed / missing photos show a disc.
  */
 import { useEffect, useState } from "react";
-import { coverDisplayUrl, coverSrcSet } from "../../lib/coverUrl";
+import {
+  coverDisplayUrl,
+  coverSrcSet,
+  markCloudflareResizeUnavailable,
+} from "../../lib/coverUrl";
+import DefaultSleeve from "./DefaultSleeve";
 
 /** Intrinsic attrs for a square cover at CSS `size` px. */
 export function coverSizeAttrs(size) {
@@ -57,10 +63,13 @@ export default function CoverImage({
     setUseOriginal(false);
   }, [src]);
 
-  if (!src || failed) return null;
-
   const w = Math.max(1, Math.round(Number(width) || 1));
   const h = Math.max(1, Math.round(Number(height) || w));
+
+  if (!src || failed) {
+    return <DefaultSleeve size={Math.min(w, h)} />;
+  }
+
   const displaySrc = (!raw && !useOriginal)
     ? coverDisplayUrl(src, { width: w })
     : src;
@@ -84,6 +93,7 @@ export default function CoverImage({
       onLoad={onLoad}
       onError={(e) => {
         if (!raw && !useOriginal && displaySrc !== src) {
+          markCloudflareResizeUnavailable();
           setUseOriginal(true);
           return;
         }

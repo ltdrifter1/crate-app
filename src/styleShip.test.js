@@ -55,3 +55,9 @@ test("player surfaces use the Pace slider, not energy paddles", () => {
     expect(src).not.toMatch(/EnergyShiftCapsule/);
   }
 });
+
+test("Home does not mount station chat on the critical path", () => {
+  const app = fs.readFileSync(path.join(root, "src/App.jsx"), "utf8");
+  expect(app).not.toMatch(/HomeMessenger/);
+  expect(app).not.toMatch(/homeChatReady/);
+});

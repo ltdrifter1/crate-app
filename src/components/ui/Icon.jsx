@@ -115,6 +115,7 @@ export default function Icon({ name, size = 18 }) {
     queue: <Lucide Cmp={ListMusic} size={size} />,
     volume: <Lucide Cmp={Volume2} size={size} />,
     hypno: <Lucide Cmp={Disc3} size={size} />,
+    disc: <Lucide Cmp={Disc3} size={size} />,
     timedmix: <TimedMixMark size={size} />,
     flask: <Lucide Cmp={FlaskConical} size={size} />,
     zap: <Lucide Cmp={Zap} size={size} />,

@@ -1,5 +1,6 @@
 import { artFrameStyle, color } from "../../theme";
 import CoverImage from "./CoverImage";
+import DefaultSleeve from "./DefaultSleeve";
 
 /**
  * ArtFrame — jewel-case sleeve: tight radius, raised shadow, acid/Aqua pip when playing.
@@ -58,7 +59,9 @@ export default function ArtFrame({
           priority={priority}
           eager={eager}
         />
-      ) : null}
+      ) : (
+        <DefaultSleeve size={typeof w === "number" ? w : 160} />
+      )}
 
       {active && (
         <span

@@ -176,7 +176,6 @@ const LazyFeatureTour = lazy(() => import("./components/guide/FeatureTour"));
 const LazyLinerNotesSheet = lazy(() => import("./components/catalog/LinerNotesSheet"));
 const LazyDedicateSheet = lazy(() => import("./components/station/DedicateSheet"));
 const LazyStationBumper = lazy(() => import("./components/station/StationBumper"));
-const LazyHomeMessenger = lazy(() => import("./components/chat/HomeMessenger"));
 const DevChatPreview =
   process.env.NODE_ENV !== "production"
     ? lazy(() => import("./preview/ChatPreview"))
@@ -847,14 +846,6 @@ export default function App() {
   const onHomeStageVisibilityChange = useCallback((visible) => {
     setHomeStageVisible(!!visible);
   }, []);
-  const [homeChatReady, setHomeChatReady] = useState(false);
-  useEffect(() => {
-    if (tracksLoading) {
-      setHomeChatReady(false);
-      return undefined;
-    }
-    return runAfterPaint(() => setHomeChatReady(true));
-  }, [tracksLoading]);
   useEffect(() => {
     if (screen !== "home") setHomeStageVisible(true);
   }, [screen]);
@@ -1268,7 +1259,7 @@ export default function App() {
           catalogIdleStopRef.current();
           catalogIdleStopRef.current = runWhenIdle(() => {
             reloadCatalogRef.current?.({ background: true, full: true });
-          }, { timeout: 1400 });
+          }, { timeout: 4000 });
           return;
         }
       }
@@ -1324,7 +1315,7 @@ export default function App() {
         if (!isCatalogCacheFresh(cached)) {
           catalogIdleStopRef.current = runWhenIdle(
             () => reloadCatalog({ background: true, full: true }),
-            { timeout: 1400 }
+            { timeout: 4000 }
           );
         }
       } else {
@@ -3489,17 +3480,6 @@ export default function App() {
           onOpenPlans={handleOpenPlans}
         />
       )}
-      {homeChatReady && screen === "home" && !immersive && (
-        <Suspense fallback={null}>
-          <LazyHomeMessenger
-            variant="mobile"
-            uid={firebaseUser?.uid || null}
-            displayName={profile?.displayName || profile?.username || firebaseUser?.displayName || "Listener"}
-            nowPlaying={currentTrack}
-            hasDockPlayer={!!currentTrack && !hideDockPlayer}
-          />
-        </Suspense>
-      )}
       {boothPlayer}
       {listeningOverlays}
       <Suspense fallback={null}>
@@ -3983,17 +3963,6 @@ export default function App() {
         </div>
       </div>
       ) : null}
-
-      {homeChatReady && screen === "home" && (
-        <Suspense fallback={null}>
-          <LazyHomeMessenger
-            variant="desktop"
-            uid={firebaseUser?.uid || null}
-            displayName={profile?.displayName || profile?.username || firebaseUser?.displayName || "Listener"}
-            nowPlaying={currentTrack}
-          />
-        </Suspense>
-      )}
 
       {/* Listening overlays + Booth */}
       {listeningOverlays}

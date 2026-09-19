@@ -317,6 +317,29 @@ describe("Home broadcast + four-tab IA", () => {
     expect(div.querySelector("[style*='grid-template-columns']")).toBeNull();
   });
 
+  test("Channel Surfing loads one sleeve per station, not a 4-up mosaic", async () => {
+    await act(async () => {
+      root.render(
+        React.createElement(ChannelSurfingSection, {
+          channels: [
+            {
+              id: "techno",
+              num: 6,
+              title: "Techno",
+              shortTitle: "Techno",
+              tagline: "Four-on-the-floor",
+              covers: ["sleeve-a.jpg", "sleeve-b.jpg", "sleeve-c.jpg", "sleeve-d.jpg"],
+            },
+          ],
+        })
+      );
+    });
+    const card = div.querySelector(".pmp-channel-card");
+    expect(card).toBeTruthy();
+    expect(card.querySelectorAll("img").length).toBeLessThanOrEqual(2);
+    expect(card.querySelector("[style*='grid-template-columns']")).toBeNull();
+  });
+
   test("Channel Surfing rail has no ticket copy or request card", async () => {
     await act(async () => {
       root.render(
