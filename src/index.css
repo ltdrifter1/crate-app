@@ -30,10 +30,15 @@ body::before { display: none; }
   white-space: nowrap;
   border: 0;
 }
-.pmp-upnext-glass {
-  position: relative;
-  isolation: isolate;
-  overflow: hidden;
+.pmp-planet-pip {
+  animation: planetBreathe 4.2s ease-in-out infinite;
+}
+@keyframes planetBreathe {
+  0%, 100% { transform: scale(1); opacity: 0.92; }
+  50% { transform: scale(1.06); opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pmp-planet-pip { animation: none; }
 }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {

@@ -152,6 +152,8 @@ describe("Home broadcast + four-tab IA", () => {
     expect(div.querySelector(".pmp-hero-sleeve")).toBeTruthy();
     expect(div.querySelector(".pmp-hero-wash")).toBeTruthy();
     expect(div.querySelector(".pmp-glass-stage")).toBeTruthy();
+    expect(div.querySelector(".pmp-planet-pip")).toBeTruthy();
+    expect(div.querySelector(".pmp-play-planet")).toBeTruthy();
     expect(div.textContent).not.toMatch(/PMP3/);
     expect(div.textContent).not.toMatch(/PLANET \/ 003/);
     expect(div.querySelector('[aria-label="Previous"]')).toBeNull();
@@ -257,6 +259,7 @@ describe("Home broadcast + four-tab IA", () => {
     expect(div.textContent).toMatch(/Y2K Dance/);
     expect(div.textContent).toMatch(/Millennium dancefloor/);
     expect(div.textContent).toMatch(/Playing/);
+    expect(div.textContent).toMatch(/01/);
     expect(div.textContent).not.toMatch(/Admit one/i);
     expect(div.textContent).not.toMatch(/ADMIT ONE/);
     expect(div.textContent).not.toMatch(/PLANET\s*[·•]/i);

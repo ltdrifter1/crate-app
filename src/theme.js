@@ -182,13 +182,12 @@ export const color = {
   station: "#D0D6E0",
   select: "rgba(91, 101, 116, 0.14)",
   selectStrong: "rgba(91, 101, 116, 0.24)",
-  /** Chrome glyphs on the recessed LCD well */
-  lcdInk: "#D8DFE8",
-  lcdMute: "#A7B1BE",
-  /** Ice-glass LCD signal — luminous chrome, never green, never mint phosphor */
-  lcdSignal: "#E8F1F8",
-  lcdSignalGlow: "rgba(216, 223, 232, 0.62)",
-  lcdSignalSoft: "rgba(232, 241, 248, 0.28)",
+  /** Chrome glyphs on the recessed LCD well — ice-cyan phosphor, not mint */
+  lcdInk: "#E4F7FA",
+  lcdMute: "#8EB8C4",
+  lcdSignal: "#B7E4EE",
+  lcdSignalGlow: "rgba(90, 196, 214, 0.7)",
+  lcdSignalSoft: "rgba(183, 228, 238, 0.32)",
   /** Meta on a light strip / dock (not the well) */
   stripInk: "#3D4654",
 };
@@ -300,12 +299,13 @@ export const radio = {
   glassShadowLive:
     `inset 0 1px 0 rgba(${SPEC},0.45), inset 0 -1px 0 rgba(${SHADE},0.18), 0 0 28px rgba(91,101,116,0.12), 0 14px 32px rgba(${SHADE},0.22), 0 0 0 1px rgba(91,101,116,0.22)`,
   lcdFace: `
-    linear-gradient(180deg, rgba(${SPEC},0.14) 0%, transparent 42%),
-    linear-gradient(160deg, #6A7482 0%, #545E6C 55%, #4A5360 100%)
+    radial-gradient(90% 70% at 18% 0%, rgba(183,228,238,0.22) 0%, transparent 52%),
+    linear-gradient(180deg, rgba(${SPEC},0.1) 0%, transparent 42%),
+    linear-gradient(160deg, #3F4B56 0%, #323C46 55%, #2A333C 100%)
   `,
-  lcdBorder: "1px solid rgba(91, 101, 116, 0.35)",
+  lcdBorder: "1px solid rgba(90, 196, 214, 0.38)",
   lcdShadow:
-    `inset 0 2px 8px rgba(${SHADE},0.35), inset 0 1px 0 rgba(${SPEC},0.18), 0 0 0 1px rgba(${SPEC},0.12)`,
+    `inset 0 2px 10px rgba(${SHADE},0.45), inset 0 1px 0 rgba(183,228,238,0.22), 0 0 18px rgba(90,196,214,0.18)`,
   moduleFace: `
     linear-gradient(180deg, rgba(${SPEC},0.5) 0%, rgba(${SPEC},0.08) 36%, transparent 70%),
     linear-gradient(145deg, rgba(208,214,224,0.96) 0%, rgba(184,191,202,0.94) 100%)
@@ -346,8 +346,8 @@ export const radio = {
     `inset 0 2px 4px rgba(${SHADE},0.28), inset 0 1px 0 rgba(${SHADE},0.16)`,
   lcdTrack: "rgba(61,70,84,0.28)",
   lcdFill:
-    "linear-gradient(90deg, #8B95A4 0%, #C5CDD8 70%, #D8DFE8 100%)",
-  lcdGlow: "0 0 14px rgba(216,223,232,0.55)",
+    "linear-gradient(90deg, #5AA8B8 0%, #B7E4EE 62%, #E4F7FA 100%)",
+  lcdGlow: "0 0 16px rgba(90, 196, 214, 0.55)",
   label: {
     fontFamily: font,
     fontSize: 13,
@@ -431,8 +431,8 @@ export function hardwareKey(opts = { pressed: false, size: "md" }) {
 export const artShadow = {
   quiet: `0 2px 4px rgba(${SHADE},0.18), 0 10px 22px rgba(${SHADE},0.2)`,
   raised:
-    `0 4px 8px rgba(${SHADE},0.18), 0 16px 32px rgba(${SHADE},0.22), inset 0 1px 0 rgba(${SPEC},0.4), inset 0 -1px 0 rgba(${SHADE},0.16)`,
-  active: `0 0 0 2px ${trim.blue}, 0 8px 18px rgba(${SHADE},0.2), 0 0 18px rgba(54,127,199,0.22)`,
+    `0 6px 10px rgba(${SHADE},0.2), 0 18px 36px rgba(${SHADE},0.24), inset 0 1px 0 rgba(${SPEC},0.55), inset 0 -2px 5px rgba(${SHADE},0.22)`,
+  active: `0 0 0 2px ${trim.blue}, 0 10px 22px rgba(${SHADE},0.22), 0 0 20px rgba(54,127,199,0.28)`,
 };
 
 /**
@@ -455,8 +455,8 @@ export function artFrameStyle({
     height: h,
     borderRadius: frameRadius,
     overflow: "hidden",
-    border: `1px solid ${
-      active ? trim.blue : "rgba(91,101,116,0.18)"
+    border: `1.5px solid ${
+      active ? trim.blue : "rgba(216,223,232,0.5)"
     }`,
     background: y2k.artGradient,
     boxShadow: active
@@ -532,8 +532,8 @@ export const broadcast = {
   `,
   lcdTrack: "rgba(61,70,84,0.28)",
   lcdFill:
-    "linear-gradient(90deg, #8B95A4 0%, #C5CDD8 70%, #D8DFE8 100%)",
-  lcdGlow: "0 0 12px rgba(216,223,232,0.5)",
+    "linear-gradient(90deg, #5AA8B8 0%, #B7E4EE 62%, #E4F7FA 100%)",
+  lcdGlow: "0 0 16px rgba(90, 196, 214, 0.55)",
 };
 
 /** Hardware icon key — header / Explore / Charts. */
