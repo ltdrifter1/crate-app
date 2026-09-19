@@ -169,6 +169,55 @@ export function LcdTimes({ progress = 0, duration = 0, tone = "well", on }) {
   );
 }
 
+/** Seek groove with elapsed / remaining times on the flanks. */
+export function LcdTimeline({
+  progress = 0,
+  duration = 0,
+  onChange,
+  label = "Seek",
+  stopPropagation = false,
+  height,
+  on = "metal",
+}) {
+  const ink = on === "metal" ? (color.stripInk || color.accent) : color.lcdInk;
+  const timeStyle = {
+    ...type.lcd,
+    color: ink,
+    fontVariantNumeric: "tabular-nums",
+    letterSpacing: 0.08,
+    textTransform: "none",
+    flexShrink: 0,
+    minWidth: 36,
+  };
+  return (
+    <div
+      className="pmp-timeline"
+      onClick={(e) => {
+        if (stopPropagation) e.stopPropagation();
+      }}
+      style={{
+        display: "flex",
+        alignItems: "center",
+        gap: 10,
+        width: "100%",
+      }}
+    >
+      <span style={timeStyle}>{fmtTime(progress)}</span>
+      <LcdSeek
+        value={progress}
+        max={duration || 1}
+        onChange={onChange}
+        label={label}
+        stopPropagation={stopPropagation}
+        height={height}
+      />
+      <span style={{ ...timeStyle, textAlign: "right" }}>
+        {duration ? fmtTime(duration) : "—:—"}
+      </span>
+    </div>
+  );
+}
+
 /** on: "lcd" = pearl on smoked well; "metal" = graphite on aluminum. tone: "strip"|"well" alias. */
 export function LcdMetaLine({ bits = [], tone = "well", on }) {
   const { energyShift } = useEnergyQueue();

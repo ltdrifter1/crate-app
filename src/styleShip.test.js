@@ -41,7 +41,7 @@ test("theme source does not ship mint phosphor", () => {
   expect(theme).not.toMatch(/lcdPhosphor/);
 });
 
-test("player surfaces use the Pace slider, not energy paddles", () => {
+test("player surfaces use a half-width Pace slot, not energy paddles", () => {
   const files = [
     "src/components/player/ImmersivePlayer.jsx",
     "src/components/player/GlassDock.jsx",
@@ -50,10 +50,13 @@ test("player surfaces use the Pace slider, not energy paddles", () => {
   ];
   for (const rel of files) {
     const src = fs.readFileSync(path.join(root, rel), "utf8");
-    expect(src).toMatch(/PaceSlider/);
+    expect(src).toMatch(/PaceSlot/);
     expect(src).not.toMatch(/EnergyShiftPaddles/);
     expect(src).not.toMatch(/EnergyShiftCapsule/);
   }
+  const css = fs.readFileSync(path.join(root, "src/index.css"), "utf8");
+  expect(css).toMatch(/\.pmp-pace-slot/);
+  expect(css).toMatch(/max-width:\s*50%/);
 });
 
 test("Pace slider is Slow / Fast glass with DistroKid gradient", () => {

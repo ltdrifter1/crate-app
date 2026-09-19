@@ -1,7 +1,7 @@
 import React from "react";
 import { createRoot } from "react-dom/client";
 import { act } from "react-dom/test-utils";
-import { LcdMetaLine, LcdTitle, formatBitrate, trackLcdBits } from "./DeviceChrome";
+import { LcdMetaLine, LcdTitle, LcdTimeline, formatBitrate, trackLcdBits } from "./DeviceChrome";
 import { PaceSlider } from "../listen/EnergyShiftButton";
 import { playerEnergyStore } from "../../lib/playerEnergyStore";
 
@@ -62,6 +62,21 @@ test("LcdMetaLine shows FAST when pace is steering upcoming picks", async () => 
   expect(div.textContent).not.toMatch(/LIFT|EASE/);
   await act(async () => root.unmount());
   playerEnergyStore._resetForTests();
+  document.body.removeChild(div);
+});
+
+test("LcdTimeline flanks seek with elapsed and remaining", async () => {
+  const div = document.createElement("div");
+  document.body.appendChild(div);
+  const root = createRoot(div);
+  await act(async () => {
+    root.render(React.createElement(LcdTimeline, { progress: 48, duration: 214 }));
+  });
+  expect(div.querySelector('[aria-label="Seek"]')).toBeTruthy();
+  expect(div.querySelector(".pmp-timeline")).toBeTruthy();
+  expect(div.textContent).toMatch(/0:48/);
+  expect(div.textContent).toMatch(/3:34/);
+  await act(async () => root.unmount());
   document.body.removeChild(div);
 });
 

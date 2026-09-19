@@ -4,10 +4,9 @@
 import {
   fontDisplay, color, dock, glass, motion,
 } from "../../theme";
-import { fmtTime } from "../../lib/harmony";
 import { usePlayerPlayback } from "../../usePlayerPlayback";
 import { useIsPlaying } from "../../usePlayerTransport";
-import { EnergyShiftFeedback, PaceSlider } from "../listen/EnergyShiftButton";
+import { EnergyShiftFeedback, PaceSlot } from "../listen/EnergyShiftButton";
 import FreePlaysMeter from "../billing/FreePlaysMeter";
 import { freePlaysMeterLabel } from "../../lib/freePlays";
 import Icon from "../ui/Icon";
@@ -161,8 +160,12 @@ export default function DesktopMiniPlayer({
           <Icon name="skip" size={14} />
         </HardwareIconButton>
         </div>
-      <div onClick={(e) => e.stopPropagation()} style={{ padding: "0 2px 2px" }}>
-        <PaceSlider compact stopPropagation />
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="pmp-deck"
+        style={{ padding: "0 2px 2px" }}
+      >
+        <PaceSlot compact stopPropagation />
       </div>
       </div>
     </div>
