@@ -1,7 +1,7 @@
-import { useMemo, useState } from "react";
+import { memo, useMemo, useState } from "react";
 import {
-  color, font, fontDisplay, glass, homeSpace, motion, artShadow, artFrameStyle,
-  chrome, radio, BTN_PRIMARY, chromeIconButton, radius,
+  color, font, fontDisplay, fontMono, glass, homeSpace, artFrameStyle,
+  chrome, radio, BTN_PRIMARY, chromeIconButton, radius, hardware, hardwareKey,
 } from "../../theme";
 import {
   biggestClimbers,
@@ -61,7 +61,6 @@ function MovementMark({ movement, delta }) {
           fontWeight: 700,
           fontVariantNumeric: "tabular-nums",
           letterSpacing: -0.2,
-          textShadow: `0 0 12px rgba(${chrome.cyanRgb},0.35)`,
         }}
       >
         <Icon name="chev_up" size={14} />
@@ -114,7 +113,82 @@ function MovementMark({ movement, delta }) {
   );
 }
 
-/** iOS segmented control — inset plate, not pills. */
+function RankStamp({ rank }) {
+  return (
+    <span
+      aria-hidden="true"
+      style={{
+        position: "absolute",
+        top: 8,
+        left: 8,
+        zIndex: 2,
+        minWidth: 32,
+        height: 22,
+        padding: "0 7px",
+        borderRadius: 3,
+        display: "inline-flex",
+        alignItems: "center",
+        justifyContent: "center",
+        background: hardware.keyFace,
+        border: "1px solid rgba(216,223,232,0.45)",
+        boxShadow: hardware.keyRaised,
+        color: color.ink,
+        fontFamily: fontMono,
+        fontSize: 11,
+        fontWeight: 800,
+        letterSpacing: 0.4,
+        fontVariantNumeric: "tabular-nums",
+      }}
+    >
+      #{String(rank).padStart(2, "0")}
+    </span>
+  );
+}
+
+/** PS1 chamfered keys — primary chart views. */
+function HardwareTabs({ items, activeId, onChange, ariaLabel }) {
+  return (
+    <div
+      role="tablist"
+      aria-label={ariaLabel}
+      className="hide-scroll"
+      style={{
+        display: "flex",
+        gap: 6,
+        overflowX: "auto",
+      }}
+    >
+      {items.map((item) => {
+        const active = item.id === activeId;
+        return (
+          <button
+            key={item.id}
+            type="button"
+            role="tab"
+            aria-selected={active}
+            className="pmp-press"
+            onClick={() => onChange(item.id)}
+            style={{
+              ...hardwareKey({ pressed: active, size: "md" }),
+              flex: "1 0 auto",
+              minWidth: 0,
+              padding: "0 12px",
+              color: active ? color.ink : color.muted,
+              fontFamily: fontDisplay,
+              fontSize: 13,
+              fontWeight: active ? 650 : 520,
+              letterSpacing: -0.2,
+            }}
+          >
+            {item.label}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+/** Compact scope plate — overall / channel / genre. */
 function Segmented({ items, activeId, onChange, ariaLabel }) {
   return (
     <div
@@ -123,12 +197,10 @@ function Segmented({ items, activeId, onChange, ariaLabel }) {
       style={{
         display: "flex",
         padding: 3,
-        borderRadius: 10,
-        background: `
-          linear-gradient(180deg, rgba(216,223,232,0.7) 0%, rgba(226,230,236,0.9) 100%)
-        `,
-        border: `1px solid ${glass.border}`,
-        boxShadow: `inset 0 1px 0 ${glass.highlight}, inset 0 2px 6px rgba(28,32,40,0.08)`,
+        borderRadius: 8,
+        background: radio.moduleFace,
+        border: radio.border,
+        boxShadow: hardware.plateEdge,
       }}
     >
       {items.map((item) => {
@@ -143,23 +215,18 @@ function Segmented({ items, activeId, onChange, ariaLabel }) {
             onClick={() => onChange(item.id)}
             style={{
               flex: 1,
-              minHeight: 34,
+              minHeight: 32,
               padding: "6px 8px",
               border: "none",
-              borderRadius: 8,
-              background: active
-                ? "linear-gradient(180deg, #A8B2C0 0%, #5B6574 100%)"
-                : "transparent",
-              color: active ? color.onAccent : color.muted,
+              borderRadius: 6,
+              background: active ? hardware.keyFace : "transparent",
+              color: active ? color.ink : color.muted,
               fontFamily: fontDisplay,
               fontSize: 13,
               fontWeight: active ? 650 : 520,
               letterSpacing: -0.2,
               cursor: "pointer",
-              boxShadow: active
-                ? "inset 0 1px 0 rgba(216,223,232,0.28), 0 3px 8px rgba(91,101,116,0.22)"
-                : "none",
-              transition: `color ${motion.fast}, background ${motion.base}, box-shadow ${motion.base}`,
+              boxShadow: active ? hardware.keyRaised : "none",
               WebkitTapHighlightColor: "transparent",
             }}
           >
@@ -239,10 +306,13 @@ function QuietIconButton({ label, onClick, children }) {
 
 /**
  * Monthly charts — overall or split by channel / genre, plus archive tabs.
+ * Flow: pick the view first (board / climbers / crowns / archive), then
+ * refine the live board with scope. Podium for #1–#3, playlist for the rest.
  */
 export default function ChartHistoryPanel({
   countdown = [],
   tracks = [],
+  catalogLoading = false,
   onPlayTrack = null,
   onTuneMonthly = null,
   onAddToQueue = null,
@@ -263,29 +333,44 @@ export default function ChartHistoryPanel({
 
   const month = monthKey();
   const monthLabel = formatMonthLabel(month);
+  const onBoard = tab === "month";
 
   const monthlyLive = useMemo(
-    () => buildMonthlyChart(tracks, { limit: 20, scope }),
+    () => (tracks.length ? buildMonthlyChart(tracks, { limit: 20, scope }) : []),
     [tracks, scope]
   );
-  const monthlyReveal = useMemo(
-    () => buildMonthlyReveal(20, { scope, tracks }),
-    [tracks, scope, countdown.length]
-  );
-
-  const monthlyEntries = monthlyLive.length
-    ? enrichCountdownWithHistory(monthlyLive).map((c) => toEntry(c))
-    : monthlyReveal.map((e) => toEntry({ ...e, rank: e.monthRank }, {
+  const monthlyEntries = useMemo(() => {
+    if (monthlyLive.length) {
+      return enrichCountdownWithHistory(monthlyLive).map((c) => toEntry(c));
+    }
+    if (!tracks.length) return [];
+    return buildMonthlyReveal(20, { scope, tracks }).map((e) => toEntry({ ...e, rank: e.monthRank }, {
       movement: "same",
       meta: e.peakDay ? formatDayLabel(e.peakDay) : null,
     }));
+  }, [monthlyLive, tracks, scope]);
 
-  const climbers = useMemo(() => biggestClimbers(countdown, 5), [countdown]);
-  const ones = useMemo(() => getNumberOnes(10), [countdown]);
-  const days = useMemo(() => listChartDays(10), [countdown]);
-  const archive = archiveDay ? getChartSnapshot(archiveDay) : null;
+  const climbers = useMemo(
+    () => (tab === "climbers" ? biggestClimbers(countdown, 8) : []),
+    [tab, countdown]
+  );
+  const ones = useMemo(
+    () => (tab === "ones" ? getNumberOnes(10) : []),
+    [tab, countdown]
+  );
+  const days = useMemo(
+    () => (tab === "archive" ? listChartDays(10) : []),
+    [tab, countdown]
+  );
+  const archive = useMemo(
+    () => (tab === "archive" && archiveDay ? getChartSnapshot(archiveDay) : null),
+    [tab, archiveDay]
+  );
 
-  if (!tracks.length && !countdown.length && !ones.length) return null;
+  if (!catalogLoading && !tracks.length && !countdown.length) {
+    const hasOnes = getNumberOnes(1).length > 0;
+    if (!hasOnes) return null;
+  }
 
   const resolveTrack = (entry) =>
     tracks.find((t) => t.id === entry.id) || {
@@ -315,8 +400,9 @@ export default function ChartHistoryPanel({
   };
 
   const scopeTitle = scope.mode === "overall" ? "Top 20" : chartScopeLabel(scope);
-  const hero = tab === "month" ? monthlyEntries[0] : null;
-  const listEntries = tab === "month" ? monthlyEntries.slice(1) : null;
+  const podium = onBoard ? monthlyEntries.slice(0, 3) : [];
+  const listEntries = onBoard ? monthlyEntries.slice(3) : null;
+  const showSkeleton = catalogLoading && !monthlyEntries.length;
 
   return (
     <section
@@ -324,81 +410,10 @@ export default function ChartHistoryPanel({
       style={{
         position: "relative",
         padding: `4px 0 ${homeSpace.sectionPadBottom}px`,
-        animation: `rise 0.55s ${motion.ease} 0.06s both`,
       }}
     >
       <div style={{ padding: `0 ${homeSpace.gutter}px 12px` }}>
-        <div style={{
-          display: "flex",
-          alignItems: "baseline",
-          justifyContent: "space-between",
-          gap: 12,
-          marginBottom: 4,
-        }}>
-          <h2 style={{
-            margin: 0,
-            fontFamily: fontDisplay,
-            fontSize: "clamp(22px, 4.4vw, 28px)",
-            fontWeight: 700,
-            letterSpacing: -0.55,
-            color: color.ink,
-            lineHeight: 1.12,
-          }}>
-            {scopeTitle}
-          </h2>
-          <div style={{
-            fontFamily: font,
-            fontSize: 13,
-            fontWeight: 600,
-            color: color.muted,
-            letterSpacing: -0.08,
-            whiteSpace: "nowrap",
-          }}>
-            {monthLabel}
-          </div>
-        </div>
-      </div>
-
-      <div style={{ padding: `0 ${homeSpace.gutter}px 12px` }}>
-        <Segmented
-          ariaLabel="Chart scope"
-          activeId={scopeMode}
-          onChange={setScopeMode}
-          items={[
-            { id: "overall", label: "Overall" },
-            { id: "channel", label: "Channel" },
-            { id: "genre", label: "Genre" },
-          ]}
-        />
-      </div>
-
-      {scopeMode === "channel" && (
-        <div style={{ padding: `0 ${homeSpace.gutter}px` }}>
-          <UnderlineRail
-            ariaLabel="Channel"
-            activeId={channelId}
-            onChange={setChannelId}
-            items={SCENE_CHANNELS.map((ch) => ({
-              id: ch.id,
-              label: ch.shortTitle || ch.title,
-            }))}
-          />
-        </div>
-      )}
-
-      {scopeMode === "genre" && (
-        <div style={{ padding: `0 ${homeSpace.gutter}px` }}>
-          <UnderlineRail
-            ariaLabel="Genre"
-            activeId={genre}
-            onChange={setGenre}
-            items={CANONICAL_GENRES.map((g) => ({ id: g, label: g }))}
-          />
-        </div>
-      )}
-
-      <div style={{ padding: `0 ${homeSpace.gutter}px 0` }}>
-        <UnderlineRail
+        <HardwareTabs
           ariaLabel="Chart view"
           activeId={tab}
           onChange={setTab}
@@ -410,6 +425,78 @@ export default function ChartHistoryPanel({
           ]}
         />
       </div>
+
+      {onBoard && (
+        <>
+          <div style={{ padding: `0 ${homeSpace.gutter}px 10px` }}>
+            <div style={{
+              display: "flex",
+              alignItems: "baseline",
+              justifyContent: "space-between",
+              gap: 12,
+              marginBottom: 10,
+            }}>
+              <h2 style={{
+                margin: 0,
+                fontFamily: fontDisplay,
+                fontSize: "clamp(20px, 4.2vw, 26px)",
+                fontWeight: 700,
+                letterSpacing: -0.5,
+                color: color.ink,
+                lineHeight: 1.12,
+              }}>
+                {scopeTitle}
+              </h2>
+              <div style={{
+                fontFamily: fontMono,
+                fontSize: 11,
+                fontWeight: 700,
+                color: color.muted,
+                letterSpacing: 0.12,
+                textTransform: "uppercase",
+                whiteSpace: "nowrap",
+              }}>
+                {monthLabel}
+              </div>
+            </div>
+            <Segmented
+              ariaLabel="Chart scope"
+              activeId={scopeMode}
+              onChange={setScopeMode}
+              items={[
+                { id: "overall", label: "Overall" },
+                { id: "channel", label: "Channel" },
+                { id: "genre", label: "Genre" },
+              ]}
+            />
+          </div>
+
+          {scopeMode === "channel" && (
+            <div style={{ padding: `0 ${homeSpace.gutter}px` }}>
+              <UnderlineRail
+                ariaLabel="Channel"
+                activeId={channelId}
+                onChange={setChannelId}
+                items={SCENE_CHANNELS.map((ch) => ({
+                  id: ch.id,
+                  label: ch.shortTitle || ch.title,
+                }))}
+              />
+            </div>
+          )}
+
+          {scopeMode === "genre" && (
+            <div style={{ padding: `0 ${homeSpace.gutter}px` }}>
+              <UnderlineRail
+                ariaLabel="Genre"
+                activeId={genre}
+                onChange={setGenre}
+                items={CANONICAL_GENRES.map((g) => ({ id: g, label: g }))}
+              />
+            </div>
+          )}
+        </>
+      )}
 
       <div style={{ padding: `0 ${homeSpace.gutter}px` }}>
         {tab === "month" && (
@@ -425,7 +512,7 @@ export default function ChartHistoryPanel({
                   display: "inline-flex",
                   alignItems: "center",
                   gap: 8,
-                  marginBottom: 16,
+                  marginBottom: 14,
                   padding: "10px 16px",
                   minHeight: 40,
                   fontSize: 15,
@@ -433,30 +520,30 @@ export default function ChartHistoryPanel({
                   letterSpacing: -0.2,
                   textTransform: "none",
                   fontFamily: fontDisplay,
-                  borderRadius: 10,
+                  borderRadius: 8,
                 }}
               >
                 <Icon name="play" size={14} />
                 Play this chart
               </button>
             )}
-            {monthlyEntries.length ? (
+            {showSkeleton ? (
+              <BoardSkeleton />
+            ) : monthlyEntries.length ? (
               <>
-                {hero && (
-                  <ChartHero
-                    entry={hero}
-                    active={nowPlayingId === hero.id}
-                    onPlay={() => playEntry(hero, monthlyEntries)}
-                    onAdd={onAddToQueue ? (e) => addEntry(hero, e) : null}
-                    onMore={playlistCtx ? (e) => openMore(e, hero) : null}
-                    onContextMenu={playlistCtx ? (e) => openFromContext(e, resolveTrack(hero)) : undefined}
-                  />
-                )}
+                <ChartPodium
+                  entries={podium}
+                  nowPlayingId={nowPlayingId}
+                  onPlay={(entry) => playEntry(entry, monthlyEntries)}
+                  onAdd={onAddToQueue ? addEntry : null}
+                  onMore={playlistCtx ? openMore : null}
+                  onContext={playlistCtx ? (e, entry) => openFromContext(e, resolveTrack(entry)) : null}
+                />
                 {listEntries?.length > 0 && (
                   <ChartList
                     entries={listEntries}
                     nowPlayingId={nowPlayingId}
-                    onPlay={(e, list) => playEntry(e, monthlyEntries)}
+                    onPlay={(e) => playEntry(e, monthlyEntries)}
                     onAdd={onAddToQueue ? addEntry : null}
                     onMore={playlistCtx ? openMore : null}
                     onContext={playlistCtx ? (e, entry) => openFromContext(e, resolveTrack(entry)) : null}
@@ -555,8 +642,6 @@ function Empty({ note }) {
           ${glass.fill}
         `,
         boxShadow: `inset 0 1px 0 ${glass.highlight}`,
-        backdropFilter: glass.blurSoft,
-        WebkitBackdropFilter: glass.blurSoft,
         color: color.muted,
         fontSize: 15,
         lineHeight: 1.45,
@@ -569,36 +654,63 @@ function Empty({ note }) {
   );
 }
 
-function ChartHero({ entry, active, onPlay, onAdd, onMore, onContextMenu }) {
-  const art = 180;
+function BoardSkeleton() {
+  return (
+    <div aria-hidden="true" className="pmp-chart-podium" style={{ marginBottom: 12 }}>
+      <div className="pmp-chart-podium__lead pmp-chart-skel" style={{ aspectRatio: "1 / 1" }} />
+      <div className="pmp-chart-podium__side">
+        <div className="pmp-chart-skel" style={{ flex: 1, minHeight: 88 }} />
+        <div className="pmp-chart-skel" style={{ flex: 1, minHeight: 88 }} />
+      </div>
+    </div>
+  );
+}
+
+function ChartPodium({ entries, nowPlayingId, onPlay, onAdd, onMore, onContext }) {
+  if (!entries?.length) return null;
+  const lead = entries[0];
+  const rest = entries.slice(1);
+  return (
+    <div className="pmp-chart-podium" style={{ marginBottom: 8 }}>
+      <PodiumLead
+        entry={lead}
+        active={nowPlayingId === lead.id}
+        onPlay={() => onPlay(lead)}
+        onAdd={onAdd ? (e) => onAdd(lead, e) : null}
+        onMore={onMore ? (e) => onMore(e, lead) : null}
+        onContextMenu={onContext ? (e) => onContext(e, lead) : undefined}
+      />
+      {rest.length > 0 && (
+        <div className="pmp-chart-podium__side">
+          {rest.map((entry) => (
+            <PodiumCut
+              key={`${entry.id}-${entry.rank}`}
+              entry={entry}
+              active={nowPlayingId === entry.id}
+              onPlay={() => onPlay(entry)}
+              onContextMenu={onContext ? (e) => onContext(e, entry) : undefined}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function PodiumLead({ entry, active, onPlay, onAdd, onMore, onContextMenu }) {
   const sleeve = catalogSleeveUrl(entry.albumCover);
   return (
     <article
+      className="pmp-chart-podium__lead"
       aria-label={`#${entry.rank} ${entry.title} by ${entry.artist}`}
       onContextMenu={onContextMenu}
       style={{
-        position: "relative",
-        display: "flex",
-        gap: 16,
-        alignItems: "stretch",
-        marginBottom: 14,
-        padding: 12,
-        borderRadius: radius.lg,
-        overflow: "hidden",
-        border: active
-          ? "1px solid rgba(91,101,116,0.4)"
-          : "1px solid rgba(91,101,116,0.12)",
-        background: `
-          radial-gradient(120% 80% at 0% 0%, rgba(91,101,116,0.12) 0%, transparent 46%),
-          linear-gradient(165deg, #7A8492 0%, #6A7482 100%)
-        `,
-        boxShadow: `
-          inset 0 1px 0 rgba(216,223,232,0.08),
-          inset 0 -1px 0 rgba(58,66,80,0.4),
-          ${glass.shadowSoft}
-        `,
-        backdropFilter: glass.blurSoft,
-        WebkitBackdropFilter: glass.blurSoft,
+        minWidth: 0,
+        padding: 10,
+        borderRadius: 10,
+        border: active ? radio.borderLive : radio.border,
+        background: radio.moduleFace,
+        boxShadow: radio.moduleShadow,
       }}
     >
       <button
@@ -606,49 +718,25 @@ function ChartHero({ entry, active, onPlay, onAdd, onMore, onContextMenu }) {
         onClick={onPlay}
         aria-label={`Play #${entry.rank} ${entry.title}`}
         style={{
-          ...artFrameStyle({ size: art, active, radius: 10 }),
+          ...artFrameStyle({ size: 220, active, radius: 6 }),
+          width: "100%",
+          height: "auto",
+          aspectRatio: "1 / 1",
           border: "none",
           padding: 0,
           cursor: "pointer",
-          flexShrink: 0,
         }}
       >
         <CoverImage
           src={sleeve}
-          width={art}
-          height={art}
+          width={220}
+          height={220}
           alt=""
           priority
           style={{ width: "100%", height: "100%", objectFit: "cover" }}
         />
         <span aria-hidden="true" className="pmp-chart-scan" />
-        <span
-          aria-hidden="true"
-          style={{
-            position: "absolute",
-            top: 8,
-            left: 8,
-            zIndex: 2,
-            minWidth: 36,
-            height: 28,
-            padding: "0 8px",
-            borderRadius: 4,
-            display: "inline-flex",
-            alignItems: "center",
-            justifyContent: "center",
-            background: radio.lcdFace,
-            border: radio.lcdBorder,
-            boxShadow: radio.lcdShadow,
-            color: color.lcdSignal,
-            fontFamily: fontDisplay,
-            fontSize: 13,
-            fontWeight: 800,
-            letterSpacing: 0.08,
-            fontVariantNumeric: "tabular-nums",
-          }}
-        >
-          #{entry.rank}
-        </span>
+        <RankStamp rank={entry.rank} />
         <span
           aria-hidden="true"
           style={{
@@ -657,14 +745,13 @@ function ChartHero({ entry, active, onPlay, onAdd, onMore, onContextMenu }) {
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            background: "linear-gradient(180deg, transparent 46%, rgba(58,66,80,0.38) 100%)",
-            opacity: 1,
+            background: "linear-gradient(180deg, transparent 48%, rgba(58,66,80,0.38) 100%)",
           }}
         >
           <span style={{
             width: 44,
             height: 44,
-            borderRadius: "50%",
+            borderRadius: 8,
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
@@ -676,61 +763,230 @@ function ChartHero({ entry, active, onPlay, onAdd, onMore, onContextMenu }) {
           </span>
         </span>
       </button>
+      <div style={{
+        marginTop: 10,
+        fontFamily: fontDisplay,
+        fontSize: 17,
+        fontWeight: 700,
+        letterSpacing: -0.32,
+        color: color.ink,
+        lineHeight: 1.15,
+        overflow: "hidden",
+        textOverflow: "ellipsis",
+        whiteSpace: "nowrap",
+      }}>
+        {entry.title}
+      </div>
+      <div style={{
+        marginTop: 3,
+        fontSize: 13,
+        fontWeight: 500,
+        color: color.muted,
+        overflow: "hidden",
+        textOverflow: "ellipsis",
+        whiteSpace: "nowrap",
+      }}>
+        {entry.artist}
+      </div>
+      <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 8 }}>
+        <MovementMark movement={entry.movement} delta={entry.delta} />
+        <div style={{ flex: 1 }} />
+        {onAdd && (
+          <QuietIconButton label={`Add ${entry.title} to queue`} onClick={onAdd}>
+            <Icon name="plus" size={16} />
+          </QuietIconButton>
+        )}
+        {onMore && <TrackMoreButton onClick={onMore} />}
+      </div>
+    </article>
+  );
+}
 
-      <div style={{ minWidth: 0, flex: 1, display: "flex", flexDirection: "column", justifyContent: "center" }}>
-        <div style={{
+function PodiumCut({ entry, active, onPlay, onContextMenu }) {
+  const sleeve = catalogSleeveUrl(entry.albumCover);
+  return (
+    <button
+      type="button"
+      onClick={onPlay}
+      onContextMenu={onContextMenu}
+      aria-label={`Play #${entry.rank} ${entry.title}`}
+      className="pmp-press"
+      style={{
+        flex: 1,
+        minWidth: 0,
+        display: "flex",
+        gap: 10,
+        alignItems: "center",
+        padding: 8,
+        borderRadius: 8,
+        border: active ? radio.borderLive : radio.borderQuiet,
+        background: radio.moduleFace,
+        boxShadow: hardware.plateEdge,
+        cursor: "pointer",
+        textAlign: "left",
+        color: "inherit",
+      }}
+    >
+      <span style={{
+        ...artFrameStyle({ size: 72, active, radius: 6 }),
+        flexShrink: 0,
+        width: 72,
+        height: 72,
+      }}>
+        <CoverImage src={sleeve} width={72} height={72} alt="" eager />
+        <RankStamp rank={entry.rank} />
+      </span>
+      <span style={{ minWidth: 0, flex: 1 }}>
+        <span style={{
+          display: "block",
           fontFamily: fontDisplay,
-          fontSize: "clamp(40px, 9vw, 56px)",
-          fontWeight: 780,
-          color: chrome.signal,
-          letterSpacing: -1.6,
-          lineHeight: 0.9,
-          marginBottom: 8,
-          fontVariantNumeric: "tabular-nums",
-          textShadow: "none",
-        }}>
-          {entry.rank}
-        </div>
-        <div style={{
-          fontFamily: fontDisplay,
-          fontSize: "clamp(18px, 4.2vw, 24px)",
-          fontWeight: 720,
-          letterSpacing: -0.45,
+          fontSize: 14,
+          fontWeight: 650,
+          letterSpacing: -0.2,
           color: color.ink,
-          lineHeight: 1.12,
           overflow: "hidden",
           textOverflow: "ellipsis",
-          display: "-webkit-box",
-          WebkitLineClamp: 2,
-          WebkitBoxOrient: "vertical",
+          whiteSpace: "nowrap",
         }}>
           {entry.title}
-        </div>
-        <div style={{
-          marginTop: 4,
-          fontSize: 15,
-          fontWeight: 500,
+        </span>
+        <span style={{
+          display: "block",
+          marginTop: 2,
+          fontSize: 12,
           color: color.muted,
           overflow: "hidden",
           textOverflow: "ellipsis",
           whiteSpace: "nowrap",
         }}>
           {entry.artist}
-        </div>
-        <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 12 }}>
+        </span>
+        <span style={{ display: "inline-flex", marginTop: 6 }}>
           <MovementMark movement={entry.movement} delta={entry.delta} />
-          <div style={{ flex: 1 }} />
-          {onAdd && (
-            <QuietIconButton label={`Add ${entry.title} to queue`} onClick={onAdd}>
-              <Icon name="plus" size={16} />
-            </QuietIconButton>
-          )}
-          {onMore && <TrackMoreButton onClick={onMore} />}
-        </div>
-      </div>
-    </article>
+        </span>
+      </span>
+    </button>
   );
 }
+
+const ChartPlaylistRow = memo(function ChartPlaylistRow({
+  e,
+  active,
+  onPlay,
+  onAdd,
+  onMore,
+  onContext,
+}) {
+  return (
+    <li style={{ borderBottom: "1px solid rgba(61,70,84,0.08)" }}>
+      <div
+        className="pmp-chart-row"
+        onContextMenu={onContext ? (ev) => onContext(ev, e) : undefined}
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: 4,
+          minHeight: 56,
+          margin: "0 -8px",
+          padding: "6px 8px",
+          borderRadius: 8,
+          background: active ? "rgba(91,101,116,0.06)" : "transparent",
+          boxShadow: active ? `inset 2px 0 0 ${chrome.signal}` : "none",
+        }}
+      >
+        <button
+          type="button"
+          onClick={() => onPlay?.(e)}
+          aria-label={`#${e.rank} ${e.title} by ${e.artist}`}
+          style={{
+            flex: 1,
+            minWidth: 0,
+            display: "flex",
+            alignItems: "center",
+            gap: 10,
+            padding: 0,
+            border: "none",
+            background: "none",
+            cursor: "pointer",
+            textAlign: "left",
+            color: "inherit",
+            WebkitTapHighlightColor: "transparent",
+          }}
+        >
+          <div style={{
+            width: 28,
+            flexShrink: 0,
+            fontFamily: fontMono,
+            fontSize: 12,
+            fontWeight: 700,
+            letterSpacing: 0.08,
+            color: color.muted,
+            textAlign: "center",
+            fontVariantNumeric: "tabular-nums",
+            lineHeight: 1,
+          }}>
+            {String(e.rank).padStart(2, "0")}
+          </div>
+
+          <div style={{
+            width: 44,
+            height: 44,
+            borderRadius: 6,
+            flexShrink: 0,
+            overflow: "hidden",
+            background: color.surfaceRaised,
+            border: `1px solid ${active ? "rgba(91,101,116,0.28)" : "rgba(184,192,204,0.2)"}`,
+          }}>
+            <CoverImage src={catalogSleeveUrl(e.albumCover)} width={44} height={44} alt="" />
+          </div>
+
+          <div style={{ minWidth: 0, flex: 1 }}>
+            <div style={{
+              fontSize: 15,
+              fontWeight: 650,
+              color: color.ink,
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              whiteSpace: "nowrap",
+              fontFamily: fontDisplay,
+              letterSpacing: -0.22,
+            }}>
+              {e.title}
+            </div>
+            <div style={{
+              fontSize: 12,
+              color: color.muted,
+              marginTop: 2,
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              whiteSpace: "nowrap",
+              fontFamily: font,
+            }}>
+              {e.artist}{e.meta ? ` · ${e.meta}` : ""}
+            </div>
+          </div>
+        </button>
+
+        <div style={{
+          flexShrink: 0,
+          minWidth: 28,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "flex-end",
+          paddingRight: 2,
+        }}>
+          <MovementMark movement={e.movement} delta={e.delta} />
+        </div>
+        {onAdd && (
+          <QuietIconButton label={`Add ${e.title} to queue`} onClick={(ev) => onAdd(e, ev)}>
+            <Icon name="plus" size={15} />
+          </QuietIconButton>
+        )}
+        {onMore && <TrackMoreButton onClick={(ev) => onMore(ev, e)} />}
+      </div>
+    </li>
+  );
+});
 
 function ChartList({ entries, nowPlayingId, onPlay, onAdd, onMore, onContext }) {
   return (
@@ -741,131 +997,17 @@ function ChartList({ entries, nowPlayingId, onPlay, onAdd, onMore, onContext }) 
       display: "flex",
       flexDirection: "column",
     }}>
-      {entries.map((e, i) => {
-        const top = e.rank <= 3;
-        const active = nowPlayingId === e.id;
-        return (
-          <li
-            key={`${e.id}-${e.rank}`}
-            style={{
-              animation: `rise 0.42s ${motion.ease} ${Math.min(i, 12) * 0.028}s both`,
-              borderBottom: "1px solid rgba(216,223,232,0.06)",
-            }}
-          >
-            <div
-              className="pmp-chart-row"
-              onContextMenu={onContext ? (ev) => onContext(ev, e) : undefined}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 4,
-                minHeight: 64,
-                margin: "0 -8px",
-                padding: "8px 8px",
-                borderRadius: 10,
-                background: active ? "rgba(91,101,116,0.06)" : "transparent",
-                boxShadow: active ? `inset 2px 0 0 ${chrome.signal}` : "none",
-              }}
-            >
-              <button
-                type="button"
-                onClick={() => onPlay?.(e, entries)}
-                aria-label={`#${e.rank} ${e.title} by ${e.artist}`}
-                style={{
-                  flex: 1,
-                  minWidth: 0,
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 12,
-                  padding: 0,
-                  border: "none",
-                  background: "none",
-                  cursor: "pointer",
-                  textAlign: "left",
-                  color: "inherit",
-                  WebkitTapHighlightColor: "transparent",
-                }}
-              >
-                <div style={{
-                  width: top ? 36 : 32,
-                  flexShrink: 0,
-                  fontFamily: fontDisplay,
-                  fontSize: e.rank === 1 ? 26 : top ? 20 : 16,
-                  fontWeight: e.rank === 1 ? 780 : top ? 720 : 650,
-                  letterSpacing: -0.8,
-                  color: e.rank === 1
-                    ? chrome.signal
-                    : top
-                      ? color.ink
-                      : color.body,
-                  textAlign: "center",
-                  textShadow: e.rank === 1 ? `0 0 16px rgba(${chrome.cyanRgb},0.35)` : "none",
-                  fontVariantNumeric: "tabular-nums",
-                  lineHeight: 1,
-                }}>
-                  {e.rank}
-                </div>
-
-                <div style={{
-                  width: 52,
-                  height: 52,
-                  borderRadius: 8,
-                  flexShrink: 0,
-                  overflow: "hidden",
-                  background: color.surfaceRaised,
-                  boxShadow: artShadow.quiet,
-                  border: `1px solid ${active ? "rgba(91,101,116,0.28)" : "rgba(184,192,204,0.2)"}`,
-                }}>
-                  <CoverImage src={catalogSleeveUrl(e.albumCover)} width={52} height={52} alt="" />
-                </div>
-
-                <div style={{ minWidth: 0, flex: 1 }}>
-                  <div style={{
-                    fontSize: 16,
-                    fontWeight: 650,
-                    color: color.ink,
-                    overflow: "hidden",
-                    textOverflow: "ellipsis",
-                    whiteSpace: "nowrap",
-                    fontFamily: fontDisplay,
-                    letterSpacing: -0.25,
-                  }}>
-                    {e.title}
-                  </div>
-                  <div style={{
-                    fontSize: 13,
-                    color: color.muted,
-                    marginTop: 2,
-                    overflow: "hidden",
-                    textOverflow: "ellipsis",
-                    whiteSpace: "nowrap",
-                    fontFamily: font,
-                  }}>
-                    {e.artist}{e.meta ? ` · ${e.meta}` : ""}
-                  </div>
-                </div>
-              </button>
-
-              <div style={{
-                flexShrink: 0,
-                minWidth: 28,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "flex-end",
-                paddingRight: 2,
-              }}>
-                <MovementMark movement={e.movement} delta={e.delta} />
-              </div>
-              {onAdd && (
-                <QuietIconButton label={`Add ${e.title} to queue`} onClick={(ev) => onAdd(e, ev)}>
-                  <Icon name="plus" size={15} />
-                </QuietIconButton>
-              )}
-              {onMore && <TrackMoreButton onClick={(ev) => onMore(ev, e)} />}
-            </div>
-          </li>
-        );
-      })}
+      {entries.map((e) => (
+        <ChartPlaylistRow
+          key={`${e.id}-${e.rank}`}
+          e={e}
+          active={nowPlayingId === e.id}
+          onPlay={onPlay}
+          onAdd={onAdd}
+          onMore={onMore}
+          onContext={onContext}
+        />
+      ))}
     </ol>
   );
 }

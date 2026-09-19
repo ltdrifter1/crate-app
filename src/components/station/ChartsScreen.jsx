@@ -1,42 +1,15 @@
-import { color, font, homeSpace, chrome, chromeIconButton, glass, radius, motion, sectionTitle } from "../../theme";
+import { color, font, fontMono, homeSpace, chromeIconButton, glass, radius, radio, sectionTitle } from "../../theme";
 import ChartHistoryPanel from "./ChartHistoryPanel";
 import Icon from "../ui/Icon";
 
-const CHART_CSS = `
-  .pmp-chart-row { transition: background ${"{base}"} ${"{ease}"}, box-shadow ${"{base}"}; }
-  .pmp-chart-row:hover { background: rgba(91,101,116,0.08) !important; }
-  .pmp-chart-row:active { transform: scale(0.992); }
-  .pmp-chart-scan {
-    position: absolute; inset: 0; pointer-events: none;
-    background: repeating-linear-gradient(
-      to bottom,
-      transparent 0px, transparent 2px,
-      rgba(91,101,116,0.05) 2px, rgba(91,101,116,0.05) 3px
-    );
-    mix-blend-mode: multiply; opacity: 0.12;
-  }
-  @keyframes pmpRankUp {
-    from { transform: translateY(7px); opacity: 0.25; }
-    to { transform: none; opacity: 1; }
-  }
-  @keyframes pmpRankDown {
-    from { transform: translateY(-7px); opacity: 0.25; }
-    to { transform: none; opacity: 1; }
-  }
-  .pmp-rank-up { animation: pmpRankUp 0.55s ${"{ease}"} both; }
-  .pmp-rank-down { animation: pmpRankDown 0.55s ${"{ease}"} both; }
-  @media (prefers-reduced-motion: reduce) {
-    .pmp-rank-up, .pmp-rank-down, .pmp-chart-row { animation: none !important; transform: none !important; }
-  }
-`.replaceAll("{base}", motion.base).replaceAll("{ease}", motion.ease);
-
 /**
  * Charts — monthly countdown board.
- * Premium iOS type, tactile filters, restrained Y2K glass/chrome.
+ * Device masthead + one LCD well; the board itself is in ChartHistoryPanel.
  */
 export default function ChartsScreen({
   countdown = [],
   tracks = [],
+  catalogLoading = false,
   onPlayTrack = null,
   onTuneMonthly = null,
   onAddToQueue = null,
@@ -44,32 +17,17 @@ export default function ChartsScreen({
   nowPlayingId = null,
   onOpenMenu = null,
 }) {
-  const empty = tracks.length === 0 && countdown.length === 0;
+  const empty = !catalogLoading && tracks.length === 0 && countdown.length === 0;
 
   return (
     <div style={{
       position: "relative",
       paddingBottom: 56,
       overflow: "hidden",
-      animation: `rise 0.5s ${motion.ease} both`,
     }}>
-      <style>{CHART_CSS}</style>
-      <div
-        aria-hidden="true"
-        style={{
-          position: "absolute",
-          inset: 0,
-          pointerEvents: "none",
-          background: `
-            radial-gradient(ellipse 80% 48% at 8% -10%, rgba(91,101,116,0.08) 0%, transparent 50%),
-            radial-gradient(ellipse 60% 36% at 100% 8%, rgba(91,101,116,0.06) 0%, transparent 46%)
-          `,
-        }}
-      />
-
       <header style={{
         position: "relative",
-        padding: `calc(12px + env(safe-area-inset-top, 0px)) ${homeSpace.gutter}px 8px`,
+        padding: `calc(12px + env(safe-area-inset-top, 0px)) ${homeSpace.gutter}px 10px`,
       }}>
         <div style={{
           display: "flex",
@@ -107,18 +65,34 @@ export default function ChartsScreen({
                 color: color.muted,
                 lineHeight: 1.4,
               }}>
-                Monthly board — ranks, climbers, and the cuts on top.
+                The monthly board — jewel cases, climbers, and the cuts on top.
               </p>
             </div>
           </div>
         </div>
 
-        <div aria-hidden="true" style={{
-          marginTop: 16,
-          height: 1,
-          background: `linear-gradient(90deg, rgba(${chrome.cyanRgb},0.4) 0%, rgba(216,223,232,0.1) 42%, transparent 100%)`,
-          boxShadow: `0 0 10px rgba(${chrome.cyanRgb},0.16)`,
-        }} />
+        <div
+          aria-hidden="true"
+          style={{
+            marginTop: 14,
+            padding: "8px 12px",
+            borderRadius: radio.radiusLcd,
+            background: radio.lcdFace,
+            border: radio.lcdBorder,
+            boxShadow: radio.lcdShadow,
+            color: color.lcdSignal,
+            fontFamily: fontMono,
+            fontSize: 11,
+            fontWeight: 700,
+            letterSpacing: 0.14,
+            textTransform: "uppercase",
+            overflow: "hidden",
+            whiteSpace: "nowrap",
+            textOverflow: "ellipsis",
+          }}
+        >
+          Chart · Top 20 · Play &amp; request to climb
+        </div>
       </header>
 
       {empty && (
@@ -135,8 +109,6 @@ export default function ChartsScreen({
               ${glass.fill}
             `,
             boxShadow: `inset 0 1px 0 ${glass.highlight}`,
-            backdropFilter: glass.blurSoft,
-            WebkitBackdropFilter: glass.blurSoft,
             color: color.body,
             fontSize: 15,
             lineHeight: 1.5,
@@ -150,6 +122,7 @@ export default function ChartsScreen({
       <ChartHistoryPanel
         countdown={countdown}
         tracks={tracks}
+        catalogLoading={catalogLoading}
         onPlayTrack={onPlayTrack}
         onTuneMonthly={onTuneMonthly}
         onAddToQueue={onAddToQueue}
