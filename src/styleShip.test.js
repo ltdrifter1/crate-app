@@ -32,6 +32,15 @@ test("committed Pages build matches the current chassis", () => {
   expect(html).not.toMatch(/#7ED9B8/i);
 });
 
+test("committed Pages CSS includes the Charts podium board", () => {
+  const cssDir = path.join(root, "build", "static", "css");
+  const css = fs.readdirSync(cssDir)
+    .filter((f) => f.endsWith(".css"))
+    .map((f) => fs.readFileSync(path.join(cssDir, f), "utf8"))
+    .join("\n");
+  expect(css).toMatch(/pmp-chart-podium/);
+});
+
 test("theme source does not ship mint phosphor", () => {
   const theme = fs.readFileSync(path.join(root, "src/theme.js"), "utf8");
   expect(theme).not.toMatch(/#7ED9B8/i);
