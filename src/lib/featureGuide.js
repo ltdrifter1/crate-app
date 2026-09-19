@@ -40,7 +40,7 @@ export const FEATURE_GUIDE_STEPS = [
     id: "player",
     kicker: "Player",
     title: "Pace + dislike",
-    body: "Pace eases or lifts what plays next. Dislike steers the mix away.",
+    body: "Pace sets slow or fast for what plays next. Dislike steers the mix away.",
   },
   {
     id: "club",

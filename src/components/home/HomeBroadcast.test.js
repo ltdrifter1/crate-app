@@ -196,8 +196,9 @@ describe("Home broadcast + four-tab IA", () => {
     });
     expect(div.textContent).not.toMatch(/\bRequest\b/);
     expect(div.querySelector('[aria-label="Pace"]')).toBeTruthy();
-    expect(div.textContent).toMatch(/Ease/);
-    expect(div.textContent).toMatch(/Lift/);
+    expect(div.textContent).toMatch(/Slow/);
+    expect(div.textContent).toMatch(/Fast/);
+    expect(div.textContent).not.toMatch(/Ease|Lift|Middle/);
     expect(div.querySelector('[aria-label*="Turtle"]')).toBeFalsy();
     expect(div.querySelector('[aria-label*="Bunny"]')).toBeFalsy();
     expect(div.querySelector('[aria-label="Dislike this track"]')).toBeTruthy();

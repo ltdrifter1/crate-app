@@ -7,7 +7,7 @@ import { db }                                       from "./firebase";
 import {
   font, fontDisplay, fontMono, color, chrome, radius, motion,
   glass, glassControl, homeSpace, dock, sectionRule, radio,
-  artShadow, aluminumGradient, chromeFrame,
+  artShadow, aluminumGradient, chromeFrame, trim,
   APP_STYLE, INPUT_ST, BTN_PRIMARY, BTN_SECONDARY, CTRL_BTN, ADMIN_UID,
   BRAND_NAME, brandStoragePrefix, STYLE_CHASSIS,
 } from "./theme";
@@ -268,6 +268,49 @@ const injectStyles = () => {
       background: ${color.accent};
       border: none;
       box-shadow: 0 0 8px ${color.accentGlow || "rgba(91,101,116,0.55)"};
+      cursor: pointer;
+    }
+    input.pace-range {
+      -webkit-appearance: none;
+      appearance: none;
+      background: transparent !important;
+      height: 28px !important;
+    }
+    input.pace-range::-webkit-slider-runnable-track {
+      height: 8px;
+      background: transparent;
+      border: none;
+    }
+    input.pace-range::-moz-range-track {
+      height: 8px;
+      background: transparent;
+      border: none;
+    }
+    input.pace-range::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 18px;
+      height: 18px;
+      margin-top: -5px;
+      border-radius: 50%;
+      background: linear-gradient(180deg, #F7FAFC 0%, #E8F1F8 58%, #D4DCE6 100%);
+      border: 2px solid ${trim.blue};
+      box-shadow:
+        0 0 0 1px ${trim.lime},
+        inset 0 1px 0 rgba(255,255,255,0.9),
+        0 4px 12px rgba(54,127,199,0.32);
+      cursor: pointer;
+    }
+    input.pace-range::-moz-range-thumb {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: linear-gradient(180deg, #F7FAFC 0%, #E8F1F8 58%, #D4DCE6 100%);
+      border: 2px solid ${trim.blue};
+      box-shadow:
+        0 0 0 1px ${trim.lime},
+        inset 0 1px 0 rgba(255,255,255,0.9),
+        0 4px 12px rgba(54,127,199,0.32);
       cursor: pointer;
     }
     .hide-scroll { -ms-overflow-style: none; scrollbar-width: none; }

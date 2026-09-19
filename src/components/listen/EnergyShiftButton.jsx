@@ -1,9 +1,9 @@
-// Pace transport — Ease / Middle / Lift slider on the device.
+// Pace transport — Slow / Fast glass slider on the device.
 // First-class aluminum glass beside play/pause. Recommendation work stays in
 // the background; the UI only dispatches increaseEnergy() / decreaseEnergy().
 
 import React, { useEffect, useRef, useState } from "react";
-import { color, glass, fontMono, hardware, hardwareKey, motion, radio } from "../../theme";
+import { color, glass, font, fontMono, hardware, hardwareKey, motion, radio, trim } from "../../theme";
 import { useEnergyQueue } from "../../useEnergyQueue";
 import FlaskMark from "./FlaskMark";
 
@@ -316,7 +316,7 @@ export function EnergyShiftModeChip({ style = null }) {
         animation: "breathe 1.6s ease-in-out infinite",
       }}/>
       <span style={{ fontFamily: fontMono, fontSize: 10, fontWeight: 700, letterSpacing: 0.7, textTransform: "uppercase", color: color.muted }}>
-        {up ? "Lift" : "Ease"}
+        {up ? "Fast" : "Slow"}
       </span>
       <span>upcoming</span>
     </div>
@@ -363,10 +363,10 @@ export function EnergyShiftFeedback({ bottom = "calc(100% + 12px)" }) {
           animation: `energyPillLife ${PILL_MS}ms cubic-bezier(0.22, 1, 0.36, 1) both`,
         }}>
           {neutral
-            ? "Back to your usual pace"
+            ? "Usual pace"
             : up
-              ? "Upcoming tracks lift"
-              : "Upcoming tracks ease off"}
+              ? "Faster upcoming"
+              : "Slower upcoming"}
         </div>
       )}
       {chipVisible && !neutral && (
@@ -595,8 +595,8 @@ export function EnergyShiftControl({
 }
 
 /**
- * Inline Pace slider — Ease ↔ Lift. Replaces Turtle / Bunny paddles on the device.
- * Glass plate, ice fill from center, middle = neutral.
+ * Inline Pace slider — Slow ↔ Fast.
+ * Quiet glass trough, DistroKid gradient fill, ice thumb. Middle is neutral.
  */
 export function PaceSlider({
   compact = false,
@@ -606,13 +606,15 @@ export function PaceSlider({
   const { energyShift, setEnergyBias } = useEnergyQueue();
   const bias = Math.round(energyShift?.bpmDelta || 0);
   const clamped = Math.max(-20, Math.min(20, bias));
-  const tone = clamped > 0 ? "Lift" : clamped < 0 ? "Ease" : "Middle";
-  const fillPct = Math.abs(clamped) / 20 * 50;
+  const tone = clamped > 0 ? "Fast" : clamped < 0 ? "Slow" : "Neutral";
+  const fillPct = (Math.abs(clamped) / 20) * 50;
+  const trackH = compact ? 22 : 28;
 
   return (
     <div
       role="group"
-      aria-label="Pace — ease or lift upcoming picks"
+      data-testid="pace-slider"
+      aria-label="Pace — slow or fast upcoming picks"
       onClick={(e) => {
         if (stopPropagation) e.stopPropagation();
       }}
@@ -621,63 +623,46 @@ export function PaceSlider({
       }}
       style={{
         width: "100%",
-        padding: compact ? "8px 10px 6px" : "10px 12px 8px",
-        borderRadius: 12,
-        background: "linear-gradient(180deg, rgba(216,223,232,0.42) 0%, rgba(200,208,218,0.22) 100%)",
-        border: "1px solid rgba(216,223,232,0.45)",
-        boxShadow: `inset 0 1px 0 rgba(255,255,255,0.45), 0 8px 22px rgba(58,66,80,0.12)`,
+        display: "flex",
+        alignItems: "center",
+        gap: compact ? 8 : 10,
+        padding: compact ? "6px 8px" : "8px 10px",
+        borderRadius: 999,
+        background: "linear-gradient(180deg, rgba(232,241,248,0.55) 0%, rgba(200,208,218,0.28) 100%)",
+        border: "1px solid rgba(216,223,232,0.55)",
+        boxShadow: `inset 0 1px 0 rgba(255,255,255,0.62), 0 8px 20px rgba(58,66,80,0.10)`,
         backdropFilter: glass.blurSoft,
         WebkitBackdropFilter: glass.blurSoft,
         ...style,
       }}
     >
-      <div
+      <span
+        aria-hidden="true"
         style={{
-          display: "flex",
-          alignItems: "baseline",
-          justifyContent: "space-between",
-          gap: 8,
-          marginBottom: compact ? 4 : 6,
+          flexShrink: 0,
+          fontFamily: font,
+          fontSize: compact ? 11 : 12,
+          fontWeight: 600,
+          letterSpacing: -0.1,
+          color: clamped < 0 ? color.ink : color.faint,
+          userSelect: "none",
         }}
       >
-        <span
-          style={{
-            fontFamily: fontMono,
-            fontSize: 10,
-            fontWeight: 800,
-            letterSpacing: 1.1,
-            textTransform: "uppercase",
-            color: color.muted,
-          }}
-        >
-          Pace
-        </span>
-        <span
-          style={{
-            fontFamily: fontMono,
-            fontSize: 11,
-            fontWeight: 700,
-            letterSpacing: 0.2,
-            color: color.ink,
-            fontVariantNumeric: "tabular-nums",
-          }}
-        >
-          {clamped === 0 ? "Middle" : `${clamped > 0 ? "+" : "\u2212"}${Math.abs(clamped)} BPM`}
-        </span>
-      </div>
-      <div style={{ position: "relative", height: compact ? 22 : 26 }}>
+        Slow
+      </span>
+      <div style={{ position: "relative", flex: 1, minWidth: 0, height: trackH }}>
         <div
           aria-hidden="true"
           style={{
             position: "absolute",
-            left: 0,
-            right: 0,
+            left: 2,
+            right: 2,
             top: "50%",
-            height: 4,
-            marginTop: -2,
-            borderRadius: 2,
-            background: radio.lcdTrack,
-            boxShadow: "inset 0 1px 2px rgba(58,66,80,0.35)",
+            height: 8,
+            marginTop: -4,
+            borderRadius: 999,
+            background: "linear-gradient(180deg, rgba(91,101,116,0.18) 0%, rgba(216,223,232,0.35) 100%)",
+            boxShadow: "inset 0 1px 2px rgba(58,66,80,0.28)",
             overflow: "hidden",
             pointerEvents: "none",
           }}
@@ -688,16 +673,34 @@ export function PaceSlider({
               top: 0,
               bottom: 0,
               left: clamped < 0 ? `${50 - fillPct}%` : "50%",
-              width: `${fillPct}%`,
-              borderRadius: 2,
-              background: radio.lcdFill,
-              boxShadow: radio.lcdGlow,
+              width: `${Math.max(fillPct, clamped === 0 ? 0 : 2)}%`,
+              borderRadius: 999,
+              background: trim.gradient,
+              opacity: clamped === 0 ? 0 : 0.95,
+              boxShadow: clamped === 0 ? "none" : "0 0 10px rgba(54,127,199,0.35)",
             }}
           />
         </div>
+        <div
+          aria-hidden="true"
+          style={{
+            position: "absolute",
+            left: "50%",
+            top: "50%",
+            width: 2,
+            height: 6,
+            marginLeft: -1,
+            marginTop: -3,
+            borderRadius: 1,
+            background: "rgba(255,255,255,0.7)",
+            boxShadow: "0 0 0 1px rgba(91,101,116,0.18)",
+            pointerEvents: "none",
+            zIndex: 1,
+          }}
+        />
         <input
           type="range"
-          className="chrome-seek pace-range"
+          className="pace-range"
           min={-20}
           max={20}
           step={5}
@@ -705,48 +708,49 @@ export function PaceSlider({
           aria-valuemin={-20}
           aria-valuemax={20}
           aria-valuenow={clamped}
-          aria-valuetext={`${tone}, ${clamped === 0 ? "middle" : `${Math.abs(clamped)} BPM ${clamped > 0 ? "lift" : "ease"}`}`}
+          aria-valuetext={
+            clamped === 0
+              ? "Neutral pace"
+              : `${tone}, ${Math.abs(clamped)} BPM`
+          }
           aria-label="Pace"
           onChange={(e) => {
             const next = Math.max(-20, Math.min(20, Math.round(Number(e.target.value) || 0)));
             setEnergyBias(
               next,
-              next > 0 ? "Lift" : next < 0 ? "Ease" : "Middle"
+              next > 0 ? "Fast" : next < 0 ? "Slow" : "Neutral"
             );
           }}
           style={{
             position: "relative",
             width: "100%",
             margin: 0,
-            height: compact ? 22 : 26,
+            height: trackH,
             background: "transparent",
             cursor: "pointer",
-            zIndex: 1,
+            zIndex: 2,
           }}
         />
       </div>
-      <div
+      <span
+        aria-hidden="true"
         style={{
-          display: "flex",
-          justifyContent: "space-between",
-          marginTop: 2,
-          fontFamily: fontMono,
-          fontSize: 9,
-          fontWeight: 800,
-          letterSpacing: 0.9,
-          textTransform: "uppercase",
-          color: color.faint,
+          flexShrink: 0,
+          fontFamily: font,
+          fontSize: compact ? 11 : 12,
+          fontWeight: 600,
+          letterSpacing: -0.1,
+          color: clamped > 0 ? color.ink : color.faint,
+          userSelect: "none",
         }}
       >
-        <span style={{ color: clamped < 0 ? color.ink : color.faint }}>Ease</span>
-        <span style={{ color: clamped === 0 ? color.ink : color.faint }}>Middle</span>
-        <span style={{ color: clamped > 0 ? color.ink : color.faint }}>Lift</span>
-      </div>
+        Fast
+      </span>
     </div>
   );
 }
 
-/** Compact Pace pair with Ease / Lift paddles (not the primary device control). */
+/** Compact Pace pair (not the primary device control). */
 export function EnergyShiftCapsule({ stopPropagation = false }) {
   return (
     <div
