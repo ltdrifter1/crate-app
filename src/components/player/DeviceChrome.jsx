@@ -173,7 +173,7 @@ export function LcdTimes({ progress = 0, duration = 0, tone = "well", on }) {
 export function LcdMetaLine({ bits = [], tone = "well", on }) {
   const { energyShift } = useEnergyQueue();
   const pace = energyShift?.active
-    ? (energyShift.direction > 0 ? "LIFT" : "EASE")
+    ? (energyShift.direction > 0 ? "FAST" : "SLOW")
     : null;
   const all = pace ? [...bits.filter(Boolean), pace] : bits.filter(Boolean);
   if (!all.length) return null;

@@ -56,6 +56,20 @@ test("player surfaces use the Pace slider, not energy paddles", () => {
   }
 });
 
+test("Pace slider is Slow / Fast glass with DistroKid gradient", () => {
+  const src = fs.readFileSync(path.join(root, "src/components/listen/EnergyShiftButton.jsx"), "utf8");
+  expect(src).toMatch(/Slow/);
+  expect(src).toMatch(/Fast/);
+  expect(src).toMatch(/trim\.gradient/);
+  expect(src).toMatch(/pace-range/);
+  const start = src.indexOf("export function PaceSlider");
+  const end = src.indexOf("export function EnergyShiftCapsule");
+  const slider = src.slice(start, end > start ? end : undefined);
+  expect(slider).not.toMatch(/Ease/);
+  expect(slider).not.toMatch(/Lift/);
+  expect(slider).not.toMatch(/Middle/);
+});
+
 test("Home does not mount station chat on the critical path", () => {
   const app = fs.readFileSync(path.join(root, "src/App.jsx"), "utf8");
   expect(app).not.toMatch(/HomeMessenger/);

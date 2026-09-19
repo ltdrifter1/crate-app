@@ -43,12 +43,12 @@ test("LcdMetaLine joins bits", async () => {
   });
   expect(div.textContent).toMatch(/124 BPM/);
   expect(div.textContent).toMatch(/8A/);
-  expect(div.textContent).not.toMatch(/LIFT|EASE/);
+  expect(div.textContent).not.toMatch(/LIFT|EASE|FAST|SLOW/);
   await act(async () => root.unmount());
   document.body.removeChild(div);
 });
 
-test("LcdMetaLine shows LIFT when pace is steering upcoming picks", async () => {
+test("LcdMetaLine shows FAST when pace is steering upcoming picks", async () => {
   playerEnergyStore._resetForTests();
   playerEnergyStore.shiftEnergy(1, 10);
   const div = document.createElement("div");
@@ -58,13 +58,14 @@ test("LcdMetaLine shows LIFT when pace is steering upcoming picks", async () => 
     root.render(React.createElement(LcdMetaLine, { bits: ["124 BPM"] }));
   });
   expect(div.textContent).toMatch(/124 BPM/);
-  expect(div.textContent).toMatch(/LIFT/);
+  expect(div.textContent).toMatch(/FAST/);
+  expect(div.textContent).not.toMatch(/LIFT|EASE/);
   await act(async () => root.unmount());
   playerEnergyStore._resetForTests();
   document.body.removeChild(div);
 });
 
-test("PaceSlider exposes ease / lift control", async () => {
+test("PaceSlider is Slow / Fast on a glass range, not Ease / Lift", async () => {
   const div = document.createElement("div");
   document.body.appendChild(div);
   const root = createRoot(div);
@@ -73,9 +74,16 @@ test("PaceSlider exposes ease / lift control", async () => {
   });
   const slider = div.querySelector('input[aria-label="Pace"]');
   expect(slider).toBeTruthy();
-  expect(div.textContent).toMatch(/Ease/i);
-  expect(div.textContent).toMatch(/Lift/i);
+  expect(slider.className).toMatch(/pace-range/);
+  expect(div.textContent).toMatch(/Slow/);
+  expect(div.textContent).toMatch(/Fast/);
+  expect(div.textContent).not.toMatch(/Ease|Lift|Middle|Pace\b/i);
   expect(div.textContent).not.toMatch(/Turtle|Bunny/i);
+  await act(async () => {
+    slider.value = "10";
+    slider.dispatchEvent(new Event("input", { bubbles: true }));
+    slider.dispatchEvent(new Event("change", { bubbles: true }));
+  });
   await act(async () => root.unmount());
   document.body.removeChild(div);
 });
