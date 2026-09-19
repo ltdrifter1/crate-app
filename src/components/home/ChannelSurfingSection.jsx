@@ -20,7 +20,7 @@ function ChannelSurfingSection({
   first = true,
   delay = 0.02,
   title = "Channel Surfing",
-  subtitle = "Flip the dial. Music stays on this stage.",
+  subtitle = "Flip the dial.",
   featured = false,
 }) {
   const [showAll, setShowAll] = useState(process.env.NODE_ENV === "test");

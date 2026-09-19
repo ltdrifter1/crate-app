@@ -9,7 +9,7 @@ import {
 
 /**
  * HomeBandHeader — ONE left edge for every Home band.
- * Apple Music–clean title stack; titles always pad with homeSpace.gutter.
+ * Titles pad with homeSpace.gutter unless flush (nested in a glass stage).
  */
 export default function HomeBandHeader({
   title,
@@ -17,6 +17,7 @@ export default function HomeBandHeader({
   eyebrow = null,
   meta = null,
   action = null,
+  flush = false,
 }) {
   return (
     <div
@@ -25,7 +26,7 @@ export default function HomeBandHeader({
         gridTemplateColumns: action || meta ? "minmax(0, 1fr) auto" : "minmax(0, 1fr)",
         alignItems: "end",
         columnGap: 12,
-        padding: `0 ${homeSpace.gutter}px`,
+        padding: flush ? 0 : `0 ${homeSpace.gutter}px`,
         marginBottom: homeSpace.titleToRail,
         minHeight: subtitle || eyebrow ? 44 : 26,
       }}

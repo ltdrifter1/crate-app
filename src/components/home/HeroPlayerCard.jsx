@@ -5,6 +5,7 @@ import {
   color,
   fontDisplay,
   fontMono,
+  glassStage,
   homeSpace,
   radio,
   y2k,
@@ -327,19 +328,13 @@ export default function HeroPlayerCard({
       onKeyDown={(e) => {
         if (e.key === "Enter") live ? onOpen?.() : !playDisabled && onPlay?.();
       }}
-      className="pmp-hero pmp-hero-bezel"
+      className="pmp-hero pmp-hero-bezel pmp-glass-stage"
       style={{
-        position: "relative",
-        borderRadius: 12,
-        overflow: "hidden",
+        ...glassStage,
         minHeight: 0,
         width: "100%",
         cursor: playDisabled && !live ? "default" : "pointer",
-        border: radio.borderChrome,
-        boxShadow: radio.moduleShadow,
-        background: radio.moduleFace,
         WebkitTapHighlightColor: "transparent",
-        isolation: "isolate",
         display: "flex",
         flexDirection: "column",
       }}

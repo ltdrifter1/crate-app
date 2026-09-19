@@ -10,6 +10,7 @@ import HeroPlayerCard from "./HeroPlayerCard";
 import ChannelCard from "./ChannelCard";
 import ChannelSurfingSection from "./ChannelSurfingSection";
 import HomeScreen from "../../screens/HomeScreen";
+import { TonightDeck } from "../station/ShowGuide";
 import { PRIMARY_TABS, primaryNavItems } from "../../lib/nav";
 
 jest.mock("../../usePlayerPlayback", () => ({
@@ -68,6 +69,8 @@ describe("Home broadcast + four-tab IA", () => {
       );
     });
     expect(div.querySelector('button[aria-label="Charts"]')).toBeNull();
+    expect(div.textContent).toMatch(/PLANET \/ 003/);
+    expect(div.textContent).not.toMatch(/Planet MP3/);
     const search = div.querySelector('button[aria-label="Search"]');
     expect(search).toBeTruthy();
     expect(div.querySelector(".pmp-onair-chip")).toBeNull();
@@ -145,6 +148,7 @@ describe("Home broadcast + four-tab IA", () => {
     expect(div.querySelector("video")).toBeNull();
     expect(div.querySelector(".pmp-hero-sleeve")).toBeTruthy();
     expect(div.querySelector(".pmp-hero-wash")).toBeTruthy();
+    expect(div.querySelector(".pmp-glass-stage")).toBeTruthy();
     expect(div.textContent).toMatch(/On air/i);
     expect(div.textContent).toMatch(/PMP3/);
     expect(div.textContent).toMatch(/Night Drive/);
@@ -359,10 +363,40 @@ describe("Home broadcast + four-tab IA", () => {
       );
     });
     expect(div.textContent).toMatch(/Channel Surfing/);
-    expect(div.textContent).toMatch(/Music stays on this stage/i);
+    expect(div.textContent).toMatch(/Flip the dial/);
+    expect(div.textContent).not.toMatch(/Music stays on this stage/i);
     expect(div.textContent).not.toMatch(/On the dial/i);
     expect(div.textContent).not.toMatch(/Admit one/i);
     expect(div.textContent).not.toMatch(/Request a song/i);
+  });
+
+  test("On Tonight lives in its own frosted glass stage", async () => {
+    await act(async () => {
+      root.render(
+        React.createElement(TonightDeck, {
+          airing: {
+            show: {
+              id: "countdown",
+              title: "Most Requested Live",
+              tagline: "Prime-time countdown with Dez",
+              timeLabel: "8–10 PM",
+              startHour: 20,
+              endHour: 22,
+              host: { name: "Dez Rivera", monogram: "DR" },
+            },
+            host: { name: "Dez Rivera", monogram: "DR" },
+            remainingMinutes: 42,
+            progress: 0.35,
+            nextShow: { shortTitle: "Late Signal", startHour: 22 },
+          },
+        })
+      );
+    });
+    const stage = div.querySelector(".pmp-tonight-glass");
+    expect(stage).toBeTruthy();
+    expect(stage.className).toMatch(/pmp-glass-stage/);
+    expect(div.textContent).toMatch(/On Tonight/);
+    expect(div.textContent).toMatch(/Prime-time countdown with Dez/);
   });
 
   test("home does not open a showcase popup for Local", async () => {
