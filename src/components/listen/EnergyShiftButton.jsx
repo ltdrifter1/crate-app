@@ -3,7 +3,7 @@
 // the background; the UI only dispatches increaseEnergy() / decreaseEnergy().
 
 import React, { useEffect, useRef, useState } from "react";
-import { color, glass, font, fontMono, hardware, hardwareKey, motion, radio, trim } from "../../theme";
+import { color, glass, fontMono, hardware, hardwareKey, motion, radio, trim } from "../../theme";
 import { useEnergyQueue } from "../../useEnergyQueue";
 import FlaskMark from "./FlaskMark";
 
@@ -596,7 +596,7 @@ export function EnergyShiftControl({
 
 /**
  * Inline Pace slider — Slow ↔ Fast.
- * Quiet glass trough, DistroKid gradient fill, ice thumb. Middle is neutral.
+ * Recessed LCD fader (Winamp / CD jog), DistroKid fill, PS1 jewel thumb.
  */
 export function PaceSlider({
   compact = false,
@@ -608,12 +608,13 @@ export function PaceSlider({
   const clamped = Math.max(-20, Math.min(20, bias));
   const tone = clamped > 0 ? "Fast" : clamped < 0 ? "Slow" : "Neutral";
   const fillPct = (Math.abs(clamped) / 20) * 50;
-  const trackH = compact ? 22 : 28;
+  const trackH = compact ? 28 : 32;
 
   return (
     <div
       role="group"
       data-testid="pace-slider"
+      className="pmp-pace"
       aria-label="Pace — slow or fast upcoming picks"
       onClick={(e) => {
         if (stopPropagation) e.stopPropagation();
@@ -626,43 +627,36 @@ export function PaceSlider({
         display: "flex",
         alignItems: "center",
         gap: compact ? 8 : 10,
-        padding: compact ? "6px 8px" : "8px 10px",
-        borderRadius: 999,
-        background: "linear-gradient(180deg, rgba(232,241,248,0.55) 0%, rgba(200,208,218,0.28) 100%)",
-        border: "1px solid rgba(216,223,232,0.55)",
-        boxShadow: `inset 0 1px 0 rgba(255,255,255,0.62), 0 8px 20px rgba(58,66,80,0.10)`,
-        backdropFilter: glass.blurSoft,
-        WebkitBackdropFilter: glass.blurSoft,
+        padding: compact ? "4px 2px" : "6px 4px",
         ...style,
       }}
     >
       <span
         aria-hidden="true"
+        className="pmp-pace__label"
         style={{
           flexShrink: 0,
-          fontFamily: font,
-          fontSize: compact ? 11 : 12,
-          fontWeight: 600,
-          letterSpacing: -0.1,
+          fontFamily: fontMono,
+          fontSize: compact ? 10 : 11,
+          fontWeight: 700,
+          letterSpacing: 0.12,
           color: clamped < 0 ? color.ink : color.faint,
           userSelect: "none",
         }}
       >
         Slow
       </span>
-      <div style={{ position: "relative", flex: 1, minWidth: 0, height: trackH }}>
+      <div className="pmp-pace__slot" style={{ position: "relative", flex: 1, minWidth: 0, height: trackH }}>
         <div
           aria-hidden="true"
+          className="pmp-pace__well"
           style={{
             position: "absolute",
-            left: 2,
-            right: 2,
+            left: 0,
+            right: 0,
             top: "50%",
-            height: 8,
-            marginTop: -4,
-            borderRadius: 999,
-            background: "linear-gradient(180deg, rgba(91,101,116,0.18) 0%, rgba(216,223,232,0.35) 100%)",
-            boxShadow: "inset 0 1px 2px rgba(58,66,80,0.28)",
+            height: 10,
+            marginTop: -5,
             overflow: "hidden",
             pointerEvents: "none",
           }}
@@ -674,7 +668,7 @@ export function PaceSlider({
               bottom: 0,
               left: clamped < 0 ? `${50 - fillPct}%` : "50%",
               width: `${Math.max(fillPct, clamped === 0 ? 0 : 2)}%`,
-              borderRadius: 999,
+              borderRadius: 2,
               background: trim.gradient,
               opacity: clamped === 0 ? 0 : 0.95,
               boxShadow: clamped === 0 ? "none" : "0 0 10px rgba(54,127,199,0.35)",
@@ -683,17 +677,15 @@ export function PaceSlider({
         </div>
         <div
           aria-hidden="true"
+          className="pmp-pace__detent"
           style={{
             position: "absolute",
             left: "50%",
             top: "50%",
             width: 2,
-            height: 6,
+            height: 12,
             marginLeft: -1,
-            marginTop: -3,
-            borderRadius: 1,
-            background: "rgba(255,255,255,0.7)",
-            boxShadow: "0 0 0 1px rgba(91,101,116,0.18)",
+            marginTop: -6,
             pointerEvents: "none",
             zIndex: 1,
           }}
@@ -734,12 +726,13 @@ export function PaceSlider({
       </div>
       <span
         aria-hidden="true"
+        className="pmp-pace__label"
         style={{
           flexShrink: 0,
-          fontFamily: font,
-          fontSize: compact ? 11 : 12,
-          fontWeight: 600,
-          letterSpacing: -0.1,
+          fontFamily: fontMono,
+          fontSize: compact ? 10 : 11,
+          fontWeight: 700,
+          letterSpacing: 0.12,
           color: clamped > 0 ? color.ink : color.faint,
           userSelect: "none",
         }}

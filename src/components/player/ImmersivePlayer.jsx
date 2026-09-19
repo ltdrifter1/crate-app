@@ -19,9 +19,7 @@ import {
 import { hexToRgbStr } from "../../lib/harmony";
 import { usePlayerPlayback } from "../../usePlayerPlayback";
 import { useIsPlaying } from "../../usePlayerTransport";
-import { EnergyShiftFeedback, PaceSlot } from "../listen/EnergyShiftButton";
 import Icon from "../ui/Icon";
-import { PlayKey } from "./OrbitalControls";
 import {
   DedicationFlash,
   HypnoVisualizer,
@@ -38,11 +36,11 @@ import {
   LcdMetaLine,
   LcdPanel,
   LcdSeek as ChromeSeek,
-  LcdTimeline,
   LcdArtist,
   formatBitrate,
   trackLcdBits,
 } from "./DeviceChrome";
+import PlayerDeck from "./PlayerDeck";
 
 const EASE = motion.ease;
 
@@ -839,8 +837,8 @@ export default function ImmersivePlayer({
           style={{
             width: "min(92vw, 1100px)",
             margin: "0 auto",
-            padding: "12px 16px 10px",
-            borderRadius: 18,
+            padding: "10px 12px 8px",
+            borderRadius: 12,
             background: glass.fillStrong,
             border: `1px solid ${glass.border}`,
             boxShadow: `inset 0 1px 0 ${glass.highlight}, ${glass.shadowSoft}`,
@@ -849,51 +847,25 @@ export default function ImmersivePlayer({
             animation: `dockRise 0.5s ${EASE} both`,
           }}
         >
-          <LcdTimeline
+          <PlayerDeck
             progress={progress}
             duration={duration}
-            onChange={onSeek}
-            label="Seek"
-          />
-
-          <div className="pmp-deck" style={{ marginTop: 4 }}>
-            <EnergyShiftFeedback bottom="calc(100% + 14px)" />
-
-            <div className="pmp-deck-keys">
-              <ChromeIconButton onClick={onPrev} label="Previous" size={44}>
-                <Icon name="prev" size={18} />
-              </ChromeIconButton>
-
-              <PlayKey
-                isPlaying={isPlaying}
-                onClick={onTogglePlay}
-                size={56}
-                glowing={isPlaying}
-              />
-
-              <ChromeIconButton onClick={onSkip} label="Next" size={44}>
-                <Icon name="skip" size={18} />
-              </ChromeIconButton>
-
-              <ChromeIconButton
-                onClick={() => onLike?.(currentTrack.id)}
-                label={currentTrack.liked ? "Unlike" : "Like"}
-                active={!!currentTrack.liked}
-                size={40}
-              >
-                <span style={{ display: "flex", animation: currentTrack.liked ? "likePop 0.25s ease" : "none" }}>
-                  <Icon name={currentTrack.liked ? "heart" : "heartempty"} size={16} />
-                </span>
-              </ChromeIconButton>
-              <ChromeIconButton
-                onClick={() => onDislike?.()}
-                label="Dislike this track"
-                active={!!currentTrack.disliked}
-                size={40}
-              >
-                <Icon name={currentTrack.disliked ? "dislikefilled" : "dislike"} size={16} />
-              </ChromeIconButton>
-              {!isRadioMode && onToggleShuffle ? (
+            onSeek={onSeek}
+            isPlaying={isPlaying}
+            onTogglePlay={onTogglePlay}
+            onPrev={onPrev}
+            onSkip={onSkip}
+            onLike={onLike ? () => onLike(currentTrack.id) : null}
+            onDislike={onDislike}
+            liked={!!currentTrack.liked}
+            disliked={!!currentTrack.disliked}
+            playSize={56}
+            stopPropagation={false}
+            paceStopPropagation={false}
+            seekStopPropagation={false}
+            feedbackBottom="calc(100% + 14px)"
+            extraKeys={
+              !isRadioMode && onToggleShuffle ? (
                 <ChromeIconButton
                   onClick={onToggleShuffle}
                   label="Shuffle"
@@ -903,11 +875,9 @@ export default function ImmersivePlayer({
                 >
                   <Icon name="shuffle" size={15} />
                 </ChromeIconButton>
-              ) : null}
-            </div>
-
-            <PaceSlot compact stopPropagation={false} />
-          </div>
+              ) : null
+            }
+          />
 
           <div
             style={{

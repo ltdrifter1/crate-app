@@ -252,65 +252,73 @@ const injectStyles = () => {
     input[type="range"] { -webkit-appearance: none; height: 4px; background: rgba(91,101,116,0.12); border-radius: 2px; outline: none; cursor: pointer; }
     input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; border-radius: 50%; background: ${color.accent}; border: 2px solid ${color.onAccent}; box-shadow: 0 1px 4px rgba(58,66,80,0.45); cursor: pointer; }
     input[type="range"]::-moz-range-thumb { width: 14px; height: 14px; border-radius: 50%; background: ${color.accent}; border: 2px solid ${color.onAccent}; box-shadow: 0 1px 4px rgba(58,66,80,0.45); cursor: pointer; }
-    input.chrome-seek { -webkit-appearance: none; appearance: none; background: transparent !important; height: 28px !important; }
-    input.chrome-seek::-webkit-slider-runnable-track { height: 6px; background: transparent; border: none; }
-    input.chrome-seek::-moz-range-track { height: 6px; background: transparent; border: none; }
+    input.chrome-seek { -webkit-appearance: none; appearance: none; background: transparent !important; height: 32px !important; }
+    input.chrome-seek::-webkit-slider-runnable-track { height: 10px; background: transparent; border: none; }
+    input.chrome-seek::-moz-range-track { height: 10px; background: transparent; border: none; }
     input.chrome-seek::-webkit-slider-thumb {
-      -webkit-appearance: none; appearance: none; width: 3px; height: 12px; margin-top: -3px;
-      border-radius: 1px;
-      background: ${color.accent};
-      border: none;
-      box-shadow: 0 0 8px ${color.accentGlow || "rgba(91,101,116,0.55)"};
+      -webkit-appearance: none; appearance: none; width: 11px; height: 18px; margin-top: -4px;
+      border-radius: 3px;
+      background: linear-gradient(180deg, #F4FBFC 0%, #B7E4EE 55%, #7AB8C6 100%);
+      border: 1px solid rgba(90,196,214,0.85);
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,0.9),
+        0 0 10px ${color.lcdSignalGlow},
+        0 3px 6px rgba(58,66,80,0.35);
       cursor: pointer;
     }
     input.chrome-seek::-moz-range-thumb {
-      width: 3px; height: 12px; border-radius: 1px;
-      background: ${color.accent};
-      border: none;
-      box-shadow: 0 0 8px ${color.accentGlow || "rgba(91,101,116,0.55)"};
+      width: 11px; height: 18px; border-radius: 3px;
+      background: linear-gradient(180deg, #F4FBFC 0%, #B7E4EE 55%, #7AB8C6 100%);
+      border: 1px solid rgba(90,196,214,0.85);
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,0.9),
+        0 0 10px ${color.lcdSignalGlow},
+        0 3px 6px rgba(58,66,80,0.35);
       cursor: pointer;
     }
     input.pace-range {
       -webkit-appearance: none;
       appearance: none;
       background: transparent !important;
-      height: 28px !important;
+      height: 32px !important;
     }
     input.pace-range::-webkit-slider-runnable-track {
-      height: 8px;
+      height: 10px;
       background: transparent;
       border: none;
     }
     input.pace-range::-moz-range-track {
-      height: 8px;
+      height: 10px;
       background: transparent;
       border: none;
     }
     input.pace-range::-webkit-slider-thumb {
       -webkit-appearance: none;
       appearance: none;
-      width: 18px;
-      height: 18px;
-      margin-top: -5px;
-      border-radius: 50%;
-      background: linear-gradient(180deg, #F7FAFC 0%, #E8F1F8 58%, #D4DCE6 100%);
+      width: 16px;
+      height: 22px;
+      margin-top: -6px;
+      border-radius: 4px;
+      background: linear-gradient(180deg, #F7FAFC 0%, #E8F1F8 48%, #C5D0DC 100%);
       border: 2px solid ${trim.blue};
       box-shadow:
         0 0 0 1px ${trim.lime},
-        inset 0 1px 0 rgba(255,255,255,0.9),
-        0 4px 12px rgba(54,127,199,0.32);
+        inset 0 1px 0 rgba(255,255,255,0.92),
+        inset 0 -2px 3px rgba(58,66,80,0.2),
+        0 4px 10px rgba(54,127,199,0.28);
       cursor: pointer;
     }
     input.pace-range::-moz-range-thumb {
-      width: 18px;
-      height: 18px;
-      border-radius: 50%;
-      background: linear-gradient(180deg, #F7FAFC 0%, #E8F1F8 58%, #D4DCE6 100%);
+      width: 16px;
+      height: 22px;
+      border-radius: 4px;
+      background: linear-gradient(180deg, #F7FAFC 0%, #E8F1F8 48%, #C5D0DC 100%);
       border: 2px solid ${trim.blue};
       box-shadow:
         0 0 0 1px ${trim.lime},
-        inset 0 1px 0 rgba(255,255,255,0.9),
-        0 4px 12px rgba(54,127,199,0.32);
+        inset 0 1px 0 rgba(255,255,255,0.92),
+        inset 0 -2px 3px rgba(58,66,80,0.2),
+        0 4px 10px rgba(54,127,199,0.28);
       cursor: pointer;
     }
     .hide-scroll { -ms-overflow-style: none; scrollbar-width: none; }

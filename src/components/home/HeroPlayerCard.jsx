@@ -22,18 +22,15 @@ import {
 import { trackHasVideo } from "../../lib/video";
 import Icon from "../ui/Icon";
 import CoverImage from "../ui/CoverImage";
-import { PlayKey } from "../player/OrbitalControls";
-import { EnergyShiftFeedback, PaceSlot } from "../listen/EnergyShiftButton";
 import { HERO_IDLE_ART, HERO_IDLE_FOCUS } from "../../lib/heroIdle";
 import ScanlineWash from "./ScanlineWash";
 import {
-  HardwareIconButton,
   LcdMetaLine,
   LcdPanel,
-  LcdTimeline,
   formatBitrate,
   trackLcdBits,
 } from "../player/DeviceChrome";
+import PlayerDeck from "../player/PlayerDeck";
 
 const VideoStage = lazy(() => import("../station/VideoStage"));
 
@@ -176,20 +173,6 @@ function ChannelIdent({ bugLine, slug }) {
         {slug}
       </span>
     </span>
-  );
-}
-
-function ChromeIconButton({ label, icon, active = false, onClick, size = 42, iconSize = 16 }) {
-  return (
-    <HardwareIconButton
-      label={label}
-      active={active}
-      size={size}
-      stopPropagation
-      onClick={onClick}
-    >
-      <Icon name={icon} size={iconSize} />
-    </HardwareIconButton>
   );
 }
 
@@ -665,50 +648,23 @@ export default function HeroPlayerCard({
           boxShadow: "none",
         }}
       >
+        {live ? (
+          <PlayerDeck
+            progress={progress}
+            duration={duration}
+            onSeek={onSeek}
+            isPlaying={isPlaying}
+            buffering={isBuffering}
+            onTogglePlay={onTogglePlay}
+            onPrev={onPrev}
+            onSkip={onSkip}
+            onLike={onLike ? () => onLike(track.id) : null}
+            onDislike={onDislike}
+            liked={!!track.liked}
+            disliked={!!track.disliked}
+          />
+        ) : (
         <div className="pmp-deck">
-          {live ? (
-            <>
-              <LcdTimeline
-                progress={progress}
-                duration={duration}
-                onChange={onSeek}
-                stopPropagation
-              />
-              <EnergyShiftFeedback bottom="calc(100% + 10px)" />
-              <div className="pmp-deck-keys">
-                <PlayKey
-                  isPlaying={isPlaying}
-                  buffering={isBuffering}
-                  onClick={onTogglePlay}
-                  size={48}
-                  glowing={isPlaying && !isBuffering}
-                  stopPropagation
-                />
-                <HardwareIconButton label="Next" onClick={onSkip} stopPropagation size={40}>
-                  <Icon name="skip" size={15} />
-                </HardwareIconButton>
-                <ChromeIconButton
-                  label={track.liked ? "Unlike" : "Like"}
-                  icon={track.liked ? "heart" : "heartempty"}
-                  active={!!track.liked}
-                  onClick={() => onLike?.(track.id)}
-                  size={36}
-                  iconSize={15}
-                />
-                {onDislike && (
-                  <ChromeIconButton
-                    label="Dislike this track"
-                    icon={track.disliked ? "dislikefilled" : "dislike"}
-                    active={!!track.disliked}
-                    onClick={() => onDislike()}
-                    size={36}
-                    iconSize={15}
-                  />
-                )}
-              </div>
-              <PaceSlot compact stopPropagation />
-            </>
-          ) : (
             <button
               type="button"
               aria-label="Start the station"
@@ -733,8 +689,8 @@ export default function HeroPlayerCard({
               <Icon name="play" size={15} />
               Start listening
             </button>
-          )}
         </div>
+        )}
 
         {tickerText ? (
           <div

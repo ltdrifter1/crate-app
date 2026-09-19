@@ -162,8 +162,7 @@ export default function DesktopMiniPlayer({
         </div>
       <div
         onClick={(e) => e.stopPropagation()}
-        className="pmp-deck"
-        style={{ padding: "0 2px 2px" }}
+        className="pmp-deck pmp-deck-plate"
       >
         <PaceSlot compact stopPropagation />
       </div>

@@ -3,7 +3,7 @@
 // IBM Plex Sans + Mono (technical, not costume iTunes Lucida).
 
 /** Bump this when the visual OS changes. Copied into public/index.html + the shipped build. */
-export const STYLE_CHASSIS = "steel-glass-20260919";
+export const STYLE_CHASSIS = "steel-ps1-glass-20260919";
 
 /** Chrome specular — cool pearl steel, never pure white. */
 const SPEC = "216, 223, 232";
@@ -382,15 +382,15 @@ export const glass = {
     "linear-gradient(180deg, #D8DFE8 0%, #C5CBD6 48%, #B4BBC6 100%)",
 };
 
-/** Hard, unblurred controls — aluminum keys. */
+/** Hard, unblurred controls — PS1 chamfered aluminum keys. */
 export const hardware = {
   radius: 6,
   keyFace:
-    `linear-gradient(180deg, rgba(${SPEC},0.65) 0%, rgba(${SPEC},0.10) 38%, transparent 100%), linear-gradient(145deg, #D0D6E0 0%, #B8C0CC 48%, #A8B2C0 100%)`,
+    `linear-gradient(145deg, rgba(${SPEC},0.78) 0%, rgba(${SPEC},0.14) 36%, transparent 62%), linear-gradient(165deg, #D8DFE8 0%, #C0C8D4 46%, #A8B2C0 100%)`,
   keyRaised:
-    `inset 0 1px 0 rgba(${SPEC},0.55), inset 0 -1px 0 rgba(${SHADE},0.18), inset 1px 0 0 rgba(${SPEC},0.18), inset -1px 0 0 rgba(${SHADE},0.12)`,
+    `inset 0 2px 0 rgba(${SPEC},0.62), inset 0 -3px 4px rgba(${SHADE},0.22), inset 2px 0 0 rgba(${SPEC},0.22), inset -2px 0 0 rgba(${SHADE},0.16), 0 3px 0 rgba(${SHADE},0.12), 0 6px 12px rgba(${SHADE},0.16)`,
   keyPressed:
-    `inset 0 2px 4px rgba(${SHADE},0.28), inset 0 1px 0 rgba(${SHADE},0.16)`,
+    `inset 0 3px 5px rgba(${SHADE},0.32), inset 0 1px 0 rgba(${SHADE},0.18)`,
   plateEdge:
     `inset 0 1px 0 rgba(${SPEC},0.4), inset 0 -1px 0 rgba(${SHADE},0.16)`,
   rule:

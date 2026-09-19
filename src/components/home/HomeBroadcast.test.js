@@ -210,7 +210,9 @@ describe("Home broadcast + four-tab IA", () => {
     expect(div.querySelector('[aria-label="Pace"]')).toBeTruthy();
     expect(div.querySelector('[data-testid="pace-slot"]')).toBeTruthy();
     expect(div.querySelector(".pmp-pace-slot")).toBeTruthy();
-    expect(div.querySelector(".pmp-deck")).toBeTruthy();
+    expect(div.querySelector('[data-testid="player-deck"]')).toBeTruthy();
+    expect(div.querySelector(".pmp-deck-plate")).toBeTruthy();
+    expect(div.querySelector(".pmp-seek__well")).toBeTruthy();
     expect(div.querySelector(".pmp-timeline")).toBeTruthy();
     expect(div.textContent).toMatch(/Slow/);
     expect(div.textContent).toMatch(/Fast/);

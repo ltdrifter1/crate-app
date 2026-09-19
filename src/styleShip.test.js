@@ -46,16 +46,18 @@ test("player surfaces use a half-width Pace slot, not energy paddles", () => {
     "src/components/player/ImmersivePlayer.jsx",
     "src/components/player/GlassDock.jsx",
     "src/components/player/DesktopMiniPlayer.jsx",
+    "src/components/player/PlayerDeck.jsx",
     "src/components/home/HeroPlayerCard.jsx",
   ];
   for (const rel of files) {
     const src = fs.readFileSync(path.join(root, rel), "utf8");
-    expect(src).toMatch(/PaceSlot/);
+    expect(src).toMatch(/PaceSlot|PlayerDeck/);
     expect(src).not.toMatch(/EnergyShiftPaddles/);
     expect(src).not.toMatch(/EnergyShiftCapsule/);
   }
   const css = fs.readFileSync(path.join(root, "src/index.css"), "utf8");
-  expect(css).toMatch(/\.pmp-pace-slot/);
+  expect(css).toMatch(/\.pmp-deck-plate/);
+  expect(css).toMatch(/\.pmp-seek__well/);
   expect(css).toMatch(/max-width:\s*50%/);
 });
 
