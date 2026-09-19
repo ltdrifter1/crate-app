@@ -1,6 +1,6 @@
 import { memo, useEffect, useMemo, useState } from "react";
 import { homeSpace, motion } from "../../theme";
-import { runWhenIdle } from "../../lib/afterPaint";
+import { runAfterDelay } from "../../lib/afterPaint";
 import { channelCoverUrls } from "../../lib/sceneChannels";
 import { Rail } from "./MusicSection";
 import ChannelCard from "./ChannelCard";
@@ -29,7 +29,7 @@ function ChannelSurfingSection({
   useEffect(() => {
     if (process.env.NODE_ENV === "test") return undefined;
     if (channels.length <= FIRST_STATIONS) return undefined;
-    return runWhenIdle(() => setShowAll(true), { timeout: 1800 });
+    return runAfterDelay(() => setShowAll(true), 1800);
   }, [channels.length]);
 
   const visible = showAll ? channels : channels.slice(0, FIRST_STATIONS);

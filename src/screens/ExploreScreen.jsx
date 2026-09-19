@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, memo } from "react";
-import { runAfterPaint, runWhenIdle } from "../lib/afterPaint";
+import { runAfterPaint, runAfterDelay } from "../lib/afterPaint";
 import { catalogSleeveUrl } from "../lib/catalogSleeve";
 import {
   chromeIconButton,
@@ -349,7 +349,7 @@ function ExploreScreen({
 
   useEffect(() => {
     if (process.env.NODE_ENV === "test") return undefined;
-    return runWhenIdle(() => setDeepReady(true), { timeout: 2400 });
+    return runAfterDelay(() => setDeepReady(true), 2400);
   }, []);
 
   const genres = useMemo(

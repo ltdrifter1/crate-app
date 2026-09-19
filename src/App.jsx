@@ -31,7 +31,7 @@ import {
 import { explainPick } from "./lib/explain";
 import { fetchCatalogTracks, fetchHomeLite, isCatalogCacheFresh, readCatalogIdb, writeCatalogIdb, HOME_LITE_LIMIT } from "./lib/catalogLoad";
 import { hydrateCatalogTracks } from "./lib/catalogHydrate";
-import { runAfterPaint, runWhenIdle } from "./lib/afterPaint";
+import { runAfterPaint, runAfterDelay } from "./lib/afterPaint";
 import { slugify, findArtist, findAlbum } from "./lib/catalog";
 import {
   resolveListenPool,
@@ -149,11 +149,7 @@ const DevOnboardingPreview =
     : null;
 const loadExploreScreen = () => import("./screens/ExploreScreen");
 const ExploreScreen = lazy(loadExploreScreen);
-if (typeof requestIdleCallback === "function") {
-  requestIdleCallback(() => loadExploreScreen(), { timeout: 8000 });
-} else {
-  setTimeout(loadExploreScreen, 8000);
-}
+setTimeout(loadExploreScreen, 8000);
 const SearchScreen = lazy(() => import("./screens/SearchScreen"));
 const FavoritesScreen = lazy(() => import("./screens/FavoritesScreen"));
 const AdminScreen = lazy(() => import("./screens/AdminScreen"));
@@ -1254,10 +1250,10 @@ export default function App() {
     if (catalogFullDueRef.current != null && catalogFullDueRef.current <= ms) return;
     catalogFullDueRef.current = ms;
     catalogIdleStopRef.current();
-    catalogIdleStopRef.current = runWhenIdle(() => {
+    catalogIdleStopRef.current = runAfterDelay(() => {
       if (catalogFullRef.current) return;
       reloadCatalogRef.current?.({ background: true, full: true });
-    }, { timeout: ms });
+    }, ms);
   }, []);
   const reloadCatalog = useCallback(async ({ background = false, full = false } = {}) => {
     if (!background) setTracksLoading(true);
