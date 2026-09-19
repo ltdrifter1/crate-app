@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, memo } from "react";
-import { runAfterPaint, runAfterDelay } from "../lib/afterPaint";
+import { runAfterPaint, runWhenIdle } from "../lib/afterPaint";
 import {
   chromeIconButton,
   color,
@@ -19,7 +19,6 @@ import MusicSection, { Rail } from "../components/home/MusicSection";
 import TrackCard from "../components/home/TrackCard";
 import CrateSpread from "../components/home/CrateSpread";
 import { ReleasesBand } from "../components/home/ReleaseCard";
-import ChannelSurfingSection from "../components/home/ChannelSurfingSection";
 import CardContainer from "../components/home/CardContainer";
 import ExploreHero from "../components/explore/ExploreHero";
 import GenreMosaic, { MoodRail, SceneRail } from "../components/explore/GenreMosaic";
@@ -32,7 +31,6 @@ import {
   exploreMoodPlates,
   exploreReleases,
   exploreScenePlates,
-  exploreStations,
   recentlyPlayedTracks,
   resolveExploreFocus,
 } from "../lib/explore";
@@ -65,39 +63,25 @@ const EXPLORE_CSS = `
   }
   .pmp-releases {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 18px 12px;
     padding: 0 ${"{gutter}"}px;
     align-items: start;
   }
-  .pmp-release--lead {
-    grid-column: 1 / -1;
-    display: flex !important;
-    flex-direction: row;
-    align-items: center;
-    gap: 16px;
+  .pmp-releases .pmp-release-art {
+    display: block;
+    width: 100%;
   }
-  .pmp-release--lead .pmp-release-art {
-    width: 132px;
-    flex-shrink: 0;
-  }
-  .pmp-release--lead .pmp-release-copy { min-width: 0; }
   @media (min-width: 720px) {
     .pmp-explore-mosaic { grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
     .pmp-explore-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
     .pmp-explore-hero { aspect-ratio: 2.15 / 1 !important; min-height: 280px; }
-    .pmp-releases { grid-template-columns: 1.2fr 1fr 1fr; gap: 20px 16px; }
-    .pmp-release--lead {
-      grid-column: 1;
-      grid-row: 1 / span 2;
-      flex-direction: column !important;
-      align-items: stretch !important;
-    }
-    .pmp-release--lead .pmp-release-art { width: 100%; }
+    .pmp-releases { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 20px 16px; }
   }
   @media (min-width: 1100px) {
     .pmp-explore-mosaic { grid-template-columns: 1fr 1fr 1fr 1fr; }
     .pmp-explore-grid { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+    .pmp-releases { grid-template-columns: repeat(5, minmax(0, 1fr)); }
   }
   @media (prefers-reduced-motion: reduce) {
     .pmp-explore-hero-art { animation: none !important; }
@@ -166,7 +150,7 @@ function EmptyExplore({ onOpenSearch }) {
           Nothing to dig yet
         </div>
         <div style={{ fontSize: 14, fontWeight: 500, color: color.muted, lineHeight: 1.5 }}>
-          When the catalog lands, stations, scenes, and sleeves show up here.
+          When the catalog lands, scenes and sleeves show up here.
         </div>
         {onOpenSearch && (
           <button
@@ -194,7 +178,7 @@ function EmptyExplore({ onOpenSearch }) {
 
 /**
  * Explore — world-class discovery destination.
- * Editorial hero, genre mosaic, moods, scenes, stations, sleeves.
+ * Editorial hero, genre mosaic, moods, scenes, sleeves.
  */
 function ExploreScreen({
   tracks = [],
@@ -226,21 +210,17 @@ function ExploreScreen({
   }, []);
 
   useEffect(() => {
-    if (process.env.NODE_ENV === "test") return undefined;
-    return runAfterDelay(() => setDeepReady(true), 2400);
-  }, []);
+    if (process.env.NODE_ENV === "test" || !paintReady) return undefined;
+    return runWhenIdle(() => setDeepReady(true), { timeout: 400 });
+  }, [paintReady]);
 
   const genres = useMemo(
-    () => (paintReady ? exploreGenrePlates(tracks, deepReady ? 12 : 6) : []),
-    [tracks, paintReady, deepReady]
-  );
-  const stations = useMemo(
-    () => (deepReady ? exploreStations(tracks) : []),
-    [tracks, deepReady]
+    () => (paintReady ? exploreGenrePlates(tracks, 12) : []),
+    [tracks, paintReady]
   );
   const releases = useMemo(
-    () => (deepReady ? exploreReleases(tracks, 4) : []),
-    [tracks, deepReady]
+    () => (paintReady ? exploreReleases(tracks, 8) : []),
+    [tracks, paintReady]
   );
   const moods = useMemo(
     () => (deepReady ? exploreMoodPlates(tracks) : []),
@@ -319,7 +299,6 @@ function ExploreScreen({
     genres.length > 0 ||
     moods.length > 0 ||
     scenes.length > 0 ||
-    stations.some((c) => c.ready) ||
     releases.length > 0 ||
     forYou.tracks.length > 0 ||
     recents.length > 0;
@@ -406,7 +385,7 @@ function ExploreScreen({
                   color: color.muted,
                 }}
               >
-                Stations, scenes, and sleeves — start anywhere.
+                Scenes, moods, and sleeves — start anywhere.
               </p>
             </div>
           </div>
@@ -448,6 +427,20 @@ function ExploreScreen({
         </MusicSection>
       )}
 
+      {releases.length > 0 && (
+        <MusicSection
+          title="Albums"
+          subtitle="Sleeves on the wall"
+          delay={0.07}
+        >
+          <ReleasesBand
+            albums={releases}
+            onOpenAlbum={onOpenAlbum}
+            onPlayTrack={onPlayTrack}
+          />
+        </MusicSection>
+      )}
+
       {moods.length > 0 && (
         <MusicSection
           title="Moods & moments"
@@ -468,20 +461,6 @@ function ExploreScreen({
         </MusicSection>
       )}
 
-      {stations.length > 0 && (
-        <ChannelSurfingSection
-          channels={stations}
-          tracks={tracks}
-          activeChannelId={sceneChannelsActiveId}
-          onTuneChannel={onTuneSceneChannel}
-          first={false}
-          delay={0.12}
-          title="Stations"
-          subtitle="Live from here"
-          featured
-        />
-      )}
-
       {forYou.tracks.length > 0 && (
         <CrateSpread
           title={forYou.coldStart ? "Fresh picks" : "Selected for you"}
@@ -490,19 +469,6 @@ function ExploreScreen({
           activeId={activeId}
           onPlayTrack={onPlayTrack}
         />
-      )}
-
-      {releases.length > 0 && (
-        <MusicSection
-          title="Albums"
-          delay={0.14}
-        >
-          <ReleasesBand
-            albums={releases}
-            onOpenAlbum={onOpenAlbum}
-            onPlayTrack={onPlayTrack}
-          />
-        </MusicSection>
       )}
 
       {recents.length > 0 && (

@@ -149,7 +149,8 @@ const DevOnboardingPreview =
     : null;
 const loadExploreScreen = () => import("./screens/ExploreScreen");
 const ExploreScreen = lazy(loadExploreScreen);
-setTimeout(loadExploreScreen, 8000);
+runAfterPaint(() => loadExploreScreen());
+setTimeout(loadExploreScreen, 1200);
 const SearchScreen = lazy(() => import("./screens/SearchScreen"));
 const FavoritesScreen = lazy(() => import("./screens/FavoritesScreen"));
 const AdminScreen = lazy(() => import("./screens/AdminScreen"));

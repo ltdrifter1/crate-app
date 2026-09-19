@@ -125,7 +125,7 @@ describe("Explore screen", () => {
     expect(onOpenSearch).toHaveBeenCalled();
   });
 
-  test("loaded catalog shows hero, genres, moods, and stations without Most Requested", async () => {
+  test("loaded catalog shows hero, genres, albums — not stations or cut counts", async () => {
     const onOpenCharts = jest.fn();
     const onTune = jest.fn();
     await act(async () => {
@@ -149,7 +149,8 @@ describe("Explore screen", () => {
     expect(div.textContent).toMatch(/Metal/);
     expect(div.textContent).toMatch(/Moods & moments/);
     expect(div.textContent).toMatch(/Peak time/);
-    expect(div.textContent).toMatch(/Stations/);
+    expect(div.textContent).not.toMatch(/Stations/);
+    expect(div.textContent).not.toMatch(/\d+ cuts/);
     expect(div.textContent).toMatch(/Warehouse/);
     expect(div.textContent).not.toMatch(/Showcase station/i);
     expect(div.textContent).not.toMatch(/on the dial/i);
@@ -158,8 +159,9 @@ describe("Explore screen", () => {
     expect(div.querySelector(".pmp-crate-spread")).toBeTruthy();
     expect(div.textContent).toMatch(/Fresh picks|Selected for you/);
     expect(div.querySelector('section[aria-label="Albums"]')).toBeTruthy();
-    expect(div.querySelector(".pmp-release--lead")).toBeTruthy();
-    expect(div.querySelector(".pmp-release--tile, .pmp-release--count")).toBeTruthy();
+    expect(div.querySelectorAll(".pmp-release--tile").length).toBeGreaterThan(0);
+    expect(div.querySelector(".pmp-release--lead")).toBeNull();
+    expect(div.querySelector(".pmp-release--count")).toBeNull();
     expect(div.textContent).not.toMatch(/Featured releases/);
     expect(div.textContent).not.toMatch(/Albums worth the needle/);
     expect(div.textContent).not.toMatch(/\bRelease\b/);
@@ -179,7 +181,7 @@ describe("Explore screen", () => {
         })
       );
     });
-    const genre = div.querySelector('button[aria-label^="Electronic"]');
+    const genre = div.querySelector('button[aria-label="Electronic"]');
     expect(genre).toBeTruthy();
     await act(async () => {
       genre.click();

@@ -53,24 +53,24 @@ describe("ReleaseCard", () => {
     });
     expect(div.textContent).toMatch(/Night Shift/);
     expect(div.textContent).toMatch(/Signal/);
-    expect(div.textContent).toMatch(/8 tracks/);
     expect(div.textContent).not.toMatch(/\bRelease\b/);
     expect(div.textContent).not.toMatch(/Featured/);
     expect(div.querySelector(".pmp-release--lead")).toBeTruthy();
   });
 
-  test("ReleasesBand mixes lead and tile variants", async () => {
+  test("ReleasesBand is an even sleeve grid", async () => {
     const onOpenAlbum = jest.fn();
     await act(async () => {
       root.render(React.createElement(ReleasesBand, { albums, onOpenAlbum }));
     });
-    expect(div.querySelector(".pmp-release--lead")).toBeTruthy();
-    expect(div.querySelector(".pmp-release--tile")).toBeTruthy();
-    expect(div.querySelector(".pmp-release--count")).toBeTruthy();
+    expect(div.querySelector(".pmp-releases")).toBeTruthy();
+    expect(div.querySelectorAll(".pmp-release--tile").length).toBe(3);
+    expect(div.querySelector(".pmp-release--lead")).toBeNull();
+    expect(div.querySelector(".pmp-release--count")).toBeNull();
     expect(div.textContent).not.toMatch(/\bRelease\b/);
-    const lead = div.querySelector(".pmp-release--lead");
+    const first = div.querySelector(".pmp-release--tile");
     await act(async () => {
-      lead.click();
+      first.click();
     });
     expect(onOpenAlbum).toHaveBeenCalledWith("a");
   });

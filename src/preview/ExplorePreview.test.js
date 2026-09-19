@@ -22,7 +22,7 @@ describe("Explore preview", () => {
     expect(div.textContent).toMatch(/Explore/);
     expect(div.textContent).toMatch(/Genres/);
     expect(div.textContent).toMatch(/Moods & moments/);
-    expect(div.textContent).toMatch(/Stations/);
+    expect(div.textContent).not.toMatch(/Stations/);
     expect(div.textContent).not.toMatch(/On the board/);
     expect(div.textContent).not.toMatch(/Most requested/i);
     expect(div.textContent).not.toMatch(/Showcase station/i);
@@ -40,7 +40,7 @@ describe("Explore preview", () => {
     await act(async () => {
       root.render(React.createElement(ExplorePreview));
     });
-    const lead = div.querySelector(".pmp-release--lead");
+    const lead = div.querySelector(".pmp-release--tile");
     expect(lead).toBeTruthy();
     await act(async () => {
       lead.click();

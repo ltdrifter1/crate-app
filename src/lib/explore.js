@@ -6,11 +6,11 @@
 
 import { catalogSleeveUrl } from "./catalogSleeve";
 import { HERO_IDLE_ART, HERO_IDLE_FOCUS } from "./heroIdle";
-import { genreStory, scenesForLane, tracksForGenreLane, tracksForScenePool } from "./browse";
+import { genreStory, tracksForGenreLane, tracksForScenePool } from "./browse";
 import { CANONICAL_GENRES, normalizeGenre } from "./genres";
 import { decorateSceneChannels } from "./sceneChannels";
 import { featuredReleases, recommendedPicks, trendingTracks } from "./homeCollections";
-import { SCENE_FAMILIES, SCENES, getScene, trackMatchesScene } from "./scenes";
+import { SCENE_FAMILIES, getScene, inferScene, inferSceneTags } from "./scenes";
 
 /** Canonical lane → Channel Surfing icon when the match is honest. */
 export const GENRE_CHANNEL_ART = {
@@ -100,9 +100,7 @@ export function exploreGenrePlates(tracks = [], limit = Infinity) {
     return {
       lane,
       story: genreStory(lane),
-      sceneCount: scenesForLane(lane).length,
       trackCount: pool.length,
-      scenes: scenesForLane(lane),
       ...visual,
     };
   });
@@ -186,13 +184,38 @@ export function exploreMoodPlates(tracks = [], minTracks = 2) {
   }).filter((m) => m.count >= minTracks);
 }
 
-/** Culture scenes with live counts — ranked by depth, photography from family. */
+/** Culture scenes — one catalog pass, then rank by depth. */
 export function exploreScenePlates(tracks = [], limit = 8) {
   const playable = singles(tracks);
   const familyLabel = Object.fromEntries(SCENE_FAMILIES.map((f) => [f.id, f.label]));
+  const buckets = new Map();
+  for (const t of playable) {
+    const tagged = [];
+    if (t._scene?.id) {
+      const s = getScene(t._scene.id);
+      if (s) tagged.push(s);
+    }
+    const extras = t._scenes?.length
+      ? t._scenes.map((id) => getScene(id)).filter(Boolean)
+      : inferSceneTags(t, 4);
+    for (const s of extras) {
+      if (s && !tagged.some((x) => x.id === s.id)) tagged.push(s);
+    }
+    if (!tagged.length) {
+      const inferred = inferScene(t);
+      if (inferred) tagged.push(inferred);
+    }
+    for (const scene of tagged) {
+      let bucket = buckets.get(scene.id);
+      if (!bucket) {
+        bucket = { scene, pool: [] };
+        buckets.set(scene.id, bucket);
+      }
+      bucket.pool.push(t);
+    }
+  }
   const scored = [];
-  for (const scene of SCENES) {
-    const pool = playable.filter((t) => trackMatchesScene(t, scene.id));
+  for (const { scene, pool } of buckets.values()) {
     if (!pool.length) continue;
     const covers = coverUrlsForTracks(pool, 1);
     const sleeve = covers[0] || null;
@@ -359,7 +382,7 @@ export function buildExploreHero({
     id: "idle",
     eyebrow: "Explore",
     title: "Start anywhere",
-    subtitle: "Stations, scenes, and sleeves — dig the catalog.",
+    subtitle: "Scenes and sleeves — dig the catalog.",
     kicker: null,
     art: HERO_IDLE_ART,
     artFocus: HERO_IDLE_FOCUS,

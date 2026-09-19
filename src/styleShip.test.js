@@ -92,10 +92,13 @@ test("Explore and Home first paint skip channel pictogram imports", () => {
   expect(card).toMatch(/\braw\b/);
   expect(card).toMatch(/DefaultSleeve/);
   const app = fs.readFileSync(path.join(root, "src/App.jsx"), "utf8");
-  expect(app).toMatch(/setTimeout\(loadExploreScreen, 8000\)/);
+  expect(app).toMatch(/setTimeout\(loadExploreScreen, 1200\)/);
+  expect(app).toMatch(/runAfterPaint\(\(\) => loadExploreScreen\(\)\)/);
   expect(app).toMatch(/runAfterDelay/);
   expect(app).not.toMatch(/timeout: 2200/);
   const screen = fs.readFileSync(path.join(root, "src/screens/ExploreScreen.jsx"), "utf8");
-  expect(screen).toMatch(/runAfterDelay\(\(\) => setDeepReady\(true\), 2400\)/);
+  expect(screen).toMatch(/runWhenIdle\(\(\) => setDeepReady\(true\), \{ timeout: 400 \}\)/);
+  expect(screen).not.toMatch(/exploreStations/);
+  expect(screen).not.toMatch(/ChannelSurfingSection/);
   expect(screen).not.toMatch(/will-change: transform/);
 });
