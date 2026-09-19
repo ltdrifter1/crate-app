@@ -1,5 +1,5 @@
 import { memo } from "react";
-import { color, homeSpace, type, y2k, fontMono } from "../../theme";
+import { color, homeSpace, type, y2k, fontMono, hardware } from "../../theme";
 import { trackHasVideo } from "../../lib/video";
 import ArtFrame from "../ui/ArtFrame";
 import { trackLcdBits } from "../player/DeviceChrome";
@@ -65,25 +65,30 @@ function TrackCard({
         )}
         {rank != null && (
           <span
+            className="pmp-rank-stamp"
             style={{
               position: "absolute",
               top: 8,
               left: 8,
-              minWidth: 28,
-              height: 24,
-              padding: "0 8px",
+              minWidth: 30,
+              height: 22,
+              padding: "0 7px",
               display: "inline-flex",
               alignItems: "center",
               justifyContent: "center",
-              borderRadius: 4,
-              background: "rgba(58,66,80,0.55)",
-              ...type.caption,
-              fontWeight: 700,
-              color: color.onDark,
+              borderRadius: 3,
+              background: hardware.keyFace,
+              border: "1px solid rgba(216,223,232,0.45)",
+              boxShadow: hardware.keyRaised,
+              fontFamily: fontMono,
+              fontSize: 11,
+              fontWeight: 800,
+              letterSpacing: 0.4,
+              color: color.ink,
               zIndex: 1,
             }}
           >
-            #{rank}
+            #{String(rank).padStart(2, "0")}
           </span>
         )}
       </ArtFrame>

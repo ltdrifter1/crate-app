@@ -1,7 +1,7 @@
 import { useRef } from "react";
 import Icon from "../ui/Icon";
 import { AlbumArt } from "../listen/AlbumArt";
-import { color, glass, hardware, motion, trimStroke } from "../../theme";
+import { color, glass, hardware, motion, trim, trimStroke } from "../../theme";
 
 // ─── Shared transport primitives (soft modern play + linear-friendly progress) ─
 
@@ -17,12 +17,15 @@ export function PlayKey({
   ariaLabel,
   stopPropagation = false,
 }) {
-  const iSize = iconSize ?? Math.round(size * 0.38);
+  const iSize = iconSize ?? Math.round(size * 0.34);
   const busy = buffering && isPlaying;
+  const face = glowing
+    ? "linear-gradient(180deg, rgba(232,241,248,0.96) 0%, rgba(200,214,226,0.82) 46%, rgba(168,186,200,0.9) 100%)"
+    : hardware.keyFace;
   return (
     <button
       type="button"
-      className="play-primary pmp-hw-key"
+      className="play-primary pmp-hw-key pmp-play-planet"
       aria-label={ariaLabel || (busy ? "Buffering" : isPlaying ? "Pause" : "Play")}
       aria-busy={busy || undefined}
       disabled={disabled}
@@ -34,15 +37,10 @@ export function PlayKey({
         position: "relative",
         width: size,
         height: size,
-        borderRadius: 8,
+        borderRadius: "50%",
         ...(disabled
           ? { background: hardware.keyFace, border: "1px solid rgba(91,101,116,0.22)" }
-          : glowing
-            ? trimStroke(
-                "linear-gradient(180deg, rgba(232,241,248,0.92) 0%, rgba(200,214,226,0.78) 100%)",
-                2
-              )
-            : { background: hardware.keyFace, border: "1px solid rgba(91,101,116,0.22)" }),
+          : trimStroke(face, 2)),
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
@@ -53,11 +51,26 @@ export function PlayKey({
         boxShadow: disabled
           ? "none"
           : glowing
-            ? `inset 0 1px 0 rgba(255,255,255,0.55), 0 0 0 3px ${color.accentSoft}`
-            : hardware.keyRaised,
+            ? `inset 0 2px 0 rgba(255,255,255,0.72), inset 0 -3px 5px rgba(58,66,80,0.28), 0 0 0 3px rgba(54,127,199,0.2), 0 0 22px rgba(184,196,48,0.38), 0 8px 16px rgba(58,66,80,0.22)`
+            : `inset 0 2px 0 rgba(255,255,255,0.58), inset 0 -2px 4px rgba(58,66,80,0.22), ${hardware.keyRaised}`,
         transition: `transform ${motion.fast} ${motion.ease}, box-shadow ${motion.base} ${motion.ease}, background ${motion.fast} ${motion.ease}`,
       }}
     >
+      <span
+        aria-hidden="true"
+        className="pmp-play-pip"
+        style={{
+          position: "absolute",
+          top: Math.max(5, Math.round(size * 0.12)),
+          left: "50%",
+          width: 5,
+          height: 5,
+          marginLeft: -2.5,
+          borderRadius: "50%",
+          background: glowing ? trim.lime : "rgba(91,101,116,0.4)",
+          boxShadow: glowing ? `0 0 8px ${trim.lime}` : "none",
+        }}
+      />
       {busy ? (
         <span
           aria-hidden="true"

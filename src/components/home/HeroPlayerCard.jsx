@@ -8,7 +8,8 @@ import {
   glass,
   glassStage,
   homeSpace,
-  radio,
+  trim,
+  trimStroke,
   y2k,
   BTN_PRIMARY,
 } from "../../theme";
@@ -65,6 +66,7 @@ function MetaChip({ children }) {
 }
 
 function LivePlate({ live }) {
+  const face = live ? "rgba(224,49,74,0.16)" : "rgba(91, 101, 116, 0.12)";
   return (
     <span
       style={{
@@ -72,11 +74,14 @@ function LivePlate({ live }) {
         alignItems: "center",
         gap: 7,
         padding: "4px 9px 4px 8px",
-        borderRadius: 4,
-        background: live ? "rgba(224,49,74,0.16)" : "rgba(91, 101, 116, 0.12)",
-        border: live ? "1px solid rgba(224,49,74,0.35)" : "1px solid rgba(91,101,116,0.1)",
-        boxShadow: "none",
+        borderRadius: 6,
         flexShrink: 0,
+        ...(live
+          ? trimStroke("linear-gradient(180deg, rgba(232,236,242,0.92) 0%, rgba(208,214,224,0.9) 100%)", 2)
+          : {
+              background: face,
+              border: "1px solid rgba(91,101,116,0.1)",
+            }),
       }}
     >
       <span
@@ -87,7 +92,7 @@ function LivePlate({ live }) {
           height: 6,
           borderRadius: "50%",
           background: live ? y2k.live : "rgba(91,101,116,0.45)",
-          boxShadow: "none",
+          boxShadow: live ? `0 0 8px ${y2k.live}` : "none",
         }}
       />
       <span
@@ -103,6 +108,26 @@ function LivePlate({ live }) {
         {live ? "Live" : "Standby"}
       </span>
     </span>
+  );
+}
+
+function PlanetPip({ size = 26 }) {
+  return (
+    <span
+      aria-hidden="true"
+      className="pmp-planet-pip"
+      style={{
+        width: size,
+        height: size,
+        flexShrink: 0,
+        display: "block",
+        backgroundImage: "url(/brand/planet-mascot.svg)",
+        backgroundSize: "contain",
+        backgroundRepeat: "no-repeat",
+        backgroundPosition: "center",
+        filter: `drop-shadow(0 0 8px ${trim.blue}88)`,
+      }}
+    />
   );
 }
 
@@ -242,24 +267,28 @@ function UpNextGlass({ track }) {
       className="pmp-upnext-glass"
       style={{
         marginTop: 10,
-        display: "flex",
-        alignItems: "center",
-        gap: 10,
         minWidth: 0,
-        padding: "8px 10px 8px 8px",
+        padding: 2,
         borderRadius: 16,
-        border: "1px solid rgba(255,255,255,0.48)",
-        background: `
-          linear-gradient(165deg, rgba(255,255,255,0.46) 0%, rgba(216,223,232,0.18) 52%, rgba(184,191,202,0.12) 100%)
-        `,
-        boxShadow: `
-          inset 0 1px 0 rgba(255,255,255,0.72),
-          0 10px 24px rgba(58,66,80,0.12)
-        `,
-        backdropFilter: glass.blurSoft,
-        WebkitBackdropFilter: glass.blurSoft,
+        background: trim.gradient,
+        boxShadow: "0 10px 24px rgba(58,66,80,0.12)",
       }}
     >
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: 10,
+          minWidth: 0,
+          padding: "8px 10px 8px 8px",
+          borderRadius: 14,
+          background:
+            "linear-gradient(165deg, rgba(236,241,247,0.96) 0%, rgba(208,214,224,0.94) 100%)",
+          boxShadow: "inset 0 1px 0 rgba(255,255,255,0.72)",
+          backdropFilter: glass.blurSoft,
+          WebkitBackdropFilter: glass.blurSoft,
+        }}
+      >
       {track.albumCover ? (
         <CoverImage
           src={track.albumCover}
@@ -304,6 +333,7 @@ function UpNextGlass({ track }) {
           {track.title}
           {track.artist ? ` — ${track.artist}` : ""}
         </div>
+      </div>
       </div>
     </div>
   );
@@ -442,6 +472,7 @@ export default function HeroPlayerCard({
         }}
       >
         <div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0 }}>
+          <PlanetPip />
           <LivePlate live={onAir} />
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 8, marginLeft: "auto" }}>
