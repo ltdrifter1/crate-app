@@ -262,7 +262,7 @@ export default function HeroPlayerCard({
 }) {
   const isPlaying = useIsPlaying();
   const isBuffering = useIsBuffering();
-  const { progress, duration } = usePlayerPlayback();
+  const { progress, duration: playbackDuration } = usePlayerPlayback();
   const cardRef = useRef(null);
   const live = !!track;
   const art = track?.albumCover || previewTrack?.albumCover || null;
@@ -271,6 +271,7 @@ export default function HeroPlayerCard({
   const bugLine = channelBugLine(channelBug);
   const onAir = live || isRadioMode;
   const displayTrack = track || previewTrack;
+  const duration = playbackDuration > 0 ? playbackDuration : Number(displayTrack?.duration) || 0;
   const idleEyebrow = previewTrack ? "Up first" : "Planet Radio";
   const idleTitle = previewTrack?.title || daypart?.vibe || "Tune the station";
   const idleArtist = previewTrack?.artist || "One tap and the dial finds you something good.";
