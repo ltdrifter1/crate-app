@@ -5,6 +5,7 @@ import {
   color,
   fontDisplay,
   fontMono,
+  glass,
   glassStage,
   homeSpace,
   radio,
@@ -14,7 +15,6 @@ import {
 import { usePlayerPlayback } from "../../usePlayerPlayback";
 import { useIsBuffering, useIsPlaying } from "../../usePlayerTransport";
 import {
-  STATION_CALLSIGN,
   channelBugLine,
   resolveChannelBug,
 } from "../../lib/mtvChannel";
@@ -26,7 +26,6 @@ import { EnergyShiftFeedback, PaceSlot } from "../listen/EnergyShiftButton";
 import { HERO_IDLE_ART, HERO_IDLE_FOCUS } from "../../lib/heroIdle";
 import ScanlineWash from "./ScanlineWash";
 import {
-  DeviceCatalogMark,
   HardwareIconButton,
   LcdMetaLine,
   LcdPanel,
@@ -236,6 +235,80 @@ function JewelSleeve({ src, idleSrc, playing, eager = false, size = 148 }) {
   );
 }
 
+function UpNextGlass({ track }) {
+  if (!track?.title) return null;
+  return (
+    <div
+      className="pmp-upnext-glass"
+      style={{
+        marginTop: 10,
+        display: "flex",
+        alignItems: "center",
+        gap: 10,
+        minWidth: 0,
+        padding: "8px 10px 8px 8px",
+        borderRadius: 16,
+        border: "1px solid rgba(255,255,255,0.48)",
+        background: `
+          linear-gradient(165deg, rgba(255,255,255,0.46) 0%, rgba(216,223,232,0.18) 52%, rgba(184,191,202,0.12) 100%)
+        `,
+        boxShadow: `
+          inset 0 1px 0 rgba(255,255,255,0.72),
+          0 10px 24px rgba(58,66,80,0.12)
+        `,
+        backdropFilter: glass.blurSoft,
+        WebkitBackdropFilter: glass.blurSoft,
+      }}
+    >
+      {track.albumCover ? (
+        <CoverImage
+          src={track.albumCover}
+          alt=""
+          width={36}
+          height={36}
+          style={{
+            width: 36,
+            height: 36,
+            borderRadius: 10,
+            objectFit: "cover",
+            flexShrink: 0,
+            boxShadow: "0 4px 10px rgba(58,66,80,0.18)",
+          }}
+        />
+      ) : null}
+      <div style={{ minWidth: 0, flex: 1 }}>
+        <div
+          style={{
+            fontFamily: fontDisplay,
+            fontSize: 10,
+            fontWeight: 700,
+            letterSpacing: 0.16,
+            textTransform: "uppercase",
+            color: color.accent,
+          }}
+        >
+          Up next
+        </div>
+        <div
+          style={{
+            marginTop: 2,
+            fontSize: 13,
+            fontWeight: 650,
+            letterSpacing: -0.2,
+            color: color.ink,
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            whiteSpace: "nowrap",
+          }}
+        >
+          {track.title}
+          {track.artist ? ` — ${track.artist}` : ""}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 /**
  * HeroPlayerCard — Home now-playing device.
  * Sleeve + ice LCD on one stage; seek as a timeline; transport left,
@@ -369,17 +442,6 @@ export default function HeroPlayerCard({
         }}
       >
         <div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0 }}>
-          <span
-            style={{
-              fontFamily: fontDisplay,
-              fontSize: 13,
-              fontWeight: 600,
-              letterSpacing: -0.16,
-              color: y2k.offWhite,
-            }}
-          >
-            {STATION_CALLSIGN}
-          </span>
           <LivePlate live={onAir} />
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 8, marginLeft: "auto" }}>
@@ -402,7 +464,6 @@ export default function HeroPlayerCard({
               Video
             </span>
           )}
-          <DeviceCatalogMark />
           <ChannelIdent bugLine={bugLine} slug={channelBug.slug} />
         </div>
       </div>
@@ -545,65 +606,11 @@ export default function HeroPlayerCard({
           <div style={{ marginTop: 8 }}>
             <LcdMetaLine bits={lcdBits} />
           </div>
+          </LcdPanel>
 
           {live && upNextTrack?.title && (
-            <div
-              style={{
-                marginTop: 8,
-                paddingTop: 8,
-                borderTop: "1px solid rgba(61,70,84,0.12)",
-                display: "flex",
-                alignItems: "center",
-                gap: 8,
-                minWidth: 0,
-              }}
-            >
-              {upNextTrack.albumCover ? (
-                <CoverImage
-                  src={upNextTrack.albumCover}
-                  alt=""
-                  width={28}
-                  height={28}
-                  style={{
-                    width: 28,
-                    height: 28,
-                    borderRadius: 3,
-                    objectFit: "cover",
-                    flexShrink: 0,
-                  }}
-                />
-              ) : null}
-              <div style={{ minWidth: 0 }}>
-                <div
-                  style={{
-                    fontFamily: fontMono,
-                    fontSize: 10,
-                    fontWeight: 700,
-                    letterSpacing: 0.12,
-                    textTransform: "uppercase",
-                    color: color.lcdMute,
-                  }}
-                >
-                  Up next
-                </div>
-                <div
-                  style={{
-                    marginTop: 1,
-                    fontSize: 12,
-                    fontWeight: 600,
-                    color: color.lcdInk,
-                    overflow: "hidden",
-                    textOverflow: "ellipsis",
-                    whiteSpace: "nowrap",
-                  }}
-                >
-                  {upNextTrack.title}
-                  {upNextTrack.artist ? ` — ${upNextTrack.artist}` : ""}
-                </div>
-              </div>
-            </div>
+            <UpNextGlass track={upNextTrack} />
           )}
-          </LcdPanel>
         </div>
 
         {hasVideo && (
@@ -638,9 +645,6 @@ export default function HeroPlayerCard({
               />
               <EnergyShiftFeedback bottom="calc(100% + 10px)" />
               <div className="pmp-deck-keys">
-                <HardwareIconButton label="Previous" onClick={onPrev} stopPropagation size={40}>
-                  <Icon name="prev" size={15} />
-                </HardwareIconButton>
                 <PlayKey
                   isPlaying={isPlaying}
                   buffering={isBuffering}
