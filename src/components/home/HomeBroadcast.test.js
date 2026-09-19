@@ -313,7 +313,8 @@ describe("Home broadcast + four-tab IA", () => {
     });
     div.querySelector(".pmp-channel-card").click();
     expect(onClick).toHaveBeenCalledTimes(1);
-    expect(div.querySelectorAll("img")).toHaveLength(1);
+    expect(div.querySelectorAll("img")).toHaveLength(0);
+    expect(div.querySelector("[data-testid='cover-fallback']")).toBeTruthy();
     expect(div.querySelector("[style*='grid-template-columns']")).toBeNull();
   });
 
@@ -336,7 +337,7 @@ describe("Home broadcast + four-tab IA", () => {
     });
     const card = div.querySelector(".pmp-channel-card");
     expect(card).toBeTruthy();
-    expect(card.querySelectorAll("img").length).toBeLessThanOrEqual(2);
+    expect(card.querySelectorAll("img").length).toBeLessThanOrEqual(1);
     expect(card.querySelector("[style*='grid-template-columns']")).toBeNull();
   });
 
@@ -438,10 +439,10 @@ describe("Home broadcast + four-tab IA", () => {
       root.render(
         React.createElement(ChannelSurfingSection, {
           channels: [
-            { id: "y2k-dance", title: "Y2K Dance", tagline: "floor" },
-            { id: "downtempo", title: "Downtempo", tagline: "late" },
-            { id: "punk", title: "Punk", tagline: "fast" },
-            { id: "metal", title: "Metal", tagline: "gain" },
+            { id: "y2k-dance", title: "Y2K Dance", tagline: "floor", covers: ["a.jpg"] },
+            { id: "downtempo", title: "Downtempo", tagline: "late", covers: ["b.jpg"] },
+            { id: "punk", title: "Punk", tagline: "fast", covers: ["c.jpg"] },
+            { id: "metal", title: "Metal", tagline: "gain", covers: ["d.jpg"] },
           ],
         })
       );
@@ -452,5 +453,35 @@ describe("Home broadcast + four-tab IA", () => {
     expect(imgs[0].getAttribute("loading")).toBe("eager");
     expect(imgs[1].getAttribute("loading")).toBe("eager");
     expect(imgs[3].getAttribute("loading")).toBe("lazy");
+  });
+
+  test("station tiles without sleeves use the disc fallback, not pictograms", async () => {
+    await act(async () => {
+      root.render(
+        React.createElement(ChannelCard, {
+          channel: {
+            id: "techno",
+            title: "Techno",
+            tagline: "Four-on-the-floor",
+          },
+          covers: ["sleeve-a.jpg"],
+        })
+      );
+    });
+    expect(div.querySelectorAll("img")).toHaveLength(1);
+    expect(div.querySelector("[data-testid='cover-fallback']")).toBeNull();
+    await act(async () => {
+      root.render(
+        React.createElement(ChannelCard, {
+          channel: {
+            id: "techno",
+            title: "Techno",
+            tagline: "Four-on-the-floor",
+          },
+        })
+      );
+    });
+    expect(div.querySelectorAll("img")).toHaveLength(0);
+    expect(div.querySelector("[data-testid='cover-fallback']")).toBeTruthy();
   });
 });

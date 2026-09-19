@@ -12,14 +12,22 @@ import metal from "../assets/channels/metal.png";
 import punk from "../assets/channels/punk.png";
 import countryFolk from "../assets/channels/country-folk.png";
 import downtempo from "../assets/channels/downtempo.png";
-import heroIdle from "../assets/editorial/hero-idle.png";
+import {
+  catalogSleeveUrl as sleeveFromPath,
+  isChannelPictogram as isPictogramPath,
+} from "./catalogSleeve";
+import { HERO_IDLE_ART } from "./heroIdle";
+
+export { HERO_IDLE_ART, HERO_IDLE_FOCUS } from "./heroIdle";
 
 /**
  * Original Channel Surfing icons (hashed URLs in production).
  * Published Game Icons drawings on steel plates — not photographs,
  * not generated stickers.
-
+ *
  * Channel Surfing must not depend on /channels/* existing on the host.
+ * Home / Explore tiles do not import this module — pictograms stay in
+ * onboarding / tests so first paint is sleeves + disc fallback only.
  */
 export const CHANNEL_ART = {
   "y2k-dance": y2kDance,
@@ -58,10 +66,6 @@ export const CHANNEL_ART_FOCUS = {
   downtempo: "50% 50%",
 };
 
-/** Idle Home hero — original iPod pictogram, not a club still. */
-export const HERO_IDLE_ART = heroIdle;
-export const HERO_IDLE_FOCUS = "50% 50%";
-
 const PICTOGRAM_URLS = new Set([
   ...Object.values(CHANNEL_ART),
   HERO_IDLE_ART,
@@ -69,18 +73,14 @@ const PICTOGRAM_URLS = new Set([
 
 /** Game Icons / channel plates — bugs, never album covers. */
 export function isChannelPictogram(url) {
-  if (!url || typeof url !== "string") return false;
   if (PICTOGRAM_URLS.has(url)) return true;
-  if (/\/channels\/[^/?#]+\.(png|jpe?g|webp)$/i.test(url)) return true;
-  return false;
+  return isPictogramPath(url);
 }
 
 /** Catalog sleeve URL, or null when the src is a channel pictogram / idle cassette. */
 export function catalogSleeveUrl(url) {
-  if (!url || typeof url !== "string") return null;
-  if (url === HERO_IDLE_ART) return null;
-  if (isChannelPictogram(url)) return null;
-  return url;
+  if (PICTOGRAM_URLS.has(url)) return null;
+  return sleeveFromPath(url);
 }
 
 /**

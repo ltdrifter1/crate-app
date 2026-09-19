@@ -243,4 +243,18 @@ describe("Explore screen", () => {
     expect(div.querySelector(".cover-tile")).toBeNull();
     expect(div.textContent).not.toMatch(/Picks for you, featured sleeves/);
   });
+
+  test("genre plates load one sleeve each, not a 4-up mosaic", async () => {
+    await act(async () => {
+      root.render(React.createElement(ExploreScreen, { tracks: catalog }));
+    });
+    const mosaic = div.querySelector(".pmp-explore-mosaic");
+    expect(mosaic).toBeTruthy();
+    const plates = mosaic.querySelectorAll(".pmp-explore-genre");
+    expect(plates.length).toBeGreaterThan(0);
+    plates.forEach((plate) => {
+      expect(plate.querySelector("[style*='grid-template-columns']")).toBeNull();
+      expect(plate.querySelectorAll("img").length).toBeLessThanOrEqual(1);
+    });
+  });
 });

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState, memo } from "react";
-import { runWhenIdle } from "../lib/afterPaint";
-import { catalogSleeveUrl } from "../lib/channelArt";
+import { runAfterPaint, runWhenIdle } from "../lib/afterPaint";
+import { catalogSleeveUrl } from "../lib/catalogSleeve";
 import {
   chromeIconButton,
   color,
@@ -44,7 +44,6 @@ const EXPLORE_CSS = `
   .pmp-explore-hero { isolation: isolate; }
   .pmp-explore-hero-art {
     animation: pmpExploreKen 32s ease-in-out infinite alternate;
-    will-change: transform;
   }
   @keyframes pmpExploreKen {
     from { transform: scale(1); }
@@ -203,9 +202,12 @@ function ChartsTeaser({ rows = [], onPlayTrack, onOpenCharts, activeId }) {
                 boxShadow: activeId === track.id ? "0 0 0 1px rgba(247,248,250,0.7)" : "none",
               }}
             >
-              {catalogSleeveUrl(track.albumCover) ? (
-                <CoverImage src={catalogSleeveUrl(track.albumCover)} alt="" width={48} height={48} />
-              ) : null}
+              <CoverImage
+                src={catalogSleeveUrl(track.albumCover) || ""}
+                alt=""
+                width={48}
+                height={48}
+              />
             </span>
             <span style={{ minWidth: 0 }}>
               <span
@@ -337,21 +339,30 @@ function ExploreScreen({
   const activeId = currentTrack?.id;
   const dayKey = new Date().toISOString().slice(0, 10);
   const [focusKey, setFocusKey] = useState(null);
+  const [paintReady, setPaintReady] = useState(process.env.NODE_ENV === "test");
   const [deepReady, setDeepReady] = useState(process.env.NODE_ENV === "test");
 
   useEffect(() => {
     if (process.env.NODE_ENV === "test") return undefined;
-    return runWhenIdle(() => setDeepReady(true), { timeout: 480 });
+    return runAfterPaint(() => setPaintReady(true));
   }, []);
 
-  const genres = useMemo(() => exploreGenrePlates(tracks), [tracks]);
-  const charts = useMemo(() => exploreChartsTeaser(countdown, 6), [countdown]);
+  useEffect(() => {
+    if (process.env.NODE_ENV === "test") return undefined;
+    return runWhenIdle(() => setDeepReady(true), { timeout: 2400 });
+  }, []);
+
+  const genres = useMemo(
+    () => (paintReady ? exploreGenrePlates(tracks, deepReady ? 12 : 6) : []),
+    [tracks, paintReady, deepReady]
+  );
+  const charts = useMemo(() => exploreChartsTeaser(countdown, 5), [countdown]);
   const stations = useMemo(
     () => (deepReady ? exploreStations(tracks) : []),
     [tracks, deepReady]
   );
   const releases = useMemo(
-    () => (deepReady ? exploreReleases(tracks, 6) : []),
+    () => (deepReady ? exploreReleases(tracks, 4) : []),
     [tracks, deepReady]
   );
   const moods = useMemo(
@@ -359,11 +370,11 @@ function ExploreScreen({
     [tracks, deepReady]
   );
   const scenes = useMemo(
-    () => (deepReady ? exploreScenePlates(tracks, 10) : []),
+    () => (deepReady ? exploreScenePlates(tracks, 8) : []),
     [tracks, deepReady]
   );
   const recents = useMemo(
-    () => (deepReady ? recentlyPlayedTracks(tracks, recentTrackIds, 12) : []),
+    () => (deepReady ? recentlyPlayedTracks(tracks, recentTrackIds, 6) : []),
     [tracks, recentTrackIds, deepReady]
   );
   const forYou = useMemo(
@@ -374,7 +385,7 @@ function ExploreScreen({
             recentTrackIds,
             userKey,
             dayKey,
-            limit: 16,
+            limit: 5,
           })
         : { tracks: [], reasons: {}, coldStart: true },
     [tracks, preferredGenres, recentTrackIds, userKey, dayKey, deepReady]
@@ -599,7 +610,7 @@ function ExploreScreen({
         <CrateSpread
           title={forYou.coldStart ? "Fresh picks" : "Selected for you"}
           subtitle={forYou.coldStart ? "A place to begin" : "Chosen for you"}
-          tracks={forYou.tracks.slice(0, 8)}
+          tracks={forYou.tracks.slice(0, 5)}
           activeId={activeId}
           onPlayTrack={onPlayTrack}
         />

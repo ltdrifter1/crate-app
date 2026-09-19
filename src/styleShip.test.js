@@ -61,3 +61,18 @@ test("Home does not mount station chat on the critical path", () => {
   expect(app).not.toMatch(/HomeMessenger/);
   expect(app).not.toMatch(/homeChatReady/);
 });
+
+test("Explore and Home first paint skip channel pictogram imports", () => {
+  const explore = fs.readFileSync(path.join(root, "src/lib/explore.js"), "utf8");
+  expect(explore).not.toMatch(/from ["']\.\/channelArt["']/);
+  const card = fs.readFileSync(path.join(root, "src/components/home/ChannelCard.jsx"), "utf8");
+  expect(card).not.toMatch(/resolveChannelArt/);
+  expect(card).not.toMatch(/channelArt/);
+  expect(card).toMatch(/DefaultSleeve/);
+  const app = fs.readFileSync(path.join(root, "src/App.jsx"), "utf8");
+  expect(app).toMatch(/timeout: 8000/);
+  expect(app).not.toMatch(/timeout: 2200/);
+  const screen = fs.readFileSync(path.join(root, "src/screens/ExploreScreen.jsx"), "utf8");
+  expect(screen).toMatch(/timeout: 2400/);
+  expect(screen).not.toMatch(/will-change: transform/);
+});

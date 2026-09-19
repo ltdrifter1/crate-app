@@ -65,9 +65,9 @@ export default function ExploreHero({
             <CoverImage
               src={hero.art}
               alt=""
-              width={1200}
-              height={750}
-              sizes="(max-width: 720px) 100vw, 1120px"
+              width={800}
+              height={500}
+              sizes="(max-width: 720px) 100vw, 800px"
               priority
               objectPosition={hero.artFocus || "center"}
               style={{ width: "100%", height: "100%", objectFit: "cover" }}

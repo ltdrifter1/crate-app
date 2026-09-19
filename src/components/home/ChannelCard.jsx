@@ -1,58 +1,25 @@
-import { color, glass, hardware, homeSpace, type, y2k } from "../../theme";
-import { catalogSleeveUrl, resolveChannelArt } from "../../lib/channelArt";
+import { color, hardware, homeSpace, type, y2k } from "../../theme";
+import { catalogSleeveUrl } from "../../lib/catalogSleeve";
 import CoverImage from "../ui/CoverImage";
+import DefaultSleeve from "../ui/DefaultSleeve";
 import Icon from "../ui/Icon";
 
 /**
  * ChannelCard — square station tile.
- * Catalog sleeves first; Channel Surfing pictogram is a corner bug.
+ * One catalog sleeve. Missing art uses the disc plate — no pictogram fetch.
  */
 function ChannelArt({
   covers = [],
-  title,
   size,
-  accent,
-  bug = null,
-  objectPosition,
   priority = false,
   eager = false,
 }) {
-  const mosaic = (covers || []).map(catalogSleeveUrl).filter(Boolean).slice(0, 4);
-  const initial = (title || "?").trim().charAt(0).toUpperCase() || "?";
+  const sleeve = (covers || []).map(catalogSleeveUrl).filter(Boolean)[0] || null;
 
-  if (mosaic.length >= 2) {
-    return (
-      <span
-        aria-hidden="true"
-        style={{
-          display: "grid",
-          gridTemplateColumns: "1fr 1fr",
-          gridTemplateRows: mosaic.length >= 4 ? "1fr 1fr" : "1fr",
-          width: "100%",
-          height: "100%",
-        }}
-      >
-        {mosaic.slice(0, 4).map((url, i) => (
-          <span key={`${url}-${i}`} style={{ overflow: "hidden" }}>
-            <CoverImage
-              src={url}
-              alt=""
-              width={Math.round(size / 2)}
-              height={Math.round(size / 2)}
-              priority={priority && i === 0}
-              eager={eager && i < 2}
-              style={{ width: "100%", height: "100%", objectFit: "cover" }}
-            />
-          </span>
-        ))}
-      </span>
-    );
-  }
-
-  if (mosaic[0]) {
+  if (sleeve) {
     return (
       <CoverImage
-        src={mosaic[0]}
+        src={sleeve}
         alt=""
         width={size}
         height={size}
@@ -64,46 +31,7 @@ function ChannelArt({
     );
   }
 
-  return (
-    <span
-      aria-hidden="true"
-      style={{
-        width: "100%",
-        height: "100%",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        background: accent
-          ? `linear-gradient(160deg, ${accent} 0%, #6A7482 78%)`
-          : y2k.artGradient,
-        fontFamily: type.title2.fontFamily,
-        fontSize: Math.round(size * 0.28),
-        fontWeight: 600,
-        letterSpacing: -0.8,
-        color: color.lcdInk,
-      }}
-    >
-      {bug ? (
-        <CoverImage
-          src={bug}
-          alt=""
-          width={Math.round(size * 0.56)}
-          height={Math.round(size * 0.56)}
-          raw
-          priority={priority}
-          eager={eager}
-          objectPosition={objectPosition}
-          style={{
-            width: "56%",
-            height: "56%",
-            objectFit: "contain",
-          }}
-        />
-      ) : (
-        initial
-      )}
-    </span>
-  );
+  return <DefaultSleeve size={size} />;
 }
 
 export default function ChannelCard({
@@ -117,9 +45,7 @@ export default function ChannelCard({
 }) {
   const width = size;
   const title = channel.shortTitle || channel.title;
-  const { src: photo, focus } = resolveChannelArt(channel);
-  const sleeves = (covers || []).map(catalogSleeveUrl).filter(Boolean);
-  const showBug = sleeves.length > 0 && photo;
+  const sleeves = (covers || []).map(catalogSleeveUrl).filter(Boolean).slice(0, 1);
 
   return (
     <button
@@ -175,11 +101,7 @@ export default function ChannelCard({
         >
           <ChannelArt
             covers={sleeves}
-            title={title}
             size={width}
-            accent={channel.accent}
-            bug={photo}
-            objectPosition={focus}
             priority={priority}
             eager={eager}
           />
@@ -195,37 +117,6 @@ export default function ChannelCard({
                 "linear-gradient(165deg, rgba(255,255,255,0.28) 0%, rgba(232,241,248,0.06) 32%, transparent 58%)",
             }}
           />
-
-          {showBug && (
-            <span
-              aria-hidden="true"
-              style={{
-                position: "absolute",
-                top: 8,
-                right: 8,
-                zIndex: 2,
-                width: 28,
-                height: 28,
-                borderRadius: 8,
-                overflow: "hidden",
-                border: "1px solid rgba(216,223,232,0.5)",
-                boxShadow: "inset 0 1px 0 rgba(255,255,255,0.4), 0 4px 10px rgba(58,66,80,0.28)",
-                background: glass.fillStrong,
-                backdropFilter: glass.blurSoft,
-                WebkitBackdropFilter: glass.blurSoft,
-              }}
-            >
-              <CoverImage
-                src={photo}
-                alt=""
-                width={28}
-                height={28}
-                raw
-                objectPosition={focus}
-                style={{ width: "100%", height: "100%", objectFit: "cover" }}
-              />
-            </span>
-          )}
 
           {active && (
             <span

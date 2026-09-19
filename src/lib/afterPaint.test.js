@@ -70,8 +70,8 @@ describe("runWhenIdle", () => {
     });
     global.requestIdleCallback = idle;
     global.cancelIdleCallback = jest.fn();
-    runWhenIdle(fn, { timeout: 500 });
-    expect(idle).toHaveBeenCalledWith(expect.any(Function), { timeout: 500 });
+    runWhenIdle(fn, { timeout: 8000 });
+    expect(idle).toHaveBeenCalledWith(expect.any(Function), { timeout: 8000 });
     expect(fn).toHaveBeenCalledTimes(1);
   });
 

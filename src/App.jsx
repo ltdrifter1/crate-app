@@ -29,7 +29,7 @@ import {
   shouldIgnoreUnlockTransportEvent,
 } from "./lib/audioUnlock";
 import { explainPick } from "./lib/explain";
-import { fetchCatalogTracks, fetchHomeLite, isCatalogCacheFresh, readCatalogIdb, writeCatalogIdb } from "./lib/catalogLoad";
+import { fetchCatalogTracks, fetchHomeLite, isCatalogCacheFresh, readCatalogIdb, writeCatalogIdb, HOME_LITE_LIMIT } from "./lib/catalogLoad";
 import { hydrateCatalogTracks } from "./lib/catalogHydrate";
 import { runAfterPaint, runWhenIdle } from "./lib/afterPaint";
 import { slugify, findArtist, findAlbum } from "./lib/catalog";
@@ -150,9 +150,9 @@ const DevOnboardingPreview =
 const loadExploreScreen = () => import("./screens/ExploreScreen");
 const ExploreScreen = lazy(loadExploreScreen);
 if (typeof requestIdleCallback === "function") {
-  requestIdleCallback(() => loadExploreScreen(), { timeout: 2200 });
+  requestIdleCallback(() => loadExploreScreen(), { timeout: 8000 });
 } else {
-  setTimeout(loadExploreScreen, 900);
+  setTimeout(loadExploreScreen, 8000);
 }
 const SearchScreen = lazy(() => import("./screens/SearchScreen"));
 const FavoritesScreen = lazy(() => import("./screens/FavoritesScreen"));
@@ -1246,6 +1246,19 @@ export default function App() {
 
   const catalogIdleStopRef = useRef(() => {});
   const reloadCatalogRef = useRef(null);
+  const catalogFullRef = useRef(false);
+  const catalogFullDueRef = useRef(null);
+  const scheduleFullCatalog = useCallback((timeout) => {
+    if (catalogFullRef.current) return;
+    const ms = Math.max(0, Number(timeout) || 8000);
+    if (catalogFullDueRef.current != null && catalogFullDueRef.current <= ms) return;
+    catalogFullDueRef.current = ms;
+    catalogIdleStopRef.current();
+    catalogIdleStopRef.current = runWhenIdle(() => {
+      if (catalogFullRef.current) return;
+      reloadCatalogRef.current?.({ background: true, full: true });
+    }, { timeout: ms });
+  }, []);
   const reloadCatalog = useCallback(async ({ background = false, full = false } = {}) => {
     if (!background) setTracksLoading(true);
     setTracksLoadError(null);
@@ -1256,14 +1269,12 @@ export default function App() {
           setTracks(applyLikedFlags(lite.tracks));
           setTracksLoading(false);
           // Full catalog waits until Home images have a beat. Do not IDB-cache the lite slice.
-          catalogIdleStopRef.current();
-          catalogIdleStopRef.current = runWhenIdle(() => {
-            reloadCatalogRef.current?.({ background: true, full: true });
-          }, { timeout: 4000 });
+          scheduleFullCatalog(8000);
           return;
         }
       }
       const loaded = await fetchCatalogTracks(db);
+      catalogFullRef.current = true;
       const liked = applyLikedFlags(loaded);
       if (background) {
         const hydrated = applyLikedFlags(await hydrateCatalogTracks(loaded));
@@ -1288,7 +1299,7 @@ export default function App() {
       }
     }
     if (!background) setTracksLoading(false);
-  }, [applyLikedFlags, writeCatalogCache]);
+  }, [applyLikedFlags, writeCatalogCache, scheduleFullCatalog]);
   reloadCatalogRef.current = reloadCatalog;
 
   // ── Load tracks once on mount — IDB/local cache instantly, refresh behind ──
@@ -1303,6 +1314,7 @@ export default function App() {
         const list = cached.tracks;
         setTracks(applyLikedFlags(list));
         setTracksLoading(false);
+        if (list.length > HOME_LITE_LIMIT) catalogFullRef.current = true;
         const hydratedAlready = list[0] && Object.prototype.hasOwnProperty.call(list[0], "_scene");
         if (!hydratedAlready) {
           stopHydrateRef.current = runAfterPaint(() => {
@@ -1313,10 +1325,7 @@ export default function App() {
           });
         }
         if (!isCatalogCacheFresh(cached)) {
-          catalogIdleStopRef.current = runWhenIdle(
-            () => reloadCatalog({ background: true, full: true }),
-            { timeout: 4000 }
-          );
+          scheduleFullCatalog(8000);
         }
       } else {
         reloadCatalog();
@@ -1329,6 +1338,12 @@ export default function App() {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    if (screen === "home") return undefined;
+    scheduleFullCatalog(1600);
+    return undefined;
+  }, [screen, scheduleFullCatalog]);
 
   // ── Once profile loads, merge liked status + playlists into state ─────────
   useEffect(() => {

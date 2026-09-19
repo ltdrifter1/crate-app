@@ -20,7 +20,7 @@ import { CANONICAL_GENRES } from "../../lib/genres";
 import { SCENE_CHANNELS } from "../../lib/sceneChannels";
 import CoverImage from "../ui/CoverImage";
 import Icon from "../ui/Icon";
-import { catalogSleeveUrl } from "../../lib/channelArt";
+import { catalogSleeveUrl } from "../../lib/catalogSleeve";
 import { TrackActionsMenu, TrackMoreButton, useTrackMenu } from "../listen/TrackRow";
 
 function formatDayLabel(dayKey) {

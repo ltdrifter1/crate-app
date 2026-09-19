@@ -42,7 +42,7 @@ export function runWhenIdle(fn, { timeout = 1200 } = {}) {
       if (typeof cancelIdleCallback === "function") cancelIdleCallback(id);
     };
   }
-  const delay = Math.max(0, Math.min(Number(timeout) || 1200, 1200));
+  const delay = Math.max(0, Number(timeout) || 1200);
   const id = setTimeout(run, delay);
   return () => {
     cancelled = true;
