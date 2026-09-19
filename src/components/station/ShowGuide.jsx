@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import {
-  color, fontDisplay, fontMono, homeSpace, motion, chrome, hardware, y2k, radio
+  color, fontDisplay, fontMono, glassStage, homeSpace, motion, chrome, hardware, y2k, radio
 } from "../../theme";
 import {
   buildDailyGuide,
@@ -510,8 +510,10 @@ export function ShowGuideRail({
   onSelectShow = null,
   embedded = false,
   flush = false,
+  contained = false,
 }) {
   if (!guide.length) return null;
+  const railPadX = contained ? 2 : homeSpace.gutter;
 
   return (
     <section
@@ -531,7 +533,7 @@ export function ShowGuideRail({
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
-            padding: `0 ${homeSpace.gutter}px`,
+            padding: `0 ${railPadX}px`,
             marginBottom: 10,
           }}
         >
@@ -565,7 +567,7 @@ export function ShowGuideRail({
           display: "flex",
           gap: 0,
           overflowX: "auto",
-          padding: `0 ${homeSpace.gutter}px 2px`,
+          padding: `0 ${railPadX}px 2px`,
           scrollSnapType: "x mandatory",
           WebkitOverflowScrolling: "touch",
           borderTop: "1px solid rgba(216,223,232,0.08)",
@@ -698,8 +700,7 @@ export function ShowGuideRail({
 }
 
 /**
- * On Tonight — single EPG band.
- * Shared HomeBandHeader left edge. No chassis card. No nested panels.
+ * On Tonight — single EPG band in a frosted glass stage.
  */
 export function TonightDeck({
   airing = null,
@@ -724,41 +725,40 @@ export function TonightDeck({
       className="pmp-tonight-stage"
       style={{
         marginTop: first ? homeSpace.sectionGapFirst : homeSpace.sectionGap,
-        padding: 0,
+        padding: `0 ${homeSpace.gutter}px`,
         animation: `rise 0.5s ${motion.ease} 0.05s both`,
         position: "relative",
       }}
     >
-      <HomeBandHeader
-        title="On Tonight"
-        subtitle={show?.tagline || "Tonight’s programmed blocks"}
-        meta={STATION_CALLSIGN}
-      />
-
-      {hasNow && (
-        <div
-          style={{
-            padding: `0 ${homeSpace.gutter}px`,
-            marginBottom: hasGuide ? 18 : 0,
-          }}
-        >
-          <OnAirStage
-            airing={airing}
-            bumper={bumper}
-            tuned={tuned}
-            onTuneIn={onTuneIn}
-          />
-        </div>
-      )}
-
-      {hasGuide && (
-        <ShowGuideRail
-          guide={guide}
-          activeShowId={activeShowId}
-          onSelectShow={onSelectShow}
+      <div className="pmp-glass-stage pmp-tonight-glass" style={glassStage}>
+        <HomeBandHeader
           flush
+          title="On Tonight"
+          subtitle={show?.tagline || "Tonight’s programmed blocks"}
+          meta={STATION_CALLSIGN}
         />
-      )}
+
+        {hasNow && (
+          <div style={{ marginBottom: hasGuide ? 18 : 0 }}>
+            <OnAirStage
+              airing={airing}
+              bumper={bumper}
+              tuned={tuned}
+              onTuneIn={onTuneIn}
+            />
+          </div>
+        )}
+
+        {hasGuide && (
+          <ShowGuideRail
+            guide={guide}
+            activeShowId={activeShowId}
+            onSelectShow={onSelectShow}
+            flush
+            contained
+          />
+        )}
+      </div>
     </section>
   );
 }

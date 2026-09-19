@@ -638,6 +638,29 @@ export const glassControl = {
 };
 
 /**
+ * Premium home stage — frosted plate with a soft, blurred rim.
+ * Used by the hero player and On Tonight.
+ */
+export const glassStage = {
+  position: "relative",
+  isolation: "isolate",
+  overflow: "hidden",
+  borderRadius: 22,
+  border: "1px solid rgba(255,255,255,0.46)",
+  background: `
+    linear-gradient(165deg, rgba(255,255,255,0.42) 0%, rgba(216,223,232,0.20) 46%, rgba(184,191,202,0.14) 100%)
+  `,
+  boxShadow: `
+    inset 0 1px 0 rgba(255,255,255,0.7),
+    inset 0 -1px 0 rgba(58,66,80,0.08),
+    0 24px 56px rgba(58,66,80,0.2),
+    0 2px 10px rgba(58,66,80,0.08)
+  `,
+  backdropFilter: glass.blur,
+  WebkitBackdropFilter: glass.blur,
+};
+
+/**
  * Machined hardware plate — beveled inset for home bands / featured CTAs.
  */
 export function chromeFrame(opts = {}) {

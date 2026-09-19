@@ -567,8 +567,9 @@ const injectStyles = () => {
     }
     .pmp-hero-bezel {
       box-shadow:
-        inset 0 1px 0 rgba(216,223,232,0.1),
-        0 16px 36px rgba(58,66,80,0.45);
+        inset 0 1px 0 rgba(255,255,255,0.7),
+        inset 0 -1px 0 rgba(58,66,80,0.08),
+        0 24px 56px rgba(58,66,80,0.2);
     }
     .pmp-home-mtv::before { display: none; }
     .pmp-home-mtv > * { position: relative; z-index: 1; }

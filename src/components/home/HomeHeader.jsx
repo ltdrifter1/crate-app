@@ -1,4 +1,4 @@
-import { chromeIconButton, color, fontMono, homeSpace, type, y2k } from "../../theme";
+import { chromeIconButton, color, fontMono, homeSpace } from "../../theme";
 import Icon from "../ui/Icon";
 import BetaBadge from "../billing/BetaLaunchNotice";
 import { BETA_LAUNCH } from "../../lib/entitlements";
@@ -30,46 +30,32 @@ export default function HomeHeader({
     <header
       style={{
         display: "flex",
-        alignItems: "flex-end",
+        alignItems: "center",
         justifyContent: "space-between",
         gap: 12,
         padding: `calc(18px + env(safe-area-inset-top, 0px)) ${homeSpace.gutter}px 6px`,
       }}
     >
-      <div style={{ minWidth: 0 }}>
-        <div
+      <div style={{ minWidth: 0, display: "flex", alignItems: "center", gap: 10 }}>
+        <h1
           style={{
+            margin: 0,
             fontFamily: fontMono,
             fontSize: 13,
             fontWeight: 700,
             letterSpacing: 0.14,
             textTransform: "uppercase",
             color: color.accent,
-            marginBottom: 6,
-          }}
-        >
-          PLANET / 003
-        </div>
-        <h1
-          style={{
-            ...type.largeTitle,
-            fontSize: 22,
-            letterSpacing: -0.4,
-            margin: 0,
-            color: y2k.offWhite,
             whiteSpace: "nowrap",
             overflow: "hidden",
             textOverflow: "ellipsis",
-            display: "flex",
-            alignItems: "center",
-            gap: 10,
           }}
         >
-          Planet MP3
-          {BETA_LAUNCH && <BetaBadge />}
+          PLANET / 003
         </h1>
+        {BETA_LAUNCH && <BetaBadge />}
       </div>
-      <div style={{ display: "flex", alignItems: "center", gap: 8, paddingBottom: 4 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
         {onOpenMenu && <HeaderButton label="Browse" icon="menu" onClick={onOpenMenu} />}
         <HeaderButton label="Search" icon="search" onClick={onOpenSearch} />
         <HeaderButton label="Profile" icon="profile" onClick={onOpenProfile} />

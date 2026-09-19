@@ -318,56 +318,7 @@ function HomeScreen({
         />
       </div>
 
-      {(catalogError || catalogEmpty || catalogDepleted) && (
-        <HomeCatalogStatus
-          error={catalogError}
-          isEmpty={catalogEmpty || catalogDepleted}
-          playableCount={playableCount}
-          totalCount={tracks.length}
-          onRetry={onRetryCatalog}
-        />
-      )}
-
-      {hasChannels && (
-        <ChannelSurfingSection
-          channels={channels}
-          tracks={tracks}
-          activeChannelId={sceneChannelsActiveId}
-          onTuneChannel={onTuneSceneChannel}
-          first
-          delay={0.05}
-          featured
-        />
-      )}
-
-      {/* One crate spread per Home — countdown if that's the only band, else first editorial */}
-      {shelvesReady && catalogReady && (editorial[0]?.tracks?.length > 0 || topRequested.length > 0) && (
-        <CrateSpread
-          title={editorial[0]?.tracks?.length ? editorial[0].label : "Most Requested"}
-          subtitle={editorial[0]?.tracks?.length ? editorial[0].story : "Tonight's countdown"}
-          tracks={
-            editorial[0]?.tracks?.length
-              ? editorial[0].tracks
-              : topRequested.map((e) => e.track)
-          }
-          ranks={
-            editorial[0]?.tracks?.length
-              ? null
-              : topRequested.map((e) => e.rank)
-          }
-          activeId={activeId}
-          onPlayTrack={onPlayTrack}
-          action={
-            !editorial[0]?.tracks?.length && onOpenCharts
-              ? { label: "See All", onClick: onOpenCharts }
-              : !editorial[0]?.tracks?.length && onTuneCountdown
-                ? { label: "Tune In", onClick: onTuneCountdown }
-                : null
-          }
-        />
-      )}
-
-      {shelvesReady && catalogReady && hasTonight && (
+      {shelvesReady && hasTonight && (
         <div style={{ contentVisibility: "auto", containIntrinsicSize: "320px" }}>
           <Suspense fallback={null}>
             <TonightDeck
@@ -385,36 +336,36 @@ function HomeScreen({
         </div>
       )}
 
-      {shelvesReady && catalogReady && editorial[0]?.tracks?.length > 0 && topRequested.length > 0 && (
-        <div style={{ contentVisibility: "auto", containIntrinsicSize: "280px" }}>
-        <MusicSection
-          title="Most Requested"
-          subtitle="Tonight's countdown"
-          poster
+      {(catalogError || catalogEmpty || catalogDepleted) && (
+        <HomeCatalogStatus
+          error={catalogError}
+          isEmpty={catalogEmpty || catalogDepleted}
+          playableCount={playableCount}
+          totalCount={tracks.length}
+          onRetry={onRetryCatalog}
+        />
+      )}
+
+      {hasChannels && (
+        <ChannelSurfingSection
+          channels={channels}
+          tracks={tracks}
+          activeChannelId={sceneChannelsActiveId}
+          onTuneChannel={onTuneSceneChannel}
           first={false}
-          action={
-            onOpenCharts
-              ? { label: "See All", onClick: onOpenCharts }
-              : onTuneCountdown
-                ? { label: "Tune In", onClick: onTuneCountdown }
-                : null
-          }
-          delay={0.06}
-        >
-          <Rail gap={16}>
-            {topRequested.slice(0, 6).map(({ rank, track }) => (
-              <TrackCard
-                key={track.id}
-                track={track}
-                rank={rank}
-                size={featuredSize}
-                active={activeId === track.id}
-                onClick={() => onPlayTrack?.(track, topRequested.map((e) => e.track))}
-              />
-            ))}
-          </Rail>
-        </MusicSection>
-        </div>
+          delay={0.05}
+          featured
+        />
+      )}
+
+      {shelvesReady && catalogReady && editorial[0]?.tracks?.length > 0 && (
+        <CrateSpread
+          title={editorial[0].label}
+          subtitle={editorial[0].story}
+          tracks={editorial[0].tracks}
+          activeId={activeId}
+          onPlayTrack={onPlayTrack}
+        />
       )}
 
       {shelvesReady && catalogReady &&
@@ -439,6 +390,56 @@ function HomeScreen({
           </MusicSection>
           </div>
         ))}
+
+      {shelvesReady && catalogReady && topRequested.length > 0 && (
+        editorial[0]?.tracks?.length ? (
+          <div style={{ contentVisibility: "auto", containIntrinsicSize: "280px" }}>
+          <MusicSection
+            title="Most Requested"
+            subtitle="Tonight's countdown"
+            poster
+            first={false}
+            action={
+              onOpenCharts
+                ? { label: "See All", onClick: onOpenCharts }
+                : onTuneCountdown
+                  ? { label: "Tune In", onClick: onTuneCountdown }
+                  : null
+            }
+            delay={0.06}
+          >
+            <Rail gap={16}>
+              {topRequested.slice(0, 6).map(({ rank, track }) => (
+                <TrackCard
+                  key={track.id}
+                  track={track}
+                  rank={rank}
+                  size={featuredSize}
+                  active={activeId === track.id}
+                  onClick={() => onPlayTrack?.(track, topRequested.map((e) => e.track))}
+                />
+              ))}
+            </Rail>
+          </MusicSection>
+          </div>
+        ) : (
+          <CrateSpread
+            title="Most Requested"
+            subtitle="Tonight's countdown"
+            tracks={topRequested.map((e) => e.track)}
+            ranks={topRequested.map((e) => e.rank)}
+            activeId={activeId}
+            onPlayTrack={onPlayTrack}
+            action={
+              onOpenCharts
+                ? { label: "See All", onClick: onOpenCharts }
+                : onTuneCountdown
+                  ? { label: "Tune In", onClick: onTuneCountdown }
+                  : null
+            }
+          />
+        )
+      )}
 
       {catalogLoading && <HomeStandBy />}
 
