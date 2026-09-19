@@ -973,7 +973,8 @@ export function channelCoverUrls(tracks = [], channel, limit = 4) {
   }
   const direct = singlesOnly(tracks).filter((t) => matchesChannel(t, channel));
   if (push(direct)) return out;
-  if (push(buildSceneChannelPool(tracks, channel))) return out;
+  // Full scene-pool sort is expensive; skip it when Home only needs one sleeve.
+  if (max > 1 && push(buildSceneChannelPool(tracks, channel))) return out;
   const fallback = catalogCoverUrl(channel?.art);
   if (fallback && !seen.has(fallback)) out.push(fallback);
   return out;

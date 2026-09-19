@@ -18,7 +18,6 @@ import ChartsScreen from "../components/station/ChartsScreen";
 import SetBuilderScreen from "../components/set/SetBuilderScreen";
 import { makeSetPreviewCatalog } from "./SetPreview";
 import { color, homeSpace } from "../theme";
-import HomeMessenger from "../components/chat/HomeMessenger";
 import { previewSleeve } from "./sleeves";
 
 const SAMPLE_COVER = previewSleeve("night-drive", "Night Drive");
@@ -255,17 +254,6 @@ export default function BroadcastPreview() {
           home
         )}
       </div>
-      {isDesktop && (
-        <HomeMessenger
-          variant="desktop"
-          viewportWidth={1280}
-          defaultOpen
-          live={false}
-          uid="u1"
-          displayName="Luke"
-          nowPlaying={SAMPLE_TRACK}
-        />
-      )}
       {isDesktop ? null : (
       <div
         style={{

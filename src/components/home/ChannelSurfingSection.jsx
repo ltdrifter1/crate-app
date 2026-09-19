@@ -1,4 +1,4 @@
-import { memo } from "react";
+import { memo, useMemo } from "react";
 import { homeSpace, motion } from "../../theme";
 import { channelCoverUrls } from "../../lib/sceneChannels";
 import { Rail } from "./MusicSection";
@@ -7,8 +7,8 @@ import HomeBandHeader from "./HomeBandHeader";
 
 /**
  * Channel surfing — first Home destination band.
- * First tile is art-forward and larger when `featured`; Local is not gold-haloed.
- * Sleeves lead; Channel pictograms sit as bugs on the tile.
+ * One catalog sleeve per tile (not a 4-up mosaic) so Home does not fire
+ * dozens of cover requests on first paint. Pictogram stays the bug / backup.
  */
 function ChannelSurfingSection({
   channels = [],
@@ -21,6 +21,14 @@ function ChannelSurfingSection({
   subtitle = "Flip the dial. Music stays on this stage.",
   featured = false,
 }) {
+  const coverById = useMemo(() => {
+    const map = {};
+    for (const channel of channels) {
+      map[channel.id] = channelCoverUrls(tracks, channel, 1);
+    }
+    return map;
+  }, [channels, tracks]);
+
   if (!channels.length) return null;
 
   const tile = featured ? Math.round(homeSpace.tileTicket * 0.92) : homeSpace.tileTicket;
@@ -53,11 +61,11 @@ function ChannelSurfingSection({
           >
             <ChannelCard
               channel={channel}
-              covers={channelCoverUrls(tracks, channel, 4)}
+              covers={coverById[channel.id] || []}
               active={activeChannelId === channel.id}
               size={i === 0 ? lead : tile}
               priority={i === 0}
-              eager={i === 1}
+              eager={i < 3}
               onClick={() => onTuneChannel?.(channel)}
             />
           </div>

@@ -16,6 +16,21 @@ const STORAGE_HOST_SUFFIXES = [
   "firebasestorage.app",
 ];
 
+/** Session circuit-breaker: one /cdn-cgi/image 404 turns CF off for everyone. */
+let cloudflareResizeOk = true;
+
+export function isCloudflareResizeAvailable() {
+  return cloudflareResizeOk;
+}
+
+export function markCloudflareResizeUnavailable() {
+  cloudflareResizeOk = false;
+}
+
+export function resetCloudflareResizeForTests() {
+  cloudflareResizeOk = true;
+}
+
 function envResizeMode() {
   const raw = typeof process !== "undefined" ? process.env.REACT_APP_COVER_RESIZE : "";
   const mode = String(raw || "cf").trim().toLowerCase();
@@ -116,12 +131,15 @@ export function coverDisplayUrl(src, opts = {}) {
   const width = coverResizeWidth(opts.width || 168, opts.dpr);
   const quality = opts.quality;
   if (mode === "firebase") return firebaseThumbUrl(src, width);
+  if (!cloudflareResizeOk) return src;
   return cloudflareImageUrl(src, { width, quality });
 }
 
 /** `1x, 2x` srcset so 1× screens skip the retina bucket. */
 export function coverSrcSet(src, cssPx, opts = {}) {
   if (!src) return "";
+  const mode = opts.mode || envResizeMode();
+  if (mode === "cf" && !cloudflareResizeOk) return "";
   const one = coverDisplayUrl(src, { ...opts, width: cssPx, dpr: 1 });
   const two = coverDisplayUrl(src, { ...opts, width: cssPx, dpr: 2 });
   if (!one || one === two) return "";
