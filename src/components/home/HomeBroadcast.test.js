@@ -69,8 +69,11 @@ describe("Home broadcast + four-tab IA", () => {
       );
     });
     expect(div.querySelector('button[aria-label="Charts"]')).toBeNull();
-    expect(div.textContent).toMatch(/PLANET \/ 003/);
+    expect(div.textContent).not.toMatch(/PLANET \/ 003/);
     expect(div.textContent).not.toMatch(/Planet MP3/);
+    expect(div.textContent).not.toMatch(/PMP3/);
+    expect(div.querySelector('button[aria-label="Previous"]')).toBeNull();
+    expect(div.querySelector('button[aria-label="Back"]')).toBeNull();
     const search = div.querySelector('button[aria-label="Search"]');
     expect(search).toBeTruthy();
     expect(div.querySelector(".pmp-onair-chip")).toBeNull();
@@ -149,10 +152,13 @@ describe("Home broadcast + four-tab IA", () => {
     expect(div.querySelector(".pmp-hero-sleeve")).toBeTruthy();
     expect(div.querySelector(".pmp-hero-wash")).toBeTruthy();
     expect(div.querySelector(".pmp-glass-stage")).toBeTruthy();
+    expect(div.textContent).not.toMatch(/PMP3/);
+    expect(div.textContent).not.toMatch(/PLANET \/ 003/);
+    expect(div.querySelector('[aria-label="Previous"]')).toBeNull();
     expect(div.textContent).toMatch(/On air/i);
-    expect(div.textContent).toMatch(/PMP3/);
     expect(div.textContent).toMatch(/Night Drive/);
     expect(div.textContent).toMatch(/Up next/i);
+    expect(div.querySelector(".pmp-upnext-glass")).toBeTruthy();
     expect(div.textContent).toMatch(/After Hours/);
     const seek = div.querySelector('[aria-label="Seek"]');
     expect(seek).toBeTruthy();
@@ -397,6 +403,7 @@ describe("Home broadcast + four-tab IA", () => {
     expect(stage.className).toMatch(/pmp-glass-stage/);
     expect(div.textContent).toMatch(/On Tonight/);
     expect(div.textContent).toMatch(/Prime-time countdown with Dez/);
+    expect(div.textContent).not.toMatch(/PMP3/);
   });
 
   test("home does not open a showcase popup for Local", async () => {
