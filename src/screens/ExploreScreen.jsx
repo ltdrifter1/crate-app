@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState, memo } from "react";
 import { runAfterPaint, runAfterDelay } from "../lib/afterPaint";
-import { catalogSleeveUrl } from "../lib/catalogSleeve";
 import {
   chromeIconButton,
   color,
@@ -15,7 +14,6 @@ import {
   y2k,
 } from "../theme";
 import Icon from "../components/ui/Icon";
-import CoverImage from "../components/ui/CoverImage";
 import { useCurrentTrack, useIsPlaying } from "../usePlayerTransport";
 import MusicSection, { Rail } from "../components/home/MusicSection";
 import TrackCard from "../components/home/TrackCard";
@@ -29,7 +27,6 @@ import ExploreFocus from "../components/explore/ExploreFocus";
 import CamelotKeyRail from "../components/search/CamelotKeyRail";
 import {
   buildExploreHero,
-  exploreChartsTeaser,
   exploreForYou,
   exploreGenrePlates,
   exploreMoodPlates,
@@ -66,8 +63,6 @@ const EXPLORE_CSS = `
     border-color: rgba(61,70,84,0.2) !important;
     background: rgba(216,223,232,0.88) !important;
   }
-  .pmp-explore-chart-row:hover { background: rgba(61,70,84,0.06) !important; }
-  .pmp-explore-chart-row:active { transform: scale(0.992); }
   .pmp-releases {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -148,123 +143,6 @@ function SearchEntry({ onOpenSearch }) {
   );
 }
 
-function ChartsTeaser({ rows = [], onPlayTrack, onOpenCharts, activeId }) {
-  if (!rows.length) return null;
-  return (
-    <div style={{ padding: `0 ${homeSpace.gutter}px` }}>
-      {rows.map((entry, i) => {
-        const track = entry.track || entry;
-        const rank = entry.rank || i + 1;
-        if (!track?.id) return null;
-        return (
-          <button
-            key={track.id}
-            type="button"
-            className="pmp-explore-chart-row"
-            onClick={() => onPlayTrack?.(track, rows.map((r) => r.track || r).filter(Boolean))}
-            aria-label={`Play #${rank} ${track.title} by ${track.artist}`}
-            style={{
-              width: "100%",
-              display: "grid",
-              gridTemplateColumns: "28px 48px minmax(0, 1fr)",
-              alignItems: "center",
-              gap: 12,
-              padding: "8px 4px",
-              border: "none",
-              borderBottom: "1px solid rgba(28,32,40,0.08)",
-              background: "transparent",
-              color: color.ink,
-              cursor: "pointer",
-              textAlign: "left",
-              WebkitTapHighlightColor: "transparent",
-            }}
-          >
-            <span
-              style={{
-                fontFamily: fontDisplay,
-                fontSize: 15,
-                fontWeight: 700,
-                fontVariantNumeric: "tabular-nums",
-                letterSpacing: -0.3,
-                color: rank === 1 ? color.ink : color.muted,
-                textShadow: "none",
-              }}
-            >
-              {rank}
-            </span>
-            <span
-              style={{
-                width: 48,
-                height: 48,
-                borderRadius: 8,
-                overflow: "hidden",
-                background: y2k.artGradient,
-                boxShadow: activeId === track.id ? "0 0 0 1px rgba(247,248,250,0.7)" : "none",
-              }}
-            >
-              <CoverImage
-                src={catalogSleeveUrl(track.albumCover) || ""}
-                alt=""
-                width={48}
-                height={48}
-              />
-            </span>
-            <span style={{ minWidth: 0 }}>
-              <span
-                style={{
-                  display: "block",
-                  fontFamily: fontDisplay,
-                  fontSize: 15,
-                  fontWeight: 650,
-                  letterSpacing: -0.22,
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
-                  whiteSpace: "nowrap",
-                }}
-              >
-                {track.title}
-              </span>
-              <span
-                style={{
-                  display: "block",
-                  marginTop: 2,
-                  fontSize: 13,
-                  color: color.muted,
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
-                  whiteSpace: "nowrap",
-                }}
-              >
-                {track.artist}
-              </span>
-            </span>
-          </button>
-        );
-      })}
-      {onOpenCharts && (
-        <button
-          type="button"
-          className="pmp-view-all"
-          onClick={onOpenCharts}
-          style={{
-            marginTop: 10,
-            background: "none",
-            border: "none",
-            color: color.accent,
-            fontFamily: fontDisplay,
-            fontSize: 15,
-            fontWeight: 600,
-            cursor: "pointer",
-            padding: "6px 0",
-          }}
-        >
-          Open Charts
-        </button>
-      )}
-    </div>
-  );
-}
-
 function EmptyExplore({ onOpenSearch }) {
   return (
     <div style={{ marginTop: homeSpace.sectionGap, padding: `0 ${homeSpace.gutter}px` }}>
@@ -316,7 +194,7 @@ function EmptyExplore({ onOpenSearch }) {
 
 /**
  * Explore — world-class discovery destination.
- * Editorial hero, genre mosaic, moods, scenes, stations, sleeves, charts.
+ * Editorial hero, genre mosaic, moods, scenes, stations, sleeves.
  */
 function ExploreScreen({
   tracks = [],
@@ -356,7 +234,6 @@ function ExploreScreen({
     () => (paintReady ? exploreGenrePlates(tracks, deepReady ? 12 : 6) : []),
     [tracks, paintReady, deepReady]
   );
-  const charts = useMemo(() => exploreChartsTeaser(countdown, 5), [countdown]);
   const stations = useMemo(
     () => (deepReady ? exploreStations(tracks) : []),
     [tracks, deepReady]
@@ -396,9 +273,9 @@ function ExploreScreen({
         tracks,
         channels: [],
         releases: [],
-        countdown,
+        countdown: [],
       }),
-    [tracks, countdown]
+    [tracks]
   );
 
   const focus = useMemo(
@@ -445,8 +322,7 @@ function ExploreScreen({
     stations.some((c) => c.ready) ||
     releases.length > 0 ||
     forYou.tracks.length > 0 ||
-    recents.length > 0 ||
-    charts.length > 0;
+    recents.length > 0;
 
   if (focus) {
     return (
@@ -625,22 +501,6 @@ function ExploreScreen({
             albums={releases}
             onOpenAlbum={onOpenAlbum}
             onPlayTrack={onPlayTrack}
-          />
-        </MusicSection>
-      )}
-
-      {charts.length > 0 && (
-        <MusicSection
-          title="On the board"
-          subtitle="Most requested"
-          delay={0.18}
-          action={onOpenCharts ? { label: "Charts", onClick: onOpenCharts } : null}
-        >
-          <ChartsTeaser
-            rows={charts}
-            onPlayTrack={onPlayTrack}
-            onOpenCharts={onOpenCharts}
-            activeId={activeId}
           />
         </MusicSection>
       )}

@@ -1,7 +1,6 @@
-import { memo, useEffect, useMemo, useState } from "react";
+import { memo, useEffect, useState } from "react";
 import { homeSpace, motion } from "../../theme";
 import { runAfterDelay } from "../../lib/afterPaint";
-import { channelCoverUrls } from "../../lib/sceneChannels";
 import { Rail } from "./MusicSection";
 import ChannelCard from "./ChannelCard";
 import HomeBandHeader from "./HomeBandHeader";
@@ -11,8 +10,7 @@ export const FIRST_STATIONS = 6;
 
 /**
  * Channel surfing — first Home destination band.
- * One catalog sleeve per tile. Pictograms never load here — missing art
- * uses the disc fallback so Home does not fetch 14 channel PNGs.
+ * Each tile is a small PS1 plate from /channels/*.png (no album-sleeve fetch).
  */
 function ChannelSurfingSection({
   channels = [],
@@ -33,14 +31,6 @@ function ChannelSurfingSection({
   }, [channels.length]);
 
   const visible = showAll ? channels : channels.slice(0, FIRST_STATIONS);
-
-  const coverById = useMemo(() => {
-    const map = {};
-    for (const channel of visible) {
-      map[channel.id] = channelCoverUrls(tracks, channel, 1);
-    }
-    return map;
-  }, [visible, tracks]);
 
   if (!channels.length) return null;
 
@@ -74,7 +64,6 @@ function ChannelSurfingSection({
           >
             <ChannelCard
               channel={channel}
-              covers={coverById[channel.id] || []}
               active={activeChannelId === channel.id}
               size={i === 0 ? lead : tile}
               priority={i === 0}

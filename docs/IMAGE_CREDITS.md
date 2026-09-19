@@ -1,8 +1,8 @@
 # Image credits
 
-Planet MP3 Channel Surfing tiles, the idle Home hero, and Explore plates that reuse the same slots are **published music drawings** composited onto steel plates — not AI-generated art, not photographs.
+Planet MP3 Channel Surfing tiles are **PS1-style pixel plates** on brushed aluminum — small 256px PNGs served from `/channels/` so Home Channel Surfing paints without fetching album sleeves.
 
-Style: Game Icons (CC BY 3.0) instrument / format drawings on brushed aluminum. No photographs, no type burned into the artwork. Regenerated from `scripts/render-channel-art.py`.
+Style: dithered 1-bit silhouettes on steel, matching the inserted PS1 / iTunes-genre set. No photographs, no type burned into the artwork.
 
 **Not in this set:** catalog album covers from Firebase, brand lockups/mascot (original drawings), or user-uploaded art.
 
@@ -12,27 +12,30 @@ Style: Game Icons (CC BY 3.0) instrument / format drawings on brushed aluminum. 
 
 | Source | License | Commercial app UI | Attribution |
 |--------|---------|-------------------|-------------|
-| [Game Icons](https://game-icons.net/) via [Iconify](https://iconify.design/) | [CC BY 3.0](https://creativecommons.org/licenses/by/3.0/) | Yes | GameIcons authors (Lorc, Delapouite, and contributors) |
+| Split plates from the PS1 genre insert (Pop, Rock, Metal, Punk, Reggae vinyl, Electronic) | Original product art | Yes | Planet MP3 |
+| Additional plates (House, Local, UK Garage, Dubstep, Drum & Bass, Shoegaze, Country & Folk, Downtempo) | Original PS1-style plates | Yes | Planet MP3 |
 | Steel plates | Original compositing in this repo | Yes | Planet MP3 |
 
 ## Channel Surfing
 
-| Slot | File | Drawing (Game Icons) |
+| Slot | File | Drawing |
 |------|------|--------|
-| CH-01 Y2K Dance | `y2k-dance.png` | `musical-notes` + `sparkles` |
-| CH-02 Psychedelic Rock | `psychedelic-rock.png` | `guitar` + `lightning-helix` |
-| CH-03 Variety Mix | `variety-mix.png` | `compact-disc` + `boombox` |
-| CH-04 Local | `local-pnw.png` | `pine-tree` + `radio-tower` |
-| CH-05 House | `house.png` | `house` |
-| CH-06 Techno | `techno.png` | `cpu` + `microchip` |
-| CH-07 UK Garage | `uk-garage.png` | `microphone` |
-| CH-08 Dubstep | `dubstep.png` | `speaker` |
-| CH-09 Drum & Bass | `drum-and-bass.png` | `drum-kit` |
-| CH-10 Emo & Shoegaze | `shoegaze.png` | `cloudy-fork` + `guitar` |
-| CH-11 Metal | `metal.png` | `bull-horns` + `skull-bolt` |
-| CH-12 Punk | `punk.png` | `safety-pin` + `anarchy` |
-| CH-13 Country & Folk | `country-folk.png` | `guitar` |
-| CH-14 Ambient / Downtempo | `downtempo.png` | `headphones` + `moon` |
+| CH-01 Y2K Dance | `y2k-dance.png` | Pixel iPod + notes (Pop plate) |
+| CH-02 Psychedelic Rock | `psychedelic-rock.png` | Pixel guitar + bolt (Rock plate) |
+| CH-03 Variety Mix | `variety-mix.png` | Vinyl + palm (mix crate) |
+| CH-04 Local | `local-pnw.png` | Pine + radio tower |
+| CH-05 House | `house.png` | House + disco ball |
+| CH-06 Techno | `techno.png` | CPU with planet (Electronic plate) |
+| CH-07 UK Garage | `uk-garage.png` | Mic + record |
+| CH-08 Dubstep | `dubstep.png` | Bass cab + bolt |
+| CH-09 Drum & Bass | `drum-and-bass.png` | Drum kit |
+| CH-10 Emo & Shoegaze | `shoegaze.png` | Guitar in haze |
+| CH-11 Metal | `metal.png` | Horned skull |
+| CH-12 Punk | `punk.png` | Mohawk + anarchy |
+| CH-13 Country & Folk | `country-folk.png` | Acoustic guitar + hat |
+| CH-14 Ambient / Downtempo | `downtempo.png` | Headphones + moon |
+
+Files live in `public/channels/` (copied to `src/assets/channels/` for the repo). Home tiles request the public URL, not a webpack image graph.
 
 ## Home idle hero
 
@@ -44,13 +47,11 @@ The brand lockup still sits on top of this frame. Once a catalog track is on air
 
 ## Explore
 
-Explore does not add new artwork. The editorial hero, genre mosaic, mood plates, and scene rail reuse Channel Surfing icons (`CHANNEL_ART`) and `hero-idle.png`.
-
-Genre lanes without a channel icon (Jazz, Classical, Reggae, Latin) use catalog album-cover mosaics.
+Explore does not add new artwork. Genre mosaic, mood plates, and scene rail use catalog sleeves. Channel Surfing on Home (and the Stations rail on Explore) uses the PS1 plates above.
 
 ## Charts
 
-Charts rows and the #1 hero sleeve are **catalog covers** (Firebase). No editorial stills were added there.
+Charts rows and the #1 hero sleeve are **catalog covers** (Firebase). Explore no longer hosts a Most Requested teaser.
 
 ## Brand chrome (unchanged)
 
