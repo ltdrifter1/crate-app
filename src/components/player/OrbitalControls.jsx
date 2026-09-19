@@ -1,7 +1,7 @@
 import { useRef } from "react";
 import Icon from "../ui/Icon";
 import { AlbumArt } from "../listen/AlbumArt";
-import { color, glass, hardware, motion } from "../../theme";
+import { color, glass, hardware, motion, trimStroke } from "../../theme";
 
 // ─── Shared transport primitives (soft modern play + linear-friendly progress) ─
 
@@ -35,12 +35,14 @@ export function PlayKey({
         width: size,
         height: size,
         borderRadius: 8,
-        background: disabled
-          ? hardware.keyFace
+        ...(disabled
+          ? { background: hardware.keyFace, border: "1px solid rgba(91,101,116,0.22)" }
           : glowing
-            ? `linear-gradient(180deg, rgba(232,241,248,0.92) 0%, rgba(200,214,226,0.78) 100%)`
-            : hardware.keyFace,
-        border: `1px solid ${glowing ? "rgba(216,223,232,0.7)" : "rgba(91,101,116,0.22)"}`,
+            ? trimStroke(
+                "linear-gradient(180deg, rgba(232,241,248,0.92) 0%, rgba(200,214,226,0.78) 100%)",
+                2
+              )
+            : { background: hardware.keyFace, border: "1px solid rgba(91,101,116,0.22)" }),
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
@@ -51,7 +53,7 @@ export function PlayKey({
         boxShadow: disabled
           ? "none"
           : glowing
-            ? `inset 0 1px 0 rgba(255,255,255,0.55), 0 0 0 4px ${color.accentSoft}, 0 0 22px ${color.lcdSignalGlow}`
+            ? `inset 0 1px 0 rgba(255,255,255,0.55), 0 0 0 3px ${color.accentSoft}`
             : hardware.keyRaised,
         transition: `transform ${motion.fast} ${motion.ease}, box-shadow ${motion.base} ${motion.ease}, background ${motion.fast} ${motion.ease}`,
       }}

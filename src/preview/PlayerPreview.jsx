@@ -40,18 +40,13 @@ export default function PlayerPreview() {
   useEffect(() => {
     playerPlaybackStore.setDuration(214);
     playerPlaybackStore.setProgress(48);
-    playerTransportStore.setTrack(SAMPLE_TRACK);
-    playerTransportStore.setPlaying(true);
-    return () => {
-      playerTransportStore.setPlaying(false);
-    };
+    playerTransportStore.sync({ isPlaying: true, track: SAMPLE_TRACK });
   }, []);
 
   const togglePlay = () => {
-    setPlaying((v) => {
-      playerTransportStore.setPlaying(!v);
-      return !v;
-    });
+    const next = !playerTransportStore.getState().isPlaying;
+    playerTransportStore.setPlaying(next);
+    setPlaying(next);
   };
 
   return (

@@ -706,6 +706,12 @@ const injectStyles = () => {
 };
 injectStyles();
 
+/** Dev chrome previews own the transport store — skip the live audio graph. */
+function isDevPreviewHash() {
+  if (typeof window === "undefined") return false;
+  return (window.location.hash || "").includes("-preview");
+}
+
 export default function App() {
   // ── Auth (login/signup/logout + user profile) ───────────────────────────
   const { firebaseUser, profile, setProfile, loading: authLoading, authError, clearAuthError, signUp, logIn, logOut, refreshProfile, signInWithGoogle, sendPhoneOTP, verifyPhoneOTP, resetPassword } = useAuth();
@@ -1971,6 +1977,7 @@ export default function App() {
 
   // When track changes (non-crossfade — manual play), load fresh
   useEffect(() => {
+    if (isDevPreviewHash()) return;
     if (!currentTrack || !audioRef.current) return;
     // If we're crossfading in radio mode, the engine handles it — skip
     if (isCrossfading.current) return;
@@ -2084,6 +2091,7 @@ export default function App() {
   // Sync play/pause — subscribe to transport store so App need not re-render
   useEffect(() => {
     const apply = (state) => {
+      if (isDevPreviewHash()) return;
       const audio = audioRef.current;
       if (!audio) return;
       if (state.isPlaying) {
