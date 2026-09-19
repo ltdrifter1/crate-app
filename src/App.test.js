@@ -16,8 +16,10 @@ test('theme exports core tokens', () => {
   expect(fontDisplay).toMatch(/IBM Plex Sans/);
   expect(font).not.toMatch(/^system-ui/);
   expect(fontLcd).toMatch(/IBM Plex Mono/);
-  expect(STYLE_CHASSIS).toBe("steel-glass-20260918");
+  expect(STYLE_CHASSIS).toBe("steel-glass-20260919");
   expect(color.lcdSignal).toMatch(/#E8F1F8/i);
+  expect(color.cta).toMatch(/#367FC7/i);
+  expect(color.onCta).toMatch(/#FFFFFF/i);
   expect(color.lcdSignalSoft).toMatch(/232,\s*241,\s*248/);
   expect(type.lcd.fontFamily).toMatch(/IBM Plex Mono/);
   expect(type.lcd.fontSize).toBe(11);
@@ -59,4 +61,13 @@ test('canvas is a light steel chassis', () => {
   expect(color.accent).not.toMatch(/#B8F24A/i);
   expect(color.lcdSignal).not.toMatch(/#7ED9B8|#4E9A7A|#C8F5E4/i);
   expect(color.lcdSignalGlow).not.toMatch(/126\s*,\s*217\s*,\s*184/);
+});
+
+test('primary buttons use DistroKid blue with lime-to-blue trim', () => {
+  const { BTN_PRIMARY, trim } = require('./theme');
+  expect(trim.lime).toMatch(/#B8C430/i);
+  expect(trim.lime).not.toMatch(/#B8F24A/i);
+  expect(trim.blue).toMatch(/#367FC7/i);
+  expect(BTN_PRIMARY.color).toMatch(/#FFFFFF/i);
+  expect(String(BTN_PRIMARY.background)).toMatch(/#367FC7|#B8C430/i);
 });

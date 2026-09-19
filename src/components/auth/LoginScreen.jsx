@@ -4,7 +4,7 @@
 import { useState } from "react";
 import {
   font, fontDisplay, color, radius, glass, aluminumGradient,
-  APP_STYLE, INPUT_ST, BTN_PRIMARY, BTN_SECONDARY,
+  APP_STYLE, INPUT_ST, BTN_PRIMARY, trimStroke, trim,
 } from "../../theme";
 import { authErrorMessage } from "../../lib/phone";
 import BrandTagline from "../brand/BrandTagline";
@@ -285,9 +285,8 @@ export default function LoginScreen({
               width: "100%",
               padding: "14px 20px",
               borderRadius: 10,
-              border: "1px solid rgba(91,101,116,0.14)",
-              background: "linear-gradient(180deg, #6A7482 0%, #5B6574 100%)",
-              boxShadow: "inset 0 1px 0 rgba(216,223,232,0.1), 0 4px 16px rgba(58,66,80,0.4)",
+              ...trimStroke("linear-gradient(180deg, #F4F7FA 0%, #E4EAF1 100%)", 2),
+              boxShadow: "0 1px 0 rgba(28,32,40,0.22), 0 4px 16px rgba(58,66,80,0.18)",
               cursor: loading ? "wait" : "pointer",
               opacity: loading ? 0.7 : 1,
             }}
@@ -364,7 +363,7 @@ export default function LoginScreen({
                       fontFamily: fontDisplay,
                       letterSpacing: -0.2,
                       color: mode === m.id ? color.ink : color.faint,
-                      borderBottom: mode === m.id ? `2px solid ${color.accent}` : "2px solid transparent",
+                      borderBottom: mode === m.id ? `2px solid ${trim.blue}` : "2px solid transparent",
                     }}
                   >
                     {m.label}
@@ -454,10 +453,10 @@ export default function LoginScreen({
               )}
               <button
                 type="button"
-                className="btn-secondary"
+                className="btn-primary"
                 onClick={handleEmailSubmit}
                 disabled={loading}
-                style={{ ...BTN_SECONDARY, opacity: loading ? 0.7 : 1 }}
+                style={{ ...BTN_PRIMARY, opacity: loading ? 0.7 : 1 }}
               >
                 {loading
                   ? "Please wait…"
