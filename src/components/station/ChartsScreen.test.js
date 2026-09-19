@@ -53,7 +53,7 @@ describe("ChartsScreen", () => {
     expect(div.textContent).not.toMatch(/Station charts/);
   });
 
-  test("renders premium hierarchy, segmented scope, and underline views", async () => {
+  test("renders premium hierarchy, views first, then board scope", async () => {
     await act(async () => {
       root.render(React.createElement(ChartsScreen, { tracks: tracksFixture(), countdown: [] }));
     });
@@ -61,6 +61,10 @@ describe("ChartsScreen", () => {
     expect(h1.textContent).toBe("Charts");
     expect(h1.style.fontFamily).toContain("Lucida Grande");
     expect(h1.style.textTransform).not.toBe("uppercase");
+
+    const viewsEl = div.querySelector('[aria-label="Chart view"]');
+    const scopeEl = div.querySelector('[aria-label="Chart scope"]');
+    expect(viewsEl.compareDocumentPosition(scopeEl) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
 
     const scope = [...div.querySelectorAll('[aria-label="Chart scope"] [role="tab"]')].map((el) => el.textContent);
     expect(scope).toEqual(["Overall", "Channel", "Genre"]);
@@ -75,6 +79,23 @@ describe("ChartsScreen", () => {
     expect(div.textContent).toMatch(/Top 20/);
     expect(div.textContent).toMatch(/Night Drive/);
     expect(div.querySelector('[aria-label^="Play #1"]')).toBeTruthy();
+    expect(div.querySelector(".pmp-chart-podium")).toBeTruthy();
+    expect(div.querySelector('[aria-label^="Play #2"]')).toBeTruthy();
+    expect(div.querySelector('[aria-label^="Play #3"]')).toBeTruthy();
+  });
+
+  test("catalog loading paints the board chrome without blocking on tracks", async () => {
+    await act(async () => {
+      root.render(React.createElement(ChartsScreen, {
+        tracks: [],
+        countdown: [],
+        catalogLoading: true,
+      }));
+    });
+    expect(div.querySelector("h1").textContent).toBe("Charts");
+    expect(div.textContent).not.toMatch(/Play and request cuts to build/);
+    expect(div.querySelector(".pmp-chart-podium")).toBeTruthy();
+    expect(div.querySelector('[aria-label="Chart view"]')).toBeTruthy();
   });
 
   test("play this chart and add-to-queue stay wired", async () => {

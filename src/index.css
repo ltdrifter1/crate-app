@@ -413,3 +413,72 @@ body::before { display: none; }
     gap: 12px;
   }
 }
+
+/* Charts — PS1 board / Winamp playlist. Cheap paint: no per-row blur. */
+.pmp-chart-row {
+  transition: background 0.2s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.pmp-chart-row:hover {
+  background: rgba(91, 101, 116, 0.08) !important;
+}
+.pmp-chart-row:active {
+  transform: scale(0.992);
+}
+.pmp-chart-scan {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    to bottom,
+    transparent 0px,
+    transparent 2px,
+    rgba(91, 101, 116, 0.05) 2px,
+    rgba(91, 101, 116, 0.05) 3px
+  );
+  mix-blend-mode: multiply;
+  opacity: 0.12;
+}
+.pmp-chart-podium {
+  display: grid;
+  grid-template-columns: minmax(0, 1.42fr) minmax(0, 1fr);
+  gap: 10px;
+  align-items: stretch;
+}
+.pmp-chart-podium__side {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
+.pmp-chart-skel {
+  border-radius: 6px;
+  background:
+    linear-gradient(180deg, rgba(216, 223, 232, 0.45) 0%, rgba(168, 178, 192, 0.35) 100%);
+  box-shadow: inset 0 1px 0 rgba(216, 223, 232, 0.5);
+}
+@keyframes pmpRankUp {
+  from { transform: translateY(7px); opacity: 0.25; }
+  to { transform: none; opacity: 1; }
+}
+@keyframes pmpRankDown {
+  from { transform: translateY(-7px); opacity: 0.25; }
+  to { transform: none; opacity: 1; }
+}
+.pmp-rank-up { animation: pmpRankUp 0.55s cubic-bezier(0.22, 1, 0.36, 1) both; }
+.pmp-rank-down { animation: pmpRankDown 0.55s cubic-bezier(0.22, 1, 0.36, 1) both; }
+@media (max-width: 420px) {
+  .pmp-chart-podium {
+    grid-template-columns: 1fr 1fr;
+  }
+  .pmp-chart-podium__lead {
+    grid-column: 1 / -1;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pmp-rank-up,
+  .pmp-rank-down,
+  .pmp-chart-row {
+    animation: none !important;
+    transform: none !important;
+  }
+}
