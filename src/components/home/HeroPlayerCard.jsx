@@ -21,7 +21,7 @@ import { trackHasVideo } from "../../lib/video";
 import Icon from "../ui/Icon";
 import CoverImage from "../ui/CoverImage";
 import { PlayKey } from "../player/OrbitalControls";
-import { PaceSlider } from "../listen/EnergyShiftButton";
+import { EnergyShiftFeedback, PaceSlot } from "../listen/EnergyShiftButton";
 import { HERO_IDLE_ART, HERO_IDLE_FOCUS } from "../../lib/heroIdle";
 import ScanlineWash from "./ScanlineWash";
 import {
@@ -29,8 +29,7 @@ import {
   HardwareIconButton,
   LcdMetaLine,
   LcdPanel,
-  LcdSeek,
-  LcdTimes,
+  LcdTimeline,
   formatBitrate,
   trackLcdBits,
 } from "../player/DeviceChrome";
@@ -238,7 +237,8 @@ function JewelSleeve({ src, idleSrc, playing, eager = false, size = 148 }) {
 
 /**
  * HeroPlayerCard — Home now-playing device.
- * Artwork window + LCD metadata + Pace slider transport.
+ * Sleeve + ice LCD on one stage; seek as a timeline; transport left,
+ * Pace half-width bottom-right.
  */
 export default function HeroPlayerCard({
   track = null,
@@ -262,7 +262,7 @@ export default function HeroPlayerCard({
 }) {
   const isPlaying = useIsPlaying();
   const isBuffering = useIsBuffering();
-  const { progress, duration } = usePlayerPlayback();
+  const { progress, duration: playbackDuration } = usePlayerPlayback();
   const cardRef = useRef(null);
   const live = !!track;
   const art = track?.albumCover || previewTrack?.albumCover || null;
@@ -271,6 +271,7 @@ export default function HeroPlayerCard({
   const bugLine = channelBugLine(channelBug);
   const onAir = live || isRadioMode;
   const displayTrack = track || previewTrack;
+  const duration = playbackDuration > 0 ? playbackDuration : Number(displayTrack?.duration) || 0;
   const idleEyebrow = previewTrack ? "Up first" : "Planet Radio";
   const idleTitle = previewTrack?.title || daypart?.vibe || "Tune the station";
   const idleArtist = previewTrack?.artist || "One tap and the dial finds you something good.";
@@ -331,7 +332,7 @@ export default function HeroPlayerCard({
         position: "relative",
         borderRadius: 12,
         overflow: "hidden",
-        minHeight: 300,
+        minHeight: 0,
         width: "100%",
         cursor: playDisabled && !live ? "default" : "pointer",
         border: radio.borderChrome,
@@ -412,14 +413,11 @@ export default function HeroPlayerCard({
       </div>
 
       <div
+        className="pmp-hero-stage"
         style={{
           position: "relative",
           zIndex: 2,
-          display: "flex",
-          alignItems: "stretch",
-          gap: 16,
-          padding: "16px 14px 8px",
-          flexWrap: "wrap",
+          padding: "14px 14px 6px",
         }}
       >
         {hasVideo ? (
@@ -452,7 +450,7 @@ export default function HeroPlayerCard({
             idleSrc={art ? null : HERO_IDLE_ART}
             playing={live && isPlaying}
             eager={!!art}
-            size={240}
+            size={168}
           />
         )}
 
@@ -460,14 +458,14 @@ export default function HeroPlayerCard({
           key={track?.id || previewTrack?.id || "idle"}
           style={{
             flex: "1 1 0%",
-            minWidth: 200,
+            minWidth: 0,
             display: "flex",
             flexDirection: "column",
             justifyContent: "center",
             animation: "trackSwap 0.35s ease both",
           }}
         >
-          <LcdPanel live={live && isPlaying} style={{ padding: "10px 12px 12px" }}>
+          <LcdPanel live={live && isPlaying} style={{ padding: "10px 12px 10px" }}>
           <div
             style={{
               display: "inline-flex",
@@ -520,10 +518,10 @@ export default function HeroPlayerCard({
             style={{
               fontFamily: fontDisplay,
               fontStyle: "normal",
-              fontSize: "clamp(22px, 5vw, 32px)",
+              fontSize: "clamp(18px, 4.2vw, 26px)",
               fontWeight: 700,
-              letterSpacing: -0.6,
-              lineHeight: 1.05,
+              letterSpacing: -0.5,
+              lineHeight: 1.08,
               color: color.lcdInk,
               overflow: "hidden",
               textOverflow: "ellipsis",
@@ -537,8 +535,8 @@ export default function HeroPlayerCard({
           </div>
           <div
             style={{
-              marginTop: 6,
-              fontSize: 15,
+              marginTop: 4,
+              fontSize: 14,
               fontWeight: 600,
               color: color.lcdMute,
               overflow: "hidden",
@@ -549,60 +547,56 @@ export default function HeroPlayerCard({
             {artist}
           </div>
 
-          <div style={{ marginTop: 10 }}>
+          <div style={{ marginTop: 8 }}>
             <LcdMetaLine bits={lcdBits} />
           </div>
-          </LcdPanel>
 
           {live && upNextTrack?.title && (
             <div
               style={{
-                marginTop: "auto",
+                marginTop: 8,
+                paddingTop: 8,
+                borderTop: "1px solid rgba(61,70,84,0.12)",
                 display: "flex",
                 alignItems: "center",
-                gap: 10,
-                width: "100%",
-                padding: "8px 0 0",
-                borderRadius: 0,
-                border: "none",
-                background: "transparent",
+                gap: 8,
+                minWidth: 0,
               }}
             >
               {upNextTrack.albumCover ? (
                 <CoverImage
                   src={upNextTrack.albumCover}
                   alt=""
-                  width={36}
-                  height={36}
+                  width={28}
+                  height={28}
                   style={{
-                    width: 36,
-                    height: 36,
-                    borderRadius: 4,
+                    width: 28,
+                    height: 28,
+                    borderRadius: 3,
                     objectFit: "cover",
                     flexShrink: 0,
-                    boxShadow: "0 4px 10px rgba(58,66,80,0.4)",
                   }}
                 />
               ) : null}
               <div style={{ minWidth: 0 }}>
                 <div
                   style={{
-                    fontFamily: fontDisplay,
-                    fontSize: 12,
-                    fontWeight: 600,
-                    letterSpacing: -0.08,
-                    textTransform: "none",
-                    color: color.muted,
+                    fontFamily: fontMono,
+                    fontSize: 10,
+                    fontWeight: 700,
+                    letterSpacing: 0.12,
+                    textTransform: "uppercase",
+                    color: color.lcdMute,
                   }}
                 >
                   Up next
                 </div>
                 <div
                   style={{
-                    marginTop: 2,
-                    fontSize: 13,
+                    marginTop: 1,
+                    fontSize: 12,
                     fontWeight: 600,
-                    color: color.ink,
+                    color: color.lcdInk,
                     overflow: "hidden",
                     textOverflow: "ellipsis",
                     whiteSpace: "nowrap",
@@ -614,6 +608,7 @@ export default function HeroPlayerCard({
               </div>
             </div>
           )}
+          </LcdPanel>
         </div>
 
         {hasVideo && (
@@ -637,49 +632,38 @@ export default function HeroPlayerCard({
           boxShadow: "none",
         }}
       >
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            flexWrap: "wrap",
-            gap: 10,
-          }}
-        >
+        <div className="pmp-deck">
           {live ? (
-            <div style={{ display: "flex", flexDirection: "column", gap: 8, width: "100%" }}>
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, flexWrap: "wrap" }}>
-                <HardwareIconButton label="Previous" onClick={onPrev} stopPropagation>
-                  <Icon name="prev" size={16} />
+            <>
+              <LcdTimeline
+                progress={progress}
+                duration={duration}
+                onChange={onSeek}
+                stopPropagation
+              />
+              <EnergyShiftFeedback bottom="calc(100% + 10px)" />
+              <div className="pmp-deck-keys">
+                <HardwareIconButton label="Previous" onClick={onPrev} stopPropagation size={40}>
+                  <Icon name="prev" size={15} />
                 </HardwareIconButton>
                 <PlayKey
                   isPlaying={isPlaying}
                   buffering={isBuffering}
                   onClick={onTogglePlay}
-                  size={52}
+                  size={48}
                   glowing={isPlaying && !isBuffering}
                   stopPropagation
                 />
-                <HardwareIconButton label="Next" onClick={onSkip} stopPropagation>
-                  <Icon name="skip" size={16} />
+                <HardwareIconButton label="Next" onClick={onSkip} stopPropagation size={40}>
+                  <Icon name="skip" size={15} />
                 </HardwareIconButton>
-              </div>
-              <PaceSlider stopPropagation />
-              <div onClick={(e) => e.stopPropagation()} style={{ width: "100%" }}>
-                <LcdSeek
-                  value={progress}
-                  max={duration || 1}
-                  onChange={onSeek}
-                  label="Seek"
-                  stopPropagation
-                />
-                <LcdTimes progress={progress} duration={duration} on="metal" />
-              </div>
-              <div style={{ display: "flex", justifyContent: "center", gap: 8 }}>
                 <ChromeIconButton
                   label={track.liked ? "Unlike" : "Like"}
                   icon={track.liked ? "heart" : "heartempty"}
                   active={!!track.liked}
                   onClick={() => onLike?.(track.id)}
+                  size={36}
+                  iconSize={15}
                 />
                 {onDislike && (
                   <ChromeIconButton
@@ -687,10 +671,13 @@ export default function HeroPlayerCard({
                     icon={track.disliked ? "dislikefilled" : "dislike"}
                     active={!!track.disliked}
                     onClick={() => onDislike()}
+                    size={36}
+                    iconSize={15}
                   />
                 )}
               </div>
-            </div>
+              <PaceSlot compact stopPropagation />
+            </>
           ) : (
             <button
               type="button"

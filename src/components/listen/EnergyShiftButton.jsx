@@ -750,6 +750,18 @@ export function PaceSlider({
   );
 }
 
+/** Half-width, bottom-right Pace accessory on the player deck. */
+export function PaceSlot({
+  compact = true,
+  stopPropagation = true,
+}) {
+  return (
+    <div className="pmp-pace-slot" data-testid="pace-slot">
+      <PaceSlider compact={compact} stopPropagation={stopPropagation} />
+    </div>
+  );
+}
+
 /** Compact Pace pair (not the primary device control). */
 export function EnergyShiftCapsule({ stopPropagation = false }) {
   return (

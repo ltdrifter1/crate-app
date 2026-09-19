@@ -16,10 +16,10 @@ import {
   radio,
   y2k,
 } from "../../theme";
-import { fmtTime, hexToRgbStr } from "../../lib/harmony";
+import { hexToRgbStr } from "../../lib/harmony";
 import { usePlayerPlayback } from "../../usePlayerPlayback";
 import { useIsPlaying } from "../../usePlayerTransport";
-import { EnergyShiftFeedback, PaceSlider } from "../listen/EnergyShiftButton";
+import { EnergyShiftFeedback, PaceSlot } from "../listen/EnergyShiftButton";
 import Icon from "../ui/Icon";
 import { PlayKey } from "./OrbitalControls";
 import {
@@ -38,7 +38,7 @@ import {
   LcdMetaLine,
   LcdPanel,
   LcdSeek as ChromeSeek,
-  LcdTimes,
+  LcdTimeline,
   LcdArtist,
   formatBitrate,
   trackLcdBits,
@@ -849,48 +849,64 @@ export default function ImmersivePlayer({
             animation: `dockRise 0.5s ${EASE} both`,
           }}
         >
-          <div style={{ marginBottom: 4 }}>
-            <ChromeSeek
-              value={progress}
-              max={duration || 1}
-              onChange={onSeek}
-              label="Seek"
-              valueText={`${fmtTime(progress)} of ${fmtTime(duration)}`}
-            />
-            <LcdTimes progress={progress} duration={duration} on="metal" />
-          </div>
+          <LcdTimeline
+            progress={progress}
+            duration={duration}
+            onChange={onSeek}
+            label="Seek"
+          />
 
-          <div
-            style={{
-              position: "relative",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: 8,
-              marginTop: 10,
-              flexWrap: "wrap",
-            }}
-          >
+          <div className="pmp-deck" style={{ marginTop: 4 }}>
             <EnergyShiftFeedback bottom="calc(100% + 14px)" />
 
-            <ChromeIconButton onClick={onPrev} label="Previous" size={48}>
-              <Icon name="prev" size={20} />
-            </ChromeIconButton>
+            <div className="pmp-deck-keys">
+              <ChromeIconButton onClick={onPrev} label="Previous" size={44}>
+                <Icon name="prev" size={18} />
+              </ChromeIconButton>
 
-            <PlayKey
-              isPlaying={isPlaying}
-              onClick={onTogglePlay}
-              size={68}
-              glowing={isPlaying}
-            />
+              <PlayKey
+                isPlaying={isPlaying}
+                onClick={onTogglePlay}
+                size={56}
+                glowing={isPlaying}
+              />
 
-            <ChromeIconButton onClick={onSkip} label="Next" size={48}>
-              <Icon name="skip" size={20} />
-            </ChromeIconButton>
-          </div>
+              <ChromeIconButton onClick={onSkip} label="Next" size={44}>
+                <Icon name="skip" size={18} />
+              </ChromeIconButton>
 
-          <div style={{ marginTop: 12 }}>
-            <PaceSlider stopPropagation={false} />
+              <ChromeIconButton
+                onClick={() => onLike?.(currentTrack.id)}
+                label={currentTrack.liked ? "Unlike" : "Like"}
+                active={!!currentTrack.liked}
+                size={40}
+              >
+                <span style={{ display: "flex", animation: currentTrack.liked ? "likePop 0.25s ease" : "none" }}>
+                  <Icon name={currentTrack.liked ? "heart" : "heartempty"} size={16} />
+                </span>
+              </ChromeIconButton>
+              <ChromeIconButton
+                onClick={() => onDislike?.()}
+                label="Dislike this track"
+                active={!!currentTrack.disliked}
+                size={40}
+              >
+                <Icon name={currentTrack.disliked ? "dislikefilled" : "dislike"} size={16} />
+              </ChromeIconButton>
+              {!isRadioMode && onToggleShuffle ? (
+                <ChromeIconButton
+                  onClick={onToggleShuffle}
+                  label="Shuffle"
+                  pressed={shuffle}
+                  active={shuffle}
+                  size={40}
+                >
+                  <Icon name="shuffle" size={15} />
+                </ChromeIconButton>
+              ) : null}
+            </div>
+
+            <PaceSlot compact stopPropagation={false} />
           </div>
 
           <div
@@ -898,43 +914,11 @@ export default function ImmersivePlayer({
               display: "flex",
               alignItems: "center",
               justifyContent: "space-between",
-              marginTop: 14,
+              marginTop: 10,
               padding: "0 4px",
               gap: 8,
             }}
           >
-            <ChromeIconButton
-              onClick={() => onLike?.(currentTrack.id)}
-              label={currentTrack.liked ? "Unlike" : "Like"}
-              active={!!currentTrack.liked}
-              size={40}
-            >
-              <span style={{ display: "flex", animation: currentTrack.liked ? "likePop 0.25s ease" : "none" }}>
-                <Icon name={currentTrack.liked ? "heart" : "heartempty"} size={16} />
-              </span>
-            </ChromeIconButton>
-            <ChromeIconButton
-              onClick={() => onDislike?.()}
-              label="Dislike this track"
-              active={!!currentTrack.disliked}
-              size={40}
-            >
-              <Icon name={currentTrack.disliked ? "dislikefilled" : "dislike"} size={16} />
-            </ChromeIconButton>
-            {!isRadioMode && onToggleShuffle ? (
-              <ChromeIconButton
-                onClick={onToggleShuffle}
-                label="Shuffle"
-                pressed={shuffle}
-                active={shuffle}
-                size={40}
-              >
-                <Icon name="shuffle" size={15} />
-              </ChromeIconButton>
-            ) : (
-              <span style={{ width: 40 }} aria-hidden="true" />
-            )}
-
             <div
               style={{
                 flex: 1,

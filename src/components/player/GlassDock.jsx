@@ -21,8 +21,8 @@ import { HardwareIconButton, LcdMetaLine, LcdSeek, formatBitrate, trackLcdBits }
 const EnergyShiftFeedback = lazy(() =>
   import("../listen/EnergyShiftButton").then((m) => ({ default: m.EnergyShiftFeedback }))
 );
-const PaceSlider = lazy(() =>
-  import("../listen/EnergyShiftButton").then((m) => ({ default: m.PaceSlider }))
+const PaceSlot = lazy(() =>
+  import("../listen/EnergyShiftButton").then((m) => ({ default: m.PaceSlot }))
 );
 
 export default function GlassDock({
@@ -202,18 +202,21 @@ export default function GlassDock({
           </div>
           <div
             onClick={(e) => e.stopPropagation()}
+            className="pmp-deck"
             style={{ padding: "0 12px 8px" }}
           >
-            <LcdSeek
-              value={progress}
-              max={duration || 1}
-              onChange={onSeek}
-              label="Seek"
-              stopPropagation
-              height={4}
-            />
+            <div className="pmp-timeline">
+              <LcdSeek
+                value={progress}
+                max={duration || 1}
+                onChange={onSeek}
+                label="Seek"
+                stopPropagation
+                height={4}
+              />
+            </div>
             <Suspense fallback={null}>
-              <PaceSlider compact stopPropagation />
+              <PaceSlot compact stopPropagation />
             </Suspense>
           </div>
         </div>
