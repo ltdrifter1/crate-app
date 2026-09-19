@@ -40,6 +40,8 @@ Copy `.env.example` for local ingest scripts. Never commit API keys or `serviceA
 | `node clean-titles.js` | Dry-run title/artist cleanup → `titles-review.csv` |
 | `node clean-titles.js --apply` | Write cleaned titles/artists to Firestore |
 | `npm run catalog:audit-junk` | Dry-run junk / long-track report → `docs/audits/` (**no deletes**) |
+| `node apply-junk-tracks.js` | Dry-run apply plan (CSV ∩ live deletes) |
+| `npm run catalog:audit-junk:apply` | Delete approved junk (`--apply --approve-deletes`; needs `serviceAccountKey.json`) |
 
 ---
 

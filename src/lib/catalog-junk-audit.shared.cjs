@@ -493,6 +493,132 @@ ${longAppendix || "| _none_ | | | | |"}
 `;
 }
 
+const DEFAULT_BUCKETS = new Set([
+  "crate-app-58494.firebasestorage.app",
+  "crate-app-58494.appspot.com",
+]);
+
+function parseCsvLine(line) {
+  const values = [];
+  let cur = "";
+  let inQ = false;
+  for (let i = 0; i < String(line || "").length; i += 1) {
+    const c = line[i];
+    if (c === '"') {
+      if (inQ && line[i + 1] === '"') {
+        cur += '"';
+        i += 1;
+      } else {
+        inQ = !inQ;
+      }
+    } else if (c === "," && !inQ) {
+      values.push(cur);
+      cur = "";
+    } else {
+      cur += c;
+    }
+  }
+  values.push(cur);
+  return values;
+}
+
+/** Approved delete ids from a candidates CSV (`action=delete` only). */
+function parseApprovedDeleteIds(csvText) {
+  const lines = String(csvText || "").split(/\r?\n/).filter((l) => l.trim());
+  if (lines.length < 2) return [];
+  const header = parseCsvLine(lines[0]).map((h) => h.trim());
+  const idIdx = header.indexOf("id");
+  const actionIdx = header.indexOf("action");
+  if (idIdx === -1 || actionIdx === -1) return [];
+  const ids = [];
+  lines.slice(1).forEach((line) => {
+    const cols = parseCsvLine(line);
+    if (String(cols[actionIdx] || "").trim() !== "delete") return;
+    const id = String(cols[idIdx] || "").trim();
+    if (id) ids.push(id);
+  });
+  return ids;
+}
+
+function storageObjectPathFromUrl(url, allowedBuckets = DEFAULT_BUCKETS) {
+  const raw = String(url || "").trim();
+  if (!raw) return null;
+  try {
+    const u = new URL(raw);
+    if (u.hostname === "storage.googleapis.com") {
+      const parts = u.pathname.replace(/^\/+/, "").split("/");
+      const bucket = decodeURIComponent(parts.shift() || "");
+      const objectPath = parts.map((p) => decodeURIComponent(p)).join("/");
+      if (!allowedBuckets.has(bucket) || !objectPath) return null;
+      return { bucket, path: objectPath };
+    }
+    if (u.hostname === "firebasestorage.googleapis.com") {
+      const m = u.pathname.match(/\/v0\/b\/([^/]+)\/o\/(.+)$/);
+      if (!m) return null;
+      const bucket = decodeURIComponent(m[1]);
+      const objectPath = decodeURIComponent(m[2]);
+      if (!allowedBuckets.has(bucket) || !objectPath) return null;
+      return { bucket, path: objectPath };
+    }
+  } catch {
+    return null;
+  }
+  return null;
+}
+
+/**
+ * Live `action=delete` rows that also appear in the approved CSV.
+ * Review rows (unknown artist, broken metadata, duplicates) are never included.
+ */
+function planJunkApply(tracks, approvedDeleteIds) {
+  const approved = new Set((approvedDeleteIds || []).map(String));
+  const result = auditCatalog(tracks);
+  const liveDeleteIds = result.deletes.map((c) => c.id);
+  const targets = result.deletes.filter((c) => approved.has(c.id));
+  const targetIds = new Set(targets.map((c) => c.id));
+  const skippedNotApproved = result.deletes.filter((c) => !approved.has(c.id));
+  const approvedMissing = [...approved].filter((id) => !liveDeleteIds.includes(id));
+
+  const remaining = (tracks || []).filter((t) => t && t.id && !targetIds.has(String(t.id)));
+  const stillUsed = new Set();
+  remaining.forEach((t) => {
+    const audio = storageObjectPathFromUrl(t.audioUrl);
+    const cover = storageObjectPathFromUrl(t.albumCover);
+    if (audio) stillUsed.add(audio.path);
+    if (cover) stillUsed.add(cover.path);
+  });
+
+  const byPath = new Map();
+  (tracks || []).forEach((t) => {
+    if (!t || !targetIds.has(String(t.id))) return;
+    ["audioUrl", "albumCover"].forEach((field) => {
+      const parsed = storageObjectPathFromUrl(t[field]);
+      if (!parsed) return;
+      const kind = field === "audioUrl" ? "audio" : "cover";
+      const existing = byPath.get(parsed.path) || {
+        bucket: parsed.bucket,
+        path: parsed.path,
+        kind,
+        skipped: false,
+        reason: "",
+      };
+      if (stillUsed.has(parsed.path)) {
+        existing.skipped = true;
+        existing.reason = "still referenced by a kept track";
+      }
+      byPath.set(parsed.path, existing);
+    });
+  });
+
+  return {
+    result,
+    targets,
+    skippedNotApproved,
+    approvedMissing,
+    storage: [...byPath.values()],
+  };
+}
+
 module.exports = {
   LONG_SECONDS,
   APP_MIXTAPE_SECONDS,
@@ -513,4 +639,8 @@ module.exports = {
   auditCatalog,
   candidatesToCsv,
   renderMarkdownReport,
+  parseCsvLine,
+  parseApprovedDeleteIds,
+  storageObjectPathFromUrl,
+  planJunkApply,
 };
