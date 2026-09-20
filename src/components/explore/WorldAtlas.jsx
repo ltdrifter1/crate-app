@@ -1,16 +1,6 @@
 import { color, fontDisplay, fontMono, homeSpace, motion, radio, type, y2k } from "../../theme";
 import ArtFrame from "../ui/ArtFrame";
 
-const FAMILY_WASH = {
-  dancefloor: "rgba(54, 127, 199, 0.22)",
-  bass: "rgba(184, 196, 48, 0.22)",
-  afterhours: "rgba(47, 138, 150, 0.28)",
-  "soul-continuum": "rgba(224, 49, 74, 0.18)",
-  "jazz-world": "rgba(183, 228, 238, 0.18)",
-  "rock-roots": "rgba(91, 101, 116, 0.28)",
-  "classical-score": "rgba(61, 70, 84, 0.22)",
-};
-
 function WorldTile({ tile, onOpen, delay = 0 }) {
   const city = tile.cities?.[0] || tile.familyLabel;
   return (
@@ -49,9 +39,7 @@ function WorldTile({ tile, onOpen, delay = 0 }) {
             inset: 0,
             borderRadius: 8,
             pointerEvents: "none",
-            background: `linear-gradient(180deg, transparent 42%, rgba(42, 51, 60, 0.55) 100%), ${FAMILY_WASH[tile.familyId] || "transparent"}`,
-            mixBlendMode: "multiply",
-            opacity: tile.covers?.length >= 4 ? 0.35 : 0.55,
+            background: `linear-gradient(180deg, transparent 58%, rgba(42, 51, 60, 0.72) 100%)`,
           }}
         />
         <span

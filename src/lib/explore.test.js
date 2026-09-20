@@ -81,7 +81,7 @@ describe("explore collections", () => {
     const photos = families.flatMap((f) => f.tiles.map((t) => t.photo).filter(Boolean));
     expect(photos.length).toBeGreaterThan(1);
     const unique = new Set(photos);
-    expect(unique.size).toBeGreaterThan(1);
+    expect(unique.size).toBe(photos.length);
   });
 
   test("hero never uses a channel pictogram as magazine art", () => {

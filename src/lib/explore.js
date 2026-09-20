@@ -246,17 +246,23 @@ export function exploreWorlds(tracks = []) {
   for (const family of SCENE_FAMILIES) {
     const members = scenes.filter((s) => s.familyId === family.id);
     if (!members.length) continue;
-    const tiles = members.map((scene) => {
+    const tiles = [];
+    for (const scene of members) {
       const covers = coverUrlsForTracks(scene.pool, 4, used);
-      covers.forEach((c) => used.add(c));
-      const photo = covers[0] || scene.photo || null;
-      return {
+      const photo = covers.find((c) => !used.has(c)) || null;
+      if (!photo && covers.length) continue;
+      if (photo) used.add(photo);
+      const shown = photo
+        ? [photo, ...covers.filter((c) => c !== photo)].slice(0, 4)
+        : covers;
+      tiles.push({
         ...scene,
-        covers,
+        covers: shown,
         photo,
         usePhoto: !!photo,
-      };
-    });
+      });
+    }
+    if (!tiles.length) continue;
     families.push({
       id: family.id,
       label: family.label,

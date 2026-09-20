@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, memo } from "react";
-import { runAfterPaint, runAfterDelay } from "../lib/afterPaint";
+import { runAfterDelay } from "../lib/afterPaint";
 import {
   chromeIconButton,
   color,
@@ -220,39 +220,24 @@ function ExploreScreen({
   const activeId = currentTrack?.id;
   const [focusKey, setFocusKey] = useState(null);
   const [mode, setMode] = useState("worlds");
-  const [paintReady, setPaintReady] = useState(process.env.NODE_ENV === "test");
   const [deepReady, setDeepReady] = useState(process.env.NODE_ENV === "test");
-
-  useEffect(() => {
-    if (process.env.NODE_ENV === "test") return undefined;
-    return runAfterPaint(() => setPaintReady(true));
-  }, []);
 
   useEffect(() => {
     if (process.env.NODE_ENV === "test") return undefined;
     return runAfterDelay(() => setDeepReady(true), 2400);
   }, []);
 
-  const worlds = useMemo(
-    () => (paintReady ? exploreWorlds(tracks) : []),
-    [tracks, paintReady]
-  );
-  const lanes = useMemo(
-    () => (paintReady ? exploreGenrePlates(tracks, 12) : []),
-    [tracks, paintReady]
-  );
+  const worlds = useMemo(() => exploreWorlds(tracks), [tracks]);
+  const lanes = useMemo(() => exploreGenrePlates(tracks, 12), [tracks]);
   const rooms = useMemo(
-    () => (deepReady || mode === "energy" ? exploreMoodPlates(tracks) : []),
+    () => (mode === "energy" || deepReady ? exploreMoodPlates(tracks) : []),
     [tracks, deepReady, mode]
   );
   const releases = useMemo(
-    () => (deepReady || mode === "sleeves" ? exploreReleases(tracks, 6) : []),
+    () => (mode === "sleeves" || deepReady ? exploreReleases(tracks, 6) : []),
     [tracks, deepReady, mode]
   );
-  const stats = useMemo(
-    () => (paintReady ? exploreCatalogStats(tracks) : { cuts: 0, worlds: 0, families: 0 }),
-    [tracks, paintReady]
-  );
+  const stats = useMemo(() => exploreCatalogStats(tracks), [tracks]);
 
   const focus = useMemo(
     () => resolveExploreFocus(focusKey, tracks),
