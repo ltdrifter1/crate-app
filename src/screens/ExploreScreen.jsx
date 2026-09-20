@@ -1,67 +1,59 @@
 import { useEffect, useMemo, useState, memo } from "react";
-import { runAfterPaint, runAfterDelay } from "../lib/afterPaint";
+import { runAfterDelay } from "../lib/afterPaint";
 import {
   chromeIconButton,
   color,
   font,
   fontDisplay,
+  fontMono,
   glass,
   homeSpace,
   motion,
   radio,
-  radius,
   type,
   y2k,
 } from "../theme";
 import Icon from "../components/ui/Icon";
-import { useCurrentTrack, useIsPlaying } from "../usePlayerTransport";
-import MusicSection, { Rail } from "../components/home/MusicSection";
-import TrackCard from "../components/home/TrackCard";
-import CrateSpread from "../components/home/CrateSpread";
-import { ReleasesBand } from "../components/home/ReleaseCard";
-import ChannelSurfingSection from "../components/home/ChannelSurfingSection";
+import { useCurrentTrack } from "../usePlayerTransport";
 import CardContainer from "../components/home/CardContainer";
-import ExploreHero from "../components/explore/ExploreHero";
-import GenreMosaic, { MoodRail, SceneRail } from "../components/explore/GenreMosaic";
+import { ReleasesBand } from "../components/home/ReleaseCard";
 import ExploreFocus from "../components/explore/ExploreFocus";
-import CamelotKeyRail from "../components/search/CamelotKeyRail";
+import ExploreModes from "../components/explore/ExploreModes";
+import WorldAtlas from "../components/explore/WorldAtlas";
+import EnergyRooms from "../components/explore/EnergyRooms";
+import MixBoard from "../components/explore/MixBoard";
 import {
-  buildExploreHero,
-  exploreForYou,
+  exploreCatalogStats,
   exploreGenrePlates,
   exploreMoodPlates,
   exploreReleases,
-  exploreScenePlates,
-  exploreStations,
-  recentlyPlayedTracks,
+  exploreWorlds,
   resolveExploreFocus,
 } from "../lib/explore";
 
 const EXPLORE_CSS = `
-  .pmp-explore-hero { isolation: isolate; }
-  .pmp-explore-hero-art {
-    animation: pmpExploreKen 32s ease-in-out infinite alternate;
-  }
-  @keyframes pmpExploreKen {
-    from { transform: scale(1); }
-    to { transform: scale(1.055); }
-  }
-  .pmp-explore-mosaic {
+  .pmp-explore-modes {
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 6px;
+    padding: 8px ${"{gutter}"}px 4px;
   }
-  .pmp-explore-grid {
+  .pmp-explore-find {
+    transition: border-color ${"{base}"} ${"{ease}"}, box-shadow ${"{base}"};
+  }
+  .pmp-explore-find:hover {
+    border-color: rgba(90, 196, 214, 0.45) !important;
+  }
+  .pmp-world-grid {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 14px 12px;
+    gap: 16px 12px;
+    padding: 0 ${"{gutter}"}px;
   }
-  .pmp-explore-search {
-    transition: border-color ${"{base}"} ${"{ease}"}, background ${"{base}"}, box-shadow ${"{base}"};
-  }
-  .pmp-explore-search:hover {
-    border-color: rgba(61,70,84,0.2) !important;
-    background: rgba(216,223,232,0.88) !important;
+  .pmp-mix-board {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
   }
   .pmp-releases {
     display: grid;
@@ -83,9 +75,8 @@ const EXPLORE_CSS = `
   }
   .pmp-release--lead .pmp-release-copy { min-width: 0; }
   @media (min-width: 720px) {
-    .pmp-explore-mosaic { grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
-    .pmp-explore-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
-    .pmp-explore-hero { aspect-ratio: 2.15 / 1 !important; min-height: 280px; }
+    .pmp-world-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 18px 14px; }
+    .pmp-mix-board { grid-template-columns: repeat(4, minmax(0, 1fr)); }
     .pmp-releases { grid-template-columns: 1.2fr 1fr 1fr; gap: 20px 16px; }
     .pmp-release--lead {
       grid-column: 1;
@@ -96,21 +87,18 @@ const EXPLORE_CSS = `
     .pmp-release--lead .pmp-release-art { width: 100%; }
   }
   @media (min-width: 1100px) {
-    .pmp-explore-mosaic { grid-template-columns: 1fr 1fr 1fr 1fr; }
-    .pmp-explore-grid { grid-template-columns: repeat(5, minmax(0, 1fr)); }
-  }
-  @media (prefers-reduced-motion: reduce) {
-    .pmp-explore-hero-art { animation: none !important; }
+    .pmp-world-grid { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+    .pmp-mix-board { grid-template-columns: repeat(6, minmax(0, 1fr)); }
   }
 `.replaceAll("{base}", motion.base).replaceAll("{ease}", motion.ease).replaceAll("{gutter}", String(homeSpace.gutter));
 
-function SearchEntry({ onOpenSearch }) {
+function FindEntry({ onOpenSearch }) {
   if (!onOpenSearch) return null;
   return (
-    <div style={{ padding: `10px ${homeSpace.gutter}px 4px` }}>
+    <div style={{ padding: `8px ${homeSpace.gutter}px 2px` }}>
       <button
         type="button"
-        className="pmp-explore-search"
+        className="pmp-explore-find"
         onClick={onOpenSearch}
         aria-label="Search"
         style={{
@@ -119,25 +107,26 @@ function SearchEntry({ onOpenSearch }) {
           display: "flex",
           alignItems: "center",
           gap: 10,
-          minHeight: 44,
-          padding: "0 14px",
-          borderRadius: radius.lg,
-          border: "1px solid rgba(28,32,40,0.12)",
-          background: "rgba(216,223,232,0.72)",
-          color: color.muted,
+          minHeight: 42,
+          padding: "0 12px",
+          borderRadius: radio.radiusLcd,
+          border: radio.lcdBorder,
+          background: radio.lcdFace,
+          boxShadow: radio.lcdShadow,
+          color: color.lcdMute,
           cursor: "pointer",
           textAlign: "left",
-          fontFamily: font,
-          fontSize: 16,
-          fontWeight: 500,
-          letterSpacing: -0.2,
+          fontFamily: fontMono,
+          fontSize: 13,
+          fontWeight: 600,
+          letterSpacing: 0.04,
           WebkitTapHighlightColor: "transparent",
         }}
       >
-        <span style={{ color: color.faint, display: "flex" }}>
-          <Icon name="search" size={16} />
+        <span style={{ color: color.lcdSignal, display: "flex" }}>
+          <Icon name="search" size={14} />
         </span>
-        Search artists, albums, scenes
+        Find a city, scene, or sleeve
       </button>
     </div>
   );
@@ -166,7 +155,7 @@ function EmptyExplore({ onOpenSearch }) {
           Nothing to dig yet
         </div>
         <div style={{ fontSize: 14, fontWeight: 500, color: color.muted, lineHeight: 1.5 }}>
-          When the catalog lands, stations, scenes, and sleeves show up here.
+          When the catalog lands, worlds, energy rooms, and sleeves show up here.
         </div>
         {onOpenSearch && (
           <button
@@ -192,116 +181,68 @@ function EmptyExplore({ onOpenSearch }) {
   );
 }
 
+function ModeHint({ mode }) {
+  const copy = {
+    worlds: "A planet of scenes — tap a disc, not a feed.",
+    energy: "Four rooms. Pressure, not playlists.",
+    sleeves: "Albums as objects you can pick up.",
+    mix: "Harmonic pads. DJ crate logic.",
+  };
+  return (
+    <p
+      style={{
+        margin: 0,
+        padding: `4px ${homeSpace.gutter}px 0`,
+        fontSize: 13,
+        color: color.muted,
+        lineHeight: 1.35,
+      }}
+    >
+      {copy[mode] || ""}
+    </p>
+  );
+}
+
 /**
- * Explore — world-class discovery destination.
- * Editorial hero, genre mosaic, moods, scenes, stations, sleeves.
+ * Explore — catalog directory. Home owns the live device;
+ * this screen is crate geography, not another Channel Surfing page.
  */
 function ExploreScreen({
   tracks = [],
   catalogLoading = false,
-  preferredGenres = [],
-  recentTrackIds = [],
-  userKey = "",
-  countdown = [],
-  sceneChannelsActiveId = null,
   onPlayTrack = null,
   onOpenSearch = null,
   onOpenAlbum = null,
   onOpenMenu = null,
-  onOpenCharts = null,
-  onTuneSceneChannel = null,
   onListenIntent = null,
 }) {
   const currentTrack = useCurrentTrack();
-  const isPlaying = useIsPlaying();
   const activeId = currentTrack?.id;
-  const dayKey = new Date().toISOString().slice(0, 10);
   const [focusKey, setFocusKey] = useState(null);
-  const [paintReady, setPaintReady] = useState(process.env.NODE_ENV === "test");
+  const [mode, setMode] = useState("worlds");
   const [deepReady, setDeepReady] = useState(process.env.NODE_ENV === "test");
-
-  useEffect(() => {
-    if (process.env.NODE_ENV === "test") return undefined;
-    return runAfterPaint(() => setPaintReady(true));
-  }, []);
 
   useEffect(() => {
     if (process.env.NODE_ENV === "test") return undefined;
     return runAfterDelay(() => setDeepReady(true), 2400);
   }, []);
 
-  const genres = useMemo(
-    () => (paintReady ? exploreGenrePlates(tracks, deepReady ? 12 : 6) : []),
-    [tracks, paintReady, deepReady]
-  );
-  const stations = useMemo(
-    () => (deepReady ? exploreStations(tracks) : []),
-    [tracks, deepReady]
+  const worlds = useMemo(() => exploreWorlds(tracks), [tracks]);
+  const lanes = useMemo(() => exploreGenrePlates(tracks, 12), [tracks]);
+  const rooms = useMemo(
+    () => (mode === "energy" || deepReady ? exploreMoodPlates(tracks) : []),
+    [tracks, deepReady, mode]
   );
   const releases = useMemo(
-    () => (deepReady ? exploreReleases(tracks, 4) : []),
-    [tracks, deepReady]
+    () => (mode === "sleeves" || deepReady ? exploreReleases(tracks, 6) : []),
+    [tracks, deepReady, mode]
   );
-  const moods = useMemo(
-    () => (deepReady ? exploreMoodPlates(tracks) : []),
-    [tracks, deepReady]
-  );
-  const scenes = useMemo(
-    () => (deepReady ? exploreScenePlates(tracks, 8) : []),
-    [tracks, deepReady]
-  );
-  const recents = useMemo(
-    () => (deepReady ? recentlyPlayedTracks(tracks, recentTrackIds, 6) : []),
-    [tracks, recentTrackIds, deepReady]
-  );
-  const forYou = useMemo(
-    () =>
-      deepReady
-        ? exploreForYou(tracks, {
-            preferredGenres,
-            recentTrackIds,
-            userKey,
-            dayKey,
-            limit: 5,
-          })
-        : { tracks: [], reasons: {}, coldStart: true },
-    [tracks, preferredGenres, recentTrackIds, userKey, dayKey, deepReady]
-  );
-  const hero = useMemo(
-    () =>
-      buildExploreHero({
-        tracks,
-        channels: [],
-        releases: [],
-        countdown: [],
-      }),
-    [tracks]
-  );
+  const stats = useMemo(() => exploreCatalogStats(tracks), [tracks]);
 
   const focus = useMemo(
     () => resolveExploreFocus(focusKey, tracks),
     [focusKey, tracks]
   );
-
-  const heroPlaying =
-    hero?.kind === "channel" &&
-    sceneChannelsActiveId &&
-    hero.id === sceneChannelsActiveId &&
-    isPlaying;
-
-  const playHero = (h) => {
-    if (!h) return;
-    if (h.kind === "channel" && onTuneSceneChannel) {
-      onTuneSceneChannel(h.channel);
-      return;
-    }
-    if (h.kind === "release") {
-      if (onOpenAlbum && h.album?.slug) onOpenAlbum(h.album.slug);
-      else if (h.pool?.[0]) onPlayTrack?.(h.pool[0], h.pool);
-      return;
-    }
-    if (h.pool?.[0]) onPlayTrack?.(h.pool[0], h.pool);
-  };
 
   const playFocusPool = (track, pool, resolved) => {
     if (onListenIntent && resolved?.type === "genre") {
@@ -316,13 +257,10 @@ function ExploreScreen({
   };
 
   const hasBody =
-    genres.length > 0 ||
-    moods.length > 0 ||
-    scenes.length > 0 ||
-    stations.some((c) => c.ready) ||
+    worlds.some((f) => f.tiles.length) ||
+    rooms.length > 0 ||
     releases.length > 0 ||
-    forYou.tracks.length > 0 ||
-    recents.length > 0;
+    lanes.length > 0;
 
   if (focus) {
     return (
@@ -350,17 +288,6 @@ function ExploreScreen({
       }}
     >
       <style>{EXPLORE_CSS}</style>
-      <div
-        aria-hidden="true"
-        style={{
-          position: "absolute",
-          inset: 0,
-          pointerEvents: "none",
-          background: `
-            radial-gradient(ellipse 80% 42% at 12% -8%, rgba(216,223,232,0.72) 0%, transparent 52%)
-          `,
-        }}
-      />
 
       <header
         style={{
@@ -390,6 +317,19 @@ function ExploreScreen({
               </button>
             )}
             <div style={{ minWidth: 0 }}>
+              <div
+                style={{
+                  fontFamily: fontMono,
+                  fontSize: 10,
+                  fontWeight: 700,
+                  letterSpacing: 0.16,
+                  textTransform: "uppercase",
+                  color: color.lcdMute,
+                  marginBottom: 4,
+                }}
+              >
+                Directory
+              </div>
               <h1
                 style={{
                   ...type.largeTitle,
@@ -401,127 +341,56 @@ function ExploreScreen({
               </h1>
               <p
                 style={{
-                  ...type.subhead,
-                  margin: "4px 0 0",
+                  margin: "6px 0 0",
+                  fontFamily: font,
+                  fontSize: 14,
                   color: color.muted,
                 }}
               >
-                Stations, scenes, and sleeves — start anywhere.
+                {stats.cuts
+                  ? `${stats.worlds} worlds · ${stats.cuts} cuts`
+                  : "A crate, not a feed."}
               </p>
             </div>
           </div>
         </div>
-        <div
-          aria-hidden="true"
-          style={{
-            marginTop: 16,
-            height: 1,
-            background: "rgba(28, 32, 40, 0.12)",
-            boxShadow: "none",
-          }}
-        />
       </header>
 
-      <SearchEntry onOpenSearch={onOpenSearch} />
+      <FindEntry onOpenSearch={onOpenSearch} />
+      <ExploreModes mode={mode} onChange={setMode} />
+      <ModeHint mode={mode} />
 
-      {deepReady && (
-        <div style={{ padding: `0 ${homeSpace.gutter}px` }}>
-          <CamelotKeyRail tracks={tracks} onPlayPool={onPlayTrack} label="Keys" />
-        </div>
+      {mode === "worlds" && (worlds.length > 0 || lanes.length > 0) && (
+        <WorldAtlas families={worlds} lanes={lanes} onOpen={setFocusKey} />
       )}
 
-      <ExploreHero
-        hero={hero}
-        onPlay={playHero}
-        onOpen={(h) => h?.album?.slug && onOpenAlbum?.(h.album.slug)}
-        playing={!!heroPlaying}
-      />
-
-      {genres.length > 0 && (
-        <MusicSection
-          title="Genres"
-          subtitle="Pick a genre"
-          first
-          delay={0.06}
-        >
-          <GenreMosaic plates={genres} onOpen={setFocusKey} />
-        </MusicSection>
+      {mode === "energy" && rooms.length > 0 && (
+        <EnergyRooms rooms={rooms} onOpen={setFocusKey} />
       )}
 
-      {moods.length > 0 && (
-        <MusicSection
-          title="Moods & moments"
-          subtitle="For this hour"
-          delay={0.08}
-        >
-          <MoodRail plates={moods} onOpen={setFocusKey} />
-        </MusicSection>
-      )}
-
-      {scenes.length > 0 && (
-        <MusicSection
-          title="Scenes"
-          subtitle="Where the music lives"
-          delay={0.1}
-        >
-          <SceneRail plates={scenes} onOpen={setFocusKey} />
-        </MusicSection>
-      )}
-
-      {stations.length > 0 && (
-        <ChannelSurfingSection
-          channels={stations}
-          tracks={tracks}
-          activeChannelId={sceneChannelsActiveId}
-          onTuneChannel={onTuneSceneChannel}
-          first={false}
-          delay={0.12}
-          title="Stations"
-          subtitle="Live from here"
-          featured
-        />
-      )}
-
-      {forYou.tracks.length > 0 && (
-        <CrateSpread
-          title={forYou.coldStart ? "Fresh picks" : "Selected for you"}
-          subtitle={forYou.coldStart ? "A place to begin" : "Chosen for you"}
-          tracks={forYou.tracks.slice(0, 5)}
-          activeId={activeId}
-          onPlayTrack={onPlayTrack}
-        />
-      )}
-
-      {releases.length > 0 && (
-        <MusicSection
-          title="Albums"
-          delay={0.14}
-        >
+      {mode === "sleeves" && releases.length > 0 && (
+        <section aria-label="Albums" style={{ marginTop: 16 }}>
           <ReleasesBand
             albums={releases}
             onOpenAlbum={onOpenAlbum}
             onPlayTrack={onPlayTrack}
           />
-        </MusicSection>
+        </section>
       )}
 
-      {recents.length > 0 && (
-        <MusicSection
-          title="Recently played"
-          subtitle="Back on the deck"
-          delay={0.2}
-        >
-          <Rail gap={14}>
-            {recents.map((track) => (
-              <TrackCard
-                key={track.id}
-                track={track}
-                active={activeId === track.id}
-                onClick={() => onPlayTrack?.(track, recents)}
-              />
-            ))}
-          </Rail>
-        </MusicSection>
+      {mode === "mix" && (
+        <MixBoard tracks={tracks} onPlayPool={onPlayTrack} />
+      )}
+
+      {mode === "energy" && rooms.length === 0 && hasBody && (
+        <p style={{ padding: `16px ${homeSpace.gutter}px`, color: color.muted, fontSize: 14 }}>
+          Energy rooms fill once cuts carry a pace.
+        </p>
+      )}
+      {mode === "sleeves" && releases.length === 0 && hasBody && (
+        <p style={{ padding: `16px ${homeSpace.gutter}px`, color: color.muted, fontSize: 14 }}>
+          Sleeves land when albums have more than one cut.
+        </p>
       )}
 
       {!hasBody && catalogLoading && (

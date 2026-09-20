@@ -22,6 +22,7 @@ const catalog = [
     energy: 8,
     duration: 200,
     playCount: 10,
+    camelot: "8A",
     audioUrl: "https://cdn.example/a.mp3",
   },
   {
@@ -58,6 +59,7 @@ const catalog = [
     energy: 6,
     duration: 190,
     playCount: 3,
+    camelot: "5A",
     audioUrl: "https://cdn.example/d.mp3",
   },
   {
@@ -86,6 +88,10 @@ const catalog = [
   },
 ];
 
+function tab(div, name) {
+  return div.querySelector(`button[role="tab"][aria-label="${name}"]`);
+}
+
 describe("Explore screen", () => {
   let div;
   let root;
@@ -103,7 +109,7 @@ describe("Explore screen", () => {
     document.body.removeChild(div);
   });
 
-  test("empty catalog still routes as Explore with search and idle hero", async () => {
+  test("empty catalog still routes as Explore with find and idle directory", async () => {
     const onOpenSearch = jest.fn();
     await act(async () => {
       root.render(
@@ -114,18 +120,18 @@ describe("Explore screen", () => {
       );
     });
     expect(div.textContent).toMatch(/Explore/);
-    expect(div.textContent).toMatch(/Start anywhere/);
+    expect(div.textContent).toMatch(/A crate, not a feed/);
     expect(div.textContent).toMatch(/Nothing to dig yet/);
     const search = div.querySelector('button[aria-label="Search"]');
     expect(search).toBeTruthy();
-    expect(search.textContent).toMatch(/Search artists, albums, scenes/);
+    expect(search.textContent).toMatch(/Find a city, scene, or sleeve/);
     await act(async () => {
       search.click();
     });
     expect(onOpenSearch).toHaveBeenCalled();
   });
 
-  test("loaded catalog shows hero, genres, moods, and stations without Most Requested", async () => {
+  test("loaded catalog is a directory, not a second Home", async () => {
     const onOpenCharts = jest.fn();
     const onTune = jest.fn();
     await act(async () => {
@@ -144,25 +150,21 @@ describe("Explore screen", () => {
       );
     });
     expect(div.textContent).toMatch(/Explore/);
-    expect(div.textContent).toMatch(/Genres/);
+    expect(div.textContent).toMatch(/Directory/);
+    expect(div.textContent).toMatch(/Worlds/);
+    expect(div.textContent).toMatch(/Dancefloor|Techno|House|Metal/);
+    expect(div.textContent).toMatch(/Lanes/);
     expect(div.textContent).toMatch(/Electronic/);
-    expect(div.textContent).toMatch(/Metal/);
-    expect(div.textContent).toMatch(/Moods & moments/);
-    expect(div.textContent).toMatch(/Peak time/);
-    expect(div.textContent).toMatch(/Stations/);
-    expect(div.textContent).toMatch(/Warehouse/);
-    expect(div.textContent).not.toMatch(/Showcase station/i);
-    expect(div.textContent).not.toMatch(/on the dial/i);
+    expect(div.querySelector('button[role="tab"][aria-selected="true"]').textContent).toMatch(/Worlds/);
+    expect(div.textContent).not.toMatch(/Moods & moments/);
+    expect(div.textContent).not.toMatch(/Stations/);
+    expect(div.textContent).not.toMatch(/Channel Surfing/);
     expect(div.textContent).not.toMatch(/Most requested/i);
     expect(div.textContent).not.toMatch(/On the board/);
-    expect(div.querySelector(".pmp-crate-spread")).toBeTruthy();
-    expect(div.textContent).toMatch(/Fresh picks|Selected for you/);
-    expect(div.querySelector('section[aria-label="Albums"]')).toBeTruthy();
-    expect(div.querySelector(".pmp-release--lead")).toBeTruthy();
-    expect(div.querySelector(".pmp-release--tile, .pmp-release--count")).toBeTruthy();
-    expect(div.textContent).not.toMatch(/Featured releases/);
-    expect(div.textContent).not.toMatch(/Albums worth the needle/);
-    expect(div.textContent).not.toMatch(/\bRelease\b/);
+    expect(div.textContent).not.toMatch(/Fresh picks|Selected for you/);
+    expect(div.textContent).not.toMatch(/Recently played/);
+    expect(div.querySelector(".pmp-crate-spread")).toBeFalsy();
+    expect(div.querySelector('section[aria-label="Albums"]')).toBeFalsy();
     expect(div.querySelector('button[aria-label="Browse"]')).toBeTruthy();
     const charts = [...div.querySelectorAll("button")].find((b) => b.textContent === "Charts");
     expect(charts).toBeFalsy();
@@ -186,7 +188,7 @@ describe("Explore screen", () => {
     });
     expect(div.textContent).toMatch(/‹ Explore/);
     expect(div.textContent).toMatch(/Electronic/);
-    expect(div.textContent).not.toMatch(/Moods & moments/);
+    expect(div.textContent).not.toMatch(/Lanes/);
     const play = [...div.querySelectorAll("button")].find((b) => b.textContent.trim() === "Play");
     expect(play).toBeTruthy();
     await act(async () => {
@@ -197,28 +199,55 @@ describe("Explore screen", () => {
     await act(async () => {
       back.click();
     });
-    expect(div.textContent).toMatch(/Genres/);
+    expect(div.textContent).toMatch(/Worlds/);
   });
 
-  test("hero Play hands off to a catalog sleeve", async () => {
+  test("Mix pads hand off a Camelot crate", async () => {
     const onPlayTrack = jest.fn();
     await act(async () => {
       root.render(
         React.createElement(ExploreScreen, {
           tracks: catalog,
-          countdown: [{ rank: 1, track: catalog[0] }],
           onPlayTrack,
         })
       );
     });
-    const play = div.querySelector('button[aria-label="Play Warehouse"]');
+    await act(async () => {
+      tab(div, "Mix").click();
+    });
+    const play = div.querySelector('button[aria-label="Play tracks in Camelot 8"]');
     expect(play).toBeTruthy();
-    expect(play.getAttribute("aria-label")).toMatch(/Warehouse/);
     await act(async () => {
       play.click();
     });
     expect(onPlayTrack).toHaveBeenCalled();
     expect(onPlayTrack.mock.calls[0][0].id).toBe("t1");
+  });
+
+  test("Sleeves mode shows albums as objects", async () => {
+    await act(async () => {
+      root.render(React.createElement(ExploreScreen, { tracks: catalog }));
+    });
+    await act(async () => {
+      tab(div, "Sleeves").click();
+    });
+    expect(div.querySelector('section[aria-label="Albums"]')).toBeTruthy();
+    expect(div.querySelector(".pmp-release--lead")).toBeTruthy();
+    expect(div.textContent).not.toMatch(/Featured releases/);
+    expect(div.textContent).not.toMatch(/Most requested/i);
+  });
+
+  test("Energy mode is rooms, not a poster rail", async () => {
+    await act(async () => {
+      root.render(React.createElement(ExploreScreen, { tracks: catalog }));
+    });
+    await act(async () => {
+      tab(div, "Energy").click();
+    });
+    expect(div.textContent).toMatch(/Peak time/);
+    expect(div.textContent).toMatch(/Four rooms/);
+    expect(div.querySelector(".pmp-energy-room")).toBeTruthy();
+    expect(div.textContent).not.toMatch(/Moods & moments/);
   });
 
   test("catalog loading shows a crate status instead of the empty hole", async () => {
@@ -242,17 +271,13 @@ describe("Explore screen", () => {
     expect(div.textContent).not.toMatch(/Picks for you, featured sleeves/);
   });
 
-  test("genre plates load one sleeve each, not a 4-up mosaic", async () => {
+  test("world tiles are square discs, not a 4-up mosaic poster", async () => {
     await act(async () => {
       root.render(React.createElement(ExploreScreen, { tracks: catalog }));
     });
-    const mosaic = div.querySelector(".pmp-explore-mosaic");
-    expect(mosaic).toBeTruthy();
-    const plates = mosaic.querySelectorAll(".pmp-explore-genre");
-    expect(plates.length).toBeGreaterThan(0);
-    plates.forEach((plate) => {
-      expect(plate.querySelector("[style*='grid-template-columns']")).toBeNull();
-      expect(plate.querySelectorAll("img").length).toBeLessThanOrEqual(1);
-    });
+    const grid = div.querySelector(".pmp-world-grid");
+    expect(grid).toBeTruthy();
+    const tiles = grid.querySelectorAll(".pmp-world-tile");
+    expect(tiles.length).toBeGreaterThan(0);
   });
 });

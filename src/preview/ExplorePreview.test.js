@@ -20,9 +20,10 @@ describe("Explore preview", () => {
       root.render(React.createElement(ExplorePreview));
     });
     expect(div.textContent).toMatch(/Explore/);
-    expect(div.textContent).toMatch(/Genres/);
-    expect(div.textContent).toMatch(/Moods & moments/);
-    expect(div.textContent).toMatch(/Stations/);
+    expect(div.textContent).toMatch(/Worlds/);
+    expect(div.textContent).toMatch(/Directory/);
+    expect(div.textContent).not.toMatch(/Moods & moments/);
+    expect(div.textContent).not.toMatch(/Stations/);
     expect(div.textContent).not.toMatch(/On the board/);
     expect(div.textContent).not.toMatch(/Most requested/i);
     expect(div.textContent).not.toMatch(/Showcase station/i);
@@ -40,6 +41,11 @@ describe("Explore preview", () => {
     await act(async () => {
       root.render(React.createElement(ExplorePreview));
     });
+    const sleeves = div.querySelector('button[role="tab"][aria-label="Sleeves"]');
+    expect(sleeves).toBeTruthy();
+    await act(async () => {
+      sleeves.click();
+    });
     const lead = div.querySelector(".pmp-release--lead");
     expect(lead).toBeTruthy();
     await act(async () => {
@@ -55,7 +61,8 @@ describe("Explore preview", () => {
     await act(async () => {
       back.click();
     });
-    expect(div.querySelector('section[aria-label="Albums"]')).toBeTruthy();
+    expect(div.textContent).toMatch(/Explore/);
+    expect(div.querySelector('button[role="tab"][aria-label="Sleeves"]')).toBeTruthy();
     await act(async () => {
       root.unmount();
     });

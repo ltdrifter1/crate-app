@@ -40,16 +40,26 @@ function singles(tracks = []) {
   return tracks.filter(PLAYABLE);
 }
 
-export function coverUrlsForTracks(list = [], limit = 1) {
+export function coverUrlsForTracks(list = [], limit = 1, skip = null) {
   const max = Math.max(1, limit);
+  const skipSet = skip instanceof Set ? skip : null;
   const seen = new Set();
   const out = [];
+  const reused = [];
   for (const t of list) {
     const url = catalogSleeveUrl(t?.albumCover);
     if (!url || seen.has(url)) continue;
     seen.add(url);
+    if (skipSet?.has(url)) {
+      reused.push(url);
+      continue;
+    }
     out.push(url);
+    if (out.length >= max) return out;
+  }
+  for (const url of reused) {
     if (out.length >= max) break;
+    out.push(url);
   }
   return out;
 }
@@ -172,7 +182,7 @@ export function tracksForMood(tracks = [], moodId) {
 export function exploreMoodPlates(tracks = [], minTracks = 2) {
   return MOOD_DEFS.map((def) => {
     const pool = tracksForMood(tracks, def.id);
-    const covers = coverUrlsForTracks(pool, 1);
+    const covers = coverUrlsForTracks(pool, 4);
     const sleeve = covers[0] || null;
     return {
       ...def,
@@ -194,7 +204,7 @@ export function exploreScenePlates(tracks = [], limit = 8) {
   for (const scene of SCENES) {
     const pool = playable.filter((t) => trackMatchesScene(t, scene.id));
     if (!pool.length) continue;
-    const covers = coverUrlsForTracks(pool, 1);
+    const covers = coverUrlsForTracks(pool, 4);
     const sleeve = covers[0] || null;
     scored.push({
       id: scene.id,
@@ -214,6 +224,63 @@ export function exploreScenePlates(tracks = [], limit = 8) {
   return scored
     .sort((a, b) => b.count - a.count || a.label.localeCompare(b.label))
     .slice(0, limit);
+}
+
+/** Directory tabs — Explore is a crate browser, not a second Home. */
+export const EXPLORE_MODES = [
+  { id: "worlds", label: "Worlds", hint: "Cities and scenes" },
+  { id: "energy", label: "Energy", hint: "Rooms by pressure" },
+  { id: "sleeves", label: "Sleeves", hint: "Albums as objects" },
+  { id: "mix", label: "Mix", hint: "Keys that blend" },
+];
+
+/**
+ * Scene atlas grouped by culture family.
+ * Sleeves are assigned uniquely across tiles so adjacent worlds
+ * do not reprint the same cover like a streaming carousel.
+ */
+export function exploreWorlds(tracks = []) {
+  const scenes = exploreScenePlates(tracks, Infinity);
+  const used = new Set();
+  const families = [];
+  for (const family of SCENE_FAMILIES) {
+    const members = scenes.filter((s) => s.familyId === family.id);
+    if (!members.length) continue;
+    const tiles = [];
+    for (const scene of members) {
+      const covers = coverUrlsForTracks(scene.pool, 4, used);
+      const photo = covers.find((c) => !used.has(c)) || null;
+      if (!photo && covers.length) continue;
+      if (photo) used.add(photo);
+      const shown = photo
+        ? [photo, ...covers.filter((c) => c !== photo)].slice(0, 4)
+        : covers;
+      tiles.push({
+        ...scene,
+        covers: shown,
+        photo,
+        usePhoto: !!photo,
+      });
+    }
+    if (!tiles.length) continue;
+    families.push({
+      id: family.id,
+      label: family.label,
+      story: family.story,
+      tiles,
+    });
+  }
+  return families;
+}
+
+export function exploreCatalogStats(tracks = []) {
+  const playable = singles(tracks);
+  const worlds = exploreWorlds(tracks);
+  return {
+    cuts: playable.length,
+    worlds: worlds.reduce((n, family) => n + family.tiles.length, 0),
+    families: worlds.length,
+  };
 }
 
 export function recentlyPlayedTracks(tracks = [], recentTrackIds = [], limit = 6) {
