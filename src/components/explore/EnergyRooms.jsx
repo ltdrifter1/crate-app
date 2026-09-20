@@ -1,120 +1,79 @@
-import { color, fontDisplay, fontMono, homeSpace, motion, radio, y2k } from "../../theme";
-import CoverImage from "../ui/CoverImage";
+import { color, fontDisplay, fontMono, homeSpace, motion, radio } from "../../theme";
 
-function EqBars({ min, max }) {
-  const mid = (min + max) / 2;
-  const levels = [1, 3, 5, 7, 9, 8, 6].map((v) =>
-    Math.max(0.18, 1 - Math.abs(v - mid) / 9)
-  );
-  return (
-    <span
-      aria-hidden="true"
-      style={{
-        display: "flex",
-        alignItems: "flex-end",
-        gap: 3,
-        height: 28,
-      }}
-    >
-      {levels.map((level, i) => (
-        <span
-          key={i}
-          style={{
-            width: 4,
-            height: `${Math.round(level * 100)}%`,
-            borderRadius: 1,
-            background: color.lcdSignal,
-            opacity: 0.45 + level * 0.45,
-            boxShadow: `0 0 6px ${color.lcdSignalSoft}`,
-          }}
-        />
-      ))}
-    </span>
-  );
-}
+const ROOM_ORDER = ["after-hours", "drive", "late-booth", "peak-time"];
 
 /**
- * Energy rooms — club floors / Discman EQ, not mood posters.
+ * One pressure strip. Tap a zone to play that crate immediately.
  */
-export default function EnergyRooms({ rooms = [], onOpen = null }) {
+export default function EnergyRooms({ rooms = [], onPlay = null }) {
   if (!rooms.length) return null;
+  const ordered = ROOM_ORDER.map((id) => rooms.find((r) => r.id === id)).filter(Boolean);
+  const zones = ordered.length ? ordered : rooms;
+
   return (
-    <div
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        gap: 12,
-        padding: `8px ${homeSpace.gutter}px 0`,
-      }}
-    >
-      {rooms.map((room, i) => {
-        const sleeves = (room.covers || []).slice(0, 3);
-        return (
-          <button
-            key={room.id}
-            type="button"
-            className="pmp-lift pmp-energy-room"
-            onClick={() => onOpen?.({ type: "mood", id: room.id })}
-            aria-label={`${room.label} — ${room.blurb}`}
-            style={{
-              display: "grid",
-              gridTemplateColumns: "minmax(0, 1fr) auto",
-              gap: 12,
-              alignItems: "center",
-              width: "100%",
-              padding: "14px 14px 14px 16px",
-              border: radio.border,
-              borderRadius: radio.radius,
-              background: radio.moduleFace,
-              boxShadow: radio.moduleShadow,
-              cursor: "pointer",
-              textAlign: "left",
-              animation: `rise 0.45s ${motion.ease} ${0.04 + i * 0.04}s both`,
-              WebkitTapHighlightColor: "transparent",
-            }}
-          >
-            <span>
+    <div style={{ padding: `8px ${homeSpace.gutter}px 0` }}>
+      <div
+        className="pmp-energy-strip"
+        role="group"
+        aria-label="Pressure"
+        style={{
+          padding: 6,
+          borderRadius: radio.radius,
+          background: radio.lcdFace,
+          border: radio.lcdBorder,
+          boxShadow: radio.lcdShadow,
+          overflow: "hidden",
+        }}
+      >
+        {zones.map((room, i) => {
+          const ready = (room.pool || []).length > 0;
+          const heat = (room.minEnergy + room.maxEnergy) / 20;
+          return (
+            <button
+              key={room.id}
+              type="button"
+              className="pmp-press pmp-energy-zone"
+              disabled={!ready}
+              onClick={() => {
+                if (ready && room.pool[0]) onPlay?.(room.pool[0], room.pool, room);
+              }}
+              aria-label={`Play ${room.label}`}
+              style={{
+                minHeight: 112,
+                padding: "12px 10px 10px",
+                border: "none",
+                borderRadius: radio.radiusLcd,
+                background: `linear-gradient(180deg, rgba(183,228,238,${0.08 + heat * 0.28}) 0%, rgba(90,196,214,${0.05 + heat * 0.2}) 100%)`,
+                cursor: ready ? "pointer" : "default",
+                textAlign: "left",
+                opacity: ready ? 1 : 0.4,
+                animation: `rise 0.4s ${motion.ease} ${0.04 + i * 0.04}s both`,
+                WebkitTapHighlightColor: "transparent",
+              }}
+            >
               <span
                 style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 8,
+                  display: "block",
+                  fontFamily: fontMono,
+                  fontSize: 9,
+                  fontWeight: 700,
+                  letterSpacing: 0.12,
+                  textTransform: "uppercase",
+                  color: color.lcdMute,
                   marginBottom: 6,
                 }}
               >
-                <span
-                  style={{
-                    fontFamily: fontMono,
-                    fontSize: 10,
-                    fontWeight: 700,
-                    letterSpacing: 0.14,
-                    textTransform: "uppercase",
-                    color: color.lcdMute,
-                  }}
-                >
-                  {room.minEnergy}–{room.maxEnergy}
-                </span>
-                <span
-                  style={{
-                    fontFamily: fontMono,
-                    fontSize: 10,
-                    fontWeight: 700,
-                    letterSpacing: 0.08,
-                    color: color.muted,
-                  }}
-                >
-                  {room.count} {room.count === 1 ? "cut" : "cuts"}
-                </span>
+                {room.minEnergy}–{room.maxEnergy}
               </span>
               <span
                 style={{
                   display: "block",
                   fontFamily: fontDisplay,
-                  fontSize: 20,
+                  fontSize: 15,
                   fontWeight: 700,
-                  letterSpacing: -0.4,
-                  color: y2k.offWhite,
-                  lineHeight: 1.1,
+                  letterSpacing: -0.25,
+                  color: color.lcdInk,
+                  lineHeight: 1.15,
                 }}
               >
                 {room.label}
@@ -122,65 +81,29 @@ export default function EnergyRooms({ rooms = [], onOpen = null }) {
               <span
                 style={{
                   display: "block",
-                  marginTop: 4,
-                  fontSize: 13,
-                  color: color.muted,
-                  lineHeight: 1.35,
+                  marginTop: 6,
+                  fontFamily: fontMono,
+                  fontSize: 10,
+                  fontWeight: 700,
+                  color: color.lcdSignal,
                 }}
               >
-                {room.blurb}
+                {room.count} {room.count === 1 ? "cut" : "cuts"}
               </span>
-              {sleeves.length > 0 && (
-                <span
-                  style={{
-                    display: "flex",
-                    gap: 6,
-                    marginTop: 10,
-                  }}
-                >
-                  {sleeves.map((src) => (
-                    <span
-                      key={src}
-                      style={{
-                        width: 36,
-                        height: 36,
-                        borderRadius: 4,
-                        overflow: "hidden",
-                        flexShrink: 0,
-                        border: "1px solid rgba(61,70,84,0.18)",
-                      }}
-                    >
-                      <CoverImage
-                        src={src}
-                        alt=""
-                        width={36}
-                        height={36}
-                        style={{ width: "100%", height: "100%", objectFit: "cover" }}
-                      />
-                    </span>
-                  ))}
-                </span>
-              )}
-            </span>
-            <span
-              style={{
-                width: 72,
-                height: 72,
-                borderRadius: radio.radiusLcd,
-                background: radio.lcdFace,
-                border: radio.lcdBorder,
-                boxShadow: radio.lcdShadow,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                flexShrink: 0,
-              }}
-            >
-              <EqBars min={room.minEnergy} max={room.maxEnergy} />
-            </span>
-          </button>
-        );
-      })}
+            </button>
+          );
+        })}
+      </div>
+      <p
+        style={{
+          margin: "10px 0 0",
+          fontSize: 13,
+          color: color.muted,
+          lineHeight: 1.4,
+        }}
+      >
+        {zones.map((r) => r.label).join(" → ")}. Tap a zone to drop the needle.
+      </p>
     </div>
   );
 }

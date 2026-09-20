@@ -24,6 +24,15 @@ export function tracksForCamelotSlot(tracks = [], slot) {
   return tracks.filter((t) => parseCamelot(t.camelot)?.num === num);
 }
 
+export function tracksForCamelotKey(tracks = [], key) {
+  const want = parseCamelot(key);
+  if (!want) return [];
+  return tracks.filter((t) => {
+    const parsed = parseCamelot(t.camelot);
+    return parsed && parsed.num === want.num && parsed.mode === want.mode;
+  });
+}
+
 export function camelotCompatible(keyA, keyB, range = 2) {
   const a = parseCamelot(keyA);
   const b = parseCamelot(keyB);

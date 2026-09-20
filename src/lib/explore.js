@@ -248,16 +248,13 @@ export function exploreWorlds(tracks = []) {
     if (!members.length) continue;
     const tiles = [];
     for (const scene of members) {
-      const covers = coverUrlsForTracks(scene.pool, 4, used);
-      const photo = covers.find((c) => !used.has(c)) || null;
-      if (!photo && covers.length) continue;
+      const poolCovers = coverUrlsForTracks(scene.pool, 4);
+      const photo = poolCovers.find((c) => !used.has(c)) || null;
+      if (!photo && poolCovers.length) continue;
       if (photo) used.add(photo);
-      const shown = photo
-        ? [photo, ...covers.filter((c) => c !== photo)].slice(0, 4)
-        : covers;
       tiles.push({
         ...scene,
-        covers: shown,
+        covers: poolCovers,
         photo,
         usePhoto: !!photo,
       });

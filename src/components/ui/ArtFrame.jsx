@@ -4,7 +4,7 @@ import DefaultSleeve from "./DefaultSleeve";
 
 /**
  * ArtFrame — jewel-case sleeve: tight radius, raised shadow, acid/Aqua pip when playing.
- * Optional 2×2 mosaic when `covers` has 4+ URLs; otherwise single `src`.
+ * Mosaic when `covers` has 2+ URLs (2-up, or 2×2 at 3–4).
  */
 export default function ArtFrame({
   src = null,
@@ -22,9 +22,11 @@ export default function ArtFrame({
   const w = width ?? size;
   const h = height ?? size;
   const mosaic = Array.isArray(covers) ? covers.filter(Boolean).slice(0, 4) : [];
-  const useMosaic = mosaic.length >= 4;
-  const cellW = Math.ceil(w / 2);
-  const cellH = Math.ceil(h / 2);
+  const useMosaic = mosaic.length >= 2;
+  const twoUp = mosaic.length === 2;
+  const cells = mosaic.length === 3 ? [...mosaic, mosaic[0]] : mosaic;
+  const cellW = Math.ceil(w / (twoUp ? 2 : 2));
+  const cellH = Math.ceil(h / (twoUp ? 1 : 2));
 
   return (
     <span
@@ -41,10 +43,10 @@ export default function ArtFrame({
             inset: 0,
             display: "grid",
             gridTemplateColumns: "1fr 1fr",
-            gridTemplateRows: "1fr 1fr",
+            gridTemplateRows: twoUp ? "1fr" : "1fr 1fr",
           }}
         >
-          {mosaic.map((url, i) => (
+          {cells.map((url, i) => (
             <span key={`${url}-${i}`} style={{ overflow: "hidden" }}>
               <CoverImage src={url} alt="" width={cellW} height={cellH} />
             </span>

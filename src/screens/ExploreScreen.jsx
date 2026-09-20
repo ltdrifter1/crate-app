@@ -16,12 +16,12 @@ import {
 import Icon from "../components/ui/Icon";
 import { useCurrentTrack } from "../usePlayerTransport";
 import CardContainer from "../components/home/CardContainer";
-import { ReleasesBand } from "../components/home/ReleaseCard";
 import ExploreFocus from "../components/explore/ExploreFocus";
 import ExploreModes from "../components/explore/ExploreModes";
 import WorldAtlas from "../components/explore/WorldAtlas";
 import EnergyRooms from "../components/explore/EnergyRooms";
 import MixBoard from "../components/explore/MixBoard";
+import SleeveWallet from "../components/explore/SleeveWallet";
 import {
   exploreCatalogStats,
   exploreGenrePlates,
@@ -44,51 +44,39 @@ const EXPLORE_CSS = `
   .pmp-explore-find:hover {
     border-color: rgba(90, 196, 214, 0.45) !important;
   }
-  .pmp-world-grid {
+  .pmp-world-tray {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: 1fr 1fr;
     gap: 16px 12px;
     padding: 0 ${"{gutter}"}px;
+    align-items: start;
   }
-  .pmp-mix-board {
+  .pmp-world-tile--lead { grid-column: 1 / -1; max-width: 280px; }
+  .pmp-mix-wheel {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 8px;
   }
-  .pmp-releases {
+  .pmp-energy-strip {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 18px 12px;
-    padding: 0 ${"{gutter}"}px;
-    align-items: start;
+    gap: 3px;
   }
-  .pmp-release--lead {
-    grid-column: 1 / -1;
-    display: flex !important;
-    flex-direction: row;
-    align-items: center;
-    gap: 16px;
-  }
-  .pmp-release--lead .pmp-release-art {
-    width: 132px;
-    flex-shrink: 0;
-  }
-  .pmp-release--lead .pmp-release-copy { min-width: 0; }
   @media (min-width: 720px) {
-    .pmp-world-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 18px 14px; }
-    .pmp-mix-board { grid-template-columns: repeat(4, minmax(0, 1fr)); }
-    .pmp-releases { grid-template-columns: 1.2fr 1fr 1fr; gap: 20px 16px; }
-    .pmp-release--lead {
+    .pmp-world-tray {
+      grid-template-columns: 1.35fr 1fr 1fr;
+      gap: 18px 14px;
+    }
+    .pmp-world-tile--lead {
       grid-column: 1;
       grid-row: 1 / span 2;
-      flex-direction: column !important;
-      align-items: stretch !important;
+      max-width: none;
     }
-    .pmp-release--lead .pmp-release-art { width: 100%; }
+    .pmp-mix-wheel { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    .pmp-energy-strip { grid-template-columns: repeat(4, minmax(0, 1fr)); }
   }
   @media (min-width: 1100px) {
-    .pmp-world-grid { grid-template-columns: repeat(5, minmax(0, 1fr)); }
-    .pmp-mix-board { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+    .pmp-mix-wheel { grid-template-columns: repeat(6, minmax(0, 1fr)); }
   }
 `.replaceAll("{base}", motion.base).replaceAll("{ease}", motion.ease).replaceAll("{gutter}", String(homeSpace.gutter));
 
@@ -184,9 +172,9 @@ function EmptyExplore({ onOpenSearch }) {
 function ModeHint({ mode }) {
   const copy = {
     worlds: "A planet of scenes — tap a disc, not a feed.",
-    energy: "Four rooms. Pressure, not playlists.",
-    sleeves: "Albums as objects you can pick up.",
-    mix: "Harmonic pads. DJ crate logic.",
+    energy: "One strip. Pressure, not playlists.",
+    sleeves: "Open a jewel case. Flip the wallet.",
+    mix: "Twelve keys. Neighbors mix.",
   };
   return (
     <p
@@ -365,12 +353,15 @@ function ExploreScreen({
       )}
 
       {mode === "energy" && rooms.length > 0 && (
-        <EnergyRooms rooms={rooms} onOpen={setFocusKey} />
+        <EnergyRooms
+          rooms={rooms}
+          onPlay={(track, pool) => playFocusPool(track, pool)}
+        />
       )}
 
       {mode === "sleeves" && releases.length > 0 && (
         <section aria-label="Albums" style={{ marginTop: 16 }}>
-          <ReleasesBand
+          <SleeveWallet
             albums={releases}
             onOpenAlbum={onOpenAlbum}
             onPlayTrack={onPlayTrack}
@@ -384,7 +375,7 @@ function ExploreScreen({
 
       {mode === "energy" && rooms.length === 0 && hasBody && (
         <p style={{ padding: `16px ${homeSpace.gutter}px`, color: color.muted, fontSize: 14 }}>
-          Energy rooms fill once cuts carry a pace.
+          The pressure strip fills once cuts carry a pace.
         </p>
       )}
       {mode === "sleeves" && releases.length === 0 && hasBody && (
