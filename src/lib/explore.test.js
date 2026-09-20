@@ -7,6 +7,7 @@ import {
   exploreGenrePlates,
   exploreMoodPlates,
   exploreScenePlates,
+  exploreWorlds,
   recentlyPlayedTracks,
   resolveExploreFocus,
   tracksForMood,
@@ -71,6 +72,16 @@ describe("explore collections", () => {
     for (let i = 1; i < scenes.length; i += 1) {
       expect(scenes[i - 1].count).toBeGreaterThanOrEqual(scenes[i].count);
     }
+  });
+
+  test("worlds group scenes by family and prefer unused sleeves", () => {
+    const families = exploreWorlds(tracks);
+    expect(families.length).toBeGreaterThan(0);
+    expect(families.every((f) => f.label && f.tiles.length > 0)).toBe(true);
+    const photos = families.flatMap((f) => f.tiles.map((t) => t.photo).filter(Boolean));
+    expect(photos.length).toBeGreaterThan(1);
+    const unique = new Set(photos);
+    expect(unique.size).toBeGreaterThan(1);
   });
 
   test("hero never uses a channel pictogram as magazine art", () => {
