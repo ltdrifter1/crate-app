@@ -1,20 +1,28 @@
 import {
   BTN_PRIMARY,
   color,
-  font,
   fontDisplay,
   fontMono,
   homeSpace,
   motion,
+  radio,
   y2k,
 } from "../../theme";
-import CoverImage from "../ui/CoverImage";
 import Icon from "../ui/Icon";
 import ArtFrame from "../ui/ArtFrame";
 
+function mp3FileName(track, index) {
+  const n = String(index + 1).padStart(2, "0");
+  const raw = String(track?.title || "UNTITLED")
+    .replace(/[^a-zA-Z0-9]+/g, "_")
+    .replace(/^_|_$/g, "")
+    .slice(0, 18)
+    .toUpperCase();
+  return `${n}  ${raw || "UNTITLED"}.MP3`;
+}
+
 /**
- * In-Explore destination — genre / mood / scene crate.
- * Play the pool, or tap a sleeve. Back stays on Explore.
+ * Walkman folder — LCD crate, disc in a well, filenames as the track list.
  */
 export default function ExploreFocus({
   focus,
@@ -63,66 +71,49 @@ export default function ExploreFocus({
       <div style={{ padding: `0 ${homeSpace.gutter}px 8px` }}>
         <div
           style={{
-            position: "relative",
-            borderRadius: 16,
-            overflow: "hidden",
-            minHeight: 180,
-            aspectRatio: "16 / 8",
-            background: y2k.artGradient,
-            border: "1px solid rgba(216,223,232,0.1)",
-            boxShadow: "0 16px 40px rgba(58,66,80,0.4)",
+            display: "grid",
+            gridTemplateColumns: "auto minmax(0, 1fr)",
+            gap: 16,
+            alignItems: "center",
+            padding: 14,
+            borderRadius: radio.radius,
+            border: radio.border,
+            background: radio.moduleFace,
+            boxShadow: radio.moduleShadow,
           }}
         >
-          {art && (
-            <CoverImage
-              src={art}
-              alt=""
-              width={800}
-              height={400}
-              objectPosition={focus.photoFocus || "center"}
-              priority
-              style={{ width: "100%", height: "100%", objectFit: "cover" }}
-            />
-          )}
-          <div
-            aria-hidden="true"
-            style={{
-              position: "absolute",
-              inset: 0,
-              background:
-                "linear-gradient(180deg, rgba(58,66,80,0.1) 0%, rgba(58,66,80,0.82) 100%)",
-            }}
+          <ArtFrame
+            src={art}
+            covers={focus.covers}
+            size={132}
+            radius={8}
+            priority
+            style={{ width: 132, height: 132 }}
           />
-          <div
-            style={{
-              position: "absolute",
-              left: 18,
-              right: 18,
-              bottom: 16,
-            }}
-          >
+          <div style={{ minWidth: 0 }}>
             <div
               style={{
                 fontFamily: fontMono,
                 fontSize: 10,
                 fontWeight: 700,
-                letterSpacing: 1.5,
+                letterSpacing: 0.14,
                 textTransform: "uppercase",
-                color: y2k.cyan,
+                color: color.lcdMute,
                 marginBottom: 6,
               }}
             >
-              {focus.eyebrow}
-              {focus.cities?.[0] ? `  ·  ${focus.cities[0]}` : ""}
+              {focus.eyebrow || "Folder"}
+              {focus.cities?.[0] ? ` · ${focus.cities[0]}` : ""}
             </div>
             <h1
               style={{
                 margin: 0,
                 fontFamily: fontDisplay,
-                fontSize: 28,
+                fontSize: 24,
                 fontWeight: 750,
-                letterSpacing: -0.6,
-                color: color.onDark,
+                letterSpacing: -0.5,
+                color: y2k.offWhite,
+                lineHeight: 1.12,
               }}
             >
               {focus.label}
@@ -131,126 +122,129 @@ export default function ExploreFocus({
               <p
                 style={{
                   margin: "6px 0 0",
-                  fontSize: 14,
-                  fontWeight: 500,
-                  color: "rgba(216,223,232,0.72)",
+                  fontSize: 13,
+                  color: color.muted,
                   lineHeight: 1.4,
-                  maxWidth: 420,
-                  fontFamily: font,
                 }}
               >
                 {focus.story}
               </p>
             )}
-          </div>
-        </div>
-
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            gap: 12,
-            marginTop: 16,
-          }}
-        >
-          <div
-            style={{
-              fontSize: 13,
-              color: color.muted,
-              fontVariantNumeric: "tabular-nums",
-            }}
-          >
-            {pool.length} {pool.length === 1 ? "cut" : "cuts"}
-          </div>
-          {pool.length > 0 && (
-            <button
-              type="button"
-              className="pmp-press play-primary"
-              onClick={() => onPlayPool?.(pool[0], pool, focus)}
+            <div
               style={{
-                ...BTN_PRIMARY,
-                width: "auto",
-                minHeight: 40,
-                padding: "0 16px",
-                borderRadius: 8,
-                fontSize: 14,
-                fontWeight: 650,
-                display: "inline-flex",
+                display: "flex",
                 alignItems: "center",
-                gap: 8,
+                gap: 12,
+                marginTop: 12,
               }}
             >
-              <Icon name="play" size={13} />
-              Play
-            </button>
-          )}
+              <div
+                style={{
+                  fontFamily: fontMono,
+                  fontSize: 11,
+                  fontWeight: 700,
+                  color: color.muted,
+                }}
+              >
+                {pool.length} {pool.length === 1 ? "FILE" : "FILES"}
+              </div>
+              {pool.length > 0 && (
+                <button
+                  type="button"
+                  className="pmp-press play-primary"
+                  onClick={() => onPlayPool?.(pool[0], pool, focus)}
+                  style={{
+                    ...BTN_PRIMARY,
+                    width: "auto",
+                    minHeight: 40,
+                    padding: "0 16px",
+                    borderRadius: 8,
+                    fontSize: 14,
+                    fontWeight: 650,
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: 8,
+                  }}
+                >
+                  <Icon name="play" size={13} />
+                  Play
+                </button>
+              )}
+            </div>
+          </div>
         </div>
       </div>
 
       {pool.length > 0 ? (
         <div
-          className="pmp-explore-grid"
+          role="list"
+          aria-label="Folder files"
           style={{
-            padding: `16px ${homeSpace.gutter}px 0`,
+            margin: `12px ${homeSpace.gutter}px 0`,
+            borderRadius: radio.radiusLcd,
+            border: radio.lcdBorder,
+            background: radio.lcdFace,
+            boxShadow: radio.lcdShadow,
+            overflow: "hidden",
           }}
         >
-          {pool.slice(0, 48).map((track) => (
-            <button
-              key={track.id}
-              type="button"
-              className="pmp-lift"
-              aria-label={`Play ${track.title} by ${track.artist}`}
-              onClick={() => onPlayTrack?.(track, pool)}
-              style={{
-                width: "100%",
-                padding: 0,
-                border: "none",
-                background: "none",
-                cursor: "pointer",
-                textAlign: "left",
-                WebkitTapHighlightColor: "transparent",
-              }}
-            >
-              <ArtFrame
-                src={track.albumCover || null}
-                width="100%"
-                height="auto"
-                active={activeId === track.id}
-                radius={12}
-                style={{ aspectRatio: "1 / 1", height: "auto", width: "100%" }}
-              />
-              <span
+          {pool.slice(0, 48).map((track, i) => {
+            const active = activeId === track.id;
+            return (
+              <button
+                key={track.id}
+                type="button"
+                role="listitem"
+                className="pmp-press"
+                aria-label={`Play ${track.title} by ${track.artist}`}
+                onClick={() => onPlayTrack?.(track, pool)}
                 style={{
-                  display: "block",
-                  marginTop: 8,
-                  fontFamily: fontDisplay,
-                  fontSize: 13,
-                  fontWeight: 650,
-                  letterSpacing: -0.2,
-                  color: color.ink,
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
-                  whiteSpace: "nowrap",
-                }}
-              >
-                {track.title}
-              </span>
-              <span
-                style={{
-                  display: "block",
-                  marginTop: 2,
+                  display: "grid",
+                  gridTemplateColumns: "minmax(0, 1fr) auto",
+                  gap: 10,
+                  width: "100%",
+                  padding: "10px 12px",
+                  border: "none",
+                  borderBottom:
+                    i < Math.min(pool.length, 48) - 1
+                      ? "1px solid rgba(183,228,238,0.08)"
+                      : "none",
+                  background: active ? "rgba(183,228,238,0.1)" : "transparent",
+                  cursor: "pointer",
+                  textAlign: "left",
+                  color: active ? color.lcdInk : color.lcdSignal,
+                  fontFamily: fontMono,
                   fontSize: 12,
-                  color: color.muted,
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
-                  whiteSpace: "nowrap",
+                  fontWeight: 600,
+                  letterSpacing: 0.02,
                 }}
               >
-                {track.artist}
-              </span>
-            </button>
-          ))}
+                <span
+                  style={{
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  {mp3FileName(track, i)}
+                </span>
+                <span
+                  style={{
+                    color: color.lcdMute,
+                    fontSize: 10,
+                    fontWeight: 700,
+                    textTransform: "uppercase",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
+                    maxWidth: 120,
+                  }}
+                >
+                  {track.artist}
+                </span>
+              </button>
+            );
+          })}
         </div>
       ) : (
         <p
@@ -261,7 +255,7 @@ export default function ExploreFocus({
             lineHeight: 1.45,
           }}
         >
-          Nothing in this crate yet. Search the catalog or pick another lane.
+          Nothing in this folder yet. Search the catalog or pick another disc.
         </p>
       )}
     </div>

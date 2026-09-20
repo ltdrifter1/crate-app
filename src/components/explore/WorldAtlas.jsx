@@ -1,12 +1,12 @@
 import { color, fontDisplay, fontMono, homeSpace, motion, radio, type, y2k } from "../../theme";
 import ArtFrame from "../ui/ArtFrame";
 
-function WorldTile({ tile, onOpen, delay = 0 }) {
+function WorldTile({ tile, onOpen, delay = 0, lead = false }) {
   const city = tile.cities?.[0] || tile.familyLabel;
   return (
     <button
       type="button"
-      className="pmp-lift pmp-world-tile"
+      className={`pmp-lift pmp-world-tile${lead ? " pmp-world-tile--lead" : ""}`}
       onClick={() => onOpen?.({ type: "scene", id: tile.id })}
       aria-label={`${tile.label} — ${tile.count} cuts`}
       style={{
@@ -24,50 +24,21 @@ function WorldTile({ tile, onOpen, delay = 0 }) {
         WebkitTapHighlightColor: "transparent",
       }}
     >
-      <span style={{ position: "relative", display: "block" }}>
-        <ArtFrame
-          src={tile.photo}
-          covers={tile.covers}
-          size={168}
-          radius={8}
-          style={{ width: "100%", height: "auto", aspectRatio: "1 / 1" }}
-        />
-        <span
-          aria-hidden="true"
-          style={{
-            position: "absolute",
-            inset: 0,
-            borderRadius: 8,
-            pointerEvents: "none",
-            background: `linear-gradient(180deg, transparent 58%, rgba(42, 51, 60, 0.72) 100%)`,
-          }}
-        />
-        <span
-          style={{
-            position: "absolute",
-            left: 8,
-            right: 8,
-            bottom: 8,
-            fontFamily: fontMono,
-            fontSize: 9,
-            fontWeight: 700,
-            letterSpacing: 0.12,
-            textTransform: "uppercase",
-            color: color.lcdInk,
-            textShadow: "0 1px 8px rgba(42,51,60,0.8)",
-          }}
-        >
-          {city}
-        </span>
-      </span>
+      <ArtFrame
+        src={tile.photo}
+        size={lead ? 220 : 148}
+        radius={lead ? 10 : 8}
+        eager={lead}
+        style={{ width: "100%", height: "auto", aspectRatio: "1 / 1" }}
+      />
       <span>
         <span
           style={{
             display: "block",
             fontFamily: fontDisplay,
-            fontSize: 14,
-            fontWeight: 650,
-            letterSpacing: -0.2,
+            fontSize: lead ? 18 : 14,
+            fontWeight: 700,
+            letterSpacing: -0.25,
             lineHeight: 1.15,
             color: y2k.offWhite,
           }}
@@ -77,14 +48,17 @@ function WorldTile({ tile, onOpen, delay = 0 }) {
         <span
           style={{
             display: "block",
-            marginTop: 2,
+            marginTop: 3,
             fontSize: 11,
-            fontWeight: 500,
+            fontWeight: 600,
             color: color.muted,
             fontFamily: fontMono,
             letterSpacing: 0.04,
+            textTransform: "uppercase",
           }}
         >
+          {city}
+          {" · "}
           {tile.count} {tile.count === 1 ? "cut" : "cuts"}
         </span>
       </span>
@@ -138,8 +112,8 @@ function LaneIndex({ lanes = [], onOpen = null }) {
 }
 
 /**
- * Planet atlas — scenes as collectible discs, grouped by culture family.
- * Not a streaming poster rail.
+ * Disc tray — one lead jewel case per family, siblings smaller.
+ * Captions live under the sleeve. No wash over artwork.
  */
 export default function WorldAtlas({ families = [], lanes = [], onOpen = null }) {
   if (!families.length && !lanes.length) return null;
@@ -150,7 +124,7 @@ export default function WorldAtlas({ families = [], lanes = [], onOpen = null })
         <section
           key={family.id}
           aria-label={family.label}
-          style={{ marginTop: i === 0 ? 12 : 22 }}
+          style={{ marginTop: i === 0 ? 12 : 26 }}
         >
           <div style={{ padding: `0 ${homeSpace.gutter}px 10px` }}>
             <h2
@@ -178,8 +152,8 @@ export default function WorldAtlas({ families = [], lanes = [], onOpen = null })
               {family.story}
             </p>
           </div>
-          <div className="pmp-world-grid">
-            {family.tiles.map((tile) => {
+          <div className="pmp-world-tray">
+            {family.tiles.map((tile, idx) => {
               const delay = Math.min(i, 12) * 0.03;
               i += 1;
               return (
@@ -188,6 +162,7 @@ export default function WorldAtlas({ families = [], lanes = [], onOpen = null })
                   tile={tile}
                   onOpen={onOpen}
                   delay={delay}
+                  lead={idx === 0}
                 />
               );
             })}

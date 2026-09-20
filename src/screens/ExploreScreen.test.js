@@ -215,7 +215,7 @@ describe("Explore screen", () => {
     await act(async () => {
       tab(div, "Mix").click();
     });
-    const play = div.querySelector('button[aria-label="Play tracks in Camelot 8"]');
+    const play = div.querySelector('button[aria-label="Play Camelot 8A"]');
     expect(play).toBeTruthy();
     await act(async () => {
       play.click();
@@ -232,7 +232,7 @@ describe("Explore screen", () => {
       tab(div, "Sleeves").click();
     });
     expect(div.querySelector('section[aria-label="Albums"]')).toBeTruthy();
-    expect(div.querySelector(".pmp-release--lead")).toBeTruthy();
+    expect(div.querySelector(".pmp-sleeve-wallet, .pmp-release--lead")).toBeTruthy();
     expect(div.textContent).not.toMatch(/Featured releases/);
     expect(div.textContent).not.toMatch(/Most requested/i);
   });
@@ -245,9 +245,33 @@ describe("Explore screen", () => {
       tab(div, "Energy").click();
     });
     expect(div.textContent).toMatch(/Peak time/);
-    expect(div.textContent).toMatch(/Four rooms/);
-    expect(div.querySelector(".pmp-energy-room")).toBeTruthy();
+    expect(div.textContent).toMatch(/One strip/);
+    expect(div.querySelector(".pmp-energy-strip")).toBeTruthy();
     expect(div.textContent).not.toMatch(/Moods & moments/);
+    expect(div.querySelector(".pmp-energy-room")).toBeFalsy();
+  });
+
+  test("Energy zone plays the crate immediately", async () => {
+    const onPlayTrack = jest.fn();
+    await act(async () => {
+      root.render(
+        React.createElement(ExploreScreen, {
+          tracks: catalog,
+          onPlayTrack,
+        })
+      );
+    });
+    await act(async () => {
+      tab(div, "Energy").click();
+    });
+    const peak = div.querySelector('button[aria-label="Play Peak time"]');
+    expect(peak).toBeTruthy();
+    await act(async () => {
+      peak.click();
+    });
+    expect(onPlayTrack).toHaveBeenCalled();
+    expect(div.textContent).toMatch(/Peak time/);
+    expect(div.textContent).not.toMatch(/‹ Explore/);
   });
 
   test("catalog loading shows a crate status instead of the empty hole", async () => {
@@ -271,13 +295,14 @@ describe("Explore screen", () => {
     expect(div.textContent).not.toMatch(/Picks for you, featured sleeves/);
   });
 
-  test("world tiles are square discs, not a 4-up mosaic poster", async () => {
+  test("world tiles are a disc tray, not a 4-up mosaic poster", async () => {
     await act(async () => {
       root.render(React.createElement(ExploreScreen, { tracks: catalog }));
     });
-    const grid = div.querySelector(".pmp-world-grid");
-    expect(grid).toBeTruthy();
-    const tiles = grid.querySelectorAll(".pmp-world-tile");
+    const tray = div.querySelector(".pmp-world-tray");
+    expect(tray).toBeTruthy();
+    const tiles = tray.querySelectorAll(".pmp-world-tile");
     expect(tiles.length).toBeGreaterThan(0);
+    expect(tray.querySelector(".pmp-world-tile--lead")).toBeTruthy();
   });
 });
