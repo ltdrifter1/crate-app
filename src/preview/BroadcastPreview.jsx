@@ -14,11 +14,13 @@ import { SCENE_CHANNELS } from "../lib/sceneChannels";
 import { brandStoragePrefix } from "../brand/identity";
 import ChartsScreen from "../components/station/ChartsScreen";
 import SetBuilderScreen from "../components/set/SetBuilderScreen";
+import SearchScreen from "../screens/SearchScreen";
 import { makeSetPreviewCatalog } from "./SetPreview";
 import { color, homeSpace } from "../theme";
 import { previewSleeve } from "./sleeves";
 import { TonightDeck } from "../components/station/ShowGuide";
 import GlassDock from "../components/player/GlassDock";
+import ImmersivePlayer from "../components/player/ImmersivePlayer";
 import { playerPlaybackStore } from "../lib/playerPlaybackStore";
 import { playerTransportStore } from "../lib/playerTransportStore";
 import { contentPadBottom } from "../components/layout/AppChrome";
@@ -36,6 +38,7 @@ const SAMPLE_TRACK = {
   audioUrl: "u",
   album: "Afterglow",
   bpm: 118,
+  camelot: "8A",
   genre: "Electronic",
   playCount: 48,
   requestCount: 22,
@@ -50,6 +53,8 @@ const SAMPLE_NEXT = {
   duration: 198,
   audioUrl: "u",
   genre: "Electronic",
+  bpm: 122,
+  camelot: "9A",
   playCount: 31,
   requestCount: 11,
 };
@@ -177,6 +182,8 @@ export default function BroadcastPreview() {
   const [screen, setScreen] = useState("home");
   const [drawer, setDrawer] = useState(false);
   const [buildingSet, setBuildingSet] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [immersive, setImmersive] = useState(false);
   const [activeChannelId, setActiveChannelId] = useState("local-pnw");
   const channels = [...SCENE_CHANNELS].sort((a, b) => {
     if (!!a.showcase !== !!b.showcase) return a.showcase ? -1 : 1;
@@ -227,7 +234,7 @@ export default function BroadcastPreview() {
   const home = (
     <div className="pmp-home-mtv" style={{ maxWidth: 960, margin: "0 auto", width: "100%" }}>
       <HomeHeader
-        onOpenSearch={() => {}}
+        onOpenSearch={() => setScreen("search")}
         onOpenMenu={isDesktop ? null : () => setDrawer(true)}
       />
       <div style={{ padding: `0 ${homeSpace.gutter}px`, marginTop: homeSpace.sectionGapFirst }}>
@@ -300,13 +307,38 @@ export default function BroadcastPreview() {
             nowPlayingId="preview-1"
             onOpenMenu={isDesktop ? null : () => setDrawer(true)}
           />
+        ) : screen === "search" ? (
+          <SearchScreen
+            query={searchQuery}
+            setQuery={setSearchQuery}
+            tracks={SAMPLE_TRACKS}
+            onPlay={() => {}}
+            onBack={() => setScreen("home")}
+            backLabel="Home"
+          />
         ) : (
           home
         )}
       </div>
-      {isDesktop ? null : (
+      {immersive && (
+        <ImmersivePlayer
+          currentTrack={SAMPLE_TRACK}
+          upNextTrack={SAMPLE_NEXT}
+          onTogglePlay={() => {
+            playerTransportStore.setPlaying(!playerTransportStore.getState().isPlaying);
+          }}
+          onSkip={() => setImmersive(false)}
+          onPrev={() => {}}
+          onClose={() => setImmersive(false)}
+          onSeek={(n) => playerPlaybackStore.setProgress(n)}
+          onLike={() => {}}
+          onDislike={() => {}}
+          isRadioMode
+        />
+      )}
+      {isDesktop || immersive ? null : (
         <GlassDock
-          screen={screen === "favorites" ? "favorites" : "home"}
+          screen={screen}
           setScreen={setScreen}
           track={SAMPLE_TRACK}
           onTogglePlay={() => {
@@ -317,7 +349,7 @@ export default function BroadcastPreview() {
           onLike={() => {}}
           onSeek={(n) => playerPlaybackStore.setProgress(n)}
           isRadioMode
-          onOpen={() => {}}
+          onOpen={() => setImmersive(true)}
           hidePlayer={screen === "home"}
         />
       )}

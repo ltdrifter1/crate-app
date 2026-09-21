@@ -23,6 +23,7 @@ function SearchScreen({
   entityHits: entityHitsProp, onOpenArtist, onOpenAlbum, tracks = [], onListenIntent = null,
   recentSearches = [], onPickRecent = null, onClearRecent = null,
   onBack = null,
+  backLabel = "Explore",
 }) {
   const currentTrack = useCurrentTrack();
   const [showAllResults, setShowAllResults] = useState(false);
@@ -65,7 +66,7 @@ function SearchScreen({
         <button
           type="button"
           onClick={onBack}
-          aria-label="Back to Explore"
+          aria-label={`Back to ${backLabel}`}
           style={{
             background: "none",
             border: "none",
@@ -77,7 +78,7 @@ function SearchScreen({
             padding: "0 0 10px",
           }}
         >
-          ‹ Explore
+          ‹ {backLabel}
         </button>
       )}
       <div style={{ position:"relative", marginBottom:14 }}>
