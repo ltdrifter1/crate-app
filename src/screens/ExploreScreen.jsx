@@ -296,10 +296,10 @@ function ExploreScreen({
             {onOpenMenu && (
               <button
                 type="button"
-                aria-label="Browse"
+                aria-label="More"
                 onClick={onOpenMenu}
                 className="pmp-press"
-                style={{ ...chromeIconButton(36), marginTop: 4 }}
+                style={{ ...chromeIconButton(44), marginTop: 4 }}
               >
                 <Icon name="menu" size={16} />
               </button>

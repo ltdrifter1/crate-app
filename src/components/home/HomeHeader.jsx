@@ -1,27 +1,26 @@
-import { chromeIconButton, homeSpace } from "../../theme";
+import { chromeIconButton, color, fontMono, homeSpace, radio } from "../../theme";
 import Icon from "../ui/Icon";
 
-function HeaderButton({ label, icon, onClick }) {
+function MoreButton({ onClick }) {
   if (!onClick) return null;
   return (
     <button
       type="button"
-      aria-label={label}
+      aria-label="More"
       onClick={onClick}
       className="pmp-press"
-      style={chromeIconButton(36)}
+      style={{ ...chromeIconButton(44), flexShrink: 0 }}
     >
-      <Icon name={icon} size={16} />
+      <Icon name="menu" size={16} />
     </button>
   );
 }
 
 /**
- * HomeHeader — actions only. No wordmark, callsign, or back control.
+ * HomeHeader — labeled Find field + overflow. Club lives on the tab bar.
  */
 export default function HomeHeader({
   onOpenSearch = null,
-  onOpenProfile = null,
   onOpenMenu = null,
 }) {
   return (
@@ -30,15 +29,46 @@ export default function HomeHeader({
       style={{
         display: "flex",
         alignItems: "center",
-        justifyContent: "flex-end",
         gap: 8,
-        padding: `calc(18px + env(safe-area-inset-top, 0px)) ${homeSpace.gutter}px 6px`,
+        padding: `calc(12px + env(safe-area-inset-top, 0px)) ${homeSpace.gutter}px 8px`,
       }}
     >
       <h1 className="sr-only">Home</h1>
-      {onOpenMenu && <HeaderButton label="Browse" icon="menu" onClick={onOpenMenu} />}
-      <HeaderButton label="Search" icon="search" onClick={onOpenSearch} />
-      <HeaderButton label="Profile" icon="profile" onClick={onOpenProfile} />
+      <MoreButton onClick={onOpenMenu} />
+      {onOpenSearch && (
+        <button
+          type="button"
+          className="pmp-explore-find"
+          onClick={onOpenSearch}
+          aria-label="Search"
+          style={{
+            flex: 1,
+            minWidth: 0,
+            display: "flex",
+            alignItems: "center",
+            gap: 10,
+            minHeight: 44,
+            padding: "0 12px",
+            borderRadius: radio.radiusLcd,
+            border: radio.lcdBorder,
+            background: radio.lcdFace,
+            boxShadow: radio.lcdShadow,
+            color: color.lcdMute,
+            cursor: "pointer",
+            textAlign: "left",
+            fontFamily: fontMono,
+            fontSize: 13,
+            fontWeight: 600,
+            letterSpacing: 0.04,
+            WebkitTapHighlightColor: "transparent",
+          }}
+        >
+          <span style={{ color: color.lcdSignal, display: "flex" }}>
+            <Icon name="search" size={14} />
+          </span>
+          Find
+        </button>
+      )}
     </header>
   );
 }

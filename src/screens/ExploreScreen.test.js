@@ -165,7 +165,7 @@ describe("Explore screen", () => {
     expect(div.textContent).not.toMatch(/Recently played/);
     expect(div.querySelector(".pmp-crate-spread")).toBeFalsy();
     expect(div.querySelector('section[aria-label="Albums"]')).toBeFalsy();
-    expect(div.querySelector('button[aria-label="Browse"]')).toBeTruthy();
+    expect(div.querySelector('button[aria-label="More"]')).toBeTruthy();
     const charts = [...div.querySelectorAll("button")].find((b) => b.textContent === "Charts");
     expect(charts).toBeFalsy();
     expect(onOpenCharts).not.toHaveBeenCalled();
@@ -188,6 +188,7 @@ describe("Explore screen", () => {
     });
     expect(div.textContent).toMatch(/‹ Explore/);
     expect(div.textContent).toMatch(/Electronic/);
+    expect(div.textContent).toMatch(/8A/);
     expect(div.textContent).not.toMatch(/Lanes/);
     const play = [...div.querySelectorAll("button")].find((b) => b.textContent.trim() === "Play");
     expect(play).toBeTruthy();

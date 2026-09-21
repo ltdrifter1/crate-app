@@ -1,7 +1,7 @@
 /**
  * Product IA — four dock destinations (device selector).
- * Charts and Build a set live in the left source list (desktop rail / mobile drawer).
- * Admin stays in the source list / Club, not on the consumer dock.
+ * Charts and Build a set live in the desktop source list and the mobile More drawer.
+ * Admin stays in the source list, not on the consumer dock.
  */
 
 export const PRIMARY_TABS = [

@@ -53,7 +53,6 @@ test("theme source does not ship mint phosphor", () => {
 test("player surfaces use a half-width Pace slot, not energy paddles", () => {
   const files = [
     "src/components/player/ImmersivePlayer.jsx",
-    "src/components/player/GlassDock.jsx",
     "src/components/player/DesktopMiniPlayer.jsx",
     "src/components/player/PlayerDeck.jsx",
     "src/components/home/HeroPlayerCard.jsx",
@@ -64,12 +63,35 @@ test("player surfaces use a half-width Pace slot, not energy paddles", () => {
     expect(src).not.toMatch(/EnergyShiftPaddles/);
     expect(src).not.toMatch(/EnergyShiftCapsule/);
   }
+  const dock = fs.readFileSync(path.join(root, "src/components/player/GlassDock.jsx"), "utf8");
+  expect(dock).toMatch(/Open now playing/);
+  expect(dock).not.toMatch(/PaceSlot/);
+  expect(dock).not.toMatch(/mini-player-sheet/);
+  expect(dock).not.toMatch(/EnergyShiftPaddles/);
   const css = fs.readFileSync(path.join(root, "src/index.css"), "utf8");
   expect(css).toMatch(/\.pmp-deck-plate/);
   expect(css).toMatch(/\.pmp-seek__well/);
   expect(css).toMatch(/max-width:\s*50%/);
   expect(css).toMatch(/\.pmp-mini-player/);
   expect(css).toMatch(/\.pmp-mini-progress/);
+});
+
+test("browse lists print BPM and Camelot, and Home ranks Channel Surfing over Tonight", () => {
+  const row = fs.readFileSync(path.join(root, "src/components/listen/TrackRow.jsx"), "utf8");
+  expect(row).toMatch(/trackBrowseBits/);
+  const focus = fs.readFileSync(path.join(root, "src/components/explore/ExploreFocus.jsx"), "utf8");
+  expect(focus).toMatch(/trackBrowseBits/);
+  const home = fs.readFileSync(path.join(root, "src/screens/HomeScreen.jsx"), "utf8");
+  expect(home.indexOf("<ChannelSurfingSection")).toBeLessThan(home.indexOf("<TonightDeck"));
+  expect(home.indexOf("<HeroPlayerCard")).toBeLessThan(home.indexOf("<ChannelSurfingSection"));
+  const header = fs.readFileSync(path.join(root, "src/components/home/HomeHeader.jsx"), "utf8");
+  expect(header).toMatch(/aria-label="Search"/);
+  expect(header).toMatch(/Find/);
+  expect(header).toMatch(/aria-label="More"/);
+  expect(header).not.toMatch(/onOpenProfile/);
+  const sidebar = fs.readFileSync(path.join(root, "src/components/layout/AppSidebar.jsx"), "utf8");
+  expect(sidebar).toMatch(/variant === "drawer"/);
+  expect(sidebar).not.toMatch(/Faceplate/);
 });
 
 test("Pace slider is Slow / Fast glass with DistroKid gradient", () => {

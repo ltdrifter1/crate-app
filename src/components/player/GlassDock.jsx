@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useState } from "react";
+import { lazy, Suspense } from "react";
 import {
   color, dock, fontDisplay, motion,
 } from "../../theme";
@@ -15,25 +15,22 @@ import {
 import { usePlayerPlayback } from "../../usePlayerPlayback";
 import { dockTintStyle } from "../../lib/dockTint";
 import CoverImage from "../ui/CoverImage";
-import { HardwareIconButton, LcdMetaLine, LcdSeek, LcdTimes, formatBitrate, trackLcdBits } from "./DeviceChrome";
+import { HardwareIconButton } from "./DeviceChrome";
 
 const EnergyShiftFeedback = lazy(() =>
   import("../listen/EnergyShiftButton").then((m) => ({ default: m.EnergyShiftFeedback }))
 );
-const PaceSlot = lazy(() =>
-  import("../listen/EnergyShiftButton").then((m) => ({ default: m.PaceSlot }))
-);
 
 /**
- * Mobile dock — Apple Music–style compact mini player over the tab bar.
- * Collapsed: cover + title/artist + play/pause + skip.
- * Expanded: seek, BPM/meta, Slow–Fast pace. Does not cover the feed by default.
+ * Mobile dock — collapsed now-playing over the four tabs.
+ * Cover + title + play/skip. Tap the bar opens the immersive player.
+ * Pace lives on the hero and immersive decks, not here.
  */
 export default function GlassDock({
   screen, setScreen, showAdmin = false,
   track,
-  onTogglePlay, onSkip, onPrev, onLike, onDislike, onSeek,
-  isRadioMode, onOpen, playlistCtx, onShowQueue, hypnoPocket,
+  onTogglePlay, onSkip,
+  isRadioMode, onOpen, playlistCtx, hypnoPocket,
   hidePlayer = false,
   playsRemaining = null,
   access = null,
@@ -43,22 +40,13 @@ export default function GlassDock({
   const isPlaying = useIsPlaying();
   const isBuffering = useIsBuffering();
   const items = primaryNavItems({ showAdmin });
-  const [expanded, setExpanded] = useState(false);
 
   const hasPlayer = !!track && !hidePlayer;
   const { menu, openFromContext, close } = useTrackMenu();
   const tint = dockTintStyle(track);
 
   const activeTab = dockActiveTab(screen, { hasAdmin: showAdmin });
-  const bits = trackLcdBits(track, [formatBitrate(track)]);
   const pct = duration > 0 ? Math.max(0, Math.min(100, (progress / duration) * 100)) : 0;
-
-  useEffect(() => {
-    setExpanded(false);
-  }, [track?.id, hidePlayer]);
-
-  const openFull = () => onOpen?.();
-  const toggleExpanded = () => setExpanded((v) => !v);
 
   return (
     <div
@@ -98,9 +86,8 @@ export default function GlassDock({
       >
         {hasPlayer && (
           <div
-            className={`pmp-mini-player${expanded ? " is-expanded" : ""}`}
+            className="pmp-mini-player"
             data-testid="mini-player"
-            data-expanded={expanded ? "true" : "false"}
           >
             <div className="pmp-mini-progress" aria-hidden="true">
               <div className="pmp-mini-progress__fill" style={{ width: `${pct}%` }} />
@@ -109,17 +96,15 @@ export default function GlassDock({
             <div
               role="button"
               tabIndex={0}
-              onClick={() => (expanded ? openFull() : setExpanded(true))}
+              onClick={() => onOpen?.()}
               onContextMenu={(e) => openFromContext(e, track)}
               onKeyDown={(e) => {
                 if (e.key === "Enter" || e.key === " ") {
                   e.preventDefault();
-                  if (expanded) openFull();
-                  else setExpanded(true);
+                  onOpen?.();
                 }
               }}
-              aria-label={expanded ? "Open now playing" : "Show playback details"}
-              aria-expanded={expanded}
+              aria-label="Open now playing"
               className="pmp-mini-bar"
               style={{
                 minHeight: dock.playerH,
@@ -206,106 +191,6 @@ export default function GlassDock({
                 <Icon name="skip" size={15} />
               </HardwareIconButton>
             </div>
-
-            {expanded && (
-              <div
-                className="pmp-mini-sheet"
-                data-testid="mini-player-sheet"
-                onClick={(e) => e.stopPropagation()}
-              >
-                <LcdMetaLine tone="strip" bits={bits} />
-                <div className="pmp-mini-seek">
-                  <LcdSeek
-                    value={progress}
-                    max={duration || 1}
-                    onChange={onSeek}
-                    label="Seek"
-                    stopPropagation
-                    height={3}
-                  />
-                  <LcdTimes progress={progress} duration={duration} tone="strip" />
-                </div>
-                <Suspense fallback={null}>
-                  <PaceSlot compact stopPropagation />
-                </Suspense>
-                <div className="pmp-mini-tools">
-                  <HardwareIconButton
-                    label="Previous"
-                    onClick={onPrev}
-                    size={44}
-                    stopPropagation
-                  >
-                    <Icon name="prev" size={15} />
-                  </HardwareIconButton>
-                  <button
-                    type="button"
-                    aria-label={track.liked ? "Unlike" : "Like"}
-                    onClick={(e) => { e.stopPropagation(); onLike(); }}
-                    className="pmp-mini-hit"
-                    style={{
-                      background: "none",
-                      border: "none",
-                      cursor: "pointer",
-                      color: track.liked ? color.accent : color.faint,
-                      minWidth: 44,
-                      minHeight: 44,
-                      display: "inline-flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      padding: 0,
-                    }}
-                  >
-                    <span style={{ display: "flex", animation: track.liked ? "likePop 0.25s ease" : "none" }}>
-                      <Icon name={track.liked ? "heart" : "heartempty"} size={16}/>
-                    </span>
-                  </button>
-                  {onDislike ? (
-                    <HardwareIconButton
-                      label="Dislike this track"
-                      active={!!track.disliked}
-                      onClick={onDislike}
-                      size={44}
-                      stopPropagation
-                    >
-                      <Icon name={track.disliked ? "dislikefilled" : "dislike"} size={15} />
-                    </HardwareIconButton>
-                  ) : null}
-                  {onShowQueue ? (
-                    <HardwareIconButton
-                      label="Up Next"
-                      onClick={onShowQueue}
-                      size={44}
-                      stopPropagation
-                    >
-                      <Icon name="queue" size={16} />
-                    </HardwareIconButton>
-                  ) : null}
-                  <button
-                    type="button"
-                    aria-label="Hide playback details"
-                    onClick={(e) => { e.stopPropagation(); toggleExpanded(); }}
-                    className="pmp-mini-hit"
-                    style={{
-                      marginLeft: "auto",
-                      background: "none",
-                      border: "none",
-                      cursor: "pointer",
-                      color: color.muted,
-                      minWidth: 44,
-                      minHeight: 44,
-                      display: "inline-flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      padding: 0,
-                    }}
-                  >
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
-                      <path d="M6 15l6-6 6 6" />
-                    </svg>
-                  </button>
-                </div>
-              </div>
-            )}
           </div>
         )}
 

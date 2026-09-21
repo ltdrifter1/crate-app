@@ -89,7 +89,7 @@ export default function ChatPreview() {
 
   const home = (
     <div style={{ maxWidth: 960, margin: "0 auto", width: "100%" }}>
-      <HomeHeader onOpenSearch={() => {}} onOpenProfile={() => {}} />
+      <HomeHeader onOpenSearch={() => {}} />
       <ChannelSurfingSection
         channels={channels}
         tracks={[SAMPLE_TRACK]}

@@ -14,6 +14,7 @@ import {
   radius,
   INPUT_ST,
 } from "../../theme";
+import { trackBrowseBits } from "../player/DeviceChrome";
 
 // ─── PLAYLIST MENU CONTEXT ────────────────────────────────────────────────────
 // Passed down so every track surface can add/remove playlists
@@ -362,6 +363,25 @@ export function TrackRow({ track, onPlay, active, isPlaying, onLike, extraAction
           <div style={{ fontSize: 14, fontWeight: active ? 650 : 500, letterSpacing: -0.1, color: active ? color.accent : color.ink, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{track.title}</div>
           <div style={{ fontSize: 12, color: color.muted, marginTop: 2 }}>{track.artist}{displaySceneLabel(track) ? ` · ${displaySceneLabel(track)}` : (normalizeGenre(track.genre) ? ` · ${normalizeGenre(track.genre)}` : "")}</div>
         </div>
+        {trackBrowseBits(track).length > 0 && (
+          <span
+            aria-hidden="true"
+            style={{
+              flexShrink: 0,
+              maxWidth: 88,
+              fontFamily: fontMono,
+              fontSize: 10,
+              fontWeight: 700,
+              letterSpacing: 0.04,
+              textTransform: "uppercase",
+              color: active ? color.accent : color.faint,
+              textAlign: "right",
+              lineHeight: 1.25,
+            }}
+          >
+            {trackBrowseBits(track).join(" · ")}
+          </span>
+        )}
         {onLike && (
           <button type="button" aria-label={track.liked ? "Unlike" : "Like"} onClick={(e) => { e.stopPropagation(); onLike(track.id); }}
             style={{ background: "none", border: "none", cursor: "pointer", color: track.liked ? color.accent : color.faint, padding: 8 }}>

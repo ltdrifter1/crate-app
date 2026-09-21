@@ -588,7 +588,7 @@ export const dock = {
   insetBottom: 8,
   radius: 16,
   tabH: 54,
-  /** Compact Apple Music–style bar (cover + title + play). */
+  /** Compact now-playing bar (cover + title + play). Pace lives on the full decks. */
   playerH: 56,
   /** Content clearances (tabs only / with player), excluding safe-area. */
   clearTabs: 80,

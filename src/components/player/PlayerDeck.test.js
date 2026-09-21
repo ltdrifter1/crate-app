@@ -4,6 +4,7 @@ import { act } from "react-dom/test-utils";
 import PlayerDeck from "./PlayerDeck";
 
 test("PlayerDeck is a PS1 glass plate with LCD seek, transport, and Pace", async () => {
+  localStorage.clear();
   const div = document.createElement("div");
   document.body.appendChild(div);
   const root = createRoot(div);
@@ -34,6 +35,11 @@ test("PlayerDeck is a PS1 glass plate with LCD seek, transport, and Pace", async
   expect(div.querySelector('[aria-label="Pace"]')).toBeTruthy();
   expect(div.textContent).toMatch(/Slow/);
   expect(div.textContent).toMatch(/Fast/);
+  expect(div.textContent).toMatch(/Next picks/);
+  expect(div.querySelector('[data-testid="deck-hint"]')?.textContent).toMatch(
+    /Slow and Fast change what plays next/
+  );
+  expect(div.textContent).toMatch(/Dislike steers/);
   await act(async () => root.unmount());
   document.body.removeChild(div);
 });

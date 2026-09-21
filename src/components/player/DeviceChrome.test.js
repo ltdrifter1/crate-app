@@ -1,7 +1,7 @@
 import React from "react";
 import { createRoot } from "react-dom/client";
 import { act } from "react-dom/test-utils";
-import { LcdMetaLine, LcdTitle, LcdTimeline, formatBitrate, trackLcdBits } from "./DeviceChrome";
+import { LcdMetaLine, LcdTitle, LcdTimeline, formatBitrate, trackLcdBits, trackBrowseBits } from "./DeviceChrome";
 import { PaceSlider } from "../listen/EnergyShiftButton";
 import { playerEnergyStore } from "../../lib/playerEnergyStore";
 
@@ -11,6 +11,14 @@ test("trackLcdBits prefers BPM, Camelot, energy", () => {
     camelot: "8A",
     energy: 7,
   })).toEqual(["124 BPM", "8A", "E7"]);
+});
+
+test("trackBrowseBits is BPM and key only", () => {
+  expect(trackBrowseBits({
+    bpm: 123.6,
+    camelot: "8A",
+    energy: 7,
+  })).toEqual(["124 BPM", "8A"]);
 });
 
 test("LcdTitle marquees long titles", async () => {

@@ -3,8 +3,7 @@ import AppSidebar from "./AppSidebar";
 import Icon from "../ui/Icon";
 
 /**
- * Mobile source list — same IA as the desktop left rail.
- * Does not replace the four primary dock tabs.
+ * Mobile overflow — Charts + Build a set. Does not repeat the four dock tabs.
  */
 export default function MobileNavDrawer({
   open,
@@ -22,11 +21,11 @@ export default function MobileNavDrawer({
     <div
       role="dialog"
       aria-modal="true"
-      aria-label="Browse"
+      aria-label="More"
       style={{
         position: "fixed",
         inset: 0,
-        zIndex: 80,
+        zIndex: 90,
         display: "flex",
       }}
     >
@@ -50,8 +49,8 @@ export default function MobileNavDrawer({
             onClick={onClose}
             className="pmp-press"
             style={{
-              width: 36,
-              height: 36,
+              width: 44,
+              height: 44,
               border: "none",
               borderRadius: 10,
               background: "rgba(216,223,232,0.06)",

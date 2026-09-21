@@ -3,7 +3,7 @@
  * Taste onboarding (TasteTuner) owns the mix. This is a short map of the app.
  */
 
-export const FEATURE_GUIDE_VERSION = 1;
+export const FEATURE_GUIDE_VERSION = 2;
 
 export const FEATURE_GUIDE_STEPS = [
   {
@@ -16,43 +16,13 @@ export const FEATURE_GUIDE_STEPS = [
     id: "explore",
     kicker: "Explore",
     title: "Browse",
-    body: "Genres, moods, and scenes. Pick one, then play.",
+    body: "Scenes, sleeves, and keys. Pick one, then play.",
   },
   {
     id: "library",
     kicker: "Library",
     title: "Your library",
-    body: "Likes, mixes, and recents.",
-  },
-  {
-    id: "set",
-    kicker: "Set",
-    title: "The booth",
-    body: "Shape length, vibe, and genre — then play.",
-  },
-  {
-    id: "charts",
-    kicker: "Charts",
-    title: "Most requested",
-    body: "Today’s board. Play a track or add it to your queue.",
-  },
-  {
-    id: "player",
-    kicker: "Player",
-    title: "Pace + dislike",
-    body: "Pace sets slow or fast for what plays next. Dislike steers the mix away.",
-  },
-  {
-    id: "club",
-    kicker: "Club",
-    title: "Your profile",
-    body: "Your card, your tastes, and this guide.",
-  },
-  {
-    id: "chat",
-    kicker: "Chat",
-    title: "Listening together",
-    body: "The messenger on Home. Optional. Say hello while you listen.",
+    body: "Likes and stacks — your playlists.",
   },
 ];
 

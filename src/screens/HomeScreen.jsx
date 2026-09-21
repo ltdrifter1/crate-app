@@ -239,7 +239,6 @@ function HomeScreen({
   onTuneSceneChannel = null,
   // Navigation (broadcast home)
   onOpenSearch = null,
-  onOpenProfile = null,
   onOpenCharts = null,
   onOpenMenu = null,
   taste = null,
@@ -284,7 +283,6 @@ function HomeScreen({
     >
       <HomeHeader
         onOpenSearch={onOpenSearch}
-        onOpenProfile={onOpenProfile}
         onOpenMenu={onOpenMenu}
       />
 
@@ -318,24 +316,6 @@ function HomeScreen({
         />
       </div>
 
-      {shelvesReady && hasTonight && (
-        <div style={{ contentVisibility: "auto", containIntrinsicSize: "320px" }}>
-          <Suspense fallback={null}>
-            <TonightDeck
-              airing={airing}
-              guide={programGuide}
-              bumper={showBumper}
-              activeShowId={activeShowId}
-              tuned={false}
-              first={false}
-              showNowPlaying={!!(airing?.show && !(activeShowId === airing.show.id && currentTrack))}
-              onTuneIn={() => onTuneShow?.(airing?.show)}
-              onSelectShow={(show) => onTuneShow?.(show)}
-            />
-          </Suspense>
-        </div>
-      )}
-
       {(catalogError || catalogEmpty || catalogDepleted) && (
         <HomeCatalogStatus
           error={catalogError}
@@ -352,10 +332,27 @@ function HomeScreen({
           tracks={tracks}
           activeChannelId={sceneChannelsActiveId}
           onTuneChannel={onTuneSceneChannel}
-          first={false}
+          first
           delay={0.05}
-          featured
         />
+      )}
+
+      {shelvesReady && hasTonight && (
+        <div style={{ contentVisibility: "auto", containIntrinsicSize: "320px" }}>
+          <Suspense fallback={null}>
+            <TonightDeck
+              airing={airing}
+              guide={programGuide}
+              bumper={showBumper}
+              activeShowId={activeShowId}
+              tuned={false}
+              first={false}
+              showNowPlaying={!!(airing?.show && !(activeShowId === airing.show.id && currentTrack))}
+              onTuneIn={() => onTuneShow?.(airing?.show)}
+              onSelectShow={(show) => onTuneShow?.(show)}
+            />
+          </Suspense>
+        </div>
       )}
 
       {shelvesReady && catalogReady && editorial[0]?.tracks?.length > 0 && (

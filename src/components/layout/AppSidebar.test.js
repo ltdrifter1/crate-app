@@ -55,6 +55,26 @@ describe("AppSidebar source list", () => {
     expect(onBuildSet).toHaveBeenCalled();
   });
 
+  test("mobile More drawer lists Charts and Build a set, not the dock tabs", async () => {
+    await act(async () => {
+      root.render(
+        React.createElement(AppSidebar, {
+          variant: "drawer",
+          screen: "home",
+          onNavigate: () => {},
+          onBuildSet: () => {},
+          user: { name: "Luke" },
+        })
+      );
+    });
+    const labels = [...div.querySelectorAll(".nav-rail-btn")].map((el) => el.getAttribute("aria-label"));
+    expect(labels).toEqual(["Charts", "Build a set"]);
+    expect(div.textContent).toMatch(/More/);
+    expect(div.textContent).not.toMatch(/Faceplate/);
+    expect(div.querySelector('button[aria-label="Home"]')).toBeNull();
+    expect(div.querySelector('button[aria-label="Club"]')).toBeNull();
+  });
+
   test("marks Charts selected when that screen is open", async () => {
     await act(async () => {
       root.render(

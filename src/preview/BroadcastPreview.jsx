@@ -228,7 +228,6 @@ export default function BroadcastPreview() {
     <div className="pmp-home-mtv" style={{ maxWidth: 960, margin: "0 auto", width: "100%" }}>
       <HomeHeader
         onOpenSearch={() => {}}
-        onOpenProfile={() => setScreen("profile")}
         onOpenMenu={isDesktop ? null : () => setDrawer(true)}
       />
       <div style={{ padding: `0 ${homeSpace.gutter}px`, marginTop: homeSpace.sectionGapFirst }}>
@@ -241,20 +240,20 @@ export default function BroadcastPreview() {
           tickerText="Planet Radio — requests open · Local on the dial"
         />
       </div>
-      <TonightDeck
-        airing={SAMPLE_AIRING}
-        guide={SAMPLE_GUIDE}
-        showNowPlaying={false}
-        onTuneIn={() => {}}
-        onSelectShow={() => {}}
-      />
       <ChannelSurfingSection
         channels={channels}
         tracks={SAMPLE_TRACKS}
         activeChannelId={activeChannelId}
         onTuneChannel={(ch) => setActiveChannelId(ch.id)}
+        first
+      />
+      <TonightDeck
+        airing={SAMPLE_AIRING}
+        guide={SAMPLE_GUIDE}
         first={false}
-        featured
+        showNowPlaying={false}
+        onTuneIn={() => {}}
+        onSelectShow={() => {}}
       />
       <CrateSpread
         title="Most Requested"
@@ -319,7 +318,7 @@ export default function BroadcastPreview() {
           onSeek={(n) => playerPlaybackStore.setProgress(n)}
           isRadioMode
           onOpen={() => {}}
-          hidePlayer={false}
+          hidePlayer={screen === "home"}
         />
       )}
       <MobileNavDrawer
