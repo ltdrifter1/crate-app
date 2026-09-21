@@ -305,7 +305,7 @@ const injectStyles = () => {
         0 0 0 1px ${trim.lime},
         inset 0 1px 0 rgba(255,255,255,0.92),
         inset 0 -2px 3px rgba(58,66,80,0.2),
-        0 4px 10px rgba(54,127,199,0.28);
+        0 4px 10px rgba(90,196,214,0.32);
       cursor: pointer;
     }
     input.pace-range::-moz-range-thumb {
@@ -318,7 +318,7 @@ const injectStyles = () => {
         0 0 0 1px ${trim.lime},
         inset 0 1px 0 rgba(255,255,255,0.92),
         inset 0 -2px 3px rgba(58,66,80,0.2),
-        0 4px 10px rgba(54,127,199,0.28);
+        0 4px 10px rgba(90,196,214,0.32);
       cursor: pointer;
     }
     .hide-scroll { -ms-overflow-style: none; scrollbar-width: none; }
@@ -553,11 +553,12 @@ const injectStyles = () => {
       .dock-xtra { display: none !important; }
     }
     .glass-dock {
-      background: linear-gradient(180deg, rgba(236,241,247,0.58) 0%, rgba(208,214,224,0.7) 100%);
-      border: 1px solid rgba(255,255,255,0.46);
+      background: ${radio.moduleFace};
+      border: 1px solid rgba(91,101,116,0.28);
       box-shadow:
-        inset 0 1px 0 rgba(255,255,255,0.62),
-        0 12px 28px rgba(58,66,80,0.16);
+        inset 0 1px 0 rgba(216,223,232,0.5),
+        inset 0 -1px 0 rgba(58,66,80,0.18),
+        0 12px 28px rgba(58,66,80,0.22);
       -webkit-backdrop-filter: ${glass.blurHeavy};
       backdrop-filter: ${glass.blurHeavy};
       transition: background 0.6s ease, box-shadow 0.35s ease;

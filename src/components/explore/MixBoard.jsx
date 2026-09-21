@@ -11,6 +11,7 @@ function neighborNums(n) {
 
 /**
  * 12-key Mix wheel — unlit hardware for empty slots, A/B, neighbor glow.
+ * Lit pads fill with a catalog sleeve so the board reads as records, not settings.
  */
 export default function MixBoard({ tracks = [], onPlayPool = null }) {
   const [selected, setSelected] = useState(null);
@@ -45,11 +46,15 @@ export default function MixBoard({ tracks = [], onPlayPool = null }) {
               key={n}
               className="pmp-mix-slot"
               style={{
+                position: "relative",
                 display: "flex",
                 flexDirection: "column",
-                gap: 4,
-                padding: 6,
+                justifyContent: "space-between",
+                gap: 6,
+                minHeight: 92,
+                padding: 8,
                 borderRadius: radio.radiusLcd,
+                overflow: "hidden",
                 border: neighbor && lit ? radio.lcdBorder : radio.borderQuiet,
                 background: lit ? radio.lcdFace : "rgba(58,66,80,0.16)",
                 boxShadow: lit ? radio.lcdShadow : "none",
@@ -57,52 +62,56 @@ export default function MixBoard({ tracks = [], onPlayPool = null }) {
                 animation: `rise 0.35s ${motion.ease} ${Math.min(i, 8) * 0.02}s both`,
               }}
             >
+              {sleeve ? (
+                <CoverImage
+                  src={sleeve}
+                  alt=""
+                  width={160}
+                  height={160}
+                  style={{
+                    position: "absolute",
+                    inset: 0,
+                    width: "100%",
+                    height: "100%",
+                    objectFit: "cover",
+                    opacity: 0.7,
+                    pointerEvents: "none",
+                  }}
+                />
+              ) : null}
+              <span
+                aria-hidden="true"
+                style={{
+                  position: "absolute",
+                  inset: 0,
+                  pointerEvents: "none",
+                  background: sleeve
+                    ? "linear-gradient(180deg, rgba(42,51,60,0.22) 0%, rgba(42,51,60,0.78) 100%)"
+                    : "none",
+                }}
+              />
               <div
                 style={{
+                  position: "relative",
+                  zIndex: 1,
                   display: "flex",
                   alignItems: "center",
-                  gap: 8,
                 }}
               >
-                {sleeve ? (
-                  <CoverImage
-                    src={sleeve}
-                    alt=""
-                    width={28}
-                    height={28}
-                    style={{
-                      width: 28,
-                      height: 28,
-                      borderRadius: 3,
-                      objectFit: "cover",
-                      flexShrink: 0,
-                    }}
-                  />
-                ) : (
-                  <span
-                    aria-hidden="true"
-                    style={{
-                      width: 28,
-                      height: 28,
-                      borderRadius: 3,
-                      background: "rgba(42,51,60,0.45)",
-                      flexShrink: 0,
-                    }}
-                  />
-                )}
                 <span
                   style={{
                     fontFamily: fontDisplay,
-                    fontSize: 18,
+                    fontSize: 22,
                     fontWeight: 700,
                     color: lit ? color.lcdInk : color.lcdMute,
                     lineHeight: 1,
+                    textShadow: sleeve ? "0 1px 8px rgba(42,51,60,0.8)" : "none",
                   }}
                 >
                   {n}
                 </span>
               </div>
-              <div style={{ display: "flex", gap: 4 }}>
+              <div style={{ position: "relative", zIndex: 1, display: "flex", gap: 4 }}>
                 {["A", "B"].map((mode) => {
                   const key = `${n}${mode}`;
                   const pool = mode === "A" ? poolA : poolB;
@@ -125,8 +134,8 @@ export default function MixBoard({ tracks = [], onPlayPool = null }) {
                         border: on ? radio.lcdBorder : "1px solid transparent",
                         borderRadius: 4,
                         background: on
-                          ? "rgba(183,228,238,0.16)"
-                          : "rgba(42,51,60,0.28)",
+                          ? "rgba(183,228,238,0.22)"
+                          : "rgba(42,51,60,0.42)",
                         color: pool.length ? color.lcdSignal : color.lcdMute,
                         cursor: pool.length ? "pointer" : "default",
                         fontFamily: fontMono,

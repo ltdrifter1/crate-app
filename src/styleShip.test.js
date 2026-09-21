@@ -41,11 +41,14 @@ test("committed Pages CSS includes the Charts podium board", () => {
   expect(css).toMatch(/pmp-chart-podium/);
 });
 
-test("theme source does not ship mint phosphor", () => {
+test("theme source does not ship mint phosphor or DistroKid trim", () => {
   const theme = fs.readFileSync(path.join(root, "src/theme.js"), "utf8");
   expect(theme).not.toMatch(/#7ED9B8/i);
   expect(theme).not.toMatch(/#4E9A7A/i);
   expect(theme).not.toMatch(/#C8F5E4/i);
+  expect(theme).not.toMatch(/DistroKid/);
+  expect(theme).not.toMatch(/#B8C430/i);
+  expect(theme).not.toMatch(/#367FC7/i);
   expect(theme).toMatch(/lcdSignal/);
   expect(theme).not.toMatch(/lcdPhosphor/);
 });
@@ -94,7 +97,7 @@ test("browse lists print BPM and Camelot, and Home ranks Channel Surfing over To
   expect(sidebar).not.toMatch(/Faceplate/);
 });
 
-test("Pace slider is Slow / Fast glass with DistroKid gradient", () => {
+test("Pace slider is Slow / Fast glass with ice LCD fill", () => {
   const src = fs.readFileSync(path.join(root, "src/components/listen/EnergyShiftButton.jsx"), "utf8");
   expect(src).toMatch(/Slow/);
   expect(src).toMatch(/Fast/);
@@ -124,6 +127,10 @@ test("Explore and Home first paint skip channel pictogram imports", () => {
   expect(card).toMatch(/resolveChannelArt/);
   expect(card).toMatch(/\braw\b/);
   expect(card).toMatch(/DefaultSleeve/);
+  expect(card).toMatch(/covers/);
+  expect(card).toMatch(/lcdSignal/);
+  const surf = fs.readFileSync(path.join(root, "src/components/home/ChannelSurfingSection.jsx"), "utf8");
+  expect(surf).toMatch(/channelCoverUrls/);
   const app = fs.readFileSync(path.join(root, "src/App.jsx"), "utf8");
   expect(app).toMatch(/setTimeout\(loadExploreScreen, 8000\)/);
   expect(app).toMatch(/runAfterDelay/);
@@ -131,4 +138,27 @@ test("Explore and Home first paint skip channel pictogram imports", () => {
   const screen = fs.readFileSync(path.join(root, "src/screens/ExploreScreen.jsx"), "utf8");
   expect(screen).toMatch(/runAfterDelay\(\(\) => setDeepReady\(true\), 2400\)/);
   expect(screen).not.toMatch(/will-change: transform/);
+});
+
+test("ice phosphor is the play pip, dock LCD, Mix/Energy sleeves, and poster stage", () => {
+  const play = fs.readFileSync(path.join(root, "src/components/player/OrbitalControls.jsx"), "utf8");
+  expect(play).toMatch(/color\.lcdSignal/);
+  expect(play).not.toMatch(/trimStroke/);
+  expect(play).not.toMatch(/trim\.lime/);
+  const dockSrc = fs.readFileSync(path.join(root, "src/components/player/GlassDock.jsx"), "utf8");
+  expect(dockSrc).toMatch(/radio\.lcdFace/);
+  expect(dockSrc).toMatch(/pmp-dock-faceplate/);
+  expect(dockSrc).not.toMatch(/dockTintStyle/);
+  const home = fs.readFileSync(path.join(root, "src/screens/HomeScreen.jsx"), "utf8");
+  expect(home).toMatch(/maxWidth:\s*1100/);
+  expect(home).not.toMatch(/maxWidth:\s*960/);
+  const immersive = fs.readFileSync(path.join(root, "src/components/player/ImmersivePlayer.jsx"), "utf8");
+  expect(immersive).toMatch(/flexShrink:\s*0/);
+  expect(immersive).toMatch(/min\(72vw,\s*520px\)/);
+  const mix = fs.readFileSync(path.join(root, "src/components/explore/MixBoard.jsx"), "utf8");
+  expect(mix).toMatch(/position:\s*"absolute"/);
+  expect(mix).toMatch(/objectFit:\s*"cover"/);
+  const energy = fs.readFileSync(path.join(root, "src/components/explore/EnergyRooms.jsx"), "utf8");
+  expect(energy).toMatch(/room\.photo/);
+  expect(energy).toMatch(/CoverImage/);
 });

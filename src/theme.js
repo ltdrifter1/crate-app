@@ -127,19 +127,19 @@ export const type = {
 };
 
 /**
- * DistroKid-like color trim — lime → teal → blue.
- * Hairline / CTA only. Never a page fill. Steel stays the chassis.
+ * Ice phosphor trim — LCD cyan only. LIVE stays red.
+ * Hairline / CTA / play pip. Never a page fill. Steel stays the chassis.
  */
 export const trim = {
-  lime: "#B8C430",
-  teal: "#2F8A96",
-  blue: "#367FC7",
-  blueDeep: "#2C6FB3",
-  gradient: "linear-gradient(90deg, #B8C430 0%, #3A9A86 46%, #367FC7 100%)",
+  lime: "#B7E4EE",
+  teal: "#5AA8B8",
+  blue: "#5AA8B8",
+  blueDeep: "#3F8A98",
+  gradient: "linear-gradient(90deg, #5AA8B8 0%, #B7E4EE 62%, #E4F7FA 100%)",
 };
 
 /**
- * Steel face with a DistroKid gradient stroke (2px default).
+ * Steel face with an ice-phosphor stroke (2px default).
  * Use on primary buttons, playing transport, identity pills.
  */
 export function trimStroke(face, width = 2) {
@@ -153,7 +153,7 @@ export function trimStroke(face, width = 2) {
 
 /**
  * Brand palette — one cool steel chassis. Album art supplies hue.
- * Color is a trim: DistroKid blue CTAs, lime→blue rings. Not a fill.
+ * Color is a trim: ice LCD CTAs and rings. Not a fill.
  */
 export const color = {
   ink: "#3D4654",
@@ -169,12 +169,12 @@ export const color = {
   canvasEdge: "#B4BBC6",
   /** Cool steel — glyphs, pip, progress, chrome */
   accent: "#5B6574",
-  accentSoft: "rgba(54, 127, 199, 0.16)",
-  accentGlow: "rgba(54, 127, 199, 0.28)",
+  accentSoft: "rgba(90, 196, 214, 0.16)",
+  accentGlow: "rgba(90, 196, 214, 0.28)",
   onAccent: "#D8DFE8",
-  /** DistroKid CTA blue — primary buttons only */
-  cta: "#367FC7",
-  onCta: "#FFFFFF",
+  /** Ice LCD CTA — phosphor plate, not a fill */
+  cta: "#5AA8B8",
+  onCta: "#E4F7FA",
   onDark: "#D8DFE8",
   onDarkMuted: "rgba(61,70,84,0.62)",
   /** Broadcast live — the only non-steel signal */
@@ -432,7 +432,7 @@ export const artShadow = {
   quiet: `0 2px 4px rgba(${SHADE},0.18), 0 10px 22px rgba(${SHADE},0.2)`,
   raised:
     `0 6px 10px rgba(${SHADE},0.2), 0 18px 36px rgba(${SHADE},0.24), inset 0 1px 0 rgba(${SPEC},0.55), inset 0 -2px 5px rgba(${SHADE},0.22)`,
-  active: `0 0 0 2px ${trim.blue}, 0 10px 22px rgba(${SHADE},0.22), 0 0 20px rgba(54,127,199,0.28)`,
+  active: `0 0 0 2px ${color.lcdSignal}, 0 10px 22px rgba(${SHADE},0.22), 0 0 20px rgba(90,196,214,0.36)`,
 };
 
 /**
@@ -456,7 +456,7 @@ export function artFrameStyle({
     borderRadius: frameRadius,
     overflow: "hidden",
     border: `1.5px solid ${
-      active ? trim.blue : "rgba(216,223,232,0.5)"
+      active ? color.lcdSignal : "rgba(216,223,232,0.5)"
     }`,
     background: y2k.artGradient,
     boxShadow: active
@@ -574,9 +574,9 @@ export function glassPill(opts = {}) {
     backdropFilter: "blur(18px) saturate(1.08)",
     WebkitBackdropFilter: "blur(18px) saturate(1.08)",
     boxShadow: active
-      ? `inset 0 1px 0 rgba(${SPEC},0.35), 0 0 0 1px ${trim.blue}`
+      ? `inset 0 1px 0 rgba(${SPEC},0.35), 0 0 0 1px ${color.lcdSignal}`
       : `inset 0 1px 0 rgba(${SPEC},0.4), inset 0 -1px 0 rgba(${SHADE},0.14), 0 3px 10px rgba(${SHADE},0.14)`,
-    color: active ? trim.blue : color.ink,
+    color: active ? color.lcdSignal : color.ink,
     borderRadius: compact ? 8 : radius.md,
     WebkitTapHighlightColor: "transparent",
   };
@@ -771,22 +771,20 @@ export const INPUT_ST = {
   transition: `border-color ${motion.base} ${motion.ease}, box-shadow ${motion.base} ${motion.ease}, background ${motion.base}`,
 };
 
-/** Primary CTA — DistroKid blue plate, lime→blue trim, white inscription. */
+/** Primary CTA — smoked LCD plate, ice inscription. */
 export const BTN_PRIMARY = {
   width: "100%",
   padding: "14px 22px",
   borderRadius: 10,
-  ...trimStroke(
-    "linear-gradient(180deg, #4A92D4 0%, #367FC7 58%, #2C6FB3 100%)",
-    2
-  ),
+  border: "1px solid rgba(90, 196, 214, 0.38)",
+  background: radio.lcdFace,
   color: color.onCta,
   fontSize: 16,
   fontWeight: 700,
   cursor: "pointer",
   fontFamily: font,
   letterSpacing: -0.15,
-  boxShadow: `0 1px 0 rgba(28,32,40,0.28), 0 6px 16px rgba(54,127,199,0.28)`,
+  boxShadow: radio.lcdShadow,
   transition: `transform ${motion.fast} ${motion.ease}, box-shadow ${motion.base}, opacity ${motion.fast}`,
 };
 

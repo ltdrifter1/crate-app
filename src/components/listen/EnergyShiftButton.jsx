@@ -596,7 +596,7 @@ export function EnergyShiftControl({
 
 /**
  * Inline Pace slider — Slow ↔ Fast.
- * Recessed LCD fader (Winamp / CD jog), DistroKid fill, PS1 jewel thumb.
+ * Recessed LCD fader (Winamp / CD jog), ice phosphor fill, PS1 jewel thumb.
  */
 export function PaceSlider({
   compact = false,
@@ -671,7 +671,7 @@ export function PaceSlider({
               borderRadius: 2,
               background: trim.gradient,
               opacity: clamped === 0 ? 0 : 0.95,
-              boxShadow: clamped === 0 ? "none" : "0 0 10px rgba(54,127,199,0.35)",
+              boxShadow: clamped === 0 ? "none" : "0 0 10px rgba(90,196,214,0.45)",
             }}
           />
         </div>

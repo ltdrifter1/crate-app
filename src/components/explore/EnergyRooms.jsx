@@ -1,9 +1,11 @@
 import { color, fontDisplay, fontMono, homeSpace, motion, radio } from "../../theme";
+import CoverImage from "../ui/CoverImage";
 
 const ROOM_ORDER = ["after-hours", "drive", "late-booth", "peak-time"];
 
 /**
  * One pressure strip. Tap a zone to play that crate immediately.
+ * Sleeve bleeds behind the LCD readout so each zone looks collectible.
  */
 export default function EnergyRooms({ rooms = [], onPlay = null }) {
   if (!rooms.length) return null;
@@ -39,6 +41,8 @@ export default function EnergyRooms({ rooms = [], onPlay = null }) {
               }}
               aria-label={`Play ${room.label}`}
               style={{
+                position: "relative",
+                overflow: "hidden",
                 minHeight: 112,
                 padding: "12px 10px 10px",
                 border: "none",
@@ -51,8 +55,37 @@ export default function EnergyRooms({ rooms = [], onPlay = null }) {
                 WebkitTapHighlightColor: "transparent",
               }}
             >
+              {room.photo ? (
+                <CoverImage
+                  src={room.photo}
+                  alt=""
+                  width={280}
+                  height={160}
+                  style={{
+                    position: "absolute",
+                    inset: 0,
+                    width: "100%",
+                    height: "100%",
+                    objectFit: "cover",
+                    objectPosition: room.photoFocus || "center",
+                    opacity: 0.5,
+                    pointerEvents: "none",
+                  }}
+                />
+              ) : null}
+              <span
+                aria-hidden="true"
+                style={{
+                  position: "absolute",
+                  inset: 0,
+                  pointerEvents: "none",
+                  background: `linear-gradient(180deg, rgba(42,51,60,${0.28 + heat * 0.12}) 0%, rgba(42,51,60,0.78) 100%)`,
+                }}
+              />
               <span
                 style={{
+                  position: "relative",
+                  zIndex: 1,
                   display: "block",
                   fontFamily: fontMono,
                   fontSize: 9,
@@ -67,6 +100,8 @@ export default function EnergyRooms({ rooms = [], onPlay = null }) {
               </span>
               <span
                 style={{
+                  position: "relative",
+                  zIndex: 1,
                   display: "block",
                   fontFamily: fontDisplay,
                   fontSize: 15,
@@ -80,6 +115,8 @@ export default function EnergyRooms({ rooms = [], onPlay = null }) {
               </span>
               <span
                 style={{
+                  position: "relative",
+                  zIndex: 1,
                   display: "block",
                   marginTop: 6,
                   fontFamily: fontMono,

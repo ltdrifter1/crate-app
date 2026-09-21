@@ -18,8 +18,8 @@ test('theme exports core tokens', () => {
   expect(fontLcd).toMatch(/IBM Plex Mono/);
   expect(STYLE_CHASSIS).toBe("steel-ps1-glass-20260919");
   expect(color.lcdSignal).toMatch(/#B7E4EE/i);
-  expect(color.cta).toMatch(/#367FC7/i);
-  expect(color.onCta).toMatch(/#FFFFFF/i);
+  expect(color.cta).toMatch(/#5AA8B8/i);
+  expect(color.onCta).toMatch(/#E4F7FA/i);
   expect(color.lcdSignalSoft).toMatch(/183,\s*228,\s*238/);
   expect(color.lcdInk).toMatch(/#E4F7FA/i);
   expect(type.lcd.fontFamily).toMatch(/IBM Plex Mono/);
@@ -66,11 +66,15 @@ test('canvas is a light steel chassis', () => {
   expect(color.lcdSignalGlow).not.toMatch(/126\s*,\s*217\s*,\s*184/);
 });
 
-test('primary buttons use DistroKid blue with lime-to-blue trim', () => {
+test('primary buttons use an ice LCD plate, not DistroKid blue', () => {
   const { BTN_PRIMARY, trim } = require('./theme');
-  expect(trim.lime).toMatch(/#B8C430/i);
-  expect(trim.lime).not.toMatch(/#B8F24A/i);
-  expect(trim.blue).toMatch(/#367FC7/i);
-  expect(BTN_PRIMARY.color).toMatch(/#FFFFFF/i);
-  expect(String(BTN_PRIMARY.background)).toMatch(/#367FC7|#B8C430/i);
+  expect(trim.lime).toMatch(/#B7E4EE/i);
+  expect(trim.lime).not.toMatch(/#B8C430|#B8F24A/i);
+  expect(trim.blue).toMatch(/#5AA8B8/i);
+  expect(trim.blue).not.toMatch(/#367FC7/i);
+  expect(trim.gradient).toMatch(/#5AA8B8|#B7E4EE|#E4F7FA/i);
+  expect(trim.gradient).not.toMatch(/#B8C430|#367FC7/i);
+  expect(BTN_PRIMARY.color).toMatch(/#E4F7FA/i);
+  expect(String(BTN_PRIMARY.background)).toMatch(/#3F4B56|#323C46|#5AA8B8|#B7E4EE/i);
+  expect(String(BTN_PRIMARY.background)).not.toMatch(/#367FC7|#B8C430|#4A92D4|#2C6FB3/i);
 });
