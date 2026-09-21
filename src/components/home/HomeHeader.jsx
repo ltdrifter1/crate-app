@@ -1,4 +1,4 @@
-import { chromeIconButton, color, fontMono, homeSpace, radio } from "../../theme";
+import { chromeIconButton, color, fontMono, homeSpace, radio, y2k } from "../../theme";
 import Icon from "../ui/Icon";
 
 function MoreButton({ onClick }) {
@@ -16,8 +16,54 @@ function MoreButton({ onClick }) {
   );
 }
 
+function OnAirMark() {
+  return (
+    <div
+      className="pmp-home-mark"
+      aria-label="On air"
+      style={{
+        display: "inline-flex",
+        alignItems: "center",
+        gap: 7,
+        flexShrink: 0,
+        height: 44,
+        padding: "0 10px 0 8px",
+        borderRadius: radio.radiusLcd,
+        border: radio.lcdBorder,
+        background: radio.lcdFace,
+        boxShadow: radio.lcdShadow,
+      }}
+    >
+      <span
+        aria-hidden="true"
+        className="pmp-live-led"
+        style={{
+          width: 7,
+          height: 7,
+          borderRadius: "50%",
+          background: y2k.live,
+          flexShrink: 0,
+        }}
+      />
+      <span
+        style={{
+          fontFamily: fontMono,
+          fontSize: 11,
+          fontWeight: 700,
+          letterSpacing: 0.12,
+          textTransform: "uppercase",
+          color: color.lcdSignal,
+        }}
+      >
+        On air
+      </span>
+    </div>
+  );
+}
+
 /**
- * HomeHeader — labeled Find field + overflow. Club lives on the tab bar.
+ * HomeHeader — ON AIR mark + labeled Find + overflow.
+ * Club lives on the tab bar.
  */
 export default function HomeHeader({
   onOpenSearch = null,
@@ -34,7 +80,7 @@ export default function HomeHeader({
       }}
     >
       <h1 className="sr-only">Home</h1>
-      <MoreButton onClick={onOpenMenu} />
+      <OnAirMark />
       {onOpenSearch && (
         <button
           type="button"
@@ -69,6 +115,7 @@ export default function HomeHeader({
           Find
         </button>
       )}
+      <MoreButton onClick={onOpenMenu} />
     </header>
   );
 }

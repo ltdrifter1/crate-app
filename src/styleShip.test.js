@@ -88,10 +88,23 @@ test("browse lists print BPM and Camelot, and Home ranks Channel Surfing over To
   expect(header).toMatch(/aria-label="Search"/);
   expect(header).toMatch(/Find/);
   expect(header).toMatch(/aria-label="More"/);
+  expect(header).toMatch(/pmp-home-mark/);
+  expect(header).toMatch(/On air/);
   expect(header).not.toMatch(/onOpenProfile/);
   const sidebar = fs.readFileSync(path.join(root, "src/components/layout/AppSidebar.jsx"), "utf8");
   expect(sidebar).toMatch(/variant === "drawer"/);
   expect(sidebar).not.toMatch(/Faceplate/);
+  const modes = fs.readFileSync(path.join(root, "src/components/explore/ExploreModes.jsx"), "utf8");
+  expect(modes).toMatch(/minHeight: 44/);
+  expect(modes).toMatch(/fontSize: 13/);
+  const mix = fs.readFileSync(path.join(root, "src/components/explore/MixBoard.jsx"), "utf8");
+  expect(mix).toMatch(/A \/ B = minor \/ major/);
+  expect(mix).toMatch(/minHeight: 44/);
+  const player = fs.readFileSync(path.join(root, "src/components/player/ImmersivePlayer.jsx"), "utf8");
+  expect(player).toMatch(/the station picks next/);
+  expect(player).not.toMatch(/Volume level/);
+  const surf = fs.readFileSync(path.join(root, "src/components/home/ChannelSurfingSection.jsx"), "utf8");
+  expect(surf).toMatch(/channelCoverUrls/);
 });
 
 test("Pace slider is Slow / Fast glass with DistroKid gradient", () => {

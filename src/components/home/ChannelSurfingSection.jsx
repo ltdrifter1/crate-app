@@ -1,6 +1,7 @@
 import { memo, useEffect, useState } from "react";
 import { homeSpace, motion } from "../../theme";
 import { runAfterDelay } from "../../lib/afterPaint";
+import { channelCoverUrls } from "../../lib/sceneChannels";
 import { Rail } from "./MusicSection";
 import ChannelCard from "./ChannelCard";
 import HomeBandHeader from "./HomeBandHeader";
@@ -10,7 +11,7 @@ export const FIRST_STATIONS = 6;
 
 /**
  * Channel surfing — first Home destination band.
- * Each tile is a small PS1 plate from /channels/*.png (no album-sleeve fetch).
+ * Each tile is one catalog sleeve (PS1 plate only if the crate has none).
  */
 function ChannelSurfingSection({
   channels = [],
@@ -20,7 +21,7 @@ function ChannelSurfingSection({
   first = true,
   delay = 0.02,
   title = "Channel Surfing",
-  subtitle = "Flip the dial.",
+  subtitle = "Tap a station.",
   featured = false,
 }) {
   const [showAll, setShowAll] = useState(process.env.NODE_ENV === "test");
@@ -64,6 +65,7 @@ function ChannelSurfingSection({
           >
             <ChannelCard
               channel={channel}
+              covers={channelCoverUrls(tracks, channel, 1)}
               active={activeChannelId === channel.id}
               size={i === 0 ? lead : tile}
               priority={i === 0}
