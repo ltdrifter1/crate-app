@@ -74,7 +74,7 @@ export default function MixBoard({ tracks = [], onPlayPool = null }) {
                     width: "100%",
                     height: "100%",
                     objectFit: "cover",
-                    opacity: 0.7,
+                    opacity: 0.88,
                     pointerEvents: "none",
                   }}
                 />
@@ -86,7 +86,7 @@ export default function MixBoard({ tracks = [], onPlayPool = null }) {
                   inset: 0,
                   pointerEvents: "none",
                   background: sleeve
-                    ? "linear-gradient(180deg, rgba(42,51,60,0.22) 0%, rgba(42,51,60,0.78) 100%)"
+                    ? "linear-gradient(180deg, rgba(42,51,60,0.08) 0%, rgba(42,51,60,0.58) 100%)"
                     : "none",
                 }}
               />

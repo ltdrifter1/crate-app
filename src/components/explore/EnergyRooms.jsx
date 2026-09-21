@@ -68,7 +68,7 @@ export default function EnergyRooms({ rooms = [], onPlay = null }) {
                     height: "100%",
                     objectFit: "cover",
                     objectPosition: room.photoFocus || "center",
-                    opacity: 0.5,
+                    opacity: 0.78,
                     pointerEvents: "none",
                   }}
                 />
@@ -79,7 +79,7 @@ export default function EnergyRooms({ rooms = [], onPlay = null }) {
                   position: "absolute",
                   inset: 0,
                   pointerEvents: "none",
-                  background: `linear-gradient(180deg, rgba(42,51,60,${0.28 + heat * 0.12}) 0%, rgba(42,51,60,0.78) 100%)`,
+                  background: `linear-gradient(180deg, rgba(42,51,60,0.12) 0%, rgba(42,51,60,0.58) 100%)`,
                 }}
               />
               <span
