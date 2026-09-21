@@ -30,7 +30,7 @@ export default function MixBoard({ tracks = [], onPlayPool = null }) {
           maxWidth: 440,
         }}
       >
-        Twelve keys. Neighbors mix. Empty pads stay dark.
+        A / B = minor / major. Neighbors mix. Dark = nothing in the crate.
       </p>
       <div className="pmp-mix-wheel">
         {CAMELOT_SLOTS.map((n, i) => {
@@ -121,7 +121,7 @@ export default function MixBoard({ tracks = [], onPlayPool = null }) {
                       aria-label={`Play Camelot ${key}`}
                       style={{
                         flex: 1,
-                        minHeight: 28,
+                        minHeight: 44,
                         border: on ? radio.lcdBorder : "1px solid transparent",
                         borderRadius: 4,
                         background: on

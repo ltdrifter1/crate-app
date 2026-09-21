@@ -22,8 +22,8 @@ export default function ExploreModes({ mode, onChange }) {
             onClick={() => onChange?.(item.id)}
             style={{
               flex: "1 1 0",
-              minHeight: 40,
-              padding: "6px 4px 7px",
+              minHeight: 44,
+              padding: "8px 4px",
               border: selected ? radio.lcdBorder : radio.borderQuiet,
               borderRadius: radio.radiusLcd,
               background: selected ? radio.lcdFace : "transparent",
@@ -31,10 +31,10 @@ export default function ExploreModes({ mode, onChange }) {
               color: selected ? color.lcdSignal : color.muted,
               cursor: "pointer",
               fontFamily: fontMono,
-              fontSize: 10,
+              fontSize: 13,
               fontWeight: 700,
-              letterSpacing: 0.14,
-              textTransform: "uppercase",
+              letterSpacing: 0.02,
+              textTransform: "none",
               transition: `background ${motion.base}, color ${motion.base}, border-color ${motion.base}`,
               WebkitTapHighlightColor: "transparent",
             }}

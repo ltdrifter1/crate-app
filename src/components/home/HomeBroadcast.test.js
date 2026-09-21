@@ -77,11 +77,12 @@ describe("Home broadcast + four-tab IA", () => {
     const search = div.querySelector('button[aria-label="Search"]');
     expect(search).toBeTruthy();
     expect(search.textContent).toMatch(/Find/);
-    expect(div.querySelector('button[aria-label="Club"]')).toBeNull();
-    expect(div.querySelector('button[aria-label="Profile"]')).toBeNull();
+    expect(div.querySelector(".pmp-home-mark")).toBeTruthy();
+    expect(div.textContent).toMatch(/On air/i);
     expect(div.querySelector(".pmp-onair-chip")).toBeNull();
     expect(div.textContent).not.toMatch(/98\.3/);
-    expect(div.textContent).not.toMatch(/On air/i);
+    expect(div.querySelector('button[aria-label="Club"]')).toBeNull();
+    expect(div.querySelector('button[aria-label="Profile"]')).toBeNull();
     await act(async () => {
       search.click();
     });
@@ -343,7 +344,7 @@ describe("Home broadcast + four-tab IA", () => {
     expect(div.querySelector("[style*='grid-template-columns']")).toBeNull();
   });
 
-  test("Channel Surfing loads one PS1 plate per station, not a 4-up mosaic", async () => {
+  test("Channel Surfing loads one sleeve per station, not a 4-up mosaic", async () => {
     await act(async () => {
       root.render(
         React.createElement(ChannelSurfingSection, {
@@ -363,6 +364,7 @@ describe("Home broadcast + four-tab IA", () => {
     const card = div.querySelector(".pmp-channel-card");
     expect(card).toBeTruthy();
     expect(card.querySelectorAll("img").length).toBeLessThanOrEqual(1);
+    expect(card.querySelector("img")?.getAttribute("src")).toMatch(/sleeve-a\.jpg/);
     expect(card.querySelector("[style*='grid-template-columns']")).toBeNull();
   });
 
@@ -378,7 +380,7 @@ describe("Home broadcast + four-tab IA", () => {
       );
     });
     expect(div.textContent).toMatch(/Channel Surfing/);
-    expect(div.textContent).toMatch(/Flip the dial/);
+    expect(div.textContent).toMatch(/Tap a station/);
     expect(div.textContent).not.toMatch(/Music stays on this stage/i);
     expect(div.textContent).not.toMatch(/On the dial/i);
     expect(div.textContent).not.toMatch(/Admit one/i);
@@ -553,7 +555,7 @@ describe("Home broadcast + four-tab IA", () => {
     expect(imgs[3].getAttribute("loading")).toBe("lazy");
   });
 
-  test("station tiles use PS1 plates, not album sleeves", async () => {
+  test("station tiles lead with a catalog sleeve; plate is the fallback", async () => {
     await act(async () => {
       root.render(
         React.createElement(ChannelCard, {
@@ -568,7 +570,8 @@ describe("Home broadcast + four-tab IA", () => {
     });
     const img = div.querySelector("img");
     expect(img).toBeTruthy();
-    expect(img.getAttribute("src")).toMatch(/\/channels\/techno\.png/);
+    expect(img.getAttribute("src")).toMatch(/sleeve-a\.jpg/);
+    expect(img.getAttribute("src")).not.toMatch(/\/channels\/techno\.png/);
     expect(div.querySelector("[data-testid='cover-fallback']")).toBeNull();
     await act(async () => {
       root.render(

@@ -533,22 +533,6 @@ export default function ImmersivePlayer({
                     </span>
                   </button>
                 )}
-                <div style={{ padding: "10px 16px 14px" }}>
-                  <div
-                    style={{
-                      fontSize: 10,
-                      fontWeight: 700,
-                      letterSpacing: 1.3,
-                      color: color.muted,
-                      fontFamily: fontMono,
-                      textTransform: "uppercase",
-                      marginBottom: 10,
-                    }}
-                  >
-                    Volume
-                  </div>
-                  <ChromeSeek value={volume} max={1} onChange={onVolumeChange} label="Volume level" />
-                </div>
               </div>
             )}
           </div>
@@ -878,6 +862,23 @@ export default function ImmersivePlayer({
               ) : null
             }
           />
+          {isRadioMode ? (
+            <p
+              data-testid="radio-station-picks"
+              style={{
+                margin: "8px 4px 0",
+                fontFamily: fontMono,
+                fontSize: 10,
+                fontWeight: 700,
+                letterSpacing: 0.06,
+                lineHeight: 1.35,
+                textTransform: "uppercase",
+                color: color.muted,
+              }}
+            >
+              On air — the station picks next
+            </p>
+          ) : null}
 
           <div
             style={{

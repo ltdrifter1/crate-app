@@ -23,6 +23,7 @@ import EnergyRooms from "../components/explore/EnergyRooms";
 import MixBoard from "../components/explore/MixBoard";
 import SleeveWallet from "../components/explore/SleeveWallet";
 import {
+  EXPLORE_MODES,
   exploreCatalogStats,
   exploreGenrePlates,
   exploreMoodPlates,
@@ -170,12 +171,8 @@ function EmptyExplore({ onOpenSearch }) {
 }
 
 function ModeHint({ mode }) {
-  const copy = {
-    worlds: "A planet of scenes — tap a disc, not a feed.",
-    energy: "One strip. Pressure, not playlists.",
-    sleeves: "Open a jewel case. Flip the wallet.",
-    mix: "Twelve keys. Neighbors mix.",
-  };
+  const hint = EXPLORE_MODES.find((item) => item.id === mode)?.hint;
+  if (!hint) return null;
   return (
     <p
       style={{
@@ -186,7 +183,7 @@ function ModeHint({ mode }) {
         lineHeight: 1.35,
       }}
     >
-      {copy[mode] || ""}
+      {hint}
     </p>
   );
 }

@@ -1,5 +1,6 @@
 import { color, fontDisplay, fontMono, hardware, homeSpace, type, y2k } from "../../theme";
 import { resolveChannelArt } from "../../lib/channelArt";
+import { catalogSleeveUrl } from "../../lib/catalogSleeve";
 import { formatChannelNum } from "../../lib/mtvChannel";
 import CoverImage from "../ui/CoverImage";
 import DefaultSleeve from "../ui/DefaultSleeve";
@@ -7,16 +8,34 @@ import Icon from "../ui/Icon";
 
 /**
  * ChannelCard — square station tile.
- * PS1 plate from /channels/*.png. Missing art uses the disc fallback.
+ * Catalog sleeve leads. CH-xx is chrome. PS1 plate is the fallback.
  */
 function ChannelArt({
   channel,
+  covers = [],
   size,
   priority = false,
   eager = false,
 }) {
-  const { src, focus } = resolveChannelArt(channel);
+  const sleeve = [covers[0], channel?.covers?.[0]]
+    .map((url) => catalogSleeveUrl(url))
+    .find(Boolean);
 
+  if (sleeve) {
+    return (
+      <CoverImage
+        src={sleeve}
+        alt=""
+        width={size}
+        height={size}
+        priority={priority}
+        eager={eager}
+        style={{ width: "100%", height: "100%", objectFit: "cover" }}
+      />
+    );
+  }
+
+  const { src, focus } = resolveChannelArt(channel);
   if (src) {
     return (
       <CoverImage
@@ -103,6 +122,7 @@ export default function ChannelCard({
         >
           <ChannelArt
             channel={channel}
+            covers={covers}
             size={width}
             priority={priority}
             eager={eager}

@@ -156,6 +156,10 @@ describe("Explore screen", () => {
     expect(div.textContent).toMatch(/Lanes/);
     expect(div.textContent).toMatch(/Electronic/);
     expect(div.querySelector('button[role="tab"][aria-selected="true"]').textContent).toMatch(/Worlds/);
+    expect(div.textContent).toMatch(/Cities and scenes/);
+    const worldsTab = div.querySelector('button[role="tab"][aria-label="Worlds"]');
+    expect(worldsTab.style.minHeight).toBe("44px");
+    expect(worldsTab.style.fontSize).toBe("13px");
     expect(div.textContent).not.toMatch(/Moods & moments/);
     expect(div.textContent).not.toMatch(/Stations/);
     expect(div.textContent).not.toMatch(/Channel Surfing/);
@@ -218,6 +222,9 @@ describe("Explore screen", () => {
     });
     const play = div.querySelector('button[aria-label="Play Camelot 8A"]');
     expect(play).toBeTruthy();
+    expect(play.style.minHeight).toBe("44px");
+    expect(div.textContent).toMatch(/A \/ B = minor \/ major/);
+    expect(div.textContent).toMatch(/Dark = nothing in the crate/);
     await act(async () => {
       play.click();
     });
@@ -246,7 +253,7 @@ describe("Explore screen", () => {
       tab(div, "Energy").click();
     });
     expect(div.textContent).toMatch(/Peak time/);
-    expect(div.textContent).toMatch(/One strip/);
+    expect(div.textContent).toMatch(/Rooms by pressure/);
     expect(div.querySelector(".pmp-energy-strip")).toBeTruthy();
     expect(div.textContent).not.toMatch(/Moods & moments/);
     expect(div.querySelector(".pmp-energy-room")).toBeFalsy();
