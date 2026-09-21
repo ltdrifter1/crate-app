@@ -16,7 +16,7 @@ export const FEATURE_GUIDE_STEPS = [
     id: "explore",
     kicker: "Explore",
     title: "Browse",
-    body: "Scenes, sleeves, and keys. Pick one, then play.",
+    body: "New releases by channel. Then worlds, energy, and keys.",
   },
   {
     id: "library",
