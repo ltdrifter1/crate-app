@@ -21,6 +21,7 @@ export default function HomeBandHeader({
 }) {
   return (
     <div
+      className="pmp-band-header"
       style={{
         display: "grid",
         gridTemplateColumns: action || meta ? "minmax(0, 1fr) auto" : "minmax(0, 1fr)",
@@ -45,6 +46,7 @@ export default function HomeBandHeader({
           </div>
         )}
         <h2
+          className="pmp-section-title"
           style={{
             ...sectionTitle,
             overflow: "hidden",
@@ -56,6 +58,7 @@ export default function HomeBandHeader({
         </h2>
         {subtitle && (
           <p
+            className="pmp-section-sub"
             style={{
               ...sectionSubtitle,
               overflow: "hidden",

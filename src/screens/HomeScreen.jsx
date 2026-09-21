@@ -276,7 +276,7 @@ function HomeScreen({
       className="pmp-home-mtv"
       style={{
         position: "relative",
-        paddingBottom: 56,
+        paddingBottom: 24,
         maxWidth: 960,
         margin: "0 auto",
         width: "100%",

@@ -411,6 +411,33 @@ describe("Home broadcast + four-tab IA", () => {
     expect(div.textContent).not.toMatch(/PMP3/);
   });
 
+  test("Today is a compact rail when the on-air stage is hidden", async () => {
+    await act(async () => {
+      root.render(
+        React.createElement(TonightDeck, {
+          airing: {
+            show: {
+              id: "countdown",
+              title: "Most Requested Live",
+              shortTitle: "Most Requested",
+              startHour: 20,
+              endHour: 22,
+            },
+          },
+          guide: [
+            { id: "sunrise", title: "Sunrise", shortTitle: "Sunrise", startHour: 5, status: "past" },
+            { id: "countdown", title: "Most Requested Live", shortTitle: "Most Requested", startHour: 20, status: "live" },
+          ],
+          showNowPlaying: false,
+        })
+      );
+    });
+    expect(div.querySelector(".pmp-tonight-glass")).toBeNull();
+    expect(div.querySelector(".pmp-today-band")).toBeTruthy();
+    expect(div.textContent).toMatch(/Today/);
+    expect(div.textContent).not.toMatch(/On Tonight/);
+  });
+
   test("home does not open a showcase popup for Local", async () => {
     const onTuneSceneChannel = jest.fn();
     const tracks = [

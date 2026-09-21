@@ -553,11 +553,11 @@ const injectStyles = () => {
       .dock-xtra { display: none !important; }
     }
     .glass-dock {
-      background: linear-gradient(180deg, rgba(216,223,232,0.52) 0%, rgba(200,208,218,0.78) 100%);
-      border: 1px solid rgba(216,223,232,0.48);
+      background: linear-gradient(180deg, rgba(236,241,247,0.58) 0%, rgba(208,214,224,0.7) 100%);
+      border: 1px solid rgba(255,255,255,0.46);
       box-shadow:
-        inset 0 1px 0 rgba(255,255,255,0.5),
-        0 18px 40px rgba(58,66,80,0.2);
+        inset 0 1px 0 rgba(255,255,255,0.62),
+        0 12px 28px rgba(58,66,80,0.16);
       -webkit-backdrop-filter: ${glass.blurHeavy};
       backdrop-filter: ${glass.blurHeavy};
       transition: background 0.6s ease, box-shadow 0.35s ease;

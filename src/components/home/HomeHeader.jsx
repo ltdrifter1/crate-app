@@ -26,6 +26,7 @@ export default function HomeHeader({
 }) {
   return (
     <header
+      className="pmp-home-header"
       style={{
         display: "flex",
         alignItems: "center",

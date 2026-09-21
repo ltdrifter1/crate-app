@@ -37,6 +37,8 @@ test('theme exports core tokens', () => {
   expect(aluminumGradient()).toMatch(/gradient/);
   expect(artShadow.quiet).toBeTruthy();
   expect(dock.clearPlayer).toBeGreaterThan(dock.clearTabs);
+  expect(dock.playerH).toBeLessThanOrEqual(64);
+  expect(dock.clearPlayer).toBeLessThanOrEqual(160);
   expect(dock.radius).toBeGreaterThan(0);
   expect(hardware.keyFace).toMatch(/linear-gradient/);
   expect(hardwareKey().backdropFilter).toBeUndefined();

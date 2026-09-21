@@ -42,6 +42,7 @@ export default function MusicSection({
       }}
     >
       <div
+        className="pmp-band-header"
         style={{
           display: "grid",
           gridTemplateColumns: action ? "minmax(0, 1fr) auto" : "minmax(0, 1fr)",
@@ -66,6 +67,7 @@ export default function MusicSection({
             </div>
           )}
           <h2
+            className="pmp-section-title"
             style={{
               ...titleStyle,
               overflow: "hidden",
@@ -77,6 +79,7 @@ export default function MusicSection({
           </h2>
           {subtitle && (
             <p
+              className="pmp-section-sub"
               style={{
                 ...sectionSubtitle,
                 overflow: "hidden",
@@ -125,7 +128,7 @@ export default function MusicSection({
 /**
  * Horizontal snap rail — same gutter as MusicSection titles.
  */
-export function Rail({ children, gap = 14, padTop = 2, padBottom = 4, alignItems = "stretch" }) {
+export function Rail({ children, gap = 14, padTop = 2, padBottom = 4, alignItems = "stretch", className = "" }) {
   const ref = useRef(null);
   const drag = useRef({ active: false, startX: 0, scrollLeft: 0, moved: false });
 
@@ -190,7 +193,7 @@ export function Rail({ children, gap = 14, padTop = 2, padBottom = 4, alignItems
   return (
     <div
       ref={ref}
-      className="hide-scroll pmp-rail"
+      className={`hide-scroll pmp-rail${className ? ` ${className}` : ""}`}
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
       onPointerUp={endDrag}

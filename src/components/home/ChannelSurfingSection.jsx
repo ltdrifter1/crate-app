@@ -54,7 +54,7 @@ function ChannelSurfingSection({
         meta={`${channels.length} channels`}
       />
 
-      <Rail gap={homeSpace.shelfGap} padTop={24} padBottom={26} alignItems="flex-end">
+      <Rail className="pmp-channel-rail" gap={homeSpace.shelfGap} padTop={24} padBottom={26} alignItems="flex-end">
         {visible.map((channel, i) => (
           <div
             key={channel.id}
