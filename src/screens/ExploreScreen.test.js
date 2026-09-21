@@ -24,6 +24,7 @@ const catalog = [
     playCount: 10,
     camelot: "8A",
     audioUrl: "https://cdn.example/a.mp3",
+    createdAt: { seconds: 50 },
   },
   {
     id: "t2",
@@ -151,11 +152,11 @@ describe("Explore screen", () => {
     });
     expect(div.textContent).toMatch(/Explore/);
     expect(div.textContent).toMatch(/Directory/);
+    expect(div.textContent).toMatch(/New Releases/);
     expect(div.textContent).toMatch(/Worlds/);
-    expect(div.textContent).toMatch(/Dancefloor|Techno|House|Metal/);
-    expect(div.textContent).toMatch(/Lanes/);
-    expect(div.textContent).toMatch(/Electronic/);
-    expect(div.querySelector('button[role="tab"][aria-selected="true"]').textContent).toMatch(/Worlds/);
+    expect(div.querySelector('button[role="tab"][aria-selected="true"]').textContent).toMatch(/New Releases/);
+    expect(div.querySelector('section[aria-label="New Releases"]')).toBeTruthy();
+    expect(div.textContent).toMatch(/Night Shift|Highways|Gain/);
     expect(div.textContent).not.toMatch(/Moods & moments/);
     expect(div.textContent).not.toMatch(/Stations/);
     expect(div.textContent).not.toMatch(/Channel Surfing/);
@@ -180,6 +181,9 @@ describe("Explore screen", () => {
           onPlayTrack,
         })
       );
+    });
+    await act(async () => {
+      tab(div, "Worlds").click();
     });
     const genre = div.querySelector('button[aria-label^="Electronic"]');
     expect(genre).toBeTruthy();
@@ -225,17 +229,25 @@ describe("Explore screen", () => {
     expect(onPlayTrack.mock.calls[0][0].id).toBe("t1");
   });
 
-  test("Sleeves mode shows albums as objects", async () => {
+  test("New Releases is a channel-filtered sleeve grid", async () => {
+    const onOpenAlbum = jest.fn();
     await act(async () => {
-      root.render(React.createElement(ExploreScreen, { tracks: catalog }));
+      root.render(React.createElement(ExploreScreen, { tracks: catalog, onOpenAlbum }));
     });
+    expect(div.querySelector('section[aria-label="New Releases"]')).toBeTruthy();
+    expect(div.querySelector(".pmp-new-releases-grid")).toBeTruthy();
+    const metal = div.querySelector('button[aria-label="CH-11  Metal"]');
+    expect(metal).toBeTruthy();
     await act(async () => {
-      tab(div, "Sleeves").click();
+      metal.click();
     });
-    expect(div.querySelector('section[aria-label="Albums"]')).toBeTruthy();
-    expect(div.querySelector(".pmp-sleeve-wallet, .pmp-release--lead")).toBeTruthy();
-    expect(div.textContent).not.toMatch(/Featured releases/);
-    expect(div.textContent).not.toMatch(/Most requested/i);
+    expect(div.textContent).toMatch(/Gain/);
+    expect(div.textContent).not.toMatch(/Highways/);
+    const sleeve = div.querySelector(".pmp-release");
+    await act(async () => {
+      sleeve.click();
+    });
+    expect(onOpenAlbum).toHaveBeenCalled();
   });
 
   test("Energy mode is rooms, not a poster rail", async () => {
@@ -299,6 +311,9 @@ describe("Explore screen", () => {
   test("world tiles are a disc tray, not a 4-up mosaic poster", async () => {
     await act(async () => {
       root.render(React.createElement(ExploreScreen, { tracks: catalog }));
+    });
+    await act(async () => {
+      tab(div, "Worlds").click();
     });
     const tray = div.querySelector(".pmp-world-tray");
     expect(tray).toBeTruthy();
