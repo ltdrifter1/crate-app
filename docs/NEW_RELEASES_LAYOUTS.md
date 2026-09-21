@@ -27,8 +27,8 @@ Replaced the old **Sleeves** mode (jewel-case wallet). Worlds / Energy / Mix sta
 ```text
  Explore
  [New Releases]  Worlds  Energy  Mix
+ Newest sleeves, by channel.
 
- New Releases
  [All] [CH-04 LOCAL] [CH-05 HOUSE] [CH-11 METAL] →
 
  [sleeve] [sleeve] [sleeve] [sleeve]

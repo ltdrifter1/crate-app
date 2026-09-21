@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { color, fontMono, homeSpace, motion, radio, y2k } from "../../theme";
+import { color, fontMono, homeSpace, motion, radio } from "../../theme";
 import { newReleaseAlbums, newReleaseBays } from "../../lib/newReleases";
 import ReleaseCard from "../home/ReleaseCard";
 
@@ -31,20 +31,6 @@ export default function NewReleases({
 
   return (
     <section aria-label="New Releases" style={{ marginTop: 12 }}>
-      <div style={{ padding: `0 ${homeSpace.gutter}px 10px` }}>
-        <h2
-          style={{
-            margin: 0,
-            fontSize: 22,
-            fontWeight: 700,
-            letterSpacing: -0.4,
-            color: y2k.offWhite,
-          }}
-        >
-          New Releases
-        </h2>
-      </div>
-
       {signs.length > 1 && (
         <div
           className="hide-scroll"
