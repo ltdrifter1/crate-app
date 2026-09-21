@@ -63,11 +63,11 @@ describe("GlassDock mini player", () => {
 
     const mini = div.querySelector('[data-testid="mini-player"]');
     expect(mini).toBeTruthy();
-    expect(mini.getAttribute("data-expanded")).toBe("false");
     expect(div.textContent).toMatch(/Sleeping In/);
     expect(div.textContent).toMatch(/The Postal Service/);
     expect(div.querySelector('[aria-label="Pause"]')).toBeTruthy();
     expect(div.querySelector('[aria-label="Next"]')).toBeTruthy();
+    expect(div.querySelector('[aria-label="Open now playing"]')).toBeTruthy();
     expect(div.querySelector('[data-testid="mini-player-sheet"]')).toBeNull();
     expect(div.querySelector('[aria-label="Seek"]')).toBeNull();
     expect(div.querySelector('[data-testid="pace-slot"]')).toBeNull();
@@ -78,46 +78,7 @@ describe("GlassDock mini player", () => {
     expect(play.style.height).toBe("44px");
   });
 
-  test("expanding reveals seek, BPM, and pace without covering the collapsed bar", async () => {
-    const onOpen = jest.fn();
-    await act(async () => {
-      root.render(
-        React.createElement(GlassDock, {
-          screen: "home",
-          setScreen: () => {},
-          track: TRACK,
-          onTogglePlay: () => {},
-          onSkip: () => {},
-          onPrev: () => {},
-          onLike: () => {},
-          onSeek: () => {},
-          isRadioMode: true,
-          onOpen,
-        })
-      );
-    });
-
-    await act(async () => {
-      div.querySelector(".pmp-mini-bar").click();
-    });
-
-    const mini = div.querySelector('[data-testid="mini-player"]');
-    expect(mini.getAttribute("data-expanded")).toBe("true");
-    expect(div.querySelector('[data-testid="mini-player-sheet"]')).toBeTruthy();
-    expect(div.querySelector('[aria-label="Seek"]')).toBeTruthy();
-    expect(div.textContent).toMatch(/129 BPM/);
-    expect(div.querySelector('[aria-label="Hide playback details"]')).toBeTruthy();
-    expect(onOpen).not.toHaveBeenCalled();
-
-    await act(async () => {
-      await Promise.resolve();
-    });
-    expect(div.querySelector('[data-testid="pace-slot"]')).toBeTruthy();
-    expect(div.textContent).toMatch(/Slow/);
-    expect(div.textContent).toMatch(/Fast/);
-  });
-
-  test("expanded bar opens the full player; hide collapses details", async () => {
+  test("tapping the bar opens the immersive player, never expands a second deck", async () => {
     const onOpen = jest.fn();
     await act(async () => {
       root.render(
@@ -138,16 +99,10 @@ describe("GlassDock mini player", () => {
     await act(async () => {
       div.querySelector(".pmp-mini-bar").click();
     });
-    await act(async () => {
-      div.querySelector(".pmp-mini-bar").click();
-    });
     expect(onOpen).toHaveBeenCalledTimes(1);
-
-    await act(async () => {
-      div.querySelector('[aria-label="Hide playback details"]').click();
-    });
-    expect(div.querySelector('[data-testid="mini-player"]').getAttribute("data-expanded")).toBe("false");
     expect(div.querySelector('[data-testid="mini-player-sheet"]')).toBeNull();
+    expect(div.querySelector('[data-testid="pace-slot"]')).toBeNull();
+    expect(div.querySelector('[aria-label="Seek"]')).toBeNull();
   });
 
   test("hidePlayer leaves tabs only", async () => {

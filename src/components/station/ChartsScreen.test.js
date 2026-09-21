@@ -153,10 +153,10 @@ describe("ChartsScreen", () => {
         onOpenMenu,
       }));
     });
-    const browse = div.querySelector('button[aria-label="Browse"]');
-    expect(browse).toBeTruthy();
+    const menu = div.querySelector('button[aria-label="More"]');
+    expect(menu).toBeTruthy();
     await act(async () => {
-      browse.click();
+      menu.click();
     });
     expect(onOpenMenu).toHaveBeenCalled();
   });

@@ -10,6 +10,7 @@ import {
 } from "../../theme";
 import Icon from "../ui/Icon";
 import ArtFrame from "../ui/ArtFrame";
+import { trackBrowseBits } from "../player/DeviceChrome";
 
 function mp3FileName(track, index) {
   const n = String(index + 1).padStart(2, "0");
@@ -238,9 +239,10 @@ export default function ExploreFocus({
                     textOverflow: "ellipsis",
                     whiteSpace: "nowrap",
                     maxWidth: 120,
+                    textAlign: "right",
                   }}
                 >
-                  {track.artist}
+                  {trackBrowseBits(track).join(" · ") || track.artist}
                 </span>
               </button>
             );

@@ -32,6 +32,15 @@ export function trackLcdBits(track, extra = []) {
   ].filter(Boolean);
 }
 
+/** BPM + key only — for list rows where energy would crowd the line. */
+export function trackBrowseBits(track) {
+  if (!track) return [];
+  return [
+    track.bpm ? `${Math.round(Number(track.bpm))} BPM` : null,
+    track.camelot || null,
+  ].filter(Boolean);
+}
+
 export function HardwareIconButton({
   onClick,
   label,

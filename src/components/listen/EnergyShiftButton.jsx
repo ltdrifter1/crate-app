@@ -750,6 +750,22 @@ export function PaceSlot({
 }) {
   return (
     <div className="pmp-pace-slot" data-testid="pace-slot">
+      <div
+        aria-hidden="true"
+        className="pmp-pace-caption"
+        style={{
+          fontFamily: fontMono,
+          fontSize: compact ? 9 : 10,
+          fontWeight: 700,
+          letterSpacing: 0.14,
+          textTransform: "uppercase",
+          color: color.muted,
+          marginBottom: 2,
+          paddingLeft: 2,
+        }}
+      >
+        Next picks
+      </div>
       <PaceSlider compact={compact} stopPropagation={stopPropagation} />
     </div>
   );

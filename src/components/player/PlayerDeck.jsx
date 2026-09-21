@@ -2,10 +2,46 @@
  * Shared listening deck — PS1 glass module with LCD seek, planet play,
  * chamfered hardware keys, and Slow/Fast pace. Hero + immersive.
  */
+import { useEffect, useState } from "react";
 import Icon from "../ui/Icon";
 import { EnergyShiftFeedback, PaceSlot } from "../listen/EnergyShiftButton";
 import { PlayKey } from "./OrbitalControls";
 import { HardwareIconButton, LcdTimeline } from "./DeviceChrome";
+import { hasSeenDeckHint, markDeckHintSeen } from "../../lib/firstRunHint";
+import { color, fontMono, motion } from "../../theme";
+
+function DeckHint({ showDislike }) {
+  const [open, setOpen] = useState(() => !hasSeenDeckHint());
+
+  useEffect(() => {
+    if (!open) return undefined;
+    const t = setTimeout(() => {
+      markDeckHintSeen();
+      setOpen(false);
+    }, 4000);
+    return () => clearTimeout(t);
+  }, [open]);
+
+  if (!open) return null;
+  return (
+    <p
+      data-testid="deck-hint"
+      style={{
+        margin: "6px 2px 0",
+        fontFamily: fontMono,
+        fontSize: 10,
+        fontWeight: 650,
+        letterSpacing: 0.04,
+        lineHeight: 1.35,
+        color: color.muted,
+        animation: `rise 0.35s ${motion.ease} both`,
+      }}
+    >
+      Slow and Fast change what plays next.
+      {showDislike ? " Dislike steers the mix away." : ""}
+    </p>
+  );
+}
 
 export default function PlayerDeck({
   progress = 0,
@@ -92,6 +128,7 @@ export default function PlayerDeck({
         {extraKeys}
       </div>
       <PaceSlot compact stopPropagation={paceStopPropagation} />
+      <DeckHint showDislike={!!onDislike} />
     </div>
   );
 }

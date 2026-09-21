@@ -56,8 +56,8 @@ function NavRow({ item, active, onClick }) {
 }
 
 /**
- * Left faceplate — desktop rail and mobile drawer share this IA.
- * Home / Explore / Library stay the four-tab dock; Charts + Build a set live here.
+ * Left source list — desktop rail keeps Home / Explore / Library.
+ * Mobile More drawer is overflow only: Charts + Build a set.
  */
 export default function AppSidebar({
   screen,
@@ -83,7 +83,7 @@ export default function AppSidebar({
 
   return (
     <nav
-      aria-label={isDrawer ? "Faceplate" : "Faceplate"}
+      aria-label={isDrawer ? "More" : "Source list"}
       style={{
         width: isDrawer ? "100%" : 232,
         flexShrink: 0,
@@ -116,29 +116,32 @@ export default function AppSidebar({
             padding: "10px 10px 8px",
           }}
         >
-          Faceplate
+          More
         </div>
       )}
 
-      <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-        {SIDEBAR_PRIMARY.map((item) => (
-          <NavRow
-            key={item.id}
-            item={item}
-            active={activeId === item.id}
-            onClick={() => go(item)}
+      {!isDrawer && (
+        <>
+          <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+            {SIDEBAR_PRIMARY.map((item) => (
+              <NavRow
+                key={item.id}
+                item={item}
+                active={activeId === item.id}
+                onClick={() => go(item)}
+              />
+            ))}
+          </div>
+          <div
+            aria-hidden="true"
+            style={{
+              height: 1,
+              margin: "12px 8px",
+              background: "rgba(91,101,116,0.18)",
+            }}
           />
-        ))}
-      </div>
-
-      <div
-        aria-hidden="true"
-        style={{
-          height: 1,
-          margin: "12px 8px",
-          background: "rgba(91,101,116,0.18)",
-        }}
-      />
+        </>
+      )}
 
       <div style={{ display: "flex", flexDirection: "column", gap: 2, flex: 1, minHeight: 0 }}>
         {SIDEBAR_TOOLS.map((item) => (
@@ -151,8 +154,8 @@ export default function AppSidebar({
         ))}
       </div>
 
-      <div style={{ display: "flex", flexDirection: "column", gap: 4, paddingTop: 8 }}>
-        {showAdmin && (
+      {isDrawer && showAdmin && (
+        <div style={{ paddingTop: 8 }}>
           <NavRow
             item={{ id: "admin", label: "Admin", icon: "settings" }}
             active={activeId === "admin"}
@@ -161,64 +164,79 @@ export default function AppSidebar({
               onClose?.();
             }}
           />
-        )}
-        <button
-          type="button"
-          className="nav-rail-btn"
-          onClick={() => {
-            onNavigate?.("profile");
-            onClose?.();
-          }}
-          title={user?.name || "Club"}
-          aria-label="Club"
-          aria-current={activeId === "profile" ? "page" : undefined}
-          style={{
-            width: "100%",
-            height: 44,
-            borderRadius: radius.sm,
-            background: activeId === "profile" ? "rgba(91, 101, 116, 0.16)" : "transparent",
-            border: "1px solid transparent",
-            display: "flex",
-            alignItems: "center",
-            gap: 10,
-            padding: "0 8px",
-            fontSize: 14,
-            cursor: "pointer",
-            color: color.ink,
-          }}
-        >
-          <span
+        </div>
+      )}
+
+      {!isDrawer && (
+        <div style={{ display: "flex", flexDirection: "column", gap: 4, paddingTop: 8 }}>
+          {showAdmin && (
+            <NavRow
+              item={{ id: "admin", label: "Admin", icon: "settings" }}
+              active={activeId === "admin"}
+              onClick={() => {
+                onNavigate?.("admin");
+                onClose?.();
+              }}
+            />
+          )}
+          <button
+            type="button"
+            className="nav-rail-btn"
+            onClick={() => {
+              onNavigate?.("profile");
+              onClose?.();
+            }}
+            title={user?.name || "Club"}
+            aria-label="Club"
+            aria-current={activeId === "profile" ? "page" : undefined}
             style={{
-              width: 26,
-              height: 26,
-              borderRadius: 7,
-              background: color.surfaceSolid,
-              border: `1px solid ${glass.border}`,
+              width: "100%",
+              height: 44,
+              borderRadius: radius.sm,
+              background: activeId === "profile" ? "rgba(91, 101, 116, 0.16)" : "transparent",
+              border: "1px solid transparent",
               display: "flex",
               alignItems: "center",
-              justifyContent: "center",
-              fontSize: 12,
-              fontWeight: 650,
-              flexShrink: 0,
-              fontFamily: fontDisplay,
+              gap: 10,
+              padding: "0 8px",
+              fontSize: 14,
+              cursor: "pointer",
+              color: color.ink,
             }}
           >
-            {user?.image || (user?.name || "R").toString().trim().charAt(0).toUpperCase()}
-          </span>
-          <span
-            style={{
-              overflow: "hidden",
-              textOverflow: "ellipsis",
-              whiteSpace: "nowrap",
-              fontFamily: fontDisplay,
-              fontWeight: 550,
-              letterSpacing: -0.15,
-            }}
-          >
-            {user?.name || "Club"}
-          </span>
-        </button>
-      </div>
+            <span
+              style={{
+                width: 26,
+                height: 26,
+                borderRadius: 7,
+                background: color.surfaceSolid,
+                border: `1px solid ${glass.border}`,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                fontSize: 12,
+                fontWeight: 650,
+                flexShrink: 0,
+                fontFamily: fontDisplay,
+              }}
+            >
+              {user?.image || (user?.name || "R").toString().trim().charAt(0).toUpperCase()}
+            </span>
+            <span
+              style={{
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                whiteSpace: "nowrap",
+                fontFamily: fontDisplay,
+                fontWeight: 550,
+                letterSpacing: -0.15,
+              }}
+            >
+              {user?.name || "Club"}
+            </span>
+          </button>
+        </div>
+      )}
     </nav>
   );
 }

@@ -58,22 +58,15 @@ describe("featureGuide gate", () => {
 
   test("teaches the core crate without survey copy", () => {
     const ids = FEATURE_GUIDE_STEPS.map((s) => s.id);
-    expect(ids).toEqual([
-      "home",
-      "explore",
-      "library",
-      "set",
-      "charts",
-      "player",
-      "club",
-      "chat",
-    ]);
+    expect(ids).toEqual(["home", "explore", "library"]);
+    expect(FEATURE_GUIDE_STEPS).toHaveLength(3);
+    expect(FEATURE_GUIDE_VERSION).toBe(2);
     const blob = FEATURE_GUIDE_STEPS.map((s) => `${s.title} ${s.body}`).join(" ");
     expect(blob).not.toMatch(/favourite genres|Enter the club|How adventurous/i);
     expect(blob).toMatch(/Channel Surfing/);
-    expect(blob).toMatch(/Pace/);
+    expect(blob).toMatch(/stacks/i);
     expect(blob).not.toMatch(/beaker/i);
-    expect(blob).toMatch(/Dislike/);
-    expect(blob).toMatch(/messenger/i);
+    expect(blob).not.toMatch(/Pace/);
+    expect(blob).not.toMatch(/messenger/i);
   });
 });

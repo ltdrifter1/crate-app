@@ -695,6 +695,7 @@ export default function HeroPlayerCard({
         {tickerText ? (
           <div
             aria-hidden="true"
+            className="pmp-hero-ticker"
             style={{
               marginTop: 10,
               overflow: "hidden",

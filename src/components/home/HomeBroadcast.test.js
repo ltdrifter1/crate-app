@@ -76,6 +76,9 @@ describe("Home broadcast + four-tab IA", () => {
     expect(div.querySelector('button[aria-label="Back"]')).toBeNull();
     const search = div.querySelector('button[aria-label="Search"]');
     expect(search).toBeTruthy();
+    expect(search.textContent).toMatch(/Find/);
+    expect(div.querySelector('button[aria-label="Club"]')).toBeNull();
+    expect(div.querySelector('button[aria-label="Profile"]')).toBeNull();
     expect(div.querySelector(".pmp-onair-chip")).toBeNull();
     expect(div.textContent).not.toMatch(/98\.3/);
     expect(div.textContent).not.toMatch(/On air/i);
@@ -85,14 +88,14 @@ describe("Home broadcast + four-tab IA", () => {
     expect(onOpenSearch).toHaveBeenCalled();
   });
 
-  test("Home header menu opens the mobile browse drawer", async () => {
+  test("Home header menu opens the More overflow drawer", async () => {
     const onOpenMenu = jest.fn();
     await act(async () => {
       root.render(
         React.createElement(HomeHeader, { onOpenMenu })
       );
     });
-    const menu = div.querySelector('button[aria-label="Browse"]');
+    const menu = div.querySelector('button[aria-label="More"]');
     expect(menu).toBeTruthy();
     await act(async () => {
       menu.click();
@@ -216,6 +219,7 @@ describe("Home broadcast + four-tab IA", () => {
     expect(div.querySelector(".pmp-timeline")).toBeTruthy();
     expect(div.textContent).toMatch(/Slow/);
     expect(div.textContent).toMatch(/Fast/);
+    expect(div.textContent).toMatch(/Next picks/);
     expect(div.textContent).not.toMatch(/Ease|Lift|Middle/);
     expect(div.querySelector('[aria-label*="Turtle"]')).toBeFalsy();
     expect(div.querySelector('[aria-label*="Bunny"]')).toBeFalsy();
@@ -511,6 +515,21 @@ describe("Home broadcast + four-tab IA", () => {
     expect(div.textContent).not.toMatch(/Nothing here yet/);
     expect(div.textContent).not.toMatch(/Couldn.t load/);
     expect(div.querySelector(".pmp-showcase-promo")).toBeNull();
+  });
+
+  test("Channel Surfing sits on the first fold, before Tonight", async () => {
+    const fs = require("fs");
+    const path = require("path");
+    const src = fs.readFileSync(
+      path.join(__dirname, "../../screens/HomeScreen.jsx"),
+      "utf8"
+    );
+    const hero = src.indexOf("<HeroPlayerCard");
+    const channels = src.indexOf("<ChannelSurfingSection");
+    const tonight = src.indexOf("<TonightDeck");
+    expect(hero).toBeGreaterThan(-1);
+    expect(channels).toBeGreaterThan(hero);
+    expect(tonight).toBeGreaterThan(channels);
   });
 
   test("first Channel Surfing tile is LCP-eager, later tiles lazy", async () => {

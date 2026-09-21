@@ -429,8 +429,14 @@ body::before { display: none; }
     min-height: 0 !important;
   }
   .pmp-home-header {
-    padding-top: calc(10px + env(safe-area-inset-top, 0px)) !important;
-    padding-bottom: 2px !important;
+    padding-top: calc(8px + env(safe-area-inset-top, 0px)) !important;
+    padding-bottom: 4px !important;
+  }
+  .pmp-hero-ticker {
+    display: none !important;
+  }
+  .pmp-channel-surf {
+    margin-top: 12px !important;
   }
   .pmp-tonight-glass {
     padding: 12px 12px 10px !important;
@@ -450,15 +456,15 @@ body::before { display: none; }
     height: min(34vw, 120px) !important;
   }
   .pmp-channel-card {
-    width: 132px !important;
+    width: 120px !important;
   }
   .pmp-channel-card-frame {
-    width: 132px !important;
-    height: 132px !important;
+    width: 120px !important;
+    height: 120px !important;
   }
   .pmp-channel-rail {
-    padding-top: 8px !important;
-    padding-bottom: 12px !important;
+    padding-top: 6px !important;
+    padding-bottom: 8px !important;
   }
 }
 
