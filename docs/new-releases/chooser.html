@@ -1,0 +1,937 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Just In — layout chooser · Planet MP3</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --canvas: #C5CBD6;
+      --ink: #3D4654;
+      --body: #4E5866;
+      --muted: #6B7584;
+      --faint: #87919F;
+      --plate: #D0D6E0;
+      --silver: #D8DFE8;
+      --lcd: #2A333C;
+      --phosphor: #B7E4EE;
+      --phosphor-ink: #E4F7FA;
+      --live: #E0314A;
+      --cta: #367FC7;
+      --shade: 58, 66, 80;
+      --spec: 216, 223, 232;
+      --sans: "IBM Plex Sans", "Helvetica Neue", Helvetica, sans-serif;
+      --mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; background: var(--canvas); color: var(--ink); font-family: var(--sans); }
+    body { min-height: 100vh; }
+    button { font-family: inherit; }
+    a { color: var(--cta); }
+
+    .page {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 28px 24px 80px;
+    }
+
+    .mast {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      gap: 16px;
+      margin-bottom: 22px;
+    }
+    .eyebrow {
+      font-family: var(--mono);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+    h1 {
+      margin: 0;
+      font-size: 34px;
+      letter-spacing: -0.9px;
+      line-height: 1.1;
+    }
+    .lede {
+      max-width: 640px;
+      margin: 8px 0 0;
+      font-size: 16px;
+      line-height: 1.45;
+      color: var(--body);
+    }
+    .rec {
+      flex: 0 0 auto;
+      padding: 10px 14px;
+      border-radius: 8px;
+      background: var(--lcd);
+      color: var(--phosphor-ink);
+      font-family: var(--mono);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      box-shadow: inset 0 1px 0 rgba(183,228,238,0.22), 0 8px 20px rgba(var(--shade),0.2);
+    }
+    .rec b { color: var(--phosphor); font-weight: 700; }
+
+    .picks {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+      margin: 28px 0 18px;
+    }
+    .pick {
+      text-align: left;
+      cursor: pointer;
+      border-radius: 12px;
+      padding: 14px 14px 16px;
+      border: 1px solid rgba(61,70,84,0.16);
+      background:
+        linear-gradient(180deg, rgba(var(--spec),0.5) 0%, rgba(var(--spec),0.08) 36%, transparent 70%),
+        linear-gradient(145deg, rgba(208,214,224,0.96) 0%, rgba(184,191,202,0.94) 100%);
+      box-shadow: inset 0 1px 0 rgba(var(--spec),0.45), 0 8px 20px rgba(var(--shade),0.12);
+      color: var(--ink);
+      min-height: 148px;
+    }
+    .pick[aria-pressed="true"] {
+      border: 1px solid rgba(90,196,214,0.45);
+      background: var(--lcd);
+      color: var(--phosphor-ink);
+      box-shadow: inset 0 2px 10px rgba(var(--shade),0.45), 0 0 18px rgba(90,196,214,0.18);
+    }
+    .pick .k {
+      font-family: var(--mono);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      margin-bottom: 8px;
+    }
+    .pick[aria-pressed="true"] .k { color: var(--phosphor); }
+    .pick h2 { margin: 0 0 6px; font-size: 18px; letter-spacing: -0.3px; }
+    .pick p { margin: 0; font-size: 13px; line-height: 1.35; color: var(--body); }
+    .pick[aria-pressed="true"] p { color: #8EB8C4; }
+    .badge {
+      display: inline-block;
+      margin-top: 10px;
+      font-family: var(--mono);
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--cta);
+    }
+    .pick[aria-pressed="true"] .badge { color: var(--phosphor); }
+
+    .stage-wrap {
+      display: grid;
+      grid-template-columns: 1fr 280px;
+      gap: 18px;
+      align-items: start;
+    }
+    .stage {
+      border-radius: 14px;
+      padding: 18px 18px 22px;
+      background:
+        linear-gradient(180deg, rgba(var(--spec),0.55) 0%, transparent 40%),
+        #B8C0CC;
+      border: 1px solid rgba(61,70,84,0.16);
+      box-shadow: inset 0 1px 0 rgba(var(--spec),0.5), 0 16px 36px rgba(var(--shade),0.18);
+      overflow: auto;
+    }
+    .stage-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 14px;
+      padding: 0 4px;
+    }
+    .stage-bar strong { font-size: 15px; }
+    .stage-bar span {
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .desk {
+      width: 100%;
+      min-height: 620px;
+      border-radius: 10px;
+      background: var(--canvas);
+      border: 1px solid rgba(61,70,84,0.14);
+      overflow: hidden;
+      position: relative;
+    }
+
+    .spec {
+      position: sticky;
+      top: 16px;
+      border-radius: 12px;
+      padding: 16px 16px 18px;
+      background:
+        linear-gradient(180deg, rgba(var(--spec),0.5) 0%, rgba(var(--spec),0.08) 36%, transparent 70%),
+        linear-gradient(145deg, rgba(208,214,224,0.96) 0%, rgba(184,191,202,0.94) 100%);
+      border: 1px solid rgba(61,70,84,0.16);
+      box-shadow: inset 0 1px 0 rgba(var(--spec),0.45);
+    }
+    .spec h3 { margin: 0 0 10px; font-size: 16px; }
+    .spec dl { margin: 0; }
+    .spec dt {
+      font-family: var(--mono);
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-top: 12px;
+    }
+    .spec dd { margin: 4px 0 0; font-size: 13px; line-height: 1.4; color: var(--body); }
+    .spec .vote {
+      display: block;
+      width: 100%;
+      margin-top: 16px;
+      min-height: 44px;
+      border: none;
+      border-radius: 8px;
+      background: var(--cta);
+      color: #fff;
+      font-weight: 700;
+      font-size: 14px;
+      cursor: default;
+    }
+
+    /* Shared product chrome inside mock */
+    .app { display: flex; min-height: 620px; }
+    .rail {
+      width: 168px;
+      flex: none;
+      padding: 16px 10px;
+      background:
+        linear-gradient(180deg, rgba(var(--spec),0.4) 0%, transparent 50%),
+        #C0C7D2;
+      border-right: 1px solid rgba(61,70,84,0.12);
+    }
+    .rail .mark {
+      font-family: var(--mono);
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.16em;
+      color: var(--muted);
+      margin: 0 8px 16px;
+    }
+    .rail button {
+      display: block;
+      width: 100%;
+      text-align: left;
+      border: none;
+      background: transparent;
+      color: var(--body);
+      font-size: 13px;
+      font-weight: 600;
+      padding: 8px 10px;
+      border-radius: 6px;
+      margin-bottom: 2px;
+    }
+    .rail button.on {
+      background: rgba(91,101,116,0.14);
+      color: var(--ink);
+    }
+    .main { flex: 1; min-width: 0; padding: 16px 20px 72px; }
+    .find {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      height: 38px;
+      padding: 0 12px;
+      border-radius: 6px;
+      max-width: 420px;
+      margin: 8px 0 14px;
+      background: var(--lcd);
+      color: #8EB8C4;
+      font-family: var(--mono);
+      font-size: 12px;
+      box-shadow: inset 0 2px 8px rgba(var(--shade),0.4);
+    }
+    .find i {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: var(--phosphor);
+      box-shadow: 0 0 8px rgba(90,196,214,0.7);
+    }
+    .dir {
+      font-family: var(--mono);
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    .title {
+      margin: 4px 0 0;
+      font-size: 26px;
+      letter-spacing: -0.6px;
+    }
+    .sub { margin: 4px 0 0; font-size: 13px; color: var(--muted); }
+
+    .signs {
+      display: flex;
+      gap: 6px;
+      overflow: hidden;
+      margin: 12px 0 16px;
+    }
+    .sign {
+      flex: none;
+      height: 32px;
+      padding: 0 10px;
+      border-radius: 4px;
+      border: 1px solid rgba(61,70,84,0.14);
+      background: var(--plate);
+      font-family: var(--mono);
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      color: var(--body);
+      display: inline-flex;
+      align-items: center;
+    }
+    .sign.on {
+      background: var(--lcd);
+      color: var(--phosphor);
+      border-color: rgba(90,196,214,0.38);
+    }
+
+    .sleeve {
+      position: relative;
+      border-radius: 6px;
+      aspect-ratio: 1;
+      overflow: hidden;
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,0.18),
+        0 10px 18px rgba(var(--shade),0.22);
+    }
+    .sleeve .cap {
+      position: absolute;
+      left: 8px; right: 8px; bottom: 8px;
+      font-size: 11px;
+      font-weight: 700;
+      color: #F4F1EA;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.45);
+      letter-spacing: -0.2px;
+    }
+    .sleeve .sticker {
+      position: absolute;
+      top: 7px; left: 7px;
+      height: 16px;
+      padding: 0 6px;
+      border-radius: 3px;
+      background: var(--lcd);
+      color: var(--phosphor);
+      font-family: var(--mono);
+      font-size: 8px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      display: flex;
+      align-items: center;
+    }
+    .meta-t {
+      margin-top: 7px;
+      font-size: 12px;
+      font-weight: 650;
+      letter-spacing: -0.15px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .meta-a { margin-top: 2px; font-size: 11px; color: var(--muted); }
+
+    .bay-h {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin: 4px 0 10px;
+    }
+    .bay-h .ch {
+      font-family: var(--mono);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+    }
+    .bay-h .n { font-size: 12px; color: var(--muted); }
+
+    .row {
+      display: grid;
+      grid-auto-flow: column;
+      grid-auto-columns: 118px;
+      gap: 10px;
+      overflow: hidden;
+      margin-bottom: 22px;
+    }
+    .row.lead grid, .row.lead { grid-auto-columns: 118px; }
+    .lead-cell { grid-column: span 1; width: 168px; }
+    .row .lead-cell { width: 168px; }
+
+    .endcap {
+      display: grid;
+      grid-template-columns: 1.4fr 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+    .hero-drop {
+      display: grid;
+      grid-template-columns: 160px minmax(0, 1fr);
+      gap: 14px;
+      padding: 12px;
+      border-radius: 10px;
+      background:
+        linear-gradient(180deg, rgba(var(--spec),0.5) 0%, transparent 70%),
+        var(--plate);
+      border: 1px solid rgba(61,70,84,0.14);
+      grid-column: 1 / 2;
+      grid-row: 1 / span 2;
+      align-items: center;
+      min-width: 0;
+    }
+    .hero-drop .sleeve { width: 100%; max-width: 160px; }
+    .hero-drop > div { min-width: 0; }
+    .liner {
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    .liner + h3 { margin: 6px 0 4px; font-size: 20px; letter-spacing: -0.4px; }
+    .bits {
+      font-family: var(--mono);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      color: var(--cta);
+      text-transform: uppercase;
+    }
+
+    .mosaic {
+      padding: 8px;
+      border-radius: 10px;
+      background: var(--plate);
+      border: 1px solid rgba(61,70,84,0.12);
+    }
+    .mosaic .grid4 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 4px;
+    }
+    .mosaic .ch {
+      margin-top: 8px;
+      font-family: var(--mono);
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+    }
+
+    .wall {
+      display: grid;
+      grid-template-columns: 160px 1fr;
+      gap: 14px;
+    }
+    .vsigns { display: flex; flex-direction: column; gap: 4px; }
+    .vsigns .sign { width: 100%; justify-content: flex-start; }
+    .jewel {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .crate {
+      display: grid;
+      grid-template-columns: 1.6fr 1fr 1fr;
+      grid-template-rows: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+    .crate .big { grid-row: 1 / span 2; }
+
+    .dock {
+      position: absolute;
+      left: 188px; right: 16px; bottom: 10px;
+      height: 48px;
+      border-radius: 10px;
+      background: var(--plate);
+      border: 1px solid rgba(61,70,84,0.14);
+      display: flex;
+      align-items: center;
+      justify-content: space-around;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--muted);
+      box-shadow: 0 8px 18px rgba(var(--shade),0.16);
+    }
+    .dock .here { color: var(--ink); }
+
+    .phone-note {
+      margin-top: 14px;
+      font-size: 13px;
+      color: var(--body);
+    }
+
+    .compare {
+      margin-top: 36px;
+      overflow: auto;
+      border-radius: 12px;
+      border: 1px solid rgba(61,70,84,0.14);
+      background: rgba(208,214,224,0.55);
+    }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid rgba(61,70,84,0.1); vertical-align: top; }
+    th {
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--muted);
+      font-weight: 700;
+    }
+    td.win { font-weight: 650; }
+
+    .layout { display: none; }
+    .layout.show { display: block; }
+
+    footer.how {
+      margin-top: 36px;
+      padding: 18px 20px;
+      border-radius: 12px;
+      background: var(--lcd);
+      color: var(--phosphor-ink);
+    }
+    footer.how h3 { margin: 0 0 8px; color: var(--phosphor); font-family: var(--mono); font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; }
+    footer.how p { margin: 0; line-height: 1.5; color: #8EB8C4; }
+
+    @media (max-width: 980px) {
+      .picks { grid-template-columns: 1fr 1fr; }
+      .stage-wrap { grid-template-columns: 1fr; }
+      .rail { display: none; }
+      .dock { left: 12px; }
+      .jewel { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      .endcap { grid-template-columns: 1fr 1fr; }
+      .hero-drop { grid-column: 1 / -1; grid-row: auto; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header class="mast">
+      <div>
+        <div class="eyebrow">Planet / 003 · Creative direction</div>
+        <h1>Just In — four floors</h1>
+        <p class="lede">
+          New music the way we shopped HMV: front-facing sleeves, bays by channel.
+          These are competing layouts on the shipped steel chassis. No product code until you pick.
+        </p>
+      </div>
+      <div class="rec">Recommended system<br /><b>A floor + D Home teaser</b></div>
+    </header>
+
+    <div class="picks" role="tablist" aria-label="Layout options">
+      <button class="pick" role="tab" aria-pressed="true" data-id="a">
+        <div class="k">Option A</div>
+        <h2>The Aisle</h2>
+        <p>Walk the New Releases wall. Sticky hanging signs. One bay per channel.</p>
+        <span class="badge">Recommended floor</span>
+      </button>
+      <button class="pick" role="tab" aria-pressed="false" data-id="b">
+        <div class="k">Option B</div>
+        <h2>The Endcap</h2>
+        <p>One huge this-week drop. Channel mosaics. Tap into a section.</p>
+      </button>
+      <button class="pick" role="tab" aria-pressed="false" data-id="c">
+        <div class="k">Option C</div>
+        <h2>The Bay</h2>
+        <p>Pick a hanging sign. Dense jewel-case grid. Stand in one section.</p>
+      </button>
+      <button class="pick" role="tab" aria-pressed="false" data-id="d">
+        <div class="k">Option D</div>
+        <h2>The Crate Drop</h2>
+        <p>Planet-native. One to three open crates. Smallest v1, best Home teaser.</p>
+        <span class="badge">Recommended teaser</span>
+      </button>
+    </div>
+
+    <div class="stage-wrap">
+      <div>
+        <section class="stage">
+          <div class="stage-bar">
+            <strong id="stage-name">A — The Aisle on Explore</strong>
+            <span>Desktop · steel-ps1-glass</span>
+          </div>
+          <div class="desk">
+            <div class="app">
+              <aside class="rail">
+                <div class="mark">PLANET / 003</div>
+                <button id="nav-home">Home</button>
+                <button id="nav-explore" class="on">Explore</button>
+                <button>Library</button>
+                <button>Club</button>
+                <button style="margin-top:18px;color:#87919F;">Charts</button>
+                <button style="color:#87919F;">Build a set</button>
+              </aside>
+              <div class="main">
+                <div class="dir" id="dir">Directory · Just In</div>
+                <h2 class="title" id="htitle">Just In</h2>
+                <p class="sub" id="hsub">This week’s crate, by channel. Not a feed.</p>
+                <div class="find" id="find"><i></i> Find a city, scene, or sleeve</div>
+
+                <div id="canvas">
+                  <!-- filled by JS -->
+                </div>
+              </div>
+            </div>
+            <div class="dock">
+              <span>Home</span>
+              <span class="here">Explore</span>
+              <span>Library</span>
+              <span>Club</span>
+            </div>
+          </div>
+          <p class="phone-note" id="phone-note">
+            Mobile: sticky LCD chips. 3.2 sleeves peek per bay. Chip tap jumps the aisle. Dock never covers the signs.
+          </p>
+        </section>
+      </div>
+
+      <aside class="spec" id="spec">
+        <h3>A — The Aisle</h3>
+        <dl>
+          <dt>Job</dt>
+          <dd>Wander the wall the way you walked HMV. Taste ranks which bay you meet first; it does not hide the store.</dd>
+          <dt>Lives on</dt>
+          <dd>Explore. Optional Home teaser uses D.</dd>
+          <dt>Keep</dt>
+          <dd>Four tabs. Channel Surfing stays the radio dial on Home. Pictograms are bugs, never covers.</dd>
+          <dt>Watch</dt>
+          <dd>Fourteen equal rails would read as App Store. Uneven leads, hanging signs, collapse empty bays.</dd>
+        </dl>
+        <button class="vote" type="button">Reply “A” or “A + D”</button>
+      </aside>
+    </div>
+
+    <section class="compare">
+      <table>
+        <thead>
+          <tr>
+            <th></th>
+            <th>A Aisle</th>
+            <th>B Endcap</th>
+            <th>C Bay</th>
+            <th>D Crate</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <th>HMV walk</th>
+            <td class="win">High — you never leave the floor</td>
+            <td>Medium — end-cap, then tap</td>
+            <td>High in one section</td>
+            <td>Low — crates, not a wall</td>
+          </tr>
+          <tr>
+            <th>First cultural image</th>
+            <td>End-cap + aisle of sleeves</td>
+            <td class="win">One oversized sleeve</td>
+            <td>Grid of sleeves</td>
+            <td>CrateSpread lead</td>
+          </tr>
+          <tr>
+            <th>New-user clarity</th>
+            <td>High</td>
+            <td>High</td>
+            <td>Must pick a sign</td>
+            <td class="win">Highest</td>
+          </tr>
+          <tr>
+            <th>Feasibility</th>
+            <td>Medium</td>
+            <td>Medium</td>
+            <td>Medium</td>
+            <td class="win">Highest — existing module</td>
+          </tr>
+          <tr>
+            <th>Home risk</th>
+            <td>Do not put 14 bays on Home</td>
+            <td>Fine as Explore default</td>
+            <td>Fine as Explore mode</td>
+            <td class="win">Best Home teaser (≤3 crates)</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <footer class="how">
+      <h3>How to choose</h3>
+      <p>
+        Reply with A, B, C, D, or a hybrid (A + D is the recommended system).
+        Optional name call: Just In / Arrivals / This week’s crate / New on Planet.
+        Full brief: docs/NEW_RELEASES_LAYOUTS.md — no product implementation until that reply.
+      </p>
+    </footer>
+  </div>
+
+  <script>
+    const sleeves = {
+      afterglow: ["linear-gradient(160deg,#1b3d4a 0%,#0e1a22 55%,#c45c7a 100%)", "Afterglow"],
+      warehouse: ["linear-gradient(180deg,#111 0%,#2a2a2a 40%,#c6e86a 100%)", "Warehouse 04"],
+      cascadia: ["linear-gradient(145deg,#1e3a28 0%,#c4a35a 70%,#f3e6c4 100%)", "Cascadia"],
+      liquid: ["linear-gradient(180deg,#0a0a0a 0%,#f0d33c 45%,#111 100%)", "Liquid Hours"],
+      violet: ["linear-gradient(160deg,#3a1548 0%,#e07a3a 80%)", "Violet Sun"],
+      iron: ["linear-gradient(180deg,#2a120c 0%,#8a3a22 50%,#111 100%)", "Iron Cathedral"],
+      twostep: ["linear-gradient(140deg,#f4c4d4 0%,#9aa7b8 55%,#2a3340 100%)", "2-Step Diary"],
+      fog: ["linear-gradient(180deg,#8a9098 0%,#e8c4d2 100%)", "Fog Choir"],
+      night: ["linear-gradient(160deg,#0b1c33 0%,#367fc7 70%,#b7e4ee 100%)", "Night Drive"],
+      grove: ["linear-gradient(160deg,#14261c 0%,#4a7a52 100%)", "Green Room"],
+    };
+
+    function sleeve(id, sticker) {
+      const [bg, title] = sleeves[id];
+      return `<div>
+        <div class="sleeve" style="background:${bg}">
+          ${sticker ? `<span class="sticker">${sticker}</span>` : ""}
+          <span class="cap">${title}</span>
+        </div>
+        <div class="meta-t">${title}</div>
+        <div class="meta-a">Just landed</div>
+      </div>`;
+    }
+
+    function sleeveOnly(id, sticker) {
+      const [bg, title] = sleeves[id];
+      return `<div class="sleeve" style="background:${bg}">
+        ${sticker ? `<span class="sticker">${sticker}</span>` : ""}
+        <span class="cap">${title}</span>
+      </div>`;
+    }
+
+    const layouts = {
+      a: {
+        name: "A — The Aisle on Explore",
+        specTitle: "A — The Aisle",
+        phone: "Mobile: sticky LCD chips. 3.2 sleeves peek per bay. Chip tap jumps the aisle. Dock never covers the signs.",
+        spec: {
+          job: "Wander the wall the way you walked HMV. Taste ranks which bay you meet first; it does not hide the store.",
+          lives: "Explore. Optional Home teaser uses D.",
+          keep: "Four tabs. Channel Surfing stays the radio dial on Home. Pictograms are bugs, never covers.",
+          watch: "Fourteen equal rails would read as App Store. Uneven leads, hanging signs, collapse empty bays.",
+          vote: "Reply “A” or “A + D”",
+        },
+        dir: "Directory · Just In",
+        title: "Just In",
+        sub: "This week’s crate, by channel. Not a feed.",
+        html: `
+          <div class="hero-drop" style="margin-bottom:16px; grid-column:auto; grid-row:auto;">
+            ${sleeveOnly("night", "THIS WEEK")}
+            <div>
+              <div class="liner">CH-05 · House · End-cap</div>
+              <h3>Night Drive</h3>
+              <div class="bits">124 BPM · 8A · E7 · 8 cuts</div>
+              <p style="margin:8px 0 0;font-size:13px;color:#6B7584;line-height:1.4">The week’s lead sits on the end-cap. Everything else is a bay you can walk.</p>
+            </div>
+          </div>
+          <div class="signs">
+            <span class="sign">CH-04 LOCAL</span>
+            <span class="sign on">CH-05 HOUSE</span>
+            <span class="sign">CH-09 D&B</span>
+            <span class="sign">CH-11 METAL</span>
+            <span class="sign">CH-02 PSYCH</span>
+            <span class="sign">CH-07 UKG</span>
+          </div>
+          <div class="bay-h"><span class="ch">CH-05  HOUSE</span><span class="n">8 arrived</span></div>
+          <div class="row">
+            ${sleeve("night", "JUST IN")}
+            ${sleeve("warehouse")}
+            ${sleeve("twostep")}
+            ${sleeve("afterglow")}
+            ${sleeve("grove")}
+          </div>
+          <div class="bay-h"><span class="ch">CH-11  METAL</span><span class="n">6 arrived</span></div>
+          <div class="row">
+            ${sleeve("iron", "JUST IN")}
+            ${sleeve("fog")}
+            ${sleeve("violet")}
+            ${sleeve("liquid")}
+          </div>
+        `,
+      },
+      b: {
+        name: "B — The Endcap on Explore",
+        specTitle: "B — The Endcap",
+        phone: "Mobile: lead sleeve full width, then a 2-column mosaic of channel end-caps. Tap opens that bay’s crate.",
+        spec: {
+          job: "Hit the front-of-store feature wall. Culture first. Shopping a whole aisle is a second tap.",
+          lives: "Explore default. Worlds stays a mode. Drill-down reuses ExploreFocus as that channel’s arrivals.",
+          keep: "One oversized sleeve as the first cultural image — the V2 artwork mandate.",
+          watch: "Two taps to shop a bay. Magazine, not aisle. Weak if the brief is ‘walk by genre’.",
+          vote: "Reply “B” or “B + D”",
+        },
+        dir: "Directory · Just In",
+        title: "This week",
+        sub: "One drop on the end-cap. Bays as mosaics.",
+        html: `
+          <div class="endcap">
+            <div class="hero-drop">
+              ${sleeveOnly("night", "THIS WEEK")}
+              <div>
+                <div class="liner">End-cap · CH-05 House</div>
+                <h3>Night Drive</h3>
+                <div class="bits">124 BPM · 8A · 8 cuts</div>
+                <p style="margin:8px 0 0;font-size:13px;color:#6B7584">A liner line lives here. Pictograms never do.</p>
+              </div>
+            </div>
+            <div class="mosaic">
+              <div class="grid4">
+                ${sleeveOnly("warehouse")}
+                ${sleeveOnly("afterglow")}
+                ${sleeveOnly("twostep")}
+                ${sleeveOnly("grove")}
+              </div>
+              <div class="ch">CH-05  HOUSE</div>
+            </div>
+            <div class="mosaic">
+              <div class="grid4">
+                ${sleeveOnly("iron")}
+                ${sleeveOnly("fog")}
+                ${sleeveOnly("violet")}
+                ${sleeveOnly("liquid")}
+              </div>
+              <div class="ch">CH-11  METAL</div>
+            </div>
+          </div>
+          <div class="endcap" style="grid-template-columns: 1fr 1fr 1fr 1fr; grid-template-rows: none;">
+            <div class="mosaic"><div class="grid4">${sleeveOnly("cascadia")}${sleeveOnly("grove")}${sleeveOnly("fog")}${sleeveOnly("night")}</div><div class="ch">CH-04  LOCAL</div></div>
+            <div class="mosaic"><div class="grid4">${sleeveOnly("liquid")}${sleeveOnly("warehouse")}${sleeveOnly("afterglow")}${sleeveOnly("twostep")}</div><div class="ch">CH-09  D&B</div></div>
+            <div class="mosaic"><div class="grid4">${sleeveOnly("violet")}${sleeveOnly("fog")}${sleeveOnly("night")}${sleeveOnly("cascadia")}</div><div class="ch">CH-02  PSYCH</div></div>
+            <div class="mosaic"><div class="grid4">${sleeveOnly("twostep")}${sleeveOnly("afterglow")}${sleeveOnly("grove")}${sleeveOnly("warehouse")}</div><div class="ch">CH-07  UKG</div></div>
+          </div>
+        `,
+      },
+      c: {
+        name: "C — The Bay on Explore",
+        specTitle: "C — The Bay",
+        phone: "Mobile: horizontal hanging signs + 2-column jewel grid. Default channel = first onboarding taste, else Local.",
+        spec: {
+          job: "Stand in one HMV section with a basket. Best when you already know the lane.",
+          lives: "Explore. Only if Arrivals replaces Sleeves — do not add a fifth mode tab.",
+          keep: "Signs are steel plates with CH-xx firmware. Selected sign is an LCD well, never a pill.",
+          watch: "Closest to Apple Music Browse. Loses the wander. Weak as a first-session shop.",
+          vote: "Reply “C” or “C + D”",
+        },
+        dir: "Directory · Just In",
+        title: "House",
+        sub: "8 arrived this week · Play this bay",
+        html: `
+          <div class="wall">
+            <div class="vsigns">
+              <span class="sign">CH-04 LOCAL</span>
+              <span class="sign on">CH-05 HOUSE</span>
+              <span class="sign">CH-09 D&B</span>
+              <span class="sign">CH-11 METAL</span>
+              <span class="sign">CH-02 PSYCH</span>
+              <span class="sign">CH-07 UKG</span>
+              <span class="sign">CH-01 Y2K</span>
+              <span class="sign">CH-14 AMBIENT</span>
+            </div>
+            <div class="jewel">
+              ${sleeve("night", "JUST IN")}
+              ${sleeve("warehouse")}
+              ${sleeve("twostep")}
+              ${sleeve("afterglow")}
+              ${sleeve("grove")}
+              ${sleeve("liquid")}
+              ${sleeve("fog")}
+              ${sleeve("cascadia")}
+              ${sleeve("violet")}
+              ${sleeve("iron")}
+            </div>
+          </div>
+        `,
+      },
+      d: {
+        name: "D — The Crate Drop on Home",
+        specTitle: "D — The Crate Drop",
+        phone: "Mobile: one crate at a time, snap to the next channel. Page dots + CH ident. Never fourteen rails on Home.",
+        spec: {
+          job: "Friday crate drop. Planet-native object we already shipped. Smallest honest v1.",
+          lives: "Home, after a complete Channel Surfing row. Taste-rank three channels max. Walk the floor → Explore.",
+          keep: "Existing CrateSpread. No new component language.",
+          watch: "Not the HMV wall. Use as the Home teaser unless you explicitly want a smaller v1 only.",
+          vote: "Reply “D” or “A + D”",
+        },
+        dir: "On air · Just in",
+        title: "Just in",
+        sub: "From the stations you tuned. Walk the floor for the rest.",
+        html: `
+          <div class="bay-h"><span class="ch">CH-05  HOUSE</span><span class="n">Walk the floor →</span></div>
+          <div class="crate">
+            <div class="big">${sleeve("night", "01")}</div>
+            ${sleeve("warehouse", "02")}
+            ${sleeve("twostep", "03")}
+            ${sleeve("afterglow", "04")}
+            ${sleeve("grove", "05")}
+          </div>
+          <div class="bay-h"><span class="ch">CH-11  METAL</span><span class="n">6 arrived</span></div>
+          <div class="crate">
+            <div class="big">${sleeve("iron", "01")}</div>
+            ${sleeve("fog", "02")}
+            ${sleeve("violet", "03")}
+            ${sleeve("liquid", "04")}
+            ${sleeve("cascadia", "05")}
+          </div>
+        `,
+      },
+    };
+
+    const canvas = document.getElementById("canvas");
+    const spec = document.getElementById("spec");
+    const picks = document.querySelectorAll(".pick");
+
+    function render(id) {
+      const L = layouts[id];
+      canvas.innerHTML = L.html;
+      document.getElementById("stage-name").textContent = L.name;
+      document.getElementById("dir").textContent = L.dir;
+      document.getElementById("htitle").textContent = L.title;
+      document.getElementById("hsub").textContent = L.sub;
+      document.getElementById("phone-note").textContent = L.phone;
+      spec.innerHTML = `
+        <h3>${L.specTitle}</h3>
+        <dl>
+          <dt>Job</dt><dd>${L.spec.job}</dd>
+          <dt>Lives on</dt><dd>${L.spec.lives}</dd>
+          <dt>Keep</dt><dd>${L.spec.keep}</dd>
+          <dt>Watch</dt><dd>${L.spec.watch}</dd>
+        </dl>
+        <button class="vote" type="button">${L.spec.vote}</button>
+      `;
+      picks.forEach((p) => p.setAttribute("aria-pressed", p.dataset.id === id ? "true" : "false"));
+      const onHome = id === "d";
+      document.getElementById("nav-home").classList.toggle("on", onHome);
+      document.getElementById("nav-explore").classList.toggle("on", !onHome);
+      document.getElementById("find").style.display = onHome ? "none" : "flex";
+    }
+
+    function apply(id, push) {
+      const next = layouts[id] ? id : "a";
+      render(next);
+      if (push) history.replaceState(null, "", "#" + next);
+    }
+    picks.forEach((p) => p.addEventListener("click", () => apply(p.dataset.id, true)));
+    window.addEventListener("hashchange", () => apply(location.hash.slice(1), false));
+    apply(location.hash.slice(1) || "a", false);
+  </script>
+</body>
+</html>
