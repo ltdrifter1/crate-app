@@ -3,7 +3,6 @@
  * Exercises left source list (Charts + Build a set), Library, and Home Channel Surfing.
  */
 import { useEffect, useState } from "react";
-import BottomNavigation from "../components/home/BottomNavigation";
 import HomeHeader from "../components/home/HomeHeader";
 import HeroPlayerCard from "../components/home/HeroPlayerCard";
 import ChannelSurfingSection from "../components/home/ChannelSurfingSection";
@@ -11,7 +10,6 @@ import CrateSpread from "../components/home/CrateSpread";
 import AppSidebar from "../components/layout/AppSidebar";
 import MobileNavDrawer from "../components/layout/MobileNavDrawer";
 import FavoritesScreen from "../screens/FavoritesScreen";
-import { primaryNavItems } from "../lib/nav";
 import { SCENE_CHANNELS } from "../lib/sceneChannels";
 import { brandStoragePrefix } from "../brand/identity";
 import ChartsScreen from "../components/station/ChartsScreen";
@@ -20,6 +18,10 @@ import { makeSetPreviewCatalog } from "./SetPreview";
 import { color, homeSpace } from "../theme";
 import { previewSleeve } from "./sleeves";
 import { TonightDeck } from "../components/station/ShowGuide";
+import GlassDock from "../components/player/GlassDock";
+import { playerPlaybackStore } from "../lib/playerPlaybackStore";
+import { playerTransportStore } from "../lib/playerTransportStore";
+import { contentPadBottom } from "../components/layout/AppChrome";
 
 const SAMPLE_COVER = previewSleeve("night-drive", "Night Drive");
 
@@ -185,6 +187,12 @@ export default function BroadcastPreview() {
   );
 
   useEffect(() => {
+    playerPlaybackStore.setDuration(214);
+    playerPlaybackStore.setProgress(48);
+    playerTransportStore.sync({ isPlaying: true, track: SAMPLE_TRACK });
+  }, []);
+
+  useEffect(() => {
     const y = new Date();
     y.setUTCDate(y.getUTCDate() - 1);
     const yKey = y.toISOString().slice(0, 10);
@@ -236,6 +244,7 @@ export default function BroadcastPreview() {
       <TonightDeck
         airing={SAMPLE_AIRING}
         guide={SAMPLE_GUIDE}
+        showNowPlaying={false}
         onTuneIn={() => {}}
         onSelectShow={() => {}}
       />
@@ -270,7 +279,7 @@ export default function BroadcastPreview() {
           user={{ name: "Luke" }}
         />
       </div>
-      <div style={{ flex: 1, minWidth: 0, position: "relative", overflow: "auto", paddingBottom: 120 }}>
+      <div style={{ flex: 1, minWidth: 0, position: "relative", overflow: "auto", paddingBottom: contentPadBottom(true) }}>
         {screen === "favorites" ? (
           <FavoritesScreen
             tracks={SAMPLE_TRACKS}
@@ -297,23 +306,21 @@ export default function BroadcastPreview() {
         )}
       </div>
       {isDesktop ? null : (
-      <div
-        style={{
-          position: "fixed",
-          left: 16,
-          right: 16,
-          bottom: 16,
-          zIndex: 20,
-          maxWidth: 560,
-          margin: "0 auto",
-        }}
-      >
-        <BottomNavigation
-          items={primaryNavItems()}
-          activeId={screen === "favorites" ? "favorites" : "home"}
-          onSelect={setScreen}
+        <GlassDock
+          screen={screen === "favorites" ? "favorites" : "home"}
+          setScreen={setScreen}
+          track={SAMPLE_TRACK}
+          onTogglePlay={() => {
+            playerTransportStore.setPlaying(!playerTransportStore.getState().isPlaying);
+          }}
+          onSkip={() => {}}
+          onPrev={() => {}}
+          onLike={() => {}}
+          onSeek={(n) => playerPlaybackStore.setProgress(n)}
+          isRadioMode
+          onOpen={() => {}}
+          hidePlayer={false}
         />
-      </div>
       )}
       <MobileNavDrawer
         open={drawer}

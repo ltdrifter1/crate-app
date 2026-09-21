@@ -718,6 +718,27 @@ export function TonightDeck({
 
   if (!hasNow && !hasGuide) return null;
 
+  if (!hasNow && hasGuide) {
+    return (
+      <section
+        aria-label="Today"
+        className="pmp-today-band"
+        style={{
+          marginTop: first ? homeSpace.sectionGapFirst : homeSpace.sectionGap,
+          animation: `rise 0.5s ${motion.ease} 0.05s both`,
+          position: "relative",
+        }}
+      >
+        <ShowGuideRail
+          guide={guide}
+          activeShowId={activeShowId}
+          onSelectShow={onSelectShow}
+          flush
+        />
+      </section>
+    );
+  }
+
   return (
     <section
       aria-label="On tonight"

@@ -584,14 +584,15 @@ export function glassPill(opts = {}) {
 
 /** Floating dock — frosted mini-device + tabs. */
 export const dock = {
-  insetX: 14,
-  insetBottom: 12,
+  insetX: 12,
+  insetBottom: 8,
   radius: 16,
   tabH: 54,
-  playerH: 112,
+  /** Compact Apple Music–style bar (cover + title + play). */
+  playerH: 56,
   /** Content clearances (tabs only / with player), excluding safe-area. */
-  clearTabs: 88,
-  clearPlayer: 228,
+  clearTabs: 80,
+  clearPlayer: 148,
 };
 
 /** Prefer radio.radius for media modules; keep these for sheets / legacy chrome. */

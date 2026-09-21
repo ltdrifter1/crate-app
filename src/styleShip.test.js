@@ -68,6 +68,8 @@ test("player surfaces use a half-width Pace slot, not energy paddles", () => {
   expect(css).toMatch(/\.pmp-deck-plate/);
   expect(css).toMatch(/\.pmp-seek__well/);
   expect(css).toMatch(/max-width:\s*50%/);
+  expect(css).toMatch(/\.pmp-mini-player/);
+  expect(css).toMatch(/\.pmp-mini-progress/);
 });
 
 test("Pace slider is Slow / Fast glass with DistroKid gradient", () => {
