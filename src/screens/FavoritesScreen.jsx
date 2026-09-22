@@ -12,6 +12,7 @@ import { useCurrentTrack } from "../usePlayerTransport";
 import { savedTracks } from "../lib/homeCollections";
 import { isCommunityPlaylist } from "../lib/mixes";
 import { catalogSleeveUrl } from "../lib/catalogSleeve";
+import { collectionStats } from "../lib/collectionStats";
 import {
   BTN_PRIMARY,
   BTN_SECONDARY,
@@ -25,9 +26,130 @@ import {
   hardware,
   homeSpace,
   motion,
+  neons,
+  radio as radioStyle,
   radius,
+  trim,
   type,
 } from "../theme";
+
+/** Y2K stat tile — shows one crate metric with a neon accent. */
+function CrateStat({ value, label, accent = neons.cyan }) {
+  return (
+    <div
+      style={{
+        flex: 1,
+        minWidth: 0,
+        padding: "10px 12px",
+        borderRadius: 8,
+        background: radioStyle.lcdFace,
+        border: `1px solid ${accent}44`,
+        boxShadow: `0 0 12px ${accent}18, inset 0 1px 0 rgba(216,223,232,0.08)`,
+        textAlign: "center",
+      }}
+    >
+      <div
+        style={{
+          fontFamily: fontMono,
+          fontSize: 22,
+          fontWeight: 700,
+          letterSpacing: -0.5,
+          color: neons.phosphor,
+          lineHeight: 1.1,
+        }}
+      >
+        {value}
+      </div>
+      <div
+        style={{
+          marginTop: 3,
+          fontFamily: fontMono,
+          fontSize: 9,
+          fontWeight: 700,
+          letterSpacing: 0.18,
+          textTransform: "uppercase",
+          color: "#5AA8B8",
+        }}
+      >
+        {label}
+      </div>
+    </div>
+  );
+}
+
+/** Record-shop style crate header — shown at top of Library tab. */
+function CrateHero({ saved = [], playlists = [] }) {
+  const stats = useMemo(() => collectionStats(saved), [saved]);
+  const playlistCount = playlists.filter((pl) => !isCommunityPlaylist(pl)).length;
+
+  if (saved.length === 0 && playlistCount === 0) return null;
+
+  return (
+    <div
+      style={{
+        margin: `0 ${homeSpace.gutter}px 18px`,
+        padding: "16px 14px 14px",
+        borderRadius: 12,
+        background: radioStyle.moduleFace,
+        border: "1px solid rgba(91,101,116,0.18)",
+        boxShadow: "inset 0 1px 0 rgba(216,223,232,0.42), 0 8px 24px rgba(58,66,80,0.14)",
+      }}
+    >
+      {/* Header row */}
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: 8,
+          marginBottom: 12,
+        }}
+      >
+        <span
+          style={{
+            width: 6,
+            height: 6,
+            borderRadius: "50%",
+            background: neons.cyan,
+            boxShadow: `0 0 6px ${neons.cyan}`,
+            flexShrink: 0,
+            animation: "pmpLcdPip 2s ease-in-out infinite",
+          }}
+        />
+        <span
+          style={{
+            fontFamily: fontMono,
+            fontSize: 10,
+            fontWeight: 700,
+            letterSpacing: 0.18,
+            textTransform: "uppercase",
+            color: "#5AA8B8",
+          }}
+        >
+          Your Crate
+        </span>
+      </div>
+
+      {/* Stats row */}
+      <div style={{ display: "flex", gap: 6 }}>
+        {stats.albums > 0 && (
+          <CrateStat value={stats.albums} label="Albums" accent={neons.cyan} />
+        )}
+        {stats.eps > 0 && (
+          <CrateStat value={stats.eps} label="EPs" accent={neons.violet} />
+        )}
+        {stats.singles > 0 && (
+          <CrateStat value={stats.singles} label="Singles" accent={neons.lime} />
+        )}
+        {playlistCount > 0 && (
+          <CrateStat value={playlistCount} label="Stacks" accent={neons.orange} />
+        )}
+        {saved.length > 0 && (
+          <CrateStat value={saved.length} label="Tracks" accent={neons.phosphor} />
+        )}
+      </div>
+    </div>
+  );
+}
 
 function CoverMosaic({ covers = [], title = "", size = homeSpace.tile }) {
   const tiles = covers.filter((c) => catalogSleeveUrl(c?.albumCover)).slice(0, 4);
@@ -821,6 +943,8 @@ function FavoritesScreen({
               <Icon name="plus" size={16} />
             </button>
           </div>
+
+          <CrateHero saved={saved} playlists={userPlaylists} />
 
           {showLibraryDestinations && (onOpenCharts || onCustomMix) && (
             <div aria-label="Library destinations" style={{ marginBottom: 8 }}>

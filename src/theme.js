@@ -139,6 +139,26 @@ export const trim = {
 };
 
 /**
+ * Y2K neon signal palette — used sparingly as accent/glow on dark surfaces.
+ * Never fill backgrounds with these; use as border, glow, or pip only.
+ */
+export const neons = {
+  cyan:    "#5AA8B8",
+  cyanGlow: "rgba(90,196,214,0.35)",
+  violet:  "#C87ADB",
+  violetGlow: "rgba(200,122,219,0.30)",
+  lime:    "#6DBF87",
+  limeGlow: "rgba(109,191,135,0.28)",
+  red:     "#E0314A",
+  redGlow: "rgba(224,49,74,0.32)",
+  orange:  "#E05830",
+  orangeGlow: "rgba(224,88,48,0.28)",
+  /** LCD phosphor — ice-cyan text on dark well */
+  phosphor: "#B7E4EE",
+  phosphorGlow: "rgba(183,228,238,0.45)",
+};
+
+/**
  * Steel face with an ice-phosphor stroke (2px default).
  * Use on primary buttons, playing transport, identity pills.
  */

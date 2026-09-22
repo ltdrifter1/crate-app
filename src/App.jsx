@@ -118,7 +118,7 @@ import {
   ToastEl,
 } from "./components/layout/AppChrome";
 
-const LoginScreen = lazy(() => import("./components/auth/LoginScreen"));
+const LoginScreen = lazy(() => import("./components/auth/LandingScreen"));
 const ClubScreen = lazy(() => import("./components/club/ClubScreen"));
 const LazyMixScreen = lazy(() => import("./components/club/MixScreen"));
 const LazyPaywallScreen = lazy(() => import("./components/billing/PaywallScreen"));
