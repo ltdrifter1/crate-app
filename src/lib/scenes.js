@@ -5,7 +5,7 @@
  * Scenes restore UK Garage, Techno, Ambient, Jungle, etc. for discovery UX.
  */
 
-import { normalizeGenre } from "./genres";
+import { normalizeGenre, displayGenre } from "./genres";
 
 /** Family groupings for editorial browsing (not storage). */
 export const SCENE_FAMILIES = [
@@ -941,7 +941,16 @@ export function sceneLineagePath(seedSceneId, depth = 4) {
   };
 }
 
+/**
+ * What to print under a track. A specific culture label the track already
+ * carries ("Punk", "UK Garage", "Shoegaze") outranks scene inference — the
+ * inferrer collapses some of them into a broad lane, which made artist pages
+ * read "Ashcan · Rock" under a header saying "Ashcan · PUNK". Inference fills
+ * gaps; it does not overrule data.
+ */
 export function displaySceneLabel(track) {
   if (track?._scene?.label) return track._scene.label;
-  return inferScene(track)?.label || normalizeGenre(track?.genre) || "";
+  const raw = String(track?.genre || "").trim();
+  if (raw && !CANONICAL_SET_LOCAL.has(raw.toLowerCase())) return displayGenre(raw);
+  return inferScene(track)?.label || displayGenre(raw) || "";
 }

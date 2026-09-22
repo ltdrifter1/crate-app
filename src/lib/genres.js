@@ -224,6 +224,23 @@ export function normalizeGenre(raw) {
 }
 
 /** Map a list of preferred genres (possibly legacy) onto the current 11. */
+/**
+ * The label a listener should read. Tracks store a specific culture label
+ * ("Punk", "UK Garage", "Shoegaze"); `normalizeGenre` collapses those into the
+ * 11 filtering lanes. Printing the lane made artist pages contradict their own
+ * header — "Ashcan · PUNK" over rows reading "Ashcan · Rock". Show the specific
+ * label, and fall back to the lane only when a track has nothing of its own.
+ */
+export function displayGenre(raw) {
+  if (raw == null) return "";
+  const trimmed = String(raw).trim().replace(/\s+/g, " ");
+  if (!trimmed) return "";
+  const lower = trimmed.toLowerCase();
+  const canonical = CANONICAL_GENRES.find((g) => g.toLowerCase() === lower);
+  if (canonical) return canonical;
+  return trimmed.replace(/\b[a-z]/g, (c) => c.toUpperCase());
+}
+
 export function migratePreferredGenres(genres = []) {
   const out = [];
   const seen = new Set();

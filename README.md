@@ -8,7 +8,7 @@ Living destinations for discovering, collecting, and experiencing music — not 
 
 **Current product IA:** broadcast **Home** (Channel Surfing, live stage, charts) + Explore / Library / Club. Rooms/Paths nav is retired; see archival notes in [`docs/ROOMS_PRODUCT_VISION.md`](docs/ROOMS_PRODUCT_VISION.md).
 
-**Creative audit (current chassis):** [`docs/CREATIVE_AUDIT_PS1_GLASS.md`](docs/CREATIVE_AUDIT_PS1_GLASS.md) · **UX audit:** [`docs/UX_AUDIT.md`](docs/UX_AUDIT.md) · **Billing:** [`docs/STRIPE_FIREBASE_BILLING.md`](docs/STRIPE_FIREBASE_BILLING.md) · **Catalog junk (dry-run):** [`docs/CATALOG_JUNK_AUDIT.md`](docs/CATALOG_JUNK_AUDIT.md)
+**Creative audit (Sep 2026):** [`docs/CREATIVE_AUDIT_2026-09.md`](docs/CREATIVE_AUDIT_2026-09.md) · **Mobile UX:** [`docs/MOBILE_UX_AUDIT.md`](docs/MOBILE_UX_AUDIT.md) · **Billing:** [`docs/STRIPE_FIREBASE_BILLING.md`](docs/STRIPE_FIREBASE_BILLING.md) · **Catalog junk (dry-run):** [`docs/CATALOG_JUNK_AUDIT.md`](docs/CATALOG_JUNK_AUDIT.md)
 
 ## Stack
 

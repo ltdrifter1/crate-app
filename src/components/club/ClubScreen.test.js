@@ -83,7 +83,10 @@ describe("ClubScreen feature guide", () => {
       );
     });
     expect(div.querySelector("[data-testid='feature-guide-panel']")).toBeTruthy();
-    expect(div.textContent).toMatch(/Pace \+ dislike/);
+    // The guide is the same short map as the first-login tour: Home, Explore,
+    // Library. `featureGuide.test.js` pins that Pace is deliberately not in it.
+    expect(div.textContent).toMatch(/Channel Surfing/);
+    expect(div.textContent).toMatch(/Your library/);
     const tab = [...div.querySelectorAll('[role="tab"]')].find((b) => b.textContent === "Guide");
     expect(tab.getAttribute("aria-selected")).toBe("true");
   });

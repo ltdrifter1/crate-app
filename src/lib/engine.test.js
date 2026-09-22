@@ -114,13 +114,17 @@ describe("pickNextTrack", () => {
     const drag = mkTrack({ id: "drag", bpm: 104, energy: 3, camelot: "3B", genre: "Jazz" });
     const lib = [cur, lift, drag];
     const shift = { active: true, direction: 1, bpmDelta: 10, energyDelta: 1.5, camelotDelta: 2 };
+    // pickNextTrack is weighted-random: lift wins ~57% of draws. Eighty samples
+    // against a bare majority flaked roughly one run in eight, so sample enough
+    // that the assertion tests the weighting rather than the coin.
+    const N = 4000;
     const counts = { lift: 0, drag: 0 };
-    for (let i = 0; i < 80; i++) {
+    for (let i = 0; i < N; i++) {
       const next = pickNextTrack(lib, cur, null, { energyShift: shift });
       counts[next.id] += 1;
     }
     expect(counts.lift).toBeGreaterThan(counts.drag);
-    expect(counts.lift).toBeGreaterThan(40);
+    expect(counts.lift / N).toBeGreaterThan(0.53);
   });
 
   test("seedTrack pocket mode stays near seed energy", () => {

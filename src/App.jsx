@@ -180,6 +180,10 @@ const DevGuidePreview =
   process.env.NODE_ENV !== "production"
     ? lazy(() => import("./preview/GuidePreview"))
     : null;
+const DevSitePreview =
+  process.env.NODE_ENV !== "production"
+    ? lazy(() => import("./preview/SitePreview"))
+    : null;
 
 const injectStyles = () => {
   let s = document.getElementById("rooms-app-global-styles");
@@ -3105,6 +3109,17 @@ export default function App() {
     return (
       <Suspense fallback={<div style={{ minHeight: "100dvh", background: color.canvas }} />}>
         <DevChatPreview />
+      </Suspense>
+    );
+  }
+  if (
+    DevSitePreview &&
+    typeof window !== "undefined" &&
+    window.location.hash === "#site-preview"
+  ) {
+    return (
+      <Suspense fallback={<div style={{ minHeight: "100dvh", background: color.canvas }} />}>
+        <DevSitePreview />
       </Suspense>
     );
   }

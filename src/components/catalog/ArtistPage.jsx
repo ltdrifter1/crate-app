@@ -15,6 +15,52 @@ import { TrackMoreButton, TrackRow, useTrackMenu, TrackActionsMenu } from "../li
 import CoverImage from "../ui/CoverImage";
 import Icon from "../ui/Icon";
 import { useIsPlaying } from "../../usePlayerTransport";
+import { SCENE_CHANNELS } from "../../lib/sceneChannels";
+import { displayGenre } from "../../lib/genres";
+import { radio, neons } from "../../theme";
+
+/** The dial channel this artist sits on — same classifier the stations use. */
+function channelForArtist(artist) {
+  const tracks = artist?.tracks || [];
+  const tally = new Map();
+  for (const t of tracks) {
+    const hit = SCENE_CHANNELS.find((c) => typeof c.match === "function" && c.match(t));
+    if (hit) tally.set(hit.id, (tally.get(hit.id) || 0) + 1);
+  }
+  const topId = [...tally.entries()].sort((a, b) => b[1] - a[1])[0]?.[0];
+  return SCENE_CHANNELS.find((c) => c.id === topId) || null;
+}
+
+/**
+ * Liner notes for an artist, read off the catalog — never written for them.
+ * Years, tempo, keys and play counts are facts the crate already holds; a
+ * fabricated biography is not.
+ */
+function artistFile(artist) {
+  const tracks = artist?.tracks || [];
+  const years = tracks
+    .map((t) => parseInt(String(t.year || t.releaseYear || t.releaseDate || "").slice(0, 4), 10))
+    .filter((y) => y >= 1900 && y <= 2100)
+    .sort((a, b) => a - b);
+  const bpms = tracks.map((t) => Number(t.bpm)).filter((b) => b > 0).sort((a, b) => a - b);
+  const keys = [...new Set(tracks.map((t) => t.camelot).filter(Boolean))];
+  const rows = [];
+
+  if (years.length) {
+    const lo = years[0];
+    const hi = years[years.length - 1];
+    rows.push(["Years", lo === hi ? String(lo) : `${lo}–${hi}`]);
+  }
+  if (bpms.length) {
+    const lo = bpms[0];
+    const hi = bpms[bpms.length - 1];
+    rows.push(["Tempo", lo === hi ? `${lo} BPM` : `${lo}–${hi} BPM`]);
+  }
+  if (keys.length) rows.push(["Keys", keys.slice(0, 4).join(" · ")]);
+  if (artist?.totalPlays > 0) rows.push(["Spins", String(artist.totalPlays)]);
+  if (artist?.liked > 0) rows.push(["In crates", `${artist.liked} liked`]);
+  return rows;
+}
 
 /** Artist destination — name, albums, tracks. No generated copy. */
 export default function ArtistPage({
@@ -39,16 +85,126 @@ export default function ArtistPage({
 
   const cover = artist.coverTrack;
   const n = artist.count || 0;
+  const channel = channelForArtist(artist);
+  const ink = channel?.accent || null;
+  const file = artistFile(artist);
+  const scene = channel?.title || displayGenre(artist.topGenre);
 
   return (
     <div style={{ minHeight: "100%", maxWidth: 640, margin: "0 auto", width: "100%", animation: "fadeIn 0.28s ease both", fontFamily: font }}>
       <EntityHero
         onBack={onBack}
         title={artist.name}
-        meta={`${n} track${n === 1 ? "" : "s"}${artist.topGenre ? ` · ${artist.topGenre}` : ""}`}
+        meta={`${n} track${n === 1 ? "" : "s"}${scene ? ` · ${scene}` : ""}`}
         coverUrl={cover?.albumCover}
         onPlay={() => cover && onPlay(cover, artist.tracks)}
       />
+
+      {/* Liner notes — printed off the crate, not written for the artist. */}
+      {(file.length > 0 || channel) && (
+        <section style={{ padding: "16px 20px 0" }}>
+          <div
+            style={{
+              position: "relative",
+              overflow: "hidden",
+              borderRadius: radio.radiusLcd,
+              background: radio.lcdFace,
+              border: radio.lcdBorder,
+              boxShadow: radio.lcdShadow,
+              padding: "14px 16px 14px 18px",
+            }}
+          >
+            <span
+              aria-hidden="true"
+              style={{
+                position: "absolute",
+                left: 0,
+                top: 0,
+                bottom: 0,
+                width: 4,
+                background: ink || "rgba(183,228,238,0.3)",
+              }}
+            />
+            <div
+              style={{
+                display: "flex",
+                alignItems: "baseline",
+                justifyContent: "space-between",
+                gap: 12,
+                marginBottom: file.length ? 10 : 0,
+              }}
+            >
+              <span
+                style={{
+                  fontFamily: fontMono,
+                  fontSize: 10,
+                  fontWeight: 700,
+                  letterSpacing: 0.2,
+                  textTransform: "uppercase",
+                  color: neons.phosphor,
+                }}
+              >
+                On file
+              </span>
+              {channel && (
+                <span
+                  style={{
+                    fontFamily: fontMono,
+                    fontSize: 10,
+                    fontWeight: 700,
+                    letterSpacing: 0.16,
+                    textTransform: "uppercase",
+                    color: ink,
+                  }}
+                >
+                  {`CH-${String(channel.num).padStart(2, "0")} ${channel.title}`}
+                </span>
+              )}
+            </div>
+
+            {file.length > 0 && (
+              <dl
+                style={{
+                  margin: 0,
+                  display: "grid",
+                  gridTemplateColumns: "auto 1fr",
+                  columnGap: 14,
+                  rowGap: 5,
+                }}
+              >
+                {file.map(([label, value]) => (
+                  <div key={label} style={{ display: "contents" }}>
+                    <dt
+                      style={{
+                        fontFamily: fontMono,
+                        fontSize: 10,
+                        fontWeight: 700,
+                        letterSpacing: 0.16,
+                        textTransform: "uppercase",
+                        color: color.lcdMute,
+                      }}
+                    >
+                      {label}
+                    </dt>
+                    <dd
+                      style={{
+                        margin: 0,
+                        fontFamily: fontMono,
+                        fontSize: 11,
+                        fontWeight: 600,
+                        letterSpacing: 0.06,
+                        color: color.lcdInk,
+                      }}
+                    >
+                      {value}
+                    </dd>
+                  </div>
+                ))}
+              </dl>
+            )}
+          </div>
+        </section>
+      )}
 
       {artist.albums?.length > 0 && (
         <section style={{ padding: "24px 20px 8px" }}>

@@ -78,7 +78,7 @@ function CrateStat({ value, label, accent = neons.cyan }) {
 }
 
 /** Record-shop style crate header — shown at top of Library tab. */
-function CrateHero({ saved = [], playlists = [] }) {
+function CrateHero({ saved = [], playlists = [], likedCount = 0 }) {
   const stats = useMemo(() => collectionStats(saved), [saved]);
   const playlistCount = playlists.filter((pl) => !isCommunityPlaylist(pl)).length;
 
@@ -143,8 +143,8 @@ function CrateHero({ saved = [], playlists = [] }) {
         {playlistCount > 0 && (
           <CrateStat value={playlistCount} label="Stacks" accent={neons.orange} />
         )}
-        {saved.length > 0 && (
-          <CrateStat value={saved.length} label="Tracks" accent={neons.phosphor} />
+        {likedCount > 0 && (
+          <CrateStat value={likedCount} label="Liked" accent={neons.phosphor} />
         )}
       </div>
     </div>
@@ -306,6 +306,8 @@ function FavoritesScreen({
   const currentTrack = useCurrentTrack();
   const activeId = currentTrack?.id;
   const saved = savedTracks(tracks, 80);
+  /** The rendered list is capped; the stat must count the whole crate. */
+  const likedCount = tracks.filter((t) => t.liked && (t.duration || 0) <= 900).length;
   const [libTab, setLibTab] = useState("playlists"); // playlists | liked
   const [libQuery, setLibQuery] = useState("");
   const [plSort, setPlSort] = useState("recent"); // recent | name | size
@@ -944,7 +946,7 @@ function FavoritesScreen({
             </button>
           </div>
 
-          <CrateHero saved={saved} playlists={userPlaylists} />
+          <CrateHero saved={saved} playlists={userPlaylists} likedCount={likedCount} />
 
           {showLibraryDestinations && (onOpenCharts || onCustomMix) && (
             <div aria-label="Library destinations" style={{ marginBottom: 8 }}>

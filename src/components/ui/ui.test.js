@@ -3,7 +3,7 @@ import { createRoot } from "react-dom/client";
 import { act } from "react-dom/test-utils";
 import CoverImage, { coverSizeAttrs } from "./CoverImage";
 import VirtualList from "./VirtualList";
-import Icon, { TimedMixMark } from "./Icon";
+import Icon, { FeatureIcon } from "./Icon";
 
 describe("coverSizeAttrs", () => {
   it("returns square intrinsic dimensions", () => {
@@ -81,10 +81,10 @@ describe("CoverImage loading", () => {
 });
 
 describe("ui modules", () => {
-  it("exports CoverImage, VirtualList, Icon, TimedMixMark", () => {
+  it("exports CoverImage, VirtualList, Icon, FeatureIcon", () => {
     expect(typeof CoverImage).toBe("function");
     expect(typeof VirtualList).toBe("function");
     expect(typeof Icon).toBe("function");
-    expect(typeof TimedMixMark).toBe("function");
+    expect(typeof FeatureIcon).toBe("function");
   });
 });

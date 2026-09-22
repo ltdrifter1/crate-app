@@ -27,6 +27,7 @@ import TimeMachine from "../components/explore/TimeMachine";
 import {
   exploreCatalogStats,
   exploreGenrePlates,
+  exploreModesFor,
   exploreMoodPlates,
   exploreWorlds,
   resolveExploreFocus,
@@ -36,7 +37,8 @@ import { newReleaseAlbums } from "../lib/newReleases";
 const EXPLORE_CSS = `
   .pmp-explore-modes {
     display: grid;
-    grid-template-columns: repeat(5, minmax(0, 1fr));
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(0, 1fr);
     gap: 6px;
     padding: 8px ${"{gutter}"}px 4px;
   }
@@ -236,6 +238,9 @@ function ExploreScreen({
     [tracks, deepReady, mode]
   );
   const arrivals = useMemo(() => newReleaseAlbums(tracks), [tracks]);
+  /** History only earns a tab once the crate carries release years. */
+  const modes = useMemo(() => exploreModesFor(tracks), [tracks]);
+  const activeMode = modes.some((m) => m.id === mode) ? mode : "releases";
   const stats = useMemo(() => exploreCatalogStats(tracks), [tracks]);
 
   const focus = useMemo(
@@ -356,10 +361,10 @@ function ExploreScreen({
       </header>
 
       <FindEntry onOpenSearch={onOpenSearch} />
-      <ExploreModes mode={mode} onChange={setMode} />
-      <ModeHint mode={mode} />
+      <ExploreModes mode={activeMode} modes={modes} onChange={setMode} />
+      <ModeHint mode={activeMode} />
 
-      {mode === "releases" && arrivals.length > 0 && (
+      {activeMode === "releases" && arrivals.length > 0 && (
         <NewReleases
           tracks={tracks}
           onOpenAlbum={onOpenAlbum}
@@ -367,26 +372,26 @@ function ExploreScreen({
         />
       )}
 
-      {mode === "worlds" && (worlds.length > 0 || lanes.length > 0) && (
+      {activeMode === "worlds" && (worlds.length > 0 || lanes.length > 0) && (
         <WorldAtlas families={worlds} lanes={lanes} onOpen={setFocusKey} />
       )}
 
-      {mode === "energy" && rooms.length > 0 && (
+      {activeMode === "energy" && rooms.length > 0 && (
         <EnergyRooms
           rooms={rooms}
           onPlay={(track, pool) => playFocusPool(track, pool)}
         />
       )}
 
-      {mode === "mix" && (
+      {activeMode === "mix" && (
         <MixBoard tracks={tracks} onPlayPool={onPlayTrack} />
       )}
 
-      {mode === "dig" && (
+      {activeMode === "dig" && (
         <CrateDig tracks={tracks} onPlay={onPlayTrack} />
       )}
 
-      {mode === "time-machine" && (
+      {activeMode === "time-machine" && (
         <TimeMachine
           tracks={tracks}
           onPlayTrack={onPlayTrack}
@@ -394,12 +399,12 @@ function ExploreScreen({
         />
       )}
 
-      {mode === "releases" && arrivals.length === 0 && hasBody && (
+      {activeMode === "releases" && arrivals.length === 0 && hasBody && (
         <p style={{ padding: `16px ${homeSpace.gutter}px`, color: color.muted, fontSize: 14 }}>
           New sleeves land here when albums hit the crate.
         </p>
       )}
-      {mode === "energy" && rooms.length === 0 && hasBody && (
+      {activeMode === "energy" && rooms.length === 0 && hasBody && (
         <p style={{ padding: `16px ${homeSpace.gutter}px`, color: color.muted, fontSize: 14 }}>
           The pressure strip fills once cuts carry a pace.
         </p>

@@ -727,24 +727,28 @@ export default function ImmersivePlayer({
               type="button"
               onClick={() => onShowQueue?.()}
               style={{
-                marginTop: 10,
+                marginTop: 12,
+                paddingTop: 10,
+                width: "100%",
+                display: "block",
+                textAlign: "left",
                 background: "none",
                 border: "none",
-                padding: 0,
+                borderTop: "1px solid rgba(183,228,238,0.18)",
                 cursor: onShowQueue ? "pointer" : "default",
                 fontFamily: fontMono,
                 fontSize: 11,
                 fontWeight: 650,
                 letterSpacing: 0.08,
                 textTransform: "uppercase",
-                color: color.muted,
+                color: color.lcdMute,
                 maxWidth: "100%",
                 overflow: "hidden",
                 textOverflow: "ellipsis",
                 whiteSpace: "nowrap",
               }}
             >
-              <span style={{ color: color.accent }}>Up next</span>
+              <span style={{ color: color.lcdSignal }}>Up next</span>
               {" · "}
               {upNextTrack.title}
             </button>

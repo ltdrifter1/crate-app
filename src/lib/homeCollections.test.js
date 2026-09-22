@@ -55,7 +55,14 @@ describe("homeCollections", () => {
   });
 
   test("recommendedTracks uses taste when history exists", () => {
-    const recs = recommendedTracks(tracks, { preferredGenres: ["Jazz"], limit: 3 });
+    // recommendedPicks rotates on a userKey+dayKey seed; pin it so the test
+    // does not quietly depend on what day it runs.
+    const recs = recommendedTracks(tracks, {
+      preferredGenres: ["Jazz"],
+      limit: 3,
+      userKey: "test-user",
+      dayKey: "2026-01-01",
+    });
     expect(recs.length).toBeLessThanOrEqual(3);
     expect(recs.some((t) => t.genre === "Jazz" || t.liked)).toBe(true);
   });

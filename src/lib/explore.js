@@ -228,12 +228,33 @@ export function exploreScenePlates(tracks = [], limit = 8) {
 
 /** Directory tabs — Explore is a crate browser, not a second Home. */
 export const EXPLORE_MODES = [
-  { id: "releases",    label: "New",      hint: "Newest sleeves, by channel" },
-  { id: "worlds",      label: "Worlds",   hint: "Cities and scenes" },
-  { id: "energy",      label: "Energy",   hint: "Rooms by pressure" },
-  { id: "dig",         label: "Dig",      hint: "Random pull from the crate" },
-  { id: "time-machine",label: "History",  hint: "Dig through eras" },
+  { id: "releases",    label: "New Releases", hint: "Newest sleeves, by channel" },
+  { id: "worlds",      label: "Worlds",       hint: "Cities and scenes" },
+  { id: "energy",      label: "Energy",       hint: "Rooms by pressure" },
+  /** Camelot wheel — harmonic mixing. Built and rendered, but it had no tab,
+   *  so the board was unreachable in the shipped app. */
+  { id: "mix",         label: "Keys",         aria: "Mix", hint: "Twelve keys. Neighbors mix" },
+  { id: "dig",         label: "Dig",          hint: "Random pull from the crate" },
+  { id: "time-machine",label: "History",      hint: "Dig through eras" },
 ];
+
+/**
+ * Does the crate carry release years? The History tab reads years off tracks,
+ * so without them it is a door onto an empty room — hide it instead.
+ */
+export function catalogHasEras(tracks = []) {
+  return tracks.some((t) => {
+    const raw = t?.year || t?.releaseYear || t?.releaseDate || "";
+    const y = parseInt(String(raw).slice(0, 4), 10);
+    return y >= 1900 && y <= 2100;
+  });
+}
+
+/** Directory tabs the current crate can actually fill. */
+export function exploreModesFor(tracks = []) {
+  if (catalogHasEras(tracks)) return EXPLORE_MODES;
+  return EXPLORE_MODES.filter((m) => m.id !== "time-machine");
+}
 
 /**
  * Scene atlas grouped by culture family.

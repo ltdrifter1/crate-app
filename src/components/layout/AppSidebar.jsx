@@ -1,4 +1,4 @@
-import { color, fontDisplay, glass, radio, radius } from "../../theme";
+import { color, fontDisplay, fontMono, glass, radio, radius } from "../../theme";
 import { BrandLockup } from "../brand/BrandMark";
 import Icon from "../ui/Icon";
 import {
@@ -6,6 +6,26 @@ import {
   SIDEBAR_TOOLS,
   sidebarActiveId,
 } from "../../lib/nav";
+import { SCENE_CHANNELS } from "../../lib/sceneChannels";
+
+/** Source-list group label — the rack idiom, not a settings menu. */
+function RailLabel({ children }) {
+  return (
+    <div
+      style={{
+        fontFamily: fontMono,
+        fontSize: 9,
+        fontWeight: 700,
+        letterSpacing: 0.22,
+        textTransform: "uppercase",
+        color: color.faint,
+        padding: "0 11px 6px",
+      }}
+    >
+      {children}
+    </div>
+  );
+}
 
 function NavRow({ item, active, onClick }) {
   return (
@@ -122,6 +142,7 @@ export default function AppSidebar({
 
       {!isDrawer && (
         <>
+          <RailLabel>Dial</RailLabel>
           <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
             {SIDEBAR_PRIMARY.map((item) => (
               <NavRow
@@ -143,6 +164,7 @@ export default function AppSidebar({
         </>
       )}
 
+      {!isDrawer && <RailLabel>Tools</RailLabel>}
       <div style={{ display: "flex", flexDirection: "column", gap: 2, flex: 1, minHeight: 0 }}>
         {SIDEBAR_TOOLS.map((item) => (
           <NavRow
@@ -164,6 +186,29 @@ export default function AppSidebar({
               onClose?.();
             }}
           />
+        </div>
+      )}
+
+      {!isDrawer && (
+        <div
+          aria-hidden="true"
+          style={{
+            fontFamily: fontMono,
+            fontSize: 8,
+            fontWeight: 600,
+            letterSpacing: 0.28,
+            textTransform: "uppercase",
+            color: "rgba(61,70,84,0.34)",
+            lineHeight: 1.7,
+            padding: "0 11px 10px",
+            borderTop: "1px solid rgba(91,101,116,0.14)",
+            paddingTop: 10,
+            marginTop: 8,
+          }}
+        >
+          Planet MP3
+          <br />
+          {SCENE_CHANNELS.length} CH · 320 KBPS · STEREO
         </div>
       )}
 

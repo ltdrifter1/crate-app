@@ -29,7 +29,7 @@ export function coverSizeAttrs(size) {
  * @param {number} props.width
  * @param {number} props.height
  * @param {string} [props.sizes]
- * @param {boolean} [props.priority] — eager + fetchPriority=high (LCP)
+ * @param {boolean} [props.priority] — eager + fetchpriority=high (LCP)
  * @param {boolean} [props.eager] — eager load without stealing LCP priority
  * @param {boolean} [props.raw] — skip CDN/transform (channel photos, data URLs)
  * @param {string} [props.objectPosition] — CSS object-position for art crops
@@ -86,7 +86,10 @@ export default function CoverImage({
       height={h}
       sizes={sizes || `${w}px`}
       loading={priority || eager ? "eager" : "lazy"}
-      fetchPriority={priority ? "high" : "auto"}
+      // React 18 only forwards the lowercase DOM attribute; the camelCase prop
+      // logged a warning for every image on every screen and buried real errors.
+      // (React 19 accepts fetchPriority — switch back on upgrade.)
+      fetchpriority={priority ? "high" : "auto"}
       decoding="async"
       draggable={draggable}
       className={className}

@@ -16,19 +16,30 @@ import { BrandLockup } from "../brand/BrandGlyphs";
 import BrandTagline from "../brand/BrandTagline";
 import BetaBadge from "../billing/BetaLaunchNotice";
 import { FeatureIcon } from "../ui/Icon";
+import { SCENE_CHANNELS } from "../../lib/sceneChannels";
 
 // ─── Static discovery data ────────────────────────────────────────────────────
 
-const CHANNELS = [
-  { id: "techno",        label: "Techno",          color: "#2A333C", accent: "#5AA8B8" },
-  { id: "drum-and-bass", label: "Drum & Bass",      color: "#2E2535", accent: "#C87ADB" },
-  { id: "house",         label: "House",            color: "#26312A", accent: "#6DBF87" },
-  { id: "y2k-dance",     label: "Y2K Dance",        color: "#352230", accent: "#E0314A" },
-  { id: "downtempo",     label: "Downtempo",        color: "#1E2830", accent: "#6AA8C8" },
-  { id: "shoegaze",      label: "Shoegaze",         color: "#2A2835", accent: "#9B8FD0" },
-  { id: "punk",          label: "Punk",             color: "#332420", accent: "#E05830" },
-  { id: "metal",         label: "Metal",            color: "#202428", accent: "#A0A8B4" },
+/**
+ * Sleeve plates for the pre-auth rail. Ink comes from the real dial so the
+ * front door and the product agree on what colour a station is.
+ */
+const CHANNEL_PLATES = [
+  { id: "techno",        label: "Techno",      color: "#2A333C" },
+  { id: "drum-and-bass", label: "Drum & Bass", color: "#2E2535" },
+  { id: "house",         label: "House",       color: "#26312A" },
+  { id: "y2k-dance",     label: "Y2K Dance",   color: "#352230" },
+  { id: "downtempo",     label: "Downtempo",   color: "#1E2830" },
+  { id: "shoegaze",      label: "Shoegaze",    color: "#2A2835" },
+  { id: "punk",          label: "Punk",        color: "#332420" },
+  { id: "metal",         label: "Metal",       color: "#202428" },
 ];
+
+const CHANNELS = CHANNEL_PLATES.map((plate) => ({
+  ...plate,
+  accent:
+    SCENE_CHANNELS.find((c) => c.id === plate.id)?.accent || "#5AA8B8",
+}));
 
 const CHART_TEASERS = [
   { rank: 1,  title: "Drexciya",       artist: "Black Sea",          dir: "▲ 2" },
@@ -407,7 +418,7 @@ export default function LandingScreen({
               margin: 0,
             }}
           >
-            Music should feel like something you discover.
+            Open all night.
           </h1>
           <p
             style={{
@@ -418,7 +429,9 @@ export default function LandingScreen({
               fontWeight: 450,
             }}
           >
-            Channels, charts, radio, crates — your world, your music.
+            {CHANNELS.length > 0
+              ? `${SCENE_CHANNELS.length} live channels, a monthly chart, and a crate that's actually yours.`
+              : "Live channels, a monthly chart, and a crate that's actually yours."}
           </p>
         </div>
 
@@ -439,7 +452,7 @@ export default function LandingScreen({
               fontWeight: 700,
             }}
           >
-            Start for free
+            Tune in free
           </button>
           <button
             type="button"

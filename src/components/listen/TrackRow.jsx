@@ -3,7 +3,7 @@ import { createPortal } from "react-dom";
 import Icon from "../ui/Icon";
 import { AlbumArt } from "./AlbumArt";
 import { displaySceneLabel } from "../../lib/scenes";
-import { normalizeGenre } from "../../lib/genres";
+import { displayGenre, normalizeGenre } from "../../lib/genres";
 import {
   artShadow,
   color,
@@ -11,6 +11,7 @@ import {
   fontMono,
   glass,
   motion,
+  radio,
   radius,
   INPUT_ST,
 } from "../../theme";
@@ -323,15 +324,13 @@ export function TrackRow({ track, onPlay, active, isPlaying, onLike, extraAction
           borderRadius: radius.lg,
           cursor: "pointer", marginBottom: 4,
           background: active
-            ? `
-              linear-gradient(165deg, rgba(42,47,55,0.92) 0%, rgba(180,187,198,0.72) 100%)
-            `
+            ? radio.lcdFace
             : `
               linear-gradient(165deg, rgba(216,223,232,0.045) 0%, rgba(180,187,198,0.22) 100%)
             `,
-          border: active ? `1px solid ${glass.border}` : `1px solid ${glass.borderFaint}`,
+          border: active ? radio.lcdBorder : `1px solid ${glass.borderFaint}`,
           boxShadow: active
-            ? `inset 0 1px 0 ${glass.highlight}, inset 2px 0 0 ${color.accent}, ${glass.shadowSoft}`
+            ? `inset 2px 0 0 ${color.lcdSignal}, ${radio.lcdShadow}`
             : `inset 0 1px 0 ${glass.highlight}`,
           backdropFilter: glass.blurSoft,
           WebkitBackdropFilter: glass.blurSoft,
@@ -355,13 +354,13 @@ export function TrackRow({ track, onPlay, active, isPlaying, onLike, extraAction
           <AlbumArt track={track} size={44} borderRadius={radius.sm} />
           {active && isPlaying && (
             <div style={{ position: "absolute", inset: 0, background: "rgba(5,6,8,0.42)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-              <div style={{ width: 6, height: 6, borderRadius: "50%", background: color.accent, animation: "pulse 1.2s ease-in-out infinite" }} />
+              <div style={{ width: 6, height: 6, borderRadius: "50%", background: color.lcdSignal, animation: "pulse 1.2s ease-in-out infinite" }} />
             </div>
           )}
         </div>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontSize: 14, fontWeight: active ? 650 : 500, letterSpacing: -0.1, color: active ? color.accent : color.ink, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{track.title}</div>
-          <div style={{ fontSize: 12, color: color.muted, marginTop: 2 }}>{track.artist}{displaySceneLabel(track) ? ` · ${displaySceneLabel(track)}` : (normalizeGenre(track.genre) ? ` · ${normalizeGenre(track.genre)}` : "")}</div>
+          <div style={{ fontSize: 14, fontWeight: active ? 650 : 500, letterSpacing: -0.1, color: active ? color.lcdInk : color.ink, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{track.title}</div>
+          <div style={{ fontSize: 12, color: active ? color.lcdMute : color.muted, marginTop: 2 }}>{track.artist}{displaySceneLabel(track) ? ` · ${displaySceneLabel(track)}` : (displayGenre(track.genre) ? ` · ${displayGenre(track.genre)}` : "")}</div>
         </div>
         {trackBrowseBits(track).length > 0 && (
           <span
@@ -374,7 +373,7 @@ export function TrackRow({ track, onPlay, active, isPlaying, onLike, extraAction
               fontWeight: 700,
               letterSpacing: 0.04,
               textTransform: "uppercase",
-              color: active ? color.accent : color.faint,
+              color: active ? color.lcdSignal : color.faint,
               textAlign: "right",
               lineHeight: 1.25,
             }}

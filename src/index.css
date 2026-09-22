@@ -592,6 +592,15 @@ body::before { display: none; }
   gap: 10px;
   min-width: 0;
 }
+/* The lead is a square that grows with its column. Stretched, it drove a ~700px
+   row and the #2/#3 cuts inflated to match with two lines of text inside them.
+   Cap the board and let the cuts sit at their own height under the #1. */
+@media (min-width: 720px) {
+  .pmp-chart-podium {
+    max-width: 760px;
+    align-items: start;
+  }
+}
 .pmp-chart-skel {
   border-radius: 6px;
   background:
@@ -618,6 +627,13 @@ body::before { display: none; }
   }
   .pmp-chart-podium__lead {
     grid-column: 1 / -1;
+  }
+  /* The #1 sleeve is square and full-bleed here, so it ate an entire phone
+     screen before the list started. A chart's job is the list — cap the
+     leader's art so the board is legible without scrolling past it. */
+  .pmp-chart-podium__lead > button {
+    aspect-ratio: auto !important;
+    height: min(52vw, 260px) !important;
   }
 }
 @media (prefers-reduced-motion: reduce) {

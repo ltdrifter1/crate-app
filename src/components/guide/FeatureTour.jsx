@@ -8,6 +8,123 @@ import {
   BTN_PRIMARY, motion,
 } from "../../theme";
 import { FEATURE_GUIDE_STEPS } from "../../lib/featureGuide";
+import { SCENE_CHANNELS } from "../../lib/sceneChannels";
+
+/** First four station inks — the tour teaches the dial's colour before you meet it. */
+const TOUR_INKS = SCENE_CHANNELS.slice(0, 4).map((c) => c.accent);
+
+/**
+ * A small picture of the thing each step is describing. Text-only cards left
+ * two thirds of this dialog empty and taught nothing about the interface.
+ */
+function TourPlate({ id }) {
+  const frame = {
+    display: "grid",
+    gap: 8,
+    padding: 14,
+    borderRadius: radio.radiusLcd,
+    background: radio.lcdFace,
+    border: radio.lcdBorder,
+    boxShadow: radio.lcdShadow,
+  };
+
+  if (id === "home") {
+    return (
+      <div aria-hidden="true" style={{ ...frame, gridTemplateColumns: "repeat(4, 1fr)" }}>
+        {TOUR_INKS.map((accent, i) => (
+          <div key={i} style={{ display: "grid", gap: 4 }}>
+            <div
+              style={{
+                position: "relative",
+                aspectRatio: "1 / 1",
+                borderRadius: 4,
+                background: "rgba(216,223,232,0.10)",
+                border: "1px solid rgba(216,223,232,0.14)",
+              }}
+            >
+              <span
+                style={{
+                  position: "absolute",
+                  top: 4,
+                  right: 4,
+                  width: 14,
+                  height: 9,
+                  borderRadius: 2,
+                  background: accent,
+                }}
+              />
+            </div>
+            <div style={{ height: 2, borderRadius: 1, background: accent }} />
+          </div>
+        ))}
+      </div>
+    );
+  }
+
+  if (id === "explore") {
+    const grid = SCENE_CHANNELS.slice(0, 6).map((c) => c.accent);
+    return (
+      <div aria-hidden="true" style={{ ...frame, gridTemplateColumns: "repeat(3, 1fr)" }}>
+        {grid.map((accent, i) => (
+          <div
+            key={i}
+            style={{
+              position: "relative",
+              aspectRatio: "1 / 1",
+              borderRadius: 4,
+              overflow: "hidden",
+              background: `linear-gradient(150deg, ${accent}66 0%, ${accent}22 70%, rgba(216,223,232,0.05) 100%)`,
+              border: "1px solid rgba(216,223,232,0.16)",
+            }}
+          >
+            <span
+              style={{
+                position: "absolute",
+                left: 0,
+                right: 0,
+                bottom: 0,
+                height: 3,
+                background: accent,
+              }}
+            />
+          </div>
+        ))}
+      </div>
+    );
+  }
+
+  // library — a small crate of saved sleeves
+  return (
+    <div aria-hidden="true" style={{ ...frame, gap: 6 }}>
+      {[0, 1, 2].map((i) => (
+        <div
+          key={i}
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 10,
+            padding: 6,
+            borderRadius: 4,
+            background: "rgba(216,223,232,0.06)",
+          }}
+        >
+          <span
+            style={{
+              width: 26,
+              height: 26,
+              borderRadius: 3,
+              flexShrink: 0,
+              background: TOUR_INKS[i],
+              opacity: 0.85,
+            }}
+          />
+          <span style={{ flex: 1, height: 5, borderRadius: 3, background: "rgba(216,223,232,0.22)" }} />
+          <span style={{ width: 22, height: 5, borderRadius: 3, background: "rgba(216,223,232,0.12)" }} />
+        </div>
+      ))}
+    </div>
+  );
+}
 
 export default function FeatureTour({
   steps = FEATURE_GUIDE_STEPS,
@@ -62,7 +179,8 @@ export default function FeatureTour({
           zIndex: 1,
           width: "100%",
           maxWidth: 420,
-          minHeight: "min(680px, calc(100dvh - 32px))",
+          minHeight: "min(520px, calc(100dvh - 32px))",
+          maxHeight: "calc(100dvh - 32px)",
           display: "flex",
           flexDirection: "column",
           padding: "18px 22px 22px",
@@ -121,21 +239,11 @@ export default function FeatureTour({
             display: "flex",
             flexDirection: "column",
             justifyContent: "center",
-            padding: "12px 0 28px",
+            padding: "8px 0 20px",
           }}
         >
-          <div
-            aria-hidden="true"
-            style={{
-              fontSize: 13,
-              fontWeight: 700,
-              letterSpacing: 1.8,
-              fontFamily: fontMono,
-              color: y2k.cyan,
-              marginBottom: 18,
-            }}
-          >
-            {String(index + 1).padStart(2, "0")}
+          <div style={{ marginBottom: 20 }}>
+            <TourPlate id={step.id} />
           </div>
           <div
             style={{
@@ -152,7 +260,7 @@ export default function FeatureTour({
           <h1
             id={headingId}
             style={{
-              fontSize: "clamp(34px, 9vw, 44px)",
+              fontSize: "clamp(30px, 7.5vw, 38px)",
               fontWeight: 720,
               letterSpacing: -1.4,
               lineHeight: 1.02,

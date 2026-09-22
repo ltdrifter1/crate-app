@@ -64,6 +64,8 @@ export default function ChannelCard({
   const title = channel.shortTitle || channel.title;
   const dial = formatChannelNum(channel.num);
   const iceRing = `0 0 0 2px ${color.lcdSignal}, 0 0 18px ${color.lcdSignalGlow}, 0 16px 36px rgba(58,66,80,0.3), inset 0 1px 0 rgba(255,255,255,0.55), inset 0 -3px 8px rgba(58,66,80,0.28)`;
+  /** Station ink — printed divider-card colour. Identity, never state. */
+  const ink = channel.accent || color.accent;
 
   return (
     <button
@@ -151,10 +153,10 @@ export default function ChannelCard({
               height: 20,
               padding: "0 7px",
               borderRadius: 3,
-              background: "rgba(42,51,60,0.82)",
-              border: "1px solid rgba(90,196,214,0.38)",
-              boxShadow: "inset 0 1px 0 rgba(183,228,238,0.22), 0 0 10px rgba(90,196,214,0.22)",
-              color: color.lcdInk,
+              background: ink,
+              border: "1px solid rgba(20,24,30,0.32)",
+              boxShadow: "inset 0 1px 0 rgba(255,255,255,0.30), 0 2px 5px rgba(28,34,42,0.35)",
+              color: "#F4F7FA",
               fontFamily: fontMono,
               fontSize: 10,
               fontWeight: 800,
@@ -220,9 +222,21 @@ export default function ChannelCard({
       </span>
 
       <span
+        aria-hidden="true"
         style={{
           display: "block",
-          marginTop: 8,
+          marginTop: 7,
+          height: 3,
+          borderRadius: 2,
+          background: ink,
+          opacity: active ? 1 : 0.82,
+        }}
+      />
+
+      <span
+        style={{
+          display: "block",
+          marginTop: 6,
           fontFamily: fontDisplay,
           fontSize: 12,
           fontWeight: 800,

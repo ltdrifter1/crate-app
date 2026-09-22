@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { color, fontMono, homeSpace, motion, radio } from "../../theme";
+import { color, fontDisplay, fontMono, homeSpace, motion, neons, radio } from "../../theme";
 import { newReleaseAlbums, newReleaseBays } from "../../lib/newReleases";
 import ReleaseCard from "../home/ReleaseCard";
 
@@ -31,6 +31,33 @@ export default function NewReleases({
 
   return (
     <section aria-label="New Releases" style={{ marginTop: 12 }}>
+      <div style={{ padding: `0 ${homeSpace.gutter}px 12px` }}>
+        <div
+          style={{
+            fontFamily: fontMono,
+            fontSize: 10,
+            fontWeight: 700,
+            letterSpacing: 0.18,
+            textTransform: "uppercase",
+            color: neons.cyan,
+            marginBottom: 3,
+          }}
+        >
+          New Releases
+        </div>
+        <div
+          style={{
+            fontFamily: fontDisplay,
+            fontSize: 18,
+            fontWeight: 700,
+            letterSpacing: -0.35,
+            color: color.ink,
+          }}
+        >
+          Just landed in the crate.
+        </div>
+      </div>
+
       {signs.length > 1 && (
         <div
           className="hide-scroll"
@@ -58,11 +85,13 @@ export default function NewReleases({
                 style={{
                   flex: "0 0 auto",
                   height: 32,
-                  padding: "0 10px",
+                  padding: bay.accent ? "0 10px 0 13px" : "0 10px",
                   borderRadius: radio.radiusLcd,
                   border: selected ? radio.lcdBorder : radio.borderQuiet,
                   background: selected ? radio.lcdFace : radio.moduleFace,
-                  boxShadow: selected ? radio.lcdShadow : "none",
+                  boxShadow: bay.accent
+                    ? `${selected ? radio.lcdShadow + ", " : ""}inset 3px 0 0 ${bay.accent}`
+                    : selected ? radio.lcdShadow : "none",
                   color: selected ? color.lcdSignal : color.body,
                   cursor: "pointer",
                   fontFamily: fontMono,

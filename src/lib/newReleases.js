@@ -98,5 +98,6 @@ export function newReleaseBays(tracks = []) {
     id: channel.id,
     num: channel.num,
     title: channel.shortTitle || channel.title,
+    accent: channel.accent || null,
   }));
 }

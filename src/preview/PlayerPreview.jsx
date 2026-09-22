@@ -28,6 +28,13 @@ const SAMPLE_TRACK = {
   genre: "Electronic",
 };
 
+const SAMPLE_UP_NEXT = {
+  id: "preview-2",
+  title: "After Hours",
+  artist: "Low Light",
+  albumCover: PREVIEW_SLEEVES.down,
+};
+
 function dockTintStyle() {
   return {};
 }
@@ -121,6 +128,9 @@ export default function PlayerPreview() {
           onLike={() => setTrack((t) => ({ ...t, liked: !t.liked, disliked: false }))}
           onDislike={() => setTrack((t) => ({ ...t, disliked: true, liked: false }))}
           isRadioMode
+          upNextTrack={SAMPLE_UP_NEXT}
+          onShowQueue={() => {}}
+          tickerText="Planet Radio — requests open · Local on the dial"
           Icon={Icon}
           PlayKey={PlayKey}
         />

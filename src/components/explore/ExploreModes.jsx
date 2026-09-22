@@ -2,14 +2,14 @@ import { color, fontMono, motion, radio } from "../../theme";
 import { EXPLORE_MODES } from "../../lib/explore";
 
 /** iPod-menu / Winamp ML tabs — one canvas at a time. */
-export default function ExploreModes({ mode, onChange }) {
+export default function ExploreModes({ mode, onChange, modes = EXPLORE_MODES }) {
   return (
     <div
       role="tablist"
       aria-label="Explore directory"
       className="pmp-explore-modes"
     >
-      {EXPLORE_MODES.map((item) => {
+      {modes.map((item) => {
         const selected = mode === item.id;
         return (
           <button
@@ -17,18 +17,18 @@ export default function ExploreModes({ mode, onChange }) {
             type="button"
             role="tab"
             aria-selected={selected}
-            aria-label={item.label}
+            aria-label={item.aria || item.label}
             className="pmp-press"
             onClick={() => onChange?.(item.id)}
             style={{
               flex: "1 1 0",
               minHeight: 40,
               padding: "6px 4px 7px",
-              border: selected ? radio.lcdBorder : radio.borderQuiet,
+              border: selected ? radio.lcdBorder : radio.borderChrome,
               borderRadius: radio.radiusLcd,
-              background: selected ? radio.lcdFace : "transparent",
-              boxShadow: selected ? `${radio.lcdShadow}` : "none",
-              color: selected ? color.lcdSignal : color.muted,
+              background: selected ? radio.lcdFace : radio.moduleFace,
+              boxShadow: selected ? `${radio.lcdShadow}` : radio.stripShadow,
+              color: selected ? color.lcdSignal : color.body,
               cursor: "pointer",
               fontFamily: fontMono,
               fontSize: 10,

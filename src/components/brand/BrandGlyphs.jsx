@@ -49,7 +49,7 @@ function LockupPicture({
         height={Math.max(12, Math.round(Number(size) || 280))}
         draggable={draggable}
         decoding="async"
-        fetchPriority="low"
+        fetchpriority="low"
         style={style}
       />
     </picture>
