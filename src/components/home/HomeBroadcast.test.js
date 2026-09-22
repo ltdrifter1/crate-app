@@ -343,7 +343,7 @@ describe("Home broadcast + four-tab IA", () => {
     expect(div.querySelector("[style*='grid-template-columns']")).toBeNull();
   });
 
-  test("Channel Surfing loads one PS1 plate per station, not a 4-up mosaic", async () => {
+  test("Channel Surfing loads one sleeve per station, not a 4-up mosaic", async () => {
     await act(async () => {
       root.render(
         React.createElement(ChannelSurfingSection, {
@@ -553,12 +553,13 @@ describe("Home broadcast + four-tab IA", () => {
     expect(imgs[3].getAttribute("loading")).toBe("lazy");
   });
 
-  test("station tiles use PS1 plates, not album sleeves", async () => {
+  test("station tiles prefer catalog sleeves and keep a CH LCD bug", async () => {
     await act(async () => {
       root.render(
         React.createElement(ChannelCard, {
           channel: {
             id: "techno",
+            num: 6,
             title: "Techno",
             tagline: "Four-on-the-floor",
           },
@@ -568,13 +569,17 @@ describe("Home broadcast + four-tab IA", () => {
     });
     const img = div.querySelector("img");
     expect(img).toBeTruthy();
-    expect(img.getAttribute("src")).toMatch(/\/channels\/techno\.png/);
+    expect(img.getAttribute("src")).toMatch(/sleeve-a\.jpg/);
+    expect(img.getAttribute("src")).not.toMatch(/\/channels\/techno\.png/);
+    expect(div.textContent).toMatch(/06/);
+    expect(div.querySelector(".pmp-channel-ch-bug")).toBeTruthy();
     expect(div.querySelector("[data-testid='cover-fallback']")).toBeNull();
     await act(async () => {
       root.render(
         React.createElement(ChannelCard, {
           channel: {
             id: "techno",
+            num: 6,
             title: "Techno",
             tagline: "Four-on-the-floor",
           },

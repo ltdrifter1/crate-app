@@ -276,7 +276,7 @@ function HomeScreen({
       style={{
         position: "relative",
         paddingBottom: 24,
-        maxWidth: 960,
+        maxWidth: 1100,
         margin: "0 auto",
         width: "100%",
       }}

@@ -1,7 +1,7 @@
 import { useRef } from "react";
 import Icon from "../ui/Icon";
 import { AlbumArt } from "../listen/AlbumArt";
-import { color, glass, hardware, motion, trim, trimStroke } from "../../theme";
+import { color, glass, hardware, motion } from "../../theme";
 
 // ─── Shared transport primitives (soft modern play + linear-friendly progress) ─
 
@@ -38,9 +38,12 @@ export function PlayKey({
         width: size,
         height: size,
         borderRadius: "50%",
-        ...(disabled
-          ? { background: hardware.keyFace, border: "1px solid rgba(91,101,116,0.22)" }
-          : trimStroke(face, 2)),
+        background: disabled ? hardware.keyFace : face,
+        border: disabled
+          ? "1px solid rgba(91,101,116,0.22)"
+          : glowing
+            ? "2px solid rgba(90,196,214,0.55)"
+            : "1.5px solid rgba(91,101,116,0.28)",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
@@ -51,7 +54,7 @@ export function PlayKey({
         boxShadow: disabled
           ? "none"
           : glowing
-            ? `inset 0 3px 0 rgba(255,255,255,0.78), inset 0 -4px 8px rgba(58,66,80,0.3), 0 0 0 4px rgba(183,228,238,0.28), 0 0 22px rgba(90,196,214,0.42), 0 0 18px rgba(184,196,48,0.28), 0 8px 16px rgba(58,66,80,0.22)`
+            ? `inset 0 3px 0 rgba(255,255,255,0.78), inset 0 -4px 8px rgba(58,66,80,0.3), 0 0 0 4px rgba(183,228,238,0.28), 0 0 22px rgba(90,196,214,0.42), 0 8px 16px rgba(58,66,80,0.22)`
             : `inset 0 3px 0 rgba(255,255,255,0.62), inset 0 -3px 6px rgba(58,66,80,0.24), 0 0 0 3px rgba(255,255,255,0.22), ${hardware.keyRaised}`,
         transition: `transform ${motion.fast} ${motion.ease}, box-shadow ${motion.base} ${motion.ease}, background ${motion.fast} ${motion.ease}`,
       }}
@@ -67,8 +70,8 @@ export function PlayKey({
           height: 5,
           marginLeft: -2.5,
           borderRadius: "50%",
-          background: glowing ? trim.lime : "rgba(91,101,116,0.4)",
-          boxShadow: glowing ? `0 0 8px ${trim.lime}` : "none",
+          background: glowing ? color.lcdSignal : "rgba(91,101,116,0.4)",
+          boxShadow: glowing ? `0 0 10px ${color.lcdSignalGlow}` : "none",
         }}
       />
       {busy ? (

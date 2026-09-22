@@ -232,7 +232,7 @@ export default function BroadcastPreview() {
   }, []);
 
   const home = (
-    <div className="pmp-home-mtv" style={{ maxWidth: 960, margin: "0 auto", width: "100%" }}>
+    <div className="pmp-home-mtv" style={{ maxWidth: 1100, margin: "0 auto", width: "100%" }}>
       <HomeHeader
         onOpenSearch={() => setScreen("search")}
         onOpenMenu={isDesktop ? null : () => setDrawer(true)}

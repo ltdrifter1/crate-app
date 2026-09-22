@@ -63,6 +63,7 @@ describe("GlassDock mini player", () => {
 
     const mini = div.querySelector('[data-testid="mini-player"]');
     expect(mini).toBeTruthy();
+    expect(div.querySelector(".pmp-dock-faceplate")).toBeTruthy();
     expect(div.textContent).toMatch(/Sleeping In/);
     expect(div.textContent).toMatch(/The Postal Service/);
     expect(div.querySelector('[aria-label="Pause"]')).toBeTruthy();

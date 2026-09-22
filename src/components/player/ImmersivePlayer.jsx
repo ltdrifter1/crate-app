@@ -594,7 +594,7 @@ export default function ImmersivePlayer({
           key={currentTrack.id}
           style={{
             position: "relative",
-            width: hasVideo ? "min(42vw, 168px)" : "min(72vw, 320px)",
+            width: hasVideo ? "min(42vw, 168px)" : "min(72vw, 520px)",
             aspectRatio: "1 / 1",
             borderRadius: 6,
             padding: 3,
@@ -604,7 +604,7 @@ export default function ImmersivePlayer({
               ? `coverSettle 1.1s ${EASE} both, trackSwap 0.45s ${EASE} both`
               : `trackSwap 0.45s ${EASE} both`,
             opacity: hasVideo ? 0.94 : 1,
-            flexShrink: 1,
+            flexShrink: 0,
             minHeight: 0,
             maxHeight: hasVideo ? "28vh" : "52vh",
           }}

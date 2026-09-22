@@ -7,16 +7,31 @@ import Icon from "../ui/Icon";
 
 /**
  * ChannelCard — square station tile.
- * PS1 plate from /channels/*.png. Missing art uses the disc fallback.
+ * Catalog sleeve first; PS1 plate only as fallback. CH number stays an LCD bug.
  */
 function ChannelArt({
   channel,
+  covers = [],
   size,
   priority = false,
   eager = false,
 }) {
-  const { src, focus } = resolveChannelArt(channel);
+  const sleeve = Array.isArray(covers) ? covers.find(Boolean) : null;
+  if (sleeve) {
+    return (
+      <CoverImage
+        src={sleeve}
+        alt=""
+        width={size}
+        height={size}
+        priority={priority}
+        eager={eager}
+        style={{ width: "100%", height: "100%", objectFit: "cover" }}
+      />
+    );
+  }
 
+  const { src, focus } = resolveChannelArt(channel);
   if (src) {
     return (
       <CoverImage
@@ -48,6 +63,7 @@ export default function ChannelCard({
   const width = size;
   const title = channel.shortTitle || channel.title;
   const dial = formatChannelNum(channel.num);
+  const iceRing = `0 0 0 2px ${color.lcdSignal}, 0 0 18px ${color.lcdSignalGlow}, 0 16px 36px rgba(58,66,80,0.3), inset 0 1px 0 rgba(255,255,255,0.55), inset 0 -3px 8px rgba(58,66,80,0.28)`;
 
   return (
     <button
@@ -84,9 +100,11 @@ export default function ChannelCard({
           overflow: "hidden",
           background: y2k.artGradient,
           boxShadow: active
-            ? `0 0 0 2px ${color.cta}, 0 16px 36px rgba(58,66,80,0.3), inset 0 1px 0 rgba(255,255,255,0.55), inset 0 -3px 8px rgba(58,66,80,0.28)`
+            ? iceRing
             : "inset 0 1px 0 rgba(255,255,255,0.62), inset 0 -3px 8px rgba(58,66,80,0.22), 0 14px 32px rgba(58,66,80,0.24)",
-          border: "1.5px solid rgba(216,223,232,0.55)",
+          border: active
+            ? `1.5px solid ${color.lcdSignal}`
+            : "1.5px solid rgba(216,223,232,0.55)",
         }}
       >
         <span
@@ -103,6 +121,7 @@ export default function ChannelCard({
         >
           <ChannelArt
             channel={channel}
+            covers={covers}
             size={width}
             priority={priority}
             eager={eager}
@@ -122,6 +141,7 @@ export default function ChannelCard({
 
           <span
             aria-hidden="true"
+            className="pmp-channel-ch-bug"
             style={{
               position: "absolute",
               top: 10,
@@ -131,8 +151,9 @@ export default function ChannelCard({
               height: 20,
               padding: "0 7px",
               borderRadius: 3,
-              background: "rgba(58,66,80,0.62)",
-              border: "1px solid rgba(216,223,232,0.28)",
+              background: "rgba(42,51,60,0.82)",
+              border: "1px solid rgba(90,196,214,0.38)",
+              boxShadow: "inset 0 1px 0 rgba(183,228,238,0.22), 0 0 10px rgba(90,196,214,0.22)",
               color: color.lcdInk,
               fontFamily: fontMono,
               fontSize: 10,
@@ -155,12 +176,10 @@ export default function ChannelCard({
                 zIndex: 2,
                 height: 20,
                 padding: "0 7px",
-                borderRadius: 4,
-                background: "rgba(74,83,96,0.55)",
-                backdropFilter: "blur(12px) saturate(1.12)",
-                WebkitBackdropFilter: "blur(12px) saturate(1.12)",
-                border: "1px solid rgba(216,223,232,0.35)",
-                color: color.lcdInk,
+                borderRadius: 3,
+                background: "rgba(42,51,60,0.78)",
+                border: "1px solid rgba(90,196,214,0.32)",
+                color: color.lcdSignal,
                 letterSpacing: 0.1,
                 textTransform: "uppercase",
                 ...type.caption,

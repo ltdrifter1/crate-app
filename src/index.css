@@ -475,10 +475,31 @@ body::before { display: none; }
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
   border-radius: 0;
-  padding: 4px 4px 5px;
+  padding: 5px 5px 6px;
+  gap: 4px;
 }
 .pmp-dock-stack--playing .pill-nav {
-  border-top: 1px solid rgba(255, 255, 255, 0.28);
+  border-top: 1px solid rgba(90, 196, 214, 0.22);
+}
+.pmp-dock-stack .pill-tab {
+  border-radius: 6px !important;
+  border: 1px solid rgba(91,101,116,0.2) !important;
+  background:
+    linear-gradient(145deg, rgba(216,223,232,0.78) 0%, rgba(216,223,232,0.14) 36%, transparent 62%),
+    linear-gradient(165deg, #D8DFE8 0%, #C0C8D4 46%, #A8B2C0 100%) !important;
+  box-shadow:
+    inset 0 2px 0 rgba(216,223,232,0.55),
+    inset 0 -2px 3px rgba(58,66,80,0.18),
+    0 3px 6px rgba(58,66,80,0.12) !important;
+}
+.pmp-dock-stack .pill-tab[aria-current="page"] {
+  background:
+    linear-gradient(145deg, rgba(228,247,250,0.7) 0%, rgba(183,228,238,0.22) 40%, rgba(200,214,226,0.88) 100%) !important;
+  border-color: rgba(90,196,214,0.5) !important;
+  color: #3D4654 !important;
+  box-shadow:
+    inset 0 3px 5px rgba(58,66,80,0.22),
+    0 0 10px rgba(90,196,214,0.28) !important;
 }
 .pmp-mini-player {
   position: relative;
@@ -490,7 +511,7 @@ body::before { display: none; }
   right: 10px;
   height: 2px;
   border-radius: 2px;
-  background: rgba(58, 66, 80, 0.14);
+  background: rgba(61, 70, 84, 0.35);
   overflow: hidden;
   pointer-events: none;
   z-index: 2;
