@@ -15,6 +15,7 @@ import { authErrorMessage } from "../../lib/phone";
 import { BrandLockup } from "../brand/BrandGlyphs";
 import BrandTagline from "../brand/BrandTagline";
 import BetaBadge from "../billing/BetaLaunchNotice";
+import { FeatureIcon } from "../ui/Icon";
 
 // ─── Static discovery data ────────────────────────────────────────────────────
 
@@ -38,10 +39,10 @@ const CHART_TEASERS = [
 ];
 
 const FEATURES = [
-  { icon: "📻", head: "Live Radio",     body: "Genre channels streaming 24/7." },
-  { icon: "📈", head: "Charts",         body: "Vote, request, and watch tracks climb." },
-  { icon: "🗂️", head: "Your Crate",    body: "Build a library that's actually yours." },
-  { icon: "🌍", head: "Discovery",      body: "Dig through scenes, eras, and artists." },
+  { icon: "radio",     head: "Live Radio",  body: "Genre channels streaming 24/7." },
+  { icon: "chart",     head: "Charts",      body: "Vote, request, and watch tracks climb." },
+  { icon: "crate",     head: "Your Crate",  body: "Build a library that's actually yours." },
+  { icon: "discovery", head: "Discovery",   body: "Dig through scenes, eras, and artists." },
 ];
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
@@ -212,7 +213,7 @@ function FeatureCard({ icon, head, body }) {
         gap: 6,
       }}
     >
-      <span style={{ fontSize: 22 }}>{icon}</span>
+      <span style={{ color: color.lcdSignal, display: "flex" }}><FeatureIcon name={icon} size={26} /></span>
       <div
         style={{
           fontSize: 14,
