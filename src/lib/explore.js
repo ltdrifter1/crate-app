@@ -228,9 +228,9 @@ export function exploreScenePlates(tracks = [], limit = 8) {
 
 /** Directory tabs — Explore is a crate browser, not a second Home. */
 export const EXPLORE_MODES = [
+  { id: "releases", label: "New Releases", hint: "Newest sleeves, by channel" },
   { id: "worlds", label: "Worlds", hint: "Cities and scenes" },
   { id: "energy", label: "Energy", hint: "Rooms by pressure" },
-  { id: "sleeves", label: "Sleeves", hint: "Albums as objects" },
   { id: "mix", label: "Mix", hint: "Keys that blend" },
 ];
 

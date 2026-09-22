@@ -1,0 +1,110 @@
+import { useMemo, useState } from "react";
+import { color, fontMono, homeSpace, motion, radio } from "../../theme";
+import { newReleaseAlbums, newReleaseBays } from "../../lib/newReleases";
+import ReleaseCard from "../home/ReleaseCard";
+
+const ALL = { id: null, num: 0, title: "All" };
+
+/**
+ * New Releases — hanging signs + sleeve grid.
+ * One filter. No magazine end-cap, no stacked aisles.
+ */
+export default function NewReleases({
+  tracks = [],
+  onOpenAlbum = null,
+  onPlayTrack = null,
+}) {
+  const [channelId, setChannelId] = useState(null);
+  const bays = useMemo(() => newReleaseBays(tracks), [tracks]);
+  const albums = useMemo(
+    () => newReleaseAlbums(tracks, { channelId }),
+    [tracks, channelId]
+  );
+
+  if (!albums.length && !bays.length) return null;
+
+  const signs = [ALL, ...bays];
+  const open = (album) => {
+    if (onOpenAlbum) onOpenAlbum(album.slug);
+    else if (album.coverTrack) onPlayTrack?.(album.coverTrack, album.tracks);
+  };
+
+  return (
+    <section aria-label="New Releases" style={{ marginTop: 12 }}>
+      {signs.length > 1 && (
+        <div
+          className="hide-scroll"
+          style={{
+            display: "flex",
+            gap: 6,
+            overflowX: "auto",
+            padding: `0 ${homeSpace.gutter}px 14px`,
+            WebkitOverflowScrolling: "touch",
+          }}
+        >
+          {signs.map((bay) => {
+            const selected = channelId === bay.id;
+            const ident = bay.num
+              ? `CH-${String(bay.num).padStart(2, "0")}  ${bay.title}`
+              : bay.title;
+            return (
+              <button
+                key={bay.id || "all"}
+                type="button"
+                aria-pressed={selected}
+                aria-label={ident}
+                className="pmp-press"
+                onClick={() => setChannelId(bay.id)}
+                style={{
+                  flex: "0 0 auto",
+                  height: 32,
+                  padding: "0 10px",
+                  borderRadius: radio.radiusLcd,
+                  border: selected ? radio.lcdBorder : radio.borderQuiet,
+                  background: selected ? radio.lcdFace : radio.moduleFace,
+                  boxShadow: selected ? radio.lcdShadow : "none",
+                  color: selected ? color.lcdSignal : color.body,
+                  cursor: "pointer",
+                  fontFamily: fontMono,
+                  fontSize: 10,
+                  fontWeight: 700,
+                  letterSpacing: 0.1,
+                  textTransform: "uppercase",
+                  whiteSpace: "nowrap",
+                  transition: `background ${motion.base}, color ${motion.base}`,
+                  WebkitTapHighlightColor: "transparent",
+                }}
+              >
+                {ident}
+              </button>
+            );
+          })}
+        </div>
+      )}
+
+      {albums.length > 0 ? (
+        <div className="pmp-new-releases-grid">
+          {albums.map((album) => (
+            <ReleaseCard
+              key={album.slug}
+              album={album}
+              variant="tile"
+              onClick={() => open(album)}
+            />
+          ))}
+        </div>
+      ) : (
+        <p
+          style={{
+            margin: 0,
+            padding: `8px ${homeSpace.gutter}px 0`,
+            fontSize: 14,
+            color: color.muted,
+          }}
+        >
+          Nothing new in this bay yet.
+        </p>
+      )}
+    </section>
+  );
+}

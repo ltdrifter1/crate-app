@@ -21,15 +21,15 @@ import ExploreModes from "../components/explore/ExploreModes";
 import WorldAtlas from "../components/explore/WorldAtlas";
 import EnergyRooms from "../components/explore/EnergyRooms";
 import MixBoard from "../components/explore/MixBoard";
-import SleeveWallet from "../components/explore/SleeveWallet";
+import NewReleases from "../components/explore/NewReleases";
 import {
   exploreCatalogStats,
   exploreGenrePlates,
   exploreMoodPlates,
-  exploreReleases,
   exploreWorlds,
   resolveExploreFocus,
 } from "../lib/explore";
+import { newReleaseAlbums } from "../lib/newReleases";
 
 const EXPLORE_CSS = `
   .pmp-explore-modes {
@@ -37,6 +37,16 @@ const EXPLORE_CSS = `
     grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 6px;
     padding: 8px ${"{gutter}"}px 4px;
+  }
+  .pmp-explore-modes button {
+    white-space: normal;
+    line-height: 1.15;
+  }
+  .pmp-new-releases-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px 12px;
+    padding: 0 ${"{gutter}"}px;
   }
   .pmp-explore-find {
     transition: border-color ${"{base}"} ${"{ease}"}, box-shadow ${"{base}"};
@@ -74,9 +84,11 @@ const EXPLORE_CSS = `
     }
     .pmp-mix-wheel { grid-template-columns: repeat(4, minmax(0, 1fr)); }
     .pmp-energy-strip { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    .pmp-new-releases-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
   }
   @media (min-width: 1100px) {
     .pmp-mix-wheel { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+    .pmp-new-releases-grid { grid-template-columns: repeat(5, minmax(0, 1fr)); }
   }
 `.replaceAll("{base}", motion.base).replaceAll("{ease}", motion.ease).replaceAll("{gutter}", String(homeSpace.gutter));
 
@@ -171,9 +183,9 @@ function EmptyExplore({ onOpenSearch }) {
 
 function ModeHint({ mode }) {
   const copy = {
+    releases: "Newest sleeves, by channel.",
     worlds: "A planet of scenes — tap a disc, not a feed.",
     energy: "One strip. Pressure, not playlists.",
-    sleeves: "Open a jewel case. Flip the wallet.",
     mix: "Twelve keys. Neighbors mix.",
   };
   return (
@@ -207,7 +219,7 @@ function ExploreScreen({
   const currentTrack = useCurrentTrack();
   const activeId = currentTrack?.id;
   const [focusKey, setFocusKey] = useState(null);
-  const [mode, setMode] = useState("worlds");
+  const [mode, setMode] = useState("releases");
   const [deepReady, setDeepReady] = useState(process.env.NODE_ENV === "test");
 
   useEffect(() => {
@@ -221,10 +233,7 @@ function ExploreScreen({
     () => (mode === "energy" || deepReady ? exploreMoodPlates(tracks) : []),
     [tracks, deepReady, mode]
   );
-  const releases = useMemo(
-    () => (mode === "sleeves" || deepReady ? exploreReleases(tracks, 6) : []),
-    [tracks, deepReady, mode]
-  );
+  const arrivals = useMemo(() => newReleaseAlbums(tracks), [tracks]);
   const stats = useMemo(() => exploreCatalogStats(tracks), [tracks]);
 
   const focus = useMemo(
@@ -245,9 +254,9 @@ function ExploreScreen({
   };
 
   const hasBody =
+    arrivals.length > 0 ||
     worlds.some((f) => f.tiles.length) ||
     rooms.length > 0 ||
-    releases.length > 0 ||
     lanes.length > 0;
 
   if (focus) {
@@ -348,6 +357,14 @@ function ExploreScreen({
       <ExploreModes mode={mode} onChange={setMode} />
       <ModeHint mode={mode} />
 
+      {mode === "releases" && arrivals.length > 0 && (
+        <NewReleases
+          tracks={tracks}
+          onOpenAlbum={onOpenAlbum}
+          onPlayTrack={onPlayTrack}
+        />
+      )}
+
       {mode === "worlds" && (worlds.length > 0 || lanes.length > 0) && (
         <WorldAtlas families={worlds} lanes={lanes} onOpen={setFocusKey} />
       )}
@@ -359,28 +376,18 @@ function ExploreScreen({
         />
       )}
 
-      {mode === "sleeves" && releases.length > 0 && (
-        <section aria-label="Albums" style={{ marginTop: 16 }}>
-          <SleeveWallet
-            albums={releases}
-            onOpenAlbum={onOpenAlbum}
-            onPlayTrack={onPlayTrack}
-          />
-        </section>
-      )}
-
       {mode === "mix" && (
         <MixBoard tracks={tracks} onPlayPool={onPlayTrack} />
       )}
 
+      {mode === "releases" && arrivals.length === 0 && hasBody && (
+        <p style={{ padding: `16px ${homeSpace.gutter}px`, color: color.muted, fontSize: 14 }}>
+          New sleeves land here when albums hit the crate.
+        </p>
+      )}
       {mode === "energy" && rooms.length === 0 && hasBody && (
         <p style={{ padding: `16px ${homeSpace.gutter}px`, color: color.muted, fontSize: 14 }}>
           The pressure strip fills once cuts carry a pace.
-        </p>
-      )}
-      {mode === "sleeves" && releases.length === 0 && hasBody && (
-        <p style={{ padding: `16px ${homeSpace.gutter}px`, color: color.muted, fontSize: 14 }}>
-          Sleeves land when albums have more than one cut.
         </p>
       )}
 
