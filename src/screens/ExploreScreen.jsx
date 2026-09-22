@@ -22,6 +22,8 @@ import WorldAtlas from "../components/explore/WorldAtlas";
 import EnergyRooms from "../components/explore/EnergyRooms";
 import MixBoard from "../components/explore/MixBoard";
 import NewReleases from "../components/explore/NewReleases";
+import CrateDig from "../components/explore/CrateDig";
+import TimeMachine from "../components/explore/TimeMachine";
 import {
   exploreCatalogStats,
   exploreGenrePlates,
@@ -34,7 +36,7 @@ import { newReleaseAlbums } from "../lib/newReleases";
 const EXPLORE_CSS = `
   .pmp-explore-modes {
     display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(5, minmax(0, 1fr));
     gap: 6px;
     padding: 8px ${"{gutter}"}px 4px;
   }
@@ -378,6 +380,18 @@ function ExploreScreen({
 
       {mode === "mix" && (
         <MixBoard tracks={tracks} onPlayPool={onPlayTrack} />
+      )}
+
+      {mode === "dig" && (
+        <CrateDig tracks={tracks} onPlay={onPlayTrack} />
+      )}
+
+      {mode === "time-machine" && (
+        <TimeMachine
+          tracks={tracks}
+          onPlayTrack={onPlayTrack}
+          activeId={currentTrack?.id || null}
+        />
       )}
 
       {mode === "releases" && arrivals.length === 0 && hasBody && (

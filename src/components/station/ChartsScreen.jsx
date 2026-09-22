@@ -1,4 +1,5 @@
 import { color, font, fontDisplay, fontMono, homeSpace, chromeIconButton, glass, neons, radius, radio, sectionTitle } from "../../theme";
+import { estimateLockedIn } from "../../lib/station";
 import ChartHistoryPanel from "./ChartHistoryPanel";
 import Icon from "../ui/Icon";
 
@@ -20,6 +21,7 @@ export default function ChartsScreen({
   const empty = !catalogLoading && tracks.length === 0 && countdown.length === 0;
   const topEntry = countdown[0]?.track || countdown[0] || null;
   const climberCount = countdown.filter((c) => (c.movement || c.delta) && c.movement === "up").length;
+  const lockedIn = topEntry ? estimateLockedIn(topEntry) : 0;
 
   return (
     <div style={{ position: "relative", paddingBottom: 56, overflow: "hidden" }}>
@@ -195,6 +197,13 @@ export default function ChartsScreen({
                   label="New entries"
                   value={countdown.filter((c) => c.movement === "debut" || c.movement === "new").length}
                   accent={neons.violet}
+                />
+              )}
+              {lockedIn > 0 && (
+                <StatPill
+                  label="Locked in"
+                  value={`${lockedIn.toLocaleString()} now`}
+                  accent={neons.orange}
                 />
               )}
             </div>
