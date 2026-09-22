@@ -39,10 +39,10 @@ const CHART_TEASERS = [
 ];
 
 const FEATURES = [
-  { icon: "radio",     head: "Live Radio",  body: "Genre channels streaming 24/7." },
-  { icon: "chart",     head: "Charts",      body: "Vote, request, and watch tracks climb." },
-  { icon: "crate",     head: "Your Crate",  body: "Build a library that's actually yours." },
-  { icon: "discovery", head: "Discovery",   body: "Dig through scenes, eras, and artists." },
+  { icon: "radio",     code: "CH.01", head: "Live Radio",  body: "Genre channels streaming 24/7." },
+  { icon: "chart",     code: "CH.02", head: "Charts",      body: "Vote, request, and watch tracks climb." },
+  { icon: "crate",     code: "CH.03", head: "Your Crate",  body: "Build a library that's actually yours." },
+  { icon: "discovery", code: "CH.04", head: "Discovery",   body: "Dig through scenes, eras, and artists." },
 ];
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
@@ -199,33 +199,48 @@ function ChartRow({ rank, title, artist, dir }) {
   );
 }
 
-function FeatureCard({ icon, head, body }) {
+function FeatureRow({ icon, code, head, body, last }) {
   return (
     <div
       style={{
-        padding: "16px 16px 14px",
-        borderRadius: 12,
-        background: radioStyle.moduleFace,
-        border: "1px solid rgba(91,101,116,0.16)",
-        boxShadow: "inset 0 1px 0 rgba(216,223,232,0.45), 0 6px 18px rgba(58,66,80,0.12)",
         display: "flex",
-        flexDirection: "column",
-        gap: 6,
+        alignItems: "flex-start",
+        gap: 12,
+        padding: "13px 14px",
+        borderBottom: last ? "none" : "1px solid rgba(91,101,116,0.12)",
       }}
     >
-      <span style={{ color: color.lcdSignal, display: "flex" }}><FeatureIcon name={icon} size={26} /></span>
-      <div
+      <span
         style={{
-          fontSize: 14,
+          fontFamily: fontMono,
+          fontSize: 10,
           fontWeight: 700,
-          fontFamily: fontDisplay,
-          color: color.ink,
-          letterSpacing: -0.2,
+          letterSpacing: 0.2,
+          color: trim.blue,
+          paddingTop: 3,
+          flexShrink: 0,
+          width: 34,
         }}
       >
-        {head}
+        {code}
+      </span>
+      <span style={{ color: color.lcdSignal, display: "flex", flexShrink: 0, paddingTop: 1 }}>
+        <FeatureIcon name={icon} size={22} />
+      </span>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div
+          style={{
+            fontSize: 13,
+            fontWeight: 700,
+            fontFamily: fontDisplay,
+            color: color.ink,
+            letterSpacing: -0.1,
+          }}
+        >
+          {head}
+        </div>
+        <div style={{ fontSize: 12, color: color.muted, lineHeight: 1.4, marginTop: 1 }}>{body}</div>
       </div>
-      <div style={{ fontSize: 12, color: color.muted, lineHeight: 1.45 }}>{body}</div>
     </div>
   );
 }
@@ -564,20 +579,45 @@ export default function LandingScreen({
         </div>
       </div>
 
-      {/* ── FEATURES GRID ─────────────────────────────────────────────────── */}
-      <div
-        style={{
-          position: "relative",
-          zIndex: 1,
-          margin: "32px 20px 0",
-          display: "grid",
-          gridTemplateColumns: "1fr 1fr",
-          gap: 10,
-        }}
-      >
-        {FEATURES.map((f) => (
-          <FeatureCard key={f.head} {...f} />
-        ))}
+      {/* ── LINER NOTES ───────────────────────────────────────────────────── */}
+      <div style={{ position: "relative", zIndex: 1, margin: "32px 20px 0" }}>
+        <div
+          style={{
+            borderRadius: 14,
+            overflow: "hidden",
+            background: radioStyle.moduleFace,
+            border: "1px solid rgba(91,101,116,0.18)",
+            boxShadow: "inset 0 1px 0 rgba(216,223,232,0.45), 0 12px 32px rgba(58,66,80,0.18)",
+          }}
+        >
+          <div
+            style={{
+              padding: "12px 14px",
+              background: radioStyle.lcdFace,
+              borderBottom: radioStyle.lcdBorder,
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
+            }}
+          >
+            <span className="pmp-lcd-pip" style={{ width: 6, height: 6, borderRadius: "50%", background: "#5AA8B8", display: "inline-block" }} />
+            <span
+              style={{
+                fontFamily: fontMono,
+                fontSize: 10,
+                fontWeight: 700,
+                letterSpacing: 0.16,
+                textTransform: "uppercase",
+                color: "#B7E4EE",
+              }}
+            >
+              Liner Notes — What's On This Disc
+            </span>
+          </div>
+          {FEATURES.map((f, i) => (
+            <FeatureRow key={f.head} {...f} last={i === FEATURES.length - 1} />
+          ))}
+        </div>
       </div>
 
       {/* ── AUTH FORM ─────────────────────────────────────────────────────── */}
