@@ -16,6 +16,7 @@ export default function ArtFrame({
   radius = 6,
   priority = false,
   eager = false,
+  wellColor = "",
   children = null,
   style = {},
 }) {
@@ -48,7 +49,7 @@ export default function ArtFrame({
         >
           {cells.map((url, i) => (
             <span key={`${url}-${i}`} style={{ overflow: "hidden" }}>
-              <CoverImage src={url} alt="" width={cellW} height={cellH} />
+              <CoverImage src={url} alt="" width={cellW} height={cellH} wellColor={wellColor} />
             </span>
           ))}
         </span>
@@ -60,9 +61,10 @@ export default function ArtFrame({
           height={h}
           priority={priority}
           eager={eager}
+          wellColor={wellColor}
         />
       ) : (
-        <DefaultSleeve size={typeof w === "number" ? w : 160} />
+        <DefaultSleeve size={typeof w === "number" ? w : 160} color={wellColor} />
       )}
 
       {active && (

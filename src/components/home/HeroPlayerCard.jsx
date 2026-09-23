@@ -176,7 +176,7 @@ function ChannelIdent({ bugLine, slug }) {
   );
 }
 
-function JewelSleeve({ src, idleSrc, playing, eager = false, size = 148 }) {
+function JewelSleeve({ src, idleSrc, playing, eager = false, size = 148, wellColor = "" }) {
   const art = src || idleSrc;
   return (
     <span
@@ -194,8 +194,9 @@ function JewelSleeve({ src, idleSrc, playing, eager = false, size = 148 }) {
           alt=""
           width={size}
           height={size}
-          priority={false}
+          priority={eager}
           eager={eager}
+          wellColor={wellColor}
           raw={!src}
           objectPosition={!src ? HERO_IDLE_FOCUS : undefined}
           className="pmp-hero-art"
@@ -278,6 +279,7 @@ function UpNextGlass({ track }) {
           alt=""
           width={36}
           height={36}
+          wellColor={track.color || ""}
           style={{
             width: 36,
             height: 36,
@@ -521,6 +523,7 @@ export default function HeroPlayerCard({
             playing={live && isPlaying}
             eager={!!art}
             size={168}
+            wellColor={track?.color || previewTrack?.color || ""}
           />
         )}
 
@@ -633,6 +636,7 @@ export default function HeroPlayerCard({
             playing={live && isPlaying}
             eager={false}
             size={96}
+            wellColor={track?.color || ""}
           />
         )}
       </div>

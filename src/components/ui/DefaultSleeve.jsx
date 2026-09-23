@@ -5,7 +5,7 @@ import Icon from "./Icon";
  * Steel disc plate — shown when a catalog photo is missing or failed.
  * Keeps Home tiles from going blank while covers retry / 404.
  */
-export default function DefaultSleeve({ size = 48 }) {
+export default function DefaultSleeve({ size = 48, color: well = "" }) {
   const icon = Math.max(18, Math.min(56, Math.round(Number(size) * 0.38) || 28));
   return (
     <span
@@ -17,7 +17,7 @@ export default function DefaultSleeve({ size = 48 }) {
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        background: y2k.artGradient,
+        background: well || y2k.artGradient,
         color: color.lcdInk,
       }}
     >

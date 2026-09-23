@@ -40,6 +40,7 @@ function TrackCard({
         size={size}
         active={active}
         radius={6}
+        wellColor={track.color || ""}
       >
         {trackHasVideo(track) && (
           <span

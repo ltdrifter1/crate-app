@@ -76,7 +76,64 @@ export function mergeHomeLiteTracks(newest = [], hottest = [], limit = HOME_LITE
   return out;
 }
 
-export async function fetchCatalogTracks(db) {
+/** Published by functions/lib/catalogJson.js — gzip JSON, long CDN cache. */
+export const CATALOG_CDN_OBJECT = "catalog/v1.json";
+export const CATALOG_CDN_TIMEOUT_MS = 800;
+const DEFAULT_CATALOG_BUCKET = "crate-app-58494.firebasestorage.app";
+
+export function catalogCdnEnabled() {
+  const raw = typeof process !== "undefined" ? process.env.REACT_APP_CATALOG_URL : "";
+  const v = String(raw || "").trim().toLowerCase();
+  if (v === "off" || v === "0" || v === "false" || v === "none") return false;
+  return true;
+}
+
+export function defaultCatalogCdnUrl() {
+  const raw = typeof process !== "undefined" ? process.env.REACT_APP_CATALOG_URL : "";
+  const env = String(raw || "").trim();
+  if (env && !["off", "0", "false", "none"].includes(env.toLowerCase())) return env;
+  return `https://firebasestorage.googleapis.com/v0/b/${DEFAULT_CATALOG_BUCKET}/o/${encodeURIComponent(CATALOG_CDN_OBJECT)}?alt=media`;
+}
+
+export function parseCatalogCdnPayload(json) {
+  const tracks = Array.isArray(json?.tracks)
+    ? json.tracks.filter((t) => t && t.id)
+    : [];
+  if (!tracks.length) return null;
+  return {
+    ts: Number(json.ts) || Date.now(),
+    tracks: sortTracksNewestFirst(tracks),
+    source: "cdn",
+  };
+}
+
+export async function fetchCatalogCdn({
+  url,
+  fetchImpl,
+  timeoutMs = CATALOG_CDN_TIMEOUT_MS,
+} = {}) {
+  if (!catalogCdnEnabled()) return null;
+  const href = url || defaultCatalogCdnUrl();
+  const f = fetchImpl || (typeof fetch === "function" ? fetch : null);
+  if (!href || !f) return null;
+  const ctrl = typeof AbortController === "function" ? new AbortController() : null;
+  const timer = ctrl ? setTimeout(() => ctrl.abort(), Math.max(200, Number(timeoutMs) || 800)) : null;
+  try {
+    const res = await f(href, {
+      signal: ctrl?.signal,
+      headers: { Accept: "application/json" },
+    });
+    if (!res?.ok) return null;
+    const json = await res.json();
+    return parseCatalogCdnPayload(json);
+  } catch {
+    return null;
+  } finally {
+    if (timer) clearTimeout(timer);
+  }
+}
+
+export async function fetchCatalogTracksFromFirestore(db) {
   try {
     const q = query(collection(db, "tracks"), orderBy("createdAt", "desc"));
     const snap = await getDocs(q);
@@ -92,6 +149,12 @@ export async function fetchCatalogTracks(db) {
     }
     throw orderedErr;
   }
+}
+
+export async function fetchCatalogTracks(db) {
+  const cdn = await fetchCatalogCdn();
+  if (cdn?.tracks?.length) return cdn.tracks;
+  return fetchCatalogTracksFromFirestore(db);
 }
 
 async function fetchHomeLiteDoc(db) {

@@ -60,13 +60,14 @@ describe("coverUrl", () => {
     expect(coverSrcSet("/brand/logo-mark.svg", 168, { mode: "cf" })).toBe("");
   });
 
-  test("one Cloudflare miss disables /cdn-cgi/image for the session", () => {
+  test("one Cloudflare miss falls back to Firebase thumbs, not originals", () => {
     const src = "https://storage.googleapis.com/b/covers/art.jpg";
     expect(isCloudflareResizeAvailable()).toBe(true);
     expect(coverDisplayUrl(src, { width: 168, mode: "cf" })).toContain("/cdn-cgi/image/");
     markCloudflareResizeUnavailable();
     expect(isCloudflareResizeAvailable()).toBe(false);
-    expect(coverDisplayUrl(src, { width: 168, mode: "cf" })).toBe(src);
-    expect(coverSrcSet(src, 168, { mode: "cf" })).toBe("");
+    expect(coverDisplayUrl(src, { width: 168, dpr: 2, mode: "cf" })).toContain("_400x400.jpg");
+    expect(coverDisplayUrl(src, { width: 168, mode: "cf" })).not.toBe(src);
+    expect(coverSrcSet(src, 168, { mode: "cf" })).toMatch(/_200x200|_400x400/);
   });
 });

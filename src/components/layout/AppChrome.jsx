@@ -4,12 +4,26 @@ import {
 import { hexToRgbStr } from "../../lib/harmony";
 import { useIsBuffering, useIsPlaying } from "../../usePlayerTransport";
 
-export function ScreenPane({ children }) {
+export function ScreenPane({ children, keepAlive = false, active = true }) {
+  if (keepAlive) {
+    return (
+      <div
+        hidden={!active}
+        aria-hidden={!active}
+        style={{
+          display: active ? "block" : "none",
+          minHeight: active ? "100%" : 0,
+        }}
+      >
+        {children}
+      </div>
+    );
+  }
   return (
     <div
       style={{
         minHeight: "100%",
-        animation: `screenIn 0.38s ${motion.ease} both`,
+        animation: `screenIn 0.08s ${motion.ease} both`,
       }}
     >
       {children}
