@@ -15,7 +15,7 @@ import {
   Timestamp,
   where,
 } from "firebase/firestore";
-import { db } from "../../firebase";
+import { getFirebase } from "../../firebase";
 import {
   buildChatPayload,
   canSendAt,
@@ -31,11 +31,11 @@ import {
   sanitizeDisplayName,
 } from "../../lib/stationChat";
 
-function messagesCol(roomId) {
+function messagesCol(db, roomId) {
   return collection(db, "stationChat", roomId, "messages");
 }
 
-function presenceRef(roomId, uid) {
+function presenceRef(db, roomId, uid) {
   return doc(db, "stationChat", roomId, "presence", uid);
 }
 
@@ -56,17 +56,28 @@ export function useStationChat({
   const lastSentRef = useRef(0);
   const nowPlayingRef = useRef(nowPlaying);
   nowPlayingRef.current = nowPlaying;
+  const [db, setDb] = useState(null);
 
   useEffect(() => {
-    if (!enabled || !listenMessages) {
-      setMessages([]);
-      setStatus("idle");
+    let alive = true;
+    getFirebase().then((f) => {
+      if (alive) setDb(f.db);
+    }).catch(() => {});
+    return () => { alive = false; };
+  }, []);
+
+  useEffect(() => {
+    if (!enabled || !listenMessages || !db) {
+      if (!listenMessages) {
+        setMessages([]);
+        setStatus("idle");
+      }
       return undefined;
     }
     setStatus("loading");
     const cutoff = Timestamp.fromMillis(Date.now() - CHAT_HISTORY_MS);
     const q = query(
-      messagesCol(roomId),
+      messagesCol(db, roomId),
       where("createdAt", ">=", cutoff),
       orderBy("createdAt", "desc"),
       limit(CHAT_MESSAGE_LIMIT)
@@ -92,11 +103,11 @@ export function useStationChat({
       }
     );
     return unsub;
-  }, [enabled, listenMessages, roomId]);
+  }, [enabled, listenMessages, roomId, db]);
 
   useEffect(() => {
-    if (!enabled || !listenPresence) {
-      setPresence([]);
+    if (!enabled || !listenPresence || !db) {
+      if (!listenPresence) setPresence([]);
       return undefined;
     }
     const unsub = onSnapshot(
@@ -119,13 +130,13 @@ export function useStationChat({
       }
     );
     return unsub;
-  }, [enabled, listenPresence, roomId]);
+  }, [enabled, listenPresence, roomId, db]);
 
   const beat = useCallback(async () => {
-    if (!uid) return;
+    if (!uid || !db) return;
     try {
       await setDoc(
-        presenceRef(roomId, uid),
+        presenceRef(db, roomId, uid),
         {
           uid,
           displayName: sanitizeDisplayName(displayName),
@@ -136,7 +147,7 @@ export function useStationChat({
     } catch (e) {
       console.warn("station presence failed", e);
     }
-  }, [uid, displayName, roomId]);
+  }, [uid, displayName, roomId, db]);
 
   useEffect(() => {
     if (!enabled || !uid || !listenPresence) return undefined;
@@ -171,6 +182,10 @@ export function useStationChat({
         setError(built.error === "auth" ? "Sign in to talk." : "Type a message first.");
         return { ok: false, error: built.error };
       }
+      if (!db) {
+        setError("Couldn't reach the station.");
+        return { ok: false, error: "network" };
+      }
       const now = Date.now();
       lastSentRef.current = now;
       setOptimistic((prev) => [
@@ -184,13 +199,13 @@ export function useStationChat({
       ]);
       setError(null);
       try {
-        await addDoc(messagesCol(roomId), {
+        await addDoc(messagesCol(db, roomId), {
           ...built.payload,
           createdAt: serverTimestamp(),
         });
         if (uid) {
           setDoc(
-            presenceRef(roomId, uid),
+            presenceRef(db, roomId, uid),
             {
               uid,
               displayName: sanitizeDisplayName(displayName),
@@ -209,7 +224,7 @@ export function useStationChat({
         return { ok: false, error: "network" };
       }
     },
-    [uid, displayName, roomId]
+    [uid, displayName, roomId, db]
   );
 
   const [nowTick, setNowTick] = useState(() => Date.now());

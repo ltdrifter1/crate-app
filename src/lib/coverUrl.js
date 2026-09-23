@@ -7,7 +7,13 @@
  * REACT_APP_COVER_RESIZE=firebase (Luke enables the extension).
  */
 
+export const ORIGINAL_COVER_MIN_CSS_PX = 640;
 export const COVER_WIDTH_BUCKETS = [80, 168, 336, 480, 640, 800, 960, 1280];
+
+/** Rails and tiles never fetch the master JPEG. Hero / immersive may. */
+export function allowOriginalCover(cssPx) {
+  return Number(cssPx) >= ORIGINAL_COVER_MIN_CSS_PX;
+}
 export const FIREBASE_THUMB_SIZES = [200, 400, 800];
 
 const STORAGE_HOST_SUFFIXES = [

@@ -5,7 +5,10 @@ import {
 } from "./billing";
 import { PLAN_IDS } from "./entitlements";
 
-jest.mock("../firebase", () => ({ app: {} }));
+jest.mock("../firebase", () => ({
+  getFirebase: async () => ({ app: {} }),
+  app: {},
+}));
 jest.mock("firebase/functions", () => ({
   getFunctions: () => ({}),
   httpsCallable: () => async () => ({ data: {} }),

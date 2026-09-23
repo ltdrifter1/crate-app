@@ -1,6 +1,10 @@
 import { useMemo, useRef, useState } from "react";
 import { collection, deleteDoc, doc, getDocs, orderBy, query, setDoc, updateDoc } from "firebase/firestore";
-import { db } from "../firebase";
+import { getFirebase } from "../firebase";
+
+async function adminDb() {
+  return (await getFirebase()).db;
+}
 import Icon from "../components/ui/Icon";
 import VirtualList from "../components/ui/VirtualList";
 import { AlbumArt } from "../components/listen/AlbumArt";
@@ -93,7 +97,7 @@ export default function AdminScreen({
   );
 
   async function deleteTrackDoc(trackId) {
-    await deleteDoc(doc(db, "tracks", trackId));
+    await deleteDoc(doc(await adminDb(), "tracks", trackId));
     setTracks((ts) => ts.filter((tr) => tr.id !== trackId));
   }
 
@@ -217,7 +221,7 @@ export default function AdminScreen({
         if (match) {
           const updates = fieldUpdates(r);
           if (Object.keys(updates).length === 0) { skipped++; continue; }
-          await updateDoc(doc(db, "tracks", match.id), updates);
+          await updateDoc(doc(await adminDb(), "tracks", match.id), updates);
           setTracks(prev => prev.map(t => t.id === match.id ? { ...t, ...updates } : t));
           // Keep lookups fresh for later rows
           byId[match.id] = { ...match, ...updates };
@@ -234,7 +238,7 @@ export default function AdminScreen({
             ...(r.source ? { source: String(r.source).trim() } : {}),
             likeCount: 0, playCount: 0, skipCount: 0,
           };
-          await setDoc(doc(db, "tracks", id), trackData, { merge: true });
+          await setDoc(doc(await adminDb(), "tracks", id), trackData, { merge: true });
           byId[id] = { ...trackData, id };
           created++;
         } else {
@@ -250,7 +254,7 @@ export default function AdminScreen({
             createdAt: new Date(), likeCount: 0, playCount: 0, skipCount: 0,
           };
           const newId = `import_${Date.now()}_${i}`;
-          await setDoc(doc(db, "tracks", newId), trackData);
+          await setDoc(doc(await adminDb(), "tracks", newId), trackData);
           created++;
         }
       } catch(e) {
@@ -263,7 +267,7 @@ export default function AdminScreen({
 
     setImportProgress("Reloading library...");
     try {
-      const q2 = query(collection(db, "tracks"), orderBy("createdAt", "desc"));
+      const q2 = query(collection(await adminDb(), "tracks"), orderBy("createdAt", "desc"));
       const snap = await getDocs(q2);
       const loaded = snap.docs.map(d => ({ ...d.data(), id: d.id, liked: false }));
       setTracks(computeSignalTraits(enrichTracksWithScenes(loaded)));
@@ -336,7 +340,7 @@ export default function AdminScreen({
                   <button onClick={async()=>{
                     const updated = {...editTrack, energy:parseInt(editTrack.energy)||5, bpm:parseInt(editTrack.bpm)||null};
                     try {
-                      await updateDoc(doc(db,"tracks",editTrack.id), {
+                      await updateDoc(doc(await adminDb(),"tracks",editTrack.id), {
                         title:updated.title, artist:updated.artist, album:updated.album,
                         genre:updated.genre, energy:updated.energy, camelot:updated.camelot,
                         bpm:updated.bpm, albumCover:updated.albumCover,
@@ -522,7 +526,7 @@ export default function AdminScreen({
               for (const t of withoutKey) {
                 const estimated = estimateCamelot(t);
                 try {
-                  await updateDoc(doc(db, "tracks", t.id), { camelot: estimated });
+                  await updateDoc(doc(await adminDb(), "tracks", t.id), { camelot: estimated });
                   setTracks(prev => prev.map(tr => tr.id === t.id ? { ...tr, camelot: estimated } : tr));
                   count++;
                   setAssigned(count);

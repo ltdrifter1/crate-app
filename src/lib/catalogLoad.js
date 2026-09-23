@@ -3,7 +3,9 @@
  * Home cold-boot uses a lite path (single homeLite doc or a limited query)
  * so shelves fill before the full `tracks` collection download.
  */
-import { collection, doc, getDoc, getDocs, query, orderBy, limit } from "firebase/firestore";
+async function firestoreApi() {
+  return import("firebase/firestore");
+}
 
 export const HOME_LITE_LIMIT = 48;
 /** Hottest cuts reserved in the lite shelf so Most Requested isn't only newest. */
@@ -95,13 +97,25 @@ export function defaultCatalogCdnUrl() {
   return `https://firebasestorage.googleapis.com/v0/b/${DEFAULT_CATALOG_BUCKET}/o/${encodeURIComponent(CATALOG_CDN_OBJECT)}?alt=media`;
 }
 
+export function catalogVersionOf(entry) {
+  return Number(entry?.version) || Number(entry?.ts) || 0;
+}
+
+export function isNewerCatalog(remote, local) {
+  if (!remote?.tracks?.length) return false;
+  if (!local?.tracks?.length) return true;
+  return catalogVersionOf(remote) > catalogVersionOf(local);
+}
+
 export function parseCatalogCdnPayload(json) {
   const tracks = Array.isArray(json?.tracks)
     ? json.tracks.filter((t) => t && t.id)
     : [];
   if (!tracks.length) return null;
+  const ts = Number(json.ts) || Date.now();
   return {
-    ts: Number(json.ts) || Date.now(),
+    ts,
+    version: Number(json.version) || ts,
     tracks: sortTracksNewestFirst(tracks),
     source: "cdn",
   };
@@ -134,6 +148,7 @@ export async function fetchCatalogCdn({
 }
 
 export async function fetchCatalogTracksFromFirestore(db) {
+  const { collection, getDocs, query, orderBy } = await firestoreApi();
   try {
     const q = query(collection(db, "tracks"), orderBy("createdAt", "desc"));
     const snap = await getDocs(q);
@@ -158,6 +173,7 @@ export async function fetchCatalogTracks(db) {
 }
 
 async function fetchHomeLiteDoc(db) {
+  const { doc, getDoc } = await firestoreApi();
   const snap = await getDoc(doc(db, ...HOME_LITE_DOC_PATH));
   if (!snap.exists()) return null;
   const data = snap.data() || {};
@@ -172,6 +188,7 @@ async function fetchHomeLiteDoc(db) {
 }
 
 async function queryTracksBy(db, field, n) {
+  const { collection, getDocs, query, orderBy, limit } = await firestoreApi();
   const q = query(collection(db, "tracks"), orderBy(field, "desc"), limit(n));
   const snap = await getDocs(q);
   return snap.docs.map(mapTrackDoc);
@@ -182,6 +199,7 @@ async function fetchHomeLiteQuery(db) {
     .then((tracks) => ({ tracks, source: "lite-query" }))
     .catch(async () => {
       try {
+        const { collection, getDocs, query, limit } = await firestoreApi();
         const q = query(collection(db, "tracks"), limit(HOME_LITE_LIMIT));
         const snap = await getDocs(q);
         return { tracks: snap.docs.map(mapTrackDoc), source: "lite-query-unordered" };
@@ -194,6 +212,27 @@ async function fetchHomeLiteQuery(db) {
   const tracks = mergeHomeLiteTracks(newestResult.tracks, hottest);
   if (!tracks.length) return null;
   return { tracks, source: newestResult.source };
+}
+
+/**
+ * First paint: IndexedDB → localStorage stub → CDN JSON. No Firebase.
+ */
+export async function loadCatalogFirstPaint({
+  cacheKey,
+  readSync,
+  fetchCdn = fetchCatalogCdn,
+} = {}) {
+  const fromIdb = cacheKey ? await readCatalogIdb(cacheKey) : null;
+  if (fromIdb?.tracks?.length) {
+    return { ...fromIdb, source: fromIdb.source || "idb" };
+  }
+  const sync = typeof readSync === "function" ? readSync() : null;
+  if (sync?.tracks?.length) {
+    return { ...sync, source: sync.source || "sync" };
+  }
+  const cdn = await fetchCdn();
+  if (cdn?.tracks?.length) return cdn;
+  return null;
 }
 
 /**
@@ -258,7 +297,14 @@ export async function readCatalogIdb(key) {
       req.onsuccess = () => {
         const v = req.result;
         if (!v || !Array.isArray(v.tracks) || !v.tracks.length) resolve(null);
-        else resolve({ ts: Number(v.ts) || 0, tracks: v.tracks });
+        else {
+          resolve({
+            ts: Number(v.ts) || 0,
+            version: Number(v.version) || Number(v.ts) || 0,
+            source: v.source || "",
+            tracks: v.tracks,
+          });
+        }
       };
       tx.oncomplete = () => db.close();
     });
@@ -268,12 +314,18 @@ export async function readCatalogIdb(key) {
 }
 
 /** Persist catalog entry to IndexedDB (best-effort). */
-export async function writeCatalogIdb(key, tracks) {
+export async function writeCatalogIdb(key, tracks, meta = {}) {
   try {
     const db = await openCatalogIdb();
     await new Promise((resolve, reject) => {
       const tx = db.transaction(IDB_STORE, "readwrite");
-      tx.objectStore(IDB_STORE).put({ ts: Date.now(), tracks }, key);
+      const ts = Date.now();
+      tx.objectStore(IDB_STORE).put({
+        ts,
+        tracks,
+        version: Number(meta.version) || ts,
+        source: meta.source || "",
+      }, key);
       tx.onerror = () => reject(tx.error);
       tx.oncomplete = () => {
         db.close();

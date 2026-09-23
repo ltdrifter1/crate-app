@@ -41,8 +41,12 @@ test("publishCatalogJson writes catalog/v1.json", async () => {
   const payload = await publishCatalogJson(db, bucket);
   assert.equal(payload.trackCount, 2);
   assert.equal(payload.tracks[0].id, "b");
+  assert.ok(payload.version >= payload.ts);
   assert.equal(saved.length, 1);
   assert.match(saved[0].opts.metadata.cacheControl, /s-maxage/);
-  const parsed = JSON.parse(saved[0].body);
+  assert.equal(saved[0].opts.metadata.contentEncoding, "gzip");
+  const zlib = require("zlib");
+  const parsed = JSON.parse(zlib.gunzipSync(saved[0].body).toString("utf8"));
   assert.equal(parsed.tracks.length, 2);
+  assert.equal(parsed.version, payload.version);
 });

@@ -1,8 +1,9 @@
 /**
  * Versioned full-crate JSON on Cloud Storage so clients skip getDocs(tracks).
- * Lite fields only — same shape as homeLite rows.
+ * Lite fields only — same shape as homeLite rows. Gzipped for the wire.
  */
 
+const zlib = require("zlib");
 const { toLiteTrack } = require("./homeLite");
 
 const CATALOG_OBJECT = "catalog/v1.json";
@@ -52,13 +53,14 @@ async function queryAllLiteTracks(db) {
  */
 async function publishCatalogJson(db, bucket) {
   const tracks = await queryAllLiteTracks(db);
+  const ts = Date.now();
   const payload = {
-    version: 1,
-    ts: Date.now(),
+    version: ts,
+    ts,
     trackCount: tracks.length,
     tracks,
   };
-  const body = JSON.stringify(payload);
+  const body = zlib.gzipSync(Buffer.from(JSON.stringify(payload)));
   if (!bucket || typeof bucket.file !== "function") {
     return payload;
   }
@@ -67,6 +69,7 @@ async function publishCatalogJson(db, bucket) {
     resumable: false,
     metadata: {
       contentType: "application/json; charset=utf-8",
+      contentEncoding: "gzip",
       cacheControl: "public, max-age=120, s-maxage=3600",
     },
   });

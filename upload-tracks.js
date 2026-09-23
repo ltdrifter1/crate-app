@@ -10,6 +10,12 @@ const admin = require("firebase-admin");
 const fs    = require("fs");
 const path  = require("path");
 const { normalizeGenre } = require("./src/lib/genre-normalize.shared.cjs");
+const {
+  AUDIO_CACHE_CONTROL,
+  THUMB_SIZES,
+  hashedObjectName,
+  thumbObjectPath,
+} = require("./scripts/storageAssets.cjs");
 
 // ── Startup checks ────────────────────────────────────────────────────────
 if (!fs.existsSync(path.join(__dirname, "serviceAccountKey.json"))) {
@@ -86,7 +92,7 @@ async function uploadFile(localPath, destPath, contentType) {
   process.stdout.write(`Uploading (${mb} MB)... `);
   await bucket.upload(localPath, {
     destination: destPath,
-    metadata: { contentType, cacheControl: "public, max-age=31536000" },
+    metadata: { contentType, cacheControl: AUDIO_CACHE_CONTROL },
   });
   await bucket.file(destPath).makePublic();
   console.log("✓");
@@ -136,6 +142,35 @@ async function storageExists(destPath) {
   return exists;
 }
 
+async function uploadBuffer(destPath, buf, contentType) {
+  await bucket.file(destPath).save(buf, {
+    resumable: false,
+    metadata: { contentType, cacheControl: AUDIO_CACHE_CONTROL },
+  });
+  await bucket.file(destPath).makePublic();
+  return `https://storage.googleapis.com/${bucketName}/${destPath}`;
+}
+
+async function mintCoverThumbs(localPath, destPath) {
+  let sharp;
+  try {
+    sharp = require("sharp");
+  } catch {
+    console.log("    Thumbs:  skip (npm i sharp — mints _200x200 beside the master)");
+    return 0;
+  }
+  let minted = 0;
+  for (const size of THUMB_SIZES) {
+    const thumbDest = thumbObjectPath(destPath, size);
+    if (await storageExists(thumbDest)) continue;
+    const buf = await sharp(localPath).resize(size, size, { fit: "cover" }).toBuffer();
+    await uploadBuffer(thumbDest, buf, getContentType(path.basename(thumbDest)));
+    minted += 1;
+  }
+  if (minted) console.log(`    Thumbs:  ${minted} size(s)`);
+  return minted;
+}
+
 // ── Main ──────────────────────────────────────────────────────────────────
 async function uploadTracks() {
   const rows      = parseCSV(fs.readFileSync("tracks.csv", "utf8")).filter(r => r.title && r.audioFile);
@@ -160,8 +195,6 @@ async function uploadTracks() {
 
     try {
       const key = nameKey(row.title, row.artist);
-      const audioDest = `audio/${row.audioFile}`;
-
       if (existing.byName.has(key)) {
         console.log(`    ⏭  Skip — already in Firestore (${existing.byName.get(key)})`);
         skipped++;
@@ -172,14 +205,20 @@ async function uploadTracks() {
         skipped++;
         continue;
       }
-      if (await storageExists(audioDest)) {
+
+      const audioPath = path.join(__dirname, "audio", row.audioFile);
+      const audioBytes = fs.readFileSync(audioPath);
+      const audioName = hashedObjectName(row.audioFile, audioBytes);
+      const audioDest = `audio/${audioName}`;
+      const legacyAudioDest = `audio/${row.audioFile}`;
+
+      if (existing.byAudioFile.has(audioName) || await storageExists(audioDest) || await storageExists(legacyAudioDest)) {
         console.log(`    ⏭  Skip — Storage object already exists: ${audioDest}`);
         skipped++;
         continue;
       }
 
       process.stdout.write("    Audio:  ");
-      const audioPath = path.join(__dirname, "audio", row.audioFile);
       const audioUrl  = await uploadFile(audioPath, audioDest, getContentType(row.audioFile));
 
       const duration = getMp3Duration(audioPath);
@@ -187,13 +226,22 @@ async function uploadTracks() {
 
       let coverUrl = null;
       if (row.coverFile) {
-        const coverDest = `covers/${row.coverFile}`;
+        const coverPath = path.join(__dirname, "covers", row.coverFile);
+        const coverBytes = fs.readFileSync(coverPath);
+        const coverName = hashedObjectName(row.coverFile, coverBytes);
+        const coverDest = `covers/${coverName}`;
+        const legacyCoverDest = `covers/${row.coverFile}`;
         if (await storageExists(coverDest)) {
           coverUrl = `https://storage.googleapis.com/${bucketName}/${coverDest}`;
           console.log(`    Cover:  reuse existing ${coverDest}`);
+        } else if (await storageExists(legacyCoverDest)) {
+          coverUrl = `https://storage.googleapis.com/${bucketName}/${legacyCoverDest}`;
+          console.log(`    Cover:  reuse existing ${legacyCoverDest}`);
+          await mintCoverThumbs(coverPath, legacyCoverDest);
         } else {
           process.stdout.write("    Cover:  ");
-          coverUrl = await uploadFile(path.join(__dirname, "covers", row.coverFile), coverDest, getContentType(row.coverFile));
+          coverUrl = await uploadFile(coverPath, coverDest, getContentType(row.coverFile));
+          await mintCoverThumbs(coverPath, coverDest);
         }
       }
 
@@ -220,6 +268,7 @@ async function uploadTracks() {
       });
       existing.byName.set(key, ref.id);
       existing.byAudioFile.set(row.audioFile, ref.id);
+      existing.byAudioFile.set(audioName, ref.id);
       console.log("✓");
       ok++;
 

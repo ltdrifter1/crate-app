@@ -10,6 +10,7 @@ import {
   coverSrcSet,
   firebaseThumbUrl,
   markCloudflareResizeUnavailable,
+  allowOriginalCover,
 } from "../../lib/coverUrl";
 import DefaultSleeve from "./DefaultSleeve";
 
@@ -121,7 +122,12 @@ export default function CoverImage({
             return;
           }
           if (!raw && tier === "thumb" && displaySrc !== src) {
-            setTier("original");
+            if (allowOriginalCover(w)) {
+              setTier("original");
+              return;
+            }
+            setFailed(true);
+            onError?.(e);
             return;
           }
           setFailed(true);

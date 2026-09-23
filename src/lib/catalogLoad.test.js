@@ -134,8 +134,30 @@ describe("catalogLoad", () => {
     });
     expect(parsed.source).toBe("cdn");
     expect(parsed.tracks.map((t) => t.id)).toEqual(["b", "a"]);
+    expect(parsed.version).toBe(9);
     expect(catalogCdnEnabled()).toBe(true);
     expect(defaultCatalogCdnUrl()).toContain("catalog%2Fv1.json");
+  });
+
+  test("isNewerCatalog compares versions", () => {
+    const { isNewerCatalog } = require("./catalogLoad");
+    expect(isNewerCatalog(null, { tracks: [{ id: "a" }], version: 1 })).toBe(false);
+    expect(isNewerCatalog({ tracks: [{ id: "a" }], version: 2 }, { tracks: [{ id: "a" }], version: 1 })).toBe(true);
+    expect(isNewerCatalog({ tracks: [{ id: "a" }], version: 1 }, { tracks: [{ id: "a" }], version: 2 })).toBe(false);
+  });
+
+  test("loadCatalogFirstPaint prefers IDB then CDN and never touches Firestore", async () => {
+    const { loadCatalogFirstPaint } = require("./catalogLoad");
+    const fetchCdn = jest.fn(async () => ({
+      source: "cdn",
+      version: 3,
+      tracks: [{ id: "cdn" }],
+    }));
+    const fromCdn = await loadCatalogFirstPaint({ fetchCdn });
+    expect(fromCdn.source).toBe("cdn");
+    expect(fetchCdn).toHaveBeenCalled();
+    expect(getDocs).not.toHaveBeenCalled();
+    expect(getDoc).not.toHaveBeenCalled();
   });
 
   test("fetchCatalogCdn returns null on 404", async () => {

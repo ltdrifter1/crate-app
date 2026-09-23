@@ -1,18 +1,24 @@
 /**
  * Client billing — call Firebase Cloud Functions for Stripe Checkout / Portal.
  */
-import { getFunctions, httpsCallable } from "firebase/functions";
-import { app } from "../firebase";
+import { getFirebase } from "../firebase";
 import { PLAN_IDS, getAccessState, openStripeCheckout, paymentLinkForPlan } from "./entitlements";
 import { FUNCTIONS_REGION } from "./functionsRegion";
 
 let functionsInstance = null;
 
-function functions() {
+async function functions() {
   if (!functionsInstance) {
+    const { app } = await getFirebase();
+    const { getFunctions } = await import("firebase/functions");
     functionsInstance = getFunctions(app, FUNCTIONS_REGION);
   }
   return functionsInstance;
+}
+
+async function callable(name) {
+  const { httpsCallable } = await import("firebase/functions");
+  return httpsCallable(await functions(), name);
 }
 
 /**
@@ -33,8 +39,8 @@ export async function startCheckout(plan, { successUrl, cancelUrl } = {}) {
     `${origin}/?billing=cancel&plan=${normalized}`;
 
   try {
-    const callable = httpsCallable(functions(), "createCheckoutSession");
-    const { data } = await callable({
+    const call = await callable("createCheckoutSession");
+    const { data } = await call({
       plan: normalized,
       successUrl: success,
       cancelUrl: cancel,
@@ -57,8 +63,8 @@ export async function startCheckout(plan, { successUrl, cancelUrl } = {}) {
 
 export async function openBillingPortal({ returnUrl } = {}) {
   const origin = typeof window !== "undefined" ? window.location.origin : "";
-  const callable = httpsCallable(functions(), "createPortalSession");
-  const { data } = await callable({
+  const call = await callable("createPortalSession");
+  const { data } = await call({
     returnUrl: returnUrl || `${origin}/?billing=portal`,
   });
   if (data?.url) {
@@ -84,8 +90,8 @@ export function readBillingQuery(search = "") {
 export async function confirmCheckout(sessionId) {
   const id = String(sessionId || "").trim();
   if (!id) throw new Error("Missing checkout session");
-  const callable = httpsCallable(functions(), "confirmCheckoutSession");
-  const { data } = await callable({ sessionId: id });
+  const call = await callable("confirmCheckoutSession");
+  const { data } = await call({ sessionId: id });
   return data || {};
 }
 

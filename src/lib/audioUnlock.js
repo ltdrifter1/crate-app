@@ -6,7 +6,7 @@
 
 export const PLAY_REJECTED_TOAST = "Playback blocked. Tap play again.";
 export const MISSING_AUDIO_TOAST = "This cut has no audio yet.";
-export const AUDIO_LOAD_TIMEOUT_MS = 10000;
+export const AUDIO_LOAD_TIMEOUT_MS = 6000;
 
 export function isUnlockStubSrc(src) {
   const s = String(src || "").trim();
