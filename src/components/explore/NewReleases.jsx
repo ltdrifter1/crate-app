@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { color, fontDisplay, fontMono, homeSpace, motion, neons, radio } from "../../theme";
-import { newReleaseAlbums, newReleaseBays } from "../../lib/newReleases";
+import { newReleaseAlbums, newReleaseBays, rankNewReleaseAlbums } from "../../lib/newReleases";
 import ReleaseCard from "../home/ReleaseCard";
 
 const ALL = { id: null, num: 0, title: "All" };
@@ -15,13 +15,28 @@ export default function NewReleases({
   onPlayTrack = null,
 }) {
   const [channelId, setChannelId] = useState(null);
-  const bays = useMemo(() => newReleaseBays(tracks), [tracks]);
+  const ranked = useMemo(() => rankNewReleaseAlbums(tracks), [tracks]);
+  const bays = useMemo(() => newReleaseBays(tracks, ranked), [tracks, ranked]);
   const albums = useMemo(
-    () => newReleaseAlbums(tracks, { channelId }),
-    [tracks, channelId]
+    () => newReleaseAlbums(tracks, { channelId, ranked }),
+    [tracks, channelId, ranked]
   );
 
-  if (!albums.length && !bays.length) return null;
+  if (!albums.length && !bays.length) {
+    if (!tracks.length) return null;
+    return (
+      <p
+        style={{
+          margin: 0,
+          padding: `16px ${homeSpace.gutter}px`,
+          fontSize: 14,
+          color: color.muted,
+        }}
+      >
+        New sleeves land here when albums hit the crate.
+      </p>
+    );
+  }
 
   const signs = [ALL, ...bays];
   const open = (album) => {

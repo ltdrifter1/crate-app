@@ -11,6 +11,7 @@ import {
   recentlyPlayedTracks,
   resolveExploreFocus,
   tracksForMood,
+  exploreCatalogStats,
   GENRE_CHANNEL_ART,
 } from "./explore";
 import { CHANNEL_ART } from "./channelArt";
@@ -189,6 +190,12 @@ describe("explore collections", () => {
     expect(mood.label).toBe("Peak time");
     expect(mood.pool.every((t) => (t.energy ?? 5) >= 7)).toBe(true);
     expect(resolveExploreFocus({ type: "nope", id: "x" }, tracks)).toBeNull();
+  });
+
+  test("catalog stats count playable cuts without building the atlas", () => {
+    expect(exploreCatalogStats(tracks).cuts).toBe(8);
+    expect(exploreCatalogStats([{ id: "long", duration: 2000 }]).cuts).toBe(0);
+    expect(exploreCatalogStats(tracks).worlds).toBeUndefined();
   });
 
   test("artForChannelId does not pull bundled channel PNGs", () => {

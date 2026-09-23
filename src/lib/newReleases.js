@@ -2,7 +2,7 @@
  * New Releases — newest sleeves on the Planet, filtered by channel.
  * Arrival = catalog ingest (`createdAt`), not street date.
  */
-import { buildAlbums } from "./catalog";
+import { getCatalogEntities } from "./catalog";
 import { getSceneChannel, SCENE_CHANNELS, trackMatchesChannel } from "./sceneChannels";
 
 export const NEW_RELEASES_LIMIT = 24;
@@ -61,9 +61,9 @@ function albumInChannel(album, channel) {
   return (album.tracks || []).some((track) => trackMatchesChannel(track, channel));
 }
 
-function rankAlbums(tracks = []) {
+export function rankNewReleaseAlbums(tracks = []) {
   const indexMap = catalogIndexMap(tracks);
-  return buildAlbums(tracks)
+  return getCatalogEntities(tracks).albums
     .filter(isShopAlbum)
     .map((album) => ({
       ...album,
@@ -81,19 +81,21 @@ function rankAlbums(tracks = []) {
 /** Newest shop albums, optionally in one channel bay. */
 export function newReleaseAlbums(
   tracks = [],
-  { channelId = null, limit = NEW_RELEASES_LIMIT } = {}
+  { channelId = null, limit = NEW_RELEASES_LIMIT, ranked = null } = {}
 ) {
   const channel = channelId ? getSceneChannel(channelId) : null;
-  const ranked = rankAlbums(tracks).filter((album) => albumInChannel(album, channel));
-  return ranked.slice(0, Math.max(0, Number(limit) || NEW_RELEASES_LIMIT));
+  const list = (ranked || rankNewReleaseAlbums(tracks)).filter((album) =>
+    albumInChannel(album, channel)
+  );
+  return list.slice(0, Math.max(0, Number(limit) || NEW_RELEASES_LIMIT));
 }
 
 /** Channel hanging signs that currently have a new sleeve. */
-export function newReleaseBays(tracks = []) {
-  const ranked = rankAlbums(tracks);
-  if (!ranked.length) return [];
+export function newReleaseBays(tracks = [], ranked = null) {
+  const list = ranked || rankNewReleaseAlbums(tracks);
+  if (!list.length) return [];
   return SCENE_CHANNELS.filter((channel) =>
-    ranked.some((album) => albumInChannel(album, channel))
+    list.some((album) => albumInChannel(album, channel))
   ).map((channel) => ({
     id: channel.id,
     num: channel.num,

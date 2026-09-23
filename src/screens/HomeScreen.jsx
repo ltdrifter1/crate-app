@@ -329,7 +329,6 @@ function HomeScreen({
       {hasChannels && (
         <ChannelSurfingSection
           channels={channels}
-          tracks={tracks}
           activeChannelId={sceneChannelsActiveId}
           onTuneChannel={onTuneSceneChannel}
           first

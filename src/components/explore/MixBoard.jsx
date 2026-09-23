@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { color, fontDisplay, fontMono, homeSpace, motion, radio } from "../../theme";
-import { CAMELOT_SLOTS, parseCamelot, tracksForCamelotKey } from "../../lib/harmony";
+import { CAMELOT_SLOTS, parseCamelot } from "../../lib/harmony";
 import CoverImage from "../ui/CoverImage";
 
 function neighborNums(n) {
@@ -9,12 +9,28 @@ function neighborNums(n) {
   return [left, n, right];
 }
 
+/** One catalog pass — Mix used to filter the crate 24 times per render. */
+function camelotPools(tracks = []) {
+  const byKey = new Map();
+  for (const t of tracks) {
+    if ((t?.duration || 0) > 900) continue;
+    const parsed = parseCamelot(t.camelot);
+    if (!parsed) continue;
+    const key = `${parsed.num}${parsed.mode}`;
+    const list = byKey.get(key);
+    if (list) list.push(t);
+    else byKey.set(key, [t]);
+  }
+  return byKey;
+}
+
 /**
  * 12-key Mix wheel — unlit hardware for empty slots, A/B, neighbor glow.
  * Lit pads fill with a catalog sleeve so the board reads as records, not settings.
  */
 export default function MixBoard({ tracks = [], onPlayPool = null }) {
   const [selected, setSelected] = useState(null);
+  const pools = useMemo(() => camelotPools(tracks), [tracks]);
   if (!onPlayPool) return null;
 
   const selectedParsed = parseCamelot(selected);
@@ -35,8 +51,8 @@ export default function MixBoard({ tracks = [], onPlayPool = null }) {
       </p>
       <div className="pmp-mix-wheel">
         {CAMELOT_SLOTS.map((n, i) => {
-          const poolA = tracksForCamelotKey(tracks, `${n}A`);
-          const poolB = tracksForCamelotKey(tracks, `${n}B`);
+          const poolA = pools.get(`${n}A`) || [];
+          const poolB = pools.get(`${n}B`) || [];
           const lit = poolA.length + poolB.length > 0;
           const neighbor = hotNums.includes(n);
           const sleeve =
