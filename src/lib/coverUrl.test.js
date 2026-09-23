@@ -70,4 +70,11 @@ describe("coverUrl", () => {
     expect(coverDisplayUrl(src, { width: 168, mode: "cf" })).not.toBe(src);
     expect(coverSrcSet(src, 168, { mode: "cf" })).toMatch(/_200x200|_400x400/);
   });
+
+  test("allowOriginalCover is only for large sleeves", () => {
+    const { allowOriginalCover } = require("./coverUrl");
+    expect(allowOriginalCover(80)).toBe(false);
+    expect(allowOriginalCover(168)).toBe(false);
+    expect(allowOriginalCover(640)).toBe(true);
+  });
 });

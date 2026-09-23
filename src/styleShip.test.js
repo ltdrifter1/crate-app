@@ -176,7 +176,11 @@ test("premium drivetrain: one chassis, self-hosted Plex, no lucide", () => {
   expect(app).toMatch(/\{innerApp\}/);
   expect(app).toMatch(/runWhenIdle\(loadExploreScreen/);
   expect(app).toMatch(/dismissBootSplash/);
-  expect(app).toMatch(/if \(authLoading\) \{\s*return null;/);
+  expect(app).toMatch(/bootBlocked/);
+  expect(app).toMatch(/loadCatalogFirstPaint/);
+  expect(app).toMatch(/createAudioPair/);
+  expect(app).toMatch(/GuestMemberGate/);
+  expect(app).not.toMatch(/if \(!firebaseUser\) return \(/);
 
   const html = fs.readFileSync(path.join(root, "public/index.html"), "utf8");
   expect(html).not.toMatch(/fonts\.googleapis/);
@@ -194,4 +198,7 @@ test("premium drivetrain: one chassis, self-hosted Plex, no lucide", () => {
   expect(fs.existsSync(path.join(root, "public/fonts/ibm-plex-sans-400.woff2"))).toBe(true);
   expect(fs.existsSync(path.join(root, "src/lib/audioEngine.js"))).toBe(true);
   expect(fs.existsSync(path.join(root, "functions/lib/catalogJson.js"))).toBe(true);
+  expect(fs.existsSync(path.join(root, "public/sw.js"))).toBe(true);
+  expect(fs.readFileSync(path.join(root, "src/firebase.js"), "utf8")).toMatch(/export function getFirebase/);
+  expect(fs.readFileSync(path.join(root, "functions/lib/catalogJson.js"), "utf8")).toMatch(/contentEncoding:\s*"gzip"/);
 });

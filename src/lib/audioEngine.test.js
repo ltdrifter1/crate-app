@@ -3,6 +3,7 @@ import {
   READY_TO_PLAY,
   canInstantPromote,
   configureAudioElement,
+  createAudioPair,
   elementSrc,
   equalPowerVolumes,
   fadeSecondsForMode,
@@ -101,8 +102,17 @@ describe("audioEngine", () => {
     expect(el.playsInline).toBe(true);
   });
 
-  test("elementSrc prefers the src attribute", () => {
-    const el = fakeAudio({ src: "https://cdn.example/z.mp3" });
-    expect(elementSrc(el)).toBe("https://cdn.example/z.mp3");
+  test("createAudioPair returns configured A/B decks", () => {
+    const orig = global.Audio;
+    global.Audio = function AudioStub() {
+      return fakeAudio();
+    };
+    try {
+      const pair = createAudioPair();
+      expect(pair.primary.preload).toBe("auto");
+      expect(pair.standby.volume).toBe(0);
+    } finally {
+      global.Audio = orig;
+    }
   });
 });
