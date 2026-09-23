@@ -1,10 +1,6 @@
 import { useMemo, useRef, useState } from "react";
 import { collection, deleteDoc, doc, getDocs, orderBy, query, setDoc, updateDoc } from "firebase/firestore";
 import { getFirebase } from "../firebase";
-
-async function adminDb() {
-  return (await getFirebase()).db;
-}
 import Icon from "../components/ui/Icon";
 import VirtualList from "../components/ui/VirtualList";
 import { AlbumArt } from "../components/listen/AlbumArt";
@@ -22,6 +18,10 @@ import {
   glass,
   radius,
 } from "../theme";
+
+async function adminDb() {
+  return (await getFirebase()).db;
+}
 
 const SectionLabel = ({ children, style = {} }) => (
   <div style={{ fontSize: 13, fontWeight: 650, letterSpacing: -0.2, color: color.ink, marginBottom: 12, fontFamily: fontDisplay, ...style }}>
