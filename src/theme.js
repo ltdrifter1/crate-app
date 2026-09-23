@@ -387,10 +387,10 @@ export const glass = {
   borderSoft: "rgba(61, 70, 84, 0.10)",
   borderFaint: "rgba(61, 70, 84, 0.08)",
   highlight: `rgba(${SPEC}, 0.62)`,
-  blur: "blur(40px) saturate(1.16)",
-  blurSoft: "blur(24px) saturate(1.1)",
-  blurHeavy: "blur(56px) saturate(1.18)",
-  blurEdge: "blur(28px) saturate(1.12)",
+  blur: "none",
+  blurSoft: "blur(12px) saturate(1.08)",
+  blurHeavy: "blur(18px) saturate(1.1)",
+  blurEdge: "blur(14px) saturate(1.08)",
   shadow: `0 14px 36px rgba(${SHADE}, 0.22), 0 2px 8px rgba(${SHADE}, 0.14)`,
   shadowSoft: `0 8px 22px rgba(${SHADE}, 0.16)`,
   shadowLift: `0 18px 40px rgba(${SHADE}, 0.24), 0 4px 12px rgba(${SHADE}, 0.14)`,
@@ -444,6 +444,8 @@ export function hardwareKey(opts = { pressed: false, size: "md" }) {
     textTransform: "none",
     cursor: "pointer",
     WebkitTapHighlightColor: "transparent",
+    transition: "transform 0.08s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.08s ease",
+    transform: pressed ? "scale(0.97)" : "none",
   };
 }
 
@@ -626,16 +628,12 @@ export const panel = {
   border: `1px solid ${glass.borderSoft}`,
   borderRadius: radius.lg,
   boxShadow: `inset 0 1px 0 ${glass.highlight}, ${glass.shadowSoft}`,
-  backdropFilter: glass.blur,
-  WebkitBackdropFilter: glass.blur,
 };
 
 export const panelQuiet = {
   background: glass.fillQuiet,
   border: `1px solid ${glass.borderFaint}`,
   borderRadius: radius.md,
-  backdropFilter: glass.blurSoft,
-  WebkitBackdropFilter: glass.blurSoft,
 };
 
 /** Sheet / modal glass surface. */

@@ -32,6 +32,7 @@ const {
   FREE_PLAYS_PER_DAY,
 } = require("./lib/listening");
 const { publishHomeLite } = require("./lib/homeLite");
+const { publishCatalogJson } = require("./lib/catalogJson");
 const { moderateNewMessage } = require("./lib/stationChat");
 
 if (!admin.apps.length) {
@@ -466,10 +467,16 @@ function scheduleHomeLiteRebuild() {
   if (homeLiteTimer) return;
   homeLiteTimer = setTimeout(async () => {
     homeLiteTimer = null;
+    const db = admin.firestore();
     try {
-      await publishHomeLite(admin.firestore(), { FieldValue: admin.firestore.FieldValue });
+      await publishHomeLite(db, { FieldValue: admin.firestore.FieldValue });
     } catch (err) {
       console.error("rebuildHomeLite failed", err);
+    }
+    try {
+      await publishCatalogJson(db, admin.storage().bucket());
+    } catch (err) {
+      console.error("publishCatalogJson failed", err);
     }
   }, 8000);
 }

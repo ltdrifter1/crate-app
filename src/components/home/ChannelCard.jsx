@@ -33,7 +33,7 @@ function ChannelArt({
     );
   }
 
-  return <DefaultSleeve size={size} />;
+  return <DefaultSleeve size={size} color={channel?.accent || ""} />;
 }
 
 export default function ChannelCard({

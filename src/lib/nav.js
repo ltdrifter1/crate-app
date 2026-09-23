@@ -27,6 +27,13 @@ export const SIDEBAR_TOOLS = [
 
 const TAB_IDS = new Set(PRIMARY_TABS.map((t) => t.id));
 
+/** Dock tabs stay mounted so sleeves / scroll do not reload on return. */
+export const KEEP_ALIVE_SCREENS = PRIMARY_TABS.map((t) => t.id);
+
+export function isKeepAliveScreen(screen) {
+  return TAB_IDS.has(screen);
+}
+
 /**
  * Map any screen (including Charts, Search, artist/album) to the dock tab
  * that should appear selected.

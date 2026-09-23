@@ -120,4 +120,46 @@ describe("catalogLoad", () => {
     expect(merged[0].id).toBe("hot");
     expect(merged.map((t) => t.id)).toEqual(["hot", "n1"]);
   });
+
+  test("parseCatalogCdnPayload sorts and requires ids", () => {
+    const { parseCatalogCdnPayload, catalogCdnEnabled, defaultCatalogCdnUrl } = require("./catalogLoad");
+    expect(parseCatalogCdnPayload({ tracks: [] })).toBeNull();
+    const parsed = parseCatalogCdnPayload({
+      ts: 9,
+      tracks: [
+        { id: "a", title: "A", createdAt: { seconds: 1 } },
+        { id: "b", title: "B", createdAt: { seconds: 8 } },
+        { title: "no-id" },
+      ],
+    });
+    expect(parsed.source).toBe("cdn");
+    expect(parsed.tracks.map((t) => t.id)).toEqual(["b", "a"]);
+    expect(catalogCdnEnabled()).toBe(true);
+    expect(defaultCatalogCdnUrl()).toContain("catalog%2Fv1.json");
+  });
+
+  test("fetchCatalogCdn returns null on 404", async () => {
+    const { fetchCatalogCdn } = require("./catalogLoad");
+    const fetchImpl = jest.fn(async () => ({ ok: false }));
+    expect(await fetchCatalogCdn({ fetchImpl, timeoutMs: 50 })).toBeNull();
+  });
+
+  test("fetchCatalogTracks prefers CDN JSON over Firestore", async () => {
+    const { fetchCatalogTracks } = require("./catalogLoad");
+    const orig = global.fetch;
+    global.fetch = jest.fn(async () => ({
+      ok: true,
+      json: async () => ({
+        ts: 1,
+        tracks: [{ id: "cdn", title: "From CDN", createdAt: { seconds: 2 } }],
+      }),
+    }));
+    try {
+      const tracks = await fetchCatalogTracks({});
+      expect(tracks.map((t) => t.id)).toEqual(["cdn"]);
+      expect(getDocs).not.toHaveBeenCalled();
+    } finally {
+      global.fetch = orig;
+    }
+  });
 });

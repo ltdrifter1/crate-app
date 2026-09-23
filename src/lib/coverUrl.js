@@ -131,7 +131,8 @@ export function coverDisplayUrl(src, opts = {}) {
   const width = coverResizeWidth(opts.width || 168, opts.dpr);
   const quality = opts.quality;
   if (mode === "firebase") return firebaseThumbUrl(src, width);
-  if (!cloudflareResizeOk) return src;
+  // One CF 404 turns the session onto Firebase thumbs — never originals on rails.
+  if (!cloudflareResizeOk) return firebaseThumbUrl(src, width);
   return cloudflareImageUrl(src, { width, quality });
 }
 
@@ -139,7 +140,6 @@ export function coverDisplayUrl(src, opts = {}) {
 export function coverSrcSet(src, cssPx, opts = {}) {
   if (!src) return "";
   const mode = opts.mode || envResizeMode();
-  if (mode === "cf" && !cloudflareResizeOk) return "";
   const one = coverDisplayUrl(src, { ...opts, width: cssPx, dpr: 1 });
   const two = coverDisplayUrl(src, { ...opts, width: cssPx, dpr: 2 });
   if (!one || one === two) return "";

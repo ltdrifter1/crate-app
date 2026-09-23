@@ -59,4 +59,11 @@ describe("product nav IA", () => {
       "profile",
     ]);
   });
+
+  test("dock tabs are keep-alive screens", () => {
+    const { KEEP_ALIVE_SCREENS, isKeepAliveScreen } = require("./nav");
+    expect(KEEP_ALIVE_SCREENS).toEqual(["home", "explore", "favorites", "profile"]);
+    expect(isKeepAliveScreen("home")).toBe(true);
+    expect(isKeepAliveScreen("search")).toBe(false);
+  });
 });

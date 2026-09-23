@@ -166,3 +166,32 @@ test("ice phosphor is the play pip, dock LCD, Mix/Energy sleeves, and poster sta
   expect(energy).toMatch(/room\.photo/);
   expect(energy).toMatch(/CoverImage/);
 });
+
+test("premium drivetrain: one chassis, self-hosted Plex, no lucide", () => {
+  const app = fs.readFileSync(path.join(root, "src/App.jsx"), "utf8");
+  expect((app.match(/<HomeScreen /g) || []).length).toBe(1);
+  expect(app).toMatch(/keepAlive/);
+  expect(app).toMatch(/from "\.\/lib\/audioEngine"/);
+  expect(app).toMatch(/from "\.\/lib\/mediaSession"/);
+  expect(app).toMatch(/\{innerApp\}/);
+  expect(app).toMatch(/runWhenIdle\(loadExploreScreen/);
+  expect(app).toMatch(/dismissBootSplash/);
+  expect(app).toMatch(/if \(authLoading\) \{\s*return null;/);
+
+  const html = fs.readFileSync(path.join(root, "public/index.html"), "utf8");
+  expect(html).not.toMatch(/fonts\.googleapis/);
+  expect(html).toMatch(/ibm-plex-sans-400\.woff2/);
+  expect(html).toMatch(/font-display:\s*optional/);
+  expect(html).toMatch(/id="boot-splash"/);
+  expect(html.indexOf('id="boot-splash"')).toBeLessThan(html.indexOf('id="root"'));
+
+  const pkg = JSON.parse(fs.readFileSync(path.join(root, "package.json"), "utf8"));
+  expect(pkg.dependencies["lucide-react"]).toBeUndefined();
+
+  const theme = fs.readFileSync(path.join(root, "src/theme.js"), "utf8");
+  expect(theme).toMatch(/blur:\s*"none"/);
+
+  expect(fs.existsSync(path.join(root, "public/fonts/ibm-plex-sans-400.woff2"))).toBe(true);
+  expect(fs.existsSync(path.join(root, "src/lib/audioEngine.js"))).toBe(true);
+  expect(fs.existsSync(path.join(root, "functions/lib/catalogJson.js"))).toBe(true);
+});

@@ -255,8 +255,8 @@ body::before { display: none; }
     inset 0 1px 0 rgba(255,255,255,0.74),
     inset 0 -3px 8px rgba(58,66,80,0.16),
     0 10px 24px rgba(58,66,80,0.12);
-  backdrop-filter: blur(28px) saturate(1.18);
-  -webkit-backdrop-filter: blur(28px) saturate(1.18);
+  backdrop-filter: blur(16px) saturate(1.12);
+  -webkit-backdrop-filter: blur(16px) saturate(1.12);
 }
 .pmp-deck-plate::before {
   content: "";
@@ -305,6 +305,9 @@ body::before { display: none; }
   border-radius: inherit;
   pointer-events: none;
   background: linear-gradient(135deg, rgba(255,255,255,0.5) 0%, transparent 42%, rgba(58,66,80,0.1) 100%);
+}
+.pmp-hw-key:active:not(.pmp-play-planet) {
+  transform: scale(0.97);
 }
 .pmp-hw-key > * {
   position: relative;
