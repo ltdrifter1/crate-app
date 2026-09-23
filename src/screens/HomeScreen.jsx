@@ -16,7 +16,7 @@ import { getSceneChannel, SCENE_CHANNELS } from "../lib/sceneChannels";
 import { buildHomeCollections } from "../lib/homeCollections";
 import { rankChannelsForTaste } from "../lib/onboardingTaste";
 import { runAfterPaint } from "../lib/afterPaint";
-import { useCurrentTrack } from "../usePlayerTransport";
+import { useCurrentTrack, useTransportTrackId } from "../usePlayerTransport";
 import HomeHeader from "../components/home/HomeHeader";
 import HeroPlayerCard from "../components/home/HeroPlayerCard";
 import MusicSection, { Rail } from "../components/home/MusicSection";
@@ -212,149 +212,63 @@ function EmptyShelfCard({ title, body, actionLabel = null, onAction = null }) {
   );
 }
 
-function HomeScreen({
-  tracks, onPlayRadio, onTogglePlay, onPlayTrack, onLike,
-  isRadioMode, playlistCtx, signalLabel, hypnoPocket = false,
-  mixLane, radioPreview = null, radioNext = null, onSkipRadio, onPrevRadio,
-  catalogError = null, onRetryCatalog,
-  catalogLoading = false,
+function HomeNowPlaying({
+  radioPreview,
+  radioNext,
+  liveShow,
+  activeChannel,
+  daypart,
+  isRadioMode,
+  playDisabled,
+  onPlayRadio,
+  onTogglePlay,
+  onSkipRadio,
+  onPrevRadio,
   onOpenPlayer,
-  onStageVisibilityChange = null,
-  onSeek = null,
-  countdown = [],
-  onTuneCountdown = null,
-  daypart = null,
-  tickerText = "",
-  onDislike = null,
-  onDedicate = null,
-  dedicationFlash = null,
-  onClearDedication = null,
-  airing = null,
-  programGuide = [],
-  activeShowId = null,
-  onTuneShow = null,
-  showBumper = null,
-  channelShow = null,
-  sceneChannelsActiveId = null,
-  onTuneSceneChannel = null,
-  // Navigation (broadcast home)
-  onOpenSearch = null,
-  onOpenCharts = null,
-  onOpenMenu = null,
-  taste = null,
-  userKey = "",
-  recentTrackIds = [],
-  dislikeTaste = null,
+  onStageVisibilityChange,
+  onSeek,
+  tickerText,
+  onDislike,
 }) {
   const currentTrack = useCurrentTrack();
-  const activeId = currentTrack?.id;
-  const playableCount = countPlayableTracks(tracks);
-  const catalogEmpty = !catalogLoading && !catalogError && tracks.length === 0;
-  const catalogDepleted = !catalogLoading && !catalogError && tracks.length > 0 && playableCount === 0;
-  const catalogReady = !catalogLoading && !catalogError && !catalogEmpty && !catalogDepleted;
-  const shelvesReady = useAfterFirstPaint();
-
-  const channels = useMemo(
-    () => rankChannelsForTaste(SCENE_CHANNELS, taste),
-    [taste]
+  return (
+    <HeroPlayerCard
+      track={currentTrack}
+      previewTrack={radioPreview}
+      upNextTrack={radioNext}
+      liveShow={liveShow}
+      sceneChannel={activeChannel}
+      daypart={daypart}
+      isRadioMode={isRadioMode}
+      playDisabled={playDisabled}
+      onPlay={onPlayRadio}
+      onTogglePlay={onTogglePlay}
+      onSkip={onSkipRadio}
+      onPrev={onPrevRadio}
+      onDislike={currentTrack ? onDislike : null}
+      onOpen={onOpenPlayer}
+      onVisibilityChange={onStageVisibilityChange}
+      onSeek={onSeek}
+      tickerText={tickerText}
+    />
   );
+}
 
+function HomeEditorial({
+  tracks,
+  countdown,
+  onPlayTrack,
+  onOpenCharts,
+  onTuneCountdown,
+}) {
+  const activeId = useTransportTrackId();
   const editorial = useMemo(() => buildHomeCollections(tracks), [tracks]);
-
   const topRequested = useMemo(() => countdown.slice(0, 5), [countdown]);
-  const liveShow = channelShow || airing?.show || null;
-  const activeChannel = sceneChannelsActiveId
-    ? getSceneChannel(sceneChannelsActiveId)
-    : null;
-  const hasTonight = !!(airing?.show || programGuide.length > 0);
   const featuredSize = homeSpace.tileFeatured;
-  const hasChannels = channels.length > 0;
 
   return (
-    <div
-      className="pmp-home-mtv"
-      style={{
-        position: "relative",
-        paddingBottom: 24,
-        maxWidth: 1100,
-        margin: "0 auto",
-        width: "100%",
-      }}
-    >
-      <HomeHeader
-        onOpenSearch={onOpenSearch}
-        onOpenMenu={onOpenMenu}
-      />
-
-      {/* NOW PLAYING — device stage first */}
-      <div
-        style={{
-          padding: `0 ${homeSpace.gutter}px`,
-          marginTop: homeSpace.sectionGapFirst,
-          animation: `rise 0.5s ${motion.ease} 0.04s both`,
-        }}
-      >
-        <HeroPlayerCard
-          track={currentTrack}
-          previewTrack={radioPreview}
-          upNextTrack={radioNext}
-          liveShow={liveShow}
-          sceneChannel={activeChannel}
-          daypart={daypart}
-          isRadioMode={isRadioMode}
-          playDisabled={!catalogReady}
-          onPlay={onPlayRadio}
-          onTogglePlay={onTogglePlay}
-          onSkip={onSkipRadio}
-          onPrev={onPrevRadio}
-          onLike={onLike}
-          onDislike={currentTrack ? onDislike : null}
-          onOpen={onOpenPlayer}
-          onVisibilityChange={onStageVisibilityChange}
-          onSeek={onSeek}
-          tickerText={tickerText}
-        />
-      </div>
-
-      {(catalogError || catalogEmpty || catalogDepleted) && (
-        <HomeCatalogStatus
-          error={catalogError}
-          isEmpty={catalogEmpty || catalogDepleted}
-          playableCount={playableCount}
-          totalCount={tracks.length}
-          onRetry={onRetryCatalog}
-        />
-      )}
-
-      {hasChannels && (
-        <ChannelSurfingSection
-          channels={channels}
-          activeChannelId={sceneChannelsActiveId}
-          onTuneChannel={onTuneSceneChannel}
-          first
-          delay={0.05}
-        />
-      )}
-
-      {shelvesReady && hasTonight && (
-        <div style={{ contentVisibility: "auto", containIntrinsicSize: "320px" }}>
-          <Suspense fallback={null}>
-            <TonightDeck
-              airing={airing}
-              guide={programGuide}
-              bumper={showBumper}
-              activeShowId={activeShowId}
-              tuned={false}
-              first={false}
-              showNowPlaying={!!(airing?.show && !(activeShowId === airing.show.id && currentTrack))}
-              onTuneIn={() => onTuneShow?.(airing?.show)}
-              onSelectShow={(show) => onTuneShow?.(show)}
-            />
-          </Suspense>
-        </div>
-      )}
-
-      {shelvesReady && catalogReady && editorial[0]?.tracks?.length > 0 && (
+    <>
+      {editorial[0]?.tracks?.length > 0 && (
         <CrateSpread
           title={editorial[0].label}
           subtitle={editorial[0].story}
@@ -364,9 +278,8 @@ function HomeScreen({
         />
       )}
 
-      {shelvesReady && catalogReady &&
-        editorial.slice(editorial[0]?.tracks?.length ? 1 : 0).map((col, i) => (
-          <div key={col.id} style={{ contentVisibility: "auto", containIntrinsicSize: "280px" }}>
+      {editorial.slice(editorial[0]?.tracks?.length ? 1 : 0).map((col, i) => (
+        <div key={col.id} style={{ contentVisibility: "auto", containIntrinsicSize: "280px" }}>
           <MusicSection
             title={col.label}
             subtitle={col.story}
@@ -384,10 +297,10 @@ function HomeScreen({
               ))}
             </Rail>
           </MusicSection>
-          </div>
-        ))}
+        </div>
+      ))}
 
-      {shelvesReady && catalogReady && topRequested.length > 0 && (
+      {topRequested.length > 0 && (
         editorial[0]?.tracks?.length ? (
           <div style={{ contentVisibility: "auto", containIntrinsicSize: "280px" }}>
           <MusicSection
@@ -436,15 +349,160 @@ function HomeScreen({
           />
         )
       )}
+    </>
+  );
+}
+
+function HomeScreen({
+  tracks,
+  onPlayRadio,
+  onTogglePlay,
+  onPlayTrack,
+  isRadioMode,
+  radioPreview = null,
+  radioNext = null,
+  onSkipRadio,
+  onPrevRadio,
+  catalogError = null,
+  onRetryCatalog,
+  catalogLoading = false,
+  onOpenPlayer,
+  onStageVisibilityChange = null,
+  onSeek = null,
+  countdown = [],
+  onTuneCountdown = null,
+  daypart = null,
+  tickerText = "",
+  onDislike = null,
+  airing = null,
+  programGuide = [],
+  activeShowId = null,
+  onTuneShow = null,
+  showBumper = null,
+  channelShow = null,
+  sceneChannelsActiveId = null,
+  onTuneSceneChannel = null,
+  onOpenSearch = null,
+  onOpenCharts = null,
+  onOpenMenu = null,
+  taste = null,
+}) {
+  const playableCount = useMemo(() => countPlayableTracks(tracks), [tracks]);
+  const catalogEmpty = !catalogLoading && !catalogError && tracks.length === 0;
+  const catalogDepleted = !catalogLoading && !catalogError && tracks.length > 0 && playableCount === 0;
+  const catalogReady = !catalogLoading && !catalogError && !catalogEmpty && !catalogDepleted;
+  const shelvesReady = useAfterFirstPaint();
+
+  const channels = useMemo(
+    () => rankChannelsForTaste(SCENE_CHANNELS, taste),
+    [taste]
+  );
+
+  const liveShow = channelShow || airing?.show || null;
+  const activeChannel = sceneChannelsActiveId
+    ? getSceneChannel(sceneChannelsActiveId)
+    : null;
+  const hasTonight = !!(airing?.show || programGuide.length > 0);
+  const hasChannels = channels.length > 0;
+  const hasRequested = countdown.length > 0;
+
+  return (
+    <div
+      className="pmp-home-mtv"
+      style={{
+        position: "relative",
+        paddingBottom: 24,
+        maxWidth: 1100,
+        margin: "0 auto",
+        width: "100%",
+      }}
+    >
+      <HomeHeader
+        onOpenSearch={onOpenSearch}
+        onOpenMenu={onOpenMenu}
+      />
+
+      <div
+        style={{
+          padding: `0 ${homeSpace.gutter}px`,
+          marginTop: homeSpace.sectionGapFirst,
+          animation: `rise 0.5s ${motion.ease} 0.04s both`,
+        }}
+      >
+        <HomeNowPlaying
+          radioPreview={radioPreview}
+          radioNext={radioNext}
+          liveShow={liveShow}
+          activeChannel={activeChannel}
+          daypart={daypart}
+          isRadioMode={isRadioMode}
+          playDisabled={!catalogReady}
+          onPlayRadio={onPlayRadio}
+          onTogglePlay={onTogglePlay}
+          onSkipRadio={onSkipRadio}
+          onPrevRadio={onPrevRadio}
+          onOpenPlayer={onOpenPlayer}
+          onStageVisibilityChange={onStageVisibilityChange}
+          onSeek={onSeek}
+          tickerText={tickerText}
+          onDislike={onDislike}
+        />
+      </div>
+
+      {(catalogError || catalogEmpty || catalogDepleted) && (
+        <HomeCatalogStatus
+          error={catalogError}
+          isEmpty={catalogEmpty || catalogDepleted}
+          playableCount={playableCount}
+          totalCount={tracks.length}
+          onRetry={onRetryCatalog}
+        />
+      )}
+
+      {hasChannels && (
+        <ChannelSurfingSection
+          channels={channels}
+          activeChannelId={sceneChannelsActiveId}
+          onTuneChannel={onTuneSceneChannel}
+          first
+          delay={0.05}
+        />
+      )}
+
+      {shelvesReady && hasTonight && (
+        <div style={{ contentVisibility: "auto", containIntrinsicSize: "320px" }}>
+          <Suspense fallback={null}>
+            <TonightDeck
+              airing={airing}
+              guide={programGuide}
+              bumper={showBumper}
+              activeShowId={activeShowId}
+              tuned={false}
+              first={false}
+              showNowPlaying={!!(airing?.show && activeShowId === airing.show.id)}
+              onTuneIn={() => onTuneShow?.(airing?.show)}
+              onSelectShow={(show) => onTuneShow?.(show)}
+            />
+          </Suspense>
+        </div>
+      )}
+
+      {shelvesReady && catalogReady && (
+        <HomeEditorial
+          tracks={tracks}
+          countdown={countdown}
+          onPlayTrack={onPlayTrack}
+          onOpenCharts={onOpenCharts}
+          onTuneCountdown={onTuneCountdown}
+        />
+      )}
 
       {catalogLoading && <HomeStandBy />}
 
-      {/* Catalog is fine but nothing editorial to show — quiet empty state */}
       {catalogReady &&
         channels.length === 0 &&
         !hasTonight &&
-        topRequested.length === 0 &&
-        editorial.length === 0 && (
+        !hasRequested && (
           <div style={{ marginTop: 32 }}>
             <EmptyShelfCard
               title="Nothing here yet"

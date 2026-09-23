@@ -43,9 +43,10 @@ import {
 } from "./lib/audioEngine";
 import { bindMediaSessionHandlers, syncMediaSession } from "./lib/mediaSession";
 import { dismissBootSplash } from "./lib/bootSplash";
+import { peekAuthSession } from "./lib/authBoot";
 import { explainPick } from "./lib/explain";
 import { fetchCatalogTracks, fetchHomeLite, isCatalogCacheFresh, readCatalogIdb, writeCatalogIdb, HOME_LITE_LIMIT } from "./lib/catalogLoad";
-import { hydrateCatalogTracks } from "./lib/catalogHydrate";
+import { adoptCatalogTracks, hydrateCatalogTracks, patchTrackById } from "./lib/catalogHydrate";
 import { runAfterPaint, runAfterDelay, runWhenIdle } from "./lib/afterPaint";
 import { slugify, findArtist, findAlbum } from "./lib/catalog";
 import {
@@ -763,6 +764,7 @@ function isDevPreviewHash() {
 export default function App() {
   // ── Auth (login/signup/logout + user profile) ───────────────────────────
   const { firebaseUser, profile, setProfile, loading: authLoading, authError, clearAuthError, signUp, logIn, logOut, refreshProfile, signInWithGoogle, sendPhoneOTP, verifyPhoneOTP, resetPassword } = useAuth();
+  const [sessionLikely] = useState(() => peekAuthSession());
   const profileTaste = useMemo(
     () => tasteFromProfile(profile || {}),
     [
@@ -821,6 +823,19 @@ export default function App() {
     }
     navigate(buildPath("explore"));
   }, [navigate, location.key]);
+
+  const openPlayer = useCallback(() => setImmersive(true), []);
+  const openMenu = useCallback(() => setShowNavDrawer(true), []);
+  const openCharts = useCallback(() => setScreen("charts"), [setScreen]);
+  const openLibrary = useCallback(() => setScreen("favorites"), [setScreen]);
+  const openSearchFromHome = useCallback(() => {
+    setSearchReturn("home");
+    setScreen("search");
+  }, [setScreen]);
+  const openSearchFromExplore = useCallback(() => {
+    setSearchReturn("explore");
+    setScreen("search");
+  }, [setScreen]);
 
   // Retired surfaces → Home
   useEffect(() => {
@@ -912,6 +927,8 @@ export default function App() {
   const [afterglow, setAfterglow] = useState(null);
   const [resonanceTrack, setResonanceTrack] = useState(null); // Hypno Vision source
   const [sessionMeta, setSessionMeta] = useState(null); // { tracks, startTime, kind, label }
+  const sessionMetaRef = useRef(null);
+  useEffect(() => { sessionMetaRef.current = sessionMeta; }, [sessionMeta]);
   const [showQueue, setShowQueue] = useState(false);
   const [volume, setVolume] = useState(() => {
     try {
@@ -1043,6 +1060,8 @@ export default function App() {
 
   // Hero preview — the track Listen will actually start (stable until pool changes)
   const [heroPreview, setHeroPreview] = useState(null);
+  const heroPreviewRef = useRef(null);
+  useEffect(() => { heroPreviewRef.current = heroPreview; }, [heroPreview]);
   useEffect(() => {
     const pool = radioPool();
     if (!pool.length) { setHeroPreview(null); return; }
@@ -1275,15 +1294,21 @@ export default function App() {
   // ── Catalog cache — IndexedDB first, localStorage fallback for warm starts ─
   const CATALOG_CACHE_KEY = `${brandStoragePrefix()}.catalogCache.v1`;
   const profileForLikesRef = useRef(null);
+  const firebaseUserRef = useRef(null);
   useEffect(() => { profileForLikesRef.current = profile; }, [profile]);
+  useEffect(() => { firebaseUserRef.current = firebaseUser; }, [firebaseUser]);
   const applyLikedFlags = useCallback((list) => {
     const likedSet = new Set(profileForLikesRef.current?.likedTracks || []);
     const dislikedSet = new Set(profileForLikesRef.current?.dislikedTracks || []);
-    return list.map((t) => ({
-      ...t,
-      liked: likedSet.has(t.id),
-      disliked: dislikedSet.has(t.id),
-    }));
+    let changed = false;
+    const next = list.map((t) => {
+      const liked = likedSet.has(t.id);
+      const disliked = dislikedSet.has(t.id);
+      if (t.liked === liked && t.disliked === disliked) return t;
+      changed = true;
+      return { ...t, liked, disliked };
+    });
+    return changed ? next : list;
   }, []);
   const readCatalogCacheSync = useCallback(() => {
     try {
@@ -1326,7 +1351,7 @@ export default function App() {
       if (!full && !background) {
         const lite = await fetchHomeLite(db);
         if (lite.tracks.length) {
-          setTracks(applyLikedFlags(lite.tracks));
+          setTracks((prev) => adoptCatalogTracks(prev, applyLikedFlags(lite.tracks)));
           setTracksLoading(false);
           // Full catalog waits until Home images have a beat. Do not IDB-cache the lite slice.
           scheduleFullCatalog(8000);
@@ -1338,15 +1363,15 @@ export default function App() {
       const liked = applyLikedFlags(loaded);
       if (background) {
         const hydrated = applyLikedFlags(await hydrateCatalogTracks(loaded));
-        startTransition(() => setTracks(hydrated));
+        startTransition(() => setTracks((prev) => adoptCatalogTracks(prev, hydrated)));
         writeCatalogCache(hydrated);
       } else {
-        setTracks(liked);
+        setTracks((prev) => adoptCatalogTracks(prev, liked));
         setTracksLoading(false);
         runAfterPaint(() => {
           hydrateCatalogTracks(loaded).then((enriched) => {
             const hydrated = applyLikedFlags(enriched);
-            startTransition(() => setTracks(hydrated));
+            startTransition(() => setTracks((prev) => adoptCatalogTracks(prev, hydrated)));
             writeCatalogCache(hydrated);
           });
         });
@@ -1372,7 +1397,7 @@ export default function App() {
       if (cancelled) return;
       if (cached) {
         const list = cached.tracks;
-        setTracks(applyLikedFlags(list));
+        setTracks((prev) => adoptCatalogTracks(prev, applyLikedFlags(list)));
         setTracksLoading(false);
         if (list.length > HOME_LITE_LIMIT) catalogFullRef.current = true;
         const hydratedAlready = list[0] && Object.prototype.hasOwnProperty.call(list[0], "_scene");
@@ -1380,7 +1405,7 @@ export default function App() {
           stopHydrateRef.current = runAfterPaint(() => {
             hydrateCatalogTracks(list).then((enriched) => {
               if (cancelled) return;
-              setTracks(applyLikedFlags(enriched));
+              setTracks((prev) => adoptCatalogTracks(prev, applyLikedFlags(enriched)));
             });
           });
         }
@@ -1425,19 +1450,23 @@ export default function App() {
           _scenes: t._scenes,
         };
       });
-      return changed ? next : prev;
+      return changed ? adoptCatalogTracks(prev, next) : prev;
     });
     if (profile.playlists) setUserPlaylists(profile.playlists);
   }, [profile?.likedTracks, profile?.dislikedTracks, tracks.length]);
 
   // ── User object shaped like the rest of the app expects ─────────────────
-  const user = {
+  const user = useMemo(() => ({
     name:   profile?.displayName || "Listener",
     image:  profile?.profileImage || "",
     genres: profile?.genres || [],
     memberNumber: profile?.memberNumber,
     uid: profile?.uid || firebaseUser?.uid || "",
-  };
+  }), [profile?.displayName, profile?.profileImage, profile?.genres, profile?.memberNumber, profile?.uid, firebaseUser?.uid]);
+  const recentTrackIds = useMemo(
+    () => (profile?.recentTracks || []).map((r) => r.trackId || r),
+    [profile?.recentTracks]
+  );
 
   // Library playlists = user mixes + this month's Community Mix (everyone gets it)
   const libraryPlaylists = useMemo(() => {
@@ -1666,7 +1695,7 @@ export default function App() {
   const deckPairRef = useRef({ primary: null, standby: null });
 
   /** Must run inside a user gesture so both A/B elements can play later (crossfade). */
-  const unlockAudioElements = () => {
+  const unlockAudioElements = useCallback(() => {
     if (audioUnlockedRef.current) return;
     audioUnlockedRef.current = true;
     unlockingRef.current = true;
@@ -1701,7 +1730,7 @@ export default function App() {
         markDone();
       }
     });
-  };
+  }, []);
 
   // Keep a ref to isRadioMode so audio listeners can read the latest value
   const isRadioModeRef = useRef(false);
@@ -2188,12 +2217,12 @@ export default function App() {
   }, [volume]);
 
   // ── Playback actions ─────────────────────────────────────────────────────
-  const togglePlay = () => {
+  const togglePlay = useCallback(() => {
     setIsPlaying((p) => {
       if (!p) unlockAudioElements();
       return !p;
     });
-  };
+  }, [setIsPlaying, unlockAudioElements]);
 
   /** Server-trusted play accounting (meter + charts). Optimistic local meter. */
   const commitListeningPlay = useCallback((track) => {
@@ -2247,16 +2276,17 @@ export default function App() {
     return false;
   }, [profile, access]);
 
-  const playTrack = (track, q = null, opts = {}) => {
+  const playTrack = useCallback((track, q = null, opts = {}) => {
     if (!track) return;
     if (!hasPlayableAudio(track)) {
-      showToast(MISSING_AUDIO_TOAST);
+      showToastRef.current?.(MISSING_AUDIO_TOAST);
       return;
     }
     if (!guardFreePlay()) return;
     unlockAudioElements();
-    if (currentTrack && currentTrack.id !== track.id) {
-      playHistoryRef.current = [currentTrack, ...playHistoryRef.current].slice(0, 50);
+    const current = currentRef.current;
+    if (current && current.id !== track.id) {
+      playHistoryRef.current = [current, ...playHistoryRef.current].slice(0, 50);
     }
     // Quiet dig by default — only open Booth when asked (radio / session / explicit)
     const openImmersive = opts.immersive === true;
@@ -2281,7 +2311,12 @@ export default function App() {
     }
     logTrackPlay(track);
     commitListeningPlay(track);
-  };
+  }, [guardFreePlay, unlockAudioElements, setCurrent, setIsPlaying, preloadNextAudio, commitListeningPlay]);
+
+  const playFromLibrary = useCallback((t, pool) => {
+    setIsRadioMode(false);
+    playTrack(t, pool || tracksRef.current);
+  }, [playTrack]);
 
   const playPath = (path) => {
     if (!path?.playlist?.length) return;
@@ -2291,31 +2326,33 @@ export default function App() {
     showToast(`Walking “${path.title}”`);
   };
 
-  const playRadio = (seed = null, intentOverride = null) => {
+  const playRadio = useCallback((seed = null, intentOverride = null) => {
     if (!guardFreePlay()) return;
     unlockAudioElements();
     const liveBlock = resolveShowAt(new Date()).show;
+    const focus = listenFocusRef.current || {};
     // Default orb = tune the live VJ block (channel, not anonymous shuffle)
-    if (!seed && !intentOverride && liveBlock && !listenFocus.genre && !listenFocus.scene && !(tasteColdStart && profileTaste.seedChannelId)) {
+    if (!seed && !intentOverride && liveBlock && !focus.genre && !focus.scene && !(tasteColdStart && profileTaste.seedChannelId)) {
       playShowRef.current?.(liveBlock);
       return;
     }
     const resolved = intentOverride
-      ? resolveListenPool(tracks, intentOverride, { requireAudio: true, applyMixLane: true })
+      ? resolveListenPool(tracksRef.current, intentOverride, { requireAudio: true, applyMixLane: true })
       : radioResolved();
     const pool = resolved.tracks;
     if (!pool.length) return;
     const seedTrack = seed || null;
+    const preview = heroPreviewRef.current;
     // Honor the hero preview so "Up first" is what actually plays
-    const first = (!seedTrack && !intentOverride && heroPreview && pool.some(t => t.id === heroPreview.id))
-      ? heroPreview
+    const first = (!seedTrack && !intentOverride && preview && pool.some(t => t.id === preview.id))
+      ? preview
       : pickNextTrack(pool, null, recentlyPlayedRef.current, {
           ...radioPickOpts(),
           seedTrack,
-          tasteBlend: !(intentOverride?.genre || listenFocus.genre),
+          tasteBlend: !(intentOverride?.genre || focus.genre),
         }) || pool.find(t => (t.duration || 0) <= 900) || pool[0];
     if (!hasPlayableAudio(first)) {
-      showToast("This station is missing audio.");
+      showToastRef.current?.("This station is missing audio.");
       return;
     }
     setHypnoSeed(seedTrack);
@@ -2323,17 +2360,24 @@ export default function App() {
       activeShowIdRef.current = liveBlock.id;
       setActiveShowId(liveBlock.id);
     }
-    if (currentTrack) playHistoryRef.current = [currentTrack, ...playHistoryRef.current].slice(0, 50);
+    const current = currentRef.current;
+    if (current) playHistoryRef.current = [current, ...playHistoryRef.current].slice(0, 50);
     setCurrent(first); setIsPlaying(true); setProgress(0); setIsRadioMode(true); setQueue([]);
     setImmersive(false);
     setSessionMeta(null);
     if (!sessionStartRef.current) sessionStartRef.current = Date.now();
     logTrackPlay(first);
-    showToast(seedTrack ? "Near this" : (liveBlock?.intro || "What's in the mix?"));
+    showToastRef.current?.(seedTrack ? "Near this" : (liveBlock?.intro || "What's in the mix?"));
     commitListeningPlay(first);
     const upcoming = pickNextTrack(pool, first, recentlyPlayedRef.current, radioPickOpts());
     if (upcoming && upcoming.id !== first.id) preloadNextAudio(upcoming);
-  };
+  }, [guardFreePlay, unlockAudioElements, radioResolved, profileTaste, tasteColdStart, setCurrent, setIsPlaying, commitListeningPlay, preloadNextAudio]);
+
+  const listenFromExplore = useCallback((focus) => {
+    const next = { genre: focus.genre || null, scene: focus.scene || null };
+    setListenFocus(next);
+    playRadio(null, createListenIntent({ mixLane: mixLaneRef.current, ...next }));
+  }, [playRadio]);
 
   // Play a generated route / night as a queue — session ritual
   const playRoute = (routeTracks, kind = "night") => {
@@ -2370,26 +2414,24 @@ export default function App() {
     } catch(e) {}
   };
 
-  const handleSkip = () => {
-    // Only count as a skip if user manually skipped (not end-of-track auto-advance)
-    // We detect this by checking if progress < 95% of duration
+  const handleSkip = useCallback(() => {
+    const current = currentRef.current;
     const { progress, duration } = playerPlaybackStore.getState();
     const pct = duration > 0 ? progress / duration : 0;
-    if (currentTrack && firebaseUser && pct < 0.95) {
-      recordSkipOnFirestore(currentTrack.id);
-      // Also update local tracks state so analytics tab reflects it immediately
-      setTracks(prev => prev.map(t => t.id === currentTrack.id ? { ...t, skipCount: (t.skipCount||0)+1 } : t));
+    if (current && firebaseUserRef.current && pct < 0.95) {
+      recordSkipOnFirestore(current.id);
+      setTracks((prev) => patchTrackById(prev, current.id, (t) => ({ ...t, skipCount: (t.skipCount || 0) + 1 })));
     }
-    if (currentTrack) playHistoryRef.current = [currentTrack, ...playHistoryRef.current].slice(0, 50);
-    if (isRadioMode) {
+    if (current) playHistoryRef.current = [current, ...playHistoryRef.current].slice(0, 50);
+    if (isRadioModeRef.current) {
       const pending = pendingNextRef.current?.track;
       const pendingUrl = String(pending?.audioUrl || "").trim();
       const warmPending = pending
-        && pending.id !== currentTrack?.id
+        && pending.id !== current?.id
         && canInstantPromote(nextAudioRef.current, pendingUrl);
       const next = warmPending
         ? pending
-        : pickNextTrack(radioPool(), currentTrack, recentlyPlayedRef.current, radioPickOpts());
+        : pickNextTrack(radioPool(), current, recentlyPlayedRef.current, radioPickOpts());
       if (next) {
         setCurrent(next); setProgress(0); setIsPlaying(true);
         logTrackPlay(next);
@@ -2397,37 +2439,48 @@ export default function App() {
       }
       return;
     }
-    if (!queue.length) {
-      if (repeat === "one" && currentTrack) {
-        handleSeek(0);
+    const q = queueRef.current;
+    if (!q.length) {
+      if (repeatRef.current === "one" && current) {
+        setProgress(0);
+        if (audioRef.current) audioRef.current.currentTime = 0;
         setIsPlaying(true);
         return;
       }
       setIsPlaying(false);
-      if (sessionMeta) {
+      if (sessionMetaRef.current) {
         endSessionWithAfterglow(true);
         setImmersive(false);
       }
       return;
     }
-    const next = shuffle
-      ? queue[Math.floor(Math.random() * queue.length)]
-      : queue[0];
-    setQueue(repeat === "all" ? [...queue.filter(t=>t.id!==next.id), currentTrack] : queue.filter(t=>t.id!==next.id));
+    const next = shuffleRef.current
+      ? q[Math.floor(Math.random() * q.length)]
+      : q[0];
+    if (!next) {
+      setIsPlaying(false);
+      return;
+    }
+    const rest = q.filter((t) => t.id !== next.id);
+    const recycled = repeatRef.current === "all" && current
+      ? [...rest, current]
+      : rest;
+    setQueue(recycled);
     setCurrent(next); setProgress(0); setIsPlaying(true);
     logTrackPlay(next);
-  };
+    commitListeningPlay(next);
+    if (recycled[0]) preloadNextAudio(recycled[0]);
+  }, [radioPool, setCurrent, setIsPlaying, commitListeningPlay, preloadNextAudio]);
   // Keep ref in sync so the audio "ended" listener always calls the latest handleSkip
   handleSkipRef.current = handleSkip;
 
   // Seek: move the real audio position when the user drags the bar
-  const handleSeek = (seconds) => {
+  const handleSeek = useCallback((seconds) => {
     setProgress(seconds);
     if (audioRef.current) audioRef.current.currentTime = seconds;
-  };
+  }, [setProgress]);
 
-  // Prev: if more than 3 seconds in, restart the track; otherwise go to previous
-  const handlePrev = () => {
+  const handlePrev = useCallback(() => {
     if (audioRef.current && audioRef.current.currentTime > 3) {
       audioRef.current.currentTime = 0;
       setProgress(0);
@@ -2436,13 +2489,14 @@ export default function App() {
     const prev = playHistoryRef.current[0];
     if (prev) {
       playHistoryRef.current = playHistoryRef.current.slice(1);
-      if (currentTrack) setQueue(q => [currentTrack, ...q.filter(t => t.id !== currentTrack.id)]);
+      const current = currentRef.current;
+      if (current) setQueue((q) => [current, ...q.filter((t) => t.id !== current.id)]);
       setCurrent(prev); setProgress(0); setIsPlaying(true);
       return;
     }
     if (audioRef.current) audioRef.current.currentTime = 0;
     setProgress(0);
-  };
+  }, [setCurrent, setIsPlaying]);
   handlePrevRef.current = handlePrev;
 
   // ── Global keyboard shortcuts ─────────────────────────────────────────────
@@ -2554,30 +2608,40 @@ export default function App() {
 
 
   // ── Like/unlike — optimistic UI + Firestore sync ────────────────────────
-  const toggleLike = async (id) => {
-    const track = trackById.get(id);
+  const toggleLike = useCallback(async (id) => {
+    const track = tracksRef.current.find((t) => t.id === id);
     if (!track) return;
     const nowLiked = !track.liked;
     const delta = nowLiked ? 1 : -1;
 
-    // Update local state immediately so the heart feels instant
-    setTracks(prev => prev.map(t => t.id === id ? {...t, liked: nowLiked, likeCount: Math.max(0,(t.likeCount||0)+delta)} : t));
-    if (currentTrack?.id === id) setCurrent(t => ({...t, liked: nowLiked}));
+    setTracks((prev) => patchTrackById(prev, id, (t) => ({
+      ...t,
+      liked: nowLiked,
+      likeCount: Math.max(0, (t.likeCount || 0) + delta),
+    })));
+    if (currentRef.current?.id === id) setCurrent((t) => ({ ...t, liked: nowLiked }));
 
-    // Sync to Firestore in the background
-    if (firebaseUser) {
+    if (firebaseUserRef.current) {
       try {
         await fbToggleLike(id, track.liked);
-        // Increment/decrement global likeCount on the track doc
         const { doc: fdoc, updateDoc: fup, increment: finc } = await import("firebase/firestore");
         await fup(fdoc(db, "tracks", id), { likeCount: finc(delta) });
-      } catch(e) {
-        // Roll back on failure
-        setTracks(prev => prev.map(t => t.id === id ? {...t, liked: track.liked, likeCount: t.likeCount - delta} : t));
-        showToast("Couldn't save — check your connection");
+      } catch (e) {
+        setTracks((prev) => patchTrackById(prev, id, (t) => ({
+          ...t,
+          liked: track.liked,
+          likeCount: Math.max(0, (t.likeCount || 0) - delta),
+        })));
+        showToastRef.current?.("Couldn't save — check your connection");
       }
     }
-  };
+  }, [setCurrent]);
+
+  const likeCurrent = useCallback(() => {
+    const t = currentRef.current;
+    if (t) toggleLike(t.id);
+  }, [toggleLike]);
+  const showQueueSheet = useCallback(() => setShowQueue(true), []);
 
   // ── Station: countdown, requests, dedications, VJ shows ──────────────────
   const countdown = useMemo(() => buildCountdown(tracks, 20), [tracks]);
@@ -2609,47 +2673,53 @@ export default function App() {
     bumper: showBumper,
   });
   const activeDaypart = feedDaypart || stationDaypartLive;
+  const openDedicate = useCallback(() => setShowDedicate(true), []);
+  const clearDedication = useCallback(() => setDedicationFlash(null), [setDedicationFlash]);
+  const openCommunityMix = useCallback(() => {
+    if (communityMix?.id) openMix(communityMix.id);
+  }, [communityMix?.id, openMix]);
+  const editGenres = useCallback(() => setShowGenreTaste(true), []);
+  const replayTour = useCallback(() => setFeatureTourReplay(true), []);
   const dislikeCurrentTrack = useCallback(async () => {
-    const track = currentTrack;
+    const track = currentRef.current;
     if (!track?.id) return;
-    const already = !!(track.disliked || (profile?.dislikedTracks || []).includes(track.id));
+    const p = profileForLikesRef.current;
+    const already = !!(track.disliked || (p?.dislikedTracks || []).includes(track.id));
     if (!already) {
       const recorded = recordDislikeEvent(
-        normalizeDislikeTaste(profile?.dislikeTaste || emptyDislikeTaste()),
+        normalizeDislikeTaste(p?.dislikeTaste || emptyDislikeTaste()),
         track
       );
       const dislikedTracks = Array.from(
-        new Set([track.id, ...(profile?.dislikedTracks || [])])
+        new Set([track.id, ...(p?.dislikedTracks || [])])
       ).slice(0, 80);
-      const likedTracks = (profile?.likedTracks || []).filter((id) => id !== track.id);
-      setTracks((prev) => prev.map((t) => (
-        t.id === track.id ? { ...t, disliked: true, liked: false } : t
-      )));
+      const likedTracks = (p?.likedTracks || []).filter((id) => id !== track.id);
+      setTracks((prev) => patchTrackById(prev, track.id, { disliked: true, liked: false }));
       setCurrent((t) => (t?.id === track.id ? { ...t, disliked: true, liked: false } : t));
-      setProfile((p) => ({
-        ...(p || {}),
+      setProfile((prev) => ({
+        ...(prev || {}),
         dislikeTaste: recorded.taste,
         dislikedTracks,
         likedTracks,
       }));
-      showToast(
+      showToastRef.current?.(
         recorded.hard
           ? "Got it — we’ll skip that vibe"
           : "Hearing less of that"
       );
-      if (firebaseUser) {
+      if (firebaseUserRef.current) {
         try {
           await saveDislikeTaste(recorded.taste, dislikedTracks);
           if (track.liked) {
             await fbToggleLike(track.id, true);
           }
         } catch {
-          showToast("Couldn't save — check your connection");
+          showToastRef.current?.("Couldn't save — check your connection");
         }
       }
     }
     handleSkipRef.current?.();
-  }, [currentTrack, profile, firebaseUser, setProfile]);
+  }, [setCurrent, setProfile]);
 
   const playShow = useCallback((showInput) => {
     const show = typeof showInput === "string"
@@ -3060,8 +3130,8 @@ export default function App() {
   }, [screen]);
 
   useEffect(() => {
-    if (!authLoading) dismissBootSplash();
-  }, [authLoading]);
+    if (!authLoading || sessionLikely) dismissBootSplash();
+  }, [authLoading, sessionLikely]);
 
   // Dev-only: #broadcast-preview exercises Home IA + video stage without auth.
   if (
@@ -3154,13 +3224,14 @@ export default function App() {
   }
 
   // ── Loading states ────────────────────────────────────────────────────────
-  // HTML boot planet stays until auth resolves — do not remount a second splash.
-  if (authLoading) {
+  // Returning members paint Home from IDB while Auth hydrates. Guests keep the
+  // HTML planet until Firebase says nobody is signed in — no Login flash.
+  if (authLoading && !sessionLikely) {
     return null;
   }
 
   // Not logged in — show login screen
-  if (!firebaseUser) return (
+  if (!authLoading && !firebaseUser) return (
     <Suspense fallback={<div style={{ minHeight: "100dvh", display: "grid", placeItems: "center" }} />}>
       <LoginScreen
         onSignUp={signUp}
@@ -3502,23 +3573,23 @@ export default function App() {
         <Suspense fallback={<div style={{ padding: 32, color: color.muted }}>Loading…</div>}>
         {warmTabs.has("home") && (
         <ScreenPane keepAlive active={screen==="home"}>
-        <HomeScreen catalogLoading={tracksLoading} tracks={tracks} onPlayRadio={playRadio} onTogglePlay={togglePlay} onPlayTrack={playTrack} onLike={toggleLike} isRadioMode={isRadioMode} hypnoPocket={!!hypnoSeed} playlistCtx={playlistCtx} mixLane={mixLane} radioPreview={heroPreview} radioNext={setNext} onSkipRadio={handleSkip} onPrevRadio={handlePrev} onOpenPlayer={()=>setImmersive(true)} catalogError={tracksLoadError} onRetryCatalog={reloadCatalog} onStageVisibilityChange={onHomeStageVisibilityChange} onSeek={handleSeek} countdown={countdown} onTuneCountdown={tuneCountdown} daypart={activeDaypart} tickerText={stationTicker} onDislike={dislikeCurrentTrack} onDedicate={()=>setShowDedicate(true)} dedicationFlash={dedicationFlash} onClearDedication={()=>setDedicationFlash(null)} airing={liveAiring} programGuide={programGuide} activeShowId={activeShowId} onTuneShow={playShow} showBumper={showBumper} channelShow={liveShow} sceneChannelsActiveId={activeSceneChannelId} onTuneSceneChannel={playSceneChannel} taste={profileTaste} dislikeTaste={profile?.dislikeTaste} recentTrackIds={(profile?.recentTracks||[]).map(r=>r.trackId||r)} playlists={libraryPlaylists.filter((pl)=>!isCommunityPlaylist(pl))} preferredGenres={user.genres||[]} userKey={firebaseUser?.uid||""} onOpenSearch={()=>{ setSearchReturn("home"); setScreen("search"); }}  onOpenLibrary={()=>setScreen("favorites")} onOpenCharts={()=>setScreen("charts")} onOpenMenu={()=>setShowNavDrawer(true)} onOpenPlaylist={(id)=>openStack(id)} onOpenAlbum={(slug)=>openAlbum(slug)}/>}
+        <HomeScreen catalogLoading={tracksLoading} tracks={tracks} onPlayRadio={playRadio} onTogglePlay={togglePlay} onPlayTrack={playTrack} isRadioMode={isRadioMode} radioPreview={heroPreview} radioNext={setNext} onSkipRadio={handleSkip} onPrevRadio={handlePrev} onOpenPlayer={openPlayer} catalogError={tracksLoadError} onRetryCatalog={reloadCatalog} onStageVisibilityChange={onHomeStageVisibilityChange} onSeek={handleSeek} countdown={countdown} onTuneCountdown={tuneCountdown} daypart={activeDaypart} tickerText={stationTicker} onDislike={dislikeCurrentTrack} airing={liveAiring} programGuide={programGuide} activeShowId={activeShowId} onTuneShow={playShow} showBumper={showBumper} channelShow={liveShow} sceneChannelsActiveId={activeSceneChannelId} onTuneSceneChannel={playSceneChannel} taste={profileTaste} onOpenSearch={openSearchFromHome} onOpenCharts={openCharts} onOpenMenu={openMenu}/>}
         </ScreenPane>
         )}
         {warmTabs.has("explore") && (
         <ScreenPane keepAlive active={screen==="explore"}>
-        <Suspense fallback={<div style={{ padding: 32, color: color.muted }}>Loading explore…</div>}><ExploreScreen catalogLoading={tracksLoading} tracks={tracks} preferredGenres={user.genres||[]} recentTrackIds={(profile?.recentTracks||[]).map(r=>r.trackId||r)} userKey={firebaseUser?.uid||""} countdown={countdown} sceneChannelsActiveId={activeSceneChannelId} onPlayTrack={playTrack} onOpenSearch={()=>{ setSearchReturn("explore"); setScreen("search"); }} onOpenAlbum={(slug)=>openAlbum(slug)} onOpenCharts={()=>setScreen("charts")} onTuneSceneChannel={playSceneChannel} onListenIntent={(focus)=>{ const next={ genre: focus.genre || null, scene: focus.scene || null }; setListenFocus(next); playRadio(null, createListenIntent({ mixLane, ...next })); }} onOpenMenu={()=>setShowNavDrawer(true)}/></Suspense>}
+        <Suspense fallback={<div style={{ padding: 32, color: color.muted }}>Loading explore…</div>}><ExploreScreen catalogLoading={tracksLoading} tracks={tracks} onPlayTrack={playTrack} onOpenSearch={openSearchFromExplore} onOpenAlbum={openAlbum} onListenIntent={listenFromExplore} onOpenMenu={openMenu}/></Suspense>}
         </ScreenPane>
         )}
         {!isKeepAliveScreen(screen) && (screen==="charts" || screen==="search") && (
         <ScreenPane>
-        {screen==="charts" && <Suspense fallback={<div style={{ padding: 32, color: color.muted, fontFamily: font, fontSize: 15 }}>Loading charts…</div>}><LazyChartsScreen catalogLoading={tracksLoading} countdown={countdown} tracks={tracks} onPlayTrack={playTrack} onTuneMonthly={playMonthlyChart} onAddToQueue={addTrackToQueue} playlistCtx={playlistCtx} nowPlayingId={currentTrackId} onOpenMenu={()=>setShowNavDrawer(true)}/></Suspense>}
+        {screen==="charts" && <Suspense fallback={<div style={{ padding: 32, color: color.muted, fontFamily: font, fontSize: 15 }}>Loading charts…</div>}><LazyChartsScreen catalogLoading={tracksLoading} countdown={countdown} tracks={tracks} onPlayTrack={playTrack} onTuneMonthly={playMonthlyChart} onAddToQueue={addTrackToQueue} playlistCtx={playlistCtx} nowPlayingId={currentTrackId} onOpenMenu={openMenu}/></Suspense>}
         {screen==="search" && <SearchScreen query={searchQuery} setQuery={setSearch} tracks={tracks} onPlay={(t,pool)=>{ recordRecentSearch(searchQuery); playTrack(t,pool||tracks); }} onListenIntent={(focus)=>{ const next={ genre: focus.genre || null, scene: null }; setListenFocus(next); playRadio(null, createListenIntent({ mixLane, ...next })); }} onLike={toggleLike} playlistCtx={playlistCtx} onOpenArtist={(slug)=>{ recordRecentSearch(searchQuery); openArtist(slug); }} onOpenAlbum={(slug)=>{ recordRecentSearch(searchQuery); openAlbum(slug); }} recentSearches={recentSearches} onPickRecent={(q)=>setSearch(q)} onClearRecent={clearRecentSearches} onBack={()=>setScreen(searchReturn)} backLabel={searchReturn === "home" ? "Home" : "Explore"}/>}
         </ScreenPane>
         )}
         {warmTabs.has("favorites") && (
         <ScreenPane keepAlive active={screen==="favorites"}>
-        <FavoritesScreen tracks={tracks} onPlay={t=>{setIsRadioMode(false);playTrack(t,tracks);}} onPlayTrack={(t,pool)=>{setIsRadioMode(false);playTrack(t,pool||tracks);}} onLike={toggleLike} playlistCtx={playlistCtx} userPlaylists={libraryPlaylists} onCreatePlaylist={createPlaylist} onDeletePlaylist={deletePlaylist} onRenamePlaylist={renamePlaylist} onSharePlaylist={sharePlaylistToClub} stackId={stackId} onOpenStack={openStack} onCloseStack={closeStack} onReorderPlaylist={reorderPlaylistTrack} communityMix={communityMix} onOpenMix={()=>communityMix && openMix(communityMix.id)} onCustomMix={openCustomMix} onOpenCharts={()=>setScreen("charts")} onOpenMenu={()=>setShowNavDrawer(true)} showLibraryDestinations preferredGenres={user.genres} recentTrackIds={(profile?.recentTracks||[]).map(r=>r.trackId||r)} userKey={firebaseUser?.uid || ""}/>}
+        <FavoritesScreen tracks={tracks} onPlay={playFromLibrary} onPlayTrack={playFromLibrary} onLike={toggleLike} playlistCtx={playlistCtx} userPlaylists={libraryPlaylists} onCreatePlaylist={createPlaylist} onDeletePlaylist={deletePlaylist} onRenamePlaylist={renamePlaylist} onSharePlaylist={sharePlaylistToClub} stackId={stackId} onOpenStack={openStack} onCloseStack={closeStack} onReorderPlaylist={reorderPlaylistTrack} communityMix={communityMix} onOpenMix={openCommunityMix} onCustomMix={openCustomMix} onOpenCharts={openCharts} onOpenMenu={openMenu} showLibraryDestinations preferredGenres={user.genres} recentTrackIds={recentTrackIds} userKey={user.uid}/>}
         </ScreenPane>
         )}
         {!isKeepAliveScreen(screen) && (screen==="mix" || screen==="artist" || screen==="album" || screen==="admin") && (
@@ -3532,7 +3603,7 @@ export default function App() {
             notFound={!mixLoading && !activeMix}
             currentTrack={currentTrack}
            
-            onPlayTrack={(t, pool)=>{ setIsRadioMode(false); playTrack(t, pool||tracks); }}
+            onPlayTrack={playFromLibrary}
             onBack={goBack}
             onShare={()=>activeMix && sharePlaylistToClub(activeMix)}
             onSaveToLibrary={()=>{
@@ -3574,7 +3645,7 @@ export default function App() {
         {warmTabs.has("profile") && (
         <ScreenPane keepAlive active={screen==="profile"}>
           <Suspense fallback={<div style={{ padding: 32, color: "var(--muted)" }}>Opening the club…</div>}>
-            <ClubScreen user={user} tracks={tracks} onLogout={logOut} access={access} onSubscribe={handleSubscribe} onOpenPlans={handleOpenPlans} profile={profile} communityMix={communityMix} onOpenMix={communityMix ? ()=>openMix(communityMix.id) : null} onEditGenres={()=>setShowGenreTaste(true)} recentTracks={profile?.recentTracks||[]} signalLabel={signalFlags.getState().label} onPlayTrack={(t,pool)=>{setIsRadioMode(false);playTrack(t,pool||tracks);}} onReplayTour={() => setFeatureTourReplay(true)}/>
+            <ClubScreen user={user} tracks={tracks} onLogout={logOut} access={access} onSubscribe={handleSubscribe} onOpenPlans={handleOpenPlans} profile={profile} communityMix={communityMix} onOpenMix={communityMix ? openCommunityMix : null} onEditGenres={editGenres} recentTracks={profile?.recentTracks||[]} signalLabel={signalFlags.getState().label} onPlayTrack={playFromLibrary} onReplayTour={replayTour}/>
           </Suspense>
         </ScreenPane>
         )}
@@ -3590,13 +3661,13 @@ export default function App() {
           onTogglePlay={togglePlay}
           onSkip={handleSkip}
           onPrev={handlePrev}
-          onLike={() => currentTrack && toggleLike(currentTrack.id)}
+          onLike={likeCurrent}
           onDislike={dislikeCurrentTrack}
           onSeek={handleSeek}
           isRadioMode={isRadioMode}
           hypnoPocket={!!hypnoSeed}
-          onOpen={() => setImmersive(true)}
-          onShowQueue={() => setShowQueue(true)}
+          onOpen={openPlayer}
+          onShowQueue={showQueueSheet}
           playlistCtx={playlistCtx}
           hidePlayer={hideDockPlayer}
           playsRemaining={playsRemaining}
@@ -3609,7 +3680,7 @@ export default function App() {
           <DesktopMiniPlayer
             track={currentTrack}
             isRadioMode={isRadioMode}
-            onOpen={() => setImmersive(true)}
+            onOpen={openPlayer}
             onTogglePlay={togglePlay}
             onSkip={handleSkip}
             onPrev={handlePrev}

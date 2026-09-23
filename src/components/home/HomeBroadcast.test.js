@@ -20,6 +20,7 @@ jest.mock("../../usePlayerPlayback", () => ({
 jest.mock("../../usePlayerTransport", () => ({
   useIsPlaying: () => true,
   useIsBuffering: () => false,
+  useTransportTrackId: () => "t1",
   useCurrentTrack: () => ({
     id: "t1",
     title: "Night Drive",

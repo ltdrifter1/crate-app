@@ -6,6 +6,7 @@ import {
   coverDisplayUrl,
   coverSrcSet,
   nearestFirebaseThumbSize,
+  allowOriginalCover,
   markCloudflareResizeUnavailable,
   isCloudflareResizeAvailable,
   resetCloudflareResizeForTests,
@@ -69,5 +70,12 @@ describe("coverUrl", () => {
     expect(coverDisplayUrl(src, { width: 168, dpr: 2, mode: "cf" })).toContain("_400x400.jpg");
     expect(coverDisplayUrl(src, { width: 168, mode: "cf" })).not.toBe(src);
     expect(coverSrcSet(src, 168, { mode: "cf" })).toMatch(/_200x200|_400x400/);
+  });
+
+  test("original masters are only legal on large stages", () => {
+    expect(allowOriginalCover(80)).toBe(false);
+    expect(allowOriginalCover(336)).toBe(false);
+    expect(allowOriginalCover(640)).toBe(true);
+    expect(allowOriginalCover(960)).toBe(true);
   });
 });

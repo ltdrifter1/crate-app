@@ -50,14 +50,25 @@ describe("CoverImage", () => {
     await act(async () => {
       retried.dispatchEvent(new Event("error"));
     });
+    expect(div.querySelector("img")).toBeNull();
+    expect(div.querySelector("[data-testid='cover-fallback']")).toBeTruthy();
+  });
+
+  test("large stages may fall through to the original file", async () => {
+    await act(async () => {
+      root.render(React.createElement(CoverImage, { src: STORAGE, width: 960, height: 960 }));
+    });
+    const img = div.querySelector("img");
+    await act(async () => {
+      img.dispatchEvent(new Event("error"));
+    });
+    const retried = div.querySelector("img");
+    await act(async () => {
+      retried.dispatchEvent(new Event("error"));
+    });
     const original = div.querySelector("img");
     expect(original).toBeTruthy();
     expect(original.getAttribute("src")).toBe(STORAGE);
-    await act(async () => {
-      original.dispatchEvent(new Event("error"));
-    });
-    expect(div.querySelector("img")).toBeNull();
-    expect(div.querySelector("[data-testid='cover-fallback']")).toBeTruthy();
   });
 
   test("color well paints behind the photo while it loads", async () => {

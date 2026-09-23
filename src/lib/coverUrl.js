@@ -9,6 +9,12 @@
 
 export const COVER_WIDTH_BUCKETS = [80, 168, 336, 480, 640, 800, 960, 1280];
 export const FIREBASE_THUMB_SIZES = [200, 400, 800];
+/** Rails stay on thumbs. Only the immersive stage may fetch the Storage master. */
+export const ORIGINAL_COVER_MIN_PX = 640;
+
+export function allowOriginalCover(cssPx) {
+  return Math.max(0, Number(cssPx) || 0) >= ORIGINAL_COVER_MIN_PX;
+}
 
 const STORAGE_HOST_SUFFIXES = [
   "storage.googleapis.com",

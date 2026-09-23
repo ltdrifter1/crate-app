@@ -176,7 +176,10 @@ test("premium drivetrain: one chassis, self-hosted Plex, no lucide", () => {
   expect(app).toMatch(/\{innerApp\}/);
   expect(app).toMatch(/runWhenIdle\(loadExploreScreen/);
   expect(app).toMatch(/dismissBootSplash/);
-  expect(app).toMatch(/if \(authLoading\) \{\s*return null;/);
+  expect(app).toMatch(/peekAuthSession/);
+  expect(app).toMatch(/sessionLikely/);
+  expect(app).toMatch(/adoptCatalogTracks/);
+  expect(app).toMatch(/authLoading && !sessionLikely/);
 
   const html = fs.readFileSync(path.join(root, "public/index.html"), "utf8");
   expect(html).not.toMatch(/fonts\.googleapis/);

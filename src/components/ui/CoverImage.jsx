@@ -6,6 +6,7 @@
  */
 import { useEffect, useState } from "react";
 import {
+  allowOriginalCover,
   coverDisplayUrl,
   coverSrcSet,
   firebaseThumbUrl,
@@ -121,8 +122,10 @@ export default function CoverImage({
             return;
           }
           if (!raw && tier === "thumb" && displaySrc !== src) {
-            setTier("original");
-            return;
+            if (allowOriginalCover(w)) {
+              setTier("original");
+              return;
+            }
           }
           setFailed(true);
           onError?.(e);
