@@ -7,30 +7,15 @@ import Icon from "../ui/Icon";
 
 /**
  * ChannelCard — square station tile.
- * Catalog sleeve first; PS1 plate only as fallback. CH number stays an LCD bug.
+ * Always the PS1 plate. Album sleeves stay off this rail.
+ * CH number is an LCD bug on the plate.
  */
 function ChannelArt({
   channel,
-  covers = [],
   size,
   priority = false,
   eager = false,
 }) {
-  const sleeve = Array.isArray(covers) ? covers.find(Boolean) : null;
-  if (sleeve) {
-    return (
-      <CoverImage
-        src={sleeve}
-        alt=""
-        width={size}
-        height={size}
-        priority={priority}
-        eager={eager}
-        style={{ width: "100%", height: "100%", objectFit: "cover" }}
-      />
-    );
-  }
-
   const { src, focus } = resolveChannelArt(channel);
   if (src) {
     return (
@@ -53,7 +38,6 @@ function ChannelArt({
 
 export default function ChannelCard({
   channel,
-  covers = [],
   active = false,
   onClick = null,
   size = Math.round(homeSpace.tileTicket),
@@ -123,7 +107,6 @@ export default function ChannelCard({
         >
           <ChannelArt
             channel={channel}
-            covers={covers}
             size={width}
             priority={priority}
             eager={eager}

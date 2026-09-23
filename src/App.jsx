@@ -11,8 +11,7 @@ import {
   APP_STYLE, INPUT_ST, BTN_PRIMARY, BTN_SECONDARY, CTRL_BTN, ADMIN_UID,
   BRAND_NAME, brandStoragePrefix, STYLE_CHASSIS,
 } from "./theme";
-import CoverImage from "./components/ui/CoverImage";
-import { camelotCompatible, getEnergyRangeForHour, hexToRgbStr } from "./lib/harmony";
+import { getEnergyRangeForHour, hexToRgbStr } from "./lib/harmony";
 import {
   computeHumanState, pickNextTrack,
 } from "./lib/engine";
@@ -31,7 +30,7 @@ import {
 import { explainPick } from "./lib/explain";
 import { fetchCatalogTracks, fetchHomeLite, isCatalogCacheFresh, readCatalogIdb, writeCatalogIdb, HOME_LITE_LIMIT } from "./lib/catalogLoad";
 import { hydrateCatalogTracks } from "./lib/catalogHydrate";
-import { runAfterPaint, runAfterDelay } from "./lib/afterPaint";
+import { runAfterPaint, runAfterDelay, runWhenIdle } from "./lib/afterPaint";
 import { slugify, findArtist, findAlbum } from "./lib/catalog";
 import {
   resolveListenPool,
@@ -149,7 +148,9 @@ const DevOnboardingPreview =
     : null;
 const loadExploreScreen = () => import("./screens/ExploreScreen");
 const ExploreScreen = lazy(loadExploreScreen);
-setTimeout(loadExploreScreen, 8000);
+// Home preloads immediately. Explore used to wait 8s, so the first tap
+// sat on "Loading explore…" while the chunk downloaded.
+runWhenIdle(loadExploreScreen, { timeout: 400 });
 const SearchScreen = lazy(() => import("./screens/SearchScreen"));
 const FavoritesScreen = lazy(() => import("./screens/FavoritesScreen"));
 const AdminScreen = lazy(() => import("./screens/AdminScreen"));
@@ -714,22 +715,6 @@ const injectStyles = () => {
     }
     .custom-mix-play {
       transition: transform ${motion.fast} ${motion.ease}, box-shadow ${motion.base} ${motion.ease};
-    }
-    .sidebar-queue-row {
-      transition: background ${motion.base} ${motion.ease};
-    }
-    .sidebar-queue-row:hover {
-      background: ${color.select} !important;
-    }
-    .sidebar-queue-row:hover .sidebar-queue-actions {
-      opacity: 1 !important;
-    }
-    .sidebar-ghost-btn {
-      transition: color ${motion.fast} ${motion.ease}, opacity ${motion.fast};
-    }
-    .sidebar-ghost-btn:hover {
-      color: ${color.ink} !important;
-      opacity: 1 !important;
     }
     .track-row:hover {
       background: ${color.select} !important;
@@ -1395,7 +1380,7 @@ export default function App() {
 
   useEffect(() => {
     if (screen === "home") return undefined;
-    scheduleFullCatalog(1600);
+    scheduleFullCatalog(screen === "explore" ? 0 : 1600);
     return undefined;
   }, [screen, scheduleFullCatalog]);
 
@@ -3580,18 +3565,7 @@ export default function App() {
   // ── Mobile: render as-is ─────────────────────────────────────────────────
   if (!isDesktop) return innerApp;
 
-  // ── Desktop: 3-column shell (source list) ───────────────────
-  const recentTracks = [...tracks].slice(0, 6);
-
-  // Build queue/next-up from current context
-  const queueSource = queue?.length ? queue : tracks.filter(t => t.id !== currentTrack?.id && (t.duration||0) <= 900);
-  const nextUpTracks = isRadioMode
-    ? queueSource.filter(t => {
-        if (!currentTrack) return true;
-        return camelotCompatible(currentTrack.camelot, t.camelot);
-      }).slice(0, 8)
-    : queueSource.slice(0, 8);
-
+  // ── Desktop: source list + main (queue lives in the player sheet)
   // Accent glow color from current track
   const glowRgb = currentTrack ? hexToRgbStr(currentTrack.color) : "42,46,56";
 
@@ -3717,332 +3691,6 @@ export default function App() {
           </Suspense>
         )}
       </div>
-
-      {/* ── RIGHT PANEL: queue on non-Home; Home uses ice chat instead ─ */}
-      {screen !== "home" ? (
-      <div className="hide-scroll" style={{
-        width: 336,
-        flexShrink: 0,
-        background: `
-          linear-gradient(180deg, rgba(216,223,232,0.48) 0%, rgba(197,203,214,0.82) 100%)
-        `,
-        borderLeft: `1px solid ${glass.border}`,
-        backdropFilter: glass.blur,
-        WebkitBackdropFilter: glass.blur,
-        boxShadow: `inset 1px 0 0 ${glass.highlight}`,
-        display: "flex",
-        flexDirection: "column",
-        overflowY: "auto",
-        position: "relative",
-      }}>
-        {/* Soft top sheen */}
-        <div aria-hidden="true" style={{
-          position: "absolute",
-          top: 0,
-          left: 0,
-          right: 0,
-          height: 1,
-          background: "linear-gradient(90deg, transparent, rgba(216,223,232,0.55), transparent)",
-          pointerEvents: "none",
-          zIndex: 2,
-        }}/>
-
-        {/* Queue — list only; album art lives on the home stage / player */}
-        <div style={{ flex: 1, padding: "22px 12px 24px", display: "flex", flexDirection: "column" }}>
-          <div style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "baseline",
-            padding: "0 8px 14px",
-          }}>
-            <div>
-              <div style={{
-                fontSize: 10,
-                fontWeight: 700,
-                letterSpacing: 1.8,
-                textTransform: "uppercase",
-                color: color.faint,
-                fontFamily: fontMono,
-                marginBottom: 4,
-              }}>
-                Queue
-              </div>
-              <div style={{
-                fontSize: 14,
-                fontWeight: 650,
-                letterSpacing: -0.25,
-                color: color.ink,
-                fontFamily: fontDisplay,
-              }}>
-                Up Next
-              </div>
-            </div>
-            <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
-              <button
-                type="button"
-                className="sidebar-ghost-btn"
-                onClick={() => {
-                  const pool = tracks.filter((t) => t.id !== currentTrack?.id && (t.duration || 0) <= 900);
-                  const shuffled = [...pool];
-                  for (let i = shuffled.length - 1; i > 0; i--) {
-                    const j = Math.floor(Math.random() * (i + 1));
-                    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-                  }
-                  setQueue(shuffled.slice(0, 8));
-                }}
-                style={{
-                  background: "none",
-                  border: "none",
-                  padding: 0,
-                  cursor: "pointer",
-                  color: color.muted,
-                  fontSize: 10,
-                  fontWeight: 600,
-                  letterSpacing: 0.8,
-                  textTransform: "uppercase",
-                  fontFamily: fontMono,
-                }}
-              >
-                Shuffle
-              </button>
-              {queue.length > 0 && (
-                <button
-                  type="button"
-                  className="sidebar-ghost-btn"
-                  onClick={() => setQueue([])}
-                  style={{
-                    background: "none",
-                    border: "none",
-                    padding: 0,
-                    cursor: "pointer",
-                    color: color.muted,
-                    fontSize: 10,
-                    fontWeight: 600,
-                    letterSpacing: 0.8,
-                    textTransform: "uppercase",
-                    fontFamily: fontMono,
-                  }}
-                >
-                  Clear
-                </button>
-              )}
-            </div>
-          </div>
-
-          {/* Continuous premium list — no boxed cards */}
-          <div style={{ display: "flex", flexDirection: "column" }}>
-            {nextUpTracks.map((t, i) => {
-              const active = currentTrack?.id === t.id;
-              return (
-                <div
-                  key={t.id}
-                  className="sidebar-queue-row"
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 10,
-                    padding: "10px 8px",
-                    borderRadius: 8,
-                    background: active ? color.select : "transparent",
-                    position: "relative",
-                  }}
-                >
-                  {active && (
-                    <div aria-hidden="true" style={{
-                      position: "absolute",
-                      left: 0,
-                      top: 10,
-                      bottom: 10,
-                      width: 2,
-                      borderRadius: 1,
-                      background: color.accent,
-                    }}/>
-                  )}
-
-                  <div style={{
-                    width: 18,
-                    fontSize: 10,
-                    fontWeight: 500,
-                    color: active ? color.ink : color.faint,
-                    textAlign: "center",
-                    flexShrink: 0,
-                    fontFamily: fontMono,
-                    fontVariantNumeric: "tabular-nums",
-                  }}>
-                    {String(i + 1).padStart(2, "0")}
-                  </div>
-
-                  <div
-                    onClick={() => playTrack(t, tracks)}
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 11,
-                      flex: 1,
-                      minWidth: 0,
-                      cursor: "pointer",
-                    }}
-                  >
-                    <div style={{
-                      width: 40,
-                      height: 40,
-                      borderRadius: 5,
-                      overflow: "hidden",
-                      flexShrink: 0,
-                      boxShadow: "0 4px 14px rgba(58,66,80,0.35)",
-                      outline: active ? `1px solid ${color.accentSoft}` : "1px solid transparent",
-                      background: color.surfaceRaised,
-                    }}>
-                      {t.albumCover ? (
-                        <CoverImage src={t.albumCover} alt="" width={40} height={40} />
-                      ) : (
-                        <img
-                          src="/covers/default.jpg"
-                          alt=""
-                          width={40}
-                          height={40}
-                          style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
-                        />
-                      )}
-                    </div>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{
-                        fontSize: 12.5,
-                        fontWeight: active ? 600 : 500,
-                        color: color.ink,
-                        letterSpacing: -0.15,
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                        whiteSpace: "nowrap",
-                        fontFamily: fontDisplay,
-                      }}>
-                        {t.title}
-                      </div>
-                      <div style={{
-                        marginTop: 2,
-                        fontSize: 11,
-                        color: color.muted,
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                        whiteSpace: "nowrap",
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 6,
-                      }}>
-                        <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                          {t.artist}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div
-                    className="sidebar-queue-actions"
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 2,
-                      flexShrink: 0,
-                      opacity: 0.28,
-                      transition: `opacity ${motion.base} ${motion.ease}`,
-                    }}
-                  >
-                    {!isRadioMode && (
-                      <>
-                        <button
-                          type="button"
-                          aria-label="Move up"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            if (i > 0) {
-                              const nq = [...nextUpTracks];
-                              [nq[i - 1], nq[i]] = [nq[i], nq[i - 1]];
-                              setQueue(nq);
-                            }
-                          }}
-                          style={{
-                            background: "none",
-                            border: "none",
-                            cursor: i > 0 ? "pointer" : "default",
-                            padding: 3,
-                            opacity: i > 0 ? 1 : 0,
-                          }}
-                        >
-                          <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke={color.ink} strokeWidth="1.5" strokeLinecap="round"><path d="M3 7L6 4L9 7"/></svg>
-                        </button>
-                        <button
-                          type="button"
-                          aria-label="Move down"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            if (i < nextUpTracks.length - 1) {
-                              const nq = [...nextUpTracks];
-                              [nq[i], nq[i + 1]] = [nq[i + 1], nq[i]];
-                              setQueue(nq);
-                            }
-                          }}
-                          style={{
-                            background: "none",
-                            border: "none",
-                            cursor: i < nextUpTracks.length - 1 ? "pointer" : "default",
-                            padding: 3,
-                            opacity: i < nextUpTracks.length - 1 ? 1 : 0,
-                          }}
-                        >
-                          <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke={color.ink} strokeWidth="1.5" strokeLinecap="round"><path d="M3 5L6 8L9 5"/></svg>
-                        </button>
-                      </>
-                    )}
-                    <button
-                      type="button"
-                      aria-label="Remove from queue"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setQueue(() => {
-                          const nq = [...nextUpTracks];
-                          nq.splice(i, 1);
-                          return nq;
-                        });
-                      }}
-                      style={{
-                        background: "none",
-                        border: "none",
-                        cursor: "pointer",
-                        padding: 3,
-                      }}
-                    >
-                      <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke={color.ink} strokeWidth="1.5" strokeLinecap="round"><path d="M2.5 2.5L7.5 7.5M7.5 2.5L2.5 7.5"/></svg>
-                    </button>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-
-          {nextUpTracks.length === 0 && (
-            <div style={{
-              textAlign: "center",
-              padding: "40px 12px",
-              color: color.faint,
-              fontSize: 12,
-              letterSpacing: -0.1,
-            }}>
-              Queue is clear
-              <div style={{
-                marginTop: 6,
-                fontSize: 10,
-                letterSpacing: 0.6,
-                textTransform: "uppercase",
-                fontFamily: fontMono,
-                opacity: 0.7,
-              }}>
-                Shuffle to fill it
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-      ) : null}
 
       {/* Listening overlays + Booth */}
       {listeningOverlays}

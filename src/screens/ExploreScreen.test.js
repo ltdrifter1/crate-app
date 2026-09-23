@@ -152,6 +152,7 @@ describe("Explore screen", () => {
     });
     expect(div.textContent).toMatch(/Explore/);
     expect(div.textContent).toMatch(/Directory/);
+    expect(div.textContent).toMatch(/6 cuts in the crate/);
     expect(div.textContent).toMatch(/New Releases/);
     expect(div.textContent).toMatch(/Worlds/);
     expect(div.querySelector('button[role="tab"][aria-selected="true"]').textContent).toMatch(/New Releases/);
@@ -298,6 +299,16 @@ describe("Explore screen", () => {
     });
     expect(div.textContent).toMatch(/Tuning the crate/);
     expect(div.textContent).not.toMatch(/Nothing to dig yet/);
+  });
+
+  test("first paint is New Releases and does not build the world tray yet", async () => {
+    await act(async () => {
+      root.render(React.createElement(ExploreScreen, { tracks: catalog }));
+    });
+    expect(div.querySelector('section[aria-label="New Releases"]')).toBeTruthy();
+    expect(div.querySelector(".pmp-world-tray")).toBeFalsy();
+    expect(div.querySelector(".pmp-energy-strip")).toBeFalsy();
+    expect(div.querySelector(".pmp-mix-wheel")).toBeFalsy();
   });
 
   test("does not render CoverFlow dump or leftover search icon chrome", async () => {

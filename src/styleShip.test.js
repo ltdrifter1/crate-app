@@ -117,7 +117,7 @@ test("Home does not mount station chat on the critical path", () => {
   expect(app).not.toMatch(/homeChatReady/);
 });
 
-test("Explore and Home first paint skip channel pictogram imports", () => {
+test("Explore prefetches on idle and Home Channel Surfing uses PS1 plates", () => {
   const explore = fs.readFileSync(path.join(root, "src/lib/explore.js"), "utf8");
   expect(explore).not.toMatch(/from ["']\.\/channelArt["']/);
   const art = fs.readFileSync(path.join(root, "src/lib/channelArt.js"), "utf8");
@@ -127,17 +127,21 @@ test("Explore and Home first paint skip channel pictogram imports", () => {
   expect(card).toMatch(/resolveChannelArt/);
   expect(card).toMatch(/\braw\b/);
   expect(card).toMatch(/DefaultSleeve/);
-  expect(card).toMatch(/covers/);
   expect(card).toMatch(/lcdSignal/);
+  expect(card).not.toMatch(/covers\.find/);
   const surf = fs.readFileSync(path.join(root, "src/components/home/ChannelSurfingSection.jsx"), "utf8");
-  expect(surf).toMatch(/channelCoverUrls/);
+  expect(surf).not.toMatch(/channelCoverUrls/);
   const app = fs.readFileSync(path.join(root, "src/App.jsx"), "utf8");
-  expect(app).toMatch(/setTimeout\(loadExploreScreen, 8000\)/);
+  expect(app).toMatch(/runWhenIdle\(loadExploreScreen/);
+  expect(app).not.toMatch(/setTimeout\(loadExploreScreen, 8000\)/);
+  expect(app).not.toMatch(/RIGHT PANEL/);
+  expect(app).not.toMatch(/sidebar-queue-row/);
   expect(app).toMatch(/runAfterDelay/);
   expect(app).not.toMatch(/timeout: 2200/);
   const screen = fs.readFileSync(path.join(root, "src/screens/ExploreScreen.jsx"), "utf8");
-  expect(screen).toMatch(/runAfterDelay\(\(\) => setDeepReady\(true\), 2400\)/);
+  expect(screen).not.toMatch(/setDeepReady/);
   expect(screen).not.toMatch(/will-change: transform/);
+  expect(screen).toMatch(/activeMode === "worlds"/);
 });
 
 test("ice phosphor is the play pip, dock LCD, Mix/Energy sleeves, and poster stage", () => {

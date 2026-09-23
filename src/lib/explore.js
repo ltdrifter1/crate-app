@@ -10,7 +10,7 @@ import { genreStory, scenesForLane, tracksForGenreLane, tracksForScenePool } fro
 import { CANONICAL_GENRES, normalizeGenre } from "./genres";
 import { decorateSceneChannels } from "./sceneChannels";
 import { featuredReleases, recommendedPicks, trendingTracks } from "./homeCollections";
-import { SCENE_FAMILIES, SCENES, getScene, trackMatchesScene } from "./scenes";
+import { SCENE_FAMILIES, SCENES, getScene, inferSceneTags } from "./scenes";
 
 /** Canonical lane → Channel Surfing icon when the match is honest. */
 export const GENRE_CHANNEL_ART = {
@@ -196,14 +196,50 @@ export function exploreMoodPlates(tracks = [], minTracks = 2) {
   }).filter((m) => m.count >= minTracks);
 }
 
+/**
+ * Scene ids already on a track, or infer once. Avoids O(scenes × tracks)
+ * `trackMatchesScene` walks that made Worlds stall the Explore tab.
+ */
+function sceneIdsForTrack(track) {
+  if (Array.isArray(track?._scenes) && track._scenes.length) {
+    const ids = [];
+    const seen = new Set();
+    if (track._scene?.id) {
+      seen.add(track._scene.id);
+      ids.push(track._scene.id);
+    }
+    for (const id of track._scenes) {
+      if (!id || seen.has(id)) continue;
+      seen.add(id);
+      ids.push(id);
+    }
+    return ids;
+  }
+  if (track?._scene?.id) return [track._scene.id];
+  return inferSceneTags(track, 4).map((s) => s.id).filter(Boolean);
+}
+
+function poolsByScene(tracks = []) {
+  const playable = singles(tracks);
+  const byId = new Map();
+  for (const t of playable) {
+    for (const id of sceneIdsForTrack(t)) {
+      const list = byId.get(id);
+      if (list) list.push(t);
+      else byId.set(id, [t]);
+    }
+  }
+  return byId;
+}
+
 /** Culture scenes with live counts — ranked by depth, photography from family. */
 export function exploreScenePlates(tracks = [], limit = 8) {
-  const playable = singles(tracks);
   const familyLabel = Object.fromEntries(SCENE_FAMILIES.map((f) => [f.id, f.label]));
+  const byId = poolsByScene(tracks);
   const scored = [];
   for (const scene of SCENES) {
-    const pool = playable.filter((t) => trackMatchesScene(t, scene.id));
-    if (!pool.length) continue;
+    const pool = byId.get(scene.id);
+    if (!pool?.length) continue;
     const covers = coverUrlsForTracks(pool, 4);
     const sleeve = covers[0] || null;
     scored.push({
@@ -270,7 +306,7 @@ export function exploreWorlds(tracks = []) {
     if (!members.length) continue;
     const tiles = [];
     for (const scene of members) {
-      const poolCovers = coverUrlsForTracks(scene.pool, 4);
+      const poolCovers = scene.covers?.length ? scene.covers : coverUrlsForTracks(scene.pool, 4);
       const photo = poolCovers.find((c) => !used.has(c)) || null;
       if (!photo && poolCovers.length) continue;
       if (photo) used.add(photo);
@@ -292,14 +328,13 @@ export function exploreWorlds(tracks = []) {
   return families;
 }
 
+/** Cheap header readout — never walk the scene atlas. */
 export function exploreCatalogStats(tracks = []) {
-  const playable = singles(tracks);
-  const worlds = exploreWorlds(tracks);
-  return {
-    cuts: playable.length,
-    worlds: worlds.reduce((n, family) => n + family.tiles.length, 0),
-    families: worlds.length,
-  };
+  let cuts = 0;
+  for (const t of tracks) {
+    if ((t?.duration || 0) <= 900) cuts += 1;
+  }
+  return { cuts };
 }
 
 export function recentlyPlayedTracks(tracks = [], recentTrackIds = [], limit = 6) {

@@ -343,7 +343,7 @@ describe("Home broadcast + four-tab IA", () => {
     expect(div.querySelector("[style*='grid-template-columns']")).toBeNull();
   });
 
-  test("Channel Surfing loads one sleeve per station, not a 4-up mosaic", async () => {
+  test("Channel Surfing loads one PS1 plate per station, not a 4-up mosaic", async () => {
     await act(async () => {
       root.render(
         React.createElement(ChannelSurfingSection, {
@@ -363,6 +363,7 @@ describe("Home broadcast + four-tab IA", () => {
     const card = div.querySelector(".pmp-channel-card");
     expect(card).toBeTruthy();
     expect(card.querySelectorAll("img").length).toBeLessThanOrEqual(1);
+    expect(card.querySelector("img")?.getAttribute("src")).toMatch(/\/channels\/techno\.png/);
     expect(card.querySelector("[style*='grid-template-columns']")).toBeNull();
   });
 
@@ -547,13 +548,14 @@ describe("Home broadcast + four-tab IA", () => {
     });
     const imgs = [...div.querySelectorAll("img")];
     expect(imgs.length).toBeGreaterThanOrEqual(4);
+    expect(imgs.every((img) => /\/channels\/.+\.png$/.test(img.getAttribute("src") || ""))).toBe(true);
     expect(imgs[0].getAttribute("fetchpriority") || imgs[0].fetchPriority).toMatch(/high/i);
     expect(imgs[0].getAttribute("loading")).toBe("eager");
     expect(imgs[1].getAttribute("loading")).toBe("eager");
     expect(imgs[3].getAttribute("loading")).toBe("lazy");
   });
 
-  test("station tiles prefer catalog sleeves and keep a CH LCD bug", async () => {
+  test("station tiles use PS1 plates, never catalog sleeves", async () => {
     await act(async () => {
       root.render(
         React.createElement(ChannelCard, {
@@ -569,8 +571,8 @@ describe("Home broadcast + four-tab IA", () => {
     });
     const img = div.querySelector("img");
     expect(img).toBeTruthy();
-    expect(img.getAttribute("src")).toMatch(/sleeve-a\.jpg/);
-    expect(img.getAttribute("src")).not.toMatch(/\/channels\/techno\.png/);
+    expect(img.getAttribute("src")).toMatch(/\/channels\/techno\.png/);
+    expect(img.getAttribute("src")).not.toMatch(/sleeve-a\.jpg/);
     expect(div.textContent).toMatch(/06/);
     expect(div.querySelector(".pmp-channel-ch-bug")).toBeTruthy();
     expect(div.querySelector("[data-testid='cover-fallback']")).toBeNull();

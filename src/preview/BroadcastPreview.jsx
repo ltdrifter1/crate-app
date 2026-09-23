@@ -249,7 +249,6 @@ export default function BroadcastPreview() {
       </div>
       <ChannelSurfingSection
         channels={channels}
-        tracks={SAMPLE_TRACKS}
         activeChannelId={activeChannelId}
         onTuneChannel={(ch) => setActiveChannelId(ch.id)}
         first

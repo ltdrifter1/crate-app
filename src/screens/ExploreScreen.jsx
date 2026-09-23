@@ -1,5 +1,4 @@
-import { useEffect, useMemo, useState, memo } from "react";
-import { runAfterDelay } from "../lib/afterPaint";
+import { useMemo, useState, memo } from "react";
 import {
   chromeIconButton,
   color,
@@ -32,7 +31,6 @@ import {
   exploreWorlds,
   resolveExploreFocus,
 } from "../lib/explore";
-import { newReleaseAlbums } from "../lib/newReleases";
 
 const EXPLORE_CSS = `
   .pmp-explore-modes {
@@ -224,24 +222,23 @@ function ExploreScreen({
   const activeId = currentTrack?.id;
   const [focusKey, setFocusKey] = useState(null);
   const [mode, setMode] = useState("releases");
-  const [deepReady, setDeepReady] = useState(process.env.NODE_ENV === "test");
 
-  useEffect(() => {
-    if (process.env.NODE_ENV === "test") return undefined;
-    return runAfterDelay(() => setDeepReady(true), 2400);
-  }, []);
-
-  const worlds = useMemo(() => exploreWorlds(tracks), [tracks]);
-  const lanes = useMemo(() => exploreGenrePlates(tracks, 12), [tracks]);
-  const rooms = useMemo(
-    () => (mode === "energy" || deepReady ? exploreMoodPlates(tracks) : []),
-    [tracks, deepReady, mode]
-  );
-  const arrivals = useMemo(() => newReleaseAlbums(tracks), [tracks]);
   /** History only earns a tab once the crate carries release years. */
   const modes = useMemo(() => exploreModesFor(tracks), [tracks]);
   const activeMode = modes.some((m) => m.id === mode) ? mode : "releases";
   const stats = useMemo(() => exploreCatalogStats(tracks), [tracks]);
+  const worlds = useMemo(
+    () => (activeMode === "worlds" ? exploreWorlds(tracks) : []),
+    [tracks, activeMode]
+  );
+  const lanes = useMemo(
+    () => (activeMode === "worlds" ? exploreGenrePlates(tracks, 12) : []),
+    [tracks, activeMode]
+  );
+  const rooms = useMemo(
+    () => (activeMode === "energy" ? exploreMoodPlates(tracks) : []),
+    [tracks, activeMode]
+  );
 
   const focus = useMemo(
     () => resolveExploreFocus(focusKey, tracks),
@@ -260,11 +257,7 @@ function ExploreScreen({
     onPlayTrack?.(track, pool);
   };
 
-  const hasBody =
-    arrivals.length > 0 ||
-    worlds.some((f) => f.tiles.length) ||
-    rooms.length > 0 ||
-    lanes.length > 0;
+  const hasBody = stats.cuts > 0;
 
   if (focus) {
     return (
@@ -352,7 +345,7 @@ function ExploreScreen({
                 }}
               >
                 {stats.cuts
-                  ? `${stats.worlds} worlds · ${stats.cuts} cuts`
+                  ? `${stats.cuts} cut${stats.cuts === 1 ? "" : "s"} in the crate`
                   : "A crate, not a feed."}
               </p>
             </div>
@@ -364,7 +357,7 @@ function ExploreScreen({
       <ExploreModes mode={activeMode} modes={modes} onChange={setMode} />
       <ModeHint mode={activeMode} />
 
-      {activeMode === "releases" && arrivals.length > 0 && (
+      {activeMode === "releases" && (
         <NewReleases
           tracks={tracks}
           onOpenAlbum={onOpenAlbum}
@@ -399,11 +392,6 @@ function ExploreScreen({
         />
       )}
 
-      {activeMode === "releases" && arrivals.length === 0 && hasBody && (
-        <p style={{ padding: `16px ${homeSpace.gutter}px`, color: color.muted, fontSize: 14 }}>
-          New sleeves land here when albums hit the crate.
-        </p>
-      )}
       {activeMode === "energy" && rooms.length === 0 && hasBody && (
         <p style={{ padding: `16px ${homeSpace.gutter}px`, color: color.muted, fontSize: 14 }}>
           The pressure strip fills once cuts carry a pace.

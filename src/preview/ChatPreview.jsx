@@ -92,7 +92,6 @@ export default function ChatPreview() {
       <HomeHeader onOpenSearch={() => {}} />
       <ChannelSurfingSection
         channels={channels}
-        tracks={[SAMPLE_TRACK]}
         activeChannelId="local-pnw"
         onTuneChannel={() => {}}
         first
