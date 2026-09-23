@@ -1,40 +1,35 @@
 // src/useUserData.js
-import {
-  doc,
-  updateDoc,
-  arrayUnion,
-  arrayRemove,
-} from "firebase/firestore";
-import { auth, db } from "./firebase";
+import { loadFirebaseSdk } from "./lib/firebaseSdk";
 import { recordListeningEvent } from "./lib/listeningApi";
 
-function userRef() {
-  return doc(db, "users", auth.currentUser.uid);
+async function userRef() {
+  const { auth, db, fsMod } = await loadFirebaseSdk();
+  if (!auth.currentUser) return null;
+  return { ref: fsMod.doc(db, "users", auth.currentUser.uid), fsMod, auth };
 }
 
-// ── TOGGLE A LIKED TRACK ──────────────────────────────────────────────────
 export async function toggleLike(trackId, currentlyLiked) {
-  await updateDoc(userRef(), {
+  const ctx = await userRef();
+  if (!ctx) return;
+  await ctx.fsMod.updateDoc(ctx.ref, {
     likedTracks: currentlyLiked
-      ? arrayRemove(trackId)
-      : arrayUnion(trackId),
+      ? ctx.fsMod.arrayRemove(trackId)
+      : ctx.fsMod.arrayUnion(trackId),
   });
 }
 
-/** Persist dislike taste + the disliked track id list. */
 export async function saveDislikeTaste(dislikeTaste, dislikedTracks) {
   const payload = {};
   if (dislikeTaste != null) payload.dislikeTaste = dislikeTaste;
   if (Array.isArray(dislikedTracks)) payload.dislikedTracks = dislikedTracks;
   if (!Object.keys(payload).length) return;
-  await updateDoc(userRef(), payload);
+  const ctx = await userRef();
+  if (!ctx) return;
+  await ctx.fsMod.updateDoc(ctx.ref, payload);
 }
 
-/**
- * Record a play — prefers Cloud Function (trusted meter + playCount).
- * Falls back to recentTracks-only if the function is unreachable.
- */
 export async function recordPlay(trackId, currentRecentTracks = []) {
+  const { auth } = await loadFirebaseSdk();
   if (!auth.currentUser) {
     return { allowed: true, offline: true };
   }
@@ -50,7 +45,8 @@ export async function recordPlay(trackId, currentRecentTracks = []) {
       ...currentRecentTracks.filter((r) => r.trackId !== trackId),
     ].slice(0, 50);
     try {
-      await updateDoc(userRef(), { recentTracks: updated });
+      const ctx = await userRef();
+      if (ctx) await ctx.fsMod.updateDoc(ctx.ref, { recentTracks: updated });
     } catch {
       /* ignore */
     }
@@ -63,12 +59,12 @@ export async function recordPlay(trackId, currentRecentTracks = []) {
   }
 }
 
-// ── SAVE GENRE PREFERENCES ────────────────────────────────────────────────
 export async function saveGenres(genres) {
-  await updateDoc(userRef(), { genres });
+  const ctx = await userRef();
+  if (!ctx) return;
+  await ctx.fsMod.updateDoc(ctx.ref, { genres });
 }
 
-// ── SAVE TASTE PROFILE (genres + adventurous + depth) ─────────────────────
 export async function saveTasteProfile({
   genres = null,
   adventurous = null,
@@ -89,10 +85,11 @@ export async function saveTasteProfile({
   if (vibe != null) payload.vibe = vibe;
   if (seedChannelId != null) payload.seedChannelId = seedChannelId;
   if (!Object.keys(payload).length) return;
-  await updateDoc(userRef(), payload);
+  const ctx = await userRef();
+  if (!ctx) return;
+  await ctx.fsMod.updateDoc(ctx.ref, payload);
 }
 
-// ── COMPLETE ONBOARDING ───────────────────────────────────────────────────
 export async function completeOnboarding({
   homeRooms = [],
   genres = null,
@@ -117,35 +114,32 @@ export async function completeOnboarding({
   if (vibe != null) payload.vibe = vibe;
   if (seedChannelId != null) payload.seedChannelId = seedChannelId;
   payload.onboardingVersion = 2;
-  await updateDoc(userRef(), payload);
+  const ctx = await userRef();
+  if (!ctx) return;
+  await ctx.fsMod.updateDoc(ctx.ref, payload);
 }
 
-// ── MONTHLY PICK CHOICE ───────────────────────────────────────────────────
 export async function saveMonthlyChoice(monthKey, choice) {
   const key = String(monthKey || "");
   if (!key || !choice) return;
-  await updateDoc(userRef(), {
+  const ctx = await userRef();
+  if (!ctx) return;
+  await ctx.fsMod.updateDoc(ctx.ref, {
     [`monthlyChoices.${key}`]: choice,
   });
 }
 
-/**
- * @deprecated Prefer recordListeningEvent / recordPlay — meter is server-owned.
- * Kept as a no-op-friendly helper for older call sites.
- */
 export async function savePlayMeter({ playsDayKey, playsToday }) {
-  // Intentionally unused: firestore rules block client meter writes.
-  // Optimistic UI still updates local profile from recordPlay results.
   void playsDayKey;
   void playsToday;
 }
 
-// ── SAVE SETTINGS ─────────────────────────────────────────────────────────
 export async function saveSettings(settings) {
-  await updateDoc(userRef(), { settings });
+  const ctx = await userRef();
+  if (!ctx) return;
+  await ctx.fsMod.updateDoc(ctx.ref, { settings });
 }
 
-/** Persist first-login tour seen + guide version (auto-show once per version). */
 export async function saveFeatureGuideSeen({
   tutorialSeen = true,
   featureGuideVersion = null,
@@ -154,5 +148,7 @@ export async function saveFeatureGuideSeen({
   if (tutorialSeen != null) payload.tutorialSeen = tutorialSeen;
   if (featureGuideVersion != null) payload.featureGuideVersion = featureGuideVersion;
   if (!Object.keys(payload).length) return;
-  await updateDoc(userRef(), payload);
+  const ctx = await userRef();
+  if (!ctx) return;
+  await ctx.fsMod.updateDoc(ctx.ref, payload);
 }

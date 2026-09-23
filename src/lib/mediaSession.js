@@ -59,6 +59,26 @@ export function syncMediaSession(track, { playing = false } = {}) {
   return true;
 }
 
+export function syncMediaPosition(
+  { duration = 0, position = 0, playbackRate = 1 } = {},
+  win = typeof window !== "undefined" ? window : null
+) {
+  const session = getMediaSession(win);
+  if (!session || typeof session.setPositionState !== "function") return false;
+  const dur = Number(duration) || 0;
+  if (!Number.isFinite(dur) || dur <= 0) return false;
+  const pos = Math.max(0, Math.min(dur, Number(position) || 0));
+  const rate = Number.isFinite(Number(playbackRate)) && Number(playbackRate) > 0
+    ? Number(playbackRate)
+    : 1;
+  try {
+    session.setPositionState({ duration: dur, position: pos, playbackRate: rate });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 const ACTION_MAP = {
   play: "play",
   pause: "pause",

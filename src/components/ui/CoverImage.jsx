@@ -126,6 +126,9 @@ export default function CoverImage({
               setTier("original");
               return;
             }
+            setFailed(true);
+            onError?.(e);
+            return;
           }
           setFailed(true);
           onError?.(e);

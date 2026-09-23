@@ -6,6 +6,7 @@ import { createRoot } from "react-dom/client";
 import { act } from "react-dom/test-utils";
 
 jest.mock("../../firebase", () => ({
+  getFirebase: async () => ({ auth: { currentUser: null }, db: {} }),
   auth: { currentUser: null },
   db: {},
 }));

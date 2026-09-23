@@ -74,6 +74,7 @@ describe("coverUrl", () => {
 
   test("original masters are only legal on large stages", () => {
     expect(allowOriginalCover(80)).toBe(false);
+    expect(allowOriginalCover(168)).toBe(false);
     expect(allowOriginalCover(336)).toBe(false);
     expect(allowOriginalCover(640)).toBe(true);
     expect(allowOriginalCover(960)).toBe(true);

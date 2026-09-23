@@ -3,6 +3,7 @@ import {
   bindMediaSessionHandlers,
   mediaMetadataForTrack,
   syncMediaSession,
+  syncMediaPosition,
 } from "./mediaSession";
 
 describe("mediaSession", () => {
@@ -51,5 +52,17 @@ describe("mediaSession", () => {
     expect(calls).toEqual(["play", "next", "seek:12"]);
     unbind();
     expect(session.setActionHandler).toHaveBeenCalledWith("play", null);
+  });
+
+  test("syncMediaPosition writes duration and clock", () => {
+    const session = { setPositionState: jest.fn() };
+    const win = { navigator: { mediaSession: session } };
+    expect(syncMediaPosition({ duration: 120, position: 12, playbackRate: 1 }, win)).toBe(true);
+    expect(session.setPositionState).toHaveBeenCalledWith({
+      duration: 120,
+      position: 12,
+      playbackRate: 1,
+    });
+    expect(syncMediaPosition({ duration: 0, position: 0 }, win)).toBe(false);
   });
 });

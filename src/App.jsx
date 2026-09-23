@@ -2,8 +2,7 @@ import { useState, useEffect, useRef, useCallback, useMemo, lazy, Suspense, star
 import { useNavigate, useLocation }                 from "react-router-dom";
 import { useAuth }                                  from "./useAuth";
 import { toggleLike as fbToggleLike, recordPlay, completeOnboarding, saveTasteProfile, saveDislikeTaste, saveFeatureGuideSeen } from "./useUserData";
-import { collection, addDoc } from "firebase/firestore";
-import { db }                                       from "./firebase";
+import { getFirebase } from "./firebase";
 import {
   font, fontDisplay, fontMono, color, chrome, radius, motion,
   glass, glassControl, homeSpace, dock, sectionRule, radio,
@@ -31,6 +30,7 @@ import {
 import {
   canInstantPromote,
   configureAudioElement,
+  createAudioPair,
   equalPowerVolumes,
   fadeSecondsForMode,
   preloadSrc,
@@ -41,11 +41,11 @@ import {
   SILENT_WAV,
   swapDeck,
 } from "./lib/audioEngine";
-import { bindMediaSessionHandlers, syncMediaSession } from "./lib/mediaSession";
+import { bindMediaSessionHandlers, syncMediaSession, syncMediaPosition } from "./lib/mediaSession";
 import { dismissBootSplash } from "./lib/bootSplash";
 import { peekAuthSession } from "./lib/authBoot";
 import { explainPick } from "./lib/explain";
-import { fetchCatalogTracks, fetchHomeLite, isCatalogCacheFresh, readCatalogIdb, writeCatalogIdb, HOME_LITE_LIMIT } from "./lib/catalogLoad";
+import { fetchCatalogTracksFromFirestore, fetchCatalogCdn, fetchHomeLite, isCatalogCacheFresh, isNewerCatalog, loadCatalogFirstPaint, writeCatalogIdb, HOME_LITE_LIMIT } from "./lib/catalogLoad";
 import { adoptCatalogTracks, hydrateCatalogTracks, patchTrackById } from "./lib/catalogHydrate";
 import { runAfterPaint, runAfterDelay, runWhenIdle } from "./lib/afterPaint";
 import { slugify, findArtist, findAlbum } from "./lib/catalog";
@@ -131,6 +131,7 @@ import {
   BgMist,
   ToastEl,
 } from "./components/layout/AppChrome";
+import GuestMemberGate from "./components/auth/GuestMemberGate";
 
 const LoginScreen = lazy(() => import("./components/auth/LandingScreen"));
 const ClubScreen = lazy(() => import("./components/club/ClubScreen"));
@@ -755,6 +756,10 @@ const injectStyles = () => {
 };
 injectStyles();
 
+async function firestoreDb() {
+  return (await getFirebase()).db;
+}
+
 /** Dev chrome previews own the transport store — skip the live audio graph. */
 function isDevPreviewHash() {
   if (typeof window === "undefined") return false;
@@ -1182,7 +1187,10 @@ export default function App() {
       durationMins: Math.round((Date.now() - start) / 60000),
       trackIds: sessionPlays.map(p => p.id),
     };
-    addDoc(collection(db, "sessions"), sessionData).catch(() => {});
+    getFirebase().then(async ({ db }) => {
+      const { collection, addDoc } = await import("firebase/firestore");
+      addDoc(collection(db, "sessions"), sessionData).catch(() => {});
+    }).catch(() => {});
     sessionStartRef.current = null;
     lastFlushRef.current = Date.now();
   }
@@ -1227,7 +1235,7 @@ export default function App() {
       try {
         const { doc: fdoc, getDoc: fget } = await import("firebase/firestore");
         const id = communityMixId(monthKey());
-        const snap = await fget(fdoc(db, "mixes", id));
+        const snap = await fget(fdoc(await firestoreDb(), "mixes", id));
         if (cancelled) return;
         setCommunityMix(snap.exists() ? { id: snap.id, ...snap.data() } : null);
       } catch (e) {
@@ -1256,7 +1264,7 @@ export default function App() {
           return;
         }
         const { doc: fdoc, getDoc: fget } = await import("firebase/firestore");
-        const snap = await fget(fdoc(db, "mixes", mixId));
+        const snap = await fget(fdoc(await firestoreDb(), "mixes", mixId));
         if (cancelled) return;
         setActiveMix(snap.exists() ? { id: snap.id, ...snap.data() } : null);
       } catch {
@@ -1317,12 +1325,17 @@ export default function App() {
       return { ts: Number(raw.ts) || 0, tracks: raw.tracks };
     } catch { return null; }
   }, [CATALOG_CACHE_KEY]);
-  const writeCatalogCache = useCallback((list) => {
-    writeCatalogIdb(CATALOG_CACHE_KEY, list);
+  const writeCatalogCache = useCallback((list, meta = {}) => {
+    writeCatalogIdb(CATALOG_CACHE_KEY, list, meta);
     // Keep a tiny localStorage stub only when shelf is small enough (quota-safe).
     try {
       if (list.length <= 80) {
-        localStorage.setItem(CATALOG_CACHE_KEY, JSON.stringify({ ts: Date.now(), tracks: list }));
+        localStorage.setItem(CATALOG_CACHE_KEY, JSON.stringify({
+          ts: Date.now(),
+          tracks: list,
+          version: Number(meta.version) || Date.now(),
+          source: meta.source || "",
+        }));
       } else {
         localStorage.removeItem(CATALOG_CACHE_KEY);
       }
@@ -1348,23 +1361,46 @@ export default function App() {
     if (!background) setTracksLoading(true);
     setTracksLoadError(null);
     try {
+      const cdn = await fetchCatalogCdn();
+      if (cdn?.tracks?.length) {
+        catalogFullRef.current = true;
+        const liked = applyLikedFlags(cdn.tracks);
+        const meta = { version: cdn.version, source: "cdn" };
+        if (background) {
+          const hydrated = applyLikedFlags(await hydrateCatalogTracks(cdn.tracks));
+          startTransition(() => setTracks((prev) => adoptCatalogTracks(prev, hydrated)));
+          writeCatalogCache(hydrated, meta);
+        } else {
+          setTracks((prev) => adoptCatalogTracks(prev, liked));
+          setTracksLoading(false);
+          runAfterPaint(() => {
+            hydrateCatalogTracks(cdn.tracks).then((enriched) => {
+              const hydrated = applyLikedFlags(enriched);
+              startTransition(() => setTracks((prev) => adoptCatalogTracks(prev, hydrated)));
+              writeCatalogCache(hydrated, meta);
+            });
+          });
+        }
+        return;
+      }
+      const db = await firestoreDb();
       if (!full && !background) {
         const lite = await fetchHomeLite(db);
         if (lite.tracks.length) {
           setTracks((prev) => adoptCatalogTracks(prev, applyLikedFlags(lite.tracks)));
           setTracksLoading(false);
-          // Full catalog waits until Home images have a beat. Do not IDB-cache the lite slice.
           scheduleFullCatalog(8000);
           return;
         }
       }
-      const loaded = await fetchCatalogTracks(db);
+      const loaded = await fetchCatalogTracksFromFirestore(db);
       catalogFullRef.current = true;
       const liked = applyLikedFlags(loaded);
+      const meta = { source: "firestore" };
       if (background) {
         const hydrated = applyLikedFlags(await hydrateCatalogTracks(loaded));
         startTransition(() => setTracks((prev) => adoptCatalogTracks(prev, hydrated)));
-        writeCatalogCache(hydrated);
+        writeCatalogCache(hydrated, meta);
       } else {
         setTracks((prev) => adoptCatalogTracks(prev, liked));
         setTracksLoading(false);
@@ -1372,7 +1408,7 @@ export default function App() {
           hydrateCatalogTracks(loaded).then((enriched) => {
             const hydrated = applyLikedFlags(enriched);
             startTransition(() => setTracks((prev) => adoptCatalogTracks(prev, hydrated)));
-            writeCatalogCache(hydrated);
+            writeCatalogCache(hydrated, meta);
           });
         });
       }
@@ -1392,14 +1428,16 @@ export default function App() {
     let cancelled = false;
     const stopHydrateRef = { current: () => {} };
     (async () => {
-      const fromIdb = await readCatalogIdb(CATALOG_CACHE_KEY);
-      const cached = fromIdb || readCatalogCacheSync();
+      const first = await loadCatalogFirstPaint({
+        cacheKey: CATALOG_CACHE_KEY,
+        readSync: readCatalogCacheSync,
+      });
       if (cancelled) return;
-      if (cached) {
-        const list = cached.tracks;
+      if (first?.tracks?.length) {
+        const list = first.tracks;
         setTracks((prev) => adoptCatalogTracks(prev, applyLikedFlags(list)));
         setTracksLoading(false);
-        if (list.length > HOME_LITE_LIMIT) catalogFullRef.current = true;
+        if (list.length > HOME_LITE_LIMIT || first.source === "cdn") catalogFullRef.current = true;
         const hydratedAlready = list[0] && Object.prototype.hasOwnProperty.call(list[0], "_scene");
         if (!hydratedAlready) {
           stopHydrateRef.current = runAfterPaint(() => {
@@ -1409,8 +1447,19 @@ export default function App() {
             });
           });
         }
-        if (!isCatalogCacheFresh(cached)) {
-          scheduleFullCatalog(8000);
+        if (first.source === "cdn") {
+          writeCatalogCache(list, { version: first.version, source: "cdn" });
+        } else if (!isCatalogCacheFresh(first)) {
+          fetchCatalogCdn().then((cdn) => {
+            if (cancelled || !cdn?.tracks?.length) {
+              if (!isCatalogCacheFresh(first)) scheduleFullCatalog(8000);
+              return;
+            }
+            if (!isNewerCatalog(cdn, first) && catalogFullRef.current) return;
+            catalogFullRef.current = true;
+            setTracks((prev) => adoptCatalogTracks(prev, applyLikedFlags(cdn.tracks)));
+            writeCatalogCache(cdn.tracks, { version: cdn.version, source: "cdn" });
+          });
         }
       } else {
         reloadCatalog();
@@ -1801,6 +1850,11 @@ export default function App() {
 
     const onTimeUpdate = () => {
       setProgress(Math.floor(audio.currentTime));
+      syncMediaPosition({
+        duration: audio.duration || 0,
+        position: audio.currentTime || 0,
+        playbackRate: audio.playbackRate || 1,
+      });
       if (audio.currentTime > 0 && !audio.paused) transportFlags.setBuffering(false);
       if (!audio.duration || isCrossfading.current) return;
       const radio = isRadioModeRef.current;
@@ -1884,16 +1938,15 @@ export default function App() {
   }, [pickCrossfadeNext, preloadNextAudio]);
 
   useEffect(() => {
-    const a = new Audio();
-    const b = new Audio();
-    configureAudioElement(a);
-    configureAudioElement(b);
-    a.volume = volumeRef.current;
-    b.volume = 0;
+    const pair = createAudioPair();
+    const a = pair.primary;
+    const b = pair.standby;
+    if (a) a.volume = volumeRef.current;
+    if (b) b.volume = 0;
     audioRef.current     = a;
     nextAudioRef.current = b;
     deckPairRef.current = { primary: a, standby: b };
-    bindPrimaryAudio(a);
+    if (a) bindPrimaryAudio(a);
 
     return () => {
       clearInterval(crossfadeRef.current);
@@ -1903,8 +1956,10 @@ export default function App() {
         crossfadeReadyWaitRef.current = null;
       }
       primaryAudioCleanupRef.current?.();
-      a.pause(); b.pause();
-      a.src = ""; b.src = "";
+      try { a?.pause(); } catch { /* ignore */ }
+      try { b?.pause(); } catch { /* ignore */ }
+      if (a) { a.src = ""; }
+      if (b) { b.src = ""; }
     };
   }, [bindPrimaryAudio]);
 
@@ -2410,7 +2465,7 @@ export default function App() {
   const recordSkipOnFirestore = async (trackId) => {
     try {
       const { doc: fdoc, updateDoc: fup, increment: finc } = await import("firebase/firestore");
-      await fup(fdoc(db, "tracks", trackId), { skipCount: finc(1) });
+      await fup(fdoc(await firestoreDb(), "tracks", trackId), { skipCount: finc(1) });
     } catch(e) {}
   };
 
@@ -2608,7 +2663,16 @@ export default function App() {
 
 
   // ── Like/unlike — optimistic UI + Firestore sync ────────────────────────
+  const askSignIn = useCallback((reason) => {
+    showToast(reason || "Sign in from Club");
+    setScreen("profile");
+  }, [setScreen]);
+
   const toggleLike = useCallback(async (id) => {
+    if (!firebaseUserRef.current) {
+      askSignIn("Sign in from Club to keep favorites");
+      return;
+    }
     const track = tracksRef.current.find((t) => t.id === id);
     if (!track) return;
     const nowLiked = !track.liked;
@@ -2621,21 +2685,19 @@ export default function App() {
     })));
     if (currentRef.current?.id === id) setCurrent((t) => ({ ...t, liked: nowLiked }));
 
-    if (firebaseUserRef.current) {
-      try {
-        await fbToggleLike(id, track.liked);
-        const { doc: fdoc, updateDoc: fup, increment: finc } = await import("firebase/firestore");
-        await fup(fdoc(db, "tracks", id), { likeCount: finc(delta) });
-      } catch (e) {
-        setTracks((prev) => patchTrackById(prev, id, (t) => ({
-          ...t,
-          liked: track.liked,
-          likeCount: Math.max(0, (t.likeCount || 0) - delta),
-        })));
-        showToastRef.current?.("Couldn't save — check your connection");
-      }
+    try {
+      await fbToggleLike(id, track.liked);
+      const { doc: fdoc, updateDoc: fup, increment: finc } = await import("firebase/firestore");
+      await fup(fdoc(await firestoreDb(), "tracks", id), { likeCount: finc(delta) });
+    } catch (e) {
+      setTracks((prev) => patchTrackById(prev, id, (t) => ({
+        ...t,
+        liked: track.liked,
+        likeCount: Math.max(0, (t.likeCount || 0) - delta),
+      })));
+      showToastRef.current?.("Couldn't save — check your connection");
     }
-  }, [setCurrent]);
+  }, [askSignIn, setCurrent]);
 
   const likeCurrent = useCallback(() => {
     const t = currentRef.current;
@@ -2930,12 +2992,16 @@ export default function App() {
     if (firebaseUser) {
       try {
         const { doc: fdoc, updateDoc: fupdate } = await import("firebase/firestore");
-        await fupdate(fdoc(db, "users", firebaseUser.uid), { playlists: ownOnly });
+        await fupdate(fdoc(await firestoreDb(), "users", firebaseUser.uid), { playlists: ownOnly });
       } catch(e) {}
     }
   };
 
   const createPlaylist = (name, trackIdOrIds = null) => {
+    if (!firebaseUser) {
+      askSignIn("Sign in from Club to keep stacks");
+      return null;
+    }
     const ids = Array.isArray(trackIdOrIds)
       ? trackIdOrIds.filter(Boolean)
       : (trackIdOrIds ? [trackIdOrIds] : []);
@@ -2946,6 +3012,10 @@ export default function App() {
   };
 
   const addToPlaylist = (trackId, playlistId) => {
+    if (!firebaseUser) {
+      askSignIn("Sign in from Club to keep stacks");
+      return;
+    }
     if (String(playlistId || "").startsWith("community-")) {
       showToast("Community Mix is curated — make your own mixtape to edit");
       return;
@@ -3045,7 +3115,7 @@ export default function App() {
         visibility: "public",
       });
       const { doc: fdoc, setDoc: fset } = await import("firebase/firestore");
-      await fset(fdoc(db, "mixes", mix.id), mix, { merge: true });
+      await fset(fdoc(await firestoreDb(), "mixes", mix.id), mix, { merge: true });
       const url = absoluteAppUrl(buildPath("mix", { mixId: mix.id }));
       const result = await shareOrCopy({
         title: mix.title,
@@ -3076,12 +3146,12 @@ export default function App() {
         sourceMixId: playlist.id,
       });
       const { doc: fdoc, setDoc: fset } = await import("firebase/firestore");
-      await fset(fdoc(db, "mixes", mix.id), mix, { merge: true });
+      await fset(fdoc(await firestoreDb(), "mixes", mix.id), mix, { merge: true });
       setCommunityMix(mix);
       // Stamp featured curator on the admin profile for club badge
       if (firebaseUser) {
         try {
-          await fset(fdoc(db, "users", firebaseUser.uid), {
+          await fset(fdoc(await firestoreDb(), "users", firebaseUser.uid), {
             featuredCuratorMonth: mix.monthKey,
           }, { merge: true });
           setProfile((p) => ({ ...(p || {}), featuredCuratorMonth: mix.monthKey }));
@@ -3099,17 +3169,29 @@ export default function App() {
     () => libraryPlaylists.filter((p) => !isCommunityPlaylist(p)),
     [libraryPlaylists]
   );
-  const playlistCtx = useMemo(() => ({
-    playlists: ownPlaylists,
-    onCreate:  createPlaylist,
-    onAdd:     addToPlaylist,
-    onRemove:  removeFromPlaylist,
-    onToast:   showToast,
+  const playlistApiRef = useRef({});
+  playlistApiRef.current = {
+    onCreate: createPlaylist,
+    onAdd: addToPlaylist,
+    onRemove: removeFromPlaylist,
+    onToast: showToast,
     onResonance: (t) => setResonanceTrack(t),
     onHypnoRadio: (t) => playHypnoRadio(t),
     onLike: (id) => toggleLike(id),
     onOpenArtist: (name) => openArtist(name),
     onOpenAlbum: (track) => openAlbum(track),
+  };
+  const playlistCtx = useMemo(() => ({
+    playlists: ownPlaylists,
+    onCreate: (...args) => playlistApiRef.current.onCreate?.(...args),
+    onAdd: (...args) => playlistApiRef.current.onAdd?.(...args),
+    onRemove: (...args) => playlistApiRef.current.onRemove?.(...args),
+    onToast: (...args) => playlistApiRef.current.onToast?.(...args),
+    onResonance: (t) => playlistApiRef.current.onResonance?.(t),
+    onHypnoRadio: (t) => playlistApiRef.current.onHypnoRadio?.(t),
+    onLike: (id) => playlistApiRef.current.onLike?.(id),
+    onOpenArtist: (name) => playlistApiRef.current.onOpenArtist?.(name),
+    onOpenAlbum: (track) => playlistApiRef.current.onOpenAlbum?.(track),
   }), [ownPlaylists]);
 
   // ── Scroll memory — keep your place when switching tabs ──────────────────
@@ -3130,8 +3212,8 @@ export default function App() {
   }, [screen]);
 
   useEffect(() => {
-    if (!authLoading || sessionLikely) dismissBootSplash();
-  }, [authLoading, sessionLikely]);
+    if (!authLoading || sessionLikely || tracks.length > 0 || !tracksLoading) dismissBootSplash();
+  }, [authLoading, sessionLikely, tracks.length, tracksLoading]);
 
   // Dev-only: #broadcast-preview exercises Home IA + video stage without auth.
   if (
@@ -3223,28 +3305,13 @@ export default function App() {
     );
   }
 
-  // ── Loading states ────────────────────────────────────────────────────────
-  // Returning members paint Home from IDB while Auth hydrates. Guests keep the
-  // HTML planet until Firebase says nobody is signed in — no Login flash.
-  if (authLoading && !sessionLikely) {
+  // HTML boot planet stays until Home or Club has a surface — guests paint
+  // from IDB/CDN without waiting on Firebase Auth. Returning members with a
+  // local session flag still drop the splash even if the shelf is empty.
+  const bootBlocked = authLoading && !sessionLikely && !tracks.length && tracksLoading;
+  if (bootBlocked) {
     return null;
   }
-
-  // Not logged in — show login screen
-  if (!authLoading && !firebaseUser) return (
-    <Suspense fallback={<div style={{ minHeight: "100dvh", display: "grid", placeItems: "center" }} />}>
-      <LoginScreen
-        onSignUp={signUp}
-        onLogIn={logIn}
-        onGoogleSignIn={signInWithGoogle}
-        onPhoneOTP={sendPhoneOTP}
-        onVerifyOTP={verifyPhoneOTP}
-        onResetPassword={resetPassword}
-        authError={authError}
-        onClearAuthError={clearAuthError}
-      />
-    </Suspense>
-  );
 
   if (needsOnboarding) {
     return (
@@ -3456,16 +3523,17 @@ export default function App() {
             pushDedication(entry);
             showToast("Dedication is live");
             if (firebaseUser && entry) {
-              import("firebase/firestore").then(({ collection: col, addDoc: add }) =>
-                add(col(db, "stationDedications"), {
+              import("firebase/firestore").then(async ({ collection: col, addDoc: add }) => {
+                const db = await firestoreDb();
+                return add(col(db, "stationDedications"), {
                   uid: firebaseUser.uid,
                   text: entry.text,
                   fromName: entry.fromName,
                   trackId: entry.trackId || null,
                   trackTitle: entry.trackTitle || null,
                   createdAt: new Date().toISOString(),
-                })
-              ).catch(() => { /* local crawl still works */ });
+                });
+              }).catch(() => { /* local crawl still works */ });
             }
           }}
         />
@@ -3589,7 +3657,16 @@ export default function App() {
         )}
         {warmTabs.has("favorites") && (
         <ScreenPane keepAlive active={screen==="favorites"}>
-        <FavoritesScreen tracks={tracks} onPlay={playFromLibrary} onPlayTrack={playFromLibrary} onLike={toggleLike} playlistCtx={playlistCtx} userPlaylists={libraryPlaylists} onCreatePlaylist={createPlaylist} onDeletePlaylist={deletePlaylist} onRenamePlaylist={renamePlaylist} onSharePlaylist={sharePlaylistToClub} stackId={stackId} onOpenStack={openStack} onCloseStack={closeStack} onReorderPlaylist={reorderPlaylistTrack} communityMix={communityMix} onOpenMix={openCommunityMix} onCustomMix={openCustomMix} onOpenCharts={openCharts} onOpenMenu={openMenu} showLibraryDestinations preferredGenres={user.genres} recentTrackIds={recentTrackIds} userKey={user.uid}/>}
+        {firebaseUser ? (
+        <FavoritesScreen tracks={tracks} onPlay={playFromLibrary} onPlayTrack={playFromLibrary} onLike={toggleLike} playlistCtx={playlistCtx} userPlaylists={libraryPlaylists} onCreatePlaylist={createPlaylist} onDeletePlaylist={deletePlaylist} onRenamePlaylist={renamePlaylist} onSharePlaylist={sharePlaylistToClub} stackId={stackId} onOpenStack={openStack} onCloseStack={closeStack} onReorderPlaylist={reorderPlaylistTrack} communityMix={communityMix} onOpenMix={openCommunityMix} onCustomMix={openCustomMix} onOpenCharts={openCharts} onOpenMenu={openMenu} showLibraryDestinations preferredGenres={user.genres} recentTrackIds={recentTrackIds} userKey={user.uid}/>
+        ) : (
+        <GuestMemberGate
+          title="Your library"
+          copy="Sign in from Club to keep favorites, stacks, and the Community Mix."
+          cta="Open Club"
+          onSignIn={() => setScreen("profile")}
+        />
+        )}
         </ScreenPane>
         )}
         {!isKeepAliveScreen(screen) && (screen==="mix" || screen==="artist" || screen==="album" || screen==="admin") && (
@@ -3645,7 +3722,20 @@ export default function App() {
         {warmTabs.has("profile") && (
         <ScreenPane keepAlive active={screen==="profile"}>
           <Suspense fallback={<div style={{ padding: 32, color: "var(--muted)" }}>Opening the club…</div>}>
+            {firebaseUser ? (
             <ClubScreen user={user} tracks={tracks} onLogout={logOut} access={access} onSubscribe={handleSubscribe} onOpenPlans={handleOpenPlans} profile={profile} communityMix={communityMix} onOpenMix={communityMix ? openCommunityMix : null} onEditGenres={editGenres} recentTracks={profile?.recentTracks||[]} signalLabel={signalFlags.getState().label} onPlayTrack={playFromLibrary} onReplayTour={replayTour}/>
+            ) : (
+            <LoginScreen
+              onSignUp={signUp}
+              onLogIn={logIn}
+              onGoogleSignIn={signInWithGoogle}
+              onPhoneOTP={sendPhoneOTP}
+              onVerifyOTP={verifyPhoneOTP}
+              onResetPassword={resetPassword}
+              authError={authError}
+              onClearAuthError={clearAuthError}
+            />
+            )}
           </Suspense>
         </ScreenPane>
         )}

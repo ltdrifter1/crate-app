@@ -1,24 +1,6 @@
 // src/useAuth.js
 import { useState, useEffect, useCallback } from "react";
-import {
-  createUserWithEmailAndPassword,
-  signInWithEmailAndPassword,
-  signOut,
-  onAuthStateChanged,
-  GoogleAuthProvider,
-  OAuthProvider,
-  signInWithPopup,
-  signInWithRedirect,
-  getRedirectResult,
-  RecaptchaVerifier,
-  signInWithPhoneNumber,
-  sendPasswordResetEmail,
-  updateProfile,
-} from "firebase/auth";
-import {
-  doc, setDoc, getDoc, updateDoc, serverTimestamp, runTransaction,
-} from "firebase/firestore";
-import { auth, db } from "./firebase";
+import { loadFirebaseSdk } from "./lib/firebaseSdk";
 import { normalizePhoneE164 } from "./lib/phone";
 import { migratePreferredGenres } from "./lib/genres";
 import { buildFreePlanFields, needsPlanBackfill } from "./lib/entitlements";
@@ -33,7 +15,8 @@ const REDIRECT_ERROR_KEY = "rooms.auth.redirectError";
 async function resolveMemberNumber(uid, preferred = null) {
   if (preferred != null && Number(preferred) > 0) return Number(preferred);
   try {
-    return await assignMemberNumber(db, { doc, runTransaction });
+    const { db, fsMod } = await loadFirebaseSdk();
+    return await assignMemberNumber(db, { doc: fsMod.doc, runTransaction: fsMod.runTransaction });
   } catch (e) {
     console.warn("Member number counter failed; using provisional", e);
     return provisionalMemberNumber(uid);
@@ -41,6 +24,7 @@ async function resolveMemberNumber(uid, preferred = null) {
 }
 
 async function createProfile(uid, fields = {}) {
+  const { db, fsMod } = await loadFirebaseSdk();
   const displayName = fields.displayName || fields.username || "Listener";
   const trial = buildFreePlanFields();
   const memberNumber = await resolveMemberNumber(uid, fields.memberNumber);
@@ -51,7 +35,7 @@ async function createProfile(uid, fields = {}) {
     phone:        fields.phone        || "",
     displayName,
     profileImage: fields.profileImage || "",
-    createdAt:    serverTimestamp(),
+    createdAt:    fsMod.serverTimestamp(),
     genres:       fields.genres       || [],
     adventurous:  fields.adventurous  ?? 50,
     depth:        fields.depth        ?? 50,
@@ -71,7 +55,7 @@ async function createProfile(uid, fields = {}) {
     monthlyChoices: {},
     ...trial,
   };
-  await setDoc(doc(db, "users", uid), profile);
+  await fsMod.setDoc(fsMod.doc(db, "users", uid), profile);
   return profile;
 }
 
@@ -109,7 +93,8 @@ async function backfillTrialIfNeeded(uid, data) {
   if (!needsPlanBackfill(data)) return data;
   const trial = buildFreePlanFields();
   try {
-    await updateDoc(doc(db, "users", uid), trial);
+    const { db, fsMod } = await loadFirebaseSdk();
+    await fsMod.updateDoc(fsMod.doc(db, "users", uid), trial);
   } catch (e) {
     console.warn("Plan backfill failed; using local free fields", e);
   }
@@ -121,7 +106,8 @@ async function backfillMemberNumberIfNeeded(uid, data) {
   if (data?.memberNumber != null && Number(data.memberNumber) > 0) return data;
   const memberNumber = await resolveMemberNumber(uid);
   try {
-    await updateDoc(doc(db, "users", uid), { memberNumber });
+    const { db, fsMod } = await loadFirebaseSdk();
+    await fsMod.updateDoc(fsMod.doc(db, "users", uid), { memberNumber });
   } catch (e) {
     console.warn("Member number backfill failed; using local", e);
   }
@@ -137,7 +123,7 @@ function shouldFallbackToRedirect(err) {
     || (code === "auth/internal-error" && /popup|storage|cookie|third.?party/i.test(err?.message || ""));
 }
 
-function googleProvider() {
+function googleProvider(GoogleAuthProvider) {
   const provider = new GoogleAuthProvider();
   provider.setCustomParameters({ prompt: "select_account" });
   provider.addScope("profile");
@@ -159,6 +145,7 @@ function clearRecaptcha() {
 }
 
 async function buildRecaptcha(containerId, size = "invisible") {
+  const { auth, authMod } = await loadFirebaseSdk();
   clearRecaptcha();
   const el = document.getElementById(containerId);
   if (!el) {
@@ -166,7 +153,7 @@ async function buildRecaptcha(containerId, size = "invisible") {
     err.code = "auth/argument-error";
     throw err;
   }
-  const verifier = new RecaptchaVerifier(auth, containerId, {
+  const verifier = new authMod.RecaptchaVerifier(auth, containerId, {
     size,
     callback: () => {},
     "expired-callback": () => {
@@ -213,7 +200,8 @@ export function useAuth() {
   async function ensureProfile(fbUser) {
     if (!fbUser) return null;
     try {
-      const snap = await getDoc(doc(db, "users", fbUser.uid));
+      const { db, fsMod } = await loadFirebaseSdk();
+      const snap = await fsMod.getDoc(fsMod.doc(db, "users", fbUser.uid));
       if (snap.exists()) {
         let data = await backfillTrialIfNeeded(fbUser.uid, snap.data());
         data = await backfillMemberNumberIfNeeded(fbUser.uid, data);
@@ -242,6 +230,7 @@ export function useAuth() {
 
   /** Re-read profile from Firestore (e.g. after Stripe checkout). */
   const refreshProfile = useCallback(async () => {
+    const { auth } = await loadFirebaseSdk();
     const fbUser = auth.currentUser;
     if (!fbUser) return null;
     return ensureProfile(fbUser);
@@ -249,38 +238,47 @@ export function useAuth() {
 
   useEffect(() => {
     let cancelled = false;
+    let unsub = () => {};
 
-    // Finish Google/Apple redirect sign-in only when a bounce is actually pending.
-    // getRedirectResult on a normal Home boot is a wasted persistence read.
-    if (hasPendingAuthRedirect()) {
-      getRedirectResult(auth)
-        .then(async (result) => {
-          if (cancelled || !result?.user) return;
-          await ensureProfile(result.user);
-        })
-        .catch((err) => {
+    (async () => {
+      try {
+        const { auth, authMod } = await loadFirebaseSdk();
+        if (cancelled) return;
+        if (hasPendingAuthRedirect()) {
+          authMod.getRedirectResult(auth)
+            .then(async (result) => {
+              if (cancelled || !result?.user) return;
+              await ensureProfile(result.user);
+            })
+            .catch((err) => {
+              if (cancelled) return;
+              console.error("OAuth redirect failed", err);
+              storeAuthError(err);
+              setAuthError({ code: err?.code || "", message: err?.message || "Sign-in failed" });
+            });
+        }
+        unsub = authMod.onAuthStateChanged(auth, (fbUser) => {
           if (cancelled) return;
-          console.error("OAuth redirect failed", err);
-          storeAuthError(err);
-          setAuthError({ code: err?.code || "", message: err?.message || "Sign-in failed" });
+          if (fbUser) {
+            markAuthSession();
+            setFirebaseUser(fbUser);
+            setLoading(false);
+            // Profile getDoc / backfill must not block first Home paint.
+            ensureProfile(fbUser);
+          } else {
+            clearAuthSession();
+            setFirebaseUser(null);
+            setProfile(null);
+            setLoading(false);
+          }
         });
-    }
-
-    const unsub = onAuthStateChanged(auth, (fbUser) => {
-      if (cancelled) return;
-      if (fbUser) {
-        markAuthSession();
-        setFirebaseUser(fbUser);
-        setLoading(false);
-        // Profile getDoc / backfill must not block first Home paint.
-        ensureProfile(fbUser);
-      } else {
-        clearAuthSession();
-        setFirebaseUser(null);
-        setProfile(null);
-        setLoading(false);
+      } catch (e) {
+        if (!cancelled) {
+          console.warn("Auth SDK failed to load; continuing as guest", e);
+          setLoading(false);
+        }
       }
-    });
+    })();
 
     return () => {
       cancelled = true;
@@ -307,13 +305,13 @@ export function useAuth() {
       err.code = "auth/weak-password";
       throw err;
     }
-    const cred = await createUserWithEmailAndPassword(auth, cleanEmail, password);
+    const { auth, authMod } = await loadFirebaseSdk();
+    const cred = await authMod.createUserWithEmailAndPassword(auth, cleanEmail, password);
     try {
-      await updateProfile(cred.user, { displayName: cleanName });
+      await authMod.updateProfile(cred.user, { displayName: cleanName });
     } catch {
       /* non-fatal */
     }
-    // Fresh email signup — write profile with the chosen name (don’t race getDoc)
     try {
       const created = await createProfile(cred.user.uid, {
         email: cleanEmail,
@@ -342,54 +340,47 @@ export function useAuth() {
       err.code = "auth/wrong-password";
       throw err;
     }
-    const cred = await signInWithEmailAndPassword(auth, cleanEmail, password);
+    const { auth, authMod } = await loadFirebaseSdk();
+    const cred = await authMod.signInWithEmailAndPassword(auth, cleanEmail, password);
     await ensureProfile(cred.user);
     return cred.user;
   }
 
-  /**
-   * Google sign-in: popup first (desktop), redirect fallback when popups are blocked
-   * or unsupported (mobile Safari, in-app browsers, strict COOP).
-   */
   async function signInWithGoogle() {
     setAuthError(null);
-    const provider = googleProvider();
+    const { auth, authMod } = await loadFirebaseSdk();
+    const provider = googleProvider(authMod.GoogleAuthProvider);
 
     try {
-      const cred = await signInWithPopup(auth, provider);
+      const cred = await authMod.signInWithPopup(auth, provider);
       await ensureProfile(cred.user);
       return cred.user;
     } catch (e) {
       if (e?.code === "auth/popup-closed-by-user") throw e;
       if (!shouldFallbackToRedirect(e)) throw e;
-
-      // Full-page redirect — more reliable on Pages / mobile
-      await signInWithRedirect(auth, provider);
+      await authMod.signInWithRedirect(auth, provider);
       return null;
     }
   }
 
   async function signInWithApple() {
     setAuthError(null);
-    const provider = new OAuthProvider("apple.com");
+    const { auth, authMod } = await loadFirebaseSdk();
+    const provider = new authMod.OAuthProvider("apple.com");
     provider.addScope("email");
     provider.addScope("name");
     try {
-      const cred = await signInWithPopup(auth, provider);
+      const cred = await authMod.signInWithPopup(auth, provider);
       await ensureProfile(cred.user);
       return cred.user;
     } catch (e) {
       if (e?.code === "auth/popup-closed-by-user") throw e;
       if (!shouldFallbackToRedirect(e)) throw e;
-      await signInWithRedirect(auth, provider);
+      await authMod.signInWithRedirect(auth, provider);
       return null;
     }
   }
 
-  /**
-   * Send SMS OTP. Accepts messy human phone input; normalizes to E.164.
-   * Tries invisible reCAPTCHA, then falls back to a visible widget once.
-   */
   async function sendPhoneOTP(phoneNumber, recaptchaContainerId = "recaptcha-container") {
     setAuthError(null);
     const e164 = normalizePhoneE164(phoneNumber);
@@ -399,9 +390,10 @@ export function useAuth() {
       throw err;
     }
 
+    const { auth, authMod } = await loadFirebaseSdk();
     async function attempt(size) {
       const verifier = await buildRecaptcha(recaptchaContainerId, size);
-      return signInWithPhoneNumber(auth, e164, verifier);
+      return authMod.signInWithPhoneNumber(auth, e164, verifier);
     }
 
     try {
@@ -452,14 +444,16 @@ export function useAuth() {
       err.code = "auth/invalid-email";
       throw err;
     }
-    return sendPasswordResetEmail(auth, cleanEmail);
+    const { auth, authMod } = await loadFirebaseSdk();
+    return authMod.sendPasswordResetEmail(auth, cleanEmail);
   }
 
   async function logOut() {
     clearRecaptcha();
     setAuthError(null);
     clearAuthSession();
-    await signOut(auth);
+    const { auth, authMod } = await loadFirebaseSdk();
+    await authMod.signOut(auth);
     setFirebaseUser(null);
     setProfile(null);
   }

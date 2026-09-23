@@ -17,7 +17,7 @@ Strictly performance. Visual OS stays. Previous drivetrain (audio engine, CDN ca
 
 ## Top 3 (this pass)
 
-1. **Paint before Auth** — `peekAuthSession()` localStorage flag (plus leftover `firebase:authUser:` keys). Returning members drop the HTML splash and render Home from IDB while Auth hydrates. Guests still wait so Login never flashes in front of a real session.
+1. **Paint before Auth** — `main` already paints guest Home from IDB/CDN (`bootBlocked`, Club/Library gated). This pass keeps that and adds `peekAuthSession()` so returning members drop the HTML splash even if the shelf is empty while Auth hydrates.
 2. **Frozen screen plane** — `useCallback` for play/skip/like/nav; identity-preserving `adoptCatalogTracks` / `patchTrackById` so hydrate and likes do not clone the shelf; Home hero + editorial subscribe themselves so Channel Surfing does not reconcile on skip.
 3. **Rails never fetch masters** — after CF → Firebase thumb, tiles under 640px go to the color-well disc. Immersive 960px stage may still use the original.
 

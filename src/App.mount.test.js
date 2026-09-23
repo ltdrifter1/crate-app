@@ -12,6 +12,7 @@ import { BrowserRouter } from "react-router-dom";
 import ErrorBoundary from "./components/ErrorBoundary";
 
 jest.mock("./firebase", () => ({
+  getFirebase: async () => ({ auth: { currentUser: null }, db: {} }),
   auth: { currentUser: null },
   db: {},
 }));

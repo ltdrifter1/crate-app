@@ -361,8 +361,8 @@ export function MessengerWindow({
           0 0 40px ${ice.glow},
           0 18px 48px rgba(58,66,80,0.38)
         `,
-        backdropFilter: "blur(40px) saturate(1.2)",
-        WebkitBackdropFilter: "blur(40px) saturate(1.2)",
+        backdropFilter: "blur(12px) saturate(1.12)",
+        WebkitBackdropFilter: "blur(12px) saturate(1.12)",
       }}
     >
       <TitleBar

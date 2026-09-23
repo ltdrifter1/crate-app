@@ -5,6 +5,7 @@ import './index.css';
 import App from './App.jsx';
 import ErrorBoundary from './components/ErrorBoundary';
 import reportWebVitals from './reportWebVitals';
+import { registerServiceWorker } from './lib/registerServiceWorker';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
@@ -18,3 +19,4 @@ root.render(
 );
 
 reportWebVitals();
+registerServiceWorker();
