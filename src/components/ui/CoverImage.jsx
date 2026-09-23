@@ -6,11 +6,11 @@
  */
 import { useEffect, useState } from "react";
 import {
+  allowOriginalCover,
   coverDisplayUrl,
   coverSrcSet,
   firebaseThumbUrl,
   markCloudflareResizeUnavailable,
-  allowOriginalCover,
 } from "../../lib/coverUrl";
 import DefaultSleeve from "./DefaultSleeve";
 

@@ -8,7 +8,7 @@ import {
   assignMemberNumber,
   provisionalMemberNumber,
 } from "./lib/memberNumber";
-import { hasPendingAuthRedirect } from "./lib/authBoot";
+import { clearAuthSession, hasPendingAuthRedirect, markAuthSession } from "./lib/authBoot";
 
 const REDIRECT_ERROR_KEY = "rooms.auth.redirectError";
 
@@ -260,10 +260,13 @@ export function useAuth() {
         unsub = authMod.onAuthStateChanged(auth, (fbUser) => {
           if (cancelled) return;
           if (fbUser) {
+            markAuthSession();
             setFirebaseUser(fbUser);
             setLoading(false);
+            // Profile getDoc / backfill must not block first Home paint.
             ensureProfile(fbUser);
           } else {
+            clearAuthSession();
             setFirebaseUser(null);
             setProfile(null);
             setLoading(false);
@@ -448,6 +451,7 @@ export function useAuth() {
   async function logOut() {
     clearRecaptcha();
     setAuthError(null);
+    clearAuthSession();
     const { auth, authMod } = await loadFirebaseSdk();
     await authMod.signOut(auth);
     setFirebaseUser(null);

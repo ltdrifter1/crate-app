@@ -6,6 +6,7 @@ import {
   coverDisplayUrl,
   coverSrcSet,
   nearestFirebaseThumbSize,
+  allowOriginalCover,
   markCloudflareResizeUnavailable,
   isCloudflareResizeAvailable,
   resetCloudflareResizeForTests,
@@ -71,10 +72,11 @@ describe("coverUrl", () => {
     expect(coverSrcSet(src, 168, { mode: "cf" })).toMatch(/_200x200|_400x400/);
   });
 
-  test("allowOriginalCover is only for large sleeves", () => {
-    const { allowOriginalCover } = require("./coverUrl");
+  test("original masters are only legal on large stages", () => {
     expect(allowOriginalCover(80)).toBe(false);
     expect(allowOriginalCover(168)).toBe(false);
+    expect(allowOriginalCover(336)).toBe(false);
     expect(allowOriginalCover(640)).toBe(true);
+    expect(allowOriginalCover(960)).toBe(true);
   });
 });

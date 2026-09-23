@@ -176,6 +176,9 @@ test("premium drivetrain: one chassis, self-hosted Plex, no lucide", () => {
   expect(app).toMatch(/\{innerApp\}/);
   expect(app).toMatch(/runWhenIdle\(loadExploreScreen/);
   expect(app).toMatch(/dismissBootSplash/);
+  expect(app).toMatch(/peekAuthSession/);
+  expect(app).toMatch(/sessionLikely/);
+  expect(app).toMatch(/adoptCatalogTracks/);
   expect(app).toMatch(/bootBlocked/);
   expect(app).toMatch(/loadCatalogFirstPaint/);
   expect(app).toMatch(/createAudioPair/);
