@@ -8,7 +8,7 @@ import { EnergyShiftFeedback, RabbitTurtleSlot } from "../listen/EnergyShiftButt
 import { PlayKey } from "./OrbitalControls";
 import { HardwareIconButton, LcdTimeline } from "./DeviceChrome";
 import { hasSeenDeckHint, markDeckHintSeen } from "../../lib/firstRunHint";
-import { color, fontMono, motion } from "../../theme";
+import { BTN_PRIMARY, color, fontMono, motion } from "../../theme";
 
 function DeckHint({ showDislike }) {
   const [open, setOpen] = useState(() => !hasSeenDeckHint());
@@ -64,16 +64,49 @@ export default function PlayerDeck({
   paceStopPropagation = true,
   feedbackBottom = "calc(100% + 10px)",
   seekStopPropagation = true,
+  idle = false,
+  playDisabled = false,
+  onStart = null,
 }) {
   return (
     <div className="pmp-deck pmp-deck-plate" data-testid="player-deck">
-      <LcdTimeline
-        progress={progress}
-        duration={duration}
-        onChange={onSeek}
-        stopPropagation={seekStopPropagation}
-      />
+      {!idle && (
+        <LcdTimeline
+          progress={progress}
+          duration={duration}
+          onChange={onSeek}
+          stopPropagation={seekStopPropagation}
+        />
+      )}
       <EnergyShiftFeedback bottom={feedbackBottom} />
+      {idle ? (
+        <div className="pmp-deck-keys pmp-deck-pad">
+          <button
+            type="button"
+            aria-label="Start the station"
+            disabled={playDisabled}
+            onClick={(e) => {
+              if (stopPropagation) e.stopPropagation();
+              if (!playDisabled) onStart?.();
+            }}
+            className="pmp-press play-primary"
+            style={{
+              ...BTN_PRIMARY,
+              width: "auto",
+              height: 44,
+              padding: "0 22px",
+              opacity: playDisabled ? 0.6 : 1,
+              cursor: playDisabled ? "default" : "pointer",
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
+            }}
+          >
+            <Icon name="play" size={15} />
+            Start listening
+          </button>
+        </div>
+      ) : (
       <div className="pmp-deck-keys pmp-deck-pad">
         {onPrev ? (
           <HardwareIconButton
@@ -149,8 +182,9 @@ export default function PlayerDeck({
         ) : null}
         {extraKeys}
       </div>
+      )}
       <RabbitTurtleSlot compact stopPropagation={paceStopPropagation} />
-      <DeckHint showDislike={!!onDislike} />
+      <DeckHint showDislike={!idle && !!onDislike} />
     </div>
   );
 }

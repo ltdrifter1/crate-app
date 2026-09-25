@@ -24,6 +24,8 @@ export default function DesktopMiniPlayer({
   onPrev = null,
   onLikeToggle,
   onDislike = null,
+  onShare = null,
+  onShowQueue = null,
   onSeek,
   playsRemaining = null,
   access = null,
@@ -159,6 +161,37 @@ export default function DesktopMiniPlayer({
         >
           <Icon name="skip" size={14} />
         </HardwareIconButton>
+        {onShare && (
+          <HardwareIconButton
+            label="Share"
+            onClick={() => onShare(track)}
+            size={32}
+            stopPropagation
+          >
+            <Icon name="share" size={14} />
+          </HardwareIconButton>
+        )}
+        {onShowQueue && (
+          <HardwareIconButton
+            label="Up next"
+            onClick={onShowQueue}
+            size={32}
+            stopPropagation
+          >
+            <Icon name="queue" size={14} />
+          </HardwareIconButton>
+        )}
+        {onDislike && (
+          <HardwareIconButton
+            label="Dislike this track"
+            active={!!track.disliked}
+            onClick={onDislike}
+            size={32}
+            stopPropagation
+          >
+            <Icon name={track.disliked ? "dislikefilled" : "dislike"} size={14} />
+          </HardwareIconButton>
+        )}
         </div>
       <div
         onClick={(e) => e.stopPropagation()}

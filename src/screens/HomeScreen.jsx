@@ -265,6 +265,8 @@ function HomePersonal({
   recentTrackIds = [],
   onPlayTrack,
   onOpenLibrary,
+  onOpenDiscover = null,
+  signedIn = false,
 }) {
   const activeId = useTransportTrackId();
   const recents = useMemo(
@@ -272,10 +274,22 @@ function HomePersonal({
     [tracks, recentTrackIds]
   );
   const liked = useMemo(() => savedTracks(tracks, 12), [tracks]);
-  if (recents.length === 0 && liked.length === 0) return null;
+  if (recents.length === 0 && liked.length === 0) {
+    if (!signedIn) return null;
+    return (
+      <div data-testid="home-personal" style={{ marginTop: homeSpace.sectionGap }}>
+        <EmptyShelfCard
+          title="Your listening"
+          body="Play a few tracks. Recents and likes show up here and in Library."
+          actionLabel={onOpenDiscover ? "Find music" : onOpenLibrary ? "Library" : null}
+          onAction={onOpenDiscover || onOpenLibrary}
+        />
+      </div>
+    );
+  }
 
   return (
-    <>
+    <div data-testid="home-personal">
       {recents.length > 0 && (
         <MusicSection
           title="Recently played"
@@ -326,7 +340,7 @@ function HomePersonal({
           </Rail>
         </MusicSection>
       )}
-    </>
+    </div>
   );
 }
 
@@ -455,6 +469,8 @@ function HomeScreen({
   onShowQueue = null,
   onOpenLibrary = null,
   recentTrackIds = [],
+  signedIn = false,
+  onOpenDiscover = null,
   airing = null,
   programGuide = [],
   activeShowId = null,
@@ -549,6 +565,8 @@ function HomeScreen({
           recentTrackIds={recentTrackIds}
           onPlayTrack={onPlayTrack}
           onOpenLibrary={onOpenLibrary}
+          onOpenDiscover={onOpenDiscover}
+          signedIn={signedIn}
         />
       )}
 
