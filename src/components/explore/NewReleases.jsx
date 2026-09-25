@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { color, fontDisplay, fontMono, homeSpace, motion, neons, radio } from "../../theme";
+import { color, fontDisplay, fontMono, homeSpace, motion, radio, type } from "../../theme";
 import { newReleaseAlbums, newReleaseBays, rankNewReleaseAlbums } from "../../lib/newReleases";
 import ReleaseCard from "../home/ReleaseCard";
 
@@ -47,30 +47,16 @@ export default function NewReleases({
   return (
     <section aria-label="New Releases" style={{ marginTop: 12 }}>
       <div style={{ padding: `0 ${homeSpace.gutter}px 12px` }}>
-        <div
+        <h2
           style={{
-            fontFamily: fontMono,
-            fontSize: 10,
-            fontWeight: 700,
-            letterSpacing: 0.18,
-            textTransform: "uppercase",
-            color: neons.cyan,
-            marginBottom: 3,
-          }}
-        >
-          New Releases
-        </div>
-        <div
-          style={{
-            fontFamily: fontDisplay,
-            fontSize: 18,
-            fontWeight: 700,
-            letterSpacing: -0.35,
+            ...type.title3,
+            margin: 0,
             color: color.ink,
+            fontFamily: fontDisplay,
           }}
         >
-          Just landed in the crate.
-        </div>
+          Just landed
+        </h2>
       </div>
 
       {signs.length > 1 && (

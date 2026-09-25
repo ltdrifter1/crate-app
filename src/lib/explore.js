@@ -262,16 +262,27 @@ export function exploreScenePlates(tracks = [], limit = 8) {
     .slice(0, limit);
 }
 
-/** Directory tabs — Explore is a crate browser, not a second Home. */
+/** Discover destinations — named like music, not firmware. */
+export const EXPLORE_DESTINATIONS = [
+  { id: "releases", label: "New",      aria: "New",      hint: "Newest sleeves" },
+  { id: "trending", label: "Trending", aria: "Trending", hint: "What’s moving" },
+  { id: "genres",   label: "Genres",   aria: "Genres",   hint: "Scenes and genres" },
+  { id: "artists",  label: "Artists",  aria: "Artists",  hint: "Who’s on the records" },
+];
+
+/** Tools — Camelot, dig, charts, rooms. Not peer tabs of New / Genres. */
+export const EXPLORE_TOOLS = [
+  { id: "mix",          label: "Keys",    aria: "Mix",     hint: "Twelve keys. Neighbors mix" },
+  { id: "dig",          label: "Dig",     aria: "Dig",     hint: "A random pull from the crate" },
+  { id: "charts",       label: "Charts",  aria: "Charts",  hint: "The monthly countdown", action: "charts" },
+  { id: "energy",       label: "Energy",  aria: "Energy",  hint: "Rooms by pressure" },
+  { id: "time-machine", label: "History", aria: "History", hint: "Dig through eras" },
+];
+
+/** @deprecated equal-weight directory — destinations + in-place tools. */
 export const EXPLORE_MODES = [
-  { id: "releases",    label: "New Releases", hint: "Newest sleeves, by channel" },
-  { id: "worlds",      label: "Worlds",       hint: "Cities and scenes" },
-  { id: "energy",      label: "Energy",       hint: "Rooms by pressure" },
-  /** Camelot wheel — harmonic mixing. Built and rendered, but it had no tab,
-   *  so the board was unreachable in the shipped app. */
-  { id: "mix",         label: "Keys",         aria: "Mix", hint: "Twelve keys. Neighbors mix" },
-  { id: "dig",         label: "Dig",          hint: "Random pull from the crate" },
-  { id: "time-machine",label: "History",      hint: "Dig through eras" },
+  ...EXPLORE_DESTINATIONS,
+  ...EXPLORE_TOOLS.filter((t) => t.id !== "charts"),
 ];
 
 /**
@@ -286,10 +297,15 @@ export function catalogHasEras(tracks = []) {
   });
 }
 
-/** Directory tabs the current crate can actually fill. */
+/** Destination tabs the current crate can fill. */
 export function exploreModesFor(tracks = []) {
-  if (catalogHasEras(tracks)) return EXPLORE_MODES;
-  return EXPLORE_MODES.filter((m) => m.id !== "time-machine");
+  return EXPLORE_DESTINATIONS;
+}
+
+/** Tool row — History only when tracks carry release years. Charts is always a door. */
+export function exploreToolsFor(tracks = []) {
+  if (catalogHasEras(tracks)) return EXPLORE_TOOLS;
+  return EXPLORE_TOOLS.filter((t) => t.id !== "time-machine");
 }
 
 /**

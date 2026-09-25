@@ -12,6 +12,9 @@ import {
   resolveExploreFocus,
   tracksForMood,
   exploreCatalogStats,
+  exploreModesFor,
+  exploreToolsFor,
+  EXPLORE_DESTINATIONS,
   GENRE_CHANNEL_ART,
 } from "./explore";
 import { CHANNEL_ART } from "./channelArt";
@@ -196,6 +199,21 @@ describe("explore collections", () => {
     expect(exploreCatalogStats(tracks).cuts).toBe(8);
     expect(exploreCatalogStats([{ id: "long", duration: 2000 }]).cuts).toBe(0);
     expect(exploreCatalogStats(tracks).worlds).toBeUndefined();
+  });
+
+  test("Discover destinations are music names; Keys and Charts are tools", () => {
+    expect(EXPLORE_DESTINATIONS.map((m) => m.id)).toEqual([
+      "releases",
+      "trending",
+      "genres",
+      "artists",
+    ]);
+    expect(exploreModesFor(tracks).every((m) => ["releases", "trending", "genres", "artists"].includes(m.id))).toBe(true);
+    const tools = exploreToolsFor(tracks);
+    expect(tools.some((t) => t.aria === "Mix")).toBe(true);
+    expect(tools.some((t) => t.action === "charts")).toBe(true);
+    expect(tools.some((t) => t.id === "time-machine")).toBe(false);
+    expect(exploreToolsFor([...tracks, { id: "y", duration: 180, year: 1999 }]).some((t) => t.id === "time-machine")).toBe(true);
   });
 
   test("artForChannelId does not pull bundled channel PNGs", () => {
