@@ -54,7 +54,7 @@ test("theme source does not ship mint phosphor or DistroKid trim", () => {
   expect(theme).not.toMatch(/#367FC7/i);
   expect(theme).toMatch(/lcdSignal/);
   expect(theme).not.toMatch(/lcdPhosphor/);
-  expect(theme).toMatch(/dark-premium-mp3-20260925/);
+  expect(theme).toMatch(/dark-premium-player-20260925/);
 });
 
 test("player surfaces use Turtle / Rabbit, not energy paddles", () => {

@@ -2,7 +2,7 @@
  * Shared MP3-device chrome — LCD, seek groove, hardware keys.
  * Used by immersive, Home hero, dock, and desktop mini. Tokens only.
  */
-import { color, fontDisplay, hardware, motion, radio, type } from "../../theme";
+import { color, fontDisplay, fontPoster, hardware, motion, radio, type } from "../../theme";
 import { fmtTime } from "../../lib/harmony";
 import { useEnergyQueue } from "../../useEnergyQueue";
 import ScanlineWash from "../home/ScanlineWash";
@@ -69,11 +69,11 @@ export function HardwareIconButton({
         alignItems: "center",
         justifyContent: "center",
         cursor: "pointer",
-        color: color.ink,
+        color: lit ? color.onAccent : color.ink,
         background: lit
-          ? `linear-gradient(145deg, rgba(228,247,250,0.92) 0%, rgba(183,228,238,0.42) 38%, rgba(200,214,226,0.88) 100%)`
+          ? `linear-gradient(180deg, ${color.lcdSignal} 0%, #7DFFB3 100%)`
           : hardware.keyFace,
-        border: `1px solid ${lit ? "rgba(90,196,214,0.55)" : "rgba(91,101,116,0.22)"}`,
+        border: `1px solid ${lit ? "rgba(168,255,106,0.55)" : "rgba(255,255,255,0.10)"}`,
         boxShadow: lit
           ? `${hardware.keyPressed}, 0 0 14px ${color.lcdSignalGlow}`
           : hardware.keyRaised,
@@ -306,10 +306,10 @@ export function LcdTitle({ children, as: Tag = "div" }) {
     <Tag
       className={marquee ? "pmp-lcd-marquee" : "pmp-lcd-title"}
       style={{
-        fontFamily: fontDisplay,
-        fontSize: 16,
-        fontWeight: 700,
-        letterSpacing: -0.3,
+        fontFamily: fontPoster,
+        fontSize: 20,
+        fontWeight: 800,
+        letterSpacing: -0.4,
         color: color.lcdInk,
         overflow: "hidden",
         textOverflow: marquee ? undefined : "ellipsis",
@@ -329,7 +329,7 @@ export function LcdArtist({ children }) {
       style={{
         marginTop: 2,
         fontFamily: fontDisplay,
-        fontSize: 13,
+        fontSize: 15,
         fontWeight: 500,
         color: color.lcdMute,
         overflow: "hidden",

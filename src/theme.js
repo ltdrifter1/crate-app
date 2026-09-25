@@ -3,7 +3,7 @@
 // Not Spotify, not a costume Discman. IBM Plex Mono stays on the LCD.
 
 /** Bump this when the visual OS changes. Copied into public/index.html + the shipped build. */
-export const STYLE_CHASSIS = "dark-premium-mp3-20260925";
+export const STYLE_CHASSIS = "dark-premium-player-20260925";
 
 /** Chrome specular — cool pearl steel, never pure white. */
 const SPEC = "200, 210, 222";

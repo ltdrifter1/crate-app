@@ -161,7 +161,7 @@ describe("Home broadcast + four-tab IA", () => {
     expect(div.textContent).not.toMatch(/PMP3/);
     expect(div.textContent).not.toMatch(/PLANET \/ 003/);
     expect(div.querySelector('[aria-label="Previous"]')).toBeNull();
-    expect(div.textContent).toMatch(/On air/i);
+    expect(div.textContent).toMatch(/Now playing/i);
     expect(div.textContent).toMatch(/Night Drive/);
     expect(div.textContent).toMatch(/Up next/i);
     expect(div.querySelector(".pmp-upnext-glass")).toBeTruthy();

@@ -1,6 +1,6 @@
 /**
  * Shared listening deck — artwork transport with LCD seek, planet play,
- * chamfered hardware keys, and Turtle / Rabbit BPM controls. Hero + immersive.
+ * rounded hardware keys, and Turtle / Rabbit BPM controls. Hero + immersive.
  */
 import { useEffect, useState } from "react";
 import Icon from "../ui/Icon";
@@ -83,7 +83,7 @@ export default function PlayerDeck({
         <div className="pmp-deck-keys pmp-deck-pad">
           <button
             type="button"
-            aria-label="Start the station"
+            aria-label="Start listening"
             disabled={playDisabled}
             onClick={(e) => {
               if (stopPropagation) e.stopPropagation();

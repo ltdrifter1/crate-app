@@ -67,14 +67,14 @@ test("idle PlayerDeck keeps Start listening plus Turtle / Rabbit", async () => {
   expect(div.querySelector('[data-testid="player-deck"]')).toBeTruthy();
   expect(div.querySelector(".pmp-seek__well")).toBeNull();
   expect(div.querySelector(".pmp-play-planet")).toBeNull();
-  expect(div.querySelector('[aria-label="Start the station"]')).toBeTruthy();
+  expect(div.querySelector('[aria-label="Start listening"]')).toBeTruthy();
   expect(div.querySelector('[data-testid="rabbit-turtle"]')).toBeTruthy();
   expect(div.querySelector('[data-testid="deck-hint"]')?.textContent).toMatch(
     /Turtle and Rabbit change what plays next/
   );
   expect(div.textContent).not.toMatch(/Dislike steers/);
   await act(async () => {
-    div.querySelector('[aria-label="Start the station"]').click();
+    div.querySelector('[aria-label="Start listening"]').click();
   });
   expect(onStart).toHaveBeenCalledTimes(1);
   await act(async () => root.unmount());

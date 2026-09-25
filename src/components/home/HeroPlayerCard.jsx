@@ -5,11 +5,11 @@ import {
   color,
   fontDisplay,
   fontMono,
+  fontPoster,
   glass,
   glassStage,
   homeSpace,
   trim,
-  trimStroke,
   y2k,
 } from "../../theme";
 import { usePlayerPlayback } from "../../usePlayerPlayback";
@@ -40,10 +40,10 @@ function MetaChip({ children }) {
         display: "inline-flex",
         alignItems: "center",
         maxWidth: "100%",
-        padding: "3px 8px",
-        borderRadius: 4,
-        border: "1px solid rgba(91,101,116,0.12)",
-        background: "rgba(91, 101, 116, 0.12)",
+        padding: "3px 10px",
+        borderRadius: 980,
+        border: "1px solid rgba(168,255,106,0.18)",
+        background: "rgba(168, 255, 106, 0.10)",
         fontFamily: fontMono,
         fontSize: 11,
         fontWeight: 600,
@@ -56,52 +56,6 @@ function MetaChip({ children }) {
       }}
     >
       {children}
-    </span>
-  );
-}
-
-function LivePlate({ live }) {
-  const face = live ? "rgba(224,49,74,0.16)" : "rgba(91, 101, 116, 0.12)";
-  return (
-    <span
-      style={{
-        display: "inline-flex",
-        alignItems: "center",
-        gap: 7,
-        padding: "4px 9px 4px 8px",
-        borderRadius: 6,
-        flexShrink: 0,
-        ...(live
-          ? trimStroke("linear-gradient(180deg, rgba(232,236,242,0.92) 0%, rgba(208,214,224,0.9) 100%)", 2)
-          : {
-              background: face,
-              border: "1px solid rgba(91,101,116,0.1)",
-            }),
-      }}
-    >
-      <span
-        aria-hidden="true"
-        className={live ? "pmp-live-led" : undefined}
-        style={{
-          width: 6,
-          height: 6,
-          borderRadius: "50%",
-          background: live ? y2k.live : "rgba(91,101,116,0.45)",
-          boxShadow: live ? `0 0 8px ${y2k.live}` : "none",
-        }}
-      />
-      <span
-        style={{
-          fontFamily: fontDisplay,
-          fontSize: 11,
-          fontWeight: 700,
-          letterSpacing: 0.08,
-          textTransform: "uppercase",
-          color: live ? y2k.live : color.muted,
-        }}
-      >
-        {live ? "Live" : "Standby"}
-      </span>
     </span>
   );
 }
@@ -133,9 +87,9 @@ function ChannelIdent({ bugLine, slug }) {
         display: "inline-flex",
         alignItems: "stretch",
         overflow: "hidden",
-        borderRadius: 4,
-        border: "1px solid rgba(91,101,116,0.12)",
-        background: "rgba(91, 101, 116, 0.12)",
+        borderRadius: 980,
+        border: "1px solid rgba(255,255,255,0.08)",
+        background: "rgba(255,255,255,0.04)",
         maxWidth: "100%",
       }}
     >
@@ -147,7 +101,7 @@ function ChannelIdent({ bugLine, slug }) {
           fontWeight: 700,
           letterSpacing: 0.08,
           color: color.accent,
-          borderRight: "1px solid rgba(91,101,116,0.1)",
+          borderRight: "1px solid rgba(255,255,255,0.08)",
           background: color.accentSoft,
           whiteSpace: "nowrap",
         }}
@@ -180,7 +134,7 @@ function JewelSleeve({ src, idleSrc, playing, eager = false, size = 148, wellCol
     <span
       className="pmp-hero-sleeve"
       style={{
-        ...artFrameStyle({ size, radius: 6, active: playing }),
+        ...artFrameStyle({ size, radius: 16, active: playing }),
         flexShrink: 0,
         boxShadow: playing ? artShadow.active : artShadow.raised,
       }}
@@ -233,7 +187,7 @@ function JewelSleeve({ src, idleSrc, playing, eager = false, size = 148, wellCol
           inset: 0,
           pointerEvents: "none",
           background: `
-            linear-gradient(180deg, transparent 62%, rgba(58,66,80,0.28) 100%)
+            linear-gradient(180deg, transparent 62%, rgba(0,0,0,0.35) 100%)
           `,
           boxShadow: "none",
         }}
@@ -253,7 +207,7 @@ function UpNextGlass({ track }) {
         padding: 2,
         borderRadius: 16,
         background: trim.gradient,
-        boxShadow: "0 10px 24px rgba(58,66,80,0.12)",
+        boxShadow: "0 10px 24px rgba(0,0,0,0.28)",
       }}
     >
       <div
@@ -324,7 +278,7 @@ function UpNextGlass({ track }) {
 
 /**
  * HeroPlayerCard — Home now-playing device.
- * Sleeve + ice LCD on one stage; seek as a timeline; Turtle / Rabbit on the deck.
+ * Sleeve + LCD on one stage; seek as a timeline; Turtle / Rabbit on the deck.
  */
 export default function HeroPlayerCard({
   track = null,
@@ -332,8 +286,8 @@ export default function HeroPlayerCard({
   upNextTrack = null,
   liveShow = null,
   sceneChannel = null,
-  daypart = null,
-  isRadioMode = false,
+  daypart: _daypart = null,
+  isRadioMode: _isRadioMode = false,
   playDisabled = false,
   onPlay = null,
   onTogglePlay = null,
@@ -357,12 +311,11 @@ export default function HeroPlayerCard({
   const hasVideo = trackHasVideo(track);
   const channelBug = resolveChannelBug({ sceneChannel, show: liveShow });
   const bugLine = channelBugLine(channelBug);
-  const onAir = live || isRadioMode;
   const displayTrack = track || previewTrack;
   const duration = playbackDuration > 0 ? playbackDuration : Number(displayTrack?.duration) || 0;
-  const idleEyebrow = previewTrack ? "Up first" : "Planet Radio";
-  const idleTitle = previewTrack?.title || daypart?.vibe || "Tune the station";
-  const idleArtist = previewTrack?.artist || "One tap and the dial finds you something good.";
+  const idleEyebrow = previewTrack ? "Up first" : "Ready";
+  const idleTitle = previewTrack?.title || "Your player";
+  const idleArtist = previewTrack?.artist || "Tap play to start.";
   const title = live ? track.title : idleTitle;
   const artist = live ? track.artist : idleArtist;
   const album = displayTrack?.album;
@@ -435,8 +388,8 @@ export default function HeroPlayerCard({
           zIndex: 0,
           overflow: "hidden",
           background: `
-            radial-gradient(70% 80% at 18% 20%, ${track?.color ? `${track.color}66` : color.accentSoft} 0%, transparent 62%),
-            linear-gradient(180deg, rgba(216,223,232,0.28) 0%, rgba(74, 83, 96, 0.18) 100%)
+            radial-gradient(70% 80% at 18% 20%, ${track?.color ? `${track.color}55` : color.accentSoft} 0%, transparent 62%),
+            linear-gradient(180deg, rgba(168,255,106,0.08) 0%, rgba(0,0,0,0.35) 100%)
           `,
         }}
       />
@@ -457,17 +410,16 @@ export default function HeroPlayerCard({
       >
         <div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0 }}>
           <PlanetPip />
-          <LivePlate live={onAir} />
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 8, marginLeft: "auto" }}>
           {hasVideo && (
             <span
               aria-hidden="true"
               style={{
-                padding: "5px 8px",
-                borderRadius: 4,
-                border: "1px solid rgba(91,101,116,0.1)",
-                background: "rgba(91, 101, 116, 0.12)",
+                padding: "5px 10px",
+                borderRadius: 980,
+                border: "1px solid rgba(255,255,255,0.10)",
+                background: "rgba(255,255,255,0.06)",
                 fontFamily: fontDisplay,
                 fontSize: 12,
                 fontWeight: 600,
@@ -499,9 +451,9 @@ export default function HeroPlayerCard({
               minWidth: 180,
               maxWidth: 420,
               aspectRatio: "16 / 9",
-              borderRadius: 10,
+              borderRadius: 16,
               overflow: "hidden",
-              border: "1px solid rgba(216,223,232,0.16)",
+              border: "1px solid rgba(255,255,255,0.10)",
               boxShadow: artShadow.raised,
               background: "#4A5360",
             }}
@@ -521,7 +473,7 @@ export default function HeroPlayerCard({
             idleSrc={art ? null : HERO_IDLE_ART}
             playing={live && isPlaying}
             eager={!!art}
-            size={168}
+            size={200}
             wellColor={track?.color || previewTrack?.color || ""}
           />
         )}
@@ -582,17 +534,17 @@ export default function HeroPlayerCard({
                 color: color.lcdInk,
               }}
             >
-              {live ? (isRadioMode ? "On air" : "Now playing") : idleEyebrow}
+              {live ? "Now playing" : idleEyebrow}
             </div>
           </div>
 
           <div
             style={{
-              fontFamily: fontDisplay,
+              fontFamily: fontPoster,
               fontStyle: "normal",
-              fontSize: "clamp(18px, 4.2vw, 26px)",
-              fontWeight: 700,
-              letterSpacing: -0.5,
+              fontSize: "clamp(22px, 5vw, 32px)",
+              fontWeight: 800,
+              letterSpacing: -0.4,
               lineHeight: 1.08,
               color: color.lcdInk,
               overflow: "hidden",
@@ -647,7 +599,7 @@ export default function HeroPlayerCard({
           marginTop: "auto",
           padding: `12px ${homeSpace.gutter - 6}px 14px`,
           background: "transparent",
-          borderTop: "1px solid rgba(91,101,116,0.08)",
+          borderTop: "1px solid rgba(255,255,255,0.06)",
           boxShadow: "none",
         }}
       >

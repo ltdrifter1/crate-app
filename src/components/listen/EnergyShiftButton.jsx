@@ -128,13 +128,13 @@ export function EnergyShiftButton({
           height: size,
           minHeight: size,
           padding: 0,
-          borderRadius: 8,
+          borderRadius: hardware.radius,
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
           cursor: "pointer",
           color: activeHere ? color.accent : color.ink,
-          border: `1px solid ${activeHere ? color.accentGlow : "rgba(91,101,116,0.14)"}`,
+          border: `1px solid ${activeHere ? color.accentGlow : "rgba(255,255,255,0.10)"}`,
           boxShadow: activeHere
             ? `${hardware.keyPressed}, 0 0 0 2px ${color.accentSoft}`
             : hovered

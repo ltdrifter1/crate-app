@@ -7,6 +7,7 @@ import { useEffect, useRef, useState } from "react";
 import {
   fontDisplay,
   fontMono,
+  fontPoster,
   color,
   motion,
   glass,
@@ -44,8 +45,7 @@ import PlayerDeck from "./PlayerDeck";
 
 const EASE = motion.ease;
 
-function PlayerOnAir({ showTitle = null, daypartLabel = null }) {
-  const secondary = showTitle || daypartLabel;
+function PlayerNowPlaying() {
   return (
     <div
       style={{
@@ -53,13 +53,10 @@ function PlayerOnAir({ showTitle = null, daypartLabel = null }) {
         alignItems: "center",
         gap: 8,
         maxWidth: 200,
-        padding: "7px 12px",
-        borderRadius: 6,
-        background: y2k.inkGlass,
-        border: "1px solid rgba(216,223,232,0.16)",
-        boxShadow: "inset 0 1px 0 rgba(216,223,232,0.1), inset 0 -1px 0 rgba(58,66,80,0.35)",
-        backdropFilter: "blur(14px)",
-        WebkitBackdropFilter: "blur(14px)",
+        padding: "7px 14px",
+        borderRadius: 980,
+        background: "rgba(168,255,106,0.10)",
+        border: "1px solid rgba(168,255,106,0.28)",
         pointerEvents: "none",
       }}
     >
@@ -69,9 +66,8 @@ function PlayerOnAir({ showTitle = null, daypartLabel = null }) {
           width: 7,
           height: 7,
           borderRadius: "50%",
-          background: color.alert,
-          boxShadow: "0 0 0 3px rgba(224,60,75,0.22)",
-          animation: "stageLiveDot 1.5s ease-in-out infinite",
+          background: color.lcdSignal,
+          boxShadow: `0 0 0 3px ${color.lcdSignalSoft}`,
           flexShrink: 0,
         }}
       />
@@ -80,30 +76,14 @@ function PlayerOnAir({ showTitle = null, daypartLabel = null }) {
           fontFamily: fontMono,
           fontSize: 10,
           fontWeight: 800,
-          letterSpacing: 1.5,
+          letterSpacing: 1.2,
           textTransform: "uppercase",
-          color: color.onDark,
+          color: color.lcdSignal,
           flexShrink: 0,
         }}
       >
-        On Air
+        Now playing
       </span>
-      {secondary && (
-        <span
-          style={{
-            fontFamily: fontMono,
-            fontSize: 10,
-            fontWeight: 600,
-            letterSpacing: 0.4,
-            color: y2k.chromeMid,
-            overflow: "hidden",
-            textOverflow: "ellipsis",
-            whiteSpace: "nowrap",
-          }}
-        >
-          {secondary}
-        </span>
-      )}
     </div>
   );
 }
@@ -278,12 +258,12 @@ export default function ImmersivePlayer({
   const circleChrome = {
     width: 42,
     height: 42,
-    borderRadius: 8,
+    borderRadius: 980,
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
     background: hardware.keyFace,
-    border: "1px solid rgba(91,101,116,0.22)",
+    border: "1px solid rgba(255,255,255,0.10)",
     boxShadow: hardware.keyRaised,
     color: color.ink,
     cursor: "pointer",
@@ -327,15 +307,9 @@ export default function ImmersivePlayer({
           position: "absolute",
           inset: 0,
           background: `
-            radial-gradient(ellipse 85% 50% at 50% 16%, rgba(${rgb},0.12) 0%, transparent 55%),
+            radial-gradient(ellipse 85% 50% at 50% 16%, rgba(${rgb},0.14) 0%, transparent 55%),
             radial-gradient(ellipse 60% 40% at 50% 70%, ${y2k.chromeWash} 0%, transparent 70%),
-            linear-gradient(180deg,
-              rgba(197,203,214,0.18) 0%,
-              rgba(197,203,214,0.06) 30%,
-              transparent 48%,
-              rgba(180,187,198,0.22) 78%,
-              rgba(180,187,198,0.45) 100%
-            )
+            linear-gradient(180deg, rgba(0,0,0,0.28) 0%, transparent 38%, rgba(0,0,0,0.32) 78%, rgba(0,0,0,0.58) 100%)
           `,
         }}
       />
@@ -347,7 +321,7 @@ export default function ImmersivePlayer({
           left: 0,
           right: 0,
           height: 120,
-          background: "linear-gradient(180deg, rgba(197,203,214,0.45) 0%, transparent 100%)",
+          background: "linear-gradient(180deg, rgba(0,0,0,0.45) 0%, transparent 100%)",
           pointerEvents: "none",
           zIndex: 1,
         }}
@@ -377,10 +351,7 @@ export default function ImmersivePlayer({
           </svg>
         </button>
 
-        <PlayerOnAir
-          showTitle={liveShow ? liveShow.shortTitle || liveShow.title : null}
-          daypartLabel={daypart?.label}
-        />
+        <PlayerNowPlaying />
 
         <DeviceCatalogMark />
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
@@ -395,13 +366,13 @@ export default function ImmersivePlayer({
                 width: "auto",
                 minWidth: 42,
                 padding: "0 12px",
-                borderRadius: 8,
+                borderRadius: 980,
                 gap: 6,
                 color: showBooth ? color.accent : y2k.offWhite,
                 boxShadow: showBooth
                   ? `${hardware.keyRaised}, 0 0 14px ${color.accentGlow}`
                   : hardware.keyRaised,
-                border: `1px solid ${showBooth ? color.accentGlow : "rgba(216,223,232,0.16)"}`,
+                border: `1px solid ${showBooth ? color.accentGlow : "rgba(255,255,255,0.10)"}`,
                 fontFamily: fontMono,
                 fontSize: 11,
                 fontWeight: 800,
@@ -435,10 +406,10 @@ export default function ImmersivePlayer({
                   minWidth: 200,
                   background: radio.moduleFace,
                   border: `1px solid ${glass.border}`,
-                  borderRadius: 8,
+                  borderRadius: 16,
                   padding: "6px 0",
                   zIndex: 8,
-                  boxShadow: `inset 0 1px 0 ${glass.highlight}, 0 18px 48px rgba(58,66,80,0.45)`,
+                  boxShadow: `inset 0 1px 0 ${glass.highlight}, 0 18px 48px rgba(0,0,0,0.5)`,
                   backdropFilter: glass.blur,
                   WebkitBackdropFilter: glass.blur,
                   animation: `rise 0.22s ${EASE} both`,
@@ -597,8 +568,8 @@ export default function ImmersivePlayer({
             position: "relative",
             width: hasVideo ? "min(42vw, 168px)" : "min(72vw, 520px)",
             aspectRatio: "1 / 1",
-            borderRadius: 6,
-            padding: 3,
+            borderRadius: 18,
+            padding: 4,
             background: hardware.keyFace,
             boxShadow: isPlaying ? artShadow.raised : artShadow.quiet,
             animation: isPlaying
@@ -615,10 +586,10 @@ export default function ImmersivePlayer({
               position: "relative",
               width: "100%",
               height: "100%",
-              borderRadius: 4,
+              borderRadius: 14,
               overflow: "hidden",
               background: y2k.charcoalRaised,
-              border: "1px solid rgba(184,192,204,0.22)",
+              border: "1px solid rgba(255,255,255,0.10)",
             }}
           >
             {currentTrack.albumCover ? (
@@ -644,7 +615,7 @@ export default function ImmersivePlayer({
                   fontWeight: 800,
                   color: "rgba(232,236,242,0.35)",
                   letterSpacing: -4,
-                  fontFamily: fontDisplay,
+                  fontFamily: fontPoster,
                 }}
               >
                 {(currentTrack.title || "P")[0]}
@@ -656,8 +627,8 @@ export default function ImmersivePlayer({
                 position: "absolute",
                 inset: 0,
                 background: `
-                  linear-gradient(135deg, rgba(216,223,232,0.35) 0%, transparent 40%),
-                  linear-gradient(180deg, transparent 55%, rgba(74,83,96,0.22) 100%)
+                  linear-gradient(135deg, rgba(168,255,106,0.12) 0%, transparent 40%),
+                  linear-gradient(180deg, transparent 55%, rgba(0,0,0,0.35) 100%)
                 `,
                 pointerEvents: "none",
               }}
@@ -678,10 +649,10 @@ export default function ImmersivePlayer({
           <div
             className={currentTrack.title?.length > 22 ? "pmp-lcd-marquee" : undefined}
             style={{
-              fontFamily: fontDisplay,
-              fontSize: "clamp(20px, 5vw, 28px)",
-              fontWeight: 750,
-              letterSpacing: -0.6,
+              fontFamily: fontPoster,
+              fontSize: "clamp(24px, 5.4vw, 36px)",
+              fontWeight: 800,
+              letterSpacing: -0.4,
               color: color.lcdInk,
               lineHeight: 1.12,
               marginBottom: 6,
@@ -735,7 +706,7 @@ export default function ImmersivePlayer({
                 textAlign: "left",
                 background: "none",
                 border: "none",
-                borderTop: "1px solid rgba(183,228,238,0.18)",
+                borderTop: "1px solid rgba(168,255,106,0.18)",
                 cursor: onShowQueue ? "pointer" : "default",
                 fontFamily: fontMono,
                 fontSize: 11,
@@ -773,7 +744,7 @@ export default function ImmersivePlayer({
               maxWidth: 720,
               margin: "0 auto",
               padding: "12px 14px 14px",
-              borderRadius: 10,
+              borderRadius: 16,
               background: radio.moduleFace,
               border: radio.border,
               boxShadow: radio.moduleShadow,
@@ -843,7 +814,7 @@ export default function ImmersivePlayer({
             width: "min(92vw, 1100px)",
             margin: "0 auto",
             padding: "10px 12px 8px",
-            borderRadius: 12,
+            borderRadius: 22,
             background: glass.fillStrong,
             border: `1px solid ${glass.border}`,
             boxShadow: `inset 0 1px 0 ${glass.highlight}, ${glass.shadowSoft}`,
