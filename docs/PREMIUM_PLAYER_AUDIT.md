@@ -3,7 +3,7 @@
 **Date:** 25 September 2026  
 **HEAD:** `ef204d5` — Turtle/Rabbit on the listening deck; Library recents; Discover dock  
 **Chassis today:** `steel-ps1-glass-20260919`  
-**Status:** Audit only. No product code in this pass. Wait for approval before implementation.
+**Status:** Audit approved to proceed in sequenced PRs. See [`docs/PREMIUM_PLAYER_PROMPTS.md`](PREMIUM_PLAYER_PROMPTS.md). Do not ship P0–P2 in one change.
 
 **Product principle:** PlanetMP3 = modern MP3 player first, music discovery around that collection second, social layer third.
 
@@ -328,20 +328,12 @@ The product already plays music. The job is to **look and read like a modern MP3
 
 ---
 
-## First implementation step (after approval)
+## First implementation step
 
-**P0.1 — Dark premium tokens + Home/Library/Discover/Profile text & containers.**
+**Prompt 01** in [`PREMIUM_PLAYER_PROMPTS.md`](PREMIUM_PLAYER_PROMPTS.md) — dark premium tokens only.
 
-Scope:
+Calls already made for the sequence:
 
-- `src/theme.js` + `src/index.css` + font faces: charcoal canvas, new type roles, card/pill radii, green/violet trim.
-- Apply to: `HomeScreen` / `HeroPlayerCard` / `PlayerDeck` / `GlassDock` / `FavoritesScreen` / `ExploreScreen` / `ClubScreen` headers and `CardContainer`.
-- Do **not** in that PR: social features, Channel Surfing rewrite, catalog/backend, audio engine, new tabs.
-
-Exit criteria:
-
-- Phone at 390×844: Home reads as a **player** (art, title, transport, Turtle/Rabbit) on dark rounded surfaces.
-- Titles are large and sharp; BPM/Camelot stay mono in the LCD.
-- `styleShip` updated and green; `build/` regenerated.
-
-**Ask for approval on:** (1) dark chassis vs keeping light steel, (2) display font direction (condensed vs rounded), (3) whether Channel Surfing leaves Home in the same PR or the next one.
+1. Invert to **dark charcoal** (not keep light steel).
+2. Type: **rounded body (Outfit) + condensed display (Barlow Condensed)**; Plex Mono for LCD.
+3. Channel Surfing leaves Home in **Prompt 03**, not the token PR.
