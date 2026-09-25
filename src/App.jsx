@@ -279,8 +279,8 @@ const injectStyles = () => {
     input.chrome-seek::-webkit-slider-thumb {
       -webkit-appearance: none; appearance: none; width: 11px; height: 18px; margin-top: -4px;
       border-radius: 3px;
-      background: linear-gradient(180deg, #F4FBFC 0%, #B7E4EE 55%, #7AB8C6 100%);
-      border: 1px solid rgba(90,196,214,0.85);
+      background: linear-gradient(180deg, #E8FFD0 0%, #A8FF6A 55%, #6EA8FF 100%);
+      border: 1px solid rgba(168,255,106,0.85);
       box-shadow:
         inset 0 1px 0 rgba(228,247,250,0.45),
         0 0 10px ${color.lcdSignalGlow},
@@ -289,8 +289,8 @@ const injectStyles = () => {
     }
     input.chrome-seek::-moz-range-thumb {
       width: 11px; height: 18px; border-radius: 3px;
-      background: linear-gradient(180deg, #F4FBFC 0%, #B7E4EE 55%, #7AB8C6 100%);
-      border: 1px solid rgba(90,196,214,0.85);
+      background: linear-gradient(180deg, #E8FFD0 0%, #A8FF6A 55%, #6EA8FF 100%);
+      border: 1px solid rgba(168,255,106,0.85);
       box-shadow:
         inset 0 1px 0 rgba(228,247,250,0.45),
         0 0 10px ${color.lcdSignalGlow},

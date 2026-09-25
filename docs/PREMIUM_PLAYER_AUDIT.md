@@ -328,20 +328,4 @@ The product already plays music. The job is to **look and read like a modern MP3
 
 ---
 
-## First implementation step (after approval)
-
-**P0.1 — Dark premium tokens + Home/Library/Discover/Profile text & containers.**
-
-Scope:
-
-- `src/theme.js` + `src/index.css` + font faces: charcoal canvas, new type roles, card/pill radii, green/violet trim.
-- Apply to: `HomeScreen` / `HeroPlayerCard` / `PlayerDeck` / `GlassDock` / `FavoritesScreen` / `ExploreScreen` / `ClubScreen` headers and `CardContainer`.
-- Do **not** in that PR: social features, Channel Surfing rewrite, catalog/backend, audio engine, new tabs.
-
-Exit criteria:
-
-- Phone at 390×844: Home reads as a **player** (art, title, transport, Turtle/Rabbit) on dark rounded surfaces.
-- Titles are large and sharp; BPM/Camelot stay mono in the LCD.
-- `styleShip` updated and green; `build/` regenerated.
-
-**Ask for approval on:** (1) dark chassis vs keeping light steel, (2) display font direction (condensed vs rounded), (3) whether Channel Surfing leaves Home in the same PR or the next one.
+**Sequenced prompts:** [`docs/PREMIUM_PLAYER_PROMPTS.md`](PREMIUM_PLAYER_PROMPTS.md) — one prompt per PR. Prompt 01 is the dark-premium token chassis.

@@ -1,7 +1,7 @@
 {
   "files": {
-    "main.css": "/static/css/main.da8ccdc5.css",
-    "main.js": "/static/js/main.ac7ecf0a.js",
+    "main.css": "/static/css/main.13403cbc.css",
+    "main.js": "/static/js/main.b12f8196.js",
     "static/js/10.0ac7a9a2.chunk.js": "/static/js/10.0ac7a9a2.chunk.js",
     "static/js/101.71c78492.chunk.js": "/static/js/101.71c78492.chunk.js",
     "static/js/80.cac8e1e9.chunk.js": "/static/js/80.cac8e1e9.chunk.js",
@@ -38,8 +38,8 @@
     "static/js/150.0b0bc5c8.chunk.js": "/static/js/150.0b0bc5c8.chunk.js",
     "static/media/hero-idle.png": "/static/media/hero-idle.ae95db84c159b86ea919.png",
     "index.html": "/index.html",
-    "main.da8ccdc5.css.map": "/static/css/main.da8ccdc5.css.map",
-    "main.ac7ecf0a.js.map": "/static/js/main.ac7ecf0a.js.map",
+    "main.13403cbc.css.map": "/static/css/main.13403cbc.css.map",
+    "main.b12f8196.js.map": "/static/js/main.b12f8196.js.map",
     "10.0ac7a9a2.chunk.js.map": "/static/js/10.0ac7a9a2.chunk.js.map",
     "101.71c78492.chunk.js.map": "/static/js/101.71c78492.chunk.js.map",
     "80.cac8e1e9.chunk.js.map": "/static/js/80.cac8e1e9.chunk.js.map",
@@ -76,7 +76,7 @@
     "150.0b0bc5c8.chunk.js.map": "/static/js/150.0b0bc5c8.chunk.js.map"
   },
   "entrypoints": [
-    "static/css/main.da8ccdc5.css",
-    "static/js/main.ac7ecf0a.js"
+    "static/css/main.13403cbc.css",
+    "static/js/main.b12f8196.js"
   ]
 }
