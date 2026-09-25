@@ -6,8 +6,8 @@ import { BTN_PRIMARY, color, font, fontDisplay, homeSpace } from "../../theme";
 
 export default function GuestMemberGate({
   title = "Members only",
-  copy = "Sign in from Club to keep favorites, stacks, and your card.",
-  cta = "Open Club",
+  copy = "Sign in from Profile to keep favorites, playlists, and your card.",
+  cta = "Open Profile",
   onSignIn,
 }) {
   return (

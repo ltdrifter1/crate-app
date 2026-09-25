@@ -1,18 +1,18 @@
 import { PRIMARY_TABS, SIDEBAR_TOOLS, dockActiveTab, primaryNavItems, sidebarActiveId } from "./nav";
 
 describe("product nav IA", () => {
-  test("dock has four primary tabs: Home, Explore, Library, Club", () => {
+  test("dock has four primary tabs: Home, Library, Discover, Profile", () => {
     expect(PRIMARY_TABS.map((t) => t.id)).toEqual([
       "home",
-      "explore",
       "favorites",
+      "explore",
       "profile",
     ]);
     expect(PRIMARY_TABS.map((t) => t.label)).toEqual([
       "Home",
-      "Explore",
       "Library",
-      "Club",
+      "Discover",
+      "Profile",
     ]);
     expect(PRIMARY_TABS).toHaveLength(4);
   });
@@ -54,15 +54,15 @@ describe("product nav IA", () => {
     expect(primaryNavItems()).toHaveLength(4);
     expect(primaryNavItems({ showAdmin: true }).map((t) => t.id)).toEqual([
       "home",
-      "explore",
       "favorites",
+      "explore",
       "profile",
     ]);
   });
 
   test("dock tabs are keep-alive screens", () => {
     const { KEEP_ALIVE_SCREENS, isKeepAliveScreen } = require("./nav");
-    expect(KEEP_ALIVE_SCREENS).toEqual(["home", "explore", "favorites", "profile"]);
+    expect(KEEP_ALIVE_SCREENS).toEqual(["home", "favorites", "explore", "profile"]);
     expect(isKeepAliveScreen("home")).toBe(true);
     expect(isKeepAliveScreen("search")).toBe(false);
   });

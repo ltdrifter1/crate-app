@@ -13,7 +13,7 @@ import {
 } from "../theme";
 import { countPlayableTracks } from "../lib/catalogLoad";
 import { getSceneChannel, SCENE_CHANNELS } from "../lib/sceneChannels";
-import { buildHomeCollections } from "../lib/homeCollections";
+import { buildHomeCollections, savedTracks, tracksFromRecentIds } from "../lib/homeCollections";
 import { rankChannelsForTaste } from "../lib/onboardingTaste";
 import { runAfterPaint } from "../lib/afterPaint";
 import { useCurrentTrack, useTransportTrackId } from "../usePlayerTransport";
@@ -229,6 +229,9 @@ function HomeNowPlaying({
   onSeek,
   tickerText,
   onDislike,
+  onLike,
+  onShare,
+  onShowQueue,
 }) {
   const currentTrack = useCurrentTrack();
   return (
@@ -245,12 +248,85 @@ function HomeNowPlaying({
       onTogglePlay={onTogglePlay}
       onSkip={onSkipRadio}
       onPrev={onPrevRadio}
+      onLike={currentTrack ? onLike : null}
       onDislike={currentTrack ? onDislike : null}
+      onShare={currentTrack ? onShare : null}
+      onShowQueue={currentTrack ? onShowQueue : null}
       onOpen={onOpenPlayer}
       onVisibilityChange={onStageVisibilityChange}
       onSeek={onSeek}
       tickerText={tickerText}
     />
+  );
+}
+
+function HomePersonal({
+  tracks,
+  recentTrackIds = [],
+  onPlayTrack,
+  onOpenLibrary,
+}) {
+  const activeId = useTransportTrackId();
+  const recents = useMemo(
+    () => tracksFromRecentIds(tracks, recentTrackIds, 12),
+    [tracks, recentTrackIds]
+  );
+  const liked = useMemo(() => savedTracks(tracks, 12), [tracks]);
+  if (recents.length === 0 && liked.length === 0) return null;
+
+  return (
+    <>
+      {recents.length > 0 && (
+        <MusicSection
+          title="Recently played"
+          subtitle="Back into your session"
+          poster
+          first
+          action={
+            onOpenLibrary
+              ? { label: "Library", onClick: onOpenLibrary }
+              : null
+          }
+          delay={0.06}
+        >
+          <Rail gap={16}>
+            {recents.map((track) => (
+              <TrackCard
+                key={track.id}
+                track={track}
+                active={activeId === track.id}
+                onClick={() => onPlayTrack?.(track, recents)}
+              />
+            ))}
+          </Rail>
+        </MusicSection>
+      )}
+      {liked.length > 0 && (
+        <MusicSection
+          title="Liked"
+          subtitle="Your favourites"
+          poster
+          first={recents.length === 0}
+          action={
+            onOpenLibrary
+              ? { label: "See All", onClick: onOpenLibrary }
+              : null
+          }
+          delay={0.08}
+        >
+          <Rail gap={16}>
+            {liked.map((track) => (
+              <TrackCard
+                key={track.id}
+                track={track}
+                active={activeId === track.id}
+                onClick={() => onPlayTrack?.(track, liked)}
+              />
+            ))}
+          </Rail>
+        </MusicSection>
+      )}
+    </>
   );
 }
 
@@ -374,6 +450,11 @@ function HomeScreen({
   daypart = null,
   tickerText = "",
   onDislike = null,
+  onLike = null,
+  onShare = null,
+  onShowQueue = null,
+  onOpenLibrary = null,
+  recentTrackIds = [],
   airing = null,
   programGuide = [],
   activeShowId = null,
@@ -446,6 +527,9 @@ function HomeScreen({
           onSeek={onSeek}
           tickerText={tickerText}
           onDislike={onDislike}
+          onLike={onLike}
+          onShare={onShare}
+          onShowQueue={onShowQueue}
         />
       </div>
 
@@ -459,12 +543,31 @@ function HomeScreen({
         />
       )}
 
+      {shelvesReady && catalogReady && (
+        <HomePersonal
+          tracks={tracks}
+          recentTrackIds={recentTrackIds}
+          onPlayTrack={onPlayTrack}
+          onOpenLibrary={onOpenLibrary}
+        />
+      )}
+
+      {shelvesReady && catalogReady && (
+        <HomeEditorial
+          tracks={tracks}
+          countdown={countdown}
+          onPlayTrack={onPlayTrack}
+          onOpenCharts={onOpenCharts}
+          onTuneCountdown={onTuneCountdown}
+        />
+      )}
+
       {hasChannels && (
         <ChannelSurfingSection
           channels={channels}
           activeChannelId={sceneChannelsActiveId}
           onTuneChannel={onTuneSceneChannel}
-          first
+          first={false}
           delay={0.05}
         />
       )}
@@ -485,16 +588,6 @@ function HomeScreen({
             />
           </Suspense>
         </div>
-      )}
-
-      {shelvesReady && catalogReady && (
-        <HomeEditorial
-          tracks={tracks}
-          countdown={countdown}
-          onPlayTrack={onPlayTrack}
-          onOpenCharts={onOpenCharts}
-          onTuneCountdown={onTuneCountdown}
-        />
       )}
 
       {catalogLoading && <HomeStandBy />}

@@ -23,7 +23,7 @@ function SearchScreen({
   entityHits: entityHitsProp, onOpenArtist, onOpenAlbum, tracks = [], onListenIntent = null,
   recentSearches = [], onPickRecent = null, onClearRecent = null,
   onBack = null,
-  backLabel = "Explore",
+  backLabel = "Discover",
 }) {
   const currentTrack = useCurrentTrack();
   const [showAllResults, setShowAllResults] = useState(false);

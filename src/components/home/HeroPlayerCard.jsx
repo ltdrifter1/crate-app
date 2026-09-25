@@ -344,6 +344,8 @@ export default function HeroPlayerCard({
   onPrev = null,
   onLike = null,
   onDislike = null,
+  onShare = null,
+  onShowQueue = null,
   onOpen = null,
   onVisibilityChange = null,
   onSeek = null,
@@ -664,6 +666,8 @@ export default function HeroPlayerCard({
             onSkip={onSkip}
             onLike={onLike ? () => onLike(track.id) : null}
             onDislike={onDislike}
+            onShare={onShare ? () => onShare(track) : null}
+            onShowQueue={onShowQueue}
             liked={!!track.liked}
             disliked={!!track.disliked}
           />

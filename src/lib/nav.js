@@ -1,16 +1,15 @@
 /**
- * Product IA — four dock destinations (device selector):
- * Home / Explore / Library / Club. Club is the membership + collection surface,
- * so it earns a dock slot; Charts is a place you visit, not a home base, and
- * lives in the desktop source list and the mobile More drawer alongside
- * Build a set. Admin stays in the source list, never on the consumer dock.
+ * Product IA — four dock destinations (MP3 player first):
+ * Home / Library / Discover / Profile. Club membership lives on Profile.
+ * Charts and Build a set stay overflow (desktop source list + mobile More).
+ * Admin stays in the source list, never on the consumer dock.
  */
 
 export const PRIMARY_TABS = [
-  { id: "home",      label: "Home",    icon: "home"    },
-  { id: "explore",   label: "Explore", icon: "map"     },
-  { id: "favorites", label: "Library", icon: "dig"     },
-  { id: "profile",   label: "Club",    icon: "profile" },
+  { id: "home",      label: "Home",     icon: "home"    },
+  { id: "favorites", label: "Library",  icon: "dig"     },
+  { id: "explore",   label: "Discover", icon: "map"     },
+  { id: "profile",   label: "Profile",  icon: "profile" },
 ];
 
 /** Primary destinations in the left source list. */

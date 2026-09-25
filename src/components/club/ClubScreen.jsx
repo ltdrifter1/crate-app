@@ -189,7 +189,7 @@ export default function ClubScreen({
   return (
     <div style={{ padding: "0 0 28px" }}>
       <CollapsingHeader
-        title="Club"
+        title="Profile"
         subtitle={
           settingsTab === "interests"
             ? "Settings · Your interests"
@@ -203,7 +203,7 @@ export default function ClubScreen({
         {/* Settings tabs */}
         <div
           role="tablist"
-          aria-label="Club settings"
+          aria-label="Profile settings"
           style={{
             display: "flex",
             gap: 4,
@@ -697,7 +697,7 @@ export default function ClubScreen({
               Review the guide
             </div>
             <div style={{ fontSize: 14, color: color.body, lineHeight: 1.4 }}>
-              A short tour of Home, Explore, Library, and the rest of the app.
+              A short tour of Home, Discover, Library, and the rest of the app.
             </div>
           </button>
         </section>

@@ -44,7 +44,7 @@ describe("AppSidebar source list", () => {
       );
     });
     const labels = [...div.querySelectorAll(".nav-rail-btn")].map((el) => el.getAttribute("aria-label"));
-    expect(labels).toEqual(expect.arrayContaining(["Home", "Explore", "Library", "Charts", "Build a set", "Club"]));
+    expect(labels).toEqual(expect.arrayContaining(["Home", "Library", "Discover", "Charts", "Build a set", "Profile"]));
     expect(SIDEBAR_TOOLS.map((t) => t.label).every((label) => labels.includes(label))).toBe(true);
 
     await act(async () => {
@@ -72,7 +72,7 @@ describe("AppSidebar source list", () => {
     expect(div.textContent).toMatch(/More/);
     expect(div.textContent).not.toMatch(/Faceplate/);
     expect(div.querySelector('button[aria-label="Home"]')).toBeNull();
-    expect(div.querySelector('button[aria-label="Club"]')).toBeNull();
+    expect(div.querySelector('button[aria-label="Profile"]')).toBeNull();
   });
 
   test("marks Charts selected when that screen is open", async () => {

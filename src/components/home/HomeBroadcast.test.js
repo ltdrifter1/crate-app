@@ -194,7 +194,7 @@ describe("Home broadcast + four-tab IA", () => {
     expect(div.querySelector(".pmp-hero-wash")).toBeTruthy();
   });
 
-  test("live hero has a Pace slider and dislike, not a Request button", async () => {
+  test("live hero has Turtle / Rabbit and dislike, not a Request button", async () => {
     await act(async () => {
       root.render(
         React.createElement(HeroPlayerCard, {
@@ -211,19 +211,19 @@ describe("Home broadcast + four-tab IA", () => {
       );
     });
     expect(div.textContent).not.toMatch(/\bRequest\b/);
-    expect(div.querySelector('[aria-label="Pace"]')).toBeTruthy();
-    expect(div.querySelector('[data-testid="pace-slot"]')).toBeTruthy();
-    expect(div.querySelector(".pmp-pace-slot")).toBeTruthy();
+    expect(div.querySelector('[data-testid="rabbit-turtle"]')).toBeTruthy();
+    expect(div.querySelector('[aria-label="Turtle — slow down upcoming tracks"]')).toBeTruthy();
+    expect(div.querySelector('[aria-label="Rabbit — speed up upcoming tracks"]')).toBeTruthy();
+    expect(div.querySelector('[data-testid="pace-slot"]')).toBeNull();
+    expect(div.querySelector(".pmp-pace-slot")).toBeNull();
     expect(div.querySelector('[data-testid="player-deck"]')).toBeTruthy();
     expect(div.querySelector(".pmp-deck-plate")).toBeTruthy();
     expect(div.querySelector(".pmp-seek__well")).toBeTruthy();
     expect(div.querySelector(".pmp-timeline")).toBeTruthy();
-    expect(div.textContent).toMatch(/Slow/);
-    expect(div.textContent).toMatch(/Fast/);
+    expect(div.textContent).toMatch(/Turtle/);
+    expect(div.textContent).toMatch(/Rabbit/);
     expect(div.textContent).toMatch(/Next picks/);
-    expect(div.textContent).not.toMatch(/Ease|Lift|Middle/);
-    expect(div.querySelector('[aria-label*="Turtle"]')).toBeFalsy();
-    expect(div.querySelector('[aria-label*="Bunny"]')).toBeFalsy();
+    expect(div.textContent).not.toMatch(/\bEase\b|\bLift\b|\bMiddle\b/);
     expect(div.querySelector('[aria-label="Dislike this track"]')).toBeTruthy();
   });
 
@@ -519,7 +519,7 @@ describe("Home broadcast + four-tab IA", () => {
     expect(div.querySelector(".pmp-showcase-promo")).toBeNull();
   });
 
-  test("Channel Surfing sits on the first fold, before Tonight", async () => {
+  test("player and personal shelves sit before Channel Surfing and Tonight", async () => {
     const fs = require("fs");
     const path = require("path");
     const src = fs.readFileSync(
@@ -527,10 +527,12 @@ describe("Home broadcast + four-tab IA", () => {
       "utf8"
     );
     const hero = src.indexOf("<HeroPlayerCard");
+    const personal = src.indexOf("<HomePersonal");
     const channels = src.indexOf("<ChannelSurfingSection");
     const tonight = src.indexOf("<TonightDeck");
     expect(hero).toBeGreaterThan(-1);
-    expect(channels).toBeGreaterThan(hero);
+    expect(personal).toBeGreaterThan(hero);
+    expect(channels).toBeGreaterThan(personal);
     expect(tonight).toBeGreaterThan(channels);
   });
 

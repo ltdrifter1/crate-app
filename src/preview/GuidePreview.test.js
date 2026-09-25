@@ -15,7 +15,7 @@ describe("Guide preview", () => {
       root.render(React.createElement(GuidePreview));
     });
     expect(div.querySelector("[data-testid='feature-tour']")).toBeTruthy();
-    expect(div.textContent).toMatch(/Channel Surfing/);
+    expect(div.textContent).toMatch(/Your player/);
 
     const skip = [...div.querySelectorAll("button")].find((b) => b.textContent === "Skip");
     await act(async () => {

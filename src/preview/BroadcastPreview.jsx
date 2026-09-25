@@ -294,7 +294,6 @@ export default function BroadcastPreview() {
             onCustomMix={() => setBuildingSet(true)}
             onOpenCharts={() => setScreen("charts")}
             onOpenMenu={isDesktop ? null : () => setDrawer(true)}
-            showLibraryDestinations={!isDesktop}
           />
         ) : screen === "charts" ? (
           <ChartsScreen

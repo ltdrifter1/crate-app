@@ -3131,6 +3131,27 @@ export default function App() {
     }
   };
 
+  const shareCurrentTrack = useCallback(async (track) => {
+    const t = track || currentTrack;
+    if (!t) return;
+    const url = t.artist
+      ? absoluteAppUrl(buildPath("artist", { artistSlug: slugify(t.artist) }))
+      : absoluteAppUrl(buildPath("home"));
+    try {
+      const result = await shareOrCopy({
+        title: t.title || BRAND_NAME,
+        text: `${t.title || "Track"}${t.artist ? ` — ${t.artist}` : ""} on ${BRAND_NAME}`,
+        url,
+      });
+      if (result.aborted) return;
+      if (result.ok) showToast(result.method === "clipboard" ? "Link copied" : "Shared");
+      else showToast("Couldn’t share — try again");
+    } catch (e) {
+      console.warn("Share track failed", e);
+      showToast("Couldn’t share — try again");
+    }
+  }, [currentTrack, showToast]);
+
   const publishCommunityMixFromPlaylist = async (playlist) => {
     if (!isAdminUser || !playlist) return;
     if (!(playlist.trackIds || []).length) {
@@ -3570,6 +3591,7 @@ export default function App() {
       onClose={() => setImmersive(false)}
       onSeek={handleSeek}
       onLike={toggleLike}
+      onShare={shareCurrentTrack}
       volume={volume}
       onVolumeChange={handleVolume}
       shuffle={shuffle}
@@ -3641,7 +3663,7 @@ export default function App() {
         <Suspense fallback={<div style={{ padding: 32, color: color.muted }}>Loading…</div>}>
         {warmTabs.has("home") && (
         <ScreenPane keepAlive active={screen==="home"}>
-        <HomeScreen catalogLoading={tracksLoading} tracks={tracks} onPlayRadio={playRadio} onTogglePlay={togglePlay} onPlayTrack={playTrack} isRadioMode={isRadioMode} radioPreview={heroPreview} radioNext={setNext} onSkipRadio={handleSkip} onPrevRadio={handlePrev} onOpenPlayer={openPlayer} catalogError={tracksLoadError} onRetryCatalog={reloadCatalog} onStageVisibilityChange={onHomeStageVisibilityChange} onSeek={handleSeek} countdown={countdown} onTuneCountdown={tuneCountdown} daypart={activeDaypart} tickerText={stationTicker} onDislike={dislikeCurrentTrack} airing={liveAiring} programGuide={programGuide} activeShowId={activeShowId} onTuneShow={playShow} showBumper={showBumper} channelShow={liveShow} sceneChannelsActiveId={activeSceneChannelId} onTuneSceneChannel={playSceneChannel} taste={profileTaste} onOpenSearch={openSearchFromHome} onOpenCharts={openCharts} onOpenMenu={openMenu}/>}
+        <HomeScreen catalogLoading={tracksLoading} tracks={tracks} recentTrackIds={recentTrackIds} onPlayRadio={playRadio} onTogglePlay={togglePlay} onPlayTrack={playTrack} onLike={toggleLike} onShare={shareCurrentTrack} onShowQueue={showQueueSheet} onOpenLibrary={openLibrary} isRadioMode={isRadioMode} radioPreview={heroPreview} radioNext={setNext} onSkipRadio={handleSkip} onPrevRadio={handlePrev} onOpenPlayer={openPlayer} catalogError={tracksLoadError} onRetryCatalog={reloadCatalog} onStageVisibilityChange={onHomeStageVisibilityChange} onSeek={handleSeek} countdown={countdown} onTuneCountdown={tuneCountdown} daypart={activeDaypart} tickerText={stationTicker} onDislike={dislikeCurrentTrack} airing={liveAiring} programGuide={programGuide} activeShowId={activeShowId} onTuneShow={playShow} showBumper={showBumper} channelShow={liveShow} sceneChannelsActiveId={activeSceneChannelId} onTuneSceneChannel={playSceneChannel} taste={profileTaste} onOpenSearch={openSearchFromHome} onOpenCharts={openCharts} onOpenMenu={openMenu}/>}
         </ScreenPane>
         )}
         {warmTabs.has("explore") && (
@@ -3652,18 +3674,18 @@ export default function App() {
         {!isKeepAliveScreen(screen) && (screen==="charts" || screen==="search") && (
         <ScreenPane>
         {screen==="charts" && <Suspense fallback={<div style={{ padding: 32, color: color.muted, fontFamily: font, fontSize: 15 }}>Loading charts…</div>}><LazyChartsScreen catalogLoading={tracksLoading} countdown={countdown} tracks={tracks} onPlayTrack={playTrack} onTuneMonthly={playMonthlyChart} onAddToQueue={addTrackToQueue} playlistCtx={playlistCtx} nowPlayingId={currentTrackId} onOpenMenu={openMenu}/></Suspense>}
-        {screen==="search" && <SearchScreen query={searchQuery} setQuery={setSearch} tracks={tracks} onPlay={(t,pool)=>{ recordRecentSearch(searchQuery); playTrack(t,pool||tracks); }} onListenIntent={(focus)=>{ const next={ genre: focus.genre || null, scene: null }; setListenFocus(next); playRadio(null, createListenIntent({ mixLane, ...next })); }} onLike={toggleLike} playlistCtx={playlistCtx} onOpenArtist={(slug)=>{ recordRecentSearch(searchQuery); openArtist(slug); }} onOpenAlbum={(slug)=>{ recordRecentSearch(searchQuery); openAlbum(slug); }} recentSearches={recentSearches} onPickRecent={(q)=>setSearch(q)} onClearRecent={clearRecentSearches} onBack={()=>setScreen(searchReturn)} backLabel={searchReturn === "home" ? "Home" : "Explore"}/>}
+        {screen==="search" && <SearchScreen query={searchQuery} setQuery={setSearch} tracks={tracks} onPlay={(t,pool)=>{ recordRecentSearch(searchQuery); playTrack(t,pool||tracks); }} onListenIntent={(focus)=>{ const next={ genre: focus.genre || null, scene: null }; setListenFocus(next); playRadio(null, createListenIntent({ mixLane, ...next })); }} onLike={toggleLike} playlistCtx={playlistCtx} onOpenArtist={(slug)=>{ recordRecentSearch(searchQuery); openArtist(slug); }} onOpenAlbum={(slug)=>{ recordRecentSearch(searchQuery); openAlbum(slug); }} recentSearches={recentSearches} onPickRecent={(q)=>setSearch(q)} onClearRecent={clearRecentSearches} onBack={()=>setScreen(searchReturn)} backLabel={searchReturn === "home" ? "Home" : "Discover"}/>}
         </ScreenPane>
         )}
         {warmTabs.has("favorites") && (
         <ScreenPane keepAlive active={screen==="favorites"}>
         {firebaseUser ? (
-        <FavoritesScreen tracks={tracks} onPlay={playFromLibrary} onPlayTrack={playFromLibrary} onLike={toggleLike} playlistCtx={playlistCtx} userPlaylists={libraryPlaylists} onCreatePlaylist={createPlaylist} onDeletePlaylist={deletePlaylist} onRenamePlaylist={renamePlaylist} onSharePlaylist={sharePlaylistToClub} stackId={stackId} onOpenStack={openStack} onCloseStack={closeStack} onReorderPlaylist={reorderPlaylistTrack} communityMix={communityMix} onOpenMix={openCommunityMix} onCustomMix={openCustomMix} onOpenCharts={openCharts} onOpenMenu={openMenu} showLibraryDestinations preferredGenres={user.genres} recentTrackIds={recentTrackIds} userKey={user.uid}/>
+        <FavoritesScreen tracks={tracks} onPlay={playFromLibrary} onPlayTrack={playFromLibrary} onLike={toggleLike} playlistCtx={playlistCtx} userPlaylists={libraryPlaylists} onCreatePlaylist={createPlaylist} onDeletePlaylist={deletePlaylist} onRenamePlaylist={renamePlaylist} onSharePlaylist={sharePlaylistToClub} stackId={stackId} onOpenStack={openStack} onCloseStack={closeStack} onReorderPlaylist={reorderPlaylistTrack} communityMix={communityMix} onOpenMix={openCommunityMix} onOpenMenu={openMenu} preferredGenres={user.genres} recentTrackIds={recentTrackIds} userKey={user.uid}/>
         ) : (
         <GuestMemberGate
           title="Your library"
-          copy="Sign in from Club to keep favorites, stacks, and the Community Mix."
-          cta="Open Club"
+          copy="Sign in from Profile to keep favorites, playlists, and what you play."
+          cta="Open Profile"
           onSignIn={() => setScreen("profile")}
         />
         )}

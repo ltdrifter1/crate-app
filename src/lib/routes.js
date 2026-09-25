@@ -1,5 +1,6 @@
 /** Path ↔ screen mapping for shareable URLs. Home is the start page.
- *  Charts and Search remain addressable; the dock is Home / Explore / Library / Club.
+ *  Charts and Search remain addressable; the dock is Home / Library / Discover / Profile.
+ *  `/discover` is the legacy Library path; Discover (Explore) lives at `/explore`.
  */
 import { BRAND_NAME } from "../theme";
 
@@ -136,11 +137,11 @@ export function documentTitleFor(screen, label) {
   if (label) return `${label} · ${BRAND_NAME}`;
   const labels = {
     home: "Home",
-    explore: "Explore",
+    explore: "Discover",
     charts: "Charts",
     favorites: "Library",
     search: "Search",
-    profile: "You",
+    profile: "Profile",
     admin: "Admin",
     artist: "Artist",
     album: "Album",

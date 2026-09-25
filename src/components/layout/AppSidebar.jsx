@@ -76,7 +76,7 @@ function NavRow({ item, active, onClick }) {
 }
 
 /**
- * Left source list — desktop rail keeps Home / Explore / Library.
+ * Left source list — desktop rail keeps Home / Library / Discover.
  * Mobile More drawer is overflow only: Charts + Build a set.
  */
 export default function AppSidebar({
@@ -231,8 +231,8 @@ export default function AppSidebar({
               onNavigate?.("profile");
               onClose?.();
             }}
-            title={user?.name || "Club"}
-            aria-label="Club"
+            title={user?.name || "Profile"}
+            aria-label="Profile"
             aria-current={activeId === "profile" ? "page" : undefined}
             style={{
               width: "100%",
@@ -277,7 +277,7 @@ export default function AppSidebar({
                 letterSpacing: -0.15,
               }}
             >
-              {user?.name || "Club"}
+              {user?.name || "Profile"}
             </span>
           </button>
         </div>

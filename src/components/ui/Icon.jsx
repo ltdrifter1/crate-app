@@ -100,6 +100,41 @@ function MenuIcon({ size }) {
   );
 }
 
+function TurtleIcon({ size }) {
+  return (
+    <Ico size={size} fill="currentColor" stroke="none">
+      <ellipse cx="12" cy="12.5" rx="7.2" ry="5" />
+      <circle cx="19.2" cy="11.5" r="2.3" />
+      <rect x="5.2" y="16" width="2.4" height="3.4" rx="1.1" />
+      <rect x="9" y="16.4" width="2.4" height="3.4" rx="1.1" />
+      <rect x="13" y="16.4" width="2.4" height="3.4" rx="1.1" />
+      <rect x="16.6" y="16" width="2.4" height="3.4" rx="1.1" />
+    </Ico>
+  );
+}
+
+function RabbitIcon({ size }) {
+  return (
+    <Ico size={size} fill="currentColor" stroke="none">
+      <rect x="6.5" y="1.5" width="3.2" height="10" rx="1.6" />
+      <rect x="14.3" y="1.5" width="3.2" height="10" rx="1.6" />
+      <circle cx="12" cy="14.5" r="6.2" />
+    </Ico>
+  );
+}
+
+function ShareIcon({ size }) {
+  return (
+    <Ico size={size} strokeWidth="2">
+      <circle cx="18" cy="5" r="2.4" />
+      <circle cx="6" cy="12" r="2.4" />
+      <circle cx="18" cy="19" r="2.4" />
+      <line x1="8.3" y1="10.7" x2="15.7" y2="6.3" />
+      <line x1="8.3" y1="13.3" x2="15.7" y2="17.7" />
+    </Ico>
+  );
+}
+
 function PlusIcon({ size }) {
   return (
     <Ico size={size} strokeWidth="2.5">
@@ -433,6 +468,9 @@ export default function Icon({ name, size = 18 }) {
     menu:         <MenuIcon size={size} />,
     dislike:      <ThumbsDownIcon size={size} />,
     dislikefilled:<ThumbsDownIcon size={size} filled />,
+    turtle:       <TurtleIcon size={size} />,
+    rabbit:       <RabbitIcon size={size} />,
+    share:        <ShareIcon size={size} />,
   };
   return icons[name] || null;
 }

@@ -6,7 +6,7 @@ export default function ExploreModes({ mode, onChange, modes = EXPLORE_MODES }) 
   return (
     <div
       role="tablist"
-      aria-label="Explore directory"
+      aria-label="Discover directory"
       className="pmp-explore-modes"
     >
       {modes.map((item) => {

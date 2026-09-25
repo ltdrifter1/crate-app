@@ -1,6 +1,6 @@
 import { brandStoragePrefix } from "../brand/identity";
 
-const KEY = `${brandStoragePrefix()}:deckHintSeen`;
+const KEY = `${brandStoragePrefix()}:deckHintSeen:v2`;
 
 export function hasSeenDeckHint() {
   try {

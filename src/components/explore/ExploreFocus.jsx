@@ -51,7 +51,7 @@ export default function ExploreFocus({
         <button
           type="button"
           onClick={onBack}
-          aria-label="Back to Explore"
+          aria-label="Back to Discover"
           className="pmp-press"
           style={{
             background: "none",
@@ -65,7 +65,7 @@ export default function ExploreFocus({
             padding: "0 0 12px",
           }}
         >
-          ‹ Explore
+          ‹ Discover
         </button>
       </header>
 

@@ -30,8 +30,8 @@ describe("FeatureTour", () => {
     await act(async () => {
       root.render(React.createElement(FeatureTour, { onComplete, onSkip }));
     });
-    expect(div.textContent).toMatch(/Channel Surfing/);
-    expect(div.textContent).toMatch(/Live radio/);
+    expect(div.textContent).toMatch(/Your player/);
+    expect(div.textContent).toMatch(/Turtle/);
     expect(div.textContent).not.toMatch(/Select your favourite genres/);
     expect(div.textContent).not.toMatch(/Enter the club/);
     expect(div.querySelector("[data-testid='feature-tour']")).toBeTruthy();
@@ -72,6 +72,6 @@ describe("FeatureTour", () => {
     });
     expect(div.textContent).toMatch(/Replay/);
     expect(div.querySelector("[data-replay='true']")).toBeTruthy();
-    expect(div.textContent).toMatch(/Channel Surfing/);
+    expect(div.textContent).toMatch(/Your player/);
   });
 });

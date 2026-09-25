@@ -74,6 +74,24 @@ export function savedTracks(tracks = [], limit = 24) {
     .slice(0, limit);
 }
 
+/** Recents in listen order — ids from profile.recentTracks. */
+export function tracksFromRecentIds(tracks = [], recentIds = [], limit = 12) {
+  if (!Array.isArray(recentIds) || recentIds.length === 0) return [];
+  const byId = new Map((tracks || []).map((t) => [t.id, t]));
+  const out = [];
+  const seen = new Set();
+  for (const raw of recentIds) {
+    const id = typeof raw === "string" ? raw : raw?.trackId || raw?.id;
+    if (!id || seen.has(id)) continue;
+    const track = byId.get(id);
+    if (!track || (track.duration || 0) > 900) continue;
+    seen.add(id);
+    out.push(track);
+    if (out.length >= limit) break;
+  }
+  return out;
+}
+
 function singlesOnly(tracks = []) {
   return tracks.filter((t) => (t.duration || 0) <= 900);
 }

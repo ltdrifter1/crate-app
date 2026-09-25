@@ -1,10 +1,10 @@
 /**
- * Shared listening deck — PS1 glass module with LCD seek, planet play,
- * chamfered hardware keys, and Slow/Fast pace. Hero + immersive.
+ * Shared listening deck — artwork transport with LCD seek, planet play,
+ * chamfered hardware keys, and Turtle / Rabbit BPM controls. Hero + immersive.
  */
 import { useEffect, useState } from "react";
 import Icon from "../ui/Icon";
-import { EnergyShiftFeedback, PaceSlot } from "../listen/EnergyShiftButton";
+import { EnergyShiftFeedback, RabbitTurtleSlot } from "../listen/EnergyShiftButton";
 import { PlayKey } from "./OrbitalControls";
 import { HardwareIconButton, LcdTimeline } from "./DeviceChrome";
 import { hasSeenDeckHint, markDeckHintSeen } from "../../lib/firstRunHint";
@@ -37,7 +37,7 @@ function DeckHint({ showDislike }) {
         animation: `rise 0.35s ${motion.ease} both`,
       }}
     >
-      Slow and Fast change what plays next.
+      Turtle and Rabbit change what plays next.
       {showDislike ? " Dislike steers the mix away." : ""}
     </p>
   );
@@ -54,6 +54,8 @@ export default function PlayerDeck({
   onSkip = null,
   onLike = null,
   onDislike = null,
+  onShare = null,
+  onShowQueue = null,
   liked = false,
   disliked = false,
   extraKeys = null,
@@ -125,9 +127,29 @@ export default function PlayerDeck({
             <Icon name={disliked ? "dislikefilled" : "dislike"} size={15} />
           </HardwareIconButton>
         ) : null}
+        {onShare ? (
+          <HardwareIconButton
+            label="Share"
+            onClick={onShare}
+            stopPropagation={stopPropagation}
+            size={36}
+          >
+            <Icon name="share" size={15} />
+          </HardwareIconButton>
+        ) : null}
+        {onShowQueue ? (
+          <HardwareIconButton
+            label="Up next"
+            onClick={onShowQueue}
+            stopPropagation={stopPropagation}
+            size={36}
+          >
+            <Icon name="queue" size={15} />
+          </HardwareIconButton>
+        ) : null}
         {extraKeys}
       </div>
-      <PaceSlot compact stopPropagation={paceStopPropagation} />
+      <RabbitTurtleSlot compact stopPropagation={paceStopPropagation} />
       <DeckHint showDislike={!!onDislike} />
     </div>
   );
