@@ -1,9 +1,9 @@
-// Design tokens — alternate-2003 MP3 device.
-// Night radio / obsidian steel. Ice LCD on smoked metal. No Spotify void,
-// no white page, no mint, no neon fill. IBM Plex Sans + Mono.
+// Design tokens — dark premium MP3 player.
+// Obsidian charcoal canvas, neon-green signal, quiet violet/blue.
+// Not Spotify, not a costume Discman. IBM Plex Mono stays on the LCD.
 
 /** Bump this when the visual OS changes. Copied into public/index.html + the shipped build. */
-export const STYLE_CHASSIS = "obsidian-ps1-glass-20260925";
+export const STYLE_CHASSIS = "dark-premium-mp3-20260925";
 
 /** Chrome specular — cool pearl steel, never pure white. */
 const SPEC = "200, 210, 222";
@@ -11,11 +11,12 @@ const SPEC = "200, 210, 222";
 const SHADE = "6, 10, 16";
 
 export const fontDisplay =
-  '"IBM Plex Sans", "Lucida Grande", "Helvetica Neue", Helvetica, Inter, -apple-system, BlinkMacSystemFont, Arial, sans-serif';
+  '"Outfit", "IBM Plex Sans", "Lucida Grande", "Helvetica Neue", Helvetica, Inter, -apple-system, BlinkMacSystemFont, Arial, sans-serif';
 export const font = fontDisplay;
 export const fontMono =
   '"IBM Plex Mono", ui-monospace, "SF Mono", SFMono-Regular, Menlo, Monaco, Consolas, monospace';
-export const fontPoster = fontDisplay;
+export const fontPoster =
+  '"Barlow Condensed", "Outfit", "IBM Plex Sans", "Lucida Grande", "Helvetica Neue", Helvetica, Inter, -apple-system, BlinkMacSystemFont, Arial, sans-serif';
 /** LCD / now-playing readout — firmware voice. */
 export const fontLcd = fontMono;
 
@@ -25,25 +26,25 @@ export const fontLcd = fontMono;
  */
 export const type = {
   largeTitle: {
-    fontFamily: fontDisplay,
-    fontSize: 34,
-    fontWeight: 700,
-    letterSpacing: -0.9,
-    lineHeight: 1.12,
+    fontFamily: fontPoster,
+    fontSize: 36,
+    fontWeight: 800,
+    letterSpacing: -0.6,
+    lineHeight: 1.08,
   },
   title1: {
-    fontFamily: fontDisplay,
-    fontSize: 28,
-    fontWeight: 700,
-    letterSpacing: -0.6,
-    lineHeight: 1.14,
+    fontFamily: fontPoster,
+    fontSize: 30,
+    fontWeight: 800,
+    letterSpacing: -0.4,
+    lineHeight: 1.1,
   },
   title2: {
-    fontFamily: fontDisplay,
+    fontFamily: fontPoster,
     fontSize: 22,
     fontWeight: 700,
-    letterSpacing: -0.4,
-    lineHeight: 1.18,
+    letterSpacing: -0.2,
+    lineHeight: 1.14,
   },
   title3: {
     fontFamily: fontDisplay,
@@ -127,35 +128,32 @@ export const type = {
 };
 
 /**
- * Ice phosphor trim — LCD cyan only. LIVE stays red.
- * Hairline / CTA / play pip. Never a page fill. Steel stays the chassis.
+ * Signal trim — neon green with a quiet blue edge. Never a page fill.
  */
 export const trim = {
-  lime: "#B7E4EE",
-  teal: "#5AA8B8",
-  blue: "#5AA8B8",
-  blueDeep: "#3F8A98",
-  gradient: "linear-gradient(90deg, #5AA8B8 0%, #B7E4EE 62%, #E4F7FA 100%)",
+  lime: "#A8FF6A",
+  teal: "#6EA8FF",
+  blue: "#6EA8FF",
+  blueDeep: "#4B7FE0",
+  gradient: "linear-gradient(90deg, #A8FF6A 0%, #7DFFB3 48%, #6EA8FF 100%)",
 };
 
 /**
- * Y2K neon signal palette — used sparingly as accent/glow on dark surfaces.
- * Never fill backgrounds with these; use as border, glow, or pip only.
+ * Neon signal palette — border, glow, pip. Never a background fill.
  */
 export const neons = {
-  cyan:    "#5AA8B8",
-  cyanGlow: "rgba(90,196,214,0.35)",
-  violet:  "#C87ADB",
-  violetGlow: "rgba(200,122,219,0.30)",
-  lime:    "#6DBF87",
-  limeGlow: "rgba(109,191,135,0.28)",
+  cyan:    "#6EA8FF",
+  cyanGlow: "rgba(110,168,255,0.35)",
+  violet:  "#B794F6",
+  violetGlow: "rgba(183,148,246,0.32)",
+  lime:    "#A8FF6A",
+  limeGlow: "rgba(168,255,106,0.32)",
   red:     "#E0314A",
   redGlow: "rgba(224,49,74,0.32)",
   orange:  "#E05830",
   orangeGlow: "rgba(224,88,48,0.28)",
-  /** LCD phosphor — ice-cyan text on dark well */
-  phosphor: "#B7E4EE",
-  phosphorGlow: "rgba(183,228,238,0.45)",
+  phosphor: "#A8FF6A",
+  phosphorGlow: "rgba(168,255,106,0.45)",
 };
 
 /**
@@ -187,27 +185,25 @@ export const color = {
   surfaceRaised: "#2A323C",
   canvas: "#1C222B",
   canvasEdge: "#161B22",
-  /** Cool chrome — glyphs, pip, progress. Ice stays the LCD trim. */
-  accent: "#A8B2C0",
-  accentSoft: "rgba(90, 196, 214, 0.16)",
-  accentGlow: "rgba(90, 196, 214, 0.28)",
+  /** Neon green — pip, progress, selected */
+  accent: "#A8FF6A",
+  accentSoft: "rgba(168, 255, 106, 0.16)",
+  accentGlow: "rgba(168, 255, 106, 0.32)",
   onAccent: "#1C222B",
-  /** Ice LCD CTA — phosphor plate, not a fill */
-  cta: "#5AA8B8",
-  onCta: "#E4F7FA",
+  cta: "#A8FF6A",
+  onCta: "#121417",
   onDark: "#E8EDF4",
   onDarkMuted: "rgba(200,210,222,0.62)",
   /** Broadcast live — the only non-steel signal */
   alert: "#E0314A",
   station: "#242A33",
-  select: "rgba(90, 196, 214, 0.12)",
-  selectStrong: "rgba(90, 196, 214, 0.22)",
-  /** Chrome glyphs on the recessed LCD well — ice-cyan phosphor, not mint */
-  lcdInk: "#E4F7FA",
-  lcdMute: "#8EB8C4",
-  lcdSignal: "#B7E4EE",
-  lcdSignalGlow: "rgba(90, 196, 214, 0.7)",
-  lcdSignalSoft: "rgba(183, 228, 238, 0.32)",
+  select: "rgba(168, 255, 106, 0.12)",
+  selectStrong: "rgba(168, 255, 106, 0.22)",
+  lcdInk: "#E8FFD0",
+  lcdMute: "#7A9A72",
+  lcdSignal: "#A8FF6A",
+  lcdSignalGlow: "rgba(168, 255, 106, 0.7)",
+  lcdSignalSoft: "rgba(168, 255, 106, 0.28)",
   /** Meta on the dark metal strip / dock (not the well) */
   stripInk: "#D8DFE8",
 };
@@ -222,7 +218,7 @@ export const chrome = {
   plate: "#242A33",
   deep: "#161B22",
   live: "#E0314A",
-  signal: "#A8B2C0",
+  signal: "#A8FF6A",
   inkPlate: "#E8EDF4",
   hotRgb: "168,178,192",
   brightRgb: "232,237,244",
@@ -252,7 +248,7 @@ export const ice = {
   bubbleMine: "rgba(90, 196, 214, 0.16)",
   ink: "#E8EDF4",
   mute: "rgba(197, 203, 214, 0.62)",
-  pip: "#B7E4EE",
+  pip: "#A8FF6A",
 };
 
 /**
@@ -266,13 +262,13 @@ export const y2k = {
   chromeSoft: "rgba(168, 178, 192, 0.12)",
   chromeGlow: "rgba(168, 178, 192, 0.22)",
   chromeWash: "rgba(168, 178, 192, 0.18)",
-  cyan: "#5AA8B8",
-  cyanSoft: "rgba(90, 168, 184, 0.16)",
-  cyanGlow: "rgba(90, 196, 214, 0.28)",
-  techBlue: "#5AA8B8",
-  techBlueSoft: "rgba(90, 168, 184, 0.14)",
-  neon: "#5AA8B8",
-  neonSoft: "rgba(90, 168, 184, 0.16)",
+  cyan: "#A8FF6A",
+  cyanSoft: "rgba(168, 255, 106, 0.16)",
+  cyanGlow: "rgba(168, 255, 106, 0.28)",
+  techBlue: "#6EA8FF",
+  techBlueSoft: "rgba(110, 168, 255, 0.14)",
+  neon: "#A8FF6A",
+  neonSoft: "rgba(168, 255, 106, 0.16)",
   magenta: "#E0314A",
   magentaSoft: "rgba(224, 49, 74, 0.14)",
   /** Pearl inscription on obsidian */
@@ -295,11 +291,10 @@ export const y2k = {
  * LCD is a smoked-steel inset; chassis around it is the same cool metal as the page.
  */
 export const radio = {
-  /** 8–14px engineered corners — never pill */
-  radius: 12,
-  radiusTight: 8,
-  radiusControl: 8,
-  radiusLcd: 6,
+  radius: 18,
+  radiusTight: 12,
+  radiusControl: 980,
+  radiusLcd: 14,
   border: "1px solid rgba(200,210,222,0.12)",
   borderLive: "1px solid rgba(90,196,214,0.42)",
   borderQuiet: "1px solid rgba(200,210,222,0.08)",
@@ -366,8 +361,8 @@ export const radio = {
     `inset 0 2px 4px rgba(${SHADE},0.7), inset 0 1px 0 rgba(${SHADE},0.4)`,
   lcdTrack: "rgba(6,10,16,0.55)",
   lcdFill:
-    "linear-gradient(90deg, #5AA8B8 0%, #B7E4EE 62%, #E4F7FA 100%)",
-  lcdGlow: "0 0 16px rgba(90, 196, 214, 0.55)",
+    "linear-gradient(90deg, #A8FF6A 0%, #7DFFB3 62%, #6EA8FF 100%)",
+  lcdGlow: "0 0 16px rgba(168, 255, 106, 0.55)",
   label: {
     fontFamily: font,
     fontSize: 13,
@@ -404,7 +399,7 @@ export const glass = {
 
 /** Hard, unblurred controls — PS1 chamfered obsidian keys. */
 export const hardware = {
-  radius: 6,
+  radius: 12,
   keyFace:
     `linear-gradient(145deg, rgba(${SPEC},0.22) 0%, rgba(${SPEC},0.05) 36%, transparent 62%), linear-gradient(165deg, #2C3440 0%, #242A33 46%, #1C222B 100%)`,
   keyRaised:
@@ -554,8 +549,8 @@ export const broadcast = {
   `,
   lcdTrack: "rgba(6,10,16,0.55)",
   lcdFill:
-    "linear-gradient(90deg, #5AA8B8 0%, #B7E4EE 62%, #E4F7FA 100%)",
-  lcdGlow: "0 0 16px rgba(90, 196, 214, 0.55)",
+    "linear-gradient(90deg, #A8FF6A 0%, #7DFFB3 62%, #6EA8FF 100%)",
+  lcdGlow: "0 0 16px rgba(168, 255, 106, 0.55)",
 };
 
 /** Hardware icon key — header / Explore / Charts. */
@@ -588,10 +583,10 @@ export function glassPill(opts = {}) {
   const compact = opts.compact === true;
   return {
     border: `1px solid ${
-      active ? "rgba(90,196,214,0.45)" : "rgba(200,210,222,0.14)"
+      active ? "rgba(168,255,106,0.45)" : "rgba(200,210,222,0.14)"
     }`,
     background: active
-      ? "rgba(90,196,214,0.14)"
+      ? "rgba(168,255,106,0.14)"
       : `linear-gradient(180deg, rgba(${SPEC},0.12) 0%, rgba(36,42,51,0.92) 100%)`,
     backdropFilter: "blur(18px) saturate(1.08)",
     WebkitBackdropFilter: "blur(18px) saturate(1.08)",
@@ -599,7 +594,7 @@ export function glassPill(opts = {}) {
       ? `inset 0 1px 0 rgba(${SPEC},0.35), 0 0 0 1px ${color.lcdSignal}`
       : `inset 0 1px 0 rgba(${SPEC},0.4), inset 0 -1px 0 rgba(${SHADE},0.14), 0 3px 10px rgba(${SHADE},0.14)`,
     color: active ? color.lcdSignal : color.ink,
-    borderRadius: compact ? 8 : radius.md,
+    borderRadius: compact ? 12 : 980,
     WebkitTapHighlightColor: "transparent",
   };
 }
@@ -618,7 +613,7 @@ export const dock = {
 };
 
 /** Prefer radio.radius for media modules; keep these for sheets / legacy chrome. */
-export const radius = { sm: 8, md: 12, lg: 14, xl: 16, pill: 980 };
+export const radius = { sm: 10, md: 14, lg: 18, xl: 22, pill: 980 };
 
 export const space = (n) => n * 4;
 
@@ -789,28 +784,28 @@ export const INPUT_ST = {
   transition: `border-color ${motion.base} ${motion.ease}, box-shadow ${motion.base} ${motion.ease}, background ${motion.base}`,
 };
 
-/** Primary CTA — smoked LCD plate, ice inscription. */
+/** Primary CTA — neon green pill, dark inscription. */
 export const BTN_PRIMARY = {
   width: "100%",
   padding: "14px 22px",
-  borderRadius: 10,
-  border: "1px solid rgba(90, 196, 214, 0.38)",
-  background: radio.lcdFace,
+  borderRadius: 980,
+  border: "1px solid rgba(168, 255, 106, 0.45)",
+  background: color.cta,
   color: color.onCta,
   fontSize: 16,
   fontWeight: 700,
   cursor: "pointer",
   fontFamily: font,
   letterSpacing: -0.15,
-  boxShadow: radio.lcdShadow,
+  boxShadow: `0 0 18px rgba(168,255,106,0.28), ${radio.lcdShadow}`,
   transition: `transform ${motion.fast} ${motion.ease}, box-shadow ${motion.base}, opacity ${motion.fast}`,
 };
 
-/** Secondary CTA — dark metal plate. */
+/** Secondary CTA — dark plate pill. */
 export const BTN_SECONDARY = {
   width: "100%",
   padding: "14px 22px",
-  borderRadius: radius.lg,
+  borderRadius: 980,
   border: `1px solid ${glass.border}`,
   background: glass.chrome,
   color: color.ink,

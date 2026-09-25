@@ -54,6 +54,7 @@ test("theme source does not ship mint phosphor or DistroKid trim", () => {
   expect(theme).not.toMatch(/#367FC7/i);
   expect(theme).toMatch(/lcdSignal/);
   expect(theme).not.toMatch(/lcdPhosphor/);
+  expect(theme).toMatch(/dark-premium-mp3-20260925/);
 });
 
 test("player surfaces use Turtle / Rabbit, not energy paddles", () => {
@@ -212,6 +213,8 @@ test("premium drivetrain: one chassis, self-hosted Plex, no lucide", () => {
   expect(theme).toMatch(/blur:\s*"none"/);
 
   expect(fs.existsSync(path.join(root, "public/fonts/ibm-plex-sans-400.woff2"))).toBe(true);
+  expect(fs.existsSync(path.join(root, "public/fonts/outfit-400.woff2"))).toBe(true);
+  expect(fs.existsSync(path.join(root, "public/fonts/barlow-condensed-700.woff2"))).toBe(true);
   expect(fs.existsSync(path.join(root, "src/lib/audioEngine.js"))).toBe(true);
   expect(fs.existsSync(path.join(root, "functions/lib/catalogJson.js"))).toBe(true);
   expect(fs.existsSync(path.join(root, "public/sw.js"))).toBe(true);

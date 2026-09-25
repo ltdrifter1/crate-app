@@ -8,7 +8,7 @@ Living destinations for discovering, collecting, and experiencing music — not 
 
 **Current product IA:** dock is **Home / Library / Discover / Profile** (player-first). Home still carries Channel Surfing + the live stage; Charts is overflow. See [`docs/PREMIUM_PLAYER_AUDIT.md`](docs/PREMIUM_PLAYER_AUDIT.md). Rooms/Paths nav is retired; archival notes in [`docs/ROOMS_PRODUCT_VISION.md`](docs/ROOMS_PRODUCT_VISION.md).
 
-**Premium MP3-player audit (Sep 2026, awaiting approval):** [`docs/PREMIUM_PLAYER_AUDIT.md`](docs/PREMIUM_PLAYER_AUDIT.md) · **Creative audit:** [`docs/CREATIVE_AUDIT_2026-09.md`](docs/CREATIVE_AUDIT_2026-09.md) · **Mobile UX:** [`docs/MOBILE_UX_AUDIT.md`](docs/MOBILE_UX_AUDIT.md) · **Billing:** [`docs/STRIPE_FIREBASE_BILLING.md`](docs/STRIPE_FIREBASE_BILLING.md) · **Catalog junk (dry-run):** [`docs/CATALOG_JUNK_AUDIT.md`](docs/CATALOG_JUNK_AUDIT.md)
+**Premium MP3-player audit (Sep 2026):** [`docs/PREMIUM_PLAYER_AUDIT.md`](docs/PREMIUM_PLAYER_AUDIT.md) · **Sequenced prompts:** [`docs/PREMIUM_PLAYER_PROMPTS.md`](docs/PREMIUM_PLAYER_PROMPTS.md) · **Creative audit:** [`docs/CREATIVE_AUDIT_2026-09.md`](docs/CREATIVE_AUDIT_2026-09.md) · **Mobile UX:** [`docs/MOBILE_UX_AUDIT.md`](docs/MOBILE_UX_AUDIT.md) · **Billing:** [`docs/STRIPE_FIREBASE_BILLING.md`](docs/STRIPE_FIREBASE_BILLING.md) · **Catalog junk (dry-run):** [`docs/CATALOG_JUNK_AUDIT.md`](docs/CATALOG_JUNK_AUDIT.md)
 
 ## Stack
 
