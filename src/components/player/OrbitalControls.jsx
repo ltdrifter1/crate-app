@@ -40,10 +40,10 @@ export function PlayKey({
         borderRadius: "50%",
         background: disabled ? hardware.keyFace : face,
         border: disabled
-          ? "1px solid rgba(91,101,116,0.22)"
+          ? "1px solid rgba(200,210,222,0.16)"
           : glowing
             ? "2px solid rgba(90,196,214,0.55)"
-            : "1.5px solid rgba(91,101,116,0.28)",
+            : "1.5px solid rgba(200,210,222,0.18)",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
@@ -54,8 +54,8 @@ export function PlayKey({
         boxShadow: disabled
           ? "none"
           : glowing
-            ? `inset 0 3px 0 rgba(255,255,255,0.78), inset 0 -4px 8px rgba(58,66,80,0.3), 0 0 0 4px rgba(183,228,238,0.28), 0 0 22px rgba(90,196,214,0.42), 0 8px 16px rgba(58,66,80,0.22)`
-            : `inset 0 3px 0 rgba(255,255,255,0.62), inset 0 -3px 6px rgba(58,66,80,0.24), 0 0 0 3px rgba(255,255,255,0.22), ${hardware.keyRaised}`,
+            ? `inset 0 3px 0 rgba(200,210,222,0.22), inset 0 -4px 8px rgba(6,10,16,0.55), 0 0 0 4px rgba(183,228,238,0.28), 0 0 22px rgba(90,196,214,0.42), 0 8px 16px rgba(6,10,16,0.45)`
+            : `inset 0 3px 0 rgba(200,210,222,0.16), inset 0 -3px 6px rgba(6,10,16,0.5), 0 0 0 3px rgba(90,196,214,0.12), ${hardware.keyRaised}`,
         transition: `transform ${motion.fast} ${motion.ease}, box-shadow ${motion.base} ${motion.ease}, background ${motion.fast} ${motion.ease}`,
       }}
     >
@@ -70,7 +70,7 @@ export function PlayKey({
           height: 5,
           marginLeft: -2.5,
           borderRadius: "50%",
-          background: glowing ? color.lcdSignal : "rgba(91,101,116,0.4)",
+          background: glowing ? color.lcdSignal : "rgba(200,210,222,0.28)",
           boxShadow: glowing ? `0 0 10px ${color.lcdSignalGlow}` : "none",
         }}
       />

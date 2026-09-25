@@ -265,8 +265,8 @@ function UpNextGlass({ track }) {
           padding: "8px 10px 8px 8px",
           borderRadius: 14,
           background:
-            "linear-gradient(165deg, rgba(236,241,247,0.96) 0%, rgba(208,214,224,0.94) 100%)",
-          boxShadow: "inset 0 1px 0 rgba(255,255,255,0.72)",
+            "linear-gradient(165deg, rgba(42,50,60,0.96) 0%, rgba(28,34,43,0.94) 100%)",
+          boxShadow: "inset 0 1px 0 rgba(200,210,222,0.16)",
           backdropFilter: glass.blurSoft,
           WebkitBackdropFilter: glass.blurSoft,
         }}

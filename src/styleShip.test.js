@@ -4,7 +4,7 @@ import { STYLE_CHASSIS, color } from "./theme";
 
 const root = path.join(__dirname, "..");
 
-test("boot HTML stamps the current steel chassis", () => {
+test("boot HTML stamps the current chassis", () => {
   const html = fs.readFileSync(path.join(root, "public/index.html"), "utf8");
   expect(html).toContain(`content="${STYLE_CHASSIS}"`);
   expect(html).toContain(color.canvas);
@@ -30,6 +30,8 @@ test("committed Pages build matches the current chassis", () => {
   expect(html).not.toContain("family=Syne");
   expect(html).not.toMatch(/101\s*,\s*230\s*,\s*255/);
   expect(html).not.toMatch(/#7ED9B8/i);
+  expect(html).not.toMatch(/#090A0D/i);
+  expect(html).not.toContain("steel-ps1-glass-20260919");
 });
 
 test("committed Pages CSS includes the Charts podium board", () => {
@@ -46,6 +48,7 @@ test("theme source does not ship mint phosphor or DistroKid trim", () => {
   expect(theme).not.toMatch(/#7ED9B8/i);
   expect(theme).not.toMatch(/#4E9A7A/i);
   expect(theme).not.toMatch(/#C8F5E4/i);
+  expect(theme).not.toMatch(/#090A0D/i);
   expect(theme).not.toMatch(/DistroKid/);
   expect(theme).not.toMatch(/#B8C430/i);
   expect(theme).not.toMatch(/#367FC7/i);

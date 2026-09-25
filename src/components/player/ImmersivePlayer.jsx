@@ -513,7 +513,7 @@ export default function ImmersivePlayer({
                         borderRadius: 11,
                         flexShrink: 0,
                         position: "relative",
-                        background: crossfadeOn ? color.accent : "rgba(197,202,211,0.85)",
+                        background: crossfadeOn ? color.accent : "rgba(42,50,60,0.92)",
                         transition: `background ${motion.base} ${EASE}`,
                         boxShadow: crossfadeOn ? `0 0 10px ${y2k.chromeGlow}` : "none",
                       }}

@@ -251,7 +251,7 @@ function TuneInKey({ tuned, onTuneIn, compact = false }) {
         fontWeight: 800,
         letterSpacing: 1.6,
         textTransform: "uppercase",
-        color: tuned ? y2k.cyan : "#3D4654",
+        color: tuned ? y2k.cyan : y2k.offWhite,
         background: tuned
           ? "linear-gradient(180deg, rgba(91,101,116,0.12) 0%, rgba(216,223,232,0.04) 100%), rgba(58,66,80,0.7)"
           : radio.tuneFace,
