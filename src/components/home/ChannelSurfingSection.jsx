@@ -9,8 +9,8 @@ import HomeBandHeader from "./HomeBandHeader";
 export const FIRST_STATIONS = 6;
 
 /**
- * Channel surfing — first Home destination band.
- * One PS1 plate per station; the CH readout stays an LCD bug.
+ * Channel surfing — Discover destination band (demoted off Home).
+ * One plate per station; the CH readout stays an LCD bug.
  */
 function ChannelSurfingSection({
   channels = [],
