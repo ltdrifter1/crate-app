@@ -3,7 +3,7 @@ import { createRoot } from "react-dom/client";
 import { act } from "react-dom/test-utils";
 import PlayerDeck from "./PlayerDeck";
 
-test("PlayerDeck is a PS1 glass plate with LCD seek, transport, and Pace", async () => {
+test("PlayerDeck is a PS1 glass plate with LCD seek, transport, and Turtle / Rabbit", async () => {
   localStorage.clear();
   const div = document.createElement("div");
   document.body.appendChild(div);
@@ -19,6 +19,8 @@ test("PlayerDeck is a PS1 glass plate with LCD seek, transport, and Pace", async
         onSkip: () => {},
         onLike: () => {},
         onDislike: () => {},
+        onShare: () => {},
+        onShowQueue: () => {},
       })
     );
   });
@@ -32,12 +34,16 @@ test("PlayerDeck is a PS1 glass plate with LCD seek, transport, and Pace", async
   expect(div.querySelector('[aria-label="Next"]')).toBeTruthy();
   expect(div.querySelector('[aria-label="Like"]')).toBeTruthy();
   expect(div.querySelector('[aria-label="Dislike this track"]')).toBeTruthy();
-  expect(div.querySelector('[aria-label="Pace"]')).toBeTruthy();
-  expect(div.textContent).toMatch(/Slow/);
-  expect(div.textContent).toMatch(/Fast/);
+  expect(div.querySelector('[aria-label="Share"]')).toBeTruthy();
+  expect(div.querySelector('[aria-label="Up next"]')).toBeTruthy();
+  expect(div.querySelector('[data-testid="rabbit-turtle"]')).toBeTruthy();
+  expect(div.querySelector('[aria-label="Turtle — slow down upcoming tracks"]')).toBeTruthy();
+  expect(div.querySelector('[aria-label="Rabbit — speed up upcoming tracks"]')).toBeTruthy();
+  expect(div.textContent).toMatch(/Turtle/);
+  expect(div.textContent).toMatch(/Rabbit/);
   expect(div.textContent).toMatch(/Next picks/);
   expect(div.querySelector('[data-testid="deck-hint"]')?.textContent).toMatch(
-    /Slow and Fast change what plays next/
+    /Turtle and Rabbit change what plays next/
   );
   expect(div.textContent).toMatch(/Dislike steers/);
   await act(async () => root.unmount());

@@ -127,7 +127,6 @@ export default function SitePreview() {
             onRenamePlaylist={noop}
             onOpenCharts={noop}
             onOpenMenu={noop}
-            showLibraryDestinations
             preferredGenres={PREVIEW_USER.genres}
             recentTrackIds={["e1", "d1"]}
             userKey="preview-uid"

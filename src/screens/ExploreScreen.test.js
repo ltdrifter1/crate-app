@@ -120,8 +120,8 @@ describe("Explore screen", () => {
         })
       );
     });
-    expect(div.textContent).toMatch(/Explore/);
-    expect(div.textContent).toMatch(/A crate, not a feed/);
+    expect(div.textContent).toMatch(/Discover/);
+    expect(div.textContent).toMatch(/New music around what you play/);
     expect(div.textContent).toMatch(/Nothing to dig yet/);
     const search = div.querySelector('button[aria-label="Search"]');
     expect(search).toBeTruthy();
@@ -150,7 +150,7 @@ describe("Explore screen", () => {
         })
       );
     });
-    expect(div.textContent).toMatch(/Explore/);
+    expect(div.textContent).toMatch(/Discover/);
     expect(div.textContent).toMatch(/Directory/);
     expect(div.textContent).toMatch(/6 cuts in the crate/);
     expect(div.textContent).toMatch(/New Releases/);
@@ -191,7 +191,7 @@ describe("Explore screen", () => {
     await act(async () => {
       genre.click();
     });
-    expect(div.textContent).toMatch(/‹ Explore/);
+    expect(div.textContent).toMatch(/‹ Discover/);
     expect(div.textContent).toMatch(/Electronic/);
     expect(div.textContent).toMatch(/8A/);
     expect(div.textContent).not.toMatch(/Lanes/);
@@ -201,7 +201,7 @@ describe("Explore screen", () => {
       play.click();
     });
     expect(onPlayTrack).toHaveBeenCalled();
-    const back = div.querySelector('button[aria-label="Back to Explore"]');
+    const back = div.querySelector('button[aria-label="Back to Discover"]');
     await act(async () => {
       back.click();
     });

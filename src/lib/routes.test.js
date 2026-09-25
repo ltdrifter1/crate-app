@@ -50,10 +50,10 @@ describe("routes", () => {
 
   test("documentTitleFor", () => {
     expect(documentTitleFor("home")).toContain("Home");
-    expect(documentTitleFor("explore")).toContain("Explore");
+    expect(documentTitleFor("explore")).toContain("Discover");
     expect(documentTitleFor("charts")).toContain("Charts");
     expect(documentTitleFor("favorites")).toContain("Library");
-    expect(documentTitleFor("profile")).toContain("You");
+    expect(documentTitleFor("profile")).toContain("Profile");
     expect(documentTitleFor("search")).toContain("Search");
     expect(documentTitleFor("artist", "Nina")).toContain("Nina");
   });

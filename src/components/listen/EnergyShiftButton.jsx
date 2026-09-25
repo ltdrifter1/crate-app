@@ -6,6 +6,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { color, glass, fontMono, hardware, hardwareKey, motion, radio, trim } from "../../theme";
 import { useEnergyQueue } from "../../useEnergyQueue";
 import FlaskMark from "./FlaskMark";
+import Icon from "../ui/Icon";
 
 const PRESS_EASE = motion.ease;
 const LONG_PRESS_MS = 450;
@@ -49,9 +50,11 @@ export function EnergyShiftButton({
   size = 44,
   stopPropagation = true,
   showLabel = false,
+  glyph = null,
 }) {
   const up = direction === "up";
-  const verb = up ? "Lift" : "Ease";
+  const animal = glyph === "rabbit" || glyph === "turtle";
+  const verb = animal ? (up ? "Rabbit" : "Turtle") : (up ? "Lift" : "Ease");
   const { increaseEnergy, decreaseEnergy, energyShift } = useEnergyQueue();
   const [pressed, setPressed] = useState(false);
   const [hovered, setHovered] = useState(false);
@@ -99,9 +102,17 @@ export function EnergyShiftButton({
     <span style={{ position: "relative", display: "inline-flex", flexDirection: "column", alignItems: "center", gap: showLabel ? 4 : 0 }}>
       <button
         type="button"
-        aria-label={up ? "Lift upcoming tracks" : "Ease upcoming tracks"}
+        aria-label={
+          animal
+            ? (up ? "Rabbit — speed up upcoming tracks" : "Turtle — slow down upcoming tracks")
+            : (up ? "Lift upcoming tracks" : "Ease upcoming tracks")
+        }
         aria-pressed={activeHere}
-        title={up ? "Lift upcoming picks" : "Ease upcoming picks"}
+        title={
+          animal
+            ? (up ? "Rabbit speeds up what plays next" : "Turtle slows down what plays next")
+            : (up ? "Lift upcoming picks" : "Ease upcoming picks")
+        }
         onPointerDown={startPress}
         onPointerUp={endPress}
         onPointerLeave={(e) => { if (pressed) endPress(e, true); setHovered(false); }}
@@ -138,7 +149,11 @@ export function EnergyShiftButton({
           WebkitBackdropFilter: "none",
         }}
       >
-        <PaceRampIcon size={Math.round(size * 0.5)} lift={up} />
+        {animal ? (
+          <Icon name={up ? "rabbit" : "turtle"} size={Math.round(size * 0.52)} />
+        ) : (
+          <PaceRampIcon size={Math.round(size * 0.5)} lift={up} />
+        )}
       </button>
 
       {showLabel && (
@@ -215,9 +230,9 @@ export function EnergyShiftButton({
           }}
         >
           {[
-            { step: 5, word: up ? "Lift a little" : "Ease a little" },
+            { step: 5, word: animal ? (up ? "A little faster" : "A little slower") : (up ? "Lift a little" : "Ease a little") },
             { step: 10, word: verb },
-            { step: 20, word: up ? "Lift more" : "Ease more" },
+            { step: 20, word: animal ? (up ? "Faster" : "Slower") : (up ? "Lift more" : "Ease more") },
           ].map((item) => (
             <button
               key={item.step}
@@ -767,6 +782,54 @@ export function PaceSlot({
         Next picks
       </div>
       <PaceSlider compact={compact} stopPropagation={stopPropagation} />
+    </div>
+  );
+}
+
+/** Turtle / Rabbit — distinctive BPM control for upcoming picks. */
+export function RabbitTurtleSlot({
+  compact = true,
+  stopPropagation = true,
+}) {
+  return (
+    <div
+      className="pmp-rabbit-slot"
+      data-testid="rabbit-turtle"
+      role="group"
+      aria-label="Turtle slows upcoming tracks. Rabbit speeds them up."
+    >
+      <div
+        aria-hidden="true"
+        className="pmp-pace-caption"
+        style={{
+          fontFamily: fontMono,
+          fontSize: compact ? 9 : 10,
+          fontWeight: 700,
+          letterSpacing: 0.14,
+          textTransform: "uppercase",
+          color: color.muted,
+          marginBottom: 2,
+          textAlign: "center",
+        }}
+      >
+        Next picks
+      </div>
+      <div className="pmp-rabbit-slot__keys">
+        <EnergyShiftButton
+          direction="down"
+          glyph="turtle"
+          size={compact ? 40 : 44}
+          stopPropagation={stopPropagation}
+          showLabel
+        />
+        <EnergyShiftButton
+          direction="up"
+          glyph="rabbit"
+          size={compact ? 40 : 44}
+          stopPropagation={stopPropagation}
+          showLabel
+        />
+      </div>
     </div>
   );
 }

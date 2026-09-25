@@ -334,7 +334,7 @@ function ExploreScreen({
                   color: y2k.offWhite,
                 }}
               >
-                Explore
+                Discover
               </h1>
               <p
                 style={{
@@ -346,7 +346,7 @@ function ExploreScreen({
               >
                 {stats.cuts
                   ? `${stats.cuts} cut${stats.cuts === 1 ? "" : "s"} in the crate`
-                  : "A crate, not a feed."}
+                  : "New music around what you play."}
               </p>
             </div>
           </div>

@@ -6,7 +6,7 @@ import {
 } from "../../theme";
 import { usePlayerPlayback } from "../../usePlayerPlayback";
 import { useIsPlaying } from "../../usePlayerTransport";
-import { EnergyShiftFeedback, PaceSlot } from "../listen/EnergyShiftButton";
+import { EnergyShiftFeedback, RabbitTurtleSlot } from "../listen/EnergyShiftButton";
 import FreePlaysMeter from "../billing/FreePlaysMeter";
 import { freePlaysMeterLabel } from "../../lib/freePlays";
 import Icon from "../ui/Icon";
@@ -164,7 +164,7 @@ export default function DesktopMiniPlayer({
         onClick={(e) => e.stopPropagation()}
         className="pmp-deck pmp-deck-plate"
       >
-        <PaceSlot compact stopPropagation />
+        <RabbitTurtleSlot compact stopPropagation />
       </div>
       </div>
     </div>

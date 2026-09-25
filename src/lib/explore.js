@@ -478,7 +478,7 @@ export function buildExploreHero({
   return {
     kind: "idle",
     id: "idle",
-    eyebrow: "Explore",
+    eyebrow: "Discover",
     title: "Start anywhere",
     subtitle: "Stations, scenes, and sleeves — dig the catalog.",
     kicker: null,

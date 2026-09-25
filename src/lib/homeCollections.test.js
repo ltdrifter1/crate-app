@@ -1,6 +1,7 @@
 import {
   buildHomeCollections,
   savedTracks,
+  tracksFromRecentIds,
   rediscoveredTracks,
   trendingTracks,
   featuredReleases,
@@ -22,6 +23,13 @@ describe("homeCollections", () => {
 
   test("savedTracks returns likes only", () => {
     expect(savedTracks(tracks).map((t) => t.id)).toEqual(["1", "2"]);
+  });
+
+  test("tracksFromRecentIds keeps listen order and skips missing ids", () => {
+    expect(tracksFromRecentIds(tracks, ["4", "missing", "1", "4"], 8).map((t) => t.id)).toEqual([
+      "4",
+      "1",
+    ]);
   });
 
   test("buildHomeCollections stays quiet — no Saved or Late booth, max one rail", () => {

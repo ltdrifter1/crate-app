@@ -27,7 +27,7 @@ describe("Library screen", () => {
     document.body.removeChild(div);
   });
 
-  test("is a clean playlists/liked library without the buried Build a set card", async () => {
+  test("is a playlists / liked / recents library without Charts or Build a set", async () => {
     await act(async () => {
       root.render(
         React.createElement(FavoritesScreen, {
@@ -37,14 +37,16 @@ describe("Library screen", () => {
       );
     });
     expect(div.textContent).toMatch(/Library/);
-    expect(div.textContent).toMatch(/Stacks/);
+    expect(div.textContent).toMatch(/Playlists/);
+    expect(div.textContent).toMatch(/Recents/);
     expect(div.textContent).toMatch(/Night Drive/);
     expect(div.textContent).not.toMatch(/Length · Vibe · Preview/);
     expect(div.textContent).not.toMatch(/Custom mix/);
+    expect(div.textContent).not.toMatch(/Stacks/);
     expect(div.querySelector(".custom-mix")).toBeNull();
   });
 
-  test("mobile destinations expose Charts and Build a set", async () => {
+  test("does not bury Charts and Build a set on Library", async () => {
     const onOpenCharts = jest.fn();
     const onCustomMix = jest.fn();
     await act(async () => {
@@ -52,23 +54,36 @@ describe("Library screen", () => {
         React.createElement(FavoritesScreen, {
           tracks: [],
           userPlaylists: [],
-          showLibraryDestinations: true,
           onOpenCharts,
           onCustomMix,
         })
       );
     });
-    expect(div.textContent).toMatch(/Charts/);
-    expect(div.textContent).toMatch(/Build a set/);
-    const dests = [...div.querySelectorAll('[aria-label="Library destinations"] button')];
-    expect(dests.map((el) => el.textContent)).toEqual(
-      expect.arrayContaining([expect.stringMatching(/Charts/), expect.stringMatching(/Build a set/)])
-    );
+    expect(div.querySelector('[aria-label="Library destinations"]')).toBeNull();
+    expect(div.textContent).not.toMatch(/Build a set/);
+    expect(div.textContent).not.toMatch(/Monthly countdown/);
+  });
+
+  test("recents tab lists profile history in play order", async () => {
     await act(async () => {
-      dests[0].click();
-      dests[1].click();
+      root.render(
+        React.createElement(FavoritesScreen, {
+          tracks: [
+            { id: "a", title: "Alpha", artist: "One", duration: 180, liked: false },
+            { id: "b", title: "Beta", artist: "Two", duration: 180, liked: true },
+          ],
+          userPlaylists: [],
+          recentTrackIds: ["b", "a"],
+        })
+      );
     });
-    expect(onOpenCharts).toHaveBeenCalled();
-    expect(onCustomMix).toHaveBeenCalled();
+    const recents = [...div.querySelectorAll('[role="tab"]')].find((el) => /Recents/.test(el.textContent));
+    expect(recents).toBeTruthy();
+    await act(async () => {
+      recents.click();
+    });
+    expect(div.textContent).toMatch(/Recently played/);
+    expect(div.textContent).toMatch(/Beta/);
+    expect(div.textContent).toMatch(/Alpha/);
   });
 });

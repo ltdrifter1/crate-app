@@ -211,6 +211,7 @@ export default function ImmersivePlayer({
   onSeek,
   onLike,
   onDislike = null,
+  onShare = null,
   volume = 1,
   onVolumeChange,
   onHypno,
@@ -861,6 +862,8 @@ export default function ImmersivePlayer({
             onSkip={onSkip}
             onLike={onLike ? () => onLike(currentTrack.id) : null}
             onDislike={onDislike}
+            onShare={onShare ? () => onShare(currentTrack) : null}
+            onShowQueue={onShowQueue}
             liked={!!currentTrack.liked}
             disliked={!!currentTrack.disliked}
             playSize={56}

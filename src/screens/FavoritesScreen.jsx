@@ -9,7 +9,7 @@ import {
   useTrackMenu,
 } from "../components/listen/TrackRow";
 import { useCurrentTrack } from "../usePlayerTransport";
-import { savedTracks } from "../lib/homeCollections";
+import { savedTracks, tracksFromRecentIds } from "../lib/homeCollections";
 import { isCommunityPlaylist } from "../lib/mixes";
 import { catalogSleeveUrl } from "../lib/catalogSleeve";
 import { collectionStats } from "../lib/collectionStats";
@@ -29,7 +29,6 @@ import {
   neons,
   radio as radioStyle,
   radius,
-  trim,
   type,
 } from "../theme";
 
@@ -141,7 +140,7 @@ function CrateHero({ saved = [], playlists = [], likedCount = 0 }) {
           <CrateStat value={stats.singles} label="Singles" accent={neons.lime} />
         )}
         {playlistCount > 0 && (
-          <CrateStat value={playlistCount} label="Stacks" accent={neons.orange} />
+          <CrateStat value={playlistCount} label="Playlists" accent={neons.orange} />
         )}
         {likedCount > 0 && (
           <CrateStat value={likedCount} label="Liked" accent={neons.phosphor} />
@@ -221,86 +220,18 @@ function CoverMosaic({ covers = [], title = "", size = homeSpace.tile }) {
   );
 }
 
-function LibraryDestination({ icon, title, subtitle, onClick }) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      style={{
-        width: "100%",
-        display: "flex",
-        alignItems: "center",
-        gap: 14,
-        padding: "12px 0",
-        background: "none",
-        border: "none",
-        borderBottom: `1px solid ${color.line}`,
-        color: color.ink,
-        cursor: "pointer",
-        textAlign: "left",
-      }}
-    >
-      <span
-        style={{
-          width: 40,
-          height: 40,
-          borderRadius: 10,
-          background: "rgba(216,223,232,0.06)",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          color: color.accent,
-          flexShrink: 0,
-        }}
-      >
-        <Icon name={icon} size={18} />
-      </span>
-      <span style={{ flex: 1, minWidth: 0 }}>
-        <span
-          style={{
-            display: "block",
-            fontFamily: fontDisplay,
-            fontSize: 16,
-            fontWeight: 650,
-            letterSpacing: -0.25,
-          }}
-        >
-          {title}
-        </span>
-        {subtitle && (
-          <span style={{ display: "block", fontSize: 13, color: color.muted, marginTop: 2 }}>
-            {subtitle}
-          </span>
-        )}
-      </span>
-      <span aria-hidden="true" style={{ color: color.faint, fontSize: 20, lineHeight: 1 }}>
-        ›
-      </span>
-    </button>
-  );
-}
-
-
-
-
 function FavoritesScreen({
   tracks, onPlay, onLike, playlistCtx,
   userPlaylists = [], onCreatePlaylist, onDeletePlaylist, onRenamePlaylist = null,
   onPlayTrack, onSharePlaylist = null, onOpenMix = null,
-  communityMix = null,
   openRequestId = null, onConsumeOpenRequest = null,
   /** URL-driven stack id (`/stack/:id`) — source of truth when set. */
   stackId = null,
   onOpenStack = null,
   onCloseStack = null,
   onReorderPlaylist = null,
-  onCustomMix = null,
-  onOpenCharts = null,
   onOpenMenu = null,
-  showLibraryDestinations = false,
-  preferredGenres = [],
   recentTrackIds = [],
-  userKey = "",
 }) {
   const { menu, close } = useTrackMenu();
   const currentTrack = useCurrentTrack();
@@ -308,7 +239,7 @@ function FavoritesScreen({
   const saved = savedTracks(tracks, 80);
   /** The rendered list is capped; the stat must count the whole crate. */
   const likedCount = tracks.filter((t) => t.liked && (t.duration || 0) <= 900).length;
-  const [libTab, setLibTab] = useState("playlists"); // playlists | liked
+  const [libTab, setLibTab] = useState("playlists"); // playlists | liked | recents
   const [libQuery, setLibQuery] = useState("");
   const [plSort, setPlSort] = useState("recent"); // recent | name | size
   const [showNewInput, setShowNewInput] = useState(false);
@@ -398,6 +329,15 @@ function FavoritesScreen({
         String(t.title || "").toLowerCase().includes(q)
         || String(t.artist || "").toLowerCase().includes(q))
     : saved;
+  const recentTracks = useMemo(
+    () => tracksFromRecentIds(tracks, recentTrackIds, 80),
+    [tracks, recentTrackIds]
+  );
+  const filteredRecents = q
+    ? recentTracks.filter((t) =>
+        String(t.title || "").toLowerCase().includes(q)
+        || String(t.artist || "").toLowerCase().includes(q))
+    : recentTracks;
 
   const resolvedOpenId = stackId || openPlaylistId;
   const openPlaylist = resolvedOpenId
@@ -719,8 +659,9 @@ function FavoritesScreen({
       <button
         key={id}
         type="button"
+        role="tab"
         onClick={() => { setLibTab(id); setLibQuery(""); }}
-        aria-pressed={active}
+        aria-selected={active}
         style={{
           border: "none",
           background: "none",
@@ -928,7 +869,7 @@ function FavoritesScreen({
                   ...type.subhead,
                   color: color.muted,
                 }}>
-                  Stacks — your playlists
+                  Playlists, likes, and recents
                   {saved.length ? ` · ${saved.length} liked` : ""}
                 </div>
               </div>
@@ -948,27 +889,6 @@ function FavoritesScreen({
 
           <CrateHero saved={saved} playlists={userPlaylists} likedCount={likedCount} />
 
-          {showLibraryDestinations && (onOpenCharts || onCustomMix) && (
-            <div aria-label="Library destinations" style={{ marginBottom: 8 }}>
-              {onOpenCharts && (
-                <LibraryDestination
-                  icon="chart"
-                  title="Charts"
-                  subtitle="Monthly countdown"
-                  onClick={onOpenCharts}
-                />
-              )}
-              {onCustomMix && (
-                <LibraryDestination
-                  icon="timedmix"
-                  title="Build a set"
-                  subtitle="Sculpt a mix in the booth"
-                  onClick={onCustomMix}
-                />
-              )}
-            </div>
-          )}
-
           <div
             role="tablist"
             aria-label="Library sections"
@@ -978,8 +898,9 @@ function FavoritesScreen({
               marginBottom: 14,
             }}
           >
-            {segmentBtn("playlists", "Stacks")}
+            {segmentBtn("playlists", "Playlists")}
             {segmentBtn("liked", "Liked")}
+            {segmentBtn("recents", "Recents")}
           </div>
 
           <div style={{ position: "relative", marginBottom: 8 }}>
@@ -997,8 +918,20 @@ function FavoritesScreen({
             <input
               value={libQuery}
               onChange={(e) => setLibQuery(e.target.value)}
-              placeholder={libTab === "playlists" ? "Search stacks" : "Search liked songs"}
-              aria-label={libTab === "playlists" ? "Search stacks" : "Search liked songs"}
+              placeholder={
+                libTab === "playlists"
+                  ? "Search playlists"
+                  : libTab === "recents"
+                    ? "Search recents"
+                    : "Search liked songs"
+              }
+              aria-label={
+                libTab === "playlists"
+                  ? "Search playlists"
+                  : libTab === "recents"
+                    ? "Search recents"
+                    : "Search liked songs"
+              }
               style={{
                 ...INPUT_ST,
                 padding: "11px 14px 11px 36px",
@@ -1082,7 +1015,7 @@ function FavoritesScreen({
                   color: color.ink,
                   fontFamily: fontDisplay,
                 }}>
-                  Stacks
+                  Playlists
                 </div>
                 <div
                   role="group"
@@ -1144,7 +1077,7 @@ function FavoritesScreen({
                   letterSpacing: -0.45,
                   marginBottom: 8,
                 }}>
-                  No stacks yet
+                  No playlists yet
                 </div>
                 <div style={{
                   fontSize: 15,
@@ -1156,7 +1089,7 @@ function FavoritesScreen({
                   marginRight: "auto",
                   fontFamily: fontDisplay,
                 }}>
-                  Start one, add songs, then share it with Planet Club when it’s ready.
+                  Start one, add songs, then share it when it’s ready.
                 </div>
                 <button
                   type="button"
@@ -1184,7 +1117,7 @@ function FavoritesScreen({
                 fontSize: 14,
                 color: color.muted,
               }}>
-                No stacks match “{libQuery.trim()}”
+                No playlists match “{libQuery.trim()}”
               </div>
             ) : (
               <div style={{
@@ -1197,6 +1130,68 @@ function FavoritesScreen({
               </div>
             )}
 
+          </div>
+        ) : libTab === "recents" ? (
+          <div style={{ animation: `rise 0.4s ${motion.ease} both` }}>
+            {filteredRecents.length > 0 ? (
+              <>
+                <div style={{
+                  padding: `4px ${homeSpace.gutter}px 16px`,
+                }}>
+                  <div style={{
+                    fontFamily: fontDisplay,
+                    fontSize: 22,
+                    fontWeight: 700,
+                    letterSpacing: -0.45,
+                    color: color.ink,
+                  }}>
+                    Recently played
+                  </div>
+                  <div style={{
+                    fontSize: 14,
+                    color: color.muted,
+                    marginTop: 4,
+                    fontFamily: fontDisplay,
+                  }}>
+                    {filteredRecents.length} song{filteredRecents.length === 1 ? "" : "s"}
+                  </div>
+                </div>
+                <div style={{ padding: `0 ${homeSpace.gutter}px 24px` }}>
+                  {filteredRecents.map((t) => (
+                    <TrackRow
+                      key={t.id}
+                      track={t}
+                      onPlay={() => playTrackFn(t, filteredRecents)}
+                      active={activeId === t.id}
+                      onLike={onLike}
+                      playlistCtx={playlistCtx}
+                    />
+                  ))}
+                </div>
+              </>
+            ) : (
+              <div style={{
+                padding: `28px ${homeSpace.gutter}px 40px`,
+                textAlign: "center",
+              }}>
+                <div style={{
+                  fontSize: 16,
+                  fontWeight: 650,
+                  fontFamily: fontDisplay,
+                  color: color.ink,
+                  marginBottom: 8,
+                }}>
+                  {q ? `No songs match “${libQuery.trim()}”` : "Nothing played yet"}
+                </div>
+                <div style={{
+                  fontSize: 14,
+                  color: color.muted,
+                  lineHeight: 1.45,
+                }}>
+                  {q ? "Try another search." : "Tracks you play show up here."}
+                </div>
+              </div>
+            )}
           </div>
         ) : (
           <div style={{ animation: `rise 0.4s ${motion.ease} both` }}>

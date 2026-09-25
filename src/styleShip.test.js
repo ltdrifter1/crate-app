@@ -53,7 +53,7 @@ test("theme source does not ship mint phosphor or DistroKid trim", () => {
   expect(theme).not.toMatch(/lcdPhosphor/);
 });
 
-test("player surfaces use a half-width Pace slot, not energy paddles", () => {
+test("player surfaces use Turtle / Rabbit, not energy paddles", () => {
   const files = [
     "src/components/player/ImmersivePlayer.jsx",
     "src/components/player/DesktopMiniPlayer.jsx",
@@ -62,31 +62,34 @@ test("player surfaces use a half-width Pace slot, not energy paddles", () => {
   ];
   for (const rel of files) {
     const src = fs.readFileSync(path.join(root, rel), "utf8");
-    expect(src).toMatch(/PaceSlot|PlayerDeck/);
+    expect(src).toMatch(/RabbitTurtleSlot|PlayerDeck/);
     expect(src).not.toMatch(/EnergyShiftPaddles/);
     expect(src).not.toMatch(/EnergyShiftCapsule/);
   }
   const dock = fs.readFileSync(path.join(root, "src/components/player/GlassDock.jsx"), "utf8");
   expect(dock).toMatch(/Open now playing/);
   expect(dock).not.toMatch(/PaceSlot/);
+  expect(dock).not.toMatch(/RabbitTurtleSlot/);
   expect(dock).not.toMatch(/mini-player-sheet/);
   expect(dock).not.toMatch(/EnergyShiftPaddles/);
   const css = fs.readFileSync(path.join(root, "src/index.css"), "utf8");
   expect(css).toMatch(/\.pmp-deck-plate/);
   expect(css).toMatch(/\.pmp-seek__well/);
   expect(css).toMatch(/max-width:\s*50%/);
+  expect(css).toMatch(/\.pmp-rabbit-slot/);
   expect(css).toMatch(/\.pmp-mini-player/);
   expect(css).toMatch(/\.pmp-mini-progress/);
 });
 
-test("browse lists print BPM and Camelot, and Home ranks Channel Surfing over Tonight", () => {
+test("browse lists print BPM and Camelot, and Home ranks the player over radio", () => {
   const row = fs.readFileSync(path.join(root, "src/components/listen/TrackRow.jsx"), "utf8");
   expect(row).toMatch(/trackBrowseBits/);
   const focus = fs.readFileSync(path.join(root, "src/components/explore/ExploreFocus.jsx"), "utf8");
   expect(focus).toMatch(/trackBrowseBits/);
   const home = fs.readFileSync(path.join(root, "src/screens/HomeScreen.jsx"), "utf8");
+  expect(home.indexOf("<HeroPlayerCard")).toBeLessThan(home.indexOf("<HomePersonal"));
+  expect(home.indexOf("<HomePersonal")).toBeLessThan(home.indexOf("<ChannelSurfingSection"));
   expect(home.indexOf("<ChannelSurfingSection")).toBeLessThan(home.indexOf("<TonightDeck"));
-  expect(home.indexOf("<HeroPlayerCard")).toBeLessThan(home.indexOf("<ChannelSurfingSection"));
   const header = fs.readFileSync(path.join(root, "src/components/home/HomeHeader.jsx"), "utf8");
   expect(header).toMatch(/aria-label="Search"/);
   expect(header).toMatch(/Find/);

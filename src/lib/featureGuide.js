@@ -3,26 +3,26 @@
  * Taste onboarding (TasteTuner) owns the mix. This is a short map of the app.
  */
 
-export const FEATURE_GUIDE_VERSION = 2;
+export const FEATURE_GUIDE_VERSION = 3;
 
 export const FEATURE_GUIDE_STEPS = [
   {
     id: "home",
     kicker: "Home",
-    title: "Channel Surfing",
-    body: "Live radio. Tap a station to tune in.",
+    title: "Your player",
+    body: "Artwork, play, and Turtle / Rabbit to slow or speed what plays next.",
   },
   {
     id: "explore",
-    kicker: "Explore",
-    title: "Browse",
-    body: "New releases by channel. Then worlds, energy, and keys.",
+    kicker: "Discover",
+    title: "Find music",
+    body: "New releases, keys, and crates around your listening.",
   },
   {
     id: "library",
     kicker: "Library",
-    title: "Your library",
-    body: "Likes and stacks — your playlists.",
+    title: "Your collection",
+    body: "Playlists, likes, and what you just played.",
   },
 ];
 

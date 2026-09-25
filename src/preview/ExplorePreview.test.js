@@ -19,7 +19,7 @@ describe("Explore preview", () => {
     await act(async () => {
       root.render(React.createElement(ExplorePreview));
     });
-    expect(div.textContent).toMatch(/Explore/);
+    expect(div.textContent).toMatch(/Discover/);
     expect(div.textContent).toMatch(/New Releases/);
     expect(div.textContent).toMatch(/Worlds/);
     expect(div.textContent).toMatch(/Directory/);
@@ -62,7 +62,7 @@ describe("Explore preview", () => {
     await act(async () => {
       back.click();
     });
-    expect(div.textContent).toMatch(/Explore/);
+    expect(div.textContent).toMatch(/Discover/);
     expect(div.querySelector('button[role="tab"][aria-label="New Releases"]')).toBeTruthy();
     await act(async () => {
       root.unmount();
