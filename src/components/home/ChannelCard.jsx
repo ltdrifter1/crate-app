@@ -120,7 +120,7 @@ export default function ChannelCard({
               inset: 0,
               zIndex: 1,
               background:
-                "linear-gradient(165deg, rgba(200,210,222,0.12) 0%, rgba(90,196,214,0.04) 32%, transparent 58%)",
+                "linear-gradient(165deg, rgba(200,210,222,0.12) 0%, rgba(110,168,255,0.04) 32%, transparent 58%)",
             }}
           />
 
@@ -163,7 +163,7 @@ export default function ChannelCard({
                 padding: "0 7px",
                 borderRadius: 3,
                 background: "rgba(42,51,60,0.78)",
-                border: "1px solid rgba(90,196,214,0.32)",
+                border: "1px solid rgba(110,168,255,0.28)",
                 color: color.lcdSignal,
                 letterSpacing: 0.1,
                 textTransform: "uppercase",

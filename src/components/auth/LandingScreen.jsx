@@ -38,7 +38,7 @@ const CHANNEL_PLATES = [
 const CHANNELS = CHANNEL_PLATES.map((plate) => ({
   ...plate,
   accent:
-    SCENE_CHANNELS.find((c) => c.id === plate.id)?.accent || "#5AA8B8",
+    SCENE_CHANNELS.find((c) => c.id === plate.id)?.accent || color.lcdSignal,
 }));
 
 const CHART_TEASERS = [
@@ -80,7 +80,7 @@ function ScanlineOverlay() {
   );
 }
 
-function NeonPulse({ color: c = "#5AA8B8", size = 120, style = {} }) {
+function NeonPulse({ color: c = color.lcdSignal, size = 120, style = {} }) {
   return (
     <div
       aria-hidden="true"
@@ -356,7 +356,7 @@ export default function LandingScreen({
       <ScanlineOverlay />
 
       {/* Ambient neon blooms */}
-      <NeonPulse color="#5AA8B8" size={360} style={{ top: "5%", left: "-8%", opacity: 0.6 }} />
+      <NeonPulse color={color.lcdSignal} size={360} style={{ top: "5%", left: "-8%", opacity: 0.45 }} />
       <NeonPulse color="#C87ADB" size={280} style={{ top: "18%", right: "-4%", opacity: 0.4 }} />
       <NeonPulse color="#E0314A" size={200} style={{ bottom: "30%", left: "60%", opacity: 0.3 }} />
 
@@ -561,7 +561,7 @@ export default function LandingScreen({
               style={{
                 fontFamily: fontMono,
                 fontSize: 9,
-                color: "#5AA8B8",
+                color: color.lcdSignal,
                 letterSpacing: 0.1,
               }}
             >
@@ -613,7 +613,7 @@ export default function LandingScreen({
               gap: 8,
             }}
           >
-            <span className="pmp-lcd-pip" style={{ width: 6, height: 6, borderRadius: "50%", background: "#5AA8B8", display: "inline-block" }} />
+            <span className="pmp-lcd-pip" style={{ width: 6, height: 6, borderRadius: "50%", background: color.lcdSignal, display: "inline-block" }} />
             <span
               style={{
                 fontFamily: fontMono,

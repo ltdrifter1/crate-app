@@ -117,7 +117,7 @@ export default function GlassDock({
                 background: radio.lcdFace,
                 boxShadow: isRadioMode || hypnoPocket
                   ? `inset 3px 0 0 ${color.alert}`
-                  : `inset 0 2px 10px rgba(0,0,0,0.45), inset 0 1px 0 rgba(168,255,106,0.12)`,
+                  : `inset 0 2px 10px rgba(0,0,0,0.45), inset 0 1px 0 rgba(110,168,255,0.10)`,
               }}
             >
               <div

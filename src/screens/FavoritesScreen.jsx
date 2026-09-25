@@ -17,12 +17,14 @@ import {
   BTN_PRIMARY,
   BTN_SECONDARY,
   INPUT_ST,
+  SEARCH_FIELD,
   artShadow,
   chromeIconButton,
   color,
   fontDisplay,
   fontMono,
   glass,
+  glassPill,
   hardware,
   homeSpace,
   motion,
@@ -40,7 +42,7 @@ function CrateStat({ value, label, accent = neons.cyan }) {
         flex: 1,
         minWidth: 0,
         padding: "10px 12px",
-        borderRadius: 8,
+        borderRadius: 12,
         background: radioStyle.lcdFace,
         border: `1px solid ${accent}44`,
         boxShadow: `0 0 12px ${accent}18, inset 0 1px 0 rgba(216,223,232,0.08)`,
@@ -53,7 +55,7 @@ function CrateStat({ value, label, accent = neons.cyan }) {
           fontSize: 22,
           fontWeight: 700,
           letterSpacing: -0.5,
-          color: neons.phosphor,
+          color: color.lcdInk,
           lineHeight: 1.1,
         }}
       >
@@ -62,12 +64,12 @@ function CrateStat({ value, label, accent = neons.cyan }) {
       <div
         style={{
           marginTop: 3,
-          fontFamily: fontMono,
-          fontSize: 9,
-          fontWeight: 700,
-          letterSpacing: 0.18,
-          textTransform: "uppercase",
-          color: "#5AA8B8",
+          fontFamily: fontDisplay,
+          fontSize: 11,
+          fontWeight: 600,
+          letterSpacing: -0.04,
+          textTransform: "none",
+          color: color.muted,
         }}
       >
         {label}
@@ -86,12 +88,12 @@ function CrateHero({ saved = [], playlists = [], likedCount = 0 }) {
   return (
     <div
       style={{
-        margin: `0 ${homeSpace.gutter}px 18px`,
+        margin: "0 0 18px",
         padding: "16px 14px 14px",
-        borderRadius: 12,
+        borderRadius: 18,
         background: radioStyle.moduleFace,
-        border: "1px solid rgba(91,101,116,0.18)",
-        boxShadow: "inset 0 1px 0 rgba(216,223,232,0.42), 0 8px 24px rgba(58,66,80,0.14)",
+        border: `1px solid ${glass.borderSoft}`,
+        boxShadow: radioStyle.moduleShadow,
       }}
     >
       {/* Header row */}
@@ -116,12 +118,12 @@ function CrateHero({ saved = [], playlists = [], likedCount = 0 }) {
         />
         <span
           style={{
-            fontFamily: fontMono,
-            fontSize: 10,
-            fontWeight: 700,
-            letterSpacing: 0.18,
-            textTransform: "uppercase",
-            color: "#5AA8B8",
+            fontFamily: fontDisplay,
+            fontSize: 13,
+            fontWeight: 600,
+            letterSpacing: -0.08,
+            textTransform: "none",
+            color: color.muted,
           }}
         >
           Your Crate
@@ -388,7 +390,7 @@ function FavoritesScreen({
           <div style={{
             width: 112,
             height: 112,
-            borderRadius: 10,
+            borderRadius: 18,
             overflow: "hidden",
             flexShrink: 0,
             boxShadow: artShadow.raised,
@@ -663,17 +665,14 @@ function FavoritesScreen({
         onClick={() => { setLibTab(id); setLibQuery(""); }}
         aria-selected={active}
         style={{
-          border: "none",
-          background: "none",
+          ...glassPill({ active, compact: true }),
           cursor: "pointer",
-          padding: "8px 2px 10px",
-          marginRight: 22,
-          color: active ? color.ink : color.muted,
-          fontSize: 16,
+          padding: "8px 14px",
+          marginRight: 8,
+          fontSize: 14,
           fontWeight: active ? 650 : 520,
           fontFamily: fontDisplay,
-          letterSpacing: -0.25,
-          boxShadow: active ? `inset 0 -2px 0 ${color.ink}` : "none",
+          letterSpacing: -0.2,
         }}
       >
         {label}
@@ -701,7 +700,7 @@ function FavoritesScreen({
           <div style={{
             aspectRatio: "1 / 1",
             width: "100%",
-            borderRadius: 10,
+            borderRadius: 18,
             marginBottom: 10,
             display: "flex",
             alignItems: "center",
@@ -766,7 +765,7 @@ function FavoritesScreen({
         <div style={{
           aspectRatio: "1 / 1",
           width: "100%",
-          borderRadius: 10,
+          borderRadius: 18,
           overflow: "hidden",
           marginBottom: 10,
           position: "relative",
@@ -894,7 +893,7 @@ function FavoritesScreen({
             aria-label="Library sections"
             style={{
               display: "flex",
-              borderBottom: `1px solid ${color.line}`,
+              gap: 4,
               marginBottom: 14,
             }}
           >
@@ -933,12 +932,9 @@ function FavoritesScreen({
                     : "Search liked songs"
               }
               style={{
-                ...INPUT_ST,
+                ...SEARCH_FIELD,
                 padding: "11px 14px 11px 36px",
                 fontSize: 16,
-                borderRadius: 10,
-                background: color.surface,
-                border: `1px solid ${color.line}`,
               }}
             />
           </div>
@@ -960,7 +956,7 @@ function FavoritesScreen({
                 }}
                 placeholder="Playlist name"
                 aria-label="Playlist name"
-                style={{ flex: 1, ...INPUT_ST, padding: "10px 12px", fontSize: 16, borderRadius: 10 }}
+                style={{ flex: 1, ...SEARCH_FIELD, padding: "10px 16px", fontSize: 16 }}
               />
               <button
                 type="button"
@@ -968,7 +964,6 @@ function FavoritesScreen({
                 style={{
                   ...BTN_PRIMARY,
                   width: "auto",
-                  borderRadius: 10,
                   fontSize: 15,
                   fontWeight: 600,
                   padding: "10px 16px",
@@ -983,7 +978,7 @@ function FavoritesScreen({
                 style={{
                   ...BTN_SECONDARY,
                   width: "auto",
-                  borderRadius: 10,
+                  borderRadius: 18,
                   padding: "10px 12px",
                   fontSize: 14,
                 }}
@@ -1206,7 +1201,7 @@ function FavoritesScreen({
                   <div style={{
                     width: 88,
                     height: 88,
-                    borderRadius: 10,
+                    borderRadius: 18,
                     overflow: "hidden",
                     flexShrink: 0,
                     boxShadow: artShadow.quiet,

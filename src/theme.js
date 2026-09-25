@@ -1,9 +1,9 @@
 // Design tokens — dark premium MP3 player.
-// Obsidian charcoal canvas, neon-green signal, quiet violet/blue.
+// Obsidian charcoal canvas, quiet electric-blue + violet neon (never a fill).
 // Not Spotify, not a costume Discman. IBM Plex Mono stays on the LCD.
 
 /** Bump this when the visual OS changes. Copied into public/index.html + the shipped build. */
-export const STYLE_CHASSIS = "dark-premium-home-20260925";
+export const STYLE_CHASSIS = "dark-premium-quiet-neon-20260925";
 
 /** Chrome specular — cool pearl steel, never pure white. */
 const SPEC = "200, 210, 222";
@@ -128,36 +128,37 @@ export const type = {
 };
 
 /**
- * Signal trim — neon green with a quiet blue edge. Never a page fill.
+ * Signal trim — quiet electric blue with a violet edge. Never a page fill.
+ * `lime` is a legacy key; it is quiet violet so PlayKey (`color.lcdSignal`) never matches it.
  */
 export const trim = {
-  lime: "#A8FF6A",
+  lime: "#B794F6",
   teal: "#6EA8FF",
   blue: "#6EA8FF",
   blueDeep: "#4B7FE0",
-  gradient: "linear-gradient(90deg, #A8FF6A 0%, #7DFFB3 48%, #6EA8FF 100%)",
+  gradient: "linear-gradient(90deg, #6EA8FF 0%, #8AA8FF 48%, #B794F6 100%)",
 };
 
 /**
- * Neon signal palette — border, glow, pip. Never a background fill.
+ * Neon signal palette — thin border, glow, pip. Never a background fill.
  */
 export const neons = {
   cyan:    "#6EA8FF",
-  cyanGlow: "rgba(110,168,255,0.35)",
+  cyanGlow: "rgba(110,168,255,0.22)",
   violet:  "#B794F6",
-  violetGlow: "rgba(183,148,246,0.32)",
-  lime:    "#A8FF6A",
-  limeGlow: "rgba(168,255,106,0.32)",
+  violetGlow: "rgba(183,148,246,0.20)",
+  lime:    "#B794F6",
+  limeGlow: "rgba(183,148,246,0.20)",
   red:     "#E0314A",
   redGlow: "rgba(224,49,74,0.32)",
   orange:  "#E05830",
   orangeGlow: "rgba(224,88,48,0.28)",
-  phosphor: "#A8FF6A",
-  phosphorGlow: "rgba(168,255,106,0.45)",
+  phosphor: "#6EA8FF",
+  phosphorGlow: "rgba(110,168,255,0.26)",
 };
 
 /**
- * Steel face with an ice-phosphor stroke (2px default).
+ * Steel face with a quiet neon stroke (2px default).
  * Use on primary buttons, playing transport, identity pills.
  */
 export function trimStroke(face, width = 2) {
@@ -171,7 +172,7 @@ export function trimStroke(face, width = 2) {
 
 /**
  * Brand palette — one cool steel chassis. Album art supplies hue.
- * Color is a trim: ice LCD CTAs and rings. Not a fill.
+ * Color is a trim: quiet-blue LCD rings. Not a fill.
  */
 export const color = {
   ink: "#E8EDF4",
@@ -185,25 +186,25 @@ export const color = {
   surfaceRaised: "#2A323C",
   canvas: "#1C222B",
   canvasEdge: "#161B22",
-  /** Neon green — pip, progress, selected */
-  accent: "#A8FF6A",
-  accentSoft: "rgba(168, 255, 106, 0.16)",
-  accentGlow: "rgba(168, 255, 106, 0.32)",
+  /** Quiet electric blue — pip, progress, selected. Never a page fill. */
+  accent: "#6EA8FF",
+  accentSoft: "rgba(110, 168, 255, 0.12)",
+  accentGlow: "rgba(110, 168, 255, 0.22)",
   onAccent: "#1C222B",
-  cta: "#A8FF6A",
-  onCta: "#121417",
+  cta: "#6EA8FF",
+  onCta: "#E8EDF4",
   onDark: "#E8EDF4",
   onDarkMuted: "rgba(200,210,222,0.62)",
   /** Broadcast live — the only non-steel signal */
   alert: "#E0314A",
   station: "#242A33",
-  select: "rgba(168, 255, 106, 0.12)",
-  selectStrong: "rgba(168, 255, 106, 0.22)",
-  lcdInk: "#E8FFD0",
-  lcdMute: "#7A9A72",
-  lcdSignal: "#A8FF6A",
-  lcdSignalGlow: "rgba(168, 255, 106, 0.7)",
-  lcdSignalSoft: "rgba(168, 255, 106, 0.28)",
+  select: "rgba(110, 168, 255, 0.10)",
+  selectStrong: "rgba(110, 168, 255, 0.18)",
+  lcdInk: "#D8E4F4",
+  lcdMute: "#7A8798",
+  lcdSignal: "#6EA8FF",
+  lcdSignalGlow: "rgba(110, 168, 255, 0.38)",
+  lcdSignalSoft: "rgba(110, 168, 255, 0.16)",
   /** Meta on the dark metal strip / dock (not the well) */
   stripInk: "#D8DFE8",
 };
@@ -218,7 +219,7 @@ export const chrome = {
   plate: "#242A33",
   deep: "#161B22",
   live: "#E0314A",
-  signal: "#A8FF6A",
+  signal: "#6EA8FF",
   inkPlate: "#E8EDF4",
   hotRgb: "168,178,192",
   brightRgb: "232,237,244",
@@ -232,23 +233,23 @@ export const chrome = {
 export const ice = {
   frost: "rgba(36, 42, 51, 0.78)",
   frostStrong: "rgba(42, 50, 60, 0.94)",
-  rim: "rgba(90, 168, 184, 0.32)",
+  rim: "rgba(110, 168, 255, 0.22)",
   rimSoft: "rgba(200, 210, 222, 0.12)",
-  glow: "rgba(90, 196, 214, 0.14)",
+  glow: "rgba(110, 168, 255, 0.10)",
   mist: "rgba(28, 34, 43, 0.9)",
   pane: `
     linear-gradient(180deg, rgba(${SPEC},0.14) 0%, rgba(36,42,51,0.32) 28%, transparent 58%),
     linear-gradient(165deg, rgba(42,50,60,0.96) 0%, rgba(28,34,43,0.94) 100%)
   `,
   thread: `
-    radial-gradient(120% 80% at 50% -10%, rgba(90,196,214,0.08) 0%, transparent 46%),
+    radial-gradient(120% 80% at 50% -10%, rgba(110,168,255,0.06) 0%, transparent 46%),
     linear-gradient(180deg, #242A33 0%, #1C222B 100%)
   `,
-  bubble: "rgba(90, 168, 184, 0.10)",
-  bubbleMine: "rgba(90, 196, 214, 0.16)",
+  bubble: "rgba(110, 168, 255, 0.08)",
+  bubbleMine: "rgba(110, 168, 255, 0.12)",
   ink: "#E8EDF4",
   mute: "rgba(197, 203, 214, 0.62)",
-  pip: "#A8FF6A",
+  pip: "#6EA8FF",
 };
 
 /**
@@ -262,13 +263,13 @@ export const y2k = {
   chromeSoft: "rgba(168, 178, 192, 0.12)",
   chromeGlow: "rgba(168, 178, 192, 0.22)",
   chromeWash: "rgba(168, 178, 192, 0.18)",
-  cyan: "#A8FF6A",
-  cyanSoft: "rgba(168, 255, 106, 0.16)",
-  cyanGlow: "rgba(168, 255, 106, 0.28)",
+  cyan: "#6EA8FF",
+  cyanSoft: "rgba(110, 168, 255, 0.12)",
+  cyanGlow: "rgba(110, 168, 255, 0.20)",
   techBlue: "#6EA8FF",
-  techBlueSoft: "rgba(110, 168, 255, 0.14)",
-  neon: "#A8FF6A",
-  neonSoft: "rgba(168, 255, 106, 0.16)",
+  techBlueSoft: "rgba(110, 168, 255, 0.12)",
+  neon: "#B794F6",
+  neonSoft: "rgba(183, 148, 246, 0.12)",
   magenta: "#E0314A",
   magentaSoft: "rgba(224, 49, 74, 0.14)",
   /** Pearl inscription on obsidian */
@@ -283,7 +284,7 @@ export const y2k = {
   inkGlass: "rgba(28, 34, 43, 0.86)",
   inkGlassSoft: "rgba(28, 34, 43, 0.58)",
   artGradient:
-    "radial-gradient(120% 90% at 20% 0%, rgba(200,210,222,0.16) 0%, transparent 55%), radial-gradient(100% 80% at 90% 100%, rgba(90,196,214,0.10) 0%, transparent 60%), linear-gradient(160deg, #2A323C 0%, #161B22 100%)",
+    "radial-gradient(120% 90% at 20% 0%, rgba(200,210,222,0.16) 0%, transparent 55%), radial-gradient(100% 80% at 90% 100%, rgba(110,168,255,0.10) 0%, transparent 60%), linear-gradient(160deg, #2A323C 0%, #161B22 100%)",
 };
 
 /**
@@ -296,7 +297,7 @@ export const radio = {
   radiusControl: 980,
   radiusLcd: 14,
   border: "1px solid rgba(200,210,222,0.12)",
-  borderLive: "1px solid rgba(90,196,214,0.42)",
+  borderLive: "1px solid rgba(110,168,255,0.28)",
   borderQuiet: "1px solid rgba(200,210,222,0.08)",
   borderChrome: "1px solid rgba(200,210,222,0.18)",
   glassFace: `
@@ -304,7 +305,7 @@ export const radio = {
     linear-gradient(145deg, rgba(42,50,60,0.96) 0%, rgba(28,34,43,0.94) 100%)
   `,
   glassFaceLive: `
-    radial-gradient(120% 80% at 0% 0%, rgba(90,196,214,0.12) 0%, transparent 45%),
+    radial-gradient(120% 80% at 0% 0%, rgba(110,168,255,0.12) 0%, transparent 45%),
     linear-gradient(165deg, rgba(${SPEC},0.18) 0%, rgba(${SPEC},0.05) 36%, transparent 70%),
     linear-gradient(145deg, rgba(42,50,60,0.96) 0%, rgba(28,34,43,0.94) 100%)
   `,
@@ -312,41 +313,41 @@ export const radio = {
   glassShadow:
     `inset 0 1px 0 rgba(${SPEC},0.18), inset 0 -1px 0 rgba(${SHADE},0.55), 0 12px 28px rgba(${SHADE},0.55), 0 0 0 1px rgba(${SPEC},0.08)`,
   glassShadowLive:
-    `inset 0 1px 0 rgba(${SPEC},0.18), inset 0 -1px 0 rgba(${SHADE},0.55), 0 0 28px rgba(90,196,214,0.14), 0 14px 32px rgba(${SHADE},0.5), 0 0 0 1px rgba(90,196,214,0.22)`,
+    `inset 0 1px 0 rgba(${SPEC},0.18), inset 0 -1px 0 rgba(${SHADE},0.55), 0 0 28px rgba(110,168,255,0.14), 0 14px 32px rgba(${SHADE},0.5), 0 0 0 1px rgba(110,168,255,0.22)`,
   lcdFace: `
     radial-gradient(90% 70% at 18% 0%, rgba(183,228,238,0.22) 0%, transparent 52%),
     linear-gradient(180deg, rgba(${SPEC},0.1) 0%, transparent 42%),
     linear-gradient(160deg, #3F4B56 0%, #323C46 55%, #2A333C 100%)
   `,
-  lcdBorder: "1px solid rgba(90, 196, 214, 0.38)",
+  lcdBorder: "1px solid rgba(110, 168, 255, 0.22)",
   lcdShadow:
-    `inset 0 2px 10px rgba(${SHADE},0.55), inset 0 1px 0 rgba(183,228,238,0.22), 0 0 18px rgba(90,196,214,0.18)`,
+    `inset 0 2px 10px rgba(${SHADE},0.55), inset 0 1px 0 rgba(183,228,238,0.22), 0 0 18px rgba(110,168,255,0.18)`,
   moduleFace: `
     linear-gradient(180deg, rgba(${SPEC},0.14) 0%, rgba(${SPEC},0.04) 36%, transparent 70%),
     linear-gradient(145deg, rgba(42,50,60,0.96) 0%, rgba(28,34,43,0.94) 100%)
   `,
   moduleFaceLive: `
-    linear-gradient(180deg, rgba(90,196,214,0.10) 0%, transparent 42%),
+    linear-gradient(180deg, rgba(110,168,255,0.10) 0%, transparent 42%),
     linear-gradient(180deg, rgba(${SPEC},0.14) 0%, rgba(${SPEC},0.04) 36%, transparent 70%),
     linear-gradient(145deg, rgba(42,50,60,0.97) 0%, rgba(28,34,43,0.95) 100%)
   `,
   moduleShadow:
     `inset 0 1px 0 rgba(${SPEC},0.16), inset 0 -1px 0 rgba(${SHADE},0.5), 0 8px 20px rgba(${SHADE},0.4)`,
   moduleShadowLive:
-    `inset 0 1px 0 rgba(${SPEC},0.16), inset 0 -1px 0 rgba(${SHADE},0.5), 0 0 0 1px rgba(90,196,214,0.2), 0 0 22px rgba(90,196,214,0.12), 0 10px 24px rgba(${SHADE},0.42)`,
+    `inset 0 1px 0 rgba(${SPEC},0.16), inset 0 -1px 0 rgba(${SHADE},0.5), 0 0 0 1px rgba(110,168,255,0.2), 0 0 22px rgba(110,168,255,0.12), 0 10px 24px rgba(${SHADE},0.42)`,
   stripFace: `
     linear-gradient(180deg, rgba(${SPEC},0.12) 0%, rgba(${SPEC},0.03) 42%, transparent 100%),
     rgba(36,42,51,0.94)
   `,
   stripFaceLive: `
-    linear-gradient(180deg, rgba(90,196,214,0.10) 0%, transparent 48%),
+    linear-gradient(180deg, rgba(110,168,255,0.10) 0%, transparent 48%),
     linear-gradient(180deg, rgba(${SPEC},0.10) 0%, transparent 40%),
     rgba(36,42,51,0.96)
   `,
   stripShadow:
     `inset 0 1px 0 rgba(${SPEC},0.14), inset 0 -1px 0 rgba(${SHADE},0.45), 0 4px 12px rgba(${SHADE},0.36)`,
   stripShadowLive:
-    `inset 0 1px 0 rgba(${SPEC},0.14), inset 0 -1px 0 rgba(${SHADE},0.45), 0 0 18px rgba(90,196,214,0.14), 0 6px 14px rgba(${SHADE},0.4)`,
+    `inset 0 1px 0 rgba(${SPEC},0.14), inset 0 -1px 0 rgba(${SHADE},0.45), 0 0 18px rgba(110,168,255,0.14), 0 6px 14px rgba(${SHADE},0.4)`,
   tuneFace: `
     linear-gradient(180deg, rgba(${SPEC},0.16) 0%, rgba(${SPEC},0.04) 34%, transparent 55%),
     linear-gradient(165deg, #2A323C 0%, #242A33 42%, #1C222B 100%)
@@ -361,8 +362,8 @@ export const radio = {
     `inset 0 2px 4px rgba(${SHADE},0.7), inset 0 1px 0 rgba(${SHADE},0.4)`,
   lcdTrack: "rgba(6,10,16,0.55)",
   lcdFill:
-    "linear-gradient(90deg, #A8FF6A 0%, #7DFFB3 62%, #6EA8FF 100%)",
-  lcdGlow: "0 0 16px rgba(168, 255, 106, 0.55)",
+    "linear-gradient(90deg, #6EA8FF 0%, #8AA8FF 62%, #B794F6 100%)",
+  lcdGlow: "0 0 12px rgba(110, 168, 255, 0.28)",
   label: {
     fontFamily: font,
     fontSize: 13,
@@ -409,7 +410,7 @@ export const hardware = {
   plateEdge:
     `inset 0 1px 0 rgba(${SPEC},0.16), inset 0 -1px 0 rgba(${SHADE},0.45)`,
   rule:
-    `linear-gradient(90deg, transparent, rgba(90,196,214,0.22), transparent)`,
+    `linear-gradient(90deg, transparent, rgba(110,168,255,0.22), transparent)`,
 };
 
 /**
@@ -449,7 +450,7 @@ export const artShadow = {
   quiet: `0 2px 4px rgba(${SHADE},0.45), 0 10px 22px rgba(${SHADE},0.5)`,
   raised:
     `0 6px 10px rgba(${SHADE},0.45), 0 18px 36px rgba(${SHADE},0.5), inset 0 1px 0 rgba(${SPEC},0.18), inset 0 -2px 5px rgba(${SHADE},0.45)`,
-  active: `0 0 0 2px ${color.lcdSignal}, 0 10px 22px rgba(${SHADE},0.22), 0 0 20px rgba(90,196,214,0.36)`,
+  active: `0 0 0 2px ${color.lcdSignal}, 0 10px 22px rgba(${SHADE},0.22), 0 0 20px rgba(110,168,255,0.36)`,
 };
 
 /**
@@ -549,8 +550,8 @@ export const broadcast = {
   `,
   lcdTrack: "rgba(6,10,16,0.55)",
   lcdFill:
-    "linear-gradient(90deg, #A8FF6A 0%, #7DFFB3 62%, #6EA8FF 100%)",
-  lcdGlow: "0 0 16px rgba(168, 255, 106, 0.55)",
+    "linear-gradient(90deg, #6EA8FF 0%, #8AA8FF 62%, #B794F6 100%)",
+  lcdGlow: "0 0 12px rgba(110, 168, 255, 0.28)",
 };
 
 /** Hardware icon key — header / Explore / Charts. */
@@ -583,10 +584,10 @@ export function glassPill(opts = {}) {
   const compact = opts.compact === true;
   return {
     border: `1px solid ${
-      active ? "rgba(168,255,106,0.45)" : "rgba(200,210,222,0.14)"
+      active ? "rgba(110,168,255,0.38)" : "rgba(200,210,222,0.14)"
     }`,
     background: active
-      ? "rgba(168,255,106,0.14)"
+      ? "rgba(110,168,255,0.10)"
       : `linear-gradient(180deg, rgba(${SPEC},0.12) 0%, rgba(36,42,51,0.92) 100%)`,
     backdropFilter: "blur(18px) saturate(1.08)",
     WebkitBackdropFilter: "blur(18px) saturate(1.08)",
@@ -700,7 +701,7 @@ export function sectionRule(inset = homeSpace.gutter) {
     margin: `0 ${inset}px`,
     border: "none",
     background:
-      "linear-gradient(90deg, transparent 0%, rgba(90,196,214,0.06) 18%, rgba(200,210,222,0.18) 50%, rgba(90,196,214,0.06) 82%, transparent 100%)",
+      "linear-gradient(90deg, transparent 0%, rgba(110,168,255,0.06) 18%, rgba(200,210,222,0.18) 50%, rgba(110,168,255,0.06) 82%, transparent 100%)",
   };
 }
 
@@ -784,21 +785,29 @@ export const INPUT_ST = {
   transition: `border-color ${motion.base} ${motion.ease}, box-shadow ${motion.base} ${motion.ease}, background ${motion.base}`,
 };
 
-/** Primary CTA — neon green pill, dark inscription. */
+/** Primary CTA — dark plate pill with quiet electric-blue trim. */
 export const BTN_PRIMARY = {
   width: "100%",
   padding: "14px 22px",
   borderRadius: 980,
-  border: "1px solid rgba(168, 255, 106, 0.45)",
-  background: color.cta,
-  color: color.onCta,
+  border: "1px solid rgba(110, 168, 255, 0.42)",
+  background:
+    "linear-gradient(180deg, rgba(200,210,222,0.10) 0%, rgba(36,42,51,0.96) 100%)",
+  color: color.ink,
   fontSize: 16,
   fontWeight: 700,
   cursor: "pointer",
   fontFamily: font,
   letterSpacing: -0.15,
-  boxShadow: `0 0 18px rgba(168,255,106,0.28), ${radio.lcdShadow}`,
+  boxShadow: `0 0 14px rgba(110,168,255,0.14), ${radio.lcdShadow}`,
   transition: `transform ${motion.fast} ${motion.ease}, box-shadow ${motion.base}, opacity ${motion.fast}`,
+};
+
+/** Dark pill used by Find / Search fields. */
+export const SEARCH_FIELD = {
+  ...INPUT_ST,
+  borderRadius: 980,
+  background: "rgba(22, 27, 34, 0.92)",
 };
 
 /** Secondary CTA — dark plate pill. */

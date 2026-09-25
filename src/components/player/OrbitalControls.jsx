@@ -20,7 +20,7 @@ export function PlayKey({
   const iSize = iconSize ?? Math.round(size * 0.34);
   const busy = buffering && isPlaying;
   const face = glowing
-    ? `linear-gradient(180deg, ${color.lcdSignal} 0%, #7DFFB3 100%)`
+    ? hardware.keyFace
     : hardware.keyFace;
   return (
     <button
@@ -42,19 +42,19 @@ export function PlayKey({
         border: disabled
           ? "1px solid rgba(255,255,255,0.10)"
           : glowing
-            ? "2px solid rgba(168,255,106,0.7)"
+            ? "1.5px solid rgba(110,168,255,0.42)"
             : "1.5px solid rgba(255,255,255,0.12)",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        color: disabled ? color.faint : glowing ? color.onAccent : color.ink,
+        color: disabled ? color.faint : color.ink,
         cursor: disabled ? "not-allowed" : "pointer",
         flexShrink: 0,
         opacity: disabled ? 0.55 : 1,
         boxShadow: disabled
           ? "none"
           : glowing
-            ? `0 0 0 4px ${color.lcdSignalSoft}, 0 0 22px ${color.lcdSignalGlow}, 0 8px 16px rgba(0,0,0,0.45)`
+            ? `0 0 0 3px ${color.lcdSignalSoft}, 0 0 14px ${color.lcdSignalGlow}, ${hardware.keyRaised}`
             : `0 0 0 3px ${color.lcdSignalSoft}, ${hardware.keyRaised}`,
         transition: `transform ${motion.fast} ${motion.ease}, box-shadow ${motion.base} ${motion.ease}, background ${motion.fast} ${motion.ease}`,
       }}
@@ -81,7 +81,7 @@ export function PlayKey({
             width: Math.round(size * 0.38),
             height: Math.round(size * 0.38),
             borderRadius: "50%",
-            border: "2px solid rgba(168,255,106,0.22)",
+            border: "2px solid rgba(110,168,255,0.18)",
             borderTopColor: glowing ? color.onAccent : color.ink,
             animation: "spin 0.7s linear infinite",
           }}

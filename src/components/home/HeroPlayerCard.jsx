@@ -42,7 +42,7 @@ function MetaChip({ children }) {
         maxWidth: "100%",
         padding: "3px 10px",
         borderRadius: 980,
-        border: "1px solid rgba(168,255,106,0.18)",
+        border: "1px solid rgba(110,168,255,0.16)",
         background: "rgba(168, 255, 106, 0.10)",
         fontFamily: fontMono,
         fontSize: 11,
@@ -389,7 +389,7 @@ export default function HeroPlayerCard({
           overflow: "hidden",
           background: `
             radial-gradient(70% 80% at 18% 20%, ${track?.color ? `${track.color}55` : color.accentSoft} 0%, transparent 62%),
-            linear-gradient(180deg, rgba(168,255,106,0.08) 0%, rgba(0,0,0,0.35) 100%)
+            linear-gradient(180deg, rgba(110,168,255,0.06) 0%, rgba(0,0,0,0.35) 100%)
           `,
         }}
       />

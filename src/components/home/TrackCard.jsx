@@ -130,7 +130,7 @@ function TrackCard({
             fontWeight: 700,
             letterSpacing: 0.1,
             textTransform: "uppercase",
-            color: color.accent,
+            color: color.lcdMute,
             overflow: "hidden",
             textOverflow: "ellipsis",
             whiteSpace: "nowrap",

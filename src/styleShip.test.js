@@ -54,7 +54,9 @@ test("theme source does not ship mint phosphor or DistroKid trim", () => {
   expect(theme).not.toMatch(/#367FC7/i);
   expect(theme).toMatch(/lcdSignal/);
   expect(theme).not.toMatch(/lcdPhosphor/);
-  expect(theme).toMatch(/dark-premium-home-20260925/);
+  expect(theme).toMatch(/dark-premium-quiet-neon-20260925/);
+  expect(theme).not.toMatch(/#A8FF6A/i);
+  expect(theme).not.toMatch(/#7DFFB3/i);
 });
 
 test("player surfaces use Turtle / Rabbit, not energy paddles", () => {
@@ -93,6 +95,11 @@ test("player surfaces use Turtle / Rabbit, not energy paddles", () => {
 test("browse lists print BPM and Camelot, and Home is player then my listening", () => {
   const row = fs.readFileSync(path.join(root, "src/components/listen/TrackRow.jsx"), "utf8");
   expect(row).toMatch(/trackBrowseBits/);
+  const lib = fs.readFileSync(path.join(root, "src/screens/FavoritesScreen.jsx"), "utf8");
+  expect(lib).toMatch(/SEARCH_FIELD/);
+  expect(lib).toMatch(/glassPill/);
+  const search = fs.readFileSync(path.join(root, "src/screens/SearchScreen.jsx"), "utf8");
+  expect(search).toMatch(/SEARCH_FIELD/);
   const focus = fs.readFileSync(path.join(root, "src/components/explore/ExploreFocus.jsx"), "utf8");
   expect(focus).toMatch(/trackBrowseBits/);
   const home = fs.readFileSync(path.join(root, "src/screens/HomeScreen.jsx"), "utf8");
@@ -107,12 +114,14 @@ test("browse lists print BPM and Camelot, and Home is player then my listening",
   expect(header).toMatch(/Find/);
   expect(header).toMatch(/aria-label="More"/);
   expect(header).toMatch(/BrandGlyph/);
+  expect(header).toMatch(/SEARCH_FIELD/);
   expect(header).not.toMatch(/Late signal/);
   expect(header).not.toMatch(/stationGreeting/);
   expect(header).not.toMatch(/onOpenProfile/);
   const explore = fs.readFileSync(path.join(root, "src/screens/ExploreScreen.jsx"), "utf8");
   expect(explore).toMatch(/ChannelSurfingSection/);
   expect(explore).toMatch(/TonightDeck/);
+  expect(explore).toMatch(/SEARCH_FIELD/);
   const sidebar = fs.readFileSync(path.join(root, "src/components/layout/AppSidebar.jsx"), "utf8");
   expect(sidebar).toMatch(/variant === "drawer"/);
   expect(sidebar).not.toMatch(/Faceplate/);
@@ -170,6 +179,7 @@ test("ice phosphor is the play pip, dock LCD, Mix/Energy sleeves, and poster sta
   expect(play).toMatch(/color\.lcdSignal/);
   expect(play).not.toMatch(/trimStroke/);
   expect(play).not.toMatch(/trim\.lime/);
+  expect(play).not.toMatch(/#7DFFB3|#A8FF6A/);
   const dockSrc = fs.readFileSync(path.join(root, "src/components/player/GlassDock.jsx"), "utf8");
   expect(dockSrc).toMatch(/radio\.lcdFace/);
   expect(dockSrc).toMatch(/pmp-dock-faceplate/);
