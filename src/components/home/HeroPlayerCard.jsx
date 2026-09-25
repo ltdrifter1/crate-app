@@ -361,8 +361,8 @@ export default function HeroPlayerCard({
         live
           ? `Now playing ${track.title} by ${track.artist}. Open player.`
           : previewTrack
-            ? `Up first ${previewTrack.title} by ${previewTrack.artist}. Start the station.`
-            : "Start the station"
+            ? `Up first ${previewTrack.title} by ${previewTrack.artist}. Start listening.`
+            : "Start listening"
       }
       onClick={() => (live ? onOpen?.() : !playDisabled && onPlay?.())}
       onKeyDown={(e) => {
