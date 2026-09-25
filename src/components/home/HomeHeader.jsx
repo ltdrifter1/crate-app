@@ -1,6 +1,7 @@
-import { chromeIconButton, color, font, homeSpace, radio } from "../../theme";
+import { chromeIconButton, color, font, fontDisplay, homeSpace, radio } from "../../theme";
+import { BRAND_NAME, brandWordmark } from "../../brand/identity";
 import Icon from "../ui/Icon";
-import BrandMark from "../brand/BrandMark";
+import { BrandGlyph } from "../brand/BrandGlyphs";
 
 function MoreButton({ onClick }) {
   if (!onClick) return null;
@@ -43,8 +44,29 @@ export default function HomeHeader({
         }}
       >
         <MoreButton onClick={onOpenMenu} />
-        <div style={{ minWidth: 0, flex: 1 }}>
-          <BrandMark size={32} showWordmark />
+        <div
+          aria-label={BRAND_NAME}
+          style={{
+            minWidth: 0,
+            flex: 1,
+            display: "flex",
+            alignItems: "center",
+            gap: 10,
+          }}
+        >
+          <BrandGlyph size={32} />
+          <span
+            style={{
+              fontFamily: fontDisplay,
+              fontSize: 16,
+              fontWeight: brandWordmark.weight,
+              letterSpacing: brandWordmark.letterSpacing,
+              color: color.ink,
+              lineHeight: 1.05,
+            }}
+          >
+            {BRAND_NAME}
+          </span>
         </div>
       </div>
 

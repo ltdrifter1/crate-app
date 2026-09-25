@@ -106,7 +106,7 @@ test("browse lists print BPM and Camelot, and Home is player then my listening",
   expect(header).toMatch(/aria-label="Search"/);
   expect(header).toMatch(/Find/);
   expect(header).toMatch(/aria-label="More"/);
-  expect(header).toMatch(/BrandMark/);
+  expect(header).toMatch(/BrandGlyph/);
   expect(header).not.toMatch(/Late signal/);
   expect(header).not.toMatch(/stationGreeting/);
   expect(header).not.toMatch(/onOpenProfile/);
