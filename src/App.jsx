@@ -270,9 +270,9 @@ const injectStyles = () => {
       background: ${color.surfaceRaised} !important;
       box-shadow: inset 0 1px 0 ${glass.highlight}, 0 0 0 3px ${color.accentSoft} !important;
     }
-    input[type="range"] { -webkit-appearance: none; height: 4px; background: rgba(91,101,116,0.12); border-radius: 2px; outline: none; cursor: pointer; }
-    input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; border-radius: 50%; background: ${color.accent}; border: 2px solid ${color.onAccent}; box-shadow: 0 1px 4px rgba(58,66,80,0.45); cursor: pointer; }
-    input[type="range"]::-moz-range-thumb { width: 14px; height: 14px; border-radius: 50%; background: ${color.accent}; border: 2px solid ${color.onAccent}; box-shadow: 0 1px 4px rgba(58,66,80,0.45); cursor: pointer; }
+    input[type="range"] { -webkit-appearance: none; height: 4px; background: rgba(90,196,214,0.16); border-radius: 2px; outline: none; cursor: pointer; }
+    input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; border-radius: 50%; background: ${color.accent}; border: 2px solid ${color.onAccent}; box-shadow: 0 1px 4px rgba(6,10,16,0.55); cursor: pointer; }
+    input[type="range"]::-moz-range-thumb { width: 14px; height: 14px; border-radius: 50%; background: ${color.accent}; border: 2px solid ${color.onAccent}; box-shadow: 0 1px 4px rgba(6,10,16,0.55); cursor: pointer; }
     input.chrome-seek { -webkit-appearance: none; appearance: none; background: transparent !important; height: 32px !important; }
     input.chrome-seek::-webkit-slider-runnable-track { height: 10px; background: transparent; border: none; }
     input.chrome-seek::-moz-range-track { height: 10px; background: transparent; border: none; }
@@ -282,9 +282,9 @@ const injectStyles = () => {
       background: linear-gradient(180deg, #F4FBFC 0%, #B7E4EE 55%, #7AB8C6 100%);
       border: 1px solid rgba(90,196,214,0.85);
       box-shadow:
-        inset 0 1px 0 rgba(255,255,255,0.9),
+        inset 0 1px 0 rgba(228,247,250,0.45),
         0 0 10px ${color.lcdSignalGlow},
-        0 3px 6px rgba(58,66,80,0.35);
+        0 3px 6px rgba(6,10,16,0.45);
       cursor: pointer;
     }
     input.chrome-seek::-moz-range-thumb {
@@ -292,9 +292,9 @@ const injectStyles = () => {
       background: linear-gradient(180deg, #F4FBFC 0%, #B7E4EE 55%, #7AB8C6 100%);
       border: 1px solid rgba(90,196,214,0.85);
       box-shadow:
-        inset 0 1px 0 rgba(255,255,255,0.9),
+        inset 0 1px 0 rgba(228,247,250,0.45),
         0 0 10px ${color.lcdSignalGlow},
-        0 3px 6px rgba(58,66,80,0.35);
+        0 3px 6px rgba(6,10,16,0.45);
       cursor: pointer;
     }
     input.pace-range {
@@ -320,12 +320,12 @@ const injectStyles = () => {
       height: 22px;
       margin-top: -6px;
       border-radius: 4px;
-      background: linear-gradient(180deg, #F7FAFC 0%, #E8F1F8 48%, #C5D0DC 100%);
+      background: linear-gradient(180deg, #2C3440 0%, #242A33 48%, #1C222B 100%);
       border: 2px solid ${trim.blue};
       box-shadow:
         0 0 0 1px ${trim.lime},
-        inset 0 1px 0 rgba(255,255,255,0.92),
-        inset 0 -2px 3px rgba(58,66,80,0.2),
+        inset 0 1px 0 rgba(200,210,222,0.22),
+        inset 0 -2px 3px rgba(6,10,16,0.5),
         0 4px 10px rgba(90,196,214,0.32);
       cursor: pointer;
     }
@@ -333,12 +333,12 @@ const injectStyles = () => {
       width: 16px;
       height: 22px;
       border-radius: 4px;
-      background: linear-gradient(180deg, #F7FAFC 0%, #E8F1F8 48%, #C5D0DC 100%);
+      background: linear-gradient(180deg, #2C3440 0%, #242A33 48%, #1C222B 100%);
       border: 2px solid ${trim.blue};
       box-shadow:
         0 0 0 1px ${trim.lime},
-        inset 0 1px 0 rgba(255,255,255,0.92),
-        inset 0 -2px 3px rgba(58,66,80,0.2),
+        inset 0 1px 0 rgba(200,210,222,0.22),
+        inset 0 -2px 3px rgba(6,10,16,0.5),
         0 4px 10px rgba(90,196,214,0.32);
       cursor: pointer;
     }
@@ -580,23 +580,23 @@ const injectStyles = () => {
       backdrop-filter: ${glass.blurHeavy};
       transition: background 0.6s ease, box-shadow 0.35s ease;
     }
-    /* ── Steel device chrome ─────────────────────────────────────────── */
+    /* ── Obsidian device chrome ─────────────────────────────────────────── */
     .pill-nav {
       background: ${radio.moduleFace};
-      border: 1px solid rgba(91,101,116,0.22);
+      border: 1px solid rgba(200,210,222,0.14);
       box-shadow:
-        inset 0 1px 0 rgba(216,223,232,0.45),
-        inset 0 -1px 0 rgba(58,66,80,0.16),
-        0 12px 28px rgba(58,66,80,0.2);
+        inset 0 1px 0 rgba(200,210,222,0.14),
+        inset 0 -1px 0 rgba(6,10,16,0.5),
+        0 12px 28px rgba(6,10,16,0.45);
     }
     @media (min-width: 768px) {
       .pmp-mobile-dock { display: none !important; }
     }
     .pmp-hero-bezel {
       box-shadow:
-        inset 0 1px 0 rgba(255,255,255,0.7),
-        inset 0 -1px 0 rgba(58,66,80,0.08),
-        0 24px 56px rgba(58,66,80,0.2);
+        inset 0 1px 0 rgba(200,210,222,0.16),
+        inset 0 -1px 0 rgba(6,10,16,0.4),
+        0 24px 56px rgba(6,10,16,0.5);
     }
     .pmp-home-mtv::before { display: none; }
     .pmp-home-mtv > * { position: relative; z-index: 1; }

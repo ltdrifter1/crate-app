@@ -47,7 +47,7 @@ export default function ChannelCard({
   const width = size;
   const title = channel.shortTitle || channel.title;
   const dial = formatChannelNum(channel.num);
-  const iceRing = `0 0 0 2px ${color.lcdSignal}, 0 0 18px ${color.lcdSignalGlow}, 0 16px 36px rgba(58,66,80,0.3), inset 0 1px 0 rgba(255,255,255,0.55), inset 0 -3px 8px rgba(58,66,80,0.28)`;
+  const iceRing = `0 0 0 2px ${color.lcdSignal}, 0 0 18px ${color.lcdSignalGlow}, 0 16px 36px rgba(6,10,16,0.5), inset 0 1px 0 rgba(200,210,222,0.18), inset 0 -3px 8px rgba(6,10,16,0.5)`;
   /** Station ink — printed divider-card colour. Identity, never state. */
   const ink = channel.accent || color.accent;
 
@@ -87,10 +87,10 @@ export default function ChannelCard({
           background: y2k.artGradient,
           boxShadow: active
             ? iceRing
-            : "inset 0 1px 0 rgba(255,255,255,0.62), inset 0 -3px 8px rgba(58,66,80,0.22), 0 14px 32px rgba(58,66,80,0.24)",
+            : "inset 0 1px 0 rgba(200,210,222,0.16), inset 0 -3px 8px rgba(6,10,16,0.45), 0 14px 32px rgba(6,10,16,0.45)",
           border: active
             ? `1.5px solid ${color.lcdSignal}`
-            : "1.5px solid rgba(216,223,232,0.55)",
+            : "1.5px solid rgba(200,210,222,0.18)",
         }}
       >
         <span
@@ -120,7 +120,7 @@ export default function ChannelCard({
               inset: 0,
               zIndex: 1,
               background:
-                "linear-gradient(165deg, rgba(255,255,255,0.28) 0%, rgba(232,241,248,0.06) 32%, transparent 58%)",
+                "linear-gradient(165deg, rgba(200,210,222,0.12) 0%, rgba(90,196,214,0.04) 32%, transparent 58%)",
             }}
           />
 

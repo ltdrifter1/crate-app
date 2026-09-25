@@ -5,9 +5,9 @@ import {
 
 test('theme exports core tokens', () => {
   expect(color.ink).toBeTruthy();
-  expect(color.accent).toMatch(/#5B6574/i);
-  expect(color.onAccent).toMatch(/#D8DFE8/i);
-  expect(color.canvas).toMatch(/#C5CBD6/i);
+  expect(color.accent).toMatch(/#A8B2C0/i);
+  expect(color.onAccent).toMatch(/#1C222B/i);
+  expect(color.canvas).toMatch(/#1C222B/i);
   expect(color.alert).toBeTruthy();
   expect(color.select).toMatch(/rgba/);
   expect(BRAND_TAGLINE).toMatch(/YOUR WORLD/i);
@@ -16,7 +16,7 @@ test('theme exports core tokens', () => {
   expect(fontDisplay).toMatch(/IBM Plex Sans/);
   expect(font).not.toMatch(/^system-ui/);
   expect(fontLcd).toMatch(/IBM Plex Mono/);
-  expect(STYLE_CHASSIS).toBe("steel-ps1-glass-20260919");
+  expect(STYLE_CHASSIS).toBe("obsidian-ps1-glass-20260925");
   expect(color.lcdSignal).toMatch(/#B7E4EE/i);
   expect(color.cta).toMatch(/#5AA8B8/i);
   expect(color.onCta).toMatch(/#E4F7FA/i);
@@ -27,7 +27,7 @@ test('theme exports core tokens', () => {
   expect(sectionTitle.fontSize).toBe(22);
   expect(y2k.chromeBright).toBeTruthy();
   expect(y2k.chrome).toMatch(/#A8B2C0/i);
-  expect(y2k.cyan).toMatch(/#5B6574/i);
+  expect(y2k.cyan).toMatch(/#5AA8B8/i);
   expect(y2k.artGradient).not.toMatch(/139,\s*92,\s*246|purple/i);
   expect(homeSpace.sectionGap).toBeLessThanOrEqual(32);
   expect(homeSpace.sectionGap).toBeGreaterThan(0);
@@ -56,10 +56,12 @@ test('radio module tokens are hardware-shaped', () => {
   expect(radio.lcdFill).not.toMatch(/#7ED9B8|#4E9A7A|#C8F5E4/i);
 });
 
-test('canvas is a light steel chassis', () => {
-  expect(color.canvas).toMatch(/#C5CBD6/i);
-  expect(color.ink).toMatch(/#3D4654/i);
-  expect(y2k.offWhite).toMatch(/#3D4654/i);
+test('canvas is an obsidian steel chassis, not a void', () => {
+  expect(color.canvas).toMatch(/#1C222B/i);
+  expect(color.ink).toMatch(/#E8EDF4/i);
+  expect(y2k.offWhite).toMatch(/#E8EDF4/i);
+  expect(color.canvas).not.toMatch(/#090A0D/i);
+  expect(y2k.nearBlack).not.toMatch(/#090A0D/i);
   expect(color.lcdSignal).toMatch(/#B7E4EE/i);
   expect(color.accent).not.toMatch(/#B8F24A/i);
   expect(color.lcdSignal).not.toMatch(/#7ED9B8|#4E9A7A|#C8F5E4/i);
