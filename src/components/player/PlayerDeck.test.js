@@ -49,3 +49,34 @@ test("PlayerDeck is a PS1 glass plate with LCD seek, transport, and Turtle / Rab
   await act(async () => root.unmount());
   document.body.removeChild(div);
 });
+
+test("idle PlayerDeck keeps Start listening plus Turtle / Rabbit", async () => {
+  localStorage.clear();
+  const onStart = jest.fn();
+  const div = document.createElement("div");
+  document.body.appendChild(div);
+  const root = createRoot(div);
+  await act(async () => {
+    root.render(
+      React.createElement(PlayerDeck, {
+        idle: true,
+        onStart,
+      })
+    );
+  });
+  expect(div.querySelector('[data-testid="player-deck"]')).toBeTruthy();
+  expect(div.querySelector(".pmp-seek__well")).toBeNull();
+  expect(div.querySelector(".pmp-play-planet")).toBeNull();
+  expect(div.querySelector('[aria-label="Start the station"]')).toBeTruthy();
+  expect(div.querySelector('[data-testid="rabbit-turtle"]')).toBeTruthy();
+  expect(div.querySelector('[data-testid="deck-hint"]')?.textContent).toMatch(
+    /Turtle and Rabbit change what plays next/
+  );
+  expect(div.textContent).not.toMatch(/Dislike steers/);
+  await act(async () => {
+    div.querySelector('[aria-label="Start the station"]').click();
+  });
+  expect(onStart).toHaveBeenCalledTimes(1);
+  await act(async () => root.unmount());
+  document.body.removeChild(div);
+});

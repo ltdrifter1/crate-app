@@ -79,6 +79,11 @@ test("player surfaces use Turtle / Rabbit, not energy paddles", () => {
   expect(css).toMatch(/\.pmp-rabbit-slot/);
   expect(css).toMatch(/\.pmp-mini-player/);
   expect(css).toMatch(/\.pmp-mini-progress/);
+  const hero = fs.readFileSync(path.join(root, "src/components/home/HeroPlayerCard.jsx"), "utf8");
+  expect(hero).toMatch(/idle=\{!live\}/);
+  const mini = fs.readFileSync(path.join(root, "src/components/player/DesktopMiniPlayer.jsx"), "utf8");
+  expect(mini).toMatch(/onShare/);
+  expect(mini).toMatch(/onShowQueue/);
 });
 
 test("browse lists print BPM and Camelot, and Home ranks the player over radio", () => {
@@ -90,6 +95,8 @@ test("browse lists print BPM and Camelot, and Home ranks the player over radio",
   expect(home.indexOf("<HeroPlayerCard")).toBeLessThan(home.indexOf("<HomePersonal"));
   expect(home.indexOf("<HomePersonal")).toBeLessThan(home.indexOf("<ChannelSurfingSection"));
   expect(home.indexOf("<ChannelSurfingSection")).toBeLessThan(home.indexOf("<TonightDeck"));
+  expect(home).toMatch(/signedIn/);
+  expect(home).toMatch(/Your listening/);
   const header = fs.readFileSync(path.join(root, "src/components/home/HomeHeader.jsx"), "utf8");
   expect(header).toMatch(/aria-label="Search"/);
   expect(header).toMatch(/Find/);

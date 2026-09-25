@@ -11,7 +11,6 @@ import {
   trim,
   trimStroke,
   y2k,
-  BTN_PRIMARY,
 } from "../../theme";
 import { usePlayerPlayback } from "../../usePlayerPlayback";
 import { useIsBuffering, useIsPlaying } from "../../usePlayerTransport";
@@ -20,7 +19,6 @@ import {
   resolveChannelBug,
 } from "../../lib/mtvChannel";
 import { trackHasVideo } from "../../lib/video";
-import Icon from "../ui/Icon";
 import CoverImage from "../ui/CoverImage";
 import { HERO_IDLE_ART, HERO_IDLE_FOCUS } from "../../lib/heroIdle";
 import ScanlineWash from "./ScanlineWash";
@@ -326,8 +324,7 @@ function UpNextGlass({ track }) {
 
 /**
  * HeroPlayerCard — Home now-playing device.
- * Sleeve + ice LCD on one stage; seek as a timeline; transport left,
- * Pace half-width bottom-right.
+ * Sleeve + ice LCD on one stage; seek as a timeline; Turtle / Rabbit on the deck.
  */
 export default function HeroPlayerCard({
   track = null,
@@ -654,51 +651,25 @@ export default function HeroPlayerCard({
           boxShadow: "none",
         }}
       >
-        {live ? (
-          <PlayerDeck
-            progress={progress}
-            duration={duration}
-            onSeek={onSeek}
-            isPlaying={isPlaying}
-            buffering={isBuffering}
-            onTogglePlay={onTogglePlay}
-            onPrev={onPrev}
-            onSkip={onSkip}
-            onLike={onLike ? () => onLike(track.id) : null}
-            onDislike={onDislike}
-            onShare={onShare ? () => onShare(track) : null}
-            onShowQueue={onShowQueue}
-            liked={!!track.liked}
-            disliked={!!track.disliked}
-          />
-        ) : (
-        <div className="pmp-deck">
-            <button
-              type="button"
-              aria-label="Start the station"
-              disabled={playDisabled}
-              onClick={(e) => {
-                e.stopPropagation();
-                onPlay?.();
-              }}
-              className="pmp-press play-primary"
-              style={{
-                ...BTN_PRIMARY,
-                width: "auto",
-                height: 44,
-                padding: "0 22px",
-                opacity: playDisabled ? 0.6 : 1,
-                cursor: playDisabled ? "default" : "pointer",
-                display: "flex",
-                alignItems: "center",
-                gap: 8,
-              }}
-            >
-              <Icon name="play" size={15} />
-              Start listening
-            </button>
-        </div>
-        )}
+        <PlayerDeck
+          idle={!live}
+          playDisabled={playDisabled}
+          onStart={onPlay}
+          progress={progress}
+          duration={duration}
+          onSeek={live ? onSeek : null}
+          isPlaying={isPlaying}
+          buffering={isBuffering}
+          onTogglePlay={onTogglePlay}
+          onPrev={live ? onPrev : null}
+          onSkip={live ? onSkip : null}
+          onLike={live && onLike ? () => onLike(track.id) : null}
+          onDislike={live ? onDislike : null}
+          onShare={live && onShare ? () => onShare(track) : null}
+          onShowQueue={live ? onShowQueue : null}
+          liked={!!track?.liked}
+          disliked={!!track?.disliked}
+        />
 
         {tickerText ? (
           <div

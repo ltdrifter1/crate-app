@@ -192,6 +192,12 @@ describe("Home broadcast + four-tab IA", () => {
     expect(div.querySelector('[aria-label*="Up first Morning Signal"]')).toBeTruthy();
     expect(div.querySelectorAll("img").length).toBe(1);
     expect(div.querySelector(".pmp-hero-wash")).toBeTruthy();
+    expect(div.querySelector('[data-testid="rabbit-turtle"]')).toBeTruthy();
+    expect(div.querySelector('[aria-label="Start the station"]')).toBeTruthy();
+    expect(div.textContent).toMatch(/Start listening/);
+    expect(div.textContent).toMatch(/Turtle/);
+    expect(div.textContent).toMatch(/Rabbit/);
+    expect(div.querySelector(".pmp-seek__well")).toBeNull();
   });
 
   test("live hero has Turtle / Rabbit and dislike, not a Request button", async () => {
@@ -534,6 +540,73 @@ describe("Home broadcast + four-tab IA", () => {
     expect(personal).toBeGreaterThan(hero);
     expect(channels).toBeGreaterThan(personal);
     expect(tonight).toBeGreaterThan(channels);
+  });
+
+  test("signed-in empty personal shelf offers Discover; guests skip it", async () => {
+    const onOpenDiscover = jest.fn();
+    const playable = {
+      id: "t1",
+      title: "Night Drive",
+      artist: "Signal",
+      duration: 180,
+      audioUrl: "https://cdn.example/a.mp3",
+    };
+    await act(async () => {
+      root.render(
+        React.createElement(HomeScreen, {
+          tracks: [playable],
+          signedIn: true,
+          onOpenDiscover,
+        })
+      );
+    });
+    await act(async () => {
+      await new Promise((r) => setTimeout(r, 40));
+    });
+    expect(div.querySelector('[data-testid="home-personal"]')).toBeTruthy();
+    expect(div.textContent).toMatch(/Your listening/);
+    expect(div.textContent).toMatch(/Find music/);
+    await act(async () => {
+      div.querySelector('[aria-label="Find music"]').click();
+    });
+    expect(onOpenDiscover).toHaveBeenCalled();
+
+    await act(async () => {
+      root.render(
+        React.createElement(HomeScreen, {
+          tracks: [playable],
+          signedIn: false,
+        })
+      );
+    });
+    await act(async () => {
+      await new Promise((r) => setTimeout(r, 40));
+    });
+    expect(div.querySelector('[data-testid="home-personal"]')).toBeNull();
+    expect(div.textContent).not.toMatch(/Your listening/);
+  });
+
+  test("Home recents rail uses profile listen order", async () => {
+    await act(async () => {
+      root.render(
+        React.createElement(HomeScreen, {
+          tracks: [
+            { id: "a", title: "Alpha", artist: "One", duration: 180, audioUrl: "https://cdn.example/a.mp3" },
+            { id: "b", title: "Beta", artist: "Two", duration: 180, audioUrl: "https://cdn.example/b.mp3", liked: true },
+          ],
+          recentTrackIds: ["b", "a"],
+          signedIn: true,
+        })
+      );
+    });
+    await act(async () => {
+      await new Promise((r) => setTimeout(r, 40));
+    });
+    const personal = div.querySelector('[data-testid="home-personal"]');
+    expect(personal).toBeTruthy();
+    expect(personal.textContent).toMatch(/Recently played/);
+    expect(personal.textContent).toMatch(/Beta/);
+    expect(personal.textContent).toMatch(/Liked/);
   });
 
   test("first Channel Surfing tile is LCP-eager, later tiles lazy", async () => {
