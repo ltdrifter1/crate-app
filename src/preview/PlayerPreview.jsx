@@ -109,6 +109,8 @@ export default function PlayerPreview() {
           onSkip={() => {}}
           onLikeToggle={() => setTrack((t) => ({ ...t, liked: !t.liked, disliked: false }))}
           onDislike={() => setTrack((t) => ({ ...t, disliked: true, liked: false }))}
+          onShare={() => {}}
+          onShowQueue={() => {}}
           onSeek={(n) => playerPlaybackStore.setProgress(n)}
           OrbitalArtRing={OrbitalArtRing}
           PlayKey={PlayKey}
