@@ -7,7 +7,7 @@ const fs = require("fs");
 const path = require("path");
 
 const ROOT = path.join(__dirname, "..");
-const CHASSIS = "dark-premium-player-20260925";
+const CHASSIS = "dark-premium-home-20260925";
 const htmlPath = path.join(ROOT, "build", "index.html");
 
 if (!fs.existsSync(htmlPath)) {
@@ -44,6 +44,7 @@ const forbid = [
   ["retired light steel chassis", /steel-ps1-glass-20260919/.test(html)],
   ["retired obsidian ice chassis stamp", /obsidian-ps1-glass-20260925/.test(html)],
   ["retired token chassis stamp", /dark-premium-mp3-20260925/.test(html)],
+  ["retired player-surface chassis stamp", /dark-premium-player-20260925/.test(html)],
 ];
 
 let failed = false;

@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect, memo, lazy, Suspense } from "react";
+import { useMemo, useState, useEffect, memo } from "react";
 import {
   BTN_PRIMARY,
   BTN_SECONDARY,
@@ -12,22 +12,16 @@ import {
   y2k,
 } from "../theme";
 import { countPlayableTracks } from "../lib/catalogLoad";
-import { getSceneChannel, SCENE_CHANNELS } from "../lib/sceneChannels";
+import { getSceneChannel } from "../lib/sceneChannels";
 import { buildHomeCollections, savedTracks, tracksFromRecentIds } from "../lib/homeCollections";
-import { rankChannelsForTaste } from "../lib/onboardingTaste";
 import { runAfterPaint } from "../lib/afterPaint";
 import { useCurrentTrack, useTransportTrackId } from "../usePlayerTransport";
 import HomeHeader from "../components/home/HomeHeader";
 import HeroPlayerCard from "../components/home/HeroPlayerCard";
 import MusicSection, { Rail } from "../components/home/MusicSection";
-import ChannelSurfingSection from "../components/home/ChannelSurfingSection";
 import TrackCard from "../components/home/TrackCard";
 import CardContainer from "../components/home/CardContainer";
 import CrateSpread from "../components/home/CrateSpread";
-
-const TonightDeck = lazy(() =>
-  import("../components/station/ShowGuide").then((m) => ({ default: m.TonightDeck }))
-);
 
 function HomeCatalogStatus({ error, isEmpty, playableCount, totalCount, onRetry }) {
   if (!error && !isEmpty) return null;
@@ -110,12 +104,12 @@ function HomeStandBy() {
     <div
       role="status"
       aria-live="polite"
-      aria-label="Pulling the shelf"
+      aria-label="Loading your player"
       style={{
         margin: `${homeSpace.sectionGap}px ${homeSpace.gutter}px 0`,
         padding: "18px 20px",
         borderRadius: radius.xl,
-        border: "1px solid rgba(216,223,232,0.12)",
+        border: "1px solid rgba(255,255,255,0.08)",
         background: glass.plate,
         boxShadow: `inset 0 1px 0 ${glass.highlight}, ${glass.shadowSoft}`,
         display: "flex",
@@ -123,18 +117,6 @@ function HomeStandBy() {
         gap: 14,
       }}
     >
-      <span
-        aria-hidden="true"
-        className="pmp-live-led"
-        style={{
-          width: 8,
-          height: 8,
-          borderRadius: "50%",
-          background: y2k.live,
-          boxShadow: "none",
-          flexShrink: 0,
-        }}
-      />
       <div style={{ minWidth: 0 }}>
         <div
           style={{
@@ -142,15 +124,14 @@ function HomeStandBy() {
             fontSize: 13,
             fontWeight: 600,
             letterSpacing: -0.08,
-            textTransform: "none",
             color: color.muted,
             marginBottom: 4,
           }}
         >
-          Stand by
+          Getting ready
         </div>
         <div style={{ fontSize: 14, fontWeight: 550, color: color.body, letterSpacing: -0.1 }}>
-          Pulling the station
+          Loading your player
         </div>
       </div>
     </div>
@@ -346,100 +327,21 @@ function HomePersonal({
 
 function HomeEditorial({
   tracks,
-  countdown,
   onPlayTrack,
-  onOpenCharts,
-  onTuneCountdown,
 }) {
   const activeId = useTransportTrackId();
   const editorial = useMemo(() => buildHomeCollections(tracks), [tracks]);
-  const topRequested = useMemo(() => countdown.slice(0, 5), [countdown]);
-  const featuredSize = homeSpace.tileFeatured;
+  const feature = editorial[0];
+  if (!feature?.tracks?.length) return null;
 
   return (
-    <>
-      {editorial[0]?.tracks?.length > 0 && (
-        <CrateSpread
-          title={editorial[0].label}
-          subtitle={editorial[0].story}
-          tracks={editorial[0].tracks}
-          activeId={activeId}
-          onPlayTrack={onPlayTrack}
-        />
-      )}
-
-      {editorial.slice(editorial[0]?.tracks?.length ? 1 : 0).map((col, i) => (
-        <div key={col.id} style={{ contentVisibility: "auto", containIntrinsicSize: "280px" }}>
-          <MusicSection
-            title={col.label}
-            subtitle={col.story}
-            poster
-            delay={0.1 + i * 0.02}
-          >
-            <Rail gap={16}>
-              {col.tracks.map((track) => (
-                <TrackCard
-                  key={track.id}
-                  track={track}
-                  active={activeId === track.id}
-                  onClick={() => onPlayTrack?.(track, col.tracks)}
-                />
-              ))}
-            </Rail>
-          </MusicSection>
-        </div>
-      ))}
-
-      {topRequested.length > 0 && (
-        editorial[0]?.tracks?.length ? (
-          <div style={{ contentVisibility: "auto", containIntrinsicSize: "280px" }}>
-          <MusicSection
-            title="Most Requested"
-            subtitle="Tonight's countdown"
-            poster
-            first={false}
-            action={
-              onOpenCharts
-                ? { label: "See All", onClick: onOpenCharts }
-                : onTuneCountdown
-                  ? { label: "Tune In", onClick: onTuneCountdown }
-                  : null
-            }
-            delay={0.06}
-          >
-            <Rail gap={16}>
-              {topRequested.slice(0, 6).map(({ rank, track }) => (
-                <TrackCard
-                  key={track.id}
-                  track={track}
-                  rank={rank}
-                  size={featuredSize}
-                  active={activeId === track.id}
-                  onClick={() => onPlayTrack?.(track, topRequested.map((e) => e.track))}
-                />
-              ))}
-            </Rail>
-          </MusicSection>
-          </div>
-        ) : (
-          <CrateSpread
-            title="Most Requested"
-            subtitle="Tonight's countdown"
-            tracks={topRequested.map((e) => e.track)}
-            ranks={topRequested.map((e) => e.rank)}
-            activeId={activeId}
-            onPlayTrack={onPlayTrack}
-            action={
-              onOpenCharts
-                ? { label: "See All", onClick: onOpenCharts }
-                : onTuneCountdown
-                  ? { label: "Tune In", onClick: onTuneCountdown }
-                  : null
-            }
-          />
-        )
-      )}
-    </>
+    <CrateSpread
+      title={feature.label}
+      subtitle={feature.story}
+      tracks={feature.tracks}
+      activeId={activeId}
+      onPlayTrack={onPlayTrack}
+    />
   );
 }
 
@@ -490,18 +392,10 @@ function HomeScreen({
   const catalogReady = !catalogLoading && !catalogError && !catalogEmpty && !catalogDepleted;
   const shelvesReady = useAfterFirstPaint();
 
-  const channels = useMemo(
-    () => rankChannelsForTaste(SCENE_CHANNELS, taste),
-    [taste]
-  );
-
   const liveShow = channelShow || airing?.show || null;
   const activeChannel = sceneChannelsActiveId
     ? getSceneChannel(sceneChannelsActiveId)
     : null;
-  const hasTonight = !!(airing?.show || programGuide.length > 0);
-  const hasChannels = channels.length > 0;
-  const hasRequested = countdown.length > 0;
 
   return (
     <div
@@ -573,54 +467,11 @@ function HomeScreen({
       {shelvesReady && catalogReady && (
         <HomeEditorial
           tracks={tracks}
-          countdown={countdown}
           onPlayTrack={onPlayTrack}
-          onOpenCharts={onOpenCharts}
-          onTuneCountdown={onTuneCountdown}
         />
-      )}
-
-      {hasChannels && (
-        <ChannelSurfingSection
-          channels={channels}
-          activeChannelId={sceneChannelsActiveId}
-          onTuneChannel={onTuneSceneChannel}
-          first={false}
-          delay={0.05}
-        />
-      )}
-
-      {shelvesReady && hasTonight && (
-        <div style={{ contentVisibility: "auto", containIntrinsicSize: "320px" }}>
-          <Suspense fallback={null}>
-            <TonightDeck
-              airing={airing}
-              guide={programGuide}
-              bumper={showBumper}
-              activeShowId={activeShowId}
-              tuned={false}
-              first={false}
-              showNowPlaying={!!(airing?.show && activeShowId === airing.show.id)}
-              onTuneIn={() => onTuneShow?.(airing?.show)}
-              onSelectShow={(show) => onTuneShow?.(show)}
-            />
-          </Suspense>
-        </div>
       )}
 
       {catalogLoading && <HomeStandBy />}
-
-      {catalogReady &&
-        channels.length === 0 &&
-        !hasTonight &&
-        !hasRequested && (
-          <div style={{ marginTop: 32 }}>
-            <EmptyShelfCard
-              title="Nothing here yet"
-              body="New music will appear here."
-            />
-          </div>
-        )}
     </div>
   );
 }

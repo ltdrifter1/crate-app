@@ -3669,7 +3669,7 @@ export default function App() {
         )}
         {warmTabs.has("explore") && (
         <ScreenPane keepAlive active={screen==="explore"}>
-        <Suspense fallback={<div style={{ padding: 32, color: color.muted }}>Loading explore…</div>}><ExploreScreen catalogLoading={tracksLoading} tracks={tracks} onPlayTrack={playTrack} onOpenSearch={openSearchFromExplore} onOpenAlbum={openAlbum} onListenIntent={listenFromExplore} onOpenMenu={openMenu}/></Suspense>}
+        <Suspense fallback={<div style={{ padding: 32, color: color.muted }}>Loading explore…</div>}><ExploreScreen catalogLoading={tracksLoading} tracks={tracks} onPlayTrack={playTrack} onOpenSearch={openSearchFromExplore} onOpenAlbum={openAlbum} onListenIntent={listenFromExplore} onOpenMenu={openMenu} taste={profileTaste} sceneChannelsActiveId={activeSceneChannelId} onTuneSceneChannel={playSceneChannel} airing={liveAiring} programGuide={programGuide} activeShowId={activeShowId} onTuneShow={playShow} showBumper={showBumper}/></Suspense>}
         </ScreenPane>
         )}
         {!isKeepAliveScreen(screen) && (screen==="charts" || screen==="search") && (

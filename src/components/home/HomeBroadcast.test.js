@@ -71,8 +71,10 @@ describe("Home broadcast + four-tab IA", () => {
     });
     expect(div.querySelector('button[aria-label="Charts"]')).toBeNull();
     expect(div.textContent).not.toMatch(/PLANET \/ 003/);
-    expect(div.textContent).not.toMatch(/Planet MP3/);
+    expect(div.textContent).toMatch(/Planet MP3/);
     expect(div.textContent).not.toMatch(/PMP3/);
+    expect(div.textContent).not.toMatch(/Late signal/);
+    expect(div.textContent).not.toMatch(/Prime time/);
     expect(div.querySelector('button[aria-label="Previous"]')).toBeNull();
     expect(div.querySelector('button[aria-label="Back"]')).toBeNull();
     const search = div.querySelector('button[aria-label="Search"]');
@@ -482,31 +484,11 @@ describe("Home broadcast + four-tab IA", () => {
     expect(div.textContent).not.toMatch(/Showcase/);
     expect(div.textContent).not.toMatch(/Not now/);
     expect(div.textContent).not.toMatch(/Tune in/);
-    const surf = div.querySelector(".pmp-channel-surf");
-    expect(surf).toBeTruthy();
-    expect(surf.textContent).toMatch(/Local/);
-    expect(surf.textContent).not.toMatch(/PNW/);
-    const local = [...surf.querySelectorAll(".pmp-channel-card")].find((el) =>
-      el.textContent.includes("Local")
-    );
-    expect(local).toBeTruthy();
-    expect(local.className).not.toMatch(/pmp-channel-card--featured/);
-    expect(local.className).not.toMatch(/pmp-channel-card--gold/);
-    expect(local.textContent).toMatch(/Local/);
-    expect(local.getAttribute("aria-label")).toMatch(/Tune Local/);
-    const featured = [...surf.querySelectorAll(".pmp-channel-card")].filter((el) =>
-      el.className.includes("pmp-channel-card--featured") || el.className.includes("pmp-channel-card--gold")
-    );
-    expect(featured).toHaveLength(0);
-    await act(async () => {
-      local.click();
-    });
-    expect(onTuneSceneChannel).toHaveBeenCalled();
-    expect(onTuneSceneChannel.mock.calls[0][0].id).toBe("local-pnw");
-    expect(div.textContent).not.toMatch(/Made for you/i);
+    expect(div.querySelector(".pmp-channel-surf")).toBeNull();
+    expect(div.textContent).not.toMatch(/Channel Surfing/);
   });
 
-  test("Home paints Channel Surfing before the catalog arrives", async () => {
+  test("Home loading shows the player, not Channel Surfing", async () => {
     await act(async () => {
       root.render(
         React.createElement(HomeScreen, {
@@ -515,17 +497,16 @@ describe("Home broadcast + four-tab IA", () => {
         })
       );
     });
-    expect(div.querySelector(".pmp-channel-surf")).toBeTruthy();
-    expect(div.textContent).toMatch(/Channel Surfing/);
-    expect(div.textContent).toMatch(/Y2K Dance/);
-    expect(div.textContent).toMatch(/Stand by/i);
-    expect(div.textContent).toMatch(/Pulling the station/i);
+    expect(div.querySelector(".pmp-channel-surf")).toBeNull();
+    expect(div.textContent).not.toMatch(/Channel Surfing/);
+    expect(div.textContent).toMatch(/Getting ready/i);
+    expect(div.textContent).toMatch(/Loading your player/i);
     expect(div.textContent).not.toMatch(/Nothing here yet/);
     expect(div.textContent).not.toMatch(/Couldn.t load/);
     expect(div.querySelector(".pmp-showcase-promo")).toBeNull();
   });
 
-  test("player and personal shelves sit before Channel Surfing and Tonight", async () => {
+  test("player then personal then one editorial — radio is off Home", async () => {
     const fs = require("fs");
     const path = require("path");
     const src = fs.readFileSync(
@@ -534,12 +515,12 @@ describe("Home broadcast + four-tab IA", () => {
     );
     const hero = src.indexOf("<HeroPlayerCard");
     const personal = src.indexOf("<HomePersonal");
-    const channels = src.indexOf("<ChannelSurfingSection");
-    const tonight = src.indexOf("<TonightDeck");
+    const editorial = src.indexOf("<HomeEditorial");
     expect(hero).toBeGreaterThan(-1);
     expect(personal).toBeGreaterThan(hero);
-    expect(channels).toBeGreaterThan(personal);
-    expect(tonight).toBeGreaterThan(channels);
+    expect(editorial).toBeGreaterThan(personal);
+    expect(src).not.toMatch(/ChannelSurfingSection/);
+    expect(src).not.toMatch(/TonightDeck/);
   });
 
   test("signed-in empty personal shelf offers Discover; guests skip it", async () => {

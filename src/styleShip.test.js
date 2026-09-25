@@ -54,7 +54,7 @@ test("theme source does not ship mint phosphor or DistroKid trim", () => {
   expect(theme).not.toMatch(/#367FC7/i);
   expect(theme).toMatch(/lcdSignal/);
   expect(theme).not.toMatch(/lcdPhosphor/);
-  expect(theme).toMatch(/dark-premium-player-20260925/);
+  expect(theme).toMatch(/dark-premium-home-20260925/);
 });
 
 test("player surfaces use Turtle / Rabbit, not energy paddles", () => {
@@ -90,22 +90,29 @@ test("player surfaces use Turtle / Rabbit, not energy paddles", () => {
   expect(mini).toMatch(/onShowQueue/);
 });
 
-test("browse lists print BPM and Camelot, and Home ranks the player over radio", () => {
+test("browse lists print BPM and Camelot, and Home is player then my listening", () => {
   const row = fs.readFileSync(path.join(root, "src/components/listen/TrackRow.jsx"), "utf8");
   expect(row).toMatch(/trackBrowseBits/);
   const focus = fs.readFileSync(path.join(root, "src/components/explore/ExploreFocus.jsx"), "utf8");
   expect(focus).toMatch(/trackBrowseBits/);
   const home = fs.readFileSync(path.join(root, "src/screens/HomeScreen.jsx"), "utf8");
   expect(home.indexOf("<HeroPlayerCard")).toBeLessThan(home.indexOf("<HomePersonal"));
-  expect(home.indexOf("<HomePersonal")).toBeLessThan(home.indexOf("<ChannelSurfingSection"));
-  expect(home.indexOf("<ChannelSurfingSection")).toBeLessThan(home.indexOf("<TonightDeck"));
+  expect(home.indexOf("<HomePersonal")).toBeLessThan(home.indexOf("<HomeEditorial"));
+  expect(home).not.toMatch(/ChannelSurfingSection/);
+  expect(home).not.toMatch(/TonightDeck/);
   expect(home).toMatch(/signedIn/);
   expect(home).toMatch(/Your listening/);
   const header = fs.readFileSync(path.join(root, "src/components/home/HomeHeader.jsx"), "utf8");
   expect(header).toMatch(/aria-label="Search"/);
   expect(header).toMatch(/Find/);
   expect(header).toMatch(/aria-label="More"/);
+  expect(header).toMatch(/BrandMark/);
+  expect(header).not.toMatch(/Late signal/);
+  expect(header).not.toMatch(/stationGreeting/);
   expect(header).not.toMatch(/onOpenProfile/);
+  const explore = fs.readFileSync(path.join(root, "src/screens/ExploreScreen.jsx"), "utf8");
+  expect(explore).toMatch(/ChannelSurfingSection/);
+  expect(explore).toMatch(/TonightDeck/);
   const sidebar = fs.readFileSync(path.join(root, "src/components/layout/AppSidebar.jsx"), "utf8");
   expect(sidebar).toMatch(/variant === "drawer"/);
   expect(sidebar).not.toMatch(/Faceplate/);

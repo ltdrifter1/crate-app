@@ -160,10 +160,8 @@ describe("Explore screen", () => {
     expect(div.textContent).toMatch(/Night Shift|Highways|Gain/);
     expect(div.textContent).not.toMatch(/Moods & moments/);
     expect(div.textContent).not.toMatch(/Stations/);
-    expect(div.textContent).not.toMatch(/Channel Surfing/);
-    expect(div.textContent).not.toMatch(/Most requested/i);
-    expect(div.textContent).not.toMatch(/On the board/);
-    expect(div.textContent).not.toMatch(/Fresh picks|Selected for you/);
+    expect(div.textContent).toMatch(/Channel Surfing/);
+    expect(div.querySelector(".pmp-channel-surf")).toBeTruthy();
     expect(div.textContent).not.toMatch(/Recently played/);
     expect(div.querySelector(".pmp-crate-spread")).toBeFalsy();
     expect(div.querySelector('section[aria-label="Albums"]')).toBeFalsy();
@@ -331,5 +329,32 @@ describe("Explore screen", () => {
     const tiles = tray.querySelectorAll(".pmp-world-tile");
     expect(tiles.length).toBeGreaterThan(0);
     expect(tray.querySelector(".pmp-world-tile--lead")).toBeTruthy();
+  });
+
+  test("Discover hosts Channel Surfing after New Releases when the dial is wired", async () => {
+    const onTune = jest.fn();
+    await act(async () => {
+      root.render(
+        React.createElement(ExploreScreen, {
+          tracks: catalog,
+          onTuneSceneChannel: onTune,
+        })
+      );
+    });
+    const surf = div.querySelector(".pmp-channel-surf");
+    expect(surf).toBeTruthy();
+    expect(div.textContent).toMatch(/Channel Surfing/);
+    expect(div.querySelector('section[aria-label="New Releases"]')).toBeTruthy();
+    const src = require("fs").readFileSync(require("path").join(__dirname, "ExploreScreen.jsx"), "utf8");
+    expect(src.indexOf("NewReleases")).toBeLessThan(src.indexOf("ChannelSurfingSection"));
+    const local = [...surf.querySelectorAll(".pmp-channel-card")].find((el) =>
+      el.textContent.includes("Local")
+    );
+    expect(local).toBeTruthy();
+    await act(async () => {
+      local.click();
+    });
+    expect(onTune).toHaveBeenCalled();
+    expect(onTune.mock.calls[0][0].id).toBe("local-pnw");
   });
 });

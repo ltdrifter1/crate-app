@@ -1,11 +1,10 @@
 /**
  * Dev-only IA preview — hash #broadcast-preview.
- * Exercises left source list (Charts + Build a set), Library, and Home Channel Surfing.
+ * Exercises left source list (Charts + Build a set), Library, and Home player-first.
  */
 import { useEffect, useState } from "react";
 import HomeHeader from "../components/home/HomeHeader";
 import HeroPlayerCard from "../components/home/HeroPlayerCard";
-import ChannelSurfingSection from "../components/home/ChannelSurfingSection";
 import CrateSpread from "../components/home/CrateSpread";
 import AppSidebar from "../components/layout/AppSidebar";
 import MobileNavDrawer from "../components/layout/MobileNavDrawer";
@@ -18,7 +17,6 @@ import SearchScreen from "../screens/SearchScreen";
 import { makeSetPreviewCatalog } from "./SetPreview";
 import { color, homeSpace } from "../theme";
 import { previewSleeve } from "./sleeves";
-import { TonightDeck } from "../components/station/ShowGuide";
 import GlassDock from "../components/player/GlassDock";
 import ImmersivePlayer from "../components/player/ImmersivePlayer";
 import { playerPlaybackStore } from "../lib/playerPlaybackStore";
@@ -58,41 +56,6 @@ const SAMPLE_NEXT = {
   playCount: 31,
   requestCount: 11,
 };
-
-const SAMPLE_AIRING = {
-  show: {
-    id: "countdown",
-    title: "Most Requested Live",
-    tagline: "Prime-time countdown with Dez",
-    timeLabel: "8–10 PM",
-    startHour: 20,
-    endHour: 22,
-    host: { name: "Dez Rivera", monogram: "DR" },
-  },
-  host: { name: "Dez Rivera", monogram: "DR" },
-  remainingMinutes: 42,
-  progress: 0.35,
-  nextShow: { id: "late", shortTitle: "Late Signal", title: "Late Signal", startHour: 22 },
-};
-
-const SAMPLE_GUIDE = [
-  {
-    id: "countdown",
-    title: "Most Requested Live",
-    shortTitle: "Most Requested",
-    status: "live",
-    startHour: 20,
-    endHour: 22,
-  },
-  {
-    id: "late",
-    title: "Late Signal",
-    shortTitle: "Late Signal",
-    status: "up-next",
-    startHour: 22,
-    endHour: 24,
-  },
-];
 
 const SAMPLE_TRACKS = [
   SAMPLE_TRACK,
@@ -184,11 +147,7 @@ export default function BroadcastPreview() {
   const [buildingSet, setBuildingSet] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [immersive, setImmersive] = useState(false);
-  const [activeChannelId, setActiveChannelId] = useState("local-pnw");
-  const channels = [...SCENE_CHANNELS].sort((a, b) => {
-    if (!!a.showcase !== !!b.showcase) return a.showcase ? -1 : 1;
-    return (a.num || 0) - (b.num || 0);
-  });
+  const [activeChannelId] = useState("local-pnw");
   const [isDesktop, setIsDesktop] = useState(
     () => typeof window !== "undefined" && window.innerWidth >= 768
   );
@@ -247,28 +206,12 @@ export default function BroadcastPreview() {
           tickerText="Planet Radio — requests open · Local on the dial"
         />
       </div>
-      <ChannelSurfingSection
-        channels={channels}
-        activeChannelId={activeChannelId}
-        onTuneChannel={(ch) => setActiveChannelId(ch.id)}
-        first
-      />
-      <TonightDeck
-        airing={SAMPLE_AIRING}
-        guide={SAMPLE_GUIDE}
-        first={false}
-        showNowPlaying={false}
-        onTuneIn={() => {}}
-        onSelectShow={() => {}}
-      />
       <CrateSpread
-        title="Most Requested"
-        subtitle="Tonight's countdown"
-        tracks={SAMPLE_COUNTDOWN.map((e) => e.track)}
-        ranks={SAMPLE_COUNTDOWN.map((e) => e.rank)}
+        title="Played before"
+        subtitle="Cuts you’ve spun — worth another drop"
+        tracks={SAMPLE_TRACKS.slice(0, 6)}
         activeId={SAMPLE_TRACK.id}
         onPlayTrack={() => {}}
-        action={{ label: "See All", onClick: () => setScreen("charts") }}
       />
     </div>
   );
