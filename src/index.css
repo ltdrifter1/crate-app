@@ -244,18 +244,16 @@ body::before { display: none; }
   position: relative;
 }
 .pmp-deck-plate {
-  padding: 10px 10px 8px;
-  border-radius: 10px;
+  padding: 12px 12px 10px;
+  border-radius: 18px;
   isolation: isolate;
   overflow: hidden;
   background:
-    linear-gradient(180deg, rgba(200,210,222,0.10) 0%, rgba(36,42,51,0.35) 36%, rgba(22,27,34,0.55) 100%),
-    linear-gradient(165deg, rgba(42,50,60,0.72) 0%, rgba(28,34,43,0.82) 100%);
-  border: 1px solid rgba(200,210,222,0.16);
+    linear-gradient(180deg, rgba(255,255,255,0.06) 0%, rgba(36,42,51,0.55) 40%, rgba(22,27,34,0.72) 100%);
+  border: 1px solid rgba(255,255,255,0.08);
   box-shadow:
-    inset 0 1px 0 rgba(200,210,222,0.16),
-    inset 0 -3px 8px rgba(6,10,16,0.45),
-    0 10px 24px rgba(6,10,16,0.36);
+    inset 0 1px 0 rgba(255,255,255,0.08),
+    0 12px 28px rgba(0,0,0,0.4);
   backdrop-filter: blur(16px) saturate(1.12);
   -webkit-backdrop-filter: blur(16px) saturate(1.12);
 }
@@ -266,14 +264,9 @@ body::before { display: none; }
   border-radius: inherit;
   pointer-events: none;
   z-index: 0;
-  background:
-    repeating-linear-gradient(
-      180deg,
-      rgba(228,247,250,0.07) 0 1px,
-      transparent 1px 4px
-    );
-  opacity: 0.55;
-  mix-blend-mode: overlay;
+  background: radial-gradient(80% 60% at 20% 0%, rgba(168,255,106,0.08) 0%, transparent 55%);
+  opacity: 1;
+  mix-blend-mode: normal;
 }
 .pmp-deck-plate > * {
   position: relative;
@@ -288,12 +281,10 @@ body::before { display: none; }
   flex-wrap: wrap;
 }
 .pmp-deck-pad {
-  padding: 5px 6px;
-  border-radius: 9px;
-  background: linear-gradient(180deg, rgba(200,210,222,0.08) 0%, rgba(6,10,16,0.28) 100%);
-  box-shadow:
-    inset 0 2px 6px rgba(6,10,16,0.45),
-    inset 0 1px 0 rgba(200,210,222,0.12);
+  padding: 6px 8px;
+  border-radius: 980px;
+  background: rgba(0,0,0,0.22);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.06);
 }
 .pmp-hw-key:not(.pmp-play-planet) {
   position: relative;
@@ -323,10 +314,10 @@ body::before { display: none; }
   inset: -5px;
   border-radius: 50%;
   pointer-events: none;
-  border: 1px solid rgba(183,228,238,0.28);
+  border: 1px solid rgba(168,255,106,0.28);
   box-shadow:
-    0 0 0 3px rgba(90,196,214,0.12),
-    inset 0 0 0 1px rgba(183,228,238,0.18);
+    0 0 0 3px rgba(168,255,106,0.12),
+    inset 0 0 0 1px rgba(168,255,106,0.18);
 }
 .pmp-seek {
   width: 100%;
@@ -339,12 +330,12 @@ body::before { display: none; }
   right: 0;
   top: 50%;
   transform: translateY(-50%);
-  border-radius: 3px;
+  border-radius: 980px;
   background:
-    linear-gradient(180deg, rgba(42,50,60,0.92) 0%, rgba(84,94,108,0.88) 48%, rgba(74,83,96,0.9) 100%);
+    linear-gradient(180deg, rgba(20,23,28,0.92) 0%, rgba(42,50,60,0.88) 100%);
   box-shadow:
-    inset 0 2px 6px rgba(58,66,80,0.62),
-    inset 0 1px 0 rgba(183,228,238,0.16);
+    inset 0 2px 6px rgba(0,0,0,0.55),
+    inset 0 1px 0 rgba(168,255,106,0.12);
   pointer-events: none;
   overflow: hidden;
 }
@@ -359,7 +350,7 @@ body::before { display: none; }
   bottom: 2px;
   width: 1px;
   margin-left: -0.5px;
-  background: rgba(228,247,250,0.28);
+  background: rgba(168,255,106,0.22);
 }
 .pmp-seek__fill {
   position: relative;
@@ -371,15 +362,15 @@ body::before { display: none; }
 .pmp-pace__well {
   border-radius: 3px;
   background:
-    linear-gradient(180deg, rgba(42,50,60,0.88) 0%, rgba(84,94,108,0.82) 52%, rgba(74,83,96,0.86) 100%);
+    linear-gradient(180deg, rgba(20,23,28,0.92) 0%, rgba(42,50,60,0.88) 52%, rgba(28,34,43,0.9) 100%);
   box-shadow:
-    inset 0 2px 5px rgba(58,66,80,0.55),
-    inset 0 1px 0 rgba(183,228,238,0.14);
+    inset 0 2px 5px rgba(0,0,0,0.55),
+    inset 0 1px 0 rgba(168,255,106,0.12);
 }
 .pmp-pace__detent {
   border-radius: 1px;
-  background: rgba(228,247,250,0.72);
-  box-shadow: 0 0 0 1px rgba(91,101,116,0.22);
+  background: rgba(168,255,106,0.72);
+  box-shadow: 0 0 0 1px rgba(168,255,106,0.22);
 }
 .pmp-pace-slot {
   flex: 0 0 50%;
@@ -420,8 +411,8 @@ body::before { display: none; }
     grid-row: auto !important;
   }
   .pmp-hero-sleeve {
-    width: min(42vw, 168px) !important;
-    height: min(42vw, 168px) !important;
+    width: min(48vw, 188px) !important;
+    height: min(48vw, 188px) !important;
   }
   .pmp-hero {
     min-height: 0 !important;
@@ -469,8 +460,8 @@ body::before { display: none; }
     padding-left: 0 !important;
   }
   .pmp-hero-sleeve {
-    width: min(34vw, 120px) !important;
-    height: min(34vw, 120px) !important;
+    width: min(40vw, 148px) !important;
+    height: min(40vw, 148px) !important;
   }
   .pmp-channel-card {
     width: 120px !important;

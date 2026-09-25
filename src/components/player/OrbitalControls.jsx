@@ -20,7 +20,7 @@ export function PlayKey({
   const iSize = iconSize ?? Math.round(size * 0.34);
   const busy = buffering && isPlaying;
   const face = glowing
-    ? "linear-gradient(180deg, rgba(232,241,248,0.96) 0%, rgba(200,214,226,0.82) 46%, rgba(168,186,200,0.9) 100%)"
+    ? `linear-gradient(180deg, ${color.lcdSignal} 0%, #7DFFB3 100%)`
     : hardware.keyFace;
   return (
     <button
@@ -40,22 +40,22 @@ export function PlayKey({
         borderRadius: "50%",
         background: disabled ? hardware.keyFace : face,
         border: disabled
-          ? "1px solid rgba(200,210,222,0.16)"
+          ? "1px solid rgba(255,255,255,0.10)"
           : glowing
-            ? "2px solid rgba(90,196,214,0.55)"
-            : "1.5px solid rgba(200,210,222,0.18)",
+            ? "2px solid rgba(168,255,106,0.7)"
+            : "1.5px solid rgba(255,255,255,0.12)",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        color: disabled ? color.faint : color.ink,
+        color: disabled ? color.faint : glowing ? color.onAccent : color.ink,
         cursor: disabled ? "not-allowed" : "pointer",
         flexShrink: 0,
         opacity: disabled ? 0.55 : 1,
         boxShadow: disabled
           ? "none"
           : glowing
-            ? `inset 0 3px 0 rgba(200,210,222,0.22), inset 0 -4px 8px rgba(6,10,16,0.55), 0 0 0 4px rgba(183,228,238,0.28), 0 0 22px rgba(90,196,214,0.42), 0 8px 16px rgba(6,10,16,0.45)`
-            : `inset 0 3px 0 rgba(200,210,222,0.16), inset 0 -3px 6px rgba(6,10,16,0.5), 0 0 0 3px rgba(90,196,214,0.12), ${hardware.keyRaised}`,
+            ? `0 0 0 4px ${color.lcdSignalSoft}, 0 0 22px ${color.lcdSignalGlow}, 0 8px 16px rgba(0,0,0,0.45)`
+            : `0 0 0 3px ${color.lcdSignalSoft}, ${hardware.keyRaised}`,
         transition: `transform ${motion.fast} ${motion.ease}, box-shadow ${motion.base} ${motion.ease}, background ${motion.fast} ${motion.ease}`,
       }}
     >
@@ -81,8 +81,8 @@ export function PlayKey({
             width: Math.round(size * 0.38),
             height: Math.round(size * 0.38),
             borderRadius: "50%",
-            border: "2px solid rgba(28,32,40,0.16)",
-            borderTopColor: color.ink,
+            border: "2px solid rgba(168,255,106,0.22)",
+            borderTopColor: glowing ? color.onAccent : color.ink,
             animation: "spin 0.7s linear infinite",
           }}
         />
@@ -165,7 +165,7 @@ export function OrbitalArtRing({
           cy={svgSize / 2}
           r={r}
           fill="none"
-          stroke="rgba(247,248,250,0.92)"
+          stroke={color.lcdSignal}
           strokeWidth={stroke}
           strokeLinecap="round"
           strokeDasharray={`${dash} ${Math.max(0, circ - dash)}`}
@@ -243,7 +243,7 @@ export function OrbitalPlayControl({
           cy={ring / 2}
           r={r}
           fill="none"
-          stroke="rgba(247,248,250,0.9)"
+          stroke={color.lcdSignal}
           strokeWidth={stroke}
           strokeLinecap="round"
           strokeDasharray={`${dash} ${Math.max(0, circ - dash)}`}

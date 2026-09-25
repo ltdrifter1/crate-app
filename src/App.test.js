@@ -17,7 +17,7 @@ test('theme exports core tokens', () => {
   expect(fontDisplay).toMatch(/IBM Plex Sans/);
   expect(font).not.toMatch(/^system-ui/);
   expect(fontLcd).toMatch(/IBM Plex Mono/);
-  expect(STYLE_CHASSIS).toBe("dark-premium-mp3-20260925");
+  expect(STYLE_CHASSIS).toBe("dark-premium-player-20260925");
   expect(color.lcdSignal).toMatch(/#A8FF6A/i);
   expect(color.cta).toMatch(/#A8FF6A/i);
   expect(color.onCta).toMatch(/#121417/i);

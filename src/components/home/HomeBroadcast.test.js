@@ -161,7 +161,7 @@ describe("Home broadcast + four-tab IA", () => {
     expect(div.textContent).not.toMatch(/PMP3/);
     expect(div.textContent).not.toMatch(/PLANET \/ 003/);
     expect(div.querySelector('[aria-label="Previous"]')).toBeNull();
-    expect(div.textContent).toMatch(/On air/i);
+    expect(div.textContent).toMatch(/Now playing/i);
     expect(div.textContent).toMatch(/Night Drive/);
     expect(div.textContent).toMatch(/Up next/i);
     expect(div.querySelector(".pmp-upnext-glass")).toBeTruthy();
@@ -193,7 +193,7 @@ describe("Home broadcast + four-tab IA", () => {
     expect(div.querySelectorAll("img").length).toBe(1);
     expect(div.querySelector(".pmp-hero-wash")).toBeTruthy();
     expect(div.querySelector('[data-testid="rabbit-turtle"]')).toBeTruthy();
-    expect(div.querySelector('[aria-label="Start the station"]')).toBeTruthy();
+    expect(div.querySelector('[aria-label="Start listening"]')).toBeTruthy();
     expect(div.textContent).toMatch(/Start listening/);
     expect(div.textContent).toMatch(/Turtle/);
     expect(div.textContent).toMatch(/Rabbit/);

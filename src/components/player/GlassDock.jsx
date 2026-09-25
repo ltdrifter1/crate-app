@@ -1,6 +1,6 @@
 import { lazy, Suspense } from "react";
 import {
-  artShadow, color, dock, fontDisplay, fontMono, motion, neons, radio,
+  artShadow, color, dock, fontDisplay, motion, neons, radio,
 } from "../../theme";
 import Icon from "../ui/Icon";
 import BottomNavigation from "../home/BottomNavigation";
@@ -76,13 +76,13 @@ export default function GlassDock({
       <div
         className={`glass-dock pmp-dock-stack pmp-dock-faceplate${hasPlayer ? " pmp-dock-stack--playing" : ""}`}
         style={{
-          borderRadius: 12,
+          borderRadius: dock.radius,
           overflow: "hidden",
           pointerEvents: "auto",
           background: radio.moduleFace,
-          border: "1px solid rgba(91,101,116,0.28)",
+          border: "1px solid rgba(255,255,255,0.10)",
           boxShadow:
-            "inset 0 1px 0 rgba(216,223,232,0.5), inset 0 -1px 0 rgba(58,66,80,0.18), 0 12px 28px rgba(58,66,80,0.22)",
+            "inset 0 1px 0 rgba(255,255,255,0.08), 0 16px 36px rgba(0,0,0,0.45)",
         }}
       >
         {hasPlayer && (
@@ -117,18 +117,18 @@ export default function GlassDock({
                 background: radio.lcdFace,
                 boxShadow: isRadioMode || hypnoPocket
                   ? `inset 3px 0 0 ${color.alert}`
-                  : "inset 0 2px 10px rgba(58,66,80,0.45), inset 0 1px 0 rgba(183,228,238,0.18)",
+                  : `inset 0 2px 10px rgba(0,0,0,0.45), inset 0 1px 0 rgba(168,255,106,0.12)`,
               }}
             >
               <div
                 className="pmp-mini-cover"
                 style={{
-                  width: 40,
-                  height: 40,
-                  borderRadius: 4,
+                  width: 44,
+                  height: 44,
+                  borderRadius: 12,
                   overflow: "hidden",
                   flexShrink: 0,
-                  border: "1.5px solid rgba(216,223,232,0.5)",
+                  border: "1.5px solid rgba(255,255,255,0.12)",
                   background: color.surfaceRaised,
                   boxShadow: artShadow.raised,
                 }}
@@ -137,8 +137,8 @@ export default function GlassDock({
                   <CoverImage
                     src={track.albumCover}
                     alt=""
-                    width={40}
-                    height={40}
+                    width={44}
+                    height={44}
                     style={{ width: "100%", height: "100%", objectFit: "cover" }}
                   />
                 ) : (
@@ -154,9 +154,9 @@ export default function GlassDock({
 
               <div key={track.id} style={{ flex: 1, minWidth: 0, animation: "fadeIn 0.3s ease both" }}>
                 <div style={{
-                  fontSize: 13, fontWeight: 700, color: color.lcdInk,
+                  fontSize: 14, fontWeight: 700, color: color.lcdInk,
                   overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
-                  fontFamily: fontMono, letterSpacing: 0.04,
+                  fontFamily: fontDisplay, letterSpacing: -0.2,
                 }}>
                   {(isRadioMode || hypnoPocket) && (
                     <span style={{
@@ -168,9 +168,9 @@ export default function GlassDock({
                   {track.title}
                 </div>
                 <div style={{
-                  fontSize: 11, color: color.lcdMute, marginTop: 2,
+                  fontSize: 12, color: color.lcdMute, marginTop: 2,
                   overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
-                  fontFamily: fontMono, letterSpacing: 0.06, textTransform: "uppercase",
+                  fontFamily: fontDisplay, letterSpacing: -0.1,
                 }}>
                   {track.artist}
                 </div>

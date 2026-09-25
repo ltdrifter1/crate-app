@@ -74,10 +74,10 @@ export default function DesktopMiniPlayer({
           style={{
             width: 48,
             height: 48,
-            borderRadius: 6,
+            borderRadius: 12,
             overflow: "hidden",
             flexShrink: 0,
-            border: "1px solid rgba(91,101,116,0.12)",
+            border: "1px solid rgba(255,255,255,0.10)",
           }}
         >
           {track.albumCover ? (
@@ -92,7 +92,7 @@ export default function DesktopMiniPlayer({
         </div>
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{
-            fontSize: 14, fontWeight: 650, color: color.ink,
+            fontSize: 15, fontWeight: 700, color: color.ink,
             overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
             letterSpacing: -0.2, fontFamily: fontDisplay,
           }}>
@@ -106,7 +106,7 @@ export default function DesktopMiniPlayer({
             {track.title}
           </div>
           <div style={{
-            fontSize: 12, color: color.muted, marginTop: 2,
+            fontSize: 13, color: color.muted, marginTop: 2,
             overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
           }}>
             {track.artist}
