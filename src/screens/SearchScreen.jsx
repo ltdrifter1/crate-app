@@ -9,7 +9,7 @@ import { useCurrentTrack } from "../usePlayerTransport";
 import { rankSearchResults, searchEntityHits } from "../lib/searchRank";
 import {
   BTN_SECONDARY,
-  INPUT_ST,
+  SEARCH_FIELD,
   color,
   font,
   fontDisplay,
@@ -41,9 +41,7 @@ function SearchScreen({
   const visibleResults = showAllResults ? results : results.slice(0, RESULT_CAP);
   const useVirtual = showAllResults && results.length > RESULT_CAP;
   const hintChip = {
-    background: `
-      linear-gradient(165deg, rgba(184,191,202,0.82) 0%, rgba(180,187,198,0.5) 100%)
-    `,
+    background: "rgba(22, 27, 34, 0.88)",
     border: `1px solid ${glass.borderSoft}`,
     borderRadius: 4,
     padding: "7px 13px",
@@ -87,13 +85,9 @@ function SearchScreen({
           placeholder="Search"
           aria-label="Search"
           style={{
-            ...INPUT_ST,
+            ...SEARCH_FIELD,
             paddingLeft:42,
             paddingRight: query ? 42 : 16,
-            borderRadius: radius.xl,
-            background: `
-              linear-gradient(165deg, rgba(184,191,202,0.82) 0%, rgba(180,187,198,0.5) 100%)
-            `,
           }}
           value={query}
           onChange={e=>setQuery(e.target.value)}
@@ -137,9 +131,7 @@ function SearchScreen({
               style={{
                 display:"flex", alignItems:"center", gap:12, width:"100%", padding:"12px 12px",
                 marginBottom: 6,
-                background: `
-                  linear-gradient(165deg, rgba(184,191,202,0.68) 0%, rgba(180,187,198,0.38) 100%)
-                `,
+                background: glass.plate,
                 border: `1px solid ${glass.borderSoft}`,
                 borderRadius: radius.lg,
                 boxShadow: `inset 0 1px 0 ${glass.highlight}`,
@@ -166,9 +158,7 @@ function SearchScreen({
               style={{
                 display:"flex", alignItems:"center", gap:12, width:"100%", padding:"12px 12px",
                 marginBottom: 6,
-                background: `
-                  linear-gradient(165deg, rgba(184,191,202,0.68) 0%, rgba(180,187,198,0.38) 100%)
-                `,
+                background: glass.plate,
                 border: `1px solid ${glass.borderSoft}`,
                 borderRadius: radius.lg,
                 boxShadow: `inset 0 1px 0 ${glass.highlight}`,

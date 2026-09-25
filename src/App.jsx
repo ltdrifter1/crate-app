@@ -270,7 +270,7 @@ const injectStyles = () => {
       background: ${color.surfaceRaised} !important;
       box-shadow: inset 0 1px 0 ${glass.highlight}, 0 0 0 3px ${color.accentSoft} !important;
     }
-    input[type="range"] { -webkit-appearance: none; height: 4px; background: rgba(90,196,214,0.16); border-radius: 2px; outline: none; cursor: pointer; }
+    input[type="range"] { -webkit-appearance: none; height: 4px; background: rgba(110,168,255,0.12); border-radius: 2px; outline: none; cursor: pointer; }
     input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; border-radius: 50%; background: ${color.accent}; border: 2px solid ${color.onAccent}; box-shadow: 0 1px 4px rgba(6,10,16,0.55); cursor: pointer; }
     input[type="range"]::-moz-range-thumb { width: 14px; height: 14px; border-radius: 50%; background: ${color.accent}; border: 2px solid ${color.onAccent}; box-shadow: 0 1px 4px rgba(6,10,16,0.55); cursor: pointer; }
     input.chrome-seek { -webkit-appearance: none; appearance: none; background: transparent !important; height: 32px !important; }
@@ -279,8 +279,8 @@ const injectStyles = () => {
     input.chrome-seek::-webkit-slider-thumb {
       -webkit-appearance: none; appearance: none; width: 11px; height: 18px; margin-top: -4px;
       border-radius: 3px;
-      background: linear-gradient(180deg, #E8FFD0 0%, #A8FF6A 55%, #6EA8FF 100%);
-      border: 1px solid rgba(168,255,106,0.85);
+      background: linear-gradient(180deg, #D8E4F4 0%, #6EA8FF 55%, #B794F6 100%);
+      border: 1px solid rgba(110,168,255,0.55);
       box-shadow:
         inset 0 1px 0 rgba(228,247,250,0.45),
         0 0 10px ${color.lcdSignalGlow},
@@ -289,8 +289,8 @@ const injectStyles = () => {
     }
     input.chrome-seek::-moz-range-thumb {
       width: 11px; height: 18px; border-radius: 3px;
-      background: linear-gradient(180deg, #E8FFD0 0%, #A8FF6A 55%, #6EA8FF 100%);
-      border: 1px solid rgba(168,255,106,0.85);
+      background: linear-gradient(180deg, #D8E4F4 0%, #6EA8FF 55%, #B794F6 100%);
+      border: 1px solid rgba(110,168,255,0.55);
       box-shadow:
         inset 0 1px 0 rgba(228,247,250,0.45),
         0 0 10px ${color.lcdSignalGlow},
@@ -326,7 +326,7 @@ const injectStyles = () => {
         0 0 0 1px ${trim.lime},
         inset 0 1px 0 rgba(200,210,222,0.22),
         inset 0 -2px 3px rgba(6,10,16,0.5),
-        0 4px 10px rgba(90,196,214,0.32);
+        0 4px 10px rgba(110,168,255,0.18);
       cursor: pointer;
     }
     input.pace-range::-moz-range-thumb {
@@ -339,7 +339,7 @@ const injectStyles = () => {
         0 0 0 1px ${trim.lime},
         inset 0 1px 0 rgba(200,210,222,0.22),
         inset 0 -2px 3px rgba(6,10,16,0.5),
-        0 4px 10px rgba(90,196,214,0.32);
+        0 4px 10px rgba(110,168,255,0.18);
       cursor: pointer;
     }
     .hide-scroll { -ms-overflow-style: none; scrollbar-width: none; }
@@ -2665,13 +2665,13 @@ export default function App() {
 
   // ── Like/unlike — optimistic UI + Firestore sync ────────────────────────
   const askSignIn = useCallback((reason) => {
-    showToast(reason || "Sign in from Club");
+      showToast(reason || "Sign in from Profile");
     setScreen("profile");
   }, [setScreen]);
 
   const toggleLike = useCallback(async (id) => {
     if (!firebaseUserRef.current) {
-      askSignIn("Sign in from Club to keep favorites");
+      askSignIn("Sign in from Profile to keep favorites");
       return;
     }
     const track = tracksRef.current.find((t) => t.id === id);
@@ -3000,7 +3000,7 @@ export default function App() {
 
   const createPlaylist = (name, trackIdOrIds = null) => {
     if (!firebaseUser) {
-      askSignIn("Sign in from Club to keep stacks");
+      askSignIn("Sign in from Profile to keep stacks");
       return null;
     }
     const ids = Array.isArray(trackIdOrIds)
@@ -3014,7 +3014,7 @@ export default function App() {
 
   const addToPlaylist = (trackId, playlistId) => {
     if (!firebaseUser) {
-      askSignIn("Sign in from Club to keep stacks");
+      askSignIn("Sign in from Profile to keep stacks");
       return;
     }
     if (String(playlistId || "").startsWith("community-")) {

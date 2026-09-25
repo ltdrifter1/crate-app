@@ -686,7 +686,7 @@ export function PaceSlider({
               borderRadius: 2,
               background: trim.gradient,
               opacity: clamped === 0 ? 0 : 0.95,
-              boxShadow: clamped === 0 ? "none" : "0 0 10px rgba(90,196,214,0.45)",
+              boxShadow: clamped === 0 ? "none" : "0 0 8px rgba(110,168,255,0.28)",
             }}
           />
         </div>

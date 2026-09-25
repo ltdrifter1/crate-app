@@ -1,4 +1,4 @@
-import { chromeIconButton, color, font, fontDisplay, homeSpace, radio } from "../../theme";
+import { chromeIconButton, color, font, fontDisplay, homeSpace, SEARCH_FIELD } from "../../theme";
 import { BRAND_NAME, brandWordmark } from "../../brand/identity";
 import Icon from "../ui/Icon";
 import { BrandGlyph } from "../brand/BrandGlyphs";
@@ -77,17 +77,14 @@ export default function HomeHeader({
           onClick={onOpenSearch}
           aria-label="Search"
           style={{
+            ...SEARCH_FIELD,
             width: "100%",
             display: "flex",
             alignItems: "center",
             gap: 10,
             minHeight: 40,
             padding: "0 14px",
-            borderRadius: 980,
-            border: radio.lcdBorder,
-            background: radio.lcdFace,
-            boxShadow: radio.lcdShadow,
-            color: color.lcdMute,
+            color: color.muted,
             cursor: "pointer",
             textAlign: "left",
             fontFamily: font,

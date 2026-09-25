@@ -176,8 +176,8 @@ export default function ClubScreen({
           fontSize: 11,
           fontWeight: active ? 700 : 600,
           fontFamily: fontDisplay,
-          letterSpacing: 0.12,
-          textTransform: "uppercase",
+          letterSpacing: -0.08,
+          textTransform: "none",
           transition: `background ${motion.fast} ${motion.ease}, color ${motion.fast} ${motion.ease}`,
         }}
       >
@@ -209,7 +209,7 @@ export default function ClubScreen({
             gap: 4,
             padding: 4,
             marginBottom: 14,
-            borderRadius: 8,
+            borderRadius: 980,
             border: `1px solid ${glass.border}`,
             background: radio.moduleFace,
             boxShadow: `inset 0 1px 0 ${glass.highlight}`,

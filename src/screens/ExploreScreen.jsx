@@ -9,6 +9,7 @@ import {
   homeSpace,
   motion,
   radio,
+  SEARCH_FIELD,
   type,
   y2k,
 } from "../theme";
@@ -57,7 +58,7 @@ const EXPLORE_CSS = `
     transition: border-color ${"{base}"} ${"{ease}"}, box-shadow ${"{base}"};
   }
   .pmp-explore-find:hover {
-    border-color: rgba(90, 196, 214, 0.45) !important;
+    border-color: rgba(110, 168, 255, 0.32) !important;
   }
   .pmp-world-tray {
     display: grid;
@@ -111,24 +112,21 @@ function FindEntry({ onOpenSearch }) {
         onClick={onOpenSearch}
         aria-label="Search"
         style={{
+          ...SEARCH_FIELD,
           width: "100%",
           maxWidth: 520,
           display: "flex",
           alignItems: "center",
           gap: 10,
           minHeight: 42,
-          padding: "0 12px",
-          borderRadius: radio.radiusLcd,
-          border: radio.lcdBorder,
-          background: radio.lcdFace,
-          boxShadow: radio.lcdShadow,
-          color: color.lcdMute,
+          padding: "0 14px",
+          color: color.muted,
           cursor: "pointer",
           textAlign: "left",
-          fontFamily: fontMono,
-          fontSize: 13,
-          fontWeight: 600,
-          letterSpacing: 0.04,
+          fontFamily: font,
+          fontSize: 14,
+          fontWeight: 500,
+          letterSpacing: -0.08,
           WebkitTapHighlightColor: "transparent",
         }}
       >

@@ -47,7 +47,7 @@ export default function EnergyRooms({ rooms = [], onPlay = null }) {
                 padding: "12px 10px 10px",
                 border: "none",
                 borderRadius: radio.radiusLcd,
-                background: `linear-gradient(180deg, rgba(183,228,238,${0.08 + heat * 0.28}) 0%, rgba(90,196,214,${0.05 + heat * 0.2}) 100%)`,
+                background: `linear-gradient(180deg, rgba(184,208,238,${0.06 + heat * 0.18}) 0%, rgba(110,168,255,${0.04 + heat * 0.14}) 100%)`,
                 cursor: ready ? "pointer" : "default",
                 textAlign: "left",
                 opacity: ready ? 1 : 0.4,

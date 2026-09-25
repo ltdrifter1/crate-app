@@ -69,13 +69,11 @@ export function HardwareIconButton({
         alignItems: "center",
         justifyContent: "center",
         cursor: "pointer",
-        color: lit ? color.onAccent : color.ink,
-        background: lit
-          ? `linear-gradient(180deg, ${color.lcdSignal} 0%, #7DFFB3 100%)`
-          : hardware.keyFace,
-        border: `1px solid ${lit ? "rgba(168,255,106,0.55)" : "rgba(255,255,255,0.10)"}`,
+        color: lit ? color.lcdSignal : color.ink,
+        background: hardware.keyFace,
+        border: `1px solid ${lit ? "rgba(110,168,255,0.42)" : "rgba(255,255,255,0.10)"}`,
         boxShadow: lit
-          ? `${hardware.keyPressed}, 0 0 14px ${color.lcdSignalGlow}`
+          ? `${hardware.keyPressed}, 0 0 10px ${color.lcdSignalGlow}`
           : hardware.keyRaised,
         transition: `transform ${motion.fast} ${motion.ease}, color ${motion.fast}, background ${motion.base}, box-shadow ${motion.fast}`,
         padding: 0,

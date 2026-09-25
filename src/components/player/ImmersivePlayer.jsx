@@ -55,8 +55,8 @@ function PlayerNowPlaying() {
         maxWidth: 200,
         padding: "7px 14px",
         borderRadius: 980,
-        background: "rgba(168,255,106,0.10)",
-        border: "1px solid rgba(168,255,106,0.28)",
+        background: "rgba(110,168,255,0.08)",
+        border: "1px solid rgba(110,168,255,0.22)",
         pointerEvents: "none",
       }}
     >
@@ -627,7 +627,7 @@ export default function ImmersivePlayer({
                 position: "absolute",
                 inset: 0,
                 background: `
-                  linear-gradient(135deg, rgba(168,255,106,0.12) 0%, transparent 40%),
+                  linear-gradient(135deg, rgba(110,168,255,0.08) 0%, transparent 40%),
                   linear-gradient(180deg, transparent 55%, rgba(0,0,0,0.35) 100%)
                 `,
                 pointerEvents: "none",
@@ -706,7 +706,7 @@ export default function ImmersivePlayer({
                 textAlign: "left",
                 background: "none",
                 border: "none",
-                borderTop: "1px solid rgba(168,255,106,0.18)",
+                borderTop: "1px solid rgba(110,168,255,0.14)",
                 cursor: onShowQueue ? "pointer" : "default",
                 fontFamily: fontMono,
                 fontSize: 11,

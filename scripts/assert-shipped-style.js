@@ -7,7 +7,7 @@ const fs = require("fs");
 const path = require("path");
 
 const ROOT = path.join(__dirname, "..");
-const CHASSIS = "dark-premium-home-20260925";
+const CHASSIS = "dark-premium-quiet-neon-20260925";
 const htmlPath = path.join(ROOT, "build", "index.html");
 
 if (!fs.existsSync(htmlPath)) {
@@ -29,7 +29,7 @@ const need = [
   ["obsidian canvas #1C222B", /#1C222B/i.test(html)],
   ["IBM Plex", /IBM\+Plex|IBM Plex/i.test(html)],
   ["Outfit", /Outfit/i.test(html)],
-  ["green splash 168,255,106", /168\s*,\s*255\s*,\s*106/.test(html)],
+  ["quiet blue splash 110,168,255", /110\s*,\s*168\s*,\s*255/.test(html)],
 ];
 
 const forbid = [
@@ -45,6 +45,9 @@ const forbid = [
   ["retired obsidian ice chassis stamp", /obsidian-ps1-glass-20260925/.test(html)],
   ["retired token chassis stamp", /dark-premium-mp3-20260925/.test(html)],
   ["retired player-surface chassis stamp", /dark-premium-player-20260925/.test(html)],
+  ["retired home chassis stamp", /dark-premium-home-20260925/.test(html)],
+  ["retired neon green splash", /168\s*,\s*255\s*,\s*106/.test(html + css)],
+  ["retired neon green fill", /#A8FF6A/i.test(html + css)],
 ];
 
 let failed = false;
