@@ -24,7 +24,8 @@
     "catalog:normalize-genres:apply": "node normalize-genres.js --apply",
     "catalog:delete-unknown-artists": "node delete-unknown-artists.js",
     "catalog:delete-unknown-artists:apply": "node delete-unknown-artists.js --apply",
-    "catalog:audit-junk": "node audit-junk-tracks.js"
+    "catalog:audit-junk": "node audit-junk-tracks.js",
+    "catalog:audit-junk:apply": "node apply-junk-tracks.js --apply --approve-deletes"
   },
   "eslintConfig": {
     "extends": [

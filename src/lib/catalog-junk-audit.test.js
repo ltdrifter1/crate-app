@@ -12,6 +12,9 @@ const {
   classifyTrack,
   auditCatalog,
   candidatesToCsv,
+  parseApprovedDeleteIds,
+  storageObjectPathFromUrl,
+  planJunkApply,
 } = require("./catalog-junk-audit.shared.cjs");
 
 describe("catalog junk audit heuristics", () => {
@@ -166,5 +169,68 @@ describe("classifyTrack + auditCatalog", () => {
     expect(csv).toContain("house-wave-1");
     expect(csv).toContain("MAYBE_KEEP_MIX");
     expect(csv).toContain("FULL_ALBUM_DUMP");
+  });
+});
+
+describe("apply planning", () => {
+  test("parseApprovedDeleteIds keeps action=delete only", () => {
+    const csv = [
+      "id,title,artist,duration,duration_label,genre,uploadBatch,action,reason,extra_reasons,detail",
+      "a,Full Album Stream,X,1200,20:00,Rock,,delete,VERY_LONG,,long",
+      "b,Ok,Y,200,3:20,Rock,,review,UNKNOWN_ARTIST,,fix",
+    ].join("\n");
+    expect(parseApprovedDeleteIds(csv)).toEqual(["a"]);
+  });
+
+  test("storageObjectPathFromUrl accepts our bucket hosts", () => {
+    expect(
+      storageObjectPathFromUrl(
+        "https://storage.googleapis.com/crate-app-58494.firebasestorage.app/audio/foo.mp3"
+      )
+    ).toEqual({ bucket: "crate-app-58494.firebasestorage.app", path: "audio/foo.mp3" });
+    expect(
+      storageObjectPathFromUrl(
+        "https://firebasestorage.googleapis.com/v0/b/crate-app-58494.firebasestorage.app/o/covers%2Fbar.jpg?alt=media"
+      )
+    ).toEqual({ bucket: "crate-app-58494.firebasestorage.app", path: "covers/bar.jpg" });
+    expect(
+      storageObjectPathFromUrl("https://storage.googleapis.com/other-bucket/audio/foo.mp3")
+    ).toBeNull();
+  });
+
+  test("planJunkApply intersects live deletes with the approved CSV and skips shared covers", () => {
+    const dump = {
+      id: "dump",
+      title: "the miseducation of lauryn hill (full album)",
+      artist: "lauryn hill",
+      duration: 4677,
+      genre: "Hip-Hop",
+      audioUrl: "https://storage.googleapis.com/crate-app-58494.firebasestorage.app/audio/dump.mp3",
+      albumCover: "https://storage.googleapis.com/crate-app-58494.firebasestorage.app/covers/shared.jpg",
+    };
+    const keep = {
+      id: "keep",
+      title: "Doo Wop",
+      artist: "Lauryn Hill",
+      duration: 240,
+      genre: "Hip-Hop",
+      audioUrl: "https://storage.googleapis.com/crate-app-58494.firebasestorage.app/audio/keep.mp3",
+      albumCover: dump.albumCover,
+    };
+    const review = {
+      id: "unk",
+      title: "Manticore",
+      artist: "Unknown",
+      duration: 204,
+      genre: "Electronic",
+    };
+    const csv = candidatesToCsv(auditCatalog([dump, keep, review]).candidates);
+    const plan = planJunkApply([dump, keep, review], parseApprovedDeleteIds(csv));
+    expect(plan.targets.map((t) => t.id)).toEqual(["dump"]);
+    expect(plan.targets[0].action).toBe("delete");
+    const audio = plan.storage.find((s) => s.path === "audio/dump.mp3");
+    const cover = plan.storage.find((s) => s.path === "covers/shared.jpg");
+    expect(audio.skipped).toBe(false);
+    expect(cover.skipped).toBe(true);
   });
 });
