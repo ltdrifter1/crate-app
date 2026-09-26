@@ -1,14 +1,13 @@
 /**
  * Shared cover art image — always sized, lazy by default.
- * Remote Firebase Storage covers go through Cloudflare Image Resizing
- * (`/cdn-cgi/image/…`). One CF 404 switches the session to original files
- * so Home tiles still show photos. Failed photos show a disc on a color well.
+ * Defaults to the Storage original so Home photographs. Cloudflare
+ * `/cdn-cgi/image` is opt-in; a CF 404 falls back to the original.
+ * Failed photos show a disc on a color well.
  */
 import { useEffect, useState } from "react";
 import {
   coverDisplayUrl,
   coverSrcSet,
-  firebaseThumbUrl,
   markCloudflareResizeUnavailable,
   normalizeCoverSrc,
 } from "../../lib/coverUrl";
@@ -82,9 +81,6 @@ export default function CoverImage({
     if (tier === "original") {
       displaySrc = href;
       srcSet = undefined;
-    } else if (tier === "thumb") {
-      displaySrc = firebaseThumbUrl(href, w);
-      srcSet = undefined;
     } else {
       displaySrc = coverDisplayUrl(href, { width: w });
       srcSet = coverSrcSet(href, w) || undefined;
@@ -115,19 +111,15 @@ export default function CoverImage({
         decoding="async"
         draggable={draggable}
         className={className}
+        referrerPolicy="no-referrer"
         onLoad={onLoad}
         onError={(e) => {
-          if (!raw && displaySrc !== href) {
-            if (tier === "cf") {
+          if (!raw && displaySrc !== href && tier !== "original") {
+            if (String(displaySrc).includes("/cdn-cgi/image/")) {
               markCloudflareResizeUnavailable();
-              const thumb = firebaseThumbUrl(href, w);
-              setTier(thumb && thumb !== href ? "thumb" : "original");
-              return;
             }
-            if (tier === "thumb") {
-              setTier("original");
-              return;
-            }
+            setTier("original");
+            return;
           }
           setFailed(true);
           onError?.(e);
