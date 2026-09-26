@@ -83,6 +83,7 @@ test("player surfaces use Turtle / Rabbit, not energy paddles", () => {
   expect(css).toMatch(/\.pmp-seek__well/);
   expect(css).toMatch(/max-width:\s*50%/);
   expect(css).toMatch(/\.pmp-rabbit-slot/);
+  expect(css).toMatch(/\.pmp-pace-wedge/);
   expect(css).toMatch(/\.pmp-mini-player/);
   expect(css).toMatch(/\.pmp-mini-progress/);
   const hero = fs.readFileSync(path.join(root, "src/components/home/HeroPlayerCard.jsx"), "utf8");
@@ -105,8 +106,12 @@ test("browse lists print BPM and Camelot, and Home is player then my listening",
   const home = fs.readFileSync(path.join(root, "src/screens/HomeScreen.jsx"), "utf8");
   expect(home.indexOf("<HeroPlayerCard")).toBeLessThan(home.indexOf("<HomePersonal"));
   expect(home.indexOf("<HomePersonal")).toBeLessThan(home.indexOf("<HomeEditorial"));
-  expect(home).not.toMatch(/ChannelSurfingSection/);
-  expect(home).not.toMatch(/TonightDeck/);
+  expect(home.indexOf("<ChannelSurfingSection")).toBeGreaterThan(home.indexOf("<HeroPlayerCard"));
+  expect(home.indexOf("<ChannelSurfingSection")).toBeLessThan(home.indexOf("<HomePersonal"));
+  expect(home.indexOf("<TonightDeck")).toBeGreaterThan(home.indexOf("<ChannelSurfingSection"));
+  expect(home.indexOf("<TonightDeck")).toBeLessThan(home.indexOf("<HomePersonal"));
+  expect(home).toMatch(/ChannelSurfingSection/);
+  expect(home).toMatch(/TonightDeck/);
   expect(home).toMatch(/signedIn/);
   expect(home).toMatch(/Your listening/);
   const header = fs.readFileSync(path.join(root, "src/components/home/HomeHeader.jsx"), "utf8");
@@ -119,8 +124,8 @@ test("browse lists print BPM and Camelot, and Home is player then my listening",
   expect(header).not.toMatch(/stationGreeting/);
   expect(header).not.toMatch(/onOpenProfile/);
   const explore = fs.readFileSync(path.join(root, "src/screens/ExploreScreen.jsx"), "utf8");
-  expect(explore).toMatch(/ChannelSurfingSection/);
-  expect(explore).toMatch(/TonightDeck/);
+  expect(explore).not.toMatch(/ChannelSurfingSection/);
+  expect(explore).not.toMatch(/TonightDeck/);
   expect(explore).toMatch(/SEARCH_FIELD/);
   expect(explore).toMatch(/ExploreTools/);
   expect(explore).toMatch(/TrendingCuts/);
@@ -175,8 +180,8 @@ test("Explore prefetches on idle and Home Channel Surfing uses PS1 plates", () =
   expect(screen).not.toMatch(/setDeepReady/);
   expect(screen).not.toMatch(/will-change: transform/);
   expect(screen).toMatch(/activeMode === "genres"/);
-  expect(screen).toMatch(/activeMode === "releases" && channels.length/);
-  expect(screen).toMatch(/activeMode === "releases" && hasTonight/);
+  expect(screen).not.toMatch(/ChannelSurfingSection/);
+  expect(screen).not.toMatch(/hasTonight/);
   const atlas = fs.readFileSync(path.join(root, "src/components/explore/WorldAtlas.jsx"), "utf8");
   expect(atlas).toMatch(/All genres/);
   expect(atlas).not.toMatch(/\bcuts\b/);

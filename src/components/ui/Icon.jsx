@@ -103,12 +103,13 @@ function MenuIcon({ size }) {
 function TurtleIcon({ size }) {
   return (
     <Ico size={size} fill="currentColor" stroke="none">
-      <ellipse cx="12" cy="12.5" rx="7.2" ry="5" />
-      <circle cx="19.2" cy="11.5" r="2.3" />
-      <rect x="5.2" y="16" width="2.4" height="3.4" rx="1.1" />
-      <rect x="9" y="16.4" width="2.4" height="3.4" rx="1.1" />
-      <rect x="13" y="16.4" width="2.4" height="3.4" rx="1.1" />
-      <rect x="16.6" y="16" width="2.4" height="3.4" rx="1.1" />
+      <ellipse cx="4.2" cy="13.1" rx="2.05" ry="1.15" />
+      <ellipse cx="19.6" cy="11.6" rx="3.15" ry="2.55" />
+      <ellipse cx="11.1" cy="12.35" rx="7.6" ry="5.55" />
+      <ellipse cx="6.15" cy="17.55" rx="1.7" ry="2.35" />
+      <ellipse cx="10.05" cy="18.05" rx="1.65" ry="2.2" />
+      <ellipse cx="14.15" cy="18.05" rx="1.65" ry="2.2" />
+      <ellipse cx="17.85" cy="17.45" rx="1.7" ry="2.3" />
     </Ico>
   );
 }
@@ -116,9 +117,14 @@ function TurtleIcon({ size }) {
 function RabbitIcon({ size }) {
   return (
     <Ico size={size} fill="currentColor" stroke="none">
-      <rect x="6.5" y="1.5" width="3.2" height="10" rx="1.6" />
-      <rect x="14.3" y="1.5" width="3.2" height="10" rx="1.6" />
-      <circle cx="12" cy="14.5" r="6.2" />
+      <ellipse cx="7.4" cy="6.6" rx="1.45" ry="5.7" transform="rotate(-40 7.4 6.6)" />
+      <ellipse cx="10.8" cy="5.8" rx="1.3" ry="5.3" transform="rotate(-28 10.8 5.8)" />
+      <ellipse cx="13.1" cy="14.7" rx="7.3" ry="4.5" />
+      <ellipse cx="19.5" cy="12.3" rx="3.5" ry="2.65" />
+      <ellipse cx="6.6" cy="18.5" rx="3.9" ry="2.05" transform="rotate(-22 6.6 18.5)" />
+      <ellipse cx="17.1" cy="19.15" rx="1.35" ry="2.35" />
+      <ellipse cx="20" cy="18.55" rx="1.2" ry="2.1" />
+      <circle cx="5.15" cy="13.7" r="1.45" />
     </Ico>
   );
 }

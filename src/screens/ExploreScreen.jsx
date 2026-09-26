@@ -1,4 +1,4 @@
-import { useMemo, useState, memo, lazy, Suspense } from "react";
+import { useMemo, useState, memo } from "react";
 import {
   chromeIconButton,
   color,
@@ -25,9 +25,6 @@ import CrateDig from "../components/explore/CrateDig";
 import TimeMachine from "../components/explore/TimeMachine";
 import TrendingCuts from "../components/explore/TrendingCuts";
 import ArtistIndex from "../components/explore/ArtistIndex";
-import ChannelSurfingSection from "../components/home/ChannelSurfingSection";
-import { SCENE_CHANNELS } from "../lib/sceneChannels";
-import { rankChannelsForTaste } from "../lib/onboardingTaste";
 import {
   exploreCatalogStats,
   exploreGenrePlates,
@@ -99,10 +96,6 @@ const EXPLORE_CSS = `
     .pmp-new-releases-grid { grid-template-columns: repeat(5, minmax(0, 1fr)); }
   }
 `.replaceAll("{base}", motion.base).replaceAll("{ease}", motion.ease).replaceAll("{gutter}", String(homeSpace.gutter));
-
-const TonightDeck = lazy(() =>
-  import("../components/station/ShowGuide").then((m) => ({ default: m.TonightDeck }))
-);
 
 function FindEntry({ onOpenSearch }) {
   if (!onOpenSearch) return null;
@@ -217,8 +210,7 @@ function ModeHint({ mode }) {
 }
 
 /**
- * Explore — catalog directory. Home owns the player.
- * Channel Surfing / Tonight live here as demoted radio, not on the first Home screen.
+ * Explore — catalog directory. Home owns the player, Channel Surfing, and tonight’s guide.
  */
 function ExploreScreen({
   tracks = [],
@@ -284,11 +276,6 @@ function ExploreScreen({
   };
 
   const hasBody = stats.cuts > 0;
-  const channels = useMemo(
-    () => (onTuneSceneChannel ? rankChannelsForTaste(SCENE_CHANNELS, taste) : []),
-    [taste, onTuneSceneChannel]
-  );
-  const hasTonight = !!(onTuneShow && (airing?.show || programGuide.length > 0));
 
   if (focus) {
     return (
@@ -445,34 +432,6 @@ function ExploreScreen({
         </div>
       )}
       {!hasBody && !catalogLoading && <EmptyExplore onOpenSearch={onOpenSearch} />}
-
-      {activeMode === "releases" && channels.length > 0 && (
-        <ChannelSurfingSection
-          channels={channels}
-          activeChannelId={sceneChannelsActiveId}
-          onTuneChannel={onTuneSceneChannel}
-          first={false}
-          delay={0.04}
-        />
-      )}
-
-      {activeMode === "releases" && hasTonight && (
-        <div style={{ contentVisibility: "auto", containIntrinsicSize: "320px" }}>
-          <Suspense fallback={null}>
-            <TonightDeck
-              airing={airing}
-              guide={programGuide}
-              bumper={showBumper}
-              activeShowId={activeShowId}
-              tuned={false}
-              first={false}
-              showNowPlaying={!!(airing?.show && activeShowId === airing.show.id)}
-              onTuneIn={() => onTuneShow?.(airing?.show)}
-              onSelectShow={(show) => onTuneShow?.(show)}
-            />
-          </Suspense>
-        </div>
-      )}
     </div>
   );
 }

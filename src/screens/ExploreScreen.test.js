@@ -175,8 +175,8 @@ describe("Explore screen", () => {
     expect(div.textContent).toMatch(/Night Shift|Highways|Gain/);
     expect(div.textContent).not.toMatch(/Moods & moments/);
     expect(div.textContent).not.toMatch(/Stations/);
-    expect(div.textContent).toMatch(/Channel Surfing/);
-    expect(div.querySelector(".pmp-channel-surf")).toBeTruthy();
+    expect(div.textContent).not.toMatch(/Channel Surfing/);
+    expect(div.querySelector(".pmp-channel-surf")).toBeFalsy();
     expect(div.textContent).not.toMatch(/Recently played/);
     expect(div.querySelector(".pmp-crate-spread")).toBeFalsy();
     expect(div.querySelector('section[aria-label="Albums"]')).toBeFalsy();
@@ -188,15 +188,11 @@ describe("Explore screen", () => {
     });
     expect(onOpenCharts).toHaveBeenCalled();
     expect(div.querySelector('button[role="tab"][aria-selected="true"]').textContent).toMatch(/^New$/);
-    expect(div.querySelector(".pmp-channel-surf")).toBeTruthy();
+    expect(div.querySelector(".pmp-channel-surf")).toBeFalsy();
     await act(async () => {
       tab(div, "Trending").click();
     });
     expect(div.querySelector(".pmp-channel-surf")).toBeFalsy();
-    await act(async () => {
-      tab(div, "New").click();
-    });
-    expect(div.querySelector(".pmp-channel-surf")).toBeTruthy();
   });
 
   test("opening a genre crate stays on Explore and can play the pool", async () => {
@@ -361,7 +357,7 @@ describe("Explore screen", () => {
     expect(div.querySelector(".pmp-channel-surf")).toBeFalsy();
   });
 
-  test("Discover hosts Channel Surfing after New Releases when the dial is wired", async () => {
+  test("Discover does not host Channel Surfing — Home owns the dial", async () => {
     const onTune = jest.fn();
     await act(async () => {
       root.render(
@@ -371,21 +367,12 @@ describe("Explore screen", () => {
         })
       );
     });
-    const surf = div.querySelector(".pmp-channel-surf");
-    expect(surf).toBeTruthy();
-    expect(div.textContent).toMatch(/Channel Surfing/);
+    expect(div.querySelector(".pmp-channel-surf")).toBeFalsy();
+    expect(div.textContent).not.toMatch(/Channel Surfing/);
     expect(div.querySelector('section[aria-label="New Releases"]')).toBeTruthy();
     const src = require("fs").readFileSync(require("path").join(__dirname, "ExploreScreen.jsx"), "utf8");
-    expect(src.indexOf("NewReleases")).toBeLessThan(src.indexOf("ChannelSurfingSection"));
-    const local = [...surf.querySelectorAll(".pmp-channel-card")].find((el) =>
-      el.textContent.includes("Local")
-    );
-    expect(local).toBeTruthy();
-    await act(async () => {
-      local.click();
-    });
-    expect(onTune).toHaveBeenCalled();
-    expect(onTune.mock.calls[0][0].id).toBe("local-pnw");
+    expect(src).not.toMatch(/ChannelSurfingSection/);
+    expect(src).not.toMatch(/TonightDeck/);
   });
 
   test("Trending lists ranked cuts and Artists open a name", async () => {

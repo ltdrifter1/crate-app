@@ -3,19 +3,16 @@
  * Exercises left source list (Charts + Build a set), Library, and Home player-first.
  */
 import { useEffect, useState } from "react";
-import HomeHeader from "../components/home/HomeHeader";
-import HeroPlayerCard from "../components/home/HeroPlayerCard";
-import CrateSpread from "../components/home/CrateSpread";
+import HomeScreen from "../screens/HomeScreen";
 import AppSidebar from "../components/layout/AppSidebar";
 import MobileNavDrawer from "../components/layout/MobileNavDrawer";
 import FavoritesScreen from "../screens/FavoritesScreen";
-import { SCENE_CHANNELS } from "../lib/sceneChannels";
 import { brandStoragePrefix } from "../brand/identity";
 import ChartsScreen from "../components/station/ChartsScreen";
 import SetBuilderScreen from "../components/set/SetBuilderScreen";
 import SearchScreen from "../screens/SearchScreen";
 import { makeSetPreviewCatalog } from "./SetPreview";
-import { color, homeSpace } from "../theme";
+import { color } from "../theme";
 import { previewSleeve } from "./sleeves";
 import GlassDock from "../components/player/GlassDock";
 import ImmersivePlayer from "../components/player/ImmersivePlayer";
@@ -141,6 +138,16 @@ const SAMPLE_PLAYLISTS = [
   { id: "pl_2", name: "Late Signal", trackIds: ["preview-3", "preview-1"] },
 ];
 
+const SAMPLE_GUIDE = [
+  { id: "night-crash", title: "Night Crash", shortTitle: "Night Crash", startHour: 0, status: "past" },
+  { id: "sunrise", title: "Sunrise", shortTitle: "Sunrise", startHour: 5, status: "past" },
+  { id: "desk", title: "Desk Live", shortTitle: "Desk Live", startHour: 9, status: "live" },
+  { id: "lunch", title: "Lunch Freq", shortTitle: "Lunch Freq", startHour: 12, status: "next" },
+  { id: "after", title: "After School", shortTitle: "After School", startHour: 15, status: "upcoming" },
+  { id: "requested", title: "Most Requested", shortTitle: "Most Requested", startHour: 19, status: "upcoming" },
+  { id: "alt", title: "Alt Freq", shortTitle: "Alt Freq", startHour: 22, status: "upcoming" },
+];
+
 export default function BroadcastPreview() {
   const [screen, setScreen] = useState("home");
   const [drawer, setDrawer] = useState(false);
@@ -191,29 +198,23 @@ export default function BroadcastPreview() {
   }, []);
 
   const home = (
-    <div className="pmp-home-mtv" style={{ maxWidth: 1100, margin: "0 auto", width: "100%" }}>
-      <HomeHeader
-        onOpenSearch={() => setScreen("search")}
-        onOpenMenu={isDesktop ? null : () => setDrawer(true)}
-      />
-      <div style={{ padding: `0 ${homeSpace.gutter}px`, marginTop: homeSpace.sectionGapFirst }}>
-        <HeroPlayerCard
-          track={SAMPLE_TRACK}
-          upNextTrack={SAMPLE_NEXT}
-          isRadioMode
-          sceneChannel={SCENE_CHANNELS.find((c) => c.id === activeChannelId)}
-          liveShow={{ shortTitle: "Local", title: "Local" }}
-          tickerText="Planet Radio — requests open · Local on the dial"
-        />
-      </div>
-      <CrateSpread
-        title="Played before"
-        subtitle="Cuts you’ve spun — worth another drop"
-        tracks={SAMPLE_TRACKS.slice(0, 6)}
-        activeId={SAMPLE_TRACK.id}
-        onPlayTrack={() => {}}
-      />
-    </div>
+    <HomeScreen
+      tracks={SAMPLE_TRACKS}
+      signedIn
+      isRadioMode
+      radioNext={SAMPLE_NEXT}
+      tickerText="Planet Radio — requests open · Local on the dial"
+      onPlayRadio={() => {}}
+      onTogglePlay={() => {}}
+      onPlayTrack={() => {}}
+      onOpenPlayer={() => setImmersive(true)}
+      onOpenSearch={() => setScreen("search")}
+      onOpenMenu={isDesktop ? null : () => setDrawer(true)}
+      onTuneSceneChannel={() => {}}
+      sceneChannelsActiveId={activeChannelId}
+      onTuneShow={() => {}}
+      programGuide={SAMPLE_GUIDE}
+    />
   );
 
   return (

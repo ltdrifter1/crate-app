@@ -9,8 +9,7 @@ import HomeBandHeader from "./HomeBandHeader";
 export const FIRST_STATIONS = 6;
 
 /**
- * Channel surfing — Discover destination band (demoted off Home).
- * One plate per station; the CH readout stays an LCD bug.
+ * Channel surfing — Home dial. One plate per station; the CH readout stays an LCD bug.
  */
 function ChannelSurfingSection({
   channels = [],
