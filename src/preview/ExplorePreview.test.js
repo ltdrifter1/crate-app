@@ -20,9 +20,10 @@ describe("Explore preview", () => {
       root.render(React.createElement(ExplorePreview));
     });
     expect(div.textContent).toMatch(/Discover/);
-    expect(div.textContent).toMatch(/New Releases/);
-    expect(div.textContent).toMatch(/Worlds/);
-    expect(div.textContent).toMatch(/Directory/);
+    expect(div.textContent).toMatch(/Just landed/);
+    expect(div.textContent).toMatch(/Genres/);
+    expect(div.textContent).not.toMatch(/Directory/);
+    expect(div.textContent).not.toMatch(/Worlds/);
     expect(div.textContent).not.toMatch(/Moods & moments/);
     expect(div.textContent).not.toMatch(/Stations/);
     expect(div.textContent).not.toMatch(/On the board/);
@@ -42,7 +43,7 @@ describe("Explore preview", () => {
     await act(async () => {
       root.render(React.createElement(ExplorePreview));
     });
-    const sleeves = div.querySelector('button[role="tab"][aria-label="New Releases"]');
+    const sleeves = div.querySelector('button[role="tab"][aria-label="New"]');
     expect(sleeves).toBeTruthy();
     await act(async () => {
       sleeves.click();
@@ -63,7 +64,7 @@ describe("Explore preview", () => {
       back.click();
     });
     expect(div.textContent).toMatch(/Discover/);
-    expect(div.querySelector('button[role="tab"][aria-label="New Releases"]')).toBeTruthy();
+    expect(div.querySelector('button[role="tab"][aria-label="New"]')).toBeTruthy();
     await act(async () => {
       root.unmount();
     });

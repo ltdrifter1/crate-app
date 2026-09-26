@@ -90,7 +90,7 @@ const catalog = [
 ];
 
 function tab(div, name) {
-  return div.querySelector(`button[role="tab"][aria-label="${name}"]`);
+  return div.querySelector(`button[aria-label="${name}"]`);
 }
 
 describe("Explore screen", () => {
@@ -122,10 +122,10 @@ describe("Explore screen", () => {
     });
     expect(div.textContent).toMatch(/Discover/);
     expect(div.textContent).toMatch(/New music around what you play/);
-    expect(div.textContent).toMatch(/Nothing to dig yet/);
+    expect(div.textContent).toMatch(/Nothing here yet/);
     const search = div.querySelector('button[aria-label="Search"]');
     expect(search).toBeTruthy();
-    expect(search.textContent).toMatch(/Find a city, scene, or sleeve/);
+    expect(search.textContent).toMatch(/Find a track, artist or scene/);
     await act(async () => {
       search.click();
     });
@@ -151,11 +151,26 @@ describe("Explore screen", () => {
       );
     });
     expect(div.textContent).toMatch(/Discover/);
-    expect(div.textContent).toMatch(/Directory/);
-    expect(div.textContent).toMatch(/6 cuts in the crate/);
-    expect(div.textContent).toMatch(/New Releases/);
-    expect(div.textContent).toMatch(/Worlds/);
-    expect(div.querySelector('button[role="tab"][aria-selected="true"]').textContent).toMatch(/New Releases/);
+    expect(div.textContent).not.toMatch(/Directory/);
+    expect(div.textContent).toMatch(/6 tracks/);
+    expect(div.textContent).toMatch(/New/);
+    expect(div.textContent).toMatch(/Trending/);
+    expect(div.textContent).toMatch(/Genres/);
+    expect(div.textContent).toMatch(/Artists/);
+    expect(div.querySelector('[aria-label="Discover"]')).toBeTruthy();
+    expect(
+      [...div.querySelector('[aria-label="Discover"]').querySelectorAll('[role="tab"]')].map((el) =>
+        el.textContent.trim()
+      )
+    ).toEqual(["New", "Trending", "Genres", "Artists"]);
+    expect(div.querySelector('[aria-label="Discover tools"]')).toBeTruthy();
+    expect(div.querySelector('[aria-label="Discover tools"]').textContent).toMatch(/Keys/);
+    expect(div.querySelector('[aria-label="Discover tools"]').textContent).toMatch(/Dig/);
+    expect(div.querySelector('[aria-label="Discover tools"]').textContent).toMatch(/Charts/);
+    expect(div.querySelector('[aria-label="Discover tools"]').textContent).toMatch(/Energy/);
+    expect(div.querySelector('[aria-label="Discover tools"]').textContent).not.toMatch(/History/);
+    expect(div.querySelector('[aria-label="Discover"]').textContent).not.toMatch(/Keys|Dig|Charts|Energy/);
+    expect(div.querySelector('button[role="tab"][aria-selected="true"]').textContent).toMatch(/^New$/);
     expect(div.querySelector('section[aria-label="New Releases"]')).toBeTruthy();
     expect(div.textContent).toMatch(/Night Shift|Highways|Gain/);
     expect(div.textContent).not.toMatch(/Moods & moments/);
@@ -166,9 +181,22 @@ describe("Explore screen", () => {
     expect(div.querySelector(".pmp-crate-spread")).toBeFalsy();
     expect(div.querySelector('section[aria-label="Albums"]')).toBeFalsy();
     expect(div.querySelector('button[aria-label="More"]')).toBeTruthy();
-    const charts = [...div.querySelectorAll("button")].find((b) => b.textContent === "Charts");
-    expect(charts).toBeFalsy();
-    expect(onOpenCharts).not.toHaveBeenCalled();
+    const charts = [...div.querySelectorAll("button")].find((b) => /^Charts$/.test(b.textContent.trim()));
+    expect(charts).toBeTruthy();
+    await act(async () => {
+      charts.click();
+    });
+    expect(onOpenCharts).toHaveBeenCalled();
+    expect(div.querySelector('button[role="tab"][aria-selected="true"]').textContent).toMatch(/^New$/);
+    expect(div.querySelector(".pmp-channel-surf")).toBeTruthy();
+    await act(async () => {
+      tab(div, "Trending").click();
+    });
+    expect(div.querySelector(".pmp-channel-surf")).toBeFalsy();
+    await act(async () => {
+      tab(div, "New").click();
+    });
+    expect(div.querySelector(".pmp-channel-surf")).toBeTruthy();
   });
 
   test("opening a genre crate stays on Explore and can play the pool", async () => {
@@ -182,7 +210,7 @@ describe("Explore screen", () => {
       );
     });
     await act(async () => {
-      tab(div, "Worlds").click();
+      tab(div, "Genres").click();
     });
     const genre = div.querySelector('button[aria-label^="Electronic"]');
     expect(genre).toBeTruthy();
@@ -203,7 +231,7 @@ describe("Explore screen", () => {
     await act(async () => {
       back.click();
     });
-    expect(div.textContent).toMatch(/Worlds/);
+    expect(div.textContent).toMatch(/Genres/);
   });
 
   test("Mix pads hand off a Camelot crate", async () => {
@@ -257,7 +285,7 @@ describe("Explore screen", () => {
       tab(div, "Energy").click();
     });
     expect(div.textContent).toMatch(/Peak time/);
-    expect(div.textContent).toMatch(/One strip/);
+    expect(div.textContent).toMatch(/Rooms by pressure/);
     expect(div.querySelector(".pmp-energy-strip")).toBeTruthy();
     expect(div.textContent).not.toMatch(/Moods & moments/);
     expect(div.querySelector(".pmp-energy-room")).toBeFalsy();
@@ -295,7 +323,7 @@ describe("Explore screen", () => {
         })
       );
     });
-    expect(div.textContent).toMatch(/Tuning the crate/);
+    expect(div.textContent).toMatch(/Loading your music/);
     expect(div.textContent).not.toMatch(/Nothing to dig yet/);
   });
 
@@ -322,13 +350,15 @@ describe("Explore screen", () => {
       root.render(React.createElement(ExploreScreen, { tracks: catalog }));
     });
     await act(async () => {
-      tab(div, "Worlds").click();
+      tab(div, "Genres").click();
     });
     const tray = div.querySelector(".pmp-world-tray");
     expect(tray).toBeTruthy();
     const tiles = tray.querySelectorAll(".pmp-world-tile");
     expect(tiles.length).toBeGreaterThan(0);
     expect(tray.querySelector(".pmp-world-tile--lead")).toBeTruthy();
+    expect(div.textContent).toMatch(/All genres/);
+    expect(div.querySelector(".pmp-channel-surf")).toBeFalsy();
   });
 
   test("Discover hosts Channel Surfing after New Releases when the dial is wired", async () => {
@@ -356,5 +386,41 @@ describe("Explore screen", () => {
     });
     expect(onTune).toHaveBeenCalled();
     expect(onTune.mock.calls[0][0].id).toBe("local-pnw");
+  });
+
+  test("Trending lists ranked cuts and Artists open a name", async () => {
+    const onPlayTrack = jest.fn();
+    const onOpenArtist = jest.fn();
+    await act(async () => {
+      root.render(
+        React.createElement(ExploreScreen, {
+          tracks: catalog,
+          onPlayTrack,
+          onOpenArtist,
+        })
+      );
+    });
+    await act(async () => {
+      tab(div, "Trending").click();
+    });
+    expect(div.querySelector('section[aria-label="Trending"]')).toBeTruthy();
+    expect(div.textContent).toMatch(/Warehouse/);
+    const first = div.querySelector(".track-row");
+    expect(first).toBeTruthy();
+    await act(async () => {
+      first.click();
+    });
+    expect(onPlayTrack).toHaveBeenCalled();
+    expect(onPlayTrack.mock.calls[0][0].id).toBe("t1");
+    await act(async () => {
+      tab(div, "Artists").click();
+    });
+    expect(div.querySelector('section[aria-label="Artists"]')).toBeTruthy();
+    const artist = div.querySelector('button[aria-label="Signal"]');
+    expect(artist).toBeTruthy();
+    await act(async () => {
+      artist.click();
+    });
+    expect(onOpenArtist).toHaveBeenCalledWith("signal");
   });
 });

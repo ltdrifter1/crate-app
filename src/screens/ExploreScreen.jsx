@@ -4,7 +4,6 @@ import {
   color,
   font,
   fontDisplay,
-  fontMono,
   glass,
   homeSpace,
   motion,
@@ -17,13 +16,15 @@ import Icon from "../components/ui/Icon";
 import { useCurrentTrack } from "../usePlayerTransport";
 import CardContainer from "../components/home/CardContainer";
 import ExploreFocus from "../components/explore/ExploreFocus";
-import ExploreModes from "../components/explore/ExploreModes";
+import ExploreModes, { ExploreTools } from "../components/explore/ExploreModes";
 import WorldAtlas from "../components/explore/WorldAtlas";
 import EnergyRooms from "../components/explore/EnergyRooms";
 import MixBoard from "../components/explore/MixBoard";
 import NewReleases from "../components/explore/NewReleases";
 import CrateDig from "../components/explore/CrateDig";
 import TimeMachine from "../components/explore/TimeMachine";
+import TrendingCuts from "../components/explore/TrendingCuts";
+import ArtistIndex from "../components/explore/ArtistIndex";
 import ChannelSurfingSection from "../components/home/ChannelSurfingSection";
 import { SCENE_CHANNELS } from "../lib/sceneChannels";
 import { rankChannelsForTaste } from "../lib/onboardingTaste";
@@ -32,6 +33,7 @@ import {
   exploreGenrePlates,
   exploreModesFor,
   exploreMoodPlates,
+  exploreToolsFor,
   exploreWorlds,
   resolveExploreFocus,
 } from "../lib/explore";
@@ -133,7 +135,7 @@ function FindEntry({ onOpenSearch }) {
         <span style={{ color: color.lcdSignal, display: "flex" }}>
           <Icon name="search" size={14} />
         </span>
-        Find a city, scene, or sleeve
+        Find a track, artist or scene
       </button>
     </div>
   );
@@ -159,10 +161,10 @@ function EmptyExplore({ onOpenSearch }) {
             marginBottom: 6,
           }}
         >
-          Nothing to dig yet
+          Nothing here yet
         </div>
         <div style={{ fontSize: 14, fontWeight: 500, color: color.muted, lineHeight: 1.5 }}>
-          When the catalog lands, worlds, energy rooms, and sleeves show up here.
+          When the catalog lands, new sleeves, genres, and artists show up here.
         </div>
         {onOpenSearch && (
           <button
@@ -191,9 +193,13 @@ function EmptyExplore({ onOpenSearch }) {
 function ModeHint({ mode }) {
   const copy = {
     releases: "Newest sleeves, by channel.",
-    worlds: "A planet of scenes — tap a disc, not a feed.",
-    energy: "One strip. Pressure, not playlists.",
+    trending: "Most played in the crate right now.",
+    genres: "Scenes and genres — tap a sleeve.",
+    artists: "Who’s on the records.",
+    energy: "Rooms by pressure.",
     mix: "Twelve keys. Neighbors mix.",
+    dig: "A random track you didn’t go looking for.",
+    "time-machine": "Browse by year.",
   };
   return (
     <p
@@ -221,6 +227,8 @@ function ExploreScreen({
   onOpenSearch = null,
   onOpenAlbum = null,
   onOpenMenu = null,
+  onOpenCharts = null,
+  onOpenArtist = null,
   onListenIntent = null,
   taste = null,
   sceneChannelsActiveId = null,
@@ -236,16 +244,21 @@ function ExploreScreen({
   const [focusKey, setFocusKey] = useState(null);
   const [mode, setMode] = useState("releases");
 
-  /** History only earns a tab once the crate carries release years. */
+  /** Destinations always; History is a tool once years exist. */
   const modes = useMemo(() => exploreModesFor(tracks), [tracks]);
-  const activeMode = modes.some((m) => m.id === mode) ? mode : "releases";
+  const tools = useMemo(() => exploreToolsFor(tracks), [tracks]);
+  const knownIds = useMemo(
+    () => new Set([...modes, ...tools.filter((t) => t.action !== "charts")].map((m) => m.id)),
+    [modes, tools]
+  );
+  const activeMode = knownIds.has(mode) ? mode : "releases";
   const stats = useMemo(() => exploreCatalogStats(tracks), [tracks]);
   const worlds = useMemo(
-    () => (activeMode === "worlds" ? exploreWorlds(tracks) : []),
+    () => (activeMode === "genres" ? exploreWorlds(tracks) : []),
     [tracks, activeMode]
   );
   const lanes = useMemo(
-    () => (activeMode === "worlds" ? exploreGenrePlates(tracks, 12) : []),
+    () => (activeMode === "genres" ? exploreGenrePlates(tracks, 12) : []),
     [tracks, activeMode]
   );
   const rooms = useMemo(
@@ -332,19 +345,6 @@ function ExploreScreen({
               </button>
             )}
             <div style={{ minWidth: 0 }}>
-              <div
-                style={{
-                  fontFamily: fontMono,
-                  fontSize: 10,
-                  fontWeight: 700,
-                  letterSpacing: 0.16,
-                  textTransform: "uppercase",
-                  color: color.lcdMute,
-                  marginBottom: 4,
-                }}
-              >
-                Directory
-              </div>
               <h1
                 style={{
                   ...type.largeTitle,
@@ -363,7 +363,7 @@ function ExploreScreen({
                 }}
               >
                 {stats.cuts
-                  ? `${stats.cuts} cut${stats.cuts === 1 ? "" : "s"} in the crate`
+                  ? `${stats.cuts} track${stats.cuts === 1 ? "" : "s"}`
                   : "New music around what you play."}
               </p>
             </div>
@@ -373,6 +373,12 @@ function ExploreScreen({
 
       <FindEntry onOpenSearch={onOpenSearch} />
       <ExploreModes mode={activeMode} modes={modes} onChange={setMode} />
+      <ExploreTools
+        mode={activeMode}
+        tools={tools}
+        onChange={setMode}
+        onOpenCharts={onOpenCharts}
+      />
       <ModeHint mode={activeMode} />
 
       {activeMode === "releases" && (
@@ -383,8 +389,16 @@ function ExploreScreen({
         />
       )}
 
-      {activeMode === "worlds" && (worlds.length > 0 || lanes.length > 0) && (
+      {activeMode === "trending" && (
+        <TrendingCuts tracks={tracks} onPlayTrack={onPlayTrack} />
+      )}
+
+      {activeMode === "genres" && (worlds.length > 0 || lanes.length > 0) && (
         <WorldAtlas families={worlds} lanes={lanes} onOpen={setFocusKey} />
+      )}
+
+      {activeMode === "artists" && (
+        <ArtistIndex tracks={tracks} onOpenArtist={onOpenArtist} />
       )}
 
       {activeMode === "energy" && rooms.length > 0 && (
@@ -412,7 +426,7 @@ function ExploreScreen({
 
       {activeMode === "energy" && rooms.length === 0 && hasBody && (
         <p style={{ padding: `16px ${homeSpace.gutter}px`, color: color.muted, fontSize: 14 }}>
-          The pressure strip fills once cuts carry a pace.
+          The pressure strip fills once tracks carry a pace.
         </p>
       )}
 
@@ -427,12 +441,12 @@ function ExploreScreen({
             fontWeight: 500,
           }}
         >
-          Tuning the crate…
+          Loading your music…
         </div>
       )}
       {!hasBody && !catalogLoading && <EmptyExplore onOpenSearch={onOpenSearch} />}
 
-      {channels.length > 0 && (
+      {activeMode === "releases" && channels.length > 0 && (
         <ChannelSurfingSection
           channels={channels}
           activeChannelId={sceneChannelsActiveId}
@@ -442,7 +456,7 @@ function ExploreScreen({
         />
       )}
 
-      {hasTonight && (
+      {activeMode === "releases" && hasTonight && (
         <div style={{ contentVisibility: "auto", containIntrinsicSize: "320px" }}>
           <Suspense fallback={null}>
             <TonightDeck

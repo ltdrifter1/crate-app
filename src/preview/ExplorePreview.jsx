@@ -116,6 +116,7 @@ export default function ExplorePreview() {
           setAlbumSlug(slug);
         }}
         onOpenCharts={() => setLog("charts")}
+        onOpenArtist={(slug) => setLog(`artist:${slug}`)}
         onTuneSceneChannel={(ch) => setLog(`tune:${ch?.id}`)}
         onListenIntent={(focus) => setLog(`intent:${focus?.genre || focus?.scene}`)}
       />

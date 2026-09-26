@@ -125,7 +125,7 @@ export default function EnergyRooms({ rooms = [], onPlay = null }) {
                   color: color.lcdSignal,
                 }}
               >
-                {room.count} {room.count === 1 ? "cut" : "cuts"}
+                {room.count} {room.count === 1 ? "track" : "tracks"}
               </span>
             </button>
           );
@@ -139,7 +139,7 @@ export default function EnergyRooms({ rooms = [], onPlay = null }) {
           lineHeight: 1.4,
         }}
       >
-        {zones.map((r) => r.label).join(" → ")}. Tap a zone to drop the needle.
+        {zones.map((r) => r.label).join(" → ")}. Tap a room to play it.
       </p>
     </div>
   );

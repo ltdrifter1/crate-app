@@ -54,7 +54,7 @@ test("theme source does not ship mint phosphor or DistroKid trim", () => {
   expect(theme).not.toMatch(/#367FC7/i);
   expect(theme).toMatch(/lcdSignal/);
   expect(theme).not.toMatch(/lcdPhosphor/);
-  expect(theme).toMatch(/dark-premium-quiet-neon-20260925/);
+  expect(theme).toMatch(/dark-premium-discover-20260925/);
   expect(theme).not.toMatch(/#A8FF6A/i);
   expect(theme).not.toMatch(/#7DFFB3/i);
 });
@@ -122,6 +122,9 @@ test("browse lists print BPM and Camelot, and Home is player then my listening",
   expect(explore).toMatch(/ChannelSurfingSection/);
   expect(explore).toMatch(/TonightDeck/);
   expect(explore).toMatch(/SEARCH_FIELD/);
+  expect(explore).toMatch(/ExploreTools/);
+  expect(explore).toMatch(/TrendingCuts/);
+  expect(explore).toMatch(/ArtistIndex/);
   const sidebar = fs.readFileSync(path.join(root, "src/components/layout/AppSidebar.jsx"), "utf8");
   expect(sidebar).toMatch(/variant === "drawer"/);
   expect(sidebar).not.toMatch(/Faceplate/);
@@ -171,7 +174,15 @@ test("Explore prefetches on idle and Home Channel Surfing uses PS1 plates", () =
   const screen = fs.readFileSync(path.join(root, "src/screens/ExploreScreen.jsx"), "utf8");
   expect(screen).not.toMatch(/setDeepReady/);
   expect(screen).not.toMatch(/will-change: transform/);
-  expect(screen).toMatch(/activeMode === "worlds"/);
+  expect(screen).toMatch(/activeMode === "genres"/);
+  expect(screen).toMatch(/activeMode === "releases" && channels.length/);
+  expect(screen).toMatch(/activeMode === "releases" && hasTonight/);
+  const atlas = fs.readFileSync(path.join(root, "src/components/explore/WorldAtlas.jsx"), "utf8");
+  expect(atlas).toMatch(/All genres/);
+  expect(atlas).not.toMatch(/\bcuts\b/);
+  const modes = fs.readFileSync(path.join(root, "src/components/explore/ExploreModes.jsx"), "utf8");
+  expect(modes).toMatch(/role="toolbar"/);
+  expect(modes).toMatch(/Discover tools/);
 });
 
 test("ice phosphor is the play pip, dock LCD, Mix/Energy sleeves, and poster stage", () => {

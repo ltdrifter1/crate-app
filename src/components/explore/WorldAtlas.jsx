@@ -1,4 +1,4 @@
-import { color, fontDisplay, fontMono, homeSpace, motion, radio, type, y2k } from "../../theme";
+import { color, font, fontDisplay, glassPill, homeSpace, motion, type, y2k } from "../../theme";
 import ArtFrame from "../ui/ArtFrame";
 
 function WorldTile({ tile, onOpen, delay = 0, lead = false }) {
@@ -8,7 +8,7 @@ function WorldTile({ tile, onOpen, delay = 0, lead = false }) {
       type="button"
       className={`pmp-lift pmp-world-tile${lead ? " pmp-world-tile--lead" : ""}`}
       onClick={() => onOpen?.({ type: "scene", id: tile.id })}
-      aria-label={`${tile.label} — ${tile.count} cuts`}
+      aria-label={`${tile.label} — ${tile.count} ${tile.count === 1 ? "track" : "tracks"}`}
       style={{
         display: "flex",
         flexDirection: "column",
@@ -49,17 +49,16 @@ function WorldTile({ tile, onOpen, delay = 0, lead = false }) {
           style={{
             display: "block",
             marginTop: 3,
-            fontSize: 11,
-            fontWeight: 600,
+            fontFamily: font,
+            fontSize: 13,
+            fontWeight: 500,
             color: color.muted,
-            fontFamily: fontMono,
-            letterSpacing: 0.04,
-            textTransform: "uppercase",
+            letterSpacing: -0.08,
           }}
         >
           {city}
           {" · "}
-          {tile.count} {tile.count === 1 ? "cut" : "cuts"}
+          {tile.count} {tile.count === 1 ? "track" : "tracks"}
         </span>
       </span>
     </button>
@@ -72,12 +71,12 @@ function LaneIndex({ lanes = [], onOpen = null }) {
     <div style={{ padding: `18px ${homeSpace.gutter}px 0` }}>
       <div
         style={{
-          ...type.lcd,
-          color: color.lcdMute,
+          ...type.headline,
           marginBottom: 8,
+          color: color.ink,
         }}
       >
-        Lanes
+        All genres
       </div>
       <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
         {lanes.map((plate) => (
@@ -86,20 +85,17 @@ function LaneIndex({ lanes = [], onOpen = null }) {
             type="button"
             className="pmp-press pmp-explore-genre"
             onClick={() => onOpen?.({ type: "genre", id: plate.lane })}
-            aria-label={`${plate.lane} — ${plate.trackCount} cuts`}
+            aria-label={`${plate.lane} — ${plate.trackCount} ${plate.trackCount === 1 ? "track" : "tracks"}`}
             style={{
-              minHeight: 32,
-              padding: "0 10px",
-              borderRadius: radio.radiusLcd,
-              border: radio.borderChrome,
-              background: radio.moduleFace,
-              boxShadow: radio.moduleShadow,
-              color: color.ink,
+              ...glassPill({ compact: true }),
+              minHeight: 34,
+              padding: "0 12px",
               cursor: "pointer",
-              fontFamily: fontMono,
-              fontSize: 11,
-              fontWeight: 700,
-              letterSpacing: 0.04,
+              fontFamily: fontDisplay,
+              fontSize: 13,
+              fontWeight: 600,
+              letterSpacing: -0.12,
+              color: color.ink,
               WebkitTapHighlightColor: "transparent",
             }}
           >
@@ -130,11 +126,7 @@ export default function WorldAtlas({ families = [], lanes = [], onOpen = null })
             <h2
               style={{
                 margin: 0,
-                fontFamily: fontDisplay,
-                fontSize: 13,
-                fontWeight: 700,
-                letterSpacing: 0.08,
-                textTransform: "uppercase",
+                ...type.title3,
                 color: color.ink,
               }}
             >
@@ -143,9 +135,9 @@ export default function WorldAtlas({ families = [], lanes = [], onOpen = null })
             <p
               style={{
                 margin: "3px 0 0",
-                fontSize: 12,
+                fontSize: 13,
                 color: color.muted,
-                lineHeight: 1.35,
+                lineHeight: 1.4,
                 maxWidth: 420,
               }}
             >
