@@ -3,7 +3,7 @@ import { createRoot } from "react-dom/client";
 import { act } from "react-dom/test-utils";
 import PlayerDeck from "./PlayerDeck";
 
-test("PlayerDeck is a PS1 glass plate with LCD seek, transport, and Turtle / Rabbit", async () => {
+test("PlayerDeck is a PS1 glass plate with LCD seek, transport, and Slow / Fast icons", async () => {
   localStorage.clear();
   const div = document.createElement("div");
   document.body.appendChild(div);
@@ -37,20 +37,21 @@ test("PlayerDeck is a PS1 glass plate with LCD seek, transport, and Turtle / Rab
   expect(div.querySelector('[aria-label="Share"]')).toBeTruthy();
   expect(div.querySelector('[aria-label="Up next"]')).toBeTruthy();
   expect(div.querySelector('[data-testid="rabbit-turtle"]')).toBeTruthy();
-  expect(div.querySelector('[aria-label="Turtle — slow down upcoming tracks"]')).toBeTruthy();
-  expect(div.querySelector('[aria-label="Rabbit — speed up upcoming tracks"]')).toBeTruthy();
-  expect(div.textContent).toMatch(/Turtle/);
-  expect(div.textContent).toMatch(/Rabbit/);
-  expect(div.textContent).toMatch(/Next picks/);
+  expect(div.querySelector('[aria-label="Slow — slow down upcoming tracks"]')).toBeTruthy();
+  expect(div.querySelector('[aria-label="Fast — speed up upcoming tracks"]')).toBeTruthy();
+  expect(div.textContent).toMatch(/Slow/);
+  expect(div.textContent).toMatch(/Fast/);
+  expect(div.textContent).not.toMatch(/Turtle/);
+  expect(div.textContent).not.toMatch(/Rabbit/);
   expect(div.querySelector('[data-testid="deck-hint"]')?.textContent).toMatch(
-    /Turtle and Rabbit change what plays next/
+    /Slow or Fast changes what plays next/
   );
   expect(div.textContent).toMatch(/Dislike steers/);
   await act(async () => root.unmount());
   document.body.removeChild(div);
 });
 
-test("idle PlayerDeck keeps Start listening plus Turtle / Rabbit", async () => {
+test("idle PlayerDeck keeps Start listening plus Slow / Fast icons", async () => {
   localStorage.clear();
   const onStart = jest.fn();
   const div = document.createElement("div");
@@ -70,7 +71,7 @@ test("idle PlayerDeck keeps Start listening plus Turtle / Rabbit", async () => {
   expect(div.querySelector('[aria-label="Start listening"]')).toBeTruthy();
   expect(div.querySelector('[data-testid="rabbit-turtle"]')).toBeTruthy();
   expect(div.querySelector('[data-testid="deck-hint"]')?.textContent).toMatch(
-    /Turtle and Rabbit change what plays next/
+    /Slow or Fast changes what plays next/
   );
   expect(div.textContent).not.toMatch(/Dislike steers/);
   await act(async () => {

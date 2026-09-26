@@ -63,8 +63,8 @@ describe("featureGuide gate", () => {
     expect(FEATURE_GUIDE_VERSION).toBe(3);
     const blob = FEATURE_GUIDE_STEPS.map((s) => `${s.title} ${s.body}`).join(" ");
     expect(blob).not.toMatch(/favourite genres|Enter the club|How adventurous/i);
-    expect(blob).toMatch(/Turtle/);
-    expect(blob).toMatch(/Rabbit/);
+    expect(blob).toMatch(/Slow/);
+    expect(blob).toMatch(/Fast/);
     expect(blob).toMatch(/playlists/i);
     expect(blob).not.toMatch(/Channel Surfing/);
     expect(blob).not.toMatch(/beaker/i);

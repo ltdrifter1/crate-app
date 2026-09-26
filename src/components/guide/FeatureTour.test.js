@@ -31,7 +31,7 @@ describe("FeatureTour", () => {
       root.render(React.createElement(FeatureTour, { onComplete, onSkip }));
     });
     expect(div.textContent).toMatch(/Your player/);
-    expect(div.textContent).toMatch(/Turtle/);
+    expect(div.textContent).toMatch(/Slow/);
     expect(div.textContent).not.toMatch(/Select your favourite genres/);
     expect(div.textContent).not.toMatch(/Enter the club/);
     expect(div.querySelector("[data-testid='feature-tour']")).toBeTruthy();

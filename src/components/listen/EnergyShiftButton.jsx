@@ -43,7 +43,7 @@ function PaceRampIcon({ size = 15, lift = false }) {
 /**
  * One pace paddle. direction: "up" (Lift) | "down" (Ease).
  * Tap = ±10 BPM on upcoming picks · long-press = ±5 / ±10 / ±20.
- * showLabel: Ease / Lift under the key.
+ * showLabel: Slow / Fast under animal keys, Ease / Lift otherwise.
  */
 export function EnergyShiftButton({
   direction = "up",
@@ -54,7 +54,7 @@ export function EnergyShiftButton({
 }) {
   const up = direction === "up";
   const animal = glyph === "rabbit" || glyph === "turtle";
-  const verb = animal ? (up ? "Rabbit" : "Turtle") : (up ? "Lift" : "Ease");
+  const verb = animal ? (up ? "Fast" : "Slow") : (up ? "Lift" : "Ease");
   const { increaseEnergy, decreaseEnergy, energyShift } = useEnergyQueue();
   const [pressed, setPressed] = useState(false);
   const [hovered, setHovered] = useState(false);
@@ -104,13 +104,13 @@ export function EnergyShiftButton({
         type="button"
         aria-label={
           animal
-            ? (up ? "Rabbit — speed up upcoming tracks" : "Turtle — slow down upcoming tracks")
+            ? (up ? "Fast — speed up upcoming tracks" : "Slow — slow down upcoming tracks")
             : (up ? "Lift upcoming tracks" : "Ease upcoming tracks")
         }
         aria-pressed={activeHere}
         title={
           animal
-            ? (up ? "Rabbit speeds up what plays next" : "Turtle slows down what plays next")
+            ? (up ? "Fast — speed up what plays next" : "Slow — slow down what plays next")
             : (up ? "Lift upcoming picks" : "Ease upcoming picks")
         }
         onPointerDown={startPress}
@@ -786,7 +786,7 @@ export function PaceSlot({
   );
 }
 
-/** Turtle / Rabbit — distinctive BPM control for upcoming picks. */
+/** Slow / Fast keys — turtle and rabbit icons, no animal names on screen. */
 export function RabbitTurtleSlot({
   compact = true,
   stopPropagation = true,
@@ -796,7 +796,7 @@ export function RabbitTurtleSlot({
       className="pmp-rabbit-slot"
       data-testid="rabbit-turtle"
       role="group"
-      aria-label="Turtle slows upcoming tracks. Rabbit speeds them up."
+      aria-label="Slow or Fast upcoming tracks"
     >
       <div
         aria-hidden="true"
@@ -812,7 +812,7 @@ export function RabbitTurtleSlot({
           textAlign: "center",
         }}
       >
-        Next picks
+        Pace
       </div>
       <div className="pmp-rabbit-slot__keys">
         <EnergyShiftButton

@@ -197,12 +197,14 @@ describe("Home broadcast + four-tab IA", () => {
     expect(div.querySelector('[data-testid="rabbit-turtle"]')).toBeTruthy();
     expect(div.querySelector('[aria-label="Start listening"]')).toBeTruthy();
     expect(div.textContent).toMatch(/Start listening/);
-    expect(div.textContent).toMatch(/Turtle/);
-    expect(div.textContent).toMatch(/Rabbit/);
+    expect(div.textContent).toMatch(/Slow/);
+    expect(div.textContent).toMatch(/Fast/);
+    expect(div.textContent).not.toMatch(/Turtle/);
+    expect(div.textContent).not.toMatch(/Rabbit/);
     expect(div.querySelector(".pmp-seek__well")).toBeNull();
   });
 
-  test("live hero has Turtle / Rabbit and dislike, not a Request button", async () => {
+  test("live hero has Slow / Fast icons and dislike, not a Request button", async () => {
     await act(async () => {
       root.render(
         React.createElement(HeroPlayerCard, {
@@ -220,17 +222,18 @@ describe("Home broadcast + four-tab IA", () => {
     });
     expect(div.textContent).not.toMatch(/\bRequest\b/);
     expect(div.querySelector('[data-testid="rabbit-turtle"]')).toBeTruthy();
-    expect(div.querySelector('[aria-label="Turtle — slow down upcoming tracks"]')).toBeTruthy();
-    expect(div.querySelector('[aria-label="Rabbit — speed up upcoming tracks"]')).toBeTruthy();
+    expect(div.querySelector('[aria-label="Slow — slow down upcoming tracks"]')).toBeTruthy();
+    expect(div.querySelector('[aria-label="Fast — speed up upcoming tracks"]')).toBeTruthy();
     expect(div.querySelector('[data-testid="pace-slot"]')).toBeNull();
     expect(div.querySelector(".pmp-pace-slot")).toBeNull();
     expect(div.querySelector('[data-testid="player-deck"]')).toBeTruthy();
     expect(div.querySelector(".pmp-deck-plate")).toBeTruthy();
     expect(div.querySelector(".pmp-seek__well")).toBeTruthy();
     expect(div.querySelector(".pmp-timeline")).toBeTruthy();
-    expect(div.textContent).toMatch(/Turtle/);
-    expect(div.textContent).toMatch(/Rabbit/);
-    expect(div.textContent).toMatch(/Next picks/);
+    expect(div.textContent).toMatch(/Slow/);
+    expect(div.textContent).toMatch(/Fast/);
+    expect(div.textContent).not.toMatch(/Turtle/);
+    expect(div.textContent).not.toMatch(/Rabbit/);
     expect(div.textContent).not.toMatch(/\bEase\b|\bLift\b|\bMiddle\b/);
     expect(div.querySelector('[aria-label="Dislike this track"]')).toBeTruthy();
   });

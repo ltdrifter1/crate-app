@@ -1,6 +1,6 @@
 /**
  * Shared listening deck — artwork transport with LCD seek, planet play,
- * rounded hardware keys, and Turtle / Rabbit BPM controls. Hero + immersive.
+ * rounded hardware keys, and Slow / Fast pace controls. Hero + immersive.
  */
 import { useEffect, useState } from "react";
 import Icon from "../ui/Icon";
@@ -37,7 +37,7 @@ function DeckHint({ showDislike }) {
         animation: `rise 0.35s ${motion.ease} both`,
       }}
     >
-      Turtle and Rabbit change what plays next.
+      Slow or Fast changes what plays next.
       {showDislike ? " Dislike steers the mix away." : ""}
     </p>
   );

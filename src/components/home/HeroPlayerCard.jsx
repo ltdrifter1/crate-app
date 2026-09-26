@@ -256,7 +256,7 @@ function UpNextGlass({ track }) {
 
 /**
  * HeroPlayerCard — Home now-playing device.
- * Sleeve + LCD on one stage; seek as a timeline; Turtle / Rabbit on the deck.
+ * Sleeve + LCD on one stage; seek as a timeline; Slow / Fast on the deck.
  */
 export default function HeroPlayerCard({
   track = null,
