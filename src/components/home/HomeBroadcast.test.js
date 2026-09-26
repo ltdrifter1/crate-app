@@ -487,8 +487,17 @@ describe("Home broadcast + four-tab IA", () => {
     expect(div.textContent).not.toMatch(/Showcase/);
     expect(div.textContent).not.toMatch(/Not now/);
     expect(div.textContent).not.toMatch(/Tune in/);
-    expect(div.querySelector(".pmp-channel-surf")).toBeNull();
-    expect(div.textContent).not.toMatch(/Channel Surfing/);
+    expect(div.querySelector(".pmp-channel-surf")).toBeTruthy();
+    expect(div.textContent).toMatch(/Channel Surfing/);
+    const local = [...div.querySelectorAll(".pmp-channel-card")].find((el) =>
+      el.textContent.includes("Local")
+    );
+    expect(local).toBeTruthy();
+    await act(async () => {
+      local.click();
+    });
+    expect(onTuneSceneChannel).toHaveBeenCalled();
+    expect(onTuneSceneChannel.mock.calls[0][0].id).toBe("local-pnw");
   });
 
   test("Home loading shows the player, not Channel Surfing", async () => {
@@ -509,7 +518,40 @@ describe("Home broadcast + four-tab IA", () => {
     expect(div.querySelector(".pmp-showcase-promo")).toBeNull();
   });
 
-  test("player then personal then one editorial — radio is off Home", async () => {
+  test("Home shows the compact Today schedule under Channel Surfing", async () => {
+    const onTuneShow = jest.fn();
+    await act(async () => {
+      root.render(
+        React.createElement(HomeScreen, {
+          tracks: [
+            {
+              id: "t1",
+              title: "Night Drive",
+              artist: "Signal",
+              duration: 180,
+              audioUrl: "https://cdn.example/a.mp3",
+            },
+          ],
+          onTuneSceneChannel: jest.fn(),
+          onTuneShow,
+          programGuide: [
+            { id: "sunrise", title: "Sunrise", shortTitle: "Sunrise", startHour: 5, status: "past" },
+            { id: "desk", title: "Desk Live", shortTitle: "Desk Live", startHour: 9, status: "live" },
+          ],
+        })
+      );
+    });
+    await act(async () => {
+      await new Promise((r) => setTimeout(r, 80));
+    });
+    expect(div.querySelector(".pmp-channel-surf")).toBeTruthy();
+    expect(div.querySelector(".pmp-today-band")).toBeTruthy();
+    expect(div.textContent).toMatch(/Today/);
+    expect(div.textContent).toMatch(/Desk Live/);
+    expect(div.textContent).not.toMatch(/On Tonight/);
+  });
+
+  test("player then Channel Surfing then Tonight then personal", async () => {
     const fs = require("fs");
     const path = require("path");
     const src = fs.readFileSync(
@@ -517,13 +559,15 @@ describe("Home broadcast + four-tab IA", () => {
       "utf8"
     );
     const hero = src.indexOf("<HeroPlayerCard");
+    const surf = src.indexOf("<ChannelSurfingSection");
+    const tonight = src.indexOf("<TonightDeck");
     const personal = src.indexOf("<HomePersonal");
     const editorial = src.indexOf("<HomeEditorial");
     expect(hero).toBeGreaterThan(-1);
-    expect(personal).toBeGreaterThan(hero);
+    expect(surf).toBeGreaterThan(hero);
+    expect(tonight).toBeGreaterThan(surf);
+    expect(personal).toBeGreaterThan(tonight);
     expect(editorial).toBeGreaterThan(personal);
-    expect(src).not.toMatch(/ChannelSurfingSection/);
-    expect(src).not.toMatch(/TonightDeck/);
   });
 
   test("signed-in empty personal shelf offers Discover; guests skip it", async () => {

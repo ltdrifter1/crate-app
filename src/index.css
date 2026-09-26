@@ -385,14 +385,48 @@ body::before { display: none; }
   flex: 1 0 100%;
   width: 100%;
   min-width: 0;
-  margin-top: 2px;
+  margin-top: 6px;
   box-sizing: border-box;
 }
 .pmp-rabbit-slot__keys {
-  display: flex;
+  display: grid;
+  grid-template-columns: auto minmax(64px, 1fr) auto;
+  grid-template-rows: auto auto;
   align-items: center;
-  justify-content: center;
-  gap: 12px;
+  justify-items: center;
+  column-gap: 6px;
+  row-gap: 0;
+  width: 100%;
+  max-width: 320px;
+  margin: 0 auto;
+}
+.pmp-pace-wedge {
+  width: 100%;
+  height: 22px;
+  color: currentColor;
+  display: block;
+}
+.pmp-pace-wedge[data-pace="fast"] {
+  color: var(--pmp-accent, #6ea8ff);
+}
+.pmp-pace-wedge[data-pace="slow"] {
+  opacity: 0.72;
+}
+.pmp-rabbit-slot__word {
+  font-family: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  line-height: 1;
+  padding-top: 2px;
+  user-select: none;
+}
+.pmp-rabbit-slot__word[data-active="true"] {
+  color: var(--pmp-accent, #6ea8ff);
+}
+.pmp-rabbit-slot__spacer {
+  display: block;
 }
 .pmp-timeline {
   flex: 1 0 100%;

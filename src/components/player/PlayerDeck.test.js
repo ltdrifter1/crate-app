@@ -37,6 +37,7 @@ test("PlayerDeck is a PS1 glass plate with LCD seek, transport, and Slow / Fast 
   expect(div.querySelector('[aria-label="Share"]')).toBeTruthy();
   expect(div.querySelector('[aria-label="Up next"]')).toBeTruthy();
   expect(div.querySelector('[data-testid="rabbit-turtle"]')).toBeTruthy();
+  expect(div.querySelector('[data-testid="pace-wedge"]')).toBeTruthy();
   expect(div.querySelector('[aria-label="Slow — slow down upcoming tracks"]')).toBeTruthy();
   expect(div.querySelector('[aria-label="Fast — speed up upcoming tracks"]')).toBeTruthy();
   expect(div.textContent).toMatch(/Slow/);
