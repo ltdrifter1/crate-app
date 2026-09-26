@@ -69,6 +69,14 @@ describe("coverUrl", () => {
     expect(normalizeCoverSrc("https://storage.googleapis.com/b/covers/a.jpg")).toBe(
       "https://storage.googleapis.com/b/covers/a.jpg"
     );
+    expect(normalizeCoverSrc("covers/hash-art.jpg")).toBe(
+      "https://storage.googleapis.com/crate-app-58494.firebasestorage.app/covers/hash-art.jpg"
+    );
+  });
+
+  test("default resize mode leaves Storage originals alone", () => {
+    const src = "https://storage.googleapis.com/b/covers/art.jpg";
+    expect(coverDisplayUrl(src, { width: 168, dpr: 2 })).toBe(src);
   });
 
   test("one Cloudflare miss falls back to the original file so tiles still photograph", () => {

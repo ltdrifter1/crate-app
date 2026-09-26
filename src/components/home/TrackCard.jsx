@@ -5,8 +5,7 @@ import ArtFrame from "../ui/ArtFrame";
 import { trackLcdBits } from "../player/DeviceChrome";
 
 /**
- * TrackCard — crate tile: jewel sleeve + title + artist.
- * Optional rank badge (countdown) and reason line (recommendations).
+ * TrackCard — MTV clip tile: 16:9 sleeve + title + artist.
  */
 function TrackCard({
   track,
@@ -14,9 +13,11 @@ function TrackCard({
   rank = null,
   reason = null,
   active = false,
-  size = homeSpace.tile,
+  size = homeSpace.tileFeatured,
 }) {
   const lcd = trackLcdBits(track);
+  const w = size;
+  const h = Math.round(size * 9 / 16);
   return (
     <button
       type="button"
@@ -26,7 +27,7 @@ function TrackCard({
       style={{
         flex: "0 0 auto",
         scrollSnapAlign: "start",
-        width: size,
+        width: w,
         background: "none",
         border: "none",
         padding: 0,
@@ -37,7 +38,9 @@ function TrackCard({
     >
       <ArtFrame
         src={track.albumCover || null}
-        size={size}
+        size={w}
+        width={w}
+        height={h}
         active={active}
         radius={4}
         wellColor={track.color || ""}

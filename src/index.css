@@ -390,9 +390,9 @@ body::before { display: none; }
 }
 .pmp-rabbit-slot__keys {
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   justify-content: center;
-  gap: 18px;
+  gap: 12px;
 }
 .pmp-timeline {
   flex: 1 0 100%;

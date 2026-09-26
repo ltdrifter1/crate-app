@@ -1,11 +1,7 @@
-/**
- * Catalog cover display URLs — Firebase Storage originals are heavy
- * for 168px Home tiles. Prefer Cloudflare Image Resizing (same-origin
- * `/cdn-cgi/image/…`). If CF is down (local CRA, missing zone, 404),
- * show the original. Empty tiles are worse than a larger JPEG.
- *
- * Optional: Firebase "Resize Images" extension thumbs when
- * REACT_APP_COVER_RESIZE=firebase (Luke enables the extension).
+/** Catalog sleeve URLs — Firebase Storage originals. Resize is opt-in.
+ * Default is the original file so Home photographs even when Cloudflare
+ * Image Resizing or Firebase thumbs are missing. Set REACT_APP_COVER_RESIZE=cf
+ * only when the zone actually serves `/cdn-cgi/image`.
  */
 
 export const ORIGINAL_COVER_MIN_PX = 640;
@@ -49,11 +45,13 @@ export function isLocalCoverHost() {
 
 function envResizeMode() {
   const raw = typeof process !== "undefined" ? process.env.REACT_APP_COVER_RESIZE : "";
-  const mode = String(raw || "cf").trim().toLowerCase();
-  if (mode === "off" || mode === "0" || mode === "false" || mode === "none") return "off";
+  const mode = String(raw || "off").trim().toLowerCase();
+  if (mode === "cf" || mode === "cloudflare" || mode === "cdn") {
+    if (isLocalCoverHost()) return "off";
+    return "cf";
+  }
   if (mode === "firebase" || mode === "ext" || mode === "thumbs") return "firebase";
-  if (isLocalCoverHost()) return "off";
-  return "cf";
+  return "off";
 }
 
 /** gs://bucket/path → HTTPS download URL. Trim junk so img src is always fetchable. */
@@ -61,6 +59,8 @@ export function normalizeCoverSrc(src) {
   if (!src || typeof src !== "string") return "";
   const value = src.trim();
   if (!value) return "";
+  const DEFAULT_COVER_BUCKET = "crate-app-58494.firebasestorage.app";
+
   if (value.startsWith("gs://")) {
     const rest = value.slice(5);
     const slash = rest.indexOf("/");
@@ -70,7 +70,12 @@ export function normalizeCoverSrc(src) {
     if (!bucket || !objectPath) return "";
     return `https://firebasestorage.googleapis.com/v0/b/${bucket}/o/${encodeURIComponent(objectPath)}?alt=media`;
   }
-  return value;
+  if (/^[a-z][a-z0-9+.-]*:/i.test(value) || value.startsWith("//") || value.startsWith("/") || value.startsWith("data:") || value.startsWith("blob:")) {
+    return value;
+  }
+  // Bare object path from older catalog rows: covers/hash-art.jpg
+  const objectPath = value.replace(/^\/+/, "");
+  return `https://storage.googleapis.com/${DEFAULT_COVER_BUCKET}/${objectPath}`;
 }
 
 export function isRemoteCoverUrl(src) {

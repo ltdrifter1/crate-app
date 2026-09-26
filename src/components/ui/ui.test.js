@@ -34,7 +34,7 @@ describe("CoverImage loading", () => {
     document.body.removeChild(div);
   });
 
-  it("rewrites Firebase Storage covers through /cdn-cgi/image", async () => {
+  it("loads Firebase Storage covers from the original file", async () => {
     const div = document.createElement("div");
     document.body.appendChild(div);
     const root = createRoot(div);
@@ -49,10 +49,8 @@ describe("CoverImage loading", () => {
       );
     });
     const img = div.querySelector("img");
-    expect(img.getAttribute("src")).toContain("/cdn-cgi/image/");
-    expect(img.getAttribute("src")).toContain(src);
-    expect(img.getAttribute("srcset") || img.srcset).toMatch(/1x/);
-    expect(img.getAttribute("srcset") || img.srcset).toMatch(/2x/);
+    expect(img.getAttribute("src")).toBe(src);
+    expect(img.getAttribute("src")).not.toContain("/cdn-cgi/image/");
     await act(async () => root.unmount());
     document.body.removeChild(div);
   });

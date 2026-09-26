@@ -124,12 +124,15 @@ export function EnergyShiftButton({
         onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); dispatch(10); } }}
         style={{
           ...hardwareKey({ pressed: pressed || activeHere, size: "md" }),
-          width: size,
+          width: animal && showLabel ? "auto" : size,
+          minWidth: animal && showLabel ? 104 : size,
           height: size,
           minHeight: size,
-          padding: 0,
+          padding: animal && showLabel ? "0 14px" : 0,
+          gap: animal && showLabel ? 8 : 0,
           borderRadius: hardware.radius,
           display: "flex",
+          flexDirection: "row",
           alignItems: "center",
           justifyContent: "center",
           cursor: "pointer",
@@ -150,13 +153,28 @@ export function EnergyShiftButton({
         }}
       >
         {animal ? (
-          <Icon name={up ? "rabbit" : "turtle"} size={Math.round(size * 0.52)} />
+          <Icon name={up ? "rabbit" : "turtle"} size={Math.round(size * 0.48)} />
         ) : (
           <PaceRampIcon size={Math.round(size * 0.5)} lift={up} />
         )}
+        {animal && showLabel ? (
+          <span
+            aria-hidden="true"
+            style={{
+              fontSize: 12,
+              fontWeight: 800,
+              letterSpacing: 0.12,
+              textTransform: "uppercase",
+              fontFamily: fontMono,
+              lineHeight: 1,
+            }}
+          >
+            {verb}
+          </span>
+        ) : null}
       </button>
 
-      {showLabel && (
+      {showLabel && !animal && (
         <span aria-hidden="true" style={{
           fontSize: 11,
           fontWeight: 800,
@@ -798,22 +816,6 @@ export function RabbitTurtleSlot({
       role="group"
       aria-label="Slow or Fast upcoming tracks"
     >
-      <div
-        aria-hidden="true"
-        className="pmp-pace-caption"
-        style={{
-          fontFamily: fontMono,
-          fontSize: compact ? 9 : 10,
-          fontWeight: 700,
-          letterSpacing: 0.14,
-          textTransform: "uppercase",
-          color: color.muted,
-          marginBottom: 2,
-          textAlign: "center",
-        }}
-      >
-        Pace
-      </div>
       <div className="pmp-rabbit-slot__keys">
         <EnergyShiftButton
           direction="down"
