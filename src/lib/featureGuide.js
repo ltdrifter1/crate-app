@@ -10,7 +10,7 @@ export const FEATURE_GUIDE_STEPS = [
     id: "home",
     kicker: "Home",
     title: "Your player",
-    body: "Artwork, play, and Turtle / Rabbit to slow or speed what plays next.",
+    body: "Artwork, play, and Slow / Fast to change what plays next.",
   },
   {
     id: "explore",

@@ -1,16 +1,16 @@
 /**
  * Shared cover art image — always sized, lazy by default.
  * Remote Firebase Storage covers go through Cloudflare Image Resizing
- * (`/cdn-cgi/image/…`). One CF 404 switches the session to Firebase thumbs
- * — never original masters on rails. Failed photos show a disc on a color well.
+ * (`/cdn-cgi/image/…`). One CF 404 switches the session to original files
+ * so Home tiles still show photos. Failed photos show a disc on a color well.
  */
 import { useEffect, useState } from "react";
 import {
-  allowOriginalCover,
   coverDisplayUrl,
   coverSrcSet,
   firebaseThumbUrl,
   markCloudflareResizeUnavailable,
+  normalizeCoverSrc,
 } from "../../lib/coverUrl";
 import DefaultSleeve from "./DefaultSleeve";
 
@@ -60,33 +60,34 @@ export default function CoverImage({
   onError,
 }) {
   const [failed, setFailed] = useState(false);
-  /** cf → thumb → original. Never jump straight to the master JPEG. */
+  /** cf → thumb (firebase mode) → original. Originals always win over a blank tile. */
   const [tier, setTier] = useState("cf");
+  const href = normalizeCoverSrc(src);
 
   useEffect(() => {
     setFailed(false);
     setTier("cf");
-  }, [src]);
+  }, [href]);
 
   const w = Math.max(1, Math.round(Number(width) || 1));
   const h = Math.max(1, Math.round(Number(height) || w));
 
-  if (!src || failed) {
+  if (!href || failed) {
     return <DefaultSleeve size={Math.min(w, h)} color={wellColor} />;
   }
 
-  let displaySrc = src;
+  let displaySrc = href;
   let srcSet;
   if (!raw) {
     if (tier === "original") {
-      displaySrc = src;
+      displaySrc = href;
       srcSet = undefined;
     } else if (tier === "thumb") {
-      displaySrc = firebaseThumbUrl(src, w);
+      displaySrc = firebaseThumbUrl(href, w);
       srcSet = undefined;
     } else {
-      displaySrc = coverDisplayUrl(src, { width: w });
-      srcSet = coverSrcSet(src, w) || undefined;
+      displaySrc = coverDisplayUrl(href, { width: w });
+      srcSet = coverSrcSet(href, w) || undefined;
     }
   }
 
@@ -116,19 +117,17 @@ export default function CoverImage({
         className={className}
         onLoad={onLoad}
         onError={(e) => {
-          if (!raw && tier === "cf" && displaySrc !== src) {
-            markCloudflareResizeUnavailable();
-            setTier("thumb");
-            return;
-          }
-          if (!raw && tier === "thumb" && displaySrc !== src) {
-            if (allowOriginalCover(w)) {
+          if (!raw && displaySrc !== href) {
+            if (tier === "cf") {
+              markCloudflareResizeUnavailable();
+              const thumb = firebaseThumbUrl(href, w);
+              setTier(thumb && thumb !== href ? "thumb" : "original");
+              return;
+            }
+            if (tier === "thumb") {
               setTier("original");
               return;
             }
-            setFailed(true);
-            onError?.(e);
-            return;
           }
           setFailed(true);
           onError?.(e);

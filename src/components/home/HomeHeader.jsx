@@ -1,5 +1,5 @@
-import { chromeIconButton, color, font, fontDisplay, homeSpace, SEARCH_FIELD } from "../../theme";
-import { BRAND_NAME, brandWordmark } from "../../brand/identity";
+import { chromeIconButton, color, font, fontPoster, homeSpace, SEARCH_FIELD } from "../../theme";
+import { BRAND_NAME } from "../../brand/identity";
 import Icon from "../ui/Icon";
 import { BrandGlyph } from "../brand/BrandGlyphs";
 
@@ -57,12 +57,13 @@ export default function HomeHeader({
           <BrandGlyph size={32} />
           <span
             style={{
-              fontFamily: fontDisplay,
-              fontSize: 16,
-              fontWeight: brandWordmark.weight,
-              letterSpacing: brandWordmark.letterSpacing,
+              fontFamily: fontPoster,
+              fontSize: 22,
+              fontWeight: 800,
+              letterSpacing: 0.8,
+              textTransform: "uppercase",
               color: color.ink,
-              lineHeight: 1.05,
+              lineHeight: 1,
             }}
           >
             {BRAND_NAME}

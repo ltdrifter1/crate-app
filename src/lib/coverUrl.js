@@ -1,7 +1,8 @@
 /**
- * Catalog cover display URLs — Firebase Storage originals are too heavy
+ * Catalog cover display URLs — Firebase Storage originals are heavy
  * for 168px Home tiles. Prefer Cloudflare Image Resizing (same-origin
- * `/cdn-cgi/image/…`) with a client fallback to the original on error.
+ * `/cdn-cgi/image/…`). If CF is down (local CRA, missing zone, 404),
+ * show the original. Empty tiles are worse than a larger JPEG.
  *
  * Optional: Firebase "Resize Images" extension thumbs when
  * REACT_APP_COVER_RESIZE=firebase (Luke enables the extension).
@@ -38,12 +39,38 @@ export function resetCloudflareResizeForTests() {
   cloudflareResizeOk = true;
 }
 
+/** CRA / local Vite never serve `/cdn-cgi/image`. Jest keeps CF so unit tests stay honest. */
+export function isLocalCoverHost() {
+  if (typeof process !== "undefined" && process.env.NODE_ENV === "test") return false;
+  if (typeof window === "undefined") return false;
+  const host = String(window.location?.hostname || "").toLowerCase();
+  return host === "localhost" || host === "127.0.0.1" || host === "0.0.0.0";
+}
+
 function envResizeMode() {
   const raw = typeof process !== "undefined" ? process.env.REACT_APP_COVER_RESIZE : "";
   const mode = String(raw || "cf").trim().toLowerCase();
   if (mode === "off" || mode === "0" || mode === "false" || mode === "none") return "off";
   if (mode === "firebase" || mode === "ext" || mode === "thumbs") return "firebase";
+  if (isLocalCoverHost()) return "off";
   return "cf";
+}
+
+/** gs://bucket/path → HTTPS download URL. Trim junk so img src is always fetchable. */
+export function normalizeCoverSrc(src) {
+  if (!src || typeof src !== "string") return "";
+  const value = src.trim();
+  if (!value) return "";
+  if (value.startsWith("gs://")) {
+    const rest = value.slice(5);
+    const slash = rest.indexOf("/");
+    if (slash < 1) return "";
+    const bucket = rest.slice(0, slash);
+    const objectPath = rest.slice(slash + 1);
+    if (!bucket || !objectPath) return "";
+    return `https://firebasestorage.googleapis.com/v0/b/${bucket}/o/${encodeURIComponent(objectPath)}?alt=media`;
+  }
+  return value;
 }
 
 export function isRemoteCoverUrl(src) {
@@ -131,24 +158,26 @@ export function cloudflareImageUrl(src, { width, quality = 72 } = {}) {
  * @param {{ width?: number, quality?: number, mode?: string }} [opts]
  */
 export function coverDisplayUrl(src, opts = {}) {
-  if (!src) return "";
+  const href = normalizeCoverSrc(src);
+  if (!href) return "";
   const mode = opts.mode || envResizeMode();
-  if (mode === "off") return src;
-  if (!isRemoteCoverUrl(src)) return src;
+  if (mode === "off") return href;
+  if (!isRemoteCoverUrl(href)) return href;
   const width = coverResizeWidth(opts.width || 168, opts.dpr);
   const quality = opts.quality;
-  if (mode === "firebase") return firebaseThumbUrl(src, width);
-  // One CF 404 turns the session onto Firebase thumbs — never originals on rails.
-  if (!cloudflareResizeOk) return firebaseThumbUrl(src, width);
-  return cloudflareImageUrl(src, { width, quality });
+  if (mode === "firebase") return firebaseThumbUrl(href, width);
+  // One CF 404 turns the session onto originals so tiles still photograph.
+  if (!cloudflareResizeOk) return href;
+  return cloudflareImageUrl(href, { width, quality });
 }
 
 /** `1x, 2x` srcset so 1× screens skip the retina bucket. */
 export function coverSrcSet(src, cssPx, opts = {}) {
-  if (!src) return "";
+  const href = normalizeCoverSrc(src);
+  if (!href) return "";
   const mode = opts.mode || envResizeMode();
-  const one = coverDisplayUrl(src, { ...opts, width: cssPx, dpr: 1 });
-  const two = coverDisplayUrl(src, { ...opts, width: cssPx, dpr: 2 });
+  const one = coverDisplayUrl(href, { ...opts, width: cssPx, dpr: 1 });
+  const two = coverDisplayUrl(href, { ...opts, width: cssPx, dpr: 2 });
   if (!one || one === two) return "";
   return `${one} 1x, ${two} 2x`;
 }

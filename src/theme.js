@@ -3,7 +3,7 @@
 // Not Spotify, not a costume Discman. IBM Plex Mono stays on the LCD.
 
 /** Bump this when the visual OS changes. Copied into public/index.html + the shipped build. */
-export const STYLE_CHASSIS = "dark-premium-discover-20260925";
+export const STYLE_CHASSIS = "mtv-broadcast-gold-20260926";
 
 /** Chrome specular — cool pearl steel, never pure white. */
 const SPEC = "200, 210, 222";
@@ -133,10 +133,10 @@ export const type = {
  */
 export const trim = {
   lime: "#B794F6",
-  teal: "#6EA8FF",
-  blue: "#6EA8FF",
-  blueDeep: "#4B7FE0",
-  gradient: "linear-gradient(90deg, #6EA8FF 0%, #8AA8FF 48%, #B794F6 100%)",
+  teal: "#FFD400",
+  blue: "#FFD400",
+  blueDeep: "#E0B400",
+  gradient: "linear-gradient(90deg, #FFD400 0%, #FF9F1A 48%, #FF3D6E 100%)",
 };
 
 /**
@@ -186,12 +186,12 @@ export const color = {
   surfaceRaised: "#2A323C",
   canvas: "#1C222B",
   canvasEdge: "#161B22",
-  /** Quiet electric blue — pip, progress, selected. Never a page fill. */
-  accent: "#6EA8FF",
-  accentSoft: "rgba(110, 168, 255, 0.12)",
-  accentGlow: "rgba(110, 168, 255, 0.22)",
+  /** Broadcast gold — pip, progress, selected. Never a page fill. */
+  accent: "#FFD400",
+  accentSoft: "rgba(255, 212, 0, 0.14)",
+  accentGlow: "rgba(255, 212, 0, 0.28)",
   onAccent: "#1C222B",
-  cta: "#6EA8FF",
+  cta: "#FFD400",
   onCta: "#E8EDF4",
   onDark: "#E8EDF4",
   onDarkMuted: "rgba(200,210,222,0.62)",
@@ -200,11 +200,11 @@ export const color = {
   station: "#242A33",
   select: "rgba(110, 168, 255, 0.10)",
   selectStrong: "rgba(110, 168, 255, 0.18)",
-  lcdInk: "#D8E4F4",
-  lcdMute: "#7A8798",
-  lcdSignal: "#6EA8FF",
-  lcdSignalGlow: "rgba(110, 168, 255, 0.38)",
-  lcdSignalSoft: "rgba(110, 168, 255, 0.16)",
+  lcdInk: "#F4F1E4",
+  lcdMute: "#9A9178",
+  lcdSignal: "#FFD400",
+  lcdSignalGlow: "rgba(255, 212, 0, 0.42)",
+  lcdSignalSoft: "rgba(255, 212, 0, 0.16)",
   /** Meta on the dark metal strip / dock (not the well) */
   stripInk: "#D8DFE8",
 };
@@ -219,7 +219,7 @@ export const chrome = {
   plate: "#242A33",
   deep: "#161B22",
   live: "#E0314A",
-  signal: "#6EA8FF",
+  signal: "#FFD400",
   inkPlate: "#E8EDF4",
   hotRgb: "168,178,192",
   brightRgb: "232,237,244",
@@ -362,8 +362,8 @@ export const radio = {
     `inset 0 2px 4px rgba(${SHADE},0.7), inset 0 1px 0 rgba(${SHADE},0.4)`,
   lcdTrack: "rgba(6,10,16,0.55)",
   lcdFill:
-    "linear-gradient(90deg, #6EA8FF 0%, #8AA8FF 62%, #B794F6 100%)",
-  lcdGlow: "0 0 12px rgba(110, 168, 255, 0.28)",
+    "linear-gradient(90deg, #FFD400 0%, #FF9F1A 62%, #FF3D6E 100%)",
+  lcdGlow: "0 0 12px rgba(255, 212, 0, 0.32)",
   label: {
     fontFamily: font,
     fontSize: 13,
@@ -516,9 +516,14 @@ export const sectionTitle = {
   textTransform: "none",
 };
 
-/** Home band titles — same stack as every other shelf. */
+/** Home band titles — music-television block lettering. */
 export const sectionTitlePoster = {
   ...sectionTitle,
+  fontFamily: fontPoster,
+  fontSize: 26,
+  fontWeight: 800,
+  letterSpacing: 0.4,
+  textTransform: "uppercase",
 };
 
 export const sectionSubtitle = {
@@ -550,8 +555,8 @@ export const broadcast = {
   `,
   lcdTrack: "rgba(6,10,16,0.55)",
   lcdFill:
-    "linear-gradient(90deg, #6EA8FF 0%, #8AA8FF 62%, #B794F6 100%)",
-  lcdGlow: "0 0 12px rgba(110, 168, 255, 0.28)",
+    "linear-gradient(90deg, #FFD400 0%, #FF9F1A 62%, #FF3D6E 100%)",
+  lcdGlow: "0 0 12px rgba(255, 212, 0, 0.32)",
 };
 
 /** Hardware icon key — header / Explore / Charts. */
@@ -790,16 +795,16 @@ export const BTN_PRIMARY = {
   width: "100%",
   padding: "14px 22px",
   borderRadius: 980,
-  border: "1px solid rgba(110, 168, 255, 0.42)",
+  border: "1px solid rgba(255, 212, 0, 0.42)",
   background:
-    "linear-gradient(180deg, rgba(200,210,222,0.10) 0%, rgba(36,42,51,0.96) 100%)",
+    "linear-gradient(180deg, rgba(255,212,0,0.16) 0%, rgba(36,42,51,0.96) 100%)",
   color: color.ink,
   fontSize: 16,
   fontWeight: 700,
   cursor: "pointer",
   fontFamily: font,
   letterSpacing: -0.15,
-  boxShadow: `0 0 14px rgba(110,168,255,0.14), ${radio.lcdShadow}`,
+  boxShadow: `0 0 14px rgba(255,212,0,0.16), ${radio.lcdShadow}`,
   transition: `transform ${motion.fast} ${motion.ease}, box-shadow ${motion.base}, opacity ${motion.fast}`,
 };
 

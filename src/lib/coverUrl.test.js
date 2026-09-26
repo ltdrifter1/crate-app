@@ -10,6 +10,7 @@ import {
   markCloudflareResizeUnavailable,
   isCloudflareResizeAvailable,
   resetCloudflareResizeForTests,
+  normalizeCoverSrc,
 } from "./coverUrl";
 
 describe("coverUrl", () => {
@@ -61,15 +62,24 @@ describe("coverUrl", () => {
     expect(coverSrcSet("/brand/logo-mark.svg", 168, { mode: "cf" })).toBe("");
   });
 
-  test("one Cloudflare miss falls back to Firebase thumbs, not originals", () => {
+  test("normalizeCoverSrc turns gs:// paths into download URLs", () => {
+    expect(normalizeCoverSrc("  gs://crate.appspot.com/covers/a.jpg  ")).toBe(
+      "https://firebasestorage.googleapis.com/v0/b/crate.appspot.com/o/covers%2Fa.jpg?alt=media"
+    );
+    expect(normalizeCoverSrc("https://storage.googleapis.com/b/covers/a.jpg")).toBe(
+      "https://storage.googleapis.com/b/covers/a.jpg"
+    );
+  });
+
+  test("one Cloudflare miss falls back to the original file so tiles still photograph", () => {
     const src = "https://storage.googleapis.com/b/covers/art.jpg";
     expect(isCloudflareResizeAvailable()).toBe(true);
     expect(coverDisplayUrl(src, { width: 168, mode: "cf" })).toContain("/cdn-cgi/image/");
     markCloudflareResizeUnavailable();
     expect(isCloudflareResizeAvailable()).toBe(false);
-    expect(coverDisplayUrl(src, { width: 168, dpr: 2, mode: "cf" })).toContain("_400x400.jpg");
-    expect(coverDisplayUrl(src, { width: 168, mode: "cf" })).not.toBe(src);
-    expect(coverSrcSet(src, 168, { mode: "cf" })).toMatch(/_200x200|_400x400/);
+    expect(coverDisplayUrl(src, { width: 168, dpr: 2, mode: "cf" })).toBe(src);
+    expect(coverDisplayUrl(src, { width: 168, mode: "firebase" })).toContain("_400x400.jpg");
+    expect(coverSrcSet(src, 168, { mode: "cf" })).toBe("");
   });
 
   test("original masters are only legal on large stages", () => {
