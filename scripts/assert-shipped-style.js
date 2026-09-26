@@ -7,7 +7,7 @@ const fs = require("fs");
 const path = require("path");
 
 const ROOT = path.join(__dirname, "..");
-const CHASSIS = "dark-premium-discover-20260925";
+const CHASSIS = "mtv-broadcast-gold-20260926";
 const htmlPath = path.join(ROOT, "build", "index.html");
 
 if (!fs.existsSync(htmlPath)) {
@@ -49,6 +49,7 @@ const forbid = [
   ["retired neon green splash", /168\s*,\s*255\s*,\s*106/.test(html + css)],
   ["retired neon green fill", /#A8FF6A/i.test(html + css)],
   ["retired quiet-neon chassis stamp", /dark-premium-quiet-neon-20260925/.test(html)],
+  ["retired discover chassis stamp", /dark-premium-discover-20260925/.test(html)],
 ];
 
 let failed = false;

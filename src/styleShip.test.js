@@ -54,7 +54,7 @@ test("theme source does not ship mint phosphor or DistroKid trim", () => {
   expect(theme).not.toMatch(/#367FC7/i);
   expect(theme).toMatch(/lcdSignal/);
   expect(theme).not.toMatch(/lcdPhosphor/);
-  expect(theme).toMatch(/dark-premium-discover-20260925/);
+  expect(theme).toMatch(/mtv-broadcast-gold-20260926/);
   expect(theme).not.toMatch(/#A8FF6A/i);
   expect(theme).not.toMatch(/#7DFFB3/i);
 });

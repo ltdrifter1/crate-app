@@ -1,6 +1,5 @@
 import { useEffect, useRef, lazy, Suspense } from "react";
 import {
-  artFrameStyle,
   artShadow,
   color,
   fontDisplay,
@@ -32,34 +31,6 @@ import PlayerDeck from "../player/PlayerDeck";
 
 const VideoStage = lazy(() => import("../station/VideoStage"));
 
-function MetaChip({ children }) {
-  if (!children) return null;
-  return (
-    <span
-      style={{
-        display: "inline-flex",
-        alignItems: "center",
-        maxWidth: "100%",
-        padding: "3px 10px",
-        borderRadius: 980,
-        border: "1px solid rgba(110,168,255,0.16)",
-        background: "rgba(168, 255, 106, 0.10)",
-        fontFamily: fontMono,
-        fontSize: 11,
-        fontWeight: 600,
-        letterSpacing: 0.06,
-        textTransform: "uppercase",
-        color: color.accent,
-        overflow: "hidden",
-        textOverflow: "ellipsis",
-        whiteSpace: "nowrap",
-      }}
-    >
-      {children}
-    </span>
-  );
-}
-
 function PlanetPip({ size = 26 }) {
   return (
     <span
@@ -87,22 +58,22 @@ function ChannelIdent({ bugLine, slug }) {
         display: "inline-flex",
         alignItems: "stretch",
         overflow: "hidden",
-        borderRadius: 980,
-        border: "1px solid rgba(255,255,255,0.08)",
-        background: "rgba(255,255,255,0.04)",
+        borderRadius: 2,
+        border: "1px solid rgba(255,212,0,0.45)",
+        background: "rgba(0,0,0,0.55)",
         maxWidth: "100%",
       }}
     >
       <span
         style={{
-          padding: "6px 9px",
-          fontFamily: fontDisplay,
-          fontSize: 11,
-          fontWeight: 700,
-          letterSpacing: 0.08,
-          color: color.accent,
-          borderRight: "1px solid rgba(255,255,255,0.08)",
-          background: color.accentSoft,
+          padding: "5px 8px",
+          fontFamily: fontPoster,
+          fontSize: 12,
+          fontWeight: 800,
+          letterSpacing: 0.12,
+          color: "#1C222B",
+          borderRight: "1px solid rgba(255,212,0,0.45)",
+          background: color.accent,
           whiteSpace: "nowrap",
         }}
       >
@@ -110,13 +81,13 @@ function ChannelIdent({ bugLine, slug }) {
       </span>
       <span
         style={{
-          padding: "6px 10px",
-          fontFamily: fontDisplay,
-          fontSize: 11,
-          fontWeight: 600,
-          letterSpacing: 0.04,
+          padding: "5px 10px",
+          fontFamily: fontPoster,
+          fontSize: 12,
+          fontWeight: 800,
+          letterSpacing: 0.08,
           textTransform: "uppercase",
-          color: y2k.offWhite,
+          color: color.accent,
           overflow: "hidden",
           textOverflow: "ellipsis",
           whiteSpace: "nowrap",
@@ -134,9 +105,16 @@ function JewelSleeve({ src, idleSrc, playing, eager = false, size = 148, wellCol
     <span
       className="pmp-hero-sleeve"
       style={{
-        ...artFrameStyle({ size, radius: 16, active: playing }),
+        position: "relative",
+        display: "block",
+        width: "100%",
+        aspectRatio: "16 / 9",
         flexShrink: 0,
+        borderRadius: 4,
+        overflow: "hidden",
+        border: playing ? `2px solid ${color.accent}` : "1px solid rgba(255,255,255,0.12)",
         boxShadow: playing ? artShadow.active : artShadow.raised,
+        background: wellColor || "#0E1116",
       }}
     >
       {art ? (
@@ -144,13 +122,13 @@ function JewelSleeve({ src, idleSrc, playing, eager = false, size = 148, wellCol
           key={art}
           src={art}
           alt=""
-          width={size}
-          height={size}
+          width={Math.max(size, 960)}
+          height={Math.round(Math.max(size, 960) * 9 / 16)}
           priority={eager}
           eager={eager}
           wellColor={wellColor}
           raw={!src}
-          objectPosition={!src ? HERO_IDLE_FOCUS : undefined}
+          objectPosition={!src ? HERO_IDLE_FOCUS : "center"}
           className="pmp-hero-art"
           style={{
             width: "100%",
@@ -158,7 +136,7 @@ function JewelSleeve({ src, idleSrc, playing, eager = false, size = 148, wellCol
             objectFit: "cover",
             display: "block",
             animation: "fadeIn 0.55s ease both",
-            transform: playing ? "scale(1.04)" : "scale(1)",
+            transform: playing ? "scale(1.06)" : "scale(1)",
             transition: "transform 12s ease",
           }}
         />
@@ -187,9 +165,9 @@ function JewelSleeve({ src, idleSrc, playing, eager = false, size = 148, wellCol
           inset: 0,
           pointerEvents: "none",
           background: `
-            linear-gradient(180deg, transparent 62%, rgba(0,0,0,0.35) 100%)
+            repeating-linear-gradient(0deg, rgba(0,0,0,0.08) 0 1px, transparent 1px 3px),
+            linear-gradient(180deg, rgba(0,0,0,0.18) 0%, transparent 28%, transparent 52%, rgba(0,0,0,0.78) 100%)
           `,
-          boxShadow: "none",
         }}
       />
     </span>
@@ -389,7 +367,7 @@ export default function HeroPlayerCard({
           overflow: "hidden",
           background: `
             radial-gradient(70% 80% at 18% 20%, ${track?.color ? `${track.color}55` : color.accentSoft} 0%, transparent 62%),
-            linear-gradient(180deg, rgba(110,168,255,0.06) 0%, rgba(0,0,0,0.35) 100%)
+            linear-gradient(180deg, rgba(255,212,0,0.08) 0%, rgba(0,0,0,0.4) 100%)
           `,
         }}
       />
@@ -410,6 +388,25 @@ export default function HeroPlayerCard({
       >
         <div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0 }}>
           <PlanetPip />
+          {live && (
+            <span
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 6,
+                padding: "4px 8px",
+                borderRadius: 2,
+                background: color.alert,
+                color: "#fff",
+                fontFamily: fontPoster,
+                fontSize: 11,
+                fontWeight: 800,
+                letterSpacing: 0.16,
+              }}
+            >
+              LIVE
+            </span>
+          )}
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 8, marginLeft: "auto" }}>
           {hasVideo && (
@@ -440,22 +437,24 @@ export default function HeroPlayerCard({
         style={{
           position: "relative",
           zIndex: 2,
-          padding: "14px 14px 6px",
+          padding: "12px 14px 6px",
+          display: "flex",
+          flexDirection: "column",
+          gap: 10,
         }}
       >
         {hasVideo ? (
           <div
+            className="pmp-hero-sleeve"
             style={{
               position: "relative",
-              flex: "1 1 220px",
-              minWidth: 180,
-              maxWidth: 420,
+              width: "100%",
               aspectRatio: "16 / 9",
-              borderRadius: 16,
+              borderRadius: 4,
               overflow: "hidden",
-              border: "1px solid rgba(255,255,255,0.10)",
-              boxShadow: artShadow.raised,
-              background: "#4A5360",
+              border: `2px solid ${color.accent}`,
+              boxShadow: artShadow.active,
+              background: "#0E1116",
             }}
           >
             <Suspense fallback={null}>
@@ -481,15 +480,13 @@ export default function HeroPlayerCard({
         <div
           key={track?.id || previewTrack?.id || "idle"}
           style={{
-            flex: "1 1 0%",
             minWidth: 0,
             display: "flex",
             flexDirection: "column",
-            justifyContent: "center",
             animation: "trackSwap 0.35s ease both",
           }}
         >
-          <LcdPanel live={live && isPlaying} style={{ padding: "10px 12px 10px" }}>
+          <LcdPanel live={live && isPlaying} style={{ padding: "12px 14px 12px", borderRadius: 4 }}>
           <div
             style={{
               display: "inline-flex",
@@ -501,11 +498,11 @@ export default function HeroPlayerCard({
             <span
               aria-hidden="true"
               style={{
-                width: 4,
-                height: 4,
-                borderRadius: "50%",
-                background: live ? color.lcdInk : color.lcdMute,
-                opacity: 0.85,
+                width: 8,
+                height: 8,
+                borderRadius: 1,
+                background: live ? color.alert : color.lcdMute,
+                opacity: 0.95,
               }}
             />
             {!live && (
@@ -526,12 +523,12 @@ export default function HeroPlayerCard({
             )}
             <div
               style={{
-                fontFamily: fontMono,
-                fontSize: 11,
-                fontWeight: 700,
-                letterSpacing: 0.12,
+                fontFamily: fontPoster,
+                fontSize: 13,
+                fontWeight: 800,
+                letterSpacing: 0.16,
                 textTransform: "uppercase",
-                color: color.lcdInk,
+                color: color.accent,
               }}
             >
               {live ? "Now playing" : idleEyebrow}
@@ -580,16 +577,6 @@ export default function HeroPlayerCard({
             <UpNextGlass track={upNextTrack} />
           )}
         </div>
-
-        {hasVideo && (
-          <JewelSleeve
-            src={art}
-            playing={live && isPlaying}
-            eager={false}
-            size={96}
-            wellColor={track?.color || ""}
-          />
-        )}
       </div>
 
       <div

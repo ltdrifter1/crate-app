@@ -39,7 +39,7 @@ function TrackCard({
         src={track.albumCover || null}
         size={size}
         active={active}
-        radius={6}
+        radius={4}
         wellColor={track.color || ""}
       >
         {trackHasVideo(track) && (

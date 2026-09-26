@@ -274,7 +274,7 @@ function HomePersonal({
       {recents.length > 0 && (
         <MusicSection
           title="Recently played"
-          subtitle="Back into your session"
+          subtitle="Just on the channel"
           poster
           first
           action={

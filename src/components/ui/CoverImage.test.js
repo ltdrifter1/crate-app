@@ -50,6 +50,12 @@ describe("CoverImage", () => {
     await act(async () => {
       retried.dispatchEvent(new Event("error"));
     });
+    const original = div.querySelector("img");
+    expect(original).toBeTruthy();
+    expect(original.getAttribute("src")).toBe(STORAGE);
+    await act(async () => {
+      original.dispatchEvent(new Event("error"));
+    });
     expect(div.querySelector("img")).toBeNull();
     expect(div.querySelector("[data-testid='cover-fallback']")).toBeTruthy();
   });

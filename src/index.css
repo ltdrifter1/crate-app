@@ -230,8 +230,9 @@ body::before { display: none; }
 }
 .pmp-hero-stage {
   display: flex;
+  flex-direction: column;
   align-items: stretch;
-  gap: 14px;
+  gap: 10px;
   flex-wrap: nowrap;
   min-width: 0;
 }
@@ -411,14 +412,15 @@ body::before { display: none; }
     grid-row: auto !important;
   }
   .pmp-hero-sleeve {
-    width: min(48vw, 188px) !important;
-    height: min(48vw, 188px) !important;
+    width: 100% !important;
+    height: auto !important;
+    aspect-ratio: 16 / 9;
   }
   .pmp-hero {
     min-height: 0 !important;
   }
   .pmp-hero-stage {
-    gap: 12px;
+    gap: 10px;
   }
 }
 
@@ -460,8 +462,9 @@ body::before { display: none; }
     padding-left: 0 !important;
   }
   .pmp-hero-sleeve {
-    width: min(40vw, 148px) !important;
-    height: min(40vw, 148px) !important;
+    width: 100% !important;
+    height: auto !important;
+    aspect-ratio: 16 / 9;
   }
   .pmp-channel-card {
     width: 120px !important;
@@ -487,7 +490,7 @@ body::before { display: none; }
   gap: 4px;
 }
 .pmp-dock-stack--playing .pill-nav {
-  border-top: 1px solid rgba(110, 168, 255, 0.16);
+  border-top: 1px solid rgba(255, 212, 0, 0.22);
 }
 .pmp-dock-stack .pill-tab {
   border-radius: 980px !important;
@@ -500,12 +503,12 @@ body::before { display: none; }
 }
 .pmp-dock-stack .pill-tab[aria-current="page"] {
   background:
-    linear-gradient(180deg, rgba(110,168,255,0.14) 0%, rgba(110,168,255,0.06) 100%) !important;
-  border-color: rgba(110,168,255,0.32) !important;
-  color: #6EA8FF !important;
+    linear-gradient(180deg, rgba(255,212,0,0.18) 0%, rgba(255,212,0,0.06) 100%) !important;
+  border-color: rgba(255,212,0,0.42) !important;
+  color: #FFD400 !important;
   box-shadow:
-    inset 0 1px 0 rgba(110,168,255,0.14),
-    0 0 10px rgba(110,168,255,0.12) !important;
+    inset 0 1px 0 rgba(255,212,0,0.2),
+    0 0 10px rgba(255,212,0,0.16) !important;
 }
 .pmp-mini-player {
   position: relative;
@@ -525,7 +528,7 @@ body::before { display: none; }
 .pmp-mini-progress__fill {
   height: 100%;
   border-radius: inherit;
-  background: linear-gradient(90deg, #6EA8FF 0%, #8AA8FF 70%, #B794F6 100%);
+  background: linear-gradient(90deg, #FFD400 0%, #FF9F1A 70%, #FF3D6E 100%);
 }
 .pmp-mini-bar .pmp-play-planet::after {
   display: none;
