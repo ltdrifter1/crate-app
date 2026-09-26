@@ -44,6 +44,7 @@ function PaceRampIcon({ size = 15, lift = false }) {
  * One pace paddle. direction: "up" (Lift) | "down" (Ease).
  * Tap = ±10 BPM on upcoming picks · long-press = ±5 / ±10 / ±20.
  * showLabel: Slow / Fast under animal keys, Ease / Lift otherwise.
+ * plain: silhouette glyph only — used with the Slow→Fast wedge.
  */
 export function EnergyShiftButton({
   direction = "up",
@@ -51,6 +52,7 @@ export function EnergyShiftButton({
   stopPropagation = true,
   showLabel = false,
   glyph = null,
+  plain = false,
 }) {
   const up = direction === "up";
   const animal = glyph === "rabbit" || glyph === "turtle";
@@ -122,7 +124,31 @@ export function EnergyShiftButton({
         onContextMenu={(e) => e.preventDefault()}
         onClick={(e) => { if (stopPropagation) e.stopPropagation(); }}
         onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); dispatch(10); } }}
-        style={{
+        style={plain ? {
+          width: size,
+          minWidth: size,
+          height: size,
+          minHeight: size,
+          padding: 0,
+          margin: 0,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          cursor: "pointer",
+          color: activeHere ? color.accent : color.ink,
+          background: "transparent",
+          border: "none",
+          borderRadius: 8,
+          boxShadow: hovered || focused || activeHere
+            ? `0 0 0 2px ${color.accentSoft}`
+            : "none",
+          opacity: pressed ? 0.72 : 1,
+          transform: pressed ? "translateY(1px)" : "none",
+          transition: `transform ${motion.fast} ${PRESS_EASE}, opacity ${motion.fast} ${PRESS_EASE}, color ${motion.fast}, box-shadow ${motion.base} ${PRESS_EASE}`,
+          WebkitTapHighlightColor: "transparent",
+          touchAction: "manipulation",
+          flexShrink: 0,
+        } : {
           ...hardwareKey({ pressed: pressed || activeHere, size: "md" }),
           width: animal && showLabel ? "auto" : size,
           minWidth: animal && showLabel ? 104 : size,
@@ -153,7 +179,7 @@ export function EnergyShiftButton({
         }}
       >
         {animal ? (
-          <Icon name={up ? "rabbit" : "turtle"} size={Math.round(size * 0.48)} />
+          <Icon name={up ? "rabbit" : "turtle"} size={Math.round(size * (plain ? 0.72 : 0.48))} />
         ) : (
           <PaceRampIcon size={Math.round(size * 0.5)} lift={up} />
         )}
@@ -804,11 +830,42 @@ export function PaceSlot({
   );
 }
 
+/**
+ * Transposed FAST/SLOW graphic: turtle (narrow) → wedge → rabbit (wide).
+ * The reference is vertical (fast on top); this reads left-to-right.
+ */
+function PaceDirectionWedge({ compact = true, bias = 0 }) {
+  const tone = bias > 0 ? "fast" : bias < 0 ? "slow" : "neutral";
+  return (
+    <svg
+      className="pmp-pace-wedge"
+      data-testid="pace-wedge"
+      data-pace={tone}
+      viewBox="0 0 120 28"
+      width={compact ? 96 : 120}
+      height={compact ? 22 : 28}
+      aria-hidden="true"
+      focusable="false"
+    >
+      <polygon
+        points="2,14 118,1.5 118,26.5"
+        fill="currentColor"
+        opacity={tone === "neutral" ? 0.88 : 1}
+      />
+    </svg>
+  );
+}
+
 /** Slow / Fast keys — turtle and rabbit icons, no animal names on screen. */
 export function RabbitTurtleSlot({
   compact = true,
   stopPropagation = true,
 }) {
+  const { energyShift } = useEnergyQueue();
+  const bias = Math.round(energyShift?.bpmDelta || 0);
+  const slowOn = energyShift?.active && energyShift.direction < 0;
+  const fastOn = energyShift?.active && energyShift.direction > 0;
+
   return (
     <div
       className="pmp-rabbit-slot"
@@ -822,15 +879,31 @@ export function RabbitTurtleSlot({
           glyph="turtle"
           size={compact ? 40 : 44}
           stopPropagation={stopPropagation}
-          showLabel
+          plain
         />
+        <PaceDirectionWedge compact={compact} bias={bias} />
         <EnergyShiftButton
           direction="up"
           glyph="rabbit"
           size={compact ? 40 : 44}
           stopPropagation={stopPropagation}
-          showLabel
+          plain
         />
+        <span
+          className="pmp-rabbit-slot__word"
+          data-active={slowOn ? "true" : "false"}
+          aria-hidden="true"
+        >
+          Slow
+        </span>
+        <span className="pmp-rabbit-slot__spacer" aria-hidden="true" />
+        <span
+          className="pmp-rabbit-slot__word"
+          data-active={fastOn ? "true" : "false"}
+          aria-hidden="true"
+        >
+          Fast
+        </span>
       </div>
     </div>
   );

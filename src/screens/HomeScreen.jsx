@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect, memo } from "react";
+import { useMemo, useState, useEffect, memo, lazy, Suspense } from "react";
 import {
   BTN_PRIMARY,
   BTN_SECONDARY,
@@ -12,8 +12,9 @@ import {
   y2k,
 } from "../theme";
 import { countPlayableTracks } from "../lib/catalogLoad";
-import { getSceneChannel } from "../lib/sceneChannels";
+import { getSceneChannel, SCENE_CHANNELS } from "../lib/sceneChannels";
 import { buildHomeCollections, savedTracks, tracksFromRecentIds } from "../lib/homeCollections";
+import { rankChannelsForTaste } from "../lib/onboardingTaste";
 import { runAfterPaint } from "../lib/afterPaint";
 import { useCurrentTrack, useTransportTrackId } from "../usePlayerTransport";
 import HomeHeader from "../components/home/HomeHeader";
@@ -22,6 +23,11 @@ import MusicSection, { Rail } from "../components/home/MusicSection";
 import TrackCard from "../components/home/TrackCard";
 import CardContainer from "../components/home/CardContainer";
 import CrateSpread from "../components/home/CrateSpread";
+import ChannelSurfingSection from "../components/home/ChannelSurfingSection";
+
+const TonightDeck = lazy(() =>
+  import("../components/station/ShowGuide").then((m) => ({ default: m.TonightDeck }))
+);
 
 function HomeCatalogStatus({ error, isEmpty, playableCount, totalCount, onRetry }) {
   if (!error && !isEmpty) return null;
@@ -396,6 +402,11 @@ function HomeScreen({
   const activeChannel = sceneChannelsActiveId
     ? getSceneChannel(sceneChannelsActiveId)
     : null;
+  const channels = useMemo(
+    () => (onTuneSceneChannel ? rankChannelsForTaste(SCENE_CHANNELS, taste) : []),
+    [taste, onTuneSceneChannel]
+  );
+  const hasTonight = !!(onTuneShow && (airing?.show || programGuide.length > 0));
 
   return (
     <div
@@ -451,6 +462,34 @@ function HomeScreen({
           totalCount={tracks.length}
           onRetry={onRetryCatalog}
         />
+      )}
+
+      {channels.length > 0 && (
+        <ChannelSurfingSection
+          channels={channels}
+          activeChannelId={sceneChannelsActiveId}
+          onTuneChannel={onTuneSceneChannel}
+          first
+          delay={0.05}
+        />
+      )}
+
+      {shelvesReady && hasTonight && (
+        <div style={{ contentVisibility: "auto", containIntrinsicSize: "320px" }}>
+          <Suspense fallback={null}>
+            <TonightDeck
+              airing={airing}
+              guide={programGuide}
+              bumper={showBumper}
+              activeShowId={activeShowId}
+              tuned={false}
+              first={false}
+              showNowPlaying={false}
+              onTuneIn={() => onTuneShow?.(airing?.show)}
+              onSelectShow={(show) => onTuneShow?.(show)}
+            />
+          </Suspense>
+        </div>
       )}
 
       {shelvesReady && catalogReady && (
