@@ -720,9 +720,30 @@ export default function ImmersivePlayer({
                 whiteSpace: "nowrap",
               }}
             >
-              <span style={{ color: color.lcdSignal }}>Up next</span>
-              {" · "}
-              {upNextTrack.title}
+              <span style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0 }}>
+                {upNextTrack.albumCover ? (
+                  <span
+                    aria-hidden="true"
+                    style={{
+                      width: 34,
+                      height: 34,
+                      flexShrink: 0,
+                      borderRadius: 6,
+                      backgroundImage: `url(${upNextTrack.albumCover})`,
+                      backgroundSize: "cover",
+                      backgroundPosition: "center",
+                      border: "1px solid rgba(200,210,222,0.22)",
+                    }}
+                  />
+                ) : null}
+                <span style={{ minWidth: 0, display: "flex", flexDirection: "column", gap: 2 }}>
+                  <span style={{ color: color.lcdSignal }}>Up next</span>
+                  <span style={{ overflow: "hidden", textOverflow: "ellipsis" }}>
+                    {upNextTrack.title}
+                    {upNextTrack.artist ? ` — ${upNextTrack.artist}` : ""}
+                  </span>
+                </span>
+              </span>
             </button>
           )}
         </LcdPanel>
