@@ -96,7 +96,7 @@ export default function FreePlaysMeter({
         border: `1px solid ${glass.borderSoft}`,
         background: "rgba(22,24,30,0.45)",
         fontFamily: fontMono,
-        fontSize: 10,
+        fontSize: 11,
         fontWeight: 700,
         letterSpacing: 1.0,
         textTransform: "uppercase",

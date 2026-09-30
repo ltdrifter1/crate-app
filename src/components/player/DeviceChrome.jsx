@@ -71,7 +71,7 @@ export function HardwareIconButton({
         cursor: "pointer",
         color: lit ? color.lcdSignal : color.ink,
         background: hardware.keyFace,
-        border: `1px solid ${lit ? "rgba(110,168,255,0.42)" : "rgba(255,255,255,0.10)"}`,
+        border: `1px solid ${lit ? "rgba(168,180,198,0.42)" : "rgba(255,255,255,0.10)"}`,
         boxShadow: lit
           ? `${hardware.keyPressed}, 0 0 10px ${color.lcdSignalGlow}`
           : hardware.keyRaised,
@@ -94,7 +94,9 @@ export function LcdSeek({
   stopPropagation = false,
   height = 6,
   ticks = false,
+  variant = "progress",
 }) {
+  const neutral = variant === "volume";
   const pct = max > 0 ? Math.max(0, Math.min(1, value / max)) * 100 : 0;
   return (
     <div className="pmp-seek">
@@ -114,8 +116,8 @@ export function LcdSeek({
           className="pmp-seek__fill"
           style={{
             width: `${pct}%`,
-            background: radio.lcdFill,
-            boxShadow: radio.lcdGlow,
+            background: neutral ? "rgba(168,180,198,0.55)" : radio.lcdFill,
+            boxShadow: neutral ? "none" : radio.lcdGlow,
           }}
         />
       </div>

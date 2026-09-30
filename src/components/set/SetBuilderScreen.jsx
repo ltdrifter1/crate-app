@@ -195,7 +195,7 @@ export default function SetBuilderScreen({
               background: `rgba(${tintRgb},0.1)`,
               color: y2k.cyan,
               fontFamily: fontMono,
-              fontSize: 8,
+              fontSize: 11,
               fontWeight: 800,
               letterSpacing: 1.1,
               textAlign: "center",
@@ -394,7 +394,7 @@ function BoothStage({
         background: "rgba(58,66,80,0.62)",
         border: "1px solid rgba(216,223,232,0.14)",
         fontFamily: fontMono,
-        fontSize: 9,
+        fontSize: 11,
         fontWeight: 800,
         letterSpacing: 1.3,
         color: y2k.offWhite,
@@ -738,7 +738,7 @@ function SetPreview({ session, phases, stats, tintRgb }) {
             <div style={{
               marginTop: 4,
               fontFamily: fontMono,
-              fontSize: 8,
+              fontSize: 11,
               fontWeight: 700,
               letterSpacing: 0.6,
               textTransform: "uppercase",
@@ -758,7 +758,7 @@ function SetPreview({ session, phases, stats, tintRgb }) {
         <div key={phase.name} style={{ marginBottom: 8 }}>
           <div style={{
             fontFamily: fontMono,
-            fontSize: 10,
+            fontSize: 11,
             fontWeight: 700,
             letterSpacing: 1.1,
             textTransform: "uppercase",

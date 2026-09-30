@@ -175,7 +175,7 @@ export default function OnboardingRitual({ tracks, onComplete, onSkip }) {
                 >
                   <div
                     style={{
-                      fontSize: 9,
+                      fontSize: 11,
                       fontWeight: 700,
                       letterSpacing: 1.4,
                       color: on ? color.accent : color.faint,

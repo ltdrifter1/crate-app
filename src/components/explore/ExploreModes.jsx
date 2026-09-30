@@ -1,4 +1,4 @@
-import { color, font, fontDisplay, glassPill, homeSpace, motion } from "../../theme";
+import { color, fontMono, fontDisplay, glassPill, homeSpace, motion, radio } from "../../theme";
 import { EXPLORE_DESTINATIONS, EXPLORE_TOOLS } from "../../lib/explore";
 
 /** Primary Discover destinations — New / Trending / Genres / Artists. */
@@ -60,10 +60,29 @@ export function ExploreTools({
       style={{
         display: "flex",
         flexWrap: "wrap",
+        alignItems: "center",
         gap: 6,
-        padding: `8px ${homeSpace.gutter}px 2px`,
+        margin: `8px ${homeSpace.gutter}px 2px`,
+        padding: "6px 8px",
+        borderRadius: 12,
+        background: "rgba(14,18,23,0.6)",
+        border: "1px solid rgba(200,210,222,0.08)",
+        boxShadow: "inset 0 2px 6px rgba(6,10,16,0.5)",
       }}
     >
+      <span
+        aria-hidden="true"
+        style={{
+          fontFamily: fontMono,
+          fontSize: 11,
+          fontWeight: 700,
+          letterSpacing: 0.4,
+          color: color.faint,
+          padding: "0 6px 0 4px",
+        }}
+      >
+        TOOLS
+      </span>
       {visible.map((item) => {
         const isAction = item.action === "charts";
         const selected = !isAction && mode === item.id;
@@ -84,17 +103,18 @@ export function ExploreTools({
             style={{
               minHeight: 32,
               padding: "0 12px",
-              borderRadius: 980,
+              borderRadius: 8,
               border: selected
-                ? `1px solid rgba(110,168,255,0.32)`
+                ? `1px solid rgba(168,180,198,0.42)`
                 : "1px solid rgba(200,210,222,0.10)",
-              background: selected ? "rgba(110,168,255,0.10)" : "rgba(36,42,51,0.72)",
+              background: selected ? radio.lcdFace : "rgba(36,42,51,0.72)",
               color: selected ? color.lcdSignal : color.muted,
               cursor: "pointer",
-              fontFamily: font,
-              fontSize: 13,
-              fontWeight: selected ? 600 : 500,
-              letterSpacing: -0.08,
+              fontFamily: fontMono,
+              fontSize: 11,
+              fontWeight: 700,
+              letterSpacing: 0.3,
+              textTransform: "uppercase",
               WebkitTapHighlightColor: "transparent",
             }}
           >

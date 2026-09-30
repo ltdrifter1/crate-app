@@ -337,7 +337,7 @@ export default function ClubScreen({
                   borderRadius: 8,
                   border: `1px solid ${glass.borderSoft}`,
                   background: "rgba(184,191,202,0.8)",
-                  fontSize: 10,
+                  fontSize: 11,
                   fontWeight: 700,
                   letterSpacing: 1.4,
                   textTransform: "uppercase",
@@ -379,7 +379,7 @@ export default function ClubScreen({
             position: "relative",
           }}>
             <span style={{
-              fontSize: 10,
+              fontSize: 11,
               fontWeight: 700,
               letterSpacing: 1.6,
               textTransform: "uppercase",
@@ -533,7 +533,7 @@ export default function ClubScreen({
           >
             <div style={{ padding: "16px 18px 14px" }}>
               <div style={{
-                fontSize: 10,
+                fontSize: 11,
                 fontWeight: 700,
                 letterSpacing: 1.6,
                 textTransform: "uppercase",

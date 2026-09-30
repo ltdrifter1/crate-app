@@ -357,7 +357,7 @@ function ThumbsDownIcon({ size, filled = false }) {
   );
 }
 
-function TimedMixIcon({ size, accent = "#6EA8FF" }) {
+function TimedMixIcon({ size, accent = "#A8B4C6" }) {
   const r = 9.2;
   const c = 2 * Math.PI * r;
   const arc = c * 0.72;

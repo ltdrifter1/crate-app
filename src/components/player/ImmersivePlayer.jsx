@@ -55,8 +55,8 @@ function PlayerNowPlaying() {
         maxWidth: 200,
         padding: "7px 14px",
         borderRadius: 980,
-        background: "rgba(110,168,255,0.08)",
-        border: "1px solid rgba(110,168,255,0.22)",
+        background: "rgba(168,180,198,0.08)",
+        border: "1px solid rgba(168,180,198,0.22)",
         pointerEvents: "none",
       }}
     >
@@ -74,7 +74,7 @@ function PlayerNowPlaying() {
       <span
         style={{
           fontFamily: fontMono,
-          fontSize: 10,
+          fontSize: 11,
           fontWeight: 800,
           letterSpacing: 1.2,
           textTransform: "uppercase",
@@ -116,7 +116,7 @@ function BoothStrip({
       <div
         style={{
           fontFamily: fontMono,
-          fontSize: 10,
+          fontSize: 11,
           fontWeight: 650,
           letterSpacing: 1.1,
           textTransform: "uppercase",
@@ -508,7 +508,7 @@ export default function ImmersivePlayer({
                 <div style={{ padding: "10px 16px 14px" }}>
                   <div
                     style={{
-                      fontSize: 10,
+                      fontSize: 11,
                       fontWeight: 700,
                       letterSpacing: 1.3,
                       color: color.muted,
@@ -519,7 +519,7 @@ export default function ImmersivePlayer({
                   >
                     Volume
                   </div>
-                  <ChromeSeek value={volume} max={1} onChange={onVolumeChange} label="Volume level" />
+                  <ChromeSeek value={volume} max={1} onChange={onVolumeChange} label="Volume level" variant="volume" />
                 </div>
               </div>
             )}
@@ -627,7 +627,7 @@ export default function ImmersivePlayer({
                 position: "absolute",
                 inset: 0,
                 background: `
-                  linear-gradient(135deg, rgba(110,168,255,0.08) 0%, transparent 40%),
+                  linear-gradient(135deg, rgba(168,180,198,0.08) 0%, transparent 40%),
                   linear-gradient(180deg, transparent 55%, rgba(0,0,0,0.35) 100%)
                 `,
                 pointerEvents: "none",
@@ -706,7 +706,7 @@ export default function ImmersivePlayer({
                 textAlign: "left",
                 background: "none",
                 border: "none",
-                borderTop: "1px solid rgba(110,168,255,0.14)",
+                borderTop: "1px solid rgba(168,180,198,0.14)",
                 cursor: onShowQueue ? "pointer" : "default",
                 fontFamily: fontMono,
                 fontSize: 11,
@@ -720,9 +720,30 @@ export default function ImmersivePlayer({
                 whiteSpace: "nowrap",
               }}
             >
-              <span style={{ color: color.lcdSignal }}>Up next</span>
-              {" · "}
-              {upNextTrack.title}
+              <span style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0 }}>
+                {upNextTrack.albumCover ? (
+                  <span
+                    aria-hidden="true"
+                    style={{
+                      width: 34,
+                      height: 34,
+                      flexShrink: 0,
+                      borderRadius: 6,
+                      backgroundImage: `url(${upNextTrack.albumCover})`,
+                      backgroundSize: "cover",
+                      backgroundPosition: "center",
+                      border: "1px solid rgba(200,210,222,0.22)",
+                    }}
+                  />
+                ) : null}
+                <span style={{ minWidth: 0, display: "flex", flexDirection: "column", gap: 2 }}>
+                  <span style={{ color: color.lcdSignal }}>Up next</span>
+                  <span style={{ overflow: "hidden", textOverflow: "ellipsis" }}>
+                    {upNextTrack.title}
+                    {upNextTrack.artist ? ` — ${upNextTrack.artist}` : ""}
+                  </span>
+                </span>
+              </span>
             </button>
           )}
         </LcdPanel>
@@ -879,7 +900,7 @@ export default function ImmersivePlayer({
               <span style={{ color: y2k.chromeMid, display: "flex", flexShrink: 0 }} aria-hidden="true">
                 <Icon name="volume" size={14} />
               </span>
-              <ChromeSeek value={volume} max={1} onChange={onVolumeChange} label="Volume" />
+              <ChromeSeek value={volume} max={1} onChange={onVolumeChange} label="Volume" variant="volume" />
             </div>
 
             {!isRadioMode && onCycleRepeat ? (
@@ -899,7 +920,7 @@ export default function ImmersivePlayer({
                         position: "absolute",
                         top: -4,
                         right: -6,
-                        fontSize: 9,
+                        fontSize: 11,
                         fontWeight: 800,
                         color: y2k.chromeBright,
                         fontFamily: fontMono,

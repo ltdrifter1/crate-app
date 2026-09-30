@@ -42,7 +42,7 @@ export function PlayKey({
         border: disabled
           ? "1px solid rgba(255,255,255,0.10)"
           : glowing
-            ? "1.5px solid rgba(110,168,255,0.42)"
+            ? "1.5px solid rgba(168,180,198,0.42)"
             : "1.5px solid rgba(255,255,255,0.12)",
         display: "flex",
         alignItems: "center",
@@ -81,7 +81,7 @@ export function PlayKey({
             width: Math.round(size * 0.38),
             height: Math.round(size * 0.38),
             borderRadius: "50%",
-            border: "2px solid rgba(110,168,255,0.18)",
+            border: "2px solid rgba(168,180,198,0.18)",
             borderTopColor: glowing ? color.onAccent : color.ink,
             animation: "spin 0.7s linear infinite",
           }}

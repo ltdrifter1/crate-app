@@ -43,7 +43,7 @@ export default function QueueSheet({ queue, currentTrack, onPlay, onClose, onCle
             <div style={{ display:"flex", alignItems:"center", gap:10, padding:"10px 8px", marginBottom:6, borderRadius:10, background: color.accentSoft, border:`1px solid ${color.accentSoft}` }}>
               <div style={{ width:40, height:40, overflow:"hidden", flexShrink:0 }}><AlbumArt track={currentTrack} size={40} borderRadius={0}/></div>
               <div style={{ flex:1, minWidth:0 }}>
-                <div style={{ fontSize:10, fontWeight:700, letterSpacing:1, color: color.accent, textTransform:"uppercase", marginBottom:2 }}>Now</div>
+                <div style={{ fontSize: 11, fontWeight:700, letterSpacing:1, color: color.accent, textTransform:"uppercase", marginBottom:2 }}>Now</div>
                 <div style={{ fontSize:13, fontWeight:600, color: color.ink, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{currentTrack.title}</div>
                 <div style={{ fontSize:11, color: color.muted }}>{currentTrack.artist}</div>
               </div>
@@ -64,7 +64,7 @@ export default function QueueSheet({ queue, currentTrack, onPlay, onClose, onCle
                   display:"flex", alignItems:"center", gap:10, flex:1, minWidth:0, padding:"4px 0",
                   background:"none", border:"none", cursor:"pointer", textAlign:"left",
                 }}>
-                <div style={{ width:16, fontSize:10, color: color.faint, fontVariantNumeric:"tabular-nums" }}>{i + 1}</div>
+                <div style={{ width:16, fontSize: 11, color: color.faint, fontVariantNumeric:"tabular-nums" }}>{i + 1}</div>
                 <div style={{ width:40, height:40, overflow:"hidden", flexShrink:0 }}><AlbumArt track={t} size={40} borderRadius={0}/></div>
                 <div style={{ flex:1, minWidth:0 }}>
                   <div style={{ fontSize:13, fontWeight:550, color: color.ink, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{t.title}</div>

@@ -29,7 +29,7 @@ function DeckHint({ showDislike }) {
       style={{
         margin: "6px 2px 0",
         fontFamily: fontMono,
-        fontSize: 10,
+        fontSize: 11,
         fontWeight: 650,
         letterSpacing: 0.04,
         lineHeight: 1.35,

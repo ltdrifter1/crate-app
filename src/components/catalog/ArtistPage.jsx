@@ -137,7 +137,7 @@ export default function ArtistPage({
               <span
                 style={{
                   fontFamily: fontMono,
-                  fontSize: 10,
+                  fontSize: 11,
                   fontWeight: 700,
                   letterSpacing: 0.2,
                   textTransform: "uppercase",
@@ -150,7 +150,7 @@ export default function ArtistPage({
                 <span
                   style={{
                     fontFamily: fontMono,
-                    fontSize: 10,
+                    fontSize: 11,
                     fontWeight: 700,
                     letterSpacing: 0.16,
                     textTransform: "uppercase",
@@ -177,7 +177,7 @@ export default function ArtistPage({
                     <dt
                       style={{
                         fontFamily: fontMono,
-                        fontSize: 10,
+                        fontSize: 11,
                         fontWeight: 700,
                         letterSpacing: 0.16,
                         textTransform: "uppercase",

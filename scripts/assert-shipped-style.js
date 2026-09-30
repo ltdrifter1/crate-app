@@ -7,7 +7,7 @@ const fs = require("fs");
 const path = require("path");
 
 const ROOT = path.join(__dirname, "..");
-const CHASSIS = "mtv-broadcast-gold-20260926";
+const CHASSIS = "graphite-glass-20260930";
 const htmlPath = path.join(ROOT, "build", "index.html");
 
 if (!fs.existsSync(htmlPath)) {
@@ -29,7 +29,7 @@ const need = [
   ["obsidian canvas #1C222B", /#1C222B/i.test(html)],
   ["IBM Plex", /IBM\+Plex|IBM Plex/i.test(html)],
   ["Outfit", /Outfit/i.test(html)],
-  ["quiet blue splash 110,168,255", /110\s*,\s*168\s*,\s*255/.test(html)],
+  ["steel splash 168,180,198", /168\s*,\s*180\s*,\s*198/.test(html)],
 ];
 
 const forbid = [

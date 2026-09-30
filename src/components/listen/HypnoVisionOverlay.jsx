@@ -33,7 +33,7 @@ export default function HypnoVisionOverlay({ sourceTrack, tracks, onPlay, onClos
             {["grip","hold","pull","lift"].map(k => (
               <div key={k}>
                 <div style={{ fontSize:18, fontWeight:700, color: color.ink, fontFamily: fontDisplay }}>{sourceTrack._signal[k]}</div>
-                <div style={{ fontSize:9, fontWeight:700, letterSpacing:1.4, color: color.faint, textTransform:"uppercase", fontFamily: fontMono, marginTop:2 }}>{k}</div>
+                <div style={{ fontSize: 11, fontWeight:700, letterSpacing:1.4, color: color.faint, textTransform:"uppercase", fontFamily: fontMono, marginTop:2 }}>{k}</div>
               </div>
             ))}
           </div>

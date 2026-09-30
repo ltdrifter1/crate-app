@@ -174,7 +174,7 @@ export default function CountdownRail({
                 </div>
                 <div style={{
                   fontFamily: fontMono,
-                  fontSize: 10,
+                  fontSize: 11,
                   fontWeight: 800,
                   letterSpacing: 0.8,
                   color: deltaLabel.includes("HOT") || deltaLabel.includes("↑")

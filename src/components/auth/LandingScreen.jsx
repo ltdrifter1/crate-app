@@ -197,7 +197,7 @@ function ChartRow({ rank, title, artist, dir }) {
       </div>
       <span
         style={{
-          fontSize: 10,
+          fontSize: 11,
           fontWeight: 700,
           fontFamily: fontMono,
           color: up ? "#6DBF87" : flat ? color.muted : "#E0314A",
@@ -224,7 +224,7 @@ function FeatureRow({ icon, code, head, body, last }) {
       <span
         style={{
           fontFamily: fontMono,
-          fontSize: 10,
+          fontSize: 11,
           fontWeight: 700,
           letterSpacing: 0.2,
           color: trim.blue,
@@ -496,7 +496,7 @@ export default function LandingScreen({
             border: radioStyle.lcdBorder,
             boxShadow: radioStyle.lcdShadow,
             fontFamily: fontMono,
-            fontSize: 10,
+            fontSize: 11,
             fontWeight: 700,
             letterSpacing: 0.16,
             textTransform: "uppercase",
@@ -547,7 +547,7 @@ export default function LandingScreen({
               <span
                 style={{
                   fontFamily: fontMono,
-                  fontSize: 10,
+                  fontSize: 11,
                   fontWeight: 700,
                   letterSpacing: 0.16,
                   textTransform: "uppercase",
@@ -560,7 +560,7 @@ export default function LandingScreen({
             <span
               style={{
                 fontFamily: fontMono,
-                fontSize: 9,
+                fontSize: 11,
                 color: color.lcdSignal,
                 letterSpacing: 0.1,
               }}
@@ -617,7 +617,7 @@ export default function LandingScreen({
             <span
               style={{
                 fontFamily: fontMono,
-                fontSize: 10,
+                fontSize: 11,
                 fontWeight: 700,
                 letterSpacing: 0.16,
                 textTransform: "uppercase",

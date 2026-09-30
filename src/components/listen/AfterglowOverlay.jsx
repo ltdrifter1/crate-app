@@ -41,8 +41,8 @@ export default function AfterglowOverlay({ data, onClose, onSavePlaylist }) {
             <polygon points={`0,${height} ${points} ${width},${height}`} fill="url(#arcGrad)"/>
           </svg>
           <div style={{ display:"flex", justifyContent:"space-between", marginTop:6, maxWidth:width, marginLeft:"auto", marginRight:"auto" }}>
-            <span style={{ fontSize:10, color: color.faint, fontFamily: fontMono }}>Start</span>
-            <span style={{ fontSize:10, color: color.faint, fontFamily: fontMono }}>End</span>
+            <span style={{ fontSize: 11, color: color.faint, fontFamily: fontMono }}>Start</span>
+            <span style={{ fontSize: 11, color: color.faint, fontFamily: fontMono }}>End</span>
           </div>
         </div>
 

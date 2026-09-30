@@ -95,7 +95,7 @@ export default function ExploreFocus({
             <div
               style={{
                 fontFamily: fontMono,
-                fontSize: 10,
+                fontSize: 11,
                 fontWeight: 700,
                 letterSpacing: 0.14,
                 textTransform: "uppercase",
@@ -232,7 +232,7 @@ export default function ExploreFocus({
                 <span
                   style={{
                     color: color.lcdMute,
-                    fontSize: 10,
+                    fontSize: 11,
                     fontWeight: 700,
                     textTransform: "uppercase",
                     overflow: "hidden",
