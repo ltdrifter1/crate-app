@@ -210,6 +210,12 @@ async function uploadTracks() {
         audioUrl:   audioUrl,
         albumCover: coverUrl,
         color:      row.color       || "#8899aa",
+        // Which ingest batch this track came from. The app's channels read
+        // `batch` (e.g. CH-04 Local matches batches containing "audioasis");
+        // `uploadBatch` is kept for the audit tools. Comes from the CSV
+        // column, or the UPLOAD_BATCH env var as a fallback.
+        batch:       (row.uploadBatch || process.env.UPLOAD_BATCH || "").trim() || null,
+        uploadBatch: (row.uploadBatch || process.env.UPLOAD_BATCH || "").trim() || null,
         playCount:  0,
         skipCount:  0,
         likeCount:  0,
