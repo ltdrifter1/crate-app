@@ -55,7 +55,7 @@ function TrackCard({
               height: 22,
               padding: "0 8px",
               borderRadius: 4,
-              background: "rgba(58,66,80,0.55)",
+              background: "rgba(6,10,16,0.55)",
               display: "inline-flex",
               alignItems: "center",
               ...type.caption,

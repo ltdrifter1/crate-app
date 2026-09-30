@@ -79,6 +79,6 @@ test('primary buttons use silver, not DistroKid blue or neon green', () => {
   expect(trim.blue).not.toMatch(/#367FC7/i);
   expect(trim.gradient).toMatch(/#8A94A3|#F2F5F9/i);
   expect(trim.gradient).not.toMatch(/#A8FF6A|#7DFFB3|#B8C430|#367FC7/i);
-  expect(BTN_PRIMARY.color).toMatch(/#F4F7FB/i);
+  expect(BTN_PRIMARY.color).toMatch(/#12161C/i);
   expect(String(BTN_PRIMARY.background)).not.toMatch(/#A8FF6A|#367FC7|#B8C430|#4A92D4|#2C6FB3/i);
 });

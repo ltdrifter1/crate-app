@@ -153,7 +153,7 @@ export default function CrateDig({ tracks = [], onPlay = null }) {
           background: radio.moduleFace,
           border: "1px solid rgba(91,101,116,0.18)",
           boxShadow:
-            "inset 0 1px 0 rgba(216,223,232,0.45), 0 10px 28px rgba(58,66,80,0.16)",
+            "inset 0 1px 0 rgba(216,223,232,0.45), 0 10px 28px rgba(6,10,16,0.16)",
           overflow: "hidden",
         }}
       >
@@ -196,7 +196,7 @@ export default function CrateDig({ tracks = [], onPlay = null }) {
                   overflow: "hidden",
                   flexShrink: 0,
                   border: "1px solid rgba(216,223,232,0.18)",
-                  background: "rgba(58,66,80,0.55)",
+                  background: "rgba(6,10,16,0.55)",
                   boxShadow: "0 6px 16px rgba(20,26,34,0.45)",
                   opacity: flipping ? 0.1 : 1,
                   transform: flipping ? "translateY(6px)" : "none",

@@ -243,7 +243,7 @@ const injectStyles = () => {
     button.play-primary:active,
     button.pmp-hw-key:active {
       transform: translateY(1px) scale(0.97) !important;
-      box-shadow: inset 0 2px 4px rgba(58, 66, 80, 0.28), inset 0 1px 0 rgba(58, 66, 80, 0.16) !important;
+      box-shadow: inset 0 2px 4px rgba(6,10,16, 0.28), inset 0 1px 0 rgba(6,10,16, 0.16) !important;
       opacity: 1;
     }
     button.glass-control:hover {
@@ -511,7 +511,7 @@ const injectStyles = () => {
     }
     .flask-taste-btn:hover:not(:disabled) {
       transform: translateY(-1px);
-      box-shadow: inset 0 1px 0 rgba(216,223,232,0.12), 0 10px 22px rgba(58,66,80,0.45) !important;
+      box-shadow: inset 0 1px 0 rgba(216,223,232,0.12), 0 10px 22px rgba(6,10,16,0.45) !important;
     }
     .flask-taste-btn:active:not(:disabled) {
       transform: translateY(0) scale(0.97);
@@ -644,7 +644,7 @@ const injectStyles = () => {
     }
     .pmp-tune-key:hover {
       filter: brightness(1.06);
-      box-shadow: 0 6px 16px rgba(58,66,80,0.28) !important;
+      box-shadow: 0 6px 16px rgba(6,10,16,0.28) !important;
     }
     .pmp-tune-key:active {
       transform: scale(0.97);
@@ -652,11 +652,11 @@ const injectStyles = () => {
       box-shadow: none !important;
     }
     .pmp-tune-key--locked:hover {
-      box-shadow: 0 6px 16px rgba(58,66,80,0.28) !important;
+      box-shadow: 0 6px 16px rgba(6,10,16,0.28) !important;
     }
     .pmp-schedule-cell:hover {
       border-color: rgba(91,101,116,0.35) !important;
-      box-shadow: 0 6px 16px rgba(58,66,80,0.35) !important;
+      box-shadow: 0 6px 16px rgba(6,10,16,0.35) !important;
     }
     .pmp-dial-cell:hover {
       color: ${color.ink};
@@ -709,12 +709,12 @@ const injectStyles = () => {
       border-color: rgba(91,101,116,0.16) !important;
       box-shadow:
         inset 0 1px 0 rgba(216,223,232,0.1),
-        0 12px 28px rgba(58,66,80,0.4) !important;
+        0 12px 28px rgba(6,10,16,0.4) !important;
       transform: translateY(-1px);
     }
     .custom-mix:hover .custom-mix-play {
       transform: scale(1.04);
-      box-shadow: 0 8px 20px rgba(58,66,80,0.4) !important;
+      box-shadow: 0 8px 20px rgba(6,10,16,0.4) !important;
     }
     .custom-mix:active {
       transform: scale(0.992);

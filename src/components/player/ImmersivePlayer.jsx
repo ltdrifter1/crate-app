@@ -498,7 +498,7 @@ export default function ImmersivePlayer({
                           height: 18,
                           borderRadius: "50%",
                           background: crossfadeOn ? y2k.offWhite : color.surfaceSolid,
-                          boxShadow: "0 1px 3px rgba(58,66,80,0.35)",
+                          boxShadow: "0 1px 3px rgba(6,10,16,0.35)",
                           transition: `left ${motion.base} ${EASE}`,
                         }}
                       />

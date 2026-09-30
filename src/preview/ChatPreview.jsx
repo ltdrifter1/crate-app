@@ -203,7 +203,7 @@ export default function ChatPreview() {
             borderRadius: 28,
             border: `1px solid ${glass.border}`,
             background: color.canvas,
-            boxShadow: "0 24px 60px rgba(58,66,80,0.5)",
+            boxShadow: "0 24px 60px rgba(6,10,16,0.5)",
           }}
         >
           <div style={{ height: "100%", overflow: "auto", paddingBottom: 100 }}>

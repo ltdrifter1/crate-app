@@ -163,7 +163,7 @@ function EmptyShelfCard({ title, body, actionLabel = null, onAction = null }) {
         style={{
           background: radio.moduleFace,
           border: `1px solid ${glass.borderSoft}`,
-          boxShadow: `inset 0 1px 0 ${glass.highlight}, 0 12px 28px rgba(58,66,80,0.18)`,
+          boxShadow: `inset 0 1px 0 ${glass.highlight}, 0 12px 28px rgba(6,10,16,0.18)`,
         }}
       >
         <div

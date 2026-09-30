@@ -14,6 +14,7 @@ a lower-third ID with a red rule, a hard-edged channel bug, a crawl.
 | Canvas | slate `#1C222B` | deep cool charcoal `#12161C` (inside the audit's `#121417–#1A1D22` band) |
 | Controls | bevel + gradient + inner shadow on every key/pill | flat `rgba(255,255,255,.06–.10)` fills, hairline border |
 | Selected chip / tab | glowing ring | **solid pearl plate, dark ink** (`glassPill({ active })`) |
+| Primary button | dark plate, silver border | solid pearl plate, dark ink (`BTN_PRIMARY`) |
 | Play | dark hardware key with a pip | **solid pearl disc**, dark glyph — the one bright control |
 | Seek | recessed well, ticks, bar thumb | thin flat groove, round pearl thumb |
 | Art | jewel-case bevel, 6px radius | hairline edge, 10–16px radius, soft float shadow; tinted glow when playing |
@@ -46,7 +47,6 @@ Album art still supplies all other hue.
 
 - Not redesigned: Charts board internals, Club/billing cards, Auth/Landing, Set Builder, station chat, Admin.
   They inherit the new tokens and were spot-checked on the dev previews (`#site-preview`, `#set-preview`), nothing more.
-- ~150 translucent `rgba(58,66,80,…)` literals from the light-steel era remain (mostly shadows/scrims). Harmless on dark,
-  but should become `SHADE` shadows in a cleanup pass. Opaque ones were repointed to the canvas.
+- Legacy light-slate `rgba(58,66,80,…)` shadows/scrims were all repointed to the dark shade (opaque ones to the canvas).
 - `_headers` sets no cache policy for `/fonts/*`. With `font-display: optional`, revalidating fonts can still skip on repeat visits.
 - Unrelated and pre-existing: `HomeBroadcast.test.js` › "signed-in empty personal shelf offers Discover" is intermittent — it failed once in a full parallel run on the untouched baseline, and passes in isolation (a 40ms wait on a post-paint shelf). Worth de-flaking.

@@ -280,8 +280,8 @@ export default function CoverFlow({
                         borderRadius: `0 0 ${radius.md}px ${radius.md}px`,
                         opacity: 0.42,
                         pointerEvents: "none",
-                        maskImage: "linear-gradient(180deg, rgba(58,66,80,0.55) 0%, transparent 88%)",
-                        WebkitMaskImage: "linear-gradient(180deg, rgba(58,66,80,0.55) 0%, transparent 88%)",
+                        maskImage: "linear-gradient(180deg, rgba(6,10,16,0.55) 0%, transparent 88%)",
+                        WebkitMaskImage: "linear-gradient(180deg, rgba(6,10,16,0.55) 0%, transparent 88%)",
                       }}
                     >
                       <div style={{

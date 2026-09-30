@@ -745,7 +745,7 @@ function PodiumLead({ entry, active, onPlay, onAdd, onMore, onContextMenu }) {
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            background: "linear-gradient(180deg, transparent 48%, rgba(58,66,80,0.38) 100%)",
+            background: "linear-gradient(180deg, transparent 48%, rgba(6,10,16,0.38) 100%)",
           }}
         >
           <span style={{

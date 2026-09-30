@@ -83,7 +83,7 @@ export default function VideoStage({
           fontWeight: 800,
           letterSpacing: 1.4,
           textTransform: "uppercase",
-          boxShadow: "0 6px 16px rgba(58,66,80,0.35)",
+          boxShadow: "0 6px 16px rgba(6,10,16,0.35)",
         }}>
           Video
         </div>

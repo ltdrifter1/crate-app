@@ -789,21 +789,20 @@ export const INPUT_ST = {
   transition: `border-color ${motion.base} ${motion.ease}, box-shadow ${motion.base} ${motion.ease}, background ${motion.base}`,
 };
 
-/** Primary CTA — dark plate pill with quiet electric-blue trim. */
+/** Primary CTA — solid pearl plate, dark ink. Matches the pearl play disc. */
 export const BTN_PRIMARY = {
   width: "100%",
   padding: "14px 22px",
   borderRadius: 980,
-  border: "1px solid rgba(213,220,230, 0.42)",
-  background:
-    "linear-gradient(180deg, rgba(213,220,230,0.16) 0%, rgba(24,29,36,0.96) 100%)",
-  color: color.ink,
+  border: "none",
+  background: "linear-gradient(180deg, #FFFFFF 0%, #DCE2EB 100%)",
+  color: color.onAccent,
   fontSize: 16,
   fontWeight: 700,
   cursor: "pointer",
   fontFamily: font,
   letterSpacing: -0.15,
-  boxShadow: `0 0 14px rgba(213,220,230,0.16), ${radio.lcdShadow}`,
+  boxShadow: `0 8px 22px rgba(${SHADE},0.5)`,
   transition: `transform ${motion.fast} ${motion.ease}, box-shadow ${motion.base}, opacity ${motion.fast}`,
 };
 

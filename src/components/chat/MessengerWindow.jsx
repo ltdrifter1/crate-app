@@ -359,7 +359,7 @@ export function MessengerWindow({
         boxShadow: `
           inset 0 1px 0 rgba(224,242,254,0.22),
           0 0 40px ${ice.glow},
-          0 18px 48px rgba(58,66,80,0.38)
+          0 18px 48px rgba(6,10,16,0.38)
         `,
         backdropFilter: "blur(12px) saturate(1.12)",
         WebkitBackdropFilter: "blur(12px) saturate(1.12)",

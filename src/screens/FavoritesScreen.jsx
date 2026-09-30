@@ -794,7 +794,7 @@ function FavoritesScreen({
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                boxShadow: "0 8px 18px rgba(58,66,80,0.35)",
+                boxShadow: "0 8px 18px rgba(6,10,16,0.35)",
                 cursor: "pointer",
                 padding: 0,
               }}

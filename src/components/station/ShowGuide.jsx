@@ -41,7 +41,7 @@ function HostAvatar({ host, size = 44, lcd = false }) {
         border: lcd ? radio.lcdBorder : "1px solid rgba(216,223,232,0.16)",
         boxShadow: lcd
           ? radio.lcdShadow
-          : "inset 0 1px 0 rgba(216,223,232,0.16), 0 4px 10px rgba(58,66,80,0.35)",
+          : "inset 0 1px 0 rgba(216,223,232,0.16), 0 4px 10px rgba(6,10,16,0.35)",
       }}
     >
       {host.monogram}
@@ -253,7 +253,7 @@ function TuneInKey({ tuned, onTuneIn, compact = false }) {
         textTransform: "uppercase",
         color: tuned ? y2k.cyan : y2k.offWhite,
         background: tuned
-          ? "linear-gradient(180deg, rgba(91,101,116,0.12) 0%, rgba(216,223,232,0.04) 100%), rgba(58,66,80,0.7)"
+          ? "linear-gradient(180deg, rgba(91,101,116,0.12) 0%, rgba(216,223,232,0.04) 100%), rgba(6,10,16,0.7)"
           : radio.tuneFace,
         boxShadow: tuned
           ? "inset 0 1px 0 rgba(216,223,232,0.12), 0 0 18px rgba(91,101,116,0.14)"

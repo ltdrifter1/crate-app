@@ -35,7 +35,7 @@ export default function MobileNavDrawer({
           height: "100%",
           background: color.canvas,
           borderRight: "1px solid rgba(216,223,232,0.08)",
-          boxShadow: "12px 0 40px rgba(58,66,80,0.45)",
+          boxShadow: "12px 0 40px rgba(6,10,16,0.45)",
           display: "flex",
           flexDirection: "column",
           paddingTop: "env(safe-area-inset-top, 0px)",
@@ -84,7 +84,7 @@ export default function MobileNavDrawer({
         style={{
           flex: 1,
           border: "none",
-          background: "rgba(58,66,80,0.52)",
+          background: "rgba(6,10,16,0.52)",
           cursor: "pointer",
         }}
       />

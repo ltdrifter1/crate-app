@@ -67,7 +67,7 @@ function StationCard({ channel, on, onToggle, index }) {
         textAlign: "left",
         color: color.onDark,
         boxShadow: on
-          ? `0 0 0 1px ${y2k.cyan}, 0 12px 28px rgba(58,66,80,0.4)`
+          ? `0 0 0 1px ${y2k.cyan}, 0 12px 28px rgba(6,10,16,0.4)`
           : `inset 0 1px 0 ${glass.highlight}`,
         animation: `rise 0.45s ${motion.ease} ${Math.min(index, 8) * 0.03}s both`,
       }}
@@ -99,7 +99,7 @@ function StationCard({ channel, on, onToggle, index }) {
           position: "absolute",
           inset: 0,
           background:
-            "linear-gradient(180deg, rgba(58,66,80,0.08) 20%, rgba(18,22,28,0.92) 100%)",
+            "linear-gradient(180deg, rgba(6,10,16,0.08) 20%, rgba(18,22,28,0.92) 100%)",
         }}
       />
       <div
@@ -251,8 +251,8 @@ function ChoiceCard({ choice, on, onPick, art }) {
           position: "absolute",
           inset: 0,
           background: on
-            ? "linear-gradient(180deg, rgba(58,66,80,0.15), rgba(58,66,80,0.88))"
-            : "linear-gradient(180deg, rgba(58,66,80,0.25), rgba(18,22,28,0.92))",
+            ? "linear-gradient(180deg, rgba(6,10,16,0.15), rgba(6,10,16,0.88))"
+            : "linear-gradient(180deg, rgba(6,10,16,0.25), rgba(18,22,28,0.92))",
         }}
       />
       <div style={{ position: "relative", zIndex: 1, padding: "18px 18px 20px", minHeight: 148, display: "flex", flexDirection: "column", justifyContent: "flex-end" }}>
@@ -546,7 +546,7 @@ export default function TasteTuner({
               style={{
                 position: "absolute",
                 inset: 0,
-                background: "linear-gradient(180deg, rgba(58,66,80,0.1), rgba(18,22,28,0.92))",
+                background: "linear-gradient(180deg, rgba(6,10,16,0.1), rgba(18,22,28,0.92))",
               }}
             />
             <div style={{ position: "relative", zIndex: 1, padding: "28px 22px", minHeight: 220, display: "flex", flexDirection: "column", justifyContent: "flex-end" }}>

@@ -94,7 +94,7 @@ body::before { display: none; }
     radial-gradient(ellipse 18% 10% at 82% 64%, rgba(74,83,96,0.34) 0 50%, transparent 54%),
     radial-gradient(ellipse 28% 16% at 68% 40%, rgba(74,83,96,0.48) 0 58%, transparent 62%),
     radial-gradient(ellipse 16% 22% at 90% 58%, rgba(74,83,96,0.4) 0 52%, transparent 56%),
-    repeating-linear-gradient(90deg, transparent 0 26px, rgba(58,66,80,0.14) 26px 28px);
+    repeating-linear-gradient(90deg, transparent 0 26px, rgba(6,10,16,0.14) 26px 28px);
   background-size: 50% 100%;
   animation: pmpPlanetSpin 16s linear infinite;
 }

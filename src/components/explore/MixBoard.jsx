@@ -72,7 +72,7 @@ export default function MixBoard({ tracks = [], onPlayPool = null }) {
                 borderRadius: radio.radiusLcd,
                 overflow: "hidden",
                 border: neighbor && lit ? radio.lcdBorder : radio.borderQuiet,
-                background: lit ? radio.lcdFace : "rgba(58,66,80,0.16)",
+                background: lit ? radio.lcdFace : "rgba(6,10,16,0.16)",
                 boxShadow: lit ? radio.lcdShadow : "none",
                 opacity: lit ? 1 : 0.42,
                 animation: `rise 0.35s ${motion.ease} ${Math.min(i, 8) * 0.02}s both`,
