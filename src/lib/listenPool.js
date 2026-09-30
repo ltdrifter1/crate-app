@@ -6,7 +6,7 @@
  */
 
 import { normalizeGenre } from "./genres";
-import { mixLaneById, mixLaneForDate, trackFitsMixLane } from "./mixLanes";
+import { mixLaneForDate, trackFitsMixLane } from "./mixLanes";
 import { getScene, trackMatchesScene } from "./scenes";
 import { SESSION_PROFILES } from "./engine";
 
@@ -101,10 +101,9 @@ export function resolveListenPool(catalog = [], intentPartial = {}, options = {}
   };
 }
 
-/** Human label for Cover Stage / toasts. */
+/** Human label for Cover Stage / toasts — never surfaces day/night mix lanes. */
 export function listenPoolLabel(intentPartial = {}, opts = {}) {
   const intent = createListenIntent(intentPartial);
-  const mixLane = opts.mixLane || resolveMixLane(intent, opts.dateOrHour);
   const parts = [];
 
   if (intent.scene) {
@@ -115,11 +114,9 @@ export function listenPoolLabel(intentPartial = {}, opts = {}) {
 
   if (intent.vibe && SESSION_PROFILES[intent.vibe]) {
     parts.push(SESSION_PROFILES[intent.vibe].label);
-  } else {
-    parts.push(mixLaneById(mixLane).label);
   }
 
-  return parts.join(" · ");
+  return parts.join(" · ") || "What's in the mix?";
 }
 
 /** Short focus-only label (scene or genre), or null. */

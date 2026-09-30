@@ -1,19 +1,72 @@
 /**
- * Your genres — the only user-facing listen control.
+ * Your interests — genres + adventurous / depth dials.
  * Clock mix lane / vibes / scenes stay automatic.
  */
-import { fontDisplay, fontMono, color, radius, glass, aluminumGradient } from "../../theme";
+import { useEffect, useState } from "react";
+import { fontDisplay, fontMono, color, radius, glass, aluminumGradient, BTN_PRIMARY } from "../../theme";
 import { CANONICAL_GENRES, migratePreferredGenres } from "../../lib/genres";
+import {
+  ADVENTUROUS_LABELS,
+  DEPTH_LABELS,
+  TASTE_AXIS_DEFAULT,
+  normalizeTasteProfile,
+} from "../../lib/tasteProfile";
+import TasteAxisSlider from "./TasteAxisSlider";
 
 export default function GenreTasteSheet({
   onClose,
   selectedGenres = [],
+  adventurous = TASTE_AXIS_DEFAULT,
+  depth = TASTE_AXIS_DEFAULT,
   onSave,
   onClearGenreFocus = null,
   genreFocus = null,
   onBuildSet = null,
 }) {
-  const selected = new Set(migratePreferredGenres(selectedGenres));
+  const initial = normalizeTasteProfile({
+    genres: migratePreferredGenres(selectedGenres),
+    adventurous,
+    depth,
+  });
+  const [genres, setGenres] = useState(initial.genres);
+  const [adv, setAdv] = useState(initial.adventurous);
+  const [dep, setDep] = useState(initial.depth);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    const next = normalizeTasteProfile({
+      genres: migratePreferredGenres(selectedGenres),
+      adventurous,
+      depth,
+    });
+    setGenres(next.genres);
+    setAdv(next.adventurous);
+    setDep(next.depth);
+  }, [selectedGenres, adventurous, depth]);
+
+  const selected = new Set(genres);
+
+  async function persist(nextGenres, nextAdv, nextDep) {
+    if (!onSave) return;
+    setSaving(true);
+    try {
+      await onSave({
+        genres: nextGenres,
+        adventurous: nextAdv,
+        depth: nextDep,
+      });
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  function toggleGenre(g, nextOn) {
+    const arr = CANONICAL_GENRES.filter((x) =>
+      x === g ? nextOn : selected.has(x)
+    );
+    setGenres(arr);
+    persist(arr, adv, dep);
+  }
 
   return (
     <div style={{ position: "fixed", inset: 0, zIndex: 100, overflow: "hidden" }}>
@@ -31,7 +84,7 @@ export default function GenreTasteSheet({
           position: "absolute",
           inset: 0,
           background:
-            "radial-gradient(ellipse at 50% 0%, rgba(10,124,255,0.08) 0%, transparent 48%)",
+            "radial-gradient(ellipse at 50% 0%, rgba(169,199,228,0.06) 0%, transparent 48%)",
         }}
       />
 
@@ -89,7 +142,7 @@ export default function GenreTasteSheet({
             fontFamily: fontMono,
             marginBottom: 10,
           }}>
-            Your genres
+            Your interests
           </div>
           <h2 style={{
             margin: 0,
@@ -100,7 +153,7 @@ export default function GenreTasteSheet({
             fontFamily: fontDisplay,
             marginBottom: 10,
           }}>
-            What should we play most?
+            Edit your taste
           </h2>
           <p style={{
             margin: "0 0 24px",
@@ -109,7 +162,8 @@ export default function GenreTasteSheet({
             lineHeight: 1.45,
             maxWidth: 360,
           }}>
-            About 95% from your picks, 5% from elsewhere. Time of day shapes the mood in the background.
+            Genres and dials steer what we pick for you. Changes save as you go.
+            {saving ? " Saving…" : ""}
           </p>
 
           {genreFocus && onClearGenreFocus && (
@@ -159,14 +213,46 @@ export default function GenreTasteSheet({
             </div>
           )}
 
+          <TasteAxisSlider
+            id="sheet-adventurous"
+            title={ADVENTUROUS_LABELS.title}
+            hint={ADVENTUROUS_LABELS.hint}
+            lowLabel={ADVENTUROUS_LABELS.low}
+            highLabel={ADVENTUROUS_LABELS.high}
+            value={adv}
+            onChange={(next) => {
+              setAdv(next);
+              persist(genres, next, dep);
+            }}
+          />
+          <TasteAxisSlider
+            id="sheet-depth"
+            title={DEPTH_LABELS.title}
+            hint={DEPTH_LABELS.hint}
+            lowLabel={DEPTH_LABELS.low}
+            highLabel={DEPTH_LABELS.high}
+            value={dep}
+            onChange={(next) => {
+              setDep(next);
+              persist(genres, adv, next);
+            }}
+          />
+
+          <div style={{
+            fontSize: 11,
+            fontWeight: 650,
+            letterSpacing: 1.4,
+            textTransform: "uppercase",
+            color: color.accent,
+            fontFamily: fontMono,
+            margin: "8px 0 14px",
+          }}>
+            Genres
+          </div>
+
           <GenreToggleList
             selected={selected}
-            onToggle={(g, next) => {
-              const arr = CANONICAL_GENRES.filter((x) =>
-                x === g ? next : selected.has(x)
-              );
-              onSave?.(arr);
-            }}
+            onToggle={toggleGenre}
           />
 
           {onBuildSet && (
@@ -174,31 +260,15 @@ export default function GenreTasteSheet({
               type="button"
               onClick={onBuildSet}
               style={{
+                ...BTN_PRIMARY,
                 marginTop: 28,
-                width: "100%",
-                padding: "16px 20px",
-                borderRadius: radius.md,
-                border: "none",
-                background: color.accent,
-                color: color.onAccent,
+                borderRadius: radius.xl,
                 fontSize: 15,
                 fontWeight: 650,
-                cursor: "pointer",
               }}
             >
               Build a set
             </button>
-          )}
-          {onBuildSet && (
-            <div style={{
-              marginTop: 10,
-              fontSize: 13,
-              color: color.muted,
-              textAlign: "center",
-              lineHeight: 1.4,
-            }}>
-              Choose how long you’re listening — we shape the energy for you.
-            </div>
           )}
         </div>
       </div>
@@ -208,7 +278,7 @@ export default function GenreTasteSheet({
 
 function GenreToggleList({ selected, onToggle }) {
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
       {CANONICAL_GENRES.map((g) => {
         const on = selected.has(g);
         return (
@@ -222,12 +292,21 @@ function GenreToggleList({ selected, onToggle }) {
               justifyContent: "space-between",
               alignItems: "center",
               gap: 12,
-              padding: "14px 10px",
-              margin: "0 -10px",
-              background: on ? color.select : "none",
-              border: "none",
-              borderBottom: `1px solid ${color.line}`,
-              borderRadius: on ? radius.sm : 0,
+              padding: "14px 14px",
+              background: on
+                ? `
+                  linear-gradient(165deg, rgba(48,53,62,0.9) 0%, rgba(25,28,34,0.7) 100%)
+                `
+                : `
+                  linear-gradient(165deg, rgba(184,191,202,0.65) 0%, rgba(180,187,198,0.35) 100%)
+                `,
+              border: `1px solid ${on ? glass.border : glass.borderSoft}`,
+              borderRadius: radius.lg,
+              boxShadow: on
+                ? `inset 0 1px 0 ${glass.highlight}, ${glass.shadowSoft}`
+                : `inset 0 1px 0 ${glass.highlight}`,
+              backdropFilter: glass.blurSoft,
+              WebkitBackdropFilter: glass.blurSoft,
               cursor: "pointer",
               textAlign: "left",
               color: color.ink,

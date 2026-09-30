@@ -6,7 +6,6 @@ import {
   findAlbum,
   searchEntities,
   linerNotesFor,
-  artistStory,
 } from "./catalog";
 import { listPaths, findPath, resolvePath, SEED_PATHS } from "./paths";
 import { parsePath, buildPath, documentTitleFor } from "./routes";
@@ -46,12 +45,6 @@ describe("catalog", () => {
     const notes = linerNotesFor(tracks[0]);
     expect(notes.paragraphs.length).toBeGreaterThan(0);
     expect(notes.credits.some((c) => c.label === "Key" || c.label === "Handoff")).toBe(true);
-  });
-
-  test("artistStory uses clerk voice", () => {
-    const s = artistStory("Four Tet", "House", 12);
-    expect(s.toLowerCase()).not.toMatch(/filed under/);
-    expect(s.length).toBeGreaterThan(20);
   });
 
   test("findArtist missing", () => {

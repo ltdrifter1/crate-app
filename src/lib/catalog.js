@@ -63,7 +63,6 @@ export function buildArtists(tracks = []) {
         coverTrack,
         avgEnergy: Math.round(avgEnergy * 10) / 10,
         albums,
-        story: artistStory(a.name, topGenre, a.tracks.length),
       };
     })
     .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
@@ -101,7 +100,6 @@ function enrichAlbum(al) {
     avgEnergy: Math.round(avgEnergy * 10) / 10,
     avgBpm,
     keys,
-    story: albumStory(al.title, al.artist, al.tracks.length),
   };
 }
 
@@ -122,42 +120,38 @@ export function buildAlbums(tracks = []) {
     .sort((a, b) => b.count - a.count || a.title.localeCompare(b.title));
 }
 
+/** Cache entity indexes by tracks array identity — rebuild only when catalog changes. */
+let _entityCache = { tracksRef: null, artists: null, albums: null };
+
+export function getCatalogEntities(tracks = []) {
+  if (_entityCache.tracksRef === tracks && _entityCache.artists && _entityCache.albums) {
+    return { artists: _entityCache.artists, albums: _entityCache.albums };
+  }
+  const artists = buildArtists(tracks);
+  const albums = buildAlbums(tracks);
+  _entityCache = { tracksRef: tracks, artists, albums };
+  return { artists, albums };
+}
+
 export function findArtist(tracks, slug) {
   if (!slug) return null;
-  return buildArtists(tracks).find((a) => a.slug === slug) || null;
+  return getCatalogEntities(tracks).artists.find((a) => a.slug === slug) || null;
 }
 
 export function findAlbum(tracks, slug) {
   if (!slug) return null;
-  return buildAlbums(tracks).find((a) => a.slug === slug) || null;
-}
-
-export function artistStory(name, genre, count) {
-  const first = String(name || "This artist").split(/\s+/)[0];
-  if (genre && count >= 8) {
-    return `${first} keeps showing up in ${genre} — a crate you can live in for a while.`;
-  }
-  if (genre) {
-    return `Most often filed under ${genre}. ${count} cut${count === 1 ? "" : "s"} worth knowing by name.`;
-  }
-  return `${count} track${count === 1 ? "" : "s"} in your rooms — follow the sleeve, not the folder.`;
-}
-
-export function albumStory(title, artist, count) {
-  if (count <= 3) {
-    return `A short release from ${artist} — treat it as one sitting.`;
-  }
-  return `“${title}” as an object: ${count} tracks from ${artist}, meant to be heard in order when you can.`;
+  return getCatalogEntities(tracks).albums.find((a) => a.slug === slug) || null;
 }
 
 /** Search hits that are entities, not only tracks. */
 export function searchEntities(tracks, query) {
   const q = String(query || "").trim().toLowerCase();
   if (q.length < 2) return { artists: [], albums: [] };
-  const artists = buildArtists(tracks)
+  const { artists: allArtists, albums: allAlbums } = getCatalogEntities(tracks);
+  const artists = allArtists
     .filter((a) => a.name.toLowerCase().includes(q))
     .slice(0, 6);
-  const albums = buildAlbums(tracks)
+  const albums = allAlbums
     .filter(
       (a) =>
         a.title.toLowerCase().includes(q) ||

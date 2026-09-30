@@ -4,12 +4,12 @@
 import { useState } from "react";
 import {
   font, fontDisplay, color, radius, glass, aluminumGradient,
-  APP_STYLE, INPUT_ST, BTN_PRIMARY, BTN_SECONDARY,
+  APP_STYLE, INPUT_ST, BTN_PRIMARY, trimStroke, trim,
 } from "../../theme";
 import { authErrorMessage } from "../../lib/phone";
 import BrandTagline from "../brand/BrandTagline";
-
-const LOCKUP_SRC = "/brand/planet-mp3-lockup.png";
+import { BrandLockup } from "../brand/BrandGlyphs";
+import BetaBadge from "../billing/BetaLaunchNotice";
 
 /** Re-enable when Firebase phone + reCAPTCHA are configured for production. */
 const ENABLE_PHONE_SIGN_IN = false;
@@ -191,26 +191,26 @@ export default function LoginScreen({
           position: "absolute",
           inset: 0,
           background:
-            "radial-gradient(ellipse 80% 50% at 50% 0%, rgba(10,124,255,0.1) 0%, transparent 55%)",
+            "radial-gradient(ellipse 90% 55% at 50% 8%, rgba(216,223,232,0.06) 0%, transparent 58%)",
         }}
       />
-      {/* Soft brand wash — large lockup, barely there */}
+      {/* Soft brand wash — oversized transparent lockup, barely there */}
       <div
         aria-hidden="true"
         style={{
           position: "absolute",
           left: "50%",
-          top: "18%",
-          width: "min(132vw, 720px)",
-          height: "min(132vw, 720px)",
+          top: "16%",
+          width: "min(148vw, 820px)",
+          height: "min(148vw, 820px)",
           transform: "translate(-50%, -50%)",
-          backgroundImage: `url(${LOCKUP_SRC})`,
+          backgroundImage: "url(/brand/planet-mp3-lockup-512.png)",
           backgroundSize: "contain",
           backgroundPosition: "center",
           backgroundRepeat: "no-repeat",
-          opacity: 0.06,
+          opacity: 0.12,
           pointerEvents: "none",
-          filter: "grayscale(0.15)",
+          filter: "blur(0.6px)",
         }}
       />
       <div
@@ -218,9 +218,9 @@ export default function LoginScreen({
           position: "relative",
           zIndex: 1,
           width: "100%",
-          maxWidth: 420,
+          maxWidth: 440,
           margin: "0 auto",
-          padding: "36px 20px 40px",
+          padding: "28px 20px 40px",
           display: "flex",
           flexDirection: "column",
           gap: 22,
@@ -234,27 +234,18 @@ export default function LoginScreen({
             flexDirection: "column",
             alignItems: "center",
             textAlign: "center",
-            gap: 14,
-            paddingTop: 8,
+            gap: 16,
+            paddingTop: 4,
           }}
         >
-          <img
-            src={LOCKUP_SRC}
-            alt="Planet MP3"
-            width={188}
-            height={188}
-            draggable={false}
+          <div
             style={{
-              width: "min(46vw, 188px)",
-              height: "auto",
-              aspectRatio: "1 / 1",
-              display: "block",
-              userSelect: "none",
-              borderRadius: "22%",
+              width: "min(72vw, 280px)",
               animation: "brandLockupBreathe 6.5s ease-in-out infinite",
-              boxShadow: "0 18px 48px rgba(26,29,36,0.16)",
             }}
-          />
+          >
+            <BrandLockup size={280} />
+          </div>
           <BrandTagline
             size={11}
             style={{
@@ -263,11 +254,7 @@ export default function LoginScreen({
               margin: 0,
             }}
           />
-          <div style={{ fontSize: 15, color: color.body, lineHeight: 1.5, maxWidth: 280 }}>
-            {mode === "signup"
-              ? "Create an account — first month free, then $2.99/mo."
-              : "Sign in to continue."}
-          </div>
+          <BetaBadge />
         </div>
 
         <div
@@ -276,17 +263,18 @@ export default function LoginScreen({
             display: "flex",
             flexDirection: "column",
             gap: 12,
-            padding: "18px 16px 16px",
-            background: "rgba(255,255,255,0.88)",
-            border: `1px solid ${glass.border}`,
-            borderRadius: radius.lg,
-            boxShadow: `inset 0 1px 0 ${glass.highlight}, 0 18px 48px rgba(26,29,36,0.12)`,
-            backdropFilter: glass.blurSoft,
-            WebkitBackdropFilter: glass.blurSoft,
+            padding: "22px 20px 20px",
+            background: "rgba(74,83,96,0.86)",
+            border: "1px solid rgba(91,101,116,0.12)",
+            borderRadius: 14,
+            boxShadow: "inset 0 1px 0 rgba(216,223,232,0.08), 0 16px 44px rgba(58,66,80,0.4)",
+            backdropFilter: glass.blurHeavy,
+            WebkitBackdropFilter: glass.blurHeavy,
           }}
         >
           <button
             type="button"
+            className="btn-primary"
             onClick={handleGoogleSignIn}
             disabled={loading}
             style={{
@@ -296,15 +284,15 @@ export default function LoginScreen({
               gap: 10,
               width: "100%",
               padding: "14px 20px",
-              borderRadius: radius.md,
-              border: "none",
-              background: color.accent,
+              borderRadius: 10,
+              ...trimStroke("linear-gradient(180deg, #F4F7FA 0%, #E4EAF1 100%)", 2),
+              boxShadow: "0 1px 0 rgba(28,32,40,0.22), 0 4px 16px rgba(58,66,80,0.18)",
               cursor: loading ? "wait" : "pointer",
               opacity: loading ? 0.7 : 1,
             }}
           >
             <GoogleMark />
-            <span style={{ fontSize: 16, fontWeight: 600, color: color.onAccent }}>
+            <span style={{ fontSize: 16, fontWeight: 600, color: color.ink }}>
               {loading && notice?.includes("Google") ? "Connecting…" : "Continue with Google"}
             </span>
           </button>
@@ -315,7 +303,7 @@ export default function LoginScreen({
               style={{
                 fontSize: 13,
                 color: displayError ? color.alert : color.body,
-                background: displayError ? "rgba(234,231,220,0.08)" : color.canvas,
+                background: displayError ? "rgba(30,34,40,0.08)" : color.canvas,
                 border: `1px solid ${displayError ? color.lineStrong : color.line}`,
                 borderRadius: radius.md,
                 padding: "12px 14px",
@@ -375,7 +363,7 @@ export default function LoginScreen({
                       fontFamily: fontDisplay,
                       letterSpacing: -0.2,
                       color: mode === m.id ? color.ink : color.faint,
-                      borderBottom: mode === m.id ? `2px solid ${color.accent}` : "2px solid transparent",
+                      borderBottom: mode === m.id ? `2px solid ${trim.blue}` : "2px solid transparent",
                     }}
                   >
                     {m.label}
@@ -465,9 +453,10 @@ export default function LoginScreen({
               )}
               <button
                 type="button"
+                className="btn-primary"
                 onClick={handleEmailSubmit}
                 disabled={loading}
-                style={{ ...BTN_SECONDARY, opacity: loading ? 0.7 : 1 }}
+                style={{ ...BTN_PRIMARY, opacity: loading ? 0.7 : 1 }}
               >
                 {loading
                   ? "Please wait…"

@@ -1,0 +1,174 @@
+import { useMemo, useState } from "react";
+import { color, fontDisplay, fontMono, homeSpace, motion, radio } from "../../theme";
+import { CAMELOT_SLOTS, parseCamelot } from "../../lib/harmony";
+import CoverImage from "../ui/CoverImage";
+
+function neighborNums(n) {
+  const left = n === 1 ? 12 : n - 1;
+  const right = n === 12 ? 1 : n + 1;
+  return [left, n, right];
+}
+
+/** One catalog pass — Mix used to filter the crate 24 times per render. */
+function camelotPools(tracks = []) {
+  const byKey = new Map();
+  for (const t of tracks) {
+    if ((t?.duration || 0) > 900) continue;
+    const parsed = parseCamelot(t.camelot);
+    if (!parsed) continue;
+    const key = `${parsed.num}${parsed.mode}`;
+    const list = byKey.get(key);
+    if (list) list.push(t);
+    else byKey.set(key, [t]);
+  }
+  return byKey;
+}
+
+/**
+ * 12-key Mix wheel — unlit hardware for empty slots, A/B, neighbor glow.
+ * Lit pads fill with a catalog sleeve so the board reads as records, not settings.
+ */
+export default function MixBoard({ tracks = [], onPlayPool = null }) {
+  const [selected, setSelected] = useState(null);
+  const pools = useMemo(() => camelotPools(tracks), [tracks]);
+  if (!onPlayPool) return null;
+
+  const selectedParsed = parseCamelot(selected);
+  const hotNums = selectedParsed ? neighborNums(selectedParsed.num) : [];
+
+  return (
+    <div style={{ padding: `8px ${homeSpace.gutter}px 0` }}>
+      <p
+        style={{
+          margin: "0 0 12px",
+          fontSize: 13,
+          color: color.muted,
+          lineHeight: 1.4,
+          maxWidth: 440,
+        }}
+      >
+        Twelve keys. Neighbors mix. Empty pads stay dark.
+      </p>
+      <div className="pmp-mix-wheel">
+        {CAMELOT_SLOTS.map((n, i) => {
+          const poolA = pools.get(`${n}A`) || [];
+          const poolB = pools.get(`${n}B`) || [];
+          const lit = poolA.length + poolB.length > 0;
+          const neighbor = hotNums.includes(n);
+          const sleeve =
+            poolA[0]?.albumCover || poolB[0]?.albumCover || null;
+          return (
+            <div
+              key={n}
+              className="pmp-mix-slot"
+              style={{
+                position: "relative",
+                display: "flex",
+                flexDirection: "column",
+                justifyContent: "space-between",
+                gap: 6,
+                minHeight: 92,
+                padding: 8,
+                borderRadius: radio.radiusLcd,
+                overflow: "hidden",
+                border: neighbor && lit ? radio.lcdBorder : radio.borderQuiet,
+                background: lit ? radio.lcdFace : "rgba(58,66,80,0.16)",
+                boxShadow: lit ? radio.lcdShadow : "none",
+                opacity: lit ? 1 : 0.42,
+                animation: `rise 0.35s ${motion.ease} ${Math.min(i, 8) * 0.02}s both`,
+              }}
+            >
+              {sleeve ? (
+                <CoverImage
+                  src={sleeve}
+                  alt=""
+                  width={160}
+                  height={160}
+                  style={{
+                    position: "absolute",
+                    inset: 0,
+                    width: "100%",
+                    height: "100%",
+                    objectFit: "cover",
+                    opacity: 0.88,
+                    pointerEvents: "none",
+                  }}
+                />
+              ) : null}
+              <span
+                aria-hidden="true"
+                style={{
+                  position: "absolute",
+                  inset: 0,
+                  pointerEvents: "none",
+                  background: sleeve
+                    ? "linear-gradient(180deg, rgba(42,51,60,0.08) 0%, rgba(42,51,60,0.58) 100%)"
+                    : "none",
+                }}
+              />
+              <div
+                style={{
+                  position: "relative",
+                  zIndex: 1,
+                  display: "flex",
+                  alignItems: "center",
+                }}
+              >
+                <span
+                  style={{
+                    fontFamily: fontDisplay,
+                    fontSize: 22,
+                    fontWeight: 700,
+                    color: lit ? color.lcdInk : color.lcdMute,
+                    lineHeight: 1,
+                    textShadow: sleeve ? "0 1px 8px rgba(42,51,60,0.8)" : "none",
+                  }}
+                >
+                  {n}
+                </span>
+              </div>
+              <div style={{ position: "relative", zIndex: 1, display: "flex", gap: 4 }}>
+                {["A", "B"].map((mode) => {
+                  const key = `${n}${mode}`;
+                  const pool = mode === "A" ? poolA : poolB;
+                  const on = selected === key;
+                  return (
+                    <button
+                      key={mode}
+                      type="button"
+                      className="pmp-press"
+                      disabled={!pool.length}
+                      onClick={() => {
+                        if (!pool[0]) return;
+                        setSelected(key);
+                        onPlayPool(pool[0], pool);
+                      }}
+                      aria-label={`Play Camelot ${key}`}
+                      style={{
+                        flex: 1,
+                        minHeight: 28,
+                        border: on ? radio.lcdBorder : "1px solid transparent",
+                        borderRadius: 4,
+                        background: on
+                          ? "rgba(183,228,238,0.22)"
+                          : "rgba(42,51,60,0.42)",
+                        color: pool.length ? color.lcdSignal : color.lcdMute,
+                        cursor: pool.length ? "pointer" : "default",
+                        fontFamily: fontMono,
+                        fontSize: 11,
+                        fontWeight: 700,
+                        letterSpacing: 0.06,
+                      }}
+                    >
+                      {mode}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}

@@ -3,6 +3,16 @@ import { camelotCompatible, getEnergyRangeForHour } from "./harmony";
 import { normalizeGenre } from "./genres";
 import { tasteCandidatePool } from "./taste";
 import { pickEnergyTrack } from "./EnergyRecommendationEngine";
+import { applyDislikeToPool, applyDislikeWeight } from "./dislikeTaste";
+import {
+  inRatioForTaste,
+  scoreTrackForRanking,
+  energyWindowForTaste,
+  tasteFromProfile,
+} from "./ranking";
+import { SESSION_PROFILES } from "./engineSession";
+
+export { SESSION_PROFILES } from "./engineSession";
 
 export function computeHumanState(recentPlays, sessionStartTime) {
   if (!recentPlays.length) return { intensity: 0.5, openness: 0.5, momentum: 0, depth: 0, direction: 0, label: "Just started" };
@@ -88,8 +98,7 @@ export function findResonant(sourceTrack, allTracks, count = 12) {
 
 export function computeSignalTraits(tracks, recentPlays = []) {
   const maxPlays = Math.max(...tracks.map(t => t.playCount || 0), 1);
-  const maxSkips = Math.max(...tracks.map(t => t.skipCount || 0), 1);
-  const maxLikes = Math.max(...tracks.map(t => t.likeCount || 0), 1);
+  const byId = new Map(tracks.map((t) => [t.id, t]));
 
   // Build a play-sequence map for lift/descent scoring
   const sequences = [];
@@ -124,7 +133,7 @@ export function computeSignalTraits(tracks, recentPlays = []) {
     const liftSeqs = sequences.filter(s => s.from.id === t.id);
     const avgLift = liftSeqs.length > 0
       ? liftSeqs.reduce((s, seq) => {
-          const nextTrack = tracks.find(x => x.id === seq.to.id);
+          const nextTrack = byId.get(seq.to.id);
           return s + ((nextTrack?.energy || 5) - energy);
         }, 0) / liftSeqs.length
       : 0;
@@ -152,35 +161,49 @@ export function computeSignalTraits(tracks, recentPlays = []) {
 // ─── WEIGHTED RADIO PICK ──────────────────────────────────────────────────────
 // All tracks eligible; liked tracks get 3× weight
 // Priority: camelot+energy → camelot → energy → anything
-// options: { preferredGenres, signalState, seedTrack, scopedPool, tasteBlend }
-//   preferredGenres — profile tastes
-//   tasteBlend      — 95% in-taste / 5% out when preferredGenres set
+// options: { preferredGenres, signalState, seedTrack, scopedPool, tasteBlend, dislikeTaste, taste, coldStart, channelHit }
+//   preferredGenres — profile tastes (also read from options.taste.genres)
+//   taste           — full onboarding bag (genres, axes, energyBand, vibe, artists, channels)
+//   tasteBlend      — in-taste ratio from adventurous (≈98% familiar → 62% stretch)
 //   signalState     — human-state vector steers energy (lift / release / immersion)
 //   seedTrack       — Hypno pocket mode: stay near this track's aura + key
 //   scopedPool      — pool already mix-lane/scene filtered; skip hour energy gate
+//   dislikeTaste    — soft / hard genre+energy avoidance from player dislikes
+//   coldStart       — mute global heat; onboarding owns the first session
 export function pickNextTrack(allTracks, currentTrack, memory = null, options = {}) {
   if (!allTracks.length) return null;
-  const preferredGenres = Array.isArray(options.preferredGenres)
-    ? options.preferredGenres.filter(Boolean)
-    : [];
+  const taste = options.taste
+    ? tasteFromProfile(options.taste)
+    : tasteFromProfile({ genres: options.preferredGenres || [] });
+  const preferredGenres = (taste.genres?.length ? taste.genres : options.preferredGenres) || [];
   const preferredSet = new Set(
-    preferredGenres.map((g) => normalizeGenre(g) || g).filter(Boolean)
+    (Array.isArray(preferredGenres) ? preferredGenres : [])
+      .map((g) => normalizeGenre(g) || g)
+      .filter(Boolean)
   );
   const signalState = options.signalState || null;
   const seedTrack = options.seedTrack || null;
   const anchor = seedTrack || currentTrack;
   const scopedPool = !!options.scopedPool;
+  const dislikeTaste = options.dislikeTaste || null;
+  const coldStart = !!options.coldStart;
+  const channelHit = typeof options.channelHit === "function" ? options.channelHit : null;
+  const inRatio = inRatioForTaste(taste.adventurous);
 
-  // 95/5 taste blend — genres are the user lever; rest is background
+  // Taste blend — in-ratio follows adventurous; genres + onboarding own the lane
   let sourceTracks = allTracks;
   if (options.tasteBlend && preferredSet.size) {
-    sourceTracks = tasteCandidatePool(allTracks, preferredGenres).tracks;
+    sourceTracks = tasteCandidatePool(allTracks, preferredGenres, { inRatio }).tracks;
     if (!sourceTracks.length) sourceTracks = allTracks;
   }
+  sourceTracks = applyDislikeToPool(sourceTracks, dislikeTaste, {
+    preserveFocus: scopedPool,
+  });
 
   const hour = new Date().getHours();
   // When resolveListenPool already scoped the catalog, don't re-slice by clock hour.
   let [eMin, eMax] = scopedPool ? [1, 10] : getEnergyRangeForHour(hour);
+  [eMin, eMax] = energyWindowForTaste(taste, [eMin, eMax], { coldStart });
 
   // Human-state energy steer — the Floor moves with you
   if (signalState) {
@@ -227,16 +250,22 @@ export function pickNextTrack(allTracks, currentTrack, memory = null, options = 
     return wide[Math.floor(Math.random() * wide.length)];
   }
 
-  // Energy Shift (Rabbit / Turtle) — when a sweep is active it owns the pick.
+  // Pace (Ease / Lift) — when a sweep is active it owns the pick.
   // The engine walks the pool toward the pending BPM/Camelot/energy target one
   // musical step at a time instead of the usual hour/taste pools.
   if (options.energyShift?.active && currentTrack) {
-    const energyPick = pickEnergyTrack(pool, currentTrack, options.energyShift);
+    const energyPick = pickEnergyTrack(pool, currentTrack, options.energyShift, Math.random, {
+      dislikeTaste,
+    });
     if (energyPick) return energyPick;
   }
 
   function weightedPick(candidates) {
-    const weighted = candidates.flatMap(t => {
+    if (!candidates.length) return null;
+    let total = 0;
+    const weights = new Array(candidates.length);
+    for (let i = 0; i < candidates.length; i++) {
+      const t = candidates[i];
       let w = t.liked ? 3 : 1;
       // Skip penalty
       const plays = t.playCount || 0;
@@ -249,6 +278,15 @@ export function pickNextTrack(allTracks, currentTrack, memory = null, options = 
       if (!options.tasteBlend && preferredSet.size && preferredSet.has(normalizeGenre(t.genre) || t.genre)) {
         w = Math.round(w * 2.5);
       }
+      // Onboarding / taste ranking — strong on cold start, always on
+      const tasteScore = scoreTrackForRanking(t, taste, {
+        coldStart,
+        channelHit: channelHit ? !!channelHit(t) : false,
+        dislikeTaste: null, // applied below as a multiplier
+        liked: !!t.liked,
+      });
+      const tasteMul = 1 + Math.max(-0.4, tasteScore) / (coldStart ? 10 : 16);
+      w *= Math.max(0.15, tasteMul);
       // Aura trait boost: high grip after a skip, high hold in deep sessions
       if (t._signal) {
         if (t._signal.grip >= 7) w += 1;
@@ -272,9 +310,22 @@ export function pickNextTrack(allTracks, currentTrack, memory = null, options = 
       }
       if (seedTrack?.camelot && t.camelot && camelotCompatible(seedTrack.camelot, t.camelot, 1)) w *= 2;
       if (seedTrack?.genre && t.genre === seedTrack.genre) w = Math.round(w * 1.5);
-      return Array(Math.max(1, Math.round(w))).fill(t);
-    });
-    return weighted[Math.floor(Math.random() * weighted.length)];
+      w = applyDislikeWeight(w, t, dislikeTaste, { allowHard: !scopedPool });
+      const weight = Math.max(0, w);
+      if (weight <= 0) {
+        weights[i] = 0;
+        continue;
+      }
+      weights[i] = weight;
+      total += weight;
+    }
+    if (!total) return candidates[0] || null;
+    let roll = Math.random() * total;
+    for (let i = 0; i < candidates.length; i++) {
+      roll -= weights[i];
+      if (roll < 0) return candidates[i];
+    }
+    return candidates[candidates.length - 1];
   }
 
   const p1 = pool.filter(t => camelotCompatible(anchor?.camelot, t.camelot) && t.energy >= eMin && t.energy <= eMax);
@@ -331,24 +382,17 @@ export function buildRoute(allTracks, startTrack, endTrack, maxSteps = 12) {
 
 // ─── SESSION ENGINE ──────────────────────────────────────────────────────────
 // Activity-based energy arc profiles. Each phase has a proportion (0-1) and target energy.
-export const SESSION_PROFILES = {
-  night:      { label: "Night out",     blurb: "Builds up, peaks, then eases down", phases: [{ name: "Warm up", p: 0.2, e: 5 }, { name: "Peak", p: 0.4, e: 9 }, { name: "Late", p: 0.25, e: 4 }, { name: "Wind down", p: 0.15, e: 2 }] },
-  party:      { label: "Party",         blurb: "High energy from start to finish", phases: [{ name: "Warm up", p: 0.15, e: 4 }, { name: "Build", p: 0.2, e: 6 }, { name: "Peak", p: 0.35, e: 9 }, { name: "Keep going", p: 0.2, e: 8 }, { name: "Wind down", p: 0.1, e: 5 }] },
-  predrinks:  { label: "Getting ready", blurb: "Starts easy, gets livelier", phases: [{ name: "Ease in", p: 0.2, e: 4 }, { name: "Lift", p: 0.35, e: 6 }, { name: "Buzz", p: 0.3, e: 7 }, { name: "Ready", p: 0.15, e: 8 }] },
-  drive:      { label: "Drive",         blurb: "Steady music for the road", phases: [{ name: "Leave", p: 0.15, e: 5 }, { name: "Cruise", p: 0.5, e: 6 }, { name: "Deep", p: 0.25, e: 4 }, { name: "Arrive", p: 0.1, e: 3 }] },
-  chill:      { label: "Chill",         blurb: "Calm and unhurried", phases: [{ name: "Ease in", p: 0.3, e: 3 }, { name: "Float", p: 0.4, e: 2 }, { name: "Settle", p: 0.3, e: 3 }] },
-  recovery:   { label: "Rest",          blurb: "Soft and restorative", phases: [{ name: "Slow down", p: 0.2, e: 2 }, { name: "Rest", p: 0.5, e: 1 }, { name: "Ease up", p: 0.3, e: 3 }] },
-  run:        { label: "Run",           blurb: "Keeps you moving", phases: [{ name: "Pace up", p: 0.1, e: 6 }, { name: "Stride", p: 0.4, e: 8 }, { name: "Push", p: 0.35, e: 9 }, { name: "Cool down", p: 0.15, e: 5 }] },
-  workout:    { label: "Workout",       blurb: "Warm up, push, then stretch", phases: [{ name: "Warm up", p: 0.12, e: 5 }, { name: "Build", p: 0.2, e: 7 }, { name: "Peak", p: 0.4, e: 9 }, { name: "Push", p: 0.18, e: 8 }, { name: "Stretch", p: 0.1, e: 3 }] },
-  focus:      { label: "Focus",         blurb: "Steady background for work", phases: [{ name: "Settle in", p: 0.15, e: 4 }, { name: "Focus", p: 0.6, e: 3 }, { name: "Keep going", p: 0.2, e: 4 }, { name: "Ease out", p: 0.05, e: 3 }] },
-  dinner:     { label: "Dinner",        blurb: "Good company, good volume", phases: [{ name: "Arrive", p: 0.2, e: 4 }, { name: "Talk", p: 0.5, e: 3 }, { name: "Linger", p: 0.3, e: 4 }] },
-  study:      { label: "Study",         blurb: "Quiet focus with soft breaks", phases: [{ name: "Settle", p: 0.1, e: 3 }, { name: "Deep work", p: 0.7, e: 2 }, { name: "Break", p: 0.1, e: 4 }, { name: "Close", p: 0.1, e: 2 }] },
-};
-
-export function buildSession(allTracks, durationMins, activityId) {
+export function buildSession(allTracks, durationMins, activityId, options = {}) {
   const profile = SESSION_PROFILES[activityId];
   if (!profile) return [];
-  const pool = allTracks.filter(t => (t.duration||0) <= 900 && (t.duration||0) > 0);
+  let pool = allTracks.filter(t => (t.duration||0) <= 900 && (t.duration||0) > 0);
+  const genre = options.genre || null;
+  const genres = options.genres || (genre ? [genre] : null);
+  if (genres && genres.length) {
+    const want = new Set(genres.map((g) => normalizeGenre(g) || g).filter(Boolean));
+    const sliced = pool.filter((t) => want.has(normalizeGenre(t.genre) || t.genre));
+    if (sliced.length >= 3) pool = sliced;
+  }
   if (!pool.length) return [];
 
   const totalSecs = durationMins * 60;
@@ -374,6 +418,12 @@ export function buildSession(allTracks, durationMins, activityId) {
         const skips = t.skipCount || 0;
         const plays = t.playCount || 0;
         if (plays > 0 && skips > plays * 0.5) score += 3;
+        if (options.taste) {
+          score -= scoreTrackForRanking(t, options.taste, {
+            coldStart: !!options.coldStart,
+            channelHit: typeof options.channelHit === "function" ? !!options.channelHit(t) : false,
+          }) * 0.12;
+        }
         return { track:t, score };
       })
       .sort((a,b) => a.score - b.score);

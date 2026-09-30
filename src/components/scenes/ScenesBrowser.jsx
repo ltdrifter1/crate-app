@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { font, fontDisplay, fontMono, color, radius } from "../../theme";
+import { font, fontDisplay, fontMono, color, radius, glass, BTN_PRIMARY } from "../../theme";
 import {
   scenesByFamily,
   relatedScenes,
@@ -100,14 +100,13 @@ export default function ScenesBrowser({
                 className="play-primary"
                 onClick={() => onPlayScene?.(active.id)}
                 style={{
+                  ...BTN_PRIMARY,
+                  width: "auto",
                   padding: "12px 16px",
-                  borderRadius: radius.sm,
-                  border: "none",
-                  background: color.accent,
-                  color: color.onAccent,
+                  borderRadius: radius.lg,
                   fontWeight: 650,
                   fontSize: 13,
-                  cursor: "pointer",
+                  boxShadow: `inset 0 1px 0 rgba(216,223,232,0.22), ${glass.shadowSoft}`,
                 }}
               >
                 Play scene
@@ -117,9 +116,14 @@ export default function ScenesBrowser({
                 onClick={() => onOpenSceneRoom?.(active.id)}
                 style={{
                   padding: "12px 16px",
-                  borderRadius: radius.sm,
-                  border: `1px solid ${color.lineStrong}`,
-                  background: "none",
+                  borderRadius: radius.lg,
+                  border: `1px solid ${glass.border}`,
+                  background: `
+                    linear-gradient(165deg, rgba(184,191,202,0.8) 0%, rgba(180,187,198,0.5) 100%)
+                  `,
+                  boxShadow: `inset 0 1px 0 ${glass.highlight}`,
+                  backdropFilter: glass.blurSoft,
+                  WebkitBackdropFilter: glass.blurSoft,
                   color: color.body,
                   fontWeight: 600,
                   fontSize: 13,
@@ -138,7 +142,7 @@ export default function ScenesBrowser({
               Related scenes
             </div>
             <div style={{ fontSize: 12, color: color.muted, marginBottom: 12 }}>
-              Culture as a graph — not a flat genre list
+              Culture, not a filter
             </div>
             {related.map((s) => (
               <button
@@ -149,10 +153,16 @@ export default function ScenesBrowser({
                   display: "flex",
                   justifyContent: "space-between",
                   width: "100%",
-                  padding: "14px 4px",
-                  background: "none",
-                  border: "none",
-                  borderBottom: `1px solid ${color.line}`,
+                  padding: "14px 14px",
+                  marginBottom: 6,
+                  background: `
+                    linear-gradient(165deg, rgba(184,191,202,0.68) 0%, rgba(180,187,198,0.38) 100%)
+                  `,
+                  border: `1px solid ${glass.borderSoft}`,
+                  borderRadius: radius.lg,
+                  boxShadow: `inset 0 1px 0 ${glass.highlight}`,
+                  backdropFilter: glass.blurSoft,
+                  WebkitBackdropFilter: glass.blurSoft,
                   cursor: "pointer",
                   textAlign: "left",
                   color: color.ink,
@@ -222,10 +232,16 @@ export default function ScenesBrowser({
                 justifyContent: "space-between",
                 alignItems: "center",
                 width: "100%",
-                padding: "14px 4px",
-                background: "none",
-                border: "none",
-                borderBottom: `1px solid ${color.line}`,
+                padding: "14px 14px",
+                marginBottom: 6,
+                background: `
+                  linear-gradient(165deg, rgba(184,191,202,0.68) 0%, rgba(180,187,198,0.38) 100%)
+                `,
+                border: `1px solid ${glass.borderSoft}`,
+                borderRadius: radius.lg,
+                boxShadow: `inset 0 1px 0 ${glass.highlight}`,
+                backdropFilter: glass.blurSoft,
+                WebkitBackdropFilter: glass.blurSoft,
                 cursor: "pointer",
                 textAlign: "left",
                 color: color.ink,

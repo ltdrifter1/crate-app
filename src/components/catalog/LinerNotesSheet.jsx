@@ -1,16 +1,50 @@
-import { font, fontDisplay, fontMono, color, radius } from "../../theme";
+import { font, fontDisplay, fontMono, color, radius, glass, glassSheet } from "../../theme";
 import { linerNotesFor } from "../../lib/catalog";
+import {
+  physicalStatusFor,
+  canPurchasePhysical,
+  physicalCommerceHint,
+  memberPrice,
+} from "../../lib/physicalStatus";
 
 /** Interactive liner notes — credits & listening context for a track. */
-export default function LinerNotesSheet({ track, roomLabel, onClose, onOpenArtist, onOpenAlbum, onOpenRoom }) {
+export default function LinerNotesSheet({
+  track,
+  roomLabel,
+  onClose,
+  onOpenArtist,
+  onOpenAlbum,
+  onOpenRoom,
+  memberPricing = false,
+  creditBalance = null,
+  onPurchase = null,
+  purchasing = false,
+}) {
   const notes = linerNotesFor(track);
   if (!notes) return null;
+  const physical = physicalStatusFor(track);
+  const retail = track?.retailPrice != null ? Number(track.retailPrice) : null;
+  const price = retail != null ? memberPrice(retail, {
+    member: memberPricing,
+    memberRetail: track?.memberPrice,
+  }) : null;
+  const purchasable = canPurchasePhysical(physical);
+  const commerceHint = physicalCommerceHint(physical);
+  const bal = creditBalance != null ? Number(creditBalance) : null;
+  const canAfford = purchasable && price != null && bal != null && bal >= price;
+  const needsPremium = purchasable && (bal == null || bal <= 0);
 
   return (
     <div style={{ position: "fixed", inset: 0, zIndex: 120 }}>
       <div
         onClick={onClose}
-        style={{ position: "absolute", inset: 0, background: "rgba(26,29,36,0.38)", backdropFilter: "blur(10px)" }}
+        style={{
+          position: "absolute",
+          inset: 0,
+          background: "rgba(216,223,232,0.2)",
+          backdropFilter: glass.blurSoft,
+          WebkitBackdropFilter: glass.blurSoft,
+        }}
       />
       <div
         role="dialog"
@@ -21,9 +55,7 @@ export default function LinerNotesSheet({ track, roomLabel, onClose, onOpenArtis
           right: 0,
           bottom: 0,
           maxHeight: "78vh",
-          background: color.surfaceSolid,
-          borderTop: `1px solid ${color.lineStrong}`,
-          borderRadius: "16px 16px 0 0",
+          ...glassSheet,
           display: "flex",
           flexDirection: "column",
           animation: "rise 0.35s cubic-bezier(0.22,1,0.36,1) both",
@@ -50,6 +82,66 @@ export default function LinerNotesSheet({ track, roomLabel, onClose, onOpenArtis
               {notes.title}
             </div>
             <div style={{ fontSize: 14, color: color.muted, marginTop: 4 }}>{notes.artist}</div>
+            <div style={{
+              marginTop: 10,
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 8,
+              padding: "5px 10px",
+              borderRadius: radius.sm,
+              border: `1px solid ${glass.borderSoft}`,
+              background: "rgba(22,24,30,0.35)",
+              fontSize: 11,
+              fontWeight: 700,
+              letterSpacing: 1.1,
+              textTransform: "uppercase",
+              fontFamily: fontMono,
+              color: color.accent,
+            }}>
+              {physical.label}
+              {track?.catalogNumber ? ` · ${track.catalogNumber}` : ""}
+            </div>
+            {purchasable && price != null && (
+              <div style={{ marginTop: 8, fontSize: 13, color: color.body }}>
+                {memberPricing ? "Club price" : "Retail"} · ${price.toFixed(2)}
+                {memberPricing && retail != null && retail !== price ? ` (was $${retail.toFixed(2)})` : ""}
+              </div>
+            )}
+            {!purchasable && commerceHint && (
+              <div style={{ marginTop: 8, fontSize: 12, color: color.muted, lineHeight: 1.4 }}>
+                {commerceHint}
+              </div>
+            )}
+            {purchasable && onPurchase && price != null && (
+              <button
+                type="button"
+                disabled={!!purchasing || (!canAfford && !needsPremium)}
+                onClick={() => onPurchase(track, price)}
+                style={{
+                  marginTop: 12,
+                  padding: "10px 14px",
+                  borderRadius: radius.md,
+                  border: "none",
+                  background: canAfford || needsPremium ? color.accent : "rgba(216,223,232,0.12)",
+                  color: canAfford || needsPremium ? color.onAccent || "#111" : color.faint,
+                  fontSize: 13,
+                  fontWeight: 700,
+                  fontFamily: fontMono,
+                  letterSpacing: 0.6,
+                  textTransform: "uppercase",
+                  cursor: purchasing ? "wait" : "pointer",
+                  opacity: purchasing ? 0.7 : 1,
+                }}
+              >
+                {purchasing
+                  ? "Filing…"
+                  : needsPremium
+                    ? "Premium + Club Credit to buy"
+                    : canAfford
+                      ? `Buy with Club Credit · $${price.toFixed(2)}`
+                      : `Need $${price.toFixed(2)} credit`}
+              </button>
+            )}
           </div>
           <button
             type="button"
@@ -118,8 +210,13 @@ function Chip({ children, onClick }) {
       style={{
         padding: "10px 14px",
         borderRadius: radius.sm,
-        border: `1px solid ${color.lineStrong}`,
-        background: color.surface,
+        border: `1px solid ${glass.borderSoft}`,
+        background: `
+          linear-gradient(165deg, rgba(184,191,202,0.82) 0%, rgba(180,187,198,0.5) 100%)
+        `,
+        boxShadow: `inset 0 1px 0 ${glass.highlight}`,
+        backdropFilter: glass.blurSoft,
+        WebkitBackdropFilter: glass.blurSoft,
         color: color.body,
         fontSize: 13,
         fontWeight: 600,

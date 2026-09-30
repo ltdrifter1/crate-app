@@ -1,61 +1,75 @@
-import { useState, useEffect, useRef, useCallback, useMemo } from "react";
-import { createPortal }                             from "react-dom";
+import { useState, useEffect, useRef, useCallback, useMemo, lazy, Suspense, startTransition } from "react";
 import { useNavigate, useLocation }                 from "react-router-dom";
 import { useAuth }                                  from "./useAuth";
-import { toggleLike as fbToggleLike, recordPlay, completeOnboarding, saveGenres } from "./useUserData";
-import { collection, getDocs, addDoc, query, orderBy, doc, updateDoc, setDoc, deleteDoc } from "firebase/firestore";
-import { db }                                       from "./firebase";
+import { toggleLike as fbToggleLike, recordPlay, completeOnboarding, saveTasteProfile, saveDislikeTaste, saveFeatureGuideSeen } from "./useUserData";
+import { getFirebase } from "./firebase";
 import {
-  font, fontDisplay, fontMono, color, radius, motion,
-  glass, glassControl, homeSpace, dock, sectionRule,
-  artShadow, aluminumGradient,
+  font, fontDisplay, fontMono, color, chrome, radius, motion,
+  glass, glassControl, homeSpace, dock, sectionRule, radio,
+  artShadow, aluminumGradient, chromeFrame, trim,
   APP_STYLE, INPUT_ST, BTN_PRIMARY, BTN_SECONDARY, CTRL_BTN, ADMIN_UID,
-  BRAND_NAME, brandStoragePrefix,
+  BRAND_NAME, brandStoragePrefix, STYLE_CHASSIS,
 } from "./theme";
-import { camelotCompatible, getEnergyRangeForHour, fmtTime, hexToRgbStr } from "./lib/harmony";
+import { getEnergyRangeForHour } from "./lib/harmony";
 import {
-  computeHumanState, findResonant, computeSignalTraits, pickNextTrack,
-  buildSession, buildRoute, SESSION_PROFILES,
+  computeHumanState, pickNextTrack,
 } from "./lib/engine";
-import { mixLaneById, mixLaneForDate } from "./lib/mixLanes";
-import { normalizeGenre } from "./lib/genres";
-import { getFloorPhase } from "./lib/club";
+import { mixLaneForDate } from "./lib/mixLanes";
 import { parsePath, buildPath, documentTitleFor } from "./lib/routes";
-import { explainPick } from "./lib/explain";
-import { savedTracks, trendingTracks, recommendedPicks } from "./lib/homeCollections";
-import { fetchCatalogTracks, countPlayableTracks } from "./lib/catalogLoad";
-import { slugify, findArtist, findAlbum, searchEntities } from "./lib/catalog";
+import { isKeepAliveScreen } from "./lib/nav";
 import {
-  enrichTracksWithScenes,
-  displaySceneLabel,
-  trackMatchesScene,
-  matchSceneFromText,
-} from "./lib/scenes";
+  AUDIO_LOAD_TIMEOUT_MS,
+  canAttemptPlay,
+  finishAudioUnlock,
+  hasPlayableAudio,
+  isBenignPlayReject,
+  MISSING_AUDIO_TOAST,
+  PLAY_REJECTED_TOAST,
+  shouldIgnoreUnlockTransportEvent,
+} from "./lib/audioUnlock";
+import {
+  canInstantPromote,
+  configureAudioElement,
+  createAudioPair,
+  equalPowerVolumes,
+  fadeSecondsForMode,
+  preloadSrc,
+  READY_TO_FADE,
+  READY_TO_PLAY,
+  shouldStartFade,
+  shouldStartPreload,
+  SILENT_WAV,
+  swapDeck,
+} from "./lib/audioEngine";
+import { bindMediaSessionHandlers, syncMediaSession, syncMediaPosition } from "./lib/mediaSession";
+import { dismissBootSplash } from "./lib/bootSplash";
+import { peekAuthSession } from "./lib/authBoot";
+import { explainPick } from "./lib/explain";
+import { fetchCatalogTracksFromFirestore, fetchCatalogCdn, fetchHomeLite, isCatalogCacheFresh, isNewerCatalog, loadCatalogFirstPaint, writeCatalogIdb, HOME_LITE_LIMIT } from "./lib/catalogLoad";
+import { adoptCatalogTracks, hydrateCatalogTracks, patchTrackById } from "./lib/catalogHydrate";
+import { runAfterPaint, runAfterDelay, runWhenIdle } from "./lib/afterPaint";
+import { slugify, findArtist, findAlbum } from "./lib/catalog";
 import {
   resolveListenPool,
   listenPoolLabel,
   createListenIntent,
 } from "./lib/listenPool";
-import { EnergyShiftButton, EnergyShiftFeedback } from "./components/listen/EnergyShiftButton";
 import { playerEnergyStore } from "./lib/playerEnergyStore";
-import ArtistPage, { AlbumPage } from "./components/catalog/ArtistPage";
-import LinerNotesSheet from "./components/catalog/LinerNotesSheet";
-import LoginScreen from "./components/auth/LoginScreen";
-import PaywallScreen from "./components/billing/PaywallScreen";
-import MixScreen from "./components/club/MixScreen";
-import CommunityMixBanner from "./components/club/CommunityMixBanner";
 import {
   getAccessState,
-  membershipSummary,
-  openStripeCheckout,
-  formatPriceMonthly,
+  BILLING,
+  PAYWALL_ENABLED,
+  PRICING_COMING_SOON,
 } from "./lib/entitlements";
-import { collectionStats } from "./lib/collectionStats";
+import { startCheckout, settleBillingReturn, stripBillingQuery } from "./lib/billing";
 import {
-  CLUB_NAME,
-  formatJoinedMonth,
-  memberNumberLabel,
-} from "./lib/memberNumber";
+  canPlayOnFreeTier,
+  bumpPlayMeter,
+  freePlaysRemaining,
+} from "./lib/freePlays";
+import { spendClubCredit } from "./lib/listeningApi";
+import { usableCreditBalance } from "./lib/clubCredit";
+import { memberPrice, PHYSICAL_COMMERCE_LIVE } from "./lib/physicalStatus";
 import {
   buildCommunityMix,
   buildMixFromPlaylist,
@@ -67,16 +81,137 @@ import {
   COMMUNITY_MIX_TITLE,
 } from "./lib/mixes";
 import { absoluteAppUrl, shareOrCopy } from "./lib/share";
-import BrandMark, { BrandGlyph as DoorGlyph } from "./components/brand/BrandMark";
-import GenreSceneBrowse from "./components/search/GenreSceneBrowse";
-import GenreTasteSheet from "./components/listen/GenreTasteSheet";
-import GenreTasteOnboarding from "./components/onboarding/GenreTasteOnboarding";
 import { vibeForMixLane, blendPoolForSession } from "./lib/taste";
+import {
+  emptyDislikeTaste,
+  normalizeDislikeTaste,
+  recordDislikeEvent,
+} from "./lib/dislikeTaste";
+import {
+  tasteFromProfile,
+  defaultSetPrefs,
+  isColdStartTaste,
+} from "./lib/ranking";
+import { trackHitsPreferredChannels, compileOnboardingTaste } from "./lib/onboardingTaste";
+import { shouldAutoShowFeatureTour, featureGuideSeenPayload } from "./lib/featureGuide";
+import {
+  buildCountdown,
+  stationDaypart,
+} from "./lib/station";
+import { useStationFeed } from "./components/station/useStationFeed";
+import {
+  useLiveAiring,
+} from "./components/station/ShowGuide";
+import {
+  buildShowPool,
+  getShowById,
+  pickShowBumper,
+  resolveShowAt,
+} from "./lib/shows";
+import {
+  buildSceneChannelPool,
+  getSceneChannel,
+} from "./lib/sceneChannels";
+import { pickTrackBumper, shouldFireTrackBumper } from "./lib/bumpers";
+import { trackHasVideo } from "./lib/video";
+import { playbackClock } from "./usePlayerPlayback";
+import { playerPlaybackStore } from "./lib/playerPlaybackStore";
+import {
+  transportFlags,
+  useCurrentTrack,
+  useTransportTrackId,
+} from "./usePlayerTransport";
+import { signalFlags } from "./usePlayerSignal";
+import GlassDock from "./components/player/GlassDock";
+import {
+  ScreenPane,
+  contentPadBottom,
+  AmbientNetworkPill,
+  CatalogSkeleton,
+  BgMist,
+  ToastEl,
+} from "./components/layout/AppChrome";
+import GuestMemberGate from "./components/auth/GuestMemberGate";
+
+const LoginScreen = lazy(() => import("./components/auth/LandingScreen"));
+const ClubScreen = lazy(() => import("./components/club/ClubScreen"));
+const LazyMixScreen = lazy(() => import("./components/club/MixScreen"));
+const LazyPaywallScreen = lazy(() => import("./components/billing/PaywallScreen"));
+const LazyImmersivePlayer = lazy(() => import("./components/player/ImmersivePlayer"));
+const LazyChartsScreen = lazy(() => import("./components/station/ChartsScreen"));
+const loadHomeScreen = () => import("./screens/HomeScreen");
+const HomeScreen = lazy(loadHomeScreen);
+loadHomeScreen();
+const DevBroadcastPreview =
+  process.env.NODE_ENV !== "production"
+    ? lazy(() => import("./preview/BroadcastPreview"))
+    : null;
+const DevPlayerPreview =
+  process.env.NODE_ENV !== "production"
+    ? lazy(() => import("./preview/PlayerPreview"))
+    : null;
+const DevExplorePreview =
+  process.env.NODE_ENV !== "production"
+    ? lazy(() => import("./preview/ExplorePreview"))
+    : null;
+const DevSetPreview =
+  process.env.NODE_ENV !== "production"
+    ? lazy(() => import("./preview/SetPreview"))
+    : null;
+const DevOnboardingPreview =
+  process.env.NODE_ENV !== "production"
+    ? lazy(() => import("./preview/OnboardingPreview"))
+    : null;
+const loadExploreScreen = () => import("./screens/ExploreScreen");
+const ExploreScreen = lazy(loadExploreScreen);
+// Home preloads immediately. Explore used to wait 8s, so the first tap
+// sat on "Loading explore…" while the chunk downloaded.
+runWhenIdle(loadExploreScreen, { timeout: 400 });
+const SearchScreen = lazy(() => import("./screens/SearchScreen"));
+const FavoritesScreen = lazy(() => import("./screens/FavoritesScreen"));
+const AdminScreen = lazy(() => import("./screens/AdminScreen"));
+const LazyArtistPage = lazy(() =>
+  import("./components/catalog/ArtistPage").then((m) => ({ default: m.default }))
+);
+const LazyAlbumPage = lazy(() =>
+  import("./components/catalog/ArtistPage").then((m) => ({ default: m.AlbumPage }))
+);
+const AppSidebar = lazy(() => import("./components/layout/AppSidebar"));
+const MobileNavDrawer = lazy(() => import("./components/layout/MobileNavDrawer"));
+const DesktopMiniPlayer = lazy(() => import("./components/player/DesktopMiniPlayer"));
+const LazySetBuilder = lazy(() => import("./components/set/SetBuilderScreen"));
+const LazyHypnoVision = lazy(() => import("./components/listen/HypnoVisionOverlay"));
+const LazyAfterglow = lazy(() => import("./components/listen/AfterglowOverlay"));
+const LazyQueueSheet = lazy(() => import("./components/listen/QueueSheet"));
+const LazyGenreTasteSheet = lazy(() => import("./components/listen/GenreTasteSheet"));
+const LazyTasteTuner = lazy(() => import("./components/onboarding/TasteTuner"));
+const LazyFeatureTour = lazy(() => import("./components/guide/FeatureTour"));
+const LazyLinerNotesSheet = lazy(() => import("./components/catalog/LinerNotesSheet"));
+const LazyDedicateSheet = lazy(() => import("./components/station/DedicateSheet"));
+const LazyStationBumper = lazy(() => import("./components/station/StationBumper"));
+const DevChatPreview =
+  process.env.NODE_ENV !== "production"
+    ? lazy(() => import("./preview/ChatPreview"))
+    : null;
+const DevGuidePreview =
+  process.env.NODE_ENV !== "production"
+    ? lazy(() => import("./preview/GuidePreview"))
+    : null;
+const DevSitePreview =
+  process.env.NODE_ENV !== "production"
+    ? lazy(() => import("./preview/SitePreview"))
+    : null;
 
 const injectStyles = () => {
-  if (document.getElementById("rooms-app-global-styles")) return;
-  const s = document.createElement("style");
-  s.id = "rooms-app-global-styles";
+  let s = document.getElementById("rooms-app-global-styles");
+  if (!s) {
+    s = document.createElement("style");
+    s.id = "rooms-app-global-styles";
+    document.head.appendChild(s);
+  }
+  if (typeof document !== "undefined") {
+    document.documentElement.setAttribute("data-pmp-chassis", STYLE_CHASSIS);
+  }
   s.textContent = `
     * { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
@@ -85,29 +220,144 @@ const injectStyles = () => {
       --line: ${color.line}; --canvas: ${color.canvas}; --accent: ${color.accent};
       --body: ${color.body}; --surface-raised: ${color.surfaceRaised};
       --glass-fill: ${glass.fillStrong}; --glass-border: ${glass.border};
-      --glass-blur: ${glass.blur};
+      --glass-blur: ${glass.blur}; --glass-highlight: ${glass.highlight};
     }
-    body { font-family: var(--font); background: var(--canvas); color: var(--ink); }
+    body {
+      font-family: var(--font);
+      background: var(--canvas);
+      color: var(--ink);
+    }
     ::-webkit-scrollbar { width: 8px; height: 8px; }
     ::-webkit-scrollbar-track { background: transparent; }
-    ::-webkit-scrollbar-thumb { background: rgba(26,29,36,0.18); border-radius: 8px; border: 2px solid transparent; background-clip: padding-box; }
-    button { transition: opacity ${motion.fast}, background ${motion.base}, transform ${motion.fast}, box-shadow ${motion.base}; font-family: var(--font); }
-    button:active { opacity: 0.72; }
-    button.play-primary:active { transform: scale(0.96); opacity: 0.9; }
-    button.glass-control:hover { background: ${glass.fillStrong}; border-color: ${glass.border}; }
-    button:focus-visible, input:focus-visible { outline: 2px solid ${color.accent}; outline-offset: 2px; }
-    input:focus { outline: none; }
-    input[type="range"] { -webkit-appearance: none; height: 4px; background: rgba(26,29,36,0.12); border-radius: 2px; outline: none; cursor: pointer; }
-    input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; border-radius: 50%; background: ${color.accent}; border: 2px solid #fff; box-shadow: 0 1px 4px rgba(26,29,36,0.25); cursor: pointer; }
-    input[type="range"]::-moz-range-thumb { width: 14px; height: 14px; border-radius: 50%; background: ${color.accent}; border: 2px solid #fff; box-shadow: 0 1px 4px rgba(26,29,36,0.25); cursor: pointer; }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(91,101,116,0.18);
+      border-radius: 8px;
+      border: 2px solid transparent;
+      background-clip: padding-box;
+    }
+    button {
+      transition: opacity ${motion.fast}, background ${motion.base}, transform ${motion.fast}, box-shadow ${motion.base}, border-color ${motion.base};
+      font-family: var(--font);
+    }
+    button:active { opacity: 0.78; }
+    button.play-primary:active,
+    button.pmp-hw-key:active {
+      transform: translateY(1px) scale(0.97) !important;
+      box-shadow: inset 0 2px 4px rgba(58, 66, 80, 0.28), inset 0 1px 0 rgba(58, 66, 80, 0.16) !important;
+      opacity: 1;
+    }
+    button.glass-control:hover {
+      background: ${glass.fillHeavy} !important;
+      border-color: ${glass.border} !important;
+      box-shadow: inset 0 1px 0 ${glass.highlight}, ${glass.shadowSoft} !important;
+    }
+    button.btn-primary:hover {
+      transform: translateY(-1px);
+      box-shadow: inset 0 1px 0 rgba(216,223,232,0.6), ${glass.shadowLift} !important;
+    }
+    button.btn-secondary:hover {
+      background: ${glass.fillHeavy} !important;
+      transform: translateY(-1px);
+      box-shadow: inset 0 1px 0 ${glass.highlight}, ${glass.shadow} !important;
+    }
+    button:focus-visible, input:focus-visible, [role="button"]:focus-visible {
+      outline: 2px solid ${color.accent};
+      outline-offset: 2px;
+    }
+    input:focus {
+      outline: none;
+      border-color: ${glass.border} !important;
+      background: ${color.surfaceRaised} !important;
+      box-shadow: inset 0 1px 0 ${glass.highlight}, 0 0 0 3px ${color.accentSoft} !important;
+    }
+    input[type="range"] { -webkit-appearance: none; height: 4px; background: rgba(168,180,198,0.12); border-radius: 2px; outline: none; cursor: pointer; }
+    input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; border-radius: 50%; background: ${color.accent}; border: 2px solid ${color.onAccent}; box-shadow: 0 1px 4px rgba(6,10,16,0.55); cursor: pointer; }
+    input[type="range"]::-moz-range-thumb { width: 14px; height: 14px; border-radius: 50%; background: ${color.accent}; border: 2px solid ${color.onAccent}; box-shadow: 0 1px 4px rgba(6,10,16,0.55); cursor: pointer; }
+    input.chrome-seek { -webkit-appearance: none; appearance: none; background: transparent !important; height: 32px !important; }
+    input.chrome-seek::-webkit-slider-runnable-track { height: 10px; background: transparent; border: none; }
+    input.chrome-seek::-moz-range-track { height: 10px; background: transparent; border: none; }
+    input.chrome-seek::-webkit-slider-thumb {
+      -webkit-appearance: none; appearance: none; width: 11px; height: 18px; margin-top: -4px;
+      border-radius: 3px;
+      background: linear-gradient(180deg, #D8E4F4 0%, #A8B4C6 55%, #9AA4B6 100%);
+      border: 1px solid rgba(168,180,198,0.55);
+      box-shadow:
+        inset 0 1px 0 rgba(228,247,250,0.45),
+        0 0 10px ${color.lcdSignalGlow},
+        0 3px 6px rgba(6,10,16,0.45);
+      cursor: pointer;
+    }
+    input.chrome-seek::-moz-range-thumb {
+      width: 11px; height: 18px; border-radius: 3px;
+      background: linear-gradient(180deg, #D8E4F4 0%, #A8B4C6 55%, #9AA4B6 100%);
+      border: 1px solid rgba(168,180,198,0.55);
+      box-shadow:
+        inset 0 1px 0 rgba(228,247,250,0.45),
+        0 0 10px ${color.lcdSignalGlow},
+        0 3px 6px rgba(6,10,16,0.45);
+      cursor: pointer;
+    }
+    input.pace-range {
+      -webkit-appearance: none;
+      appearance: none;
+      background: transparent !important;
+      height: 32px !important;
+    }
+    input.pace-range::-webkit-slider-runnable-track {
+      height: 10px;
+      background: transparent;
+      border: none;
+    }
+    input.pace-range::-moz-range-track {
+      height: 10px;
+      background: transparent;
+      border: none;
+    }
+    input.pace-range::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 16px;
+      height: 22px;
+      margin-top: -6px;
+      border-radius: 4px;
+      background: linear-gradient(180deg, #2C3440 0%, #242A33 48%, #1C222B 100%);
+      border: 2px solid ${trim.blue};
+      box-shadow:
+        0 0 0 1px ${trim.lime},
+        inset 0 1px 0 rgba(200,210,222,0.22),
+        inset 0 -2px 3px rgba(6,10,16,0.5),
+        0 4px 10px rgba(168,180,198,0.18);
+      cursor: pointer;
+    }
+    input.pace-range::-moz-range-thumb {
+      width: 16px;
+      height: 22px;
+      border-radius: 4px;
+      background: linear-gradient(180deg, #2C3440 0%, #242A33 48%, #1C222B 100%);
+      border: 2px solid ${trim.blue};
+      box-shadow:
+        0 0 0 1px ${trim.lime},
+        inset 0 1px 0 rgba(200,210,222,0.22),
+        inset 0 -2px 3px rgba(6,10,16,0.5),
+        0 4px 10px rgba(168,180,198,0.18);
+      cursor: pointer;
+    }
     .hide-scroll { -ms-overflow-style: none; scrollbar-width: none; }
     .hide-scroll::-webkit-scrollbar { display: none; }
     .glass-surface {
-      background: ${glass.fillStrong};
+      background: ${glass.plate};
       border: 1px solid ${glass.borderSoft};
       box-shadow: inset 0 1px 0 ${glass.highlight}, ${glass.shadowSoft};
-      -webkit-backdrop-filter: ${glass.blur};
-      backdrop-filter: ${glass.blur};
+    }
+    .glass-card {
+      background: ${glass.plate};
+      border: 1px solid ${glass.borderSoft};
+      border-radius: ${radius.lg}px;
+      box-shadow: inset 0 1px 0 ${glass.highlight}, ${glass.shadowSoft};
+    }
+    .glass-row:hover {
+      background: ${color.select} !important;
+      box-shadow: inset 0 1px 0 ${glass.highlight};
     }
     @keyframes spin { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
     @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.45} }
@@ -128,8 +378,8 @@ const injectStyles = () => {
       to { opacity: 1; transform: none; }
     }
     @keyframes screenIn {
-      from { opacity: 0; transform: translateY(8px); }
-      to { opacity: 1; transform: none; }
+      from { opacity: 0; }
+      to { opacity: 1; }
     }
     @keyframes dockRise {
       from { opacity: 0; transform: translateY(12px) scale(0.98); }
@@ -152,8 +402,8 @@ const injectStyles = () => {
       50% { transform: translate(-50%, -50%) scale(1.035); opacity: 1; }
     }
     @keyframes brandLockupBreathe {
-      0%, 100% { transform: scale(1); filter: drop-shadow(0 12px 28px rgba(26,29,36,0.18)); }
-      50% { transform: scale(1.028); filter: drop-shadow(0 16px 36px rgba(26,29,36,0.22)); }
+      0%, 100% { transform: scale(1); filter: drop-shadow(0 12px 28px rgba(91,101,116,0.18)); }
+      50% { transform: scale(1.028); filter: drop-shadow(0 16px 36px rgba(91,101,116,0.22)); }
     }
     @keyframes stageBloom {
       0%, 100% { opacity: 0.55; }
@@ -168,12 +418,17 @@ const injectStyles = () => {
       50% { opacity: 1; }
     }
     @keyframes playGlow {
-      0%, 100% { box-shadow: 0 4px 14px rgba(10,124,255,0.28), 0 1px 0 rgba(255,255,255,0.5) inset; }
-      50% { box-shadow: 0 6px 18px rgba(10,124,255,0.36), 0 1px 0 rgba(255,255,255,0.55) inset; }
+      0%, 100% { box-shadow: 0 4px 14px rgba(22,24,30,0.2), 0 1px 0 rgba(30,34,41,0.6) inset; }
+      50% { box-shadow: 0 6px 18px rgba(216,223,232,0.2), 0 1px 0 rgba(184,191,202,0.65) inset; }
     }
     @keyframes coverFloat {
       0%, 100% { transform: translateY(0); }
       50% { transform: translateY(-4px); }
+    }
+    @keyframes coverSettle {
+      0% { transform: translateY(6px) scale(0.985); opacity: 0.88; }
+      55% { transform: translateY(-3px) scale(1.01); opacity: 1; }
+      100% { transform: none; opacity: 1; }
     }
     @keyframes energyPillLife {
       0% { opacity:0; transform:translateY(8px) scale(0.96) }
@@ -183,26 +438,270 @@ const injectStyles = () => {
     }
     @keyframes energyPillIn { from{opacity:0;transform:translateY(6px) scale(0.94)} to{opacity:1;transform:none} }
     @keyframes energyMenuIn { from{opacity:0;transform:translateX(-50%) translateY(6px) scale(0.95)} to{opacity:1;transform:translateX(-50%)} }
+    @keyframes energyModeIn {
+      from { opacity: 0; transform: translateY(6px) scale(0.94); }
+      to { opacity: 1; transform: none; }
+    }
+    @keyframes mixArcPulse {
+      0%, 100% { opacity: 0.55; stroke-dashoffset: 0; }
+      50% { opacity: 1; }
+    }
+    @keyframes mixSeqDot {
+      0%, 100% { opacity: 0.35; transform: scale(0.85); }
+      50% { opacity: 1; transform: scale(1.15); }
+    }
     @keyframes shelfReveal {
       from { opacity: 0; transform: translateY(10px) scale(0.985); }
       to { opacity: 1; transform: none; }
     }
+    @keyframes stationTicker {
+      from { transform: translateX(0); }
+      to { transform: translateX(-50%); }
+    }
+    @keyframes stationLowerIn {
+      from { opacity: 0; transform: translateY(14px) scale(0.985); }
+      to { opacity: 1; transform: none; }
+    }
+    @keyframes stationBar {
+      from { height: 10px; }
+      to { height: 48px; }
+    }
+    @keyframes stationBurst {
+      0% { opacity: 0; transform: translateX(-50%) scale(0.4) translateY(8px); }
+      35% { opacity: 1; transform: translateX(-50%) scale(1.15) translateY(-6px); }
+      100% { opacity: 0; transform: translateX(-50%) scale(1.4) translateY(-28px); }
+    }
+    @keyframes channelBugIn {
+      from { opacity: 0; transform: translateX(10px) scale(0.96); }
+      to { opacity: 1; transform: none; }
+    }
+    @keyframes channelZap {
+      0% { filter: brightness(1); transform: scale(1); }
+      35% { filter: brightness(1.45) contrast(1.15); transform: scale(0.97); }
+      70% { filter: brightness(0.85); transform: scale(1.02); }
+      100% { filter: none; transform: none; }
+    }
+    @keyframes stationBumperIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    @keyframes likePop {
+      0% { transform: scale(1); }
+      40% { transform: scale(1.28); }
+      100% { transform: scale(1); }
+    }
+    @keyframes flaskShake {
+      0%, 100% { transform: rotate(0deg) translateY(0); }
+      18% { transform: rotate(-7deg) translateY(0.5px); }
+      36% { transform: rotate(6deg) translateY(-0.5px); }
+      54% { transform: rotate(-4deg) translateY(0.25px); }
+      72% { transform: rotate(3deg); }
+      88% { transform: rotate(-1.5deg); }
+    }
+    @keyframes flaskBubbleRise {
+      0% { transform: translateY(0) scale(0.65); opacity: 0; }
+      18% { opacity: 0.95; }
+      100% { transform: translateY(-8px) scale(1.05); opacity: 0; }
+    }
+    @keyframes flaskSteamRise {
+      0% { transform: translateY(0) scaleX(0.85); opacity: 0; }
+      28% { opacity: 0.7; }
+      100% { transform: translateY(-9px) scaleX(1.35); opacity: 0; }
+    }
+    .flask-taste-btn {
+      position: relative;
+      overflow: visible;
+    }
+    .flask-taste-btn.is-labeled {
+      overflow: hidden;
+    }
+    .flask-taste-btn:hover:not(:disabled) {
+      transform: translateY(-1px);
+      box-shadow: inset 0 1px 0 rgba(216,223,232,0.12), 0 10px 22px rgba(58,66,80,0.45) !important;
+    }
+    .flask-taste-btn:active:not(:disabled) {
+      transform: translateY(0) scale(0.97);
+    }
+    .flask-taste-btn:hover:not(:disabled) .flask-taste-mark {
+      animation: flaskShake 0.58s cubic-bezier(0.36, 0.07, 0.19, 0.97);
+      transform-origin: 50% 78%;
+    }
+    .flask-taste-btn .flask-bubble {
+      transform-box: fill-box;
+      transform-origin: center;
+      animation: flaskBubbleRise 2.4s ease-in-out infinite;
+      animation-play-state: paused;
+    }
+    .flask-taste-btn .flask-bubble-a { animation-delay: 0s; }
+    .flask-taste-btn .flask-bubble-b { animation-delay: 0.55s; }
+    .flask-taste-btn .flask-bubble-c { animation-delay: 1.1s; }
+    .flask-taste-btn .flask-steam {
+      transform-box: fill-box;
+      transform-origin: center bottom;
+      animation: flaskSteamRise 2.1s ease-out infinite;
+      animation-play-state: paused;
+    }
+    .flask-taste-btn .flask-steam-a { animation-delay: 0s; }
+    .flask-taste-btn .flask-steam-b { animation-delay: 0.45s; }
+    .flask-taste-btn .flask-steam-c { animation-delay: 0.9s; }
+    .flask-taste-btn:hover:not(:disabled) .flask-bubble,
+    .flask-taste-btn:hover:not(:disabled) .flask-steam,
+    .flask-taste-btn.is-active .flask-bubble,
+    .flask-taste-btn.is-active .flask-steam,
+    .energy-shift-flask:hover:not(:disabled) .flask-bubble,
+    .energy-shift-flask:hover:not(:disabled) .flask-steam,
+    .energy-shift-flask.is-active .flask-bubble,
+    .energy-shift-flask.is-active .flask-steam {
+      animation-play-state: running;
+    }
+    .flask-taste-btn.is-active .flask-bubble,
+    .flask-taste-btn.is-active .flask-steam,
+    .energy-shift-flask.is-active .flask-bubble,
+    .energy-shift-flask.is-active .flask-steam {
+      animation-duration: 1.55s;
+    }
+    .sr-only {
+      position: absolute; width: 1px; height: 1px;
+      padding: 0; margin: -1px; overflow: hidden;
+      clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0;
+    }
+    /* Mini-dock: hide secondary controls on narrow phones so targets stay big */
+    @media (max-width: 430px) {
+      .dock-xtra { display: none !important; }
+    }
     .glass-dock {
-      background: rgba(255, 255, 255, 0.78);
-      border: 1px solid ${glass.border};
+      background: ${radio.moduleFace};
+      border: 1px solid rgba(91,101,116,0.28);
       box-shadow:
-        inset 0 1px 0 ${glass.highlight},
-        0 12px 32px rgba(26, 29, 36, 0.12),
-        0 2px 6px rgba(26, 29, 36, 0.06);
-      -webkit-backdrop-filter: ${glass.blur};
-      backdrop-filter: ${glass.blur};
-      transition: background 0.6s ease;
+        inset 0 1px 0 rgba(216,223,232,0.5),
+        inset 0 -1px 0 rgba(58,66,80,0.18),
+        0 12px 28px rgba(58,66,80,0.22);
+      -webkit-backdrop-filter: ${glass.blurHeavy};
+      backdrop-filter: ${glass.blurHeavy};
+      transition: background 0.6s ease, box-shadow 0.35s ease;
+    }
+    /* ── Obsidian device chrome ─────────────────────────────────────────── */
+    .pill-nav {
+      background: ${radio.moduleFace};
+      border: 1px solid rgba(200,210,222,0.14);
+      box-shadow:
+        inset 0 1px 0 rgba(200,210,222,0.14),
+        inset 0 -1px 0 rgba(6,10,16,0.5),
+        0 12px 28px rgba(6,10,16,0.45);
+    }
+    @media (min-width: 768px) {
+      .pmp-mobile-dock { display: none !important; }
+    }
+    .pmp-hero-bezel {
+      box-shadow:
+        inset 0 1px 0 rgba(200,210,222,0.16),
+        inset 0 -1px 0 rgba(6,10,16,0.4),
+        0 24px 56px rgba(6,10,16,0.5);
+    }
+    .pmp-home-mtv::before { display: none; }
+    .pmp-home-mtv > * { position: relative; z-index: 1; }
+    /* Kill leftover Local gold bloom from older builds. No halo, no pulse. */
+    @keyframes pmpGoldGlow {
+      0%, 100% { opacity: 0; }
+      50% { opacity: 0; }
+    }
+    .pmp-channel-card--gold,
+    .pmp-channel-card--featured {
+      filter: none !important;
+    }
+    .pmp-channel-card-frame,
+    .pmp-channel-card--gold .pmp-channel-card-frame,
+    .pmp-channel-card--featured .pmp-channel-card-frame {
+      overflow: hidden !important;
+      filter: none !important;
+    }
+    .pmp-channel-card-frame::before,
+    .pmp-channel-card-frame::after,
+    .pmp-channel-card--gold .pmp-channel-card-frame::before,
+    .pmp-channel-card--gold .pmp-channel-card-frame::after,
+    .pmp-channel-card--featured .pmp-channel-card-frame::before,
+    .pmp-channel-card--featured .pmp-channel-card-frame::after {
+      content: none !important;
+      display: none !important;
+      animation: none !important;
+      background: none !important;
+      box-shadow: none !important;
+      filter: none !important;
+    }
+    .pmp-ticker-track {
+      animation: stationTicker 22s linear infinite;
+    }
+    .pmp-lift {
+      transition: transform ${motion.settle} ${motion.ease}, box-shadow ${motion.settle} ${motion.ease}, border-color ${motion.base} ${motion.ease};
+    }
+    .pmp-lift:hover { transform: none; }
+    .pmp-lift:active { transform: translateY(0) scale(0.985); opacity: 1; }
+    .pmp-press { transition: transform ${motion.fast} ${motion.ease}, box-shadow ${motion.base} ${motion.ease}, background ${motion.base}; }
+    .pmp-press:active { transform: scale(0.94); opacity: 1; }
+    .pmp-live-led {
+      animation: stageLiveDot 1.45s ease-in-out infinite;
+    }
+    .pmp-tune-key {
+      transition:
+        transform ${motion.fast} ${motion.ease},
+        box-shadow ${motion.base} ${motion.ease},
+        border-color ${motion.base},
+        background ${motion.base},
+        color ${motion.fast};
+    }
+    .pmp-tune-key:hover {
+      filter: brightness(1.06);
+      box-shadow: 0 6px 16px rgba(58,66,80,0.28) !important;
+    }
+    .pmp-tune-key:active {
+      transform: scale(0.97);
+      filter: none;
+      box-shadow: none !important;
+    }
+    .pmp-tune-key--locked:hover {
+      box-shadow: 0 6px 16px rgba(58,66,80,0.28) !important;
+    }
+    .pmp-schedule-cell:hover {
+      border-color: rgba(91,101,116,0.35) !important;
+      box-shadow: 0 6px 16px rgba(58,66,80,0.35) !important;
+    }
+    .pmp-dial-cell:hover {
+      color: ${color.ink};
+    }
+    .pmp-dial-cell:hover > div:nth-child(2),
+    .pmp-dial-cell:hover > div:nth-child(3) {
+      opacity: 1;
+    }
+    .pmp-dial-cell:active {
+      transform: none;
+      opacity: 0.88;
+    }
+    .pmp-tonight-stage {
+      animation: rise 0.55s ${motion.ease} 0.04s both;
+    }
+    .pmp-radio-module {
+      transition: box-shadow ${motion.settle} ${motion.ease}, border-color ${motion.base};
+    }
+    .pmp-hero .pmp-hero-art { transition: transform 1.2s ${motion.ease}; }
+    .pmp-hero:hover .pmp-hero-sleeve { transform: translateY(-2px); }
+    .pmp-hero:hover .pmp-hero-art { transform: scale(1.04); }
+    .pmp-hero-sleeve { transition: transform 0.45s ${motion.ease}; }
+    .pmp-view-all { transition: color ${motion.fast} ${motion.ease}, transform ${motion.fast} ${motion.ease}; }
+    .pmp-view-all:hover { color: ${color.accent} !important; transform: none; }
+    .pmp-rail { cursor: grab; }
+    .pmp-rail:active { cursor: grabbing; }
+    @media (prefers-reduced-transparency: reduce) {
+      .pill-nav {
+        backdrop-filter: none !important;
+        -webkit-backdrop-filter: none !important;
+        background: ${color.surfaceSolid} !important;
+      }
     }
     .nav-rail-btn {
       transition: background ${motion.base} ${motion.ease}, color ${motion.base} ${motion.ease}, transform ${motion.fast};
     }
     .nav-rail-btn:hover {
-      background: ${color.accentSoft} !important;
+      background: ${color.select} !important;
       color: ${color.ink} !important;
     }
     .custom-mix {
@@ -213,15 +712,16 @@ const injectStyles = () => {
         box-shadow ${motion.base} ${motion.ease};
     }
     .custom-mix:hover {
-      background: rgba(255,255,255,0.92) !important;
-      border-color: rgba(26,29,36,0.14) !important;
+      background: ${color.surfaceRaised} !important;
+      border-color: rgba(91,101,116,0.16) !important;
       box-shadow:
-        inset 0 1px 0 rgba(255,255,255,0.9),
-        0 14px 36px rgba(26,29,36,0.1) !important;
+        inset 0 1px 0 rgba(216,223,232,0.1),
+        0 12px 28px rgba(58,66,80,0.4) !important;
+      transform: translateY(-1px);
     }
     .custom-mix:hover .custom-mix-play {
       transform: scale(1.04);
-      box-shadow: 0 6px 18px rgba(10,124,255,0.32) !important;
+      box-shadow: 0 8px 20px rgba(58,66,80,0.4) !important;
     }
     .custom-mix:active {
       transform: scale(0.992);
@@ -229,30 +729,18 @@ const injectStyles = () => {
     .custom-mix-play {
       transition: transform ${motion.fast} ${motion.ease}, box-shadow ${motion.base} ${motion.ease};
     }
-    .sidebar-queue-row {
-      transition: background ${motion.base} ${motion.ease};
-    }
-    .sidebar-queue-row:hover {
-      background: rgba(10,124,255,0.06) !important;
-    }
-    .sidebar-queue-row:hover .sidebar-queue-actions {
-      opacity: 1 !important;
-    }
-    .sidebar-ghost-btn {
-      transition: color ${motion.fast} ${motion.ease}, opacity ${motion.fast};
-    }
-    .sidebar-ghost-btn:hover {
-      color: ${color.ink} !important;
-      opacity: 1 !important;
-    }
     .track-row:hover {
-      background: rgba(10,124,255,0.06) !important;
+      background: ${color.select} !important;
+      border-color: ${glass.border} !important;
     }
     .cover-tile {
       transition: transform ${motion.settle} ${motion.ease}, box-shadow ${motion.settle} ${motion.ease};
     }
     .cover-tile:hover {
       transform: translateY(-3px);
+    }
+    .cover-flow-stage .cover-tile:hover {
+      transform: none;
     }
     @media (prefers-reduced-motion: reduce) {
       *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
@@ -265,4521 +753,47 @@ const injectStyles = () => {
       }
     }
   `;
-  document.head.appendChild(s);
 };
 injectStyles();
 
-
-// Engine helpers imported from ./lib/harmony + ./lib/engine
-
-function EnergyBar({ level, size="sm" }) {
-  const h = size==="lg" ? [8,10,12,10,8,12,10,8,12,10] : [5,6,7,6,5,7,6,5,7,6];
-  return (
-    <div style={{ display:"flex", gap:size==="lg"?3:2, alignItems:"center" }}>
-      {h.map((ht,i) => (
-        <div key={i} style={{
-          width: size==="lg"?4:2.5, height:ht,
-          borderRadius:2,
-          background: i < level ? color.accent : "rgba(26,29,36,0.12)",
-          transition:"background 0.2s",
-        }}/>
-      ))}
-    </div>
-  );
+async function firestoreDb() {
+  return (await getFirebase()).db;
 }
 
-// ─── ICONS ────────────────────────────────────────────────────────────────────
-const Icon = ({ name, size=18 }) => {
-  const icons = {
-    play:       <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>,
-    pause:      <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>,
-    skip:       <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor"><path d="M6 18l8.5-6L6 6v12zm2-8.14L11.03 12 8 14.14V9.86zM16 6h2v12h-2z"/></svg>,
-    prev:       <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor"><path d="M6 6h2v12H6zm3.5 6 8.5 6V6z"/></svg>,
-    heart:      <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>,
-    heartempty: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>,
-    search:     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>,
-    home:       <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>,
-    profile:    <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>,
-    repeat:     <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor"><path d="M7 7h10v3l4-4-4-4v3H5v6h2V7zm10 10H7v-3l-4 4 4 4v-3h12v-6h-2v4z"/></svg>,
-    shuffle:    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 3h5v5"/><path d="M4 20L21 3"/><path d="M21 16v5h-5"/><path d="M15 15l6 6"/><path d="M4 4l5 5"/></svg>,
-    settings:   <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor"><path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.07-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.74,8.87C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.07,0.94l-2.03,1.58c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.47-0.12-0.61L19.14,12.94zM12,15.6c-1.98,0-3.6-1.62-3.6-3.6s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z"/></svg>,
-    plus:       <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>,
-    door:       <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="square" strokeLinejoin="miter"><path d="M6 4h12v16H6z"/><path d="M9 7h5.2l1.3 10H9z"/><circle cx="13.2" cy="12" r="0.9" fill="currentColor" stroke="none"/></svg>,
-    dig:        <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round"><path d="M4 8h16v3H4z"/><path d="M5 11h14v3H5z"/><path d="M6 14h12v3H6z"/><path d="M8 6l2-2h4l2 2"/></svg>,
-    map:        <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round"><path d="M12 3l7 4v10l-7 4-7-4V7l7-4z"/><path d="M12 8v8M9 10.5h6"/></svg>,
-    drift:      <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 3c2 4 2 8 0 12s-2 8 0 12" opacity="0.5"/><path d="M3 12c4-2 8-2 12 0s8 2 12 0" opacity="0.5"/></svg>,
-    grid:       <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="3"/><circle cx="5" cy="7" r="2"/><circle cx="19" cy="7" r="2"/><circle cx="5" cy="17" r="2"/><circle cx="19" cy="17" r="2"/><path d="M7 8l3 3M17 8l-3 3M7 16l3-3M17 16l-3-3"/></svg>,
-    x:          <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>,
-    edit:       <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>,
-    trash:      <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>,
-    chev_up:    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M18 15l-6-6-6 6"/></svg>,
-    chev_down:  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M6 9l6 6 6-6"/></svg>,
-    queue:      <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M4 6h16M4 12h16M4 18h10"/><circle cx="18" cy="18" r="2" fill="currentColor" stroke="none"/></svg>,
-    volume:     <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor"><path d="M3 10v4h4l5 5V5L7 10H3zm13.5 2c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"/></svg>,
-    hypno:      <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.5" fill="currentColor" stroke="none"/></svg>,
-    // Session Dial — length (arc) + vibe (playlist bars). Key feature mark.
-    timedmix:   <TimedMixMark size={size} />,
-  };
-  return icons[name] || null;
-};
-
-/** Custom mark for timed playlist builder — duration dial + track bars. */
-function TimedMixMark({ size = 28, accent = color.accent }) {
-  const r = 9.2;
-  const c = 2 * Math.PI * r;
-  const arc = c * 0.72;
-  return (
-    <svg width={size} height={size} viewBox="0 0 32 32" fill="none" aria-hidden="true">
-      {/* Quiet dial track */}
-      <circle cx="16" cy="16" r={r} stroke="rgba(255,255,255,0.16)" strokeWidth="1.6"/>
-      {/* Length arc — accent segment */}
-      <circle
-        cx="16" cy="16" r={r}
-        stroke={accent}
-        strokeWidth="1.8"
-        strokeLinecap="round"
-        strokeDasharray={`${arc} ${c}`}
-        strokeDashoffset={28}
-        transform="rotate(-95 16 16)"
-        style={{ animation: "dialArc 1.1s cubic-bezier(0.22,1,0.36,1) both" }}
-      />
-      {/* Vibe bars — a short playlist inside the dial */}
-      <rect x="10.2" y="12.1" width="11.6" height="1.7" rx="0.85" fill="rgba(255,255,255,0.88)"/>
-      <rect x="10.2" y="15.15" width="8.4" height="1.7" rx="0.85" fill="rgba(255,255,255,0.55)"/>
-      <rect x="10.2" y="18.2" width="5.6" height="1.7" rx="0.85" fill={accent}/>
-    </svg>
-  );
+/** Dev chrome previews own the transport store — skip the live audio graph. */
+function isDevPreviewHash() {
+  if (typeof window === "undefined") return false;
+  return (window.location.hash || "").includes("-preview");
 }
 
-// ─── ALBUM ART — jewel-case when framed by parent ─────────────────────────────
-function AlbumArt({ track, size=300, borderRadius=8 }) {
-  const [loaded, setLoaded] = useState(false);
-  const [error, setError]   = useState(false);
-  if (!track.albumCover || error) {
-    return (
-      <div style={{
-        width: size, height: size, borderRadius, flexShrink: 0,
-        background: `linear-gradient(135deg,rgba(${hexToRgbStr(track.color)},0.45),rgba(${hexToRgbStr(track.color)},0.12))`,
-        display: "flex", alignItems: "center", justifyContent: "center",
-        overflow: "hidden",
-      }}>
-        <div style={{ fontSize: size * 0.25, fontWeight: 700, color: `rgba(${hexToRgbStr(track.color)},0.75)`, letterSpacing: -2, fontFamily: fontDisplay }}>
-          {track.title.charAt(0)}{track.artist.charAt(0)}
-        </div>
-      </div>
-    );
-  }
-  return (
-    <div style={{ width: size, height: size, borderRadius, flexShrink: 0, position: "relative", overflow: "hidden", background: color.surfaceRaised }}>
-      {!loaded && <div style={{ position: "absolute", inset: 0, background: `rgba(${hexToRgbStr(track.color)},0.12)`, animation: "shimmer 1.5s ease-in-out infinite" }}/>}
-      <img src={track.albumCover} alt={track.album} onLoad={() => setLoaded(true)} onError={() => setError(true)}
-        style={{ width: "100%", height: "100%", objectFit: "cover", display: "block", opacity: loaded ? 1 : 0, transition: "opacity 0.4s" }}/>
-    </div>
-  );
-}
-
-// ─── VINYL RECORD ─────────────────────────────────────────────────────────────
-function VinylRecord({ track, isPlaying, size=190 }) {
-  const c = size/2;
-  const grooves = Array.from({length:8},(_,i)=>({ r:size*0.24+i*(size*0.23/7), op:0.06+i*0.022 }));
-  return (
-    <div style={{ width:size, height:size, borderRadius:"50%", position:"relative", overflow:"hidden",
-      animation:isPlaying?"spin 2.8s linear infinite":"none",
-      boxShadow:"0 8px 32px rgba(0,0,0,0.25)",
-    }}>
-      {track.albumCover
-        ? <img src={track.albumCover} alt="" style={{ width:"100%", height:"100%", objectFit:"cover", display:"block" }}/>
-        : <div style={{ width:"100%", height:"100%", background:`linear-gradient(135deg,rgba(${hexToRgbStr(track.color)},0.4),#141416)` }}/>
-      }
-      <svg style={{ position:"absolute", inset:0 }} width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
-        <circle cx={c} cy={c} r={c} fill="rgba(0,0,0,0.52)"/>
-        {grooves.map((g,i)=><circle key={i} cx={c} cy={c} r={g.r} fill="none" stroke={track.color} strokeWidth="0.7" opacity={g.op}/>)}
-        <circle cx={c} cy={c} r={size*0.17} fill="rgba(0,0,0,0.65)"/>
-        <circle cx={c} cy={c} r={size*0.17} fill={`rgba(${hexToRgbStr(track.color)},0.2)`}/>
-        <circle cx={c} cy={c} r={3.5} fill="#0f1011"/>
-        <circle cx={c} cy={c} r={1.4} fill={track.color} opacity="0.7"/>
-      </svg>
-    </div>
-  );
-}
-
-// ─── Booth HUD — BPM / key / energy ───────────────────────────────────────────
-function BoothHud({ track, size = "md", align = "left" }) {
-  if (!track) return null;
-  const bpm = track.bpm ? String(track.bpm) : "—";
-  const key = track.camelot || "—";
-  const energy = track.energy != null ? String(track.energy) : "—";
-  const big = size === "lg";
-  const compact = size === "sm";
-  if (compact) {
-    return (
-      <div style={{
-        fontFamily: fontMono, fontVariantNumeric:"tabular-nums",
-        fontSize:10, letterSpacing:0.6, color: color.accent, fontWeight:600,
-      }}>
-        {bpm}<span style={{ color: color.faint }}> BPM</span>
-        <span style={{ color: color.faint }}>  ·  </span>
-        {key}
-        <span style={{ color: color.faint }}>  ·  E</span>{energy}
-      </div>
-    );
-  }
-  const cells = [
-    { label: "BPM", value: bpm },
-    { label: "KEY", value: key },
-    { label: "NRG", value: energy },
-  ];
-  return (
-    <div style={{
-      display:"flex", gap: big ? 22 : 14,
-      justifyContent: align === "center" ? "center" : align === "right" ? "flex-end" : "flex-start",
-      fontFamily: fontMono, fontVariantNumeric:"tabular-nums",
-    }}>
-      {cells.map(c => (
-        <div key={c.label} style={{ textAlign: align === "right" ? "right" : "left" }}>
-          <div style={{
-            fontSize: big ? 10 : 9, letterSpacing:1.6, color: color.faint,
-            textTransform:"uppercase", marginBottom:4, fontWeight:600,
-          }}>{c.label}</div>
-          <div style={{
-            fontSize: big ? 28 : 15, fontWeight:600, color: color.accent,
-            letterSpacing: big ? -0.5 : 0, lineHeight:1,
-          }}>{c.value}</div>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-// ─── Shared transport primitives (ice orb + orbital progress) ─────────────────
-/** Circular ice primary play — shared by hero, dock, immersive, desktop. */
-function IceOrbPlay({
-  isPlaying = false,
-  onClick,
-  size = 58,
-  iconSize = null,
-  disabled = false,
-  glowing = false,
-  ariaLabel,
-  stopPropagation = false,
-}) {
-  const iSize = iconSize ?? Math.round(size * 0.38);
-  return (
-    <button
-      type="button"
-      className="play-primary"
-      aria-label={ariaLabel || (isPlaying ? "Pause" : "Play")}
-      disabled={disabled}
-      onClick={(e) => {
-        if (stopPropagation) e.stopPropagation();
-        onClick?.(e);
-      }}
-      style={{
-        width: size,
-        height: size,
-        borderRadius: "50%",
-        background: disabled ? color.surfaceRaised : color.accent,
-        border: "none",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        color: disabled ? color.faint : color.onAccent,
-        cursor: disabled ? "not-allowed" : "pointer",
-        flexShrink: 0,
-        animation: glowing && !disabled ? "playGlow 2.8s ease-in-out infinite" : "none",
-        boxShadow: disabled
-          ? "none"
-          : `0 4px 14px rgba(10,124,255,0.28), 0 1px 0 rgba(255,255,255,0.45) inset`,
-        transition: `transform ${motion.fast} ${motion.ease}, box-shadow ${motion.base} ${motion.ease}`,
-      }}
-    >
-      <Icon name={isPlaying ? "pause" : "play"} size={iSize} />
-    </button>
-  );
-}
-
-/**
- * Album art wrapped in an orbital progress ring — dock / desktop scrub language.
- */
-function OrbitalArtRing({
-  track,
-  progress = 0,
-  duration = 0,
-  size = 40,
-  onSeek,
-  artRadius = 8,
-}) {
-  const scrubRef = useRef(null);
-  const pct = duration > 0 ? Math.max(0, Math.min(1, progress / duration)) : 0;
-  const stroke = 2.4;
-  const pad = 6;
-  const svgSize = size + pad * 2;
-  const r = (svgSize - stroke) / 2 - 0.5;
-  const circ = 2 * Math.PI * r;
-  const dash = pct * circ;
-
-  function seekFromPoint(clientX, clientY) {
-    if (!duration || !onSeek || !scrubRef.current) return;
-    const rect = scrubRef.current.getBoundingClientRect();
-    const cx = rect.left + rect.width / 2;
-    const cy = rect.top + rect.height / 2;
-    let deg = (Math.atan2(clientY - cy, clientX - cx) * 180) / Math.PI + 90;
-    if (deg < 0) deg += 360;
-    onSeek(Math.floor((deg / 360) * duration));
-  }
-
-  return (
-    <div
-      ref={scrubRef}
-      role={onSeek ? "slider" : undefined}
-      aria-label={onSeek ? "Seek" : undefined}
-      aria-valuemin={onSeek ? 0 : undefined}
-      aria-valuemax={onSeek ? duration || 0 : undefined}
-      aria-valuenow={onSeek ? progress : undefined}
-      onClick={(e) => {
-        e.stopPropagation();
-        seekFromPoint(e.clientX, e.clientY);
-      }}
-      style={{
-        position: "relative",
-        width: svgSize,
-        height: svgSize,
-        flexShrink: 0,
-        cursor: onSeek ? "pointer" : "default",
-      }}
-    >
-      <svg
-        width={svgSize}
-        height={svgSize}
-        aria-hidden="true"
-        style={{ position: "absolute", inset: 0, transform: "rotate(-90deg)" }}
-      >
-        <circle
-          cx={svgSize / 2}
-          cy={svgSize / 2}
-          r={r}
-          fill="none"
-          stroke="rgba(26,29,36,0.12)"
-          strokeWidth={stroke}
-        />
-        <circle
-          cx={svgSize / 2}
-          cy={svgSize / 2}
-          r={r}
-          fill="none"
-          stroke={color.accent}
-          strokeWidth={stroke}
-          strokeLinecap="round"
-          strokeDasharray={`${dash} ${Math.max(0, circ - dash)}`}
-          style={{ transition: "stroke-dasharray 0.25s linear" }}
-        />
-      </svg>
-      <div style={{
-        position: "absolute",
-        left: pad,
-        top: pad,
-        width: size,
-        height: size,
-        borderRadius: artRadius,
-        overflow: "hidden",
-        boxShadow: `0 0 0 1px ${glass.borderSoft}`,
-      }}>
-        <AlbumArt track={track} size={size} borderRadius={artRadius} />
-      </div>
-    </div>
-  );
-}
-
-/**
- * Play orb with orbital seek ring — immersive / full-player transport.
- */
-function OrbitalPlayControl({
-  isPlaying,
-  onToggle,
-  progress = 0,
-  duration = 0,
-  onSeek,
-  size = 64,
-}) {
-  const scrubRef = useRef(null);
-  const pct = duration > 0 ? Math.max(0, Math.min(1, progress / duration)) : 0;
-  const ring = size + 18;
-  const stroke = 2.6;
-  const r = (ring - stroke) / 2 - 1;
-  const circ = 2 * Math.PI * r;
-  const dash = pct * circ;
-
-  function seekFromPoint(clientX, clientY) {
-    if (!duration || !onSeek || !scrubRef.current) return;
-    const rect = scrubRef.current.getBoundingClientRect();
-    const cx = rect.left + rect.width / 2;
-    const cy = rect.top + rect.height / 2;
-    let deg = (Math.atan2(clientY - cy, clientX - cx) * 180) / Math.PI + 90;
-    if (deg < 0) deg += 360;
-    onSeek(Math.floor((deg / 360) * duration));
-  }
-
-  return (
-    <div
-      ref={scrubRef}
-      style={{
-        position: "relative",
-        width: ring,
-        height: ring,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        flexShrink: 0,
-      }}
-    >
-      <svg
-        width={ring}
-        height={ring}
-        aria-hidden="true"
-        style={{ position: "absolute", inset: 0, transform: "rotate(-90deg)", pointerEvents: "none" }}
-      >
-        <circle cx={ring / 2} cy={ring / 2} r={r} fill="none" stroke="rgba(26,29,36,0.12)" strokeWidth={stroke} />
-        <circle
-          cx={ring / 2}
-          cy={ring / 2}
-          r={r}
-          fill="none"
-          stroke={color.accent}
-          strokeWidth={stroke}
-          strokeLinecap="round"
-          strokeDasharray={`${dash} ${Math.max(0, circ - dash)}`}
-          style={{ transition: "stroke-dasharray 0.2s linear" }}
-        />
-      </svg>
-      <button
-        type="button"
-        aria-label="Seek"
-        onClick={(e) => {
-          e.stopPropagation();
-          seekFromPoint(e.clientX, e.clientY);
-        }}
-        style={{
-          position: "absolute",
-          inset: 0,
-          background: "none",
-          border: "none",
-          cursor: onSeek ? "pointer" : "default",
-          borderRadius: "50%",
-        }}
-      />
-      <div style={{ position: "relative", zIndex: 1 }}>
-        <IceOrbPlay
-          isPlaying={isPlaying}
-          onClick={onToggle}
-          size={size}
-          stopPropagation
-        />
-      </div>
-    </div>
-  );
-}
-
-function dockTintStyle(track) {
-  if (!track?.color) return undefined;
-  const rgb = hexToRgbStr(track.color);
-  return {
-    background: `
-      linear-gradient(165deg, rgba(${rgb},0.14) 0%, rgba(${rgb},0.04) 38%, rgba(255,255,255,0.82) 78%),
-      rgba(255,255,255,0.78)
-    `,
-  };
-}
-
-// ─── RADIO — Listen Now hero (one composition) ────────────────────────────────
-/**
- * Animated planet mark — looping ring + satellite (GIF-like via CSS).
- * Hero brand signal — sits in the background behind controls.
- * Fills its parent; `night` warms the palette, `playing` quickens the breath.
- * Optional `progress` (0–1) paints an ice arc on the outer orbit; `tintRgb`
- * softly colors the glow from the current track.
- */
-function OrbitingPlanet({ playing = false, night = false, progress = 0, tintRgb = null }) {
-  // Cool platinum daytime; soft amber at night — track tint blends in when live.
-  const baseRgb = night ? "200,170,120" : "10,124,255";
-  const glowRgb = tintRgb || baseRgb;
-  const ringAlpha = night ? 0.35 : 0.4;
-  const pct = Math.max(0, Math.min(1, progress || 0));
-
-  return (
-    <div
-      aria-hidden="true"
-      style={{
-        position: "relative",
-        width: "100%",
-        height: "100%",
-        perspective: 900,
-        animation: playing
-          ? "planetBreathe 3.6s ease-in-out infinite"
-          : "planetBreathe 5.5s ease-in-out infinite",
-      }}
-    >
-      <div style={{
-        position: "absolute",
-        inset: "8%",
-        borderRadius: "50%",
-        background: `
-          radial-gradient(circle at 38% 32%, rgba(${glowRgb},${night ? 0.14 : 0.18}) 0%, transparent 42%),
-          radial-gradient(circle at 50% 50%, rgba(${glowRgb},0.08) 0%, transparent 68%)
-        `,
-        filter: "blur(2px)",
-        transition: "background 1.5s ease",
-      }}/>
-
-      <div style={{
-        position: "absolute",
-        left: "50%",
-        top: "50%",
-        width: "42%",
-        height: "42%",
-        transform: "translate(-50%, -50%)",
-        borderRadius: "50%",
-        background: night
-          ? `radial-gradient(circle at 34% 28%, #C8B8A0 0%, #8A7A68 48%, #4A4038 100%)`
-          : `radial-gradient(circle at 30% 24%, #D8DEE8 0%, #9AA3B0 46%, #5A6574 100%)`,
-        boxShadow: `
-          inset -8px -10px 22px rgba(26,29,36,0.28),
-          inset 8px 10px 18px rgba(${glowRgb},${night ? 0.1 : 0.14}),
-          0 8px 28px rgba(26,29,36,0.14)
-        `,
-        transition: "background 1.5s ease, box-shadow 1.5s ease",
-      }}>
-        <div style={{
-          position: "absolute",
-          left: "12%", right: "12%", top: "42%",
-          height: "14%",
-          borderRadius: "50%",
-          background: `linear-gradient(90deg, transparent, rgba(${glowRgb},0.16), transparent)`,
-          opacity: 0.7,
-        }}/>
-      </div>
-
-      <div style={{
-        position: "absolute",
-        left: "4%",
-        top: "33%",
-        width: "92%",
-        height: "34%",
-        transformStyle: "preserve-3d",
-        animation: "planetTiltSpin 18s linear infinite",
-      }}>
-        <div style={{
-          position: "absolute",
-          inset: 0,
-          borderRadius: "50%",
-          border: `1.5px solid rgba(${glowRgb},${ringAlpha})`,
-          boxShadow: `
-            0 0 12px rgba(${glowRgb},0.22),
-            inset 0 0 12px rgba(${glowRgb},0.08)
-          `,
-          transition: "border-color 1.5s ease, box-shadow 1.5s ease",
-        }}/>
-        <div style={{
-          position: "absolute",
-          left: "6%", right: "6%", top: "18%", bottom: "18%",
-          borderRadius: "50%",
-          border: `1px solid rgba(${glowRgb},0.18)`,
-        }}/>
-        <div style={{
-          position: "absolute",
-          top: "50%",
-          left: 0,
-          width: 7,
-          height: 7,
-          marginTop: -3.5,
-          marginLeft: -3.5,
-          borderRadius: "50%",
-          background: night && !tintRgb ? "#FFD6AA" : color.accent,
-          animation: "orbitPulse 2.4s ease-in-out infinite",
-          boxShadow: tintRgb ? `0 0 12px rgba(${glowRgb},0.55)` : undefined,
-        }}/>
-      </div>
-
-      <div style={{
-        position: "absolute",
-        left: "50%",
-        top: "50%",
-        width: "108%",
-        height: "108%",
-        marginLeft: "-54%",
-        marginTop: "-54%",
-        borderRadius: "50%",
-        border: `1px dashed rgba(${glowRgb},0.08)`,
-        animation: "planetRing 90s linear infinite",
-      }}/>
-
-      {/* Track progress arc on the outer orbit — listening lives in the planet */}
-      {pct > 0 && (
-        <svg
-          viewBox="0 0 100 100"
-          style={{
-            position: "absolute",
-            left: "50%",
-            top: "50%",
-            width: "112%",
-            height: "112%",
-            marginLeft: "-56%",
-            marginTop: "-56%",
-            transform: "rotate(-90deg)",
-            pointerEvents: "none",
-          }}
-        >
-          <circle
-            cx="50" cy="50" r="46"
-            fill="none"
-            stroke={`rgba(${glowRgb},0.12)`}
-            strokeWidth="1.2"
-          />
-          <circle
-            cx="50" cy="50" r="46"
-            fill="none"
-            stroke={color.accent}
-            strokeWidth="1.6"
-            strokeLinecap="round"
-            strokeDasharray={`${pct * 289} ${289}`}
-            style={{ transition: "stroke-dasharray 0.35s linear" }}
-          />
-        </svg>
-      )}
-    </div>
-  );
-}
-
-/**
- * Cover Stage atmosphere — soft art wash when listening, otherwise a quiet
- * semi-transparent logo watermark. Planet becomes the centerpiece once title
- * sits bottom-left; bloom + breathe respond to play state.
- */
-function CoverStageAtmosphere({ track = null, playing = false }) {
-  const tintRgb = track?.color ? hexToRgbStr(track.color) : null;
-  const hasArt = !!track?.albumCover;
-
-  return (
-    <div aria-hidden="true" style={{ position: "absolute", inset: 0, overflow: "hidden" }}>
-      <div style={{ position: "absolute", inset: 0, background: aluminumGradient() }} />
-
-      {/* Soft brushed highlight — aluminum window chrome */}
-      <div style={{
-        position: "absolute",
-        inset: 0,
-        background: `
-          linear-gradient(115deg, rgba(255,255,255,0.55) 0%, transparent 38%, transparent 62%, rgba(26,29,36,0.04) 100%),
-          radial-gradient(ellipse 80% 50% at 50% 0%, rgba(255,255,255,0.7) 0%, transparent 60%)
-        `,
-      }}/>
-
-      {/* Soft cover wash — tinted, never dark Spotify bloom */}
-      {hasArt && (
-        <div style={{
-          position: "absolute",
-          inset: "-8%",
-          backgroundImage: `url(${track.albumCover})`,
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-          filter: "blur(56px) saturate(1.05) brightness(1.15)",
-          opacity: playing ? 0.28 : 0.16,
-          transform: "scale(1.06)",
-          transition: "opacity 0.8s ease",
-        }}/>
-      )}
-
-      <div style={{
-        position: "absolute",
-        inset: 0,
-        background: tintRgb
-          ? `radial-gradient(ellipse 65% 50% at 50% 32%, rgba(${tintRgb},${playing ? 0.18 : 0.1}) 0%, transparent 70%)`
-          : `radial-gradient(ellipse 65% 50% at 50% 32%, rgba(10,124,255,${playing ? 0.08 : 0.04}) 0%, transparent 70%)`,
-        animation: playing ? "stageBloom 4.5s ease-in-out infinite" : "none",
-        transition: "background 0.8s ease",
-      }}/>
-
-      {/* Quiet brand watermark */}
-      <div style={{
-        position: "absolute",
-        left: "50%",
-        top: "28%",
-        width: "min(90vw, 520px)",
-        height: "min(90vw, 520px)",
-        transform: "translate(-50%, -50%)",
-        backgroundImage: "url(/brand/planet-mp3-lockup.png)",
-        backgroundSize: "contain",
-        backgroundPosition: "center",
-        backgroundRepeat: "no-repeat",
-        opacity: hasArt ? 0.04 : 0.07,
-        pointerEvents: "none",
-        filter: "grayscale(0.2)",
-      }}/>
-
-      <div style={{
-        position: "absolute",
-        inset: 0,
-        background: `
-          linear-gradient(180deg, rgba(230,233,239,0.15) 0%, transparent 28%, transparent 55%, rgba(230,233,239,0.92) 100%)
-        `,
-      }}/>
-    </div>
-  );
-}
-
-/**
- * Home Cover Stage — library Now Playing (Cover Flow memory).
- * Large floating artwork on aluminum chrome, transport below.
- */
-function CoverStage({
-  onPlay, onTogglePlay, onSkip, onPrev, onOpen,
-  currentTrack, isPlaying, isRadioMode,
-  previewTrack = null, mixLane, playDisabled = false,
-  progress = 0, duration = 0, onListenFor = null,
-  intentLabel = null,
-}) {
-  const live = !!currentTrack;
-  const canStart = !playDisabled;
-  const lane = mixLaneById(mixLane);
-  const stageLabel = intentLabel || lane.label;
-  const stageTrack = currentTrack || previewTrack;
-  const playingVisual = !!(live && isPlaying);
-  const pct = duration > 0 ? Math.max(0, Math.min(100, (progress / duration) * 100)) : 0;
-
-  const primaryAction = () => {
-    if (live) onTogglePlay();
-    else if (canStart) onPlay();
-  };
-
-  const openImmersive = (e) => {
-    e?.stopPropagation?.();
-    if (live && onOpen) onOpen();
-  };
-
-  const artSize = "min(58vw, 280px)";
-
-  return (
-    <div
-      role="button"
-      tabIndex={0}
-      aria-label={live ? (isPlaying ? "Pause" : "Play") : `Start ${stageLabel}`}
-      onClick={primaryAction}
-      onKeyDown={(e) => {
-        if (e.key === "Enter" || e.key === " ") {
-          e.preventDefault();
-          primaryAction();
-        }
-      }}
-      style={{
-        position: "relative",
-        minHeight: "min(100dvh - 96px, 640px)",
-        height: "min(100dvh - 96px, 640px)",
-        background: color.canvas,
-        overflow: "hidden",
-        cursor: (live || canStart) ? "pointer" : "default",
-        animation: "stationIn 0.85s cubic-bezier(0.22,1,0.36,1) both",
-        outline: "none",
-      }}
-    >
-      <CoverStageAtmosphere track={stageTrack} playing={playingVisual} />
-
-      {/* Centered Cover Flow–style artwork */}
-      <div
-        onClick={(e) => { e.stopPropagation(); openImmersive(e); }}
-        style={{
-          position: "absolute",
-          left: "50%",
-          top: "42%",
-          transform: "translate(-50%, -50%)",
-          zIndex: 2,
-          width: artSize,
-          maxWidth: 280,
-          cursor: live && onOpen ? "pointer" : "inherit",
-        }}
-      >
-        <div
-          key={stageTrack?.id || "idle"}
-          className="cover-tile"
-          style={{
-            width: "100%",
-            aspectRatio: "1 / 1",
-            borderRadius: 10,
-            overflow: "hidden",
-            background: color.surfaceRaised,
-            boxShadow: playingVisual ? artShadow.raised : artShadow.quiet,
-            animation: playingVisual
-              ? `coverFloat 5.5s ease-in-out infinite, trackSwap 0.45s ${motion.ease} both`
-              : `trackSwap 0.45s ${motion.ease} both`,
-            border: `1px solid ${glass.borderSoft}`,
-          }}
-        >
-          {stageTrack?.albumCover ? (
-            <img
-              src={stageTrack.albumCover}
-              alt=""
-              style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
-              onError={(e) => { e.target.style.display = "none"; }}
-            />
-          ) : (
-            <div style={{
-              width: "100%", height: "100%",
-              display: "flex", alignItems: "center", justifyContent: "center",
-              background: aluminumGradient(),
-              color: color.faint,
-              fontFamily: fontDisplay,
-              fontSize: 48,
-              fontWeight: 700,
-              letterSpacing: -1,
-            }}>
-              {(stageTrack?.title || "P").charAt(0)}
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Chrome listening rack */}
-      <div
-        onClick={(e) => e.stopPropagation()}
-        style={{
-          position: "absolute",
-          left: 0,
-          right: 0,
-          bottom: 0,
-          zIndex: 2,
-          padding: `0 ${homeSpace.gutter}px calc(22px + env(safe-area-inset-bottom, 0px))`,
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          boxSizing: "border-box",
-        }}
-      >
-        <div
-          key={`meta-${stageTrack?.id || "idle"}`}
-          onClick={openImmersive}
-          style={{
-            width: "100%",
-            maxWidth: 420,
-            textAlign: "center",
-            marginBottom: 16,
-            animation: `trackSwap 0.45s ${motion.ease} both`,
-            cursor: live && onOpen ? "pointer" : "inherit",
-          }}
-        >
-          <button
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              if (onListenFor) onListenFor();
-            }}
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 7,
-              background: "none",
-              border: "none",
-              padding: 0,
-              marginBottom: 8,
-              cursor: onListenFor ? "pointer" : "default",
-              fontSize: 10,
-              fontWeight: 650,
-              letterSpacing: 1.5,
-              textTransform: "uppercase",
-              color: live && isPlaying ? color.accent : color.muted,
-              fontFamily: fontMono,
-            }}
-            aria-label={onListenFor ? "Your genres — change what we play most" : undefined}
-          >
-            {live && isPlaying && (
-              <span
-                aria-hidden="true"
-                style={{
-                  width: 5,
-                  height: 5,
-                  borderRadius: "50%",
-                  background: color.accent,
-                  boxShadow: `0 0 0 3px ${color.accentSoft}`,
-                  animation: "stageLiveDot 1.8s ease-in-out infinite",
-                }}
-              />
-            )}
-            {live
-              ? (isRadioMode ? stageLabel : "Now playing")
-              : (canStart ? stageLabel : "Unavailable")}
-          </button>
-
-          <h1 style={{
-            margin: 0,
-            fontSize: "clamp(20px, 3.8vw, 28px)",
-            fontWeight: 700,
-            letterSpacing: -0.6,
-            lineHeight: 1.15,
-            color: color.ink,
-            fontFamily: fontDisplay,
-            overflow: "hidden",
-            display: "-webkit-box",
-            WebkitLineClamp: 2,
-            WebkitBoxOrient: "vertical",
-          }}>
-            {stageTrack?.title || (canStart ? "Press play" : "Nothing here yet")}
-          </h1>
-
-          <div style={{
-            marginTop: 6,
-            fontSize: 14,
-            fontWeight: 500,
-            letterSpacing: -0.05,
-            color: color.muted,
-            overflow: "hidden",
-            textOverflow: "ellipsis",
-            whiteSpace: "nowrap",
-          }}>
-            {stageTrack?.artist || (canStart ? "Press play when you’re ready" : "Add tracks to begin")}
-          </div>
-        </div>
-
-        <div style={{ width: "100%", maxWidth: 360, marginBottom: 16 }}>
-          <div
-            aria-hidden="true"
-            style={{
-              height: 4,
-              background: "rgba(26,29,36,0.1)",
-              overflow: "hidden",
-              borderRadius: 2,
-            }}
-          >
-            <div style={{
-              height: "100%",
-              width: `${live ? pct : 0}%`,
-              background: color.accent,
-              transition: "width 0.25s linear",
-              borderRadius: 2,
-            }}/>
-          </div>
-          <div style={{
-            marginTop: 8,
-            display: "flex",
-            justifyContent: "space-between",
-            fontSize: 11,
-            fontFamily: fontMono,
-            fontVariantNumeric: "tabular-nums",
-            letterSpacing: 0.3,
-            color: color.faint,
-          }}>
-            <span>{live ? fmtTime(progress) : "0:00"}</span>
-            <span>{live && duration ? fmtTime(duration) : "—:—"}</span>
-          </div>
-        </div>
-
-        <div style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          gap: 22,
-        }}>
-          <button
-            type="button"
-            aria-label="Previous"
-            disabled={!live}
-            onClick={(e) => { e.stopPropagation(); onPrev?.(); }}
-            style={{
-              background: "none",
-              border: "none",
-              padding: 6,
-              color: live ? color.body : color.faint,
-              cursor: live ? "pointer" : "default",
-              opacity: live ? 1 : 0.35,
-            }}
-          >
-            <Icon name="prev" size={18}/>
-          </button>
-
-          <button
-            type="button"
-            className="play-primary"
-            aria-label={live ? (isPlaying ? "Pause" : "Play") : `Start ${stageLabel}`}
-            disabled={!live && !canStart}
-            onClick={(e) => { e.stopPropagation(); primaryAction(); }}
-            style={{
-              width: 56,
-              height: 56,
-              borderRadius: "50%",
-              border: "none",
-              background: (live || canStart) ? color.accent : color.surfaceRaised,
-              color: (live || canStart) ? color.onAccent : color.faint,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              cursor: (live || canStart) ? "pointer" : "not-allowed",
-              boxShadow: (live || canStart)
-                ? `0 6px 18px rgba(10,124,255,0.3), 0 1px 0 rgba(255,255,255,0.4) inset`
-                : "none",
-              transition: `transform ${motion.fast} ${motion.ease}`,
-            }}
-          >
-            <Icon name={live && isPlaying ? "pause" : "play"} size={18}/>
-          </button>
-
-          <button
-            type="button"
-            aria-label="Next"
-            disabled={!live}
-            onClick={(e) => { e.stopPropagation(); onSkip?.(); }}
-            style={{
-              background: "none",
-              border: "none",
-              padding: 6,
-              color: live ? color.body : color.faint,
-              cursor: live ? "pointer" : "default",
-              opacity: live ? 1 : 0.35,
-            }}
-          >
-            <Icon name="skip" size={18}/>
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ─── PLAYLIST MENU CONTEXT ────────────────────────────────────────────────────
-// Passed down so every track surface can add/remove playlists
-const PlaylistCtx = {
-  playlists: [],
-  onCreate: () => {},
-  onAdd: () => {},
-  onRemove: () => {},
-  onToast: () => {},
-  onResonance: null,
-  onLike: null,
-};
-
-function clampMenuPos(x, y, w = 240, h = 320) {
-  const pad = 8;
-  const left = Math.max(pad, Math.min(x, (typeof window !== "undefined" ? window.innerWidth : 400) - w - pad));
-  const top = Math.max(pad, Math.min(y, (typeof window !== "undefined" ? window.innerHeight : 700) - h - pad));
-  return { left, top };
-}
-
-/** Spotify/iTunes-style track menu — ⋯ or right-click. Portaled so it never clips. */
-function TrackActionsMenu({ track, playlistCtx, activePlaylistId, x, y, onClose }) {
-  const ctx = playlistCtx || PlaylistCtx;
-  const [newPlName, setNewPlName] = useState("");
-  const [showNewPl, setShowNewPl] = useState(false);
-  const menuRef = useRef(null);
-  const pos = clampMenuPos(x, y);
-
-  useEffect(() => {
-    const onKey = (e) => { if (e.key === "Escape") onClose(); };
-    const onDown = (e) => {
-      if (menuRef.current && !menuRef.current.contains(e.target)) onClose();
-    };
-    document.addEventListener("keydown", onKey);
-    document.addEventListener("mousedown", onDown);
-    document.addEventListener("touchstart", onDown);
-    return () => {
-      document.removeEventListener("keydown", onKey);
-      document.removeEventListener("mousedown", onDown);
-      document.removeEventListener("touchstart", onDown);
-    };
-  }, [onClose]);
-
-  function inPlaylist(pl) {
-    return (pl.trackIds || []).includes(track.id);
-  }
-
-  function handleTogglePlaylist(pl) {
-    if (inPlaylist(pl)) {
-      ctx.onRemove(track.id, pl.id);
-    } else {
-      ctx.onAdd(track.id, pl.id);
-    }
-    onClose();
-  }
-
-  function handleCreateAndAdd() {
-    if (!newPlName.trim()) return;
-    ctx.onCreate(newPlName.trim(), track.id);
-    setNewPlName("");
-    setShowNewPl(false);
-    onClose();
-  }
-
-  const menu = (
-    <div
-      ref={menuRef}
-      role="menu"
-      aria-label="Track actions"
-      onClick={(e) => e.stopPropagation()}
-      onContextMenu={(e) => e.preventDefault()}
-      style={{
-        position: "fixed",
-        left: pos.left,
-        top: pos.top,
-        zIndex: 400,
-        background: "rgba(255,255,255,0.92)",
-        border: `1px solid ${glass.border}`,
-        borderRadius: radius.md,
-        padding: "6px 0",
-        minWidth: 220,
-        maxWidth: 280,
-        maxHeight: "min(70vh, 420px)",
-        overflowY: "auto",
-        boxShadow: `inset 0 1px 0 ${glass.highlight}, 0 16px 40px rgba(26,29,36,0.16)`,
-        backdropFilter: glass.blur,
-        WebkitBackdropFilter: glass.blur,
-        animation: "fadeIn 0.12s ease both",
-      }}
-    >
-      <div style={{ padding: "8px 14px 10px", borderBottom: `1px solid ${glass.borderFaint}` }}>
-        <div style={{ fontSize: 13, fontWeight: 650, color: color.ink, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontFamily: fontDisplay }}>
-          {track.title}
-        </div>
-        <div style={{ fontSize: 11, color: color.muted, marginTop: 2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-          {track.artist}
-        </div>
-      </div>
-
-      <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 1.2, color: color.faint, padding: "10px 14px 4px", textTransform: "uppercase", fontFamily: fontMono }}>
-        Add to playlist
-      </div>
-
-      {ctx.playlists.length === 0 && !showNewPl && (
-        <div style={{ fontSize: 13, color: color.muted, padding: "8px 14px 4px" }}>
-          No playlists yet — create one below.
-        </div>
-      )}
-
-      {ctx.playlists.map((pl) => {
-        const has = inPlaylist(pl);
-        return (
-          <button
-            key={pl.id}
-            type="button"
-            role="menuitem"
-            onClick={() => handleTogglePlaylist(pl)}
-            style={{
-              display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12,
-              width: "100%", textAlign: "left", background: "none", border: "none",
-              color: color.ink, fontSize: 14, padding: "10px 14px", cursor: "pointer",
-            }}
-          >
-            <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{pl.name}</span>
-            <span style={{
-              flexShrink: 0, fontSize: 12, fontFamily: fontMono,
-              color: has ? color.accent : color.faint,
-            }}>
-              {has ? "✓" : "+"}
-            </span>
-          </button>
-        );
-      })}
-
-      <div style={{ height: 1, background: color.line, margin: "4px 14px" }} />
-
-      {showNewPl ? (
-        <div style={{ padding: "8px 12px" }}>
-          <input
-            autoFocus
-            value={newPlName}
-            onChange={(e) => setNewPlName(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") handleCreateAndAdd();
-              if (e.key === "Escape") setShowNewPl(false);
-            }}
-            placeholder="Playlist name…"
-            style={{ ...INPUT_ST, marginBottom: 6, padding: "8px 10px", fontSize: 13 }}
-          />
-          <div style={{ display: "flex", gap: 6 }}>
-            <button type="button" onClick={handleCreateAndAdd} style={{ flex: 1, background: color.accent, border: "none", borderRadius: radius.sm, color: color.onAccent, fontSize: 13, fontWeight: 600, padding: "8px 0", cursor: "pointer" }}>
-              Create
-            </button>
-            <button type="button" onClick={() => setShowNewPl(false)} style={{ flex: 1, background: "transparent", border: `1px solid ${color.line}`, borderRadius: radius.sm, color: color.muted, fontSize: 13, padding: "8px 0", cursor: "pointer" }}>
-              Cancel
-            </button>
-          </div>
-        </div>
-      ) : (
-        <button
-          type="button"
-          role="menuitem"
-          onClick={() => setShowNewPl(true)}
-          style={{ display: "flex", alignItems: "center", gap: 8, width: "100%", textAlign: "left", background: "none", border: "none", color: color.ink, fontSize: 14, padding: "10px 14px", cursor: "pointer", fontWeight: 500 }}
-        >
-          <Icon name="plus" size={14} /> New playlist
-        </button>
-      )}
-
-      {ctx.onLike && (
-        <>
-          <div style={{ height: 1, background: color.line, margin: "4px 14px" }} />
-          <button
-            type="button"
-            role="menuitem"
-            onClick={() => { ctx.onLike(track.id); onClose(); }}
-            style={{ display: "block", width: "100%", textAlign: "left", background: "none", border: "none", color: color.ink, fontSize: 14, padding: "10px 14px", cursor: "pointer" }}
-          >
-            {track.liked ? "Remove from Saved" : "Save track"}
-          </button>
-        </>
-      )}
-
-      {(ctx.onOpenArtist || ctx.onOpenAlbum) && (
-        <>
-          <div style={{ height: 1, background: color.line, margin: "4px 14px" }} />
-          {ctx.onOpenArtist && track.artist && (
-            <button
-              type="button"
-              role="menuitem"
-              onClick={() => { ctx.onOpenArtist(track.artist); onClose(); }}
-              style={{ display: "block", width: "100%", textAlign: "left", background: "none", border: "none", color: color.ink, fontSize: 14, padding: "10px 14px", cursor: "pointer" }}
-            >
-              View artist
-            </button>
-          )}
-          {ctx.onOpenAlbum && track.album && (
-            <button
-              type="button"
-              role="menuitem"
-              onClick={() => { ctx.onOpenAlbum(track); onClose(); }}
-              style={{ display: "block", width: "100%", textAlign: "left", background: "none", border: "none", color: color.ink, fontSize: 14, padding: "10px 14px", cursor: "pointer" }}
-            >
-              View album
-            </button>
-          )}
-        </>
-      )}
-
-      {ctx.onResonance && (
-        <button
-          type="button"
-          role="menuitem"
-          onClick={() => { ctx.onResonance(track); onClose(); }}
-          style={{ display: "block", width: "100%", textAlign: "left", background: "none", border: "none", color: color.ink, fontSize: 14, padding: "10px 14px", cursor: "pointer" }}
-        >
-          Find similar
-        </button>
-      )}
-
-      {ctx.onHypnoRadio && (
-        <button
-          type="button"
-          role="menuitem"
-          onClick={() => { ctx.onHypnoRadio(track); onClose(); }}
-          style={{ display: "block", width: "100%", textAlign: "left", background: "none", border: "none", color: color.ink, fontSize: 14, padding: "10px 14px", cursor: "pointer" }}
-        >
-          Play similar mix
-        </button>
-      )}
-
-      {activePlaylistId && activePlaylistId !== "liked" && (
-        <>
-          <div style={{ height: 1, background: color.line, margin: "4px 14px" }} />
-          <button
-            type="button"
-            role="menuitem"
-            onClick={() => {
-              ctx.onRemove(track.id, activePlaylistId);
-              onClose();
-            }}
-            style={{ display: "block", width: "100%", textAlign: "left", background: "none", border: "none", color: color.alert, fontSize: 14, padding: "10px 14px", cursor: "pointer" }}
-          >
-            Remove from this playlist
-          </button>
-        </>
-      )}
-    </div>
-  );
-
-  return createPortal(menu, document.body);
-}
-
-function useTrackMenu() {
-  const [menu, setMenu] = useState(null); // { track, x, y, activePlaylistId } | null
-  const openAt = useCallback((track, x, y, activePlaylistId = null) => {
-    setMenu({ track, x, y, activePlaylistId });
-  }, []);
-  const openFromButton = useCallback((e, track, activePlaylistId = null) => {
-    e.preventDefault();
-    e.stopPropagation();
-    const r = e.currentTarget.getBoundingClientRect();
-    openAt(track, r.right - 220, r.bottom + 4, activePlaylistId);
-  }, [openAt]);
-  const openFromContext = useCallback((e, track, activePlaylistId = null) => {
-    e.preventDefault();
-    e.stopPropagation();
-    openAt(track, e.clientX, e.clientY, activePlaylistId);
-  }, [openAt]);
-  const close = useCallback(() => setMenu(null), []);
-  return { menu, openFromButton, openFromContext, close };
-}
-
-function TrackMoreButton({ onClick, size = 18 }) {
-  return (
-    <button
-      type="button"
-      aria-label="More"
-      aria-haspopup="menu"
-      onClick={onClick}
-      style={{
-        background: "none", border: "none", cursor: "pointer",
-        color: color.faint, padding: "8px 10px", fontSize: size, lineHeight: 1, flexShrink: 0,
-      }}
-    >
-      ⋯
-    </button>
-  );
-}
-
-// ─── TRACK ROW ────────────────────────────────────────────────────────────────
-function TrackRow({ track, onPlay, active, isPlaying, onLike, extraAction, playlistCtx, activePlaylistId, rank = null }) {
-  const { menu, openFromButton, openFromContext, close } = useTrackMenu();
-
-  return (
-    <div style={{ position: "relative" }}>
-      <div
-        role="button"
-        tabIndex={0}
-        className="track-row"
-        onClick={onPlay}
-        onContextMenu={(e) => openFromContext(e, track, activePlaylistId)}
-        onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onPlay(); } }}
-        style={{
-          display: "flex", alignItems: "center", gap: 12, padding: "9px 10px", borderRadius: radius.sm,
-          cursor: "pointer", marginBottom: 1,
-          background: active ? color.select : "transparent",
-          border: active ? `1px solid ${color.accentSoft}` : "1px solid transparent",
-        }}
-      >
-        {rank != null && (
-          <span aria-hidden="true" style={{
-            width: 22, textAlign: "center", flexShrink: 0,
-            fontFamily: fontMono, fontVariantNumeric: "tabular-nums",
-            fontSize: rank <= 3 ? 15 : 13,
-            fontWeight: rank <= 3 ? 750 : 600,
-            color: rank <= 3 ? color.accent : color.faint,
-          }}>{rank}</span>
-        )}
-        <div style={{ width: 42, height: 42, borderRadius: 6, overflow: "hidden", flexShrink: 0, position: "relative", boxShadow: artShadow.quiet }}>
-          <AlbumArt track={track} size={42} borderRadius={0} />
-          {active && isPlaying && (
-            <div style={{ position: "absolute", inset: 0, background: "rgba(26,29,36,0.28)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-              <div style={{ width: 6, height: 6, borderRadius: "50%", background: color.accent, animation: "pulse 1.2s ease-in-out infinite" }} />
-            </div>
-          )}
-        </div>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontSize: 14, fontWeight: active ? 650 : 500, letterSpacing: -0.1, color: active ? color.accent : color.ink, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{track.title}</div>
-          <div style={{ fontSize: 12, color: color.muted, marginTop: 2 }}>{track.artist}{displaySceneLabel(track) ? ` · ${displaySceneLabel(track)}` : (normalizeGenre(track.genre) ? ` · ${normalizeGenre(track.genre)}` : "")}</div>
-        </div>
-        {onLike && (
-          <button type="button" aria-label={track.liked ? "Unlike" : "Like"} onClick={(e) => { e.stopPropagation(); onLike(track.id); }}
-            style={{ background: "none", border: "none", cursor: "pointer", color: track.liked ? color.accent : color.faint, padding: 8 }}>
-            <Icon name={track.liked ? "heart" : "heartempty"} size={18} />
-          </button>
-        )}
-        <TrackMoreButton onClick={(e) => openFromButton(e, track, activePlaylistId)} />
-        {extraAction || null}
-      </div>
-
-      {menu && (
-        <TrackActionsMenu
-          track={menu.track}
-          playlistCtx={playlistCtx}
-          activePlaylistId={menu.activePlaylistId}
-          x={menu.x}
-          y={menu.y}
-          onClose={close}
-        />
-      )}
-    </div>
-  );
-}
-
-const SectionLabel = ({ children, style={} }) => (
-  <div style={{ fontSize:13, fontWeight:650, letterSpacing:-0.2, color: color.ink, marginBottom:12, fontFamily: fontDisplay, ...style }}>{children}</div>
-);
-
-function BrandGlyph({ size = 40, light = false, showWordmark }) {
-  // Compact chrome: door glyph only. Larger moments keep the wordmark.
-  const withWord = showWordmark ?? size >= 36;
-  return <BrandMark size={size} light={light} showWordmark={withWord} />;
-}
-
-/** Soft enter for tab / route changes — respects reduced-motion via global CSS.
- *  Put `key={screen}` on the call site so React remounts and replays the animation. */
-function ScreenPane({ children }) {
-  return (
-    <div
-      style={{
-        minHeight: "100%",
-        animation: `screenIn 0.38s ${motion.ease} both`,
-      }}
-    >
-      {children}
-    </div>
-  );
-}
-
-/**
- * Large title that collapses into a sticky compact bar on scroll.
- * Finds the nearest overflow scroll parent so it works in mobile + desktop shells.
- */
-function CollapsingHeader({ title, subtitle }) {
-  const sentinelRef = useRef(null);
-  const [compact, setCompact] = useState(false);
-
-  useEffect(() => {
-    const sentinel = sentinelRef.current;
-    if (!sentinel) return;
-
-    let root = sentinel.parentElement;
-    while (root && root !== document.body) {
-      const { overflowY } = window.getComputedStyle(root);
-      if (overflowY === "auto" || overflowY === "scroll") break;
-      root = root.parentElement;
-    }
-    if (!root || root === document.body) root = null;
-
-    const io = new IntersectionObserver(
-      ([entry]) => setCompact(!entry.isIntersecting),
-      { root, threshold: 0, rootMargin: "-56px 0px 0px 0px" }
-    );
-    io.observe(sentinel);
-    return () => io.disconnect();
-  }, []);
-
-  return (
-    <>
-      {/* Keep the observer outside the sticky header. The sticky layer has
-          constant geometry, so compact mode cannot move this sentinel and
-          create an IntersectionObserver feedback loop. */}
-      <div ref={sentinelRef} aria-hidden="true" style={{ height: 1 }} />
-      <div
-        aria-hidden={!compact}
-        style={{
-          position: "sticky",
-          top: 0,
-          zIndex: 40,
-          height: 48,
-          marginTop: -1,
-          marginBottom: -48,
-          opacity: compact ? 1 : 0,
-          overflow: "hidden",
-          pointerEvents: compact ? "auto" : "none",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          background: "rgba(255,255,255,0.82)",
-          WebkitBackdropFilter: glass.blurSoft,
-          backdropFilter: glass.blurSoft,
-          borderBottom: compact ? `1px solid ${glass.borderSoft}` : "none",
-          boxShadow: compact ? `inset 0 1px 0 ${glass.highlight}, 0 4px 16px rgba(26,29,36,0.06)` : "none",
-          transition: `opacity ${motion.base} ${motion.ease}`,
-        }}
-      >
-        <div style={{
-          fontSize: 16, fontWeight: 650, letterSpacing: -0.3,
-          color: color.ink, fontFamily: fontDisplay,
-        }}>
-          {title}
-        </div>
-      </div>
-      <div style={{
-        padding: subtitle ? "28px 16px 12px" : "32px 22px 18px",
-        opacity: compact ? 0 : 1,
-        transform: compact ? "translateY(-6px)" : "none",
-        transition: `opacity ${motion.base} ${motion.ease}, transform ${motion.base} ${motion.ease}`,
-        pointerEvents: compact ? "none" : "auto",
-      }}>
-        <h1 style={{
-          margin: 0,
-          fontSize: 34,
-          fontWeight: 700,
-          fontFamily: fontDisplay,
-          letterSpacing: -1,
-          color: color.ink,
-          lineHeight: 1.05,
-        }}>
-          {title}
-        </h1>
-        {subtitle ? (
-          <p style={{
-            margin: "10px 0 0",
-            fontSize: 15,
-            color: color.body,
-            lineHeight: 1.45,
-          }}>
-            {subtitle}
-          </p>
-        ) : null}
-      </div>
-    </>
-  );
-}
-
-function contentPadBottom(hasPlayer) {
-  const base = hasPlayer ? dock.clearPlayer : dock.clearTabs;
-  return `calc(${base}px + env(safe-area-inset-bottom, 0px))`;
-}
-
-// ─── BUILD A SET — pick a length → energy arc runs in the background ─────────
-function SessionBuilderModal({ tracks, onClose, onPlayRoute, initialActivity = null, intentLabel = null }) {
-  const [step, setStep] = useState(1); // 1 duration · 2 preview
-  const [duration, setDuration] = useState(60);
-  const autoActivity = initialActivity && SESSION_PROFILES[initialActivity]
-    ? initialActivity
-    : "drive";
-  const [activity, setActivity] = useState(autoActivity);
-  const [session, setSession] = useState(null);
-
-  const profile = SESSION_PROFILES[activity] || SESSION_PROFILES.drive;
-  const totalMins = session ? Math.round(session.reduce((s, t) => s + (t.duration || 210), 0) / 60) : 0;
-
-  const phases = session ? (() => {
-    const groups = [];
-    let current = null;
-    session.forEach((t) => {
-      if (!current || current.name !== t._phase) {
-        current = { name: t._phase, tracks: [] };
-        groups.push(current);
-      }
-      current.tracks.push(t);
-    });
-    return groups;
-  })() : [];
-
-  function handleGenerate() {
-    const act = autoActivity;
-    setActivity(act);
-    setSession(buildSession(tracks, duration, act));
-    setStep(2);
-  }
-
-  function handleRegenerate() {
-    setSession(buildSession(tracks, duration, activity || autoActivity));
-  }
-
-  const durationLabel = duration < 60 ? `${duration} min` : duration === 60 ? "1 hour" : `${duration / 60} hours`;
-
-  return (
-    <div style={{ position: "fixed", inset: 0, zIndex: 100, overflow: "hidden" }}>
-      <div style={{
-        position: "absolute", inset: 0,
-        background: aluminumGradient(),
-      }}/>
-      {session?.[0]?.albumCover && (
-        <div aria-hidden="true" style={{
-          position: "absolute", inset: 0, opacity: 0.14,
-          backgroundImage: `url(${session[0].albumCover})`,
-          backgroundSize: "cover", backgroundPosition: "center",
-          filter: "blur(56px) saturate(1.05) brightness(1.12)", transform: "scale(1.08)",
-        }}/>
-      )}
-      <div aria-hidden="true" style={{
-        position: "absolute", inset: 0,
-        background: "linear-gradient(180deg, rgba(230,233,239,0.2) 0%, rgba(230,233,239,0.55) 55%, rgba(230,233,239,0.92) 100%)",
-      }}/>
-
-      <div className="hide-scroll" style={{
-        position: "relative", zIndex: 1, height: "100%", overflowY: "auto",
-        display: "flex", flexDirection: "column",
-      }}>
-        <div style={{
-          display: "flex", justifyContent: "space-between", alignItems: "center",
-          padding: "20px 20px 8px", flexShrink: 0,
-        }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            {step > 1 && (
-              <button type="button" onClick={() => {
-                setSession(null); setStep(1);
-              }} style={{
-                background: "none", border: "none", color: color.accent,
-                fontSize: 17, fontWeight: 500, cursor: "pointer", padding: "6px 0",
-              }}>‹ Back</button>
-            )}
-          </div>
-          <button type="button" onClick={onClose} aria-label="Close" style={{
-            background: glass.fillStrong, border: `1px solid ${glass.borderSoft}`, borderRadius: radius.md,
-            width: 36, height: 36, cursor: "pointer", color: color.muted,
-            display: "flex", alignItems: "center", justifyContent: "center",
-            boxShadow: `inset 0 1px 0 ${glass.highlight}`,
-          }}>
-            <Icon name="x" size={16}/>
-          </button>
-        </div>
-
-        <div style={{
-          flex: 1, display: "flex", flexDirection: "column",
-          alignItems: "center", justifyContent: step === 2 ? "flex-start" : "center",
-          padding: "12px 20px 40px", maxWidth: 520, margin: "0 auto", width: "100%",
-        }}>
-
-          {step === 1 && (
-            <div style={{ width: "100%", textAlign: "center", animation: "rise 0.45s cubic-bezier(0.22,1,0.36,1) both" }}>
-              <div style={{
-                fontSize: 11, fontWeight: 650, letterSpacing: 1.6, textTransform: "uppercase",
-                color: color.accent, fontFamily: fontMono, marginBottom: 12,
-              }}>
-                Build a set
-              </div>
-              <div style={{
-                fontSize: 34, fontWeight: 700, color: color.ink, letterSpacing: -1,
-                marginBottom: 10, fontFamily: fontDisplay,
-              }}>How long are you listening?</div>
-              <div style={{ fontSize: 16, color: color.body, marginBottom: 36, lineHeight: 1.45 }}>
-                We’ll build a set that fits the time and shapes the energy for you
-                {intentLabel ? ` · ${intentLabel}` : ""}.
-              </div>
-              <div style={{ display: "flex", gap: 10, justifyContent: "center", marginBottom: 40, flexWrap: "wrap" }}>
-                {[
-                  { m: 30, label: "30 min" },
-                  { m: 60, label: "1 hour" },
-                  { m: 120, label: "2 hours" },
-                  { m: 240, label: "4 hours" },
-                  { m: 480, label: "All night" },
-                ].map(({ m, label }) => (
-                  <button type="button" key={m} onClick={() => setDuration(m)} style={{
-                    minWidth: 88, height: 52, padding: "0 16px", borderRadius: radius.md,
-                    border: duration === m ? "none" : `1px solid ${color.lineStrong}`,
-                    background: duration === m ? color.accent : glass.fillStrong,
-                    color: duration === m ? color.onAccent : color.body,
-                    fontSize: 15, fontWeight: 600, cursor: "pointer",
-                    boxShadow: duration === m ? "none" : `inset 0 1px 0 ${glass.highlight}`,
-                  }}>
-                    {label}
-                  </button>
-                ))}
-              </div>
-              <button type="button" onClick={handleGenerate} style={{
-                ...BTN_PRIMARY, width: "auto", minWidth: 200, borderRadius: radius.md, padding: "16px 36px",
-              }}>
-                Build my set
-              </button>
-            </div>
-          )}
-
-          {step === 2 && session && profile && (
-            <div style={{ width: "100%", animation: "rise 0.45s cubic-bezier(0.22,1,0.36,1) both" }}>
-              <div style={{ textAlign: "center", marginBottom: 28, paddingTop: 8 }}>
-                <div style={{
-                  fontSize: 13, fontWeight: 600, color: color.accent, marginBottom: 8,
-                }}>
-                  {durationLabel} set
-                </div>
-                <div style={{
-                  fontSize: 32, fontWeight: 700, color: color.ink, letterSpacing: -0.8,
-                  marginBottom: 6, fontFamily: fontDisplay,
-                }}>
-                  Your set is ready
-                </div>
-                <div style={{ fontSize: 15, color: color.body }}>
-                  {session.length} songs · about {totalMins} minutes
-                </div>
-              </div>
-
-              <div style={{ marginBottom: 24, padding: "0 4px" }}>
-                <div style={{ display: "flex", borderRadius: 8, overflow: "hidden", height: 6, marginBottom: 8, background: color.surface }}>
-                  {profile.phases.map((ph, i) => (
-                    <div key={i} style={{ flex: ph.p, background: i % 2 ? color.accent : color.accentSoft }}/>
-                  ))}
-                </div>
-                <div style={{ display: "flex" }}>
-                  {profile.phases.map((ph, i) => (
-                    <div key={i} style={{ flex: ph.p, textAlign: "center" }}>
-                      <div style={{ fontSize: 10, fontWeight: 600, color: color.faint }}>{ph.name}</div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div style={{
-                maxHeight: "42vh", overflowY: "auto", marginBottom: 24, borderRadius: 16,
-                background: color.surfaceSolid, border: `1px solid ${color.line}`, padding: "8px 0",
-              }}>
-                {phases.map((phase, pi) => (
-                  <div key={pi}>
-                    <div style={{
-                      fontSize: 11, fontWeight: 700, letterSpacing: 0.4, color: color.faint,
-                      textTransform: "uppercase", padding: "12px 16px 6px",
-                    }}>{phase.name}</div>
-                    {phase.tracks.map((t) => (
-                      <div key={t.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "6px 16px" }}>
-                        <div style={{ width: 36, height: 36, borderRadius: 6, overflow: "hidden", flexShrink: 0 }}>
-                          <AlbumArt track={t} size={36} borderRadius={6}/>
-                        </div>
-                        <div style={{ flex: 1, minWidth: 0 }}>
-                          <div style={{
-                            fontSize: 14, fontWeight: 550, color: color.ink,
-                            overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
-                          }}>{t.title}</div>
-                          <div style={{ fontSize: 12, color: color.muted }}>{t.artist}</div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ))}
-              </div>
-
-              <div style={{ display: "flex", gap: 10, justifyContent: "center" }}>
-                <button type="button" onClick={() => {
-                  const cleaned = session.map((t) => { const { _phase, ...rest } = t; return rest; });
-                  onPlayRoute(cleaned, "set");
-                  onClose();
-                }} style={{
-                  ...BTN_PRIMARY, flex: 1, maxWidth: 280, borderRadius: 980, padding: "16px 28px",
-                }}>
-                  Start listening
-                </button>
-                <button type="button" onClick={handleRegenerate} aria-label="Shuffle again" style={{
-                  width: 52, height: 52, borderRadius: 980, background: color.surfaceRaised,
-                  border: "none", color: color.body, fontSize: 18, cursor: "pointer",
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                }}>
-                  ↻
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-
-// ─── HARMONIC MAP — 2D visualization of library by key × energy ──────────────
-function HarmonicMap({ tracks, onPlay, currentTrack }) {
-  const canvasRef = useRef(null);
-  const [hover, setHover] = useState(null);
-  const singles = tracks.filter(t => t.camelot && t.energy && (t.duration||0) <= 900);
-
-  // Parse camelot key to x position (1-12, A/B variants)
-  function keyToX(camelot) {
-    const num = parseInt(camelot);
-    const isMinor = camelot.includes("A");
-    return ((num - 1) / 11) * 0.85 + 0.075 + (isMinor ? 0 : 0.02);
-  }
-
-  // Energy to y position (inverted — high energy at top)
-  function energyToY(e) {
-    return 1 - ((e - 1) / 9) * 0.85 - 0.075;
-  }
-
-  const nodes = singles.map(t => ({
-    track: t,
-    x: keyToX(t.camelot),
-    y: energyToY(t.energy),
-    color: t.color || "#888",
-    active: currentTrack?.id === t.id,
-  }));
-
-  return (
-    <div style={{ padding:"24px 16px" }}>
-      <div style={{ marginBottom:16 }}>
-        <div style={{ fontSize:18, fontWeight:700, color: color.ink, letterSpacing:-0.3, marginBottom:4 }}>Harmonic Map</div>
-        <div style={{ fontSize:12, color: color.muted, lineHeight:1.5, marginBottom:12 }}>Your library visualized by musical key and energy. Each dot is a track — click to play. Tracks nearby sound great together.</div>
-        <div style={{ display:"flex", gap:16, fontSize:10, color: color.muted }}>
-          <span>← Low key · High key →</span>
-          <span>↑ High energy · Low energy ↓</span>
-          {currentTrack && <span style={{ color: color.ink, fontWeight:600 }}>● Now playing</span>}
-        </div>
-      </div>
-      <div style={{ position:"relative", width:"100%", aspectRatio:"2/1", background: color.surfaceRaised, borderRadius:16, border:`1px solid ${color.line}`, overflow:"hidden", cursor:"crosshair" }}>
-        {/* Grid lines */}
-        {[1,2,3,4,5,6,7,8,9,10].map(e => (
-          <div key={`e${e}`} style={{ position:"absolute", left:0, right:0, top:`${(1-((e-1)/9)*0.85-0.075)*100}%`, height:1, background: color.line }}/>
-        ))}
-        {[1,2,3,4,5,6,7,8,9,10,11,12].map(k => (
-          <div key={`k${k}`} style={{ position:"absolute", top:0, bottom:0, left:`${((k-1)/11)*0.85*100+7.5}%`, width:1, background: color.line }}/>
-        ))}
-
-        {/* Key labels along bottom */}
-        {[1,2,3,4,5,6,7,8,9,10,11,12].map(k => (
-          <div key={`kl${k}`} style={{ position:"absolute", bottom:4, left:`${((k-1)/11)*0.85*100+7.5}%`, transform:"translateX(-50%)", fontSize:8, color: color.muted, fontWeight:500 }}>{k}</div>
-        ))}
-
-        {/* Energy labels along left */}
-        {[2,4,6,8,10].map(e => (
-          <div key={`el${e}`} style={{ position:"absolute", left:4, top:`${(1-((e-1)/9)*0.85-0.075)*100}%`, transform:"translateY(-50%)", fontSize:8, color: color.muted, fontWeight:500 }}>{e}</div>
-        ))}
-
-        {/* Track dots */}
-        {nodes.map((n, i) => (
-          <div key={n.track.id}
-            onClick={()=>onPlay(n.track)}
-            onMouseEnter={()=>setHover(n.track)}
-            onMouseLeave={()=>setHover(null)}
-            style={{
-              position:"absolute",
-              left:`${n.x * 100}%`, top:`${n.y * 100}%`,
-              transform:"translate(-50%,-50%)",
-              width: n.active ? 14 : 8,
-              height: n.active ? 14 : 8,
-              borderRadius:"50%",
-              background: n.active ? color.accent : `rgba(${hexToRgbStr(n.color)},0.6)`,
-              border: n.active ? "2px solid #FFFFFF" : "1px solid rgba(255,255,255,0.5)",
-              boxShadow: n.active ? `0 0 12px rgba(${hexToRgbStr(n.color)},0.4)` : "none",
-              transition:"all 0.2s",
-              cursor:"pointer",
-              zIndex: n.active ? 10 : hover?.id === n.track.id ? 5 : 1,
-            }}/>
-        ))}
-
-        {/* Hover tooltip */}
-        {hover && (
-          <div style={{
-            position:"absolute",
-            left:`${keyToX(hover.camelot) * 100}%`,
-            top:`${energyToY(hover.energy) * 100 - 5}%`,
-            transform:"translate(-50%,-100%)",
-            background:"rgba(26,29,38,0.9)", backdropFilter:"blur(12px)",
-            borderRadius:8, padding:"6px 10px", pointerEvents:"none",
-            whiteSpace:"nowrap", zIndex:20,
-          }}>
-            <div style={{ fontSize:11, fontWeight:600, color: color.ink }}>{hover.title}</div>
-            <div style={{ fontSize:9, color:"rgba(255,255,255,0.5)" }}>{hover.artist} · {hover.camelot} · E{hover.energy}</div>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
-
-
-
-
-// ─── HYPNO VISION OVERLAY — "sounds like this" full-screen ──────────────────────
-function HypnoVisionOverlay({ sourceTrack, tracks, onPlay, onClose }) {
-  const similar = findResonant(sourceTrack, tracks, 12);
-  const rgb = hexToRgbStr(sourceTrack.color);
-
-  return (
-    <div style={{ position:"fixed", inset:0, zIndex:95, overflow:"auto" }}>
-      <div style={{ position:"absolute", inset:0, background:`radial-gradient(ellipse at 50% 20%, rgba(${rgb},0.12) 0%, ${color.canvas} 58%)` }} onClick={onClose}/>
-      <div style={{ position:"relative", zIndex:1, maxWidth:520, margin:"0 auto", padding:"40px 24px 56px" }}>
-        <div style={{ display:"flex", alignItems:"center", gap:16, marginBottom:28 }}>
-          <div style={{ width:72, height:72, overflow:"hidden", flexShrink:0, boxShadow:`0 12px 32px rgba(${rgb},0.22)` }}>
-            <AlbumArt track={sourceTrack} size={72} borderRadius={0}/>
-          </div>
-          <div style={{ flex:1, minWidth:0 }}>
-            <div style={{ fontSize:12, fontWeight:700, letterSpacing:0.4, color: color.accent, marginBottom:6 }}>Similar songs</div>
-            <div style={{ fontSize:20, fontWeight:750, color: color.ink, letterSpacing:-0.4, fontFamily: fontDisplay, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{sourceTrack.title}</div>
-            <div style={{ fontSize:13, color: color.muted, marginTop:4 }}>{sourceTrack.artist} · tracks that feel like this</div>
-          </div>
-          <button type="button" onClick={onClose} aria-label="Close" style={{ background: color.surface, border:`1px solid ${color.lineStrong}`, borderRadius:"50%", width:36, height:36, cursor:"pointer", color: color.muted, display:"flex", alignItems:"center", justifyContent:"center" }}>
-            <Icon name="x" size={16}/>
-          </button>
-        </div>
-
-        {sourceTrack._signal && (
-          <div style={{ display:"flex", gap:20, marginBottom:28, justifyContent:"flex-start", paddingBottom:20, borderBottom:`1px solid ${color.line}` }}>
-            {["grip","hold","pull","lift"].map(k => (
-              <div key={k}>
-                <div style={{ fontSize:18, fontWeight:700, color: color.ink, fontFamily: fontDisplay }}>{sourceTrack._signal[k]}</div>
-                <div style={{ fontSize:9, fontWeight:700, letterSpacing:1.4, color: color.faint, textTransform:"uppercase", fontFamily: fontMono, marginTop:2 }}>{k}</div>
-              </div>
-            ))}
-          </div>
-        )}
-
-        <div style={{ display:"flex", flexDirection:"column" }}>
-          {similar.map(t => (
-            <button
-              key={t.id}
-              type="button"
-              onClick={() => { onPlay(t); onClose(); }}
-              style={{
-                display:"flex", alignItems:"center", gap:14, width:"100%",
-                padding:"12px 0", background:"none", border:"none",
-                borderBottom:`1px solid ${color.line}`, cursor:"pointer", textAlign:"left",
-              }}
-            >
-              <div style={{ width:52, height:52, overflow:"hidden", flexShrink:0 }}>
-                <AlbumArt track={t} size={52} borderRadius={0}/>
-              </div>
-              <div style={{ flex:1, minWidth:0 }}>
-                <div style={{ fontSize:14, fontWeight:650, color: color.ink, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap", fontFamily: fontDisplay, letterSpacing:-0.2 }}>{t.title}</div>
-                <div style={{ fontSize:12, color: color.muted, marginTop:2 }}>{t.artist}{t._signal?.label ? ` · ${t._signal.label}` : ""}</div>
-              </div>
-            </button>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ─── SESSION AFTERGLOW — end-of-session overlay ──────────────────────────────
-function AfterglowOverlay({ data, onClose, onSavePlaylist }) {
-  if (!data || !data.tracks.length) return null;
-
-  const tracks = data.tracks;
-  const energies = tracks.map(t => t.energy || 5);
-  const genres = [...new Set(tracks.map(t => t.genre).filter(Boolean))];
-  const avgEnergy = (energies.reduce((s, e) => s + e, 0) / energies.length).toFixed(1);
-
-  const width = 320;
-  const height = 60;
-  const step = width / Math.max(energies.length - 1, 1);
-  const points = energies.map((e, i) => `${i * step},${height - ((e - 1) / 9) * height}`).join(" ");
-
-  return (
-    <div style={{ position:"fixed", inset:0, zIndex:95, display:"flex", alignItems:"center", justifyContent:"center", padding:32 }}>
-      <div style={{ position:"absolute", inset:0, background:"rgba(26,29,36,0.42)", backdropFilter:"blur(10px)" }} onClick={onClose}/>
-      <div style={{
-        position:"relative", zIndex:1, maxWidth:420, width:"100%", textAlign:"center",
-        animation:"rise 0.45s cubic-bezier(0.22,1,0.36,1) both",
-        background: "rgba(255,255,255,0.92)",
-        border: `1px solid ${glass.border}`,
-        borderRadius: radius.lg,
-        padding: "28px 24px",
-        boxShadow: `inset 0 1px 0 ${glass.highlight}, 0 20px 48px rgba(26,29,36,0.16)`,
-      }}>
-        <div style={{ fontSize:12, fontWeight:700, letterSpacing:0.4, color: color.accent, marginBottom:12 }}>Session summary</div>
-        <div style={{ fontSize:36, fontWeight:800, color: color.ink, letterSpacing:-1, marginBottom:8, fontFamily: fontDisplay }}>{data.durationMins} minutes</div>
-        <div style={{ fontSize:14, color: color.muted, marginBottom:32 }}>{tracks.length} tracks · {genres.length} scenes · energy {avgEnergy}</div>
-
-        <div style={{ marginBottom:28 }}>
-          <svg width={width} height={height} style={{ display:"block", margin:"0 auto" }}>
-            <defs>
-              <linearGradient id="arcGrad" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor={color.accentSoft}/>
-                <stop offset="100%" stopColor="transparent"/>
-              </linearGradient>
-            </defs>
-            <polyline points={points} fill="none" stroke={color.accent} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" opacity="0.85"/>
-            <polygon points={`0,${height} ${points} ${width},${height}`} fill="url(#arcGrad)"/>
-          </svg>
-          <div style={{ display:"flex", justifyContent:"space-between", marginTop:6, maxWidth:width, marginLeft:"auto", marginRight:"auto" }}>
-            <span style={{ fontSize:10, color: color.faint, fontFamily: fontMono }}>Start</span>
-            <span style={{ fontSize:10, color: color.faint, fontFamily: fontMono }}>End</span>
-          </div>
-        </div>
-
-        {genres.length > 0 && (
-          <div style={{ marginBottom:28, fontSize:13, color: color.body, lineHeight:1.5 }}>
-            {genres.slice(0, 4).join(" · ")}
-          </div>
-        )}
-
-        <div style={{ display:"flex", gap:10, justifyContent:"center" }}>
-          <button type="button" onClick={() => {
-            if (onSavePlaylist) {
-              const name = `Session · ${new Date(data.startTime).toLocaleDateString()} ${new Date(data.startTime).toLocaleTimeString([], {hour:"2-digit", minute:"2-digit"})}`;
-              onSavePlaylist(name, tracks.map(t => t.id));
-            }
-            onClose();
-          }} style={{
-            padding:"14px 24px", borderRadius: radius.sm,
-            background: color.accent, border:"none",
-            color: color.onAccent, fontSize:14, fontWeight:650, cursor:"pointer",
-          }}>Save as playlist</button>
-          <button type="button" onClick={onClose} style={{
-            padding:"14px 24px", borderRadius: radius.sm,
-            background:"none", border:`1px solid ${color.lineStrong}`,
-            color: color.muted, fontSize:14, fontWeight:600, cursor:"pointer",
-          }}>Close</button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ─── Now Playing — Cover Flow window (library instrument) ────────────────────
-function ImmersivePlayer({
-  currentTrack, isPlaying, onTogglePlay, onSkip, onPrev, onClose,
-  signalState, progress = 0, duration = 0, onSeek, onLike,
-  volume = 1, onVolumeChange, onHypno, onHypnoRadio, onShowQueue,
-  sessionArc = null, isRadioMode = false, hypnoPocket = false,
-  roomLabel = null, onOpenRoom, onOpenLiner, onOpenArtist,
-  shuffle = false, onToggleShuffle,
-  repeat = "off", onCycleRepeat,
-  crossfadeOn = true, onToggleCrossfade,
-}) {
-  const [artLoaded, setArtLoaded] = useState(false);
-  const [showMore, setShowMore] = useState(false);
-
-  useEffect(() => {
-    setShowMore(false);
-  }, [currentTrack?.id]);
-
-  useEffect(() => { setArtLoaded(false); }, [currentTrack?.id]);
-
-  if (!currentTrack) return null;
-
-  const rgb = hexToRgbStr(currentTrack.color);
-  const stateLabel = signalState?.label || "";
-  const chromeBtn = {
-    display: "flex", alignItems: "center", gap: 8,
-    background: glass.fillStrong,
-    border: `1px solid ${glass.border}`,
-    borderRadius: radius.sm,
-    padding: "10px 14px",
-    color: color.ink,
-    cursor: "pointer",
-    fontSize: 13,
-    fontWeight: 600,
-    boxShadow: `inset 0 1px 0 ${glass.highlight}, ${glass.shadowSoft}`,
-    backdropFilter: glass.blurSoft,
-    WebkitBackdropFilter: glass.blurSoft,
-  };
-
-  return (
-    <div
-      style={{
-        position: "fixed", inset: 0, zIndex: 100, overflow: "hidden",
-        background: color.canvas,
-        display: "flex", flexDirection: "column",
-      }}
-    >
-      {/* Soft aluminum + cover wash */}
-      <div aria-hidden="true" style={{ position: "absolute", inset: 0, background: aluminumGradient() }} />
-      {currentTrack.albumCover && (
-        <div aria-hidden="true" style={{
-          position: "absolute", inset: "-10%",
-          backgroundImage: `url(${currentTrack.albumCover})`,
-          backgroundSize: "cover", backgroundPosition: "center",
-          filter: "blur(64px) saturate(1.05) brightness(1.18)",
-          opacity: artLoaded ? 0.22 : 0.08,
-          transform: "scale(1.05)",
-          transition: "opacity 0.8s ease",
-        }}/>
-      )}
-      <div aria-hidden="true" style={{
-        position: "absolute", inset: 0,
-        background: `
-          radial-gradient(ellipse 70% 50% at 50% 18%, rgba(${rgb},0.12) 0%, transparent 62%),
-          linear-gradient(180deg, rgba(230,233,239,0.15) 0%, transparent 30%, rgba(230,233,239,0.88) 100%)
-        `,
-      }}/>
-
-      {/* Top chrome */}
-      <div style={{
-        position: "relative", zIndex: 2,
-        display: "flex", justifyContent: "space-between", alignItems: "center",
-        padding: "18px 20px 8px",
-        flexShrink: 0,
-      }}>
-        <button type="button" onClick={onClose} aria-label="Back" style={chromeBtn}>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><path d="M6 9l6 6 6-6"/></svg>
-          Back
-        </button>
-        <div style={{ display: "flex", alignItems: "center", gap: 10, position: "relative" }}>
-          <div style={{ fontSize: 13, fontWeight: 800, letterSpacing: -0.4, color: color.ink, fontFamily: fontDisplay }}>{BRAND_NAME}</div>
-          <button type="button" onClick={() => setShowMore((m) => !m)} aria-label="More"
-            aria-expanded={showMore}
-            style={{ ...chromeBtn, padding: "10px 12px" }}>
-            ···
-          </button>
-          {showMore && (
-            <div
-              onClick={(e) => e.stopPropagation()}
-              style={{
-                position: "absolute", top: "110%", right: 0, minWidth: 168,
-                background: "rgba(255,255,255,0.96)",
-                border: `1px solid ${glass.border}`,
-                borderRadius: radius.md,
-                padding: "6px 0", zIndex: 5,
-                boxShadow: `inset 0 1px 0 ${glass.highlight}, 0 16px 40px rgba(26,29,36,0.14)`,
-                animation: "rise 0.2s cubic-bezier(0.22,1,0.36,1) both",
-              }}
-            >
-              {onOpenLiner && (
-                <button type="button" onClick={() => { setShowMore(false); onOpenLiner(currentTrack); }}
-                  style={{ display: "block", width: "100%", textAlign: "left", padding: "12px 16px", background: "none", border: "none", color: color.ink, fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
-                  Liner notes
-                </button>
-              )}
-              {onHypno && (
-                <button type="button" onClick={() => { setShowMore(false); onHypno(currentTrack); }}
-                  style={{ display: "block", width: "100%", textAlign: "left", padding: "12px 16px", background: "none", border: "none", color: color.ink, fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
-                  Similar songs
-                </button>
-              )}
-              {onHypnoRadio && (
-                <button type="button" onClick={() => { setShowMore(false); onHypnoRadio(currentTrack); }}
-                  style={{ display: "block", width: "100%", textAlign: "left", padding: "12px 16px", background: "none", border: "none", color: hypnoPocket ? color.accent : color.ink, fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
-                  {hypnoPocket ? "Similar mix on" : "Play similar mix"}
-                </button>
-              )}
-              <div style={{ height: 1, background: color.line, margin: "4px 0" }}/>
-              {onToggleCrossfade && (
-                <button type="button" onClick={() => onToggleCrossfade()}
-                  role="switch" aria-checked={crossfadeOn}
-                  style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, width: "100%", textAlign: "left", padding: "12px 16px", background: "none", border: "none", color: color.ink, fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
-                  <span>Crossfade</span>
-                  <span aria-hidden="true" style={{
-                    width: 34, height: 20, borderRadius: 10, flexShrink: 0, position: "relative",
-                    background: crossfadeOn ? color.accent : "rgba(26,29,36,0.14)",
-                    transition: `background ${motion.base} ${motion.ease}`,
-                  }}>
-                    <span style={{
-                      position: "absolute", top: 2, left: crossfadeOn ? 16 : 2,
-                      width: 16, height: 16, borderRadius: "50%",
-                      background: crossfadeOn ? color.onAccent : color.surfaceSolid,
-                      boxShadow: "0 1px 3px rgba(26,29,36,0.25)",
-                      transition: `left ${motion.base} ${motion.ease}`,
-                    }}/>
-                  </span>
-                </button>
-              )}
-              <div style={{ padding: "10px 16px 14px" }}>
-                <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 1.2, color: color.faint, fontFamily: fontMono, textTransform: "uppercase", marginBottom: 8 }}>Volume</div>
-                <input
-                  type="range" min={0} max={1} step={0.01} value={volume}
-                  onChange={(e) => onVolumeChange?.(parseFloat(e.target.value))}
-                  style={{ width: "100%" }}
-                  aria-label="Volume level"
-                />
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Centered jewel-case art + meta */}
-      <div style={{
-        position: "relative", zIndex: 1, flex: 1,
-        display: "flex", flexDirection: "column",
-        alignItems: "center", justifyContent: "center",
-        padding: "8px 24px 24px",
-        minHeight: 0,
-      }}>
-        {sessionArc?.energies?.length > 1 && (
-          <div style={{ width: "100%", maxWidth: 360, marginBottom: 16 }}>
-            <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: 1.4, color: color.muted, textTransform: "uppercase", marginBottom: 6, textAlign: "center" }}>
-              {sessionArc.label || "Session arc"}
-            </div>
-            <svg width="100%" height="28" viewBox="0 0 320 28" preserveAspectRatio="none">
-              {(() => {
-                const energies = sessionArc.energies;
-                const idx = Math.min(sessionArc.index || 0, energies.length - 1);
-                const stepX = 320 / Math.max(energies.length - 1, 1);
-                const pts = energies.map((e, i) => `${i * stepX},${28 - ((e - 1) / 9) * 22}`).join(" ");
-                const cx = idx * stepX;
-                const cy = 28 - (((energies[idx] || 5) - 1) / 9) * 22;
-                return (
-                  <>
-                    <polyline points={pts} fill="none" stroke="rgba(26,29,36,0.16)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                    <circle cx={cx} cy={cy} r="3.5" fill={color.accent}/>
-                  </>
-                );
-              })()}
-            </svg>
-          </div>
-        )}
-
-        <div
-          key={currentTrack.id}
-          className="cover-tile"
-          style={{
-            width: "min(68vw, 300px)",
-            aspectRatio: "1 / 1",
-            borderRadius: 12,
-            overflow: "hidden",
-            background: color.surfaceRaised,
-            boxShadow: isPlaying ? artShadow.raised : artShadow.quiet,
-            border: `1px solid ${glass.borderSoft}`,
-            animation: isPlaying
-              ? `coverFloat 5.5s ease-in-out infinite, trackSwap 0.4s ${motion.ease} both`
-              : `trackSwap 0.4s ${motion.ease} both`,
-            marginBottom: 28,
-          }}
-        >
-          {currentTrack.albumCover ? (
-            <img
-              src={currentTrack.albumCover}
-              alt=""
-              onLoad={() => setArtLoaded(true)}
-              style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
-            />
-          ) : (
-            <div style={{
-              width: "100%", height: "100%",
-              display: "flex", alignItems: "center", justifyContent: "center",
-              background: `linear-gradient(160deg, rgba(${rgb},0.35) 0%, ${color.surfaceRaised} 70%)`,
-              fontSize: 72, fontWeight: 800, color: `rgba(${rgb},0.55)`, letterSpacing: -4, fontFamily: fontDisplay,
-            }}>
-              {(currentTrack.title || "P")[0]}
-            </div>
-          )}
-        </div>
-
-        <div style={{ width: "100%", maxWidth: 420, textAlign: "center", animation: `trackSwap 0.4s ${motion.ease} both` }}>
-          <div style={{
-            fontSize: "clamp(22px, 5vw, 30px)", fontWeight: 750, color: color.ink,
-            letterSpacing: -0.8, lineHeight: 1.15, fontFamily: fontDisplay,
-            overflow: "hidden", textOverflow: "ellipsis", display: "-webkit-box",
-            WebkitLineClamp: 2, WebkitBoxOrient: "vertical",
-          }}>
-            {currentTrack.title}
-          </div>
-          <div style={{ fontSize: 15, color: color.muted, marginTop: 8, letterSpacing: -0.1 }}>
-            {onOpenArtist ? (
-              <button
-                type="button"
-                onClick={() => onOpenArtist(currentTrack.artist)}
-                style={{ background: "none", border: "none", padding: 0, color: color.muted, fontSize: 15, cursor: "pointer" }}
-              >
-                {currentTrack.artist}
-              </button>
-            ) : currentTrack.artist}
-          </div>
-          {roomLabel && (
-            <button
-              type="button"
-              onClick={() => onOpenRoom?.()}
-              style={{
-                marginTop: 12, background: glass.fillStrong, border: `1px solid ${glass.border}`,
-                borderRadius: radius.sm, padding: "8px 12px", color: color.accent,
-                fontSize: 11, fontWeight: 700, letterSpacing: 1.2, fontFamily: fontMono,
-                textTransform: "uppercase", cursor: onOpenRoom ? "pointer" : "default",
-                boxShadow: `inset 0 1px 0 ${glass.highlight}`,
-              }}
-            >
-              Playing in {roomLabel}
-            </button>
-          )}
-          <div style={{ marginTop: 14, display: "flex", justifyContent: "center" }}>
-            <BoothHud track={currentTrack} size="md" />
-          </div>
-          {(normalizeGenre(currentTrack.genre) || stateLabel || hypnoPocket || isRadioMode) && (
-            <div style={{ fontSize: 11, color: color.faint, marginTop: 10, letterSpacing: 0.4, fontFamily: fontMono, textTransform: "uppercase" }}>
-              {[
-                hypnoPocket ? "Similar mix" : (isRadioMode ? "Radio" : null),
-                displaySceneLabel(currentTrack) || normalizeGenre(currentTrack.genre),
-                stateLabel,
-              ].filter(Boolean).join("  ·  ")}
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Bottom transport chrome */}
-      <div style={{
-        position: "relative", zIndex: 2,
-        padding: "0 24px calc(28px + env(safe-area-inset-bottom, 0px))",
-        display: "flex", flexDirection: "column", alignItems: "center",
-        flexShrink: 0,
-      }}>
-        <div style={{ width: "100%", maxWidth: 360, marginBottom: 18 }}>
-          <input
-            type="range" min={0} max={duration || 1} step={1} value={progress}
-            onChange={(e) => onSeek?.(parseFloat(e.target.value))}
-            style={{ width: "100%" }}
-            aria-label="Seek"
-          />
-          <div style={{
-            marginTop: 6, display: "flex", justifyContent: "space-between",
-            fontSize: 11, color: color.faint, fontFamily: fontMono, fontVariantNumeric: "tabular-nums",
-          }}>
-            <span>{fmtTime(progress)}</span>
-            <span>{fmtTime(duration)}</span>
-          </div>
-        </div>
-
-        <div style={{
-          position: "relative",
-          display: "flex", alignItems: "center", justifyContent: "center", gap: 14,
-        }}>
-          <EnergyShiftFeedback bottom="calc(100% + 16px)" />
-          <button type="button" onClick={() => onLike?.(currentTrack.id)} aria-label={currentTrack.liked ? "Unlike" : "Like"}
-            style={{ background: "none", border: "none", cursor: "pointer", color: currentTrack.liked ? color.accent : color.faint, padding: 8 }}>
-            <Icon name={currentTrack.liked ? "heart" : "heartempty"} size={18}/>
-          </button>
-          {!isRadioMode && onToggleShuffle && (
-            <button type="button" onClick={onToggleShuffle} aria-label={shuffle ? "Shuffle off" : "Shuffle on"} aria-pressed={shuffle}
-              style={{ background: "none", border: "none", cursor: "pointer", color: shuffle ? color.accent : color.faint, padding: 8, position: "relative" }}>
-              <Icon name="shuffle" size={17}/>
-              {shuffle && <span aria-hidden="true" style={{ position: "absolute", bottom: 2, left: "50%", transform: "translateX(-50%)", width: 4, height: 4, borderRadius: "50%", background: color.accent }}/>}
-            </button>
-          )}
-          <EnergyShiftButton direction="down" size={36} stopPropagation={false} />
-          <button type="button" onClick={onPrev} aria-label="Previous"
-            style={{ background: "none", border: "none", cursor: "pointer", color: color.ink, padding: 8 }}>
-            <Icon name="prev" size={20}/>
-          </button>
-          <IceOrbPlay
-            isPlaying={isPlaying}
-            onClick={onTogglePlay}
-            size={58}
-            glowing={isPlaying}
-          />
-          <button type="button" onClick={onSkip} aria-label="Next"
-            style={{ background: "none", border: "none", cursor: "pointer", color: color.ink, padding: 8 }}>
-            <Icon name="skip" size={20}/>
-          </button>
-          <EnergyShiftButton direction="up" size={36} stopPropagation={false} />
-          {!isRadioMode && onCycleRepeat && (
-            <button type="button" onClick={onCycleRepeat}
-              aria-label={repeat === "off" ? "Repeat all" : repeat === "all" ? "Repeat one" : "Repeat off"}
-              style={{ background: "none", border: "none", cursor: "pointer", color: repeat !== "off" ? color.accent : color.faint, padding: 8, position: "relative" }}>
-              <Icon name="repeat" size={18}/>
-              {repeat === "one" && (
-                <span aria-hidden="true" style={{
-                  position: "absolute", top: 3, right: 1, fontSize: 8, fontWeight: 800,
-                  color: color.onAccent, background: color.accent, borderRadius: "50%",
-                  width: 11, height: 11, display: "flex", alignItems: "center", justifyContent: "center",
-                }}>1</span>
-              )}
-              {repeat === "all" && <span aria-hidden="true" style={{ position: "absolute", bottom: 2, left: "50%", transform: "translateX(-50%)", width: 4, height: 4, borderRadius: "50%", background: color.accent }}/>}
-            </button>
-          )}
-          <button type="button" onClick={() => onShowQueue?.()} aria-label="Up Next"
-            style={{ background: "none", border: "none", cursor: "pointer", color: color.faint, padding: 8 }}>
-            <Icon name="queue" size={18}/>
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ─── UP NEXT SHEET (mobile queue) ─────────────────────────────────────────────
-function QueueSheet({ queue, currentTrack, onPlay, onClose, onClear, onShuffle, isRadioMode, radioHint }) {
-  return (
-    <div style={{ position:"fixed", inset:0, zIndex:110 }}>
-      <div onClick={onClose} style={{ position:"absolute", inset:0, background:"rgba(26,29,36,0.38)", backdropFilter:"blur(10px)" }}/>
-      <div style={{
-        position:"absolute", left:0, right:0, bottom:0, maxHeight:"72vh",
-        background: color.surfaceSolid, borderTop:`1px solid ${color.lineStrong}`,
-        borderRadius:"16px 16px 0 0", display:"flex", flexDirection:"column",
-        animation:"rise 0.35s cubic-bezier(0.22,1,0.36,1) both",
-      }}>
-        <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"16px 18px 10px" }}>
-          <div>
-            <div style={{ fontSize:16, fontWeight:750, color: color.ink, fontFamily: fontDisplay, letterSpacing:-0.3 }}>Up Next</div>
-            {isRadioMode && (
-              <div style={{ fontSize:11, color: color.muted, marginTop:2 }}>
-                {radioHint || "Choosing the next song…"}
-              </div>
-            )}
-          </div>
-          <div style={{ display:"flex", gap:8, alignItems:"center" }}>
-            {onShuffle && (
-              <button type="button" onClick={onShuffle} style={{ background: color.surface, border:"none", borderRadius:8, padding:"6px 10px", color: color.muted, fontSize:11, fontWeight:600, cursor:"pointer" }}>Shuffle</button>
-            )}
-            {queue.length > 0 && onClear && (
-              <button type="button" onClick={onClear} style={{ background: color.surface, border:"none", borderRadius:8, padding:"6px 10px", color: color.muted, fontSize:11, fontWeight:600, cursor:"pointer" }}>Clear</button>
-            )}
-            <button type="button" onClick={onClose} aria-label="Close" style={{ background:"none", border:"none", color: color.faint, cursor:"pointer", padding:4 }}>
-              <Icon name="x" size={18}/>
-            </button>
-          </div>
-        </div>
-        <div className="hide-scroll" style={{ overflowY:"auto", padding:"4px 12px 28px" }}>
-          {currentTrack && (
-            <div style={{ display:"flex", alignItems:"center", gap:10, padding:"10px 8px", marginBottom:6, borderRadius:10, background: color.accentSoft, border:`1px solid ${color.accentSoft}` }}>
-              <div style={{ width:40, height:40, overflow:"hidden", flexShrink:0 }}><AlbumArt track={currentTrack} size={40} borderRadius={0}/></div>
-              <div style={{ flex:1, minWidth:0 }}>
-                <div style={{ fontSize:10, fontWeight:700, letterSpacing:1, color: color.accent, textTransform:"uppercase", marginBottom:2 }}>Now</div>
-                <div style={{ fontSize:13, fontWeight:600, color: color.ink, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{currentTrack.title}</div>
-                <div style={{ fontSize:11, color: color.muted }}>{currentTrack.artist}</div>
-              </div>
-            </div>
-          )}
-          {queue.length === 0 && (
-            <div style={{ textAlign:"center", padding:"36px 12px", color: color.faint, fontSize:13 }}>
-              {isRadioMode ? "Next pick lands after the crossfade" : "Queue is empty"}
-            </div>
-          )}
-          {queue.map((t, i) => (
-            <button type="button" key={t.id} onClick={() => { onPlay(t); onClose(); }}
-              style={{
-                display:"flex", alignItems:"center", gap:10, width:"100%", padding:"10px 8px",
-                background:"none", border:"none", borderBottom:`1px solid ${color.line}`, cursor:"pointer", textAlign:"left",
-              }}>
-              <div style={{ width:16, fontSize:10, color: color.faint, fontVariantNumeric:"tabular-nums" }}>{i + 1}</div>
-              <div style={{ width:40, height:40, overflow:"hidden", flexShrink:0 }}><AlbumArt track={t} size={40} borderRadius={0}/></div>
-              <div style={{ flex:1, minWidth:0 }}>
-                <div style={{ fontSize:13, fontWeight:550, color: color.ink, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{t.title}</div>
-                <div style={{ fontSize:11, color: color.muted, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{t.artist}</div>
-              </div>
-              {t._signal?.label && (
-                <span style={{ fontSize:9, color: color.faint, textTransform:"uppercase", letterSpacing:0.4 }}>{t._signal.label}</span>
-              )}
-            </button>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ── Key feature: Build a Custom Mix — duration session builder entry ─────────
-function CustomMixFeature({ onClick }) {
-  return (
-    <button
-      type="button"
-      className="custom-mix"
-      onClick={onClick}
-      aria-label="Build a Custom Mix"
-      style={{
-        position: "relative",
-        overflow: "hidden",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "space-between",
-        gap: 20,
-        minHeight: 124,
-        margin: `0 ${homeSpace.gutter}px`,
-        width: `calc(100% - ${homeSpace.gutter * 2}px)`,
-        padding: "26px 24px",
-        border: `1px solid ${glass.border}`,
-        borderRadius: radius.lg,
-        background: `
-          linear-gradient(180deg, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.55) 100%),
-          ${aluminumGradient()}
-        `,
-        boxShadow: `
-          inset 0 1px 0 ${glass.highlight},
-          ${glass.shadow}
-        `,
-        cursor: "pointer",
-        textAlign: "left",
-        color: color.ink,
-        animation: "rise 0.55s cubic-bezier(0.22,1,0.36,1) both",
-      }}
-    >
-      <div aria-hidden="true" style={{
-        position: "absolute",
-        inset: 0,
-        pointerEvents: "none",
-        background: "linear-gradient(115deg, rgba(10,124,255,0.06) 0%, transparent 48%)",
-      }}/>
-
-      <div aria-hidden="true" style={{
-        position: "absolute",
-        right: "14%",
-        top: "50%",
-        transform: "translateY(-50%)",
-        opacity: 0.1,
-        pointerEvents: "none",
-        color: color.accent,
-      }}>
-        <TimedMixMark size={86} />
-      </div>
-
-      <div style={{ position: "relative", zIndex: 1, minWidth: 0, flex: 1 }}>
-        <div style={{
-          fontSize: 11,
-          fontWeight: 650,
-          letterSpacing: 1.6,
-          textTransform: "uppercase",
-          color: color.muted,
-          fontFamily: fontMono,
-          marginBottom: 10,
-        }}>
-          Session builder
-        </div>
-        <div style={{
-          fontSize: "clamp(22px, 5vw, 30px)",
-          fontWeight: 700,
-          fontFamily: fontDisplay,
-          letterSpacing: -0.9,
-          lineHeight: 1.05,
-        }}>
-          Build a Custom Mix
-        </div>
-      </div>
-
-      <div
-        className="custom-mix-play"
-        aria-hidden="true"
-        style={{
-          position: "relative",
-          zIndex: 1,
-          width: 50,
-          height: 50,
-          borderRadius: "50%",
-          flexShrink: 0,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          background: color.accent,
-          color: color.onAccent,
-          boxShadow: `0 6px 16px rgba(10,124,255,0.28)`,
-        }}
-      >
-        <Icon name="play" size={16}/>
-      </div>
-    </button>
-  );
-}
-
-// ── Horizontal cover shelf (Apple Music–style) ───────────────────────────────
-/**
- * Art-led horizontal shelf. Optional per-track `reasons` map (id → copy) turns
- * it into a "because…" recommendation rail. Like + ⋯ menu match TrackRow.
- */
-function CoverShelf({ tracks, onPlayTrack, activeId, isPlaying, onLike, playlistCtx, reasons = null, tileSize = null, showRanks = false, compactCaptions = false, limit = 12 }) {
-  const { menu, openFromButton, openFromContext, close } = useTrackMenu();
-  if (!tracks?.length) return null;
-  const tile = tileSize || homeSpace.tile;
-  return (
-    <div
-      className="hide-scroll"
-      style={{
-        display: "flex",
-        gap: homeSpace.shelfGap,
-        overflowX: "auto",
-        overflowY: "hidden",
-        padding: `4px ${homeSpace.gutter}px 14px`,
-        scrollSnapType: "x proximity",
-        WebkitOverflowScrolling: "touch",
-        overscrollBehaviorX: "contain",
-      }}
-    >
-      {tracks.slice(0, limit).map((t, i) => {
-        const active = activeId === t.id;
-        const reason = reasons?.[t.id];
-        return (
-          <div
-            key={t.id}
-            style={{
-              flex: "0 0 auto",
-              width: tile,
-              scrollSnapAlign: "start",
-              position: "relative",
-            }}
-          >
-            <button
-              type="button"
-              onClick={() => onPlayTrack(t, tracks)}
-              onContextMenu={(e) => openFromContext(e, t)}
-              aria-label={`Play ${t.title}`}
-              style={{
-                display: "block",
-                width: tile,
-                background: "none",
-                border: "none",
-                padding: 0,
-                cursor: "pointer",
-                textAlign: "left",
-                color: color.ink,
-              }}
-            >
-              <div className="cover-tile" style={{
-                width: tile, height: tile, borderRadius: radius.md, overflow: "hidden",
-                marginBottom: 10, position: "relative",
-                boxShadow: active ? artShadow.active : artShadow.quiet,
-                border: `1px solid ${glass.borderSoft}`,
-              }}>
-                <AlbumArt track={t} size={tile} borderRadius={radius.md}/>
-                <div aria-hidden="true" style={{
-                  pointerEvents: "none", position: "absolute", inset: 0, borderRadius: radius.md,
-                  boxShadow: `inset 0 1px 0 rgba(255,255,255,0.35)`,
-                }}/>
-                {showRanks && (
-                  <div aria-hidden="true" style={{
-                    position: "absolute", left: 8, top: 8,
-                    minWidth: 24, height: 24, padding: "0 6px",
-                    borderRadius: 6,
-                    display: "flex", alignItems: "center", justifyContent: "center",
-                    background: "rgba(255,255,255,0.88)",
-                    border: `1px solid ${glass.borderSoft}`,
-                    backdropFilter: "blur(8px)",
-                    WebkitBackdropFilter: "blur(8px)",
-                    fontFamily: fontMono, fontSize: 11, fontWeight: 700,
-                    letterSpacing: 0.3, color: color.ink,
-                  }}>
-                    {i + 1}
-                  </div>
-                )}
-                {active && isPlaying && (
-                  <div style={{
-                    position: "absolute", inset: 0, background: "rgba(26,29,36,0.28)",
-                    display: "flex", alignItems: "center", justifyContent: "center",
-                  }}>
-                    <div style={{
-                      width: 8, height: 8, borderRadius: "50%", background: color.accent,
-                      animation: "pulse 1.2s ease-in-out infinite",
-                    }}/>
-                  </div>
-                )}
-              </div>
-            </button>
-
-            {/* Caption row — text + like + menu */}
-            <div style={{ display: "flex", alignItems: "flex-start", gap: 2 }}>
-              <button
-                type="button"
-                onClick={() => onPlayTrack(t, tracks)}
-                style={{
-                  flex: 1, minWidth: 0, background: "none", border: "none",
-                  padding: 0, cursor: "pointer", textAlign: "left", color: color.ink,
-                }}
-              >
-                <div style={{
-                  fontSize: compactCaptions ? 13 : 14,
-                  fontWeight: 600,
-                  letterSpacing: -0.2,
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
-                  whiteSpace: "nowrap",
-                  color: active ? color.accent : color.ink,
-                }}>{t.title}</div>
-                <div style={{
-                  fontSize: 12, color: color.muted, marginTop: 3,
-                  overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
-                }}>{t.artist}</div>
-                {reason && !compactCaptions && (
-                  <div style={{
-                    fontSize: 10, color: color.faint, marginTop: 5,
-                    fontFamily: fontMono, letterSpacing: 0.3, textTransform: "uppercase",
-                    overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
-                  }}>{reason}</div>
-                )}
-              </button>
-              {onLike && (
-                <button
-                  type="button"
-                  aria-label={t.liked ? "Unlike" : "Like"}
-                  onClick={(e) => { e.stopPropagation(); onLike(t.id); }}
-                  style={{ background: "none", border: "none", cursor: "pointer", color: t.liked ? color.accent : color.faint, padding: 6, flexShrink: 0 }}
-                >
-                  <Icon name={t.liked ? "heart" : "heartempty"} size={15}/>
-                </button>
-              )}
-              <TrackMoreButton onClick={(e) => openFromButton(e, t)} size={16}/>
-            </div>
-          </div>
-        );
-      })}
-
-      {menu && (
-        <TrackActionsMenu
-          track={menu.track}
-          playlistCtx={playlistCtx}
-          activePlaylistId={menu.activePlaylistId}
-          x={menu.x}
-          y={menu.y}
-          onClose={close}
-        />
-      )}
-    </div>
-  );
-}
-
-// ── Home — three acts only ────────────────────────────────────────────────────
-const HomeSection = ({ label, count, subtitle, children, delay = 0, first = false }) => (
-  <section
-    style={{
-      margin: 0,
-      paddingBottom: homeSpace.sectionPadBottom,
-      animation: `rise 0.55s ${motion.ease} ${delay}s both`,
-    }}
-  >
-    {!first && (
-      <div aria-hidden="true" style={{
-        padding: `${Math.round(homeSpace.sectionPadTop * 0.45)}px 0 ${Math.round(homeSpace.sectionPadTop * 0.55)}px`,
-      }}>
-        <div style={sectionRule(homeSpace.gutter)}/>
-      </div>
-    )}
-    {first && <div style={{ height: homeSpace.sectionPadTopFirst + 12 }} aria-hidden="true"/>}
-    <div style={{
-      padding: `0 ${homeSpace.gutter}px ${subtitle ? 10 : 22}px`,
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "space-between",
-      gap: 12,
-    }}>
-      <h2 style={{
-        margin: 0,
-        fontSize: 24,
-        fontWeight: 700,
-        letterSpacing: -0.6,
-        color: color.ink,
-        fontFamily: fontDisplay,
-      }}>{label}</h2>
-      {count != null && (
-        <span className="glass-surface" style={{
-          fontSize: 12,
-          color: color.body,
-          fontVariantNumeric: "tabular-nums",
-          fontWeight: 600,
-          padding: "4px 9px",
-          borderRadius: radius.sm,
-          letterSpacing: 0.15,
-        }}>{count}</span>
-      )}
-    </div>
-    {subtitle ? (
-      <p style={{
-        margin: `0 ${homeSpace.gutter}px 18px`,
-        fontSize: 14,
-        color: color.muted,
-        lineHeight: 1.4,
-        letterSpacing: -0.1,
-      }}>{subtitle}</p>
-    ) : null}
-    {children}
-  </section>
-);
-
-function HomeCatalogStatus({ error, isEmpty, playableCount, totalCount, onRetry }) {
-  if (!error && !isEmpty) return null;
-  return (
-    <div
-      role={error ? "alert" : "status"}
-      style={{
-        margin: `0 ${homeSpace.gutter}px ${homeSpace.sectionPadTopFirst}px`,
-        padding: "16px 18px",
-        borderRadius: radius.lg,
-        border: `1px solid ${error ? color.lineStrong : color.line}`,
-        background: glass.fillStrong,
-        backdropFilter: glass.blurSoft,
-        WebkitBackdropFilter: glass.blurSoft,
-      }}
-    >
-      {error ? (
-        <>
-          <div style={{ fontSize: 15, fontWeight: 650, color: color.ink, marginBottom: 6 }}>
-            Couldn&apos;t load the library
-          </div>
-          <div style={{ fontSize: 13, color: color.body, lineHeight: 1.45, marginBottom: 12 }}>
-            Check your connection and try again. If this keeps happening, the catalog may need a moment to sync.
-          </div>
-          <button
-            type="button"
-            onClick={onRetry}
-            style={{
-              ...BTN_PRIMARY,
-              width: "auto",
-              padding: "10px 18px",
-              fontSize: 14,
-            }}
-          >
-            Retry
-          </button>
-        </>
-      ) : (
-        <>
-          <div style={{ fontSize: 15, fontWeight: 650, color: color.ink, marginBottom: 6 }}>
-            No tracks in your library yet
-          </div>
-          <div style={{ fontSize: 13, color: color.body, lineHeight: 1.45 }}>
-            {totalCount > 0 && playableCount === 0
-              ? `${totalCount} catalog entries are missing audio — add audioUrl in admin or re-upload tracks.`
-              : "Once tracks are added to the catalog, they will show up here. Pull to refresh by tapping Retry."}
-          </div>
-          <button
-            type="button"
-            onClick={onRetry}
-            style={{
-              ...BTN_SECONDARY,
-              width: "auto",
-              marginTop: 12,
-              padding: "10px 18px",
-              fontSize: 14,
-            }}
-          >
-            Retry
-          </button>
-        </>
-      )}
-    </div>
-  );
-}
-
-/**
- * For you — one horizontal scrolling row of recommended tracks.
- */
-function ForYouRiver({
-  tracks = [],
-  coldStart = false,
-  onPlayTrack,
-  activeId,
-  isPlaying,
-  onLike,
-  playlistCtx,
-}) {
-  if (!tracks.length) return null;
-  const tasteLine = coldStart
-    ? "A starting stack while we learn your taste."
-    : "Recent listens, rising cuts, and picks pulled for your rotation.";
-
-  return (
-    <HomeSection
-      label={coldStart ? "First crate" : "Your rotation"}
-      subtitle={tasteLine}
-      delay={0.06}
-      first
-    >
-      <CoverShelf
-        tracks={tracks}
-        onPlayTrack={(t) => onPlayTrack(t, tracks)}
-        activeId={activeId}
-        isPlaying={isPlaying}
-        onLike={onLike}
-        playlistCtx={playlistCtx}
-        tileSize={132}
-        compactCaptions
-        limit={25}
-      />
-    </HomeSection>
-  );
-}
-
-function HomeScreen({
-  tracks, onPlayRadio, onTogglePlay, onPlayTrack, currentTrack, isPlaying, onLike,
-  isRadioMode, playlistCtx, signalLabel,
-  mixLane, radioPreview = null, radioNext = null, onSkipRadio, onPrevRadio,
-  catalogError = null, onRetryCatalog,
-  preferredGenres = [], recentTrackIds = [],
-  progress = 0, duration = 0, onOpenPlayer, onListenFor = null,
-  intentLabel = null,
-  communityMix = null, onOpenCommunityMix = null,
-}) {
-  const activeId = currentTrack?.id;
-  const playableCount = countPlayableTracks(tracks);
-  const catalogEmpty = !catalogError && tracks.length === 0;
-  const catalogDepleted = !catalogError && tracks.length > 0 && playableCount === 0;
-
-  const tasteKey = (preferredGenres || []).join("\u0001");
-  const recentKey = (recentTrackIds || []).join("\u0001");
-  const catalogKey = tracks.length;
-
-  const recentlyPlayed = useMemo(
-    () => [...new Set(recentTrackIds)]
-      .map((id) => tracks.find((t) => t.id === id))
-      .filter(Boolean)
-      .slice(0, 25),
-    [tracks, recentKey]
-  );
-
-  const trending = useMemo(() => trendingTracks(tracks, 25), [tracks, catalogKey]);
-
-  const { picks: recommended, coldStart } = useMemo(
-    () => recommendedPicks(tracks, {
-      preferredGenres,
-      recentTrackIds,
-      limit: 25,
-      excludeIds: [],
-    }),
-    [tracks, catalogKey, tasteKey, recentKey]
-  );
-
-  const forYouTracks = useMemo(() => {
-    const seen = new Set();
-    const rail = [];
-    const pushUnique = (list) => {
-      for (const t of list) {
-        if (!t?.id || seen.has(t.id)) continue;
-        seen.add(t.id);
-        rail.push(t);
-        if (rail.length >= 25) return;
-      }
-    };
-    pushUnique(recommended.map((p) => p.track));
-    pushUnique(trending);
-    pushUnique(recentlyPlayed);
-    pushUnique(tracks);
-    return rail;
-  }, [recommended, trending, recentlyPlayed, tracks]);
-
-  return (
-    <div style={{ position: "relative", paddingBottom: 48 }}>
-      <CoverStage
-        onPlay={onPlayRadio}
-        onTogglePlay={onTogglePlay}
-        onSkip={onSkipRadio}
-        onPrev={onPrevRadio}
-        onOpen={onOpenPlayer}
-        currentTrack={currentTrack}
-        isPlaying={isPlaying}
-        isRadioMode={isRadioMode}
-        previewTrack={radioPreview}
-        mixLane={mixLane}
-        playDisabled={catalogEmpty || catalogDepleted || !!catalogError}
-        progress={progress}
-        duration={duration}
-        onListenFor={onListenFor}
-        intentLabel={intentLabel}
-      />
-
-      {(catalogError || catalogEmpty || catalogDepleted) && (
-        <HomeCatalogStatus
-          error={catalogError}
-          isEmpty={catalogEmpty || catalogDepleted}
-          playableCount={playableCount}
-          totalCount={tracks.length}
-          onRetry={onRetryCatalog}
-        />
-      )}
-
-      <div style={{
-        position: "relative",
-        background: `
-          linear-gradient(180deg, rgba(255,255,255,0.45) 0%, transparent 100px),
-          ${color.canvas}
-        `,
-      }}>
-        {forYouTracks.length > 0 && (
-          <ForYouRiver
-            tracks={forYouTracks}
-            coldStart={coldStart}
-            onPlayTrack={onPlayTrack}
-            activeId={activeId}
-            isPlaying={isPlaying}
-            onLike={onLike}
-            playlistCtx={playlistCtx}
-          />
-        )}
-
-        {communityMix && onOpenCommunityMix && (
-          <CommunityMixBanner
-            mix={communityMix}
-            onOpen={onOpenCommunityMix}
-            onPlay={() => {
-              const pool = (communityMix.trackIds || [])
-                .map((id) => tracks.find((t) => t.id === id))
-                .filter(Boolean);
-              if (pool[0]) onPlayTrack(pool[0], pool);
-            }}
-          />
-        )}
-
-        {!catalogError && !catalogEmpty && forYouTracks.length === 0 && (
-          <div style={{ padding: `28px ${homeSpace.gutter}px 56px` }}>
-            <div className="glass-surface" style={{ padding: "28px 22px", borderRadius: radius.lg }}>
-              <div style={{ fontSize: 22, fontWeight: 700, fontFamily: fontDisplay, color: color.ink, marginBottom: 8, letterSpacing: -0.4 }}>
-                Nothing to play yet
-              </div>
-              <div style={{ fontSize: 15, color: color.muted, lineHeight: 1.5, maxWidth: 280 }}>
-                Add tracks to the catalog and they will show up here.
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
-
-// ─── SEARCH ───────────────────────────────────────────────────────────────────
-function SearchScreen({
-  query, setQuery, results, onPlay, onLike, currentTrack, isPlaying, playlistCtx,
-  entityHits, onOpenArtist, onOpenAlbum, tracks = [], onListenIntent = null,
-}) {
-  return (
-    <div style={{ padding: "0 0 16px" }}>
-      <CollapsingHeader title="Search" subtitle="Dig for artists, cuts, and records." />
-      <div style={{ padding: "10px 16px 0" }}>
-      <div style={{ position:"relative", marginBottom:20 }}>
-        <div style={{ position:"absolute", left:14, top:"50%", transform:"translateY(-50%)", color: color.faint }}><Icon name="search" size={16}/></div>
-        <input
-          placeholder="Artists, songs, albums…"
-          aria-label="Search"
-          style={{...INPUT_ST, paddingLeft:42, background: color.surfaceRaised, border: "none"}}
-          value={query}
-          onChange={e=>setQuery(e.target.value)}
-          autoFocus
-        />
-      </div>
-      {query.length > 1 && entityHits?.artists?.length > 0 && (
-        <div style={{ marginBottom: 20 }}>
-          <div style={{ fontSize:13, fontWeight:600, color: color.muted, marginBottom:10, textTransform:"uppercase", letterSpacing:0.4 }}>Artists</div>
-          {entityHits.artists.map((a) => (
-            <button
-              key={a.slug}
-              type="button"
-              onClick={() => onOpenArtist?.(a.slug)}
-              style={{
-                display:"flex", alignItems:"center", gap:12, width:"100%", padding:"10px 4px",
-                background:"none", border:"none", borderBottom:`1px solid ${color.line}`,
-                cursor:"pointer", textAlign:"left", color: color.ink,
-              }}
-            >
-              <div style={{ width:48, height:48, overflow:"hidden", flexShrink:0, background: color.surfaceRaised, borderRadius: 24 }}>
-                {a.coverTrack && <AlbumArt track={a.coverTrack} size={48} borderRadius={24}/>}
-              </div>
-              <div style={{ minWidth:0 }}>
-                <div style={{ fontSize:17, fontWeight:600, fontFamily: fontDisplay }}>{a.name}</div>
-                <div style={{ fontSize:13, color: color.muted }}>Artist</div>
-              </div>
-            </button>
-          ))}
-        </div>
-      )}
-      {query.length > 1 && entityHits?.albums?.length > 0 && (
-        <div style={{ marginBottom: 20 }}>
-          <div style={{ fontSize:13, fontWeight:600, color: color.muted, marginBottom:10, textTransform:"uppercase", letterSpacing:0.4 }}>Albums</div>
-          {entityHits.albums.map((a) => (
-            <button
-              key={a.slug}
-              type="button"
-              onClick={() => onOpenAlbum?.(a.slug)}
-              style={{
-                display:"flex", alignItems:"center", gap:12, width:"100%", padding:"10px 4px",
-                background:"none", border:"none", borderBottom:`1px solid ${color.line}`,
-                cursor:"pointer", textAlign:"left", color: color.ink,
-              }}
-            >
-              <div style={{ width:48, height:48, overflow:"hidden", flexShrink:0, background: color.surfaceRaised, borderRadius: 6 }}>
-                {a.coverTrack && <AlbumArt track={a.coverTrack} size={48} borderRadius={6}/>}
-              </div>
-              <div style={{ minWidth:0 }}>
-                <div style={{ fontSize:17, fontWeight:600, fontFamily: fontDisplay }}>{a.title}</div>
-                <div style={{ fontSize:13, color: color.muted }}>{a.artist}</div>
-              </div>
-            </button>
-          ))}
-        </div>
-      )}
-      {query.length>1&&!results.length&&!(entityHits?.artists?.length || entityHits?.albums?.length)&&(
-        <div style={{ textAlign:"center", padding:"56px 0" }}>
-          <div style={{ color: color.ink, fontSize:17, fontWeight:600, fontFamily: fontDisplay, marginBottom:8 }}>Nothing in the crate for “{query}”</div>
-          <div style={{ color: color.muted, fontSize:15, lineHeight:1.5, maxWidth:260, margin:"0 auto" }}>
-            Try another artist, cut, or record.
-          </div>
-        </div>
-      )}
-      {results.length > 0 && query.length > 1 && (
-        <div style={{ fontSize:13, fontWeight:600, color: color.muted, marginBottom:10, textTransform:"uppercase", letterSpacing:0.4 }}>Songs</div>
-      )}
-      {results.map(t=>(
-        <TrackRow key={t.id} track={t} onPlay={()=>onPlay(t)} active={currentTrack?.id===t.id} isPlaying={isPlaying} onLike={onLike} playlistCtx={playlistCtx}/>
-      ))}
-      {!query && (
-        <GenreSceneBrowse
-          tracks={tracks}
-          onPlayPool={(t, pool) => onPlay(t, pool)}
-          onListenIntent={onListenIntent}
-          currentTrack={currentTrack}
-          isPlaying={isPlaying}
-          TrackRow={TrackRow}
-          onLike={onLike}
-          playlistCtx={playlistCtx}
-        />
-      )}
-      </div>
-    </div>
-  );
-}
-
-// ─── ENERGY SPARKLINE ─────────────────────────────────────────────────────────
-function EnergySparkline({ tracks, width=120, height=24 }) {
-  if (!tracks.length) return null;
-  const energies = tracks.map(t => t.energy || 5);
-  const max = 10;
-  const step = width / Math.max(energies.length - 1, 1);
-  const points = energies.map((e, i) => `${i * step},${height - (e / max) * height}`).join(" ");
-  return (
-    <svg width={width} height={height} style={{ display:"block", opacity:0.6 }}>
-      <polyline points={points} fill="none" stroke={color.accent} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-    </svg>
-  );
-}
-
-// ─── DIG (Discover) ───────────────────────────────────────────────────────────
-function FavoritesScreen({
-  tracks, onPlay, onLike, currentTrack, isPlaying, playlistCtx,
-  userPlaylists = [], onCreatePlaylist, onDeletePlaylist,
-  onPlayTrack, onSharePlaylist = null, onOpenMix = null,
-  communityMix = null, onCustomMix = null,
-}) {
-  const { menu, close } = useTrackMenu();
-  const activeId = currentTrack?.id;
-  const saved = savedTracks(tracks, 40);
-  const [showNewInput, setShowNewInput] = useState(false);
-  const [newName, setNewName] = useState("");
-  const [openPlaylistId, setOpenPlaylistId] = useState(null);
-
-  const tile = homeSpace.tile;
-  const mosaic = Math.round(tile / 2);
-  const playTrackFn = onPlayTrack || ((t, pool) => onPlay(t));
-
-  function handleCreate() {
-    if (!newName.trim() || !onCreatePlaylist) return;
-    onCreatePlaylist(newName.trim());
-    setNewName("");
-    setShowNewInput(false);
-  }
-
-  const openPlaylist = openPlaylistId
-    ? userPlaylists.find((p) => p.id === openPlaylistId)
-    : null;
-  const openPlaylistTracks = openPlaylist
-    ? (openPlaylist.trackIds || []).map((id) => tracks.find((t) => t.id === id)).filter(Boolean)
-    : [];
-
-  if (openPlaylist) {
-    const community = isCommunityPlaylist(openPlaylist);
-    return (
-      <div style={{ padding: "24px 16px 36px" }}>
-        <button type="button" onClick={() => setOpenPlaylistId(null)} style={{
-          background: "none", border: "none", color: color.accent, fontSize: 17, cursor: "pointer", fontWeight: 400, marginBottom: 16,
-        }}>‹ Library</button>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 8, gap: 12 }}>
-          <div style={{ fontSize: 28, fontWeight: 700, color: color.ink, fontFamily: fontDisplay, letterSpacing: -0.8 }}>{openPlaylist.name}</div>
-          <span style={{ fontSize: 13, color: color.muted }}>{openPlaylistTracks.length}</span>
-        </div>
-        {community && openPlaylist.curatorName && (
-          <div style={{ fontSize: 14, color: color.muted, marginBottom: 12 }}>
-            Curated by {openPlaylist.curatorName}
-          </div>
-        )}
-        <div style={{ display: "flex", gap: 10, marginBottom: 18, flexWrap: "wrap" }}>
-          {onSharePlaylist && (
-            <button
-              type="button"
-              onClick={() => onSharePlaylist(openPlaylist)}
-              style={{ ...BTN_SECONDARY, borderRadius: 980, padding: "10px 16px", fontSize: 14 }}
-            >
-              {community ? "Share Community Mix" : "Share to Mixtape Club"}
-            </button>
-          )}
-          {!community && onDeletePlaylist && (
-            <button
-              type="button"
-              onClick={() => { onDeletePlaylist(openPlaylist.id); setOpenPlaylistId(null); }}
-              style={{ ...BTN_SECONDARY, borderRadius: 980, padding: "10px 16px", fontSize: 14 }}
-            >
-              Delete
-            </button>
-          )}
-        </div>
-        {openPlaylistTracks.length === 0 ? (
-          <div style={{ fontSize: 15, color: color.faint, paddingTop: 32, textAlign: "center" }}>No songs yet — add tracks with ⋯</div>
-        ) : openPlaylistTracks.map((t) => (
-          <TrackRow
-            key={t.id}
-            track={t}
-            onPlay={() => playTrackFn(t, openPlaylistTracks)}
-            active={activeId === t.id}
-            isPlaying={isPlaying}
-            onLike={onLike}
-            playlistCtx={playlistCtx}
-            activePlaylistId={openPlaylist.id}
-          />
-        ))}
-        {menu && (
-          <TrackActionsMenu track={menu.track} playlistCtx={playlistCtx} activePlaylistId={menu.activePlaylistId} x={menu.x} y={menu.y} onClose={close}/>
-        )}
-      </div>
-    );
-  }
-
-  return (
-    <div style={{ position: "relative", paddingBottom: 56 }}>
-      <CollapsingHeader title="Library" />
-
-      <div style={{
-        position: "relative",
-        background: color.canvas,
-      }}>
-        {onCustomMix && (
-          <section
-            aria-label="Build a Custom Mix"
-            style={{
-              margin: 0,
-              paddingTop: homeSpace.sectionPadTopFirst + 8,
-              paddingBottom: 36,
-              animation: `rise 0.55s ${motion.ease} both`,
-            }}
-          >
-            <CustomMixFeature onClick={onCustomMix} />
-          </section>
-        )}
-
-        {communityMix && onOpenMix && (
-          <div style={{ padding: `4px ${homeSpace.gutter}px 28px` }}>
-            <button
-              type="button"
-              onClick={onOpenMix}
-              style={{
-                width: "100%",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                gap: 16,
-                textAlign: "left",
-                padding: "20px 22px",
-                borderRadius: radius.xl,
-                border: `1px solid ${glass.borderSoft}`,
-                background: `
-                  linear-gradient(160deg, rgba(255,255,255,0.92) 0%, rgba(255,255,255,0.55) 100%)
-                `,
-                boxShadow: `inset 0 1px 0 ${glass.highlight}, ${glass.shadowSoft}`,
-                cursor: "pointer",
-                color: color.ink,
-              }}
-            >
-              <div style={{ minWidth: 0 }}>
-                <div style={{
-                  fontSize: 11, fontWeight: 650, letterSpacing: 1.8, textTransform: "uppercase",
-                  color: color.muted, fontFamily: fontMono, marginBottom: 8,
-                }}>
-                  Mixtape Club
-                </div>
-                <div style={{
-                  fontSize: 20,
-                  fontWeight: 700,
-                  fontFamily: fontDisplay,
-                  letterSpacing: -0.55,
-                  lineHeight: 1.1,
-                }}>
-                  {communityMix.title || "The Community Mix"}
-                </div>
-              </div>
-              <span aria-hidden="true" style={{
-                flexShrink: 0,
-                color: color.faint,
-                fontSize: 22,
-                fontWeight: 300,
-                lineHeight: 1,
-              }}>›</span>
-            </button>
-          </div>
-        )}
-
-        <HomeSection
-          label="Playlists"
-          count={userPlaylists.length || undefined}
-          delay={0.04}
-          first={!communityMix && !onCustomMix}
-        >
-          <div
-            className="hide-scroll"
-            style={{
-              display: "flex",
-              gap: 16,
-              overflowX: "auto",
-              padding: `0 ${homeSpace.gutter}px 10px`,
-              scrollSnapType: "x mandatory",
-              WebkitOverflowScrolling: "touch",
-            }}
-          >
-            {userPlaylists.map((pl) => {
-              const plTracks = (pl.trackIds || []).map((id) => tracks.find((t) => t.id === id)).filter(Boolean);
-              const covers = plTracks.filter((t) => t.albumCover).slice(0, 4);
-              return (
-                <button
-                  key={pl.id}
-                  type="button"
-                  onClick={() => setOpenPlaylistId(pl.id)}
-                  style={{
-                    flex: "0 0 auto",
-                    width: tile,
-                    background: "none",
-                    border: "none",
-                    padding: 0,
-                    cursor: "pointer",
-                    textAlign: "left",
-                    color: color.ink,
-                    scrollSnapAlign: "start",
-                  }}
-                >
-                  <div style={{
-                    width: tile,
-                    height: tile,
-                    borderRadius: radius.md,
-                    overflow: "hidden",
-                    marginBottom: 14,
-                    background: color.surfaceRaised,
-                    display: "grid",
-                    gridTemplateColumns: covers.length > 1 ? "1fr 1fr" : "1fr",
-                    gridTemplateRows: covers.length > 1 ? "1fr 1fr" : "1fr",
-                    boxShadow: artShadow.quiet,
-                    border: `1px solid ${glass.borderSoft}`,
-                    position: "relative",
-                  }}>
-                    {covers.length === 0 ? (
-                      <div style={{
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        color: color.faint,
-                        fontSize: 12,
-                        fontFamily: fontMono,
-                        fontWeight: 650,
-                        letterSpacing: 1.6,
-                        textTransform: "uppercase",
-                        background: aluminumGradient(),
-                      }}>
-                        Set
-                      </div>
-                    ) : covers.length === 1 ? (
-                      <AlbumArt track={covers[0]} size={tile} borderRadius={radius.md}/>
-                    ) : (
-                      <>
-                        {[0, 1, 2, 3].map((i) => (
-                          <div key={i} style={{ overflow: "hidden", background: color.surfaceSolid }}>
-                            {covers[i] ? <AlbumArt track={covers[i]} size={mosaic} borderRadius={0}/> : null}
-                          </div>
-                        ))}
-                      </>
-                    )}
-                    <div aria-hidden="true" style={{
-                      pointerEvents: "none",
-                      position: "absolute",
-                      inset: 0,
-                      borderRadius: radius.md,
-                      boxShadow: `inset 0 1px 0 rgba(255,255,255,0.35)`,
-                    }}/>
-                  </div>
-                  <div style={{
-                    fontSize: 15,
-                    fontWeight: 650,
-                    letterSpacing: -0.3,
-                    fontFamily: fontDisplay,
-                    overflow: "hidden",
-                    textOverflow: "ellipsis",
-                    whiteSpace: "nowrap",
-                  }}>
-                    {pl.name}
-                  </div>
-                  <div style={{
-                    fontSize: 11,
-                    color: color.faint,
-                    marginTop: 5,
-                    fontFamily: fontMono,
-                    letterSpacing: 0.4,
-                    fontVariantNumeric: "tabular-nums",
-                  }}>
-                    {plTracks.length === 0
-                      ? "Empty"
-                      : `${plTracks.length} track${plTracks.length === 1 ? "" : "s"}`}
-                  </div>
-                </button>
-              );
-            })}
-            <button
-              type="button"
-              onClick={() => setShowNewInput(true)}
-              style={{
-                flex: "0 0 auto",
-                width: tile,
-                background: "none",
-                border: "none",
-                padding: 0,
-                cursor: "pointer",
-                textAlign: "left",
-                color: color.ink,
-                scrollSnapAlign: "start",
-              }}
-            >
-              <div style={{
-                width: tile,
-                height: tile,
-                borderRadius: radius.md,
-                marginBottom: 14,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                color: color.muted,
-                fontSize: 30,
-                fontWeight: 200,
-                letterSpacing: 0,
-                border: `1px solid ${glass.border}`,
-                background: `
-                  linear-gradient(160deg, rgba(255,255,255,0.9) 0%, rgba(242,244,247,0.7) 100%)
-                `,
-                boxShadow: `inset 0 1px 0 ${glass.highlight}`,
-              }}>
-                +
-              </div>
-              <div style={{
-                fontSize: 15,
-                fontWeight: 650,
-                letterSpacing: -0.25,
-                fontFamily: fontDisplay,
-                color: color.body,
-              }}>
-                New playlist
-              </div>
-            </button>
-          </div>
-          {showNewInput && (
-            <div style={{
-              display: "flex",
-              gap: 8,
-              alignItems: "center",
-              padding: `16px ${homeSpace.gutter}px 0`,
-            }}>
-              <input
-                autoFocus
-                value={newName}
-                onChange={(e) => setNewName(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") handleCreate();
-                  if (e.key === "Escape") { setShowNewInput(false); setNewName(""); }
-                }}
-                placeholder="Playlist name…"
-                style={{ flex: 1, ...INPUT_ST, padding: "10px 12px", fontSize: 15 }}
-              />
-              <button
-                type="button"
-                onClick={handleCreate}
-                style={{
-                  background: color.accent,
-                  border: "none",
-                  borderRadius: 980,
-                  color: color.onAccent,
-                  fontSize: 15,
-                  fontWeight: 600,
-                  padding: "10px 16px",
-                  cursor: "pointer",
-                }}
-              >
-                Create
-              </button>
-            </div>
-          )}
-        </HomeSection>
-
-        {saved.length > 0 && (
-          <HomeSection
-            label="Liked Songs"
-            count={saved.length}
-            delay={0.08}
-          >
-            <div style={{ padding: `0 ${Math.max(0, homeSpace.gutter - 8)}px` }}>
-              {saved.map((t) => (
-                <TrackRow
-                  key={t.id}
-                  track={t}
-                  onPlay={() => playTrackFn(t, saved)}
-                  active={activeId === t.id}
-                  isPlaying={isPlaying}
-                  onLike={onLike}
-                  playlistCtx={playlistCtx}
-                />
-              ))}
-            </div>
-          </HomeSection>
-        )}
-      </div>
-
-      {menu && (
-        <TrackActionsMenu
-          track={menu.track}
-          playlistCtx={playlistCtx}
-          activePlaylistId={menu.activePlaylistId}
-          x={menu.x}
-          y={menu.y}
-          onClose={close}
-        />
-      )}
-    </div>
-  );
-}
-
-// ─── PROFILE — Digital Record Club membership card ───────────────────────────
-function ProfileScreen({
-  user, tracks, onLogout, onEditGenres = null, access = null, onSubscribe = null,
-  profile = null, onOpenMix = null,
-}) {
-  const liked = tracks.filter(t => t.liked);
-  const genres = user.genres || [];
-  const memberLine = membershipSummary(access);
-  const price = formatPriceMonthly();
-  const showSubscribe = access && !access.allowed;
-  const onTrial = access?.reason === "trial";
-  const stats = useMemo(() => collectionStats(liked), [liked]);
-  const memberNo = profile?.memberNumber ?? user.memberNumber;
-  const joined = formatJoinedMonth(profile?.createdAt || profile?.clubJoinedAt);
-  const curatorBadge = profile?.featuredCuratorMonth || null;
-
-  return (
-    <div style={{ padding: "0 0 24px" }}>
-      <CollapsingHeader
-        title="You"
-        subtitle="Digital Record Club"
-      />
-      <div style={{ padding: "12px 20px 0" }}>
-        {/* Collectible membership card */}
-        <div
-          style={{
-            position: "relative",
-            overflow: "hidden",
-            borderRadius: radius.lg,
-            padding: "28px 24px 26px",
-            marginBottom: 28,
-            border: `1px solid ${glass.border}`,
-            background: `
-              radial-gradient(ellipse 90% 80% at 0% 0%, rgba(10,124,255,0.1) 0%, transparent 55%),
-              radial-gradient(ellipse 60% 70% at 100% 100%, rgba(255,255,255,0.65) 0%, transparent 50%),
-              linear-gradient(165deg, #FFFFFF 0%, #EEF1F5 55%, #E2E6ED 100%)
-            `,
-            boxShadow: `
-              inset 0 1px 0 ${glass.highlight},
-              ${glass.shadow}
-            `,
-            animation: "rise 0.55s cubic-bezier(0.22,1,0.36,1) both",
-          }}
-        >
-          <div aria-hidden="true" style={{
-            position: "absolute",
-            right: -20,
-            top: -30,
-            width: 160,
-            height: 160,
-            borderRadius: "50%",
-            border: `1px solid ${glass.borderSoft}`,
-            pointerEvents: "none",
-          }}/>
-          <div style={{
-            fontSize: 12,
-            fontWeight: 700,
-            letterSpacing: 2.4,
-            textTransform: "uppercase",
-            color: color.ink,
-            fontFamily: fontMono,
-            marginBottom: 18,
-          }}>
-            {CLUB_NAME}
-          </div>
-          <div style={{
-            fontSize: "clamp(28px, 7vw, 36px)",
-            fontWeight: 700,
-            letterSpacing: -1,
-            fontFamily: fontDisplay,
-            color: color.ink,
-            lineHeight: 1.05,
-            marginBottom: 6,
-          }}>
-            {user.name}
-          </div>
-          <div style={{
-            fontSize: 18,
-            fontWeight: 600,
-            letterSpacing: 0.4,
-            fontFamily: fontMono,
-            color: color.accent,
-            marginBottom: 22,
-          }}>
-            {memberNumberLabel(memberNo || 0)}
-          </div>
-
-          <div style={{
-            display: "grid",
-            gridTemplateColumns: "1fr 1fr",
-            gap: 18,
-            paddingTop: 18,
-            borderTop: `1px solid ${glass.borderSoft}`,
-          }}>
-            <div>
-              <div style={{
-                fontSize: 11,
-                fontWeight: 650,
-                letterSpacing: 1.2,
-                textTransform: "uppercase",
-                color: color.muted,
-                fontFamily: fontMono,
-                marginBottom: 6,
-              }}>
-                Joined
-              </div>
-              <div style={{ fontSize: 16, fontWeight: 600, color: color.ink, fontFamily: fontDisplay }}>
-                {joined}
-              </div>
-            </div>
-            <div>
-              <div style={{
-                fontSize: 11,
-                fontWeight: 650,
-                letterSpacing: 1.2,
-                textTransform: "uppercase",
-                color: color.muted,
-                fontFamily: fontMono,
-                marginBottom: 6,
-              }}>
-                Collection
-              </div>
-              <div style={{ fontSize: 15, fontWeight: 600, color: color.ink, lineHeight: 1.35 }}>
-                <div>{stats.albums} Album{stats.albums === 1 ? "" : "s"}</div>
-                <div>{stats.eps} EP{stats.eps === 1 ? "" : "s"}</div>
-                <div>{stats.singles} Single{stats.singles === 1 ? "" : "s"}</div>
-              </div>
-            </div>
-          </div>
-
-          {curatorBadge && (
-            <div style={{
-              marginTop: 18,
-              paddingTop: 14,
-              borderTop: `1px solid ${glass.borderSoft}`,
-              fontSize: 13,
-              color: color.body,
-              lineHeight: 1.4,
-            }}>
-              Featured curator · {formatMonthLabel(curatorBadge)}
-            </div>
-          )}
-        </div>
-
-      <div style={{ marginBottom: 28 }}>
-        <div style={{
-          fontSize: 13, fontWeight: 600, color: color.muted,
-          textTransform: "uppercase", letterSpacing: 0.4, marginBottom: 10,
-        }}>
-          Membership
-        </div>
-        <div style={{ fontSize: 15, color: color.body, lineHeight: 1.45, marginBottom: 6 }}>
-          {memberLine}
-        </div>
-        <div style={{ fontSize: 14, color: color.muted, lineHeight: 1.45, marginBottom: 14 }}>
-          {access?.reason === "subscribed"
-            ? `Full access · ${price}/month.`
-            : onTrial
-              ? `Free for your first month, then ${price}/month.`
-              : access?.reason === "admin"
-                ? "Admin — full access."
-                : `Subscribe for ${price}/month to keep listening.`}
-        </div>
-        {(showSubscribe || onTrial) && onSubscribe && (
-          <button
-            type="button"
-            onClick={onSubscribe}
-            style={{
-              ...(showSubscribe ? BTN_PRIMARY : BTN_SECONDARY),
-              width: "100%",
-              borderRadius: 980,
-              marginBottom: 12,
-            }}
-          >
-            {showSubscribe ? `Subscribe — ${price}/mo` : `Subscribe early — ${price}/mo`}
-          </button>
-        )}
-      </div>
-
-      <div style={{ marginBottom: 28 }}>
-        <div style={{
-          fontSize: 13, fontWeight: 600, color: color.muted,
-          textTransform: "uppercase", letterSpacing: 0.4, marginBottom: 10,
-        }}>
-          Your genres
-        </div>
-        <div style={{ fontSize: 15, color: color.body, lineHeight: 1.45, marginBottom: 14 }}>
-          {genres.length
-            ? `${genres.join(" · ")} — about 95% of what we play.`
-            : "Not set yet — we’ll play across the catalog."}
-        </div>
-        {onEditGenres && (
-          <button
-            type="button"
-            onClick={onEditGenres}
-            style={{
-              ...BTN_SECONDARY,
-              width: "100%",
-              borderRadius: 980,
-              marginBottom: 12,
-            }}
-          >
-            Edit genres
-          </button>
-        )}
-        {onOpenMix && (
-          <button
-            type="button"
-            onClick={onOpenMix}
-            style={{
-              ...BTN_SECONDARY,
-              width: "100%",
-              borderRadius: 980,
-              marginBottom: 12,
-            }}
-          >
-            This month’s Community Mix
-          </button>
-        )}
-      </div>
-
-      <button type="button" onClick={onLogout} style={{ ...BTN_SECONDARY, width: "100%", borderRadius: 980 }}>
-        Sign Out
-      </button>
-      </div>
-    </div>
-  );
-}
-
-// ─── ANALYTICS ROW ───────────────────────────────────────────────────────────
-function AnalyticsRow({ rank, track, value, label, max, color: trackColor, accent }) {
-  const pct = max > 0 ? (value / max) * 100 : 0;
-  return (
-    <div style={{ display:"flex", alignItems:"center", gap:10, padding:"10px 12px", background: color.surfaceSolid, borderRadius:12, marginBottom:4, border:`1px solid ${color.line}` }}>
-      <div style={{ width:22, textAlign:"right", fontSize:14, fontWeight:700, color: color.faint, flexShrink:0 }}>{rank}</div>
-      <div style={{ width:36, height:36, borderRadius:7, overflow:"hidden", flexShrink:0 }}>
-        <AlbumArt track={track} size={36} borderRadius={0}/>
-      </div>
-      <div style={{ flex:1, minWidth:0 }}>
-        <div style={{ fontSize:14, fontWeight:600, color: color.ink, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{track.title}</div>
-        <div style={{ marginTop:5, background: "rgba(232,236,240,0.08)", borderRadius:2, height:3, overflow:"hidden" }}>
-          <div style={{ height:"100%", width:`${pct}%`, borderRadius:3, background: accent || trackColor || color.accent, transition:"width 0.4s ease" }}/>
-        </div>
-      </div>
-      <div style={{ flexShrink:0, textAlign:"right" }}>
-        <div style={{ fontSize:18, fontWeight:700, color:accent, letterSpacing:-0.3 }}>{value}</div>
-        <div style={{ fontSize:10, color: color.faint, fontWeight:600 }}>{label}</div>
-      </div>
-    </div>
-  );
-}
-
-// ─── ADMIN ────────────────────────────────────────────────────────────────────
-function AdminScreen({
-  tracks, setTracks, tab, setTab, editTrack, setEditTrack, showToast,
-  userPlaylists = [], communityMix = null, onPublishCommunityMix = null,
-}) {
-  const EMPTY = { title:"",artist:"",album:"",genre:"",energy:"",camelot:"",bpm:"",albumCover:"" };
-  const [nt, setNt] = useState(EMPTY);
-  const [assigning, setAssigning] = useState(false);
-  const [assigned, setAssigned] = useState(0);
-  const [importing, setImporting] = useState(false);
-  const [importProgress, setImportProgress] = useState("");
-  const [deletingUnknown, setDeletingUnknown] = useState(false);
-  const fileInputRef = useRef(null);
-  const [clubCurator, setClubCurator] = useState("");
-  const publishable = (userPlaylists || []).filter((p) => !isCommunityPlaylist(p) && (p.trackIds || []).length > 0);
-
-  function isUnknownArtist(artist) {
-    const a = String(artist ?? "").trim().toLowerCase();
-    return !a || a === "unknown" || a === "unknown artist" || a === "n/a" || a === "na" || a === "-" || a === "none";
-  }
-
-  const unknownArtistTracks = useMemo(
-    () => tracks.filter((t) => isUnknownArtist(t.artist)),
-    [tracks]
-  );
-
-  async function deleteTrackDoc(trackId) {
-    await deleteDoc(doc(db, "tracks", trackId));
-    setTracks((ts) => ts.filter((tr) => tr.id !== trackId));
-  }
-
-  async function handleDeleteTrack(t) {
-    if (!t?.id) return;
-    if (!window.confirm(`Delete “${t.title || t.id}” permanently?`)) return;
-    try {
-      await deleteTrackDoc(t.id);
-      showToast("Deleted");
-    } catch (e) {
-      console.error("Delete failed", e);
-      showToast("Delete failed: " + (e.code || e.message || "unknown error"));
-    }
-  }
-
-  async function handleDeleteUnknownArtists() {
-    if (!unknownArtistTracks.length || deletingUnknown) return;
-    if (!window.confirm(`Permanently delete ${unknownArtistTracks.length} track${unknownArtistTracks.length === 1 ? "" : "s"} with Unknown artist?`)) return;
-    setDeletingUnknown(true);
-    let deleted = 0;
-    let errors = 0;
-    for (const t of unknownArtistTracks) {
-      try {
-        await deleteTrackDoc(t.id);
-        deleted += 1;
-      } catch (e) {
-        console.error("Delete unknown failed", t.id, e);
-        errors += 1;
-      }
-    }
-    setDeletingUnknown(false);
-    showToast(errors
-      ? `Deleted ${deleted}, ${errors} failed`
-      : `Deleted ${deleted} unknown-artist track${deleted === 1 ? "" : "s"}`);
-  }
-
-  // ── CSV EXPORT ──
-  function exportCSV() {
-    const fields = ["id","title","artist","album","genre","energy","camelot","bpm","audioUrl","albumCover","color","duration"];
-    const escape = v => {
-      const s = String(v ?? "");
-      return s.includes(",") || s.includes('"') || s.includes("\n") ? `"${s.replace(/"/g,'""')}"` : s;
-    };
-    const rows = [fields.join(",")];
-    tracks.forEach(t => {
-      rows.push(fields.map(f => escape(t[f])).join(","));
-    });
-    const blob = new Blob([rows.join("\n")], { type:"text/csv" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url; a.download = `4am-tracks-${new Date().toISOString().slice(0,10)}.csv`;
-    a.click(); URL.revokeObjectURL(url);
-    showToast(`Exported ${tracks.length} tracks`);
-  }
-
-  // ── CSV IMPORT ──
-  // Prefer match by `id` so title/artist renames stick. Fall back to title+artist.
-  async function importCSV(file) {
-    setImporting(true); setImportProgress("Reading file...");
-    const text = await file.text();
-    const lines = text.split("\n").filter(l => l.trim());
-    if (lines.length < 2) { showToast("CSV appears empty"); setImporting(false); return; }
-
-    const header = parseCSVLine(lines[0]).map(h => h.toLowerCase().trim());
-    const titleIdx = header.indexOf("title");
-    const artistIdx = header.indexOf("artist");
-    if (titleIdx === -1 || artistIdx === -1) {
-      showToast("CSV must have 'title' and 'artist' columns");
-      setImporting(false); return;
-    }
-
-    const rows = [];
-    for (let i = 1; i < lines.length; i++) {
-      const vals = parseCSVLine(lines[i]);
-      if (!vals[titleIdx]?.trim()) continue;
-      const row = {};
-      header.forEach((h, idx) => { row[h] = (vals[idx] || "").trim(); });
-      rows.push(row);
-    }
-
-    setImportProgress(`Parsed ${rows.length} rows. Writing to Firestore...`);
-
-    const byId = {};
-    const byName = {};
-    tracks.forEach(t => {
-      byId[t.id] = t;
-      byName[`${(t.title||"").toLowerCase()}|||${(t.artist||"").toLowerCase()}`] = t;
-    });
-
-    let updated = 0, created = 0, errors = 0, skipped = 0;
-    const cols = ["#EAE7DC","#C4BFB0","#B8B4A8","#8E8A80","#D8D4C8","#A8A498","#6E6A60"];
-
-    function fieldUpdates(r) {
-      const updates = {};
-      if (r.title != null && String(r.title).trim() !== "") updates.title = String(r.title).trim();
-      if (r.artist != null && String(r.artist).trim() !== "") updates.artist = String(r.artist).trim();
-      if (r.album != null && String(r.album).trim() !== "") updates.album = String(r.album).trim();
-      if (r.genre != null && String(r.genre).trim() !== "") updates.genre = normalizeGenre(r.genre) || String(r.genre).trim();
-      if (r.camelot != null && String(r.camelot).trim() !== "") updates.camelot = String(r.camelot).trim();
-      if (r.bpm && !isNaN(parseInt(r.bpm, 10))) updates.bpm = parseInt(r.bpm, 10);
-      if (r.energy && !isNaN(parseInt(r.energy, 10))) updates.energy = parseInt(r.energy, 10);
-      const audioUrl = r.audiourl || r.audioUrl;
-      if (audioUrl && String(audioUrl).trim()) updates.audioUrl = String(audioUrl).trim();
-      const albumCover = r.albumcover || r.albumCover;
-      if (albumCover && String(albumCover).trim()) updates.albumCover = String(albumCover).trim();
-      if (r.color && String(r.color).trim()) updates.color = String(r.color).trim();
-      if (r.duration && !isNaN(parseFloat(r.duration))) updates.duration = parseFloat(r.duration);
-      return updates;
-    }
-
-    for (let i = 0; i < rows.length; i++) {
-      const r = rows[i];
-      const id = (r.id || "").trim();
-      const matchById = id ? byId[id] : null;
-      const matchByName = byName[`${(r.title||"").toLowerCase()}|||${(r.artist||"").toLowerCase()}`];
-      const match = matchById || (!id ? matchByName : null);
-
-      try {
-        if (match) {
-          const updates = fieldUpdates(r);
-          if (Object.keys(updates).length === 0) { skipped++; continue; }
-          await updateDoc(doc(db, "tracks", match.id), updates);
-          setTracks(prev => prev.map(t => t.id === match.id ? { ...t, ...updates } : t));
-          // Keep lookups fresh for later rows
-          byId[match.id] = { ...match, ...updates };
-          updated++;
-        } else if (id) {
-          const trackData = {
-            title: r.title || "", artist: r.artist || "", album: r.album || "",
-            genre: normalizeGenre(r.genre) || "", camelot: r.camelot || "",
-            energy: parseInt(r.energy, 10) || 5, bpm: parseInt(r.bpm, 10) || null,
-            audioUrl: r.audiourl || r.audioUrl || "", albumCover: r.albumcover || r.albumCover || "",
-            color: r.color || cols[Math.floor(Math.random() * cols.length)],
-            duration: parseFloat(r.duration) || 0,
-            likeCount: 0, playCount: 0, skipCount: 0,
-          };
-          await setDoc(doc(db, "tracks", id), trackData, { merge: true });
-          byId[id] = { ...trackData, id };
-          created++;
-        } else {
-          const trackData = {
-            title: r.title || "", artist: r.artist || "", album: r.album || "",
-            genre: normalizeGenre(r.genre) || "", camelot: r.camelot || "",
-            energy: parseInt(r.energy, 10) || 5, bpm: parseInt(r.bpm, 10) || null,
-            audioUrl: r.audiourl || r.audioUrl || "", albumCover: r.albumcover || r.albumCover || "",
-            color: r.color || cols[Math.floor(Math.random() * cols.length)],
-            duration: parseFloat(r.duration) || 0,
-            createdAt: new Date(), likeCount: 0, playCount: 0, skipCount: 0,
-          };
-          const newId = `import_${Date.now()}_${i}`;
-          await setDoc(doc(db, "tracks", newId), trackData);
-          created++;
-        }
-      } catch(e) {
-        console.error("Import error row", i, e);
-        errors++;
-      }
-
-      if (i % 10 === 0) setImportProgress(`Processing ${i+1}/${rows.length}... (${updated} updated, ${created} created)`);
-    }
-
-    setImportProgress("Reloading library...");
-    try {
-      const q2 = query(collection(db, "tracks"), orderBy("createdAt", "desc"));
-      const snap = await getDocs(q2);
-      const loaded = snap.docs.map(d => ({ ...d.data(), id: d.id, liked: false }));
-      setTracks(computeSignalTraits(loaded));
-    } catch(e) {}
-
-    setImporting(false);
-    setImportProgress("");
-    showToast(`Import done: ${updated} updated, ${created} created${skipped ? `, ${skipped} unchanged` : ""}${errors ? `, ${errors} errors` : ""}`);
-  }
-
-  // Simple CSV line parser that handles quoted fields
-  function parseCSVLine(line) {
-    const result = []; let current = ""; let inQuotes = false;
-    for (let i = 0; i < line.length; i++) {
-      const c = line[i];
-      if (inQuotes) {
-        if (c === '"' && line[i+1] === '"') { current += '"'; i++; }
-        else if (c === '"') { inQuotes = false; }
-        else { current += c; }
-      } else {
-        if (c === '"') { inQuotes = true; }
-        else if (c === ',') { result.push(current); current = ""; }
-        else { current += c; }
-      }
-    }
-    result.push(current);
-    return result;
-  }
-  const addTrack = () => {
-    if (!nt.title||!nt.artist) { showToast("Title and artist required"); return; }
-    const cols = ["#EAE7DC","#C4BFB0","#B8B4A8","#8E8A80","#D8D4C8","#A8A498","#6E6A60"];
-    setTracks(ts=>[...ts,{ id:Date.now(),...nt,energy:parseInt(nt.energy)||5,bpm:parseInt(nt.bpm)||null,liked:false,color:cols[Math.floor(Math.random()*cols.length)] }]);
-    setNt(EMPTY); showToast("Track added");
-  };
-  return (
-    <div style={{ padding:"24px 16px 16px" }}>
-      <div style={{ display:"flex", alignItems:"center", gap:12, marginBottom:20 }}>
-        <DoorGlyph size={28} title="" />
-        <div style={{ fontSize:28, fontWeight:700, letterSpacing:-0.5, color: color.ink, fontFamily: fontDisplay }}>Admin</div>
-      </div>
-      <div style={{ display:"flex", gap:6, marginBottom:20, background: color.surfaceSolid, borderRadius:12, padding:3, border:`1px solid ${color.line}` }}>
-        {["tracks","analytics","audit","club"].map(t=>(
-          <button key={t} onClick={()=>setTab(t)} style={{ flex:1, padding:"8px 0", borderRadius:10, border:"none", cursor:"pointer", fontSize:13, fontWeight:600, textTransform:"capitalize", background:tab===t? color.accent:"transparent", color:tab===t? color.onAccent: color.muted, boxShadow:"none" }}>
-            {t.charAt(0).toUpperCase()+t.slice(1)}
-          </button>
-        ))}
-      </div>
-      {tab==="tracks"&&(
-        <div>
-          {editTrack&&(
-            <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.55)", backdropFilter:"blur(8px)", zIndex:100, display:"flex", alignItems:"center", justifyContent:"center", padding:24 }}>
-              <div style={{ background: color.surfaceSolid, borderRadius:20, padding:24, width:"100%", maxWidth:380, boxShadow:"0 16px 64px rgba(0,0,0,0.45)", border:`1px solid ${color.line}` }}>
-                <div style={{ fontSize:18, fontWeight:600, color: color.ink, marginBottom:16 }}>Edit Track</div>
-                {[["title","Title"],["artist","Artist"],["album","Album"],["genre","Genre"],["energy","Energy (1–10)"],["camelot","Camelot Key"],["bpm","BPM"],["albumCover","Cover URL"]].map(([k,p])=>(
-                  <input key={k} placeholder={p} value={editTrack[k]||""} onChange={e=>setEditTrack(t=>({...t,[k]:e.target.value}))} style={{...INPUT_ST,marginBottom:8}}/>
-                ))}
-                <div style={{ display:"flex", gap:8, marginTop:8 }}>
-                  <button onClick={async()=>{
-                    const updated = {...editTrack, energy:parseInt(editTrack.energy)||5, bpm:parseInt(editTrack.bpm)||null};
-                    try {
-                      await updateDoc(doc(db,"tracks",editTrack.id), {
-                        title:updated.title, artist:updated.artist, album:updated.album,
-                        genre:updated.genre, energy:updated.energy, camelot:updated.camelot,
-                        bpm:updated.bpm, albumCover:updated.albumCover,
-                      });
-                      setTracks(ts=>ts.map(tr=>tr.id===editTrack.id?updated:tr));
-                      setEditTrack(null); showToast("Saved ✓");
-                    } catch(e) {
-                      console.error("Admin save error:", e);
-                      showToast("Save failed: " + (e.code || e.message || "unknown error"));
-                    }
-                  }} style={{...BTN_PRIMARY,flex:1}}>Save</button>
-                  <button onClick={()=>setEditTrack(null)} style={{...BTN_SECONDARY,flex:1}}>Cancel</button>
-                </div>
-              </div>
-            </div>
-          )}
-          <SectionLabel>Add Track</SectionLabel>
-          {[["title","Title *"],["artist","Artist *"],["album","Album"],["genre","Genre"],["energy","Energy (1–10)"],["camelot","Camelot Key (e.g. 8A)"],["bpm","BPM"],["albumCover","Cover URL"]].map(([k,p])=>(
-            <input key={k} placeholder={p} value={nt[k]||""} onChange={e=>setNt(n=>({...n,[k]:e.target.value}))} style={{...INPUT_ST,marginBottom:8}}/>
-          ))}
-          <button onClick={addTrack} style={{...BTN_PRIMARY,width:"100%",marginBottom:16,display:"flex",alignItems:"center",justifyContent:"center",gap:8}}><Icon name="plus" size={16}/> Add Track</button>
-          {unknownArtistTracks.length > 0 && (
-            <button
-              type="button"
-              onClick={handleDeleteUnknownArtists}
-              disabled={deletingUnknown}
-              style={{
-                ...BTN_SECONDARY,
-                width: "100%",
-                marginBottom: 20,
-                borderColor: "rgba(224,100,100,0.35)",
-                color: "#E8A0A0",
-                opacity: deletingUnknown ? 0.6 : 1,
-              }}
-            >
-              {deletingUnknown
-                ? "Deleting…"
-                : `Delete ${unknownArtistTracks.length} Unknown artist track${unknownArtistTracks.length === 1 ? "" : "s"}`}
-            </button>
-          )}
-          <SectionLabel>Library ({tracks.length})</SectionLabel>
-          {tracks.map(t=>(
-            <div key={t.id} style={{ display:"flex", alignItems:"center", gap:10, padding:"10px 12px", background:"rgba(255,255,255,0.15)", backdropFilter:"blur(32px)", borderRadius:10, marginBottom:4, border:"1px solid rgba(255,255,255,0.16)" }}>
-              <div style={{ width:36, height:36, borderRadius:7, overflow:"hidden", flexShrink:0 }}><AlbumArt track={t} size={36} borderRadius={0}/></div>
-              <div style={{ flex:1, minWidth:0 }}>
-                <div style={{ fontSize:14, fontWeight:500, color: color.ink, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{t.title}</div>
-                <div style={{ fontSize:12, color: isUnknownArtist(t.artist) ? "#E8A0A0" : color.muted }}>{t.artist || "Unknown"}</div>
-              </div>
-              <div style={{ display:"flex", gap:4, flexShrink:0, flexWrap:"wrap", justifyContent:"flex-end", maxWidth:180 }}>
-                {t.genre&&<span style={{ fontSize:10, fontWeight:500, padding:"2px 8px", borderRadius:6, background:"rgba(26,29,38,0.06)", color: color.ink }}>{t.genre}</span>}
-                {t.camelot&&<span style={{ fontSize:10, fontWeight:600, padding:"2px 8px", borderRadius:6, background:"rgba(26,29,38,0.08)", color: color.ink }}>{t.camelot}</span>}
-                {t.bpm&&<span style={{ fontSize:10, fontWeight:500, padding:"2px 8px", borderRadius:6, background:"rgba(0,0,0,0.04)", color: color.muted }}>{t.bpm}bpm</span>}
-                {t.energy&&<span style={{ fontSize:10, fontWeight:500, padding:"2px 8px", borderRadius:6, background:"rgba(0,0,0,0.04)", color: color.muted }}>E{t.energy}</span>}
-              </div>
-              <button onClick={()=>setEditTrack(t)} style={{ background:"none",border:"none",cursor:"pointer",color: color.muted,padding:6 }}><Icon name="edit" size={14}/></button>
-              <button onClick={()=>handleDeleteTrack(t)} style={{ background:"none",border:"none",cursor:"pointer",color: color.alert,padding:6 }}><Icon name="trash" size={14}/></button>
-            </div>
-          ))}
-        </div>
-      )}
-      {tab==="analytics"&&(
-        <div>
-          {/* ── Summary stats row ── */}
-          <SectionLabel>Overview</SectionLabel>
-          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:8, marginBottom:24 }}>
-            {[["Tracks",tracks.length],["Liked",tracks.filter(t=>t.liked).length],["Genres",[...new Set(tracks.map(t=>t.genre))].length],["BPMs",[...new Set(tracks.filter(t=>t.bpm).map(t=>t.bpm))].length]].map(([l,v])=>(
-              <div key={l} style={{ padding:"14px 16px", background: color.surfaceSolid, borderRadius:14, border:"0.5px solid rgba(60,60,67,0.12)", boxShadow:"0 1px 4px rgba(0,0,0,0.04)" }}>
-                <div style={{ fontSize:11, fontWeight:600, letterSpacing:0.5, color: color.faint, textTransform:"uppercase", marginBottom:4 }}>{l}</div>
-                <div style={{ fontSize:28, fontWeight:700, letterSpacing:-0.5, color: color.ink }}>{v}</div>
-              </div>
-            ))}
-          </div>
-
-          {/* ── Most liked ── */}
-          <SectionLabel>Most Liked</SectionLabel>
-          {[...tracks]
-            .filter(t => (t.likeCount||0) > 0 || t.liked)
-            .sort((a,b) => (b.likeCount||0) - (a.likeCount||0))
-            .slice(0,10)
-            .map((t,i) => (
-              <AnalyticsRow key={t.id} rank={i+1} track={t}
-                value={t.likeCount||0} label="likes"
-                max={Math.max(...tracks.map(x=>x.likeCount||0),1)}
-                color={t.color} accent="rgba(224,100,100,0.7)"/>
-            ))
-          }
-          {tracks.every(t=>!(t.likeCount||0)) && (
-            <div style={{ textAlign:"center", color:"rgba(220,220,225,0.75)", padding:"24px 0", fontSize:13 }}>No like data yet — play some tracks!</div>
-          )}
-
-          {/* ── Most skipped ── */}
-          <SectionLabel style={{ marginTop:24 }}>Most Skipped</SectionLabel>
-          {[...tracks]
-            .filter(t => (t.skipCount||0) > 0)
-            .sort((a,b) => (b.skipCount||0) - (a.skipCount||0))
-            .slice(0,10)
-            .map((t,i) => (
-              <AnalyticsRow key={t.id} rank={i+1} track={t}
-                value={t.skipCount||0} label="skips"
-                max={Math.max(...tracks.map(x=>x.skipCount||0),1)}
-                color={t.color} accent="rgba(200,160,80,0.7)"/>
-            ))
-          }
-          {tracks.every(t=>!(t.skipCount||0)) && (
-            <div style={{ textAlign:"center", color:"rgba(220,220,225,0.75)", padding:"24px 0", fontSize:13 }}>No skip data yet — start listening!</div>
-          )}
-
-          {/* ── Most played ── */}
-          <SectionLabel style={{ marginTop:24 }}>Most Played</SectionLabel>
-          {[...tracks]
-            .filter(t => (t.playCount||0) > 0)
-            .sort((a,b) => (b.playCount||0) - (a.playCount||0))
-            .slice(0,10)
-            .map((t,i) => (
-              <AnalyticsRow key={t.id} rank={i+1} track={t}
-                value={t.playCount||0} label="plays"
-                max={Math.max(...tracks.map(x=>x.playCount||0),1)}
-                color={t.color} accent="rgba(100,180,140,0.7)"/>
-            ))
-          }
-          {tracks.every(t=>!(t.playCount||0)) && (
-            <div style={{ textAlign:"center", color:"rgba(220,220,225,0.75)", padding:"24px 0", fontSize:13 }}>No play data yet — start listening!</div>
-          )}
-        </div>
-      )}
-      {tab==="audit"&&(
-        <div>
-          {/* Export / Import */}
-          <SectionLabel>Export & Import</SectionLabel>
-          <div style={{ display:"flex", gap:8, marginBottom:20 }}>
-            <button onClick={exportCSV} style={{ flex:1, padding:"14px", borderRadius:14, background: color.accent, color: color.onAccent, border:"none", fontSize:14, fontWeight:600, cursor:"pointer" }}>
-              Export CSV ({tracks.length} tracks)
-            </button>
-            <button onClick={()=>fileInputRef.current?.click()} disabled={importing}
-              style={{ flex:1, padding:"14px", borderRadius:14, background:"rgba(255,255,255,0.12)", backdropFilter:"blur(32px)", color: color.ink, border:"1px solid rgba(255,255,255,0.18)", fontSize:14, fontWeight:600, cursor:importing?"wait":"pointer" }}>
-              {importing ? "Importing..." : "Import CSV"}
-            </button>
-            <input ref={fileInputRef} type="file" accept=".csv" style={{ display:"none" }}
-              onChange={e => { if(e.target.files[0]) importCSV(e.target.files[0]); e.target.value=""; }}/>
-          </div>
-          {importProgress && (
-            <div style={{ padding:"10px 14px", borderRadius:10, background:"rgba(255,255,255,0.08)", border:"1px solid rgba(255,255,255,0.12)", marginBottom:16, fontSize:12, color: color.muted }}>
-              {importProgress}
-            </div>
-          )}
-          <div style={{ padding:"10px 14px", borderRadius:10, background:"rgba(255,255,255,0.06)", border:"1px solid rgba(255,255,255,0.1)", marginBottom:24, fontSize:11, color: color.muted, lineHeight:1.6 }}>
-            <strong style={{ color: color.muted }}>How it works:</strong> Export downloads all tracks as CSV (keep the <code>id</code> column). Edit titles/artists/genres/BPM/Camelot in Sheets, then Import. Matching is by <strong>id first</strong> so renames stick; title+artist is only a fallback when id is blank. New rows without id are created. Columns: id, title, artist, album, genre, energy, camelot, bpm, audioUrl, albumCover, color, duration.
-          </div>
-          {(() => {
-            const withKey = tracks.filter(t => t.camelot && t.camelot.trim());
-            const withoutKey = tracks.filter(t => !t.camelot || !t.camelot.trim());
-            const withBpm = tracks.filter(t => t.bpm);
-            const withEnergy = tracks.filter(t => t.energy && t.energy !== 5);
-            const withGenre = tracks.filter(t => t.genre && t.genre.trim());
-
-            // Key distribution
-            const keyCounts = {};
-            withKey.forEach(t => { keyCounts[t.camelot] = (keyCounts[t.camelot]||0)+1; });
-            const sortedKeys = Object.entries(keyCounts).sort((a,b) => b[1]-a[1]);
-
-            // BPM-based camelot estimation
-            function estimateCamelot(t) {
-              const bpm = t.bpm || 120;
-              const genre = (t.genre || "").toLowerCase();
-              const energy = t.energy || 5;
-              const preferMinor = ["techno","ambient","electronic","experimental","house","drum & bass","hip-hop","r&b","metal","rock"].some(g => genre.includes(g));
-              const suffix = preferMinor ? "A" : "B";
-              const keyNum = ((Math.floor(bpm / 10) + energy) % 12) + 1;
-              return `${keyNum}${suffix}`;
-            }
-
-            async function batchAssign() {
-              if (assigning) return;
-              setAssigning(true);
-              setAssigned(0);
-              let count = 0;
-              for (const t of withoutKey) {
-                const estimated = estimateCamelot(t);
-                try {
-                  await updateDoc(doc(db, "tracks", t.id), { camelot: estimated });
-                  setTracks(prev => prev.map(tr => tr.id === t.id ? { ...tr, camelot: estimated } : tr));
-                  count++;
-                  setAssigned(count);
-                } catch(e) {
-                  console.error("Failed to update", t.id, e);
-                }
-              }
-              setAssigning(false);
-              showToast(`Assigned keys to ${count} tracks`);
-            }
-
-            return (
-              <>
-                <SectionLabel>Data Coverage</SectionLabel>
-                <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:8, marginBottom:24 }}>
-                  {[
-                    ["Camelot Key", withKey.length, tracks.length],
-                    ["BPM", withBpm.length, tracks.length],
-                    ["Energy", withEnergy.length, tracks.length],
-                    ["Genre", withGenre.length, tracks.length],
-                  ].map(([label, has, total]) => {
-                    const pct = total ? Math.round(has/total*100) : 0;
-                    return (
-                      <div key={label} style={{ padding:"14px 12px", background:"rgba(255,255,255,0.1)", backdropFilter:"blur(32px)", borderRadius:14, border:"1px solid rgba(255,255,255,0.14)" }}>
-                        <div style={{ fontSize:11, fontWeight:600, color: color.ink, letterSpacing:0.5, marginBottom:8, textTransform:"uppercase" }}>{label}</div>
-                        <div style={{ fontSize:28, fontWeight:700, color: color.ink }}>{has}<span style={{ fontSize:14, color: color.muted }}>/{total}</span></div>
-                        <div style={{ height:4, background:"rgba(0,0,0,0.06)", borderRadius:2, marginTop:8, overflow:"hidden" }}>
-                          <div style={{ width:`${pct}%`, height:"100%", background: pct === 100 ? color.accent : pct > 50 ? color.surfaceRaised : color.faint, borderRadius:2, transition:"width 0.5s" }}/>
-                        </div>
-                        <div style={{ fontSize:10, color: color.muted, marginTop:4 }}>{pct}% covered</div>
-                      </div>
-                    );
-                  })}
-                </div>
-
-                {/* Key distribution */}
-                {sortedKeys.length > 0 && (
-                  <>
-                    <SectionLabel>Key Distribution</SectionLabel>
-                    <div style={{ display:"flex", flexWrap:"wrap", gap:6, marginBottom:24 }}>
-                      {sortedKeys.map(([key, count]) => (
-                        <div key={key} style={{ padding:"6px 12px", borderRadius:8, background:"rgba(255,255,255,0.1)", border:"1px solid rgba(255,255,255,0.14)", fontSize:12 }}>
-                          <span style={{ fontWeight:700, color: color.ink, marginRight:4 }}>{key}</span>
-                          <span style={{ color: color.muted }}>{count}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </>
-                )}
-
-                {/* Missing camelot keys */}
-                <SectionLabel>Missing Camelot Keys ({withoutKey.length})</SectionLabel>
-                {withoutKey.length === 0 ? (
-                  <div style={{ padding:"24px 0", textAlign:"center", color: color.muted, fontSize:13 }}>All tracks have Camelot keys assigned</div>
-                ) : (
-                  <>
-                    <div style={{ padding:"12px 14px", borderRadius:14, background:"rgba(255,255,255,0.08)", border:"1px solid rgba(255,255,255,0.12)", marginBottom:12 }}>
-                      <div style={{ fontSize:12, color: color.ink, fontWeight:600, marginBottom:4 }}>{withoutKey.length} tracks missing keys</div>
-                      <div style={{ fontSize:11, color: color.muted, lineHeight:1.5, marginBottom:12 }}>You can batch-assign estimated keys based on BPM and genre. These are rough estimates — for accurate keys, use DJ software like Mixed In Key or Rekordbox to analyze audio.</div>
-                      <button onClick={batchAssign} disabled={assigning}
-                        style={{ width:"100%", background:assigning? color.muted: color.surfaceRaised, color: color.ink, border:"none", borderRadius:12, padding:"12px", fontSize:14, fontWeight:600, cursor:assigning?"wait":"pointer", transition:"all 0.2s" }}>
-                        {assigning ? `Assigning... ${assigned}/${withoutKey.length}` : `Batch assign ${withoutKey.length} keys`}
-                      </button>
-                    </div>
-                    <div style={{ maxHeight:300, overflowY:"auto" }}>
-                      {withoutKey.slice(0, 50).map(t => (
-                        <div key={t.id} style={{ display:"flex", alignItems:"center", gap:8, padding:"6px 8px", borderRadius:8, marginBottom:2 }}>
-                          <div style={{ width:28, height:28, borderRadius:5, overflow:"hidden", flexShrink:0 }}><AlbumArt track={t} size={28} borderRadius={0}/></div>
-                          <div style={{ flex:1, minWidth:0 }}>
-                            <div style={{ fontSize:12, fontWeight:600, color: color.ink, letterSpacing:-0.2, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{t.title}</div>
-                            <div style={{ fontSize:10, color: color.muted }}>{t.artist}</div>
-                          </div>
-                          <span style={{ fontSize:9, color: color.faint }}>{t.bpm ? `${t.bpm}bpm` : "no bpm"}</span>
-                          <span style={{ fontSize:9, color: color.faint }}>{t.genre || "no genre"}</span>
-                          <button onClick={()=>setEditTrack(t)} style={{ background:"none", border:"none", cursor:"pointer", color: color.muted, padding:4 }}><Icon name="edit" size={12}/></button>
-                        </div>
-                      ))}
-                      {withoutKey.length > 50 && <div style={{ textAlign:"center", color: color.muted, fontSize:11, padding:8 }}>... and {withoutKey.length - 50} more</div>}
-                    </div>
-                  </>
-                )}
-              </>
-            );
-          })()}
-        </div>
-      )}
-      {tab==="club"&&(
-        <div>
-          <SectionLabel>Mixtape Club · Community Mix</SectionLabel>
-          <div style={{ fontSize:14, color: color.muted, lineHeight:1.5, marginBottom:16 }}>
-            Pick a member playlist to publish as this month’s Community Mix. Everyone gets it in their Library. Featured curator gets recognition (and prizes offline).
-          </div>
-          {communityMix ? (
-            <div style={{
-              padding: "14px 16px", borderRadius: 14, marginBottom: 18,
-              background: color.surfaceSolid, border: `1px solid ${color.line}`,
-            }}>
-              <div style={{ fontSize:12, color: color.muted, marginBottom: 4, textTransform: "uppercase", letterSpacing: 0.4 }}>Live now</div>
-              <div style={{ fontSize:18, fontWeight:700, fontFamily: fontDisplay, color: color.ink }}>
-                {communityMix.title || COMMUNITY_MIX_TITLE}
-              </div>
-              <div style={{ fontSize:13, color: color.body, marginTop: 4 }}>
-                {(communityMix.featuredCurator?.displayName || communityMix.ownerName || "Curator")}
-                {" · "}
-                {(communityMix.trackIds || []).length} tracks
-                {communityMix.monthKey ? ` · ${formatMonthLabel(communityMix.monthKey)}` : ""}
-              </div>
-            </div>
-          ) : (
-            <div style={{ fontSize:13, color: color.faint, marginBottom: 16 }}>No Community Mix published this month yet.</div>
-          )}
-          <input
-            placeholder="Featured curator name (optional)"
-            value={clubCurator}
-            onChange={(e)=>setClubCurator(e.target.value)}
-            style={{ ...INPUT_ST, marginBottom: 14 }}
-          />
-          {publishable.length === 0 ? (
-            <div style={{ fontSize:13, color: color.muted }}>
-              Create a playlist in Library first, then publish it here.
-            </div>
-          ) : publishable.map((pl) => (
-            <div
-              key={pl.id}
-              style={{
-                display: "flex", alignItems: "center", gap: 10,
-                padding: "12px 14px", marginBottom: 6, borderRadius: 12,
-                background: color.surfaceSolid, border: `1px solid ${color.line}`,
-              }}
-            >
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize:15, fontWeight:600, color: color.ink }}>{pl.name}</div>
-                <div style={{ fontSize:12, color: color.muted }}>{(pl.trackIds || []).length} tracks</div>
-              </div>
-              <button
-                type="button"
-                onClick={() => {
-                  if (!onPublishCommunityMix) return;
-                  onPublishCommunityMix({
-                    ...pl,
-                    ownerName: clubCurator.trim() || pl.ownerName || undefined,
-                  });
-                }}
-                style={{ ...BTN_PRIMARY, borderRadius: 980, padding: "10px 14px", fontSize: 13 }}
-              >
-                Make Community Mix
-              </button>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
-
-// ─── NOW PLAYING BAR — flat station strip ─────────────────────────────────────
-function MetaChip({ children }) {
-  return <span style={{ fontSize:10, padding:"4px 8px", borderRadius:6, background: color.accentSoft, color: color.accent, fontVariantNumeric:"tabular-nums", fontWeight: 600 }}>{children}</span>;
-}
-
-// ─── FLOATING GLASS DOCK — mini-player + tabs as one surface ──────────────────
-function GlassDock({
-  screen, setScreen, showAdmin = false,
-  track, isPlaying, progress, duration,
-  onTogglePlay, onSkip, onPrev, onLike, onSeek,
-  isRadioMode, onOpen, playlistCtx, onShowQueue, hypnoPocket,
-  hidePlayer = false,
-}) {
-  const items = [
-    { id: "home", label: "Home", icon: "home" },
-    { id: "favorites", label: "Library", icon: "dig" },
-    { id: "search", label: "Search", icon: "search" },
-    { id: "profile", label: "You", icon: "profile" },
-  ];
-  if (showAdmin) items.push({ id: "admin", label: "Admin", icon: "settings" });
-
-  // When Home radio owns the transport, dock collapses to tabs only.
-  const hasPlayer = !!track && !hidePlayer;
-  const { menu, openFromButton, openFromContext, close } = useTrackMenu();
-  const tabRowRef = useRef(null);
-  const tabRefs = useRef({});
-  const [indicator, setIndicator] = useState({ left: 0, width: 0 });
-  const tint = dockTintStyle(track);
-
-  const activeTab = items.some((i) => i.id === screen)
-    ? screen
-    : (screen === "artist" || screen === "album" ? "search" : "home");
-
-  useEffect(() => {
-    const el = tabRefs.current[activeTab];
-    const row = tabRowRef.current;
-    if (!el || !row) return;
-    const rowBox = row.getBoundingClientRect();
-    const box = el.getBoundingClientRect();
-    setIndicator({
-      left: box.left - rowBox.left + box.width * 0.28,
-      width: box.width * 0.44,
-    });
-  }, [activeTab, items.length, hasPlayer]);
-
-  return (
-    <div
-      style={{
-        position: "fixed",
-        left: dock.insetX,
-        right: dock.insetX,
-        bottom: `calc(${dock.insetBottom}px + env(safe-area-inset-bottom, 0px))`,
-        zIndex: 85,
-        animation: `dockRise 0.45s ${motion.ease} both`,
-        pointerEvents: "none",
-      }}
-    >
-      {hasPlayer && <EnergyShiftFeedback />}
-      <div
-        className="glass-dock"
-        style={{
-          borderRadius: dock.radius,
-          overflow: "hidden",
-          pointerEvents: "auto",
-          ...tint,
-        }}
-      >
-        {hasPlayer && (
-          <div
-            role="button"
-            tabIndex={0}
-            onClick={onOpen}
-            onContextMenu={(e) => openFromContext(e, track)}
-            onKeyDown={(e) => { if (e.key === "Enter") onOpen?.(); }}
-            aria-label="Open now playing"
-            style={{
-              position: "relative",
-              height: dock.playerH,
-              padding: "8px 12px 8px 10px",
-              display: "flex",
-              alignItems: "center",
-              gap: 10,
-              cursor: "pointer",
-              borderBottom: `1px solid ${glass.borderFaint}`,
-              boxShadow: isRadioMode || hypnoPocket
-                ? `inset 2px 0 0 ${color.accent}`
-                : "none",
-            }}
-          >
-            <OrbitalArtRing
-              track={track}
-              progress={progress}
-              duration={duration}
-              size={40}
-              onSeek={onSeek}
-              artRadius={8}
-            />
-
-            <div key={track.id} style={{ flex: 1, minWidth: 0, animation: "fadeIn 0.3s ease both" }}>
-              <div style={{
-                fontSize: 13, fontWeight: 650, color: color.ink,
-                overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
-                fontFamily: fontDisplay, letterSpacing: -0.2,
-              }}>
-                {(isRadioMode || hypnoPocket) && (
-                  <span style={{
-                    display: "inline-block", width: 6, height: 6, borderRadius: "50%",
-                    background: color.accent, marginRight: 8, verticalAlign: "middle",
-                    boxShadow: isPlaying ? `0 0 0 3px ${color.accentSoft}` : "none",
-                    animation: isPlaying ? "breathe 2s ease-in-out infinite" : "none",
-                  }}/>
-                )}
-                {track.title}
-              </div>
-              <div style={{
-                fontSize: 11, color: color.muted, marginTop: 3,
-                overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
-              }}>
-                {hypnoPocket ? "Similar mix" : isRadioMode ? "Radio" : track.artist}
-              </div>
-            </div>
-
-            <button type="button" aria-label={track.liked ? "Unlike" : "Like"}
-              onClick={(e) => { e.stopPropagation(); onLike(); }}
-              style={{ background: "none", border: "none", cursor: "pointer", color: track.liked ? color.accent : color.faint, padding: 4 }}>
-              <Icon name={track.liked ? "heart" : "heartempty"} size={16}/>
-            </button>
-            {onShowQueue && (
-              <button type="button" aria-label="Up Next"
-                onClick={(e) => { e.stopPropagation(); onShowQueue(); }}
-                style={{ background: "none", border: "none", cursor: "pointer", color: color.faint, padding: 4 }}>
-                <Icon name="queue" size={16}/>
-              </button>
-            )}
-            <TrackMoreButton onClick={(e) => openFromButton(e, track)} />
-            <EnergyShiftButton direction="down" size={28} />
-            <button type="button" aria-label="Previous"
-              onClick={(e) => { e.stopPropagation(); onPrev?.(); }}
-              style={{ background: "none", border: "none", cursor: "pointer", color: color.muted, padding: 4 }}>
-              <Icon name="prev" size={16}/>
-            </button>
-            <IceOrbPlay
-              isPlaying={isPlaying}
-              onClick={onTogglePlay}
-              size={34}
-              iconSize={14}
-              stopPropagation
-            />
-            <button type="button" aria-label="Next"
-              onClick={(e) => { e.stopPropagation(); onSkip(); }}
-              style={{ background: "none", border: "none", cursor: "pointer", color: color.muted, padding: 4 }}>
-              <Icon name="skip" size={16}/>
-            </button>
-            <EnergyShiftButton direction="up" size={28} />
-          </div>
-        )}
-
-        <nav aria-label="Main" ref={tabRowRef} style={{
-          position: "relative",
-          height: dock.tabH,
-          display: "flex",
-        }}>
-          <span
-            aria-hidden="true"
-            style={{
-              position: "absolute",
-              top: 0,
-              left: indicator.left,
-              width: indicator.width,
-              height: 2,
-              borderRadius: 2,
-              background: color.accent,
-              boxShadow: "none",
-              transition: `left ${motion.settle} ${motion.ease}, width ${motion.settle} ${motion.ease}`,
-            }}
-          />
-          {items.map(({ id, icon, label }) => {
-            const active = activeTab === id;
-            return (
-              <button
-                key={id}
-                ref={(el) => { tabRefs.current[id] = el; }}
-                type="button"
-                aria-label={label}
-                aria-current={active ? "page" : undefined}
-                onClick={() => setScreen(id)}
-                style={{
-                  flex: 1,
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  gap: 3,
-                  background: "none",
-                  border: "none",
-                  cursor: "pointer",
-                  color: active ? color.accent : color.muted,
-                  transition: `color ${motion.base} ${motion.ease}`,
-                }}
-              >
-                <span style={{
-                  display: "flex",
-                  transform: active ? "translateY(-1px)" : "none",
-                  transition: `transform ${motion.settle} ${motion.ease}`,
-                }}>
-                  <Icon name={icon} size={18}/>
-                </span>
-                <span style={{
-                  fontSize: 10,
-                  fontWeight: active ? 650 : 500,
-                  letterSpacing: 0.2,
-                }}>
-                  {label}
-                </span>
-              </button>
-            );
-          })}
-        </nav>
-      </div>
-
-      {menu && (
-        <TrackActionsMenu
-          track={menu.track}
-          playlistCtx={playlistCtx}
-          activePlaylistId={menu.activePlaylistId}
-          x={menu.x}
-          y={menu.y}
-          onClose={close}
-        />
-      )}
-    </div>
-  );
-}
-
-// ─── PULSE — ambient energy visualization ─────────────────────────────────────
-function Pulse({ track, isPlaying }) {
-  // Kept intentionally empty for the minimal shell — ambient motion lives in the player only.
-  return null;
-}
-
-function BgMist({ color: mistColor = "#909090" }) {
-  return (
-    <div style={{ position:"absolute", inset:0, pointerEvents:"none", zIndex:0, overflow:"hidden" }}>
-      <div style={{
-        position:"absolute", top:"-10%", left:"30%", width:280, height:280, borderRadius:"50%",
-        background:`radial-gradient(circle,rgba(${hexToRgbStr(mistColor)},0.045) 0%,transparent 70%)`,
-        filter:"blur(40px)",
-      }}/>
-    </div>
-  );
-}
-
-const ToastEl = ({msg}) => (
-  <div role="status" style={{
-    position:"fixed",
-    bottom: `calc(${dock.clearPlayer + 16}px + env(safe-area-inset-bottom, 0px))`,
-    left:"50%", transform:"translateX(-50%)",
-    background: color.surfaceRaised, color: color.ink, padding:"10px 18px", borderRadius: radius.md,
-    fontSize:13, zIndex:200, whiteSpace:"nowrap", fontWeight:550,
-    border:`1px solid ${color.lineStrong}`, boxShadow:"0 12px 32px rgba(0,0,0,0.4)",
-  }}>{msg}</div>
-);
-
-// ─── ROOT APP ─────────────────────────────────────────────────────────────────
-
-// ─── ROOT APP — Firebase wired ────────────────────────────────────────────────
 export default function App() {
   // ── Auth (login/signup/logout + user profile) ───────────────────────────
   const { firebaseUser, profile, setProfile, loading: authLoading, authError, clearAuthError, signUp, logIn, logOut, refreshProfile, signInWithGoogle, sendPhoneOTP, verifyPhoneOTP, resetPassword } = useAuth();
+  const [sessionLikely] = useState(() => peekAuthSession());
+  const profileTaste = useMemo(
+    () => tasteFromProfile(profile || {}),
+    [
+      profile?.genres,
+      profile?.adventurous,
+      profile?.depth,
+      profile?.channelIds,
+      profile?.artistNames,
+      profile?.energyBand,
+      profile?.vibe,
+      profile?.seedChannelId,
+    ]
+  );
+  const tasteColdStart = isColdStartTaste(profileTaste, {
+    recentTrackIds: (profile?.recentTracks || []).map((r) => r.trackId || r.id),
+    likedCount: (profile?.likedTracks || []).length,
+  });
   const [billingRefreshing, setBillingRefreshing] = useState(false);
+  const billingSettleKeyRef = useRef("");
 
   // ── URL ↔ screen ─────────────────────────────────────────────────────────
   const navigate = useNavigate();
   const location = useLocation();
-  const { screen, artistSlug, albumSlug, mixId } = parsePath(location.pathname);
+  const { screen, artistSlug, albumSlug, mixId, stackId } = parsePath(location.pathname);
   const setScreen = useCallback((id, param = null) => {
     navigate(buildPath(id, param));
   }, [navigate]);
@@ -4799,14 +813,35 @@ export default function App() {
     if (!id) return;
     navigate(buildPath("mix", { mixId: id }));
   }, [navigate]);
-  /** History-aware back — prefer in-app history, else Search hub. */
+  const openStack = useCallback((id) => {
+    if (!id) return;
+    navigate(buildPath("stack", { stackId: id }));
+  }, [navigate]);
+  const closeStack = useCallback(() => {
+    navigate(buildPath("favorites"));
+  }, [navigate]);
+  /** History-aware back — prefer in-app history, else Explore (Search is no longer a tab). */
   const goBack = useCallback(() => {
     if (location.key && location.key !== "default") {
       navigate(-1);
       return;
     }
-    navigate(buildPath("search"));
+    navigate(buildPath("explore"));
   }, [navigate, location.key]);
+
+  const openPlayer = useCallback(() => setImmersive(true), []);
+  const openMenu = useCallback(() => setShowNavDrawer(true), []);
+  const openCharts = useCallback(() => setScreen("charts"), [setScreen]);
+  const openLibrary = useCallback(() => setScreen("favorites"), [setScreen]);
+  const openDiscover = useCallback(() => setScreen("explore"), [setScreen]);
+  const openSearchFromHome = useCallback(() => {
+    setSearchReturn("home");
+    setScreen("search");
+  }, [setScreen]);
+  const openSearchFromExplore = useCallback(() => {
+    setSearchReturn("explore");
+    setScreen("search");
+  }, [setScreen]);
 
   // Retired surfaces → Home
   useEffect(() => {
@@ -4817,12 +852,34 @@ export default function App() {
 
   // ── App state ────────────────────────────────────────────────────────────
   const [tracks, setTracks]           = useState([]);          // loaded from Firestore
+  const trackById = useMemo(() => {
+    const m = new Map();
+    for (const t of tracks) m.set(t.id, t);
+    return m;
+  }, [tracks]);
   const [tracksLoading, setTracksLoading] = useState(true);
   const [tracksLoadError, setTracksLoadError] = useState(null);
-  const [currentTrack, setCurrent]    = useState(null);
-  const [isPlaying, setIsPlaying]     = useState(false);
-  const [progress, setProgress]       = useState(0);
-  const [duration, setDuration]       = useState(0);
+  // currentTrack / isPlaying live in playerTransportStore.
+  // Screens subscribe themselves; App keeps the track for shell chrome and media helpers.
+  const currentRef = useRef(null);
+  const isPlayingRef = useRef(false);
+  const currentTrack = useCurrentTrack();
+  const currentTrackId = useTransportTrackId();
+  const setCurrent = useCallback((trackOrUpdater) => {
+    const track = typeof trackOrUpdater === "function"
+      ? trackOrUpdater(currentRef.current)
+      : trackOrUpdater;
+    currentRef.current = track || null;
+    transportFlags.setTrack(track || null);
+  }, []);
+  const setIsPlaying = useCallback((v) => {
+    const next = typeof v === "function" ? v(!!isPlayingRef.current) : v;
+    isPlayingRef.current = !!next;
+    transportFlags.setPlaying(!!next);
+  }, []);
+  // progress/duration live in playerPlaybackStore — transport UI subscribes
+  const setProgress = playbackClock.setProgress;
+  const setDuration = playbackClock.setDuration;
   // Repeat: "off" | "all" | "one" · Shuffle: boolean
   const [repeat, setRepeat]           = useState("off");
   const [shuffle, setShuffle]         = useState(false);
@@ -4837,15 +894,16 @@ export default function App() {
   const [queue, setQueue]             = useState([]);
   const [isRadioMode, setIsRadioMode] = useState(false);
   const [searchQuery, setSearch]      = useState("");
+  const [searchReturn, setSearchReturn] = useState("explore");
   const [adminTab, setAdminTab]       = useState("tracks");
   const [editTrack, setEditTrack]     = useState(null);
   const [toast, setToast]             = useState(null);
   const [immersive, setImmersive]     = useState(false);
   const audioRef                      = useRef(null); // the real HTML5 audio element
   // ── Desktop detection (must be before any early returns) ─────────────────
-  const [isDesktop, setIsDesktop]     = useState(() => window.innerWidth >= 900);
+  const [isDesktop, setIsDesktop]     = useState(() => window.innerWidth >= 768);
   useEffect(() => {
-    const handle = () => setIsDesktop(window.innerWidth >= 900);
+    const handle = () => setIsDesktop(window.innerWidth >= 768);
     window.addEventListener("resize", handle);
     return () => window.removeEventListener("resize", handle);
   }, []);
@@ -4854,21 +912,103 @@ export default function App() {
   const [activeMix, setActiveMix] = useState(null);
   const [mixLoading, setMixLoading] = useState(false);
   const [showRouteBuilder, setShowRouteBuilder] = useState(false);
+  const [showNavDrawer, setShowNavDrawer] = useState(false);
+  const [homeStageVisible, setHomeStageVisible] = useState(true);
+  const onHomeStageVisibilityChange = useCallback((visible) => {
+    setHomeStageVisible(!!visible);
+  }, []);
+  useEffect(() => {
+    if (screen !== "home") setHomeStageVisible(true);
+  }, [screen]);
+  const [warmTabs, setWarmTabs] = useState(() => new Set(["home"]));
+  useEffect(() => {
+    if (!isKeepAliveScreen(screen)) return undefined;
+    setWarmTabs((prev) => {
+      if (prev.has(screen)) return prev;
+      const next = new Set(prev);
+      next.add(screen);
+      return next;
+    });
+  }, [screen]);
   const [afterglow, setAfterglow] = useState(null);
   const [resonanceTrack, setResonanceTrack] = useState(null); // Hypno Vision source
   const [sessionMeta, setSessionMeta] = useState(null); // { tracks, startTime, kind, label }
+  const sessionMetaRef = useRef(null);
+  useEffect(() => { sessionMetaRef.current = sessionMeta; }, [sessionMeta]);
   const [showQueue, setShowQueue] = useState(false);
-  const [volume, setVolume] = useState(1);
+  const [volume, setVolume] = useState(() => {
+    try {
+      const v = parseFloat(localStorage.getItem(`${brandStoragePrefix()}.volume`));
+      return Number.isFinite(v) ? Math.min(1, Math.max(0, v)) : 1;
+    } catch { return 1; }
+  });
+  useEffect(() => {
+    try { localStorage.setItem(`${brandStoragePrefix()}.volume`, String(volume)); }
+    catch { /* ignore */ }
+  }, [volume]);
+  const lastAudibleVolumeRef = useRef(1);
+  useEffect(() => { if (volume > 0) lastAudibleVolumeRef.current = volume; }, [volume]);
+  // ── Connectivity + buffering awareness ────────────────────────────────────
+  const [isOffline, setIsOffline] = useState(() => typeof navigator !== "undefined" && navigator.onLine === false);
+  useEffect(() => {
+    const goOffline = () => setIsOffline(true);
+    const goOnline = () => setIsOffline(false);
+    window.addEventListener("offline", goOffline);
+    window.addEventListener("online", goOnline);
+    return () => {
+      window.removeEventListener("offline", goOffline);
+      window.removeEventListener("online", goOnline);
+    };
+  }, []);
+  // Buffering lives in transport store — ambient pill subscribes; App only writes.
+  // ── Recent searches (local only) ──────────────────────────────────────────
+  const [recentSearches, setRecentSearches] = useState(() => {
+    try {
+      const raw = JSON.parse(localStorage.getItem(`${brandStoragePrefix()}.recentSearches`) || "[]");
+      return Array.isArray(raw) ? raw.filter((s) => typeof s === "string").slice(0, 8) : [];
+    } catch { return []; }
+  });
+  const recordRecentSearch = useCallback((q) => {
+    const clean = String(q || "").trim();
+    if (clean.length < 2) return;
+    setRecentSearches((prev) => {
+      const next = [clean, ...prev.filter((s) => s.toLowerCase() !== clean.toLowerCase())].slice(0, 8);
+      try { localStorage.setItem(`${brandStoragePrefix()}.recentSearches`, JSON.stringify(next)); }
+      catch { /* ignore */ }
+      return next;
+    });
+  }, []);
+  const clearRecentSearches = useCallback(() => {
+    setRecentSearches([]);
+    try { localStorage.removeItem(`${brandStoragePrefix()}.recentSearches`); }
+    catch { /* ignore */ }
+  }, []);
   const [hypnoSeed, setHypnoSeed] = useState(null); // pocket-mode seed track
   const [onboardingDismissed, setOnboardingDismissed] = useState(false);
+  const [featureTourDismissed, setFeatureTourDismissed] = useState(false);
+  const [featureTourReplay, setFeatureTourReplay] = useState(false);
+  const [pendingTune, setPendingTune] = useState(null);
   const [listeningRoom, setListeningRoom] = useState(null);
   const [linerTrack, setLinerTrack] = useState(null);
+  const [purchasingTrackId, setPurchasingTrackId] = useState(null);
+  const [showDedicate, setShowDedicate] = useState(false);
+  const [activeShowId, setActiveShowId] = useState(null); // tuned VJ block
+  const [activeSceneChannelId, setActiveSceneChannelId] = useState(null);
+  const [stationBumper, setStationBumper] = useState(null);
+  const lastBumperTrackRef = useRef(null);
+  const lastBumperAtRef = useRef(0);
   // Clock mix lane follows the time of day in the background.
   // Genre focus (from Search) is the only manual listen filter; taste prefs drive 95/5.
   const [mixLane, setMixLane] = useState(() => mixLaneForDate().id);
   const [listenFocus, setListenFocus] = useState({ genre: null, scene: null });
   const [showGenreTaste, setShowGenreTaste] = useState(false);
+  const [showPlans, setShowPlans] = useState(false);
   const [sessionInitialActivity, setSessionInitialActivity] = useState(null);
+  const openCustomMix = useCallback(() => {
+    setSessionInitialActivity(vibeForMixLane(mixLane));
+    setShowRouteBuilder(true);
+    setShowNavDrawer(false);
+  }, [mixLane]);
   useEffect(() => {
     const sync = () => {
       const next = mixLaneForDate().id;
@@ -4894,8 +1034,31 @@ export default function App() {
     { requireAudio: true, applyMixLane: true }
   ), [tracks, activeListenIntent]);
 
-  const radioPool = useCallback(() => radioResolved().tracks, [radioResolved]);
-  const radioIntentLabel = radioResolved().label;
+  const activeShowIdRef = useRef(activeShowId);
+  const activeSceneChannelIdRef = useRef(activeSceneChannelId);
+  useEffect(() => { activeShowIdRef.current = activeShowId; }, [activeShowId]);
+  useEffect(() => { activeSceneChannelIdRef.current = activeSceneChannelId; }, [activeSceneChannelId]);
+  const playShowRef = useRef(null);
+
+  const radioPool = useCallback(() => {
+    const showId = activeShowIdRef.current;
+    if (showId) {
+      const show = getShowById(showId);
+      if (show) {
+        const pool = buildShowPool(tracks, show, { countdown: buildCountdown(tracks, 40) });
+        if (pool.length) return pool;
+      }
+    }
+    const sceneId = activeSceneChannelIdRef.current;
+    if (sceneId) {
+      const channel = getSceneChannel(sceneId);
+      if (channel) {
+        const pool = buildSceneChannelPool(tracks, channel);
+        if (pool.length) return pool;
+      }
+    }
+    return radioResolved().tracks;
+  }, [tracks, radioResolved, activeSceneChannelId]);
   const mixLaneRef = useRef(mixLane);
   useEffect(() => { mixLaneRef.current = mixLane; }, [mixLane]);
   const listenFocusRef = useRef(listenFocus);
@@ -4903,42 +1066,51 @@ export default function App() {
 
   // Hero preview — the track Listen will actually start (stable until pool changes)
   const [heroPreview, setHeroPreview] = useState(null);
+  const heroPreviewRef = useRef(null);
+  useEffect(() => { heroPreviewRef.current = heroPreview; }, [heroPreview]);
   useEffect(() => {
     const pool = radioPool();
     if (!pool.length) { setHeroPreview(null); return; }
     setHeroPreview((prev) => {
       if (prev && pool.some((t) => t.id === prev.id)) return prev;
       return pickNextTrack(pool, null, recentlyPlayedRef.current, {
-        preferredGenres: profile?.genres || [],
+        preferredGenres: profileTaste.genres || [],
+        taste: profileTaste,
         scopedPool: true,
         tasteBlend: !listenFocus.genre,
+        coldStart: tasteColdStart,
+        channelHit: (t) => trackHitsPreferredChannels(t, profileTaste.channelIds),
+        dislikeTaste: normalizeDislikeTaste(profile?.dislikeTaste || emptyDislikeTaste()),
       }) || pool[0];
     });
-  }, [radioPool, profile?.genres]);
+  }, [radioPool, profileTaste, profile?.dislikeTaste, listenFocus.genre, tasteColdStart]);
 
   // ── Listening Memory — tracks recently played with timestamps ──
   const recentlyPlayedRef = useRef([]); // [{id, genre, energy, timestamp}]
   const playHistoryRef = useRef([]); // previous tracks for "prev" button
   const sessionStartRef = useRef(null);
-  const [signalState, setSignalState] = useState({ intensity:0.5, openness:0.5, momentum:0, depth:0, direction:0, label:"Just started" });
 
   // Set arc for On Air floor (last 2 → now → next)
   const radioPickOpts = () => ({
-    preferredGenres: profile?.genres || [],
-    signalState,
+    preferredGenres: profileTaste.genres || [],
+    taste: profileTaste,
+    signalState: signalFlags.getState(),
     seedTrack: hypnoSeed,
     scopedPool: true,
-    // Hard genre focus = play that lane; otherwise 95/5 taste blend
     tasteBlend: !listenFocus.genre,
-    // Rabbit / Turtle sweep — read fresh so picks always see the latest target
+    coldStart: tasteColdStart,
+    channelHit: (t) => trackHitsPreferredChannels(t, profileTaste.channelIds),
     energyShift: playerEnergyStore.getState(),
+    dislikeTaste: normalizeDislikeTaste(profile?.dislikeTaste || emptyDislikeTaste()),
   });
   const setPrev = isRadioMode && currentTrack
     ? playHistoryRef.current.filter(t => t && t.id !== currentTrack.id).slice(0, 2).reverse()
     : [];
-  const setNext = isRadioMode && currentTrack
-    ? pickNextTrack(radioPool(), currentTrack, recentlyPlayedRef.current, radioPickOpts())
-    : null;
+  const setNext = useMemo(() => {
+    const track = transportFlags.getState().track;
+    if (!isRadioMode || !track) return null;
+    return pickNextTrack(radioPool(), track, recentlyPlayedRef.current, radioPickOpts());
+  }, [isRadioMode, currentTrackId, radioPool, hypnoSeed, listenFocus.genre, profileTaste, profile?.dislikeTaste, tasteColdStart]);
 
   function logTrackPlay(track) {
     const now = Date.now();
@@ -4950,7 +1122,7 @@ export default function App() {
     // Advance the Energy Shift lawnmower sweep one step
     playerEnergyStore.onTrackPlayed(track);
     // Update Aura human state
-    setSignalState(computeHumanState(recentlyPlayedRef.current, sessionStartRef.current));
+    signalFlags.setSignal(computeHumanState(recentlyPlayedRef.current, sessionStartRef.current));
   }
 
   // Get genre of last N played tracks for momentum
@@ -5016,7 +1188,10 @@ export default function App() {
       durationMins: Math.round((Date.now() - start) / 60000),
       trackIds: sessionPlays.map(p => p.id),
     };
-    addDoc(collection(db, "sessions"), sessionData).catch(() => {});
+    getFirebase().then(async ({ db }) => {
+      const { collection, addDoc } = await import("firebase/firestore");
+      addDoc(collection(db, "sessions"), sessionData).catch(() => {});
+    }).catch(() => {});
     sessionStartRef.current = null;
     lastFlushRef.current = Date.now();
   }
@@ -5030,7 +1205,7 @@ export default function App() {
       if (sessionMeta) endSessionWithAfterglow(true);
       else flushSession();
     }
-  }, [currentTrack?.id]);
+  }, [currentTrackId]);
 
 
   // Check if a track was played recently (within hours)
@@ -5040,8 +1215,15 @@ export default function App() {
     if (screen === "artist" && artistSlug) label = findArtist(tracks, artistSlug)?.name;
     if (screen === "album" && albumSlug) label = findAlbum(tracks, albumSlug)?.title;
     if (screen === "mix" && activeMix?.title) label = activeMix.title;
+    if (stackId) {
+      const stack = (userPlaylists || []).find((p) => p.id === stackId)
+        || (communityMix && (communityMix.id === stackId || `community-${communityMix.id}` === stackId) ? communityMix : null);
+      label = stack?.name || stack?.title || "Stack";
+      document.title = documentTitleFor("stack", label);
+      return;
+    }
     document.title = documentTitleFor(screen, label);
-  }, [screen, artistSlug, albumSlug, tracks, activeMix?.title]);
+  }, [screen, artistSlug, albumSlug, tracks, activeMix?.title, stackId, userPlaylists, communityMix]);
 
   // ── Load this month's Community Mix ──────────────────────────────────────
   useEffect(() => {
@@ -5054,7 +1236,7 @@ export default function App() {
       try {
         const { doc: fdoc, getDoc: fget } = await import("firebase/firestore");
         const id = communityMixId(monthKey());
-        const snap = await fget(fdoc(db, "mixes", id));
+        const snap = await fget(fdoc(await firestoreDb(), "mixes", id));
         if (cancelled) return;
         setCommunityMix(snap.exists() ? { id: snap.id, ...snap.data() } : null);
       } catch (e) {
@@ -5083,7 +1265,7 @@ export default function App() {
           return;
         }
         const { doc: fdoc, getDoc: fget } = await import("firebase/firestore");
-        const snap = await fget(fdoc(db, "mixes", mixId));
+        const snap = await fget(fdoc(await firestoreDb(), "mixes", mixId));
         if (cancelled) return;
         setActiveMix(snap.exists() ? { id: snap.id, ...snap.data() } : null);
       } catch {
@@ -5115,47 +1297,226 @@ export default function App() {
     setQueue(shuffled.slice(0, 8));
   }, [tracks]);
   const showToast = (msg) => { setToast(msg); setTimeout(()=>setToast(null),2200); };
+  const showToastRef = useRef(showToast);
+  showToastRef.current = showToast;
 
-  const reloadCatalog = useCallback(async () => {
-    setTracksLoading(true);
+  // ── Catalog cache — IndexedDB first, localStorage fallback for warm starts ─
+  const CATALOG_CACHE_KEY = `${brandStoragePrefix()}.catalogCache.v1`;
+  const profileForLikesRef = useRef(null);
+  const firebaseUserRef = useRef(null);
+  useEffect(() => { profileForLikesRef.current = profile; }, [profile]);
+  useEffect(() => { firebaseUserRef.current = firebaseUser; }, [firebaseUser]);
+  const applyLikedFlags = useCallback((list) => {
+    const likedSet = new Set(profileForLikesRef.current?.likedTracks || []);
+    const dislikedSet = new Set(profileForLikesRef.current?.dislikedTracks || []);
+    let changed = false;
+    const next = list.map((t) => {
+      const liked = likedSet.has(t.id);
+      const disliked = dislikedSet.has(t.id);
+      if (t.liked === liked && t.disliked === disliked) return t;
+      changed = true;
+      return { ...t, liked, disliked };
+    });
+    return changed ? next : list;
+  }, []);
+  const readCatalogCacheSync = useCallback(() => {
+    try {
+      const raw = JSON.parse(localStorage.getItem(CATALOG_CACHE_KEY) || "null");
+      if (!Array.isArray(raw?.tracks) || !raw.tracks.length) return null;
+      return { ts: Number(raw.ts) || 0, tracks: raw.tracks };
+    } catch { return null; }
+  }, [CATALOG_CACHE_KEY]);
+  const writeCatalogCache = useCallback((list, meta = {}) => {
+    writeCatalogIdb(CATALOG_CACHE_KEY, list, meta);
+    // Keep a tiny localStorage stub only when shelf is small enough (quota-safe).
+    try {
+      if (list.length <= 80) {
+        localStorage.setItem(CATALOG_CACHE_KEY, JSON.stringify({
+          ts: Date.now(),
+          tracks: list,
+          version: Number(meta.version) || Date.now(),
+          source: meta.source || "",
+        }));
+      } else {
+        localStorage.removeItem(CATALOG_CACHE_KEY);
+      }
+    } catch { /* quota or private mode — IDB is primary */ }
+  }, [CATALOG_CACHE_KEY]);
+
+  const catalogIdleStopRef = useRef(() => {});
+  const reloadCatalogRef = useRef(null);
+  const catalogFullRef = useRef(false);
+  const catalogFullDueRef = useRef(null);
+  const scheduleFullCatalog = useCallback((timeout) => {
+    if (catalogFullRef.current) return;
+    const ms = Math.max(0, Number(timeout) || 8000);
+    if (catalogFullDueRef.current != null && catalogFullDueRef.current <= ms) return;
+    catalogFullDueRef.current = ms;
+    catalogIdleStopRef.current();
+    catalogIdleStopRef.current = runAfterDelay(() => {
+      if (catalogFullRef.current) return;
+      reloadCatalogRef.current?.({ background: true, full: true });
+    }, ms);
+  }, []);
+  const reloadCatalog = useCallback(async ({ background = false, full = false } = {}) => {
+    if (!background) setTracksLoading(true);
     setTracksLoadError(null);
     try {
-      const loaded = await fetchCatalogTracks(db);
-      setTracks(computeSignalTraits(loaded));
+      const cdn = await fetchCatalogCdn();
+      if (cdn?.tracks?.length) {
+        catalogFullRef.current = true;
+        const liked = applyLikedFlags(cdn.tracks);
+        const meta = { version: cdn.version, source: "cdn" };
+        if (background) {
+          const hydrated = applyLikedFlags(await hydrateCatalogTracks(cdn.tracks));
+          startTransition(() => setTracks((prev) => adoptCatalogTracks(prev, hydrated)));
+          writeCatalogCache(hydrated, meta);
+        } else {
+          setTracks((prev) => adoptCatalogTracks(prev, liked));
+          setTracksLoading(false);
+          runAfterPaint(() => {
+            hydrateCatalogTracks(cdn.tracks).then((enriched) => {
+              const hydrated = applyLikedFlags(enriched);
+              startTransition(() => setTracks((prev) => adoptCatalogTracks(prev, hydrated)));
+              writeCatalogCache(hydrated, meta);
+            });
+          });
+        }
+        return;
+      }
+      const db = await firestoreDb();
+      if (!full && !background) {
+        const lite = await fetchHomeLite(db);
+        if (lite.tracks.length) {
+          setTracks((prev) => adoptCatalogTracks(prev, applyLikedFlags(lite.tracks)));
+          setTracksLoading(false);
+          scheduleFullCatalog(8000);
+          return;
+        }
+      }
+      const loaded = await fetchCatalogTracksFromFirestore(db);
+      catalogFullRef.current = true;
+      const liked = applyLikedFlags(loaded);
+      const meta = { source: "firestore" };
+      if (background) {
+        const hydrated = applyLikedFlags(await hydrateCatalogTracks(loaded));
+        startTransition(() => setTracks((prev) => adoptCatalogTracks(prev, hydrated)));
+        writeCatalogCache(hydrated, meta);
+      } else {
+        setTracks((prev) => adoptCatalogTracks(prev, liked));
+        setTracksLoading(false);
+        runAfterPaint(() => {
+          hydrateCatalogTracks(loaded).then((enriched) => {
+            const hydrated = applyLikedFlags(enriched);
+            startTransition(() => setTracks((prev) => adoptCatalogTracks(prev, hydrated)));
+            writeCatalogCache(hydrated, meta);
+          });
+        });
+      }
     } catch (err) {
       console.error("Failed to load tracks:", err);
-      setTracksLoadError("We couldn't reach the music catalog. Check your connection and try again.");
-      showToast("Couldn't load tracks — tap Retry on Home");
+      if (!background) {
+        setTracksLoadError("We couldn't reach the music catalog. Check your connection and try again.");
+        showToast("Couldn't load tracks — tap Retry on Home");
+      }
     }
-    setTracksLoading(false);
+    if (!background) setTracksLoading(false);
+  }, [applyLikedFlags, writeCatalogCache, scheduleFullCatalog]);
+  reloadCatalogRef.current = reloadCatalog;
+
+  // ── Load tracks once on mount — IDB/local cache instantly, refresh behind ──
+  useEffect(() => {
+    let cancelled = false;
+    const stopHydrateRef = { current: () => {} };
+    (async () => {
+      const first = await loadCatalogFirstPaint({
+        cacheKey: CATALOG_CACHE_KEY,
+        readSync: readCatalogCacheSync,
+      });
+      if (cancelled) return;
+      if (first?.tracks?.length) {
+        const list = first.tracks;
+        setTracks((prev) => adoptCatalogTracks(prev, applyLikedFlags(list)));
+        setTracksLoading(false);
+        if (list.length > HOME_LITE_LIMIT || first.source === "cdn") catalogFullRef.current = true;
+        const hydratedAlready = list[0] && Object.prototype.hasOwnProperty.call(list[0], "_scene");
+        if (!hydratedAlready) {
+          stopHydrateRef.current = runAfterPaint(() => {
+            hydrateCatalogTracks(list).then((enriched) => {
+              if (cancelled) return;
+              setTracks((prev) => adoptCatalogTracks(prev, applyLikedFlags(enriched)));
+            });
+          });
+        }
+        if (first.source === "cdn") {
+          writeCatalogCache(list, { version: first.version, source: "cdn" });
+        } else if (!isCatalogCacheFresh(first)) {
+          fetchCatalogCdn().then((cdn) => {
+            if (cancelled || !cdn?.tracks?.length) {
+              if (!isCatalogCacheFresh(first)) scheduleFullCatalog(8000);
+              return;
+            }
+            if (!isNewerCatalog(cdn, first) && catalogFullRef.current) return;
+            catalogFullRef.current = true;
+            setTracks((prev) => adoptCatalogTracks(prev, applyLikedFlags(cdn.tracks)));
+            writeCatalogCache(cdn.tracks, { version: cdn.version, source: "cdn" });
+          });
+        }
+      } else {
+        reloadCatalog();
+      }
+    })();
+    return () => {
+      cancelled = true;
+      stopHydrateRef.current();
+      catalogIdleStopRef.current();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // ── Load tracks from Firestore once on mount ────────────────────────────
   useEffect(() => {
-    reloadCatalog();
-  }, [reloadCatalog]);
+    if (screen === "home") return undefined;
+    scheduleFullCatalog(screen === "explore" ? 0 : 1600);
+    return undefined;
+  }, [screen, scheduleFullCatalog]);
 
   // ── Once profile loads, merge liked status + playlists into state ─────────
   useEffect(() => {
     if (!profile || !tracks.length) return;
     const likedSet = new Set(profile.likedTracks || []);
-    setTracks(prev => prev.map(t => ({
-      ...t,
-      liked: likedSet.has(t.id),
-      // keep scene enrichment if already present
-      _scene: t._scene,
-      _scenes: t._scenes,
-    })));
+    const dislikedSet = new Set(profile.dislikedTracks || []);
+    setTracks((prev) => {
+      let changed = false;
+      const next = prev.map((t) => {
+        const liked = likedSet.has(t.id);
+        const disliked = dislikedSet.has(t.id);
+        if (t.liked === liked && t.disliked === disliked) return t;
+        changed = true;
+        return {
+          ...t,
+          liked,
+          disliked,
+          _scene: t._scene,
+          _scenes: t._scenes,
+        };
+      });
+      return changed ? adoptCatalogTracks(prev, next) : prev;
+    });
     if (profile.playlists) setUserPlaylists(profile.playlists);
-  }, [profile?.likedTracks, tracks.length]);
+  }, [profile?.likedTracks, profile?.dislikedTracks, tracks.length]);
 
   // ── User object shaped like the rest of the app expects ─────────────────
-  const user = {
+  const user = useMemo(() => ({
     name:   profile?.displayName || "Listener",
     image:  profile?.profileImage || "",
     genres: profile?.genres || [],
     memberNumber: profile?.memberNumber,
-  };
+    uid: profile?.uid || firebaseUser?.uid || "",
+  }), [profile?.displayName, profile?.profileImage, profile?.genres, profile?.memberNumber, profile?.uid, firebaseUser?.uid]);
+  const recentTrackIds = useMemo(
+    () => (profile?.recentTracks || []).map((r) => r.trackId || r),
+    [profile?.recentTracks]
+  );
 
   // Library playlists = user mixes + this month's Community Mix (everyone gets it)
   const libraryPlaylists = useMemo(() => {
@@ -5165,40 +1526,209 @@ export default function App() {
     return [stub, ...own.filter((p) => p.id !== stub.id)];
   }, [userPlaylists, communityMix]);
   const needsOnboarding = !!firebaseUser && profile && profile.onboarded === false && !onboardingDismissed && !tracksLoading;
+  // Taste tuner first. Short feature tour only after taste is done/skipped, once per version.
+  const needsFeatureTour =
+    !!firebaseUser
+    && profile
+    && !needsOnboarding
+    && !featureTourDismissed
+    && shouldAutoShowFeatureTour(profile);
+  const showFeatureTour = (needsFeatureTour || featureTourReplay) && !needsOnboarding;
   const isAdminUser = !!firebaseUser && firebaseUser.uid === ADMIN_UID;
   const access = useMemo(
     () => getAccessState(profile, { isAdmin: isAdminUser }),
-    // Recompute when trial/sub fields change
+    // Recompute when plan / credit fields change
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [profile?.trialEndsAt, profile?.subscriptionStatus, profile?.plan, isAdminUser]
+    [
+      profile?.trialEndsAt,
+      profile?.subscriptionStatus,
+      profile?.plan,
+      profile?.clubCreditBalance,
+      profile?.clubCreditExpiresAt,
+      isAdminUser,
+    ]
   );
-  const needsPaywall = !!firebaseUser && !!profile && !needsOnboarding && !access.allowed;
+  const playsRemaining = useMemo(
+    () => freePlaysRemaining(profile, access),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [profile?.playsToday, profile?.playsDayKey, access]
+  );
+  // Free is a real tier — never hard-block the app. Plans are an upgrade sheet.
 
-  const handleSubscribe = useCallback(() => {
-    openStripeCheckout(access.stripePaymentLink);
-  }, [access.stripePaymentLink]);
+  const handleSubscribe = useCallback(async (linkOrPlan, maybePlan) => {
+    if (PRICING_COMING_SOON) {
+      showToast("Not available yet.");
+      return;
+    }
+    let plan = "club";
+    if (typeof linkOrPlan === "string" && !linkOrPlan.startsWith("http")) {
+      plan = linkOrPlan;
+    } else if (maybePlan) {
+      plan = maybePlan;
+    }
+    try {
+      await startCheckout(plan);
+    } catch (e) {
+      showToast(e?.message || "Couldn’t start checkout");
+    }
+  }, []);
+
+  const handleOpenPlans = useCallback(() => {
+    if (!PAYWALL_ENABLED) return;
+    setShowPlans(true);
+  }, []);
+
+  const handlePurchasePhysical = useCallback(async (track, amount) => {
+    if (!track?.id) return;
+    if (!PHYSICAL_COMMERCE_LIVE || PRICING_COMING_SOON) {
+      showToast("Not available yet.");
+      return;
+    }
+    if (!firebaseUser) {
+      showToast("Sign in to buy with Club Credit");
+      return;
+    }
+    const bal = usableCreditBalance(profile);
+    if (bal <= 0) {
+      showToast("Go Premium for Club Credit");
+      if (PAYWALL_ENABLED) setShowPlans(true);
+      return;
+    }
+    const price = amount != null
+      ? Number(amount)
+      : memberPrice(track.retailPrice, {
+          member: !!access?.membershipCard,
+          memberRetail: track.memberPrice,
+        });
+    if (!Number.isFinite(price) || price <= 0) {
+      showToast("No price on this edition yet");
+      return;
+    }
+    if (bal < price) {
+      showToast(`Need $${price.toFixed(2)} Club Credit (you have $${bal.toFixed(2)})`);
+      return;
+    }
+    setPurchasingTrackId(track.id);
+    try {
+      const data = await spendClubCredit(track.id, price);
+      setProfile((p) => ({
+        ...(p || {}),
+        clubCreditBalance: data.clubCreditBalance,
+        collection: data.collection || p?.collection,
+        clubCreditSpends: [
+          { trackId: track.id, amount: data.spent, at: new Date().toISOString() },
+          ...((p?.clubCreditSpends) || []),
+        ].slice(0, 50),
+      }));
+      showToast(`Filed to your collection · $${Number(data.spent).toFixed(2)}`);
+      setLinerTrack(null);
+    } catch (err) {
+      const msg = err?.message || err?.code || "Purchase failed";
+      showToast(String(msg).replace(/^Firebase:\s*/i, "").slice(0, 120));
+      if (PAYWALL_ENABLED && /Premium|Club Credit/i.test(String(msg))) setShowPlans(true);
+    } finally {
+      setPurchasingTrackId(null);
+    }
+  }, [firebaseUser, profile, access?.membershipCard]);
+
+  // After Stripe redirect (?billing=success), confirm session + refresh membership
+  useEffect(() => {
+    if (!firebaseUser || !profile) return;
+    if (typeof window === "undefined") return;
+    const search = window.location.search || "";
+    if (!/[?&]billing=success\b/.test(search)) return;
+    if (billingSettleKeyRef.current === search) return;
+    billingSettleKeyRef.current = search;
+    let cancelled = false;
+    (async () => {
+      const result = await settleBillingReturn({
+        search,
+        refreshProfile,
+      });
+      if (cancelled) return;
+      if (result.applied) {
+        showToast(result.plan === "premium" ? "Premium unlocked" : "Club unlocked");
+        setShowPlans(false);
+      } else if (result.pending && PAYWALL_ENABLED) {
+        showToast("Payment received — tap “I’ve paid — refresh” if Club isn’t unlocked yet");
+        setShowPlans(true);
+      }
+      try {
+        window.history.replaceState({}, "", stripBillingQuery(window.location.href));
+      } catch {
+        /* ignore */
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [firebaseUser, profile?.uid, refreshProfile]);
 
   const handleBillingRefresh = useCallback(async () => {
     setBillingRefreshing(true);
     try {
-      await refreshProfile();
+      const next = await refreshProfile();
+      const nextAccess = getAccessState(next, { isAdmin: isAdminUser });
+      if (nextAccess?.tier === "club" || nextAccess?.tier === "premium" || nextAccess?.reason === "trial") {
+        setShowPlans(false);
+        showToast(nextAccess.tier === "premium" ? "Premium unlocked" : "Club unlocked");
+      }
     } finally {
       setBillingRefreshing(false);
     }
-  }, [refreshProfile]);
+  }, [refreshProfile, isAdminUser]);
 
-  // Genre taste intake — only user choice; mix lane/energy stay automatic
-  const finishOnboarding = async (genres = []) => {
+  // Genre + taste intake — stations / faces / this-or-that compile into the user doc
+  const finishOnboarding = async (tasteOrGenres = []) => {
+    const compiled = Array.isArray(tasteOrGenres)
+      ? tasteFromProfile({ genres: tasteOrGenres })
+      : tasteOrGenres?.skip
+        ? compileOnboardingTaste({ skip: true })
+        : tasteFromProfile(tasteOrGenres || {});
+    const taste = compiled;
+    const genres = Array.isArray(taste.genres) ? taste.genres : [];
     try {
-      await completeOnboarding({ homeRooms: [], genres: genres.length ? genres : null });
+      await completeOnboarding({
+        homeRooms: [],
+        genres,
+        adventurous: taste.adventurous,
+        depth: taste.depth,
+        channelIds: taste.channelIds,
+        artistNames: taste.artistNames,
+        energyBand: taste.energyBand,
+        vibe: taste.vibe,
+        seedChannelId: taste.seedChannelId,
+        onboardingVersion: 2,
+      });
       setProfile((p) => ({
         ...(p || {}),
         onboarded: true,
         homeRooms: [],
-        genres: genres.length ? genres : (p?.genres || []),
+        genres,
+        adventurous: taste.adventurous,
+        depth: taste.depth,
+        channelIds: taste.channelIds,
+        artistNames: taste.artistNames,
+        energyBand: taste.energyBand,
+        vibe: taste.vibe,
+        seedChannelId: taste.seedChannelId,
+        onboardingVersion: 2,
       }));
     } catch (e) { /* local dismiss still */ }
+    if (taste.seedChannelId) setPendingTune(taste.seedChannelId);
     setOnboardingDismissed(true);
+  };
+
+  const finishFeatureTour = async () => {
+    const payload = featureGuideSeenPayload();
+    try {
+      await saveFeatureGuideSeen(payload);
+      setProfile((p) => ({ ...(p || {}), ...payload }));
+    } catch {
+      setProfile((p) => ({ ...(p || {}), ...payload }));
+    }
+    setFeatureTourDismissed(true);
+    setFeatureTourReplay(false);
   };
 
   // ── Crossfade audio engine ───────────────────────────────────────────────
@@ -5207,8 +1737,50 @@ export default function App() {
   const nextAudioRef   = useRef(null);
   const crossfadeRef   = useRef(null); // interval for the crossfade ramp
   const isCrossfading  = useRef(false);
-  const RADIO_CROSSFADE_SECS = 15; // long, on-air blend
-  const QUEUE_CROSSFADE_SECS = 6;  // tighter blend for playlists / sessions
+  const audioUnlockedRef = useRef(false);
+  const unlockingRef = useRef(false);
+  /** Locked next cut for preload → crossfade (avoids re-rolling radio picks). */
+  const pendingNextRef = useRef(null); // { track, url }
+  const crossfadeReadyWaitRef = useRef(null);
+  const deckPairRef = useRef({ primary: null, standby: null });
+
+  /** Must run inside a user gesture so both A/B elements can play later (crossfade). */
+  const unlockAudioElements = useCallback(() => {
+    if (audioUnlockedRef.current) return;
+    audioUnlockedRef.current = true;
+    unlockingRef.current = true;
+    const els = [audioRef.current, nextAudioRef.current].filter(Boolean);
+    let pending = els.length;
+    const markDone = () => {
+      pending -= 1;
+      if (pending <= 0) unlockingRef.current = false;
+    };
+    if (!pending) {
+      unlockingRef.current = false;
+      return;
+    }
+    els.forEach((el) => {
+      try {
+        configureAudioElement(el);
+        const existing = el.getAttribute("src") || "";
+        if (!existing) el.src = SILENT_WAV;
+        const wasMuted = el.muted;
+        el.muted = true;
+        const p = el.play();
+        const finish = () => {
+          finishAudioUnlock(el, { wasMuted });
+          markDone();
+        };
+        if (p && typeof p.then === "function") {
+          p.then(finish).catch(finish);
+        } else {
+          finish();
+        }
+      } catch {
+        markDone();
+      }
+    });
+  }, []);
 
   // Keep a ref to isRadioMode so audio listeners can read the latest value
   const isRadioModeRef = useRef(false);
@@ -5216,27 +1788,75 @@ export default function App() {
 
   // Refs so audio listeners (bound once) always see current playback state
   const tracksRef      = useRef([]);
-  const currentRef     = useRef(null);
   const queueRef       = useRef([]);
   const repeatRef      = useRef("off");
   const shuffleRef     = useRef(false);
   const crossfadeOnRef = useRef(true);
   useEffect(() => { tracksRef.current = tracks; }, [tracks]);
-  useEffect(() => { currentRef.current = currentTrack; }, [currentTrack]);
   useEffect(() => { queueRef.current = queue; }, [queue]);
   useEffect(() => { repeatRef.current = repeat; }, [repeat]);
   useEffect(() => { shuffleRef.current = shuffle; }, [shuffle]);
   useEffect(() => { crossfadeOnRef.current = crossfadeOn; }, [crossfadeOn]);
 
   const handleSkipRef = useRef(null);
+  const handlePrevRef = useRef(null);
   const startCrossfadeRef = useRef(null);
   const primaryAudioCleanupRef = useRef(() => {});
+
+  const pickCrossfadeNext = useCallback(() => {
+    const radio = isRadioModeRef.current;
+    if (radio) {
+      const focus = listenFocusRef.current || {};
+      const pool = resolveListenPool(
+        tracksRef.current,
+        { mixLane: mixLaneRef.current, genre: focus.genre, scene: focus.scene },
+        { requireAudio: true, applyMixLane: true }
+      ).tracks;
+      const library = pool.length
+        ? pool
+        : tracksRef.current.filter((t) => (t.duration || 0) <= 900 && String(t.audioUrl || "").trim());
+      return pickNextTrack(library, currentRef.current, recentlyPlayedRef.current, {
+        preferredGenres: profileTaste.genres || [],
+        taste: profileTaste,
+        signalState: signalFlags.getState(),
+        seedTrack: hypnoSeed,
+        scopedPool: true,
+        tasteBlend: !(listenFocusRef.current?.genre),
+        coldStart: tasteColdStart,
+        channelHit: (t) => trackHitsPreferredChannels(t, profileTaste.channelIds),
+        energyShift: playerEnergyStore.getState(),
+        dislikeTaste: normalizeDislikeTaste(profile?.dislikeTaste || emptyDislikeTaste()),
+      });
+    }
+    const q = queueRef.current;
+    if (!q.length) return null;
+    return shuffleRef.current
+      ? q[Math.floor(Math.random() * q.length)]
+      : q[0];
+  }, [profileTaste, profile?.dislikeTaste, hypnoSeed, tasteColdStart]);
+
+  const preloadNextAudio = useCallback((track) => {
+    if (!track?.audioUrl || isCrossfading.current) return;
+    const fadeIn = nextAudioRef.current;
+    if (!fadeIn) return;
+    const url = String(track.audioUrl).trim();
+    if (!url) return;
+    if (pendingNextRef.current?.url === url && (fadeIn.getAttribute("src") || "") === url) return;
+    pendingNextRef.current = { track, url };
+    preloadSrc(fadeIn, url);
+  }, []);
 
   const bindPrimaryAudio = useCallback((audio) => {
     primaryAudioCleanupRef.current?.();
 
     const onTimeUpdate = () => {
       setProgress(Math.floor(audio.currentTime));
+      syncMediaPosition({
+        duration: audio.duration || 0,
+        position: audio.currentTime || 0,
+        playbackRate: audio.playbackRate || 1,
+      });
+      if (audio.currentTime > 0 && !audio.paused) transportFlags.setBuffering(false);
       if (!audio.duration || isCrossfading.current) return;
       const radio = isRadioModeRef.current;
       const wantsQueueFade = !radio
@@ -5244,9 +1864,12 @@ export default function App() {
         && repeatRef.current !== "one"
         && queueRef.current.length > 0;
       if (!radio && !wantsQueueFade) return;
-      const fadeSecs = radio ? RADIO_CROSSFADE_SECS : QUEUE_CROSSFADE_SECS;
-      const remaining = audio.duration - audio.currentTime;
-      if (remaining <= fadeSecs && remaining > 0) {
+      const fadeSecs = fadeSecondsForMode(radio);
+      if (shouldStartPreload(audio, fadeSecs) && !pendingNextRef.current?.url) {
+        const candidate = pickCrossfadeNext();
+        if (candidate) preloadNextAudio(candidate);
+      }
+      if (shouldStartFade(audio, fadeSecs)) {
         startCrossfadeRef.current?.();
       }
     };
@@ -5266,153 +1889,382 @@ export default function App() {
       handleSkipRef.current?.();
     };
 
+    // Keep UI in sync when iOS interrupts (call, Siri, Control Center, route change)
+    const onPause = () => {
+      if (isCrossfading.current) return;
+      const src = audio.getAttribute("src") || audio.src || "";
+      if (shouldIgnoreUnlockTransportEvent({ unlocking: unlockingRef.current, src })) return;
+      if (isPlayingRef.current) setIsPlaying(false);
+    };
+    const onPlay = () => {
+      if (isCrossfading.current) return;
+      const src = audio.getAttribute("src") || audio.src || "";
+      if (shouldIgnoreUnlockTransportEvent({ unlocking: unlockingRef.current, src })) return;
+      if (!isPlayingRef.current) setIsPlaying(true);
+    };
+
+    // Buffering + failure feedback — a stalled player should never look frozen
+    const onWaiting = () => transportFlags.setBuffering(true);
+    const onPlayingAgain = () => transportFlags.setBuffering(false);
+    const onError = () => {
+      const src = audio.getAttribute("src") || "";
+      if (!src || src.startsWith("data:audio")) return; // unlock stub — not a real failure
+      transportFlags.setBuffering(false);
+      const failed = currentRef.current;
+      showToastRef.current?.(failed?.title ? `Couldn’t play “${failed.title}” — skipping` : "Couldn’t play that cut — skipping");
+      setTimeout(() => { if (isPlayingRef.current) handleSkipRef.current?.(); }, 600);
+    };
+
     audio.addEventListener("timeupdate", onTimeUpdate);
     audio.addEventListener("loadedmetadata", onLoadedMetadata);
     audio.addEventListener("ended", onEnded);
+    audio.addEventListener("pause", onPause);
+    audio.addEventListener("play", onPlay);
+    audio.addEventListener("waiting", onWaiting);
+    audio.addEventListener("playing", onPlayingAgain);
+    audio.addEventListener("canplay", onPlayingAgain);
+    audio.addEventListener("error", onError);
 
     primaryAudioCleanupRef.current = () => {
       audio.removeEventListener("timeupdate", onTimeUpdate);
       audio.removeEventListener("loadedmetadata", onLoadedMetadata);
       audio.removeEventListener("ended", onEnded);
+      audio.removeEventListener("pause", onPause);
+      audio.removeEventListener("play", onPlay);
+      audio.removeEventListener("waiting", onWaiting);
+      audio.removeEventListener("playing", onPlayingAgain);
+      audio.removeEventListener("canplay", onPlayingAgain);
+      audio.removeEventListener("error", onError);
     };
-  }, []);
+  }, [pickCrossfadeNext, preloadNextAudio]);
 
   useEffect(() => {
-    const a = new Audio(); a.volume = volumeRef.current;
-    const b = new Audio(); b.volume = 0;
+    const pair = createAudioPair();
+    const a = pair.primary;
+    const b = pair.standby;
+    if (a) a.volume = volumeRef.current;
+    if (b) b.volume = 0;
     audioRef.current     = a;
     nextAudioRef.current = b;
-    bindPrimaryAudio(a);
+    deckPairRef.current = { primary: a, standby: b };
+    if (a) bindPrimaryAudio(a);
 
     return () => {
       clearInterval(crossfadeRef.current);
+      if (crossfadeReadyWaitRef.current) {
+        clearTimeout(crossfadeReadyWaitRef.current.failSafe);
+        crossfadeReadyWaitRef.current.cleanup?.();
+        crossfadeReadyWaitRef.current = null;
+      }
       primaryAudioCleanupRef.current?.();
-      a.pause(); b.pause();
-      a.src = ""; b.src = "";
+      try { a?.pause(); } catch { /* ignore */ }
+      try { b?.pause(); } catch { /* ignore */ }
+      if (a) { a.src = ""; }
+      if (b) { b.src = ""; }
     };
   }, [bindPrimaryAudio]);
+
+  const promoteStandbyIfWarm = useCallback((track) => {
+    const url = String(track?.audioUrl || "").trim();
+    const standby = nextAudioRef.current;
+    if (!url || !canInstantPromote(standby, url)) return false;
+    const outgoing = audioRef.current;
+    const targetVol = volumeRef.current;
+    try { outgoing?.pause(); } catch { /* ignore */ }
+    if (outgoing) outgoing.volume = targetVol;
+    standby.volume = targetVol;
+    const pair = deckPairRef.current || { primary: outgoing, standby };
+    swapDeck(pair);
+    audioRef.current = pair.primary;
+    nextAudioRef.current = pair.standby;
+    deckPairRef.current = pair;
+    bindPrimaryAudio(pair.primary);
+    pendingNextRef.current = null;
+    try {
+      if (outgoing) {
+        outgoing.removeAttribute("src");
+        outgoing.src = "";
+        outgoing.load();
+      }
+    } catch { /* ignore */ }
+    return true;
+  }, [bindPrimaryAudio]);
+
+  // Preload the locked next cut whenever queue / mode / current track settles
+  useEffect(() => {
+    if (!currentTrackId || isCrossfading.current) return;
+    // Drop stale preload when the now-playing cut changes
+    if (pendingNextRef.current?.track?.id === currentTrackId) {
+      pendingNextRef.current = null;
+    }
+    const radio = isRadioMode;
+    const wantsQueueFade = !radio
+      && crossfadeOn
+      && repeat !== "one"
+      && queue.length > 0;
+    if (!radio && !wantsQueueFade) {
+      pendingNextRef.current = null;
+      return;
+    }
+    if (pendingNextRef.current?.url) return; // already locked for this spin
+    const candidate = pickCrossfadeNext();
+    if (candidate && candidate.id !== currentTrackId) preloadNextAudio(candidate);
+  }, [currentTrackId, queue, isRadioMode, crossfadeOn, repeat, pickCrossfadeNext, preloadNextAudio]);
 
   function startCrossfade() {
     if (isCrossfading.current) return;
     isCrossfading.current = true;
 
     const radio = isRadioModeRef.current;
-    let next = null;
-    if (radio) {
-      const focus = listenFocusRef.current || {};
-      const pool = resolveListenPool(
-        tracksRef.current,
-        { mixLane: mixLaneRef.current, genre: focus.genre, scene: focus.scene },
-        { requireAudio: true, applyMixLane: true }
-      ).tracks;
-      const library = pool.length
-        ? pool
-        : tracksRef.current.filter((t) => (t.duration || 0) <= 900 && String(t.audioUrl || "").trim());
-      next = pickNextTrack(library, currentRef.current, recentlyPlayedRef.current, {
-        preferredGenres: profile?.genres || [],
-        signalState,
-        seedTrack: hypnoSeed,
-        scopedPool: true,
-        tasteBlend: !(listenFocusRef.current?.genre),
-        energyShift: playerEnergyStore.getState(),
-      });
-    } else {
+    let next = pendingNextRef.current?.track || null;
+    if (!radio) {
       const q = queueRef.current;
       if (!q.length) { isCrossfading.current = false; return; }
-      next = shuffleRef.current
-        ? q[Math.floor(Math.random() * q.length)]
+      const expected = shuffleRef.current
+        ? (next && q.some((t) => t.id === next.id) ? next : q[Math.floor(Math.random() * q.length)])
         : q[0];
+      next = expected;
+    } else if (!next) {
+      next = pickCrossfadeNext();
     }
-    if (!next?.audioUrl) { isCrossfading.current = false; return; }
+    if (!next?.audioUrl) { isCrossfading.current = false; pendingNextRef.current = null; return; }
 
     const outgoing = currentRef.current;
     const fadeOut = audioRef.current;
     const fadeIn  = nextAudioRef.current;
-    const fadeSecs = radio ? RADIO_CROSSFADE_SECS : QUEUE_CROSSFADE_SECS;
-
-    // Load and start the next track silently
-    fadeIn.src    = next.audioUrl;
+    const fadeSecs = fadeSecondsForMode(radio);
+    const url = String(next.audioUrl).trim();
+    pendingNextRef.current = { track: next, url };
+    preloadSrc(fadeIn, url);
     fadeIn.volume = 0;
-    fadeIn.play().catch(() => {});
 
     // Record the play
-    if (firebaseUser) recordPlay(next.id, profile?.recentTracks || []).catch(()=>{});
+    commitListeningPlay(next);
 
     fadeIn.addEventListener("loadedmetadata", () => {
       setDuration(Math.floor(fadeIn.duration || 0));
     }, { once: true });
 
-    // Ramp volumes over the crossfade window
-    const steps    = fadeSecs * 20; // 20 steps per second
-    const interval = 1000 / 20;
-    let   step     = 0;
+    const beginRamp = () => {
+      fadeIn.play().catch(() => {});
+      const steps    = fadeSecs * 20; // 20 steps per second
+      const interval = 1000 / 20;
+      let   step     = 0;
 
-    clearInterval(crossfadeRef.current);
-    crossfadeRef.current = setInterval(() => {
-      step++;
-      const t = step / steps;
-      const targetVol = volumeRef.current;
-      fadeOut.volume = Math.max(0, targetVol * (1 - t));
-      fadeIn.volume  = Math.min(targetVol, targetVol * t);
+      clearInterval(crossfadeRef.current);
+      crossfadeRef.current = setInterval(() => {
+        step++;
+        const t = Math.min(1, step / steps);
+        const targetVol = volumeRef.current;
+        const gains = equalPowerVolumes(t, targetVol);
+        fadeOut.volume = Math.max(0, gains.out);
+        fadeIn.volume  = Math.min(targetVol, gains.in);
 
-      if (step >= steps) {
-        clearInterval(crossfadeRef.current);
-        fadeOut.pause();
-        fadeOut.src = "";
-        fadeOut.volume = targetVol;
+        if (step >= steps) {
+          clearInterval(crossfadeRef.current);
+          fadeOut.pause();
+          fadeOut.src = "";
+          fadeOut.volume = targetVol;
 
-        // Swap refs so audioRef always points to the active player
-        audioRef.current     = fadeIn;
-        nextAudioRef.current = fadeOut;
-        bindPrimaryAudio(fadeIn);
+          const pair = deckPairRef.current || { primary: fadeOut, standby: fadeIn };
+          swapDeck(pair);
+          audioRef.current = pair.primary;
+          nextAudioRef.current = pair.standby;
+          deckPairRef.current = pair;
+          bindPrimaryAudio(pair.primary);
+          pendingNextRef.current = null;
 
-        // Advance the queue for playlist/session playback
-        if (!radio) {
-          setQueue((prev) => {
-            const rest = prev.filter((t2) => t2.id !== next.id);
-            return repeatRef.current === "all" && outgoing
-              ? [...rest, outgoing]
-              : rest;
-          });
+          // Advance the queue for playlist/session playback
+          if (!radio) {
+            setQueue((prev) => {
+              const rest = prev.filter((t2) => t2.id !== next.id);
+              return repeatRef.current === "all" && outgoing
+                ? [...rest, outgoing]
+                : rest;
+            });
+          }
+
+          setCurrent(next);
+          if (outgoing) {
+            playHistoryRef.current = [outgoing, ...playHistoryRef.current].slice(0, 50);
+          }
+          logTrackPlay(next);
+          // Delay clearing the crossfade flag so the currentTrack useEffect
+          // sees isCrossfading=true and skips reloading the audio
+          setTimeout(() => { isCrossfading.current = false; }, 100);
         }
+      }, interval);
+    };
 
-        setCurrent(next);
-        if (outgoing) {
-          playHistoryRef.current = [outgoing, ...playHistoryRef.current].slice(0, 50);
-        }
-        logTrackPlay(next);
-        // Delay clearing the crossfade flag so the currentTrack useEffect
-        // sees isCrossfading=true and skips reloading the audio
-        setTimeout(() => { isCrossfading.current = false; }, 100);
+    // Gate the blend on canplay so we don't fade into silence / cold buffer
+    if (crossfadeReadyWaitRef.current) {
+      clearTimeout(crossfadeReadyWaitRef.current.failSafe);
+      crossfadeReadyWaitRef.current.cleanup?.();
+      crossfadeReadyWaitRef.current = null;
+    }
+    let started = false;
+    const kick = () => {
+      if (started) return;
+      started = true;
+      if (crossfadeReadyWaitRef.current) {
+        clearTimeout(crossfadeReadyWaitRef.current.failSafe);
+        crossfadeReadyWaitRef.current.cleanup?.();
+        crossfadeReadyWaitRef.current = null;
       }
-    }, interval);
+      beginRamp();
+    };
+    const onCanPlay = () => kick();
+    fadeIn.addEventListener("canplay", onCanPlay);
+    const failSafe = setTimeout(kick, 4500);
+    crossfadeReadyWaitRef.current = {
+      failSafe,
+      cleanup: () => fadeIn.removeEventListener("canplay", onCanPlay),
+    };
+    // HAVE_FUTURE_DATA or better — already warm from preload
+    if (fadeIn.readyState >= READY_TO_FADE) kick();
   }
   startCrossfadeRef.current = startCrossfade;
 
   // When track changes (non-crossfade — manual play), load fresh
   useEffect(() => {
+    if (isDevPreviewHash()) return;
     if (!currentTrack || !audioRef.current) return;
     // If we're crossfading in radio mode, the engine handles it — skip
     if (isCrossfading.current) return;
     const audio = audioRef.current;
     clearInterval(crossfadeRef.current);
-    if (currentTrack.audioUrl) {
-      audio.src = currentTrack.audioUrl;
-      audio.volume = volumeRef.current;
-      audio.load();
-      if (isPlaying) audio.play().catch(() => {});
-    } else {
+    pendingNextRef.current = null;
+    const url = String(currentTrack.audioUrl || "").trim();
+    if (!url) {
       audio.src = "";
+      setProgress(0);
+      transportFlags.setBuffering(false);
+      setIsPlaying(false);
+      return undefined;
     }
-    setProgress(0);
-  }, [currentTrack?.id]);
+    let el = audio;
+    const already = (el.getAttribute("src") || "") === url;
+    if (!already && promoteStandbyIfWarm(currentTrack)) {
+      el = audioRef.current || el;
+    } else {
+      el.volume = volumeRef.current;
+      if (!already) {
+        transportFlags.setBuffering(true);
+        el.src = url;
+        try { el.load(); } catch { /* ignore */ }
+      }
+    }
+    const resumeAt = pendingResumeRef.current;
+    pendingResumeRef.current = null;
+    if (resumeAt != null && resumeAt > 0) {
+      const seekWhenReady = () => { try { el.currentTime = resumeAt; } catch { /* ignore */ } };
+      el.addEventListener("loadedmetadata", seekWhenReady, { once: true });
+      setProgress(Math.floor(resumeAt));
+    } else if (!already) {
+      setProgress(0);
+    }
 
-  // Sync play/pause
+    let cancelled = false;
+    const rejectPlay = (err) => {
+      if (cancelled || isBenignPlayReject(err)) return;
+      setIsPlaying(false);
+      transportFlags.setBuffering(false);
+      showToastRef.current?.(PLAY_REJECTED_TOAST);
+    };
+    const tryPlay = () => {
+      if (cancelled || !isPlayingRef.current || !canAttemptPlay(el)) return;
+      const p = el.play();
+      if (p?.catch) {
+        p.catch((err) => {
+          if (cancelled || !isPlayingRef.current || isBenignPlayReject(err)) return;
+          setTimeout(() => {
+            if (!cancelled && isPlayingRef.current && canAttemptPlay(el)) {
+              el.play().catch(rejectPlay);
+            } else if (!cancelled && isPlayingRef.current) {
+              rejectPlay(err);
+            }
+          }, 220);
+        });
+      }
+    };
+    if (el.readyState >= READY_TO_PLAY) tryPlay();
+    else el.addEventListener("canplay", tryPlay, { once: true });
+    const loadTimeout = window.setTimeout(() => {
+      if (cancelled) return;
+      transportFlags.setBuffering(false);
+      if (el.paused && isPlayingRef.current) {
+        setIsPlaying(false);
+        showToastRef.current?.("This cut is taking too long. Try another.");
+      }
+    }, AUDIO_LOAD_TIMEOUT_MS);
+    return () => {
+      cancelled = true;
+      window.clearTimeout(loadTimeout);
+      el.removeEventListener("canplay", tryPlay);
+    };
+  }, [currentTrackId, promoteStandbyIfWarm]);
+
+  // ── Session resume — save the listening position, restore on next launch ──
+  const pendingResumeRef = useRef(null);
+  const resumeRestoredRef = useRef(false);
+  const lastSavedProgressRef = useRef(-10);
   useEffect(() => {
-    if (!audioRef.current || !currentTrack?.audioUrl) return;
-    if (isPlaying) { audioRef.current.play().catch(() => {}); }
-    else           { audioRef.current.pause(); }
-  }, [isPlaying]);
+    if (!currentTrack?.id) return undefined;
+    const trackId = currentTrack.id;
+    const save = (progress) => {
+      if (Math.abs(progress - lastSavedProgressRef.current) < 5 && progress !== 0) return;
+      lastSavedProgressRef.current = progress;
+      try {
+        localStorage.setItem(`${brandStoragePrefix()}.lastSession`, JSON.stringify({
+          trackId,
+          position: progress,
+          ts: Date.now(),
+        }));
+      } catch { /* ignore */ }
+    };
+    save(playerPlaybackStore.getState().progress);
+    return playerPlaybackStore.subscribe((s) => save(s.progress));
+  }, [currentTrackId]);
+  useEffect(() => {
+    if (resumeRestoredRef.current || tracksLoading || currentTrack || !tracks.length) return;
+    resumeRestoredRef.current = true;
+    try {
+      const saved = JSON.parse(localStorage.getItem(`${brandStoragePrefix()}.lastSession`) || "null");
+      if (!saved?.trackId) return;
+      const track = trackById.get(saved.trackId);
+      if (!track || !String(track.audioUrl || "").trim()) return;
+      const dur = track.duration || 0;
+      const position = Number.isFinite(saved.position) && saved.position > 3 && (!dur || saved.position < dur - 10)
+        ? saved.position
+        : 0;
+      pendingResumeRef.current = position;
+      setCurrent(track); // paused — never autoplay on launch
+      setIsRadioMode(false);
+    } catch { /* ignore */ }
+  }, [tracksLoading, trackById, currentTrack]);
+
+  // Sync play/pause — subscribe to transport store so App need not re-render
+  useEffect(() => {
+    const apply = (state) => {
+      if (isDevPreviewHash()) return;
+      const audio = audioRef.current;
+      if (!audio) return;
+      if (state.isPlaying) {
+        if (canAttemptPlay(audio)) {
+          audio.play().catch((err) => {
+            if (isBenignPlayReject(err)) return;
+            setIsPlaying(false);
+            transportFlags.setBuffering(false);
+            showToastRef.current?.(PLAY_REJECTED_TOAST);
+          });
+        }
+      } else {
+        audio.pause();
+      }
+    };
+    apply(transportFlags.getState());
+    return transportFlags.subscribe(apply);
+  }, []);
 
   // Sync volume to both audio elements
   useEffect(() => {
@@ -5421,22 +2273,106 @@ export default function App() {
   }, [volume]);
 
   // ── Playback actions ─────────────────────────────────────────────────────
-  const playTrack = (track, q = null, opts = {}) => {
-    if (currentTrack && currentTrack.id !== track.id) {
-      playHistoryRef.current = [currentTrack, ...playHistoryRef.current].slice(0, 50);
+  const togglePlay = useCallback(() => {
+    setIsPlaying((p) => {
+      if (!p) unlockAudioElements();
+      return !p;
+    });
+  }, [setIsPlaying, unlockAudioElements]);
+
+  /** Server-trusted play accounting (meter + charts). Optimistic local meter. */
+  const commitListeningPlay = useCallback((track) => {
+    if (!firebaseUser || !track?.id) return;
+    const optimistic = bumpPlayMeter(profile, access);
+    if (optimistic) {
+      setProfile((p) => ({ ...(p || {}), ...optimistic }));
+    }
+    recordPlay(track.id, profile?.recentTracks || [])
+      .then((result) => {
+        if (result?.allowed === false) {
+          if (!PAYWALL_ENABLED) return;
+          setIsPlaying(false);
+          setProfile((p) => ({
+            ...(p || {}),
+            playsToday: result.playsToday ?? (p?.playsToday || 0),
+            playsDayKey: result.playsDayKey || p?.playsDayKey || null,
+          }));
+          showToast(
+            `Free limit reached (${result.freePlaysPerDay || BILLING.freePlaysPerDay}/day) — join Club for unlimited`
+          );
+          setShowPlans(true);
+          return;
+        }
+        setProfile((p) => ({
+          ...(p || {}),
+          ...(result?.playsToday != null
+            ? { playsToday: result.playsToday, playsDayKey: result.playsDayKey }
+            : {}),
+          ...(result?.recentTracks ? { recentTracks: result.recentTracks } : {}),
+        }));
+        if (result?.playCount != null) {
+          setTracks((prev) =>
+            prev.map((t) => (t.id === track.id ? { ...t, playCount: result.playCount } : t))
+          );
+        }
+      })
+      .catch(() => {});
+  }, [firebaseUser, profile, access]);
+
+  const guardFreePlay = useCallback(() => {
+    if (!PAYWALL_ENABLED) return true;
+    if (canPlayOnFreeTier(profile, access)) return true;
+    const left = freePlaysRemaining(profile, access);
+    showToast(
+      left <= 0
+        ? `Free limit reached (${BILLING.freePlaysPerDay}/day) — join Club for unlimited`
+        : "Upgrade for unlimited listening"
+    );
+    setShowPlans(true);
+    return false;
+  }, [profile, access]);
+
+  const playTrack = useCallback((track, q = null, opts = {}) => {
+    if (!track) return;
+    if (!hasPlayableAudio(track)) {
+      showToastRef.current?.(MISSING_AUDIO_TOAST);
+      return;
+    }
+    if (!guardFreePlay()) return;
+    unlockAudioElements();
+    const current = currentRef.current;
+    if (current && current.id !== track.id) {
+      playHistoryRef.current = [current, ...playHistoryRef.current].slice(0, 50);
     }
     // Quiet dig by default — only open Booth when asked (radio / session / explicit)
     const openImmersive = opts.immersive === true;
     setCurrent(track); setIsPlaying(true); setProgress(0); setIsRadioMode(false);
     if (!opts.keepSession) setSessionMeta(null);
     if (!opts.keepHypno) setHypnoSeed(null);
+    if (!opts.keepShow) {
+      activeShowIdRef.current = null;
+      setActiveShowId(null);
+    }
+    if (!opts.keepScene) {
+      activeSceneChannelIdRef.current = null;
+      setActiveSceneChannelId(null);
+    }
     if (opts.room) setListeningRoom(opts.room);
     else if (!opts.keepRoom) setListeningRoom(null);
     if (openImmersive) setImmersive(true);
-    if (q) setQueue(q.filter(t => t.id !== track.id));
+    if (q) {
+      const rest = q.filter(t => t.id !== track.id);
+      setQueue(rest);
+      if (rest[0]) preloadNextAudio(rest[0]);
+    }
     logTrackPlay(track);
-    if (firebaseUser) recordPlay(track.id, profile?.recentTracks || []).catch(()=>{});
-  };
+    commitListeningPlay(track);
+  }, [guardFreePlay, unlockAudioElements, setCurrent, setIsPlaying, preloadNextAudio, commitListeningPlay]);
+
+  const playFromLibrary = useCallback((t, pool) => {
+    setIsRadioMode(false);
+    playTrack(t, pool || tracksRef.current);
+  }, [playTrack]);
 
   const playPath = (path) => {
     if (!path?.playlist?.length) return;
@@ -5446,41 +2382,70 @@ export default function App() {
     showToast(`Walking “${path.title}”`);
   };
 
-  const playRadio = (seed = null, intentOverride = null) => {
+  const playRadio = useCallback((seed = null, intentOverride = null) => {
+    if (!guardFreePlay()) return;
+    unlockAudioElements();
+    const liveBlock = resolveShowAt(new Date()).show;
+    const focus = listenFocusRef.current || {};
+    // Default orb = tune the live VJ block (channel, not anonymous shuffle)
+    if (!seed && !intentOverride && liveBlock && !focus.genre && !focus.scene && !(tasteColdStart && profileTaste.seedChannelId)) {
+      playShowRef.current?.(liveBlock);
+      return;
+    }
     const resolved = intentOverride
-      ? resolveListenPool(tracks, intentOverride, { requireAudio: true, applyMixLane: true })
+      ? resolveListenPool(tracksRef.current, intentOverride, { requireAudio: true, applyMixLane: true })
       : radioResolved();
     const pool = resolved.tracks;
     if (!pool.length) return;
     const seedTrack = seed || null;
-    setHypnoSeed(seedTrack);
+    const preview = heroPreviewRef.current;
     // Honor the hero preview so "Up first" is what actually plays
-    const first = (!seedTrack && !intentOverride && heroPreview && pool.some(t => t.id === heroPreview.id))
-      ? heroPreview
+    const first = (!seedTrack && !intentOverride && preview && pool.some(t => t.id === preview.id))
+      ? preview
       : pickNextTrack(pool, null, recentlyPlayedRef.current, {
-          preferredGenres: profile?.genres || [],
-          signalState,
+          ...radioPickOpts(),
           seedTrack,
-          scopedPool: true,
-          tasteBlend: !(intentOverride?.genre || listenFocus.genre),
+          tasteBlend: !(intentOverride?.genre || focus.genre),
         }) || pool.find(t => (t.duration || 0) <= 900) || pool[0];
-    if (currentTrack) playHistoryRef.current = [currentTrack, ...playHistoryRef.current].slice(0, 50);
-    setCurrent(first); setIsPlaying(true); setProgress(0); setIsRadioMode(true); setQueue([]); setImmersive(true);
+    if (!hasPlayableAudio(first)) {
+      showToastRef.current?.("This station is missing audio.");
+      return;
+    }
+    setHypnoSeed(seedTrack);
+    if (liveBlock && !seedTrack) {
+      activeShowIdRef.current = liveBlock.id;
+      setActiveShowId(liveBlock.id);
+    }
+    const current = currentRef.current;
+    if (current) playHistoryRef.current = [current, ...playHistoryRef.current].slice(0, 50);
+    setCurrent(first); setIsPlaying(true); setProgress(0); setIsRadioMode(true); setQueue([]);
+    setImmersive(false);
     setSessionMeta(null);
     if (!sessionStartRef.current) sessionStartRef.current = Date.now();
     logTrackPlay(first);
-    showToast(seedTrack ? "Similar mix" : resolved.label);
-    if (firebaseUser) recordPlay(first.id, profile?.recentTracks || []).catch(()=>{});
-  };
+    showToastRef.current?.(seedTrack ? "Near this" : (liveBlock?.intro || "What's in the mix?"));
+    commitListeningPlay(first);
+    const upcoming = pickNextTrack(pool, first, recentlyPlayedRef.current, radioPickOpts());
+    if (upcoming && upcoming.id !== first.id) preloadNextAudio(upcoming);
+  }, [guardFreePlay, unlockAudioElements, radioResolved, profileTaste, tasteColdStart, setCurrent, setIsPlaying, commitListeningPlay, preloadNextAudio]);
+
+  const listenFromExplore = useCallback((focus) => {
+    const next = { genre: focus.genre || null, scene: focus.scene || null };
+    setListenFocus(next);
+    playRadio(null, createListenIntent({ mixLane: mixLaneRef.current, ...next }));
+  }, [playRadio]);
 
   // Play a generated route / night as a queue — session ritual
   const playRoute = (routeTracks, kind = "night") => {
     if (!routeTracks.length) return;
+    if (!guardFreePlay()) return;
+    unlockAudioElements();
     const first = routeTracks[0];
     const now = Date.now();
     setHypnoSeed(null);
     setCurrent(first); setIsPlaying(true); setProgress(0); setIsRadioMode(false); setImmersive(true);
     setQueue(routeTracks.slice(1));
+    if (routeTracks[1]) preloadNextAudio(routeTracks[1]);
     sessionStartRef.current = now;
     setSessionMeta({
       tracks: routeTracks,
@@ -5490,7 +2455,7 @@ export default function App() {
     });
     logTrackPlay(first);
     showToast(`Playing ${routeTracks.length} songs`);
-    if (firebaseUser) recordPlay(first.id, profile?.recentTracks || []).catch(()=>{});
+    commitListeningPlay(first);
   };
 
   const playHypnoRadio = (track) => {
@@ -5501,60 +2466,77 @@ export default function App() {
   const recordSkipOnFirestore = async (trackId) => {
     try {
       const { doc: fdoc, updateDoc: fup, increment: finc } = await import("firebase/firestore");
-      await fup(fdoc(db, "tracks", trackId), { skipCount: finc(1) });
+      await fup(fdoc(await firestoreDb(), "tracks", trackId), { skipCount: finc(1) });
     } catch(e) {}
   };
 
-  const handleSkip = () => {
-    // Only count as a skip if user manually skipped (not end-of-track auto-advance)
-    // We detect this by checking if progress < 95% of duration
+  const handleSkip = useCallback(() => {
+    const current = currentRef.current;
+    const { progress, duration } = playerPlaybackStore.getState();
     const pct = duration > 0 ? progress / duration : 0;
-    if (currentTrack && firebaseUser && pct < 0.95) {
-      recordSkipOnFirestore(currentTrack.id);
-      // Also update local tracks state so analytics tab reflects it immediately
-      setTracks(prev => prev.map(t => t.id === currentTrack.id ? { ...t, skipCount: (t.skipCount||0)+1 } : t));
+    if (current && firebaseUserRef.current && pct < 0.95) {
+      recordSkipOnFirestore(current.id);
+      setTracks((prev) => patchTrackById(prev, current.id, (t) => ({ ...t, skipCount: (t.skipCount || 0) + 1 })));
     }
-    if (currentTrack) playHistoryRef.current = [currentTrack, ...playHistoryRef.current].slice(0, 50);
-    if (isRadioMode) {
-      const next = pickNextTrack(radioPool(), currentTrack, recentlyPlayedRef.current, radioPickOpts());
+    if (current) playHistoryRef.current = [current, ...playHistoryRef.current].slice(0, 50);
+    if (isRadioModeRef.current) {
+      const pending = pendingNextRef.current?.track;
+      const pendingUrl = String(pending?.audioUrl || "").trim();
+      const warmPending = pending
+        && pending.id !== current?.id
+        && canInstantPromote(nextAudioRef.current, pendingUrl);
+      const next = warmPending
+        ? pending
+        : pickNextTrack(radioPool(), current, recentlyPlayedRef.current, radioPickOpts());
       if (next) {
         setCurrent(next); setProgress(0); setIsPlaying(true);
         logTrackPlay(next);
-        if (firebaseUser) recordPlay(next.id, profile?.recentTracks || []).catch(()=>{});
+        commitListeningPlay(next);
       }
       return;
     }
-    if (!queue.length) {
-      if (repeat === "one" && currentTrack) {
-        handleSeek(0);
+    const q = queueRef.current;
+    if (!q.length) {
+      if (repeatRef.current === "one" && current) {
+        setProgress(0);
+        if (audioRef.current) audioRef.current.currentTime = 0;
         setIsPlaying(true);
         return;
       }
       setIsPlaying(false);
-      if (sessionMeta) {
+      if (sessionMetaRef.current) {
         endSessionWithAfterglow(true);
         setImmersive(false);
       }
       return;
     }
-    const next = shuffle
-      ? queue[Math.floor(Math.random() * queue.length)]
-      : queue[0];
-    setQueue(repeat === "all" ? [...queue.filter(t=>t.id!==next.id), currentTrack] : queue.filter(t=>t.id!==next.id));
+    const next = shuffleRef.current
+      ? q[Math.floor(Math.random() * q.length)]
+      : q[0];
+    if (!next) {
+      setIsPlaying(false);
+      return;
+    }
+    const rest = q.filter((t) => t.id !== next.id);
+    const recycled = repeatRef.current === "all" && current
+      ? [...rest, current]
+      : rest;
+    setQueue(recycled);
     setCurrent(next); setProgress(0); setIsPlaying(true);
     logTrackPlay(next);
-  };
+    commitListeningPlay(next);
+    if (recycled[0]) preloadNextAudio(recycled[0]);
+  }, [radioPool, setCurrent, setIsPlaying, commitListeningPlay, preloadNextAudio]);
   // Keep ref in sync so the audio "ended" listener always calls the latest handleSkip
   handleSkipRef.current = handleSkip;
 
   // Seek: move the real audio position when the user drags the bar
-  const handleSeek = (seconds) => {
+  const handleSeek = useCallback((seconds) => {
     setProgress(seconds);
     if (audioRef.current) audioRef.current.currentTime = seconds;
-  };
+  }, [setProgress]);
 
-  // Prev: if more than 3 seconds in, restart the track; otherwise go to previous
-  const handlePrev = () => {
+  const handlePrev = useCallback(() => {
     if (audioRef.current && audioRef.current.currentTime > 3) {
       audioRef.current.currentTime = 0;
       setProgress(0);
@@ -5563,67 +2545,442 @@ export default function App() {
     const prev = playHistoryRef.current[0];
     if (prev) {
       playHistoryRef.current = playHistoryRef.current.slice(1);
-      if (currentTrack) setQueue(q => [currentTrack, ...q.filter(t => t.id !== currentTrack.id)]);
+      const current = currentRef.current;
+      if (current) setQueue((q) => [current, ...q.filter((t) => t.id !== current.id)]);
       setCurrent(prev); setProgress(0); setIsPlaying(true);
       return;
     }
     if (audioRef.current) audioRef.current.currentTime = 0;
     setProgress(0);
-  };
+  }, [setCurrent, setIsPlaying]);
+  handlePrevRef.current = handlePrev;
 
-  // Media Session — lock screen / headset / OS transport controls
+  // ── Global keyboard shortcuts ─────────────────────────────────────────────
+  // Space play/pause · ←/→ seek ±10s · ↑/↓ volume · M mute · L like ·
+  // Q queue · F player · / search · Esc close overlays
+  // keyCtxRef is filled after toggleLike is declared (below) to avoid TDZ.
+  const keyCtxRef = useRef({});
   useEffect(() => {
-    if (!("mediaSession" in navigator) || !currentTrack) return;
-    try {
-      navigator.mediaSession.metadata = new window.MediaMetadata({
-        title: currentTrack.title || "Unknown",
-        artist: currentTrack.artist || "",
-        album: currentTrack.album || "",
-        artwork: currentTrack.albumCover
-          ? [{ src: currentTrack.albumCover, sizes: "512x512", type: "image/jpeg" }]
-          : [],
-      });
-      navigator.mediaSession.playbackState = isPlaying ? "playing" : "paused";
-      navigator.mediaSession.setActionHandler("play", () => setIsPlaying(true));
-      navigator.mediaSession.setActionHandler("pause", () => setIsPlaying(false));
-      navigator.mediaSession.setActionHandler("previoustrack", () => handlePrev());
-      navigator.mediaSession.setActionHandler("nexttrack", () => handleSkipRef.current?.());
-      navigator.mediaSession.setActionHandler("seekto", (details) => {
-        if (details.seekTime != null && audioRef.current) {
-          audioRef.current.currentTime = details.seekTime;
-          setProgress(Math.floor(details.seekTime));
+    const isTypingTarget = (el) =>
+      el && (el.tagName === "INPUT" || el.tagName === "TEXTAREA" || el.tagName === "SELECT" || el.isContentEditable);
+    const onKey = (e) => {
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      const ctx = keyCtxRef.current;
+      const typing = isTypingTarget(e.target);
+      if (typing) {
+        if (e.key === "Escape") e.target.blur?.();
+        return;
+      }
+      switch (e.key) {
+        case " ":
+          if (!ctx.currentTrack) return;
+          e.preventDefault();
+          ctx.togglePlay();
+          break;
+        case "ArrowRight":
+          if (!ctx.currentTrack) return;
+          e.preventDefault();
+          {
+            const clock = playerPlaybackStore.getState();
+            ctx.handleSeek(Math.min((clock.duration || 0), clock.progress + 10));
+          }
+          break;
+        case "ArrowLeft":
+          if (!ctx.currentTrack) return;
+          e.preventDefault();
+          {
+            const clock = playerPlaybackStore.getState();
+            ctx.handleSeek(Math.max(0, clock.progress - 10));
+          }
+          break;
+        case "ArrowUp":
+          if (!ctx.currentTrack) return;
+          e.preventDefault();
+          ctx.setVolume((v) => Math.min(1, Math.round((v + 0.05) * 100) / 100));
+          break;
+        case "ArrowDown":
+          if (!ctx.currentTrack) return;
+          e.preventDefault();
+          ctx.setVolume((v) => Math.max(0, Math.round((v - 0.05) * 100) / 100));
+          break;
+        case "m": case "M":
+          if (!ctx.currentTrack) return;
+          ctx.setVolume((v) => (v > 0 ? 0 : (lastAudibleVolumeRef.current || 1)));
+          break;
+        case "l": case "L":
+          if (!ctx.currentTrack) return;
+          ctx.toggleLike(ctx.currentTrack.id);
+          break;
+        case "q": case "Q":
+          if (!ctx.currentTrack) return;
+          ctx.setShowQueue((s) => !s);
+          break;
+        case "f": case "F":
+          if (!ctx.currentTrack) return;
+          ctx.setImmersive((s) => !s);
+          break;
+        case "/":
+          e.preventDefault();
+          ctx.setScreen("search");
+          break;
+        case "Escape":
+          if (ctx.showQueue) ctx.setShowQueue(false);
+          else if (ctx.immersive) ctx.setImmersive(false);
+          break;
+        default:
+          break;
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
+
+  useEffect(() => {
+    syncMediaSession(currentTrack, { playing: isPlayingRef.current });
+    return bindMediaSessionHandlers({
+      play: () => { unlockAudioElements(); setIsPlaying(true); },
+      pause: () => setIsPlaying(false),
+      next: () => handleSkipRef.current?.(),
+      prev: () => handlePrevRef.current?.(),
+      seek: (seconds) => {
+        if (audioRef.current && Number.isFinite(seconds)) {
+          audioRef.current.currentTime = seconds;
+          setProgress(Math.floor(seconds));
         }
-      });
-    } catch (e) {
-      // MediaSession unsupported or rejected — ignore
-    }
-  }, [currentTrack?.id, isPlaying]);
+      },
+    });
+  }, [currentTrackId]);
+
+  useEffect(() => {
+    if (!("mediaSession" in navigator)) return undefined;
+    const apply = (state) => {
+      try {
+        navigator.mediaSession.playbackState = state.isPlaying ? "playing" : "paused";
+      } catch { /* ignore */ }
+    };
+    apply(transportFlags.getState());
+    return transportFlags.subscribe(apply);
+  }, []);
 
 
   // ── Like/unlike — optimistic UI + Firestore sync ────────────────────────
-  const toggleLike = async (id) => {
-    const track = tracks.find(t => t.id === id);
+  const askSignIn = useCallback((reason) => {
+      showToast(reason || "Sign in from Profile");
+    setScreen("profile");
+  }, [setScreen]);
+
+  const toggleLike = useCallback(async (id) => {
+    if (!firebaseUserRef.current) {
+      askSignIn("Sign in from Profile to keep favorites");
+      return;
+    }
+    const track = tracksRef.current.find((t) => t.id === id);
     if (!track) return;
     const nowLiked = !track.liked;
     const delta = nowLiked ? 1 : -1;
 
-    // Update local state immediately so the heart feels instant
-    setTracks(prev => prev.map(t => t.id === id ? {...t, liked: nowLiked, likeCount: Math.max(0,(t.likeCount||0)+delta)} : t));
-    if (currentTrack?.id === id) setCurrent(t => ({...t, liked: nowLiked}));
+    setTracks((prev) => patchTrackById(prev, id, (t) => ({
+      ...t,
+      liked: nowLiked,
+      likeCount: Math.max(0, (t.likeCount || 0) + delta),
+    })));
+    if (currentRef.current?.id === id) setCurrent((t) => ({ ...t, liked: nowLiked }));
 
-    // Sync to Firestore in the background
-    if (firebaseUser) {
-      try {
-        await fbToggleLike(id, track.liked);
-        // Increment/decrement global likeCount on the track doc
-        const { doc: fdoc, updateDoc: fup, increment: finc } = await import("firebase/firestore");
-        await fup(fdoc(db, "tracks", id), { likeCount: finc(delta) });
-      } catch(e) {
-        // Roll back on failure
-        setTracks(prev => prev.map(t => t.id === id ? {...t, liked: track.liked, likeCount: t.likeCount - delta} : t));
-        showToast("Couldn't save — check your connection");
+    try {
+      await fbToggleLike(id, track.liked);
+      const { doc: fdoc, updateDoc: fup, increment: finc } = await import("firebase/firestore");
+      await fup(fdoc(await firestoreDb(), "tracks", id), { likeCount: finc(delta) });
+    } catch (e) {
+      setTracks((prev) => patchTrackById(prev, id, (t) => ({
+        ...t,
+        liked: track.liked,
+        likeCount: Math.max(0, (t.likeCount || 0) - delta),
+      })));
+      showToastRef.current?.("Couldn't save — check your connection");
+    }
+  }, [askSignIn, setCurrent]);
+
+  const likeCurrent = useCallback(() => {
+    const t = currentRef.current;
+    if (t) toggleLike(t.id);
+  }, [toggleLike]);
+  const showQueueSheet = useCallback(() => setShowQueue(true), []);
+
+  // ── Station: countdown, requests, dedications, VJ shows ──────────────────
+  const countdown = useMemo(() => buildCountdown(tracks, 20), [tracks]);
+  const { airing: liveAiring, guide: programGuide } = useLiveAiring(30000);
+  const liveShow = useMemo(() => {
+    if (activeShowId) {
+      const fromGuide = programGuide.find((s) => s.id === activeShowId);
+      if (fromGuide) return fromGuide;
+      return getShowById(activeShowId);
+    }
+    return liveAiring?.show || null;
+  }, [activeShowId, programGuide, liveAiring]);
+  const showBumper = useMemo(
+    () => pickShowBumper(liveShow || liveAiring?.show, new Date()),
+    [liveShow, liveAiring?.show?.id, currentTrackId]
+  );
+  const stationDaypartLive = useMemo(() => stationDaypart(new Date()), [mixLane, currentTrackId]);
+  const {
+    daypart: feedDaypart,
+    ticker: stationTicker,
+    dedicationFlash,
+    setDedicationFlash,
+    pushDedication,
+  } = useStationFeed({
+    countdown,
+    communityMixTitle: communityMix?.title || null,
+    show: liveShow || liveAiring?.show || null,
+    nextShow: liveAiring?.nextShow || null,
+    bumper: showBumper,
+  });
+  const activeDaypart = feedDaypart || stationDaypartLive;
+  const openDedicate = useCallback(() => setShowDedicate(true), []);
+  const clearDedication = useCallback(() => setDedicationFlash(null), [setDedicationFlash]);
+  const openCommunityMix = useCallback(() => {
+    if (communityMix?.id) openMix(communityMix.id);
+  }, [communityMix?.id, openMix]);
+  const editGenres = useCallback(() => setShowGenreTaste(true), []);
+  const replayTour = useCallback(() => setFeatureTourReplay(true), []);
+  const dislikeCurrentTrack = useCallback(async () => {
+    const track = currentRef.current;
+    if (!track?.id) return;
+    const p = profileForLikesRef.current;
+    const already = !!(track.disliked || (p?.dislikedTracks || []).includes(track.id));
+    if (!already) {
+      const recorded = recordDislikeEvent(
+        normalizeDislikeTaste(p?.dislikeTaste || emptyDislikeTaste()),
+        track
+      );
+      const dislikedTracks = Array.from(
+        new Set([track.id, ...(p?.dislikedTracks || [])])
+      ).slice(0, 80);
+      const likedTracks = (p?.likedTracks || []).filter((id) => id !== track.id);
+      setTracks((prev) => patchTrackById(prev, track.id, { disliked: true, liked: false }));
+      setCurrent((t) => (t?.id === track.id ? { ...t, disliked: true, liked: false } : t));
+      setProfile((prev) => ({
+        ...(prev || {}),
+        dislikeTaste: recorded.taste,
+        dislikedTracks,
+        likedTracks,
+      }));
+      showToastRef.current?.(
+        recorded.hard
+          ? "Got it — we’ll skip that vibe"
+          : "Hearing less of that"
+      );
+      if (firebaseUserRef.current) {
+        try {
+          await saveDislikeTaste(recorded.taste, dislikedTracks);
+          if (track.liked) {
+            await fbToggleLike(track.id, true);
+          }
+        } catch {
+          showToastRef.current?.("Couldn't save — check your connection");
+        }
       }
     }
+    handleSkipRef.current?.();
+  }, [setCurrent, setProfile]);
+
+  const playShow = useCallback((showInput) => {
+    const show = typeof showInput === "string"
+      ? getShowById(showInput)
+      : (showInput || liveAiring?.show);
+    if (!show) {
+      showToast("That block isn’t on the guide");
+      return;
+    }
+    if (!guardFreePlay()) return;
+    const pool = buildShowPool(tracks, show, { countdown });
+    if (!pool.length) {
+      showToast("Nothing lined up for this block yet");
+      return;
+    }
+    unlockAudioElements();
+    const first = pool[0];
+    if (!hasPlayableAudio(first)) {
+      showToast("Nothing lined up for this block yet");
+      return;
+    }
+    activeShowIdRef.current = show.id;
+    activeSceneChannelIdRef.current = null;
+    setActiveShowId(show.id);
+    setActiveSceneChannelId(null);
+    setHypnoSeed(null);
+    setListeningRoom({ id: `show:${show.id}`, label: show.title });
+    if (currentTrack) playHistoryRef.current = [currentTrack, ...playHistoryRef.current].slice(0, 50);
+    setCurrent(first);
+    setIsPlaying(true);
+    setProgress(0);
+    setIsRadioMode(true);
+    setQueue([]);
+    // Stay on the Home broadcast stage — immersive is opt-in via the hero.
+    setImmersive(false);
+    setSessionMeta({
+      tracks: pool.slice(0, 24),
+      startTime: Date.now(),
+      kind: "show",
+      label: show.title,
+    });
+    if (!sessionStartRef.current) sessionStartRef.current = Date.now();
+    logTrackPlay(first);
+    showToast(show.intro || `Tuned into ${show.title}`);
+    commitListeningPlay(first);
+  }, [tracks, countdown, liveAiring, currentTrack, guardFreePlay, commitListeningPlay]);
+
+  // Stable ref so playRadio (defined earlier) can tune a live block without TDZ issues
+  playShowRef.current = playShow;
+
+  const playSceneChannel = useCallback((channelInput) => {
+    const channel = typeof channelInput === "string"
+      ? getSceneChannel(channelInput)
+      : channelInput;
+    if (!channel) return;
+    if (!guardFreePlay()) return;
+    // Already on this dial — the tile shows pause, so toggle transport.
+    if (activeSceneChannelIdRef.current === channel.id) {
+      if (!isPlayingRef.current) unlockAudioElements();
+      togglePlay();
+      return;
+    }
+    const pool = buildSceneChannelPool(tracks, channel);
+    if (!pool.length) {
+      showToast("Nothing lined up on that channel yet");
+      return;
+    }
+    unlockAudioElements();
+    const first = pickNextTrack(pool, null, recentlyPlayedRef.current, {
+      ...radioPickOpts(),
+      tasteBlend: false,
+      scopedPool: true,
+    }) || pool.find((t) => hasPlayableAudio(t)) || pool[0];
+    if (!hasPlayableAudio(first)) {
+      showToast("Nothing lined up on that channel yet");
+      return;
+    }
+    activeSceneChannelIdRef.current = channel.id;
+    activeShowIdRef.current = null;
+    setActiveSceneChannelId(channel.id);
+    setActiveShowId(null);
+    setHypnoSeed(null);
+    setListeningRoom({ id: `scene:${channel.id}`, label: channel.title });
+    if (currentTrack) playHistoryRef.current = [currentTrack, ...playHistoryRef.current].slice(0, 50);
+    setCurrent(first);
+    setIsPlaying(true);
+    setProgress(0);
+    setIsRadioMode(true);
+    setQueue([]);
+    // Channel Surfing plays on the live Home stage, not the immersive booth.
+    setImmersive(false);
+    setSessionMeta(null);
+    if (!sessionStartRef.current) sessionStartRef.current = Date.now();
+    logTrackPlay(first);
+    showToast(`${channel.title} — ${channel.tagline}`);
+    commitListeningPlay(first);
+  }, [tracks, currentTrack, guardFreePlay, commitListeningPlay, profileTaste, tasteColdStart, profile?.dislikeTaste]);
+
+  const playSceneChannelRef = useRef(null);
+  playSceneChannelRef.current = playSceneChannel;
+
+  useEffect(() => {
+    if (!pendingTune || needsOnboarding || tracksLoading) return;
+    const id = pendingTune;
+    setPendingTune(null);
+    const frame = requestAnimationFrame(() => playSceneChannelRef.current?.(id));
+    return () => cancelAnimationFrame(frame);
+  }, [pendingTune, needsOnboarding, tracksLoading]);
+
+  const playMonthlyChart = useCallback(async (scope = { mode: "overall" }) => {
+    const { buildMonthlyChart, chartScopeLabel } = await import("./lib/chartHistory");
+    const monthly = buildMonthlyChart(tracks, { limit: 20, scope });
+    const pool = monthly.map((c) => c.track).filter(Boolean);
+    if (!pool.length) {
+      showToast("Monthly chart needs plays and requests in this scope");
+      return;
+    }
+    setActiveShowId(null);
+    setActiveSceneChannelId(null);
+    playTrack(pool[0], pool, { immersive: true });
+    showToast(`${chartScopeLabel(scope)} — monthly chart`);
+  }, [tracks, playTrack]);
+
+  const addTrackToQueue = useCallback((track) => {
+    if (!track?.id) return;
+    setQueue((q) => {
+      if (q.some((t) => t.id === track.id)) return q;
+      return [...q, track];
+    });
+    showToast(`Added to queue — ${track.title}`);
+  }, []);
+
+  // Snapshot today's chart for history / climbers
+  useEffect(() => {
+    if (!tracks.length) return;
+    import("./lib/chartHistory").then(({ ensureTodayChart }) => {
+      try { ensureTodayChart(tracks); } catch { /* ignore */ }
+    }).catch(() => {});
+  }, [tracks]);
+
+  const tuneCountdown = useCallback(() => {
+    const liveCountdownShow = getShowById("most-requested-live");
+    if (liveCountdownShow) {
+      playShow(liveCountdownShow);
+      return;
+    }
+    const pool = countdown.map((c) => c.track).filter(Boolean);
+    if (!pool.length) {
+      playRadio();
+      return;
+    }
+    playTrack(pool[0], pool, { immersive: false });
+    showToast(`${activeDaypart?.label || "Countdown"} — locked in`);
+  }, [countdown, activeDaypart, playRadio, playTrack, playShow]);
+
+  const countdownRankForCurrent = useMemo(() => {
+    if (!currentTrack?.id) return null;
+    return countdown.find((c) => c.track.id === currentTrack.id)?.rank ?? null;
+  }, [countdown, currentTrackId]);
+
+  const stationUpNext = setNext || (countdown[0]?.track?.id !== currentTrack?.id ? countdown[0]?.track : countdown[1]?.track) || null;
+
+  // Sparse station ident between cuts — skip most changes so the live show
+  // sting (e.g. Most Requested / Dez) does not restage on every song.
+  useEffect(() => {
+    if (!currentTrack?.id || !isPlayingRef.current) return;
+    if (lastBumperTrackRef.current === currentTrack.id) return;
+    const prev = lastBumperTrackRef.current;
+    lastBumperTrackRef.current = currentTrack.id;
+    if (!prev) return; // skip first track of session
+    if (!isRadioMode && !activeShowId && !activeSceneChannelId) return;
+    if (!shouldFireTrackBumper({ lastFiredAt: lastBumperAtRef.current })) return;
+    const bumper = pickTrackBumper({
+      show: liveShow,
+      nextTrack: stationUpNext,
+      countdownTop: countdown[0] || null,
+      sceneChannel: activeSceneChannelId ? getSceneChannel(activeSceneChannelId) : null,
+    });
+    if (!bumper) return;
+    lastBumperAtRef.current = Date.now();
+    setStationBumper(bumper);
+  }, [currentTrackId, isRadioMode, activeShowId, activeSceneChannelId, liveShow, stationUpNext, countdown]);
+
+  // When a tuned block ends, roll the channel forward to the new live show
+  useEffect(() => {
+    if (!isRadioMode || !activeShowId || !liveAiring?.show) return;
+    const stillOnGuide = programGuide.some((s) => s.id === activeShowId);
+    if (!stillOnGuide) {
+      setActiveShowId(liveAiring.show.id);
+      showToast(liveAiring.show.intro || `Now: ${liveAiring.show.title}`);
+    }
+  }, [isRadioMode, liveAiring?.show?.id, activeShowId, programGuide]);
+
+  // Keep shortcut handlers current each render — after toggleLike exists.
+  keyCtxRef.current = {
+    togglePlay, handleSkip, handlePrev, handleSeek, toggleLike, setVolume,
+    currentTrack, volume, immersive, showQueue,
+    setShowQueue, setImmersive, setScreen,
   };
 
   // ── Genre preferences (removed from profile UI) ───────────────────────────
@@ -5636,12 +2993,16 @@ export default function App() {
     if (firebaseUser) {
       try {
         const { doc: fdoc, updateDoc: fupdate } = await import("firebase/firestore");
-        await fupdate(fdoc(db, "users", firebaseUser.uid), { playlists: ownOnly });
+        await fupdate(fdoc(await firestoreDb(), "users", firebaseUser.uid), { playlists: ownOnly });
       } catch(e) {}
     }
   };
 
   const createPlaylist = (name, trackIdOrIds = null) => {
+    if (!firebaseUser) {
+      askSignIn("Sign in from Profile to keep stacks");
+      return null;
+    }
     const ids = Array.isArray(trackIdOrIds)
       ? trackIdOrIds.filter(Boolean)
       : (trackIdOrIds ? [trackIdOrIds] : []);
@@ -5652,6 +3013,10 @@ export default function App() {
   };
 
   const addToPlaylist = (trackId, playlistId) => {
+    if (!firebaseUser) {
+      askSignIn("Sign in from Profile to keep stacks");
+      return;
+    }
     if (String(playlistId || "").startsWith("community-")) {
       showToast("Community Mix is curated — make your own mixtape to edit");
       return;
@@ -5666,7 +3031,7 @@ export default function App() {
       p.id === playlistId ? { ...p, trackIds: [...(p.trackIds || []), trackId] } : p
     );
     savePlaylists(updated);
-    showToast(`Added to ${pl.name}`);
+    showToast(`Filed to ${pl.name}`);
   };
 
   const removeFromPlaylist = (trackId, playlistId) => {
@@ -5691,6 +3056,32 @@ export default function App() {
     showToast("Playlist deleted");
   };
 
+  const renamePlaylist = (playlistId, name) => {
+    const clean = String(name || "").trim();
+    if (!clean) return;
+    if (isCommunityPlaylist({ id: playlistId })) {
+      showToast("Community Mix can’t be renamed");
+      return;
+    }
+    savePlaylists(userPlaylists.map(pl => pl.id === playlistId ? { ...pl, name: clean } : pl));
+    showToast(`Renamed to “${clean}”`);
+  };
+
+  const reorderPlaylistTrack = (playlistId, trackId, delta) => {
+    if (isCommunityPlaylist({ id: playlistId })) return;
+    const pl = userPlaylists.find((p) => p.id === playlistId);
+    if (!pl) return;
+    const ids = [...(pl.trackIds || [])];
+    const idx = ids.indexOf(trackId);
+    if (idx < 0) return;
+    const next = idx + Number(delta || 0);
+    if (next < 0 || next >= ids.length) return;
+    const swapped = ids[next];
+    ids[next] = ids[idx];
+    ids[idx] = swapped;
+    savePlaylists(userPlaylists.map((p) => (p.id === playlistId ? { ...p, trackIds: ids } : p)));
+  };
+
   const sharePlaylistToClub = async (playlist) => {
     if (!playlist || !firebaseUser) return;
     if (isCommunityPlaylist(playlist) || playlist.id === communityMix?.id) {
@@ -5701,6 +3092,17 @@ export default function App() {
         url,
       });
       if (result.ok) showToast(result.method === "clipboard" ? "Link copied" : "Shared");
+      return;
+    }
+    // Personal stacks share a deep link so Library back/forward works
+    if (playlist.id) {
+      const url = absoluteAppUrl(buildPath("stack", { stackId: playlist.id }));
+      const result = await shareOrCopy({
+        title: playlist.name || "Stack",
+        text: `${playlist.name || "Stack"} on ${BRAND_NAME}`,
+        url,
+      });
+      if (result.ok) showToast(result.method === "clipboard" ? "Stack link copied" : "Shared");
       return;
     }
     if (!(playlist.trackIds || []).length) {
@@ -5714,7 +3116,7 @@ export default function App() {
         visibility: "public",
       });
       const { doc: fdoc, setDoc: fset } = await import("firebase/firestore");
-      await fset(fdoc(db, "mixes", mix.id), mix, { merge: true });
+      await fset(fdoc(await firestoreDb(), "mixes", mix.id), mix, { merge: true });
       const url = absoluteAppUrl(buildPath("mix", { mixId: mix.id }));
       const result = await shareOrCopy({
         title: mix.title,
@@ -5722,13 +3124,34 @@ export default function App() {
         url,
       });
       showToast(result.ok
-        ? (result.method === "clipboard" ? "Shared to Mixtape Club · link copied" : "Shared to Mixtape Club")
-        : "Shared to Mixtape Club");
+        ? (result.method === "clipboard" ? "Shared to Planet Club · link copied" : "Shared to Planet Club")
+        : "Shared to Planet Club");
     } catch (e) {
       console.warn("Share mix failed", e);
       showToast("Couldn’t share — try again");
     }
   };
+
+  const shareCurrentTrack = useCallback(async (track) => {
+    const t = track || currentTrack;
+    if (!t) return;
+    const url = t.artist
+      ? absoluteAppUrl(buildPath("artist", { artistSlug: slugify(t.artist) }))
+      : absoluteAppUrl(buildPath("home"));
+    try {
+      const result = await shareOrCopy({
+        title: t.title || BRAND_NAME,
+        text: `${t.title || "Track"}${t.artist ? ` — ${t.artist}` : ""} on ${BRAND_NAME}`,
+        url,
+      });
+      if (result.aborted) return;
+      if (result.ok) showToast(result.method === "clipboard" ? "Link copied" : "Shared");
+      else showToast("Couldn’t share — try again");
+    } catch (e) {
+      console.warn("Share track failed", e);
+      showToast("Couldn’t share — try again");
+    }
+  }, [currentTrack, showToast]);
 
   const publishCommunityMixFromPlaylist = async (playlist) => {
     if (!isAdminUser || !playlist) return;
@@ -5745,12 +3168,12 @@ export default function App() {
         sourceMixId: playlist.id,
       });
       const { doc: fdoc, setDoc: fset } = await import("firebase/firestore");
-      await fset(fdoc(db, "mixes", mix.id), mix, { merge: true });
+      await fset(fdoc(await firestoreDb(), "mixes", mix.id), mix, { merge: true });
       setCommunityMix(mix);
       // Stamp featured curator on the admin profile for club badge
       if (firebaseUser) {
         try {
-          await fset(fdoc(db, "users", firebaseUser.uid), {
+          await fset(fdoc(await firestoreDb(), "users", firebaseUser.uid), {
             featuredCuratorMonth: mix.monthKey,
           }, { merge: true });
           setProfile((p) => ({ ...(p || {}), featuredCuratorMonth: mix.monthKey }));
@@ -5764,89 +3187,163 @@ export default function App() {
     }
   };
 
-  // ── Playlist context — ⋯ / right-click menu on every track surface
-  const playlistCtx = {
-    playlists: libraryPlaylists.filter((p) => !isCommunityPlaylist(p)),
-    onCreate:  createPlaylist,
-    onAdd:     addToPlaylist,
-    onRemove:  removeFromPlaylist,
-    onToast:   showToast,
+  const ownPlaylists = useMemo(
+    () => libraryPlaylists.filter((p) => !isCommunityPlaylist(p)),
+    [libraryPlaylists]
+  );
+  const playlistApiRef = useRef({});
+  playlistApiRef.current = {
+    onCreate: createPlaylist,
+    onAdd: addToPlaylist,
+    onRemove: removeFromPlaylist,
+    onToast: showToast,
     onResonance: (t) => setResonanceTrack(t),
     onHypnoRadio: (t) => playHypnoRadio(t),
     onLike: (id) => toggleLike(id),
     onOpenArtist: (name) => openArtist(name),
     onOpenAlbum: (track) => openAlbum(track),
   };
+  const playlistCtx = useMemo(() => ({
+    playlists: ownPlaylists,
+    onCreate: (...args) => playlistApiRef.current.onCreate?.(...args),
+    onAdd: (...args) => playlistApiRef.current.onAdd?.(...args),
+    onRemove: (...args) => playlistApiRef.current.onRemove?.(...args),
+    onToast: (...args) => playlistApiRef.current.onToast?.(...args),
+    onResonance: (t) => playlistApiRef.current.onResonance?.(t),
+    onHypnoRadio: (t) => playlistApiRef.current.onHypnoRadio?.(t),
+    onLike: (id) => playlistApiRef.current.onLike?.(id),
+    onOpenArtist: (name) => playlistApiRef.current.onOpenArtist?.(name),
+    onOpenAlbum: (track) => playlistApiRef.current.onOpenAlbum?.(track),
+  }), [ownPlaylists]);
 
-  // ── Search ───────────────────────────────────────────────────────────────
-  const searchResults = searchQuery.length > 0
-    ? (() => {
-        const q = searchQuery.toLowerCase().trim();
-        // Energy search: "e7", "energy 5", etc.
-        const energyMatch = q.match(/^e(?:nergy)?\s*(\d+)$/i);
-        if (energyMatch) {
-          const eVal = parseInt(energyMatch[1]);
-          return tracks.filter(t => t.energy === eVal);
-        }
-        // BPM range search: "120bpm", "bpm 130"
-        const bpmMatch = q.match(/^(?:bpm)?\s*(\d+)\s*(?:bpm)?$/i);
-        if (bpmMatch && parseInt(bpmMatch[1]) > 50) {
-          const bVal = parseInt(bpmMatch[1]);
-          return tracks.filter(t => t.bpm && Math.abs(t.bpm - bVal) <= 5);
-        }
-        // Standard text search (title, artist, genre, album, scene)
-        return tracks.filter(t => {
-          const sceneHit = matchSceneFromText(q);
-          if (sceneHit && trackMatchesScene(t, sceneHit.id)) return true;
-          const sceneLabel = (t._scene?.label || displaySceneLabel(t) || "").toLowerCase();
-          return [t.title, t.artist, t.genre, t.album || "", String(t.bpm || ""), sceneLabel].some(v => String(v || "").toLowerCase().includes(q));
-        });
-      })()
-    : [];
-  const entityHits = searchQuery.length > 1 ? searchEntities(tracks, searchQuery) : { artists: [], albums: [] };
+  // ── Scroll memory — keep your place when switching tabs ──────────────────
+  // NOTE: must stay above the early returns below — hooks after a conditional
+  // return change the hook count between renders (React error #310).
+  const contentScrollRef = useRef(null);
+  const scrollPosRef = useRef({});
+  const screenScrollKeyRef = useRef(screen);
+  screenScrollKeyRef.current = screen;
+  const rememberScroll = useCallback((e) => {
+    scrollPosRef.current[screenScrollKeyRef.current] = e.currentTarget.scrollTop;
+  }, []);
+  useEffect(() => {
+    const el = contentScrollRef.current;
+    if (!el) return;
+    const isTab = screen === "home" || screen === "explore" || screen === "charts" || screen === "search" || screen === "favorites" || screen === "profile";
+    el.scrollTop = isTab ? (scrollPosRef.current[screen] || 0) : 0;
+  }, [screen]);
 
-  // ── Loading states ────────────────────────────────────────────────────────
-  // Show nothing while we check if someone is already logged in
-  if (authLoading) return (
-    <div style={{...APP_STYLE, alignItems:"center", justifyContent:"center"}}>
-      <BrandMark size={44} />
-      <div style={{ fontSize:13, color: color.muted, marginTop:14 }}>Loading…</div>
-    </div>
-  );
+  useEffect(() => {
+    if (!authLoading || sessionLikely || tracks.length > 0 || !tracksLoading) dismissBootSplash();
+  }, [authLoading, sessionLikely, tracks.length, tracksLoading]);
 
-  // Not logged in — show login screen
-  if (!firebaseUser) return (
-    <LoginScreen
-      onSignUp={signUp}
-      onLogIn={logIn}
-      onGoogleSignIn={signInWithGoogle}
-      onPhoneOTP={sendPhoneOTP}
-      onVerifyOTP={verifyPhoneOTP}
-      onResetPassword={resetPassword}
-      authError={authError}
-      onClearAuthError={clearAuthError}
-    />
-  );
-
-  if (needsOnboarding) {
+  // Dev-only: #broadcast-preview exercises Home IA + video stage without auth.
+  if (
+    DevBroadcastPreview &&
+    typeof window !== "undefined" &&
+    window.location.hash === "#broadcast-preview"
+  ) {
     return (
-      <GenreTasteOnboarding
-        initialGenres={profile?.genres || []}
-        onComplete={(genres) => finishOnboarding(genres)}
-        onSkip={() => finishOnboarding([])}
-      />
+      <Suspense fallback={<div style={{ minHeight: "100dvh", background: color.canvas }} />}>
+        <DevBroadcastPreview />
+      </Suspense>
+    );
+  }
+  if (
+    DevPlayerPreview &&
+    typeof window !== "undefined" &&
+    window.location.hash === "#player-preview"
+  ) {
+    return (
+      <Suspense fallback={<div style={{ minHeight: "100dvh", background: color.canvas }} />}>
+        <DevPlayerPreview />
+      </Suspense>
+    );
+  }
+  if (
+    DevExplorePreview &&
+    typeof window !== "undefined" &&
+    window.location.hash === "#explore-preview"
+  ) {
+    return (
+      <Suspense fallback={<div style={{ minHeight: "100dvh", background: color.canvas }} />}>
+        <DevExplorePreview />
+      </Suspense>
+    );
+  }
+  if (
+    DevSetPreview &&
+    typeof window !== "undefined" &&
+    window.location.hash === "#set-preview"
+  ) {
+    return (
+      <Suspense fallback={<div style={{ minHeight: "100dvh", background: color.canvas }} />}>
+        <DevSetPreview />
+      </Suspense>
+    );
+  }
+  if (
+    DevOnboardingPreview &&
+    typeof window !== "undefined" &&
+    window.location.hash === "#onboarding-preview"
+  ) {
+    return (
+      <Suspense fallback={<div style={{ minHeight: "100dvh", background: color.canvas }} />}>
+        <DevOnboardingPreview />
+      </Suspense>
+    );
+  }
+  if (
+    DevChatPreview &&
+    typeof window !== "undefined" &&
+    (window.location.hash === "#chat-preview" || window.location.hash === "#chat-preview-open")
+  ) {
+    return (
+      <Suspense fallback={<div style={{ minHeight: "100dvh", background: color.canvas }} />}>
+        <DevChatPreview />
+      </Suspense>
+    );
+  }
+  if (
+    DevSitePreview &&
+    typeof window !== "undefined" &&
+    window.location.hash === "#site-preview"
+  ) {
+    return (
+      <Suspense fallback={<div style={{ minHeight: "100dvh", background: color.canvas }} />}>
+        <DevSitePreview />
+      </Suspense>
+    );
+  }
+  if (
+    DevGuidePreview &&
+    typeof window !== "undefined" &&
+    (window.location.hash === "#guide-preview" || window.location.hash === "#guide-preview-club")
+  ) {
+    return (
+      <Suspense fallback={<div style={{ minHeight: "100dvh", background: color.canvas }} />}>
+        <DevGuidePreview />
+      </Suspense>
     );
   }
 
-  if (needsPaywall) {
+  // HTML boot planet stays until Home or Club has a surface — guests paint
+  // from IDB/CDN without waiting on Firebase Auth. Returning members with a
+  // local session flag still drop the splash even if the shelf is empty.
+  const bootBlocked = authLoading && !sessionLikely && !tracks.length && tracksLoading;
+  if (bootBlocked) {
+    return null;
+  }
+
+  if (needsOnboarding) {
     return (
-      <PaywallScreen
-        access={access}
-        onSubscribe={handleSubscribe}
-        onRefresh={handleBillingRefresh}
-        onLogout={logOut}
-        refreshing={billingRefreshing}
-      />
+      <Suspense fallback={<div style={{ minHeight: "100dvh", background: color.canvas }} />}>
+        <LazyTasteTuner
+          tracks={tracks}
+          onComplete={(taste) => finishOnboarding(taste)}
+          onSkip={(taste) => finishOnboarding(taste || { skip: true })}
+        />
+      </Suspense>
     );
   }
 
@@ -5858,7 +3355,7 @@ export default function App() {
       }
     : (recentlyPlayedRef.current.length > 2
       ? {
-          label: signalState?.label || "Listening",
+          label: "Listening",
           energies: recentlyPlayedRef.current.slice(0, 12).reverse().map(p => p.energy || 5),
           index: Math.min(11, recentlyPlayedRef.current.slice(0, 12).length - 1),
         }
@@ -5884,47 +3381,109 @@ export default function App() {
 
   const listeningOverlays = (
     <>
+      {showFeatureTour && (
+        <Suspense fallback={null}>
+          <LazyFeatureTour
+            replay={featureTourReplay}
+            onComplete={finishFeatureTour}
+            onSkip={finishFeatureTour}
+          />
+        </Suspense>
+      )}
+      {PAYWALL_ENABLED && showPlans && (
+        <Suspense fallback={null}>
+          <LazyPaywallScreen
+            access={access}
+            mode={access?.tier === "free" || access?.reason === "free" ? "upgrade" : "manage"}
+            onSubscribe={(link, planId) => {
+              handleSubscribe(link, planId);
+            }}
+            onRefresh={handleBillingRefresh}
+            onContinueFree={() => setShowPlans(false)}
+            onLogout={null}
+            refreshing={billingRefreshing}
+          />
+          <button
+            type="button"
+            onClick={() => setShowPlans(false)}
+            aria-label="Close plans"
+            style={{
+              position: "fixed",
+              top: 16,
+              right: 16,
+              zIndex: 400,
+              width: 40,
+              height: 40,
+              borderRadius: 12,
+              border: "1px solid rgba(91,101,116,0.14)",
+              background: "rgba(22,25,32,0.96)",
+              color: "#D0D6E0",
+              fontSize: 20,
+              cursor: "pointer",
+            }}
+          >
+            ×
+          </button>
+        </Suspense>
+      )}
       {showQueue && (
-        <QueueSheet
+        <Suspense fallback={null}>
+        <LazyQueueSheet
           queue={queue}
           currentTrack={currentTrack}
           isRadioMode={isRadioMode}
           radioHint={hypnoSeed
-            ? `Similar to ${hypnoSeed.title}`
+            ? `Near ${hypnoSeed.title}`
             : explainPick(setNext || currentTrack, {
-                signalLabel: signalState?.label,
+                signalLabel: signalFlags.getState().label,
                 preferredGenres: profile?.genres || [],
               })}
           onPlay={(t) => playTrack(t, queue)}
           onClose={() => setShowQueue(false)}
           onClear={() => setQueue([])}
           onShuffle={shuffleQueue}
+          onRemove={(t) => setQueue((q) => q.filter((x) => x.id !== t.id))}
+          onPlayNext={(t) => setQueue((q) => [t, ...q.filter((x) => x.id !== t.id)])}
         />
+        </Suspense>
       )}
       {resonanceTrack && (
-        <HypnoVisionOverlay
+        <Suspense fallback={null}>
+        <LazyHypnoVision
           sourceTrack={resonanceTrack}
           tracks={tracks}
           onPlay={(t) => playTrack(t, tracks)}
           onClose={() => setResonanceTrack(null)}
         />
+        </Suspense>
       )}
       {showGenreTaste && (
-        <GenreTasteSheet
+        <Suspense fallback={null}>
+        <LazyGenreTasteSheet
           selectedGenres={profile?.genres || []}
+          adventurous={profile?.adventurous}
+          depth={profile?.depth}
           genreFocus={listenFocus.genre}
           onClose={() => setShowGenreTaste(false)}
           onClearGenreFocus={() => {
             setListenFocus({ genre: null, scene: null });
             showToast("Back to your usual mix");
           }}
-          onSave={async (genres) => {
+          onSave={async (taste) => {
             try {
-              await saveGenres(genres);
-              setProfile((p) => ({ ...(p || {}), genres }));
-              showToast(genres.length ? "Genres saved" : "Genres cleared");
+              const genres = taste?.genres ?? [];
+              const adventurous = taste?.adventurous;
+              const depth = taste?.depth;
+              await saveTasteProfile({ genres, adventurous, depth });
+              setProfile((p) => ({
+                ...(p || {}),
+                genres,
+                ...(adventurous != null ? { adventurous } : {}),
+                ...(depth != null ? { depth } : {}),
+              }));
+              showToast(genres.length ? "Taste saved" : "Taste updated");
             } catch (e) {
-              showToast("Couldn’t save genres");
+              showToast("Couldn’t save taste");
             }
           }}
           onBuildSet={() => {
@@ -5933,59 +3492,107 @@ export default function App() {
             setShowRouteBuilder(true);
           }}
         />
+        </Suspense>
       )}
       {showRouteBuilder && (
-        <SessionBuilderModal
+        <Suspense fallback={null}>
+        <LazySetBuilder
           tracks={blendPoolForSession(
             resolveListenPool(
               tracks,
-              activeListenIntent({ vibe: sessionInitialActivity || vibeForMixLane(mixLane) }),
+              activeListenIntent({ vibe: sessionInitialActivity || defaultSetPrefs(profileTaste).vibe || vibeForMixLane(mixLane) }),
               { requireAudio: false, applyMixLane: false }
             ).tracks,
-            listenFocus.genre ? [listenFocus.genre] : (profile?.genres || [])
+            listenFocus.genre ? [listenFocus.genre] : (profileTaste.genres || [])
           )}
-          initialActivity={sessionInitialActivity || vibeForMixLane(mixLane)}
-          intentLabel={listenFocus.genre || (profile?.genres?.length ? "Your genres" : null)}
+          initialActivity={sessionInitialActivity || defaultSetPrefs(profileTaste).vibe || vibeForMixLane(mixLane)}
+          initialGenre={listenFocus.genre || defaultSetPrefs(profileTaste).genre || null}
+          intentLabel={listenFocus.genre || (profileTaste.genres?.length ? "Your mix" : null)}
+          taste={profileTaste}
+          coldStart={tasteColdStart}
           onClose={() => {
             setShowRouteBuilder(false);
             setSessionInitialActivity(null);
           }}
           onPlayRoute={playRoute}
+          onSavePlaylist={(name, trackIds) => createPlaylist(name, trackIds)}
         />
+        </Suspense>
       )}
       {linerTrack && (
-        <LinerNotesSheet
+        <Suspense fallback={null}>
+        <LazyLinerNotesSheet
           track={linerTrack}
           roomLabel={null}
           onClose={() => setLinerTrack(null)}
           onOpenArtist={(name) => openArtist(name)}
           onOpenAlbum={(t) => openAlbum(t)}
           onOpenRoom={null}
+          memberPricing={!!access?.membershipCard}
+          creditBalance={usableCreditBalance(profile)}
+          onPurchase={handlePurchasePhysical}
+          purchasing={purchasingTrackId === linerTrack?.id}
         />
+        </Suspense>
+      )}
+      {showDedicate && (
+        <Suspense fallback={null}>
+        <LazyDedicateSheet
+          track={currentTrack}
+          defaultName={(profile?.displayName || profile?.name || "Listener").toString().slice(0, 24)}
+          onClose={() => setShowDedicate(false)}
+          onSubmit={(entry) => {
+            pushDedication(entry);
+            showToast("Dedication is live");
+            if (firebaseUser && entry) {
+              import("firebase/firestore").then(async ({ collection: col, addDoc: add }) => {
+                const db = await firestoreDb();
+                return add(col(db, "stationDedications"), {
+                  uid: firebaseUser.uid,
+                  text: entry.text,
+                  fromName: entry.fromName,
+                  trackId: entry.trackId || null,
+                  trackTitle: entry.trackTitle || null,
+                  createdAt: new Date().toISOString(),
+                });
+              }).catch(() => { /* local crawl still works */ });
+            }
+          }}
+        />
+        </Suspense>
+      )}
+      {stationBumper && (
+        <Suspense fallback={null}>
+        <LazyStationBumper
+          bumper={stationBumper}
+          onDone={() => setStationBumper(null)}
+        />
+        </Suspense>
       )}
       {afterglow && (
-        <AfterglowOverlay
+        <Suspense fallback={null}>
+        <LazyAfterglow
           data={afterglow}
           onClose={() => setAfterglow(null)}
           onSavePlaylist={(name, trackIds) => createPlaylist(name, trackIds)}
         />
+        </Suspense>
       )}
     </>
   );
 
   const boothPlayer = immersive && currentTrack ? (
-    <ImmersivePlayer
+    <Suspense fallback={null}>
+    <LazyImmersivePlayer
       currentTrack={currentTrack}
-      isPlaying={isPlaying}
-      onTogglePlay={() => setIsPlaying(p => !p)}
+     
+      onTogglePlay={togglePlay}
       onSkip={handleSkip}
       onPrev={handlePrev}
       onClose={() => setImmersive(false)}
-      signalState={signalState}
-      progress={progress}
-      duration={duration}
       onSeek={handleSeek}
       onLike={toggleLike}
+      onShare={shareCurrentTrack}
       volume={volume}
       onVolumeChange={handleVolume}
       shuffle={shuffle}
@@ -6004,882 +3611,235 @@ export default function App() {
       onOpenRoom={null}
       onOpenLiner={(t) => setLinerTrack(t)}
       onOpenArtist={(name) => { setImmersive(false); openArtist(name); }}
-    />
+      upNextTrack={stationUpNext}
+      countdownRank={countdownRankForCurrent}
+      daypart={activeDaypart}
+      tickerText={stationTicker}
+      onDislike={dislikeCurrentTrack}
+      onDedicate={() => setShowDedicate(true)}
+      dedicationFlash={dedicationFlash}
+      onClearDedication={() => setDedicationFlash(null)}
+      liveShow={liveShow || liveAiring?.show || null}
+      tracks={tracks}
+      sceneChannelsActiveId={activeSceneChannelId}
+      onTuneSceneChannel={playSceneChannel}
+    /></Suspense>
   ) : null;
 
-  // Cover Stage owns transport on Home — dock collapses to tabs only.
-  const hideDockPlayer = screen === "home" && !!currentTrack && !immersive;
+  // Mini-device stays persistent so Home hero and the dock share one transport.
+  // When the Home hero is on screen, the dock is tabs-only — one play key.
+  const hideDockPlayer = screen === "home" && homeStageVisible;
+
+  // ── Ambient status — SR announcements, offline banner, buffering pill ────
+  const ambientStatus = (
+    <>
+      <div className="sr-only" aria-live="polite">
+        {currentTrack ? `Now playing ${currentTrack.title} by ${currentTrack.artist}` : ""}
+      </div>
+      <AmbientNetworkPill isOffline={isOffline} />
+    </>
+  );
 
   // ── Inner app (shared between mobile + desktop phone column) ─────────────
   const innerApp = (
-    <div style={{ ...APP_STYLE, position:"relative" }}>
+    <div style={{
+      ...APP_STYLE,
+      position: "relative",
+      flex: 1,
+      minHeight: isDesktop ? 0 : "100dvh",
+      height: isDesktop ? "100%" : "100dvh",
+    }}>
       <BgMist color={currentTrack?.color}/>
-      {toast && <ToastEl msg={toast}/>}
-      {tracksLoading && (
-        <div style={{ position:"absolute", top:"50%", left:"50%", transform:"translate(-50%,-50%)", zIndex:50, textAlign:"center" }}>
-          <div style={{ width:56, height:56, borderRadius:14, background: color.surfaceRaised, border:`1px solid ${color.line}`, display:"flex", alignItems:"center", justifyContent:"center", margin:"0 auto 12px", overflow:"hidden" }}><BrandGlyph size={40} showWordmark={false}/></div>
-          <div style={{ fontSize:14, color: color.muted }}>Pulling records from the shelf…</div>
-        </div>
+      {ambientStatus}
+      {toast && <ToastEl msg={toast} onDismiss={()=>setToast(null)}/>}
+      {tracksLoading && screen !== "home" && screen !== "explore" && screen !== "charts" && (
+        <>
+          <div className="sr-only" role="status">Loading your catalog…</div>
+          <div style={{ position:"absolute", inset:0, zIndex:50, overflow:"hidden" }}>
+            <CatalogSkeleton/>
+          </div>
+        </>
       )}
-      <div style={{ flex:1, overflow:"auto", paddingBottom: contentPadBottom(!!currentTrack && !immersive && !hideDockPlayer), zIndex:1, position:"relative" }}>
-        <ScreenPane key={screen === "artist" ? `artist:${artistSlug}` : screen === "album" ? `album:${albumSlug}` : screen === "mix" ? `mix:${mixId}` : screen}>
-        {screen==="home"      && !tracksLoading && <HomeScreen tracks={tracks} onPlayRadio={playRadio} onTogglePlay={()=>setIsPlaying(p=>!p)} onPlayTrack={playTrack} currentTrack={currentTrack} isPlaying={isPlaying} onLike={toggleLike} isRadioMode={isRadioMode} playlistCtx={playlistCtx} signalLabel={signalState?.label} mixLane={mixLane} radioPreview={heroPreview} radioNext={setNext} onSkipRadio={handleSkip} onPrevRadio={handlePrev} onOpenPlayer={()=>setImmersive(true)} onListenFor={()=>setShowGenreTaste(true)} intentLabel={radioIntentLabel} catalogError={tracksLoadError} onRetryCatalog={reloadCatalog} preferredGenres={user.genres} recentTrackIds={(profile?.recentTracks||[]).map(r=>r.trackId||r)} progress={progress} duration={duration} communityMix={communityMix} onOpenCommunityMix={()=>communityMix && openMix(communityMix.id)}/>}
-        {screen==="search"    && <SearchScreen query={searchQuery} setQuery={setSearch} results={searchResults} tracks={tracks} onPlay={(t,pool)=>playTrack(t,pool||tracks)} onListenIntent={(focus)=>{ const next={ genre: focus.genre || null, scene: null }; setListenFocus(next); playRadio(null, createListenIntent({ mixLane, ...next })); }} onLike={toggleLike} currentTrack={currentTrack} isPlaying={isPlaying} playlistCtx={playlistCtx} entityHits={entityHits} onOpenArtist={openArtist} onOpenAlbum={(slug)=>openAlbum(slug)}/>}
-        {screen==="favorites" && <FavoritesScreen tracks={tracks} onPlay={t=>{setIsRadioMode(false);playTrack(t,tracks);}} onPlayTrack={(t,pool)=>{setIsRadioMode(false);playTrack(t,pool||tracks);}} onLike={toggleLike} currentTrack={currentTrack} isPlaying={isPlaying} playlistCtx={playlistCtx} userPlaylists={libraryPlaylists} onCreatePlaylist={createPlaylist} onDeletePlaylist={deletePlaylist} onSharePlaylist={sharePlaylistToClub} communityMix={communityMix} onOpenMix={()=>communityMix && openMix(communityMix.id)} onCustomMix={()=>{ setSessionInitialActivity(vibeForMixLane(mixLane)); setShowRouteBuilder(true); }}/>}
+      <div ref={contentScrollRef} onScroll={rememberScroll} style={{ flex:1, overflow:"auto", paddingBottom: contentPadBottom(!!currentTrack && !immersive && !hideDockPlayer), zIndex:1, position:"relative" }}>
+        <Suspense fallback={<div style={{ padding: 32, color: color.muted }}>Loading…</div>}>
+        {warmTabs.has("home") && (
+        <ScreenPane keepAlive active={screen==="home"}>
+        <HomeScreen catalogLoading={tracksLoading} tracks={tracks} recentTrackIds={recentTrackIds} onPlayRadio={playRadio} onTogglePlay={togglePlay} onPlayTrack={playTrack} onLike={toggleLike} onShare={shareCurrentTrack} onShowQueue={showQueueSheet} onOpenLibrary={openLibrary} onOpenDiscover={openDiscover} signedIn={!!firebaseUser} isRadioMode={isRadioMode} radioPreview={heroPreview} radioNext={setNext} onSkipRadio={handleSkip} onPrevRadio={handlePrev} onOpenPlayer={openPlayer} catalogError={tracksLoadError} onRetryCatalog={reloadCatalog} onStageVisibilityChange={onHomeStageVisibilityChange} onSeek={handleSeek} countdown={countdown} onTuneCountdown={tuneCountdown} daypart={activeDaypart} tickerText={stationTicker} onDislike={dislikeCurrentTrack} airing={liveAiring} programGuide={programGuide} activeShowId={activeShowId} onTuneShow={playShow} showBumper={showBumper} channelShow={liveShow} sceneChannelsActiveId={activeSceneChannelId} onTuneSceneChannel={playSceneChannel} taste={profileTaste} onOpenSearch={openSearchFromHome} onOpenCharts={openCharts} onOpenMenu={openMenu}/>}
+        </ScreenPane>
+        )}
+        {warmTabs.has("explore") && (
+        <ScreenPane keepAlive active={screen==="explore"}>
+        <Suspense fallback={<div style={{ padding: 32, color: color.muted }}>Loading explore…</div>}><ExploreScreen catalogLoading={tracksLoading} tracks={tracks} onPlayTrack={playTrack} onOpenSearch={openSearchFromExplore} onOpenAlbum={openAlbum} onOpenArtist={openArtist} onOpenCharts={openCharts} onListenIntent={listenFromExplore} onOpenMenu={openMenu} taste={profileTaste} sceneChannelsActiveId={activeSceneChannelId} onTuneSceneChannel={playSceneChannel} airing={liveAiring} programGuide={programGuide} activeShowId={activeShowId} onTuneShow={playShow} showBumper={showBumper}/></Suspense>}
+        </ScreenPane>
+        )}
+        {!isKeepAliveScreen(screen) && (screen==="charts" || screen==="search") && (
+        <ScreenPane>
+        {screen==="charts" && <Suspense fallback={<div style={{ padding: 32, color: color.muted, fontFamily: font, fontSize: 15 }}>Loading charts…</div>}><LazyChartsScreen catalogLoading={tracksLoading} countdown={countdown} tracks={tracks} onPlayTrack={playTrack} onTuneMonthly={playMonthlyChart} onAddToQueue={addTrackToQueue} playlistCtx={playlistCtx} nowPlayingId={currentTrackId} onOpenMenu={openMenu}/></Suspense>}
+        {screen==="search" && <SearchScreen query={searchQuery} setQuery={setSearch} tracks={tracks} onPlay={(t,pool)=>{ recordRecentSearch(searchQuery); playTrack(t,pool||tracks); }} onListenIntent={(focus)=>{ const next={ genre: focus.genre || null, scene: null }; setListenFocus(next); playRadio(null, createListenIntent({ mixLane, ...next })); }} onLike={toggleLike} playlistCtx={playlistCtx} onOpenArtist={(slug)=>{ recordRecentSearch(searchQuery); openArtist(slug); }} onOpenAlbum={(slug)=>{ recordRecentSearch(searchQuery); openAlbum(slug); }} recentSearches={recentSearches} onPickRecent={(q)=>setSearch(q)} onClearRecent={clearRecentSearches} onBack={()=>setScreen(searchReturn)} backLabel={searchReturn === "home" ? "Home" : "Discover"}/>}
+        </ScreenPane>
+        )}
+        {warmTabs.has("favorites") && (
+        <ScreenPane keepAlive active={screen==="favorites"}>
+        {firebaseUser ? (
+        <FavoritesScreen tracks={tracks} onPlay={playFromLibrary} onPlayTrack={playFromLibrary} onLike={toggleLike} playlistCtx={playlistCtx} userPlaylists={libraryPlaylists} onCreatePlaylist={createPlaylist} onDeletePlaylist={deletePlaylist} onRenamePlaylist={renamePlaylist} onSharePlaylist={sharePlaylistToClub} stackId={stackId} onOpenStack={openStack} onCloseStack={closeStack} onReorderPlaylist={reorderPlaylistTrack} communityMix={communityMix} onOpenMix={openCommunityMix} onOpenMenu={openMenu} preferredGenres={user.genres} recentTrackIds={recentTrackIds} userKey={user.uid}/>
+        ) : (
+        <GuestMemberGate
+          title="Your library"
+          copy="Sign in from Profile to keep favorites, playlists, and what you play."
+          cta="Open Profile"
+          onSignIn={() => setScreen("profile")}
+        />
+        )}
+        </ScreenPane>
+        )}
+        {!isKeepAliveScreen(screen) && (screen==="mix" || screen==="artist" || screen==="album" || screen==="admin") && (
+        <ScreenPane>
         {screen==="mix"       && (
-          <MixScreen
+          <Suspense fallback={<div style={{ padding: 32, color: "var(--muted)" }}>Pulling the plate…</div>}>
+          <LazyMixScreen
             mix={activeMix}
             tracks={tracks}
             loading={mixLoading}
             notFound={!mixLoading && !activeMix}
             currentTrack={currentTrack}
-            isPlaying={isPlaying}
-            onPlayTrack={(t, pool)=>{ setIsRadioMode(false); playTrack(t, pool||tracks); }}
+           
+            onPlayTrack={playFromLibrary}
             onBack={goBack}
             onShare={()=>activeMix && sharePlaylistToClub(activeMix)}
             onSaveToLibrary={()=>{
               if (!activeMix) return;
               createPlaylist(activeMix.title || "Saved mix", activeMix.trackIds || []);
             }}
-            TrackRow={TrackRow}
             playlistCtx={playlistCtx}
             onLike={toggleLike}
           />
+          </Suspense>
         )}
         {screen==="artist"    && !tracksLoading && (
-          <ArtistPage
+          <Suspense fallback={<div style={{ padding: 32, color: color.muted }}>Loading…</div>}><LazyArtistPage
             artist={findArtist(tracks, artistSlug)}
             onBack={goBack}
             onPlay={(t, pool) => playTrack(t, pool)}
             onOpenAlbum={(slug) => openAlbum(slug)}
             currentTrack={currentTrack}
-            isPlaying={isPlaying}
+           
             onLike={toggleLike}
-            AlbumArt={AlbumArt}
-            TrackRow={TrackRow}
             playlistCtx={playlistCtx}
-          />
+          /></Suspense>
         )}
         {screen==="album"     && !tracksLoading && (
-          <AlbumPage
+          <Suspense fallback={<div style={{ padding: 32, color: color.muted }}>Loading…</div>}><LazyAlbumPage
             album={findAlbum(tracks, albumSlug)}
             onBack={goBack}
             onPlay={(t, pool) => playTrack(t, pool)}
             onOpenArtist={(slug) => openArtist(slug)}
             currentTrack={currentTrack}
-            isPlaying={isPlaying}
+           
             onLike={toggleLike}
-            AlbumArt={AlbumArt}
-            TrackRow={TrackRow}
             playlistCtx={playlistCtx}
-          />
+          /></Suspense>
         )}
-        {screen==="profile"   && <ProfileScreen user={user} tracks={tracks} onLogout={logOut} access={access} onSubscribe={handleSubscribe} profile={profile} onOpenMix={communityMix ? ()=>openMix(communityMix.id) : null}/>}
         {screen==="admin"     && <AdminScreen tracks={tracks} setTracks={setTracks} tab={adminTab} setTab={setAdminTab} editTrack={editTrack} setEditTrack={setEditTrack} showToast={showToast} userPlaylists={userPlaylists} communityMix={communityMix} onPublishCommunityMix={publishCommunityMixFromPlaylist}/>}
         </ScreenPane>
+        )}
+        {warmTabs.has("profile") && (
+        <ScreenPane keepAlive active={screen==="profile"}>
+          <Suspense fallback={<div style={{ padding: 32, color: "var(--muted)" }}>Opening the club…</div>}>
+            {firebaseUser ? (
+            <ClubScreen user={user} tracks={tracks} onLogout={logOut} access={access} onSubscribe={handleSubscribe} onOpenPlans={handleOpenPlans} profile={profile} communityMix={communityMix} onOpenMix={communityMix ? openCommunityMix : null} onEditGenres={editGenres} recentTracks={profile?.recentTracks||[]} signalLabel={signalFlags.getState().label} onPlayTrack={playFromLibrary} onReplayTour={replayTour}/>
+            ) : (
+            <LoginScreen
+              onSignUp={signUp}
+              onLogIn={logIn}
+              onGoogleSignIn={signInWithGoogle}
+              onPhoneOTP={sendPhoneOTP}
+              onVerifyOTP={verifyPhoneOTP}
+              onResetPassword={resetPassword}
+              authError={authError}
+              onClearAuthError={clearAuthError}
+            />
+            )}
+          </Suspense>
+        </ScreenPane>
+        )}
+        </Suspense>
       </div>
-      {!immersive && (
+      {!immersive && !isDesktop && (
         <GlassDock
           screen={screen}
           setScreen={setScreen}
-          showAdmin={firebaseUser?.uid === ADMIN_UID}
+          showAdmin={false}
           track={currentTrack}
-          isPlaying={isPlaying}
-          progress={progress}
-          duration={duration}
-          onTogglePlay={() => setIsPlaying((p) => !p)}
+         
+          onTogglePlay={togglePlay}
           onSkip={handleSkip}
           onPrev={handlePrev}
-          onLike={() => currentTrack && toggleLike(currentTrack.id)}
+          onLike={likeCurrent}
+          onDislike={dislikeCurrentTrack}
           onSeek={handleSeek}
           isRadioMode={isRadioMode}
           hypnoPocket={!!hypnoSeed}
-          onOpen={() => setImmersive(true)}
-          onShowQueue={() => setShowQueue(true)}
+          onOpen={openPlayer}
+          onShowQueue={showQueueSheet}
           playlistCtx={playlistCtx}
           hidePlayer={hideDockPlayer}
+          playsRemaining={playsRemaining}
+          access={access}
+          onOpenPlans={handleOpenPlans}
         />
+      )}
+      {!immersive && isDesktop && currentTrack && !hideDockPlayer && (
+        <Suspense fallback={null}>
+          <DesktopMiniPlayer
+            track={currentTrack}
+            isRadioMode={isRadioMode}
+            onOpen={openPlayer}
+            onTogglePlay={togglePlay}
+            onSkip={handleSkip}
+            onPrev={handlePrev}
+            onLikeToggle={() => { if (currentTrack) toggleLike(currentTrack.id); }}
+            onDislike={dislikeCurrentTrack}
+            onShare={shareCurrentTrack}
+            onShowQueue={showQueueSheet}
+            onSeek={handleSeek}
+            playsRemaining={playsRemaining}
+            access={access}
+            onOpenPlans={handleOpenPlans}
+          />
+        </Suspense>
       )}
       {boothPlayer}
       {listeningOverlays}
+      <Suspense fallback={null}>
+      <MobileNavDrawer
+        open={showNavDrawer}
+        onClose={() => setShowNavDrawer(false)}
+        screen={screen}
+        buildingSet={showRouteBuilder}
+        onNavigate={setScreen}
+        onBuildSet={openCustomMix}
+        user={user}
+        showAdmin={firebaseUser?.uid === ADMIN_UID}
+      />
+      </Suspense>
     </div>
   );
 
-  // ── Mobile: render as-is ─────────────────────────────────────────────────
   if (!isDesktop) return innerApp;
 
-  // ── Desktop: 3-column shell ───────────────────────────────────────────────
-  const NAV_TOP = [
-    { id:"home",      icon:"home",   label:"Home" },
-    { id:"favorites", icon:"dig",    label:"Library" },
-    { id:"search",    icon:"search", label:"Search" },
-  ];
-  const NAV_BOTTOM = [];
-
-  const recentTracks = [...tracks].slice(0, 6);
-
-  // Build queue/next-up from current context
-  const queueSource = queue?.length ? queue : tracks.filter(t => t.id !== currentTrack?.id && (t.duration||0) <= 900);
-  const nextUpTracks = isRadioMode
-    ? queueSource.filter(t => {
-        if (!currentTrack) return true;
-        return camelotCompatible(currentTrack.camelot, t.camelot);
-      }).slice(0, 8)
-    : queueSource.slice(0, 8);
-
-  // Accent glow color from current track
-  const glowRgb = currentTrack ? hexToRgbStr(currentTrack.color) : "10,124,255";
-
   return (
-    <div style={{ display:"flex", height:"100vh", background: color.canvas, overflow:"hidden", fontFamily: font }}>
-
-      {/* ── LEFT SOURCE LIST ──────────────────────────────────────────── */}
-      <div style={{
-        width: 196, flexShrink: 0,
-        background: `
-          linear-gradient(180deg, rgba(255,255,255,0.7) 0%, rgba(255,255,255,0.35) 100%),
-          ${color.surfaceRaised}
-        `,
-        borderRight: `1px solid ${glass.border}`,
-        boxShadow: `inset -1px 0 0 ${glass.highlight}`,
-        display: "flex", flexDirection: "column",
-        padding: "18px 12px 16px",
-      }}>
-        <div style={{ marginBottom: 20, padding: "0 6px" }}>
-          <BrandGlyph size={32}/>
-        </div>
-
-        <div style={{
-          fontSize: 10, fontWeight: 700, letterSpacing: 1.2, textTransform: "uppercase",
-          color: color.faint, fontFamily: fontMono, padding: "0 10px 8px",
-        }}>
-          Library
-        </div>
-
-        <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-          {NAV_TOP.map((item) => {
-            const active = screen === item.id || ((screen === "artist" || screen === "album") && item.id === "search");
-            return (
-              <button
-                key={item.id}
-                type="button"
-                className="nav-rail-btn"
-                onClick={() => setScreen(item.id)}
-                title={item.label}
-                aria-label={item.label}
-                aria-current={active ? "page" : undefined}
-                style={{
-                  width: "100%", height: 38, borderRadius: radius.sm,
-                  background: active ? color.select : "transparent",
-                  border: active ? `1px solid ${color.accentSoft}` : "1px solid transparent",
-                  color: active ? color.accent : color.body,
-                  cursor: "pointer",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 10,
-                  padding: "0 10px",
-                  textAlign: "left",
-                  boxShadow: active ? `inset 0 1px 0 ${glass.highlight}` : "none",
-                }}
-              >
-                <Icon name={item.icon} size={17}/>
-                <span style={{
-                  fontSize: 14, fontWeight: active ? 650 : 500,
-                  letterSpacing: -0.1, lineHeight: 1,
-                }}>
-                  {item.label}
-                </span>
-              </button>
-            );
-          })}
-        </div>
-
-        <div style={{ flex: 1 }}/>
-
-        <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-          {NAV_BOTTOM.map((item) => (
-            <button
-              key={item.id}
-              type="button"
-              className="nav-rail-btn"
-              onClick={() => setScreen(item.id)}
-              title={item.label}
-              style={{
-                width: "100%", height: 38, borderRadius: radius.sm,
-                background: screen === item.id ? color.select : "transparent",
-                border: "none",
-                color: screen === item.id ? color.accent : color.body,
-                cursor: "pointer",
-                display: "flex", alignItems: "center", gap: 10, padding: "0 10px",
-              }}
-            >
-              <Icon name={item.icon} size={17}/>
-              <span style={{ fontSize: 14 }}>{item.label}</span>
-            </button>
-          ))}
-          {firebaseUser?.uid === ADMIN_UID && (
-            <button
-              type="button"
-              className="nav-rail-btn"
-              onClick={() => setScreen("admin")}
-              title="Admin"
-              aria-label="Admin"
-              style={{
-                width: "100%", height: 38, borderRadius: radius.sm,
-                background: screen === "admin" ? color.select : "transparent",
-                border: "none",
-                color: screen === "admin" ? color.accent : color.body,
-                cursor: "pointer",
-                display: "flex", alignItems: "center", gap: 10, padding: "0 10px",
-              }}
-            >
-              <Icon name="settings" size={17}/>
-              <span style={{ fontSize: 14 }}>Admin</span>
-            </button>
-          )}
-          <button
-            type="button"
-            className="nav-rail-btn"
-            onClick={() => setScreen("profile")}
-            title={user.name}
-            aria-label="You"
-            aria-current={screen === "profile" ? "page" : undefined}
-            style={{
-              width: "100%", height: 40, borderRadius: radius.sm,
-              background: screen === "profile" ? color.select : "transparent",
-              border: `1px solid ${screen === "profile" ? color.accentSoft : "transparent"}`,
-              display: "flex", alignItems: "center", gap: 10, padding: "0 8px",
-              fontSize: 14, cursor: "pointer", marginTop: 4, color: color.ink,
-            }}
-          >
-            <span style={{
-              width: 26, height: 26, borderRadius: 7,
-              background: color.surfaceSolid,
-              border: `1px solid ${glass.border}`,
-              display: "flex", alignItems: "center", justifyContent: "center",
-              fontSize: 12, fontWeight: 650, flexShrink: 0,
-            }}>
-              {user.image || (user.name || "R").trim().charAt(0).toUpperCase()}
-            </span>
-            <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-              {user.name || "You"}
-            </span>
-          </button>
-        </div>
-      </div>
-
-      {/* ── MAIN CONTENT — full width ─────────────────────────────────── */}
-      <div style={{ flex:1, overflow:"auto", position:"relative" }}>
-        <>
-        {/* Accent glow behind content */}
-        {currentTrack && <div style={{ position:"absolute", top:0, right:0, width:"40%", height:"30%", background:`radial-gradient(ellipse at 80% 0%, rgba(${glowRgb},0.07) 0%, transparent 70%)`, pointerEvents:"none", zIndex:0 }}/>}
-        <div style={{
-          position:"relative", zIndex:1,
-          maxWidth: (screen==="home" || screen==="favorites" || screen==="artist" || screen==="album") ? "none" : 960,
-          margin:"0 auto",
-          padding: (screen==="home" || screen==="favorites" || screen==="artist" || screen==="album")
-            ? `0 0 ${currentTrack && screen !== "home" ? 120 : 24}px`
-            : `24px 32px ${currentTrack && screen !== "home" ? 120 : 24}px`,
-        }}>
-          <BgMist color={currentTrack?.color}/>
-          <Pulse track={currentTrack} isPlaying={isPlaying}/>
-          {toast && <ToastEl msg={toast}/>}
-          {tracksLoading ? (
-            <div style={{ textAlign:"center", paddingTop:120 }}>
-              <BrandGlyph size={40}/>
-              <div style={{ fontSize:14, color: color.muted, marginTop:12 }}>Loading…</div>
-            </div>
-          ) : (
-            <ScreenPane key={screen === "artist" ? `artist:${artistSlug}` : screen === "album" ? `album:${albumSlug}` : screen === "mix" ? `mix:${mixId}` : screen}>
-              {screen==="home"      && <HomeScreen tracks={tracks} onPlayRadio={playRadio} onTogglePlay={()=>setIsPlaying(p=>!p)} onPlayTrack={playTrack} currentTrack={currentTrack} isPlaying={isPlaying} onLike={toggleLike} isRadioMode={isRadioMode} playlistCtx={playlistCtx} signalLabel={signalState?.label} mixLane={mixLane} radioPreview={heroPreview} radioNext={setNext} onSkipRadio={handleSkip} onPrevRadio={handlePrev} onOpenPlayer={()=>setImmersive(true)} onListenFor={()=>setShowGenreTaste(true)} intentLabel={radioIntentLabel} catalogError={tracksLoadError} onRetryCatalog={reloadCatalog} preferredGenres={user.genres} recentTrackIds={(profile?.recentTracks||[]).map(r=>r.trackId||r)} progress={progress} duration={duration} communityMix={communityMix} onOpenCommunityMix={()=>communityMix && openMix(communityMix.id)}/>}
-              {screen==="search"    && <SearchScreen query={searchQuery} setQuery={setSearch} results={searchResults} tracks={tracks} onPlay={(t,pool)=>playTrack(t,pool||tracks)} onListenIntent={(focus)=>{ const next={ genre: focus.genre || null, scene: null }; setListenFocus(next); playRadio(null, createListenIntent({ mixLane, ...next })); }} onLike={toggleLike} currentTrack={currentTrack} isPlaying={isPlaying} playlistCtx={playlistCtx} entityHits={entityHits} onOpenArtist={openArtist} onOpenAlbum={(slug)=>openAlbum(slug)}/>}
-              {screen==="favorites" && <FavoritesScreen tracks={tracks} onPlay={t=>{setIsRadioMode(false);playTrack(t,tracks);}} onPlayTrack={(t,pool)=>{setIsRadioMode(false);playTrack(t,pool||tracks);}} onLike={toggleLike} currentTrack={currentTrack} isPlaying={isPlaying} playlistCtx={playlistCtx} userPlaylists={libraryPlaylists} onCreatePlaylist={createPlaylist} onDeletePlaylist={deletePlaylist} onSharePlaylist={sharePlaylistToClub} communityMix={communityMix} onOpenMix={()=>communityMix && openMix(communityMix.id)} onCustomMix={()=>{ setSessionInitialActivity(vibeForMixLane(mixLane)); setShowRouteBuilder(true); }}/>}
-              {screen==="mix"       && (
-                <MixScreen
-                  mix={activeMix}
-                  tracks={tracks}
-                  loading={mixLoading}
-                  notFound={!mixLoading && !activeMix}
-                  currentTrack={currentTrack}
-                  isPlaying={isPlaying}
-                  onPlayTrack={(t, pool)=>{ setIsRadioMode(false); playTrack(t, pool||tracks); }}
-                  onBack={goBack}
-                  onShare={()=>activeMix && sharePlaylistToClub(activeMix)}
-                  onSaveToLibrary={()=>{
-                    if (!activeMix) return;
-                    createPlaylist(activeMix.title || "Saved mix", activeMix.trackIds || []);
-                  }}
-                  TrackRow={TrackRow}
-                  playlistCtx={playlistCtx}
-                  onLike={toggleLike}
-                />
-              )}
-              {screen==="artist"    && (
-                <ArtistPage
-                  artist={findArtist(tracks, artistSlug)}
-                  onBack={goBack}
-                  onPlay={(t, pool) => playTrack(t, pool)}
-                  onOpenAlbum={(slug) => openAlbum(slug)}
-                  currentTrack={currentTrack}
-                  isPlaying={isPlaying}
-                  onLike={toggleLike}
-                  AlbumArt={AlbumArt}
-                  TrackRow={TrackRow}
-                  playlistCtx={playlistCtx}
-                />
-              )}
-              {screen==="album"     && (
-                <AlbumPage
-                  album={findAlbum(tracks, albumSlug)}
-                  onBack={goBack}
-                  onPlay={(t, pool) => playTrack(t, pool)}
-                  onOpenArtist={(slug) => openArtist(slug)}
-                  currentTrack={currentTrack}
-                  isPlaying={isPlaying}
-                  onLike={toggleLike}
-                  AlbumArt={AlbumArt}
-                  TrackRow={TrackRow}
-                  playlistCtx={playlistCtx}
-                />
-              )}
-              {screen==="profile"   && <ProfileScreen user={user} tracks={tracks} onLogout={logOut} access={access} onSubscribe={handleSubscribe} profile={profile} onOpenMix={communityMix ? ()=>openMix(communityMix.id) : null}/>}
-              {screen==="admin"     && <AdminScreen tracks={tracks} setTracks={setTracks} tab={adminTab} setTab={setAdminTab} editTrack={editTrack} setEditTrack={setEditTrack} showToast={showToast} userPlaylists={userPlaylists} communityMix={communityMix} onPublishCommunityMix={publishCommunityMixFromPlaylist}/>}
-            </ScreenPane>
-          )}
-        </div>
-        </>
-        {/* Desktop mini-player — hidden on Home; Cover Stage owns transport */}
-        {currentTrack && !immersive && screen !== "home" && (
-          <div style={{ position:"fixed", bottom:12, left:208, right:348, zIndex:80 }}>
-            <EnergyShiftFeedback />
-            <div onClick={()=>setImmersive(true)} className="glass-dock" style={{
-              borderRadius: dock.radius,
-              display:"flex", alignItems:"center", gap:12,
-              cursor:"pointer", overflow:"hidden", position:"relative",
-              animation: `dockRise 0.4s ${motion.ease} both`,
-              padding: "10px 16px",
-              ...dockTintStyle(currentTrack),
-            }}>
-              <OrbitalArtRing
-                track={currentTrack}
-                progress={progress}
-                duration={duration}
-                size={44}
-                onSeek={handleSeek}
-                artRadius={8}
-              />
-              <div style={{ flex:1, minWidth:0 }}>
-                <div style={{ fontSize:14, fontWeight:650, color: color.ink, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap", letterSpacing:-0.2, fontFamily: fontDisplay }}>
-                  {isRadioMode && (
-                    <span style={{
-                      display:"inline-block", width:6, height:6, borderRadius:"50%",
-                      background: color.accent, marginRight:8, verticalAlign:"middle",
-                      boxShadow: isPlaying ? `0 0 0 3px ${color.accentSoft}` : "none",
-                      animation: isPlaying ? "breathe 2s ease-in-out infinite" : "none",
-                    }}/>
-                  )}
-                  {currentTrack.title}
-                </div>
-                <div style={{ fontSize:11, color: color.muted, marginTop:2 }}>
-                  {isRadioMode ? `On air · ${currentTrack.artist}` : currentTrack.artist}
-                </div>
-              </div>
-              <span style={{ fontSize:10, color: color.faint, fontVariantNumeric:"tabular-nums", flexShrink:0 }}>{fmtTime(progress)}</span>
-              <button onClick={e=>{e.stopPropagation();onLikeToggle();}} style={{ background:"none",border:"none",cursor:"pointer",color:currentTrack.liked?color.accent:color.faint,padding:4 }}><Icon name={currentTrack.liked?"heart":"heartempty"} size={16}/></button>
-              <EnergyShiftButton direction="down" size={30} />
-              <IceOrbPlay
-                isPlaying={isPlaying}
-                onClick={() => setIsPlaying((p) => !p)}
-                size={36}
-                iconSize={15}
-                stopPropagation
-              />
-              <button onClick={e=>{e.stopPropagation();handleSkip();}} style={{ background:"none",border:"none",cursor:"pointer",color: color.muted,padding:4 }}><Icon name="skip" size={16}/></button>
-              <EnergyShiftButton direction="up" size={30} />
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* ── RIGHT PANEL ─────────────────────────────────────────────── */}
-      <div className="hide-scroll" style={{
-        width: 336,
-        flexShrink: 0,
-        background: `
-          linear-gradient(180deg, rgba(255,255,255,0.75) 0%, rgba(255,255,255,0.4) 100%),
-          ${color.surfaceRaised}
-        `,
-        borderLeft: `1px solid ${glass.border}`,
-        display: "flex",
-        flexDirection: "column",
-        overflowY: "auto",
-        position: "relative",
-      }}>
-        {/* Soft top sheen */}
-        <div aria-hidden="true" style={{
-          position: "absolute",
-          top: 0,
-          left: 0,
-          right: 0,
-          height: 1,
-          background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.85), transparent)",
-          pointerEvents: "none",
-          zIndex: 2,
-        }}/>
-
-        {/* Now Playing */}
-        {currentTrack ? (
-          <div style={{ padding: "22px 20px 18px", position: "relative" }}>
-            {/* Ambient color wash behind art */}
-            <div style={{
-              position: "absolute",
-              top: 0,
-              left: 0,
-              right: 0,
-              height: "78%",
-              background: `radial-gradient(ellipse at 50% 18%, rgba(${glowRgb},0.14) 0%, transparent 68%)`,
-              pointerEvents: "none",
-            }}/>
-
-            {/* Album art — framed, luminous */}
-            <div style={{
-              position: "relative",
-              width: "100%",
-              aspectRatio: "1",
-              overflow: "hidden",
-              marginBottom: 18,
-              borderRadius: 10,
-              boxShadow: artShadow.raised,
-              border: `1px solid ${glass.borderSoft}`,
-            }}>
-              <img
-                src={currentTrack.albumCover || "/covers/default.jpg"}
-                alt=""
-                style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
-                onError={(e) => { e.target.src = "/covers/default.jpg"; }}
-              />
-              <div aria-hidden="true" style={{
-                position: "absolute",
-                inset: 0,
-                boxShadow: "inset 0 1px 0 rgba(255,255,255,0.35)",
-                pointerEvents: "none",
-              }}/>
-            </div>
-
-            {/* Progress — whisper hairline under art */}
-            <div style={{
-              height: 4,
-              background: "rgba(26,29,36,0.1)",
-              marginBottom: 16,
-              overflow: "hidden",
-              position: "relative",
-              borderRadius: 2,
-            }}>
-              <div style={{
-                height: "100%",
-                width: `${duration ? ((progress / duration) * 100) : 0}%`,
-                background: color.accent,
-                transition: "width 1s linear",
-                borderRadius: 2,
-              }}/>
-            </div>
-
-            {/* Track info */}
-            <div key={currentTrack.id} style={{
-              position: "relative",
-              animation: "trackSwap 0.35s cubic-bezier(0.22,1,0.36,1) both",
-            }}>
-              <div style={{
-                fontSize: 17,
-                fontWeight: 650,
-                color: color.ink,
-                letterSpacing: -0.35,
-                lineHeight: 1.25,
-                marginBottom: 4,
-                overflow: "hidden",
-                textOverflow: "ellipsis",
-                whiteSpace: "nowrap",
-                fontFamily: fontDisplay,
-              }}>
-                {currentTrack.title}
-              </div>
-              <div style={{
-                fontSize: 13,
-                color: color.muted,
-                marginBottom: 14,
-                overflow: "hidden",
-                textOverflow: "ellipsis",
-                whiteSpace: "nowrap",
-                letterSpacing: -0.1,
-              }}>
-                {currentTrack.artist}
-              </div>
-              <BoothHud track={currentTrack} size="sm"/>
-              {signalState?.label && (
-                <div style={{
-                  marginTop: 14,
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: 8,
-                  fontSize: 9,
-                  fontWeight: 700,
-                  letterSpacing: 1.6,
-                  color: color.faint,
-                  textTransform: "uppercase",
-                  fontFamily: fontMono,
-                }}>
-                  <span style={{
-                    width: 4,
-                    height: 4,
-                    borderRadius: "50%",
-                    background: isPlaying ? color.accent : color.faint,
-                    boxShadow: isPlaying ? `0 0 0 3px ${color.accentSoft}` : "none",
-                    animation: isPlaying ? "breathe 2s ease-in-out infinite" : "none",
-                  }}/>
-                  {signalState.label}
-                </div>
-              )}
-            </div>
-          </div>
-        ) : (
-          <div style={{
-            padding: "72px 20px",
-            textAlign: "center",
-            opacity: 0.55,
-          }}>
-            <BrandGlyph size={28}/>
-            <div style={{
-              marginTop: 14,
-              fontSize: 11,
-              letterSpacing: 1.4,
-              textTransform: "uppercase",
-              color: color.faint,
-              fontFamily: fontMono,
-            }}>
-              Nothing playing
-            </div>
-          </div>
-        )}
-
-        {/* Faded rule */}
-        <div style={{
-          height: 1,
-          margin: "4px 20px 0",
-          background: "linear-gradient(90deg, transparent 0%, rgba(26,29,36,0.08) 20%, rgba(26,29,36,0.12) 50%, rgba(26,29,36,0.08) 80%, transparent 100%)",
-        }}/>
-
-        {/* Up Next */}
-        <div style={{ flex: 1, padding: "18px 12px 24px", display: "flex", flexDirection: "column" }}>
-          <div style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "baseline",
-            padding: "0 8px 14px",
-          }}>
-            <div>
-              <div style={{
-                fontSize: 10,
-                fontWeight: 700,
-                letterSpacing: 1.8,
-                textTransform: "uppercase",
-                color: color.faint,
-                fontFamily: fontMono,
-                marginBottom: 4,
-              }}>
-                Queue
-              </div>
-              <div style={{
-                fontSize: 14,
-                fontWeight: 650,
-                letterSpacing: -0.25,
-                color: color.ink,
-                fontFamily: fontDisplay,
-              }}>
-                Up Next
-              </div>
-            </div>
-            <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
-              <button
-                type="button"
-                className="sidebar-ghost-btn"
-                onClick={() => {
-                  const pool = tracks.filter((t) => t.id !== currentTrack?.id && (t.duration || 0) <= 900);
-                  const shuffled = [...pool];
-                  for (let i = shuffled.length - 1; i > 0; i--) {
-                    const j = Math.floor(Math.random() * (i + 1));
-                    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-                  }
-                  setQueue(shuffled.slice(0, 8));
-                }}
-                style={{
-                  background: "none",
-                  border: "none",
-                  padding: 0,
-                  cursor: "pointer",
-                  color: color.muted,
-                  fontSize: 10,
-                  fontWeight: 600,
-                  letterSpacing: 0.8,
-                  textTransform: "uppercase",
-                  fontFamily: fontMono,
-                }}
-              >
-                Shuffle
-              </button>
-              {queue.length > 0 && (
-                <button
-                  type="button"
-                  className="sidebar-ghost-btn"
-                  onClick={() => setQueue([])}
-                  style={{
-                    background: "none",
-                    border: "none",
-                    padding: 0,
-                    cursor: "pointer",
-                    color: color.muted,
-                    fontSize: 10,
-                    fontWeight: 600,
-                    letterSpacing: 0.8,
-                    textTransform: "uppercase",
-                    fontFamily: fontMono,
-                  }}
-                >
-                  Clear
-                </button>
-              )}
-            </div>
-          </div>
-
-          {/* Continuous premium list — no boxed cards */}
-          <div style={{ display: "flex", flexDirection: "column" }}>
-            {nextUpTracks.map((t, i) => {
-              const active = currentTrack?.id === t.id;
-              return (
-                <div
-                  key={t.id}
-                  className="sidebar-queue-row"
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 10,
-                    padding: "10px 8px",
-                    borderRadius: 8,
-                    background: active ? color.select : "transparent",
-                    position: "relative",
-                  }}
-                >
-                  {active && (
-                    <div aria-hidden="true" style={{
-                      position: "absolute",
-                      left: 0,
-                      top: 10,
-                      bottom: 10,
-                      width: 2,
-                      borderRadius: 1,
-                      background: color.accent,
-                    }}/>
-                  )}
-
-                  <div style={{
-                    width: 18,
-                    fontSize: 10,
-                    fontWeight: 500,
-                    color: active ? color.ink : color.faint,
-                    textAlign: "center",
-                    flexShrink: 0,
-                    fontFamily: fontMono,
-                    fontVariantNumeric: "tabular-nums",
-                  }}>
-                    {String(i + 1).padStart(2, "0")}
-                  </div>
-
-                  <div
-                    onClick={() => playTrack(t, tracks)}
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 11,
-                      flex: 1,
-                      minWidth: 0,
-                      cursor: "pointer",
-                    }}
-                  >
-                    <div style={{
-                      width: 40,
-                      height: 40,
-                      borderRadius: 5,
-                      overflow: "hidden",
-                      flexShrink: 0,
-                      boxShadow: "0 4px 14px rgba(0,0,0,0.35)",
-                      outline: active ? `1px solid ${color.accentSoft}` : "1px solid transparent",
-                    }}>
-                      <img
-                        src={t.albumCover || "/covers/default.jpg"}
-                        alt=""
-                        style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
-                        onError={(e) => { e.target.src = "/covers/default.jpg"; }}
-                      />
-                    </div>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{
-                        fontSize: 12.5,
-                        fontWeight: active ? 600 : 500,
-                        color: color.ink,
-                        letterSpacing: -0.15,
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                        whiteSpace: "nowrap",
-                        fontFamily: fontDisplay,
-                      }}>
-                        {t.title}
-                      </div>
-                      <div style={{
-                        marginTop: 2,
-                        fontSize: 11,
-                        color: color.muted,
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                        whiteSpace: "nowrap",
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 6,
-                      }}>
-                        <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                          {t.artist}
-                        </span>
-                        {t._signal?.label && (
-                          <>
-                            <span style={{ opacity: 0.35, flexShrink: 0 }}>·</span>
-                            <span style={{
-                              flexShrink: 0,
-                              fontSize: 9,
-                              fontWeight: 650,
-                              letterSpacing: 0.9,
-                              textTransform: "uppercase",
-                              color: color.faint,
-                              fontFamily: fontMono,
-                            }}>
-                              {t._signal.label}
-                            </span>
-                          </>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-
-                  <div
-                    className="sidebar-queue-actions"
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 2,
-                      flexShrink: 0,
-                      opacity: 0.28,
-                      transition: `opacity ${motion.base} ${motion.ease}`,
-                    }}
-                  >
-                    {!isRadioMode && (
-                      <>
-                        <button
-                          type="button"
-                          aria-label="Move up"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            if (i > 0) {
-                              const nq = [...nextUpTracks];
-                              [nq[i - 1], nq[i]] = [nq[i], nq[i - 1]];
-                              setQueue(nq);
-                            }
-                          }}
-                          style={{
-                            background: "none",
-                            border: "none",
-                            cursor: i > 0 ? "pointer" : "default",
-                            padding: 3,
-                            opacity: i > 0 ? 1 : 0,
-                          }}
-                        >
-                          <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke={color.ink} strokeWidth="1.5" strokeLinecap="round"><path d="M3 7L6 4L9 7"/></svg>
-                        </button>
-                        <button
-                          type="button"
-                          aria-label="Move down"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            if (i < nextUpTracks.length - 1) {
-                              const nq = [...nextUpTracks];
-                              [nq[i], nq[i + 1]] = [nq[i + 1], nq[i]];
-                              setQueue(nq);
-                            }
-                          }}
-                          style={{
-                            background: "none",
-                            border: "none",
-                            cursor: i < nextUpTracks.length - 1 ? "pointer" : "default",
-                            padding: 3,
-                            opacity: i < nextUpTracks.length - 1 ? 1 : 0,
-                          }}
-                        >
-                          <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke={color.ink} strokeWidth="1.5" strokeLinecap="round"><path d="M3 5L6 8L9 5"/></svg>
-                        </button>
-                      </>
-                    )}
-                    <button
-                      type="button"
-                      aria-label="Remove from queue"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setQueue(() => {
-                          const nq = [...nextUpTracks];
-                          nq.splice(i, 1);
-                          return nq;
-                        });
-                      }}
-                      style={{
-                        background: "none",
-                        border: "none",
-                        cursor: "pointer",
-                        padding: 3,
-                      }}
-                    >
-                      <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke={color.ink} strokeWidth="1.5" strokeLinecap="round"><path d="M2.5 2.5L7.5 7.5M7.5 2.5L2.5 7.5"/></svg>
-                    </button>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-
-          {nextUpTracks.length === 0 && (
-            <div style={{
-              textAlign: "center",
-              padding: "40px 12px",
-              color: color.faint,
-              fontSize: 12,
-              letterSpacing: -0.1,
-            }}>
-              Queue is empty
-              <div style={{
-                marginTop: 6,
-                fontSize: 10,
-                letterSpacing: 0.6,
-                textTransform: "uppercase",
-                fontFamily: fontMono,
-                opacity: 0.7,
-              }}>
-                Shuffle to fill it
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Listening overlays + Booth */}
-      {listeningOverlays}
-      {boothPlayer}
+    <div style={{ display:"flex", height:"100dvh", background: color.canvas, overflow:"hidden", fontFamily: font }}>
+      <Suspense fallback={null}>
+      <AppSidebar
+        screen={screen}
+        buildingSet={showRouteBuilder}
+        onNavigate={setScreen}
+        onBuildSet={openCustomMix}
+        user={user}
+        showAdmin={firebaseUser?.uid === ADMIN_UID}
+      />
+      </Suspense>
+      {innerApp}
     </div>
   );
-
-  function onLikeToggle() { if(currentTrack) toggleLike(currentTrack.id); }
 }
-

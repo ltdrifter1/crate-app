@@ -5,7 +5,7 @@
  * Scenes restore UK Garage, Techno, Ambient, Jungle, etc. for discovery UX.
  */
 
-import { normalizeGenre } from "./genres";
+import { normalizeGenre, displayGenre } from "./genres";
 
 /** Family groupings for editorial browsing (not storage). */
 export const SCENE_FAMILIES = [
@@ -555,6 +555,30 @@ export const SCENES = [
 
   // ── Rock & roots ────────────────────────────────────────────
   {
+    id: "psychedelic-rock",
+    label: "Psychedelic Rock",
+    familyId: "rock-roots",
+    lane: "Rock",
+    story: "Swirl, fuzz, and the long jam — Fillmore inheritance.",
+    atmosphere: "heat-haze",
+    energy: [4, 8],
+    bpm: [70, 140],
+    aliases: [
+      "psychedelic rock",
+      "psych rock",
+      "psych-rock",
+      "acid rock",
+      "krautrock",
+      "space rock",
+      "neo-psych",
+      "neopsych",
+      "psychedelia",
+    ],
+    keywords: ["psychedelic", "psych-rock", "acid rock", "krautrock", "space rock"],
+    related: ["rock", "folk"],
+    cities: ["San Francisco", "London", "Austin"],
+  },
+  {
     id: "rock",
     label: "Rock",
     familyId: "rock-roots",
@@ -565,7 +589,7 @@ export const SCENES = [
     bpm: [90, 160],
     aliases: ["rock", "alternative", "indie", "indie rock", "punk", "post-punk", "grunge"],
     keywords: ["rock", "punk", "indie", "grunge"],
-    related: ["metal", "folk", "soul"],
+    related: ["metal", "folk", "soul", "psychedelic-rock"],
     cities: ["London", "Seattle", "New York"],
   },
   {
@@ -587,7 +611,7 @@ export const SCENES = [
     label: "Folk / Americana",
     familyId: "rock-roots",
     lane: "Country & Folk",
-    story: "Songs that travel by road and porch.",
+    story: "Cuts that travel by road and porch.",
     atmosphere: "dawn-haze",
     energy: [2, 5],
     bpm: [60, 120],
@@ -797,6 +821,10 @@ export function inferSceneTags(track, limit = 3) {
 
 /** Enrich track objects with `_scene` / `_scenes` (pure). */
 export function enrichTracksWithScenes(tracks = []) {
+  // Warm-start / remount: skip O(N×scenes) when already tagged.
+  if (tracks.length && Object.prototype.hasOwnProperty.call(tracks[0], "_scene")) {
+    return tracks;
+  }
   return tracks.map((t) => {
     const scene = inferScene(t);
     const tags = inferSceneTags(t, 4);
@@ -814,9 +842,11 @@ export function enrichTracksWithScenes(tracks = []) {
 export function trackMatchesScene(track, sceneId) {
   const scene = getScene(sceneId);
   if (!scene) return false;
+  // Prefer precomputed scene tags from enrichTracksWithScenes.
+  if (track._scene?.id === sceneId) return true;
+  if ((track._scenes || []).includes(sceneId)) return true;
   const inferred = inferScene(track);
   if (inferred?.id === sceneId) return true;
-  if ((track._scenes || []).includes(sceneId)) return true;
   if (matchSceneFromText(track.genre)?.id === sceneId) return true;
   // Soft: same lane + energy/bpm band when track already tagged to family
   if (inferred && inferred.familyId === scene.familyId) {
@@ -911,7 +941,16 @@ export function sceneLineagePath(seedSceneId, depth = 4) {
   };
 }
 
+/**
+ * What to print under a track. A specific culture label the track already
+ * carries ("Punk", "UK Garage", "Shoegaze") outranks scene inference — the
+ * inferrer collapses some of them into a broad lane, which made artist pages
+ * read "Ashcan · Rock" under a header saying "Ashcan · PUNK". Inference fills
+ * gaps; it does not overrule data.
+ */
 export function displaySceneLabel(track) {
   if (track?._scene?.label) return track._scene.label;
-  return inferScene(track)?.label || normalizeGenre(track?.genre) || "";
+  const raw = String(track?.genre || "").trim();
+  if (raw && !CANONICAL_SET_LOCAL.has(raw.toLowerCase())) return displayGenre(raw);
+  return inferScene(track)?.label || displayGenre(raw) || "";
 }

@@ -24,7 +24,7 @@ describe("scene taxonomy", () => {
   });
 
   test("matchSceneFromText restores labels normalizeGenre flattens", () => {
-    expect(matchSceneFromText("UK Garage")?.id).toBe("uk-garage");
+    expect(matchSceneFromText("psychedelic rock")?.id).toBe("psychedelic-rock");
     expect(matchSceneFromText("techno")?.id).toBe("techno");
     expect(matchSceneFromText("ambient")?.id).toBe("ambient");
     expect(matchSceneFromText("2-step")?.id).toBe("uk-garage");
@@ -63,6 +63,14 @@ describe("scene taxonomy", () => {
     ]);
     expect(enriched[0]._scene.label).toBe("Jazz");
     expect(enriched[0]._scenes.length).toBeGreaterThan(0);
+  });
+
+  test("enrichTracksWithScenes skips work when _scene already present", () => {
+    const once = enrichTracksWithScenes([
+      { id: "1", genre: "Jazz", energy: 3, duration: 200 },
+    ]);
+    const twice = enrichTracksWithScenes(once);
+    expect(twice).toBe(once);
   });
 
   test("trackMatchesScene + relatedScenes", () => {

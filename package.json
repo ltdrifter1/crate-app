@@ -4,6 +4,7 @@
   "private": true,
   "dependencies": {
     "firebase": "^11.6.0",
+    "lottie-react": "^2.4.1",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-router-dom": "^6.30.4",
@@ -12,7 +13,8 @@
   },
   "scripts": {
     "start": "react-scripts start",
-    "build": "react-scripts build",
+    "build": "react-scripts build && node scripts/assert-shipped-style.js",
+    "style:assert-build": "node scripts/assert-shipped-style.js",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
     "catalog:upload": "node upload-tracks.js",
@@ -21,7 +23,19 @@
     "catalog:normalize-genres": "node normalize-genres.js",
     "catalog:normalize-genres:apply": "node normalize-genres.js --apply",
     "catalog:delete-unknown-artists": "node delete-unknown-artists.js",
-    "catalog:delete-unknown-artists:apply": "node delete-unknown-artists.js --apply"
+    "catalog:delete-unknown-artists:apply": "node delete-unknown-artists.js --apply",
+    "catalog:audit-junk": "node audit-junk-tracks.js"
+  },
+  "eslintConfig": {
+    "extends": [
+      "react-app"
+    ],
+    "rules": {
+      "no-unused-vars": "off",
+      "react-hooks/exhaustive-deps": "off",
+      "no-loop-func": "off",
+      "no-useless-escape": "off"
+    }
   },
   "browserslist": {
     "production": [

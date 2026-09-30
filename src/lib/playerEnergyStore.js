@@ -1,5 +1,5 @@
-// Player energy store — framework-independent state for the Energy Shift
-// feature ("Rabbit" / "Turtle" transport controls).
+// Player energy store — framework-independent state for Pace
+// (Ease / Lift upcoming picks). Preset ids `rabbit` / `turtle` stay stable.
 //
 // Holds the pending energy-shift vector (BPM / energy / Camelot deltas) that
 // the recommendation engine sweeps through gradually — lawnmower traversal,
@@ -15,8 +15,8 @@ const ENERGY_SETTLE = 0.5;
 
 /** Named shift presets — future modes plug in here without touching the UI. */
 export const ENERGY_PRESETS = {
-  rabbit: { label: "Picking up the pace", bpm: +10, energy: +1.5, camelot: +2 },
-  turtle: { label: "Slowing things down", bpm: -10, energy: -1.5, camelot: -2 },
+  rabbit: { label: "Lifting upcoming tracks", bpm: +10, energy: +1.5, camelot: +2 },
+  turtle: { label: "Easing upcoming tracks", bpm: -10, energy: -1.5, camelot: -2 },
   buildUp: { label: "Build up", bpm: +16, energy: +2.5, camelot: +3 },
   coolDown: { label: "Cool down", bpm: -16, energy: -2.5, camelot: -3 },
   sunrise: { label: "Sunrise", bpm: +6, energy: +1, camelot: +1 },
@@ -55,7 +55,7 @@ function createPlayerEnergyStore() {
     emit();
   }
 
-  /** Nudge the target vector. direction: +1 (rabbit) or -1 (turtle). */
+  /** Nudge the target vector. direction: +1 (Lift) or -1 (Ease). */
   function shiftEnergy(direction, bpmStep = 10, label = null) {
     const dir = direction >= 0 ? 1 : -1;
     const scale = Math.abs(bpmStep) / 10;
@@ -126,6 +126,47 @@ function createPlayerEnergyStore() {
     setState({ ...initialState(), lastAction: state.lastAction });
   }
 
+  /**
+   * Absolute bias from the Energy Shift slider (middle = 0).
+   * Replaces stacked nudges so the control maps 1:1 to pending sweep.
+   */
+  function setEnergyBias(bpm = 0, label = null) {
+    const clamped = clampMag(Number(bpm) || 0, BPM_DELTA_CAP);
+    if (Math.abs(clamped) < 1) {
+      setState({
+        active: false,
+        direction: 0,
+        bpmDelta: 0,
+        energyDelta: 0,
+        camelotDelta: 0,
+        lastAction: {
+          direction: 0,
+          bpmStep: 0,
+          label: label || "Neutral",
+          ts: Date.now(),
+        },
+      });
+      return;
+    }
+    const dir = clamped > 0 ? 1 : -1;
+    const scale = Math.abs(clamped) / 10;
+    setState({
+      active: true,
+      direction: dir,
+      bpmDelta: clamped,
+      energyDelta: clampMag(dir * 1.5 * scale, 6),
+      camelotDelta: clampMag(dir * Math.max(1, Math.round(2 * scale)), 6),
+      lastAction: {
+        direction: dir,
+        bpmStep: clamped,
+        label:
+          label ||
+          (dir > 0 ? ENERGY_PRESETS.rabbit.label : ENERGY_PRESETS.turtle.label),
+        ts: Date.now(),
+      },
+    });
+  }
+
   return {
     getState: () => state,
     subscribe(fn) {
@@ -133,6 +174,7 @@ function createPlayerEnergyStore() {
       return () => listeners.delete(fn);
     },
     shiftEnergy,
+    setEnergyBias,
     applyPreset,
     onTrackPlayed,
     reset,

@@ -8,6 +8,7 @@
 
 import { parseCamelot, camelotCompatible } from "./harmony";
 import { normalizeGenre } from "./genres";
+import { applyDislikeToPool, dislikeWeightForTrack } from "./dislikeTaste";
 
 // Per-song sweep limits — one selection never moves more than this.
 const STEP_BPM = 10;
@@ -125,11 +126,17 @@ export function scoreCandidate(candidate, current, target, shift) {
 }
 
 /** Rank a pool against the sweep target. Returns [{ track, score }] ascending. */
-export function rankEnergyCandidates(pool, current, shift, limit = 12) {
+export function rankEnergyCandidates(pool, current, shift, limit = 12, dislikeTaste = null) {
   const target = stepTarget(current, shift);
   return pool
     .filter((t) => t && t.id !== current?.id)
-    .map((t) => ({ track: t, score: scoreCandidate(t, current, target, shift) }))
+    .map((t) => {
+      let score = scoreCandidate(t, current, target, shift);
+      const dislikeW = dislikeWeightForTrack(t, dislikeTaste);
+      if (dislikeW < 1) score += (1 - dislikeW) * 2.4;
+      if (dislikeW <= 0) score += 8;
+      return { track: t, score };
+    })
     .sort((a, b) => a.score - b.score)
     .slice(0, limit);
 }
@@ -138,9 +145,13 @@ export function rankEnergyCandidates(pool, current, shift, limit = 12) {
  * Pick the next track under an active energy shift. Softly randomized among
  * the strongest candidates so repeated sweeps don't feel deterministic.
  */
-export function pickEnergyTrack(pool, current, shift, rng = Math.random) {
+export function pickEnergyTrack(pool, current, shift, rng = Math.random, options = {}) {
   if (!pool?.length || !shift?.active) return null;
-  const ranked = rankEnergyCandidates(pool, current, shift, 5);
+  const dislikeTaste = options?.dislikeTaste || null;
+  const filtered = applyDislikeToPool(pool, dislikeTaste, {
+    preserveFocus: !!options.preserveFocus,
+  });
+  const ranked = rankEnergyCandidates(filtered.length ? filtered : pool, current, shift, 5, dislikeTaste);
   if (!ranked.length) return null;
   // Weighted toward the best: [4, 3, 2, 1, 1]
   const weights = [4, 3, 2, 1, 1].slice(0, ranked.length);

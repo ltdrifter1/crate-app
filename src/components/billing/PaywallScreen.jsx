@@ -1,149 +1,281 @@
 /**
- * Paywall — shown when the free trial ends and there is no active subscription.
- * Stripe Payment Link is a placeholder until the live checkout URL is set.
+ * Membership plans — during beta, prices and checkout are coming soon.
+ * Soft upgrade surface (Free/beta trial is always allowed into the app).
  */
+import { useState } from "react";
 import {
-  font, fontDisplay, color, radius, glass,
-  APP_STYLE, BTN_PRIMARY, BTN_SECONDARY, BRAND_NAME,
+  fontDisplay, fontMono, color, radius, glass,
+  APP_STYLE, BTN_PRIMARY, BTN_SECONDARY,
 } from "../../theme";
 import {
-  BILLING,
-  formatPriceMonthly,
+  PLAN_IDS,
+  formatMoney,
   membershipSummary,
-  openStripeCheckout,
+  planMarketingCopy,
+  PRICING_COMING_SOON,
+  BETA_LAUNCH,
+  BETA_LAUNCH_COPY,
 } from "../../lib/entitlements";
+import { startCheckout, openBillingPortal } from "../../lib/billing";
 import BrandMark from "../brand/BrandMark";
+import BetaBadge from "./BetaLaunchNotice";
 
 export default function PaywallScreen({
   access = null,
   onSubscribe,
   onRefresh,
   onLogout,
+  onContinueFree = null,
   refreshing = false,
+  mode = "upgrade", // upgrade | manage
 }) {
-  const price = formatPriceMonthly();
   const summary = membershipSummary(access);
-  const link = access?.stripePaymentLink || BILLING.stripePaymentLink;
-  const isPlaceholder = /PLACEHOLDER/i.test(link);
+  const plans = planMarketingCopy();
+  const tier = access?.tier || PLAN_IDS.FREE;
+  const [busyPlan, setBusyPlan] = useState(null);
+  const [error, setError] = useState(null);
+  const billingLive = !PRICING_COMING_SOON;
 
-  function handleSubscribe() {
-    if (typeof onSubscribe === "function") {
-      onSubscribe(link);
+  async function handlePlan(planId) {
+    setError(null);
+    if (planId === PLAN_IDS.FREE) {
+      onContinueFree?.();
       return;
     }
-    openStripeCheckout(link);
+    if (!billingLive) {
+      setError("Not available yet.");
+      return;
+    }
+    if (typeof onSubscribe === "function") {
+      onSubscribe(null, planId);
+      return;
+    }
+    setBusyPlan(planId);
+    try {
+      await startCheckout(planId);
+    } catch (e) {
+      setError(e?.message || "Couldn’t start checkout");
+    } finally {
+      setBusyPlan(null);
+    }
+  }
+
+  async function handleManageBilling() {
+    setError(null);
+    if (!billingLive) {
+      setError("Not available yet.");
+      return;
+    }
+    setBusyPlan("portal");
+    try {
+      await openBillingPortal();
+    } catch (e) {
+      setError(e?.message || "Couldn’t open billing portal");
+    } finally {
+      setBusyPlan(null);
+    }
   }
 
   return (
     <div
       style={{
         ...APP_STYLE,
+        position: "fixed",
+        inset: 0,
+        zIndex: 360,
         alignItems: "stretch",
-        justifyContent: "center",
-        padding: "48px 28px 40px",
+        justifyContent: "flex-start",
+        padding: "40px 22px 48px",
+        overflowY: "auto",
         background: `
-          radial-gradient(ellipse 90% 55% at 50% -10%, rgba(10,124,255,0.1) 0%, transparent 55%),
-          linear-gradient(180deg, #F4F6F9 0%, ${color.canvas} 42%, ${color.canvas} 100%)
+          radial-gradient(ellipse 90% 55% at 50% -10%, rgba(169,199,228,0.08) 0%, transparent 55%),
+          linear-gradient(180deg, #181C23 0%, ${color.canvas} 42%, ${color.canvas} 100%)
         `,
       }}
     >
-      <div style={{ maxWidth: 400, width: "100%", margin: "0 auto" }}>
-        <div style={{ marginBottom: 36 }}>
+      <div style={{ maxWidth: 440, width: "100%", margin: "0 auto" }}>
+        <div style={{ marginBottom: 28 }}>
           <BrandMark size={40} />
         </div>
 
-        <div style={{
-          fontSize: 13,
-          fontWeight: 650,
-          letterSpacing: 1.2,
-          textTransform: "uppercase",
-          color: color.muted,
-          marginBottom: 14,
-          fontFamily: font,
-        }}>
-          {summary}
+        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
+          <div style={{
+            fontSize: 12,
+            fontWeight: 650,
+            letterSpacing: 1.4,
+            textTransform: "uppercase",
+            color: color.muted,
+            fontFamily: fontMono,
+          }}>
+            {summary}
+          </div>
+          {BETA_LAUNCH && <BetaBadge />}
         </div>
 
         <h1 style={{
-          margin: "0 0 14px",
-          fontSize: "clamp(32px, 8vw, 40px)",
+          margin: "0 0 12px",
+          fontSize: "clamp(30px, 7vw, 38px)",
           fontWeight: 700,
-          letterSpacing: -1.2,
+          letterSpacing: -1.1,
           lineHeight: 1.05,
           fontFamily: fontDisplay,
           color: color.ink,
         }}>
-          Keep listening on {BRAND_NAME}
+          {mode === "manage" ? "Membership" : "Membership"}
         </h1>
 
         <p style={{
-          margin: "0 0 28px",
-          fontSize: 17,
+          margin: "0 0 24px",
+          fontSize: 16,
           lineHeight: 1.5,
           color: color.body,
-          maxWidth: 340,
+          maxWidth: 360,
         }}>
-          Your free month is over. Subscribe for {price}/month to keep your radio, library, and custom mixes.
+          {BETA_LAUNCH
+            ? BETA_LAUNCH_COPY.profileNote
+            : "Choose the plan that fits how you listen."}
         </p>
 
-        <div
-          style={{
-            padding: "18px 20px",
-            borderRadius: radius.lg,
-            background: glass.fill,
-            border: `1px solid ${glass.borderSoft}`,
-            marginBottom: 22,
-          }}
-        >
-          <div style={{
-            display: "flex",
-            alignItems: "baseline",
-            justifyContent: "space-between",
-            gap: 12,
-            marginBottom: 6,
-          }}>
-            <div style={{
-              fontSize: 18,
-              fontWeight: 650,
-              fontFamily: fontDisplay,
-              color: color.ink,
-              letterSpacing: -0.3,
-            }}>
-              Monthly
-            </div>
-            <div style={{
-              fontSize: 22,
-              fontWeight: 700,
-              fontFamily: fontDisplay,
-              color: color.ink,
-              letterSpacing: -0.5,
-            }}>
-              {price}
-              <span style={{ fontSize: 14, fontWeight: 500, color: color.muted }}> / mo</span>
-            </div>
-          </div>
-          <div style={{ fontSize: 14, color: color.muted, lineHeight: 1.45 }}>
-            Cancel anytime. Full catalog access while subscribed.
-          </div>
+        <div style={{ display: "flex", flexDirection: "column", gap: 12, marginBottom: 20 }}>
+          {plans.map((plan) => {
+            const current = plan.id === tier || (BETA_LAUNCH && plan.id === PLAN_IDS.FREE);
+            const busy = busyPlan === plan.id;
+            const paidPlan = plan.id !== PLAN_IDS.FREE;
+            return (
+              <div
+                key={plan.id}
+                style={{
+                  padding: "16px 18px",
+                  borderRadius: radius.lg,
+                  background: current ? "rgba(169,199,228,0.08)" : glass.plate,
+                  border: `1px solid ${current ? color.accent : glass.border}`,
+                  boxShadow: `inset 0 1px 0 ${glass.highlight}, ${glass.shadowSoft}`,
+                }}
+              >
+                <div style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  gap: 12,
+                  marginBottom: 6,
+                  alignItems: "baseline",
+                }}>
+                  <div style={{
+                    fontSize: 18,
+                    fontWeight: 700,
+                    fontFamily: fontDisplay,
+                    color: color.ink,
+                  }}>
+                    {plan.name}
+                    {current && (
+                      <span style={{
+                        marginLeft: 8,
+                        fontSize: 11,
+                        fontFamily: fontMono,
+                        color: color.accent,
+                        letterSpacing: 1,
+                        textTransform: "uppercase",
+                      }}>
+                        {plan.id === PLAN_IDS.FREE ? "Included" : "Current"}
+                      </span>
+                    )}
+                  </div>
+                  <div style={{
+                    fontSize: 16,
+                    fontWeight: 700,
+                    fontFamily: fontDisplay,
+                    color: paidPlan && PRICING_COMING_SOON ? color.muted : color.ink,
+                  }}>
+                    {plan.price}
+                  </div>
+                </div>
+                <div style={{ fontSize: 13, color: color.body, lineHeight: 1.45, marginBottom: 10 }}>
+                  {plan.blurb}
+                </div>
+                <ul style={{
+                  margin: "0 0 14px",
+                  padding: "0 0 0 18px",
+                  color: color.muted,
+                  fontSize: 13,
+                  lineHeight: 1.5,
+                }}>
+                  {plan.perks.map((p) => (
+                    <li key={p}>{p}</li>
+                  ))}
+                </ul>
+                {!current && paidPlan && billingLive && (
+                  <button
+                    type="button"
+                    disabled={!!busyPlan}
+                    onClick={() => handlePlan(plan.id)}
+                    style={{
+                      ...(plan.id === PLAN_IDS.PREMIUM ? BTN_PRIMARY : BTN_SECONDARY),
+                      width: "100%",
+                      borderRadius: radius.md,
+                      fontSize: 15,
+                      opacity: busyPlan && !busy ? 0.55 : 1,
+                    }}
+                  >
+                    {busy
+                      ? "Opening…"
+                      : plan.id === PLAN_IDS.CLUB
+                        ? "Join Club"
+                        : "Go Premium"}
+                  </button>
+                )}
+                {plan.id === PLAN_IDS.FREE && onContinueFree && (
+                  <button
+                    type="button"
+                    onClick={() => handlePlan(PLAN_IDS.FREE)}
+                    style={{
+                      ...BTN_SECONDARY,
+                      width: "100%",
+                      borderRadius: radius.md,
+                      fontSize: 15,
+                    }}
+                  >
+                    Continue
+                  </button>
+                )}
+              </div>
+            );
+          })}
         </div>
 
-        <button
-          type="button"
-          onClick={handleSubscribe}
-          style={{
-            ...BTN_PRIMARY,
-            width: "100%",
-            borderRadius: radius.md,
-            marginBottom: 12,
-            fontSize: 17,
-          }}
-        >
-          Subscribe — {price}/mo
-        </button>
+        {error && (
+          <p role="alert" style={{ fontSize: 13, color: color.alert, lineHeight: 1.45, marginBottom: 12 }}>
+            {error}
+          </p>
+        )}
 
-        {onRefresh && (
+        {access?.tier === PLAN_IDS.PREMIUM && !PRICING_COMING_SOON && (
+          <p style={{ fontSize: 13, color: color.body, lineHeight: 1.45, marginBottom: 16 }}>
+            Club Credit on file: {formatMoney(access.creditBalance || 0)}
+            {access.creditExpiresAt
+              ? ` · use on physical releases before ${access.creditExpiresAt.toLocaleDateString?.("en-US", { month: "short", year: "numeric" }) || ""}`
+              : ""}
+          </p>
+        )}
+
+        {billingLive && (tier === PLAN_IDS.CLUB || tier === PLAN_IDS.PREMIUM || access?.reason === "trial") && (
           <button
             type="button"
+            onClick={handleManageBilling}
+            disabled={!!busyPlan}
+            style={{
+              ...BTN_SECONDARY,
+              width: "100%",
+              borderRadius: radius.md,
+              marginBottom: 12,
+            }}
+          >
+            {busyPlan === "portal" ? "Opening…" : "Manage billing in Stripe"}
+          </button>
+        )}
+
+        {billingLive && onRefresh && (
+          <button
+            type="button"
+            className="btn-secondary"
             onClick={onRefresh}
             disabled={refreshing}
             style={{
@@ -154,30 +286,8 @@ export default function PaywallScreen({
               opacity: refreshing ? 0.6 : 1,
             }}
           >
-            {refreshing ? "Checking…" : "I’ve subscribed — refresh"}
+            {refreshing ? "Checking…" : "I’ve paid — refresh"}
           </button>
-        )}
-
-        {isPlaceholder && (
-          <p style={{
-            margin: "4px 0 20px",
-            fontSize: 12,
-            lineHeight: 1.45,
-            color: color.faint,
-          }}>
-            Checkout link is a placeholder — paste your Stripe Payment Link when it’s ready.
-          </p>
-        )}
-
-        {!isPlaceholder && (
-          <p style={{
-            margin: "4px 0 20px",
-            fontSize: 13,
-            lineHeight: 1.45,
-            color: color.muted,
-          }}>
-            After you finish checkout, come back and tap refresh. Access unlocks once Stripe confirms.
-          </p>
         )}
 
         {onLogout && (
@@ -189,7 +299,7 @@ export default function PaywallScreen({
               border: "none",
               color: color.faint,
               fontSize: 14,
-              fontFamily: font,
+              fontFamily: fontDisplay,
               cursor: "pointer",
               padding: "8px 0",
               width: "100%",
@@ -199,6 +309,12 @@ export default function PaywallScreen({
             Sign out
           </button>
         )}
+
+        <p style={{ marginTop: 16, fontSize: 12, color: color.faint, lineHeight: 1.45 }}>
+          {PRICING_COMING_SOON
+            ? BETA_LAUNCH_COPY.profileNote
+            : "Secure checkout when membership is live."}
+        </p>
       </div>
     </div>
   );

@@ -1,3 +1,14 @@
 name = "crate-app"
 compatibility_date = "2026-07-24"
 pages_build_output_dir = "build"
+
+# Cache-Control for hashed /static/js, /static/css, /static/media (immutable)
+# and HTML (must-revalidate) lives in public/_headers → copied into build/.
+#
+# Cover resizing: src/lib/coverUrl.js emits /cdn-cgi/image/width=W,quality=Q,format=auto/<origin>
+# Enable Image Resizing in Cloudflare dashboard (Speed → Optimization).
+# Allow fetch origins:
+#   storage.googleapis.com
+#   crate-app-58494.firebasestorage.app
+#   firebasestorage.googleapis.com
+# CoverImage falls back to the Storage original if resizing is off / 404s.

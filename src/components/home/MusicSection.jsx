@@ -1,0 +1,218 @@
+import { useCallback, useRef } from "react";
+import {
+  color,
+  homeSpace,
+  motion,
+  sectionEyebrow,
+  sectionSubtitle,
+  sectionTitle,
+  sectionTitlePoster,
+  type,
+} from "../../theme";
+
+/**
+ * MusicSection — Home / Explore shelf shell.
+ * Titles share the same left edge as the Rail.
+ */
+export default function MusicSection({
+  title,
+  subtitle = null,
+  eyebrow = null,
+  action = null,
+  accent = null,
+  children,
+  first = false,
+  delay = 0,
+  style = {},
+  /** When true, wrap non-rail children in the shared gutter. */
+  inset = false,
+  /** Home bands use the same title stack as Channel Surfing. */
+  poster = false,
+}) {
+  void accent;
+  const titleStyle = poster ? sectionTitlePoster : sectionTitle;
+  const eyebrowStyle = sectionEyebrow;
+  return (
+    <section
+      aria-label={title}
+      style={{
+        marginTop: first ? homeSpace.sectionGapFirst : homeSpace.sectionGap,
+        animation: `rise 0.5s ${motion.ease} ${delay}s both`,
+        ...style,
+      }}
+    >
+      <div
+        className="pmp-band-header"
+        style={{
+          display: "grid",
+          gridTemplateColumns: action ? "minmax(0, 1fr) auto" : "minmax(0, 1fr)",
+          alignItems: "end",
+          columnGap: 12,
+          padding: `0 ${homeSpace.gutter}px`,
+          marginBottom: homeSpace.titleToRail,
+          minHeight: subtitle || eyebrow ? 44 : 26,
+        }}
+      >
+        <div style={{ minWidth: 0 }}>
+          {eyebrow && (
+            <div
+              style={{
+                ...eyebrowStyle,
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                whiteSpace: "nowrap",
+              }}
+            >
+              {eyebrow}
+            </div>
+          )}
+          <h2
+            className="pmp-section-title"
+            style={{
+              ...titleStyle,
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              whiteSpace: "nowrap",
+            }}
+          >
+            {title}
+          </h2>
+          {subtitle && (
+            <p
+              className="pmp-section-sub"
+              style={{
+                ...sectionSubtitle,
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                whiteSpace: "nowrap",
+              }}
+            >
+              {subtitle}
+            </p>
+          )}
+        </div>
+        {action && (
+          <button
+            type="button"
+            onClick={action.onClick}
+            className="pmp-view-all"
+            style={{
+              flexShrink: 0,
+              marginTop: 1,
+              cursor: "pointer",
+              padding: "6px 2px",
+              ...type.seeAll,
+              textTransform: "none",
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 2,
+              color: color.accent,
+              height: 32,
+              border: "none",
+              background: "transparent",
+            }}
+          >
+            {action.label || "See All"}
+          </button>
+        )}
+      </div>
+      {inset ? (
+        <div style={{ padding: `0 ${homeSpace.gutter}px` }}>{children}</div>
+      ) : (
+        children
+      )}
+    </section>
+  );
+}
+
+/**
+ * Horizontal snap rail — same gutter as MusicSection titles.
+ */
+export function Rail({ children, gap = 14, padTop = 2, padBottom = 4, alignItems = "stretch", className = "" }) {
+  const ref = useRef(null);
+  const drag = useRef({ active: false, startX: 0, scrollLeft: 0, moved: false });
+
+  const onPointerDown = useCallback((e) => {
+    const el = ref.current;
+    if (!el || e.pointerType === "touch") return;
+    if (e.button != null && e.button !== 0) return;
+    // Do not capture yet — capturing on pointerdown steals clicks from
+    // ChannelCard / TrackCard buttons inside the rail.
+    drag.current = {
+      active: true,
+      startX: e.clientX,
+      scrollLeft: el.scrollLeft,
+      moved: false,
+      pointerId: e.pointerId,
+      captured: false,
+    };
+  }, []);
+
+  const onPointerMove = useCallback((e) => {
+    const el = ref.current;
+    const d = drag.current;
+    if (!el || !d.active) return;
+    const dx = e.clientX - d.startX;
+    if (Math.abs(dx) <= 8) return;
+    if (!d.captured) {
+      d.captured = true;
+      d.moved = true;
+      try {
+        el.setPointerCapture?.(d.pointerId);
+      } catch {
+        /* already released */
+      }
+    }
+    el.scrollLeft = d.scrollLeft - dx;
+    e.preventDefault();
+  }, []);
+
+  const endDrag = useCallback((e) => {
+    const el = ref.current;
+    const d = drag.current;
+    if (!d.active) return;
+    if (el && d.pointerId != null) {
+      try {
+        el.releasePointerCapture?.(d.pointerId);
+      } catch {
+        /* already released */
+      }
+    }
+    if (d.moved && e?.target) {
+      const swallow = (ev) => {
+        ev.preventDefault();
+        ev.stopPropagation();
+        el?.removeEventListener("click", swallow, true);
+      };
+      el?.addEventListener("click", swallow, true);
+      window.setTimeout(() => el?.removeEventListener("click", swallow, true), 0);
+    }
+    drag.current = { active: false, startX: 0, scrollLeft: 0, moved: false };
+  }, []);
+
+  return (
+    <div
+      ref={ref}
+      className={`hide-scroll pmp-rail${className ? ` ${className}` : ""}`}
+      onPointerDown={onPointerDown}
+      onPointerMove={onPointerMove}
+      onPointerUp={endDrag}
+      onPointerCancel={endDrag}
+      style={{
+        display: "flex",
+        gap,
+        overflowX: "auto",
+        overflowY: "hidden",
+        alignItems,
+        padding: `${padTop}px ${homeSpace.gutter}px ${padBottom}px`,
+        scrollSnapType: "x proximity",
+        WebkitOverflowScrolling: "touch",
+        touchAction: "pan-x",
+        overscrollBehaviorX: "contain",
+        cursor: "grab",
+      }}
+    >
+      {children}
+    </div>
+  );
+}

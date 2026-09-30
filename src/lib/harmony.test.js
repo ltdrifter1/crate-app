@@ -19,6 +19,20 @@ describe("parseCamelot", () => {
   });
 });
 
+describe("tracksForCamelotSlot", () => {
+  test("groups by wheel number", () => {
+    const { tracksForCamelotSlot, CAMELOT_SLOTS } = require("./harmony");
+    expect(CAMELOT_SLOTS).toHaveLength(12);
+    const tracks = [
+      { id: "a", camelot: "8A" },
+      { id: "b", camelot: "8B" },
+      { id: "c", camelot: "9A" },
+    ];
+    expect(tracksForCamelotSlot(tracks, 8).map((t) => t.id)).toEqual(["a", "b"]);
+    expect(tracksForCamelotSlot(tracks, 9).map((t) => t.id)).toEqual(["c"]);
+  });
+});
+
 describe("camelotCompatible", () => {
   test("is permissive when either key is missing or invalid", () => {
     expect(camelotCompatible(null, "8A")).toBe(true);

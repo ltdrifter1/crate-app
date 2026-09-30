@@ -6,6 +6,8 @@ import {
   BTN_PRIMARY, BTN_SECONDARY, homeSpace,
 } from "../../theme";
 import { formatMonthLabel, isCommunityPlaylist, COMMUNITY_MIX_TITLE } from "../../lib/mixes";
+import { CLUB_NAME } from "../../lib/memberNumber";
+import { TrackRow } from "../listen/TrackRow";
 
 export default function MixScreen({
   mix,
@@ -18,7 +20,6 @@ export default function MixScreen({
   onBack,
   onShare,
   onSaveToLibrary,
-  TrackRow,
   playlistCtx,
   onLike,
 }) {
@@ -32,7 +33,7 @@ export default function MixScreen({
   if (loading) {
     return (
       <div style={{ padding: "48px 24px", textAlign: "center", color: color.muted }}>
-        Loading mix…
+        Pulling the plate…
       </div>
     );
   }
@@ -59,12 +60,12 @@ export default function MixScreen({
         <div style={{
           marginTop: 18,
           padding: "22px 20px",
-          borderRadius: radius.lg,
-          background: `
-            linear-gradient(160deg, rgba(255,255,255,0.95) 0%, rgba(242,244,247,0.88) 100%)
-          `,
+          borderRadius: radius.xl,
+          background: glass.plate,
           border: `1px solid ${glass.border}`,
-          boxShadow: `inset 0 1px 0 ${glass.highlight}, ${glass.shadowSoft}`,
+          boxShadow: `inset 0 1px 0 ${glass.highlight}, ${glass.shadowLift}`,
+          backdropFilter: glass.blur,
+          WebkitBackdropFilter: glass.blur,
         }}>
           <div style={{
             fontSize: 11,
@@ -75,7 +76,7 @@ export default function MixScreen({
             fontFamily: fontMono,
             marginBottom: 10,
           }}>
-            {isCommunity ? "Mixtape Club · Community" : "Mixtape Club"}
+            {isCommunity ? `${CLUB_NAME} · Community` : CLUB_NAME}
           </div>
           <div style={{
             fontSize: "clamp(26px, 6vw, 34px)",
@@ -93,11 +94,11 @@ export default function MixScreen({
               ? `${formatMonthLabel(mix.monthKey)} · curated by ${curator || "a member"}`
               : `Shared by ${curator || "a member"}`}
             {" · "}
-            {mixTracks.length} track{mixTracks.length === 1 ? "" : "s"}
+            {mixTracks.length} cut{mixTracks.length === 1 ? "" : "s"}
           </div>
           {isCommunity && (
             <div style={{ fontSize: 13, color: color.muted, marginTop: 10, lineHeight: 1.45 }}>
-              Featured curator gets club recognition — and prizes from Planet.
+              Featured curator — club stamp this month.
             </div>
           )}
         </div>
@@ -109,7 +110,7 @@ export default function MixScreen({
               onClick={() => onPlayTrack(mixTracks[0], mixTracks)}
               style={{ ...BTN_PRIMARY, borderRadius: radius.md, flex: "1 1 140px" }}
             >
-              Play mix
+              Play
             </button>
           )}
           {onShare && (

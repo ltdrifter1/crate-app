@@ -1,4 +1,4 @@
-// Plan + upload for a prep manifest. Uploads straight from the source paths.
+﻿// Plan + upload for a prep manifest. Uploads straight from the source paths.
 //   node ingest/run.js plan   <manifest.json>   read-only: dedupe, classify, summarise
 //   node ingest/run.js upload <manifest.json>   upload the plan's new tracks, then verify
 // Both print a final line:  RESULT {json}
@@ -7,6 +7,7 @@ const fs = require("fs");
 const path = require("path");
 const { pathToFileURL } = require("url");
 const { normalizeGenre } = require("../src/lib/genre-normalize.shared.cjs");
+const { AUDIO_CACHE_CONTROL, THUMB_SIZES, hashedObjectName, thumbObjectPath } = require("../scripts/storageAssets.cjs");
 
 const ROOT = path.join(__dirname, "..");
 const keyPath = path.join(ROOT, "serviceAccountKey.json");
@@ -53,9 +54,22 @@ const contentType = (f) => ({ ".mp3": "audio/mpeg", ".m4a": "audio/mp4", ".wav":
 
 async function uploadFile(localPath, dest) {
   await bucket.upload(localPath, { destination: dest,
-    metadata: { contentType: contentType(dest), cacheControl: "public, max-age=31536000" } });
+    metadata: { contentType: contentType(dest), cacheControl: AUDIO_CACHE_CONTROL } });
   await bucket.file(dest).makePublic();
   return `https://storage.googleapis.com/${bucketName}/${dest}`;
+}
+
+// Same as upload-tracks.js: _200/_400/_800 thumbs beside each cover master (needs `sharp`).
+async function mintCoverThumbs(localPath, destPath) {
+  let sharp;
+  try { sharp = require("sharp"); } catch (e) { console.log("  thumbs skipped (npm i sharp)"); return; }
+  for (const size of THUMB_SIZES) {
+    const dest = thumbObjectPath(destPath, size);
+    if ((await bucket.file(dest).exists())[0]) continue;
+    const buf = await sharp(localPath).resize(size, size, { fit: "cover" }).toBuffer();
+    await bucket.file(dest).save(buf, { resumable: false, metadata: { contentType: contentType(dest), cacheControl: AUDIO_CACHE_CONTROL } });
+    await bucket.file(dest).makePublic();
+  }
 }
 
 async function loadCatalog() {
@@ -140,14 +154,21 @@ async function upload(manifestPath) {
     const eta = i ? (((Date.now() - t0) / i) * (todo.length - i) / 60000).toFixed(1) : "?";
     console.log(`[${i + 1}/${todo.length}] ${r.artist} - ${r.title}  (~${eta}m left)`);
     try {
-      const audioDest = `audio/${r.audioFile}`;
-      if ((await bucket.file(audioDest).exists())[0]) { console.log("  skip: storage object exists"); continue; }
+      const audioName = hashedObjectName(r.audioFile, fs.readFileSync(r.audioPath));
+      const audioDest = `audio/${audioName}`;
+      if ((await bucket.file(audioDest).exists())[0] || (await bucket.file(`audio/${r.audioFile}`).exists())[0]) {
+        console.log("  skip: storage object exists"); continue;
+      }
       const audioUrl = await uploadFile(r.audioPath, audioDest);
       let coverUrl = null;
       if (r.coverPath && fs.existsSync(r.coverPath)) {
-        const coverDest = `covers/${r.coverFile}`;
-        coverUrl = (await bucket.file(coverDest).exists())[0]
-          ? `https://storage.googleapis.com/${bucketName}/${coverDest}` : await uploadFile(r.coverPath, coverDest);
+        const coverDest = `covers/${hashedObjectName(r.coverFile, fs.readFileSync(r.coverPath))}`;
+        if ((await bucket.file(coverDest).exists())[0]) {
+          coverUrl = `https://storage.googleapis.com/${bucketName}/${coverDest}`;
+        } else {
+          coverUrl = await uploadFile(r.coverPath, coverDest);
+        }
+        await mintCoverThumbs(r.coverPath, coverDest);
       }
       const ref = await db.collection("tracks").add({
         title: r.title, artist: r.artist || "", album: r.album || "", genre: r.genre,

@@ -4,6 +4,8 @@ describe("routes", () => {
   test("parsePath maps screens; Home is the start page", () => {
     expect(parsePath("/")).toEqual(expect.objectContaining({ screen: "home", roomId: null }));
     expect(parsePath("/home")).toEqual(expect.objectContaining({ screen: "home", roomId: null }));
+    expect(parsePath("/charts")).toEqual(expect.objectContaining({ screen: "charts", roomId: null }));
+    expect(parsePath("/explore")).toEqual(expect.objectContaining({ screen: "explore", roomId: null }));
     expect(parsePath("/discover")).toEqual(expect.objectContaining({ screen: "favorites", roomId: null }));
     expect(parsePath("/you")).toEqual(expect.objectContaining({ screen: "profile", roomId: null }));
   });
@@ -18,10 +20,14 @@ describe("routes", () => {
 
   test("buildPath round-trips and retires rooms/paths/map", () => {
     expect(buildPath("home")).toBe("/home");
+    expect(buildPath("explore")).toBe("/explore");
+    expect(buildPath("charts")).toBe("/charts");
     expect(buildPath("rooms", "detroit")).toBe("/home");
     expect(buildPath("paths")).toBe("/home");
     expect(buildPath("map")).toBe("/home");
     expect(parsePath(buildPath("favorites")).screen).toBe("favorites");
+    expect(parsePath(buildPath("charts")).screen).toBe("charts");
+    expect(parsePath(buildPath("explore")).screen).toBe("explore");
   });
 
   test("mix deep links", () => {
@@ -32,10 +38,22 @@ describe("routes", () => {
     expect(documentTitleFor("mix", "Late Drive")).toContain("Late Drive");
   });
 
+  test("stack deep links open Library with stackId", () => {
+    expect(parsePath("/stack/pl_123")).toEqual(
+      expect.objectContaining({ screen: "favorites", stackId: "pl_123" })
+    );
+    expect(buildPath("stack", { stackId: "pl_abc" })).toBe("/stack/pl_abc");
+    expect(buildPath("favorites", { stackId: "pl_abc" })).toBe("/stack/pl_abc");
+    expect(buildPath("stack")).toBe("/discover");
+    expect(documentTitleFor("stack", "Late Nights")).toContain("Late Nights");
+  });
+
   test("documentTitleFor", () => {
     expect(documentTitleFor("home")).toContain("Home");
+    expect(documentTitleFor("explore")).toContain("Discover");
+    expect(documentTitleFor("charts")).toContain("Charts");
     expect(documentTitleFor("favorites")).toContain("Library");
-    expect(documentTitleFor("profile")).toContain("You");
+    expect(documentTitleFor("profile")).toContain("Profile");
     expect(documentTitleFor("search")).toContain("Search");
     expect(documentTitleFor("artist", "Nina")).toContain("Nina");
   });

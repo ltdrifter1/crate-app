@@ -115,6 +115,10 @@ export const GENRE_ALIASES = {
   grunge: "Rock",
   "classic rock": "Rock",
   "folk rock": "Rock",
+  "psychedelic rock": "Rock",
+  "psych rock": "Rock",
+  "acid rock": "Rock",
+  krautrock: "Rock",
   "heavy metal": "Metal",
   thrash: "Metal",
   doom: "Metal",
@@ -220,6 +224,23 @@ export function normalizeGenre(raw) {
 }
 
 /** Map a list of preferred genres (possibly legacy) onto the current 11. */
+/**
+ * The label a listener should read. Tracks store a specific culture label
+ * ("Punk", "UK Garage", "Shoegaze"); `normalizeGenre` collapses those into the
+ * 11 filtering lanes. Printing the lane made artist pages contradict their own
+ * header — "Ashcan · PUNK" over rows reading "Ashcan · Rock". Show the specific
+ * label, and fall back to the lane only when a track has nothing of its own.
+ */
+export function displayGenre(raw) {
+  if (raw == null) return "";
+  const trimmed = String(raw).trim().replace(/\s+/g, " ");
+  if (!trimmed) return "";
+  const lower = trimmed.toLowerCase();
+  const canonical = CANONICAL_GENRES.find((g) => g.toLowerCase() === lower);
+  if (canonical) return canonical;
+  return trimmed.replace(/\b[a-z]/g, (c) => c.toUpperCase());
+}
+
 export function migratePreferredGenres(genres = []) {
   const out = [];
   const seen = new Set();
@@ -235,13 +256,13 @@ export function migratePreferredGenres(genres = []) {
 
 /** Warm charcoal tones for genre tiles — only canonical keys. */
 export const GENRE_TONES = {
-  Electronic: "#1A1612",
+  Electronic: "#5B6574",
   "Hip-Hop": "#181614",
-  "R&B & Soul": "#1C1814",
+  "R&B & Soul": "#5B6574",
   Pop: "#1A1816",
   Rock: "#1A1614",
   Metal: "#141210",
-  Jazz: "#1A1612",
+  Jazz: "#5B6574",
   Classical: "#181614",
   "Country & Folk": "#1A1814",
   Reggae: "#1A1812",

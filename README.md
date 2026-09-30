@@ -6,15 +6,16 @@ Music you inhabit.
 
 Living destinations for discovering, collecting, and experiencing music — not another streaming feed.
 
-**Product vision & full audit:** [`docs/ROOMS_PRODUCT_VISION.md`](docs/ROOMS_PRODUCT_VISION.md)
+**Current product IA:** dock is **Home / Library / Discover / Profile** (player-first). Home still carries Channel Surfing + the live stage; Charts is overflow. See [`docs/PREMIUM_PLAYER_AUDIT.md`](docs/PREMIUM_PLAYER_AUDIT.md). Rooms/Paths nav is retired; archival notes in [`docs/ROOMS_PRODUCT_VISION.md`](docs/ROOMS_PRODUCT_VISION.md).
 
-Legacy listening core (harmonic radio, sessions, Hypno, floor phases) remains; Rooms are becoming first-class destinations.
+**Premium MP3-player audit (Sep 2026):** [`docs/PREMIUM_PLAYER_AUDIT.md`](docs/PREMIUM_PLAYER_AUDIT.md) · **Sequenced prompts:** [`docs/PREMIUM_PLAYER_PROMPTS.md`](docs/PREMIUM_PLAYER_PROMPTS.md) · **Creative audit:** [`docs/CREATIVE_AUDIT_2026-09.md`](docs/CREATIVE_AUDIT_2026-09.md) · **Mobile UX:** [`docs/MOBILE_UX_AUDIT.md`](docs/MOBILE_UX_AUDIT.md) · **Billing:** [`docs/STRIPE_FIREBASE_BILLING.md`](docs/STRIPE_FIREBASE_BILLING.md) · **Catalog junk (dry-run):** [`docs/CATALOG_JUNK_AUDIT.md`](docs/CATALOG_JUNK_AUDIT.md)
 
 ## Stack
 
 - React 18 (Create React App)
 - Firebase Auth, Firestore, Cloud Storage, Hosting
 - Cloudflare Pages (serves committed `build/` today)
+- **Stripe + Firebase Functions** for Club / Premium billing — see [`docs/STRIPE_FIREBASE_BILLING.md`](docs/STRIPE_FIREBASE_BILLING.md)
 
 ## Setup
 
@@ -38,6 +39,7 @@ Copy `.env.example` for local ingest scripts. Never commit API keys or `serviceA
 | `npm run catalog:normalize-genres:apply` | Write 11 canonical genres to Firestore |
 | `node clean-titles.js` | Dry-run title/artist cleanup → `titles-review.csv` |
 | `node clean-titles.js --apply` | Write cleaned titles/artists to Firestore |
+| `npm run catalog:audit-junk` | Dry-run junk / long-track report → `docs/audits/` (**no deletes**) |
 
 ---
 
@@ -55,6 +57,12 @@ firebase deploy --only firestore:rules,storage
 ```
 
 Files: `firestore.rules`, `storage.rules`, `firebase.json`.
+
+Station chat (Home messenger) needs those rules live before anyone else can read/write `stationChat/home`. Optional flood backstop:
+
+```bash
+firebase deploy --only functions:moderateStationChat,firestore:rules
+```
 
 Until this runs, Console rules may still be looser/outdated than the repo.
 
@@ -138,6 +146,6 @@ firebase deploy --only firestore:rules,storage
 
 ## Cloudflare Pages
 
-**Current setup:** `build/` is committed so Pages can deploy with an empty build command.
+**Current setup:** `build/` is committed so Pages can deploy with an empty build command. **Always rebuild `build/` after visual changes** — hashed CSS/JS is cached forever, and a stale `build/index.html` will keep serving the previous chassis. Confirm the live HTML includes `<meta name="pmp-chassis" content="steel-glass-20260918">`.
 
 **Recommended (optional):** set Build command `npm run build`, output `build`, Node 22, `CI=false`, then stop committing `build/`.

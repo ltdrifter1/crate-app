@@ -1,5 +1,6 @@
 import {
   CLUB_NAME,
+  CLUB_TAGLINE,
   formatJoinedMonth,
   formatMemberNumber,
   memberNumberLabel,
@@ -21,6 +22,7 @@ describe("memberNumber", () => {
     expect(formatMemberNumber(4231)).toBe("004231");
     expect(memberNumberLabel(4231)).toBe("Member #004231");
     expect(CLUB_NAME).toBe("PLANET CLUB");
+    expect(CLUB_TAGLINE).toBe("Digital Record Club");
   });
 
   test("provisional number is stable per uid", () => {

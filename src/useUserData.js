@@ -1,63 +1,154 @@
 // src/useUserData.js
-import {
-  doc,
-  updateDoc,
-  arrayUnion,
-  arrayRemove,
-  increment,
-} from "firebase/firestore";
-import { auth, db } from "./firebase";
+import { loadFirebaseSdk } from "./lib/firebaseSdk";
+import { recordListeningEvent } from "./lib/listeningApi";
 
-function userRef() {
-  return doc(db, "users", auth.currentUser.uid);
+async function userRef() {
+  const { auth, db, fsMod } = await loadFirebaseSdk();
+  if (!auth.currentUser) return null;
+  return { ref: fsMod.doc(db, "users", auth.currentUser.uid), fsMod, auth };
 }
 
-// ── TOGGLE A LIKED TRACK ──────────────────────────────────────────────────
 export async function toggleLike(trackId, currentlyLiked) {
-  await updateDoc(userRef(), {
+  const ctx = await userRef();
+  if (!ctx) return;
+  await ctx.fsMod.updateDoc(ctx.ref, {
     likedTracks: currentlyLiked
-      ? arrayRemove(trackId)
-      : arrayUnion(trackId),
+      ? ctx.fsMod.arrayRemove(trackId)
+      : ctx.fsMod.arrayUnion(trackId),
   });
 }
 
-// ── RECORD A PLAY ─────────────────────────────────────────────────────────
-// 1. Updates the user's personal recent plays list
-// 2. Increments the global playCount on the track (powers Top Tracks)
+export async function saveDislikeTaste(dislikeTaste, dislikedTracks) {
+  const payload = {};
+  if (dislikeTaste != null) payload.dislikeTaste = dislikeTaste;
+  if (Array.isArray(dislikedTracks)) payload.dislikedTracks = dislikedTracks;
+  if (!Object.keys(payload).length) return;
+  const ctx = await userRef();
+  if (!ctx) return;
+  await ctx.fsMod.updateDoc(ctx.ref, payload);
+}
+
 export async function recordPlay(trackId, currentRecentTracks = []) {
-  const entry = { trackId, playedAt: new Date().toISOString() };
-  const updated = [
-    entry,
-    ...currentRecentTracks.filter(r => r.trackId !== trackId),
-  ].slice(0, 50);
+  const { auth } = await loadFirebaseSdk();
+  if (!auth.currentUser) {
+    return { allowed: true, offline: true };
+  }
 
-  // User's personal history
-  await updateDoc(userRef(), { recentTracks: updated });
-
-  // Global play count on the track document — used for Top Tracks across all users
   try {
-    await updateDoc(doc(db, "tracks", trackId), { playCount: increment(1) });
-  } catch (e) {
-    // Non-critical — don't break playback if this fails
+    const data = await recordListeningEvent(trackId);
+    return data;
+  } catch (err) {
+    console.warn("recordListeningEvent failed; recentTracks-only fallback", err);
+    const entry = { trackId, playedAt: new Date().toISOString() };
+    const updated = [
+      entry,
+      ...currentRecentTracks.filter((r) => r.trackId !== trackId),
+    ].slice(0, 50);
+    try {
+      const ctx = await userRef();
+      if (ctx) await ctx.fsMod.updateDoc(ctx.ref, { recentTracks: updated });
+    } catch {
+      /* ignore */
+    }
+    return {
+      allowed: true,
+      fallback: true,
+      recentTracks: updated,
+      error: err?.message || "function_unavailable",
+    };
   }
 }
 
-// ── SAVE GENRE PREFERENCES ────────────────────────────────────────────────
 export async function saveGenres(genres) {
-  await updateDoc(userRef(), { genres });
+  const ctx = await userRef();
+  if (!ctx) return;
+  await ctx.fsMod.updateDoc(ctx.ref, { genres });
 }
 
-// ── COMPLETE ONBOARDING ───────────────────────────────────────────────────
-export async function completeOnboarding({ homeRooms = [], genres = null } = {}) {
+export async function saveTasteProfile({
+  genres = null,
+  adventurous = null,
+  depth = null,
+  channelIds = null,
+  artistNames = null,
+  energyBand = null,
+  vibe = null,
+  seedChannelId = null,
+} = {}) {
+  const payload = {};
+  if (genres != null) payload.genres = genres;
+  if (adventurous != null) payload.adventurous = adventurous;
+  if (depth != null) payload.depth = depth;
+  if (channelIds != null) payload.channelIds = channelIds;
+  if (artistNames != null) payload.artistNames = artistNames;
+  if (energyBand != null) payload.energyBand = energyBand;
+  if (vibe != null) payload.vibe = vibe;
+  if (seedChannelId != null) payload.seedChannelId = seedChannelId;
+  if (!Object.keys(payload).length) return;
+  const ctx = await userRef();
+  if (!ctx) return;
+  await ctx.fsMod.updateDoc(ctx.ref, payload);
+}
+
+export async function completeOnboarding({
+  homeRooms = [],
+  genres = null,
+  adventurous = null,
+  depth = null,
+  channelIds = null,
+  artistNames = null,
+  energyBand = null,
+  vibe = null,
+  seedChannelId = null,
+} = {}) {
   const payload = {
     onboarded: true,
     homeRooms,
   };
   if (genres) payload.genres = genres;
-  await updateDoc(userRef(), payload);
+  if (adventurous != null) payload.adventurous = adventurous;
+  if (depth != null) payload.depth = depth;
+  if (channelIds) payload.channelIds = channelIds;
+  if (artistNames) payload.artistNames = artistNames;
+  if (energyBand != null) payload.energyBand = energyBand;
+  if (vibe != null) payload.vibe = vibe;
+  if (seedChannelId != null) payload.seedChannelId = seedChannelId;
+  payload.onboardingVersion = 2;
+  const ctx = await userRef();
+  if (!ctx) return;
+  await ctx.fsMod.updateDoc(ctx.ref, payload);
 }
 
-// ── SAVE SETTINGS ─────────────────────────────────────────────────────────
+export async function saveMonthlyChoice(monthKey, choice) {
+  const key = String(monthKey || "");
+  if (!key || !choice) return;
+  const ctx = await userRef();
+  if (!ctx) return;
+  await ctx.fsMod.updateDoc(ctx.ref, {
+    [`monthlyChoices.${key}`]: choice,
+  });
+}
+
+export async function savePlayMeter({ playsDayKey, playsToday }) {
+  void playsDayKey;
+  void playsToday;
+}
+
 export async function saveSettings(settings) {
-  await updateDoc(userRef(), { settings });
+  const ctx = await userRef();
+  if (!ctx) return;
+  await ctx.fsMod.updateDoc(ctx.ref, { settings });
+}
+
+export async function saveFeatureGuideSeen({
+  tutorialSeen = true,
+  featureGuideVersion = null,
+} = {}) {
+  const payload = {};
+  if (tutorialSeen != null) payload.tutorialSeen = tutorialSeen;
+  if (featureGuideVersion != null) payload.featureGuideVersion = featureGuideVersion;
+  if (!Object.keys(payload).length) return;
+  const ctx = await userRef();
+  if (!ctx) return;
+  await ctx.fsMod.updateDoc(ctx.ref, payload);
 }

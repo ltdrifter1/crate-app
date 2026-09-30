@@ -1,4 +1,4 @@
-// useEnergyQueue — React binding for the Energy Shift feature.
+// useEnergyQueue — React binding for Pace (Ease / Lift upcoming picks).
 // The UI only ever dispatches increaseEnergy() / decreaseEnergy(); everything
 // else (targets, sweep, scoring) happens in the background stores/engine.
 
@@ -20,11 +20,22 @@ export function useEnergyQueue() {
     playerEnergyStore.shiftEnergy(-1, bpmStep);
   }, []);
 
+  const setEnergyBias = useCallback((bpm = 0, label = null) => {
+    playerEnergyStore.setEnergyBias(bpm, label);
+  }, []);
+
   const onTrackPlayed = useCallback((track) => {
     playerEnergyStore.onTrackPlayed(track);
   }, []);
 
   const resetEnergyShift = useCallback(() => playerEnergyStore.reset(), []);
 
-  return { energyShift, increaseEnergy, decreaseEnergy, onTrackPlayed, resetEnergyShift };
+  return {
+    energyShift,
+    increaseEnergy,
+    decreaseEnergy,
+    setEnergyBias,
+    onTrackPlayed,
+    resetEnergyShift,
+  };
 }

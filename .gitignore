@@ -1,4 +1,4 @@
-node_modules/
+﻿node_modules/
 .firebase/
 serviceAccountKey.json
 src.zip
@@ -9,9 +9,12 @@ titles-review.csv
 genres-review.csv
 *.csv
 !tracks.template.csv
+!docs/audits/*.csv
 .env
 .env.*
 !.env.example
+!functions/.env.example
+!**/.env.example
 # NOTE: `build/` is tracked for Cloudflare Pages while the dashboard
 # has an empty build command (output dir = build). Once you set
 # Build command to `npm run build`, add `build/` here again.
@@ -21,3 +24,6 @@ ingest/cache/
 ingest/audioasis_artists.txt
 ingest/audioasis_flagged.txt
 ingest/backfill-undo.json
+.tools/
+
+scripts/.icon-cache/
