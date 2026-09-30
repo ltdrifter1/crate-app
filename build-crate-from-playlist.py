@@ -1,4 +1,5 @@
 import re
+import argparse
 import csv
 import shutil
 import time
@@ -14,26 +15,45 @@ from mutagen.id3 import ID3
 from PIL import Image
 
 # ===== CONFIG =====
-PLAYLIST = Path(r"C:\Users\lpgut\Desktop\CRATE.m3u")
-APP_ROOT = Path(r"C:\Users\lpgut\crate-app")
-AUDIO_DIR = APP_ROOT / "audio"
-COVERS_DIR = APP_ROOT / "covers"
-CSV_PATH = APP_ROOT / "tracks.csv"
+# Usage (Windows example):
+#   python build-crate-from-playlist.py --source "E:\\04_MP3_Library\\KEXP The Roadhouse 2000-01-01→2026-09-15 (Part 4)" --batch country-folk-wave-1
+# --source may be a folder (scanned recursively for .mp3) or an .m3u playlist.
+# Output goes to ~/Documents/crate-batch/{audio,covers,tracks.csv} by default.
+# Copy tracks.csv + audio/ + covers/ into the crate-app repo root before `node upload-tracks.js`.
+parser = argparse.ArgumentParser()
+parser.add_argument("--source", required=True, help="Folder of MP3s or an .m3u playlist")
+parser.add_argument("--batch", default="", help="Channel wave tag, e.g. country-folk-wave-1 or variety-wave-1")
+parser.add_argument("--out", default=str(Path.home() / "Documents" / "crate-batch"))
+parser.add_argument("--min-sec", type=float, default=60, help="Skip clips shorter than this (talk breaks, IDs)")
+parser.add_argument("--max-sec", type=float, default=900, help="Skip files longer than this (mixes)")
+parser.add_argument("--default-genre", default="", help="Fallback genre when tags/Discogs give nothing, e.g. Country")
+args = parser.parse_args()
+
+SOURCE = Path(args.source)
+BATCH = args.batch.strip()
+OUT_DIR = Path(args.out)
+AUDIO_DIR = OUT_DIR / "audio"
+COVERS_DIR = OUT_DIR / "covers"
+CSV_PATH = OUT_DIR / "tracks.csv"
+CACHE_PATH = OUT_DIR / "discogs_cache.json"
 
 DEFAULT_COLOR = "#9090b0"
 
 # Discogs (optional but recommended for blank genres)
 DISCOGS_TOKEN = os.getenv("DISCOGS_TOKEN", "").strip()
-CACHE_PATH = APP_ROOT / "discogs_cache.json"
 REQUEST_DELAY_SEC = 1.2  # safe-ish pace for Discogs API
 # ==================
 
-AUDIO_DIR.mkdir(exist_ok=True)
-COVERS_DIR.mkdir(exist_ok=True)
+AUDIO_DIR.mkdir(parents=True, exist_ok=True)
+COVERS_DIR.mkdir(parents=True, exist_ok=True)
 
+# Specific labels are kept (upload-tracks.js / genre-normalize.shared.cjs collapse them to the 11 lanes).
 ALLOWED_GENRES = {
-    "Rock", "R&B", "Country", "Hip-Hop", "House",
-    "Drum and Bass", "Soul", "Jazz", "Classical", "Metal",
+    "Electronic", "Hip-Hop", "R&B & Soul", "Pop", "Rock", "Metal", "Jazz",
+    "Classical", "Country & Folk", "Reggae", "Latin",
+    "Country", "Folk", "Americana", "Bluegrass", "Alt-Country", "Singer-Songwriter",
+    "Blues", "Soul", "R&B", "Funk", "Punk", "Indie Rock", "House", "Techno",
+    "Drum and Bass", "Ambient",
 }
 
 def sanitize_filename(name: str) -> str:
@@ -129,12 +149,19 @@ GENRE_KEYWORDS = [
     ("neo soul", "Soul"),
     ("soul", "Soul"),
     ("jazz", "Jazz"),
-    ("blues", "Jazz"),
+    ("blues", "Blues"),
     ("funk", "Soul"),
 
     # Country / Rock / Metal / Classical
+    ("alt-country", "Alt-Country"),
+    ("alt country", "Alt-Country"),
+    ("americana", "Americana"),
+    ("bluegrass", "Bluegrass"),
+    ("singer-songwriter", "Singer-Songwriter"),
+    ("singer songwriter", "Singer-Songwriter"),
     ("country", "Country"),
-    ("folk", "Country"),
+    ("folk rock", "Rock"),
+    ("folk", "Folk"),
     ("metal", "Metal"),
     ("alternative", "Rock"),
     ("alt", "Rock"),
@@ -227,7 +254,11 @@ def discogs_lookup_genre_mapped(artist: str, title: str) -> str:
         discogs_cache[key] = ""
         return ""
 
-tracks = read_m3u(PLAYLIST)
+if SOURCE.is_dir():
+    tracks = sorted(SOURCE.rglob("*.mp3"))
+else:
+    tracks = read_m3u(SOURCE)
+print(f"Found {len(tracks)} candidate files")
 rows = []
 processed = 0
 skipped = 0
@@ -240,6 +271,11 @@ for track_path in tracks:
     audio = File(track_path, easy=True)
     if audio is None:
         print(f"Skipping unsupported file: {track_path}")
+        skipped += 1
+        continue
+
+    length = getattr(getattr(audio, "info", None), "length", 0) or 0
+    if length and (length < args.min_sec or length > args.max_sec):
         skipped += 1
         continue
 
@@ -271,7 +307,7 @@ for track_path in tracks:
     # If blank/unmappable, try Discogs (only if token present or you still want to try without)
     if not genre:
         looked = discogs_lookup_genre_mapped(artist, title)
-        genre = looked or ""
+        genre = looked or args.default_genre
 
     safe_base = sanitize_filename(f"{artist}-{title}")
     audio_filename = safe_base + ".mp3"
@@ -293,7 +329,8 @@ for track_path in tracks:
         bpm,         # bpm (blank ok)
         audio_filename,
         cover_filename,
-        DEFAULT_COLOR
+        DEFAULT_COLOR,
+        BATCH,
     ]
     rows.append(row)
     processed += 1
@@ -301,7 +338,7 @@ for track_path in tracks:
 with open(CSV_PATH, "w", newline="", encoding="utf-8") as f:
     writer = csv.writer(f)
     writer.writerow([
-        "title","artist","album","genre","energy","camelot","bpm","audioFile","coverFile","color"
+        "title","artist","album","genre","energy","camelot","bpm","audioFile","coverFile","color","batch"
     ])
     writer.writerows(rows)
 
