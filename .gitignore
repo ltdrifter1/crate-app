@@ -15,3 +15,9 @@ genres-review.csv
 # NOTE: `build/` is tracked for Cloudflare Pages while the dashboard
 # has an empty build command (output dir = build). Once you set
 # Build command to `npm run build`, add `build/` here again.
+
+ingest/runs/
+ingest/cache/
+ingest/audioasis_artists.txt
+ingest/audioasis_flagged.txt
+ingest/backfill-undo.json

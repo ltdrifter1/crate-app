@@ -58,7 +58,12 @@ REQUEST_DELAY_SEC = 1.2
 # ==================
 
 CSV_HEADER = ["title", "artist", "album", "genre", "energy", "camelot", "bpm",
-              "audioFile", "coverFile", "color"]
+              "audioFile", "coverFile", "color", "uploadBatch"]
+
+# Stamped onto every row so channels can filter by ingest batch
+# (CH-04 Local plays only uploadBatch == "audioasis").
+# Set with --batch <name>, or UPLOAD_BATCH in the environment.
+UPLOAD_BATCH = os.getenv("UPLOAD_BATCH", "").strip()
 
 
 def sanitize_filename(name: str) -> str:
@@ -72,6 +77,98 @@ def strip_leading_number_prefix(s: str) -> str:
     if not s:
         return s
     return re.sub(r"^\s*\d{1,4}\s*[\.\-\)\:–—_]+\s*", "", s).strip()
+
+
+# ── Mixed In Key fields ───────────────────────────────────────────────────
+# MIK writes: TKEY = Camelot ("10A"), TBPM = bpm, TXXX:EnergyLevel = 1-10.
+# mutagen's easy=True view exposes none of TKEY/TXXX, so read raw ID3.
+# Some libraries instead carry "Artist - Title - 8A - 126" in the filename;
+# that is used as a fallback.
+
+CAMELOT_RE = re.compile(r"^\s*(\d{1,2})\s*([ABab])\s*$")
+DJ_SUFFIX_RE = re.compile(r"\s*-\s*(\d{1,2}[ABab])\s*-\s*(\d{2,3})\s*$")
+
+# musical key -> Camelot, in case TKEY holds "Abm" / "F#" rather than "10A"
+_CAMELOT_FROM_KEY = {
+    "abm": "1A", "g#m": "1A", "b": "1B", "ebm": "2A", "d#m": "2A", "f#": "2B",
+    "gb": "2B", "bbm": "3A", "a#m": "3A", "db": "3B", "c#": "3B", "fm": "4A",
+    "ab": "4B", "g#": "4B", "cm": "5A", "eb": "5B", "d#": "5B", "gm": "6A",
+    "bb": "6B", "a#": "6B", "dm": "7A", "f": "7B", "am": "8A", "c": "8B",
+    "em": "9A", "g": "9B", "bm": "10A", "d": "10B", "f#m": "11A",
+    "gbm": "11A", "a": "11B", "c#m": "12A", "dbm": "12A", "e": "12B",
+}
+
+
+def _norm_camelot(v: str) -> str:
+    if not v:
+        return ""
+    m = CAMELOT_RE.match(v)
+    if m:
+        n = int(m.group(1))
+        if 1 <= n <= 12:
+            return f"{n}{m.group(2).upper()}"
+        return ""
+    return _CAMELOT_FROM_KEY.get(v.strip().lower().replace(" ", ""), "")
+
+
+def read_mik_fields(path: Path):
+    """Return (energy, camelot, bpm) as strings; '' when unavailable."""
+    energy = camelot = bpm = ""
+    try:
+        tags = ID3(str(path))
+
+        def txt(frame):
+            v = tags.get(frame)
+            try:
+                return str(v.text[0]).strip() if (v and v.text) else ""
+            except Exception:
+                return ""
+
+        camelot = _norm_camelot(txt("TKEY"))
+        bpm = txt("TBPM")
+
+        for k, v in tags.items():
+            if k.startswith("TXXX") and getattr(v, "desc", "").lower() in (
+                "energylevel", "energy level", "energy"
+            ):
+                try:
+                    energy = str(v.text[0]).strip()
+                except Exception:
+                    pass
+                break
+
+        # MIK sometimes mirrors Camelot into the comment
+        if not camelot:
+            for k, v in tags.items():
+                if k.startswith("COMM"):
+                    try:
+                        camelot = _norm_camelot(str(v.text[0]).strip())
+                    except Exception:
+                        pass
+                    break
+    except Exception:
+        pass
+
+    # fallback: "... - 8A - 126.mp3" in the filename
+    if not camelot or not bpm:
+        m = DJ_SUFFIX_RE.search(path.stem)
+        if m:
+            camelot = camelot or _norm_camelot(m.group(1))
+            bpm = bpm or m.group(2)
+
+    if bpm:
+        try:
+            b = round(float(bpm))
+            bpm = str(b) if 30 <= b <= 300 else ""
+        except Exception:
+            bpm = ""
+    if energy:
+        try:
+            e = int(round(float(energy)))
+            energy = str(e) if 1 <= e <= 10 else ""
+        except Exception:
+            energy = ""
+    return energy, camelot, bpm
 
 
 def split_artist_title_from_title(raw_title: str):
@@ -246,6 +343,9 @@ def load_existing_csv():
 def main():
     parser = argparse.ArgumentParser(description="Prep a folder of audio for upload-tracks.js")
     parser.add_argument("folder", help="Folder containing audio files (scanned recursively)")
+    parser.add_argument("--batch", default="",
+                        help="Value for the uploadBatch column, e.g. audioasis. "
+                             "Falls back to $UPLOAD_BATCH.")
     parser.add_argument("--no-discogs", action="store_true",
                         help="Skip Discogs genre lookups even if DISCOGS_TOKEN is set")
     args = parser.parse_args()
@@ -284,14 +384,23 @@ def main():
         genre_raw = (audio.get("genre", [""])[0]).strip()
         bpm = (audio.get("bpm", [""])[0]).strip()
 
+        # Mixed In Key data (energy / camelot / bpm) -- not visible via easy=True
+        energy, camelot, mik_bpm = read_mik_fields(track_path)
+        if mik_bpm:
+            bpm = mik_bpm
+
         title = strip_leading_number_prefix(title)
+        # drop a trailing " - 8A - 126" if it leaked into the title tag
+        title = DJ_SUFFIX_RE.sub("", title).strip()
+        # ...and from the filename, which is where MIK puts it
+        stem_clean = DJ_SUFFIX_RE.sub("", track_path.stem).strip()
         if not artist:
-            extracted_artist, cleaned_title = split_artist_title_from_title(title or track_path.stem)
+            extracted_artist, cleaned_title = split_artist_title_from_title(title or stem_clean)
             if extracted_artist:
                 artist = extracted_artist
                 title = cleaned_title
         if not title:
-            title = strip_leading_number_prefix(track_path.stem) or track_path.stem
+            title = strip_leading_number_prefix(stem_clean) or stem_clean
         if not artist:
             artist = "Unknown"
 
@@ -325,8 +434,9 @@ def main():
         if not extract_cover(track_path, COVERS_DIR / cover_filename):
             cover_filename = ""
 
-        rows.append([title, artist, album, genre, "", "", bpm,
-                     audio_filename, cover_filename, DEFAULT_COLOR])
+        rows.append([title, artist, album, genre, energy, camelot, bpm,
+                     audio_filename, cover_filename, DEFAULT_COLOR,
+                     args.batch or UPLOAD_BATCH])
         existing_audio.add(audio_filename)
         existing_names.add(name_key)
         processed += 1
@@ -334,6 +444,22 @@ def main():
               f"{'  [genre: ' + genre + ']' if genre else '  [no genre]'}")
 
     if rows:
+        # If tracks.csv predates the uploadBatch column, widen it in place
+        # first — otherwise the new 11-field rows misalign against a
+        # 10-field header and every value after coverFile shifts.
+        if not csv_is_new:
+            with open(CSV_PATH, newline="", encoding="utf-8") as f:
+                old = list(csv.reader(f))
+            if old and old[0] and old[0][-1] != "uploadBatch":
+                print(f"tracks.csv: adding 'uploadBatch' column to "
+                      f"{len(old) - 1} existing row(s)")
+                old[0].append("uploadBatch")
+                for r in old[1:]:
+                    if r:
+                        r.append("")
+                with open(CSV_PATH, "w", newline="", encoding="utf-8") as f:
+                    csv.writer(f).writerows(old)
+
         write_header = csv_is_new
         with open(CSV_PATH, "a", newline="", encoding="utf-8") as f:
             writer = csv.writer(f)
