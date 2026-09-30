@@ -1,10 +1,10 @@
-// upload-tracks.js
-// ─────────────────────────────────────────────────────────────────────────────
+﻿// upload-tracks.js
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // Bulk upload local audio/covers from tracks.csv into Firebase Storage + Firestore.
 // HOW TO RUN:  node upload-tracks.js
 // Safe to re-run: skips rows whose audio/{audioFile} already exists in Storage,
 // or whose title+artist already exists in Firestore.
-// ─────────────────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 const admin = require("firebase-admin");
 const fs    = require("fs");
@@ -17,14 +17,14 @@ const {
   thumbObjectPath,
 } = require("./scripts/storageAssets.cjs");
 
-// ── Startup checks ────────────────────────────────────────────────────────
+// â”€â”€ Startup checks â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 if (!fs.existsSync(path.join(__dirname, "serviceAccountKey.json"))) {
-  console.error("\n❌  serviceAccountKey.json not found.");
-  console.error("    Download it from: Firebase Console → Project Settings → Service Accounts\n");
+  console.error("\nâŒ  serviceAccountKey.json not found.");
+  console.error("    Download it from: Firebase Console â†’ Project Settings â†’ Service Accounts\n");
   process.exit(1);
 }
 if (!fs.existsSync(path.join(__dirname, "tracks.csv"))) {
-  console.error("\n❌  tracks.csv not found.\n");
+  console.error("\nâŒ  tracks.csv not found.\n");
   process.exit(1);
 }
 
@@ -44,7 +44,7 @@ function nameKey(title, artist) {
   return `${String(title || "").trim().toLowerCase()}|||${String(artist || "").trim().toLowerCase()}`;
 }
 
-// ── Helper: read MP3 duration in seconds ──────────────────────────────────
+// â”€â”€ Helper: read MP3 duration in seconds â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function getMp3Duration(filePath) {
   try {
     const buf = fs.readFileSync(filePath);
@@ -95,7 +95,7 @@ async function uploadFile(localPath, destPath, contentType) {
     metadata: { contentType, cacheControl: AUDIO_CACHE_CONTROL },
   });
   await bucket.file(destPath).makePublic();
-  console.log("✓");
+  console.log("âœ“");
   return `https://storage.googleapis.com/${bucketName}/${destPath}`;
 }
 
@@ -156,7 +156,7 @@ async function mintCoverThumbs(localPath, destPath) {
   try {
     sharp = require("sharp");
   } catch {
-    console.log("    Thumbs:  skip (npm i sharp — mints _200x200 beside the master)");
+    console.log("    Thumbs:  skip (npm i sharp â€” mints _200x200 beside the master)");
     return 0;
   }
   let minted = 0;
@@ -171,19 +171,19 @@ async function mintCoverThumbs(localPath, destPath) {
   return minted;
 }
 
-// ── Main ──────────────────────────────────────────────────────────────────
+// â”€â”€ Main â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 async function uploadTracks() {
   const rows      = parseCSV(fs.readFileSync("tracks.csv", "utf8")).filter(r => r.title && r.audioFile);
   const startTime = Date.now();
 
-  if (!rows.length) { console.error("\n❌  No valid rows in tracks.csv\n"); process.exit(1); }
+  if (!rows.length) { console.error("\nâŒ  No valid rows in tracks.csv\n"); process.exit(1); }
 
-  console.log(`\n📦  Found ${rows.length} track(s) in tracks.csv`);
+  console.log(`\nðŸ“¦  Found ${rows.length} track(s) in tracks.csv`);
   console.log(`    Project: ${projectId}  |  Bucket: ${bucketName}`);
   process.stdout.write("    Loading existing catalog... ");
   const existing = await loadExistingCatalog();
   console.log(`${existing.count} tracks in Firestore\n`);
-  console.log("─".repeat(60));
+  console.log("â”€".repeat(60));
 
   let ok = 0, fail = 0, skipped = 0;
 
@@ -191,17 +191,17 @@ async function uploadTracks() {
     const row = rows[i];
     const elapsed  = ((Date.now() - startTime) / 1000 / 60).toFixed(1);
     const eta      = i > 0 ? ((Date.now() - startTime) / i * (rows.length - i) / 1000 / 60).toFixed(1) : "?";
-    console.log(`\n  [${i+1}/${rows.length}] ${row.title} — ${row.artist||"Unknown"}  (${elapsed}m elapsed, ~${eta}m left)`);
+    console.log(`\n  [${i+1}/${rows.length}] ${row.title} â€” ${row.artist||"Unknown"}  (${elapsed}m elapsed, ~${eta}m left)`);
 
     try {
       const key = nameKey(row.title, row.artist);
       if (existing.byName.has(key)) {
-        console.log(`    ⏭  Skip — already in Firestore (${existing.byName.get(key)})`);
+        console.log(`    â­  Skip â€” already in Firestore (${existing.byName.get(key)})`);
         skipped++;
         continue;
       }
       if (existing.byAudioFile.has(row.audioFile)) {
-        console.log(`    ⏭  Skip — audio filename already linked (${existing.byAudioFile.get(row.audioFile)})`);
+        console.log(`    â­  Skip â€” audio filename already linked (${existing.byAudioFile.get(row.audioFile)})`);
         skipped++;
         continue;
       }
@@ -213,7 +213,7 @@ async function uploadTracks() {
       const legacyAudioDest = `audio/${row.audioFile}`;
 
       if (existing.byAudioFile.has(audioName) || await storageExists(audioDest) || await storageExists(legacyAudioDest)) {
-        console.log(`    ⏭  Skip — Storage object already exists: ${audioDest}`);
+        console.log(`    â­  Skip â€” Storage object already exists: ${audioDest}`);
         skipped++;
         continue;
       }
@@ -222,7 +222,7 @@ async function uploadTracks() {
       const audioUrl  = await uploadFile(audioPath, audioDest, getContentType(row.audioFile));
 
       const duration = getMp3Duration(audioPath);
-      if (duration) console.log(`    Duration: ${Math.floor(duration/60)}m ${duration%60}s${duration>900?" 🎛️  (mixtape!)":""}`);
+      if (duration) console.log(`    Duration: ${Math.floor(duration/60)}m ${duration%60}s${duration>900?" ðŸŽ›ï¸  (mixtape!)":""}`);
 
       let coverUrl = null;
       if (row.coverFile) {
@@ -258,8 +258,12 @@ async function uploadTracks() {
         audioUrl:   audioUrl,
         albumCover: coverUrl,
         color:      row.color       || "#8899aa",
-        // Channel Surfing batch waves (Audioasis-style): audioasis-wave-1, metal-wave-1, …
-        ...(row.batch ? { batch: String(row.batch).trim() } : {}),
+        // Batch wave the app's channels read (e.g. CH-04 Local matches batches
+        // containing "audioasis": audioasis-wave-1, metal-wave-1, ...). Comes from
+        // the CSV `batch` column, then `uploadBatch` / UPLOAD_BATCH as fallbacks.
+        // `uploadBatch` is kept for the audit tools.
+        batch:       (row.batch || row.uploadBatch || process.env.UPLOAD_BATCH || "").trim() || null,
+        uploadBatch: (row.uploadBatch || row.batch || process.env.UPLOAD_BATCH || "").trim() || null,
         ...(row.source ? { source: String(row.source).trim() } : {}),
         playCount:  0,
         skipCount:  0,
@@ -269,25 +273,25 @@ async function uploadTracks() {
       existing.byName.set(key, ref.id);
       existing.byAudioFile.set(row.audioFile, ref.id);
       existing.byAudioFile.set(audioName, ref.id);
-      console.log("✓");
+      console.log("âœ“");
       ok++;
 
     } catch(err) {
-      console.log(`\n    ❌  Failed: ${err.message}`);
+      console.log(`\n    âŒ  Failed: ${err.message}`);
       console.log("    Skipping and continuing...");
       fail++;
     }
   }
 
   const totalMin = ((Date.now() - startTime) / 1000 / 60).toFixed(1);
-  console.log("\n" + "─".repeat(60));
-  console.log(`\n✅  Done in ${totalMin} minutes! ${ok} uploaded, ${skipped} skipped, ${fail} failed.`);
-  if (fail > 0) console.log(`⚠️   Re-run to retry failures — duplicates are skipped.`);
+  console.log("\n" + "â”€".repeat(60));
+  console.log(`\nâœ…  Done in ${totalMin} minutes! ${ok} uploaded, ${skipped} skipped, ${fail} failed.`);
+  if (fail > 0) console.log(`âš ï¸   Re-run to retry failures â€” duplicates are skipped.`);
   console.log(`\n  Files:  https://console.firebase.google.com/project/${projectId}/storage`);
   console.log(`  Tracks: https://console.firebase.google.com/project/${projectId}/firestore\n`);
 }
 
 uploadTracks().catch(err => {
-  console.error("\n❌  Unexpected error:", err.message);
+  console.error("\nâŒ  Unexpected error:", err.message);
   process.exit(1);
 });
