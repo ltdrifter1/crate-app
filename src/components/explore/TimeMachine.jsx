@@ -66,7 +66,7 @@ function EraButton({ era, active, count, onClick }) {
       <div
         style={{
           fontFamily: fontMono,
-          fontSize: 9,
+          fontSize: 11,
           fontWeight: 600,
           letterSpacing: 0.12,
           textTransform: "uppercase",
@@ -93,7 +93,7 @@ function TrackSliver({ track, active, onClick }) {
         gap: 12,
         padding: "10px 14px",
         borderBottom: "1px solid rgba(91,101,116,0.1)",
-        background: active ? "rgba(90,168,184,0.08)" : "transparent",
+        background: active ? "rgba(150,170,190,0.08)" : "transparent",
         border: "none",
         width: "100%",
         textAlign: "left",
@@ -156,7 +156,7 @@ function TrackSliver({ track, active, onClick }) {
         <div
           style={{
             fontFamily: fontMono,
-            fontSize: 10,
+            fontSize: 11,
             fontWeight: 600,
             letterSpacing: 0.1,
             textTransform: "uppercase",
@@ -197,7 +197,7 @@ export default function TimeMachine({ tracks = [], onPlayTrack = null, activeId 
         <div
           style={{
             fontFamily: fontMono,
-            fontSize: 10,
+            fontSize: 11,
             fontWeight: 700,
             letterSpacing: 0.18,
             textTransform: "uppercase",
@@ -306,7 +306,7 @@ export default function TimeMachine({ tracks = [], onPlayTrack = null, activeId 
             <span
               style={{
                 fontFamily: fontMono,
-                fontSize: 9,
+                fontSize: 11,
                 color: neons.violet,
                 flexShrink: 0,
               }}
@@ -331,7 +331,7 @@ export default function TimeMachine({ tracks = [], onPlayTrack = null, activeId 
                   style={{
                     padding: "10px 14px",
                     fontFamily: fontMono,
-                    fontSize: 10,
+                    fontSize: 11,
                     color: color.muted,
                     letterSpacing: 0.1,
                     textTransform: "uppercase",

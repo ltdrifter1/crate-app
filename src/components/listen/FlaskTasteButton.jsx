@@ -66,7 +66,7 @@ export default function FlaskTasteButton({
           aria-hidden="true"
           style={{
             fontFamily: fontMono,
-            fontSize: 10,
+            fontSize: 11,
             fontWeight: 700,
             letterSpacing: 1.1,
             textTransform: "uppercase",

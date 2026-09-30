@@ -59,7 +59,7 @@ function ChannelIdent({ bugLine, slug }) {
         alignItems: "stretch",
         overflow: "hidden",
         borderRadius: 2,
-        border: "1px solid rgba(255,212,0,0.45)",
+        border: "1px solid rgba(213,220,230,0.45)",
         background: "rgba(0,0,0,0.55)",
         maxWidth: "100%",
       }}
@@ -72,7 +72,7 @@ function ChannelIdent({ bugLine, slug }) {
           fontWeight: 800,
           letterSpacing: 0.12,
           color: "#1C222B",
-          borderRight: "1px solid rgba(255,212,0,0.45)",
+          borderRight: "1px solid rgba(213,220,230,0.45)",
           background: color.accent,
           whiteSpace: "nowrap",
         }}
@@ -103,14 +103,15 @@ function JewelSleeve({ src, idleSrc, playing, eager = false, size = 148, wellCol
   const art = src || idleSrc;
   return (
     <span
-      className="pmp-hero-sleeve"
+      className="pmp-hero-sleeve pmp-hero-sleeve--square"
       style={{
         position: "relative",
         display: "block",
-        width: "100%",
-        aspectRatio: "16 / 9",
+        width: "min(100%, 320px)",
+        alignSelf: "center",
+        aspectRatio: "1 / 1",
         flexShrink: 0,
-        borderRadius: 4,
+        borderRadius: 10,
         overflow: "hidden",
         border: playing ? `2px solid ${color.accent}` : "1px solid rgba(255,255,255,0.12)",
         boxShadow: playing ? artShadow.active : artShadow.raised,
@@ -123,7 +124,7 @@ function JewelSleeve({ src, idleSrc, playing, eager = false, size = 148, wellCol
           src={art}
           alt=""
           width={Math.max(size, 960)}
-          height={Math.round(Math.max(size, 960) * 9 / 16)}
+          height={Math.max(size, 960)}
           priority={eager}
           eager={eager}
           wellColor={wellColor}
@@ -204,6 +205,7 @@ function UpNextGlass({ track }) {
         }}
       >
       {track.albumCover ? (
+        <span style={{ display: "block", width: 36, height: 36, flexShrink: 0, borderRadius: 10, overflow: "hidden" }}>
         <CoverImage
           src={track.albumCover}
           alt=""
@@ -219,12 +221,13 @@ function UpNextGlass({ track }) {
             boxShadow: "0 4px 10px rgba(58,66,80,0.18)",
           }}
         />
+        </span>
       ) : null}
       <div style={{ minWidth: 0, flex: 1 }}>
         <div
           style={{
             fontFamily: fontDisplay,
-            fontSize: 10,
+            fontSize: 11,
             fontWeight: 700,
             letterSpacing: 0.16,
             textTransform: "uppercase",
@@ -367,7 +370,7 @@ export default function HeroPlayerCard({
           overflow: "hidden",
           background: `
             radial-gradient(70% 80% at 18% 20%, ${track?.color ? `${track.color}55` : color.accentSoft} 0%, transparent 62%),
-            linear-gradient(180deg, rgba(255,212,0,0.08) 0%, rgba(0,0,0,0.4) 100%)
+            linear-gradient(180deg, rgba(213,220,230,0.08) 0%, rgba(0,0,0,0.4) 100%)
           `,
         }}
       />
@@ -433,7 +436,7 @@ export default function HeroPlayerCard({
       </div>
 
       <div
-        className="pmp-hero-stage"
+        className={`pmp-hero-stage${hasVideo ? "" : " pmp-hero-stage--split"}`}
         style={{
           position: "relative",
           zIndex: 2,

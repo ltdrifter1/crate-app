@@ -244,7 +244,7 @@ export function EnergyShiftButton({
           }}
         >
           Upcoming
-          <span style={{ fontFamily: fontMono, fontSize: 10, fontWeight: 700, letterSpacing: 0.6, textTransform: "uppercase", color: color.muted }}>
+          <span style={{ fontFamily: fontMono, fontSize: 11, fontWeight: 700, letterSpacing: 0.6, textTransform: "uppercase", color: color.muted }}>
             {verb}
           </span>
         </span>
@@ -374,7 +374,7 @@ export function EnergyShiftModeChip({ style = null }) {
         boxShadow: `0 0 0 3px ${color.accentSoft}`,
         animation: "breathe 1.6s ease-in-out infinite",
       }}/>
-      <span style={{ fontFamily: fontMono, fontSize: 10, fontWeight: 700, letterSpacing: 0.7, textTransform: "uppercase", color: color.muted }}>
+      <span style={{ fontFamily: fontMono, fontSize: 11, fontWeight: 700, letterSpacing: 0.7, textTransform: "uppercase", color: color.muted }}>
         {up ? "Fast" : "Slow"}
       </span>
       <span>upcoming</span>
@@ -435,7 +435,7 @@ export function EnergyShiftFeedback({ bottom = "calc(100% + 12px)" }) {
           background: "rgba(216,223,232,0.06)",
           border: `1px solid ${glass.borderSoft}`,
           color: color.ink,
-          fontSize: 10.5, fontWeight: 700, fontFamily: fontMono, letterSpacing: 0.3,
+          fontSize: 11.5, fontWeight: 700, fontFamily: fontMono, letterSpacing: 0.3,
           fontVariantNumeric: "tabular-nums",
           animation: `energyPillIn 0.3s ${PRESS_EASE} both`,
         }}>
@@ -730,7 +730,7 @@ export function PaceSlider({
               borderRadius: 2,
               background: trim.gradient,
               opacity: clamped === 0 ? 0 : 0.95,
-              boxShadow: clamped === 0 ? "none" : "0 0 8px rgba(110,168,255,0.28)",
+              boxShadow: clamped === 0 ? "none" : "0 0 8px rgba(168,180,198,0.28)",
             }}
           />
         </div>
@@ -932,7 +932,7 @@ export function EnergyShiftCapsule({ stopPropagation = false }) {
       <span
         aria-hidden="true"
         style={{
-          fontSize: 9,
+          fontSize: 11,
           fontWeight: 700,
           letterSpacing: 1.1,
           textTransform: "uppercase",

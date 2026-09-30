@@ -120,7 +120,7 @@ export default function ChannelCard({
               inset: 0,
               zIndex: 1,
               background:
-                "linear-gradient(165deg, rgba(200,210,222,0.12) 0%, rgba(110,168,255,0.04) 32%, transparent 58%)",
+                "linear-gradient(165deg, rgba(200,210,222,0.12) 0%, rgba(168,180,198,0.04) 32%, transparent 58%)",
             }}
           />
 
@@ -141,7 +141,7 @@ export default function ChannelCard({
               boxShadow: "inset 0 1px 0 rgba(255,255,255,0.30), 0 2px 5px rgba(28,34,42,0.35)",
               color: "#F4F7FA",
               fontFamily: fontMono,
-              fontSize: 10,
+              fontSize: 11,
               fontWeight: 800,
               letterSpacing: 0.8,
               display: "inline-flex",
@@ -163,7 +163,7 @@ export default function ChannelCard({
                 padding: "0 7px",
                 borderRadius: 3,
                 background: "rgba(42,51,60,0.78)",
-                border: "1px solid rgba(110,168,255,0.28)",
+                border: "1px solid rgba(168,180,198,0.28)",
                 color: color.lcdSignal,
                 letterSpacing: 0.1,
                 textTransform: "uppercase",

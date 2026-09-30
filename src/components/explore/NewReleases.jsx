@@ -96,7 +96,7 @@ export default function NewReleases({
                   color: selected ? color.lcdSignal : color.body,
                   cursor: "pointer",
                   fontFamily: fontMono,
-                  fontSize: 10,
+                  fontSize: 11,
                   fontWeight: 700,
                   letterSpacing: 0.1,
                   textTransform: "uppercase",

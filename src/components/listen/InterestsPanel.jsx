@@ -200,7 +200,7 @@ export function InterestsPanel({
             <div style={{ minWidth: 0 }}>
               <div style={{
                 fontFamily: fontMono,
-                fontSize: 10,
+                fontSize: 11,
                 fontWeight: 800,
                 letterSpacing: 1.5,
                 textTransform: "uppercase",
@@ -348,7 +348,7 @@ export function InterestsPanel({
         <EnergySpark series={insight.recentEnergy} />
         <div style={{
           display: "flex", justifyContent: "space-between",
-          marginTop: 8, fontSize: 10, fontFamily: fontMono,
+          marginTop: 8, fontSize: 11, fontFamily: fontMono,
           color: color.faint, letterSpacing: 0.4, textTransform: "uppercase", fontWeight: 650,
         }}>
           <span>Earlier</span>
@@ -407,7 +407,7 @@ export function InterestsPanel({
               {s.n}
             </div>
             <div style={{
-              marginTop: 4, fontSize: 10, fontWeight: 700, letterSpacing: 0.8,
+              marginTop: 4, fontSize: 11, fontWeight: 700, letterSpacing: 0.8,
               textTransform: "uppercase", color: color.faint, fontFamily: fontMono,
             }}>
               {s.label}

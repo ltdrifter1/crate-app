@@ -57,7 +57,7 @@ const EXPLORE_CSS = `
     transition: border-color ${"{base}"} ${"{ease}"}, box-shadow ${"{base}"};
   }
   .pmp-explore-find:hover {
-    border-color: rgba(110, 168, 255, 0.32) !important;
+    border-color: rgba(168,180,198, 0.32) !important;
   }
   .pmp-world-tray {
     display: grid;

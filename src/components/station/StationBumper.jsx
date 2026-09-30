@@ -66,7 +66,7 @@ export default function StationBumper({ bumper = null, onDone = null, durationMs
           border: `1px solid ${glass.border}`,
           boxShadow: `inset 0 1px 0 ${glass.highlight}`,
           fontFamily: fontMono,
-          fontSize: 10,
+          fontSize: 11,
           fontWeight: 800,
           letterSpacing: 1.6,
           textTransform: "uppercase",

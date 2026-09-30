@@ -98,7 +98,7 @@ export default function ChartsScreen({
                   <span
                     style={{
                       fontFamily: fontMono,
-                      fontSize: 10,
+                      fontSize: 11,
                       fontWeight: 700,
                       letterSpacing: 0.22,
                       textTransform: "uppercase",
@@ -276,7 +276,7 @@ function StatPill({ label, value, accent }) {
       <span
         style={{
           fontFamily: fontMono,
-          fontSize: 9,
+          fontSize: 11,
           fontWeight: 700,
           letterSpacing: 0.18,
           textTransform: "uppercase",

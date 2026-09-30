@@ -102,7 +102,7 @@ export function HostCreditChip({ show, compact = false, onClick = null, tone = "
       <div style={{ minWidth: 0 }}>
         <div style={{
           fontFamily: fontMono,
-          fontSize: 10,
+          fontSize: 11,
           fontWeight: 800,
           letterSpacing: 1.1,
           textTransform: "uppercase",
@@ -637,7 +637,7 @@ export function ShowGuideRail({
                     alignItems: "center",
                     gap: 5,
                     fontFamily: fontMono,
-                    fontSize: 9,
+                    fontSize: 11,
                     fontWeight: 800,
                     letterSpacing: 1.1,
                     textTransform: "uppercase",
@@ -678,7 +678,7 @@ export function ShowGuideRail({
                 style={{
                   marginTop: 8,
                   fontFamily: fontMono,
-                  fontSize: 9,
+                  fontSize: 11,
                   fontWeight: 700,
                   letterSpacing: 0.7,
                   textTransform: "uppercase",

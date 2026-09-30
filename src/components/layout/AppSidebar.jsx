@@ -14,7 +14,7 @@ function RailLabel({ children }) {
     <div
       style={{
         fontFamily: fontMono,
-        fontSize: 9,
+        fontSize: 11,
         fontWeight: 700,
         letterSpacing: 0.22,
         textTransform: "uppercase",
@@ -194,14 +194,14 @@ export default function AppSidebar({
           aria-hidden="true"
           style={{
             fontFamily: fontMono,
-            fontSize: 8,
+            fontSize: 11,
             fontWeight: 600,
             letterSpacing: 0.28,
             textTransform: "uppercase",
-            color: "rgba(61,70,84,0.34)",
+            color: "rgba(138,148,163,0.6)",
             lineHeight: 1.7,
             padding: "0 11px 10px",
-            borderTop: "1px solid rgba(91,101,116,0.14)",
+            borderTop: "1px solid rgba(138,148,163,0.18)",
             paddingTop: 10,
             marginTop: 8,
           }}

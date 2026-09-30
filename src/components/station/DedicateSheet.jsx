@@ -46,7 +46,7 @@ export default function DedicateSheet({ track, defaultName = "Listener", onClose
         }}
       >
         <div style={{
-          fontFamily: fontMono, fontSize: 10, fontWeight: 800,
+          fontFamily: fontMono, fontSize: 11, fontWeight: 800,
           letterSpacing: 1.5, textTransform: "uppercase", color: color.faint,
           marginBottom: 8,
         }}>

@@ -108,7 +108,7 @@ export default function CrateDig({ tracks = [], onPlay = null }) {
           <span
             style={{
               fontFamily: fontMono,
-              fontSize: 10,
+              fontSize: 11,
               fontWeight: 700,
               letterSpacing: 0.18,
               textTransform: "uppercase",
@@ -120,7 +120,7 @@ export default function CrateDig({ tracks = [], onPlay = null }) {
           <span
             style={{
               fontFamily: fontMono,
-              fontSize: 10,
+              fontSize: 11,
               fontWeight: 700,
               letterSpacing: 0.16,
               textTransform: "uppercase",
@@ -248,7 +248,7 @@ export default function CrateDig({ tracks = [], onPlay = null }) {
                       borderRadius: 3,
                       border: `1px solid ${ink || neons.cyan}`,
                       fontFamily: fontMono,
-                      fontSize: 9,
+                      fontSize: 11,
                       fontWeight: 800,
                       letterSpacing: 0.2,
                       textTransform: "uppercase",

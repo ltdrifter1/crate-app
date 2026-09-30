@@ -98,7 +98,7 @@ export default function EnergyArc({
           <div key={ph.name + ph.x} style={{ flex: ph.p, minWidth: 0 }}>
             <div style={{
               fontFamily: fontMono,
-              fontSize: 8,
+              fontSize: 11,
               fontWeight: 700,
               letterSpacing: 0.8,
               textTransform: "uppercase",

@@ -115,7 +115,7 @@ export function TrackActionsMenu({ track, playlistCtx, activePlaylistId, x, y, o
         </div>
       </div>
 
-      <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 1.2, color: color.faint, padding: "10px 14px 4px", textTransform: "uppercase", fontFamily: fontMono }}>
+      <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 1.2, color: color.faint, padding: "10px 14px 4px", textTransform: "uppercase", fontFamily: fontMono }}>
         Add to Playlist
       </div>
 
@@ -369,7 +369,7 @@ export function TrackRow({ track, onPlay, active, isPlaying, onLike, extraAction
               flexShrink: 0,
               maxWidth: 88,
               fontFamily: fontMono,
-              fontSize: 10,
+              fontSize: 11,
               fontWeight: 700,
               letterSpacing: 0.04,
               textTransform: "uppercase",

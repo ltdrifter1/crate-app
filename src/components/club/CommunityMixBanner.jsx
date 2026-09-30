@@ -98,7 +98,7 @@ export default function CommunityMixBanner({
             position: "absolute", left: 18, right: 18, bottom: 16,
           }}>
             <div style={{
-              fontSize: 10,
+              fontSize: 11,
               fontWeight: 700,
               letterSpacing: 1.6,
               textTransform: "uppercase",

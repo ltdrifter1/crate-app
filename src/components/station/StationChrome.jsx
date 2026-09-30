@@ -738,7 +738,7 @@ export function DedicationFlash({ dedication, onDone }) {
       }}
     >
       <div style={{
-        fontFamily: fontMono, fontSize: 9, fontWeight: 800,
+        fontFamily: fontMono, fontSize: 11, fontWeight: 800,
         letterSpacing: 1.4, textTransform: "uppercase", color: color.muted,
         marginBottom: 5,
       }}>
