@@ -207,6 +207,12 @@ export default function BroadcastPreview() {
       onPlayRadio={() => {}}
       onTogglePlay={() => {}}
       onPlayTrack={() => {}}
+      onSkipRadio={() => {}}
+      onPrevRadio={() => {}}
+      onLike={() => {}}
+      onDislike={() => {}}
+      onShare={() => {}}
+      onShowQueue={() => {}}
       onOpenPlayer={() => setImmersive(true)}
       onOpenSearch={() => setScreen("search")}
       onOpenMenu={isDesktop ? null : () => setDrawer(true)}

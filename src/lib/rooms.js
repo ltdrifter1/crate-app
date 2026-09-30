@@ -359,7 +359,7 @@ export function roomPosterStyle(atmosphereOrRoom) {
     kind,
     gradient: `radial-gradient(ellipse at 50% 0%, #6A7482 0%, #4A5360 50%, #4A5360 100%)`,
     overlay:
-      "linear-gradient(180deg, rgba(58,66,80,0.22) 0%, rgba(58,66,80,0.58) 42%, rgba(58,66,80,0.96) 100%)",
+      "linear-gradient(180deg, rgba(58,66,80,0.22) 0%, rgba(58,66,80,0.58) 42%, rgba(18,22,28,0.96) 100%)",
     wash: {
       top: "-12%",
       right: "-6%",
@@ -400,7 +400,7 @@ export function roomPosterStyle(atmosphereOrRoom) {
     "dawn-haze": {
       gradient: `radial-gradient(ellipse at 28% 0%, #8B95A4 0%, #5B6574 42%, #4A5360 100%)`,
       overlay:
-        "linear-gradient(180deg, rgba(58,66,80,0.12) 0%, rgba(74,83,96,0.45) 40%, rgba(58,66,80,0.96) 100%)",
+        "linear-gradient(180deg, rgba(58,66,80,0.12) 0%, rgba(74,83,96,0.45) 40%, rgba(18,22,28,0.96) 100%)",
       wash: { top: "-6%", left: "8%", right: "auto", size: 420, color: "rgba(216,223,232,0.16)" },
       coverBlur: 44,
       coverSat: 108,
@@ -417,7 +417,7 @@ export function roomPosterStyle(atmosphereOrRoom) {
     "night-fog": {
       gradient: `radial-gradient(ellipse at 50% -8%, #6A7482 0%, #6A7482 48%, #4A5360 100%)`,
       overlay:
-        "linear-gradient(180deg, rgba(58,66,80,0.35) 0%, rgba(58,66,80,0.62) 45%, rgba(58,66,80,0.97) 100%)",
+        "linear-gradient(180deg, rgba(58,66,80,0.35) 0%, rgba(58,66,80,0.62) 45%, rgba(18,22,28,0.97) 100%)",
       wash: { top: "10%", right: "-10%", left: "auto", size: 380, color: "rgba(140,150,170,0.12)" },
       coverBlur: 40,
       coverBright: 0.36,
@@ -431,7 +431,7 @@ export function roomPosterStyle(atmosphereOrRoom) {
     vault: {
       gradient: `radial-gradient(ellipse at 72% 18%, #5B6574 0%, #4A5360 55%, #4A5360 100%)`,
       overlay:
-        "linear-gradient(165deg, rgba(58,66,80,0.4) 0%, rgba(58,66,80,0.7) 50%, rgba(58,66,80,0.98) 100%)",
+        "linear-gradient(165deg, rgba(58,66,80,0.4) 0%, rgba(58,66,80,0.7) 50%, rgba(18,22,28,0.98) 100%)",
       wash: { top: "30%", left: "-8%", right: "auto", size: 260, color: "rgba(216,223,232,0.09)" },
       coverBlur: 28,
       coverBright: 0.38,
@@ -447,7 +447,7 @@ export function roomPosterStyle(atmosphereOrRoom) {
     shopfront: {
       gradient: `radial-gradient(ellipse at 18% 0%, #7A8492 0%, #4A5360 50%, #4A5360 100%)`,
       overlay:
-        "linear-gradient(180deg, rgba(58,66,80,0.18) 0%, rgba(58,66,80,0.55) 48%, rgba(58,66,80,0.96) 100%)",
+        "linear-gradient(180deg, rgba(58,66,80,0.18) 0%, rgba(58,66,80,0.55) 48%, rgba(18,22,28,0.96) 100%)",
       wash: { top: "-10%", left: "20%", right: "auto", size: 340, color: "rgba(216,223,232,0.13)" },
       coverBlur: 32,
       coverBright: 0.48,
@@ -460,7 +460,7 @@ export function roomPosterStyle(atmosphereOrRoom) {
     concrete: {
       gradient: `radial-gradient(ellipse at 62% 0%, #6A7482 0%, #545E6C 48%, #4A5360 100%)`,
       overlay:
-        "linear-gradient(180deg, rgba(58,66,80,0.45) 0%, rgba(58,66,80,0.72) 40%, rgba(58,66,80,0.98) 100%)",
+        "linear-gradient(180deg, rgba(58,66,80,0.45) 0%, rgba(58,66,80,0.72) 40%, rgba(18,22,28,0.98) 100%)",
       wash: { top: "25%", right: "-12%", left: "auto", size: 240, color: "rgba(170,175,185,0.08)" },
       coverBlur: 14,
       coverBright: 0.32,
@@ -480,7 +480,7 @@ export function roomPosterStyle(atmosphereOrRoom) {
     "amber-lamp": {
       gradient: `radial-gradient(ellipse at 38% -5%, #8B95A4 0%, #545E6C 48%, #4A5360 100%)`,
       overlay:
-        "linear-gradient(180deg, rgba(58,66,80,0.15) 0%, rgba(20,14,8,0.5) 45%, rgba(58,66,80,0.96) 100%)",
+        "linear-gradient(180deg, rgba(58,66,80,0.15) 0%, rgba(20,14,8,0.5) 45%, rgba(18,22,28,0.96) 100%)",
       wash: { top: "-4%", left: "30%", right: "auto", size: 400, color: "rgba(216,223,232,0.14)" },
       coverBlur: 38,
       coverBright: 0.46,
@@ -495,7 +495,7 @@ export function roomPosterStyle(atmosphereOrRoom) {
     "rain-glass": {
       gradient: `radial-gradient(ellipse at 50% 0%, #6A7482 0%, #545E6C 50%, #4A5360 100%)`,
       overlay:
-        "linear-gradient(180deg, rgba(58,66,80,0.3) 0%, rgba(12,14,16,0.65) 48%, rgba(58,66,80,0.97) 100%)",
+        "linear-gradient(180deg, rgba(58,66,80,0.3) 0%, rgba(12,14,16,0.65) 48%, rgba(18,22,28,0.97) 100%)",
       wash: { top: "0%", left: "40%", right: "auto", size: 360, color: "rgba(150,170,190,0.1)" },
       coverBlur: 48,
       coverBright: 0.4,
@@ -513,7 +513,7 @@ export function roomPosterStyle(atmosphereOrRoom) {
     "heat-haze": {
       gradient: `radial-gradient(ellipse at 82% 8%, #8B95A4 0%, #545E6C 45%, #4A5360 100%)`,
       overlay:
-        "linear-gradient(200deg, rgba(58,66,80,0.1) 0%, rgba(24,16,10,0.5) 42%, rgba(58,66,80,0.96) 100%)",
+        "linear-gradient(200deg, rgba(58,66,80,0.1) 0%, rgba(24,16,10,0.5) 42%, rgba(18,22,28,0.96) 100%)",
       wash: { top: "-15%", right: "0%", left: "auto", size: 440, color: "rgba(216,223,232,0.15)" },
       coverBlur: 30,
       coverBright: 0.5,
@@ -528,7 +528,7 @@ export function roomPosterStyle(atmosphereOrRoom) {
     "neon-damp": {
       gradient: `radial-gradient(ellipse at 8% 28%, #6A7482 0%, #6A7482 50%, #4A5360 100%)`,
       overlay:
-        "linear-gradient(135deg, rgba(58,66,80,0.25) 0%, rgba(58,66,80,0.6) 50%, rgba(58,66,80,0.97) 100%)",
+        "linear-gradient(135deg, rgba(58,66,80,0.25) 0%, rgba(58,66,80,0.6) 50%, rgba(18,22,28,0.97) 100%)",
       wash: { top: "40%", left: "-5%", right: "auto", size: 300, color: "rgba(216,223,232,0.12)" },
       coverBlur: 26,
       coverBright: 0.4,
@@ -542,7 +542,7 @@ export function roomPosterStyle(atmosphereOrRoom) {
     "factory-glow": {
       gradient: `radial-gradient(ellipse at 70% 0%, #6A7482 0%, #4A5360 48%, #4A5360 100%)`,
       overlay:
-        "linear-gradient(180deg, rgba(58,66,80,0.35) 0%, rgba(58,66,80,0.68) 45%, rgba(58,66,80,0.98) 100%)",
+        "linear-gradient(180deg, rgba(58,66,80,0.35) 0%, rgba(58,66,80,0.68) 45%, rgba(18,22,28,0.98) 100%)",
       wash: { top: "-8%", right: "5%", left: "auto", size: 320, color: "rgba(200,196,184,0.10)" },
       coverBlur: 18,
       coverBright: 0.34,
@@ -557,7 +557,7 @@ export function roomPosterStyle(atmosphereOrRoom) {
     "tube-hum": {
       gradient: `radial-gradient(ellipse at 40% 0%, #6A7482 0%, #545E6C 50%, #4A5360 100%)`,
       overlay:
-        "linear-gradient(180deg, rgba(58,66,80,0.32) 0%, rgba(58,66,80,0.66) 48%, rgba(58,66,80,0.97) 100%)",
+        "linear-gradient(180deg, rgba(58,66,80,0.32) 0%, rgba(58,66,80,0.66) 48%, rgba(18,22,28,0.97) 100%)",
       wash: { top: "15%", left: "50%", right: "auto", size: 280, color: "rgba(160,170,190,0.1)" },
       coverBlur: 34,
       coverBright: 0.38,
@@ -569,7 +569,7 @@ export function roomPosterStyle(atmosphereOrRoom) {
     "snow-window": {
       gradient: `radial-gradient(ellipse at 50% 0%, #6A7482 0%, #545E6C 48%, #4A5360 100%)`,
       overlay:
-        "linear-gradient(180deg, rgba(58,66,80,0.2) 0%, rgba(14,16,18,0.55) 45%, rgba(58,66,80,0.96) 100%)",
+        "linear-gradient(180deg, rgba(58,66,80,0.2) 0%, rgba(14,16,18,0.55) 45%, rgba(18,22,28,0.96) 100%)",
       wash: { top: "-10%", left: "25%", right: "auto", size: 400, color: "rgba(200,210,220,0.12)" },
       coverBlur: 40,
       coverBright: 0.44,
@@ -586,7 +586,7 @@ export function roomPosterStyle(atmosphereOrRoom) {
     peak: {
       gradient: `radial-gradient(ellipse at 50% -10%, #6A7482 0%, #545E6C 42%, #4A5360 100%)`,
       overlay:
-        "linear-gradient(180deg, rgba(58,66,80,0.28) 0%, rgba(58,66,80,0.6) 40%, rgba(58,66,80,0.97) 100%)",
+        "linear-gradient(180deg, rgba(58,66,80,0.28) 0%, rgba(58,66,80,0.6) 40%, rgba(18,22,28,0.97) 100%)",
       wash: { top: "-18%", right: "-4%", left: "auto", size: 380, color: "rgba(216,223,232,0.13)" },
       coverBlur: 22,
       coverBright: 0.4,
@@ -600,7 +600,7 @@ export function roomPosterStyle(atmosphereOrRoom) {
     afterhours: {
       gradient: `radial-gradient(ellipse at 60% 0%, #6A7482 0%, #6A7482 45%, #4A5360 100%)`,
       overlay:
-        "linear-gradient(180deg, rgba(58,66,80,0.38) 0%, rgba(58,66,80,0.68) 48%, rgba(58,66,80,0.98) 100%)",
+        "linear-gradient(180deg, rgba(58,66,80,0.38) 0%, rgba(58,66,80,0.68) 48%, rgba(18,22,28,0.98) 100%)",
       wash: { top: "20%", right: "-8%", left: "auto", size: 300, color: "rgba(140,150,180,0.1)" },
       coverBlur: 36,
       coverBright: 0.34,
@@ -611,7 +611,7 @@ export function roomPosterStyle(atmosphereOrRoom) {
     closing: {
       gradient: `radial-gradient(ellipse at 30% 10%, #5B6574 0%, #4A5360 48%, #4A5360 100%)`,
       overlay:
-        "linear-gradient(180deg, rgba(58,66,80,0.25) 0%, rgba(58,66,80,0.62) 50%, rgba(58,66,80,0.97) 100%)",
+        "linear-gradient(180deg, rgba(58,66,80,0.25) 0%, rgba(58,66,80,0.62) 50%, rgba(18,22,28,0.97) 100%)",
       wash: { top: "5%", left: "10%", right: "auto", size: 340, color: "rgba(216,223,232,0.10)" },
       coverBlur: 42,
       coverBright: 0.36,
@@ -624,7 +624,7 @@ export function roomPosterStyle(atmosphereOrRoom) {
     warmup: {
       gradient: `radial-gradient(ellipse at 40% 0%, #5B6574 0%, #4A5360 48%, #4A5360 100%)`,
       overlay:
-        "linear-gradient(180deg, rgba(58,66,80,0.2) 0%, rgba(58,66,80,0.55) 48%, rgba(58,66,80,0.96) 100%)",
+        "linear-gradient(180deg, rgba(58,66,80,0.2) 0%, rgba(58,66,80,0.55) 48%, rgba(18,22,28,0.96) 100%)",
       wash: { top: "-8%", left: "35%", right: "auto", size: 360, color: "rgba(216,223,232,0.12)" },
       coverBlur: 34,
       coverBright: 0.44,
@@ -635,7 +635,7 @@ export function roomPosterStyle(atmosphereOrRoom) {
     dark: {
       gradient: `radial-gradient(ellipse at 50% 20%, #545E6C 0%, #4A5360 50%, #4A5360 100%)`,
       overlay:
-        "linear-gradient(180deg, rgba(58,66,80,0.5) 0%, rgba(58,66,80,0.78) 45%, rgba(58,66,80,0.98) 100%)",
+        "linear-gradient(180deg, rgba(58,66,80,0.5) 0%, rgba(58,66,80,0.78) 45%, rgba(18,22,28,0.98) 100%)",
       wash: { top: "35%", left: "40%", right: "auto", size: 220, color: "rgba(120,110,140,0.08)" },
       coverBlur: 20,
       coverBright: 0.28,

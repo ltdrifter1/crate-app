@@ -6,8 +6,8 @@ import {
 test('theme exports core tokens', () => {
   expect(color.ink).toBeTruthy();
   expect(color.accent).toMatch(/#D5DCE6/i);
-  expect(color.onAccent).toMatch(/#1C222B/i);
-  expect(color.canvas).toMatch(/#1C222B/i);
+  expect(color.onAccent).toMatch(/#12161C/i);
+  expect(color.canvas).toMatch(/#12161C/i);
   expect(color.alert).toBeTruthy();
   expect(color.select).toMatch(/rgba/);
   expect(BRAND_TAGLINE).toMatch(/YOUR WORLD/i);
@@ -17,12 +17,12 @@ test('theme exports core tokens', () => {
   expect(fontDisplay).toMatch(/IBM Plex Sans/);
   expect(font).not.toMatch(/^system-ui/);
   expect(fontLcd).toMatch(/IBM Plex Mono/);
-  expect(STYLE_CHASSIS).toBe("graphite-glass-20260930");
+  expect(STYLE_CHASSIS).toBe("broadcast-glass-20260930");
   expect(color.lcdSignal).toMatch(/#D5DCE6/i);
   expect(color.cta).toMatch(/#D5DCE6/i);
   expect(color.onCta).toMatch(/#E8EDF4/i);
   expect(color.lcdSignalSoft).toMatch(/213,\s*220,\s*230/);
-  expect(color.lcdInk).toMatch(/#E8EDF4/i);
+  expect(color.lcdInk).toMatch(/#F4F7FB/i);
   expect(type.lcd.fontFamily).toMatch(/IBM Plex Mono/);
   expect(type.lcd.fontSize).toBe(11);
   expect(sectionTitle.fontSize).toBe(22);
@@ -57,10 +57,11 @@ test('radio module tokens are hardware-shaped', () => {
   expect(radio.lcdFill).not.toMatch(/#A8FF6A|#7DFFB3|#7ED9B8|#4E9A7A|#C8F5E4/i);
 });
 
-test('canvas is an obsidian steel chassis, not a void', () => {
-  expect(color.canvas).toMatch(/#1C222B/i);
-  expect(color.ink).toMatch(/#E8EDF4/i);
-  expect(y2k.offWhite).toMatch(/#E8EDF4/i);
+test('canvas is a deep cool charcoal, not a void and not the retired slate', () => {
+  expect(color.canvas).toMatch(/#12161C/i);
+  expect(color.canvas).not.toMatch(/#1C222B/i);
+  expect(color.ink).toMatch(/#F4F7FB/i);
+  expect(y2k.offWhite).toMatch(/#F4F7FB/i);
   expect(color.canvas).not.toMatch(/#090A0D/i);
   expect(y2k.nearBlack).not.toMatch(/#090A0D/i);
   expect(color.lcdSignal).toMatch(/#D5DCE6/i);
@@ -78,6 +79,6 @@ test('primary buttons use silver, not DistroKid blue or neon green', () => {
   expect(trim.blue).not.toMatch(/#367FC7/i);
   expect(trim.gradient).toMatch(/#8A94A3|#F2F5F9/i);
   expect(trim.gradient).not.toMatch(/#A8FF6A|#7DFFB3|#B8C430|#367FC7/i);
-  expect(BTN_PRIMARY.color).toMatch(/#E8EDF4/i);
+  expect(BTN_PRIMARY.color).toMatch(/#F4F7FB/i);
   expect(String(BTN_PRIMARY.background)).not.toMatch(/#A8FF6A|#367FC7|#B8C430|#4A92D4|#2C6FB3/i);
 });

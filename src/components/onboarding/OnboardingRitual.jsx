@@ -158,7 +158,7 @@ export default function OnboardingRitual({ tracks, onComplete, onSkip }) {
                     position: "absolute",
                     inset: 0,
                     background:
-                      "linear-gradient(180deg, transparent 20%, rgba(58,66,80,0.92) 100%)",
+                      "linear-gradient(180deg, transparent 20%, rgba(18,22,28,0.92) 100%)",
                   }}
                 />
                 <div

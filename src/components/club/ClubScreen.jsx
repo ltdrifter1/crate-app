@@ -383,7 +383,7 @@ export default function ClubScreen({
               fontWeight: 700,
               letterSpacing: 1.6,
               textTransform: "uppercase",
-              color: color.muted,
+              color: "rgba(12,15,19,0.6)",
               fontFamily: fontMono,
             }}>
               No.
@@ -393,7 +393,7 @@ export default function ClubScreen({
               fontWeight: 650,
               letterSpacing: 1.2,
               fontFamily: fontMono,
-              color: color.accent,
+              color: "#0C0F13",
               fontVariantNumeric: "tabular-nums",
             }}>
               {memberNumberLabel(memberNo || 0).replace(/^Member\s+/i, "")}

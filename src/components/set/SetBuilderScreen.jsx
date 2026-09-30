@@ -382,7 +382,7 @@ function BoothStage({
         position: "absolute",
         inset: 0,
         background: `
-          linear-gradient(180deg, rgba(58,66,80,0.15) 0%, rgba(58,66,80,0.2) 40%, rgba(58,66,80,0.92) 100%)
+          linear-gradient(180deg, rgba(58,66,80,0.15) 0%, rgba(58,66,80,0.2) 40%, rgba(18,22,28,0.92) 100%)
         `,
       }} />
       <div style={{

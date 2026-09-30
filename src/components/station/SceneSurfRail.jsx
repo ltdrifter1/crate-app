@@ -141,7 +141,7 @@ function SceneSurfRail({
                 border: `1px solid ${active ? color.accent : glass.borderSoft}`,
                 background: active
                   ? `
-                    linear-gradient(160deg, rgba(48,53,62,0.98) 0%, rgba(20,23,28,0.98) 72%)
+                    linear-gradient(160deg, rgba(48,53,62,0.98) 0%, rgba(10,12,15,0.98) 72%)
                   `
                   : `
                     linear-gradient(160deg, rgba(41,46,54,0.96) 0%, rgba(21,24,29,0.98) 72%)

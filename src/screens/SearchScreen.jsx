@@ -41,7 +41,7 @@ function SearchScreen({
   const visibleResults = showAllResults ? results : results.slice(0, RESULT_CAP);
   const useVirtual = showAllResults && results.length > RESULT_CAP;
   const hintChip = {
-    background: "rgba(22, 27, 34, 0.88)",
+    background: "rgba(12, 15, 19, 0.88)",
     border: `1px solid ${glass.borderSoft}`,
     borderRadius: 4,
     padding: "7px 13px",

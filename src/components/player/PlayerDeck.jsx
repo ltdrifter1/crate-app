@@ -108,6 +108,7 @@ export default function PlayerDeck({
         </div>
       ) : (
       <div className="pmp-deck-keys pmp-deck-pad">
+        <div className="pmp-deck-group pmp-deck-group--transport">
         {onPrev ? (
           <HardwareIconButton
             label="Previous"
@@ -136,13 +137,15 @@ export default function PlayerDeck({
             <Icon name="skip" size={15} />
           </HardwareIconButton>
         ) : null}
+        </div>
+        <div className="pmp-deck-group pmp-deck-group--actions">
         {onLike ? (
           <HardwareIconButton
             label={liked ? "Unlike" : "Like"}
             active={!!liked}
             onClick={onLike}
             stopPropagation={stopPropagation}
-            size={36}
+            size={34}
           >
             <span style={{ display: "flex", animation: liked ? "likePop 0.25s ease" : "none" }}>
               <Icon name={liked ? "heart" : "heartempty"} size={15} />
@@ -155,7 +158,7 @@ export default function PlayerDeck({
             active={!!disliked}
             onClick={onDislike}
             stopPropagation={stopPropagation}
-            size={36}
+            size={34}
           >
             <Icon name={disliked ? "dislikefilled" : "dislike"} size={15} />
           </HardwareIconButton>
@@ -165,7 +168,7 @@ export default function PlayerDeck({
             label="Share"
             onClick={onShare}
             stopPropagation={stopPropagation}
-            size={36}
+            size={34}
           >
             <Icon name="share" size={15} />
           </HardwareIconButton>
@@ -175,12 +178,13 @@ export default function PlayerDeck({
             label="Up next"
             onClick={onShowQueue}
             stopPropagation={stopPropagation}
-            size={36}
+            size={34}
           >
             <Icon name="queue" size={15} />
           </HardwareIconButton>
         ) : null}
         {extraKeys}
+        </div>
       </div>
       )}
       <RabbitTurtleSlot compact stopPropagation={paceStopPropagation} />

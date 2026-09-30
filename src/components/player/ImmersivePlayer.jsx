@@ -14,6 +14,7 @@ import {
   artShadow,
   aluminumGradient,
   hardware,
+  mtv,
   radio,
   y2k,
 } from "../../theme";
@@ -35,7 +36,6 @@ import {
   DeviceCatalogMark,
   HardwareIconButton as ChromeIconButton,
   LcdMetaLine,
-  LcdPanel,
   LcdSeek as ChromeSeek,
   LcdArtist,
   formatBitrate,
@@ -484,7 +484,7 @@ export default function ImmersivePlayer({
                         borderRadius: 11,
                         flexShrink: 0,
                         position: "relative",
-                        background: crossfadeOn ? color.accent : "rgba(42,50,60,0.92)",
+                        background: crossfadeOn ? color.accent : "rgba(30,36,44,0.92)",
                         transition: `background ${motion.base} ${EASE}`,
                         boxShadow: crossfadeOn ? `0 0 10px ${y2k.chromeGlow}` : "none",
                       }}
@@ -548,12 +548,6 @@ export default function ImmersivePlayer({
           minHeight: 0,
           gap: 16,
           margin: "0 16px",
-          borderRadius: 18,
-          background: glass.fillStrong,
-          border: `1px solid ${glass.border}`,
-          boxShadow: `inset 0 1px 0 ${glass.highlight}, ${glass.shadowLift}`,
-          backdropFilter: glass.blur,
-          WebkitBackdropFilter: glass.blur,
         }}
       >
         {dedicationFlash && (
@@ -568,9 +562,7 @@ export default function ImmersivePlayer({
             position: "relative",
             width: hasVideo ? "min(42vw, 168px)" : "min(72vw, 520px)",
             aspectRatio: "1 / 1",
-            borderRadius: 18,
-            padding: 4,
-            background: hardware.keyFace,
+            borderRadius: 16,
             boxShadow: isPlaying ? artShadow.raised : artShadow.quiet,
             animation: isPlaying
               ? `coverSettle 1.1s ${EASE} both, trackSwap 0.45s ${EASE} both`
@@ -586,7 +578,7 @@ export default function ImmersivePlayer({
               position: "relative",
               width: "100%",
               height: "100%",
-              borderRadius: 14,
+              borderRadius: 16,
               overflow: "hidden",
               background: y2k.charcoalRaised,
               border: "1px solid rgba(255,255,255,0.10)",
@@ -637,24 +629,36 @@ export default function ImmersivePlayer({
         </div>
 
         {/* Title hierarchy */}
-        <LcdPanel
-          live={isPlaying}
+        <div
+          className="pmp-hero-id"
           style={{
             width: "100%",
             maxWidth: 720,
-            padding: "12px 14px 10px",
             animation: `trackSwap 0.35s ${EASE} both`,
           }}
         >
+         <div style={{ position: "relative", padding: "2px 0 2px 16px" }}>
+          <span
+            aria-hidden="true"
+            style={{
+              position: "absolute",
+              left: 0,
+              top: 3,
+              bottom: 3,
+              width: 4,
+              background: isPlaying ? mtv.hot : color.faint,
+            }}
+          />
           <div
             className={currentTrack.title?.length > 22 ? "pmp-lcd-marquee" : undefined}
             style={{
               fontFamily: fontPoster,
-              fontSize: "clamp(24px, 5.4vw, 36px)",
+              fontSize: "clamp(32px, 9vw, 50px)",
               fontWeight: 800,
-              letterSpacing: -0.4,
-              color: color.lcdInk,
-              lineHeight: 1.12,
+              letterSpacing: 0.3,
+              textTransform: "uppercase",
+              color: color.ink,
+              lineHeight: 1,
               marginBottom: 6,
               overflow: "hidden",
               whiteSpace: currentTrack.title?.length > 22 ? "nowrap" : undefined,
@@ -677,8 +681,9 @@ export default function ImmersivePlayer({
                 background: "none",
                 border: "none",
                 padding: 0,
-                color: color.lcdMute,
-                fontSize: 15,
+                color: color.body,
+                fontFamily: fontDisplay,
+                fontSize: 17,
                 fontWeight: 600,
                 cursor: "pointer",
                 letterSpacing: -0.2,
@@ -693,6 +698,7 @@ export default function ImmersivePlayer({
           <div style={{ marginTop: 8 }}>
             <LcdMetaLine bits={metaBits} />
           </div>
+         </div>
 
           {upNextTrack && (
             <button
@@ -701,6 +707,7 @@ export default function ImmersivePlayer({
               style={{
                 marginTop: 12,
                 paddingTop: 10,
+                paddingLeft: 16,
                 width: "100%",
                 display: "block",
                 textAlign: "left",
@@ -746,7 +753,7 @@ export default function ImmersivePlayer({
               </span>
             </button>
           )}
-        </LcdPanel>
+        </div>
       </div>
 
       {/* Booth drawer — demoted secondary tools */}
@@ -834,13 +841,7 @@ export default function ImmersivePlayer({
           style={{
             width: "min(92vw, 1100px)",
             margin: "0 auto",
-            padding: "10px 12px 8px",
-            borderRadius: 22,
-            background: glass.fillStrong,
-            border: `1px solid ${glass.border}`,
-            boxShadow: `inset 0 1px 0 ${glass.highlight}, ${glass.shadowSoft}`,
-            backdropFilter: glass.blur,
-            WebkitBackdropFilter: glass.blur,
+            padding: "10px 4px 8px",
             animation: `dockRise 0.5s ${EASE} both`,
           }}
         >

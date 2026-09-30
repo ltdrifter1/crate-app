@@ -8,6 +8,7 @@ import {
   glass,
   glassStage,
   homeSpace,
+  mtv,
   trim,
   y2k,
 } from "../../theme";
@@ -23,7 +24,6 @@ import { HERO_IDLE_ART, HERO_IDLE_FOCUS } from "../../lib/heroIdle";
 import ScanlineWash from "./ScanlineWash";
 import {
   LcdMetaLine,
-  LcdPanel,
   formatBitrate,
   trackLcdBits,
 } from "../player/DeviceChrome";
@@ -59,21 +59,20 @@ function ChannelIdent({ bugLine, slug }) {
         alignItems: "stretch",
         overflow: "hidden",
         borderRadius: 2,
-        border: "1px solid rgba(213,220,230,0.45)",
+        border: `1px solid ${mtv.plate}`,
         background: "rgba(0,0,0,0.55)",
         maxWidth: "100%",
       }}
     >
       <span
         style={{
-          padding: "5px 8px",
+          padding: "5px 9px",
           fontFamily: fontPoster,
-          fontSize: 12,
+          fontSize: 13,
           fontWeight: 800,
-          letterSpacing: 0.12,
-          color: "#1C222B",
-          borderRight: "1px solid rgba(213,220,230,0.45)",
-          background: color.accent,
+          letterSpacing: mtv.caps,
+          color: mtv.plateInk,
+          background: mtv.plate,
           whiteSpace: "nowrap",
         }}
       >
@@ -83,11 +82,11 @@ function ChannelIdent({ bugLine, slug }) {
         style={{
           padding: "5px 10px",
           fontFamily: fontPoster,
-          fontSize: 12,
+          fontSize: 13,
           fontWeight: 800,
-          letterSpacing: 0.08,
+          letterSpacing: mtv.caps,
           textTransform: "uppercase",
-          color: color.accent,
+          color: mtv.plate,
           overflow: "hidden",
           textOverflow: "ellipsis",
           whiteSpace: "nowrap",
@@ -111,10 +110,13 @@ function JewelSleeve({ src, idleSrc, playing, eager = false, size = 148, wellCol
         alignSelf: "center",
         aspectRatio: "1 / 1",
         flexShrink: 0,
-        borderRadius: 10,
+        borderRadius: 16,
         overflow: "hidden",
-        border: playing ? `2px solid ${color.accent}` : "1px solid rgba(255,255,255,0.12)",
-        boxShadow: playing ? artShadow.active : artShadow.raised,
+        border: "1px solid rgba(255,255,255,0.10)",
+        boxShadow:
+          playing && /^#[0-9a-f]{6}$/i.test(wellColor)
+            ? `${artShadow.raised}, 0 22px 64px ${wellColor}44`
+            : artShadow.raised,
         background: wellColor || "#0E1116",
       }}
     >
@@ -166,8 +168,8 @@ function JewelSleeve({ src, idleSrc, playing, eager = false, size = 148, wellCol
           inset: 0,
           pointerEvents: "none",
           background: `
-            repeating-linear-gradient(0deg, rgba(0,0,0,0.08) 0 1px, transparent 1px 3px),
-            linear-gradient(180deg, rgba(0,0,0,0.18) 0%, transparent 28%, transparent 52%, rgba(0,0,0,0.78) 100%)
+            repeating-linear-gradient(0deg, rgba(0,0,0,0.07) 0 1px, transparent 1px 3px),
+            linear-gradient(180deg, rgba(255,255,255,0.06) 0%, transparent 30%)
           `,
         }}
       />
@@ -181,66 +183,53 @@ function UpNextGlass({ track }) {
     <div
       className="pmp-upnext-glass"
       style={{
-        marginTop: 10,
+        marginTop: 14,
         minWidth: 0,
-        padding: 2,
-        borderRadius: 16,
-        background: trim.gradient,
-        boxShadow: "0 10px 24px rgba(0,0,0,0.28)",
+        display: "flex",
+        alignItems: "center",
+        gap: 12,
+        padding: "9px 12px 9px 9px",
+        borderRadius: 14,
+        background: "rgba(255,255,255,0.05)",
+        border: "1px solid rgba(255,255,255,0.07)",
       }}
     >
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          gap: 10,
-          minWidth: 0,
-          padding: "8px 10px 8px 8px",
-          borderRadius: 14,
-          background:
-            "linear-gradient(165deg, rgba(42,50,60,0.96) 0%, rgba(28,34,43,0.94) 100%)",
-          boxShadow: "inset 0 1px 0 rgba(200,210,222,0.16)",
-          backdropFilter: glass.blurSoft,
-          WebkitBackdropFilter: glass.blurSoft,
-        }}
-      >
       {track.albumCover ? (
-        <span style={{ display: "block", width: 36, height: 36, flexShrink: 0, borderRadius: 10, overflow: "hidden" }}>
-        <CoverImage
-          src={track.albumCover}
-          alt=""
-          width={36}
-          height={36}
-          wellColor={track.color || ""}
-          style={{
-            width: 36,
-            height: 36,
-            borderRadius: 10,
-            objectFit: "cover",
-            flexShrink: 0,
-            boxShadow: "0 4px 10px rgba(58,66,80,0.18)",
-          }}
-        />
+        <span style={{ display: "block", width: 40, height: 40, flexShrink: 0, borderRadius: 8, overflow: "hidden" }}>
+          <CoverImage
+            src={track.albumCover}
+            alt=""
+            width={40}
+            height={40}
+            wellColor={track.color || ""}
+            style={{
+              width: 40,
+              height: 40,
+              borderRadius: 8,
+              objectFit: "cover",
+              flexShrink: 0,
+            }}
+          />
         </span>
       ) : null}
       <div style={{ minWidth: 0, flex: 1 }}>
         <div
           style={{
-            fontFamily: fontDisplay,
-            fontSize: 11,
-            fontWeight: 700,
-            letterSpacing: 0.16,
+            fontFamily: fontPoster,
+            fontSize: 12,
+            fontWeight: 800,
+            letterSpacing: mtv.caps,
             textTransform: "uppercase",
-            color: color.accent,
+            color: color.muted,
           }}
         >
           Up next
         </div>
         <div
           style={{
-            marginTop: 2,
-            fontSize: 13,
-            fontWeight: 650,
+            marginTop: 1,
+            fontSize: 14,
+            fontWeight: 600,
             letterSpacing: -0.2,
             color: color.ink,
             overflow: "hidden",
@@ -251,7 +240,6 @@ function UpNextGlass({ track }) {
           {track.title}
           {track.artist ? ` — ${track.artist}` : ""}
         </div>
-      </div>
       </div>
     </div>
   );
@@ -453,10 +441,10 @@ export default function HeroPlayerCard({
               position: "relative",
               width: "100%",
               aspectRatio: "16 / 9",
-              borderRadius: 4,
+              borderRadius: 14,
               overflow: "hidden",
-              border: `2px solid ${color.accent}`,
-              boxShadow: artShadow.active,
+              border: "1px solid rgba(255,255,255,0.10)",
+              boxShadow: artShadow.raised,
               background: "#0E1116",
             }}
           >
@@ -489,96 +477,94 @@ export default function HeroPlayerCard({
             animation: "trackSwap 0.35s ease both",
           }}
         >
-          <LcdPanel live={live && isPlaying} style={{ padding: "12px 14px 12px", borderRadius: 4 }}>
           <div
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 8,
-              marginBottom: 8,
-            }}
+            className="pmp-hero-id"
+            style={{ position: "relative", padding: "2px 0 2px 16px" }}
           >
             <span
               aria-hidden="true"
               style={{
-                width: 8,
-                height: 8,
-                borderRadius: 1,
-                background: live ? color.alert : color.lcdMute,
-                opacity: 0.95,
+                position: "absolute",
+                left: 0,
+                top: 3,
+                bottom: 3,
+                width: 4,
+                background: live ? mtv.hot : color.faint,
               }}
             />
-            {!live && (
-              <span
-                aria-hidden="true"
-                style={{
-                  width: 18,
-                  height: 18,
-                  display: "block",
-                  backgroundImage: "url(/brand/planet-mascot.svg)",
-                  backgroundSize: "contain",
-                  backgroundRepeat: "no-repeat",
-                  backgroundPosition: "center",
-                  opacity: 0.92,
-                  flexShrink: 0,
-                }}
-              />
-            )}
             <div
               style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 8,
+                marginBottom: 6,
                 fontFamily: fontPoster,
                 fontSize: 13,
                 fontWeight: 800,
-                letterSpacing: 0.16,
+                letterSpacing: mtv.caps,
                 textTransform: "uppercase",
-                color: color.accent,
+                color: color.body,
               }}
             >
+              {!live && (
+                <span
+                  aria-hidden="true"
+                  style={{
+                    width: 16,
+                    height: 16,
+                    display: "block",
+                    backgroundImage: "url(/brand/planet-mascot.svg)",
+                    backgroundSize: "contain",
+                    backgroundRepeat: "no-repeat",
+                    backgroundPosition: "center",
+                    opacity: 0.92,
+                    flexShrink: 0,
+                  }}
+                />
+              )}
               {live ? "Now playing" : idleEyebrow}
             </div>
-          </div>
 
-          <div
-            style={{
-              fontFamily: fontPoster,
-              fontStyle: "normal",
-              fontSize: "clamp(22px, 5vw, 32px)",
-              fontWeight: 800,
-              letterSpacing: -0.4,
-              lineHeight: 1.08,
-              color: color.lcdInk,
-              overflow: "hidden",
-              textOverflow: "ellipsis",
-              display: "-webkit-box",
-              WebkitLineClamp: 2,
-              WebkitBoxOrient: "vertical",
-              paddingRight: 12,
-            }}
-          >
-            {title}
-          </div>
-          <div
-            style={{
-              marginTop: 4,
-              fontSize: 14,
-              fontWeight: 600,
-              color: color.lcdMute,
-              overflow: "hidden",
-              textOverflow: "ellipsis",
-              whiteSpace: "nowrap",
-            }}
-          >
-            {artist}
-          </div>
+            <div
+              style={{
+                fontFamily: fontPoster,
+                fontStyle: "normal",
+                fontSize: "clamp(36px, 10.5vw, 54px)",
+                fontWeight: 800,
+                letterSpacing: 0.3,
+                lineHeight: 1,
+                textTransform: "uppercase",
+                color: color.ink,
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                display: "-webkit-box",
+                WebkitLineClamp: 2,
+                WebkitBoxOrient: "vertical",
+                paddingRight: 12,
+              }}
+            >
+              {title}
+            </div>
+            <div
+              style={{
+                marginTop: 6,
+                fontFamily: fontDisplay,
+                fontSize: 17,
+                fontWeight: 600,
+                letterSpacing: -0.2,
+                color: color.body,
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                whiteSpace: "nowrap",
+              }}
+            >
+              {artist}
+            </div>
 
-          <div style={{ marginTop: 8 }}>
-            <LcdMetaLine bits={lcdBits} />
+            <div style={{ marginTop: 10, color: color.muted }}>
+              <LcdMetaLine bits={lcdBits} on="metal" />
+            </div>
           </div>
-          </LcdPanel>
-
-          {live && upNextTrack?.title && (
-            <UpNextGlass track={upNextTrack} />
-          )}
         </div>
       </div>
 
@@ -613,15 +599,21 @@ export default function HeroPlayerCard({
           disliked={!!track?.disliked}
         />
 
+        {live && upNextTrack?.title && (
+          <UpNextGlass track={upNextTrack} />
+        )}
+
         {tickerText ? (
           <div
             aria-hidden="true"
             className="pmp-hero-ticker"
             style={{
-              marginTop: 10,
+              marginTop: 12,
+              padding: "7px 0",
               overflow: "hidden",
-              maskImage: "linear-gradient(90deg, transparent 0%, #000 8%, #000 92%, transparent 100%)",
-              WebkitMaskImage: "linear-gradient(90deg, transparent 0%, #000 8%, #000 92%, transparent 100%)",
+              borderTop: "1px solid rgba(255,255,255,0.08)",
+              maskImage: "linear-gradient(90deg, transparent 0%, #000 6%, #000 94%, transparent 100%)",
+              WebkitMaskImage: "linear-gradient(90deg, transparent 0%, #000 6%, #000 94%, transparent 100%)",
             }}
           >
             <div
@@ -629,15 +621,20 @@ export default function HeroPlayerCard({
               style={{
                 display: "inline-block",
                 whiteSpace: "nowrap",
-                fontFamily: fontDisplay,
+                fontFamily: fontPoster,
                 fontSize: 13,
-                fontWeight: 400,
-                letterSpacing: -0.08,
-                textTransform: "none",
-                color: color.muted,
+                fontWeight: 800,
+                letterSpacing: "0.14em",
+                textTransform: "uppercase",
+                color: color.body,
               }}
             >
-              {tickerText} · {tickerText} ·
+              {[0, 1].map((i) => (
+                <span key={i}>
+                  {tickerText}
+                  <span style={{ color: mtv.hot, margin: "0 16px" }}>■</span>
+                </span>
+              ))}
             </div>
           </div>
         ) : null}

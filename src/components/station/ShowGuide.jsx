@@ -270,7 +270,7 @@ function TuneInKey({ tuned, onTuneIn, compact = false }) {
           borderRadius: "50%",
           border: tuned ? `2px solid ${y2k.cyan}` : "2px solid #1A1E24",
           boxShadow: tuned
-            ? `inset 0 0 0 2px rgba(58,66,80,0.9), 0 0 8px rgba(${chrome.cyanRgb},0.5)`
+            ? `inset 0 0 0 2px rgba(18,22,28,0.9), 0 0 8px rgba(${chrome.cyanRgb},0.5)`
             : "inset 0 0 0 2px rgba(232,236,242,0.9)",
           background: tuned ? y2k.cyan : "transparent",
         }}

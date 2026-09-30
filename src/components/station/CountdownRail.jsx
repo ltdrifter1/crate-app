@@ -128,7 +128,7 @@ export default function CountdownRail({
                   border: `1px solid ${active ? color.accent : glass.borderSoft}`,
                   background: active
                     ? "linear-gradient(90deg, rgba(169,199,228,0.1) 0%, rgba(24,27,32,0.98) 28%)"
-                    : "linear-gradient(90deg, rgba(37,42,49,0.96) 0%, rgba(20,23,28,0.98) 72%)",
+                    : "linear-gradient(90deg, rgba(37,42,49,0.96) 0%, rgba(10,12,15,0.98) 72%)",
                   boxShadow: active
                     ? `inset 4px 0 0 ${color.accent}, inset 0 1px 0 ${glass.highlight}`
                     : `inset 0 1px 0 ${glass.highlight}, inset 0 -1px 0 rgba(58,66,80,0.5)`,
