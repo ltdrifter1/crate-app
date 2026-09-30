@@ -243,7 +243,7 @@ const injectStyles = () => {
     button.play-primary:active,
     button.pmp-hw-key:active {
       transform: translateY(1px) scale(0.97) !important;
-      box-shadow: inset 0 2px 4px rgba(58, 66, 80, 0.28), inset 0 1px 0 rgba(58, 66, 80, 0.16) !important;
+      box-shadow: inset 0 2px 4px rgba(6,10,16, 0.28), inset 0 1px 0 rgba(6,10,16, 0.16) !important;
       opacity: 1;
     }
     button.glass-control:hover {
@@ -277,24 +277,18 @@ const injectStyles = () => {
     input.chrome-seek::-webkit-slider-runnable-track { height: 10px; background: transparent; border: none; }
     input.chrome-seek::-moz-range-track { height: 10px; background: transparent; border: none; }
     input.chrome-seek::-webkit-slider-thumb {
-      -webkit-appearance: none; appearance: none; width: 11px; height: 18px; margin-top: -4px;
-      border-radius: 3px;
-      background: linear-gradient(180deg, #D8E4F4 0%, #A8B4C6 55%, #9AA4B6 100%);
-      border: 1px solid rgba(168,180,198,0.55);
-      box-shadow:
-        inset 0 1px 0 rgba(228,247,250,0.45),
-        0 0 10px ${color.lcdSignalGlow},
-        0 3px 6px rgba(6,10,16,0.45);
+      -webkit-appearance: none; appearance: none; width: 14px; height: 14px; margin-top: -2px;
+      border-radius: 50%;
+      background: #F4F7FB;
+      border: none;
+      box-shadow: 0 2px 6px rgba(6,10,16,0.55), 0 0 0 4px rgba(244,247,251,0.10);
       cursor: pointer;
     }
     input.chrome-seek::-moz-range-thumb {
-      width: 11px; height: 18px; border-radius: 3px;
-      background: linear-gradient(180deg, #D8E4F4 0%, #A8B4C6 55%, #9AA4B6 100%);
-      border: 1px solid rgba(168,180,198,0.55);
-      box-shadow:
-        inset 0 1px 0 rgba(228,247,250,0.45),
-        0 0 10px ${color.lcdSignalGlow},
-        0 3px 6px rgba(6,10,16,0.45);
+      width: 14px; height: 14px; border-radius: 50%;
+      background: #F4F7FB;
+      border: none;
+      box-shadow: 0 2px 6px rgba(6,10,16,0.55), 0 0 0 4px rgba(244,247,251,0.10);
       cursor: pointer;
     }
     input.pace-range {
@@ -320,7 +314,7 @@ const injectStyles = () => {
       height: 22px;
       margin-top: -6px;
       border-radius: 4px;
-      background: linear-gradient(180deg, #2C3440 0%, #242A33 48%, #1C222B 100%);
+      background: linear-gradient(180deg, #222932 0%, #181D24 48%, #12161C 100%);
       border: 2px solid ${trim.blue};
       box-shadow:
         0 0 0 1px ${trim.lime},
@@ -333,7 +327,7 @@ const injectStyles = () => {
       width: 16px;
       height: 22px;
       border-radius: 4px;
-      background: linear-gradient(180deg, #2C3440 0%, #242A33 48%, #1C222B 100%);
+      background: linear-gradient(180deg, #222932 0%, #181D24 48%, #12161C 100%);
       border: 2px solid ${trim.blue};
       box-shadow:
         0 0 0 1px ${trim.lime},
@@ -517,7 +511,7 @@ const injectStyles = () => {
     }
     .flask-taste-btn:hover:not(:disabled) {
       transform: translateY(-1px);
-      box-shadow: inset 0 1px 0 rgba(216,223,232,0.12), 0 10px 22px rgba(58,66,80,0.45) !important;
+      box-shadow: inset 0 1px 0 rgba(216,223,232,0.12), 0 10px 22px rgba(6,10,16,0.45) !important;
     }
     .flask-taste-btn:active:not(:disabled) {
       transform: translateY(0) scale(0.97);
@@ -571,11 +565,10 @@ const injectStyles = () => {
     }
     .glass-dock {
       background: ${radio.moduleFace};
-      border: 1px solid rgba(91,101,116,0.28);
+      border: 1px solid rgba(255,255,255,0.08);
       box-shadow:
-        inset 0 1px 0 rgba(216,223,232,0.5),
-        inset 0 -1px 0 rgba(58,66,80,0.18),
-        0 12px 28px rgba(58,66,80,0.22);
+        inset 0 1px 0 rgba(255,255,255,0.07),
+        0 12px 28px rgba(6,10,16,0.5);
       -webkit-backdrop-filter: ${glass.blurHeavy};
       backdrop-filter: ${glass.blurHeavy};
       transition: background 0.6s ease, box-shadow 0.35s ease;
@@ -651,7 +644,7 @@ const injectStyles = () => {
     }
     .pmp-tune-key:hover {
       filter: brightness(1.06);
-      box-shadow: 0 6px 16px rgba(58,66,80,0.28) !important;
+      box-shadow: 0 6px 16px rgba(6,10,16,0.28) !important;
     }
     .pmp-tune-key:active {
       transform: scale(0.97);
@@ -659,11 +652,11 @@ const injectStyles = () => {
       box-shadow: none !important;
     }
     .pmp-tune-key--locked:hover {
-      box-shadow: 0 6px 16px rgba(58,66,80,0.28) !important;
+      box-shadow: 0 6px 16px rgba(6,10,16,0.28) !important;
     }
     .pmp-schedule-cell:hover {
       border-color: rgba(91,101,116,0.35) !important;
-      box-shadow: 0 6px 16px rgba(58,66,80,0.35) !important;
+      box-shadow: 0 6px 16px rgba(6,10,16,0.35) !important;
     }
     .pmp-dial-cell:hover {
       color: ${color.ink};
@@ -716,12 +709,12 @@ const injectStyles = () => {
       border-color: rgba(91,101,116,0.16) !important;
       box-shadow:
         inset 0 1px 0 rgba(216,223,232,0.1),
-        0 12px 28px rgba(58,66,80,0.4) !important;
+        0 12px 28px rgba(6,10,16,0.4) !important;
       transform: translateY(-1px);
     }
     .custom-mix:hover .custom-mix-play {
       transform: scale(1.04);
-      box-shadow: 0 8px 20px rgba(58,66,80,0.4) !important;
+      box-shadow: 0 8px 20px rgba(6,10,16,0.4) !important;
     }
     .custom-mix:active {
       transform: scale(0.992);

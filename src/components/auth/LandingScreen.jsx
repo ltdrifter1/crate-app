@@ -71,8 +71,8 @@ function ScanlineOverlay() {
           to bottom,
           transparent 0px,
           transparent 3px,
-          rgba(58,66,80,0.04) 3px,
-          rgba(58,66,80,0.04) 4px
+          rgba(6,10,16,0.04) 3px,
+          rgba(6,10,16,0.04) 4px
         )`,
         mixBlendMode: "multiply",
       }}
@@ -528,7 +528,7 @@ export default function LandingScreen({
             overflow: "hidden",
             background: radioStyle.moduleFace,
             border: "1px solid rgba(91,101,116,0.18)",
-            boxShadow: "inset 0 1px 0 rgba(216,223,232,0.45), 0 12px 32px rgba(58,66,80,0.18)",
+            boxShadow: "inset 0 1px 0 rgba(216,223,232,0.45), 0 12px 32px rgba(6,10,16,0.18)",
           }}
         >
           {/* Board header */}
@@ -600,7 +600,7 @@ export default function LandingScreen({
             overflow: "hidden",
             background: radioStyle.moduleFace,
             border: "1px solid rgba(91,101,116,0.18)",
-            boxShadow: "inset 0 1px 0 rgba(216,223,232,0.45), 0 12px 32px rgba(58,66,80,0.18)",
+            boxShadow: "inset 0 1px 0 rgba(216,223,232,0.45), 0 12px 32px rgba(6,10,16,0.18)",
           }}
         >
           <div
@@ -644,7 +644,7 @@ export default function LandingScreen({
           background: "rgba(74,83,96,0.86)",
           border: "1px solid rgba(91,101,116,0.12)",
           borderRadius: 14,
-          boxShadow: "inset 0 1px 0 rgba(216,223,232,0.08), 0 16px 44px rgba(58,66,80,0.4)",
+          boxShadow: "inset 0 1px 0 rgba(216,223,232,0.08), 0 16px 44px rgba(6,10,16,0.4)",
           backdropFilter: glass.blurHeavy,
           WebkitBackdropFilter: glass.blurHeavy,
           display: "flex",
@@ -667,7 +667,7 @@ export default function LandingScreen({
             padding: "14px 20px",
             borderRadius: 10,
             ...trimStroke("linear-gradient(180deg, #F4F7FA 0%, #E4EAF1 100%)", 2),
-            boxShadow: "0 1px 0 rgba(28,32,40,0.22), 0 4px 16px rgba(58,66,80,0.18)",
+            boxShadow: "0 1px 0 rgba(28,32,40,0.22), 0 4px 16px rgba(6,10,16,0.18)",
             cursor: loading ? "wait" : "pointer",
             opacity: loading ? 0.7 : 1,
           }}

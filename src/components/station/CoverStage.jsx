@@ -218,8 +218,8 @@ export default function CoverStage({
               repeating-linear-gradient(90deg, rgba(216,223,232,0.018) 0 1px, transparent 1px 4px),
               ${glass.frame}
             `,
-            borderBottom: "1px solid rgba(58,66,80,0.72)",
-            boxShadow: "inset 0 1px 0 rgba(216,223,232,0.1), 0 6px 16px rgba(58,66,80,0.34)",
+            borderBottom: "1px solid rgba(6,10,16,0.72)",
+            boxShadow: "inset 0 1px 0 rgba(216,223,232,0.1), 0 6px 16px rgba(6,10,16,0.34)",
           }}
         >
           <div style={{
@@ -319,9 +319,9 @@ export default function CoverStage({
               boxShadow: `
                 ${hardware.plateEdge},
                 inset 1px 0 0 rgba(216,223,232,0.05),
-                inset -1px 0 0 rgba(58,66,80,0.28),
-                inset 0 -1px 0 rgba(58,66,80,0.55),
-                0 -12px 28px rgba(58,66,80,0.42)
+                inset -1px 0 0 rgba(6,10,16,0.28),
+                inset 0 -1px 0 rgba(6,10,16,0.55),
+                0 -12px 28px rgba(6,10,16,0.42)
               `,
               animation: `dockRise 0.55s ${motion.ease} both`,
               position: "relative",
@@ -340,7 +340,7 @@ export default function CoverStage({
                   linear-gradient(180deg, rgba(216,223,232,0.055) 0%, transparent 18%),
                   repeating-linear-gradient(0deg, transparent 0 2px, rgba(216,223,232,0.008) 2px 3px)
                 `,
-                boxShadow: "inset 1px 0 0 rgba(216,223,232,0.05), inset -1px 0 0 rgba(58,66,80,0.28)",
+                boxShadow: "inset 1px 0 0 rgba(216,223,232,0.05), inset -1px 0 0 rgba(6,10,16,0.28)",
               }}
             />
 
@@ -382,7 +382,7 @@ export default function CoverStage({
                 height: 1,
                 margin: "10px 0 7px",
                 background: hardware.rule,
-                boxShadow: "0 1px 0 rgba(58,66,80,0.55)",
+                boxShadow: "0 1px 0 rgba(6,10,16,0.55)",
               }}
             />
 
@@ -399,7 +399,7 @@ export default function CoverStage({
                 height: 1,
                 margin: "7px 0 6px",
                 background: hardware.rule,
-                boxShadow: "0 1px 0 rgba(58,66,80,0.55)",
+                boxShadow: "0 1px 0 rgba(6,10,16,0.55)",
               }}
             />
 

@@ -301,7 +301,7 @@ function DiscIcon({ size }) {
       {/* Vinyl record — outer ring + groove rings + label hole */}
       <circle cx="12" cy="12" r="10" />
       <circle cx="12" cy="12" r="7"  fill="rgba(0,0,0,0.35)" />
-      <circle cx="12" cy="12" r="4"  fill="rgba(58,66,80,0.8)" />
+      <circle cx="12" cy="12" r="4"  fill="rgba(6,10,16,0.8)" />
       <circle cx="12" cy="12" r="1.5" fill="rgba(183,228,238,0.7)" />
     </Ico>
   );

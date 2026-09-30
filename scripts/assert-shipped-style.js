@@ -7,7 +7,7 @@ const fs = require("fs");
 const path = require("path");
 
 const ROOT = path.join(__dirname, "..");
-const CHASSIS = "graphite-glass-20260930";
+const CHASSIS = "broadcast-glass-20260930";
 const htmlPath = path.join(ROOT, "build", "index.html");
 
 if (!fs.existsSync(htmlPath)) {
@@ -26,7 +26,7 @@ const css = cssFiles
 
 const need = [
   [`pmp-chassis ${CHASSIS}`, html.includes(`content="${CHASSIS}"`) || html.includes(`content='${CHASSIS}'`)],
-  ["obsidian canvas #1C222B", /#1C222B/i.test(html)],
+  ["deep charcoal canvas #12161C", /#12161C/i.test(html)],
   ["IBM Plex", /IBM\+Plex|IBM Plex/i.test(html)],
   ["Outfit", /Outfit/i.test(html)],
   ["steel splash 168,180,198", /168\s*,\s*180\s*,\s*198/.test(html)],
@@ -50,6 +50,7 @@ const forbid = [
   ["retired neon green fill", /#A8FF6A/i.test(html + css)],
   ["retired quiet-neon chassis stamp", /dark-premium-quiet-neon-20260925/.test(html)],
   ["retired discover chassis stamp", /dark-premium-discover-20260925/.test(html)],
+  ["retired graphite glass chassis stamp", /graphite-glass-20260930/.test(html)],
 ];
 
 let failed = false;

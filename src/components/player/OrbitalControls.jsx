@@ -1,11 +1,11 @@
 import { useRef } from "react";
 import Icon from "../ui/Icon";
 import { AlbumArt } from "../listen/AlbumArt";
-import { color, glass, hardware, motion } from "../../theme";
+import { color, glass, motion, mtv } from "../../theme";
 
 // ─── Shared transport primitives (soft modern play + linear-friendly progress) ─
 
-/** Hardware play key — shared by hero, dock, immersive, desktop. */
+/** Play key — a solid pearl disc, the one bright thing on any deck. */
 export function PlayKey({
   isPlaying = false,
   buffering = false,
@@ -17,11 +17,9 @@ export function PlayKey({
   ariaLabel,
   stopPropagation = false,
 }) {
-  const iSize = iconSize ?? Math.round(size * 0.34);
+  const iSize = iconSize ?? Math.round(size * 0.38);
   const busy = buffering && isPlaying;
-  const face = glowing
-    ? hardware.keyFace
-    : hardware.keyFace;
+  const face = "linear-gradient(180deg, #FFFFFF 0%, #DCE2EB 100%)";
   return (
     <button
       type="button"
@@ -38,42 +36,23 @@ export function PlayKey({
         width: size,
         height: size,
         borderRadius: "50%",
-        background: disabled ? hardware.keyFace : face,
-        border: disabled
-          ? "1px solid rgba(255,255,255,0.10)"
-          : glowing
-            ? "1.5px solid rgba(168,180,198,0.42)"
-            : "1.5px solid rgba(255,255,255,0.12)",
+        background: disabled ? "rgba(255,255,255,0.10)" : face,
+        border: "none",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        color: disabled ? color.faint : color.ink,
+        color: disabled ? color.faint : mtv.plateInk,
         cursor: disabled ? "not-allowed" : "pointer",
         flexShrink: 0,
         opacity: disabled ? 0.55 : 1,
         boxShadow: disabled
           ? "none"
           : glowing
-            ? `0 0 0 3px ${color.lcdSignalSoft}, 0 0 14px ${color.lcdSignalGlow}, ${hardware.keyRaised}`
-            : `0 0 0 3px ${color.lcdSignalSoft}, ${hardware.keyRaised}`,
+            ? `0 0 0 5px rgba(244,247,251,0.10), 0 10px 26px rgba(6,10,16,0.55), 0 0 30px ${color.lcdSignalGlow}`
+            : "0 8px 22px rgba(6,10,16,0.5)",
         transition: `transform ${motion.fast} ${motion.ease}, box-shadow ${motion.base} ${motion.ease}, background ${motion.fast} ${motion.ease}`,
       }}
     >
-      <span
-        aria-hidden="true"
-        className="pmp-play-pip"
-        style={{
-          position: "absolute",
-          top: Math.max(5, Math.round(size * 0.12)),
-          left: "50%",
-          width: 5,
-          height: 5,
-          marginLeft: -2.5,
-          borderRadius: "50%",
-          background: glowing ? color.lcdSignal : "rgba(200,210,222,0.28)",
-          boxShadow: glowing ? `0 0 10px ${color.lcdSignalGlow}` : "none",
-        }}
-      />
       {busy ? (
         <span
           aria-hidden="true"
@@ -81,8 +60,8 @@ export function PlayKey({
             width: Math.round(size * 0.38),
             height: Math.round(size * 0.38),
             borderRadius: "50%",
-            border: "2px solid rgba(168,180,198,0.18)",
-            borderTopColor: glowing ? color.onAccent : color.ink,
+            border: "2px solid rgba(12,15,19,0.16)",
+            borderTopColor: mtv.plateInk,
             animation: "spin 0.7s linear infinite",
           }}
         />

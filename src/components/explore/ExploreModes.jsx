@@ -107,7 +107,7 @@ export function ExploreTools({
               border: selected
                 ? `1px solid rgba(168,180,198,0.42)`
                 : "1px solid rgba(200,210,222,0.10)",
-              background: selected ? radio.lcdFace : "rgba(36,42,51,0.72)",
+              background: selected ? radio.lcdFace : "rgba(24,29,36,0.72)",
               color: selected ? color.lcdSignal : color.muted,
               cursor: "pointer",
               fontFamily: fontMono,

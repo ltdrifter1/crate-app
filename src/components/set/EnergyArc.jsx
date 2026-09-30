@@ -36,7 +36,7 @@ export default function EnergyArc({
           linear-gradient(160deg, #6A7482 0%, #5B6574 55%, #4A5360 100%)
         `,
         border: "1px solid rgba(18, 22, 16, 0.45)",
-        boxShadow: "inset 0 2px 8px rgba(58,66,80,0.45), inset 0 1px 0 rgba(111,191,58,0.12), 0 0 0 1px rgba(216,223,232,0.4)",
+        boxShadow: "inset 0 2px 8px rgba(6,10,16,0.45), inset 0 1px 0 rgba(111,191,58,0.12), 0 0 0 1px rgba(216,223,232,0.4)",
       }}
     >
       <svg

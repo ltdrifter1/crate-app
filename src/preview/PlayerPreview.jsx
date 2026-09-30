@@ -155,7 +155,7 @@ export default function PlayerPreview() {
             padding: "8px 12px",
             borderRadius: 8,
             border: "1px solid rgba(216,223,232,0.14)",
-            background: "rgba(58,66,80,0.72)",
+            background: "rgba(6,10,16,0.72)",
             color: color.ink,
             fontSize: 12,
             cursor: "pointer",

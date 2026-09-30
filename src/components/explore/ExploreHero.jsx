@@ -55,7 +55,7 @@ export default function ExploreHero({
           background: y2k.artGradient,
           boxShadow: `
             inset 0 1px 0 rgba(216,223,232,0.16),
-            0 18px 48px rgba(58,66,80,0.45)
+            0 18px 48px rgba(6,10,16,0.45)
           `,
           border: "1px solid rgba(216,223,232,0.12)",
         }}
@@ -81,8 +81,8 @@ export default function ExploreHero({
             position: "absolute",
             inset: 0,
             background: `
-              linear-gradient(180deg, rgba(58,66,80,0.08) 0%, rgba(58,66,80,0.2) 38%, rgba(58,66,80,0.88) 100%),
-              linear-gradient(90deg, rgba(58,66,80,0.35) 0%, transparent 55%)
+              linear-gradient(180deg, rgba(6,10,16,0.08) 0%, rgba(6,10,16,0.2) 38%, rgba(6,10,16,0.88) 100%),
+              linear-gradient(90deg, rgba(6,10,16,0.35) 0%, transparent 55%)
             `,
           }}
         />

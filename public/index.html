@@ -5,8 +5,8 @@
     <link rel="icon" href="%PUBLIC_URL%/favicon.svg" type="image/svg+xml" />
     <link rel="icon" href="%PUBLIC_URL%/favicon.png" type="image/png" sizes="32x32" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <meta name="theme-color" content="#1C222B" />
-      <meta name="pmp-chassis" content="graphite-glass-20260930" />
+    <meta name="theme-color" content="#12161C" />
+      <meta name="pmp-chassis" content="broadcast-glass-20260930" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
@@ -34,6 +34,7 @@
     <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
     <link rel="preload" href="%PUBLIC_URL%/fonts/outfit-400.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="preload" href="%PUBLIC_URL%/fonts/outfit-700.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="%PUBLIC_URL%/fonts/barlow-condensed-800.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="preconnect" href="https://crate-app-58494.firebasestorage.app" crossorigin />
     <link rel="preconnect" href="https://firebasestorage.googleapis.com" crossorigin />
     <link rel="dns-prefetch" href="https://firestore.googleapis.com" />
@@ -126,8 +127,8 @@
       }
       body {
         margin: 0;
-        background: #1C222B;
-        color: #E8EDF4;
+        background: #12161C;
+        color: #F4F7FB;
         color-scheme: dark;
         font-family: "Outfit", "IBM Plex Sans", "Lucida Grande", "Helvetica Neue", Helvetica, Inter, -apple-system, BlinkMacSystemFont, Arial, sans-serif;
         -webkit-font-smoothing: antialiased;
@@ -153,8 +154,8 @@
         padding: 24px;
         background:
           radial-gradient(ellipse 70% 48% at 50% 42%, rgba(168,180,198,0.12) 0%, transparent 58%),
-          radial-gradient(ellipse 90% 70% at 50% 100%, rgba(22,27,34,0.7) 0%, transparent 55%),
-          #1C222B;
+          radial-gradient(ellipse 90% 70% at 50% 100%, rgba(12,15,19,0.7) 0%, transparent 55%),
+          #12161C;
       }
       .pmp-spin-planet {
         width: min(220px, 52vw);
@@ -179,7 +180,7 @@
         border-radius: 50%;
         overflow: hidden;
         background:
-          radial-gradient(circle at 34% 30%, #E8EDF4 0%, #8a94a3 24%, #4a5462 52%, #2A323C 78%, #161B22 100%);
+          radial-gradient(circle at 34% 30%, #E8EDF4 0%, #8a94a3 24%, #4a5462 52%, #1E242C 78%, #0C0F13 100%);
         box-shadow:
           0 28px 48px rgba(6,10,16,0.55),
           0 0 0 1px rgba(200,210,222,0.16),

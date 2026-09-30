@@ -187,7 +187,7 @@ export default function FeatureTour({
           borderRadius: radio.radiusTight,
           border: radio.borderChrome,
           background: radio.moduleFace,
-          boxShadow: `inset 0 1px 0 ${glass.highlight}, ${glass.shadowLift || "0 24px 60px rgba(58,66,80,0.45)"}`,
+          boxShadow: `inset 0 1px 0 ${glass.highlight}, ${glass.shadowLift || "0 24px 60px rgba(6,10,16,0.45)"}`,
           backdropFilter: "none",
           WebkitBackdropFilter: "none",
         }}

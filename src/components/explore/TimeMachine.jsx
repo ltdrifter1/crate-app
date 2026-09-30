@@ -108,7 +108,7 @@ function TrackSliver({ track, active, onClick }) {
           borderRadius: 4,
           overflow: "hidden",
           flexShrink: 0,
-          background: "rgba(58,66,80,0.55)",
+          background: "rgba(6,10,16,0.55)",
           border: "1px solid rgba(216,223,232,0.12)",
         }}
       >
@@ -261,7 +261,7 @@ export default function TimeMachine({ tracks = [], onPlayTrack = null, activeId 
             background: radio.moduleFace,
             border: "1px solid rgba(91,101,116,0.18)",
             boxShadow:
-              "inset 0 1px 0 rgba(216,223,232,0.45), 0 8px 24px rgba(58,66,80,0.14)",
+              "inset 0 1px 0 rgba(216,223,232,0.45), 0 8px 24px rgba(6,10,16,0.14)",
             overflow: "hidden",
           }}
         >

@@ -54,7 +54,8 @@ test("theme source does not ship mint phosphor or DistroKid trim", () => {
   expect(theme).not.toMatch(/#367FC7/i);
   expect(theme).toMatch(/lcdSignal/);
   expect(theme).not.toMatch(/lcdPhosphor/);
-  expect(theme).toMatch(/graphite-glass-20260930/);
+  expect(theme).toMatch(/broadcast-glass-20260930/);
+  expect(theme).not.toMatch(/graphite-glass-20260930/);
   expect(theme).not.toMatch(/#A8FF6A/i);
   expect(theme).not.toMatch(/#7DFFB3/i);
 });
@@ -253,4 +254,30 @@ test("premium drivetrain: one chassis, self-hosted Plex, no lucide", () => {
   expect(fs.existsSync(path.join(root, "public/sw.js"))).toBe(true);
   expect(fs.readFileSync(path.join(root, "src/firebase.js"), "utf8")).toMatch(/export function getFirebase/);
   expect(fs.readFileSync(path.join(root, "functions/lib/catalogJson.js"), "utf8")).toMatch(/contentEncoding:\s*"gzip"/);
+});
+
+test("broadcast chassis: flat controls, pearl play key, condensed caps that actually load", () => {
+  const html = fs.readFileSync(path.join(root, "public/index.html"), "utf8");
+  // font-display: optional drops any face that is not ready at first paint, so Barlow must be preloaded.
+  expect(html).toMatch(/rel="preload"[^>]*barlow-condensed-800\.woff2/);
+
+  const play = fs.readFileSync(path.join(root, "src/components/player/OrbitalControls.jsx"), "utf8");
+  expect(play).toMatch(/pmp-play-planet/);
+  expect(play).toMatch(/mtv\.plateInk/);
+
+  const tint = fs.readFileSync(path.join(root, "src/lib/dockTint.js"), "utf8");
+  // The bar text is light, so a pale cover must never turn the plate light.
+  expect(tint).not.toMatch(/rgba\(2[01]\d\s*,\s*2[01]\d\s*,\s*2[0-3]\d\s*,\s*0\.[5-9]/);
+
+  const hero = fs.readFileSync(path.join(root, "src/components/home/HeroPlayerCard.jsx"), "utf8");
+  expect(hero).toMatch(/pmp-hero-id/);
+  expect(hero).not.toMatch(/<LcdPanel/);
+  // Secondary info sits under the transport so play is above the dock on a phone.
+  expect(hero.indexOf("<PlayerDeck")).toBeLessThan(hero.indexOf("<UpNextGlass"));
+
+  const { hardware, glassPill, color } = require("./theme");
+  expect(hardware.keyRaised).not.toMatch(/inset 2px 0 0/);
+  expect(glassPill({ active: true }).background).toBe(color.ink);
+  expect(glassPill({ active: true }).color).toBe(color.onAccent);
+  expect(glassPill().backdropFilter).toBeUndefined();
 });

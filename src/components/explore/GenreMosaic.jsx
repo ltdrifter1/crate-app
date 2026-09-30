@@ -55,7 +55,7 @@ export default function GenreMosaic({ plates = [], onOpen = null }) {
             textAlign: "left",
             WebkitTapHighlightColor: "transparent",
             animation: `rise 0.45s ${motion.ease} ${Math.min(i, 8) * 0.03}s both`,
-            boxShadow: "0 10px 24px rgba(58,66,80,0.32)",
+            boxShadow: "0 10px 24px rgba(6,10,16,0.32)",
           }}
         >
           <PlateArt plate={plate} eager={i < 2} />
@@ -66,8 +66,8 @@ export default function GenreMosaic({ plates = [], onOpen = null }) {
               inset: 0,
               background: `
                 linear-gradient(165deg, rgba(255,255,255,0.22) 0%, transparent 36%),
-                linear-gradient(180deg, rgba(58,66,80,0.05) 0%, rgba(58,66,80,0.55) 100%),
-                linear-gradient(90deg, rgba(58,66,80,0.28) 0%, transparent 60%)
+                linear-gradient(180deg, rgba(6,10,16,0.05) 0%, rgba(6,10,16,0.55) 100%),
+                linear-gradient(90deg, rgba(6,10,16,0.28) 0%, transparent 60%)
               `,
             }}
           />
@@ -153,7 +153,7 @@ export function MoodRail({ plates = [], onOpen = null }) {
               borderRadius: 14,
               overflow: "hidden",
               background: y2k.artGradient,
-              boxShadow: "0 10px 24px rgba(58,66,80,0.36)",
+              boxShadow: "0 10px 24px rgba(6,10,16,0.36)",
               border: "1px solid rgba(216,223,232,0.1)",
             }}
           >
@@ -175,7 +175,7 @@ export function MoodRail({ plates = [], onOpen = null }) {
                 position: "absolute",
                 inset: 0,
                 background:
-                  "linear-gradient(180deg, rgba(58,66,80,0.05) 20%, rgba(58,66,80,0.82) 100%)",
+                  "linear-gradient(180deg, rgba(6,10,16,0.05) 20%, rgba(6,10,16,0.82) 100%)",
               }}
             />
             <span
@@ -255,7 +255,7 @@ export function SceneRail({ plates = [], onOpen = null }) {
               borderRadius: 12,
               overflow: "hidden",
               background: y2k.artGradient,
-              boxShadow: "0 10px 22px rgba(58,66,80,0.34)",
+              boxShadow: "0 10px 22px rgba(6,10,16,0.34)",
               border: "1px solid rgba(216,223,232,0.1)",
             }}
           >
@@ -277,7 +277,7 @@ export function SceneRail({ plates = [], onOpen = null }) {
                 position: "absolute",
                 inset: 0,
                 background:
-                  "linear-gradient(180deg, transparent 30%, rgba(58,66,80,0.78) 100%)",
+                  "linear-gradient(180deg, transparent 30%, rgba(6,10,16,0.78) 100%)",
               }}
             />
             <span

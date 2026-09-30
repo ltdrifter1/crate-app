@@ -13,7 +13,7 @@ export default function PlaybackProgressHairline() {
       overflow: "hidden",
       position: "relative",
       borderRadius: 2,
-      boxShadow: "inset 0 1px 2px rgba(58,66,80,0.45)",
+      boxShadow: "inset 0 1px 2px rgba(6,10,16,0.45)",
       border: `1px solid ${glass.borderSoft}`,
     }}>
       <div style={{

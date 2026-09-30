@@ -147,7 +147,7 @@ export default function HomeMessenger({
             width: placement.overlay ? placement.overlayWidth : "100%",
             padding: placement.overlay ? 0 : "8px 8px 8px 0",
             filter: placement.overlay
-              ? "drop-shadow(0 18px 40px rgba(58,66,80,0.28))"
+              ? "drop-shadow(0 18px 40px rgba(6,10,16,0.28))"
               : undefined,
           }}
         >

@@ -8,7 +8,7 @@ body {
   font-family: "Outfit", "IBM Plex Sans", "Lucida Grande", "Helvetica Neue", Helvetica, Inter, -apple-system, BlinkMacSystemFont, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background: #1C222B;
+  background: #12161C;
   color: #E8EDF4;
   color-scheme: dark;
 }
@@ -74,7 +74,7 @@ body::before { display: none; }
   border-radius: 50%;
   overflow: hidden;
   background:
-    radial-gradient(circle at 34% 30%, #E8EDF4 0%, #8a94a3 24%, #4a5462 52%, #2A323C 78%, #161B22 100%);
+    radial-gradient(circle at 34% 30%, #E8EDF4 0%, #8a94a3 24%, #4a5462 52%, #1E242C 78%, #0C0F13 100%);
   box-shadow:
     0 28px 48px rgba(6,10,16,0.55),
     0 0 0 1px rgba(200,210,222,0.16),
@@ -94,7 +94,7 @@ body::before { display: none; }
     radial-gradient(ellipse 18% 10% at 82% 64%, rgba(74,83,96,0.34) 0 50%, transparent 54%),
     radial-gradient(ellipse 28% 16% at 68% 40%, rgba(74,83,96,0.48) 0 58%, transparent 62%),
     radial-gradient(ellipse 16% 22% at 90% 58%, rgba(74,83,96,0.4) 0 52%, transparent 56%),
-    repeating-linear-gradient(90deg, transparent 0 26px, rgba(58,66,80,0.14) 26px 28px);
+    repeating-linear-gradient(90deg, transparent 0 26px, rgba(6,10,16,0.14) 26px 28px);
   background-size: 50% 100%;
   animation: pmpPlanetSpin 16s linear infinite;
 }
@@ -189,7 +189,8 @@ body::before { display: none; }
   }
   .pmp-device-sleeve {
     max-height: 68vh !important;
-    width: min(42vw, 520px) !important;
+    /* Square, so width sets height: also cap by viewport height (header + deck ≈ 440px) or it overflows the stage. */
+    width: min(42vw, 520px, max(240px, calc(100vh - 440px))) !important;
   }
 }
 .pmp-crate-spread {
@@ -260,29 +261,11 @@ body::before { display: none; }
   position: relative;
 }
 .pmp-deck-plate {
-  padding: 12px 12px 10px;
-  border-radius: 18px;
+  padding: 4px 0 2px;
   isolation: isolate;
-  overflow: hidden;
-  background:
-    linear-gradient(180deg, rgba(255,255,255,0.06) 0%, rgba(36,42,51,0.55) 40%, rgba(22,27,34,0.72) 100%);
-  border: 1px solid rgba(255,255,255,0.08);
-  box-shadow:
-    inset 0 1px 0 rgba(255,255,255,0.08),
-    0 12px 28px rgba(0,0,0,0.4);
-  backdrop-filter: blur(16px) saturate(1.12);
-  -webkit-backdrop-filter: blur(16px) saturate(1.12);
-}
-.pmp-deck-plate::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  pointer-events: none;
-  z-index: 0;
-  background: radial-gradient(80% 60% at 20% 0%, rgba(168,180,198,0.07) 0%, transparent 55%);
-  opacity: 1;
-  mix-blend-mode: normal;
+  background: none;
+  border: 0;
+  box-shadow: none;
 }
 .pmp-deck-plate > * {
   position: relative;
@@ -291,28 +274,26 @@ body::before { display: none; }
 .pmp-deck-keys {
   display: flex;
   align-items: center;
-  gap: 8px;
+  justify-content: center;
+  gap: 10px 14px;
   flex: 1 1 auto;
   min-width: 0;
   flex-wrap: wrap;
 }
+.pmp-deck-group {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
 .pmp-deck-pad {
-  padding: 6px 8px;
-  border-radius: 980px;
-  background: rgba(0,0,0,0.22);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.06);
+  padding: 6px 0;
+  background: none;
+  box-shadow: none;
 }
 .pmp-hw-key:not(.pmp-play-planet) {
   position: relative;
   overflow: hidden;
-}
-.pmp-hw-key:not(.pmp-play-planet)::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  pointer-events: none;
-  background: linear-gradient(135deg, rgba(200,210,222,0.16) 0%, transparent 42%, rgba(6,10,16,0.28) 100%);
 }
 .pmp-hw-key:active:not(.pmp-play-planet) {
   transform: scale(0.97);
@@ -323,17 +304,6 @@ body::before { display: none; }
 }
 .pmp-play-planet {
   overflow: visible;
-}
-.pmp-play-planet::after {
-  content: "";
-  position: absolute;
-  inset: -5px;
-  border-radius: 50%;
-  pointer-events: none;
-  border: 1px solid rgba(168,180,198,0.22);
-  box-shadow:
-    0 0 0 3px rgba(168,180,198,0.08),
-    inset 0 0 0 1px rgba(168,180,198,0.12);
 }
 .pmp-seek {
   width: 100%;
@@ -347,18 +317,13 @@ body::before { display: none; }
   top: 50%;
   transform: translateY(-50%);
   border-radius: 980px;
-  background:
-    linear-gradient(180deg, rgba(20,23,28,0.92) 0%, rgba(42,50,60,0.88) 100%);
-  box-shadow:
-    inset 0 2px 6px rgba(0,0,0,0.55),
-    inset 0 1px 0 rgba(168,180,198,0.08);
+  background: rgba(255,255,255,0.14);
+  box-shadow: none;
   pointer-events: none;
   overflow: hidden;
 }
 .pmp-seek__ticks {
-  position: absolute;
-  inset: 0;
-  z-index: 1;
+  display: none;
 }
 .pmp-seek__ticks span {
   position: absolute;
@@ -372,13 +337,13 @@ body::before { display: none; }
   position: relative;
   z-index: 2;
   height: 100%;
-  border-radius: 2px;
+  border-radius: 980px;
   transition: width 0.08s linear;
 }
 .pmp-pace__well {
   border-radius: 3px;
   background:
-    linear-gradient(180deg, rgba(20,23,28,0.92) 0%, rgba(42,50,60,0.88) 52%, rgba(28,34,43,0.9) 100%);
+    linear-gradient(180deg, rgba(10,12,15,0.92) 0%, rgba(30,36,44,0.88) 52%, rgba(18,22,28,0.9) 100%);
   box-shadow:
     inset 0 2px 5px rgba(0,0,0,0.55),
     inset 0 1px 0 rgba(168,180,198,0.08);
@@ -535,29 +500,33 @@ body::before { display: none; }
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
   border-radius: 0;
-  padding: 5px 5px 6px;
-  gap: 4px;
+  padding: 6px 8px 8px;
+  gap: 2px;
 }
 .pmp-dock-stack--playing .pill-nav {
-  border-top: 1px solid rgba(213,220,230, 0.22);
+  border-top: 1px solid rgba(255,255,255,0.08);
 }
 .pmp-dock-stack .pill-tab {
-  border-radius: 980px !important;
-  border: 1px solid rgba(255,255,255,0.08) !important;
-  background:
-    linear-gradient(180deg, rgba(44,52,64,0.96) 0%, rgba(28,34,43,0.96) 100%) !important;
-  box-shadow:
-    inset 0 1px 0 rgba(255,255,255,0.06),
-    0 4px 10px rgba(0,0,0,0.28) !important;
+  position: relative;
+  border-radius: 14px !important;
+  border: 1px solid transparent !important;
+  background: transparent !important;
+  box-shadow: none !important;
 }
 .pmp-dock-stack .pill-tab[aria-current="page"] {
-  background:
-    linear-gradient(180deg, rgba(213,220,230,0.18) 0%, rgba(213,220,230,0.06) 100%) !important;
-  border-color: rgba(213,220,230,0.42) !important;
-  color: #D5DCE6 !important;
-  box-shadow:
-    inset 0 1px 0 rgba(213,220,230,0.2),
-    0 0 10px rgba(213,220,230,0.16) !important;
+  background: rgba(255,255,255,0.09) !important;
+  color: #F4F7FB !important;
+}
+.pmp-dock-stack .pill-tab[aria-current="page"]::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 20px;
+  height: 3px;
+  margin-left: -10px;
+  border-radius: 0 0 3px 3px;
+  background: #F4F7FB;
 }
 .pmp-mini-player {
   position: relative;
@@ -662,7 +631,7 @@ body::before { display: none; }
 .pmp-chart-skel {
   border-radius: 6px;
   background:
-    linear-gradient(180deg, rgba(42, 50, 60, 0.85) 0%, rgba(28, 34, 43, 0.9) 100%);
+    linear-gradient(180deg, rgba(30, 36, 44, 0.85) 0%, rgba(18, 22, 28, 0.9) 100%);
   box-shadow: inset 0 1px 0 rgba(200, 210, 222, 0.12);
 }
 @keyframes pmpNeonPulse {

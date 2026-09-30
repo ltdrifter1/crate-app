@@ -64,17 +64,15 @@ export function HardwareIconButton({
       style={{
         width: size,
         height: size,
-        borderRadius: hardware.radius,
+        borderRadius: "50%",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
         cursor: "pointer",
-        color: lit ? color.lcdSignal : color.ink,
-        background: hardware.keyFace,
-        border: `1px solid ${lit ? "rgba(168,180,198,0.42)" : "rgba(255,255,255,0.10)"}`,
-        boxShadow: lit
-          ? `${hardware.keyPressed}, 0 0 10px ${color.lcdSignalGlow}`
-          : hardware.keyRaised,
+        color: color.ink,
+        background: lit ? "rgba(255,255,255,0.20)" : hardware.keyFace,
+        border: `1px solid ${lit ? "rgba(255,255,255,0.34)" : "rgba(255,255,255,0.08)"}`,
+        boxShadow: hardware.keyRaised,
         transition: `transform ${motion.fast} ${motion.ease}, color ${motion.fast}, background ${motion.base}, box-shadow ${motion.fast}`,
         padding: 0,
         flexShrink: 0,

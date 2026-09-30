@@ -43,7 +43,7 @@ export default function ChartsScreen({
             background: `repeating-linear-gradient(
               to bottom,
               transparent 0px, transparent 3px,
-              rgba(58,66,80,0.04) 3px, rgba(58,66,80,0.04) 4px
+              rgba(6,10,16,0.04) 3px, rgba(6,10,16,0.04) 4px
             )`,
             pointerEvents: "none",
             zIndex: 0,
