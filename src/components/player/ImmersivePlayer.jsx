@@ -30,7 +30,6 @@ import {
 import VideoStage from "../station/VideoStage";
 import SceneSurfRail from "../station/SceneSurfRail";
 import { trackHasVideo } from "../../lib/video";
-import { estimateLockedIn } from "../../lib/station";
 import CoverImage from "../ui/CoverImage";
 import {
   DeviceCatalogMark,
@@ -88,17 +87,18 @@ function PlayerNowPlaying() {
   );
 }
 
-/** Quiet booth tools — dedicate / locked-in count. */
+/** Quiet booth tools — dedicate, plus the track's real request and play counts. */
 function BoothStrip({
   track,
   onDedicate = null,
 }) {
-  const [lockedIn, setLockedIn] = useState(() => estimateLockedIn(track));
-  useEffect(() => {
-    setLockedIn(estimateLockedIn(track));
-    const id = setInterval(() => setLockedIn(estimateLockedIn(track, new Date())), 20000);
-    return () => clearInterval(id);
-  }, [track?.id, track?.playCount, track?.likeCount, track?.requestCount]);
+  // Real counts off the track. Nothing here is estimated.
+  const requests = Number(track?.requestCount) || 0;
+  const plays = Number(track?.playCount) || 0;
+  const tally = [
+    requests ? `${requests} ${requests === 1 ? "request" : "requests"}` : null,
+    plays ? `${plays} ${plays === 1 ? "play" : "plays"}` : null,
+  ].filter(Boolean).join(" · ") || "New on the station";
 
   if (!onDedicate) return null;
 
@@ -135,7 +135,7 @@ function BoothStrip({
             boxShadow: `0 0 8px ${y2k.chromeGlow}`,
           }}
         />
-        {lockedIn} locked in
+        {tally}
       </div>
       <div style={{ display: "flex", gap: 8 }}>
         {onDedicate && (

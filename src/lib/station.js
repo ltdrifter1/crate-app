@@ -87,34 +87,6 @@ export function nowPlayingLowerThird(track, { daypart = null, rank = null, show 
   };
 }
 
-/**
- * Estimated locked-in audience — deterministic heat from track + daypart.
- * Feels alive without inventing fake live infra.
- */
-export function estimateLockedIn(track, date = new Date()) {
-  const daypart = stationDaypart(date);
-  const baseByPart = {
-    "after-hours": 38,
-    sunrise: 52,
-    daytime: 94,
-    "after-school": 186,
-    "prime-time": 240,
-    "night-crash": 128,
-  };
-  const base = baseByPart[daypart.id] || 80;
-  const heat = Math.min(
-    220,
-    (track?.playCount || 0) * 2.2 +
-      (track?.likeCount || 0) * 4 +
-      (track?.requestCount || 0) * 9
-  );
-  const idHash = String(track?.id || "x")
-    .split("")
-    .reduce((a, c) => a + c.charCodeAt(0), 0);
-  const wobble = (idHash + date.getMinutes()) % 17;
-  return Math.max(12, Math.round(base + heat * 0.35 + wobble));
-}
-
 function storageKey(suffix) {
   return `${brandStoragePrefix()}:station:${suffix}`;
 }

@@ -10,6 +10,12 @@ Chromium's own platform-font report (`CSS.getPlatformFontsForNode`), not by eye.
 Behaviour claims were checked by grep or by a test that fails on the old code.
 Judgments are marked **(judgment)**. What I could not check is listed at the end.
 
+> **Follow-up (same month):** recommendation 1 (chart back on Home) and the "N locked in" half of
+> recommendation 2 are done — see [`THE_BOARD.md`](THE_BOARD.md). The Charts page was rebuilt (≈75% of the
+> old Charts code replaced), Home gained **The Board** below Channel Surfing, and every estimated
+> "locked in" number was replaced with the track's real request and play counts. Seeded dedications
+> (the other half of 2) and the Firestore rules caveat are still open.
+
 ---
 
 ## Verdict
@@ -93,7 +99,7 @@ era (below). Finish screens on the current chassis.
 These are the only items I'd call risky to the brief ("not fake nostalgia"), because they present
 simulation as community:
 
-1. **"N locked in"** (player booth, and the Charts stat pill `217 now LOCKED IN`) is
+1. ~~**"N locked in"**~~ *(removed in the follow-up — now real counts)* (player booth, and the Charts stat pill `217 now LOCKED IN`) was
    `estimateLockedIn()`: a number from the time of day, plays, likes and the current minute. Its own
    comment says "Feels alive without inventing fake live infra." It is shown beside real counts
    ("10 TRACKS", "4 CLIMBING") with no "est.".
@@ -203,12 +209,9 @@ shipped-style assertion pass; `build/` is regenerated (the repo serves it to Clo
 
 ## Recommended next, in order — your call
 
-1. **Put the chart back on Home.** Compact "Most Requested · Top 5" between Channel Surfing and recents,
-   using the existing `CountdownRail` and the `countdown` / `onOpenCharts` props Home already receives.
-   Makes Request meaningful and the landing page's promise true. *Is removing it intentional?*
-2. **Decide on simulated liveness.** Either label it ("heat", not "locked in"), or make it real:
-   read `stationDedications` (the collection already exists and is write-only) and drop the invented
-   names. This is the highest-risk item for the brief.
+1. ~~**Put the chart back on Home.**~~ **Done** — The Board (Top 5) sits below Channel Surfing.
+2. **Simulated liveness — half done.** "Locked in" is gone. Still open: read `stationDedications` (the
+   collection already exists and is write-only) and drop the five invented dedications.
 3. **Lead Discover with Dig and Charts.** They are what no other app has. Rename `TOOLS`.
 4. **Backfill `year` at ingest.** Turns the hidden History tab into a discovery mode, and gives
    Artist pages and Library real culture.

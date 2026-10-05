@@ -3223,6 +3223,7 @@ export default function App() {
     onHypnoRadio: (t) => playHypnoRadio(t),
     onLike: (id) => toggleLike(id),
     onRequest: (id) => requestTrack(id),
+    onQueue: (t) => addTrackToQueue(t),
     onOpenArtist: (name) => openArtist(name),
     onOpenAlbum: (track) => openAlbum(track),
   };
@@ -3236,6 +3237,7 @@ export default function App() {
     onHypnoRadio: (t) => playlistApiRef.current.onHypnoRadio?.(t),
     onLike: (id) => playlistApiRef.current.onLike?.(id),
     onRequest: (id) => playlistApiRef.current.onRequest?.(id),
+    onQueue: (t) => playlistApiRef.current.onQueue?.(t),
     hasRequested: (id) => hasRequestedToday(id),
     onOpenArtist: (name) => playlistApiRef.current.onOpenArtist?.(name),
     onOpenAlbum: (track) => playlistApiRef.current.onOpenAlbum?.(track),
@@ -3690,7 +3692,7 @@ export default function App() {
         <Suspense fallback={<div style={{ padding: 32, color: color.muted }}>Loading…</div>}>
         {warmTabs.has("home") && (
         <ScreenPane keepAlive active={screen==="home"}>
-        <HomeScreen catalogLoading={tracksLoading} tracks={tracks} recentTrackIds={recentTrackIds} onPlayRadio={playRadio} onTogglePlay={togglePlay} onPlayTrack={playTrack} onLike={toggleLike} onShare={shareCurrentTrack} onShowQueue={showQueueSheet} onOpenLibrary={openLibrary} onOpenDiscover={openDiscover} signedIn={!!firebaseUser} isRadioMode={isRadioMode} radioPreview={heroPreview} radioNext={setNext} onSkipRadio={handleSkip} onPrevRadio={handlePrev} onOpenPlayer={openPlayer} catalogError={tracksLoadError} onRetryCatalog={reloadCatalog} onStageVisibilityChange={onHomeStageVisibilityChange} onSeek={handleSeek} countdown={countdown} onTuneCountdown={tuneCountdown} daypart={activeDaypart} tickerText={stationTicker} onDislike={dislikeCurrentTrack} airing={liveAiring} programGuide={programGuide} activeShowId={activeShowId} onTuneShow={playShow} showBumper={showBumper} channelShow={liveShow} sceneChannelsActiveId={activeSceneChannelId} onTuneSceneChannel={playSceneChannel} taste={profileTaste} onOpenSearch={openSearchFromHome} onOpenCharts={openCharts} onOpenMenu={openMenu}/>
+        <HomeScreen catalogLoading={tracksLoading} tracks={tracks} recentTrackIds={recentTrackIds} onPlayRadio={playRadio} onTogglePlay={togglePlay} onPlayTrack={playTrack} onLike={toggleLike} onShare={shareCurrentTrack} onShowQueue={showQueueSheet} onOpenLibrary={openLibrary} onOpenDiscover={openDiscover} signedIn={!!firebaseUser} isRadioMode={isRadioMode} radioPreview={heroPreview} radioNext={setNext} onSkipRadio={handleSkip} onPrevRadio={handlePrev} onOpenPlayer={openPlayer} catalogError={tracksLoadError} onRetryCatalog={reloadCatalog} onStageVisibilityChange={onHomeStageVisibilityChange} onSeek={handleSeek} countdown={countdown} onTuneCountdown={tuneCountdown} daypart={activeDaypart} tickerText={stationTicker} onDislike={dislikeCurrentTrack} airing={liveAiring} programGuide={programGuide} activeShowId={activeShowId} onTuneShow={playShow} showBumper={showBumper} channelShow={liveShow} sceneChannelsActiveId={activeSceneChannelId} onTuneSceneChannel={playSceneChannel} taste={profileTaste} onOpenSearch={openSearchFromHome} onOpenCharts={openCharts} onRequestTrack={requestTrack} onOpenMenu={openMenu}/>
         </ScreenPane>
         )}
         {warmTabs.has("explore") && (

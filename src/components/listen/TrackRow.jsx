@@ -205,6 +205,17 @@ export function TrackActionsMenu({ track, playlistCtx, activePlaylistId, x, y, o
         </>
       )}
 
+      {ctx.onQueue && (
+        <button
+          type="button"
+          role="menuitem"
+          onClick={() => { ctx.onQueue(track); onClose(); }}
+          style={{ display: "block", width: "100%", textAlign: "left", background: "none", border: "none", color: color.ink, fontSize: 14, padding: "10px 14px", cursor: "pointer" }}
+        >
+          Add to queue
+        </button>
+      )}
+
       {ctx.onRequest && (() => {
         const requested = !!ctx.hasRequested?.(track.id);
         const heat = Number(track.requestCount) || 0;

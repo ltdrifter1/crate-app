@@ -6,9 +6,9 @@ Music you inhabit.
 
 Living destinations for discovering, collecting, and experiencing music — not another streaming feed.
 
-**Current product IA:** dock is **Home / Library / Discover / Profile** (player-first). Home still carries Channel Surfing + the live stage; Charts is overflow. See [`docs/PREMIUM_PLAYER_AUDIT.md`](docs/PREMIUM_PLAYER_AUDIT.md). Rooms/Paths nav is retired; archival notes in [`docs/ROOMS_PRODUCT_VISION.md`](docs/ROOMS_PRODUCT_VISION.md).
+**Current product IA:** dock is **Home / Library / Discover / Profile** (player-first). Home carries the live stage, Today, Channel Surfing and **The Board** (Top 5, below Channel Surfing); the full Charts page is overflow (Discover → Charts, ☰ → Charts, Home → Full chart). See [`docs/PREMIUM_PLAYER_AUDIT.md`](docs/PREMIUM_PLAYER_AUDIT.md). Rooms/Paths nav is retired; archival notes in [`docs/ROOMS_PRODUCT_VISION.md`](docs/ROOMS_PRODUCT_VISION.md).
 
-**Latest design & UX audit (Oct 2026):** [`docs/DESIGN_AUDIT_2026-10.md`](docs/DESIGN_AUDIT_2026-10.md) — verified defects fixed, what to preserve, and the open decisions.
+**The Board (Charts + Home Top 5, Oct 2026):** [`docs/THE_BOARD.md`](docs/THE_BOARD.md) · **Latest design & UX audit (Oct 2026):** [`docs/DESIGN_AUDIT_2026-10.md`](docs/DESIGN_AUDIT_2026-10.md) — verified defects fixed, what to preserve, and the open decisions.
 
 **Current look — Broadcast Glass (30 Sep 2026):** [`docs/BROADCAST_GLASS.md`](docs/BROADCAST_GLASS.md) · **Premium MP3-player audit (Sep 2026):** [`docs/PREMIUM_PLAYER_AUDIT.md`](docs/PREMIUM_PLAYER_AUDIT.md) · **Sequenced prompts:** [`docs/PREMIUM_PLAYER_PROMPTS.md`](docs/PREMIUM_PLAYER_PROMPTS.md) · **Creative audit:** [`docs/CREATIVE_AUDIT_2026-09.md`](docs/CREATIVE_AUDIT_2026-09.md) · **Mobile UX:** [`docs/MOBILE_UX_AUDIT.md`](docs/MOBILE_UX_AUDIT.md) · **Billing:** [`docs/STRIPE_FIREBASE_BILLING.md`](docs/STRIPE_FIREBASE_BILLING.md) · **Catalog junk (dry-run):** [`docs/CATALOG_JUNK_AUDIT.md`](docs/CATALOG_JUNK_AUDIT.md)
 

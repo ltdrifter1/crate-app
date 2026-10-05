@@ -13,6 +13,8 @@ import ArtistPage, { AlbumPage } from "../components/catalog/ArtistPage";
 import ClubScreen from "../components/club/ClubScreen";
 import { buildArtists, buildAlbums } from "../lib/catalog";
 import { playerTransportStore } from "../lib/playerTransportStore";
+import { buildCountdown } from "../lib/station";
+import { brandStoragePrefix } from "../brand/identity";
 import { playerPlaybackStore } from "../lib/playerPlaybackStore";
 import { color, fontMono, radio } from "../theme";
 import {
@@ -34,12 +36,39 @@ const SCREENS = [
 
 const noop = () => {};
 
+/**
+ * Write a "yesterday" board so the Charts preview shows real movement
+ * (climbers, fallers, a debut) instead of an empty history. Dev preview only.
+ */
+function seedPreviewHistory(tracks) {
+  try {
+    const today = buildCountdown(tracks, 20);
+    if (today.length < 6) return;
+    const y = new Date();
+    y.setUTCDate(y.getUTCDate() - 1);
+    const dayKey = y.toISOString().slice(0, 10);
+    const order = today.map((c) => c.track);
+    // yesterday: 2 and 1 swapped, 3 was 6th (a big climber), 4 was off the board (debut), the rest shifted
+    const prior = [order[1], order[0], order[3], order[4], order[5], order[2], ...order.slice(6, 12)].filter(Boolean);
+    prior.splice(3, 0, order[12] || order[11]);
+    const entries = prior.slice(0, 19).filter((t) => t && t.id !== order[3]?.id).map((t, i) => ({
+      rank: i + 1, id: t.id, title: t.title, artist: t.artist, albumCover: t.albumCover, score: 100 - i, requestCount: t.requestCount || 0, playCount: t.playCount || 0,
+    }));
+    localStorage.setItem(`${brandStoragePrefix()}:chart:day:${dayKey}`, JSON.stringify({ dayKey, capturedAt: Date.now(), entries }));
+    const index = JSON.parse(localStorage.getItem(`${brandStoragePrefix()}:chart:index`) || "[]");
+    if (!index.includes(dayKey)) localStorage.setItem(`${brandStoragePrefix()}:chart:index`, JSON.stringify([dayKey, ...index]));
+  } catch {
+    /* private mode */
+  }
+}
+
 export default function SitePreview() {
   const [screen, setScreen] = useState("library");
   const [tracks, setTracks] = useState(PREVIEW_TRACKS);
   const [query, setQuery] = useState("night");
 
   useEffect(() => {
+    seedPreviewHistory(PREVIEW_TRACKS);
     playerPlaybackStore.setDuration(214);
     playerPlaybackStore.setProgress(48);
     playerTransportStore.sync({ isPlaying: false, track: PREVIEW_TRACKS[0] });
@@ -58,6 +87,7 @@ export default function SitePreview() {
   const playlistCtx = useMemo(
     () => ({
       onRequest: requestTrack,
+      onQueue: noop,
       hasRequested: (id) => requestedRef.current.has(id),
       playlists: PREVIEW_PLAYLISTS,
       onCreate: noop,

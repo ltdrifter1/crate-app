@@ -3,7 +3,6 @@ import {
   buildCountdown,
   stationDaypart,
   nowPlayingLowerThird,
-  estimateLockedIn,
   buildStationTicker,
   addDedication,
   listDedications,
@@ -48,12 +47,6 @@ describe("station", () => {
     expect(line.kicker).toContain("NOW PLAYING");
     expect(line.title).toBe("Peak");
     expect(line.meta).toContain("House");
-  });
-
-  test("estimateLockedIn stays in a believable band", () => {
-    const n = estimateLockedIn(tracks[1], new Date("2024-06-01T20:00:00"));
-    expect(n).toBeGreaterThanOrEqual(12);
-    expect(n).toBeLessThan(600);
   });
 
   test("buildStationTicker includes on-air and countdown", () => {

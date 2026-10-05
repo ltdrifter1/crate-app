@@ -44,7 +44,7 @@ describe("ChartsScreen", () => {
     document.body.removeChild(div);
   });
 
-  test("empty board uses iOS copy, not a hardware LCD plate", async () => {
+  test("empty board says what to do in plain words, not on a hardware LCD plate", async () => {
     await act(async () => {
       root.render(React.createElement(ChartsScreen, { tracks: [], countdown: [] }));
     });
@@ -53,14 +53,13 @@ describe("ChartsScreen", () => {
     expect(div.textContent).not.toMatch(/Station charts/);
   });
 
-  test("renders premium hierarchy, views first, then board scope", async () => {
+  test("renders the board: masthead, views first, then scope, NO. 1, posters", async () => {
     await act(async () => {
       root.render(React.createElement(ChartsScreen, { tracks: tracksFixture(), countdown: [] }));
     });
     const h1 = div.querySelector("h1");
     expect(h1.textContent).toBe("Charts");
-    expect(h1.style.fontFamily).toContain("Lucida Grande");
-    expect(h1.style.textTransform).not.toBe("uppercase");
+    expect(h1.style.fontFamily).toContain("Barlow Condensed");
 
     const viewsEl = div.querySelector('[aria-label="Chart view"]');
     const scopeEl = div.querySelector('[aria-label="Chart scope"]');
@@ -68,11 +67,6 @@ describe("ChartsScreen", () => {
 
     const scope = [...div.querySelectorAll('[aria-label="Chart scope"] [role="tab"]')].map((el) => el.textContent);
     expect(scope).toEqual(["Overall", "Channel", "Genre"]);
-    scope.forEach((_, i) => {
-      const btn = div.querySelectorAll('[aria-label="Chart scope"] [role="tab"]')[i];
-      expect(btn.style.fontFamily).toContain("Lucida Grande");
-      expect(btn.style.textTransform).not.toBe("uppercase");
-    });
 
     const views = [...div.querySelectorAll('[aria-label="Chart view"] [role="tab"]')].map((el) => el.textContent);
     expect(views).toEqual(["This month", "Climbers", "#1s", "Past days"]);
@@ -80,8 +74,32 @@ describe("ChartsScreen", () => {
     expect(div.textContent).toMatch(/Night Drive/);
     expect(div.querySelector('[aria-label^="Play #1"]')).toBeTruthy();
     expect(div.querySelector(".pmp-chart-podium")).toBeTruthy();
+    expect(div.querySelector(".pmp-board-lead")).toBeTruthy();
     expect(div.querySelector('[aria-label^="Play #2"]')).toBeTruthy();
     expect(div.querySelector('[aria-label^="Play #3"]')).toBeTruthy();
+  });
+
+  test("the crawl and scoreboard print real numbers, never an estimated audience", async () => {
+    await act(async () => {
+      root.render(React.createElement(ChartsScreen, { tracks: tracksFixture(), countdown: [] }));
+    });
+    expect(div.querySelector(".pmp-board-ticker")).toBeTruthy();
+    expect(div.querySelector(".pmp-board-ticker").textContent).toMatch(/NIGHT DRIVE — SIGNAL/);
+    expect(div.querySelector(".pmp-board-ticker").textContent).toMatch(/20 REQUESTS/);
+    const score = div.querySelector('[aria-label="Board totals"]').textContent;
+    expect(score).toMatch(/3Board/);
+    expect(score).toMatch(/26Requests/); // 20 + 4 + 2, summed off the tracks
+    expect(div.textContent).not.toMatch(/locked in/i);
+  });
+
+  test("with no yesterday to compare against, nothing claims to be climbing or new", async () => {
+    await act(async () => {
+      root.render(React.createElement(ChartsScreen, { tracks: tracksFixture(), countdown: [] }));
+    });
+    const score = div.querySelector('[aria-label="Board totals"]').textContent;
+    expect(score).toMatch(/–Climbing/);
+    expect(score).toMatch(/–New/);
+    expect(div.querySelector('[aria-label="New"]')).toBeNull();
   });
 
   test("catalog loading paints the board chrome without blocking on tracks", async () => {
@@ -159,6 +177,27 @@ describe("ChartsScreen", () => {
       menu.click();
     });
     expect(onOpenMenu).toHaveBeenCalled();
+  });
+
+  test("request key votes for the track and reads as spent once today's request is used", async () => {
+    const requested = new Set();
+    const playlistCtx = {
+      playlists: [],
+      onCreate() {}, onAdd() {}, onRemove() {}, onToast() {},
+      onRequest: jest.fn((id) => requested.add(id)),
+      hasRequested: (id) => requested.has(id),
+    };
+    await act(async () => {
+      root.render(React.createElement(ChartsScreen, { tracks: tracksFixture(), countdown: [], playlistCtx }));
+    });
+    const key = () => div.querySelector('[aria-label="Request Cascade"], [aria-label="Requested Cascade"]');
+    expect(key().getAttribute("aria-pressed")).toBe("false");
+    await act(async () => {
+      key().click();
+    });
+    expect(playlistCtx.onRequest).toHaveBeenCalledWith("b");
+    expect(key().getAttribute("aria-pressed")).toBe("true");
+    expect(key().getAttribute("aria-label")).toBe("Requested Cascade");
   });
 
   test("climbers empty state is editorial, not mono LCD", async () => {
