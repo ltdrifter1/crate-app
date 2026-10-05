@@ -107,10 +107,10 @@ test("browse lists print BPM and Camelot, and Home is player then my listening",
   const home = fs.readFileSync(path.join(root, "src/screens/HomeScreen.jsx"), "utf8");
   expect(home.indexOf("<HeroPlayerCard")).toBeLessThan(home.indexOf("<HomePersonal"));
   expect(home.indexOf("<HomePersonal")).toBeLessThan(home.indexOf("<HomeEditorial"));
-  expect(home.indexOf("<ChannelSurfingSection")).toBeGreaterThan(home.indexOf("<HeroPlayerCard"));
+  expect(home.indexOf("<TonightDeck")).toBeGreaterThan(home.indexOf("<HeroPlayerCard"));
+  expect(home.indexOf("<ChannelSurfingSection")).toBeGreaterThan(home.indexOf("<TonightDeck"));
   expect(home.indexOf("<ChannelSurfingSection")).toBeLessThan(home.indexOf("<HomePersonal"));
-  expect(home.indexOf("<TonightDeck")).toBeGreaterThan(home.indexOf("<ChannelSurfingSection"));
-  expect(home.indexOf("<TonightDeck")).toBeLessThan(home.indexOf("<HomePersonal"));
+  expect(home).not.toMatch(/title="Liked"/);
   expect(home).toMatch(/ChannelSurfingSection/);
   expect(home).toMatch(/TonightDeck/);
   expect(home).toMatch(/signedIn/);
