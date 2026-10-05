@@ -526,7 +526,13 @@ export function ShowGuideRail({
         <HomeBandHeader title="Program guide" />
       )}
 
-      {(embedded || flush) && (
+      {/* Home's Today band is the programme guide — the thing that makes this a station.
+          It gets the same title as Channel Surfing; nested guides keep the quiet label. */}
+      {flush && !embedded && (
+        <HomeBandHeader title="Today" meta={`${guide.length} blocks`} />
+      )}
+
+      {embedded && (
         <div
           style={{
             display: "flex",
@@ -552,7 +558,7 @@ export function ShowGuideRail({
               fontSize: 13,
               fontWeight: 500,
               letterSpacing: -0.08,
-              color: color.faint,
+              color: color.muted,
             }}
           >
             {guide.length} blocks
@@ -568,6 +574,8 @@ export function ShowGuideRail({
           overflowX: "auto",
           padding: `0 ${railPadX}px 2px`,
           scrollSnapType: "x mandatory",
+          scrollPaddingLeft: railPadX,
+          scrollPaddingRight: railPadX,
           WebkitOverflowScrolling: "touch",
           borderTop: "1px solid rgba(216,223,232,0.08)",
           borderBottom: "1px solid rgba(216,223,232,0.06)",

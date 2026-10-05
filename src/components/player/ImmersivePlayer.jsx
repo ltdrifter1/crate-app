@@ -215,6 +215,7 @@ export default function ImmersivePlayer({
   daypart = null,
   tickerText = "",
   onDedicate = null,
+  onRequest = null,
   dedicationFlash = null,
   onClearDedication = null,
   liveShow = null,
@@ -415,6 +416,18 @@ export default function ImmersivePlayer({
                   animation: `rise 0.22s ${EASE} both`,
                 }}
               >
+                {onRequest && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowMore(false);
+                      onRequest(currentTrack);
+                    }}
+                    style={menuItemStyle}
+                  >
+                    Request it
+                  </button>
+                )}
                 {onOpenLiner && (
                   <button
                     type="button"

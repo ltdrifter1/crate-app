@@ -79,3 +79,35 @@ export function channelBugLine(bug) {
   if (!bug) return `${formatChannelNum(MAIN_CHANNEL.num)} · ${MAIN_CHANNEL.slug}`;
   return `${bug.ch} · ${bug.slug}`;
 }
+
+function relLuminance(hex) {
+  const m = /^#?([0-9a-f]{6})$/i.exec(String(hex || "").trim());
+  if (!m) return null;
+  const c = [0, 2, 4]
+    .map((i) => parseInt(m[1].slice(i, i + 2), 16) / 255)
+    .map((v) => (v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4));
+  return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2];
+}
+
+/** WCAG contrast ratio between two #rrggbb colours (1–21). null if either is not a hex colour. */
+export function contrastRatio(a, b) {
+  const la = relLuminance(a);
+  const lb = relLuminance(b);
+  if (la == null || lb == null) return null;
+  const [hi, lo] = la >= lb ? [la, lb] : [lb, la];
+  return (hi + 0.05) / (lo + 0.05);
+}
+
+const INK_LIGHT = "#F4F7FB";
+const INK_DARK = "#0C0F13";
+
+/**
+ * Label colour for text printed on a station ink: pearl or near-black, whichever reads better.
+ * White on House gold is 2.3:1; near-black on it is 7.9:1. A fixed white label fails 11 of 14 inks.
+ */
+export function onInk(ink) {
+  const light = contrastRatio(INK_LIGHT, ink);
+  const dark = contrastRatio(INK_DARK, ink);
+  if (light == null || dark == null) return INK_LIGHT;
+  return dark > light ? INK_DARK : INK_LIGHT;
+}

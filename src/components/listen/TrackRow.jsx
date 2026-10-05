@@ -29,7 +29,13 @@ const PlaylistCtx = {
   onLike: null,
 };
 
-function clampMenuPos(x, y, w = 240, h = 320) {
+/** Same ceiling the menu gets from its own `maxHeight`, so a tall menu is clamped by its real size. */
+export function menuMaxHeight() {
+  const vh = typeof window !== "undefined" ? window.innerHeight : 700;
+  return Math.min(420, Math.round(vh * 0.7));
+}
+
+function clampMenuPos(x, y, w = 240, h = menuMaxHeight()) {
   const pad = 8;
   const left = Math.max(pad, Math.min(x, (typeof window !== "undefined" ? window.innerWidth : 400) - w - pad));
   const top = Math.max(pad, Math.min(y, (typeof window !== "undefined" ? window.innerHeight : 700) - h - pad));
@@ -92,17 +98,17 @@ export function TrackActionsMenu({ track, playlistCtx, activePlaylistId, x, y, o
         left: pos.left,
         top: pos.top,
         zIndex: 400,
-        background: "rgba(52,58,68,0.92)",
+        // Opaque: with blur off (glass.blur is "none") a translucent plate lets the page text
+        // underneath ghost through the menu.
+        background: color.surfaceRaised,
         border: `1px solid ${glass.border}`,
         borderRadius: radius.md,
         padding: "6px 0",
         minWidth: 220,
         maxWidth: 280,
-        maxHeight: "min(70vh, 420px)",
+        maxHeight: menuMaxHeight(),
         overflowY: "auto",
-        boxShadow: `inset 0 1px 0 ${glass.highlight}, 0 16px 40px rgba(91,101,116,0.16)`,
-        backdropFilter: glass.blur,
-        WebkitBackdropFilter: glass.blur,
+        boxShadow: `inset 0 1px 0 ${glass.highlight}, 0 16px 40px rgba(6,10,16,0.55)`,
         animation: "fadeIn 0.12s ease both",
       }}
     >
@@ -198,6 +204,30 @@ export function TrackActionsMenu({ track, playlistCtx, activePlaylistId, x, y, o
           </button>
         </>
       )}
+
+      {ctx.onRequest && (() => {
+        const requested = !!ctx.hasRequested?.(track.id);
+        const heat = Number(track.requestCount) || 0;
+        return (
+          <button
+            type="button"
+            role="menuitem"
+            onClick={() => { ctx.onRequest(track.id); onClose(); }}
+            style={{
+              display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12,
+              width: "100%", textAlign: "left", background: "none", border: "none",
+              color: requested ? color.muted : color.ink, fontSize: 14, padding: "10px 14px", cursor: "pointer",
+            }}
+          >
+            <span style={{ whiteSpace: "nowrap" }}>{requested ? "Requested ✓" : "Request it"}</span>
+            {heat > 0 && (
+              <span style={{ flexShrink: 0, fontSize: 11, fontFamily: fontMono, fontWeight: 700, letterSpacing: 0.4, color: color.muted }}>
+                {heat} {heat === 1 ? "REQUEST" : "REQUESTS"}
+              </span>
+            )}
+          </button>
+        );
+      })()}
 
       {(ctx.onOpenArtist || ctx.onOpenAlbum) && (
         <>

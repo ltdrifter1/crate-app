@@ -154,6 +154,17 @@ export function markRequestedToday(trackId, dayKey = stationDayKey()) {
   return true;
 }
 
+/** Undo a request that never reached the server, so a failed write does not burn the day's one. */
+export function clearRequestedToday(trackId, dayKey = stationDayKey()) {
+  if (!trackId) return false;
+  const key = storageKey(`requests:${dayKey}`);
+  const bag = readJson(key, {});
+  if (!bag[trackId]) return false;
+  delete bag[trackId];
+  writeJson(key, bag);
+  return true;
+}
+
 const MAX_DEDICATIONS = 40;
 const MAX_DEDICATION_LEN = 72;
 

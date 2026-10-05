@@ -16,6 +16,7 @@ import { usePlayerPlayback } from "../../usePlayerPlayback";
 import { useIsBuffering, useIsPlaying } from "../../usePlayerTransport";
 import {
   channelBugLine,
+  onInk,
   resolveChannelBug,
 } from "../../lib/mtvChannel";
 import { trackHasVideo } from "../../lib/video";
@@ -51,7 +52,12 @@ function PlanetPip({ size = 26 }) {
   );
 }
 
-function ChannelIdent({ bugLine, slug }) {
+/**
+ * CH plate. On a tuned station it is printed in that station's ink — the same colour as its
+ * card on the dial — so Home says which channel you are on. The live feed keeps the white sticker.
+ */
+function ChannelIdent({ bugLine, slug, ink = null }) {
+  const plate = ink || mtv.plate;
   return (
     <span
       style={{
@@ -59,7 +65,7 @@ function ChannelIdent({ bugLine, slug }) {
         alignItems: "stretch",
         overflow: "hidden",
         borderRadius: 2,
-        border: `1px solid ${mtv.plate}`,
+        border: `1px solid ${plate}`,
         background: "rgba(0,0,0,0.55)",
         maxWidth: "100%",
       }}
@@ -71,8 +77,8 @@ function ChannelIdent({ bugLine, slug }) {
           fontSize: 13,
           fontWeight: 800,
           letterSpacing: mtv.caps,
-          color: mtv.plateInk,
-          background: mtv.plate,
+          color: ink ? onInk(ink) : mtv.plateInk,
+          background: plate,
           whiteSpace: "nowrap",
         }}
       >
@@ -419,7 +425,7 @@ export default function HeroPlayerCard({
               Video
             </span>
           )}
-          <ChannelIdent bugLine={bugLine} slug={channelBug.slug} />
+          <ChannelIdent bugLine={bugLine} slug={channelBug.slug} ink={sceneChannel?.accent || null} />
         </div>
       </div>
 

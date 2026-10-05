@@ -18,7 +18,9 @@ import {
   MAIN_CHANNEL,
   STATION_CALLSIGN,
   channelBugLine,
+  contrastRatio,
   formatChannelNum,
+  onInk,
   resolveChannelBug,
 } from "./mtvChannel";
 
@@ -479,5 +481,27 @@ describe("bumpers", () => {
       date: new Date("2024-06-03T16:04:00"),
     });
     expect(quiet).toBeNull();
+  });
+});
+
+describe("station ink labels", () => {
+  test("contrastRatio matches WCAG reference values", () => {
+    expect(contrastRatio("#000000", "#FFFFFF")).toBeCloseTo(21, 1);
+    expect(contrastRatio("#777777", "#777777")).toBeCloseTo(1, 5);
+    expect(contrastRatio("nope", "#FFFFFF")).toBeNull();
+  });
+
+  test("onInk picks the label that reads: dark on gold, pearl on deep violet", () => {
+    expect(onInk("#D99A24")).toBe("#0C0F13"); // House — white was 2.3:1
+    expect(onInk("#6349B5")).toBe("#F4F7FB"); // Dubstep
+    expect(onInk("not-a-colour")).toBe("#F4F7FB");
+  });
+
+  test("every channel ink gets a label of at least 4.2:1 (a fixed white label was 2.3–6.2)", () => {
+    expect(SCENE_CHANNELS.length).toBeGreaterThan(0);
+    for (const ch of SCENE_CHANNELS) {
+      expect(ch.accent).toMatch(/^#[0-9a-f]{6}$/i);
+      expect(contrastRatio(onInk(ch.accent), ch.accent)).toBeGreaterThanOrEqual(4.2);
+    }
   });
 });

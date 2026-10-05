@@ -96,6 +96,9 @@ import { trackHitsPreferredChannels, compileOnboardingTaste } from "./lib/onboar
 import { shouldAutoShowFeatureTour, featureGuideSeenPayload } from "./lib/featureGuide";
 import {
   buildCountdown,
+  clearRequestedToday,
+  hasRequestedToday,
+  markRequestedToday,
   stationDaypart,
 } from "./lib/station";
 import { useStationFeed } from "./components/station/useStationFeed";
@@ -2697,6 +2700,32 @@ export default function App() {
     const t = currentRef.current;
     if (t) toggleLike(t.id);
   }, [toggleLike]);
+
+  // ── Request — one per track per day. requestCount is the heaviest weight in
+  // the chart score (station.js countdownScore), so this is how you climb the board.
+  // Same optimistic pattern as likes; firestore.rules already allow the +1.
+  const requestTrack = useCallback(async (id) => {
+    if (!firebaseUserRef.current) {
+      askSignIn("Sign in from Profile to request tracks");
+      return;
+    }
+    const track = tracksRef.current.find((t) => t.id === id);
+    if (!track) return;
+    if (!markRequestedToday(id)) {
+      showToastRef.current?.("Already requested today");
+      return;
+    }
+    setTracks((prev) => patchTrackById(prev, id, (t) => ({ ...t, requestCount: (t.requestCount || 0) + 1 })));
+    try {
+      const { doc: fdoc, updateDoc: fup, increment: finc } = await import("firebase/firestore");
+      await fup(fdoc(await firestoreDb(), "tracks", id), { requestCount: finc(1) });
+      showToastRef.current?.(`Requested ${track.title || "that track"} — it's on the board`);
+    } catch (e) {
+      clearRequestedToday(id);
+      setTracks((prev) => patchTrackById(prev, id, (t) => ({ ...t, requestCount: Math.max(0, (t.requestCount || 0) - 1) })));
+      showToastRef.current?.("Couldn't send the request — check your connection");
+    }
+  }, [askSignIn]);
   const showQueueSheet = useCallback(() => setShowQueue(true), []);
 
   // ── Station: countdown, requests, dedications, VJ shows ──────────────────
@@ -3193,6 +3222,7 @@ export default function App() {
     onResonance: (t) => setResonanceTrack(t),
     onHypnoRadio: (t) => playHypnoRadio(t),
     onLike: (id) => toggleLike(id),
+    onRequest: (id) => requestTrack(id),
     onOpenArtist: (name) => openArtist(name),
     onOpenAlbum: (track) => openAlbum(track),
   };
@@ -3205,6 +3235,8 @@ export default function App() {
     onResonance: (t) => playlistApiRef.current.onResonance?.(t),
     onHypnoRadio: (t) => playlistApiRef.current.onHypnoRadio?.(t),
     onLike: (id) => playlistApiRef.current.onLike?.(id),
+    onRequest: (id) => playlistApiRef.current.onRequest?.(id),
+    hasRequested: (id) => hasRequestedToday(id),
     onOpenArtist: (name) => playlistApiRef.current.onOpenArtist?.(name),
     onOpenAlbum: (track) => playlistApiRef.current.onOpenAlbum?.(track),
   }), [ownPlaylists]);
@@ -3610,6 +3642,7 @@ export default function App() {
       tickerText={stationTicker}
       onDislike={dislikeCurrentTrack}
       onDedicate={() => setShowDedicate(true)}
+      onRequest={() => { const t = currentRef.current; if (t) requestTrack(t.id); }}
       dedicationFlash={dedicationFlash}
       onClearDedication={() => setDedicationFlash(null)}
       liveShow={liveShow || liveAiring?.show || null}
@@ -3657,12 +3690,12 @@ export default function App() {
         <Suspense fallback={<div style={{ padding: 32, color: color.muted }}>Loading…</div>}>
         {warmTabs.has("home") && (
         <ScreenPane keepAlive active={screen==="home"}>
-        <HomeScreen catalogLoading={tracksLoading} tracks={tracks} recentTrackIds={recentTrackIds} onPlayRadio={playRadio} onTogglePlay={togglePlay} onPlayTrack={playTrack} onLike={toggleLike} onShare={shareCurrentTrack} onShowQueue={showQueueSheet} onOpenLibrary={openLibrary} onOpenDiscover={openDiscover} signedIn={!!firebaseUser} isRadioMode={isRadioMode} radioPreview={heroPreview} radioNext={setNext} onSkipRadio={handleSkip} onPrevRadio={handlePrev} onOpenPlayer={openPlayer} catalogError={tracksLoadError} onRetryCatalog={reloadCatalog} onStageVisibilityChange={onHomeStageVisibilityChange} onSeek={handleSeek} countdown={countdown} onTuneCountdown={tuneCountdown} daypart={activeDaypart} tickerText={stationTicker} onDislike={dislikeCurrentTrack} airing={liveAiring} programGuide={programGuide} activeShowId={activeShowId} onTuneShow={playShow} showBumper={showBumper} channelShow={liveShow} sceneChannelsActiveId={activeSceneChannelId} onTuneSceneChannel={playSceneChannel} taste={profileTaste} onOpenSearch={openSearchFromHome} onOpenCharts={openCharts} onOpenMenu={openMenu}/>}
+        <HomeScreen catalogLoading={tracksLoading} tracks={tracks} recentTrackIds={recentTrackIds} onPlayRadio={playRadio} onTogglePlay={togglePlay} onPlayTrack={playTrack} onLike={toggleLike} onShare={shareCurrentTrack} onShowQueue={showQueueSheet} onOpenLibrary={openLibrary} onOpenDiscover={openDiscover} signedIn={!!firebaseUser} isRadioMode={isRadioMode} radioPreview={heroPreview} radioNext={setNext} onSkipRadio={handleSkip} onPrevRadio={handlePrev} onOpenPlayer={openPlayer} catalogError={tracksLoadError} onRetryCatalog={reloadCatalog} onStageVisibilityChange={onHomeStageVisibilityChange} onSeek={handleSeek} countdown={countdown} onTuneCountdown={tuneCountdown} daypart={activeDaypart} tickerText={stationTicker} onDislike={dislikeCurrentTrack} airing={liveAiring} programGuide={programGuide} activeShowId={activeShowId} onTuneShow={playShow} showBumper={showBumper} channelShow={liveShow} sceneChannelsActiveId={activeSceneChannelId} onTuneSceneChannel={playSceneChannel} taste={profileTaste} onOpenSearch={openSearchFromHome} onOpenCharts={openCharts} onOpenMenu={openMenu}/>
         </ScreenPane>
         )}
         {warmTabs.has("explore") && (
         <ScreenPane keepAlive active={screen==="explore"}>
-        <Suspense fallback={<div style={{ padding: 32, color: color.muted }}>Loading explore…</div>}><ExploreScreen catalogLoading={tracksLoading} tracks={tracks} onPlayTrack={playTrack} onOpenSearch={openSearchFromExplore} onOpenAlbum={openAlbum} onOpenArtist={openArtist} onOpenCharts={openCharts} onListenIntent={listenFromExplore} onOpenMenu={openMenu} taste={profileTaste} sceneChannelsActiveId={activeSceneChannelId} onTuneSceneChannel={playSceneChannel} airing={liveAiring} programGuide={programGuide} activeShowId={activeShowId} onTuneShow={playShow} showBumper={showBumper}/></Suspense>}
+        <Suspense fallback={<div style={{ padding: 32, color: color.muted }}>Loading explore…</div>}><ExploreScreen catalogLoading={tracksLoading} tracks={tracks} onPlayTrack={playTrack} onOpenSearch={openSearchFromExplore} onOpenAlbum={openAlbum} onOpenArtist={openArtist} onOpenCharts={openCharts} onListenIntent={listenFromExplore} onOpenMenu={openMenu} taste={profileTaste} sceneChannelsActiveId={activeSceneChannelId} onTuneSceneChannel={playSceneChannel} airing={liveAiring} programGuide={programGuide} activeShowId={activeShowId} onTuneShow={playShow} showBumper={showBumper}/></Suspense>
         </ScreenPane>
         )}
         {!isKeepAliveScreen(screen) && (screen==="charts" || screen==="search") && (
@@ -3677,8 +3710,14 @@ export default function App() {
         <FavoritesScreen tracks={tracks} onPlay={playFromLibrary} onPlayTrack={playFromLibrary} onLike={toggleLike} playlistCtx={playlistCtx} userPlaylists={libraryPlaylists} onCreatePlaylist={createPlaylist} onDeletePlaylist={deletePlaylist} onRenamePlaylist={renamePlaylist} onSharePlaylist={sharePlaylistToClub} stackId={stackId} onOpenStack={openStack} onCloseStack={closeStack} onReorderPlaylist={reorderPlaylistTrack} communityMix={communityMix} onOpenMix={openCommunityMix} onOpenMenu={openMenu} preferredGenres={user.genres} recentTrackIds={recentTrackIds} userKey={user.uid}/>
         ) : (
         <GuestMemberGate
+          eyebrow="Your crate · empty"
           title="Your library"
           copy="Sign in from Profile to keep favorites, playlists, and what you play."
+          perks={[
+            { label: "Playlists", body: "Build one for Friday night. It's here next time." },
+            { label: "Liked", body: "Heart a track and it lands on your shelf." },
+            { label: "Recents", body: "Everything you've played, so you can find it again." },
+          ]}
           cta="Open Profile"
           onSignIn={() => setScreen("profile")}
         />
@@ -3750,6 +3789,7 @@ export default function App() {
               onResetPassword={resetPassword}
               authError={authError}
               onClearAuthError={clearAuthError}
+              chart={countdown}
             />
             )}
           </Suspense>

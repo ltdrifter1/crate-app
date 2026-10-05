@@ -5,7 +5,7 @@
  * way to be reviewed without signing in, so they never got a design pass. This
  * mounts the real components with fixture data and a switcher.
  */
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import FavoritesScreen from "../screens/FavoritesScreen";
 import SearchScreen from "../screens/SearchScreen";
 import ChartsScreen from "../components/station/ChartsScreen";
@@ -48,8 +48,17 @@ export default function SitePreview() {
   const toggleLike = (id) =>
     setTracks((list) => list.map((t) => (t.id === id ? { ...t, liked: !t.liked } : t)));
 
+  const requestedRef = useRef(new Set());
+  const requestTrack = (id) => {
+    if (requestedRef.current.has(id)) return;
+    requestedRef.current.add(id);
+    setTracks((list) => list.map((t) => (t.id === id ? { ...t, requestCount: (t.requestCount || 0) + 1 } : t)));
+  };
+
   const playlistCtx = useMemo(
     () => ({
+      onRequest: requestTrack,
+      hasRequested: (id) => requestedRef.current.has(id),
       playlists: PREVIEW_PLAYLISTS,
       onCreate: noop,
       onAdd: noop,

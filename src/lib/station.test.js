@@ -7,6 +7,7 @@ import {
   buildStationTicker,
   addDedication,
   listDedications,
+  clearRequestedToday,
   hasRequestedToday,
   markRequestedToday,
   stationDayKey,
@@ -74,6 +75,16 @@ describe("station", () => {
     expect(markRequestedToday(id, day)).toBe(true);
     expect(hasRequestedToday(id, day)).toBe(true);
     expect(markRequestedToday(id, day)).toBe(false);
+  });
+
+  test("a request that never reached the server can be taken back", () => {
+    const day = stationDayKey();
+    const id = `req-undo-${Date.now()}`;
+    expect(clearRequestedToday(id, day)).toBe(false); // nothing to undo
+    markRequestedToday(id, day);
+    expect(clearRequestedToday(id, day)).toBe(true);
+    expect(hasRequestedToday(id, day)).toBe(false);
+    expect(markRequestedToday(id, day)).toBe(true); // the day's request is available again
   });
 
   test("dedications append to the feed", () => {

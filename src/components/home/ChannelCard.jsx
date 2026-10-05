@@ -1,6 +1,6 @@
 import { color, fontDisplay, fontMono, hardware, homeSpace, type, y2k } from "../../theme";
 import { resolveChannelArt } from "../../lib/channelArt";
-import { formatChannelNum } from "../../lib/mtvChannel";
+import { formatChannelNum, onInk } from "../../lib/mtvChannel";
 import CoverImage from "../ui/CoverImage";
 import DefaultSleeve from "../ui/DefaultSleeve";
 import Icon from "../ui/Icon";
@@ -139,7 +139,7 @@ export default function ChannelCard({
               background: ink,
               border: "1px solid rgba(20,24,30,0.32)",
               boxShadow: "inset 0 1px 0 rgba(255,255,255,0.30), 0 2px 5px rgba(28,34,42,0.35)",
-              color: "#F4F7FA",
+              color: onInk(ink),
               fontFamily: fontMono,
               fontSize: 11,
               fontWeight: 800,

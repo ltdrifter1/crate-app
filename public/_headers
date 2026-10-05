@@ -8,6 +8,11 @@
 /static/media/*
   Cache-Control: public, max-age=31536000, immutable
 
+# Self-hosted brand fonts. Not content-hashed, so 30 days rather than immutable.
+# With font-display: optional a revalidating font can be skipped, so keep them fresh in cache.
+/fonts/*
+  Cache-Control: public, max-age=2592000
+
 # HTML / SPA shell — always revalidate so new deploys take effect
 /index.html
   Cache-Control: public, max-age=0, must-revalidate

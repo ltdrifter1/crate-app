@@ -112,6 +112,8 @@ function SceneSurfRail({
             ? "2px 2px 6px"
             : `2px ${homeSpace.gutter}px 16px`,
           scrollSnapType: "x mandatory",
+          scrollPaddingLeft: compact ? 2 : homeSpace.gutter,
+          scrollPaddingRight: compact ? 2 : homeSpace.gutter,
           WebkitOverflowScrolling: "touch",
           touchAction: "pan-x",
           overscrollBehaviorX: "contain",
