@@ -13,7 +13,7 @@ import {
 } from "../theme";
 import { countPlayableTracks } from "../lib/catalogLoad";
 import { getSceneChannel, SCENE_CHANNELS } from "../lib/sceneChannels";
-import { buildHomeCollections, savedTracks, tracksFromRecentIds } from "../lib/homeCollections";
+import { buildHomeCollections, tracksFromRecentIds } from "../lib/homeCollections";
 import { rankChannelsForTaste } from "../lib/onboardingTaste";
 import { runAfterPaint } from "../lib/afterPaint";
 import { useCurrentTrack, useTransportTrackId } from "../usePlayerTransport";
@@ -260,14 +260,13 @@ function HomePersonal({
     () => tracksFromRecentIds(tracks, recentTrackIds, 12),
     [tracks, recentTrackIds]
   );
-  const liked = useMemo(() => savedTracks(tracks, 12), [tracks]);
-  if (recents.length === 0 && liked.length === 0) {
+  if (recents.length === 0) {
     if (!signedIn) return null;
     return (
       <div data-testid="home-personal" style={{ marginTop: homeSpace.sectionGap }}>
         <EmptyShelfCard
           title="Your listening"
-          body="Play a few tracks. Recents and likes show up here and in Library."
+          body="Play a few tracks. Recents show up here. Likes live in Library."
           actionLabel={onOpenDiscover ? "Find music" : onOpenLibrary ? "Library" : null}
           onAction={onOpenDiscover || onOpenLibrary}
         />
@@ -297,31 +296,6 @@ function HomePersonal({
                 track={track}
                 active={activeId === track.id}
                 onClick={() => onPlayTrack?.(track, recents)}
-              />
-            ))}
-          </Rail>
-        </MusicSection>
-      )}
-      {liked.length > 0 && (
-        <MusicSection
-          title="Liked"
-          subtitle="Your favourites"
-          poster
-          first={recents.length === 0}
-          action={
-            onOpenLibrary
-              ? { label: "See All", onClick: onOpenLibrary }
-              : null
-          }
-          delay={0.08}
-        >
-          <Rail gap={16}>
-            {liked.map((track) => (
-              <TrackCard
-                key={track.id}
-                track={track}
-                active={activeId === track.id}
-                onClick={() => onPlayTrack?.(track, liked)}
               />
             ))}
           </Rail>
@@ -464,16 +438,6 @@ function HomeScreen({
         />
       )}
 
-      {channels.length > 0 && (
-        <ChannelSurfingSection
-          channels={channels}
-          activeChannelId={sceneChannelsActiveId}
-          onTuneChannel={onTuneSceneChannel}
-          first
-          delay={0.05}
-        />
-      )}
-
       {shelvesReady && hasTonight && (
         <div style={{ contentVisibility: "auto", containIntrinsicSize: "320px" }}>
           <Suspense fallback={null}>
@@ -483,13 +447,23 @@ function HomeScreen({
               bumper={showBumper}
               activeShowId={activeShowId}
               tuned={false}
-              first={false}
+              first
               showNowPlaying={false}
               onTuneIn={() => onTuneShow?.(airing?.show)}
               onSelectShow={(show) => onTuneShow?.(show)}
             />
           </Suspense>
         </div>
+      )}
+
+      {channels.length > 0 && (
+        <ChannelSurfingSection
+          channels={channels}
+          activeChannelId={sceneChannelsActiveId}
+          onTuneChannel={onTuneSceneChannel}
+          first={!hasTonight}
+          delay={0.05}
+        />
       )}
 
       {shelvesReady && catalogReady && (

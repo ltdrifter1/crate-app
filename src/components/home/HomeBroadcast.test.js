@@ -518,7 +518,7 @@ describe("Home broadcast + four-tab IA", () => {
     expect(div.querySelector(".pmp-showcase-promo")).toBeNull();
   });
 
-  test("Home shows the compact Today schedule under Channel Surfing", async () => {
+  test("Home shows the compact Today schedule above Channel Surfing", async () => {
     const onTuneShow = jest.fn();
     await act(async () => {
       root.render(
@@ -551,7 +551,7 @@ describe("Home broadcast + four-tab IA", () => {
     expect(div.textContent).not.toMatch(/On Tonight/);
   });
 
-  test("player then Channel Surfing then Tonight then personal", async () => {
+  test("player then Tonight schedule then Channel Surfing then personal", async () => {
     const fs = require("fs");
     const path = require("path");
     const src = fs.readFileSync(
@@ -564,9 +564,9 @@ describe("Home broadcast + four-tab IA", () => {
     const personal = src.indexOf("<HomePersonal");
     const editorial = src.indexOf("<HomeEditorial");
     expect(hero).toBeGreaterThan(-1);
-    expect(surf).toBeGreaterThan(hero);
-    expect(tonight).toBeGreaterThan(surf);
-    expect(personal).toBeGreaterThan(tonight);
+    expect(tonight).toBeGreaterThan(hero);
+    expect(surf).toBeGreaterThan(tonight);
+    expect(personal).toBeGreaterThan(surf);
     expect(editorial).toBeGreaterThan(personal);
   });
 
@@ -614,7 +614,7 @@ describe("Home broadcast + four-tab IA", () => {
     expect(div.textContent).not.toMatch(/Your listening/);
   });
 
-  test("Home recents rail uses profile listen order", async () => {
+  test("Home recents rail uses profile listen order and has no Liked rail", async () => {
     await act(async () => {
       root.render(
         React.createElement(HomeScreen, {
@@ -634,7 +634,7 @@ describe("Home broadcast + four-tab IA", () => {
     expect(personal).toBeTruthy();
     expect(personal.textContent).toMatch(/Recently played/);
     expect(personal.textContent).toMatch(/Beta/);
-    expect(personal.textContent).toMatch(/Liked/);
+    expect(personal.textContent).not.toMatch(/Liked/);
   });
 
   test("first Channel Surfing tile is LCP-eager, later tiles lazy", async () => {
