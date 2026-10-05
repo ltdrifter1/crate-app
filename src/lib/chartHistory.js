@@ -166,10 +166,16 @@ function previousDayKey(dayKey) {
 /**
  * Enrich live countdown with movement vs yesterday's snapshot.
  * delta: positive = climbed (rank number went down).
+ * movement: up | down | same | debut — or "none" when there is no previous board to compare.
  */
 export function enrichCountdownWithHistory(countdown = [], dayKey = stationDayKey()) {
   const prev = getChartSnapshot(previousDayKey(dayKey));
   const prevRank = new Map((prev?.entries || []).map((e) => [e.id, e.rank]));
+  // No board from the day before means there is nothing to compare against.
+  // Calling every row a "debut" would be a claim the data can't back.
+  if (!prev) {
+    return countdown.map((c) => ({ ...c, movement: "none", delta: null, previousRank: null }));
+  }
   return countdown.map((c) => {
     const before = prevRank.get(c.track?.id);
     let movement = "new";

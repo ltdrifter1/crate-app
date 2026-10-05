@@ -90,4 +90,13 @@ test("App mounts without TDZ (toggleLike / keyboard shortcuts)", async () => {
   expect(text).not.toMatch(/Booth hit a snag/);
   // Logged-out users should see the login door, not a crash screen.
   expect(text.length).toBeGreaterThan(0);
+
+  // Regression: `<Screen/>}` in App.jsx's pane markup printed a literal "}" at the
+  // bottom of Home and Discover for every user. No text node may be bare punctuation.
+  const stray = [];
+  const walker = document.createTreeWalker(div, NodeFilter.SHOW_TEXT);
+  for (let n = walker.nextNode(); n; n = walker.nextNode()) {
+    if (/^[\s{}()[\]<>]+$/.test(n.nodeValue) && n.nodeValue.trim()) stray.push(n.nodeValue.trim());
+  }
+  expect(stray).toEqual([]);
 });

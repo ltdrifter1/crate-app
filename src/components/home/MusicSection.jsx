@@ -206,6 +206,10 @@ export function Rail({ children, gap = 14, padTop = 2, padBottom = 4, alignItems
         alignItems,
         padding: `${padTop}px ${homeSpace.gutter}px ${padBottom}px`,
         scrollSnapType: "x proximity",
+        // Cards snap to `start`; without this the snap eats the gutter and the
+        // first card sits flush against the screen edge, under its own title.
+        scrollPaddingLeft: homeSpace.gutter,
+        scrollPaddingRight: homeSpace.gutter,
         WebkitOverflowScrolling: "touch",
         touchAction: "pan-x",
         overscrollBehaviorX: "contain",

@@ -35,6 +35,13 @@
     <link rel="preload" href="%PUBLIC_URL%/fonts/outfit-400.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="preload" href="%PUBLIC_URL%/fonts/outfit-700.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="preload" href="%PUBLIC_URL%/fonts/barlow-condensed-800.woff2" as="font" type="font/woff2" crossorigin />
+    <!-- font-display: optional drops any face that is not ready at first paint, for the whole page load.
+         Every face used above the fold is preloaded, or first-time visitors get system-font headings
+         (Outfit 600/800 → Arial, Barlow 700 → Outfit, Plex Mono LCD lines → system mono). -->
+    <link rel="preload" href="%PUBLIC_URL%/fonts/outfit-600.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="%PUBLIC_URL%/fonts/outfit-800.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="%PUBLIC_URL%/fonts/barlow-condensed-700.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="%PUBLIC_URL%/fonts/ibm-plex-mono-700.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="preconnect" href="https://crate-app-58494.firebasestorage.app" crossorigin />
     <link rel="preconnect" href="https://firebasestorage.googleapis.com" crossorigin />
     <link rel="dns-prefetch" href="https://firestore.googleapis.com" />

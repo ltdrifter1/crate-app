@@ -5,7 +5,6 @@ import {
 } from "../../theme";
 import {
   STATION_REACTIONS,
-  estimateLockedIn,
   nowPlayingLowerThird,
 } from "../../lib/station";
 import {
@@ -512,18 +511,12 @@ export function StationHeatBar({
   compact = true,
   embedded = false,
 }) {
-  const [lockedIn, setLockedIn] = useState(() => estimateLockedIn(track));
   const [burst, setBurst] = useState(null);
   const [open, setOpen] = useState(false);
   const [reactCounts, setReactCounts] = useState({});
 
-  useEffect(() => {
-    setLockedIn(estimateLockedIn(track));
-    const id = setInterval(() => {
-      setLockedIn(estimateLockedIn(track, new Date()));
-    }, 20000);
-    return () => clearInterval(id);
-  }, [track?.id, track?.playCount, track?.likeCount, track?.requestCount]);
+  // Real counts off the track. Nothing here is estimated.
+  const requestTally = Number(track?.requestCount) || 0;
 
   const fireReact = (emoji) => {
     setReactCounts((c) => ({ ...c, [emoji]: (c[emoji] || 0) + 1 }));
@@ -595,7 +588,7 @@ export function StationHeatBar({
             overflow: "hidden",
             textOverflow: "ellipsis",
           }}>
-            {lockedIn} locked in
+            {requestTally} {requestTally === 1 ? "request" : "requests"}
           </span>
         </div>
 

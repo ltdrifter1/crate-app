@@ -220,6 +220,10 @@ export default function BroadcastPreview() {
       sceneChannelsActiveId={activeChannelId}
       onTuneShow={() => {}}
       programGuide={SAMPLE_GUIDE}
+      countdown={SAMPLE_COUNTDOWN}
+      onOpenCharts={() => setScreen("charts")}
+      onTuneCountdown={() => {}}
+      onRequestTrack={() => {}}
     />
   );
 

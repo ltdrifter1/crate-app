@@ -1,9 +1,14 @@
 /* Planet MP3 app-shell — cache fonts + hashed CRA /static. Never lock index.html. */
-const CACHE = "pmp-shell-v1";
+const CACHE = "pmp-shell-v2";
+// The faces the UI actually sets type in (see theme.js): Outfit body/display, Barlow Condensed
+// caps, Plex Mono LCD. Plex Sans is only a fallback in the stack, so it is no longer precached.
 const PRECACHE = [
-  "/fonts/ibm-plex-sans-400.woff2",
-  "/fonts/ibm-plex-sans-600.woff2",
-  "/fonts/ibm-plex-sans-700.woff2",
+  "/fonts/outfit-400.woff2",
+  "/fonts/outfit-600.woff2",
+  "/fonts/outfit-700.woff2",
+  "/fonts/outfit-800.woff2",
+  "/fonts/barlow-condensed-700.woff2",
+  "/fonts/barlow-condensed-800.woff2",
   "/fonts/ibm-plex-mono-500.woff2",
   "/fonts/ibm-plex-mono-700.woff2",
 ];

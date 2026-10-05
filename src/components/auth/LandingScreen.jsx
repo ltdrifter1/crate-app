@@ -9,7 +9,7 @@ import { useState, useEffect, useRef } from "react";
 import {
   font, fontDisplay, fontMono, color, radius, glass,
   aluminumGradient, trim, y2k, radio as radioStyle,
-  APP_STYLE, INPUT_ST, BTN_PRIMARY, trimStroke,
+  APP_STYLE, INPUT_ST, BTN_PRIMARY, BTN_SECONDARY, trimStroke,
 } from "../../theme";
 import { authErrorMessage } from "../../lib/phone";
 import { BrandLockup } from "../brand/BrandGlyphs";
@@ -41,13 +41,35 @@ const CHANNELS = CHANNEL_PLATES.map((plate) => ({
     SCENE_CHANNELS.find((c) => c.id === plate.id)?.accent || color.lcdSignal,
 }));
 
-const CHART_TEASERS = [
-  { rank: 1,  title: "Drexciya",       artist: "Black Sea",          dir: "▲ 2" },
-  { rank: 2,  title: "Autechre",       artist: "Tri Repetae",        dir: "▲ 5" },
-  { rank: 3,  title: "Burial",         artist: "Untrue",             dir: "—" },
-  { rank: 4,  title: "Aphex Twin",     artist: "Richard D. James",   dir: "▼ 1" },
-  { rank: 5,  title: "The Prodigy",    artist: "Music for the Jilted Generation", dir: "▲ 8" },
+/**
+ * Fallback board for when the catalog has not loaded yet. These are NOT the
+ * live chart — the card says so ("Sample board") and shows no movement arrows,
+ * because there is no week-over-week data behind them.
+ */
+const SAMPLE_CHART = [
+  { rank: 1,  title: "Drexciya",       artist: "Black Sea",          dir: "" },
+  { rank: 2,  title: "Autechre",       artist: "Tri Repetae",        dir: "" },
+  { rank: 3,  title: "Burial",         artist: "Untrue",             dir: "" },
+  { rank: 4,  title: "Aphex Twin",     artist: "Richard D. James",   dir: "" },
+  { rank: 5,  title: "The Prodigy",    artist: "Music for the Jilted Generation", dir: "" },
 ];
+
+/** station.js `deltaLabel` → what the teaser prints. Only claim what the data says. */
+const CHART_DIR = { "↑ HOT": "▲ HOT", "↑": "▲", NEW: "NEW" };
+
+/** Top 5 of the real countdown, or null if there are not enough tracks to be a board. */
+export function liveChartRows(chart = []) {
+  const rows = (Array.isArray(chart) ? chart : [])
+    .filter((e) => e?.track?.title)
+    .slice(0, 5)
+    .map((e, i) => ({
+      rank: e.rank || i + 1,
+      title: e.track.title,
+      artist: e.track.artist || "",
+      dir: CHART_DIR[e.deltaLabel] || "",
+    }));
+  return rows.length >= 3 ? rows : null;
+}
 
 const FEATURES = [
   { icon: "radio",     code: "CH.01", head: "Live Radio",  body: "Genre channels streaming 24/7." },
@@ -144,7 +166,7 @@ function ChannelPill({ ch }) {
 
 function ChartRow({ rank, title, artist, dir }) {
   const up = dir.startsWith("▲");
-  const flat = dir === "—";
+  const flat = !dir || dir === "—" || dir === "NEW";
   return (
     <div
       style={{
@@ -265,7 +287,10 @@ export default function LandingScreen({
   onResetPassword,
   authError = null,
   onClearAuthError,
+  chart = [],
 }) {
+  const liveRows = liveChartRows(chart);
+  const chartRows = liveRows || SAMPLE_CHART;
   const [mode, setMode] = useState("login");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -461,15 +486,10 @@ export default function LandingScreen({
               setTimeout(() => formRef.current?.scrollIntoView({ behavior: "smooth", block: "center" }), 80);
             }}
             style={{
+              ...BTN_SECONDARY,
+              width: "auto",
               padding: "14px 28px",
-              borderRadius: 10,
-              border: "1px solid rgba(91,101,116,0.28)",
-              background: "rgba(208,214,224,0.22)",
               fontSize: 15,
-              fontWeight: 600,
-              fontFamily: fontDisplay,
-              color: color.ink,
-              cursor: "pointer",
             }}
           >
             Log in
@@ -554,7 +574,7 @@ export default function LandingScreen({
                   color: "#B7E4EE",
                 }}
               >
-                This Month's Chart · Top 5
+                {liveRows ? "This Month's Chart · Top 5" : "Sample board · Top 5"}
               </span>
             </div>
             <span
@@ -565,12 +585,12 @@ export default function LandingScreen({
                 letterSpacing: 0.1,
               }}
             >
-              REQUEST TO CLIMB ↑
+              {liveRows ? "REQUEST TO CLIMB ↑" : "NOT LIVE DATA"}
             </span>
           </div>
 
           {/* Chart rows */}
-          {CHART_TEASERS.map((row) => (
+          {chartRows.map((row) => (
             <ChartRow key={row.rank} {...row} />
           ))}
 
@@ -587,7 +607,9 @@ export default function LandingScreen({
               textAlign: "center",
             }}
           >
-            Sign up to vote, request, and see the full board →
+            {liveRows
+              ? "Sign up to request, and see the full board →"
+              : "Sign up to see the live board →"}
           </div>
         </div>
       </div>
@@ -641,8 +663,8 @@ export default function LandingScreen({
           zIndex: 1,
           margin: "40px 20px 60px",
           padding: "22px 20px 20px",
-          background: "rgba(74,83,96,0.86)",
-          border: "1px solid rgba(91,101,116,0.12)",
+          background: radioStyle.moduleFace,
+          border: radioStyle.border,
           borderRadius: 14,
           boxShadow: "inset 0 1px 0 rgba(216,223,232,0.08), 0 16px 44px rgba(6,10,16,0.4)",
           backdropFilter: glass.blurHeavy,
@@ -673,7 +695,7 @@ export default function LandingScreen({
           }}
         >
           <GoogleMark />
-          <span style={{ fontSize: 16, fontWeight: 600, color: color.ink }}>
+          <span style={{ fontSize: 16, fontWeight: 600, color: color.onAccent }}>
             {loading && notice?.includes("Google") ? "Connecting…" : "Continue with Google"}
           </span>
         </button>
@@ -696,13 +718,13 @@ export default function LandingScreen({
         )}
 
         <div style={{ display: "flex", alignItems: "center", gap: 10, margin: "2px 0" }}>
-          <div style={{ flex: 1, height: 1, background: "rgba(91,101,116,0.22)" }} />
-          <span style={{ fontSize: 12, color: color.faint, letterSpacing: 0.2 }}>or email</span>
-          <div style={{ flex: 1, height: 1, background: "rgba(91,101,116,0.22)" }} />
+          <div style={{ flex: 1, height: 1, background: color.line }} />
+          <span style={{ fontSize: 12, color: color.muted, letterSpacing: 0.2 }}>or email</span>
+          <div style={{ flex: 1, height: 1, background: color.line }} />
         </div>
 
         {/* Mode tabs */}
-        <div style={{ display: "flex", gap: 16, borderBottom: "1px solid rgba(91,101,116,0.22)" }}>
+        <div style={{ display: "flex", gap: 16, borderBottom: `1px solid ${color.line}` }}>
           {[{ id: "login", label: "Log in" }, { id: "signup", label: "Create account" }].map((m) => (
             <button
               key={m.id}
@@ -717,7 +739,7 @@ export default function LandingScreen({
                 fontWeight: mode === m.id ? 700 : 500,
                 fontFamily: fontDisplay,
                 letterSpacing: -0.2,
-                color: mode === m.id ? color.ink : color.faint,
+                color: mode === m.id ? color.ink : color.muted,
                 borderBottom: mode === m.id ? `2px solid ${trim.blue}` : "2px solid transparent",
               }}
             >

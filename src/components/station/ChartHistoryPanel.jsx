@@ -1,7 +1,6 @@
-import { memo, useMemo, useState } from "react";
+import { useMemo, useReducer, useState } from "react";
 import {
-  color, font, fontDisplay, fontMono, glass, homeSpace, artFrameStyle,
-  chrome, radio, BTN_PRIMARY, chromeIconButton, radius, hardware, hardwareKey,
+  color, font, fontMono, fontPoster, homeSpace, glassPill, BTN_PRIMARY,
 } from "../../theme";
 import {
   biggestClimbers,
@@ -15,13 +14,15 @@ import {
   monthKey,
   normalizeChartScope,
 } from "../../lib/chartHistory";
+import { NEUTRAL_INK, boardMaxScore, channelForTrack, heatLevel } from "../../lib/board";
 import { formatMonthLabel } from "../../lib/mixes";
 import { CANONICAL_GENRES } from "../../lib/genres";
-import { SCENE_CHANNELS } from "../../lib/sceneChannels";
-import CoverImage from "../ui/CoverImage";
+import { SCENE_CHANNELS, getSceneChannel } from "../../lib/sceneChannels";
+import { onInk } from "../../lib/mtvChannel";
 import Icon from "../ui/Icon";
-import { catalogSleeveUrl } from "../../lib/catalogSleeve";
-import { TrackActionsMenu, TrackMoreButton, useTrackMenu } from "../listen/TrackRow";
+import { TrackActionsMenu, useTrackMenu } from "../listen/TrackRow";
+import { BoardList, BoardRow } from "./BoardParts";
+import { BoardEmpty, BoardLead, BoardPodiumCard, BoardSkeleton } from "./BoardFeature";
 
 function formatDayLabel(dayKey) {
   const d = new Date(`${dayKey}T12:00:00.000Z`);
@@ -29,6 +30,7 @@ function formatDayLabel(dayKey) {
   return d.toLocaleDateString("en-US", { month: "short", day: "numeric", timeZone: "UTC" });
 }
 
+/** Flatten a countdown row, a snapshot row or a reveal row into one entry shape. */
 function toEntry(c, fallback = {}) {
   const track = c.track || {};
   return {
@@ -41,123 +43,40 @@ function toEntry(c, fallback = {}) {
     delta: c.delta ?? fallback.delta ?? 0,
     meta: c.meta || fallback.meta || null,
     color: track.color || c.color,
+    score: c.score,
+    requestCount: track.requestCount ?? c.requestCount ?? 0,
+    playCount: track.playCount ?? c.playCount ?? 0,
+    likeCount: track.likeCount ?? c.likeCount ?? 0,
+    bpm: track.bpm ?? c.bpm,
+    camelot: track.camelot ?? c.camelot,
   };
 }
 
-/** Rank delta — motion on change, SF figures, no LED stamps. */
-function MovementMark({ movement, delta }) {
-  if (movement === "up") {
-    return (
-      <span
-        className="pmp-rank-up"
-        aria-label={`Up ${delta}`}
-        style={{
-          display: "inline-flex",
-          alignItems: "center",
-          gap: 1,
-          color: chrome.signal,
-          fontFamily: fontDisplay,
-          fontSize: 13,
-          fontWeight: 700,
-          fontVariantNumeric: "tabular-nums",
-          letterSpacing: -0.2,
-        }}
-      >
-        <Icon name="chev_up" size={14} />
-        {delta}
-      </span>
-    );
-  }
-  if (movement === "down") {
-    return (
-      <span
-        className="pmp-rank-down"
-        aria-label={`Down ${delta}`}
-        style={{
-          display: "inline-flex",
-          alignItems: "center",
-          gap: 1,
-          color: chrome.hot,
-          fontFamily: fontDisplay,
-          fontSize: 13,
-          fontWeight: 650,
-          fontVariantNumeric: "tabular-nums",
-          letterSpacing: -0.2,
-        }}
-      >
-        <Icon name="chev_down" size={14} />
-        {delta}
-      </span>
-    );
-  }
-  if (movement === "debut" || movement === "new") {
-    return (
-      <span
-        aria-label="New"
-        style={{
-          color: chrome.signal,
-          fontFamily: fontDisplay,
-          fontSize: 12,
-          fontWeight: 650,
-          letterSpacing: -0.08,
-        }}
-      >
-        New
-      </span>
-    );
-  }
-  return (
-    <span aria-hidden="true" style={{ color: color.faint, fontSize: 13, fontFamily: fontDisplay }}>
-      —
-    </span>
-  );
-}
+/** Which chart to show: the live month, climbers, crowns, or a past day. */
+const VIEWS = [
+  { id: "month", label: "This month" },
+  { id: "climbers", label: "Climbers" },
+  { id: "ones", label: "#1s" },
+  { id: "archive", label: "Past days" },
+];
 
-function RankStamp({ rank }) {
-  return (
-    <span
-      aria-hidden="true"
-      style={{
-        position: "absolute",
-        top: 8,
-        left: 8,
-        zIndex: 2,
-        minWidth: 32,
-        height: 22,
-        padding: "0 7px",
-        borderRadius: 3,
-        display: "inline-flex",
-        alignItems: "center",
-        justifyContent: "center",
-        background: hardware.keyFace,
-        border: "1px solid rgba(216,223,232,0.45)",
-        boxShadow: hardware.keyRaised,
-        color: color.ink,
-        fontFamily: fontMono,
-        fontSize: 11,
-        fontWeight: 800,
-        letterSpacing: 0.4,
-        fontVariantNumeric: "tabular-nums",
-      }}
-    >
-      #{String(rank).padStart(2, "0")}
-    </span>
-  );
-}
+const SCOPES = [
+  { id: "overall", label: "Overall" },
+  { id: "channel", label: "Channel" },
+  { id: "genre", label: "Genre" },
+];
 
-/** PS1 chamfered keys — primary chart views. */
-function HardwareTabs({ items, activeId, onChange, ariaLabel }) {
+const capsLabel = {
+  fontFamily: fontPoster,
+  fontWeight: 800,
+  letterSpacing: "0.08em",
+  textTransform: "uppercase",
+};
+
+/** Chart views — pearl plate when selected, quiet fill otherwise. */
+function ViewTabs({ items, activeId, onChange, ariaLabel }) {
   return (
-    <div
-      role="tablist"
-      aria-label={ariaLabel}
-      className="hide-scroll"
-      style={{
-        display: "flex",
-        gap: 6,
-        overflowX: "auto",
-      }}
-    >
+    <div role="tablist" aria-label={ariaLabel} className="hide-scroll" style={{ display: "flex", gap: 6, overflowX: "auto" }}>
       {items.map((item) => {
         const active = item.id === activeId;
         return (
@@ -169,15 +88,14 @@ function HardwareTabs({ items, activeId, onChange, ariaLabel }) {
             className="pmp-press"
             onClick={() => onChange(item.id)}
             style={{
-              ...hardwareKey({ pressed: active, size: "md" }),
-              flex: "1 0 auto",
-              minWidth: 0,
-              padding: "0 12px",
-              color: active ? color.ink : color.muted,
-              fontFamily: fontDisplay,
-              fontSize: 13,
-              fontWeight: active ? 650 : 520,
-              letterSpacing: -0.2,
+              ...glassPill({ active }),
+              ...capsLabel,
+              flex: "1 1 auto",
+              minHeight: 42,
+              padding: "0 10px",
+              fontSize: 15,
+              cursor: "pointer",
+              whiteSpace: "nowrap",
             }}
           >
             {item.label}
@@ -188,8 +106,8 @@ function HardwareTabs({ items, activeId, onChange, ariaLabel }) {
   );
 }
 
-/** Compact scope plate — overall / channel / genre. */
-function Segmented({ items, activeId, onChange, ariaLabel }) {
+/** Overall / Channel / Genre — a flat track with a sliding pearl plate. */
+function ScopeSwitch({ items, activeId, onChange, ariaLabel }) {
   return (
     <div
       role="tablist"
@@ -197,10 +115,9 @@ function Segmented({ items, activeId, onChange, ariaLabel }) {
       style={{
         display: "flex",
         padding: 3,
-        borderRadius: 8,
-        background: radio.moduleFace,
-        border: radio.border,
-        boxShadow: hardware.plateEdge,
+        borderRadius: 12,
+        background: "rgba(255,255,255,0.05)",
+        border: "1px solid rgba(200,210,222,0.12)",
       }}
     >
       {items.map((item) => {
@@ -214,19 +131,16 @@ function Segmented({ items, activeId, onChange, ariaLabel }) {
             className="pmp-press"
             onClick={() => onChange(item.id)}
             style={{
+              ...capsLabel,
               flex: 1,
-              minHeight: 32,
-              padding: "6px 8px",
+              minHeight: 36,
+              padding: "0 10px",
               border: "none",
-              borderRadius: 6,
-              background: active ? hardware.keyFace : "transparent",
-              color: active ? color.ink : color.muted,
-              fontFamily: fontDisplay,
-              fontSize: 13,
-              fontWeight: active ? 650 : 520,
-              letterSpacing: -0.2,
+              borderRadius: 9,
+              background: active ? color.ink : "transparent",
+              color: active ? color.onAccent : color.muted,
+              fontSize: 15,
               cursor: "pointer",
-              boxShadow: active ? hardware.keyRaised : "none",
               WebkitTapHighlightColor: "transparent",
             }}
           >
@@ -238,8 +152,8 @@ function Segmented({ items, activeId, onChange, ariaLabel }) {
   );
 }
 
-/** Library-style underline tabs / filter list. */
-function UnderlineRail({ items, activeId, onChange, ariaLabel }) {
+/** Text tabs with an underline — genre and archive-day pickers. */
+function UnderlineRail({ items, activeId, onChange, ariaLabel, mono = false }) {
   return (
     <div
       role="tablist"
@@ -249,8 +163,8 @@ function UnderlineRail({ items, activeId, onChange, ariaLabel }) {
         display: "flex",
         gap: 2,
         overflowX: "auto",
-        borderBottom: "1px solid rgba(28,32,40,0.1)",
-        marginBottom: 14,
+        borderBottom: `1px solid ${color.line}`,
+        marginBottom: 16,
       }}
     >
       {items.map((item) => {
@@ -267,12 +181,13 @@ function UnderlineRail({ items, activeId, onChange, ariaLabel }) {
               border: "none",
               background: "none",
               cursor: "pointer",
-              padding: "8px 12px 10px",
+              padding: "8px 12px 11px",
               color: active ? color.ink : color.muted,
-              fontSize: 15,
+              fontSize: mono ? 12 : 15,
               fontWeight: active ? 650 : 520,
-              fontFamily: fontDisplay,
-              letterSpacing: -0.22,
+              fontFamily: mono ? fontMono : font,
+              letterSpacing: mono ? "0.08em" : -0.22,
+              textTransform: mono ? "uppercase" : "none",
               boxShadow: active ? `inset 0 -2px 0 ${color.ink}` : "none",
               whiteSpace: "nowrap",
               WebkitTapHighlightColor: "transparent",
@@ -286,28 +201,120 @@ function UnderlineRail({ items, activeId, onChange, ariaLabel }) {
   );
 }
 
-function QuietIconButton({ label, onClick, children }) {
+/** Channel picker — each station is a CH bug in its own ink. */
+function ChannelRail({ activeId, onChange }) {
   return (
-    <button
-      type="button"
-      aria-label={label}
-      onClick={onClick}
-      className="pmp-press"
-      style={{
-        ...chromeIconButton(36),
-        borderRadius: 10,
-        flexShrink: 0,
-      }}
+    <div
+      role="tablist"
+      aria-label="Channel"
+      className="hide-scroll"
+      style={{ display: "flex", gap: 8, overflowX: "auto", paddingBottom: 16 }}
     >
-      {children}
-    </button>
+      {SCENE_CHANNELS.map((ch) => {
+        const active = ch.id === activeId;
+        return (
+          <button
+            key={ch.id}
+            type="button"
+            role="tab"
+            aria-selected={active}
+            className="pmp-press"
+            onClick={() => onChange(ch.id)}
+            style={{
+              flexShrink: 0,
+              display: "inline-flex",
+              alignItems: "stretch",
+              padding: 0,
+              borderRadius: 3,
+              overflow: "hidden",
+              border: `1.5px solid ${active ? ch.accent : "rgba(200,210,222,0.16)"}`,
+              background: active ? "rgba(255,255,255,0.06)" : "transparent",
+              cursor: "pointer",
+              WebkitTapHighlightColor: "transparent",
+            }}
+          >
+            <span
+              aria-hidden="true"
+              style={{
+                ...capsLabel,
+                padding: "6px 7px 5px",
+                fontSize: 13,
+                lineHeight: 1,
+                background: active ? ch.accent : "rgba(255,255,255,0.08)",
+                color: active ? onInk(ch.accent) : color.muted,
+                fontFamily: fontMono,
+                letterSpacing: "0.04em",
+              }}
+            >
+              {String(ch.num).padStart(2, "0")}
+            </span>
+            <span
+              style={{
+                ...capsLabel,
+                padding: "6px 10px 5px",
+                fontSize: 14,
+                lineHeight: 1,
+                color: active ? color.ink : color.muted,
+              }}
+            >
+              {ch.shortTitle || ch.title}
+            </span>
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+function SectionHead({ title, note, right, action, ink }) {
+  return (
+    <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", gap: 12, marginBottom: 12 }}>
+      <div style={{ minWidth: 0 }}>
+        <span
+          aria-hidden="true"
+          style={{ display: "block", width: 34, height: 4, background: ink || color.ink, marginBottom: 8 }}
+        />
+        <h2
+          style={{
+            margin: 0,
+            fontFamily: fontPoster,
+            fontWeight: 800,
+            fontSize: "clamp(28px, 7vw, 38px)",
+            lineHeight: 0.95,
+            letterSpacing: "0.005em",
+            textTransform: "uppercase",
+            color: color.ink,
+          }}
+        >
+          {title}
+        </h2>
+        {note && <p style={{ margin: "6px 0 0", fontFamily: font, fontSize: 14, color: color.muted, lineHeight: 1.35 }}>{note}</p>}
+      </div>
+      {action}
+      {right && (
+        <div
+          style={{
+            fontFamily: fontMono,
+            fontSize: 11,
+            fontWeight: 700,
+            letterSpacing: "0.12em",
+            textTransform: "uppercase",
+            color: color.muted,
+            whiteSpace: "nowrap",
+            paddingBottom: 3,
+          }}
+        >
+          {right}
+        </div>
+      )}
+    </div>
   );
 }
 
 /**
  * Monthly charts — overall or split by channel / genre, plus archive tabs.
- * Flow: pick the view first (board / climbers / crowns / archive), then
- * refine the live board with scope. Podium for #1–#3, playlist for the rest.
+ * Pick the view first (board / climbers / crowns / archive), then refine the
+ * live board with scope. NO. 1 gets a frame, #2–#3 are posters, the rest is the list.
  */
 export default function ChartHistoryPanel({
   countdown = [],
@@ -318,12 +325,14 @@ export default function ChartHistoryPanel({
   onAddToQueue = null,
   playlistCtx = null,
   nowPlayingId = null,
+  isPlaying = true,
 }) {
   const [tab, setTab] = useState("month");
   const [scopeMode, setScopeMode] = useState("overall");
   const [channelId, setChannelId] = useState(SCENE_CHANNELS[0]?.id || null);
   const [genre, setGenre] = useState(CANONICAL_GENRES[0] || "Electronic");
   const [archiveDay, setArchiveDay] = useState(null);
+  const [, bump] = useReducer((n) => n + 1, 0);
   const { menu, openFromButton, openFromContext, close } = useTrackMenu();
 
   const scope = useMemo(
@@ -334,6 +343,25 @@ export default function ChartHistoryPanel({
   const month = monthKey();
   const monthLabel = formatMonthLabel(month);
   const onBoard = tab === "month";
+  const scopeChannel = scopeMode === "channel" ? getSceneChannel(channelId) : null;
+
+  const trackById = useMemo(() => new Map(tracks.map((t) => [t.id, t])), [tracks]);
+
+  /** Station ink, channel and live counts for an entry. Archive boards keep their own counts. */
+  const decorate = (entry, { live = true } = {}) => {
+    const full = trackById.get(entry.id);
+    const channel = channelForTrack(full || entry);
+    return {
+      ...entry,
+      requestCount: live && full ? full.requestCount ?? entry.requestCount : entry.requestCount,
+      playCount: live && full ? full.playCount ?? entry.playCount : entry.playCount,
+      likeCount: live && full ? full.likeCount ?? entry.likeCount : entry.likeCount,
+      bpm: entry.bpm ?? full?.bpm,
+      camelot: entry.camelot ?? full?.camelot,
+      channel,
+      ink: scopeChannel?.accent || channel?.accent || NEUTRAL_INK,
+    };
+  };
 
   const monthlyLive = useMemo(
     () => (tracks.length ? buildMonthlyChart(tracks, { limit: 20, scope }) : []),
@@ -345,7 +373,7 @@ export default function ChartHistoryPanel({
     }
     if (!tracks.length) return [];
     return buildMonthlyReveal(20, { scope, tracks }).map((e) => toEntry({ ...e, rank: e.monthRank }, {
-      movement: "same",
+      movement: "none",
       meta: e.peakDay ? formatDayLabel(e.peakDay) : null,
     }));
   }, [monthlyLive, tracks, scope]);
@@ -373,7 +401,7 @@ export default function ChartHistoryPanel({
   }
 
   const resolveTrack = (entry) =>
-    tracks.find((t) => t.id === entry.id) || {
+    trackById.get(entry.id) || {
       id: entry.id,
       title: entry.title,
       artist: entry.artist,
@@ -384,233 +412,240 @@ export default function ChartHistoryPanel({
   const playEntry = (entry, list) => {
     if (!entry?.id || !onPlayTrack) return;
     const track = resolveTrack(entry);
-    const pool = list.map((e) => resolveTrack(e)).filter((t) => t?.id);
+    const pool = (list || [entry]).map((e) => resolveTrack(e)).filter((t) => t?.id);
     onPlayTrack(track, pool.length ? pool : [track]);
   };
 
-  const addEntry = (entry, event) => {
-    event?.stopPropagation?.();
-    if (!entry?.id || !onAddToQueue) return;
-    onAddToQueue(resolveTrack(entry));
-  };
-
-  const openMore = (event, entry) => {
-    if (!playlistCtx) return;
-    openFromButton(event, resolveTrack(entry));
-  };
+  const addEntry = onAddToQueue
+    ? (entry, event) => {
+        event?.stopPropagation?.();
+        if (entry?.id) onAddToQueue(resolveTrack(entry));
+      }
+    : null;
+  const openMore = playlistCtx ? (event, entry) => openFromButton(event, resolveTrack(entry)) : null;
+  const openContext = playlistCtx ? (event, entry) => openFromContext(event, resolveTrack(entry)) : null;
+  const requestEntry = playlistCtx?.onRequest
+    ? (entry) => {
+        playlistCtx.onRequest(entry.id);
+        bump();
+      }
+    : null;
+  const isRequested = (id) => !!playlistCtx?.hasRequested?.(id);
 
   const scopeTitle = scope.mode === "overall" ? "Top 20" : chartScopeLabel(scope);
-  const podium = onBoard ? monthlyEntries.slice(0, 3) : [];
-  const listEntries = onBoard ? monthlyEntries.slice(3) : null;
   const showSkeleton = catalogLoading && !monthlyEntries.length;
+
+  /** A flat list of rows; heat is relative to the hottest row on that list. */
+  const renderRows = (entries, { live = true, cols = false, label } = {}) => {
+    const decorated = entries.map((e) => decorate(e, { live }));
+    const max = boardMaxScore(decorated);
+    return (
+      <BoardList columns={cols} label={label}>
+        {decorated.map((e, i) => (
+          <BoardRow
+            key={`${e.id}-${e.rank}-${i}`}
+            entry={e}
+            index={i}
+            ink={e.ink}
+            heat={heatLevel(e, max)}
+            active={nowPlayingId === e.id}
+            playing={isPlaying}
+            requested={isRequested(e.id)}
+            onPlay={(entry) => playEntry(entry, decorated)}
+            onAdd={addEntry}
+            onMore={openMore}
+            onContext={openContext}
+            onRequest={live ? requestEntry : null}
+          />
+        ))}
+      </BoardList>
+    );
+  };
+
+  const renderBoard = () => {
+    const decorated = monthlyEntries.map((e) => decorate(e));
+    const max = boardMaxScore(decorated);
+    const [lead, ...rest] = decorated;
+    const poster = rest.slice(0, 2);
+    const list = rest.slice(2);
+    const common = (e) => ({
+      entry: e,
+      ink: e.ink,
+      heat: heatLevel(e, max),
+      active: nowPlayingId === e.id,
+      playing: isPlaying,
+      requested: isRequested(e.id),
+      onPlay: () => playEntry(e, decorated),
+      onMore: openMore,
+      onContext: openContext,
+      onRequest: requestEntry,
+    });
+    return (
+      <>
+        <div className="pmp-chart-podium">
+          <BoardLead
+            {...common(lead)}
+            channel={lead.channel}
+            kicker={scope.mode === "overall" ? "Top of the board" : `Top of the ${scope.mode}`}
+            onAdd={addEntry}
+          />
+          {poster.length > 0 && (
+            <div className="pmp-chart-podium__side">
+              {poster.map((e, i) => (
+                <BoardPodiumCard key={`${e.id}-${e.rank}`} {...common(e)} index={i + 1} />
+              ))}
+            </div>
+          )}
+        </div>
+        {list.length > 0 &&
+          (() => {
+            const listMax = max;
+            return (
+              <BoardList columns label={`${scopeTitle}, ${list[0].rank} to ${list[list.length - 1].rank}`}>
+                {list.map((e, i) => (
+                  <BoardRow
+                    key={`${e.id}-${e.rank}`}
+                    entry={e}
+                    index={i}
+                    ink={e.ink}
+                    heat={heatLevel(e, listMax)}
+                    active={nowPlayingId === e.id}
+                    playing={isPlaying}
+                    requested={isRequested(e.id)}
+                    onPlay={(entry) => playEntry(entry, decorated)}
+                    onAdd={addEntry}
+                    onMore={openMore}
+                    onContext={openContext}
+                    onRequest={requestEntry}
+                  />
+                ))}
+              </BoardList>
+            );
+          })()}
+      </>
+    );
+  };
 
   return (
     <section
       aria-label="Monthly charts"
-      style={{
-        position: "relative",
-        padding: `4px 0 ${homeSpace.sectionPadBottom}px`,
-      }}
+      className="pmp-board"
+      style={{ position: "relative", padding: `16px 0 ${homeSpace.sectionPadBottom}px` }}
     >
-      <div style={{ padding: `0 ${homeSpace.gutter}px 12px` }}>
-        <HardwareTabs
-          ariaLabel="Chart view"
-          activeId={tab}
-          onChange={setTab}
-          items={[
-            { id: "month", label: "This month" },
-            { id: "climbers", label: "Climbers" },
-            { id: "ones", label: "#1s" },
-            { id: "archive", label: "Past days" },
-          ]}
-        />
+      <div style={{ padding: `0 ${homeSpace.gutter}px 18px` }}>
+        <ViewTabs ariaLabel="Chart view" activeId={tab} onChange={setTab} items={VIEWS} />
       </div>
 
       {onBoard && (
-        <>
-          <div style={{ padding: `0 ${homeSpace.gutter}px 10px` }}>
-            <div style={{
-              display: "flex",
-              alignItems: "baseline",
-              justifyContent: "space-between",
-              gap: 12,
-              marginBottom: 10,
-            }}>
-              <h2 style={{
-                margin: 0,
-                fontFamily: fontDisplay,
-                fontSize: "clamp(20px, 4.2vw, 26px)",
-                fontWeight: 700,
-                letterSpacing: -0.5,
-                color: color.ink,
-                lineHeight: 1.12,
-              }}>
-                {scopeTitle}
-              </h2>
-              <div style={{
-                fontFamily: fontMono,
-                fontSize: 11,
-                fontWeight: 700,
-                color: color.muted,
-                letterSpacing: 0.12,
-                textTransform: "uppercase",
-                whiteSpace: "nowrap",
-              }}>
-                {monthLabel}
-              </div>
-            </div>
-            <Segmented
-              ariaLabel="Chart scope"
-              activeId={scopeMode}
-              onChange={setScopeMode}
-              items={[
-                { id: "overall", label: "Overall" },
-                { id: "channel", label: "Channel" },
-                { id: "genre", label: "Genre" },
-              ]}
-            />
-          </div>
-
-          {scopeMode === "channel" && (
-            <div style={{ padding: `0 ${homeSpace.gutter}px` }}>
-              <UnderlineRail
-                ariaLabel="Channel"
-                activeId={channelId}
-                onChange={setChannelId}
-                items={SCENE_CHANNELS.map((ch) => ({
-                  id: ch.id,
-                  label: ch.shortTitle || ch.title,
-                }))}
-              />
-            </div>
-          )}
-
+        <div style={{ padding: `0 ${homeSpace.gutter}px` }}>
+          <SectionHead
+            title={scopeTitle}
+            ink={scopeChannel?.accent}
+            note={scope.mode === "overall" ? "Ranked by requests, plays and likes." : `${monthLabel} · ranked on this ${scope.mode}`}
+            action={
+              onTuneMonthly && monthlyEntries.length > 0 ? (
+                <button
+                  type="button"
+                  onClick={() => onTuneMonthly(scope)}
+                  className="pmp-tune-key"
+                  style={{
+                    ...BTN_PRIMARY,
+                    width: "auto",
+                    flexShrink: 0,
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: 8,
+                    padding: "0 16px 0 14px",
+                    minHeight: 42,
+                    fontSize: 15,
+                    fontWeight: 700,
+                  }}
+                >
+                  <Icon name="play" size={13} />
+                  Play this chart
+                </button>
+              ) : null
+            }
+          />
+          <ScopeSwitch ariaLabel="Chart scope" activeId={scopeMode} onChange={setScopeMode} items={SCOPES} />
+          <div style={{ height: 14 }} />
+          {scopeMode === "channel" && <ChannelRail activeId={channelId} onChange={setChannelId} />}
           {scopeMode === "genre" && (
-            <div style={{ padding: `0 ${homeSpace.gutter}px` }}>
-              <UnderlineRail
-                ariaLabel="Genre"
-                activeId={genre}
-                onChange={setGenre}
-                items={CANONICAL_GENRES.map((g) => ({ id: g, label: g }))}
-              />
-            </div>
+            <UnderlineRail
+              ariaLabel="Genre"
+              activeId={genre}
+              onChange={setGenre}
+              items={CANONICAL_GENRES.map((g) => ({ id: g, label: g }))}
+            />
           )}
-        </>
+        </div>
       )}
 
       <div style={{ padding: `0 ${homeSpace.gutter}px` }}>
         {tab === "month" && (
           <>
-            {onTuneMonthly && monthlyEntries.length > 0 && (
-              <button
-                type="button"
-                onClick={() => onTuneMonthly(scope)}
-                className="pmp-tune-key"
-                style={{
-                  ...BTN_PRIMARY,
-                  width: "auto",
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: 8,
-                  marginBottom: 14,
-                  padding: "10px 16px",
-                  minHeight: 40,
-                  fontSize: 15,
-                  fontWeight: 650,
-                  letterSpacing: -0.2,
-                  textTransform: "none",
-                  fontFamily: fontDisplay,
-                  borderRadius: 8,
-                }}
-              >
-                <Icon name="play" size={14} />
-                Play this chart
-              </button>
-            )}
             {showSkeleton ? (
               <BoardSkeleton />
             ) : monthlyEntries.length ? (
-              <>
-                <ChartPodium
-                  entries={podium}
-                  nowPlayingId={nowPlayingId}
-                  onPlay={(entry) => playEntry(entry, monthlyEntries)}
-                  onAdd={onAddToQueue ? addEntry : null}
-                  onMore={playlistCtx ? openMore : null}
-                  onContext={playlistCtx ? (e, entry) => openFromContext(e, resolveTrack(entry)) : null}
-                />
-                {listEntries?.length > 0 && (
-                  <ChartList
-                    entries={listEntries}
-                    nowPlayingId={nowPlayingId}
-                    onPlay={(e) => playEntry(e, monthlyEntries)}
-                    onAdd={onAddToQueue ? addEntry : null}
-                    onMore={playlistCtx ? openMore : null}
-                    onContext={playlistCtx ? (e, entry) => openFromContext(e, resolveTrack(entry)) : null}
-                  />
-                )}
-              </>
+              renderBoard()
             ) : (
-              <Empty note="Nothing on this board yet. Play and request cuts to fill the month." />
+              <BoardEmpty note="Play and request cuts to fill the month." />
             )}
           </>
         )}
 
         {tab === "climbers" && (
-          climbers.length ? (
-            <ChartList
-              entries={climbers.map((c) => toEntry(c))}
-              nowPlayingId={nowPlayingId}
-              onPlay={playEntry}
-              onAdd={onAddToQueue ? addEntry : null}
-              onMore={playlistCtx ? openMore : null}
-              onContext={playlistCtx ? (e, entry) => openFromContext(e, resolveTrack(entry)) : null}
-            />
-          ) : (
-            <Empty note="Play and request across two days to unlock climbers." />
-          )
+          <>
+            <SectionHead title="Biggest moves" note="Tracks that climbed since yesterday's board." />
+            {climbers.length ? (
+              renderRows(climbers.map((c) => toEntry(c)), { label: "Climbers" })
+            ) : (
+              <BoardEmpty title="No moves yet" note="Play and request across two days to unlock climbers." />
+            )}
+          </>
         )}
 
         {tab === "ones" && (
-          ones.length ? (
-            <ChartList
-              entries={ones.map((e, i) => toEntry(e, {
-                rank: i + 1,
-                movement: "same",
-                meta: e.dayKey ? formatDayLabel(e.dayKey) : null,
-              }))}
-              nowPlayingId={nowPlayingId}
-              onPlay={playEntry}
-              onAdd={onAddToQueue ? addEntry : null}
-              onMore={playlistCtx ? openMore : null}
-              onContext={playlistCtx ? (e, entry) => openFromContext(e, resolveTrack(entry)) : null}
-            />
-          ) : (
-            <Empty note="Number-ones appear as daily charts are captured." />
-          )
+          <>
+            <SectionHead title="Number ones" note="Whatever held the top spot, day by day." />
+            {ones.length ? (
+              renderRows(
+                ones.map((e) => toEntry(e, {
+                  rank: 1,
+                  movement: "none",
+                  meta: e.dayKey ? formatDayLabel(e.dayKey) : null,
+                })),
+                { live: false, label: "Number ones" }
+              )
+            ) : (
+              <BoardEmpty title="No crowns yet" note="Number-ones appear as daily charts are captured." />
+            )}
+          </>
         )}
 
         {tab === "archive" && (
           <>
+            <SectionHead title="Past days" note="Reopen any board we captured." />
             {days.length > 0 && (
               <UnderlineRail
                 ariaLabel="Archive day"
                 activeId={archiveDay}
                 onChange={setArchiveDay}
+                mono
                 items={days.map((d) => ({ id: d, label: formatDayLabel(d) }))}
               />
             )}
             {archive ? (
-              <ChartList
-                entries={archive.entries.map((e) => toEntry(e, { movement: "same" }))}
-                nowPlayingId={nowPlayingId}
-                onPlay={playEntry}
-                onAdd={onAddToQueue ? addEntry : null}
-                onMore={playlistCtx ? openMore : null}
-                onContext={playlistCtx ? (e, entry) => openFromContext(e, resolveTrack(entry)) : null}
-              />
+              renderRows(archive.entries.map((e) => toEntry(e, { movement: "none" })), {
+                live: false,
+                cols: true,
+                label: `Board for ${formatDayLabel(archive.dayKey)}`,
+              })
             ) : (
-              <Empty note={days.length ? "Pick a day to reopen that board." : "The archive fills as you listen."} />
+              <BoardEmpty
+                title="Pick a day"
+                note={days.length ? "Pick a day to reopen that board." : "The archive fills as you listen."}
+              />
             )}
           </>
         )}
@@ -626,388 +661,5 @@ export default function ChartHistoryPanel({
         />
       )}
     </section>
-  );
-}
-
-function Empty({ note }) {
-  return (
-    <div
-      role="status"
-      style={{
-        padding: "22px 18px",
-        borderRadius: radius.lg,
-        border: `1px solid ${glass.borderSoft}`,
-        background: `
-          linear-gradient(180deg, rgba(91,101,116,0.05) 0%, transparent 42%),
-          ${glass.fill}
-        `,
-        boxShadow: `inset 0 1px 0 ${glass.highlight}`,
-        color: color.muted,
-        fontSize: 15,
-        lineHeight: 1.45,
-        fontFamily: font,
-        letterSpacing: -0.08,
-      }}
-    >
-      {note}
-    </div>
-  );
-}
-
-function BoardSkeleton() {
-  return (
-    <div aria-hidden="true" className="pmp-chart-podium" style={{ marginBottom: 12 }}>
-      <div className="pmp-chart-podium__lead pmp-chart-skel" style={{ aspectRatio: "1 / 1" }} />
-      <div className="pmp-chart-podium__side">
-        <div className="pmp-chart-skel" style={{ flex: 1, minHeight: 88 }} />
-        <div className="pmp-chart-skel" style={{ flex: 1, minHeight: 88 }} />
-      </div>
-    </div>
-  );
-}
-
-function ChartPodium({ entries, nowPlayingId, onPlay, onAdd, onMore, onContext }) {
-  if (!entries?.length) return null;
-  const lead = entries[0];
-  const rest = entries.slice(1);
-  return (
-    <div className="pmp-chart-podium" style={{ marginBottom: 8 }}>
-      <PodiumLead
-        entry={lead}
-        active={nowPlayingId === lead.id}
-        onPlay={() => onPlay(lead)}
-        onAdd={onAdd ? (e) => onAdd(lead, e) : null}
-        onMore={onMore ? (e) => onMore(e, lead) : null}
-        onContextMenu={onContext ? (e) => onContext(e, lead) : undefined}
-      />
-      {rest.length > 0 && (
-        <div className="pmp-chart-podium__side">
-          {rest.map((entry) => (
-            <PodiumCut
-              key={`${entry.id}-${entry.rank}`}
-              entry={entry}
-              active={nowPlayingId === entry.id}
-              onPlay={() => onPlay(entry)}
-              onContextMenu={onContext ? (e) => onContext(e, entry) : undefined}
-            />
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
-
-function PodiumLead({ entry, active, onPlay, onAdd, onMore, onContextMenu }) {
-  const sleeve = catalogSleeveUrl(entry.albumCover);
-  return (
-    <article
-      className="pmp-chart-podium__lead"
-      aria-label={`#${entry.rank} ${entry.title} by ${entry.artist}`}
-      onContextMenu={onContextMenu}
-      style={{
-        minWidth: 0,
-        padding: 10,
-        borderRadius: 10,
-        border: active ? radio.borderLive : radio.border,
-        background: radio.moduleFace,
-        boxShadow: radio.moduleShadow,
-      }}
-    >
-      <button
-        type="button"
-        onClick={onPlay}
-        aria-label={`Play #${entry.rank} ${entry.title}`}
-        style={{
-          ...artFrameStyle({ size: 220, active, radius: 6 }),
-          width: "100%",
-          height: "auto",
-          aspectRatio: "1 / 1",
-          border: "none",
-          padding: 0,
-          cursor: "pointer",
-        }}
-      >
-        <CoverImage
-          src={sleeve}
-          width={220}
-          height={220}
-          alt=""
-          priority
-          style={{ width: "100%", height: "100%", objectFit: "cover" }}
-        />
-        <span aria-hidden="true" className="pmp-chart-scan" />
-        <RankStamp rank={entry.rank} />
-        <span
-          aria-hidden="true"
-          style={{
-            position: "absolute",
-            inset: 0,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            background: "linear-gradient(180deg, transparent 48%, rgba(6,10,16,0.38) 100%)",
-          }}
-        >
-          <span style={{
-            width: 44,
-            height: 44,
-            borderRadius: 8,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            background: radio.tuneFace,
-            boxShadow: radio.tuneShadow,
-            color: chrome.inkPlate,
-          }}>
-            <Icon name="play" size={18} />
-          </span>
-        </span>
-      </button>
-      <div style={{
-        marginTop: 10,
-        fontFamily: fontDisplay,
-        fontSize: 17,
-        fontWeight: 700,
-        letterSpacing: -0.32,
-        color: color.ink,
-        lineHeight: 1.15,
-        overflow: "hidden",
-        textOverflow: "ellipsis",
-        whiteSpace: "nowrap",
-      }}>
-        {entry.title}
-      </div>
-      <div style={{
-        marginTop: 3,
-        fontSize: 13,
-        fontWeight: 500,
-        color: color.muted,
-        overflow: "hidden",
-        textOverflow: "ellipsis",
-        whiteSpace: "nowrap",
-      }}>
-        {entry.artist}
-      </div>
-      <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 8 }}>
-        <MovementMark movement={entry.movement} delta={entry.delta} />
-        <div style={{ flex: 1 }} />
-        {onAdd && (
-          <QuietIconButton label={`Add ${entry.title} to queue`} onClick={onAdd}>
-            <Icon name="plus" size={16} />
-          </QuietIconButton>
-        )}
-        {onMore && <TrackMoreButton onClick={onMore} />}
-      </div>
-    </article>
-  );
-}
-
-function PodiumCut({ entry, active, onPlay, onContextMenu }) {
-  const sleeve = catalogSleeveUrl(entry.albumCover);
-  return (
-    <button
-      type="button"
-      onClick={onPlay}
-      onContextMenu={onContextMenu}
-      aria-label={`Play #${entry.rank} ${entry.title}`}
-      className="pmp-press"
-      style={{
-        flex: 1,
-        minWidth: 0,
-        display: "flex",
-        gap: 10,
-        alignItems: "center",
-        padding: 8,
-        borderRadius: 8,
-        border: active ? radio.borderLive : radio.borderQuiet,
-        background: radio.moduleFace,
-        boxShadow: hardware.plateEdge,
-        cursor: "pointer",
-        textAlign: "left",
-        color: "inherit",
-      }}
-    >
-      <span style={{
-        ...artFrameStyle({ size: 72, active, radius: 6 }),
-        flexShrink: 0,
-        width: 72,
-        height: 72,
-      }}>
-        <CoverImage src={sleeve} width={72} height={72} alt="" eager />
-        <RankStamp rank={entry.rank} />
-      </span>
-      <span style={{ minWidth: 0, flex: 1 }}>
-        <span style={{
-          display: "block",
-          fontFamily: fontDisplay,
-          fontSize: 14,
-          fontWeight: 650,
-          letterSpacing: -0.2,
-          color: color.ink,
-          overflow: "hidden",
-          textOverflow: "ellipsis",
-          whiteSpace: "nowrap",
-        }}>
-          {entry.title}
-        </span>
-        <span style={{
-          display: "block",
-          marginTop: 2,
-          fontSize: 12,
-          color: color.muted,
-          overflow: "hidden",
-          textOverflow: "ellipsis",
-          whiteSpace: "nowrap",
-        }}>
-          {entry.artist}
-        </span>
-        <span style={{ display: "inline-flex", marginTop: 6 }}>
-          <MovementMark movement={entry.movement} delta={entry.delta} />
-        </span>
-      </span>
-    </button>
-  );
-}
-
-const ChartPlaylistRow = memo(function ChartPlaylistRow({
-  e,
-  active,
-  onPlay,
-  onAdd,
-  onMore,
-  onContext,
-}) {
-  return (
-    <li style={{ borderBottom: "1px solid rgba(61,70,84,0.08)" }}>
-      <div
-        className="pmp-chart-row"
-        onContextMenu={onContext ? (ev) => onContext(ev, e) : undefined}
-        style={{
-          display: "flex",
-          alignItems: "center",
-          gap: 4,
-          minHeight: 56,
-          margin: "0 -8px",
-          padding: "6px 8px",
-          borderRadius: 8,
-          background: active ? "rgba(91,101,116,0.06)" : "transparent",
-          boxShadow: active ? `inset 2px 0 0 ${chrome.signal}` : "none",
-        }}
-      >
-        <button
-          type="button"
-          onClick={() => onPlay?.(e)}
-          aria-label={`#${e.rank} ${e.title} by ${e.artist}`}
-          style={{
-            flex: 1,
-            minWidth: 0,
-            display: "flex",
-            alignItems: "center",
-            gap: 10,
-            padding: 0,
-            border: "none",
-            background: "none",
-            cursor: "pointer",
-            textAlign: "left",
-            color: "inherit",
-            WebkitTapHighlightColor: "transparent",
-          }}
-        >
-          <div style={{
-            width: 28,
-            flexShrink: 0,
-            fontFamily: fontMono,
-            fontSize: 12,
-            fontWeight: 700,
-            letterSpacing: 0.08,
-            color: color.muted,
-            textAlign: "center",
-            fontVariantNumeric: "tabular-nums",
-            lineHeight: 1,
-          }}>
-            {String(e.rank).padStart(2, "0")}
-          </div>
-
-          <div style={{
-            width: 44,
-            height: 44,
-            borderRadius: 6,
-            flexShrink: 0,
-            overflow: "hidden",
-            background: color.surfaceRaised,
-            border: `1px solid ${active ? "rgba(91,101,116,0.28)" : "rgba(184,192,204,0.2)"}`,
-          }}>
-            <CoverImage src={catalogSleeveUrl(e.albumCover)} width={44} height={44} alt="" />
-          </div>
-
-          <div style={{ minWidth: 0, flex: 1 }}>
-            <div style={{
-              fontSize: 15,
-              fontWeight: 650,
-              color: color.ink,
-              overflow: "hidden",
-              textOverflow: "ellipsis",
-              whiteSpace: "nowrap",
-              fontFamily: fontDisplay,
-              letterSpacing: -0.22,
-            }}>
-              {e.title}
-            </div>
-            <div style={{
-              fontSize: 12,
-              color: color.muted,
-              marginTop: 2,
-              overflow: "hidden",
-              textOverflow: "ellipsis",
-              whiteSpace: "nowrap",
-              fontFamily: font,
-            }}>
-              {e.artist}{e.meta ? ` · ${e.meta}` : ""}
-            </div>
-          </div>
-        </button>
-
-        <div style={{
-          flexShrink: 0,
-          minWidth: 28,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "flex-end",
-          paddingRight: 2,
-        }}>
-          <MovementMark movement={e.movement} delta={e.delta} />
-        </div>
-        {onAdd && (
-          <QuietIconButton label={`Add ${e.title} to queue`} onClick={(ev) => onAdd(e, ev)}>
-            <Icon name="plus" size={15} />
-          </QuietIconButton>
-        )}
-        {onMore && <TrackMoreButton onClick={(ev) => onMore(ev, e)} />}
-      </div>
-    </li>
-  );
-});
-
-function ChartList({ entries, nowPlayingId, onPlay, onAdd, onMore, onContext }) {
-  return (
-    <ol style={{
-      listStyle: "none",
-      margin: 0,
-      padding: 0,
-      display: "flex",
-      flexDirection: "column",
-    }}>
-      {entries.map((e) => (
-        <ChartPlaylistRow
-          key={`${e.id}-${e.rank}`}
-          e={e}
-          active={nowPlayingId === e.id}
-          onPlay={onPlay}
-          onAdd={onAdd}
-          onMore={onMore}
-          onContext={onContext}
-        />
-      ))}
-    </ol>
   );
 }

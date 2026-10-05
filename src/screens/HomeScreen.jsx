@@ -16,7 +16,7 @@ import { getSceneChannel, SCENE_CHANNELS } from "../lib/sceneChannels";
 import { buildHomeCollections, tracksFromRecentIds } from "../lib/homeCollections";
 import { rankChannelsForTaste } from "../lib/onboardingTaste";
 import { runAfterPaint } from "../lib/afterPaint";
-import { useCurrentTrack, useTransportTrackId } from "../usePlayerTransport";
+import { useCurrentTrack, useIsPlaying, useTransportTrackId } from "../usePlayerTransport";
 import HomeHeader from "../components/home/HomeHeader";
 import HeroPlayerCard from "../components/home/HeroPlayerCard";
 import MusicSection, { Rail } from "../components/home/MusicSection";
@@ -24,6 +24,7 @@ import TrackCard from "../components/home/TrackCard";
 import CardContainer from "../components/home/CardContainer";
 import CrateSpread from "../components/home/CrateSpread";
 import ChannelSurfingSection from "../components/home/ChannelSurfingSection";
+import HomeBoard from "../components/home/HomeBoard";
 
 const TonightDeck = lazy(() =>
   import("../components/station/ShowGuide").then((m) => ({ default: m.TonightDeck }))
@@ -305,6 +306,23 @@ function HomePersonal({
   );
 }
 
+function HomeBoardShelf({ countdown, onPlayTrack, onOpenCharts, onTuneCountdown, onRequestTrack, first }) {
+  const activeId = useTransportTrackId();
+  const playing = useIsPlaying();
+  return (
+    <HomeBoard
+      countdown={countdown}
+      nowPlayingId={activeId}
+      isPlaying={playing}
+      onPlayTrack={onPlayTrack}
+      onOpenCharts={onOpenCharts}
+      onTune={onTuneCountdown}
+      onRequest={onRequestTrack}
+      first={first}
+    />
+  );
+}
+
 function HomeEditorial({
   tracks,
   onPlayTrack,
@@ -364,6 +382,7 @@ function HomeScreen({
   onOpenSearch = null,
   onOpenCharts = null,
   onOpenMenu = null,
+  onRequestTrack = null,
   taste = null,
 }) {
   const playableCount = useMemo(() => countPlayableTracks(tracks), [tracks]);
@@ -464,6 +483,19 @@ function HomeScreen({
           first={!hasTonight}
           delay={0.05}
         />
+      )}
+
+      {shelvesReady && catalogReady && countdown.length >= 3 && (
+        <div style={{ contentVisibility: "auto", containIntrinsicSize: "520px" }}>
+          <HomeBoardShelf
+            countdown={countdown}
+            onPlayTrack={onPlayTrack}
+            onOpenCharts={onOpenCharts}
+            onTuneCountdown={onTuneCountdown}
+            onRequestTrack={onRequestTrack}
+            first={channels.length === 0 && !hasTonight}
+          />
+        </div>
       )}
 
       {shelvesReady && catalogReady && (

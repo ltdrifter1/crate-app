@@ -33,3 +33,28 @@ test("Library guest gate opens Profile", async () => {
   await act(async () => root.unmount());
   document.body.removeChild(div);
 });
+
+test("gate can preview what the signed-in page holds", async () => {
+  const div = document.createElement("div");
+  document.body.appendChild(div);
+  const root = createRoot(div);
+  await act(async () => {
+    root.render(
+      React.createElement(GuestMemberGate, {
+        eyebrow: "Your crate · empty",
+        title: "Your library",
+        perks: [
+          { label: "Playlists", body: "Build one for Friday night." },
+          { label: "Liked", body: "Heart a track." },
+        ],
+        onSignIn: () => {},
+      })
+    );
+  });
+  expect(div.textContent).toMatch(/Your crate · empty/);
+  const items = [...div.querySelectorAll("li")].map((li) => li.textContent);
+  expect(items).toHaveLength(2);
+  expect(items[0]).toMatch(/Playlists/);
+  await act(async () => root.unmount());
+  document.body.removeChild(div);
+});
