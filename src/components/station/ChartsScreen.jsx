@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { color, fontMono, fontPoster, homeSpace, chromeIconButton } from "../../theme";
+import { color, fontDisplay, fontMono, fontPoster, homeSpace, chromeIconButton } from "../../theme";
 import { buildCountdown } from "../../lib/station";
 import { enrichCountdownWithHistory, monthKey } from "../../lib/chartHistory";
 import { boardCrawl, boardStats } from "../../lib/board";
@@ -82,6 +82,9 @@ export default function ChartsScreen({
   playlistCtx = null,
   nowPlayingId = null,
   onOpenMenu = null,
+  /** Back to the tab Charts was opened from (like Search's "‹ Discover"). */
+  onBack = null,
+  backLabel = "Home",
 }) {
   const isPlaying = useIsPlaying();
   const empty = !catalogLoading && tracks.length === 0 && countdown.length === 0;
@@ -119,24 +122,48 @@ export default function ChartsScreen({
               <Icon name="menu" size={16} />
             </button>
           )}
-          <span
-            className="pmp-lcd-pip"
-            aria-hidden="true"
-            style={{ width: 8, height: 8, background: color.alert, flexShrink: 0 }}
-          />
-          <span
-            style={{
-              fontFamily: fontMono,
-              fontSize: 11,
-              fontWeight: 700,
-              letterSpacing: "0.12em",
-              textTransform: "uppercase",
-              color: color.body,
-              whiteSpace: "nowrap",
-            }}
-          >
-            Live · Countdown
-          </span>
+          {onBack ? (
+            <button
+              type="button"
+              onClick={onBack}
+              aria-label={`Back to ${backLabel}`}
+              className="pmp-press"
+              style={{
+                background: "none",
+                border: "none",
+                padding: "8px 0",
+                cursor: "pointer",
+                color: color.body,
+                fontFamily: fontDisplay,
+                fontSize: 15,
+                fontWeight: 600,
+                whiteSpace: "nowrap",
+              }}
+            >
+              ‹ {backLabel}
+            </button>
+          ) : (
+            <>
+              <span
+                className="pmp-lcd-pip"
+                aria-hidden="true"
+                style={{ width: 8, height: 8, background: color.alert, flexShrink: 0 }}
+              />
+              <span
+                style={{
+                  fontFamily: fontMono,
+                  fontSize: 11,
+                  fontWeight: 700,
+                  letterSpacing: "0.12em",
+                  textTransform: "uppercase",
+                  color: color.body,
+                  whiteSpace: "nowrap",
+                }}
+              >
+                Live · Countdown
+              </span>
+            </>
+          )}
           <span
             style={{
               marginLeft: "auto",
@@ -156,10 +183,10 @@ export default function ChartsScreen({
         <h1
           style={{
             position: "relative",
-            margin: "16px 0 0",
+            margin: "12px 0 0",
             fontFamily: fontPoster,
             fontWeight: 800,
-            fontSize: "clamp(60px, 18vw, 96px)",
+            fontSize: "clamp(52px, 15vw, 96px)",
             lineHeight: 0.84,
             letterSpacing: "-0.005em",
             textTransform: "uppercase",

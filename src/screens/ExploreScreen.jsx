@@ -1,6 +1,5 @@
 import { useMemo, useState, memo } from "react";
 import {
-  chromeIconButton,
   color,
   font,
   fontDisplay,
@@ -9,10 +8,10 @@ import {
   motion,
   radio,
   SEARCH_FIELD,
-  type,
   y2k,
 } from "../theme";
 import Icon from "../components/ui/Icon";
+import PageHeader from "../components/layout/PageHeader";
 import { useCurrentTrack } from "../usePlayerTransport";
 import CardContainer from "../components/home/CardContainer";
 import ExploreFocus from "../components/explore/ExploreFocus";
@@ -36,15 +35,23 @@ import {
 } from "../lib/explore";
 
 const EXPLORE_CSS = `
-  .pmp-explore-modes {
-    display: grid;
-    grid-auto-flow: column;
-    grid-auto-columns: minmax(0, 1fr);
-    gap: 6px;
+  /* One filter row: destinations, a rule, then tools. Scrolls sideways on phones. */
+  .pmp-explore-nav {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    overflow-x: auto;
     padding: 8px ${"{gutter}"}px 4px;
+    scrollbar-width: none;
+  }
+  .pmp-explore-nav::-webkit-scrollbar { display: none; }
+  .pmp-explore-modes {
+    display: flex;
+    gap: 6px;
+    flex-shrink: 0;
   }
   .pmp-explore-modes button {
-    white-space: normal;
+    white-space: nowrap;
     line-height: 1.15;
   }
   .pmp-new-releases-grid {
@@ -306,68 +313,26 @@ function ExploreScreen({
     >
       <style>{EXPLORE_CSS}</style>
 
-      <header
-        style={{
-          position: "relative",
-          padding: `calc(12px + env(safe-area-inset-top, 0px)) ${homeSpace.gutter}px 4px`,
-          animation: `rise 0.45s ${motion.ease} both`,
-        }}
-      >
-        <div
-          style={{
-            display: "flex",
-            alignItems: "flex-start",
-            justifyContent: "space-between",
-            gap: 12,
-          }}
-        >
-          <div style={{ display: "flex", alignItems: "flex-start", gap: 10, minWidth: 0 }}>
-            {onOpenMenu && (
-              <button
-                type="button"
-                aria-label="More"
-                onClick={onOpenMenu}
-                className="pmp-press"
-                style={{ ...chromeIconButton(44), marginTop: 4 }}
-              >
-                <Icon name="menu" size={16} />
-              </button>
-            )}
-            <div style={{ minWidth: 0 }}>
-              <h1
-                style={{
-                  ...type.largeTitle,
-                  margin: 0,
-                  color: y2k.offWhite,
-                }}
-              >
-                Discover
-              </h1>
-              <p
-                style={{
-                  margin: "6px 0 0",
-                  fontFamily: font,
-                  fontSize: 14,
-                  color: color.muted,
-                }}
-              >
-                {stats.cuts && !catalogPartial
-                  ? `${stats.cuts.toLocaleString()} track${stats.cuts === 1 ? "" : "s"}`
-                  : "New music around what you play."}
-              </p>
-            </div>
-          </div>
-        </div>
-      </header>
+      <PageHeader
+        title="Discover"
+        onOpenMenu={onOpenMenu}
+        subtitle={
+          stats.cuts && !catalogPartial
+            ? `${stats.cuts.toLocaleString()} track${stats.cuts === 1 ? "" : "s"}`
+            : "New music around what you play."
+        }
+      />
 
       <FindEntry onOpenSearch={onOpenSearch} />
-      <ExploreModes mode={activeMode} modes={modes} onChange={setMode} />
-      <ExploreTools
-        mode={activeMode}
-        tools={tools}
-        onChange={setMode}
-        onOpenCharts={onOpenCharts}
-      />
+      <div className="pmp-explore-nav">
+        <ExploreModes mode={activeMode} modes={modes} onChange={setMode} />
+        <ExploreTools
+          mode={activeMode}
+          tools={tools}
+          onChange={setMode}
+          onOpenCharts={onOpenCharts}
+        />
+      </div>
       <ModeHint mode={activeMode} />
 
       {activeMode === "releases" && (

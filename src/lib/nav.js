@@ -37,8 +37,11 @@ export function isKeepAliveScreen(screen) {
  * Map any screen (including Charts, Search, artist/album) to the dock tab
  * that should appear selected.
  */
-export function dockActiveTab(screen, { hasAdmin = false } = {}) {
+export function dockActiveTab(screen, { hasAdmin = false, chartsFrom = null } = {}) {
   if (TAB_IDS.has(screen)) return screen;
+  // Charts is reached from Home (The Board → Full chart) or Discover (Tools):
+  // keep the tab you came from lit. Default Home — the Board lives there.
+  if (screen === "charts") return TAB_IDS.has(chartsFrom) ? chartsFrom : "home";
   if (screen === "admin" && hasAdmin) return "admin";
   if (screen === "search" || screen === "artist" || screen === "album") return "explore";
   if (screen === "mix" || screen === "stack") return "favorites";

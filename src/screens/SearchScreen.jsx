@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState, memo } from "react";
 import Icon from "../components/ui/Icon";
+import PageHeader from "../components/layout/PageHeader";
 import VirtualList from "../components/ui/VirtualList";
 import GenreSceneBrowse from "../components/search/GenreSceneBrowse";
 import CamelotKeyRail from "../components/search/CamelotKeyRail";
@@ -16,8 +17,6 @@ import {
   fontMono,
   glass,
   radius,
-  type,
-  y2k,
 } from "../theme";
 
 function SearchScreen({
@@ -65,26 +64,11 @@ function SearchScreen({
         maxWidth: 880,
         margin: "0 auto",
       }}>
-      {onBack && (
-        <button
-          type="button"
-          onClick={onBack}
-          aria-label={`Back to ${backLabel}`}
-          style={{
-            background: "none",
-            border: "none",
-            color: color.muted,
-            fontFamily: fontDisplay,
-            fontSize: 14,
-            fontWeight: 600,
-            cursor: "pointer",
-            padding: "0 0 10px",
-          }}
-        >
-          ‹ {backLabel}
-        </button>
-      )}
-      <h1 style={{ ...type.largeTitle, margin: "0 0 14px", color: y2k.offWhite }}>Search</h1>
+      <PageHeader
+        title="Search"
+        back={onBack ? { label: backLabel, onClick: onBack } : null}
+        style={{ padding: "0 0 14px", animation: "none" }}
+      />
       <div style={{ position:"relative", marginBottom:14 }}>
         <div style={{ position:"absolute", left:14, top:"50%", transform:"translateY(-50%)", color: color.faint, zIndex: 1 }}><Icon name="search" size={16}/></div>
         <input
