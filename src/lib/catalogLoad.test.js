@@ -166,6 +166,33 @@ describe("catalogLoad", () => {
     expect(await fetchCatalogCdn({ fetchImpl, timeoutMs: 50 })).toBeNull();
   });
 
+  test("a first-paint timeout doesn't cancel the download — a later call reuses it", async () => {
+    const { fetchCatalogCdn } = require("./catalogLoad");
+    let finish;
+    const body = new Promise((resolve) => { finish = resolve; });
+    const fetchImpl = jest.fn(async () => ({
+      ok: true,
+      json: () => body,
+    }));
+    // First paint gives up after its budget…
+    expect(await fetchCatalogCdn({ fetchImpl, timeoutMs: 200 })).toBeNull();
+    // …the body lands afterwards…
+    finish({ ts: 5, version: 5, tracks: [{ id: "x", createdAt: { seconds: 1 } }] });
+    // …and the background load gets it without a second download.
+    const later = await fetchCatalogCdn({ fetchImpl, timeoutMs: 1000 });
+    expect(later.tracks.map((t) => t.id)).toEqual(["x"]);
+    expect(later.version).toBe(5);
+    expect(fetchImpl).toHaveBeenCalledTimes(1);
+  });
+
+  test("a failed download isn't reused — the next call tries again", async () => {
+    const { fetchCatalogCdn } = require("./catalogLoad");
+    const fetchImpl = jest.fn(async () => ({ ok: false, status: 404 }));
+    expect(await fetchCatalogCdn({ fetchImpl, timeoutMs: 500 })).toBeNull();
+    expect(await fetchCatalogCdn({ fetchImpl, timeoutMs: 500 })).toBeNull();
+    expect(fetchImpl).toHaveBeenCalledTimes(2);
+  });
+
   test("fetchCatalogTracks prefers CDN JSON over Firestore", async () => {
     const { fetchCatalogTracks } = require("./catalogLoad");
     const orig = global.fetch;

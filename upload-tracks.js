@@ -16,6 +16,7 @@ const {
   hashedObjectName,
   thumbObjectPath,
 } = require("./scripts/storageAssets.cjs");
+const { publishCatalog } = require("./scripts/publish-catalog");
 
 // â”€â”€ Startup checks â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 if (!fs.existsSync(path.join(__dirname, "serviceAccountKey.json"))) {
@@ -289,6 +290,16 @@ async function uploadTracks() {
   if (fail > 0) console.log(`âš ï¸   Re-run to retry failures â€” duplicates are skipped.`);
   console.log(`\n  Files:  https://console.firebase.google.com/project/${projectId}/storage`);
   console.log(`  Tracks: https://console.firebase.google.com/project/${projectId}/firestore\n`);
+
+  // New visitors load catalog/v1.json, not the tracks collection — refresh it.
+  if (ok > 0) {
+    try {
+      await publishCatalog({ db, bucket, FieldValue: admin.firestore.FieldValue });
+    } catch (err) {
+      console.log(`\n    ⚠️   Tracks are in, but the catalog didn't publish: ${err.message}`);
+      console.log("    Run  npm run catalog:publish  to retry.\n");
+    }
+  }
 }
 
 uploadTracks().catch(err => {

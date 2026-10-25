@@ -80,7 +80,18 @@ export function mergeHomeLiteTracks(newest = [], hottest = [], limit = HOME_LITE
 
 /** Published by functions/lib/catalogJson.js — gzip JSON, long CDN cache. */
 export const CATALOG_CDN_OBJECT = "catalog/v1.json";
+/**
+ * How long a first-paint caller waits for the catalog JSON (~1.3MB gzipped for
+ * 15k tracks) before falling back to the lite shelf. The download itself keeps
+ * going — see startCdnDownload — so the background full load picks it up.
+ */
 export const CATALOG_CDN_TIMEOUT_MS = 800;
+/** Background full-catalog loads can wait for the whole download. */
+export const CATALOG_CDN_BACKGROUND_MS = 30000;
+/** Hard cap on one download, so a stalled connection doesn't hang forever. */
+export const CATALOG_CDN_DOWNLOAD_MS = 30000;
+/** A finished download is reused for this long instead of fetched again. */
+const CDN_REUSE_MS = 5 * 60 * 1000;
 const DEFAULT_CATALOG_BUCKET = "crate-app-58494.firebasestorage.app";
 
 export function catalogCdnEnabled() {
@@ -121,6 +132,50 @@ export function parseCatalogCdnPayload(json) {
   };
 }
 
+/** fetch impl → Map(href → { promise, result, settledAt }) — one download shared by every caller. */
+const cdnDownloads = new WeakMap();
+
+function startCdnDownload(f, href) {
+  let byHref = cdnDownloads.get(f);
+  if (!byHref) {
+    byHref = new Map();
+    cdnDownloads.set(f, byHref);
+  }
+  const hit = byHref.get(href);
+  if (hit && (!hit.settledAt || Date.now() - hit.settledAt < CDN_REUSE_MS)) return hit.promise;
+
+  const ctrl = typeof AbortController === "function" ? new AbortController() : null;
+  const timer = ctrl ? setTimeout(() => ctrl.abort(), CATALOG_CDN_DOWNLOAD_MS) : null;
+  const entry = { promise: null, result: null, settledAt: 0 };
+  entry.promise = (async () => {
+    try {
+      const res = await f(href, {
+        signal: ctrl?.signal,
+        headers: { Accept: "application/json" },
+      });
+      if (!res?.ok) return null;
+      return parseCatalogCdnPayload(await res.json());
+    } catch {
+      return null;
+    } finally {
+      if (timer) clearTimeout(timer);
+    }
+  })().then((result) => {
+    entry.result = result;
+    entry.settledAt = Date.now();
+    // Failures aren't reused — the next caller tries again.
+    if (!result && byHref.get(href) === entry) byHref.delete(href);
+    return result;
+  });
+  byHref.set(href, entry);
+  return entry.promise;
+}
+
+/**
+ * Catalog JSON from Cloud Storage, or null if it isn't there within `timeoutMs`.
+ * Running out of budget doesn't cancel the download: a later call (e.g. the
+ * background full load) gets the same in-flight or finished result.
+ */
 export async function fetchCatalogCdn({
   url,
   fetchImpl,
@@ -130,20 +185,15 @@ export async function fetchCatalogCdn({
   const href = url || defaultCatalogCdnUrl();
   const f = fetchImpl || (typeof fetch === "function" ? fetch : null);
   if (!href || !f) return null;
-  const ctrl = typeof AbortController === "function" ? new AbortController() : null;
-  const timer = ctrl ? setTimeout(() => ctrl.abort(), Math.max(200, Number(timeoutMs) || 800)) : null;
+  const download = startCdnDownload(f, href);
+  let timer = null;
+  const budget = new Promise((resolve) => {
+    timer = setTimeout(() => resolve(null), Math.max(200, Number(timeoutMs) || CATALOG_CDN_TIMEOUT_MS));
+  });
   try {
-    const res = await f(href, {
-      signal: ctrl?.signal,
-      headers: { Accept: "application/json" },
-    });
-    if (!res?.ok) return null;
-    const json = await res.json();
-    return parseCatalogCdnPayload(json);
-  } catch {
-    return null;
+    return await Promise.race([download, budget]);
   } finally {
-    if (timer) clearTimeout(timer);
+    clearTimeout(timer);
   }
 }
 

@@ -36,7 +36,8 @@ Copy `.env.example` for local ingest scripts. Never commit API keys or `serviceA
 | `npm start` | Dev server |
 | `npm test` | Unit tests |
 | `npm run build` | Production build |
-| `node upload-tracks.js` | Bulk add audio → Storage + Firestore (deduped) |
+| `node upload-tracks.js` | Bulk add audio → Storage + Firestore (deduped), then publishes the catalog |
+| `npm run catalog:publish` | Publish `catalog/v1.json` + `catalog/homeLite` so first visits load the whole crate in one download |
 | `npm run catalog:normalize-genres` | Dry-run genre remap → `genres-review.csv` |
 | `npm run catalog:normalize-genres:apply` | Write 11 canonical genres to Firestore |
 | `node clean-titles.js` | Dry-run title/artist cleanup → `titles-review.csv` |
@@ -67,6 +68,24 @@ firebase deploy --only functions:moderateStationChat,firestore:rules
 ```
 
 Until this runs, Console rules may still be looser/outdated than the repo.
+
+### A2. Publish the catalog file (fast first visits)
+
+New visitors load the whole crate from one gzipped file, `catalog/v1.json` in Cloud Storage (~1.3 MB for 15k tracks). Until it exists they download every track from Firestore instead, about 30 seconds, and Home's "On air now" and Discover's track count wait for that.
+
+```bash
+npm run catalog:publish    # needs serviceAccountKey.json in the project root
+```
+
+It writes the file plus the `catalog/homeLite` Home shelf, then downloads the file the way the app does and confirms it reads back. `node upload-tracks.js` (and the batch loaders that call it) runs this automatically after a batch. After scripts that edit tracks in place (`clean-titles.js --apply`, `fix_genres.py`, `find_missing_covers.py`), run it by hand.
+
+To keep it current on every track change without running anything, deploy the trigger (Cloud Functions need the Blaze plan):
+
+```bash
+firebase deploy --only functions:rebuildHomeLite
+```
+
+Storage rules must allow public read for the file to download (section A deploys them).
 
 ### A note on rules
 
