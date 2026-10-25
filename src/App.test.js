@@ -24,7 +24,7 @@ test('theme exports core tokens', () => {
   expect(color.lcdSignalSoft).toMatch(/213,\s*220,\s*230/);
   expect(color.lcdInk).toMatch(/#F4F7FB/i);
   expect(type.lcd.fontFamily).toMatch(/IBM Plex Mono/);
-  expect(type.lcd.fontSize).toBe(11);
+  expect(type.lcd.fontSize).toBe(12);
   expect(sectionTitle.fontSize).toBe(22);
   expect(y2k.chromeBright).toBeTruthy();
   expect(y2k.chrome).toMatch(/#A8B2C0/i);

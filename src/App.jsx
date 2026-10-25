@@ -1342,6 +1342,8 @@ export default function App() {
   const catalogIdleStopRef = useRef(() => {});
   const reloadCatalogRef = useRef(null);
   const catalogFullRef = useRef(false);
+  /** True once the whole catalog (not the Home lite shelf) is in state — counts wait for it. */
+  const [catalogComplete, setCatalogComplete] = useState(false);
   const catalogFullDueRef = useRef(null);
   const scheduleFullCatalog = useCallback((timeout) => {
     if (catalogFullRef.current) return;
@@ -1365,10 +1367,14 @@ export default function App() {
         const meta = { version: cdn.version, source: "cdn" };
         if (background) {
           const hydrated = applyLikedFlags(await hydrateCatalogTracks(cdn.tracks));
-          startTransition(() => setTracks((prev) => adoptCatalogTracks(prev, hydrated)));
+          startTransition(() => {
+            setTracks((prev) => adoptCatalogTracks(prev, hydrated));
+            setCatalogComplete(true);
+          });
           writeCatalogCache(hydrated, meta);
         } else {
           setTracks((prev) => adoptCatalogTracks(prev, liked));
+          setCatalogComplete(true);
           setTracksLoading(false);
           runAfterPaint(() => {
             hydrateCatalogTracks(cdn.tracks).then((enriched) => {
@@ -1396,10 +1402,14 @@ export default function App() {
       const meta = { source: "firestore" };
       if (background) {
         const hydrated = applyLikedFlags(await hydrateCatalogTracks(loaded));
-        startTransition(() => setTracks((prev) => adoptCatalogTracks(prev, hydrated)));
+        startTransition(() => {
+          setTracks((prev) => adoptCatalogTracks(prev, hydrated));
+          setCatalogComplete(true);
+        });
         writeCatalogCache(hydrated, meta);
       } else {
         setTracks((prev) => adoptCatalogTracks(prev, liked));
+        setCatalogComplete(true);
         setTracksLoading(false);
         runAfterPaint(() => {
           hydrateCatalogTracks(loaded).then((enriched) => {
@@ -1434,7 +1444,10 @@ export default function App() {
         const list = first.tracks;
         setTracks((prev) => adoptCatalogTracks(prev, applyLikedFlags(list)));
         setTracksLoading(false);
-        if (list.length > HOME_LITE_LIMIT || first.source === "cdn") catalogFullRef.current = true;
+        if (list.length > HOME_LITE_LIMIT || first.source === "cdn") {
+          catalogFullRef.current = true;
+          setCatalogComplete(true);
+        }
         const hydratedAlready = list[0] && Object.prototype.hasOwnProperty.call(list[0], "_scene");
         if (!hydratedAlready) {
           stopHydrateRef.current = runAfterPaint(() => {
@@ -1455,6 +1468,7 @@ export default function App() {
             if (!isNewerCatalog(cdn, first) && catalogFullRef.current) return;
             catalogFullRef.current = true;
             setTracks((prev) => adoptCatalogTracks(prev, applyLikedFlags(cdn.tracks)));
+            setCatalogComplete(true);
             writeCatalogCache(cdn.tracks, { version: cdn.version, source: "cdn" });
           });
         }
@@ -2855,7 +2869,8 @@ export default function App() {
   // Stable ref so playRadio (defined earlier) can tune a live block without TDZ issues
   playShowRef.current = playShow;
 
-  const playSceneChannel = useCallback((channelInput) => {
+  const playSceneChannel = useCallback((channelInput, opts = null) => {
+    const startTrack = opts?.startTrack || null;
     const channel = typeof channelInput === "string"
       ? getSceneChannel(channelInput)
       : channelInput;
@@ -2873,7 +2888,11 @@ export default function App() {
       return;
     }
     unlockAudioElements();
-    const first = pickNextTrack(pool, null, recentlyPlayedRef.current, {
+    // The tile showed what is on air now — tuning in starts on that cut.
+    const onAir = startTrack?.id && hasPlayableAudio(startTrack)
+      ? pool.find((t) => t.id === startTrack.id)
+      : null;
+    const first = onAir || pickNextTrack(pool, null, recentlyPlayedRef.current, {
       ...radioPickOpts(),
       tasteBlend: false,
       scopedPool: true,
@@ -3692,12 +3711,12 @@ export default function App() {
         <Suspense fallback={<div style={{ padding: 32, color: color.muted }}>Loading…</div>}>
         {warmTabs.has("home") && (
         <ScreenPane keepAlive active={screen==="home"}>
-        <HomeScreen catalogLoading={tracksLoading} tracks={tracks} recentTrackIds={recentTrackIds} onPlayRadio={playRadio} onTogglePlay={togglePlay} onPlayTrack={playTrack} onLike={toggleLike} onShare={shareCurrentTrack} onShowQueue={showQueueSheet} onOpenLibrary={openLibrary} onOpenDiscover={openDiscover} signedIn={!!firebaseUser} isRadioMode={isRadioMode} radioPreview={heroPreview} radioNext={setNext} onSkipRadio={handleSkip} onPrevRadio={handlePrev} onOpenPlayer={openPlayer} catalogError={tracksLoadError} onRetryCatalog={reloadCatalog} onStageVisibilityChange={onHomeStageVisibilityChange} onSeek={handleSeek} countdown={countdown} onTuneCountdown={tuneCountdown} daypart={activeDaypart} tickerText={stationTicker} onDislike={dislikeCurrentTrack} airing={liveAiring} programGuide={programGuide} activeShowId={activeShowId} onTuneShow={playShow} showBumper={showBumper} channelShow={liveShow} sceneChannelsActiveId={activeSceneChannelId} onTuneSceneChannel={playSceneChannel} taste={profileTaste} onOpenSearch={openSearchFromHome} onOpenCharts={openCharts} onRequestTrack={requestTrack} onOpenMenu={openMenu}/>
+        <HomeScreen catalogLoading={tracksLoading} catalogComplete={catalogComplete} tracks={tracks} recentTrackIds={recentTrackIds} onPlayRadio={playRadio} onTogglePlay={togglePlay} onPlayTrack={playTrack} onLike={toggleLike} onShare={shareCurrentTrack} onShowQueue={showQueueSheet} onOpenLibrary={openLibrary} onOpenDiscover={openDiscover} signedIn={!!firebaseUser} isRadioMode={isRadioMode} radioPreview={heroPreview} radioNext={setNext} onSkipRadio={handleSkip} onPrevRadio={handlePrev} onOpenPlayer={openPlayer} catalogError={tracksLoadError} onRetryCatalog={reloadCatalog} onStageVisibilityChange={onHomeStageVisibilityChange} onSeek={handleSeek} countdown={countdown} onTuneCountdown={tuneCountdown} daypart={activeDaypart} tickerText={stationTicker} onDislike={dislikeCurrentTrack} airing={liveAiring} programGuide={programGuide} activeShowId={activeShowId} onTuneShow={playShow} showBumper={showBumper} channelShow={liveShow} sceneChannelsActiveId={activeSceneChannelId} onTuneSceneChannel={playSceneChannel} taste={profileTaste} onOpenSearch={openSearchFromHome} onOpenCharts={openCharts} onRequestTrack={requestTrack} onOpenMenu={openMenu}/>
         </ScreenPane>
         )}
         {warmTabs.has("explore") && (
         <ScreenPane keepAlive active={screen==="explore"}>
-        <Suspense fallback={<div style={{ padding: 32, color: color.muted }}>Loading explore…</div>}><ExploreScreen catalogLoading={tracksLoading} tracks={tracks} onPlayTrack={playTrack} onOpenSearch={openSearchFromExplore} onOpenAlbum={openAlbum} onOpenArtist={openArtist} onOpenCharts={openCharts} onListenIntent={listenFromExplore} onOpenMenu={openMenu} taste={profileTaste} sceneChannelsActiveId={activeSceneChannelId} onTuneSceneChannel={playSceneChannel} airing={liveAiring} programGuide={programGuide} activeShowId={activeShowId} onTuneShow={playShow} showBumper={showBumper}/></Suspense>
+        <Suspense fallback={<div style={{ padding: 32, color: color.muted }}>Loading explore…</div>}><ExploreScreen catalogLoading={tracksLoading} catalogPartial={!catalogComplete} tracks={tracks} onPlayTrack={playTrack} onOpenSearch={openSearchFromExplore} onOpenAlbum={openAlbum} onOpenArtist={openArtist} onOpenCharts={openCharts} onListenIntent={listenFromExplore} onOpenMenu={openMenu} taste={profileTaste} sceneChannelsActiveId={activeSceneChannelId} onTuneSceneChannel={playSceneChannel} airing={liveAiring} programGuide={programGuide} activeShowId={activeShowId} onTuneShow={playShow} showBumper={showBumper}/></Suspense>
         </ScreenPane>
         )}
         {!isKeepAliveScreen(screen) && (screen==="charts" || screen==="search") && (

@@ -99,7 +99,7 @@ export const type = {
   /** Firmware / LCD metadata — BPM, key, time, catalog. */
   lcd: {
     fontFamily: fontMono,
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: 700,
     letterSpacing: 0.12,
     lineHeight: 1.2,
@@ -179,7 +179,8 @@ export const color = {
   ink: "#F4F7FB",
   body: "#C5CBD6",
   muted: "#8A94A3",
-  faint: "#6B7584",
+  /** Quietest text grey — still ≥4.5:1 on every dark surface (canvas → raised). */
+  faint: "#848E9D",
   line: "rgba(200, 210, 222, 0.12)",
   lineStrong: "rgba(200, 210, 222, 0.22)",
   surface: "rgba(24, 29, 36, 0.84)",

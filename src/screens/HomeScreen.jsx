@@ -15,7 +15,8 @@ import { countPlayableTracks } from "../lib/catalogLoad";
 import { getSceneChannel, SCENE_CHANNELS } from "../lib/sceneChannels";
 import { buildHomeCollections, tracksFromRecentIds } from "../lib/homeCollections";
 import { rankChannelsForTaste } from "../lib/onboardingTaste";
-import { runAfterPaint } from "../lib/afterPaint";
+import { runAfterPaint, runWhenIdle } from "../lib/afterPaint";
+import { buildOnAirRotations, msUntilNextSlot, onAirNow, onAirSlot } from "../lib/onAir";
 import { useCurrentTrack, useIsPlaying, useTransportTrackId } from "../usePlayerTransport";
 import HomeHeader from "../components/home/HomeHeader";
 import HeroPlayerCard from "../components/home/HeroPlayerCard";
@@ -25,6 +26,49 @@ import CardContainer from "../components/home/CardContainer";
 import CrateSpread from "../components/home/CrateSpread";
 import ChannelSurfingSection from "../components/home/ChannelSurfingSection";
 import HomeBoard from "../components/home/HomeBoard";
+import OnAirPanel from "../components/home/OnAirPanel";
+
+/** Desktop Home splits into stage + side column once both fit beside the sidebar. */
+export const WIDE_HOME_QUERY = "(min-width: 1280px)";
+const SIDE_COLUMN = 360;
+
+function useMediaQuery(query) {
+  const read = () =>
+    typeof window !== "undefined" &&
+    typeof window.matchMedia === "function" &&
+    window.matchMedia(query).matches;
+  const [matches, setMatches] = useState(read);
+  useEffect(() => {
+    if (typeof window === "undefined" || typeof window.matchMedia !== "function") return undefined;
+    const mql = window.matchMedia(query);
+    const sync = () => setMatches(mql.matches);
+    sync();
+    mql.addEventListener?.("change", sync);
+    return () => mql.removeEventListener?.("change", sync);
+  }, [query]);
+  return matches;
+}
+
+/**
+ * { [channelId]: track } on air this slot; rotations build when the browser is idle.
+ * Waits for the full catalog — picks from the lite shelf would flip once it lands.
+ */
+function useOnAirNow(tracks, channels, ready) {
+  const [rotations, setRotations] = useState(null);
+  useEffect(() => {
+    if (!ready || !tracks.length || !channels.length) {
+      setRotations(null);
+      return undefined;
+    }
+    return runWhenIdle(() => setRotations(buildOnAirRotations(tracks, channels)));
+  }, [tracks, channels, ready]);
+  const [slot, setSlot] = useState(() => onAirSlot());
+  useEffect(() => {
+    const id = setTimeout(() => setSlot(onAirSlot()), msUntilNextSlot());
+    return () => clearTimeout(id);
+  }, [slot]);
+  return useMemo(() => (rotations ? onAirNow(rotations, slot) : {}), [rotations, slot]);
+}
 
 const TonightDeck = lazy(() =>
   import("../components/station/ShowGuide").then((m) => ({ default: m.TonightDeck }))
@@ -306,7 +350,7 @@ function HomePersonal({
   );
 }
 
-function HomeBoardShelf({ countdown, onPlayTrack, onOpenCharts, onTuneCountdown, onRequestTrack, first }) {
+function HomeBoardShelf({ countdown, onPlayTrack, onOpenCharts, onTuneCountdown, onRequestTrack, first, side = false }) {
   const activeId = useTransportTrackId();
   const playing = useIsPlaying();
   return (
@@ -319,6 +363,8 @@ function HomeBoardShelf({ countdown, onPlayTrack, onOpenCharts, onTuneCountdown,
       onTune={onTuneCountdown}
       onRequest={onRequestTrack}
       first={first}
+      columns={!side}
+      flush={side}
     />
   );
 }
@@ -356,6 +402,8 @@ function HomeScreen({
   catalogError = null,
   onRetryCatalog,
   catalogLoading = false,
+  /** Whole catalog in state (not just the Home lite shelf). */
+  catalogComplete = false,
   onOpenPlayer,
   onStageVisibilityChange = null,
   onSeek = null,
@@ -400,6 +448,92 @@ function HomeScreen({
     [taste, onTuneSceneChannel]
   );
   const hasTonight = !!(onTuneShow && (airing?.show || programGuide.length > 0));
+  const wide = useMediaQuery(WIDE_HOME_QUERY);
+  const onAir = useOnAirNow(tracks, channels, catalogComplete);
+  const hasOnAir = Object.keys(onAir).length > 0;
+  const showBoard = shelvesReady && catalogReady && countdown.length >= 3;
+  const scrollToChannels = () => {
+    if (typeof document === "undefined") return;
+    document.querySelector(".pmp-channel-surf")?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
+  const stage = (
+    <HomeNowPlaying
+      radioPreview={radioPreview}
+      radioNext={radioNext}
+      liveShow={liveShow}
+      activeChannel={activeChannel}
+      daypart={daypart}
+      isRadioMode={isRadioMode}
+      playDisabled={!catalogReady}
+      onPlayRadio={onPlayRadio}
+      onTogglePlay={onTogglePlay}
+      onSkipRadio={onSkipRadio}
+      onPrevRadio={onPrevRadio}
+      onOpenPlayer={onOpenPlayer}
+      onStageVisibilityChange={onStageVisibilityChange}
+      onSeek={onSeek}
+      tickerText={tickerText}
+      onDislike={onDislike}
+      onLike={onLike}
+      onShare={onShare}
+      onShowQueue={onShowQueue}
+    />
+  );
+
+  const catalogStatus = (catalogError || catalogEmpty || catalogDepleted) && (
+    <HomeCatalogStatus
+      error={catalogError}
+      isEmpty={catalogEmpty || catalogDepleted}
+      playableCount={playableCount}
+      totalCount={tracks.length}
+      onRetry={onRetryCatalog}
+    />
+  );
+
+  const tonight = shelvesReady && hasTonight && (
+    <div style={{ contentVisibility: "auto", containIntrinsicSize: "320px" }}>
+      <Suspense fallback={null}>
+        <TonightDeck
+          airing={airing}
+          guide={programGuide}
+          bumper={showBumper}
+          activeShowId={activeShowId}
+          tuned={false}
+          first
+          showNowPlaying={false}
+          onTuneIn={() => onTuneShow?.(airing?.show)}
+          onSelectShow={(show) => onTuneShow?.(show)}
+        />
+      </Suspense>
+    </div>
+  );
+
+  const board = (side) =>
+    showBoard && (
+      <div style={side ? null : { contentVisibility: "auto", containIntrinsicSize: "520px" }}>
+        <HomeBoardShelf
+          countdown={countdown}
+          onPlayTrack={onPlayTrack}
+          onOpenCharts={onOpenCharts}
+          onTuneCountdown={onTuneCountdown}
+          onRequestTrack={onRequestTrack}
+          first={side || (channels.length === 0 && !hasTonight)}
+          side={side}
+        />
+      </div>
+    );
+
+  const surfing = channels.length > 0 && (
+    <ChannelSurfingSection
+      channels={channels}
+      onAir={onAir}
+      activeChannelId={sceneChannelsActiveId}
+      onTuneChannel={onTuneSceneChannel}
+      first={!hasTonight && !wide}
+      delay={0.05}
+    />
+  );
 
   return (
     <div
@@ -407,7 +541,7 @@ function HomeScreen({
       style={{
         position: "relative",
         paddingBottom: 24,
-        maxWidth: 1100,
+        maxWidth: wide ? 1320 : 1100,
         margin: "0 auto",
         width: "100%",
       }}
@@ -417,86 +551,59 @@ function HomeScreen({
         onOpenMenu={onOpenMenu}
       />
 
-      <div
-        style={{
-          padding: `0 ${homeSpace.gutter}px`,
-          marginTop: homeSpace.sectionGapFirst,
-          animation: `rise 0.5s ${motion.ease} 0.04s both`,
-        }}
-      >
-        <HomeNowPlaying
-          radioPreview={radioPreview}
-          radioNext={radioNext}
-          liveShow={liveShow}
-          activeChannel={activeChannel}
-          daypart={daypart}
-          isRadioMode={isRadioMode}
-          playDisabled={!catalogReady}
-          onPlayRadio={onPlayRadio}
-          onTogglePlay={onTogglePlay}
-          onSkipRadio={onSkipRadio}
-          onPrevRadio={onPrevRadio}
-          onOpenPlayer={onOpenPlayer}
-          onStageVisibilityChange={onStageVisibilityChange}
-          onSeek={onSeek}
-          tickerText={tickerText}
-          onDislike={onDislike}
-          onLike={onLike}
-          onShare={onShare}
-          onShowQueue={onShowQueue}
-        />
-      </div>
-
-      {(catalogError || catalogEmpty || catalogDepleted) && (
-        <HomeCatalogStatus
-          error={catalogError}
-          isEmpty={catalogEmpty || catalogDepleted}
-          playableCount={playableCount}
-          totalCount={tracks.length}
-          onRetry={onRetryCatalog}
-        />
-      )}
-
-      {shelvesReady && hasTonight && (
-        <div style={{ contentVisibility: "auto", containIntrinsicSize: "320px" }}>
-          <Suspense fallback={null}>
-            <TonightDeck
-              airing={airing}
-              guide={programGuide}
-              bumper={showBumper}
-              activeShowId={activeShowId}
-              tuned={false}
-              first
-              showNowPlaying={false}
-              onTuneIn={() => onTuneShow?.(airing?.show)}
-              onSelectShow={(show) => onTuneShow?.(show)}
-            />
-          </Suspense>
+      {wide ? (
+        <div
+          className="pmp-home-split"
+          style={{
+            display: "grid",
+            gridTemplateColumns: `minmax(0, 1fr) ${SIDE_COLUMN}px`,
+            columnGap: 28,
+            alignItems: "start",
+            padding: `0 ${homeSpace.gutter}px`,
+            marginTop: homeSpace.sectionGapFirst,
+          }}
+        >
+          <div style={{ minWidth: 0, animation: `rise 0.5s ${motion.ease} 0.04s both` }}>
+            {stage}
+            {/* Bands below carry their own gutter; the split already has one. */}
+            <div style={{ margin: `0 -${homeSpace.gutter}px` }}>
+              {catalogStatus}
+              {tonight}
+            </div>
+          </div>
+          <aside aria-label="Station right now" style={{ minWidth: 0 }}>
+            {channels.length > 0 && (
+              <OnAirPanel
+                loading={!hasOnAir}
+                channels={channels}
+                onAir={onAir}
+                activeChannelId={sceneChannelsActiveId}
+                onTuneChannel={onTuneSceneChannel}
+                onShowAll={scrollToChannels}
+              />
+            )}
+            {board(true)}
+          </aside>
         </div>
+      ) : (
+        <>
+          <div
+            style={{
+              padding: `0 ${homeSpace.gutter}px`,
+              marginTop: homeSpace.sectionGapFirst,
+              animation: `rise 0.5s ${motion.ease} 0.04s both`,
+            }}
+          >
+            {stage}
+          </div>
+          {catalogStatus}
+          {tonight}
+        </>
       )}
 
-      {channels.length > 0 && (
-        <ChannelSurfingSection
-          channels={channels}
-          activeChannelId={sceneChannelsActiveId}
-          onTuneChannel={onTuneSceneChannel}
-          first={!hasTonight}
-          delay={0.05}
-        />
-      )}
+      {surfing}
 
-      {shelvesReady && catalogReady && countdown.length >= 3 && (
-        <div style={{ contentVisibility: "auto", containIntrinsicSize: "520px" }}>
-          <HomeBoardShelf
-            countdown={countdown}
-            onPlayTrack={onPlayTrack}
-            onOpenCharts={onOpenCharts}
-            onTuneCountdown={onTuneCountdown}
-            onRequestTrack={onRequestTrack}
-            first={channels.length === 0 && !hasTonight}
-          />
-        </div>
-      )}
+      {!wide && board(false)}
 
       {shelvesReady && catalogReady && (
         <HomePersonal

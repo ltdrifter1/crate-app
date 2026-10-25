@@ -1,4 +1,4 @@
-import { adoptCatalogTracks, patchTrackById } from "./catalogHydrate";
+import { adoptCatalogTracks, cleanArtistCredit, cleanCatalogCredits, patchTrackById } from "./catalogHydrate";
 
 describe("adoptCatalogTracks", () => {
   test("reuses the same objects when only enrichment lands", () => {
@@ -43,5 +43,27 @@ describe("patchTrackById", () => {
   test("no-op when id is missing", () => {
     const list = [{ id: "a" }];
     expect(patchTrackById(list, "z", { liked: true })).toBe(list);
+  });
+});
+
+describe("artist credits", () => {
+  test("strips copyright and phonogram notices from the artist name", () => {
+    expect(cleanArtistCredit("© Linda Fox")).toBe("Linda Fox");
+    expect(cleanArtistCredit("℗ 2019 Night Shift")).toBe("Night Shift");
+    expect(cleanArtistCredit("(c) 1998 Ash")).toBe("Ash");
+  });
+
+  test("leaves real names alone", () => {
+    expect(cleanArtistCredit("untitled halo")).toBe("untitled halo");
+    expect(cleanArtistCredit("(Cabaret) Voltaire")).toBe("(Cabaret) Voltaire");
+    expect(cleanArtistCredit("2020 Soundsystem")).toBe("2020 Soundsystem");
+    expect(cleanArtistCredit("©")).toBe("©");
+  });
+
+  test("adopt cleans incoming rows and keeps clean arrays by identity", () => {
+    const clean = [{ id: "a", artist: "Gridlock" }];
+    expect(cleanCatalogCredits(clean)).toBe(clean);
+    const out = adoptCatalogTracks([], [{ id: "b", artist: "© Linda Fox", title: "Illusive" }]);
+    expect(out[0].artist).toBe("Linda Fox");
   });
 });

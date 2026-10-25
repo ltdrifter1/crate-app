@@ -1,6 +1,7 @@
 import { memo, useEffect, useState } from "react";
 import { homeSpace, motion } from "../../theme";
 import { runAfterDelay } from "../../lib/afterPaint";
+import { useCurrentTrack } from "../../usePlayerTransport";
 import { Rail } from "./MusicSection";
 import ChannelCard from "./ChannelCard";
 import HomeBandHeader from "./HomeBandHeader";
@@ -10,9 +11,11 @@ export const FIRST_STATIONS = 6;
 
 /**
  * Channel surfing — Home dial. One plate per station; the CH readout stays an LCD bug.
+ * `onAir` ({ [channelId]: track }) puts the cut spinning now on each plate.
  */
 function ChannelSurfingSection({
   channels = [],
+  onAir = null,
   activeChannelId = null,
   onTuneChannel = null,
   first = true,
@@ -21,6 +24,7 @@ function ChannelSurfingSection({
   subtitle = "Flip the dial.",
   featured = false,
 }) {
+  const currentTrack = useCurrentTrack();
   const [showAll, setShowAll] = useState(process.env.NODE_ENV === "test");
   useEffect(() => {
     if (process.env.NODE_ENV === "test") return undefined;
@@ -62,11 +66,18 @@ function ChannelSurfingSection({
           >
             <ChannelCard
               channel={channel}
+              onAir={
+                activeChannelId === channel.id && currentTrack
+                  ? currentTrack
+                  : onAir?.[channel.id] || null
+              }
               active={activeChannelId === channel.id}
               size={i === 0 ? lead : tile}
               priority={i === 0}
               eager={i < 3}
-              onClick={() => onTuneChannel?.(channel)}
+              onClick={() =>
+                onTuneChannel?.(channel, { startTrack: onAir?.[channel.id] || null })
+              }
             />
           </div>
         ))}

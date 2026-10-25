@@ -896,7 +896,10 @@ export function RabbitTurtleSlot({
         >
           Slow
         </span>
-        <span className="pmp-rabbit-slot__spacer" aria-hidden="true" />
+        {/* Says what the pair steers — the animals alone don't. */}
+        <span className="pmp-rabbit-slot__spacer pmp-rabbit-slot__hint" aria-hidden="true">
+          Next tracks
+        </span>
         <span
           className="pmp-rabbit-slot__word"
           data-active={fastOn ? "true" : "false"}

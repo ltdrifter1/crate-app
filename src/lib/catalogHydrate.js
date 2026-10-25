@@ -10,6 +10,32 @@ export async function hydrateCatalogTracks(tracks = []) {
   return computeSignalTraits(enrichTracksWithScenes(tracks));
 }
 
+/**
+ * Rights lines that leaked into the artist field from tags ("© Linda Fox",
+ * "℗ 2019 Label"). Shelves show the name, not the copyright notice.
+ */
+const CREDIT_PREFIX = /^\s*(?:©|℗|\((?:c|p)\)(?=[\s\d]))\s*(?:(?:19|20)\d{2}\b\s*)?/i;
+
+export function cleanArtistCredit(name) {
+  if (typeof name !== "string" || !CREDIT_PREFIX.test(name)) return name;
+  const out = name.replace(CREDIT_PREFIX, "").trim();
+  return out || name;
+}
+
+/** Same array back when nothing needed cleaning, so identities hold. */
+export function cleanCatalogCredits(list = []) {
+  if (!Array.isArray(list)) return list;
+  let changed = false;
+  const out = list.map((t) => {
+    if (!t || typeof t.artist !== "string") return t;
+    const artist = cleanArtistCredit(t.artist);
+    if (artist === t.artist) return t;
+    changed = true;
+    return { ...t, artist };
+  });
+  return changed ? out : list;
+}
+
 const DISPLAY_KEYS = [
   "title", "artist", "album", "albumCover", "audioUrl", "color",
   "liked", "disliked", "duration",
@@ -31,6 +57,7 @@ function displayFieldsMatch(a, b) {
  */
 export function adoptCatalogTracks(prev = [], next = []) {
   if (!Array.isArray(next) || next === prev) return next;
+  next = cleanCatalogCredits(next);
   if (!Array.isArray(prev) || !prev.length) return next;
   const byId = new Map();
   for (let i = 0; i < prev.length; i += 1) {

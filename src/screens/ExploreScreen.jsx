@@ -215,6 +215,8 @@ function ModeHint({ mode }) {
 function ExploreScreen({
   tracks = [],
   catalogLoading = false,
+  /** Only the Home lite shelf is loaded — a count now would undersell the crate. */
+  catalogPartial = false,
   onPlayTrack = null,
   onOpenSearch = null,
   onOpenAlbum = null,
@@ -349,8 +351,8 @@ function ExploreScreen({
                   color: color.muted,
                 }}
               >
-                {stats.cuts
-                  ? `${stats.cuts} track${stats.cuts === 1 ? "" : "s"}`
+                {stats.cuts && !catalogPartial
+                  ? `${stats.cuts.toLocaleString()} track${stats.cuts === 1 ? "" : "s"}`
                   : "New music around what you play."}
               </p>
             </div>
