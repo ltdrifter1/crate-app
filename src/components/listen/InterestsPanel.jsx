@@ -356,74 +356,8 @@ export function InterestsPanel({
         </div>
       </GlassCard>
 
-      {!insight.coldStart && insight.genreMix.length > 0 && (
-        <GlassCard style={{ marginBottom: 14 }}>
-          <SectionLabel>What you like</SectionLabel>
-          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-            {insight.genreMix.map((g) => (
-              <div key={g.genre}>
-                <div style={{
-                  display: "flex", justifyContent: "space-between", gap: 10, marginBottom: 5,
-                }}>
-                  <span style={{ fontSize: 13, fontWeight: 650, color: color.ink }}>{g.genre}</span>
-                  <span style={{
-                    fontSize: 11, fontFamily: fontMono, color: color.faint, fontWeight: 700,
-                    fontVariantNumeric: "tabular-nums",
-                  }}>
-                    {g.pct}%
-                  </span>
-                </div>
-                <div style={{
-                  height: 6, borderRadius: 4, background: "rgba(91,101,116,0.08)", overflow: "hidden",
-                }}>
-                  <div style={{
-                    height: "100%", width: `${g.pct}%`, borderRadius: 4,
-                    background: "linear-gradient(90deg, #5B6574 0%, #A8B2C0 100%)",
-                    transition: "width 0.5s ease",
-                  }}/>
-                </div>
-              </div>
-            ))}
-          </div>
-        </GlassCard>
-      )}
-
-      <div style={{
-        display: "grid",
-        gridTemplateColumns: "1fr 1fr 1fr",
-        gap: 8,
-        marginBottom: 14,
-      }}>
-        {[
-          { n: insight.likedCount, label: "Liked" },
-          { n: insight.recentCount, label: "Recent" },
-          { n: insight.collection.albums + insight.collection.eps, label: "Albums" },
-        ].map((s) => (
-          <GlassCard key={s.label} style={{ padding: "14px 12px", textAlign: "center" }}>
-            <div style={{
-              fontSize: 22, fontWeight: 750, fontFamily: fontDisplay,
-              letterSpacing: -0.6, color: color.ink, fontVariantNumeric: "tabular-nums",
-            }}>
-              {s.n}
-            </div>
-            <div style={{
-              marginTop: 4, fontSize: 11, fontWeight: 700, letterSpacing: 0.8,
-              textTransform: "uppercase", color: color.faint, fontFamily: fontMono,
-            }}>
-              {s.label}
-            </div>
-          </GlassCard>
-        ))}
-      </div>
-
-      {insight.likedCount > 0 && (
-        <div style={{
-          fontSize: 12, color: color.muted, marginBottom: 18,
-          fontFamily: fontMono, letterSpacing: 0.2,
-        }}>
-          {collectionStatsLabel(insight.collection)}
-        </div>
-      )}
+      {/* "What you like" and the liked / recent / albums tiles used to sit here: the same
+          percentages as Your taste, and counts the Library shelf label already prints. */}
 
       {insight.recent.length > 0 && (
         <GlassCard style={{ marginBottom: 14 }}>

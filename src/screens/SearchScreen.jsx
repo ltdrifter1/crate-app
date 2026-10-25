@@ -5,6 +5,8 @@ import GenreSceneBrowse from "../components/search/GenreSceneBrowse";
 import CamelotKeyRail from "../components/search/CamelotKeyRail";
 import { AlbumArt } from "../components/listen/AlbumArt";
 import { TrackRow } from "../components/listen/TrackRow";
+import CrateDig from "../components/explore/CrateDig";
+import { inkForTrack } from "../lib/board";
 import { useCurrentTrack } from "../usePlayerTransport";
 import { rankSearchResults, searchEntityHits } from "../lib/searchRank";
 import {
@@ -14,9 +16,54 @@ import {
   font,
   fontDisplay,
   fontMono,
+  fontPoster,
   glass,
   radius,
 } from "../theme";
+
+/** A hit on the shelf — square sleeve, station ink along the foot, the name. */
+function HitTile({ label, kind, coverTrack, onClick }) {
+  const ink = kind === "artist" ? inkForTrack(coverTrack) : "rgba(200,210,222,0.35)";
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-label={`Open ${label}`}
+      style={{
+        flexShrink: 0,
+        width: 112,
+        background: "none",
+        border: "none",
+        padding: 0,
+        cursor: "pointer",
+        textAlign: "left",
+        color: color.ink,
+      }}
+    >
+      <div
+        style={{
+          position: "relative",
+          width: 112,
+          height: 112,
+          overflow: "hidden",
+          borderRadius: 6,
+          background: color.surfaceRaised,
+          border: "1px solid rgba(255,255,255,0.08)",
+          marginBottom: 8,
+        }}
+      >
+        {coverTrack ? <AlbumArt track={coverTrack} size={112} borderRadius={6} /> : null}
+        <span aria-hidden="true" style={{ position: "absolute", left: 0, right: 0, bottom: 0, height: 3, background: ink }} />
+      </div>
+      <div style={{ fontFamily: fontMono, fontSize: 10, fontWeight: 700, letterSpacing: 0.12, textTransform: "uppercase", color: color.faint, marginBottom: 2 }}>
+        {kind}
+      </div>
+      <div style={{ fontFamily: fontDisplay, fontSize: 14, fontWeight: 650, letterSpacing: -0.2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+        {label}
+      </div>
+    </button>
+  );
+}
 
 function SearchScreen({
   query, setQuery, results: resultsProp, onPlay, onLike, playlistCtx,
@@ -56,7 +103,7 @@ function SearchScreen({
     WebkitBackdropFilter: glass.blurSoft,
   };
   return (
-    <div style={{ padding: "0 0 16px" }}>
+    <div style={{ padding: "0 0 16px", maxWidth: 1120, margin: "0 auto", width: "100%" }}>
       <div style={{
         padding: `calc(14px + env(safe-area-inset-top, 0px)) 16px 0`,
       }}>
@@ -82,7 +129,7 @@ function SearchScreen({
       <div style={{ position:"relative", marginBottom:14 }}>
         <div style={{ position:"absolute", left:14, top:"50%", transform:"translateY(-50%)", color: color.faint, zIndex: 1 }}><Icon name="search" size={16}/></div>
         <input
-          placeholder="Search"
+          placeholder="Find a track, artist or scene"
           aria-label="Search"
           style={{
             ...SEARCH_FIELD,
@@ -121,63 +168,32 @@ function SearchScreen({
           </div>
         </div>
       )}
-      {query.length > 1 && entityHits?.artists?.length > 0 && (
-        <div style={{ marginBottom: 20 }}>
-          {entityHits.artists.map((a) => (
-            <button
-              key={a.slug}
-              type="button"
-              onClick={() => onOpenArtist?.(a.slug)}
-              style={{
-                display:"flex", alignItems:"center", gap:12, width:"100%", padding:"12px 12px",
-                marginBottom: 6,
-                background: glass.plate,
-                border: `1px solid ${glass.borderSoft}`,
-                borderRadius: radius.lg,
-                boxShadow: `inset 0 1px 0 ${glass.highlight}`,
-                backdropFilter: glass.blurSoft,
-                WebkitBackdropFilter: glass.blurSoft,
-                cursor:"pointer", textAlign:"left", color: color.ink,
-              }}
-            >
-              <div style={{ width:48, height:48, overflow:"hidden", flexShrink:0, background: color.surfaceRaised, borderRadius: 24, border: `1px solid ${glass.borderSoft}` }}>
-                {a.coverTrack && <AlbumArt track={a.coverTrack} size={48} borderRadius={24}/>}
-              </div>
-              <div style={{ minWidth:0, fontSize:17, fontWeight:600, fontFamily: fontDisplay }}>{a.name}</div>
-            </button>
-          ))}
-        </div>
-      )}
-      {query.length > 1 && entityHits?.albums?.length > 0 && (
-        <div style={{ marginBottom: 20 }}>
-          {entityHits.albums.map((a) => (
-            <button
-              key={a.slug}
-              type="button"
-              onClick={() => onOpenAlbum?.(a.slug)}
-              style={{
-                display:"flex", alignItems:"center", gap:12, width:"100%", padding:"12px 12px",
-                marginBottom: 6,
-                background: glass.plate,
-                border: `1px solid ${glass.borderSoft}`,
-                borderRadius: radius.lg,
-                boxShadow: `inset 0 1px 0 ${glass.highlight}`,
-                backdropFilter: glass.blurSoft,
-                WebkitBackdropFilter: glass.blurSoft,
-                cursor:"pointer", textAlign:"left", color: color.ink,
-              }}
-            >
-              <div style={{ width:48, height:48, overflow:"hidden", flexShrink:0, background: color.surfaceRaised, borderRadius: radius.sm, border: `1px solid ${glass.borderSoft}` }}>
-                {a.coverTrack && <AlbumArt track={a.coverTrack} size={48} borderRadius={radius.sm}/>}
-              </div>
-              <div style={{ minWidth:0, fontSize:17, fontWeight:600, fontFamily: fontDisplay }}>{a.title}</div>
-            </button>
-          ))}
+      {query.length > 1 && (entityHits?.artists?.length > 0 || entityHits?.albums?.length > 0) && (
+        <div style={{ marginBottom: 18 }}>
+          <div style={{ fontFamily: fontMono, fontSize: 11, fontWeight: 700, letterSpacing: 0.14, textTransform: "uppercase", color: color.faint, marginBottom: 10 }}>
+            On the shelf
+          </div>
+          <div className="hide-scroll" style={{ display: "flex", gap: 14, overflowX: "auto", paddingBottom: 6 }}>
+            {(entityHits.artists || []).map((a) => (
+              <HitTile key={`a-${a.slug}`} kind="artist" label={a.name} coverTrack={a.coverTrack} onClick={() => onOpenArtist?.(a.slug)} />
+            ))}
+            {(entityHits.albums || []).map((a) => (
+              <HitTile key={`al-${a.slug}`} kind="album" label={a.title} coverTrack={a.coverTrack} onClick={() => onOpenAlbum?.(a.slug)} />
+            ))}
+          </div>
         </div>
       )}
       {query.length>1&&!results.length&&!(entityHits?.artists?.length || entityHits?.albums?.length)&&(
-        <div style={{ textAlign:"center", padding:"56px 0" }}>
-          <div style={{ color: color.ink, fontSize:17, fontWeight:600, fontFamily: fontDisplay }}>No results</div>
+        <div style={{ padding: "28px 0 8px" }}>
+          <div style={{ fontFamily: fontPoster, fontSize: 26, fontWeight: 800, letterSpacing: 0.2, textTransform: "uppercase", color: color.ink, lineHeight: 1 }}>
+            Nothing by that name
+          </div>
+          <div style={{ marginTop: 6, fontSize: 14, color: color.muted, lineHeight: 1.45 }}>
+            Not on the shelves yet. Pull one from the crate instead — or browse the keys and genres below.
+          </div>
+          <div style={{ margin: "0 -20px" }}>
+            <CrateDig tracks={tracks} onPlay={(t, pool) => onPlay(t, pool || tracks)} compact />
+          </div>
         </div>
       )}
       {useVirtual ? (
@@ -200,7 +216,7 @@ function SearchScreen({
           Show all {results.length}
         </button>
       )}
-      {!query && (
+      {(!query || (query.length > 1 && !results.length && !(entityHits?.artists?.length || entityHits?.albums?.length))) && (
         <>
         <CamelotKeyRail tracks={tracks} onPlayPool={(t, pool) => onPlay(t, pool)} />
         <GenreSceneBrowse

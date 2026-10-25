@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import {
-  font, fontDisplay, fontMono, color, radius, y2k, chrome, glass,
+  font, fontDisplay, fontMono, fontPoster, color, radius, y2k, chrome, glass,
   BTN_PRIMARY, BTN_SECONDARY, motion,
 } from "../../theme";
 import BrandMark from "../brand/BrandMark";
@@ -88,16 +88,18 @@ function StationCard({ channel, on, onToggle, index }) {
         }}
       />
       {src ? (
-        <CoverImage
-          src={src}
-          alt=""
-          width={280}
-          height={168}
-          eager={index < 4}
-          priority={index === 0}
-          objectPosition={focus}
-          style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}
-        />
+        <span aria-hidden="true" style={{ position: "absolute", inset: 0, display: "block" }}>
+          <CoverImage
+            src={src}
+            alt=""
+            width={280}
+            height={168}
+            eager={index < 4}
+            priority={index === 0}
+            objectPosition={focus}
+            style={{ width: "100%", height: "100%", objectFit: "cover" }}
+          />
+        </span>
       ) : (
         <div
           aria-hidden="true"
@@ -109,15 +111,6 @@ function StationCard({ channel, on, onToggle, index }) {
         />
       )}
       <div
-        aria-hidden="true"
-        style={{
-          position: "absolute",
-          inset: 0,
-          background:
-            "linear-gradient(180deg, rgba(6,10,16,0.08) 20%, rgba(18,22,28,0.92) 100%)",
-        }}
-      />
-      <div
         style={{
           position: "relative",
           zIndex: 1,
@@ -126,33 +119,50 @@ function StationCard({ channel, on, onToggle, index }) {
           display: "flex",
           flexDirection: "column",
           justifyContent: "flex-end",
-          padding: "14px 14px 16px",
         }}
       >
+        {/* Label plate — the station art is light, so the name sits on its own dark band. */}
         <div
           style={{
-            fontSize: 11,
-            fontWeight: 700,
-            letterSpacing: 1.5,
-            color: on ? ink : color.body,
-            fontFamily: fontMono,
-            textTransform: "uppercase",
-            marginBottom: 6,
+            display: "flex",
+            alignItems: "baseline",
+            justifyContent: "space-between",
+            gap: 8,
+            padding: "9px 12px 11px",
+            background: "rgba(6,8,12,0.88)",
+            borderTop: "1px solid rgba(255,255,255,0.06)",
           }}
         >
-          {on ? "Tuned" : `CH-${String(channel.num).padStart(2, "0")}`}
-        </div>
-        <div
-          style={{
-            fontSize: 16,
-            fontWeight: 720,
-            fontFamily: fontDisplay,
-            letterSpacing: -0.35,
-            color: color.onDark,
-            lineHeight: 1.15,
-          }}
-        >
-          {channel.shortTitle || channel.title}
+          <div
+            style={{
+              fontFamily: fontPoster,
+              fontSize: 18,
+              fontWeight: 800,
+              letterSpacing: 0.2,
+              textTransform: "uppercase",
+              lineHeight: 1,
+              color: "#fff",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              whiteSpace: "nowrap",
+              minWidth: 0,
+            }}
+          >
+            {channel.shortTitle || channel.title}
+          </div>
+          <div
+            style={{
+              flexShrink: 0,
+              fontSize: 10.5,
+              fontWeight: 700,
+              letterSpacing: 0.12,
+              color: on ? ink : color.muted,
+              fontFamily: fontMono,
+              textTransform: "uppercase",
+            }}
+          >
+            {on ? "Tuned" : `CH-${String(channel.num).padStart(2, "0")}`}
+          </div>
         </div>
       </div>
     </button>
@@ -250,40 +260,43 @@ function ChoiceCard({ choice, on, onPick, art }) {
       }}
     >
       {src && (
-        <CoverImage
-          src={src}
-          alt=""
-          width={320}
-          height={148}
-          eager
-          objectPosition={focus}
-          style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}
-        />
+        <span aria-hidden="true" style={{ position: "absolute", inset: 0, display: "block" }}>
+          <CoverImage
+            src={src}
+            alt=""
+            width={320}
+            height={148}
+            eager
+            objectPosition={focus}
+            style={{ width: "100%", height: "100%", objectFit: "cover" }}
+          />
+        </span>
       )}
-      <div
-        aria-hidden="true"
-        style={{
-          position: "absolute",
-          inset: 0,
-          background: on
-            ? "linear-gradient(180deg, rgba(6,10,16,0.15), rgba(6,10,16,0.88))"
-            : "linear-gradient(180deg, rgba(6,10,16,0.25), rgba(18,22,28,0.92))",
-        }}
-      />
-      <div style={{ position: "relative", zIndex: 1, padding: "18px 18px 20px", minHeight: 148, display: "flex", flexDirection: "column", justifyContent: "flex-end" }}>
+      <div style={{ position: "relative", zIndex: 1, minHeight: 148, display: "flex", flexDirection: "column", justifyContent: "flex-end" }}>
         <div
           style={{
-            fontSize: 20,
-            fontWeight: 720,
-            fontFamily: fontDisplay,
-            letterSpacing: -0.5,
-            marginBottom: 4,
+            padding: "10px 14px 12px",
+            background: on ? "rgba(6,8,12,0.94)" : "rgba(6,8,12,0.88)",
+            borderTop: `1px solid ${on ? y2k.cyan : "rgba(255,255,255,0.06)"}`,
           }}
         >
-          {choice.label}
-        </div>
-        <div style={{ fontSize: 13, fontWeight: 500, color: color.body, lineHeight: 1.35 }}>
-          {choice.hint}
+          <div
+            style={{
+              fontFamily: fontPoster,
+              fontSize: 20,
+              fontWeight: 800,
+              letterSpacing: 0.2,
+              textTransform: "uppercase",
+              lineHeight: 1,
+              color: "#fff",
+              marginBottom: 4,
+            }}
+          >
+            {choice.label}
+          </div>
+          <div style={{ fontSize: 12.5, fontWeight: 500, color: color.body, lineHeight: 1.35 }}>
+            {choice.hint}
+          </div>
         </div>
       </div>
     </button>
@@ -416,12 +429,13 @@ export default function TasteTuner({
         <h1
           style={{
             margin: 0,
-            fontSize: "clamp(28px, 7vw, 40px)",
-            fontWeight: 720,
-            letterSpacing: -1.3,
-            fontFamily: fontDisplay,
+            fontSize: "clamp(34px, 9vw, 52px)",
+            fontWeight: 800,
+            letterSpacing: 0.2,
+            textTransform: "uppercase",
+            fontFamily: fontPoster,
             color: color.ink,
-            lineHeight: 1.04,
+            lineHeight: 0.96,
           }}
         >
           {heading}
@@ -546,22 +560,24 @@ export default function TasteTuner({
             }}
           >
             {seedArt.src && (
-              <CoverImage
-                src={seedArt.src}
-                alt=""
-                width={560}
-                height={220}
-                priority
-                objectPosition={seedArt.focus}
-                style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}
-              />
+              <span aria-hidden="true" style={{ position: "absolute", inset: 0, display: "block" }}>
+                <CoverImage
+                  src={seedArt.src}
+                  alt=""
+                  width={560}
+                  height={220}
+                  priority
+                  objectPosition={seedArt.focus}
+                  style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                />
+              </span>
             )}
             <div
               aria-hidden="true"
               style={{
                 position: "absolute",
                 inset: 0,
-                background: "linear-gradient(180deg, rgba(6,10,16,0.1), rgba(18,22,28,0.92))",
+                background: "linear-gradient(180deg, rgba(6,8,12,0.05) 30%, rgba(6,8,12,0.9) 100%)",
               }}
             />
             <div style={{ position: "relative", zIndex: 1, padding: "28px 22px", minHeight: 220, display: "flex", flexDirection: "column", justifyContent: "flex-end" }}>
@@ -580,11 +596,14 @@ export default function TasteTuner({
               </div>
               <div
                 style={{
-                  fontSize: 28,
-                  fontWeight: 720,
-                  fontFamily: fontDisplay,
-                  letterSpacing: -0.8,
-                  color: color.ink,
+                  fontSize: 40,
+                  fontWeight: 800,
+                  fontFamily: fontPoster,
+                  letterSpacing: 0.2,
+                  textTransform: "uppercase",
+                  lineHeight: 0.96,
+                  color: "#fff",
+                  textShadow: "0 2px 16px rgba(6,8,12,0.6)",
                 }}
               >
                 {seed.title}

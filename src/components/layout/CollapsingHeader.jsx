@@ -1,10 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import {
-  fontDisplay, color, glass, motion, type,
+  fontDisplay, color, motion, type,
 } from "../../theme";
-import { BrandGlyph as DoorGlyph } from "../brand/BrandMark";
 
-/** Sticky compact title that appears once the page hero scrolls away. */
+/** Sticky compact title that appears once the page hero scrolls away. No mark: the page is the identity. */
 export default function CollapsingHeader({ title, subtitle }) {
   const sentinelRef = useRef(null);
   const [compact, setCompact] = useState(false);
@@ -48,17 +47,11 @@ export default function CollapsingHeader({ title, subtitle }) {
           alignItems: "center",
           justifyContent: "center",
           gap: 8,
-          background: `
-            linear-gradient(165deg, rgba(184,191,202,0.82) 0%, rgba(180,187,198,0.5) 100%)
-          `,
-          WebkitBackdropFilter: glass.blurSoft,
-          backdropFilter: glass.blurSoft,
-          borderBottom: compact ? `1px solid ${glass.borderSoft}` : "none",
-          boxShadow: compact ? `inset 0 1px 0 ${glass.highlight}, 0 8px 24px rgba(91,101,116,0.06)` : "none",
+          background: "rgba(10,13,17,0.94)",
+          borderBottom: compact ? "1px solid rgba(255,255,255,0.08)" : "none",
           transition: `opacity ${motion.base} ${motion.ease}`,
         }}
       >
-        <DoorGlyph size={22} title="" />
         <div style={{
           fontSize: 16, fontWeight: 650, letterSpacing: -0.3,
           color: color.ink, fontFamily: fontDisplay,
@@ -73,16 +66,6 @@ export default function CollapsingHeader({ title, subtitle }) {
         transition: `opacity ${motion.base} ${motion.ease}, transform ${motion.base} ${motion.ease}`,
         pointerEvents: compact ? "none" : "auto",
       }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 10 }}>
-          <DoorGlyph size={28} title="Planet MP3" />
-          <div style={{
-            ...type.footnote,
-            fontWeight: 600,
-            color: color.muted,
-          }}>
-            Planet MP3
-          </div>
-        </div>
         <h1 style={{
           margin: 0,
           ...type.largeTitle,

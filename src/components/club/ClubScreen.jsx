@@ -173,10 +173,10 @@ export default function ClubScreen({
             background: active ? glass.fillHeavy : "transparent",
           color: active ? color.ink : color.muted,
           boxShadow: active ? `inset 0 1px 0 ${glass.highlight}` : "none",
-          fontSize: 11,
+          fontSize: 13,
           fontWeight: active ? 700 : 600,
           fontFamily: fontDisplay,
-          letterSpacing: -0.08,
+          letterSpacing: -0.1,
           textTransform: "none",
           transition: `background ${motion.fast} ${motion.ease}, color ${motion.fast} ${motion.ease}`,
         }}
@@ -230,7 +230,7 @@ export default function ClubScreen({
             signalLabel={signalLabel}
             onEditGenres={onEditGenres}
             onPlayTrack={onPlayTrack}
-            showIntro
+            showIntro={false}
           />
         ) : settingsTab === "guide" ? (
           <FeatureGuidePanel onReplayTour={onReplayTour} />
@@ -453,6 +453,8 @@ export default function ClubScreen({
         </div>
 
         {/* Floor phase — record club “what’s on” */}
+        {/* Listening hours only matter when plays are metered. Without a paywall it is a weather report. */}
+        {PAYWALL_ENABLED && !hasCard && (
         <div style={{
           marginBottom: 26,
           padding: "14px 16px",
@@ -501,6 +503,7 @@ export default function ClubScreen({
             </div>
           )}
         </div>
+        )}
 
         <CollectorPanel
           tracks={tracks}

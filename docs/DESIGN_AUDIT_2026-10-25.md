@@ -221,6 +221,41 @@ hint is gone and the board's own line stays.
 - Screens: `15`–`20` in `docs/audits/design-audit-2026-10-25/`.
 - Tests: Past days opens on the latest board; Trending rows are heat rows; Artists render the wall.
 
+### 8. Fifth pass — Search, Profile, Onboarding, fresh
+
+**8a. Search is the shop's index card.** The find field now says what it is ("Find a track, artist or
+scene", the same words as Home and Discover). Artist and album hits are one shelf of square sleeves
+with the station ink along the foot, labelled `ARTIST` / `ALBUM` in firmware, instead of two stacks of
+glass cards with round avatars. The empty state's genre list — eight full-width grey bars with a
+number — is a grid of bins in condensed caps with the count as firmware, which also fixes the
+desktop, where the bars ran the full 1100px. "No results" was a dead end; it now says *Nothing by
+that name*, offers the crate (the same compact Dig as Discover) and keeps the keys and genres below.
+
+**8b. Profile stops repeating itself.** The page header printed the planet glyph and "Planet MP3"
+above the title (the third mark in the app), and on desktop the collapsed sticky bar was a light
+silver gradient slab. Both gone: the header is the title and subtitle; the compact bar is a dark
+hairline strip. The "Morning · listening hours / The room is open / Listen without limits" card is a
+weather report when nothing is metered; it now appears only when a paywall meters plays. Tabs went
+from 11px to 13px.
+
+**8c. Interests says each thing once.** The tab opened with "SETTINGS · INTERESTS / YOUR INTERESTS"
+under a header that already said *Settings · Your interests*, then printed the same genre
+percentages twice (*Your taste* and *What you like*), then three KPI tiles (Liked / Recent / Albums)
+and a shelf line the Library already carries. Now: Your taste, Energy, Recently played, Liked.
+
+**8d. Onboarding you can read.** The station tiles and the Energy / Stretch choice tiles never
+showed their names: the art wrapper sat in normal flow, pushed the label below the card and the card
+clipped it — so a new member picked stations by pixel art alone and chose "Peak floor" / "Late booth"
+blind. Fixed at the root (the art is positioned, not flowed) and the label now sits on a solid dark
+plate under the art, condensed caps with the `CH-11` or `TUNED` in ink. Headings moved to Barlow
+Condensed caps ("TUNE THE STATIONS THAT SOUND LIKE YOU", "HOW SHOULD THE MIX FEEL?") so the first
+screen speaks in the station's voice; the "Starting on" card prints the station name at 40px.
+
+- Files: `screens/SearchScreen.jsx`, `components/search/GenreSceneBrowse.jsx`,
+  `components/layout/CollapsingHeader.jsx`, `components/club/ClubScreen.jsx`,
+  `components/listen/InterestsPanel.jsx`, `components/onboarding/TasteTuner.jsx`.
+- Screens: `21`–`26` in `docs/audits/design-audit-2026-10-25/`.
+
 ### Docs
 
 - `CREATIVE_DIRECTION.md` no longer asks for glassmorphism; the shipped chassis is flat and the brief
@@ -247,7 +282,7 @@ Baseline 98 suites / 645 tests → **98 / 651**, all passing. New or rewritten:
 
 | # | Priority | State |
 |---|---|---|
-| 1 | Navigation | Four-tab dock is right. Discover now has one nav row instead of two. |
+| 1 | Navigation | Four-tab dock is right. Discover has one nav row; Search's empty state and no-results both lead somewhere (8a). |
 | 2 | Discovery | Dig at the front door; numbered bins; Trending is a heat board, Artists a sleeve wall, rooms named (7c–e). |
 | 3 | Personal library | Now owns an object (the disc) and a label. Liked and Recents are still lists — fine. |
 | 4 | Player | Home hero and the immersive player are one broadcast screen (sections 5, 6a). |
