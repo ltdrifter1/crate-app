@@ -49,7 +49,7 @@ export function pickTrackBumper({
       id: `show-${show.id}`,
       kicker: show.shortTitle || show.title,
       title: line,
-      subtitle: show.host?.name ? `with ${show.host.name}` : "Live block",
+      subtitle: show.host?.name ? `with ${show.host.name}` : show.timeLabel || show.tagline || null,
       tone: "show",
       accent: show.host?.accent || "#8B939F",
     };

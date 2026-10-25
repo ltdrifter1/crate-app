@@ -11,6 +11,7 @@ import {
   markRequestedToday,
   stationDayKey,
 } from "./station";
+import { brandStoragePrefix } from "../brand/identity";
 
 describe("station", () => {
   const tracks = [
@@ -78,6 +79,16 @@ describe("station", () => {
     expect(clearRequestedToday(id, day)).toBe(true);
     expect(hasRequestedToday(id, day)).toBe(false);
     expect(markRequestedToday(id, day)).toBe(true); // the day's request is available again
+  });
+
+  test("no invented dedications — and seeds saved by older builds are dropped", () => {
+    const key = `${brandStoragePrefix()}:station:dedications`;
+    localStorage.removeItem(key);
+    expect(listDedications(5)).toEqual([]);
+    localStorage.setItem(key, JSON.stringify([
+      { id: "seed-0", text: "This one is for the late bus ride home", fromName: "Mira", seed: true, createdAt: 1 },
+    ]));
+    expect(listDedications(5)).toEqual([]);
   });
 
   test("dedications append to the feed", () => {
