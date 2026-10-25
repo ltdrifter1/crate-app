@@ -222,7 +222,7 @@ export function LcdTimeline({
 }
 
 /** on: "lcd" = pearl on smoked well; "metal" = graphite on aluminum. tone: "strip"|"well" alias. */
-export function LcdMetaLine({ bits = [], tone = "well", on }) {
+export function LcdMetaLine({ bits = [], tone = "well", on, inline = false }) {
   const { energyShift } = useEnergyQueue();
   const pace = energyShift?.active
     ? (energyShift.direction > 0 ? "FAST" : "SLOW")
@@ -238,6 +238,7 @@ export function LcdMetaLine({ bits = [], tone = "well", on }) {
         color: ink,
         letterSpacing: 0.14,
         lineHeight: 1.35,
+        display: inline ? "inline" : undefined,
       }}
     >
       {all.join(" · ")}

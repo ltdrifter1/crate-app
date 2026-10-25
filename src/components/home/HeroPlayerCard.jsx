@@ -1,20 +1,16 @@
 import { useEffect, useRef, lazy, Suspense } from "react";
 import {
-  artShadow,
   color,
   fontDisplay,
-  fontMono,
   fontPoster,
-  glass,
-  glassStage,
   homeSpace,
   mtv,
-  trim,
   y2k,
 } from "../../theme";
 import { usePlayerPlayback } from "../../usePlayerPlayback";
 import { useIsBuffering, useIsPlaying } from "../../usePlayerTransport";
 import {
+  STATION_CALLSIGN,
   channelBugLine,
   onInk,
   resolveChannelBug,
@@ -22,7 +18,6 @@ import {
 import { trackHasVideo } from "../../lib/video";
 import CoverImage from "../ui/CoverImage";
 import { HERO_IDLE_ART, HERO_IDLE_FOCUS } from "../../lib/heroIdle";
-import ScanlineWash from "./ScanlineWash";
 import {
   LcdMetaLine,
   formatBitrate,
@@ -31,26 +26,6 @@ import {
 import PlayerDeck from "../player/PlayerDeck";
 
 const VideoStage = lazy(() => import("../station/VideoStage"));
-
-function PlanetPip({ size = 26 }) {
-  return (
-    <span
-      aria-hidden="true"
-      className="pmp-planet-pip"
-      style={{
-        width: size,
-        height: size,
-        flexShrink: 0,
-        display: "block",
-        backgroundImage: "url(/brand/planet-mascot.svg)",
-        backgroundSize: "contain",
-        backgroundRepeat: "no-repeat",
-        backgroundPosition: "center",
-        filter: `drop-shadow(0 0 8px ${trim.blue}88)`,
-      }}
-    />
-  );
-}
 
 /**
  * CH plate. On a tuned station it is printed in that station's ink — the same colour as its
@@ -104,26 +79,24 @@ function ChannelIdent({ bugLine, slug, ink = null }) {
   );
 }
 
-function JewelSleeve({ src, idleSrc, playing, eager = false, size = 148, wellColor = "" }) {
+/**
+ * The picture. The sleeve fills the frame like a video still — cropped, not
+ * blurred — and the lower third sits on it. No art yet: the idle editorial
+ * plate, contained, so the frame is never empty.
+ */
+function ScreenArt({ src, idleSrc, playing, wellColor = "" }) {
   const art = src || idleSrc;
+  const isIdlePlate = !src && !!idleSrc;
   return (
     <span
-      className="pmp-hero-sleeve pmp-hero-sleeve--square"
+      className="pmp-hero-sleeve pmp-hero-screen-art"
+      aria-hidden="true"
       style={{
-        position: "relative",
+        position: "absolute",
+        inset: 0,
         display: "block",
-        width: "var(--pmp-hero-art, min(100%, 320px))",
-        alignSelf: "center",
-        aspectRatio: "1 / 1",
-        flexShrink: 0,
-        borderRadius: 16,
         overflow: "hidden",
-        border: "1px solid rgba(255,255,255,0.10)",
-        boxShadow:
-          playing && /^#[0-9a-f]{6}$/i.test(wellColor)
-            ? `${artShadow.raised}, 0 22px 64px ${wellColor}44`
-            : artShadow.raised,
-        background: wellColor || "#0E1116",
+        background: isIdlePlate ? y2k.artGradient : wellColor || "#0E1116",
       }}
     >
       {art ? (
@@ -131,54 +104,27 @@ function JewelSleeve({ src, idleSrc, playing, eager = false, size = 148, wellCol
           key={art}
           src={art}
           alt=""
-          width={Math.max(size, 960)}
-          height={Math.max(size, 960)}
-          priority={eager}
-          eager={eager}
-          wellColor={wellColor}
-          raw={!src}
-          objectPosition={!src ? HERO_IDLE_FOCUS : "center"}
-          className="pmp-hero-art"
+          width={1200}
+          height={1200}
+          sizes="(min-width: 900px) 1100px, 100vw"
+          eager
+          priority
+          raw={isIdlePlate}
+          objectPosition={isIdlePlate ? HERO_IDLE_FOCUS : "50% 32%"}
           style={{
+            position: "absolute",
+            inset: 0,
             width: "100%",
             height: "100%",
-            objectFit: "cover",
-            display: "block",
-            animation: "fadeIn 0.55s ease both",
-            transform: playing ? "scale(1.06)" : "scale(1)",
-            transition: "transform 12s ease",
-          }}
-        />
-      ) : (
-        <img
-          src="/brand/planet-mp3-lockup-512.png"
-          alt=""
-          width={size}
-          height={size}
-          decoding="async"
-          className="pmp-hero-art"
-          style={{
-            width: "100%",
-            height: "100%",
-            objectFit: "contain",
-            padding: 18,
-            background: y2k.artGradient,
+            objectFit: isIdlePlate ? "contain" : "cover",
+            objectPosition: isIdlePlate ? HERO_IDLE_FOCUS : "50% 32%",
+            padding: isIdlePlate ? "10%" : 0,
+            transform: playing ? "scale(1.02)" : "scale(1)",
+            transition: "transform 1.2s cubic-bezier(0.22, 1, 0.36, 1)",
           }}
           draggable={false}
         />
-      )}
-      <span
-        aria-hidden="true"
-        style={{
-          position: "absolute",
-          inset: 0,
-          pointerEvents: "none",
-          background: `
-            repeating-linear-gradient(0deg, rgba(0,0,0,0.07) 0 1px, transparent 1px 3px),
-            linear-gradient(180deg, rgba(255,255,255,0.06) 0%, transparent 30%)
-          `,
-        }}
-      />
+      ) : null}
     </span>
   );
 }
@@ -252,8 +198,13 @@ function UpNextGlass({ track }) {
 }
 
 /**
- * HeroPlayerCard — Home now-playing device.
- * Sleeve + LCD on one stage; seek as a timeline; Slow / Fast on the deck.
+ * HeroPlayerCard — Home is a channel, and this is the screen.
+ *
+ * One frame: the sleeve fills it like a music-video still, LIVE and the CH
+ * ident sit in the corners, the title is a lower third cut into the picture,
+ * and the station callsign watermarks the bottom-right. Below the frame, a
+ * flat control strip: timeline, transport, Slow / Fast, up next, the crawl.
+ * No bezel, no glass, no logo — type and the picture do the work.
  */
 export default function HeroPlayerCard({
   track = null,
@@ -301,6 +252,7 @@ export default function HeroPlayerCard({
     genre || null,
     hasVideo ? "Video" : null,
   ]);
+  const wellColor = track?.color || previewTrack?.color || "";
 
   useEffect(() => {
     if (!onVisibilityChange) return undefined;
@@ -343,117 +295,35 @@ export default function HeroPlayerCard({
       onKeyDown={(e) => {
         if (e.key === "Enter") live ? onOpen?.() : !playDisabled && onPlay?.();
       }}
-      className="pmp-hero pmp-hero-bezel pmp-glass-stage"
+      className="pmp-hero pmp-glass-stage"
       style={{
-        ...glassStage,
-        minHeight: 0,
+        position: "relative",
+        isolation: "isolate",
+        overflow: "hidden",
         width: "100%",
+        minHeight: 0,
+        borderRadius: 20,
+        background: "#0A0D11",
+        border: "1px solid rgba(255,255,255,0.08)",
+        boxShadow: "0 24px 60px rgba(6,10,16,0.55)",
         cursor: playDisabled && !live ? "default" : "pointer",
         WebkitTapHighlightColor: "transparent",
         display: "flex",
         flexDirection: "column",
       }}
     >
+      {/* ── The screen ─────────────────────────────────────────────── */}
       <div
-        aria-hidden="true"
-        className="pmp-hero-wash"
+        className={`pmp-hero-screen${hasVideo ? " pmp-hero-screen--video" : ""}`}
         style={{
-          position: "absolute",
-          inset: 0,
-          zIndex: 0,
+          position: "relative",
+          width: "100%",
           overflow: "hidden",
-          background: `
-            radial-gradient(70% 80% at 18% 20%, ${track?.color ? `${track.color}55` : color.accentSoft} 0%, transparent 62%),
-            linear-gradient(180deg, rgba(213,220,230,0.08) 0%, rgba(0,0,0,0.4) 100%)
-          `,
-        }}
-      />
-
-      <ScanlineWash />
-
-      <div
-        style={{
-          position: "relative",
-          zIndex: 2,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          gap: 10,
-          padding: "12px 14px 0",
-          flexWrap: "wrap",
-        }}
-      >
-        <div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0 }}>
-          <PlanetPip />
-          {live && (
-            <span
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 6,
-                padding: "4px 8px",
-                borderRadius: 2,
-                background: color.alert,
-                color: "#fff",
-                fontFamily: fontPoster,
-                fontSize: 11,
-                fontWeight: 800,
-                letterSpacing: 0.16,
-              }}
-            >
-              LIVE
-            </span>
-          )}
-        </div>
-        <div style={{ display: "flex", alignItems: "center", gap: 8, marginLeft: "auto" }}>
-          {hasVideo && (
-            <span
-              aria-hidden="true"
-              style={{
-                padding: "5px 10px",
-                borderRadius: 980,
-                border: "1px solid rgba(255,255,255,0.10)",
-                background: "rgba(255,255,255,0.06)",
-                fontFamily: fontDisplay,
-                fontSize: 12,
-                fontWeight: 600,
-                letterSpacing: -0.08,
-                textTransform: "none",
-                color: color.ink,
-              }}
-            >
-              Video
-            </span>
-          )}
-          <ChannelIdent bugLine={bugLine} slug={channelBug.slug} ink={sceneChannel?.accent || null} />
-        </div>
-      </div>
-
-      <div
-        className={`pmp-hero-stage${hasVideo ? "" : " pmp-hero-stage--split"}`}
-        style={{
-          position: "relative",
-          zIndex: 2,
-          padding: "12px 14px 6px",
-          display: "flex",
-          flexDirection: "column",
-          gap: 10,
+          background: wellColor || "#0E1116",
         }}
       >
         {hasVideo ? (
-          <div
-            className="pmp-hero-sleeve"
-            style={{
-              position: "relative",
-              width: "100%",
-              aspectRatio: "16 / 9",
-              borderRadius: 14,
-              overflow: "hidden",
-              border: "1px solid rgba(255,255,255,0.10)",
-              boxShadow: artShadow.raised,
-              background: "#0E1116",
-            }}
-          >
+          <span className="pmp-hero-sleeve" style={{ position: "absolute", inset: 0, display: "block" }}>
             <Suspense fallback={null}>
               <VideoStage
                 track={track}
@@ -462,40 +332,127 @@ export default function HeroPlayerCard({
                 showBadge={false}
               />
             </Suspense>
-          </div>
+          </span>
         ) : (
-          <JewelSleeve
+          <ScreenArt
             src={art}
             idleSrc={art ? null : HERO_IDLE_ART}
             playing={live && isPlaying}
-            eager={!!art}
-            size={200}
-            wellColor={track?.color || previewTrack?.color || ""}
+            wellColor={wellColor}
           />
         )}
 
+        {/* Scrim: dark at the foot for the lower third, a breath at the head for the bugs. */}
+        <div
+          aria-hidden="true"
+          className="pmp-hero-wash"
+          style={{
+            position: "absolute",
+            inset: 0,
+            zIndex: 1,
+            pointerEvents: "none",
+            background: `
+              linear-gradient(180deg, rgba(6,8,12,0.42) 0%, rgba(6,8,12,0) 26%),
+              linear-gradient(180deg, rgba(6,8,12,0) 42%, rgba(6,8,12,0.58) 68%, rgba(6,8,12,0.94) 100%)
+            `,
+          }}
+        />
+
+        {/* Corner bugs */}
+        <div
+          style={{
+            position: "absolute",
+            zIndex: 2,
+            top: 0,
+            left: 0,
+            right: 0,
+            display: "flex",
+            alignItems: "flex-start",
+            justifyContent: "space-between",
+            gap: 10,
+            padding: "14px 14px 0",
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0 }}>
+            {live && (
+              <span
+                className="pmp-live-bug"
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 7,
+                  padding: "5px 9px 5px 8px",
+                  borderRadius: 2,
+                  background: mtv.hot,
+                  color: "#fff",
+                  fontFamily: fontPoster,
+                  fontSize: 12,
+                  fontWeight: 800,
+                  letterSpacing: 0.18,
+                  boxShadow: "0 4px 14px rgba(6,8,12,0.4)",
+                }}
+              >
+                <span
+                  aria-hidden="true"
+                  className="pmp-live-dot"
+                  style={{ width: 6, height: 6, borderRadius: "50%", background: "#fff" }}
+                />
+                LIVE
+              </span>
+            )}
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginLeft: "auto", minWidth: 0 }}>
+            {hasVideo && (
+              <span
+                aria-hidden="true"
+                style={{
+                  padding: "5px 9px",
+                  borderRadius: 2,
+                  border: "1px solid rgba(255,255,255,0.35)",
+                  background: "rgba(6,8,12,0.45)",
+                  fontFamily: fontPoster,
+                  fontSize: 12,
+                  fontWeight: 800,
+                  letterSpacing: mtv.caps,
+                  textTransform: "uppercase",
+                  color: color.ink,
+                }}
+              >
+                Video
+              </span>
+            )}
+            <ChannelIdent bugLine={bugLine} slug={channelBug.slug} ink={sceneChannel?.accent || null} />
+          </div>
+        </div>
+
+        {/* Lower third */}
         <div
           key={track?.id || previewTrack?.id || "idle"}
+          className="pmp-hero-id"
           style={{
-            minWidth: 0,
+            position: "absolute",
+            zIndex: 2,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            padding: "0 18px 16px 18px",
             display: "flex",
-            flexDirection: "column",
+            alignItems: "flex-end",
+            justifyContent: "space-between",
+            gap: 16,
             animation: "trackSwap 0.35s ease both",
           }}
         >
-          <div
-            className="pmp-hero-id"
-            style={{ position: "relative", padding: "2px 0 2px 16px" }}
-          >
+          <div style={{ position: "relative", minWidth: 0, flex: 1, paddingLeft: 14 }}>
             <span
               aria-hidden="true"
               style={{
                 position: "absolute",
                 left: 0,
-                top: 3,
-                bottom: 3,
+                top: 4,
+                bottom: 4,
                 width: 4,
-                background: live ? mtv.hot : color.faint,
+                background: live ? mtv.hot : "rgba(255,255,255,0.55)",
               }}
             />
             <div
@@ -505,60 +462,47 @@ export default function HeroPlayerCard({
                 gap: 8,
                 marginBottom: 6,
                 fontFamily: fontPoster,
-                fontSize: 13,
+                fontSize: 12,
                 fontWeight: 800,
                 letterSpacing: mtv.caps,
                 textTransform: "uppercase",
-                color: color.body,
+                color: "rgba(255,255,255,0.78)",
+                textShadow: "0 1px 10px rgba(6,8,12,0.6)",
               }}
             >
-              {!live && (
-                <span
-                  aria-hidden="true"
-                  style={{
-                    width: 16,
-                    height: 16,
-                    display: "block",
-                    backgroundImage: "url(/brand/planet-mascot.svg)",
-                    backgroundSize: "contain",
-                    backgroundRepeat: "no-repeat",
-                    backgroundPosition: "center",
-                    opacity: 0.92,
-                    flexShrink: 0,
-                  }}
-                />
-              )}
               {live ? "Now playing" : idleEyebrow}
             </div>
-
             <div
+              className="pmp-hero-title"
               style={{
                 fontFamily: fontPoster,
-                fontStyle: "normal",
-                fontSize: "clamp(36px, 10.5vw, 54px)",
+                fontSize: "clamp(38px, 11vw, 72px)",
                 fontWeight: 800,
-                letterSpacing: 0.3,
-                lineHeight: 1,
+                letterSpacing: 0.2,
+                lineHeight: 0.94,
                 textTransform: "uppercase",
-                color: color.ink,
+                color: "#fff",
+                textShadow: "0 2px 18px rgba(6,8,12,0.55)",
                 overflow: "hidden",
                 textOverflow: "ellipsis",
                 display: "-webkit-box",
                 WebkitLineClamp: 2,
                 WebkitBoxOrient: "vertical",
-                paddingRight: 12,
+                maxWidth: "min(100%, 20ch)",
+                paddingRight: 8,
               }}
             >
               {title}
             </div>
             <div
               style={{
-                marginTop: 6,
+                marginTop: 7,
                 fontFamily: fontDisplay,
                 fontSize: 17,
                 fontWeight: 600,
                 letterSpacing: -0.2,
-                color: color.body,
+                color: "rgba(255,255,255,0.92)",
+                textShadow: "0 1px 10px rgba(6,8,12,0.6)",
                 overflow: "hidden",
                 textOverflow: "ellipsis",
                 whiteSpace: "nowrap",
@@ -566,23 +510,50 @@ export default function HeroPlayerCard({
             >
               {artist}
             </div>
-
-            <div style={{ marginTop: 10, color: color.muted }}>
-              <LcdMetaLine bits={lcdBits} on="metal" />
+            <div
+              className="pmp-hero-meta"
+              style={{
+                marginTop: 8,
+                textShadow: "0 1px 8px rgba(6,8,12,0.6)",
+                whiteSpace: "nowrap",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+              }}
+            >
+              <LcdMetaLine bits={lcdBits} on="lcd" inline />
             </div>
           </div>
+
+          {/* Station watermark — the bug every frame carries. */}
+          <span
+            aria-hidden="true"
+            className="pmp-hero-callsign"
+            style={{
+              flexShrink: 0,
+              fontFamily: fontPoster,
+              fontSize: 13,
+              fontWeight: 800,
+              letterSpacing: 0.28,
+              textTransform: "uppercase",
+              color: "rgba(255,255,255,0.55)",
+              textShadow: "0 1px 8px rgba(6,8,12,0.6)",
+              paddingBottom: 2,
+            }}
+          >
+            {STATION_CALLSIGN}
+          </span>
         </div>
       </div>
 
+      {/* ── The control strip ──────────────────────────────────────── */}
       <div
+        className="pmp-hero-deck"
         style={{
           position: "relative",
           zIndex: 3,
-          marginTop: "auto",
-          padding: `12px ${homeSpace.gutter - 6}px 14px`,
-          background: "transparent",
-          borderTop: "1px solid rgba(255,255,255,0.06)",
-          boxShadow: "none",
+          padding: `10px ${homeSpace.gutter - 6}px 12px`,
+          background: "#0A0D11",
+          borderTop: "1px solid rgba(255,255,255,0.07)",
         }}
       >
         <PlayerDeck

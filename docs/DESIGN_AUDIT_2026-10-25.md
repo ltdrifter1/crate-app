@@ -106,6 +106,36 @@ no behaviour removed: every mode, callback and route Discover and Library had be
   the Library."
 - Files: `components/home/HeroPlayerCard.jsx`, `index.css`, `screens/HomeScreen.jsx`.
 
+### 5. The Home screen (same day, second pass — "make it feel like MTV but modern")
+
+**What was wrong.** Three brand marks in the first viewport on desktop (sidebar lockup, header
+glyph + wordmark, planet pip on the hero) and two on a phone. The hero was a glass bezel holding a
+square sleeve with the title beside or under it — a card, not a channel.
+
+**What it is now.** Home is a channel and the hero is *the screen*:
+
+- The header is one slim row — More (phone) and Find. No glyph, no wordmark. The desktop source
+  list carries the lockup once; nothing else repeats the name.
+- The sleeve fills a broadcast frame like a music-video still — cropped (`object-position: 50% 32%`),
+  never blurred — portrait 4:5 on a phone, 16:9 on a tablet, a 2:1 wide frame on desktop.
+- Corner bugs: a pulsing red `● LIVE` plate top-left when something is playing, the CH ident
+  (in its station ink) top-right, a `VIDEO` plate beside it when the cut has a video.
+- The lower third is cut into the picture: red rule, `NOW PLAYING` / `UP FIRST`, the title in Barlow
+  Condensed 800 at up to 72px, artist, one line of firmware (BPM · key · format · album · genre).
+- The station callsign `PMP3` watermarks the bottom-right of every frame — the bug every channel
+  carries, in type, not a logo.
+- Below the frame, a flat control strip: timeline, transport, Slow / Fast, Up next, the crawl.
+  No glass halo, no scanlines, no bezel highlight.
+- Files: `components/home/HeroPlayerCard.jsx` (rewritten), `components/home/HomeHeader.jsx`,
+  `components/player/DeviceChrome.jsx` (`LcdMetaLine inline`), `index.css` (`.pmp-hero-screen`,
+  `.pmp-live-dot`; `.pmp-planet-pip` and the split-stage rules removed).
+- Screens: `08`–`11` in `docs/audits/design-audit-2026-10-25/`.
+
+**Trade-off, stated.** Square covers are cropped to the frame. On a phone that loses a sliver each
+side; on desktop it keeps the middle half. The full sleeve is one tap away in the immersive player
+and in Up next. Over the real catalog (Yung Bae, Zari Alexandria, XFLEX) it reads as broadcast; over
+a text-heavy cover the lower third may sit on lettering — the scrim is tuned for that but check it.
+
 ### Docs
 
 - `CREATIVE_DIRECTION.md` no longer asks for glassmorphism; the shipped chassis is flat and the brief
@@ -120,8 +150,11 @@ Baseline 98 suites / 645 tests → **98 / 648**, all passing. New or rewritten:
 - Library: the shelf label prints the counts; the playlist tile is a `.pmp-cdr` with the title and
   `2 tracks · 6:30`; `Play <name>` still exists.
 - Onboarding: two stations render two different inks; tuning uses that ink for the ring.
-- Ship assertions: hero reads `--pmp-hero-art`; no `display: none` on `.pmp-hero-ticker`;
-  `ExploreScreen` mounts `CrateDig compact` and no longer imports `ExploreTools`.
+- Ship assertions: the hero is a `.pmp-hero-screen` with 4:5 and 2:1 frames, no glass halo, no
+  planet pip, callsign present; the header carries no `BrandGlyph` or `BRAND_NAME`; no
+  `display: none` on `.pmp-hero-ticker`; `ExploreScreen` mounts `CrateDig compact`.
+- Home: the live hero has a `.pmp-live-bug`, a `PMP3` callsign, and the lower third inside the
+  screen; the header renders no image and no brand text.
 
 `npm run build` + `assert-shipped-style` pass and `build/` is regenerated (Cloudflare Pages serves it).
 
@@ -132,7 +165,7 @@ Baseline 98 suites / 645 tests → **98 / 648**, all passing. New or rewritten:
 | 1 | Navigation | Four-tab dock is right. Discover now has one nav row instead of two. |
 | 2 | Discovery | Dig is at the front door; sections are numbered bins. Genres/Keys/Energy unchanged and good. |
 | 3 | Personal library | Now owns an object (the disc) and a label. Liked and Recents are still lists — fine. |
-| 4 | Player | Strong before and after. Untouched. |
+| 4 | Player | Home hero rebuilt as a broadcast screen (section 5). Immersive player untouched. |
 | 5 | Playlists | Discs read as yours; building is unchanged. |
 | 6 | Charts | The Board is right. Reachable from Home, the shelf, the sidebar. |
 | 7 | Artist discovery | ON FILE card is right; the A–Z index is plain but honest. |

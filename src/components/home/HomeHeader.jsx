@@ -1,7 +1,5 @@
-import { chromeIconButton, color, font, fontPoster, homeSpace, SEARCH_FIELD } from "../../theme";
-import { BRAND_NAME } from "../../brand/identity";
+import { chromeIconButton, color, font, homeSpace, SEARCH_FIELD } from "../../theme";
 import Icon from "../ui/Icon";
-import { BrandGlyph } from "../brand/BrandGlyphs";
 
 function MoreButton({ onClick }) {
   if (!onClick) return null;
@@ -19,8 +17,9 @@ function MoreButton({ onClick }) {
 }
 
 /**
- * HomeHeader — wordmark + Find.
- * Player context lives in the hero, not a DJ greeting.
+ * HomeHeader — one slim row: More (phone only) and Find.
+ * No wordmark, no mark. The channel below is the identity; the desktop
+ * source list already carries the lockup once, and the screen carries the callsign.
  */
 export default function HomeHeader({
   onOpenSearch = null,
@@ -31,46 +30,13 @@ export default function HomeHeader({
       className="pmp-home-header"
       style={{
         padding: `calc(10px + env(safe-area-inset-top, 0px)) ${homeSpace.gutter}px 6px`,
+        display: "flex",
+        alignItems: "center",
+        gap: 10,
       }}
     >
       <h1 className="sr-only">Home</h1>
-
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          gap: 10,
-          marginBottom: 10,
-        }}
-      >
-        <MoreButton onClick={onOpenMenu} />
-        <div
-          aria-label={BRAND_NAME}
-          style={{
-            minWidth: 0,
-            flex: 1,
-            display: "flex",
-            alignItems: "center",
-            gap: 10,
-          }}
-        >
-          <BrandGlyph size={32} />
-          <span
-            style={{
-              fontFamily: fontPoster,
-              fontSize: 22,
-              fontWeight: 800,
-              letterSpacing: 0.8,
-              textTransform: "uppercase",
-              color: color.ink,
-              lineHeight: 1,
-            }}
-          >
-            {BRAND_NAME}
-          </span>
-        </div>
-      </div>
-
+      <MoreButton onClick={onOpenMenu} />
       {onOpenSearch && (
         <button
           type="button"
@@ -79,7 +45,10 @@ export default function HomeHeader({
           aria-label="Search"
           style={{
             ...SEARCH_FIELD,
-            width: "100%",
+            flex: 1,
+            width: "auto",
+            minWidth: 0,
+            maxWidth: 560,
             display: "flex",
             alignItems: "center",
             gap: 10,

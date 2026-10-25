@@ -13,13 +13,18 @@ test("boot HTML stamps the current chassis", () => {
   expect(html).not.toMatch(/101\s*,\s*230\s*,\s*255/);
 });
 
-test("phone Home shows the whole station: capped sleeve, crawl kept", () => {
+test("Home hero is a broadcast screen: framed sleeve, lower third, crawl kept", () => {
   const css = fs.readFileSync(path.join(root, "src/index.css"), "utf8");
-  expect(css).toMatch(/--pmp-hero-art:\s*min\(100%, 320px, 32dvh\)/);
+  expect(css).toMatch(/\.pmp-hero-screen\s*\{[^}]*aspect-ratio:\s*4 \/ 5/m);
+  expect(css).toMatch(/\.pmp-hero-screen\s*\{[^}]*aspect-ratio:\s*2 \/ 1/m);
+  expect(css).toMatch(/\.pmp-hero\.pmp-glass-stage::before\s*\{\s*display:\s*none/m);
+  expect(css).not.toMatch(/pmp-planet-pip/);
   const tickerHidden = /\.pmp-hero-ticker\s*\{[^}]*display:\s*none/m.test(css);
   expect(tickerHidden).toBe(false);
   const hero = fs.readFileSync(path.join(root, "src/components/home/HeroPlayerCard.jsx"), "utf8");
-  expect(hero).toMatch(/var\(--pmp-hero-art, min\(100%, 320px\)\)/);
+  expect(hero).toMatch(/pmp-hero-screen/);
+  expect(hero).toMatch(/STATION_CALLSIGN/);
+  expect(hero).not.toMatch(/PlanetPip|planet-mascot|ScanlineWash|glassStage/);
 });
 
 test("Home does not import the quarantined CoverStage", () => {
@@ -128,7 +133,8 @@ test("browse lists print BPM and Camelot, and Home is player then my listening",
   expect(header).toMatch(/aria-label="Search"/);
   expect(header).toMatch(/Find/);
   expect(header).toMatch(/aria-label="More"/);
-  expect(header).toMatch(/BrandGlyph/);
+  expect(header).not.toMatch(/BrandGlyph/);
+  expect(header).not.toMatch(/BRAND_NAME/);
   expect(header).toMatch(/SEARCH_FIELD/);
   expect(header).not.toMatch(/Late signal/);
   expect(header).not.toMatch(/stationGreeting/);

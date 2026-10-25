@@ -71,7 +71,9 @@ describe("Home broadcast + four-tab IA", () => {
     });
     expect(div.querySelector('button[aria-label="Charts"]')).toBeNull();
     expect(div.textContent).not.toMatch(/PLANET \/ 003/);
-    expect(div.textContent).toMatch(/Planet MP3/);
+    // No wordmark and no mark on Home: the screen below is the identity.
+    expect(div.textContent).not.toMatch(/Planet MP3/);
+    expect(div.querySelector("img")).toBeNull();
     expect(div.textContent).not.toMatch(/PMP3/);
     expect(div.textContent).not.toMatch(/Late signal/);
     expect(div.textContent).not.toMatch(/Prime time/);
@@ -156,12 +158,17 @@ describe("Home broadcast + four-tab IA", () => {
     });
     expect(div.querySelector("video")).toBeNull();
     expect(div.querySelector(".pmp-hero-sleeve")).toBeTruthy();
+    expect(div.querySelector(".pmp-hero-screen")).toBeTruthy();
     expect(div.querySelector(".pmp-hero-wash")).toBeTruthy();
     expect(div.querySelector(".pmp-glass-stage")).toBeTruthy();
-    expect(div.querySelector(".pmp-planet-pip")).toBeTruthy();
+    // No logo on the screen — the LIVE bug, the CH ident and the callsign watermark only.
+    expect(div.querySelector(".pmp-planet-pip")).toBeNull();
+    expect(div.querySelector(".pmp-live-bug")).toBeTruthy();
+    expect(div.querySelector(".pmp-hero-callsign").textContent).toBe("PMP3");
     expect(div.querySelector(".pmp-play-planet")).toBeTruthy();
-    expect(div.textContent).not.toMatch(/PMP3/);
     expect(div.textContent).not.toMatch(/PLANET \/ 003/);
+    // The lower third is cut into the picture, inside the screen.
+    expect(div.querySelector(".pmp-hero-screen .pmp-hero-id")).toBeTruthy();
     expect(div.querySelector('[aria-label="Previous"]')).toBeNull();
     expect(div.textContent).toMatch(/Now playing/i);
     expect(div.textContent).toMatch(/Night Drive/);
