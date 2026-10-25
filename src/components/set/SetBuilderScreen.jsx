@@ -4,7 +4,7 @@
  */
 import { useEffect, useMemo, useState } from "react";
 import {
-  color, font, fontDisplay, fontMono, y2k, chrome, glass, radio, radius,
+  color, font, fontDisplay, fontMono, fontPoster, y2k, chrome, glass, radio, radius,
   homeSpace, motion, BTN_PRIMARY, BTN_SECONDARY, chromeIconButton,
 } from "../../theme";
 import Icon from "../ui/Icon";
@@ -29,17 +29,12 @@ import {
 import EnergyArc from "./EnergyArc";
 
 const BOOTH_CSS = `
-  @keyframes pmpBoothGlow {
-    0%, 100% { opacity: 0.55; }
-    50% { opacity: 1; }
-  }
   .pmp-booth-key { transition: transform ${"{fast}"} ${"{ease}"}, box-shadow ${"{base}"}, background ${"{base}"}; }
   .pmp-booth-key:hover { transform: translateY(-1px); }
   .pmp-booth-key:active { transform: scale(0.98); }
   .pmp-booth-clip { transition: transform ${"{fast}"} ${"{ease}"}, box-shadow ${"{base}"}; }
   .pmp-booth-clip:hover { transform: translateY(-2px); }
   @media (prefers-reduced-motion: reduce) {
-    .pmp-booth-glow { animation: none !important; }
     .pmp-booth-key, .pmp-booth-clip { transition: none !important; transform: none !important; }
   }
 `.replaceAll("{fast}", motion.fast).replaceAll("{base}", motion.base).replaceAll("{ease}", motion.ease);
@@ -137,7 +132,7 @@ export default function SetBuilderScreen({
       }}
     >
       <style>{BOOTH_CSS}</style>
-      <BoothAtmosphere covers={stats.covers} tintRgb={tintRgb} />
+      <BoothAtmosphere tintRgb={tintRgb} />
 
       <div style={{
         position: "relative",
@@ -166,11 +161,12 @@ export default function SetBuilderScreen({
           </button>
           <div style={{ minWidth: 0, textAlign: "center" }}>
             <div style={{
-              fontFamily: fontDisplay,
-              fontSize: 17,
-              fontWeight: 700,
-              letterSpacing: -0.4,
-              lineHeight: 1.15,
+              fontFamily: fontPoster,
+              fontSize: 20,
+              fontWeight: 800,
+              letterSpacing: 0.2,
+              textTransform: "uppercase",
+              lineHeight: 1,
             }}>
               Build a set
             </div>
@@ -184,27 +180,7 @@ export default function SetBuilderScreen({
               {intentLabel ? `${intentLabel} · in the booth` : "Sculpt, then play"}
             </div>
           </div>
-          <div
-            aria-hidden="true"
-            className="pmp-booth-glow"
-            style={{
-              minWidth: 36,
-              padding: "6px 8px",
-              borderRadius: 6,
-              border: `1px solid rgba(${tintRgb},0.38)`,
-              background: `rgba(${tintRgb},0.1)`,
-              color: y2k.cyan,
-              fontFamily: fontMono,
-              fontSize: 11,
-              fontWeight: 800,
-              letterSpacing: 1.1,
-              textAlign: "center",
-              lineHeight: 1.2,
-              animation: "pmpBoothGlow 3.2s ease-in-out infinite",
-            }}
-          >
-            BOOTH
-          </div>
+          <span aria-hidden="true" style={{ width: 36, flexShrink: 0 }} />
         </header>
 
         <div className="hide-scroll" style={{
@@ -325,32 +301,17 @@ export default function SetBuilderScreen({
   );
 }
 
-function BoothAtmosphere({ covers, tintRgb }) {
-  const bg = covers[0];
+function BoothAtmosphere({ tintRgb }) {
+  // One wash in the vibe's colour over the canvas. No blurred sleeve: the stage shows the sleeves sharp.
   return (
-    <>
-      {bg && (
-        <div aria-hidden="true" style={{
-          position: "absolute",
-          inset: 0,
-          opacity: 0.22,
-          backgroundImage: `url(${bg})`,
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-          filter: "blur(64px) saturate(1.15) brightness(0.7)",
-          transform: "scale(1.12)",
-        }} />
-      )}
-      <div aria-hidden="true" style={{
-        position: "absolute",
-        inset: 0,
-        background: `
-          radial-gradient(ellipse 70% 42% at 18% -8%, rgba(${tintRgb},0.16) 0%, transparent 52%),
-          radial-gradient(ellipse 50% 36% at 100% 8%, rgba(91,101,116,0.08) 0%, transparent 46%),
-          linear-gradient(180deg, rgba(6,10,16,0.35) 0%, rgba(6,10,16,0.88) 100%)
-        `,
-      }} />
-    </>
+    <div aria-hidden="true" style={{
+      position: "absolute",
+      inset: 0,
+      background: `
+        radial-gradient(ellipse 70% 42% at 18% -8%, rgba(${tintRgb},0.14) 0%, transparent 52%),
+        linear-gradient(180deg, rgba(6,10,16,0.2) 0%, rgba(6,10,16,0.7) 100%)
+      `,
+    }} />
   );
 }
 
@@ -382,7 +343,7 @@ function BoothStage({
         position: "absolute",
         inset: 0,
         background: `
-          linear-gradient(180deg, rgba(6,10,16,0.15) 0%, rgba(6,10,16,0.2) 40%, rgba(18,22,28,0.92) 100%)
+          linear-gradient(180deg, rgba(6,8,12,0.10) 0%, rgba(6,8,12,0.25) 40%, rgba(6,8,12,0.94) 100%)
         `,
       }} />
       <div style={{
@@ -391,13 +352,12 @@ function BoothStage({
         top: 14,
         padding: "5px 8px",
         borderRadius: 5,
-        background: "rgba(6,10,16,0.62)",
-        border: "1px solid rgba(216,223,232,0.14)",
-        fontFamily: fontMono,
-        fontSize: 11,
+        background: color.ink,
+        fontFamily: fontPoster,
+        fontSize: 12,
         fontWeight: 800,
-        letterSpacing: 1.3,
-        color: y2k.offWhite,
+        letterSpacing: 0.16,
+        color: color.onAccent,
       }}>
         IN THE BOOTH
       </div>
@@ -409,12 +369,15 @@ function BoothStage({
         bottom: 12,
       }}>
         <div style={{
-          fontFamily: fontDisplay,
-          fontSize: tall ? 32 : 26,
-          fontWeight: 700,
-          letterSpacing: -0.7,
-          lineHeight: 1.05,
+          fontFamily: fontPoster,
+          fontSize: tall ? 48 : 34,
+          fontWeight: 800,
+          letterSpacing: 0.2,
+          textTransform: "uppercase",
+          lineHeight: 0.94,
           marginBottom: 6,
+          color: "#fff",
+          textShadow: "0 2px 16px rgba(6,8,12,0.55)",
         }}>
           {headline}
         </div>
@@ -651,14 +614,12 @@ function hardwareChip(selected, tintRgb) {
     padding: "0 14px",
     borderRadius: 8,
     border: selected
-      ? `1px solid rgba(${tintRgb},0.55)`
+      ? "1px solid transparent"
       : "1px solid rgba(216,223,232,0.12)",
-    background: selected
-      ? `linear-gradient(180deg, rgba(216,223,232,0.18) 0%, transparent 42%), linear-gradient(165deg, #A8B2C0 0%, #5B6574 100%)`
-      : "rgba(216,223,232,0.05)",
+    background: selected ? color.ink : "rgba(255,255,255,0.05)",
     color: selected ? color.onAccent : color.body,
     boxShadow: selected
-      ? "inset 0 1px 0 rgba(216,223,232,0.62), 0 8px 18px rgba(6,10,16,0.28)"
+      ? `0 0 0 2px rgba(${tintRgb},0.6), 0 8px 18px rgba(6,10,16,0.35)`
       : "inset 0 1px 0 rgba(216,223,232,0.06)",
     cursor: "pointer",
     fontWeight: 650,

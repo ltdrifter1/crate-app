@@ -31,12 +31,9 @@ export default function EnergyArc({
         height,
         borderRadius: 8,
         overflow: "hidden",
-        background: `
-          linear-gradient(180deg, rgba(111,191,58,0.1) 0%, transparent 42%),
-          linear-gradient(160deg, #6A7482 0%, #5B6574 55%, #4A5360 100%)
-        `,
-        border: "1px solid rgba(18, 22, 16, 0.45)",
-        boxShadow: "inset 0 2px 8px rgba(6,10,16,0.45), inset 0 1px 0 rgba(111,191,58,0.12), 0 0 0 1px rgba(216,223,232,0.4)",
+        background: "linear-gradient(180deg, #0F1318 0%, #0B0E12 100%)",
+        border: "1px solid rgba(255,255,255,0.08)",
+        boxShadow: "inset 0 2px 8px rgba(6,10,16,0.6)",
       }}
     >
       <svg

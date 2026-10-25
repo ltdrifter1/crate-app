@@ -256,6 +256,32 @@ screen speaks in the station's voice; the "Starting on" card prints the station 
   `components/listen/InterestsPanel.jsx`, `components/onboarding/TasteTuner.jsx`.
 - Screens: `21`–`26` in `docs/audits/design-audit-2026-10-25/`.
 
+### 9. Sixth pass — the Landing page and the Set Builder, fresh
+
+**9a. The landing is the front door of the station, not a neon lobby.** It carried three pulsing
+"neon bloom" radial gradients (silver, purple, red), a fixed scanline overlay, an auto-scrolling
+marquee of glowing channel pills with randomised blink delays, LCD headers in the retired ice-cyan
+(`#B7E4EE`), and the old light-steel borders — the one screen still on a chassis the app left in
+September. On desktop it printed the lockup a second time next to the sidebar's. Now: the canvas
+is flat; the headline is `OPEN ALL NIGHT.` in Barlow Condensed up to 96px; the lockup prints only
+on a phone (beside the desktop source list it is already on screen); the channel pills are the real
+dial — eight station tiles with their pixel art and ink, each a door to sign-up; the Top 5 is a
+Board-style card (rank numeral, station-ink stripe, condensed title) under a masthead strip with
+the red square; the liner notes card shares the masthead; the auth form is unchanged in behaviour
+with its underline in pearl. The honest *Sample board · NOT LIVE DATA* rule still holds.
+
+**9b. The Set Builder loses its costume and keeps its instrument.** The energy arc is the most
+distinctive graphic in the app and stays. Gone: the `BOOTH` badge pulsing in the header for no
+reason, the blurred-sleeve atmosphere (the stage already shows the sleeves sharp), the lime-tinted
+steel LCD well under the arc, and the silver-gradient selected chips. Now: `BUILD A SET` in
+condensed caps, a flat vibe-tint wash on the canvas, the set title as a lower third
+(`NIGHT OUT · 1 HOUR` at 34/48px), `IN THE BOOTH` as a pearl plate, the arc on a near-black well so
+the tint reads, and selected Length / Vibe / Genre chips as pearl plates ringed in the vibe's colour.
+
+- Files: `components/auth/LandingScreen.jsx`, `components/set/SetBuilderScreen.jsx`,
+  `components/set/EnergyArc.jsx`.
+- Screens: `27`–`30` in `docs/audits/design-audit-2026-10-25/`.
+
 ### Docs
 
 - `CREATIVE_DIRECTION.md` no longer asks for glassmorphism; the shipped chassis is flat and the brief
@@ -286,7 +312,7 @@ Baseline 98 suites / 645 tests → **98 / 651**, all passing. New or rewritten:
 | 2 | Discovery | Dig at the front door; numbered bins; Trending is a heat board, Artists a sleeve wall, rooms named (7c–e). |
 | 3 | Personal library | Now owns an object (the disc) and a label. Liked and Recents are still lists — fine. |
 | 4 | Player | Home hero and the immersive player are one broadcast screen (sections 5, 6a). |
-| 5 | Playlists | Discs read as yours; building is unchanged. |
+| 5 | Playlists | Discs read as yours; the Set Builder keeps its arc and drops its costume (9b). |
 | 6 | Charts | The Board is right; Past days opens a board (7a). Reachable from Home, the shelf, the sidebar. |
 | 7 | Artist discovery | ON FILE card is right; Same shelf now leads to the next artist (6d). |
 | 8 | Music history | Still dark until tracks carry `year`. Data work, not design. |

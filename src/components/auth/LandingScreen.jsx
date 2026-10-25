@@ -7,9 +7,9 @@
  */
 import { useState, useEffect, useRef } from "react";
 import {
-  font, fontDisplay, fontMono, color, radius, glass,
-  aluminumGradient, trim, y2k, radio as radioStyle,
-  APP_STYLE, INPUT_ST, BTN_PRIMARY, BTN_SECONDARY, trimStroke,
+  font, fontDisplay, fontMono, fontPoster, color, radius, glass, mtv,
+  radio as radioStyle,
+  INPUT_ST, BTN_PRIMARY, BTN_SECONDARY, trimStroke,
 } from "../../theme";
 import { authErrorMessage } from "../../lib/phone";
 import { BrandLockup } from "../brand/BrandGlyphs";
@@ -17,29 +17,15 @@ import BrandTagline from "../brand/BrandTagline";
 import BetaBadge from "../billing/BetaLaunchNotice";
 import { FeatureIcon } from "../ui/Icon";
 import { SCENE_CHANNELS } from "../../lib/sceneChannels";
+import { inkForTrack, NEUTRAL_INK } from "../../lib/board";
+import { RankNumeral } from "../station/BoardParts";
+import ChannelCard from "../home/ChannelCard";
+import { Rail } from "../home/MusicSection";
 
 // ─── Static discovery data ────────────────────────────────────────────────────
 
-/**
- * Sleeve plates for the pre-auth rail. Ink comes from the real dial so the
- * front door and the product agree on what colour a station is.
- */
-const CHANNEL_PLATES = [
-  { id: "techno",        label: "Techno",      color: "#2A333C" },
-  { id: "drum-and-bass", label: "Drum & Bass", color: "#2E2535" },
-  { id: "house",         label: "House",       color: "#26312A" },
-  { id: "y2k-dance",     label: "Y2K Dance",   color: "#352230" },
-  { id: "downtempo",     label: "Downtempo",   color: "#1E2830" },
-  { id: "shoegaze",      label: "Shoegaze",    color: "#2A2835" },
-  { id: "punk",          label: "Punk",        color: "#332420" },
-  { id: "metal",         label: "Metal",       color: "#202428" },
-];
-
-const CHANNELS = CHANNEL_PLATES.map((plate) => ({
-  ...plate,
-  accent:
-    SCENE_CHANNELS.find((c) => c.id === plate.id)?.accent || color.lcdSignal,
-}));
+/** The front door shows the real dial — eight stations, their own art and ink. */
+const DOOR_CHANNELS = SCENE_CHANNELS.slice(0, 8);
 
 /**
  * Fallback board for when the catalog has not loaded yet. These are NOT the
@@ -67,6 +53,7 @@ export function liveChartRows(chart = []) {
       title: e.track.title,
       artist: e.track.artist || "",
       dir: CHART_DIR[e.deltaLabel] || "",
+      track: e.track,
     }));
   return rows.length >= 3 ? rows : null;
 }
@@ -80,124 +67,35 @@ const FEATURES = [
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
-function ScanlineOverlay() {
-  return (
-    <div
-      aria-hidden="true"
-      style={{
-        position: "fixed",
-        inset: 0,
-        pointerEvents: "none",
-        zIndex: 0,
-        background: `repeating-linear-gradient(
-          to bottom,
-          transparent 0px,
-          transparent 3px,
-          rgba(6,10,16,0.04) 3px,
-          rgba(6,10,16,0.04) 4px
-        )`,
-        mixBlendMode: "multiply",
-      }}
-    />
-  );
-}
-
-function NeonPulse({ color: c = color.lcdSignal, size = 120, style = {} }) {
-  return (
-    <div
-      aria-hidden="true"
-      style={{
-        position: "absolute",
-        width: size,
-        height: size,
-        borderRadius: "50%",
-        background: `radial-gradient(circle, ${c}22 0%, transparent 70%)`,
-        animation: "pmpNeonPulse 4s ease-in-out infinite",
-        pointerEvents: "none",
-        ...style,
-      }}
-    />
-  );
-}
-
-function ChannelPill({ ch }) {
-  return (
-    <div
-      style={{
-        padding: "10px 16px",
-        borderRadius: 10,
-        background: ch.color,
-        border: `1px solid ${ch.accent}44`,
-        boxShadow: `0 0 18px ${ch.accent}22, inset 0 1px 0 rgba(255,255,255,0.06)`,
-        display: "flex",
-        alignItems: "center",
-        gap: 8,
-        flexShrink: 0,
-      }}
-    >
-      <span
-        style={{
-          width: 6,
-          height: 6,
-          borderRadius: "50%",
-          background: ch.accent,
-          boxShadow: `0 0 6px ${ch.accent}`,
-          animation: "pmpLcdPip 1.8s ease-in-out infinite",
-          animationDelay: `${Math.random() * 1.5}s`,
-          flexShrink: 0,
-        }}
-      />
-      <span
-        style={{
-          fontSize: 13,
-          fontWeight: 700,
-          fontFamily: fontDisplay,
-          color: ch.accent,
-          letterSpacing: 0.3,
-          whiteSpace: "nowrap",
-          textTransform: "uppercase",
-        }}
-      >
-        {ch.label}
-      </span>
-    </div>
-  );
-}
-
-function ChartRow({ rank, title, artist, dir }) {
+function ChartRow({ rank, title, artist, dir, track = null, last = false }) {
   const up = dir.startsWith("▲");
   const flat = !dir || dir === "—" || dir === "NEW";
+  const ink = track ? inkForTrack(track) : NEUTRAL_INK;
   return (
     <div
       style={{
-        display: "flex",
+        display: "grid",
+        gridTemplateColumns: "4px 40px minmax(0, 1fr) auto",
         alignItems: "center",
-        gap: 10,
-        padding: "9px 14px",
-        borderBottom: "1px solid rgba(91,101,116,0.12)",
+        gap: 12,
+        padding: "9px 14px 9px 0",
+        borderBottom: last ? "none" : "1px solid rgba(200,210,222,0.08)",
       }}
     >
-      <span
-        style={{
-          width: 26,
-          fontFamily: fontMono,
-          fontSize: 12,
-          fontWeight: 700,
-          color: rank <= 3 ? trim.blue : color.muted,
-          letterSpacing: 0.2,
-          flexShrink: 0,
-        }}
-      >
-        {String(rank).padStart(2, "0")}
+      <span aria-hidden="true" style={{ width: 4, alignSelf: "stretch", background: ink, borderRadius: 1 }} />
+      <span style={{ color: color.ink, display: "flex", justifyContent: "center" }}>
+        <RankNumeral rank={rank} size={26} ink={ink} />
       </span>
-      <div style={{ flex: 1, minWidth: 0 }}>
+      <div style={{ minWidth: 0 }}>
         <div
           style={{
-            fontSize: 13,
-            fontWeight: 600,
-            fontFamily: fontDisplay,
+            fontFamily: fontPoster,
+            fontSize: 16,
+            fontWeight: 700,
+            letterSpacing: 0.04,
+            textTransform: "uppercase",
+            lineHeight: 1.05,
             color: color.ink,
-            letterSpacing: -0.1,
             overflow: "hidden",
             textOverflow: "ellipsis",
             whiteSpace: "nowrap",
@@ -207,7 +105,8 @@ function ChartRow({ rank, title, artist, dir }) {
         </div>
         <div
           style={{
-            fontSize: 11,
+            marginTop: 2,
+            fontSize: 12,
             color: color.muted,
             overflow: "hidden",
             textOverflow: "ellipsis",
@@ -222,12 +121,52 @@ function ChartRow({ rank, title, artist, dir }) {
           fontSize: 11,
           fontWeight: 700,
           fontFamily: fontMono,
-          color: up ? "#6DBF87" : flat ? color.muted : "#E0314A",
+          color: up ? "#6DBF87" : flat ? color.muted : mtv.hot,
           flexShrink: 0,
         }}
       >
         {dir}
       </span>
+    </div>
+  );
+}
+
+/** Masthead strip over a card — the Board's voice: red square, condensed caps. */
+function CardMast({ children, right = null, live = false }) {
+  return (
+    <div
+      style={{
+        padding: "10px 14px",
+        borderBottom: "1px solid rgba(200,210,222,0.10)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        gap: 10,
+      }}
+    >
+      <span style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0 }}>
+        <span aria-hidden="true" style={{ width: 7, height: 7, background: live ? mtv.hot : color.faint, flexShrink: 0 }} />
+        <span
+          style={{
+            fontFamily: fontPoster,
+            fontSize: 13,
+            fontWeight: 800,
+            letterSpacing: mtv.caps,
+            textTransform: "uppercase",
+            color: color.ink,
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            whiteSpace: "nowrap",
+          }}
+        >
+          {children}
+        </span>
+      </span>
+      {right ? (
+        <span style={{ fontFamily: fontMono, fontSize: 10.5, fontWeight: 700, letterSpacing: 0.1, textTransform: "uppercase", color: color.muted, flexShrink: 0 }}>
+          {right}
+        </span>
+      ) : null}
     </div>
   );
 }
@@ -240,7 +179,7 @@ function FeatureRow({ icon, code, head, body, last }) {
         alignItems: "flex-start",
         gap: 12,
         padding: "13px 14px",
-        borderBottom: last ? "none" : "1px solid rgba(91,101,116,0.12)",
+        borderBottom: last ? "none" : "1px solid rgba(200,210,222,0.08)",
       }}
     >
       <span
@@ -249,7 +188,7 @@ function FeatureRow({ icon, code, head, body, last }) {
           fontSize: 11,
           fontWeight: 700,
           letterSpacing: 0.2,
-          color: trim.blue,
+          color: color.muted,
           paddingTop: 3,
           flexShrink: 0,
           width: 34,
@@ -257,7 +196,7 @@ function FeatureRow({ icon, code, head, body, last }) {
       >
         {code}
       </span>
-      <span style={{ color: color.lcdSignal, display: "flex", flexShrink: 0, paddingTop: 1 }}>
+      <span style={{ color: color.ink, display: "flex", flexShrink: 0, paddingTop: 1 }}>
         <FeatureIcon name={icon} size={22} />
       </span>
       <div style={{ flex: 1, minWidth: 0 }}>
@@ -369,41 +308,26 @@ export default function LandingScreen({
 
   return (
     <div
+      className="pmp-landing"
       style={{
         minHeight: "100dvh",
         width: "100%",
-        background: aluminumGradient(),
+        maxWidth: 1120,
+        margin: "0 auto",
+        background: color.canvas,
         fontFamily: font,
         position: "relative",
         overflowX: "hidden",
       }}
     >
-      <ScanlineOverlay />
-
-      {/* Ambient neon blooms */}
-      <NeonPulse color={color.lcdSignal} size={360} style={{ top: "5%", left: "-8%", opacity: 0.45 }} />
-      <NeonPulse color="#C87ADB" size={280} style={{ top: "18%", right: "-4%", opacity: 0.4 }} />
-      <NeonPulse color="#E0314A" size={200} style={{ bottom: "30%", left: "60%", opacity: 0.3 }} />
-
       <style>{`
-        @keyframes pmpNeonPulse {
-          0%, 100% { transform: scale(1); opacity: 0.7; }
-          50% { transform: scale(1.18); opacity: 1; }
-        }
-        @keyframes pmpChannelScroll {
-          from { transform: translateX(0); }
-          to { transform: translateX(-50%); }
-        }
-        .pmp-channel-rail-inner {
-          display: flex;
-          gap: 10px;
-          animation: pmpChannelScroll 28s linear infinite;
-          width: max-content;
-        }
-        .pmp-channel-rail-inner:hover { animation-play-state: paused; }
         @keyframes stationIn {
           from { opacity: 0; transform: translateY(18px); }
           to   { opacity: 1; transform: none; }
+        }
+        /* Beside the desktop source list the lockup is already on screen: print it once. */
+        @media (min-width: 900px) {
+          .pmp-landing-lockup { display: none !important; }
         }
       `}</style>
 
@@ -412,34 +336,37 @@ export default function LandingScreen({
         style={{
           position: "relative",
           zIndex: 1,
-          padding: "48px 20px 0",
+          padding: "40px 20px 0",
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
           textAlign: "center",
-          gap: 16,
+          gap: 14,
           animation: "stationIn 0.55s cubic-bezier(0.22,1,0.36,1) both",
         }}
       >
-        <div style={{ width: "min(68vw, 240px)" }}>
-          <BrandLockup size={240} />
+        <div className="pmp-landing-lockup" style={{ width: "min(56vw, 200px)" }}>
+          <BrandLockup size={200} />
         </div>
-        <BrandTagline
-          size={12}
-          style={{ color: color.muted, letterSpacing: 0.2 }}
-        />
-        <BetaBadge />
+        <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap", justifyContent: "center" }}>
+          <BrandTagline
+            size={12}
+            style={{ color: color.muted, letterSpacing: 0.2 }}
+          />
+          <BetaBadge />
+        </div>
 
-        {/* Hero statement */}
-        <div style={{ maxWidth: 420, marginTop: 8 }}>
+        {/* Hero statement — the station's voice */}
+        <div style={{ maxWidth: 560, marginTop: 4 }}>
           <h1
             style={{
-              fontFamily: fontDisplay,
-              fontSize: "clamp(26px, 7vw, 38px)",
+              fontFamily: fontPoster,
+              fontSize: "clamp(48px, 13vw, 96px)",
               fontWeight: 800,
-              letterSpacing: -0.9,
+              letterSpacing: 0.2,
+              textTransform: "uppercase",
               color: color.ink,
-              lineHeight: 1.1,
+              lineHeight: 0.9,
               margin: 0,
             }}
           >
@@ -447,16 +374,14 @@ export default function LandingScreen({
           </h1>
           <p
             style={{
-              marginTop: 12,
+              marginTop: 14,
               fontSize: 15,
-              color: color.muted,
+              color: color.body,
               lineHeight: 1.55,
               fontWeight: 450,
             }}
           >
-            {CHANNELS.length > 0
-              ? `${SCENE_CHANNELS.length} live channels, a monthly chart, and a crate that's actually yours.`
-              : "Live channels, a monthly chart, and a crate that's actually yours."}
+            {`${SCENE_CHANNELS.length} live channels, a monthly chart, and a crate that's actually yours.`}
           </p>
         </div>
 
@@ -497,47 +422,50 @@ export default function LandingScreen({
         </div>
       </div>
 
-      {/* ── LIVE CHANNELS RAIL ────────────────────────────────────────────── */}
-      <div
-        style={{
-          position: "relative",
-          zIndex: 1,
-          marginTop: 40,
-          overflow: "hidden",
-        }}
-      >
-        {/* LCD header */}
+      {/* ── THE DIAL ─────────────────────────────────────────────────────── */}
+      <div style={{ position: "relative", zIndex: 1, marginTop: 36 }}>
         <div
           style={{
             margin: "0 20px 12px",
-            padding: "7px 14px",
-            borderRadius: 8,
-            background: radioStyle.lcdFace,
-            border: radioStyle.lcdBorder,
-            boxShadow: radioStyle.lcdShadow,
-            fontFamily: fontMono,
-            fontSize: 11,
-            fontWeight: 700,
-            letterSpacing: 0.16,
-            textTransform: "uppercase",
-            color: "#B7E4EE",
             display: "flex",
             alignItems: "center",
-            gap: 8,
+            justifyContent: "space-between",
+            gap: 10,
           }}
         >
-          <span className="pmp-lcd-pip" style={{ display: "inline-block", width: 6, height: 6, borderRadius: "50%", background: "#E0314A", flexShrink: 0 }} />
-          Live Channels — Streaming Now
+          <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <span aria-hidden="true" className="pmp-live-dot" style={{ width: 7, height: 7, background: mtv.hot, flexShrink: 0 }} />
+            <span
+              style={{
+                fontFamily: fontPoster,
+                fontSize: 13,
+                fontWeight: 800,
+                letterSpacing: mtv.caps,
+                textTransform: "uppercase",
+                color: color.ink,
+              }}
+            >
+              Live channels
+            </span>
+          </span>
+          <span style={{ fontFamily: fontMono, fontSize: 10.5, fontWeight: 700, letterSpacing: 0.1, textTransform: "uppercase", color: color.muted }}>
+            {SCENE_CHANNELS.length} on the dial
+          </span>
         </div>
-
-        {/* Infinite scroll rail */}
-        <div style={{ overflow: "hidden", padding: "4px 0 8px" }}>
-          <div className="pmp-channel-rail-inner" style={{ paddingLeft: 20 }}>
-            {[...CHANNELS, ...CHANNELS].map((ch, i) => (
-              <ChannelPill key={`${ch.id}-${i}`} ch={ch} />
-            ))}
-          </div>
-        </div>
+        <Rail gap={12}>
+          {DOOR_CHANNELS.map((ch, i) => (
+            <ChannelCard
+              key={ch.id}
+              channel={ch}
+              size={128}
+              eager={i < 4}
+              onClick={() => {
+                setMode("signup");
+                setTimeout(() => formRef.current?.scrollIntoView({ behavior: "smooth", block: "center" }), 80);
+              }}
+            />
+          ))}
+        </Rail>
       </div>
 
       {/* ── CHARTS TEASER ─────────────────────────────────────────────────── */}
@@ -547,51 +475,17 @@ export default function LandingScreen({
             borderRadius: 14,
             overflow: "hidden",
             background: radioStyle.moduleFace,
-            border: "1px solid rgba(91,101,116,0.18)",
-            boxShadow: "inset 0 1px 0 rgba(216,223,232,0.45), 0 12px 32px rgba(6,10,16,0.18)",
+            border: "1px solid rgba(200,210,222,0.12)",
+            boxShadow: "inset 0 1px 0 rgba(216,223,232,0.08), 0 12px 32px rgba(6,10,16,0.3)",
           }}
         >
-          {/* Board header */}
-          <div
-            style={{
-              padding: "12px 14px",
-              background: radioStyle.lcdFace,
-              borderBottom: radioStyle.lcdBorder,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-            }}
-          >
-            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <span className="pmp-lcd-pip" style={{ width: 6, height: 6, borderRadius: "50%", background: "#E0314A", display: "inline-block" }} />
-              <span
-                style={{
-                  fontFamily: fontMono,
-                  fontSize: 11,
-                  fontWeight: 700,
-                  letterSpacing: 0.16,
-                  textTransform: "uppercase",
-                  color: "#B7E4EE",
-                }}
-              >
-                {liveRows ? "This Month's Chart · Top 5" : "Sample board · Top 5"}
-              </span>
-            </div>
-            <span
-              style={{
-                fontFamily: fontMono,
-                fontSize: 11,
-                color: color.lcdSignal,
-                letterSpacing: 0.1,
-              }}
-            >
-              {liveRows ? "REQUEST TO CLIMB ↑" : "NOT LIVE DATA"}
-            </span>
-          </div>
+          <CardMast live={!!liveRows} right={liveRows ? "Request to climb ↑" : "NOT LIVE DATA"}>
+            {liveRows ? "This Month's Chart · Top 5" : "Sample board · Top 5"}
+          </CardMast>
 
           {/* Chart rows */}
-          {chartRows.map((row) => (
-            <ChartRow key={row.rank} {...row} />
+          {chartRows.map((row, i) => (
+            <ChartRow key={row.rank} {...row} last={i === chartRows.length - 1} />
           ))}
 
           {/* CTA row */}
@@ -600,10 +494,10 @@ export default function LandingScreen({
               padding: "12px 14px",
               fontSize: 12,
               fontWeight: 600,
-              color: trim.blue,
+              color: color.body,
               fontFamily: fontDisplay,
               letterSpacing: -0.1,
-              borderTop: "1px solid rgba(91,101,116,0.12)",
+              borderTop: "1px solid rgba(200,210,222,0.10)",
               textAlign: "center",
             }}
           >
@@ -621,34 +515,11 @@ export default function LandingScreen({
             borderRadius: 14,
             overflow: "hidden",
             background: radioStyle.moduleFace,
-            border: "1px solid rgba(91,101,116,0.18)",
-            boxShadow: "inset 0 1px 0 rgba(216,223,232,0.45), 0 12px 32px rgba(6,10,16,0.18)",
+            border: "1px solid rgba(200,210,222,0.12)",
+            boxShadow: "inset 0 1px 0 rgba(216,223,232,0.08), 0 12px 32px rgba(6,10,16,0.3)",
           }}
         >
-          <div
-            style={{
-              padding: "12px 14px",
-              background: radioStyle.lcdFace,
-              borderBottom: radioStyle.lcdBorder,
-              display: "flex",
-              alignItems: "center",
-              gap: 8,
-            }}
-          >
-            <span className="pmp-lcd-pip" style={{ width: 6, height: 6, borderRadius: "50%", background: color.lcdSignal, display: "inline-block" }} />
-            <span
-              style={{
-                fontFamily: fontMono,
-                fontSize: 11,
-                fontWeight: 700,
-                letterSpacing: 0.16,
-                textTransform: "uppercase",
-                color: "#B7E4EE",
-              }}
-            >
-              Liner Notes — What's On This Disc
-            </span>
-          </div>
+          <CardMast>Liner Notes — What's On This Disc</CardMast>
           {FEATURES.map((f, i) => (
             <FeatureRow key={f.head} {...f} last={i === FEATURES.length - 1} />
           ))}
@@ -740,7 +611,7 @@ export default function LandingScreen({
                 fontFamily: fontDisplay,
                 letterSpacing: -0.2,
                 color: mode === m.id ? color.ink : color.muted,
-                borderBottom: mode === m.id ? `2px solid ${trim.blue}` : "2px solid transparent",
+                borderBottom: mode === m.id ? `2px solid ${color.ink}` : "2px solid transparent",
               }}
             >
               {m.label}
