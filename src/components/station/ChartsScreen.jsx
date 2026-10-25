@@ -36,10 +36,24 @@ function BoardTicker({ entries }) {
 }
 
 function Scoreboard({ stats, hasHistory }) {
+  // Without yesterday's board there is nothing to say about climbers or new
+  // entries — one quiet line instead of a four-cell strip with two dashes.
+  if (!hasHistory) {
+    return (
+      <p
+        className="pmp-board-score-line"
+        role="group"
+        aria-label="Board totals"
+        style={{ margin: `0 ${homeSpace.gutter}px`, padding: "10px 0 12px" }}
+      >
+        {stats.size} on the board · {stats.requests} {stats.requests === 1 ? "request" : "requests"} this month
+      </p>
+    );
+  }
   const cells = [
     { n: stats.size, l: "Board" },
-    { n: hasHistory ? stats.climbing : "–", l: "Climbing" },
-    { n: hasHistory ? stats.fresh : "–", l: "New" },
+    { n: stats.climbing, l: "Climbing" },
+    { n: stats.fresh, l: "New" },
     { n: stats.requests, l: stats.requests === 1 ? "Request" : "Requests" },
   ];
   return (

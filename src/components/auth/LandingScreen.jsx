@@ -78,6 +78,17 @@ const FEATURES = [
   { icon: "discovery", code: "CH.04", head: "Discovery",   body: "Dig through scenes, eras, and artists." },
 ];
 
+/** Teaser cards keep a readable measure on desktop; phones keep the 20px gutter. */
+const READABLE_COLUMN = {
+  position: "relative",
+  zIndex: 1,
+  boxSizing: "border-box",
+  width: "100%",
+  maxWidth: 600,
+  margin: "32px auto 0",
+  padding: "0 20px",
+};
+
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
 function ScanlineOverlay() {
@@ -509,7 +520,10 @@ export default function LandingScreen({
         {/* LCD header */}
         <div
           style={{
-            margin: "0 20px 12px",
+            width: "calc(100% - 40px)",
+            maxWidth: 560,
+            boxSizing: "border-box",
+            margin: "0 auto 12px",
             padding: "7px 14px",
             borderRadius: 8,
             background: radioStyle.lcdFace,
@@ -541,7 +555,7 @@ export default function LandingScreen({
       </div>
 
       {/* ── CHARTS TEASER ─────────────────────────────────────────────────── */}
-      <div style={{ position: "relative", zIndex: 1, margin: "32px 20px 0" }}>
+      <div style={READABLE_COLUMN}>
         <div
           style={{
             borderRadius: 14,
@@ -615,7 +629,7 @@ export default function LandingScreen({
       </div>
 
       {/* ── LINER NOTES ───────────────────────────────────────────────────── */}
-      <div style={{ position: "relative", zIndex: 1, margin: "32px 20px 0" }}>
+      <div style={READABLE_COLUMN}>
         <div
           style={{
             borderRadius: 14,
@@ -661,7 +675,11 @@ export default function LandingScreen({
         style={{
           position: "relative",
           zIndex: 1,
-          margin: "40px 20px 60px",
+          // A form, not a banner: phone-width card centred on wide screens.
+          width: "calc(100% - 40px)",
+          maxWidth: 440,
+          boxSizing: "border-box",
+          margin: "40px auto 60px",
           padding: "22px 20px 20px",
           background: radioStyle.moduleFace,
           border: radioStyle.border,

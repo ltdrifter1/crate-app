@@ -128,7 +128,8 @@ export default function GenreSceneBrowse({
       }}>
         Genres
       </div>
-      <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+      {/* Tiles, not full-width bars: two across on phones, more as the page widens. */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))", gap: 8 }}>
         {rows.map((row) => (
           <button
             key={row.lane}
@@ -136,10 +137,11 @@ export default function GenreSceneBrowse({
             onClick={() => setDigGenre(row.lane)}
             style={{
               display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              gap: 12,
-              padding: "14px 14px",
+              flexDirection: "column",
+              alignItems: "flex-start",
+              gap: 4,
+              minWidth: 0,
+              padding: "12px 14px",
               background: `
                 linear-gradient(165deg, rgba(34,38,45,0.72) 0%, rgba(180,187,198,0.4) 100%)
               `,
@@ -154,16 +156,16 @@ export default function GenreSceneBrowse({
               width: "100%",
             }}
           >
-            <span style={{ fontSize: 17, fontWeight: 600, fontFamily: fontDisplay }}>
+            <span style={{ fontSize: 17, fontWeight: 600, fontFamily: fontDisplay, lineHeight: 1.2 }}>
               {row.lane}
             </span>
             <span style={{
               fontSize: 12,
-              color: color.faint,
+              color: color.body,
               fontFamily: fontMono,
               flexShrink: 0,
             }}>
-              {row.trackCount}
+              {row.trackCount.toLocaleString()} tracks
             </span>
           </button>
         ))}

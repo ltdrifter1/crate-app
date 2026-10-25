@@ -565,13 +565,16 @@ function HomeScreen({
         >
           <div style={{ minWidth: 0, animation: `rise 0.5s ${motion.ease} 0.04s both` }}>
             {stage}
-            {/* Bands below carry their own gutter; the split already has one. */}
+            {/* Bands below carry their own gutter; the split already has one.
+                Channel Surfing sits here too so the stage column runs as long as the side column. */}
             <div style={{ margin: `0 -${homeSpace.gutter}px` }}>
               {catalogStatus}
               {tonight}
+              {surfing}
             </div>
           </div>
-          <aside aria-label="Station right now" style={{ minWidth: 0 }}>
+          {/* Sticky: the stage column runs longer, so the side column rides along instead of leaving a hole. */}
+          <aside aria-label="Station right now" style={{ minWidth: 0, position: "sticky", top: 16 }}>
             {channels.length > 0 && (
               <OnAirPanel
                 loading={!hasOnAir}
@@ -601,7 +604,7 @@ function HomeScreen({
         </>
       )}
 
-      {surfing}
+      {!wide && surfing}
 
       {!wide && board(false)}
 

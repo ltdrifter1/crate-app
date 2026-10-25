@@ -537,7 +537,7 @@ export default function ChartHistoryPanel({
       </div>
 
       {onBoard && (
-        <div style={{ padding: `0 ${homeSpace.gutter}px` }}>
+        <div className="pmp-chart-head" style={{ padding: `0 ${homeSpace.gutter}px` }}>
           <SectionHead
             title={scopeTitle}
             ink={scopeChannel?.accent}
@@ -567,8 +567,9 @@ export default function ChartHistoryPanel({
               ) : null
             }
           />
-          <ScopeSwitch ariaLabel="Chart scope" activeId={scopeMode} onChange={setScopeMode} items={SCOPES} />
-          <div style={{ height: 14 }} />
+          <div className="pmp-chart-head__scope">
+            <ScopeSwitch ariaLabel="Chart scope" activeId={scopeMode} onChange={setScopeMode} items={SCOPES} />
+          </div>
           {scopeMode === "channel" && <ChannelRail activeId={channelId} onChange={setChannelId} />}
           {scopeMode === "genre" && (
             <UnderlineRail
