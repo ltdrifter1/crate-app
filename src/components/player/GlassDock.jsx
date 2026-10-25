@@ -27,6 +27,8 @@ const EnergyShiftFeedback = lazy(() =>
  */
 export default function GlassDock({
   screen, setScreen, showAdmin = false,
+  /** Dock tab Charts was opened from — stays lit while on Charts. */
+  chartsFrom = null,
   track,
   onTogglePlay, onSkip,
   isRadioMode, onOpen, playlistCtx, hypnoPocket,
@@ -43,7 +45,7 @@ export default function GlassDock({
   const hasPlayer = !!track && !hidePlayer;
   const { menu, openFromContext, close } = useTrackMenu();
 
-  const activeTab = dockActiveTab(screen, { hasAdmin: showAdmin });
+  const activeTab = dockActiveTab(screen, { hasAdmin: showAdmin, chartsFrom });
   const pct = duration > 0 ? Math.max(0, Math.min(100, (progress / duration) * 100)) : 0;
 
   return (

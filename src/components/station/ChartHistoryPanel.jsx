@@ -532,7 +532,7 @@ export default function ChartHistoryPanel({
       className="pmp-board"
       style={{ position: "relative", padding: `16px 0 ${homeSpace.sectionPadBottom}px` }}
     >
-      <div style={{ padding: `0 ${homeSpace.gutter}px 18px` }}>
+      <div style={{ padding: `0 ${homeSpace.gutter}px 12px` }}>
         <ViewTabs ariaLabel="Chart view" activeId={tab} onChange={setTab} items={VIEWS} />
       </div>
 
@@ -562,7 +562,7 @@ export default function ChartHistoryPanel({
                   }}
                 >
                   <Icon name="play" size={13} />
-                  Play this chart
+                  <span>Play<span className="pmp-hide-narrow"> this chart</span></span>
                 </button>
               ) : null
             }

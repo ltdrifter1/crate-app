@@ -1,4 +1,4 @@
-import { color, fontMono, fontDisplay, glassPill, homeSpace, motion, radio } from "../../theme";
+import { color, fontMono, fontDisplay, glassPill, motion, radio } from "../../theme";
 import { EXPLORE_DESTINATIONS, EXPLORE_TOOLS } from "../../lib/explore";
 
 /** Primary Discover destinations — New / Trending / Genres / Artists. */
@@ -22,9 +22,9 @@ export default function ExploreModes({ mode, onChange, modes = EXPLORE_DESTINATI
             onClick={() => onChange?.(item.id)}
             style={{
               ...glassPill({ active: selected, compact: true }),
-              flex: "1 1 0",
+              flex: "0 0 auto",
               minHeight: 38,
-              padding: "6px 10px",
+              padding: "6px 16px",
               cursor: "pointer",
               fontFamily: fontDisplay,
               fontSize: 14,
@@ -59,30 +59,17 @@ export function ExploreTools({
       className="pmp-explore-tools"
       style={{
         display: "flex",
-        flexWrap: "wrap",
+        flexWrap: "nowrap",
+        flexShrink: 0,
         alignItems: "center",
         gap: 6,
-        margin: `8px ${homeSpace.gutter}px 2px`,
-        padding: "6px 8px",
-        borderRadius: 12,
-        background: "rgba(14,18,23,0.6)",
-        border: "1px solid rgba(200,210,222,0.08)",
-        boxShadow: "inset 0 2px 6px rgba(6,10,16,0.5)",
       }}
     >
+      {/* A rule, not a boxed "TOOLS" strip — tools share the destinations' row. */}
       <span
         aria-hidden="true"
-        style={{
-          fontFamily: fontMono,
-          fontSize: 11,
-          fontWeight: 700,
-          letterSpacing: 0.4,
-          color: color.faint,
-          padding: "0 6px 0 4px",
-        }}
-      >
-        TOOLS
-      </span>
+        style={{ width: 1, height: 22, background: color.lineStrong, marginRight: 4, flexShrink: 0 }}
+      />
       {visible.map((item) => {
         const isAction = item.action === "charts";
         const selected = !isAction && mode === item.id;
@@ -101,6 +88,7 @@ export function ExploreTools({
               onChange?.(item.id);
             }}
             style={{
+              flexShrink: 0,
               minHeight: 32,
               padding: "0 12px",
               borderRadius: 8,

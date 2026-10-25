@@ -828,6 +828,17 @@ export default function App() {
   const openPlayer = useCallback(() => setImmersive(true), []);
   const openMenu = useCallback(() => setShowNavDrawer(true), []);
   const openCharts = useCallback(() => setScreen("charts"), [setScreen]);
+  // Charts opens from Home (Full chart), Discover (Tools), the menu or a link:
+  // remember the dock tab it came from for the back link and the dock highlight.
+  const [chartsFrom, setChartsFrom] = useState("home");
+  const prevScreenRef = useRef(screen);
+  useEffect(() => {
+    const prev = prevScreenRef.current;
+    prevScreenRef.current = screen;
+    if (screen === "charts" && prev !== "charts") {
+      setChartsFrom(["home", "explore", "favorites", "profile"].includes(prev) ? prev : "home");
+    }
+  }, [screen]);
   const openLibrary = useCallback(() => setScreen("favorites"), [setScreen]);
   const openDiscover = useCallback(() => setScreen("explore"), [setScreen]);
   const openSearchFromHome = useCallback(() => {
@@ -3722,7 +3733,7 @@ export default function App() {
         )}
         {!isKeepAliveScreen(screen) && (screen==="charts" || screen==="search") && (
         <ScreenPane>
-        {screen==="charts" && <Suspense fallback={<div style={{ padding: 32, color: color.muted, fontFamily: font, fontSize: 15 }}>Loading charts…</div>}><LazyChartsScreen catalogLoading={tracksLoading} countdown={countdown} tracks={tracks} onPlayTrack={playTrack} onTuneMonthly={playMonthlyChart} onAddToQueue={addTrackToQueue} playlistCtx={playlistCtx} nowPlayingId={currentTrackId} onOpenMenu={openMenu}/></Suspense>}
+        {screen==="charts" && <Suspense fallback={<div style={{ padding: 32, color: color.muted, fontFamily: font, fontSize: 15 }}>Loading charts…</div>}><LazyChartsScreen catalogLoading={tracksLoading} countdown={countdown} tracks={tracks} onPlayTrack={playTrack} onTuneMonthly={playMonthlyChart} onAddToQueue={addTrackToQueue} playlistCtx={playlistCtx} nowPlayingId={currentTrackId} onOpenMenu={openMenu} onBack={() => setScreen(chartsFrom)} backLabel={{ home: "Home", explore: "Discover", favorites: "Library", profile: "Profile" }[chartsFrom] || "Home"}/></Suspense>}
         {screen==="search" && <SearchScreen query={searchQuery} setQuery={setSearch} tracks={tracks} onPlay={(t,pool)=>{ recordRecentSearch(searchQuery); playTrack(t,pool||tracks); }} onListenIntent={(focus)=>{ const next={ genre: focus.genre || null, scene: null }; setListenFocus(next); playRadio(null, createListenIntent({ mixLane, ...next })); }} onLike={toggleLike} playlistCtx={playlistCtx} onOpenArtist={(slug)=>{ recordRecentSearch(searchQuery); openArtist(slug); }} onOpenAlbum={(slug)=>{ recordRecentSearch(searchQuery); openAlbum(slug); }} recentSearches={recentSearches} onPickRecent={(q)=>setSearch(q)} onClearRecent={clearRecentSearches} onBack={()=>setScreen(searchReturn)} backLabel={searchReturn === "home" ? "Home" : "Discover"}/>}
         </ScreenPane>
         )}
@@ -3742,6 +3753,7 @@ export default function App() {
           ]}
           cta="Open Profile"
           onSignIn={() => setScreen("profile")}
+          onOpenMenu={openMenu}
         />
         )}
         </ScreenPane>
@@ -3822,6 +3834,7 @@ export default function App() {
       {!immersive && !isDesktop && (
         <GlassDock
           screen={screen}
+          chartsFrom={chartsFrom}
           setScreen={setScreen}
           showAdmin={false}
           track={currentTrack}

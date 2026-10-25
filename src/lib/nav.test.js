@@ -36,6 +36,14 @@ describe("product nav IA", () => {
     expect(dockActiveTab("charts")).toBe("home");
   });
 
+  test("on Charts the dock keeps the tab you came from lit", () => {
+    expect(dockActiveTab("charts", { chartsFrom: "explore" })).toBe("explore");
+    expect(dockActiveTab("charts", { chartsFrom: "home" })).toBe("home");
+    // Not a dock tab (e.g. an artist page or a deep link) → Home, where the Board lives.
+    expect(dockActiveTab("charts", { chartsFrom: "artist" })).toBe("home");
+    expect(dockActiveTab("charts")).toBe("home");
+  });
+
   test("dockActiveTab maps secondary screens onto the four tabs", () => {
     expect(dockActiveTab("home")).toBe("home");
     expect(dockActiveTab("charts")).toBe("home");

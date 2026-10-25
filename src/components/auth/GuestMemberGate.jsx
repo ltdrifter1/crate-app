@@ -3,9 +3,11 @@
  * Club is the door. Chassis tokens only — no new visual language.
  *
  * `perks` previews what the signed-in page holds, so the tab is a shop window
- * instead of a blank page with one button.
+ * instead of a blank page with one button. Same page header as Discover, so
+ * the tab reads as a page, not a dialog floating in an empty desktop.
  */
-import { BTN_PRIMARY, color, font, fontDisplay, fontMono, fontPoster, homeSpace, radio } from "../../theme";
+import { BTN_PRIMARY, color, font, fontDisplay, fontMono, homeSpace, radio } from "../../theme";
+import PageHeader from "../layout/PageHeader";
 
 export default function GuestMemberGate({
   title = "Members only",
@@ -14,106 +16,87 @@ export default function GuestMemberGate({
   eyebrow = null,
   perks = [],
   onSignIn,
+  onOpenMenu = null,
 }) {
   return (
-    <div
-      data-testid="guest-member-gate"
-      style={{
-        padding: `${homeSpace.sectionGap || 32}px 24px 96px`,
-        textAlign: "center",
-        maxWidth: 420,
-        margin: "0 auto",
-      }}
-    >
-      {eyebrow && (
-        <div
-          style={{
-            fontFamily: fontMono,
-            fontSize: 11,
-            fontWeight: 700,
-            letterSpacing: 1.4,
-            textTransform: "uppercase",
-            color: color.muted,
-            marginBottom: 10,
-          }}
-        >
-          {eyebrow}
-        </div>
-      )}
-      <h1
-        style={{
-          margin: 0,
-          fontFamily: perks.length ? fontPoster : fontDisplay,
-          fontSize: perks.length ? 36 : 26,
-          fontWeight: perks.length ? 800 : 650,
-          letterSpacing: perks.length ? -0.6 : -0.4,
-          color: color.ink,
-        }}
-      >
-        {title}
-      </h1>
-      <p
-        style={{
-          margin: "12px 0 0",
-          fontFamily: font,
-          fontSize: 15,
-          lineHeight: 1.45,
-          color: color.muted,
-        }}
-      >
-        {copy}
-      </p>
-      {perks.length > 0 && (
-        <ul
-          aria-label="What your library holds"
-          style={{
-            listStyle: "none",
-            margin: "24px 0 0",
-            padding: 0,
-            textAlign: "left",
-            borderRadius: 14,
-            overflow: "hidden",
-            background: radio.moduleFace,
-            border: radio.border,
-          }}
-        >
-          {perks.map((perk, i) => (
-            <li
-              key={perk.label}
-              style={{
-                display: "flex",
-                alignItems: "baseline",
-                gap: 14,
-                padding: "13px 14px",
-                borderTop: i === 0 ? "none" : `1px solid ${color.line}`,
-              }}
-            >
-              <span
+    <div data-testid="guest-member-gate" style={{ paddingBottom: 96 }}>
+      <PageHeader title={title} subtitle={copy} onOpenMenu={onOpenMenu} />
+      <div style={{ padding: `20px ${homeSpace.gutter}px 0`, maxWidth: 1100 }}>
+        {eyebrow && (
+          <div
+            style={{
+              fontFamily: fontMono,
+              fontSize: 12,
+              fontWeight: 700,
+              letterSpacing: 1.4,
+              textTransform: "uppercase",
+              color: color.muted,
+              marginBottom: 12,
+            }}
+          >
+            {eyebrow}
+          </div>
+        )}
+        {perks.length > 0 && (
+          <ul
+            aria-label="What your library holds"
+            style={{
+              listStyle: "none",
+              margin: 0,
+              padding: 0,
+              display: "grid",
+              // One card per row on phones; side by side once there's room.
+              gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+              gap: 12,
+            }}
+          >
+            {perks.map((perk) => (
+              <li
+                key={perk.label}
                 style={{
-                  width: 74,
-                  flexShrink: 0,
-                  fontFamily: fontMono,
-                  fontSize: 11,
-                  fontWeight: 700,
-                  letterSpacing: 1,
-                  textTransform: "uppercase",
-                  color: color.lcdSignal,
+                  padding: "18px 18px 20px",
+                  borderRadius: 14,
+                  background: radio.moduleFace,
+                  border: radio.border,
                 }}
               >
-                {perk.label}
-              </span>
-              <span style={{ fontFamily: font, fontSize: 14, lineHeight: 1.4, color: color.body }}>
-                {perk.body}
-              </span>
-            </li>
-          ))}
-        </ul>
-      )}
-      {typeof onSignIn === "function" && (
-        <button type="button" onClick={onSignIn} style={{ ...BTN_PRIMARY, marginTop: 24 }}>
-          {cta}
-        </button>
-      )}
+                <div
+                  style={{
+                    fontFamily: fontMono,
+                    fontSize: 12,
+                    fontWeight: 700,
+                    letterSpacing: 1,
+                    textTransform: "uppercase",
+                    color: color.lcdSignal,
+                    marginBottom: 8,
+                  }}
+                >
+                  {perk.label}
+                </div>
+                <div style={{ fontFamily: font, fontSize: 15, lineHeight: 1.45, color: color.body }}>
+                  {perk.body}
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+        {typeof onSignIn === "function" && (
+          <button
+            type="button"
+            onClick={onSignIn}
+            style={{
+              ...BTN_PRIMARY,
+              width: "auto",
+              minWidth: 220,
+              padding: "14px 28px",
+              marginTop: 24,
+              fontFamily: fontDisplay,
+            }}
+          >
+            {cta}
+          </button>
+        )}
+      </div>
     </div>
   );
 }
