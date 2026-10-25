@@ -1,4 +1,4 @@
-import { color, fontDisplay, fontMono, homeSpace, motion, radio } from "../../theme";
+import { color, fontMono, fontPoster, homeSpace, motion, radio } from "../../theme";
 import CoverImage from "../ui/CoverImage";
 
 const ROOM_ORDER = ["after-hours", "drive", "late-booth", "peak-time"];
@@ -43,8 +43,11 @@ export default function EnergyRooms({ rooms = [], onPlay = null }) {
               style={{
                 position: "relative",
                 overflow: "hidden",
-                minHeight: 112,
-                padding: "12px 10px 10px",
+                minHeight: 132,
+                padding: "10px 10px 10px",
+                display: "flex",
+                flexDirection: "column",
+                justifyContent: "space-between",
                 border: "none",
                 borderRadius: radio.radiusLcd,
                 background: `linear-gradient(180deg, rgba(184,208,238,${0.06 + heat * 0.18}) 0%, rgba(168,180,198,${0.04 + heat * 0.14}) 100%)`,
@@ -79,53 +82,58 @@ export default function EnergyRooms({ rooms = [], onPlay = null }) {
                   position: "absolute",
                   inset: 0,
                   pointerEvents: "none",
-                  background: `linear-gradient(180deg, rgba(42,51,60,0.12) 0%, rgba(42,51,60,0.58) 100%)`,
+                  background: `linear-gradient(180deg, rgba(6,8,12,0.10) 0%, rgba(6,8,12,0.30) 45%, rgba(6,8,12,0.82) 100%)`,
                 }}
               />
               <span
                 style={{
                   position: "relative",
                   zIndex: 1,
-                  display: "block",
+                  display: "inline-block",
+                  alignSelf: "flex-start",
+                  padding: "3px 6px",
+                  borderRadius: 2,
+                  background: "rgba(6,8,12,0.55)",
                   fontFamily: fontMono,
-                  fontSize: 11,
+                  fontSize: 10.5,
                   fontWeight: 700,
                   letterSpacing: 0.12,
                   textTransform: "uppercase",
-                  color: color.lcdMute,
-                  marginBottom: 6,
-                }}
-              >
-                {room.minEnergy}–{room.maxEnergy}
-              </span>
-              <span
-                style={{
-                  position: "relative",
-                  zIndex: 1,
-                  display: "block",
-                  fontFamily: fontDisplay,
-                  fontSize: 15,
-                  fontWeight: 700,
-                  letterSpacing: -0.25,
                   color: color.lcdInk,
-                  lineHeight: 1.15,
                 }}
               >
-                {room.label}
+                Energy {room.minEnergy}–{room.maxEnergy}
               </span>
-              <span
-                style={{
-                  position: "relative",
-                  zIndex: 1,
-                  display: "block",
-                  marginTop: 6,
-                  fontFamily: fontMono,
-                  fontSize: 11,
-                  fontWeight: 700,
-                  color: color.lcdSignal,
-                }}
-              >
-                {room.count} {room.count === 1 ? "track" : "tracks"}
+              <span style={{ position: "relative", zIndex: 1, display: "block", minWidth: 0 }}>
+                <span
+                  style={{
+                    display: "block",
+                    fontFamily: fontPoster,
+                    fontSize: 22,
+                    fontWeight: 800,
+                    letterSpacing: 0.2,
+                    textTransform: "uppercase",
+                    color: "#fff",
+                    lineHeight: 0.98,
+                    textShadow: "0 1px 10px rgba(6,8,12,0.6)",
+                  }}
+                >
+                  {room.label}
+                </span>
+                <span
+                  style={{
+                    display: "block",
+                    marginTop: 4,
+                    fontFamily: fontMono,
+                    fontSize: 11,
+                    fontWeight: 700,
+                    letterSpacing: 0.1,
+                    textTransform: "uppercase",
+                    color: "rgba(255,255,255,0.78)",
+                  }}
+                >
+                  {room.count} {room.count === 1 ? "track" : "tracks"}
+                </span>
               </span>
             </button>
           );
@@ -139,7 +147,7 @@ export default function EnergyRooms({ rooms = [], onPlay = null }) {
           lineHeight: 1.4,
         }}
       >
-        {zones.map((r) => r.label).join(" → ")}. Tap a room to play it.
+        Four rooms by pressure, quiet to peak. Tap one to play it.
       </p>
     </div>
   );

@@ -403,8 +403,10 @@ describe("Explore screen", () => {
     });
     expect(div.querySelector('section[aria-label="Trending"]')).toBeTruthy();
     expect(div.textContent).toMatch(/Warehouse/);
-    const first = div.querySelector(".track-row");
+    // The station's chart language: a numbered heat row, not a track card.
+    const first = div.querySelector(".pmp-heat-row");
     expect(first).toBeTruthy();
+    expect(div.querySelector(".pmp-heat-list .pmp-heat")).toBeTruthy();
     await act(async () => {
       first.click();
     });
@@ -414,6 +416,7 @@ describe("Explore screen", () => {
       tab(div, "Artists").click();
     });
     expect(div.querySelector('section[aria-label="Artists"]')).toBeTruthy();
+    expect(div.querySelector(".pmp-artist-wall")).toBeTruthy();
     const artist = div.querySelector('button[aria-label="Signal"]');
     expect(artist).toBeTruthy();
     await act(async () => {

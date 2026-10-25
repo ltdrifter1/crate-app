@@ -1,4 +1,4 @@
-import { useMemo, useReducer, useState } from "react";
+import { useMemo, useReducer, useState, useEffect } from "react";
 import {
   color, font, fontMono, fontPoster, homeSpace, glassPill, BTN_PRIMARY,
 } from "../../theme";
@@ -394,6 +394,11 @@ export default function ChartHistoryPanel({
     () => (tab === "archive" && archiveDay ? getChartSnapshot(archiveDay) : null),
     [tab, archiveDay]
   );
+  // Past days opens on the latest captured board. A picker with nothing picked is a dead end.
+  useEffect(() => {
+    if (tab !== "archive" || !days.length) return;
+    if (!archiveDay || !days.includes(archiveDay)) setArchiveDay(days[0]);
+  }, [tab, days, archiveDay]);
 
   if (!catalogLoading && !tracks.length && !countdown.length) {
     const hasOnes = getNumberOnes(1).length > 0;
@@ -643,8 +648,8 @@ export default function ChartHistoryPanel({
               })
             ) : (
               <BoardEmpty
-                title="Pick a day"
-                note={days.length ? "Pick a day to reopen that board." : "The archive fills as you listen."}
+                title="No boards yet"
+                note="The archive fills as you listen — one board a day."
               />
             )}
           </>

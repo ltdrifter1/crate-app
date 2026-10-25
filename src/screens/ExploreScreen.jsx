@@ -184,7 +184,6 @@ function ModeHint({ mode }) {
     genres: "Scenes and genres — tap a sleeve.",
     artists: "Who’s on the records.",
     energy: "Rooms by pressure.",
-    mix: "Twelve keys. Neighbors mix.",
     "time-machine": "Browse by year.",
   };
   return (

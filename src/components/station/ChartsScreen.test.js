@@ -7,6 +7,7 @@ import { act } from "react-dom/test-utils";
 import ChartsScreen from "./ChartsScreen";
 import { fontDisplay } from "../../theme";
 import { brandStoragePrefix } from "../../brand/identity";
+import { captureChartSnapshot } from "../../lib/chartHistory";
 
 jest.mock("../ui/CoverImage", () => ({
   __esModule: true,
@@ -211,6 +212,25 @@ describe("ChartsScreen", () => {
     const status = div.querySelector('[role="status"]');
     expect(status).toBeTruthy();
     expect(status.style.fontFamily).not.toMatch(/mono/i);
+  });
+  test("Past days opens on the latest captured board instead of asking you to pick", async () => {
+    const yesterday = new Date();
+    yesterday.setUTCDate(yesterday.getUTCDate() - 1);
+    captureChartSnapshot(tracksFixture(), yesterday);
+    await act(async () => {
+      root.render(React.createElement(ChartsScreen, { tracks: tracksFixture(), countdown: [] }));
+    });
+    const past = [...div.querySelectorAll('[aria-label="Chart view"] [role="tab"]')].find((el) => el.textContent === "Past days");
+    expect(past).toBeTruthy();
+    await act(async () => {
+      past.click();
+    });
+    expect(div.textContent).not.toMatch(/Pick a day/);
+    expect(div.textContent).not.toMatch(/No boards yet/);
+    const day = div.querySelector('[aria-label="Archive day"] [aria-selected="true"], [aria-label="Archive day"] [aria-pressed="true"]');
+    expect(day).toBeTruthy();
+    expect(div.querySelector('[aria-label^="Board for"]')).toBeTruthy();
+    expect(div.textContent).toMatch(/Night Drive/);
   });
 });
 

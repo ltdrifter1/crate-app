@@ -1,11 +1,14 @@
 import { useMemo } from "react";
-import { color, fontDisplay, glass, homeSpace, radius, type } from "../../theme";
+import { color, fontDisplay, fontMono, fontPoster, homeSpace } from "../../theme";
 import { AlbumArt } from "../listen/AlbumArt";
 import { buildArtists } from "../../lib/catalog";
 import { displayGenre } from "../../lib/genres";
+import { inkForTrack } from "../../lib/board";
 
 /**
- * Artists in the crate — cover, name, count. Opens the artist page.
+ * Artists in the crate — a wall of sleeves, each with its station ink along
+ * the foot. The same tile the artist page uses for Same shelf, so the two
+ * read as one shop. Opens the artist page.
  */
 export default function ArtistIndex({
   tracks = [],
@@ -37,29 +40,54 @@ export default function ArtistIndex({
 
   return (
     <section aria-label="Artists" style={{ marginTop: 12 }}>
-      <div style={{ padding: `0 ${homeSpace.gutter}px 10px` }}>
+      <div
+        style={{
+          padding: `0 ${homeSpace.gutter}px 12px`,
+          display: "flex",
+          alignItems: "baseline",
+          justifyContent: "space-between",
+          gap: 12,
+        }}
+      >
         <h2
           style={{
-            ...type.title3,
             margin: 0,
+            fontFamily: fontPoster,
+            fontSize: 26,
+            fontWeight: 800,
+            letterSpacing: 0.3,
+            textTransform: "uppercase",
+            lineHeight: 1,
             color: color.ink,
-            fontFamily: fontDisplay,
           }}
         >
           Artists
         </h2>
-        <p style={{ margin: "4px 0 0", fontSize: 13, color: color.muted }}>
-          {artists.length} artist{artists.length === 1 ? "" : "s"}
-        </p>
+        <span
+          style={{
+            fontFamily: fontMono,
+            fontSize: 11,
+            fontWeight: 700,
+            letterSpacing: 0.12,
+            textTransform: "uppercase",
+            color: color.faint,
+          }}
+        >
+          {artists.length} on file · by spins
+        </span>
       </div>
-      <div style={{ padding: `0 ${homeSpace.gutter}px`, display: "flex", flexDirection: "column", gap: 6 }}>
+      <div
+        className="pmp-artist-wall"
+        style={{
+          padding: `0 ${homeSpace.gutter}px`,
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fill, minmax(104px, 1fr))",
+          gap: "18px 12px",
+        }}
+      >
         {artists.map((artist) => {
-          const plays = artist.totalPlays || 0;
-          const meta = [
-            `${artist.count} track${artist.count === 1 ? "" : "s"}`,
-            plays ? `${plays} play${plays === 1 ? "" : "s"}` : null,
-            artist.topGenre ? (displayGenre(artist.topGenre) || artist.topGenre) : null,
-          ].filter(Boolean);
+          const ink = inkForTrack(artist.coverTrack || artist.tracks?.[0]);
+          const genre = artist.topGenre ? (displayGenre(artist.topGenre) || artist.topGenre) : null;
           return (
             <button
               key={artist.slug}
@@ -68,66 +96,82 @@ export default function ArtistIndex({
               aria-label={artist.name}
               onClick={() => onOpenArtist?.(artist.slug)}
               style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 12,
-                width: "100%",
-                padding: "10px 12px",
-                borderRadius: radius.lg,
-                border: `1px solid ${glass.borderSoft}`,
-                background: glass.plate,
-                boxShadow: glass.shadowSoft,
+                background: "none",
+                border: "none",
+                padding: 0,
                 cursor: "pointer",
                 textAlign: "left",
                 color: color.ink,
+                minWidth: 0,
                 WebkitTapHighlightColor: "transparent",
               }}
             >
               <div
                 style={{
-                  width: 48,
-                  height: 48,
-                  borderRadius: 24,
+                  position: "relative",
+                  width: "100%",
+                  aspectRatio: "1 / 1",
                   overflow: "hidden",
-                  flexShrink: 0,
+                  borderRadius: 6,
                   background: color.surfaceRaised,
-                  border: `1px solid ${glass.borderSoft}`,
+                  border: "1px solid rgba(255,255,255,0.08)",
+                  marginBottom: 8,
                 }}
               >
                 {artist.coverTrack ? (
-                  <AlbumArt track={artist.coverTrack} size={48} borderRadius={24} />
-                ) : null}
+                  <AlbumArt track={artist.coverTrack} size={160} borderRadius={6} />
+                ) : (
+                  <span
+                    aria-hidden="true"
+                    style={{
+                      position: "absolute",
+                      inset: 0,
+                      display: "grid",
+                      placeItems: "center",
+                      fontFamily: fontPoster,
+                      fontSize: 40,
+                      fontWeight: 800,
+                      color: "rgba(232,236,242,0.35)",
+                    }}
+                  >
+                    {(artist.name || "?").charAt(0)}
+                  </span>
+                )}
+                <span
+                  aria-hidden="true"
+                  style={{ position: "absolute", left: 0, right: 0, bottom: 0, height: 3, background: ink }}
+                />
               </div>
-              <div style={{ minWidth: 0, flex: 1 }}>
-                <div
-                  style={{
-                    fontFamily: fontDisplay,
-                    fontSize: 16,
-                    fontWeight: 600,
-                    letterSpacing: -0.2,
-                    overflow: "hidden",
-                    textOverflow: "ellipsis",
-                    whiteSpace: "nowrap",
-                  }}
-                >
-                  {artist.name}
-                </div>
-                <div
-                  style={{
-                    marginTop: 2,
-                    fontSize: 13,
-                    color: color.muted,
-                    overflow: "hidden",
-                    textOverflow: "ellipsis",
-                    whiteSpace: "nowrap",
-                  }}
-                >
-                  {meta.join(" · ")}
-                </div>
+              <div
+                style={{
+                  fontFamily: fontDisplay,
+                  fontSize: 14,
+                  fontWeight: 650,
+                  letterSpacing: -0.2,
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                {artist.name}
               </div>
-              <span aria-hidden="true" style={{ color: color.faint, fontSize: 18, lineHeight: 1, flexShrink: 0 }}>
-                ›
-              </span>
+              <div
+                style={{
+                  marginTop: 3,
+                  fontFamily: fontMono,
+                  fontSize: 10.5,
+                  fontWeight: 700,
+                  letterSpacing: 0.08,
+                  textTransform: "uppercase",
+                  color: color.muted,
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                {artist.count} {artist.count === 1 ? "track" : "tracks"}
+                {genre ? ` · ${genre}` : ""}
+              </div>
             </button>
           );
         })}

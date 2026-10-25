@@ -189,6 +189,7 @@ function CdrDisc({ tracks = [], title = "", size = homeSpace.tile }) {
             {title || "Untitled"}
           </span>
         </div>
+        {size >= 140 && (
         <div
           style={{
             position: "absolute",
@@ -206,6 +207,7 @@ function CdrDisc({ tracks = [], title = "", size = homeSpace.tile }) {
         >
           {count} {count === 1 ? "track" : "tracks"}{secs > 0 ? ` · ${fmtTime(secs)}` : ""}
         </div>
+        )}
         <div
           aria-hidden="true"
           style={{
@@ -383,6 +385,8 @@ function FavoritesScreen({
   }
 
   const q = libQuery.trim().toLowerCase();
+  /** A find field for three playlists is furniture. Show it once a list is long, or while typing. */
+  const LIB_SEARCH_MIN = 9;
   const filteredPlaylists = useMemo(() => {
     const base = q
       ? userPlaylists.filter((p) => String(p.name || "").toLowerCase().includes(q))
@@ -405,6 +409,13 @@ function FavoritesScreen({
     () => tracksFromRecentIds(tracks, recentTrackIds, 80),
     [tracks, recentTrackIds]
   );
+  const showLibSearch =
+    q.length > 0 ||
+    (libTab === "playlists"
+      ? userPlaylists.length
+      : libTab === "recents"
+        ? recentTracks.length
+        : saved.length) >= LIB_SEARCH_MIN;
   const filteredRecents = q
     ? recentTracks.filter((t) =>
         String(t.title || "").toLowerCase().includes(q)
@@ -466,8 +477,8 @@ function FavoritesScreen({
             boxShadow: artShadow.raised,
             background: color.surfaceRaised,
           }}>
-            <CoverMosaic
-              covers={openPlaylistTracks}
+            <CdrDisc
+              tracks={openPlaylistTracks}
               title={openPlaylist.name}
               size={112}
             />
@@ -490,8 +501,8 @@ function FavoritesScreen({
             </div>
             <div style={{ fontSize: 14, color: color.muted, marginTop: 8, fontFamily: fontDisplay }}>
               {community && openPlaylist.curatorName
-                ? `${openPlaylist.curatorName} · ${openPlaylistTracks.length} song${openPlaylistTracks.length === 1 ? "" : "s"}`
-                : `${openPlaylistTracks.length} song${openPlaylistTracks.length === 1 ? "" : "s"}`}
+                ? `${openPlaylist.curatorName} · ${openPlaylistTracks.length} track${openPlaylistTracks.length === 1 ? "" : "s"}`
+                : `${openPlaylistTracks.length} track${openPlaylistTracks.length === 1 ? "" : "s"}`}
             </div>
           </div>
         </div>
@@ -561,7 +572,7 @@ function FavoritesScreen({
                 ...(showAddCuts ? { background: color.accentSoft, color: color.accent, borderColor: color.accentSoft } : {}),
               }}
             >
-              {showAddCuts ? "Done" : "Add songs"}
+              {showAddCuts ? "Done" : "Add tracks"}
             </button>
           )}
           {onSharePlaylist && (
@@ -617,13 +628,13 @@ function FavoritesScreen({
               autoFocus
               value={addQuery}
               onChange={(e) => setAddQuery(e.target.value)}
-              placeholder="Search songs to add…"
-              aria-label="Search songs to add"
+              placeholder="Search tracks to add…"
+              aria-label="Search tracks to add"
               style={{ ...INPUT_ST, padding: "10px 12px", fontSize: 15, marginBottom: 8 }}
             />
             {addCandidates.length === 0 ? (
               <div style={{ fontSize: 13, color: color.faint, padding: "14px 4px", textAlign: "center" }}>
-                {addQ ? "No matches" : "All songs are already in this playlist"}
+                {addQ ? "No matches" : "All tracks are already in this playlist"}
               </div>
             ) : addCandidates.map((t) => (
               <div key={t.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "7px 2px", borderBottom: `1px solid ${color.line}` }}>
@@ -656,7 +667,7 @@ function FavoritesScreen({
           <div style={{ fontSize: 15, color: color.faint, paddingTop: 32, textAlign: "center" }}>
             {community
               ? "This playlist is empty"
-              : "No songs yet. Add a few to get started."}
+              : "Nothing on it yet. Add a few tracks."}
           </div>
         ) : openPlaylistTracks.map((t, index) => (
           <div key={t.id} style={{ display: "flex", alignItems: "stretch", gap: 4 }}>
@@ -750,6 +761,53 @@ function FavoritesScreen({
     );
   };
 
+  const sortChips = (
+                <div
+                  role="group"
+                  aria-label="Sort playlists"
+                  style={{
+                    display: "inline-flex",
+                    gap: 4,
+                    padding: 0,
+                    borderRadius: 0,
+                    background: "transparent",
+                    border: "none",
+                  }}
+                >
+                  {[
+                    { id: "recent", label: "Recent" },
+                    { id: "name", label: "A–Z" },
+                    { id: "size", label: "Size" },
+                  ].map((opt) => {
+                    const on = plSort === opt.id;
+                    return (
+                      <button
+                        key={opt.id}
+                        type="button"
+                        onClick={() => setPlSort(opt.id)}
+                        aria-pressed={on}
+                        style={{
+                          border: `1px solid ${on ? "rgba(91,101,116,0.28)" : "rgba(91,101,116,0.16)"}`,
+                          borderRadius: hardware.radius,
+                          padding: "6px 10px",
+                          fontSize: 11,
+                          fontWeight: on ? 700 : 600,
+                          cursor: "pointer",
+                          background: on ? hardware.keyFace : "transparent",
+                          color: on ? color.ink : color.muted,
+                          fontFamily: fontMono,
+                          letterSpacing: 0.1,
+                          textTransform: "uppercase",
+                          boxShadow: on ? hardware.keyRaised : "none",
+                        }}
+                      >
+                        {opt.label}
+                      </button>
+                    );
+                  })}
+                </div>
+  );
+
   const renderPlaylistTile = (pl, { create = false } = {}) => {
     if (create) {
       return (
@@ -798,7 +856,7 @@ function FavoritesScreen({
             marginTop: 3,
             fontFamily: fontDisplay,
           }}>
-            Add songs
+            Add tracks
           </div>
         </button>
       );
@@ -894,7 +952,7 @@ function FavoritesScreen({
             ? pl.curatorName
             : plTracks.length === 0
               ? "Empty"
-              : `${plTracks.length} song${plTracks.length === 1 ? "" : "s"}`}
+              : `${plTracks.length} track${plTracks.length === 1 ? "" : "s"}`}
         </div>
       </div>
     );
@@ -933,14 +991,6 @@ function FavoritesScreen({
                 <h1 style={{ ...type.largeTitle, margin: 0 }}>
                   Library
                 </h1>
-                <div style={{
-                  marginTop: 4,
-                  ...type.subhead,
-                  color: color.muted,
-                }}>
-                  Playlists, likes, and recents
-                  {saved.length ? ` · ${saved.length} liked` : ""}
-                </div>
               </div>
             </div>
             <button
@@ -959,19 +1009,29 @@ function FavoritesScreen({
           <ShelfLabel saved={saved} playlists={userPlaylists} likedCount={likedCount} />
 
           <div
-            role="tablist"
-            aria-label="Library sections"
             style={{
               display: "flex",
-              gap: 4,
+              alignItems: "center",
+              justifyContent: "space-between",
+              flexWrap: "wrap",
+              gap: "10px 8px",
               marginBottom: 14,
+              minWidth: 0,
             }}
           >
-            {segmentBtn("playlists", "Playlists")}
-            {segmentBtn("liked", "Liked")}
-            {segmentBtn("recents", "Recents")}
+            <div
+              role="tablist"
+              aria-label="Library sections"
+              style={{ display: "flex", gap: 4, minWidth: 0, flexShrink: 0 }}
+            >
+              {segmentBtn("playlists", "Playlists")}
+              {segmentBtn("liked", "Liked")}
+              {segmentBtn("recents", "Recents")}
+            </div>
+            {libTab === "playlists" && filteredPlaylists.length > 1 && !q ? sortChips : null}
           </div>
 
+          {showLibSearch && (
           <div style={{ position: "relative", marginBottom: 8 }}>
             <span aria-hidden="true" style={{
               position: "absolute",
@@ -992,14 +1052,14 @@ function FavoritesScreen({
                   ? "Search playlists"
                   : libTab === "recents"
                     ? "Search recents"
-                    : "Search liked songs"
+                    : "Search liked tracks"
               }
               aria-label={
                 libTab === "playlists"
                   ? "Search playlists"
                   : libTab === "recents"
                     ? "Search recents"
-                    : "Search liked songs"
+                    : "Search liked tracks"
               }
               style={{
                 ...SEARCH_FIELD,
@@ -1008,6 +1068,7 @@ function FavoritesScreen({
               }}
             />
           </div>
+          )}
 
           {showNewInput && (
             <div style={{
@@ -1065,69 +1126,6 @@ function FavoritesScreen({
             padding: `4px ${homeSpace.gutter}px 24px`,
             animation: `rise 0.4s ${motion.ease} both`,
           }}>
-            {filteredPlaylists.length > 0 && (
-              <div style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                gap: 12,
-                marginBottom: 16,
-              }}>
-                <div style={{
-                  fontSize: 20,
-                  fontWeight: 700,
-                  letterSpacing: -0.4,
-                  color: color.ink,
-                  fontFamily: fontDisplay,
-                }}>
-                  Playlists
-                </div>
-                <div
-                  role="group"
-                  aria-label="Sort playlists"
-                  style={{
-                    display: "inline-flex",
-                    gap: 4,
-                    padding: 0,
-                    borderRadius: 0,
-                    background: "transparent",
-                    border: "none",
-                  }}
-                >
-                  {[
-                    { id: "recent", label: "Recent" },
-                    { id: "name", label: "A–Z" },
-                    { id: "size", label: "Size" },
-                  ].map((opt) => {
-                    const on = plSort === opt.id;
-                    return (
-                      <button
-                        key={opt.id}
-                        type="button"
-                        onClick={() => setPlSort(opt.id)}
-                        aria-pressed={on}
-                        style={{
-                          border: `1px solid ${on ? "rgba(91,101,116,0.28)" : "rgba(91,101,116,0.16)"}`,
-                          borderRadius: hardware.radius,
-                          padding: "6px 10px",
-                          fontSize: 11,
-                          fontWeight: on ? 700 : 600,
-                          cursor: "pointer",
-                          background: on ? hardware.keyFace : "transparent",
-                          color: on ? color.ink : color.muted,
-                          fontFamily: fontMono,
-                          letterSpacing: 0.1,
-                          textTransform: "uppercase",
-                          boxShadow: on ? hardware.keyRaised : "none",
-                        }}
-                      >
-                        {opt.label}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
 
             {filteredPlaylists.length === 0 && !q ? (
               <div style={{
@@ -1154,7 +1152,7 @@ function FavoritesScreen({
                   marginRight: "auto",
                   fontFamily: fontDisplay,
                 }}>
-                  Start one, add songs, then share it when it’s ready.
+                  Start one, burn a few tracks on it, then share it.
                 </div>
                 <button
                   type="button"
@@ -1218,7 +1216,7 @@ function FavoritesScreen({
                     marginTop: 4,
                     fontFamily: fontDisplay,
                   }}>
-                    {filteredRecents.length} song{filteredRecents.length === 1 ? "" : "s"}
+                    {filteredRecents.length} track{filteredRecents.length === 1 ? "" : "s"}
                   </div>
                 </div>
                 <div style={{ padding: `0 ${homeSpace.gutter}px 24px` }}>
@@ -1246,7 +1244,7 @@ function FavoritesScreen({
                   color: color.ink,
                   marginBottom: 8,
                 }}>
-                  {q ? `No songs match “${libQuery.trim()}”` : "Nothing played yet"}
+                  {q ? `No tracks match “${libQuery.trim()}”` : "Nothing played yet"}
                 </div>
                 <div style={{
                   fontSize: 14,
@@ -1286,7 +1284,7 @@ function FavoritesScreen({
                       letterSpacing: -0.45,
                       color: color.ink,
                     }}>
-                      Liked Songs
+                      Liked
                     </div>
                     <div style={{
                       fontSize: 14,
@@ -1294,7 +1292,7 @@ function FavoritesScreen({
                       marginTop: 4,
                       fontFamily: fontDisplay,
                     }}>
-                      {filteredSaved.length} song{filteredSaved.length === 1 ? "" : "s"}
+                      {filteredSaved.length} track{filteredSaved.length === 1 ? "" : "s"}
                     </div>
                   </div>
                 </div>
@@ -1308,7 +1306,7 @@ function FavoritesScreen({
                   <button
                     type="button"
                     onClick={() => playTrackFn(filteredSaved[0], filteredSaved)}
-                    aria-label="Play liked songs"
+                    aria-label="Play liked tracks"
                     style={{
                       ...BTN_PRIMARY,
                       width: "auto",
@@ -1335,7 +1333,7 @@ function FavoritesScreen({
                         }
                         playTrackFn(shuffled[0], shuffled);
                       }}
-                      aria-label="Shuffle liked songs"
+                      aria-label="Shuffle liked tracks"
                       style={{
                         ...BTN_SECONDARY,
                         width: "auto",
@@ -1405,14 +1403,14 @@ function FavoritesScreen({
                   color: color.ink,
                   marginBottom: 8,
                 }}>
-                  {q ? `No songs match “${libQuery.trim()}”` : "No liked songs"}
+                  {q ? `No tracks match “${libQuery.trim()}”` : "Nothing liked yet"}
                 </div>
                 <div style={{
                   fontSize: 14,
                   color: color.muted,
                   lineHeight: 1.45,
                 }}>
-                  {q ? "Try another search." : "Songs you love live here."}
+                  {q ? "Try another search." : "What you like lands here."}
                 </div>
               </div>
             )}

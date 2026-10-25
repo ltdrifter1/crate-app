@@ -179,6 +179,48 @@ preview now pass `tracks` and `onOpenArtist`.
   hidden when empty); ship assertions for the player (framed screen, callsign, ident, none of the
   removed chrome).
 
+### 7. Fourth pass — Charts, Library, Discover, fresh
+
+Every mode of all three pages was screenshotted again at 390 and 1280 and judged cold. Charts
+was close to done; Library carried too much chrome; Discover had two generic modes and one that
+hid its own labels. Five changes:
+
+**7a. Charts: Past days opens a board.** The archive view asked you to "Pick a day" and showed a
+`00` placeholder until you did — a dead end one tap from the best page in the app. It now opens on
+the latest captured board, the day rail still switches between days, and the empty state is only
+for a genuinely empty archive ("No boards yet · The archive fills as you listen — one board a day").
+Climbers, Number ones, the channel and genre scopes, the crawl and the scoreboard were right and
+are untouched.
+
+**7b. Library: chrome diet.** Five rows stood between the title and the first record: a subtitle
+that repeated the tabs, the shelf label, the tabs, a search field for three playlists, and a
+"Playlists" heading that repeated the active tab with sort chips beside it. Now: title, shelf
+label, tabs with the sort chips on the same row (they wrap under on a phone), then the discs. The
+find field appears once a list has nine or more items, or while you type. The open-playlist header
+shows the same CD-R as its tile instead of a mosaic. One word for the thing everywhere: *tracks*,
+not songs.
+
+**7c. Discover · Trending is a heat board.** It was a numbered list of track cards — the thing
+every app has. It now speaks the Board's language: condensed rank numerals, a station-ink stripe,
+sleeve, title in condensed caps, a ten-step heat meter against the hottest cut, plays and BPM · key
+as firmware. Same component grammar as Charts, so Discover and Charts read as one station.
+
+**7d. Discover · Artists is a wall of sleeves.** Round-avatar list cards became a grid of square
+sleeves, each with its station ink along the foot — the same tile the artist page's Same shelf
+uses — with name and `N TRACKS · GENRE` as firmware. "13 on file · by spins."
+
+**7e. Discover · Energy rooms print their names; Keys says its hint once.** The four rooms showed
+only `0–4` / `4–7` / `5–9` / `7–10` in tiny mono on the tile, with the names left to a caption below.
+Each room now carries its name in condensed caps, an `ENERGY 0–4` plate and the count, over a
+scrim that keeps the sleeve. The Keys mode printed "Twelve keys. Neighbors mix." twice; the page
+hint is gone and the board's own line stays.
+
+- Files: `components/station/ChartHistoryPanel.jsx`, `screens/FavoritesScreen.jsx`,
+  `components/explore/TrendingCuts.jsx` (rewritten), `components/explore/ArtistIndex.jsx`
+  (rewritten), `components/explore/EnergyRooms.jsx`, `screens/ExploreScreen.jsx`.
+- Screens: `15`–`20` in `docs/audits/design-audit-2026-10-25/`.
+- Tests: Past days opens on the latest board; Trending rows are heat rows; Artists render the wall.
+
 ### Docs
 
 - `CREATIVE_DIRECTION.md` no longer asks for glassmorphism; the shipped chassis is flat and the brief
@@ -186,7 +228,7 @@ preview now pass `tracks` and `onOpenArtist`.
 
 ## Tests
 
-Baseline 98 suites / 645 tests → **98 / 650**, all passing. New or rewritten:
+Baseline 98 suites / 645 tests → **98 / 651**, all passing. New or rewritten:
 
 - Discover: one tablist of six (`New Trending Genres Artists Mix Energy`), no `TOOLS`, Charts is a
   `role="button"` on the shelf, the Crate Dig section precedes the shelf and has a `Dig` key.
@@ -206,11 +248,11 @@ Baseline 98 suites / 645 tests → **98 / 650**, all passing. New or rewritten:
 | # | Priority | State |
 |---|---|---|
 | 1 | Navigation | Four-tab dock is right. Discover now has one nav row instead of two. |
-| 2 | Discovery | Dig is at the front door; sections are numbered bins. Genres/Keys/Energy unchanged and good. |
+| 2 | Discovery | Dig at the front door; numbered bins; Trending is a heat board, Artists a sleeve wall, rooms named (7c–e). |
 | 3 | Personal library | Now owns an object (the disc) and a label. Liked and Recents are still lists — fine. |
 | 4 | Player | Home hero and the immersive player are one broadcast screen (sections 5, 6a). |
 | 5 | Playlists | Discs read as yours; building is unchanged. |
-| 6 | Charts | The Board is right. Reachable from Home, the shelf, the sidebar. |
+| 6 | Charts | The Board is right; Past days opens a board (7a). Reachable from Home, the shelf, the sidebar. |
 | 7 | Artist discovery | ON FILE card is right; Same shelf now leads to the next artist (6d). |
 | 8 | Music history | Still dark until tracks carry `year`. Data work, not design. |
 | 9 | Requests | Key on every Board row. A Requests surface of its own is the next step. |
