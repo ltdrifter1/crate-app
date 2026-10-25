@@ -49,6 +49,8 @@ function Progress({ step }) {
 
 function StationCard({ channel, on, onToggle, index }) {
   const { src, focus } = resolveChannelArt(channel);
+  /** Station ink — the same printed colour the dial and the Board give this channel. */
+  const ink = channel.accent || y2k.cyan;
   return (
     <button
       type="button"
@@ -60,18 +62,31 @@ function StationCard({ channel, on, onToggle, index }) {
         minHeight: 168,
         padding: 0,
         borderRadius: radius.xl,
-        border: on ? `1px solid ${y2k.cyan}` : `1px solid ${glass.borderSoft}`,
+        border: on ? `1px solid ${ink}` : `1px solid ${glass.borderSoft}`,
         overflow: "hidden",
         background: color.surfaceSolid,
         cursor: "pointer",
         textAlign: "left",
         color: color.onDark,
         boxShadow: on
-          ? `0 0 0 1px ${y2k.cyan}, 0 12px 28px rgba(6,10,16,0.4)`
+          ? `0 0 0 1.5px ${ink}, 0 12px 28px rgba(6,10,16,0.4)`
           : `inset 0 1px 0 ${glass.highlight}`,
         animation: `rise 0.45s ${motion.ease} ${Math.min(index, 8) * 0.03}s both`,
       }}
     >
+      <span
+        aria-hidden="true"
+        style={{
+          position: "absolute",
+          left: 0,
+          right: 0,
+          bottom: 0,
+          height: on ? 5 : 3,
+          background: ink,
+          zIndex: 2,
+          transition: `height ${motion.fast} ${motion.ease}`,
+        }}
+      />
       {src ? (
         <CoverImage
           src={src}
@@ -119,7 +134,7 @@ function StationCard({ channel, on, onToggle, index }) {
             fontSize: 11,
             fontWeight: 700,
             letterSpacing: 1.5,
-            color: on ? y2k.cyan : color.faint,
+            color: on ? ink : color.body,
             fontFamily: fontMono,
             textTransform: "uppercase",
             marginBottom: 6,

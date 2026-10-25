@@ -12,7 +12,7 @@ PlanetMP3 is a music platform built around discovery, ownership, and collecting.
 
 Instead of treating music as an endless stream of disposable content, PlanetMP3 makes the listener an active participant. You build your library. You make your playlists. You discover strange records. You follow charts. You request music. You collect favourites. You decide what matters.
 
-It should feel less like a corporate streaming service and more like stepping into a digital record shop, radio station, MP3 player, and music community from an alternate 2002 — rebuilt with modern technology and glassmorphism.
+It should feel less like a corporate streaming service and more like stepping into a digital record shop, radio station, MP3 player, and music community from an alternate 2002 — rebuilt with modern technology. Flat surfaces, printed inks and broadcast type carry it; no generic glassmorphism.
 
 **The feeling:** Y2K / early-internet optimism + underground music culture + modern technology. Not nostalgic for nostalgia's sake — the goal is to capture the feeling of when the internet made music feel new, weird, personal, and discoverable.
 

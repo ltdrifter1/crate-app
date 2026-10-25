@@ -71,6 +71,33 @@ describe("TasteTuner", () => {
     expect(bag.adventurous).toBe(22);
   });
 
+  test("station tiles print their own ink, tuned or not", async () => {
+    await act(async () => {
+      root.render(React.createElement(TasteTuner, { tracks: [], onComplete: jest.fn() }));
+    });
+    const metal = div.querySelector('button[aria-label="Tune Metal"]');
+    const house = div.querySelector('button[aria-label="Tune House"]');
+    expect(metal && house).toBeTruthy();
+    const rule = (btn) => [...btn.querySelectorAll("span")].find((el) => el.style.bottom === "0px" && el.style.height);
+    const metalRule = rule(metal);
+    const houseRule = rule(house);
+    expect(metalRule).toBeTruthy();
+    expect(houseRule).toBeTruthy();
+    // Two stations, two inks — colour with meaning, not one selection cyan.
+    expect(metalRule.style.background).not.toBe(houseRule.style.background);
+    await act(async () => {
+      metal.click();
+    });
+    // jsdom keeps the hex on `border` but normalises `background` to rgb(); compare in rgb.
+    const toRgb = (hex) => {
+      const m = /#([0-9a-f]{6})/i.exec(hex);
+      if (!m) return hex;
+      const n = parseInt(m[1], 16);
+      return `rgb(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255})`;
+    };
+    expect(toRgb(metal.style.border)).toBe(rule(metal).style.background);
+  });
+
   test("wander first still seeds Variety Mix", async () => {
     const onComplete = jest.fn();
     await act(async () => {

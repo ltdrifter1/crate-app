@@ -64,6 +64,32 @@ describe("Library screen", () => {
     expect(div.textContent).not.toMatch(/Monthly countdown/);
   });
 
+  test("playlists are burned CD-Rs with a printed shelf label, not stat tiles", async () => {
+    await act(async () => {
+      root.render(
+        React.createElement(FavoritesScreen, {
+          tracks: [
+            { id: "a", title: "Alpha", artist: "One", album: "Alpha", duration: 200, liked: true, genre: "Techno", albumCover: "a.jpg" },
+            { id: "b", title: "Beta", artist: "Two", album: "Beta", duration: 190, liked: true, genre: "Techno", albumCover: "b.jpg" },
+          ],
+          userPlaylists: [{ id: "pl_1", name: "Late Bus Home", trackIds: ["a", "b"] }],
+        })
+      );
+    });
+    // One line of firmware says what is in the crate.
+    const label = div.querySelector('[aria-label="Your crate"]');
+    expect(label).toBeTruthy();
+    expect(label.textContent).toMatch(/2 singles/i);
+    expect(label.textContent).toMatch(/1 playlist/i);
+    expect(label.textContent).toMatch(/2 liked/i);
+    // The playlist tile is a disc with the title written on it and the real count + running time.
+    const disc = div.querySelector(".pmp-cdr");
+    expect(disc).toBeTruthy();
+    expect(disc.textContent).toMatch(/Late Bus Home/);
+    expect(disc.textContent).toMatch(/2 tracks · 6:30/);
+    expect(div.querySelector('button[aria-label="Play Late Bus Home"]')).toBeTruthy();
+  });
+
   test("recents tab lists profile history in play order", async () => {
     await act(async () => {
       root.render(

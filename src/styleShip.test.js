@@ -13,6 +13,15 @@ test("boot HTML stamps the current chassis", () => {
   expect(html).not.toMatch(/101\s*,\s*230\s*,\s*255/);
 });
 
+test("phone Home shows the whole station: capped sleeve, crawl kept", () => {
+  const css = fs.readFileSync(path.join(root, "src/index.css"), "utf8");
+  expect(css).toMatch(/--pmp-hero-art:\s*min\(100%, 320px, 32dvh\)/);
+  const tickerHidden = /\.pmp-hero-ticker\s*\{[^}]*display:\s*none/m.test(css);
+  expect(tickerHidden).toBe(false);
+  const hero = fs.readFileSync(path.join(root, "src/components/home/HeroPlayerCard.jsx"), "utf8");
+  expect(hero).toMatch(/var\(--pmp-hero-art, min\(100%, 320px\)\)/);
+});
+
 test("Home does not import the quarantined CoverStage", () => {
   const home = fs.readFileSync(path.join(root, "src/screens/HomeScreen.jsx"), "utf8");
   expect(home).not.toMatch(/CoverStage/);
@@ -114,7 +123,7 @@ test("browse lists print BPM and Camelot, and Home is player then my listening",
   expect(home).toMatch(/ChannelSurfingSection/);
   expect(home).toMatch(/TonightDeck/);
   expect(home).toMatch(/signedIn/);
-  expect(home).toMatch(/Your listening/);
+  expect(home).toMatch(/Your shelf/);
   const header = fs.readFileSync(path.join(root, "src/components/home/HomeHeader.jsx"), "utf8");
   expect(header).toMatch(/aria-label="Search"/);
   expect(header).toMatch(/Find/);
@@ -128,7 +137,8 @@ test("browse lists print BPM and Camelot, and Home is player then my listening",
   expect(explore).not.toMatch(/ChannelSurfingSection/);
   expect(explore).not.toMatch(/TonightDeck/);
   expect(explore).toMatch(/SEARCH_FIELD/);
-  expect(explore).toMatch(/ExploreTools/);
+  expect(explore).not.toMatch(/ExploreTools/);
+  expect(explore).toMatch(/<CrateDig[^>]*compact/);
   expect(explore).toMatch(/TrendingCuts/);
   expect(explore).toMatch(/ArtistIndex/);
   const sidebar = fs.readFileSync(path.join(root, "src/components/layout/AppSidebar.jsx"), "utf8");
@@ -187,8 +197,10 @@ test("Explore prefetches on idle and Home Channel Surfing uses PS1 plates", () =
   expect(atlas).toMatch(/All genres/);
   expect(atlas).not.toMatch(/\bcuts\b/);
   const modes = fs.readFileSync(path.join(root, "src/components/explore/ExploreModes.jsx"), "utf8");
-  expect(modes).toMatch(/role="toolbar"/);
-  expect(modes).toMatch(/Discover tools/);
+  expect(modes).not.toMatch(/role="toolbar"/);
+  expect(modes).not.toMatch(/Discover tools/);
+  expect(modes).toMatch(/Discover sections/);
+  expect(modes).toMatch(/pmp-divider-card/);
 });
 
 test("ice phosphor is the play pip, dock LCD, Mix/Energy sleeves, and poster stage", () => {

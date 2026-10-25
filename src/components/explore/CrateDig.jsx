@@ -8,9 +8,10 @@
  */
 import { useState, useCallback, useMemo } from "react";
 import {
-  color, fontDisplay, fontMono, hardware, homeSpace,
+  color, fontDisplay, fontMono, fontPoster, hardware, homeSpace,
   neons, radio,
 } from "../../theme";
+import Icon from "../ui/Icon";
 import CoverImage from "../ui/CoverImage";
 import { catalogSleeveUrl } from "../../lib/catalogSleeve";
 import { SCENE_CHANNELS } from "../../lib/sceneChannels";
@@ -72,7 +73,231 @@ function findStamp(track) {
   return "Deep in the crate";
 }
 
-export default function CrateDig({ tracks = [], onPlay = null }) {
+/**
+ * The counter — Dig as one strip at the top of Discover, on every section.
+ * Same pick logic as the full crate; the pull lands inline with a Play key.
+ */
+function DigCounter({ pick, flipping, pulls, ink, stamp, coverUrl, hasTracks, onDig, onPlay }) {
+  return (
+    <section
+      aria-label="Crate Dig"
+      className="pmp-dig-counter"
+      style={{ margin: `10px ${homeSpace.gutter}px 0` }}
+    >
+      <div
+        style={{
+          position: "relative",
+          overflow: "hidden",
+          display: "flex",
+          alignItems: "center",
+          gap: 12,
+          padding: "10px 12px 10px 16px",
+          borderRadius: 14,
+          background: radio.moduleFace,
+          border: "1px solid rgba(200,210,222,0.12)",
+          boxShadow: radio.moduleShadow,
+        }}
+      >
+        <span
+          aria-hidden="true"
+          style={{
+            position: "absolute",
+            left: 0,
+            top: 0,
+            bottom: 0,
+            width: 4,
+            background: ink || color.lcdSignal,
+            opacity: flipping ? 0.25 : 1,
+            transition: "background 0.28s ease, opacity 0.2s ease",
+          }}
+        />
+
+        {/* Slot */}
+        <div
+          aria-hidden="true"
+          style={{
+            width: 52,
+            height: 52,
+            flexShrink: 0,
+            borderRadius: 4,
+            overflow: "hidden",
+            border: "1px solid rgba(200,210,222,0.16)",
+            background: radio.lcdFace,
+            display: "grid",
+            placeItems: "center",
+            opacity: flipping ? 0.15 : 1,
+            transform: flipping ? "translateY(5px)" : "none",
+            transition: "opacity 0.2s ease, transform 0.24s cubic-bezier(0.22,1,0.36,1)",
+          }}
+        >
+          {pick && coverUrl ? (
+            <CoverImage
+              src={pick.albumCover}
+              alt=""
+              width={52}
+              height={52}
+              style={{ width: "100%", height: "100%", objectFit: "cover" }}
+            />
+          ) : (
+            <span
+              style={{
+                fontFamily: fontMono,
+                fontSize: pick ? 20 : 14,
+                fontWeight: 700,
+                letterSpacing: pick ? 0 : 1.5,
+                color: ink || "rgba(200,210,222,0.35)",
+              }}
+            >
+              {pick ? (pick.title || "?")[0] : "▚▚"}
+            </span>
+          )}
+        </div>
+
+        {/* Readout */}
+        <div style={{ flex: 1, minWidth: 0, opacity: flipping ? 0 : 1, transition: "opacity 0.2s ease" }}>
+          {pick ? (
+            <>
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 8,
+                  minWidth: 0,
+                }}
+              >
+                <span
+                  style={{
+                    fontFamily: fontPoster,
+                    fontSize: 19,
+                    fontWeight: 800,
+                    letterSpacing: 0.04,
+                    textTransform: "uppercase",
+                    lineHeight: 1.05,
+                    color: color.ink,
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  {pick.title}
+                </span>
+              </div>
+              <div
+                style={{
+                  marginTop: 3,
+                  fontFamily: fontMono,
+                  fontSize: 11,
+                  fontWeight: 600,
+                  letterSpacing: 0.1,
+                  textTransform: "uppercase",
+                  color: color.lcdMute,
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                {pick.artist}
+                {stamp ? (
+                  <>
+                    {" · "}
+                    <span style={{ color: ink || neons.phosphor }}>{stamp}</span>
+                  </>
+                ) : null}
+              </div>
+            </>
+          ) : (
+            <>
+              <div
+                style={{
+                  fontFamily: fontPoster,
+                  fontSize: 19,
+                  fontWeight: 800,
+                  letterSpacing: 0.04,
+                  textTransform: "uppercase",
+                  lineHeight: 1.05,
+                  color: color.ink,
+                }}
+              >
+                The crate
+              </div>
+              <div
+                style={{
+                  marginTop: 3,
+                  fontSize: 12.5,
+                  color: color.muted,
+                  lineHeight: 1.3,
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                {hasTracks
+                  ? pulls
+                    ? `${pulls} pulled today. No algorithm.`
+                    : "One random pull. No algorithm."
+                  : "Loading crate…"}
+              </div>
+            </>
+          )}
+        </div>
+
+        {/* Keys */}
+        <button
+          type="button"
+          onClick={onDig}
+          disabled={!hasTracks || flipping}
+          className="pmp-press"
+          aria-label={pick ? "Dig again" : "Dig"}
+          style={{
+            flexShrink: 0,
+            minHeight: 40,
+            padding: "0 14px",
+            borderRadius: hardware.radius,
+            border: "1px solid rgba(255,255,255,0.12)",
+            background: hardware.keyFace,
+            boxShadow: hardware.keyRaised,
+            fontFamily: fontMono,
+            fontSize: 12,
+            fontWeight: 800,
+            letterSpacing: 0.2,
+            textTransform: "uppercase",
+            color: color.ink,
+            cursor: hasTracks && !flipping ? "pointer" : "wait",
+            opacity: !hasTracks ? 0.4 : 1,
+          }}
+        >
+          {flipping ? "···" : pick ? "Again" : "Dig"}
+        </button>
+        {pick && onPlay && (
+          <button
+            type="button"
+            onClick={() => onPlay(pick, null)}
+            className="pmp-press"
+            aria-label={`Play ${pick.title}`}
+            style={{
+              flexShrink: 0,
+              width: 40,
+              height: 40,
+              borderRadius: "50%",
+              border: "none",
+              background: color.ink,
+              color: color.onAccent,
+              display: "grid",
+              placeItems: "center",
+              boxShadow: "0 6px 16px rgba(6,10,16,0.45)",
+              cursor: "pointer",
+              padding: 0,
+            }}
+          >
+            <Icon name="play" size={14} />
+          </button>
+        )}
+      </div>
+    </section>
+  );
+}
+
+export default function CrateDig({ tracks = [], onPlay = null, compact = false }) {
   const [pick, setPick] = useState(null);
   const [flipping, setFlipping] = useState(false);
   const [pulls, setPulls] = useState(0);
@@ -91,6 +316,22 @@ export default function CrateDig({ tracks = [], onPlay = null }) {
   const coverUrl = pick ? catalogSleeveUrl(pick.albumCover) : null;
   const ink = useMemo(() => inkForTrack(pick), [pick]);
   const stamp = useMemo(() => findStamp(pick), [pick]);
+
+  if (compact) {
+    return (
+      <DigCounter
+        pick={pick}
+        flipping={flipping}
+        pulls={pulls}
+        ink={ink}
+        stamp={stamp}
+        coverUrl={coverUrl}
+        hasTracks={hasTracks}
+        onDig={dig}
+        onPlay={onPlay}
+      />
+    );
+  }
 
   return (
     <div style={{ margin: `${homeSpace.sectionGap}px ${homeSpace.gutter}px 0` }}>

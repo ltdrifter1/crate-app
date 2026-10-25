@@ -16,7 +16,7 @@ import Icon from "../components/ui/Icon";
 import { useCurrentTrack } from "../usePlayerTransport";
 import CardContainer from "../components/home/CardContainer";
 import ExploreFocus from "../components/explore/ExploreFocus";
-import ExploreModes, { ExploreTools } from "../components/explore/ExploreModes";
+import ExploreModes from "../components/explore/ExploreModes";
 import WorldAtlas from "../components/explore/WorldAtlas";
 import EnergyRooms from "../components/explore/EnergyRooms";
 import MixBoard from "../components/explore/MixBoard";
@@ -36,16 +36,10 @@ import {
 } from "../lib/explore";
 
 const EXPLORE_CSS = `
-  .pmp-explore-modes {
-    display: grid;
-    grid-auto-flow: column;
-    grid-auto-columns: minmax(0, 1fr);
-    gap: 6px;
-    padding: 8px ${"{gutter}"}px 4px;
-  }
-  .pmp-explore-modes button {
-    white-space: normal;
-    line-height: 1.15;
+  .pmp-explore-shelf::-webkit-scrollbar { display: none; }
+  .pmp-divider-card:hover:not([data-selected]) {
+    background: rgba(255,255,255,0.09) !important;
+    color: ${"{ink}"} !important;
   }
   .pmp-new-releases-grid {
     display: grid;
@@ -95,7 +89,7 @@ const EXPLORE_CSS = `
     .pmp-mix-wheel { grid-template-columns: repeat(6, minmax(0, 1fr)); }
     .pmp-new-releases-grid { grid-template-columns: repeat(5, minmax(0, 1fr)); }
   }
-`.replaceAll("{base}", motion.base).replaceAll("{ease}", motion.ease).replaceAll("{gutter}", String(homeSpace.gutter));
+`.replaceAll("{base}", motion.base).replaceAll("{ease}", motion.ease).replaceAll("{gutter}", String(homeSpace.gutter)).replaceAll("{ink}", color.ink);
 
 function FindEntry({ onOpenSearch }) {
   if (!onOpenSearch) return null;
@@ -191,7 +185,6 @@ function ModeHint({ mode }) {
     artists: "Who’s on the records.",
     energy: "Rooms by pressure.",
     mix: "Twelve keys. Neighbors mix.",
-    dig: "A random track you didn’t go looking for.",
     "time-machine": "Browse by year.",
   };
   return (
@@ -210,7 +203,8 @@ function ModeHint({ mode }) {
 }
 
 /**
- * Explore — catalog directory. Home owns the player, Channel Surfing, and tonight’s guide.
+ * Discover — the shop floor. Find field, the crate at the counter (Dig), one shelf of
+ * section dividers, then the bins. Home owns the player, Channel Surfing, and today’s guide.
  */
 function ExploreScreen({
   tracks = [],
@@ -236,7 +230,7 @@ function ExploreScreen({
   const [focusKey, setFocusKey] = useState(null);
   const [mode, setMode] = useState("releases");
 
-  /** Destinations always; History is a tool once years exist. */
+  /** Destinations always; History joins the shelf once tracks carry years. */
   const modes = useMemo(() => exploreModesFor(tracks), [tracks]);
   const tools = useMemo(() => exploreToolsFor(tracks), [tracks]);
   const knownIds = useMemo(
@@ -350,7 +344,7 @@ function ExploreScreen({
                 }}
               >
                 {stats.cuts
-                  ? `${stats.cuts} track${stats.cuts === 1 ? "" : "s"}`
+                  ? `${stats.cuts} track${stats.cuts === 1 ? "" : "s"} on the shelves`
                   : "New music around what you play."}
               </p>
             </div>
@@ -359,9 +353,10 @@ function ExploreScreen({
       </header>
 
       <FindEntry onOpenSearch={onOpenSearch} />
-      <ExploreModes mode={activeMode} modes={modes} onChange={setMode} />
-      <ExploreTools
+      {hasBody && <CrateDig tracks={tracks} onPlay={onPlayTrack} compact />}
+      <ExploreModes
         mode={activeMode}
+        modes={modes}
         tools={tools}
         onChange={setMode}
         onOpenCharts={onOpenCharts}
@@ -397,10 +392,6 @@ function ExploreScreen({
 
       {activeMode === "mix" && (
         <MixBoard tracks={tracks} onPlayPool={onPlayTrack} />
-      )}
-
-      {activeMode === "dig" && (
-        <CrateDig tracks={tracks} onPlay={onPlayTrack} />
       )}
 
       {activeMode === "time-machine" && (

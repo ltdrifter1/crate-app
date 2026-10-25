@@ -157,20 +157,31 @@ describe("Explore screen", () => {
     expect(div.textContent).toMatch(/Trending/);
     expect(div.textContent).toMatch(/Genres/);
     expect(div.textContent).toMatch(/Artists/);
+    // One shelf of numbered divider cards: destinations and in-place tools together.
     expect(div.querySelector('[aria-label="Discover"]')).toBeTruthy();
     expect(
       [...div.querySelector('[aria-label="Discover"]').querySelectorAll('[role="tab"]')].map((el) =>
-        el.textContent.trim()
+        el.getAttribute("aria-label")
       )
-    ).toEqual(["New", "Trending", "Genres", "Artists"]);
-    expect(div.querySelector('[aria-label="Discover tools"]')).toBeTruthy();
-    expect(div.querySelector('[aria-label="Discover tools"]').textContent).toMatch(/Keys/);
-    expect(div.querySelector('[aria-label="Discover tools"]').textContent).toMatch(/Dig/);
-    expect(div.querySelector('[aria-label="Discover tools"]').textContent).toMatch(/Charts/);
-    expect(div.querySelector('[aria-label="Discover tools"]').textContent).toMatch(/Energy/);
-    expect(div.querySelector('[aria-label="Discover tools"]').textContent).not.toMatch(/History/);
-    expect(div.querySelector('[aria-label="Discover"]').textContent).not.toMatch(/Keys|Dig|Charts|Energy/);
-    expect(div.querySelector('button[role="tab"][aria-selected="true"]').textContent).toMatch(/^New$/);
+    ).toEqual(["New", "Trending", "Genres", "Artists", "Mix", "Energy"]);
+    expect(div.querySelector('[aria-label="Discover"]').textContent).toMatch(/01\s*New/);
+    expect(div.querySelector('[aria-label="Discover"]').textContent).not.toMatch(/History/);
+    // No second nav row, no "TOOLS" tray.
+    expect(div.querySelector('[aria-label="Discover tools"]')).toBeFalsy();
+    expect(div.textContent).not.toMatch(/TOOLS/);
+    // Charts is a door on the same shelf, not a tab.
+    const shelf = div.querySelector('[aria-label="Discover sections"]');
+    expect(shelf).toBeTruthy();
+    expect(shelf.querySelector('button[aria-label="Charts"]')).toBeTruthy();
+    expect(shelf.querySelector('button[aria-label="Charts"]').getAttribute("role")).toBe("button");
+    // Dig sits at the counter, above the shelf, on every section.
+    const counter = div.querySelector('section[aria-label="Crate Dig"]');
+    expect(counter).toBeTruthy();
+    expect(counter.textContent).toMatch(/The crate/);
+    expect(counter.textContent).toMatch(/No algorithm/);
+    expect(counter.querySelector('button[aria-label="Dig"]')).toBeTruthy();
+    expect(counter.compareDocumentPosition(shelf) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(div.querySelector('button[role="tab"][aria-selected="true"]').textContent).toMatch(/New$/);
     expect(div.querySelector('section[aria-label="New Releases"]')).toBeTruthy();
     expect(div.textContent).toMatch(/Night Shift|Highways|Gain/);
     expect(div.textContent).not.toMatch(/Moods & moments/);
@@ -187,7 +198,7 @@ describe("Explore screen", () => {
       charts.click();
     });
     expect(onOpenCharts).toHaveBeenCalled();
-    expect(div.querySelector('button[role="tab"][aria-selected="true"]').textContent).toMatch(/^New$/);
+    expect(div.querySelector('button[role="tab"][aria-selected="true"]').textContent).toMatch(/New$/);
     expect(div.querySelector(".pmp-channel-surf")).toBeFalsy();
     await act(async () => {
       tab(div, "Trending").click();

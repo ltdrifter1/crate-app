@@ -13,6 +13,9 @@ import { savedTracks, tracksFromRecentIds } from "../lib/homeCollections";
 import { isCommunityPlaylist } from "../lib/mixes";
 import { catalogSleeveUrl } from "../lib/catalogSleeve";
 import { collectionStats } from "../lib/collectionStats";
+import { inkForTrack } from "../lib/board";
+import { onInk } from "../lib/mtvChannel";
+import { fmtTime } from "../lib/harmony";
 import {
   BTN_PRIMARY,
   BTN_SECONDARY,
@@ -23,6 +26,7 @@ import {
   color,
   fontDisplay,
   fontMono,
+  fontPoster,
   glass,
   glassPill,
   hardware,
@@ -34,119 +38,185 @@ import {
   type,
 } from "../theme";
 
-/** Y2K stat tile — shows one crate metric with a neon accent. */
-function CrateStat({ value, label, accent = neons.cyan }) {
-  return (
-    <div
-      style={{
-        flex: 1,
-        minWidth: 0,
-        padding: "10px 12px",
-        borderRadius: 12,
-        background: radioStyle.lcdFace,
-        border: `1px solid ${accent}44`,
-        boxShadow: `0 0 12px ${accent}18, inset 0 1px 0 rgba(216,223,232,0.08)`,
-        textAlign: "center",
-      }}
-    >
-      <div
-        style={{
-          fontFamily: fontMono,
-          fontSize: 22,
-          fontWeight: 700,
-          letterSpacing: -0.5,
-          color: color.lcdInk,
-          lineHeight: 1.1,
-        }}
-      >
-        {value}
-      </div>
-      <div
-        style={{
-          marginTop: 3,
-          fontFamily: fontDisplay,
-          fontSize: 11,
-          fontWeight: 600,
-          letterSpacing: -0.04,
-          textTransform: "none",
-          color: color.muted,
-        }}
-      >
-        {label}
-      </div>
-    </div>
-  );
-}
-
-/** Record-shop style crate header — shown at top of Library tab. */
-function CrateHero({ saved = [], playlists = [], likedCount = 0 }) {
+/**
+ * Shelf label — what is in your crate, printed once, like the card on the
+ * front of a bin. One line of firmware, not a row of dashboard tiles.
+ */
+function ShelfLabel({ saved = [], playlists = [], likedCount = 0 }) {
   const stats = useMemo(() => collectionStats(saved), [saved]);
   const playlistCount = playlists.filter((pl) => !isCommunityPlaylist(pl)).length;
 
   if (saved.length === 0 && playlistCount === 0) return null;
 
+  const plural = (n, one, many = `${one}s`) => `${n} ${n === 1 ? one : many}`;
+  const parts = [];
+  if (stats.albums > 0) parts.push(plural(stats.albums, "album"));
+  if (stats.eps > 0) parts.push(plural(stats.eps, "EP"));
+  if (stats.singles > 0) parts.push(plural(stats.singles, "single"));
+  if (playlistCount > 0) parts.push(plural(playlistCount, "playlist"));
+  if (likedCount > 0) parts.push(`${likedCount} liked`);
+
   return (
     <div
+      aria-label="Your crate"
       style={{
-        margin: "0 0 18px",
-        padding: "16px 14px 14px",
-        borderRadius: 18,
-        background: radioStyle.moduleFace,
-        border: `1px solid ${glass.borderSoft}`,
-        boxShadow: radioStyle.moduleShadow,
+        display: "flex",
+        alignItems: "center",
+        gap: 10,
+        margin: "0 0 16px",
+        minWidth: 0,
       }}
     >
-      {/* Header row */}
-      <div
+      <span
+        aria-hidden="true"
         style={{
-          display: "flex",
-          alignItems: "center",
-          gap: 8,
-          marginBottom: 12,
+          flexShrink: 0,
+          width: 4,
+          height: 16,
+          borderRadius: 1,
+          background: color.lcdSignal,
+        }}
+      />
+      <span
+        style={{
+          fontFamily: fontMono,
+          fontSize: 11,
+          fontWeight: 700,
+          letterSpacing: 0.14,
+          textTransform: "uppercase",
+          color: color.body,
+          whiteSpace: "nowrap",
+          overflow: "hidden",
+          textOverflow: "ellipsis",
         }}
       >
-        <span
+        Your crate · {parts.join(" · ")}
+      </span>
+      <span aria-hidden="true" style={{ flex: 1, height: 1, background: color.line, minWidth: 12 }} />
+    </div>
+  );
+}
+
+/**
+ * CD-R — a playlist is a burned disc with the title written on it.
+ * The band carries the station ink of the first track (same classifier the
+ * dial and the Board use), the first sleeve sits behind the disc, and the
+ * data line is the real count and running time. Flat graphic, not a render.
+ */
+function CdrDisc({ tracks = [], title = "", size = homeSpace.tile }) {
+  const first = tracks[0] || null;
+  const ink = inkForTrack(first);
+  const label = onInk(ink);
+  const sleeve = first ? catalogSleeveUrl(first.albumCover) : null;
+  const secs = tracks.reduce((sum, t) => sum + (Number(t?.duration) || 0), 0);
+  const count = tracks.length;
+  const hub = Math.max(14, Math.round(size * 0.12));
+
+  return (
+    <div
+      className="pmp-cdr-tray"
+      style={{
+        position: "relative",
+        width: "100%",
+        height: "100%",
+        display: "grid",
+        placeItems: "center",
+        overflow: "hidden",
+        background: "linear-gradient(180deg, #1A2028 0%, #0E1217 100%)",
+      }}
+    >
+      {sleeve && (
+        <CoverImage
+          src={first.albumCover}
+          alt=""
+          width={size}
+          height={size}
+          sizes={`${size}px`}
+          draggable={false}
           style={{
-            width: 6,
-            height: 6,
-            borderRadius: "50%",
-            background: neons.cyan,
-            boxShadow: `0 0 6px ${neons.cyan}`,
-            flexShrink: 0,
-            animation: "pmpLcdPip 2s ease-in-out infinite",
+            position: "absolute",
+            inset: 0,
+            width: "100%",
+            height: "100%",
+            objectFit: "cover",
+            opacity: 0.32,
+            filter: "saturate(0.85)",
           }}
         />
-        <span
+      )}
+      <div
+        className="pmp-cdr"
+        style={{
+          position: "relative",
+          width: "84%",
+          aspectRatio: "1 / 1",
+          borderRadius: "50%",
+          background: `radial-gradient(circle at 50% 50%, #0E1217 0 ${hub / 2}px, rgba(200,210,222,0.55) ${hub / 2}px ${hub / 2 + 1.5}px, #DCE2EA ${hub / 2 + 1.5}px ${hub}px, #F4F7FB ${hub}px 100%)`,
+          boxShadow: "0 12px 26px rgba(6,10,16,0.6), inset 0 0 0 1px rgba(6,10,16,0.22)",
+        }}
+      >
+        <div
           style={{
-            fontFamily: fontDisplay,
-            fontSize: 13,
-            fontWeight: 600,
-            letterSpacing: -0.08,
-            textTransform: "none",
-            color: color.muted,
+            position: "absolute",
+            left: "9%",
+            right: "9%",
+            top: "19%",
+            height: "19%",
+            borderRadius: 3,
+            background: ink,
+            color: label,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: "0 8px",
+            minWidth: 0,
           }}
         >
-          Your Crate
-        </span>
-      </div>
-
-      {/* Stats row */}
-      <div style={{ display: "flex", gap: 6 }}>
-        {stats.albums > 0 && (
-          <CrateStat value={stats.albums} label="Albums" accent={neons.cyan} />
-        )}
-        {stats.eps > 0 && (
-          <CrateStat value={stats.eps} label="EPs" accent={neons.violet} />
-        )}
-        {stats.singles > 0 && (
-          <CrateStat value={stats.singles} label="Singles" accent={neons.lime} />
-        )}
-        {playlistCount > 0 && (
-          <CrateStat value={playlistCount} label="Playlists" accent={neons.orange} />
-        )}
-        {likedCount > 0 && (
-          <CrateStat value={likedCount} label="Liked" accent={neons.phosphor} />
-        )}
+          <span
+            style={{
+              fontFamily: fontPoster,
+              fontSize: Math.max(12, Math.round(size * 0.1)),
+              fontWeight: 800,
+              letterSpacing: 0.04,
+              textTransform: "uppercase",
+              lineHeight: 1,
+              whiteSpace: "nowrap",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              maxWidth: "100%",
+            }}
+          >
+            {title || "Untitled"}
+          </span>
+        </div>
+        <div
+          style={{
+            position: "absolute",
+            left: 0,
+            right: 0,
+            bottom: "19%",
+            textAlign: "center",
+            fontFamily: fontMono,
+            fontSize: Math.max(9, Math.round(size * 0.06)),
+            fontWeight: 700,
+            letterSpacing: 0.1,
+            textTransform: "uppercase",
+            color: "#5B6574",
+          }}
+        >
+          {count} {count === 1 ? "track" : "tracks"}{secs > 0 ? ` · ${fmtTime(secs)}` : ""}
+        </div>
+        <div
+          aria-hidden="true"
+          style={{
+            position: "absolute",
+            inset: 0,
+            borderRadius: "50%",
+            background:
+              "linear-gradient(135deg, rgba(255,255,255,0.5) 0%, rgba(255,255,255,0) 36%, rgba(255,255,255,0) 64%, rgba(6,10,16,0.08) 100%)",
+            pointerEvents: "none",
+          }}
+        />
       </div>
     </div>
   );
@@ -772,7 +842,7 @@ function FavoritesScreen({
           background: color.surfaceRaised,
           boxShadow: artShadow.quiet,
         }}>
-          <CoverMosaic covers={plTracks} title={pl.name} size={homeSpace.tile} />
+          <CdrDisc tracks={plTracks} title={pl.name} size={homeSpace.tile} />
           {plTracks.length > 0 && (
             <button
               type="button"
@@ -886,7 +956,7 @@ function FavoritesScreen({
             </button>
           </div>
 
-          <CrateHero saved={saved} playlists={userPlaylists} likedCount={likedCount} />
+          <ShelfLabel saved={saved} playlists={userPlaylists} likedCount={likedCount} />
 
           <div
             role="tablist"

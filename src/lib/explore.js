@@ -270,13 +270,16 @@ export const EXPLORE_DESTINATIONS = [
   { id: "artists",  label: "Artists",  aria: "Artists",  hint: "Who’s on the records" },
 ];
 
-/** Tools — Camelot, dig, charts, rooms. Not peer tabs of New / Genres. */
+/**
+ * Tools — Camelot keys, energy rooms, eras, and the door to Charts.
+ * They ride the same divider-card shelf as the destinations. Dig is not a
+ * tool any more: the crate sits at the counter on every Discover section.
+ */
 export const EXPLORE_TOOLS = [
   { id: "mix",          label: "Keys",    aria: "Mix",     hint: "Twelve keys. Neighbors mix" },
-  { id: "dig",          label: "Dig",     aria: "Dig",     hint: "A random pull from the crate" },
-  { id: "charts",       label: "Charts",  aria: "Charts",  hint: "The monthly countdown", action: "charts" },
   { id: "energy",       label: "Energy",  aria: "Energy",  hint: "Rooms by pressure" },
   { id: "time-machine", label: "History", aria: "History", hint: "Dig through eras" },
+  { id: "charts",       label: "Charts",  aria: "Charts",  hint: "The monthly countdown", action: "charts" },
 ];
 
 /** @deprecated equal-weight directory — destinations + in-place tools. */

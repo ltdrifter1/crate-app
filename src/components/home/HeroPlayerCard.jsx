@@ -112,7 +112,7 @@ function JewelSleeve({ src, idleSrc, playing, eager = false, size = 148, wellCol
       style={{
         position: "relative",
         display: "block",
-        width: "min(100%, 320px)",
+        width: "var(--pmp-hero-art, min(100%, 320px))",
         alignSelf: "center",
         aspectRatio: "1 / 1",
         flexShrink: 0,

@@ -432,6 +432,10 @@ body::before { display: none; }
   }
   .pmp-hero {
     min-height: 0 !important;
+    /* Phone: the square sleeve yields to the whole station. Capped so the
+       lower third, transport and crawl sit above the dock and the guide peeks. */
+    --pmp-hero-art: min(100%, 320px, 32vh);
+    --pmp-hero-art: min(100%, 320px, 32dvh);
   }
   .pmp-hero-stage {
     gap: 10px;
@@ -457,7 +461,8 @@ body::before { display: none; }
     padding-bottom: 4px !important;
   }
   .pmp-hero-ticker {
-    display: none !important;
+    margin-top: 8px !important;
+    padding: 5px 0 !important;
   }
   .pmp-channel-surf {
     margin-top: 12px !important;

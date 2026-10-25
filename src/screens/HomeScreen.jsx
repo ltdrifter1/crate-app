@@ -266,8 +266,8 @@ function HomePersonal({
     return (
       <div data-testid="home-personal" style={{ marginTop: homeSpace.sectionGap }}>
         <EmptyShelfCard
-          title="Your listening"
-          body="Play a few tracks. Recents show up here. Likes live in Library."
+          title="Your shelf"
+          body="Nothing on it yet. What you play lands here; what you like goes in the Library."
           actionLabel={onOpenDiscover ? "Find music" : onOpenLibrary ? "Library" : null}
           onAction={onOpenDiscover || onOpenLibrary}
         />

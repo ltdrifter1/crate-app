@@ -592,7 +592,7 @@ describe("Home broadcast + four-tab IA", () => {
       await new Promise((r) => setTimeout(r, 40));
     });
     expect(div.querySelector('[data-testid="home-personal"]')).toBeTruthy();
-    expect(div.textContent).toMatch(/Your listening/);
+    expect(div.textContent).toMatch(/Your shelf/);
     expect(div.textContent).toMatch(/Find music/);
     await act(async () => {
       div.querySelector('[aria-label="Find music"]').click();
@@ -611,7 +611,7 @@ describe("Home broadcast + four-tab IA", () => {
       await new Promise((r) => setTimeout(r, 40));
     });
     expect(div.querySelector('[data-testid="home-personal"]')).toBeNull();
-    expect(div.textContent).not.toMatch(/Your listening/);
+    expect(div.textContent).not.toMatch(/Your shelf/);
   });
 
   test("Home recents rail uses profile listen order and has no Liked rail", async () => {
