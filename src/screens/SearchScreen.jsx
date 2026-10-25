@@ -16,6 +16,8 @@ import {
   fontMono,
   glass,
   radius,
+  type,
+  y2k,
 } from "../theme";
 
 function SearchScreen({
@@ -57,8 +59,11 @@ function SearchScreen({
   };
   return (
     <div style={{ padding: "0 0 16px" }}>
+      {/* Lists read best at a measure — results and genres don't stretch across a desktop. */}
       <div style={{
         padding: `calc(14px + env(safe-area-inset-top, 0px)) 16px 0`,
+        maxWidth: 880,
+        margin: "0 auto",
       }}>
       {onBack && (
         <button
@@ -79,6 +84,7 @@ function SearchScreen({
           ‹ {backLabel}
         </button>
       )}
+      <h1 style={{ ...type.largeTitle, margin: "0 0 14px", color: y2k.offWhite }}>Search</h1>
       <div style={{ position:"relative", marginBottom:14 }}>
         <div style={{ position:"absolute", left:14, top:"50%", transform:"translateY(-50%)", color: color.faint, zIndex: 1 }}><Icon name="search" size={16}/></div>
         <input

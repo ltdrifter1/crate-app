@@ -684,6 +684,28 @@ body::before { display: none; }
   min-width: 0;
 }
 .pmp-board-score > div:first-child { border-left: none; padding-left: 0; }
+.pmp-board-score-line {
+  border-bottom: 1px solid rgba(200, 210, 222, 0.1);
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-weight: 700;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #c5cbd6;
+}
+/* Chart heading: title, then scope. Wide screens put the scope switch beside the title. */
+.pmp-chart-head__scope { margin-bottom: 14px; }
+@media (min-width: 900px) {
+  .pmp-chart-head {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(300px, 380px);
+    column-gap: 24px;
+    align-items: end;
+  }
+  .pmp-chart-head > :first-child { grid-column: 1; }
+  .pmp-chart-head__scope { grid-column: 2; grid-row: 1; margin-bottom: 12px; }
+  .pmp-chart-head > :nth-child(n + 3) { grid-column: 1 / -1; }
+}
 .pmp-board-score__n {
   font-family: "Barlow Condensed", "Outfit", sans-serif;
   font-weight: 800;

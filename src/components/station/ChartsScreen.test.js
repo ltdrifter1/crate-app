@@ -87,8 +87,8 @@ describe("ChartsScreen", () => {
     expect(div.querySelector(".pmp-board-ticker").textContent).toMatch(/NIGHT DRIVE — SIGNAL/);
     expect(div.querySelector(".pmp-board-ticker").textContent).toMatch(/20 REQUESTS/);
     const score = div.querySelector('[aria-label="Board totals"]').textContent;
-    expect(score).toMatch(/3Board/);
-    expect(score).toMatch(/26Requests/); // 20 + 4 + 2, summed off the tracks
+    expect(score).toMatch(/3 on the board/);
+    expect(score).toMatch(/26 requests this month/); // 20 + 4 + 2, summed off the tracks
     expect(div.textContent).not.toMatch(/locked in/i);
   });
 
@@ -97,8 +97,8 @@ describe("ChartsScreen", () => {
       root.render(React.createElement(ChartsScreen, { tracks: tracksFixture(), countdown: [] }));
     });
     const score = div.querySelector('[aria-label="Board totals"]').textContent;
-    expect(score).toMatch(/–Climbing/);
-    expect(score).toMatch(/–New/);
+    // No dashes standing in for numbers — the climbing/new cells simply aren't there yet.
+    expect(score).not.toMatch(/Climbing|New|–/);
     expect(div.querySelector('[aria-label="New"]')).toBeNull();
   });
 
