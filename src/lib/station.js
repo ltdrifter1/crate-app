@@ -140,34 +140,19 @@ export function clearRequestedToday(trackId, dayKey = stationDayKey()) {
 const MAX_DEDICATIONS = 40;
 const MAX_DEDICATION_LEN = 72;
 
-const SEED_DEDICATIONS = [
-  { text: "This one is for the late bus ride home", fromName: "Mira" },
-  { text: "Play this loud in the kitchen", fromName: "Jae" },
-  { text: "Shout out everyone still discovering cuts", fromName: "Theo" },
-  { text: "Dedication to my sister — she always finds the good ones", fromName: "Sam" },
-  { text: "Requesting pure chaos energy", fromName: "Riley" },
-];
-
-/** Seed a few rotating dedications so the crawl never feels empty. */
-export function seedDedicationFeed(now = Date.now()) {
-  const existing = readJson(storageKey("dedications"), null);
-  if (existing && Array.isArray(existing) && existing.length > 0) return existing;
-  const seeded = SEED_DEDICATIONS.map((d, i) => ({
-    id: `seed-${i}`,
-    text: d.text,
-    fromName: d.fromName,
-    trackId: null,
-    trackTitle: null,
-    createdAt: now - (i + 1) * 1000 * 60 * 7,
-    seed: true,
-  }));
-  writeJson(storageKey("dedications"), seeded);
-  return seeded;
+/**
+ * Dedications this listener wrote (kept in this browser). No seeded ones: the
+ * crawl used to show five invented listeners ("Mira: late bus ride home") to
+ * everyone. Builds before that saved the seeds to localStorage, so drop them.
+ */
+function readDedicationFeed() {
+  const existing = readJson(storageKey("dedications"), []);
+  if (!Array.isArray(existing)) return [];
+  return existing.filter((d) => d && !d.seed && !String(d.id || "").startsWith("seed-"));
 }
 
 export function listDedications(limit = 12) {
-  const feed = seedDedicationFeed();
-  return feed
+  return readDedicationFeed()
     .slice()
     .sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0))
     .slice(0, limit);

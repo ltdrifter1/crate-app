@@ -1,13 +1,11 @@
 import {
   STATION_SHOWS,
-  VJ_HOSTS,
   buildDailyGuide,
   buildShowPool,
   enrichShow,
   formatRemaining,
   formatShowClock,
   formatShowRange,
-  getHost,
   getShowById,
   minutesUntilHour,
   nextShowAfter,
@@ -30,23 +28,21 @@ describe("shows programming", () => {
   test("resolveShowAt returns live show + next + remaining", () => {
     const afternoon = resolveShowAt(new Date("2024-06-03T16:30:00"));
     expect(afternoon.show.id).toBe("after-school-chaos");
-    expect(afternoon.host.id).toBe("maya");
+    expect(afternoon.host).toBeNull();
     expect(afternoon.nextShow.id).toBe("most-requested-live");
     expect(afternoon.remainingMinutes).toBeGreaterThan(0);
     expect(afternoon.progress).toBeGreaterThan(0);
     expect(afternoon.progress).toBeLessThan(1);
   });
 
-  test("prime time is Most Requested with Dez", () => {
+  test("prime time is Most Requested Live", () => {
     const prime = resolveShowAt(new Date("2024-06-03T20:00:00"));
     expect(prime.show.id).toBe("most-requested-live");
-    expect(prime.host.name).toBe("Dez Rivera");
   });
 
   test("night crash wraps past midnight", () => {
     const late = resolveShowAt(new Date("2024-06-03T02:15:00"));
     expect(late.show.id).toBe("night-crash");
-    expect(late.host.id).toBe("jules");
   });
 
   test("buildDailyGuide flags live and up-next", () => {
@@ -94,11 +90,9 @@ describe("shows programming", () => {
     expect(formatShowRange(15, 19)).toMatch(/3:00 PM/);
     expect(formatRemaining(42)).toBe("42 min left");
     expect(formatRemaining(1)).toBe("switching soon");
-    expect(getHost("maya").monogram).toBe("MC");
-    expect(getHost("nope").id).toBe("desk");
     const show = enrichShow(getShowById("alt-frequency"));
     expect(showOnAirLabel(show)).toBe("Alt Freq");
-    expect(showHostCredit(show)).toBe("with Jules Okonkwo");
+    expect(showHostCredit(show)).toBeNull();
     expect(nextShowAfter(show).id).toBe("night-crash");
     expect(pickShowBumper(show, new Date("2024-06-03T22:10:00"))).toBeTruthy();
     expect(minutesUntilHour(19, new Date("2024-06-03T18:00:00"))).toBe(60);
@@ -109,18 +103,23 @@ describe("shows programming", () => {
     const bits = buildShowTickerBits({
       show: live.show,
       nextShow: live.nextShow,
-      bumper: "Maya’s running After School Chaos — send it.",
+      bumper: "After School Chaos — send it.",
     });
     expect(bits.some((b) => b.includes("AFTER SCHOOL"))).toBe(true);
-    expect(bits.some((b) => b.includes("MAYA"))).toBe(true);
+    expect(bits.some((b) => b.includes("HOSTED BY"))).toBe(false);
     expect(bits.some((b) => b.includes("UP NEXT"))).toBe(true);
   });
 
-  test("every show has a known host", () => {
+  test("shows credit no invented hosts — not in data, not in the copy", () => {
+    const invented = /Maya|Dez|Sol\b|Sol Park|Rio\b|Rio Santos|Jules|Okonkwo|Chen|Rivera/;
     for (const show of STATION_SHOWS) {
-      expect(VJ_HOSTS[show.hostId]).toBeTruthy();
+      expect(show.hostId).toBeUndefined();
+      expect(enrichShow(show).host).toBeNull();
       expect(show.bumpers.length).toBeGreaterThan(0);
       expect(show.intro).toBeTruthy();
+      for (const line of [show.tagline, show.intro, ...show.bumpers]) {
+        expect(line).not.toMatch(invented);
+      }
     }
   });
 });

@@ -79,6 +79,8 @@ npm run catalog:publish    # needs serviceAccountKey.json in the project root
 
 It writes the file plus the `catalog/homeLite` Home shelf, then downloads the file the way the app does and confirms it reads back. `node upload-tracks.js` (and the batch loaders that call it) runs this automatically after a batch. After scripts that edit tracks in place (`clean-titles.js --apply`, `fix_genres.py`, `find_missing_covers.py`), run it by hand.
 
+**Or let GitHub do it:** the `Publish catalog` workflow (`.github/workflows/publish-catalog.yml`) runs the same script nightly and on demand (Actions tab → Publish catalog → Run workflow). It needs one repository secret, `FIREBASE_SERVICE_ACCOUNT`, holding the full JSON of a service-account key (Firebase Console → Project Settings → Service Accounts → Generate new private key; then GitHub → Settings → Secrets and variables → Actions). Until the secret exists, the nightly run skips quietly.
+
 To keep it current on every track change without running anything, deploy the trigger (Cloud Functions need the Blaze plan):
 
 ```bash

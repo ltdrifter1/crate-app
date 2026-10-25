@@ -25,7 +25,8 @@ describe("pickTrackBumper", () => {
     });
     expect(b.kicker).toBe("Most Requested");
     expect(b.title).toBe("What’s #1 tonight? We’re finding out live.");
-    expect(b.subtitle).toBe("with Dez Rivera");
+    // No invented host credit — the block's air time instead.
+    expect(b.subtitle).toBe("7:00 PM – 10:00 PM");
   });
 
   test("does not pop a full-screen Up Next on ordinary minutes", () => {

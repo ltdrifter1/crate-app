@@ -682,22 +682,24 @@ export function ShowGuideRail({
               >
                 {show.shortTitle || show.title}
               </div>
-              <div
-                style={{
-                  marginTop: 8,
-                  fontFamily: fontMono,
-                  fontSize: 12,
-                  fontWeight: 700,
-                  letterSpacing: 0.7,
-                  textTransform: "uppercase",
-                  color: lit ? color.body : color.faint,
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
-                  whiteSpace: "nowrap",
-                }}
-              >
-                {show.host?.name}
-              </div>
+              {show.host?.name && (
+                <div
+                  style={{
+                    marginTop: 8,
+                    fontFamily: fontMono,
+                    fontSize: 12,
+                    fontWeight: 700,
+                    letterSpacing: 0.7,
+                    textTransform: "uppercase",
+                    color: lit ? color.body : color.faint,
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  {show.host.name}
+                </div>
+              )}
             </button>
           );
         })}

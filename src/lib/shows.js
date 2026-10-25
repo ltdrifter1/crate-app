@@ -3,8 +3,8 @@ import { trackMatchesScene } from "./scenes";
 import { buildCountdown, countdownScore, stationDaypart } from "./station";
 
 /**
- * VJ-hosted programmed blocks — Planet MP3 as a real channel.
- * Deterministic 24h schedule, named hosts, show pools, bumpers.
+ * Programmed blocks — Planet MP3 as a real channel.
+ * Deterministic 24h schedule, show pools, bumpers.
  */
 
 function singlesOnly(tracks = []) {
@@ -37,68 +37,10 @@ export function minutesUntilHour(targetHour, date = new Date()) {
   return Math.round(delta * 60);
 }
 
-// ─── VJs ─────────────────────────────────────────────────────────────────────
-
-export const VJ_HOSTS = {
-  maya: {
-    id: "maya",
-    name: "Maya Chen",
-    handle: "@maya",
-    title: "After School Desk",
-    bio: "Chaos curator. Requests, shout-outs, and anything that hits before dinner.",
-    accent: "#8B939F",
-    monogram: "MC",
-  },
-  dez: {
-    id: "dez",
-    name: "Dez Rivera",
-    handle: "@dez",
-    title: "Countdown Host",
-    bio: "Keeps the chart honest. If it’s climbing, Dez is already on it.",
-    accent: "#A8B2C0",
-    monogram: "DR",
-  },
-  sol: {
-    id: "sol",
-    name: "Sol Park",
-    handle: "@sol",
-    title: "Morning Signal",
-    bio: "Soft open, bright spins — the voice that wakes the station up.",
-    accent: "#A8B0BC",
-    monogram: "SP",
-  },
-  rio: {
-    id: "rio",
-    name: "Rio Santos",
-    handle: "@rio",
-    title: "Midday Frequency",
-    bio: "Windows down energy. Pop heat, rhythm, and lunch-break pressure.",
-    accent: "#7A8494",
-    monogram: "RS",
-  },
-  jules: {
-    id: "jules",
-    name: "Jules Okonkwo",
-    handle: "@jules",
-    title: "Night Desk",
-    bio: "Alt edges and after-hours gravity. Headphones recommended.",
-    accent: "#6A7280",
-    monogram: "JO",
-  },
-  desk: {
-    id: "desk",
-    name: "The Desk",
-    handle: "@planetmp3",
-    title: "Station Desk",
-    bio: "Editorial continuity — Community Mix hours and station IDs.",
-    accent: "#5B6574",
-    monogram: "PM",
-  },
-};
-
-export function getHost(hostId) {
-  return VJ_HOSTS[hostId] || VJ_HOSTS.desk;
-}
+// ─── Hosts ───────────────────────────────────────────────────────────────────
+// No hosts. The station used to credit invented VJs ("Hosted by Sol Park") —
+// shows are the station's own programming blocks until real curators sign on.
+// Show-level `host` stays null; components that render a host hide themselves.
 
 // ─── Shows (weekly grid, local clock) ────────────────────────────────────────
 
@@ -118,7 +60,6 @@ export const STATION_SHOWS = [
     title: "Night Crash",
     shortTitle: "Night Crash",
     tagline: "Last call · one more cut",
-    hostId: "jules",
     startHour: 0,
     endHour: 5,
     mode: "energy",
@@ -126,18 +67,17 @@ export const STATION_SHOWS = [
     genres: ["Electronic", "Jazz", "R&B & Soul", "Hip-Hop"],
     scenes: ["ambient", "downtempo", "deep-house"],
     bumpers: [
-      "Still with Jules — Night Crash holds until sunrise.",
+      "Night Crash holds until sunrise.",
       "Dim lights. One more orbit.",
       "If you’re up, you’re in the right room.",
     ],
-    intro: "Night Crash with Jules. Headphones on.",
+    intro: "Night Crash. Headphones on.",
   },
   {
     id: "sunrise-signal",
     title: "Sunrise Signal",
     shortTitle: "Sunrise",
     tagline: "Soft open · first spins of the day",
-    hostId: "sol",
     startHour: 5,
     endHour: 9,
     mode: "energy",
@@ -145,90 +85,85 @@ export const STATION_SHOWS = [
     genres: ["Pop", "R&B & Soul", "Electronic", "Jazz", "Country & Folk"],
     scenes: ["soul", "house", "folk"],
     bumpers: [
-      "Sol on Sunrise Signal — easing the station awake.",
+      "Sunrise Signal — easing the station awake.",
       "Coffee volume. Windows cracking open.",
       "First spins of the day coming through.",
     ],
-    intro: "Sunrise Signal with Sol Park. Good morning.",
+    intro: "Sunrise Signal. Good morning.",
   },
   {
     id: "desk-live",
     title: "Desk Live",
     shortTitle: "Desk Live",
-    tagline: "Daytime open channel · Sol at the desk",
-    hostId: "sol",
+    tagline: "Daytime open channel",
     startHour: 9,
     endHour: 12,
     mode: "open",
     energy: [4, 7],
     genres: ["Pop", "Rock", "Hip-Hop", "Electronic", "R&B & Soul"],
     bumpers: [
-      "Desk Live — Sol keeping the daytime signal clean.",
+      "Desk Live — keeping the daytime signal clean.",
       "Request lines are warm. Stay locked.",
       "Mid-morning pressure, no filler.",
     ],
-    intro: "You’re on Desk Live with Sol.",
+    intro: "You’re on Desk Live.",
   },
   {
     id: "lunch-frequency",
     title: "Lunch Frequency",
     shortTitle: "Lunch Freq",
-    tagline: "Windows-down hour with Rio",
-    hostId: "rio",
+    tagline: "Windows-down hour",
     startHour: 12,
     endHour: 15,
     mode: "genre",
     energy: [5, 8],
     genres: ["Pop", "Latin", "Hip-Hop", "R&B & Soul", "Reggae"],
     bumpers: [
-      "Rio on Lunch Frequency — bags of heat before the bell.",
+      "Lunch Frequency — bags of heat before the bell.",
       "Eat fast. Play louder.",
       "Midday rhythm check in progress.",
     ],
-    intro: "Lunch Frequency with Rio Santos.",
+    intro: "Lunch Frequency. Volume up.",
   },
   {
     id: "after-school-chaos",
     title: "After School Chaos",
     shortTitle: "After School",
-    tagline: "Bags down · volume up · Maya’s desk",
-    hostId: "maya",
+    tagline: "Bags down · volume up",
     startHour: 15,
     endHour: 19,
     mode: "requests",
     energy: [5, 9],
     genres: ["Pop", "Hip-Hop", "Rock", "Electronic", "R&B & Soul"],
     bumpers: [
-      "Maya’s running After School Chaos — send it.",
+      "After School Chaos — send it.",
       "Request lines are lit. Keep ’em coming.",
       "School’s out. The chart doesn’t care.",
     ],
-    intro: "After School Chaos with Maya Chen. Let’s go.",
+    intro: "After School Chaos. Let’s go.",
   },
   {
     id: "most-requested-live",
     title: "Most Requested Live",
     shortTitle: "Most Requested",
-    tagline: "Prime-time countdown with Dez",
-    hostId: "dez",
+    tagline: "Prime-time countdown",
     startHour: 19,
     endHour: 22,
     mode: "countdown",
     energy: [4, 9],
     genres: [],
     bumpers: [
-      "Dez has the countdown — Most Requested Live.",
+      "Most Requested Live — the countdown is on.",
       "Appointment viewing. Don’t touch that dial.",
       "What’s #1 tonight? We’re finding out live.",
     ],
-    intro: "Most Requested Live with Dez Rivera. The chart is open.",
+    intro: "Most Requested Live. The chart is open.",
   },
   {
     id: "alt-frequency",
     title: "Alt Frequency",
     shortTitle: "Alt Freq",
-    tagline: "Edges, aliens, after-dark with Jules",
-    hostId: "jules",
+    tagline: "Edges, aliens, after-dark",
     startHour: 22,
     endHour: 24,
     mode: "scene",
@@ -236,11 +171,11 @@ export const STATION_SHOWS = [
     genres: ["Electronic", "Rock", "Hip-Hop", "Metal"],
     scenes: ["techno", "rock", "drum-and-bass", "uk-garage", "experimental"],
     bumpers: [
-      "Jules on Alt Frequency — left of the dial.",
+      "Alt Frequency — left of the dial.",
       "If it feels weird, it belongs here.",
       "Night edge programming in progress.",
     ],
-    intro: "Alt Frequency with Jules. Stay strange.",
+    intro: "Alt Frequency. Stay strange.",
   },
 ];
 
@@ -250,10 +185,9 @@ export function getShowById(id) {
 
 export function enrichShow(show) {
   if (!show) return null;
-  const host = getHost(show.hostId);
   return {
     ...show,
-    host,
+    host: null,
     timeLabel: formatShowRange(show.startHour, show.endHour),
     daypartHint: stationDaypart(new Date(2000, 0, 1, Math.floor(show.startHour))).label,
   };

@@ -2999,7 +2999,7 @@ export default function App() {
   const stationUpNext = setNext || (countdown[0]?.track?.id !== currentTrack?.id ? countdown[0]?.track : countdown[1]?.track) || null;
 
   // Sparse station ident between cuts — skip most changes so the live show
-  // sting (e.g. Most Requested / Dez) does not restage on every song.
+  // sting (e.g. Most Requested Live) does not restage on every song.
   useEffect(() => {
     if (!currentTrack?.id || !isPlayingRef.current) return;
     if (lastBumperTrackRef.current === currentTrack.id) return;
