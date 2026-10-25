@@ -7,15 +7,30 @@ import Icon from "../ui/Icon";
 
 /**
  * ChannelCard — square station tile.
- * Always the PS1 plate. Album sleeves stay off this rail.
+ * Shows the sleeve on air right now when there is one; the PS1 plate otherwise.
  * CH number is an LCD bug on the plate.
  */
 function ChannelArt({
   channel,
+  onAir = null,
   size,
   priority = false,
   eager = false,
 }) {
+  if (onAir?.albumCover) {
+    return (
+      <CoverImage
+        src={onAir.albumCover}
+        alt=""
+        width={size}
+        height={size}
+        priority={priority}
+        eager={eager}
+        wellColor={channel?.accent || undefined}
+        style={{ width: "100%", height: "100%", objectFit: "cover" }}
+      />
+    );
+  }
   const { src, focus } = resolveChannelArt(channel);
   if (src) {
     return (
@@ -38,6 +53,7 @@ function ChannelArt({
 
 export default function ChannelCard({
   channel,
+  onAir = null,
   active = false,
   onClick = null,
   size = Math.round(homeSpace.tileTicket),
@@ -50,11 +66,18 @@ export default function ChannelCard({
   const iceRing = `0 0 0 2px ${color.lcdSignal}, 0 0 18px ${color.lcdSignalGlow}, 0 16px 36px rgba(6,10,16,0.5), inset 0 1px 0 rgba(200,210,222,0.18), inset 0 -3px 8px rgba(6,10,16,0.5)`;
   /** Station ink — printed divider-card colour. Identity, never state. */
   const ink = channel.accent || color.accent;
+  const onAirLine = onAir?.title
+    ? [onAir.title, onAir.artist].filter(Boolean).join(" — ")
+    : "";
 
   return (
     <button
       type="button"
-      aria-label={`Tune ${channel.title} — ${channel.tagline}`}
+      aria-label={
+        onAirLine
+          ? `Tune ${channel.title} — ${active ? "playing" : "on now"}: ${onAirLine}`
+          : `Tune ${channel.title} — ${channel.tagline}`
+      }
       aria-pressed={active || undefined}
       onClick={(e) => {
         e.stopPropagation();
@@ -107,6 +130,7 @@ export default function ChannelCard({
         >
           <ChannelArt
             channel={channel}
+            onAir={onAir}
             size={width}
             priority={priority}
             eager={eager}
@@ -151,6 +175,38 @@ export default function ChannelCard({
           >
             {dial.replace("CH-", "")}
           </span>
+
+          {!active && onAirLine && (
+            <span
+              className="pmp-channel-onnow"
+              style={{
+                position: "absolute",
+                top: 10,
+                left: 10,
+                zIndex: 2,
+                height: 20,
+                padding: "0 7px",
+                borderRadius: 3,
+                background: "rgba(12,15,19,0.78)",
+                border: "1px solid rgba(200,210,222,0.22)",
+                color: color.ink,
+                fontFamily: fontMono,
+                fontSize: 11,
+                fontWeight: 700,
+                letterSpacing: 0.6,
+                textTransform: "uppercase",
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 5,
+              }}
+            >
+              <span
+                aria-hidden="true"
+                style={{ width: 6, height: 6, borderRadius: 3, background: color.alert, flexShrink: 0 }}
+              />
+              Now
+            </span>
+          )}
 
           {active && (
             <span
@@ -238,13 +294,13 @@ export default function ChannelCard({
           display: "block",
           marginTop: 2,
           ...type.tileMeta,
-          color: color.muted,
+          color: onAirLine ? color.body : color.muted,
           overflow: "hidden",
           textOverflow: "ellipsis",
           whiteSpace: "nowrap",
         }}
       >
-        {channel.tagline}
+        {onAirLine || channel.tagline}
       </span>
     </button>
   );

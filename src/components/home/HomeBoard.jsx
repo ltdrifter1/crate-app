@@ -24,6 +24,10 @@ export default function HomeBoard({
   onRequest = null,
   first = false,
   delay = 0.05,
+  /** Two-column list on wide screens; off in the desktop side column. */
+  columns = true,
+  /** Drop the gutter when the board sits inside an already-padded column. */
+  flush = false,
 }) {
   const [, bump] = useReducer((n) => n + 1, 0);
   const entries = useMemo(
@@ -58,9 +62,10 @@ export default function HomeBoard({
         title="The Board"
         subtitle="Top 5 on the station"
         action={onOpenCharts ? { label: "Full chart", onClick: onOpenCharts } : null}
+        flush={flush}
       />
-      <div style={{ padding: `0 ${homeSpace.gutter}px` }}>
-        <BoardList label="Top 5" columns>
+      <div style={{ padding: flush ? 0 : `0 ${homeSpace.gutter}px` }}>
+        <BoardList label="Top 5" columns={columns}>
           {entries.map((e, i) => (
             <BoardRow
               key={`${e.id}-${e.rank}`}

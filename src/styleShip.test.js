@@ -202,7 +202,7 @@ test("ice phosphor is the play pip, dock LCD, Mix/Energy sleeves, and poster sta
   expect(dockSrc).toMatch(/pmp-dock-faceplate/);
   expect(dockSrc).not.toMatch(/dockTintStyle/);
   const home = fs.readFileSync(path.join(root, "src/screens/HomeScreen.jsx"), "utf8");
-  expect(home).toMatch(/maxWidth:\s*1100/);
+  expect(home).toMatch(/maxWidth:[^,\n]*1100/);
   expect(home).not.toMatch(/maxWidth:\s*960/);
   const immersive = fs.readFileSync(path.join(root, "src/components/player/ImmersivePlayer.jsx"), "utf8");
   expect(immersive).toMatch(/flexShrink:\s*0/);

@@ -394,7 +394,7 @@ body::before { display: none; }
 }
 .pmp-rabbit-slot__word {
   font-family: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 800;
   letter-spacing: 0.14em;
   text-transform: uppercase;
@@ -407,6 +407,16 @@ body::before { display: none; }
 }
 .pmp-rabbit-slot__spacer {
   display: block;
+}
+.pmp-rabbit-slot__hint {
+  font-family: "Outfit", system-ui, sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1;
+  padding-top: 2px;
+  color: #848E9D;
+  white-space: nowrap;
+  user-select: none;
 }
 .pmp-timeline {
   flex: 1 0 100%;

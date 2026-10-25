@@ -59,6 +59,7 @@ export function HardwareIconButton({
         onClick?.(e);
       }}
       aria-label={label}
+      title={label}
       aria-pressed={pressed || active || undefined}
       className={`pmp-hw-key${lit ? " pmp-hw-key--lit" : ""}`}
       style={{
