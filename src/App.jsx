@@ -45,7 +45,7 @@ import { bindMediaSessionHandlers, syncMediaSession, syncMediaPosition } from ".
 import { dismissBootSplash } from "./lib/bootSplash";
 import { peekAuthSession } from "./lib/authBoot";
 import { explainPick } from "./lib/explain";
-import { fetchCatalogTracksFromFirestore, fetchCatalogCdn, fetchHomeLite, isCatalogCacheFresh, isNewerCatalog, loadCatalogFirstPaint, writeCatalogIdb, HOME_LITE_LIMIT } from "./lib/catalogLoad";
+import { fetchCatalogTracksFromFirestore, fetchCatalogCdn, CATALOG_CDN_BACKGROUND_MS, fetchHomeLite, isCatalogCacheFresh, isNewerCatalog, loadCatalogFirstPaint, writeCatalogIdb, HOME_LITE_LIMIT } from "./lib/catalogLoad";
 import { adoptCatalogTracks, hydrateCatalogTracks, patchTrackById } from "./lib/catalogHydrate";
 import { runAfterPaint, runAfterDelay, runWhenIdle } from "./lib/afterPaint";
 import { slugify, findArtist, findAlbum } from "./lib/catalog";
@@ -1360,7 +1360,8 @@ export default function App() {
     if (!background) setTracksLoading(true);
     setTracksLoadError(null);
     try {
-      const cdn = await fetchCatalogCdn();
+      // Foreground: a short wait, then the lite shelf. Background: the whole download.
+      const cdn = await fetchCatalogCdn(background ? { timeoutMs: CATALOG_CDN_BACKGROUND_MS } : undefined);
       if (cdn?.tracks?.length) {
         catalogFullRef.current = true;
         const liked = applyLikedFlags(cdn.tracks);
@@ -1460,7 +1461,7 @@ export default function App() {
         if (first.source === "cdn") {
           writeCatalogCache(list, { version: first.version, source: "cdn" });
         } else if (!isCatalogCacheFresh(first)) {
-          fetchCatalogCdn().then((cdn) => {
+          fetchCatalogCdn({ timeoutMs: CATALOG_CDN_BACKGROUND_MS }).then((cdn) => {
             if (cancelled || !cdn?.tracks?.length) {
               if (!isCatalogCacheFresh(first)) scheduleFullCatalog(8000);
               return;

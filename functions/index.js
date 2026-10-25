@@ -33,6 +33,7 @@ const {
 } = require("./lib/listening");
 const { publishHomeLite } = require("./lib/homeLite");
 const { publishCatalogJson } = require("./lib/catalogJson");
+const { createCoalescedRunner } = require("./lib/coalesce");
 const { moderateNewMessage } = require("./lib/stationChat");
 
 if (!admin.apps.length) {
@@ -459,35 +460,37 @@ exports.spendClubCredit = onCall(
 );
 
 /**
- * Keep catalog/homeLite in sync so Home cold-boot is one getDoc, not getDocs(tracks).
- * Debounced by skip-if-recent on the doc itself inside publishHomeLite callers.
+ * Keep catalog/homeLite and catalog/v1.json in sync with tracks so cold boot
+ * is one getDoc / one CDN fetch, not getDocs(tracks).
+ * A bulk upload writes thousands of tracks: writes landing within 8s share one
+ * rebuild, and each invocation awaits it (a timer left running after the
+ * handler returns may never fire on 2nd-gen functions).
  */
-let homeLiteTimer = null;
-function scheduleHomeLiteRebuild() {
-  if (homeLiteTimer) return;
-  homeLiteTimer = setTimeout(async () => {
-    homeLiteTimer = null;
-    const db = admin.firestore();
-    try {
-      await publishHomeLite(db, { FieldValue: admin.firestore.FieldValue });
-    } catch (err) {
-      console.error("rebuildHomeLite failed", err);
-    }
-    try {
-      await publishCatalogJson(db, admin.storage().bucket());
-    } catch (err) {
-      console.error("publishCatalogJson failed", err);
-    }
-  }, 8000);
-}
+const scheduleCatalogRebuild = createCoalescedRunner(async () => {
+  const db = admin.firestore();
+  try {
+    await publishHomeLite(db, { FieldValue: admin.firestore.FieldValue });
+  } catch (err) {
+    console.error("rebuildHomeLite failed", err);
+  }
+  try {
+    const { trackCount } = await publishCatalogJson(db, admin.storage().bucket());
+    console.log(`catalog/v1.json published (${trackCount} tracks)`);
+  } catch (err) {
+    console.error("publishCatalogJson failed", err);
+  }
+}, 8000);
 
 exports.rebuildHomeLite = onDocumentWritten(
   {
     document: "tracks/{trackId}",
     region: FUNCTIONS_REGION,
+    // Reads the whole tracks collection and gzips it — more than the 256MiB / 60s defaults.
+    memory: "1GiB",
+    timeoutSeconds: 300,
   },
   async () => {
-    scheduleHomeLiteRebuild();
+    await scheduleCatalogRebuild();
   }
 );
 
