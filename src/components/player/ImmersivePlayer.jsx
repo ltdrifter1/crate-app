@@ -1,7 +1,11 @@
 /**
- * ImmersivePlayer — alternate-2003 MP3 device.
- * Artwork window + LCD (title, BPM, Camelot, seek) + hardware transport
- * with Pace slider. Booth tools stay in a drawer.
+ * ImmersivePlayer — the channel, full screen.
+ *
+ * Same grammar as the Home screen: the sleeve fills a broadcast frame, LIVE
+ * and the CH ident sit in the corners, the title is a lower third cut into
+ * the picture, the callsign watermarks the frame. Below it a flat deck:
+ * timeline, transport, Slow / Fast, up next, volume, the crawl. Booth tools
+ * stay in a drawer. No blurred backdrop, no fake meters, no device plate.
  */
 import { useEffect, useRef, useState } from "react";
 import {
@@ -11,81 +15,36 @@ import {
   color,
   motion,
   glass,
-  artShadow,
-  aluminumGradient,
   hardware,
   mtv,
   radio,
   y2k,
 } from "../../theme";
-import { hexToRgbStr } from "../../lib/harmony";
 import { usePlayerPlayback } from "../../usePlayerPlayback";
 import { useIsPlaying } from "../../usePlayerTransport";
 import Icon from "../ui/Icon";
+import { DedicationFlash } from "../station/StationChrome";
+import ChannelIdent from "../station/ChannelIdent";
+import { getSceneChannel } from "../../lib/sceneChannels";
 import {
-  DedicationFlash,
-  HypnoVisualizer,
-  StationTicker,
-} from "../station/StationChrome";
+  STATION_CALLSIGN,
+  channelBugLine,
+  resolveChannelBug,
+} from "../../lib/mtvChannel";
 import VideoStage from "../station/VideoStage";
 import SceneSurfRail from "../station/SceneSurfRail";
 import { trackHasVideo } from "../../lib/video";
 import CoverImage from "../ui/CoverImage";
 import {
-  DeviceCatalogMark,
   HardwareIconButton as ChromeIconButton,
   LcdMetaLine,
   LcdSeek as ChromeSeek,
-  LcdArtist,
   formatBitrate,
   trackLcdBits,
 } from "./DeviceChrome";
 import PlayerDeck from "./PlayerDeck";
 
 const EASE = motion.ease;
-
-function PlayerNowPlaying() {
-  return (
-    <div
-      style={{
-        display: "inline-flex",
-        alignItems: "center",
-        gap: 8,
-        maxWidth: 200,
-        padding: "7px 14px",
-        borderRadius: 980,
-        background: "rgba(168,180,198,0.08)",
-        border: "1px solid rgba(168,180,198,0.22)",
-        pointerEvents: "none",
-      }}
-    >
-      <span
-        aria-hidden="true"
-        style={{
-          width: 7,
-          height: 7,
-          borderRadius: "50%",
-          background: color.lcdSignal,
-          boxShadow: `0 0 0 3px ${color.lcdSignalSoft}`,
-          flexShrink: 0,
-        }}
-      />
-      <span
-        style={{
-          fontFamily: fontMono,
-          fontSize: 11,
-          fontWeight: 800,
-          letterSpacing: 1.2,
-          textTransform: "uppercase",
-          color: color.lcdSignal,
-          flexShrink: 0,
-        }}
-      >
-        Now playing
-      </span>
-    </div>
-  );
-}
 
 /** Quiet booth tools — dedicate, plus the track's real request and play counts. */
 function BoothStrip({
@@ -225,7 +184,6 @@ export default function ImmersivePlayer({
 }) {
   const { progress, duration } = usePlayerPlayback();
   const isPlaying = useIsPlaying();
-  const [artLoaded, setArtLoaded] = useState(false);
   const [showMore, setShowMore] = useState(false);
   const [showBooth, setShowBooth] = useState(false);
   const moreRef = useRef(null);
@@ -234,7 +192,6 @@ export default function ImmersivePlayer({
 
   useEffect(() => {
     setShowMore(false);
-    setArtLoaded(false);
   }, [currentTrack?.id]);
 
   useEffect(() => {
@@ -248,13 +205,17 @@ export default function ImmersivePlayer({
 
   if (!currentTrack) return null;
 
-  const rgb = hexToRgbStr(currentTrack.color);
+  const sceneChannel = sceneChannelsActiveId ? getSceneChannel(sceneChannelsActiveId) : null;
+  const hasIdent = !!(sceneChannel || liveShow);
+  const channelBug = hasIdent ? resolveChannelBug({ sceneChannel, show: liveShow }) : null;
+  const bugLine = channelBug ? channelBugLine(channelBug) : "";
   const metaBits = trackLcdBits(currentTrack, [
     formatBitrate(currentTrack),
     countdownRank ? `#${countdownRank}` : null,
     hasVideo ? "Video" : null,
     liveShow?.host?.name || liveShow?.host?.handle || null,
   ]);
+  const wellColor = currentTrack.color || "#0E1116";
 
   const circleChrome = {
     width: 42,
@@ -272,68 +233,22 @@ export default function ImmersivePlayer({
     flexShrink: 0,
   };
 
+  const shadowText = "0 1px 10px rgba(6,8,12,0.6)";
+
   return (
     <div
+      className="pmp-player"
       style={{
         position: "fixed",
         inset: 0,
         zIndex: 100,
         overflow: "hidden",
-        background: color.canvas,
+        background: "#07090C",
         display: "flex",
         flexDirection: "column",
       }}
     >
-      {/* Atmosphere — dark chassis + sleeve bloom */}
-      <div aria-hidden="true" style={{ position: "absolute", inset: 0, background: aluminumGradient() }} />
-      {currentTrack.albumCover && (
-        <div
-          aria-hidden="true"
-          style={{
-            position: "absolute",
-            inset: "-8%",
-            backgroundImage: `url(${currentTrack.albumCover})`,
-            backgroundSize: "cover",
-            backgroundPosition: "center",
-            filter: "blur(48px) saturate(1.08)",
-            opacity: artLoaded ? 0.38 : 0.12,
-            transform: isPlaying ? "scale(1.02)" : "scale(1)",
-            transition: "opacity 0.35s ease, transform 0.35s ease",
-          }}
-        />
-      )}
-      <div
-        aria-hidden="true"
-        style={{
-          position: "absolute",
-          inset: 0,
-          background: `
-            radial-gradient(ellipse 85% 50% at 50% 16%, rgba(${rgb},0.14) 0%, transparent 55%),
-            radial-gradient(ellipse 60% 40% at 50% 70%, ${y2k.chromeWash} 0%, transparent 70%),
-            linear-gradient(180deg, rgba(0,0,0,0.28) 0%, transparent 38%, rgba(0,0,0,0.32) 78%, rgba(0,0,0,0.58) 100%)
-          `,
-        }}
-      />
-      <div
-        aria-hidden="true"
-        style={{
-          position: "absolute",
-          top: 0,
-          left: 0,
-          right: 0,
-          height: 120,
-          background: "linear-gradient(180deg, rgba(0,0,0,0.45) 0%, transparent 100%)",
-          pointerEvents: "none",
-          zIndex: 1,
-        }}
-      />
-
-      {!hasVideo && <HypnoVisualizer playing={isPlaying} colorHex={rgb} />}
-      {hasVideo && (
-        <VideoStage track={currentTrack} playing={isPlaying} progress={progress} dim={false} />
-      )}
-
-      {/* Top chrome */}
+      {/* Top chrome — close, booth, more. No plate, no pill. */}
       <div
         style={{
           position: "relative",
@@ -341,7 +256,7 @@ export default function ImmersivePlayer({
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
-          padding: "calc(12px + env(safe-area-inset-top, 0px)) 18px 0",
+          padding: "calc(10px + env(safe-area-inset-top, 0px)) 16px 10px",
           flexShrink: 0,
           gap: 12,
         }}
@@ -352,9 +267,6 @@ export default function ImmersivePlayer({
           </svg>
         </button>
 
-        <PlayerNowPlaying />
-
-        <DeviceCatalogMark />
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
           {hasBoothTools && (
             <button
@@ -411,8 +323,6 @@ export default function ImmersivePlayer({
                   padding: "6px 0",
                   zIndex: 8,
                   boxShadow: `inset 0 1px 0 ${glass.highlight}, 0 18px 48px rgba(0,0,0,0.5)`,
-                  backdropFilter: glass.blur,
-                  WebkitBackdropFilter: glass.blur,
                   animation: `rise 0.22s ${EASE} both`,
                 }}
               >
@@ -499,7 +409,6 @@ export default function ImmersivePlayer({
                         position: "relative",
                         background: crossfadeOn ? color.accent : "rgba(30,36,44,0.92)",
                         transition: `background ${motion.base} ${EASE}`,
-                        boxShadow: crossfadeOn ? `0 0 10px ${y2k.chromeGlow}` : "none",
                       }}
                     >
                       <span
@@ -518,282 +427,322 @@ export default function ImmersivePlayer({
                     </span>
                   </button>
                 )}
-                <div style={{ padding: "10px 16px 14px" }}>
-                  <div
-                    style={{
-                      fontSize: 11,
-                      fontWeight: 700,
-                      letterSpacing: 1.3,
-                      color: color.muted,
-                      fontFamily: fontMono,
-                      textTransform: "uppercase",
-                      marginBottom: 10,
-                    }}
-                  >
-                    Volume
-                  </div>
-                  <ChromeSeek value={volume} max={1} onChange={onVolumeChange} label="Volume level" variant="volume" />
-                </div>
               </div>
             )}
           </div>
         </div>
       </div>
 
-      {tickerText && (
-        <div style={{ position: "relative", zIndex: 2, marginTop: 8, flexShrink: 0, opacity: 0.7 }}>
-          <StationTicker text={tickerText} />
-        </div>
-      )}
-
-      {/* Center — sleeve + LCD (row on desktop) */}
+      {/* ── The screen ─────────────────────────────────────────────── */}
       <div
-        className="pmp-device-stage"
+        className="pmp-player-screen"
+        key={currentTrack.id}
         style={{
           position: "relative",
-          zIndex: 2,
-          flex: 1,
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          justifyContent: "center",
-          padding: "18px 22px 12px",
-          minHeight: 0,
-          gap: 16,
-          margin: "0 16px",
+          flexShrink: 0,
+          overflow: "hidden",
+          borderRadius: 16,
+          background: wellColor,
+          animation: `trackSwap 0.4s ${EASE} both`,
         }}
       >
-        {dedicationFlash && (
-          <DedicationFlash dedication={dedicationFlash} onDone={onClearDedication} />
-        )}
-
-        {/* Jewel-case sleeve — dominant stage */}
-        <div
-          className="pmp-device-sleeve pmp-sleeve-crossfade"
-          key={currentTrack.id}
-          style={{
-            position: "relative",
-            width: hasVideo ? "min(42vw, 168px)" : "min(72vw, 520px)",
-            aspectRatio: "1 / 1",
-            borderRadius: 16,
-            boxShadow: isPlaying ? artShadow.raised : artShadow.quiet,
-            animation: isPlaying
-              ? `coverSettle 1.1s ${EASE} both, trackSwap 0.45s ${EASE} both`
-              : `trackSwap 0.45s ${EASE} both`,
-            opacity: hasVideo ? 0.94 : 1,
-            flexShrink: 0,
-            minHeight: 0,
-            maxHeight: hasVideo ? "28vh" : "52vh",
-          }}
-        >
-          <div
+        {hasVideo ? (
+          <VideoStage track={currentTrack} playing={isPlaying} progress={progress} dim={false} />
+        ) : currentTrack.albumCover ? (
+          <CoverImage
+            src={currentTrack.albumCover}
+            alt=""
+            width={1200}
+            height={1200}
+            sizes="(min-width: 860px) 1100px, 100vw"
+            priority
+            objectPosition="50% 32%"
             style={{
-              position: "relative",
+              position: "absolute",
+              inset: 0,
               width: "100%",
               height: "100%",
-              borderRadius: 16,
-              overflow: "hidden",
-              background: y2k.charcoalRaised,
-              border: "1px solid rgba(255,255,255,0.10)",
+              objectFit: "cover",
+              objectPosition: "50% 32%",
+              transform: isPlaying ? "scale(1.02)" : "scale(1)",
+              transition: "transform 1.2s cubic-bezier(0.22, 1, 0.36, 1)",
             }}
-          >
-            {currentTrack.albumCover ? (
-              <CoverImage
-                src={currentTrack.albumCover}
-                alt=""
-                width={360}
-                height={360}
-                sizes="(max-width: 480px) 84vw, 360px"
-                priority
-                onLoad={() => setArtLoaded(true)}
-              />
-            ) : (
-              <div
-                style={{
-                  width: "100%",
-                  height: "100%",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  background: y2k.artGradient,
-                  fontSize: 72,
-                  fontWeight: 800,
-                  color: "rgba(232,236,242,0.35)",
-                  letterSpacing: -4,
-                  fontFamily: fontPoster,
-                }}
-              >
-                {(currentTrack.title || "P")[0]}
-              </div>
-            )}
-            <div
-              aria-hidden="true"
-              style={{
-                position: "absolute",
-                inset: 0,
-                background: `
-                  linear-gradient(135deg, rgba(168,180,198,0.08) 0%, transparent 40%),
-                  linear-gradient(180deg, transparent 55%, rgba(0,0,0,0.35) 100%)
-                `,
-                pointerEvents: "none",
-              }}
-            />
-          </div>
-        </div>
-
-        {/* Title hierarchy */}
-        <div
-          className="pmp-hero-id"
-          style={{
-            width: "100%",
-            maxWidth: 720,
-            animation: `trackSwap 0.35s ${EASE} both`,
-          }}
-        >
-         <div style={{ position: "relative", padding: "2px 0 2px 16px" }}>
-          <span
+          />
+        ) : (
+          <div
             aria-hidden="true"
             style={{
               position: "absolute",
-              left: 0,
-              top: 3,
-              bottom: 3,
-              width: 4,
-              background: isPlaying ? mtv.hot : color.faint,
-            }}
-          />
-          <div
-            className={currentTrack.title?.length > 22 ? "pmp-lcd-marquee" : undefined}
-            style={{
-              fontFamily: fontPoster,
-              fontSize: "clamp(32px, 9vw, 50px)",
+              inset: 0,
+              display: "grid",
+              placeItems: "center",
+              background: y2k.artGradient,
+              fontSize: 120,
               fontWeight: 800,
-              letterSpacing: 0.3,
-              textTransform: "uppercase",
-              color: color.ink,
-              lineHeight: 1,
-              marginBottom: 6,
-              overflow: "hidden",
-              whiteSpace: currentTrack.title?.length > 22 ? "nowrap" : undefined,
-              display: currentTrack.title?.length > 22 ? "block" : "-webkit-box",
-              WebkitLineClamp: currentTrack.title?.length > 22 ? undefined : 2,
-              WebkitBoxOrient: currentTrack.title?.length > 22 ? undefined : "vertical",
-              paddingRight: 14,
+              color: "rgba(232,236,242,0.28)",
+              letterSpacing: -6,
+              fontFamily: fontPoster,
             }}
           >
-            <span>{currentTrack.title}</span>
-            {currentTrack.title?.length > 22 ? (
-              <span aria-hidden="true">{currentTrack.title}</span>
-            ) : null}
+            {(currentTrack.title || "P")[0]}
           </div>
-          {onOpenArtist ? (
-            <button
-              type="button"
-              onClick={() => onOpenArtist(currentTrack.artist)}
+        )}
+
+        <div
+          aria-hidden="true"
+          className="pmp-hero-wash"
+          style={{
+            position: "absolute",
+            inset: 0,
+            zIndex: 1,
+            pointerEvents: "none",
+            background: `
+              linear-gradient(180deg, rgba(6,8,12,0.42) 0%, rgba(6,8,12,0) 26%),
+              linear-gradient(180deg, rgba(6,8,12,0) 40%, rgba(6,8,12,0.6) 68%, rgba(6,8,12,0.94) 100%)
+            `,
+          }}
+        />
+
+        {dedicationFlash && (
+          <div
+            style={{
+              position: "absolute",
+              inset: 0,
+              zIndex: 4,
+              display: "flex",
+              alignItems: "flex-start",
+              justifyContent: "center",
+              padding: "56px 16px 0",
+              pointerEvents: "none",
+            }}
+          >
+            <div style={{ pointerEvents: "auto", maxWidth: 420, width: "100%" }}>
+              <DedicationFlash dedication={dedicationFlash} onDone={onClearDedication} />
+            </div>
+          </div>
+        )}
+
+        {/* Corner bugs */}
+        <div
+          style={{
+            position: "absolute",
+            zIndex: 2,
+            top: 0,
+            left: 0,
+            right: 0,
+            display: "flex",
+            alignItems: "flex-start",
+            justifyContent: "space-between",
+            gap: 10,
+            padding: "14px 14px 0",
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0 }}>
+            {(isRadioMode || liveShow) && (
+              <span
+                className="pmp-live-bug"
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 7,
+                  padding: "5px 9px 5px 8px",
+                  borderRadius: 2,
+                  background: mtv.hot,
+                  color: "#fff",
+                  fontFamily: fontPoster,
+                  fontSize: 12,
+                  fontWeight: 800,
+                  letterSpacing: 0.18,
+                  boxShadow: "0 4px 14px rgba(6,8,12,0.4)",
+                }}
+              >
+                <span
+                  aria-hidden="true"
+                  className="pmp-live-dot"
+                  style={{ width: 6, height: 6, borderRadius: "50%", background: "#fff" }}
+                />
+                LIVE
+              </span>
+            )}
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginLeft: "auto", minWidth: 0 }}>
+            {hasVideo && (
+              <span
+                aria-hidden="true"
+                style={{
+                  padding: "5px 9px",
+                  borderRadius: 2,
+                  border: "1px solid rgba(255,255,255,0.35)",
+                  background: "rgba(6,8,12,0.45)",
+                  fontFamily: fontPoster,
+                  fontSize: 12,
+                  fontWeight: 800,
+                  letterSpacing: mtv.caps,
+                  textTransform: "uppercase",
+                  color: color.ink,
+                }}
+              >
+                Video
+              </span>
+            )}
+            {channelBug && (
+              <ChannelIdent bugLine={bugLine} slug={channelBug.slug} ink={sceneChannel?.accent || null} />
+            )}
+          </div>
+        </div>
+
+        {/* Lower third */}
+        <div
+          className="pmp-hero-id"
+          style={{
+            position: "absolute",
+            zIndex: 2,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            padding: "0 18px 16px",
+            display: "flex",
+            alignItems: "flex-end",
+            justifyContent: "space-between",
+            gap: 16,
+          }}
+        >
+          <div style={{ position: "relative", minWidth: 0, flex: 1, paddingLeft: 14 }}>
+            <span
+              aria-hidden="true"
               style={{
-                background: "none",
-                border: "none",
-                padding: 0,
-                color: color.body,
-                fontFamily: fontDisplay,
-                fontSize: 17,
-                fontWeight: 600,
-                cursor: "pointer",
-                letterSpacing: -0.2,
+                position: "absolute",
+                left: 0,
+                top: 4,
+                bottom: 4,
+                width: 4,
+                background: isPlaying ? mtv.hot : "rgba(255,255,255,0.55)",
               }}
-            >
-              {currentTrack.artist}
-            </button>
-          ) : (
-            <LcdArtist>{currentTrack.artist}</LcdArtist>
-          )}
-
-          <div style={{ marginTop: 8 }}>
-            <LcdMetaLine bits={metaBits} />
-          </div>
-         </div>
-
-          {upNextTrack && (
-            <button
-              type="button"
-              onClick={() => onShowQueue?.()}
+            />
+            <div
+              className="pmp-hero-title"
               style={{
-                marginTop: 12,
-                paddingTop: 10,
-                paddingLeft: 16,
-                width: "100%",
-                display: "block",
-                textAlign: "left",
-                background: "none",
-                border: "none",
-                borderTop: "1px solid rgba(168,180,198,0.14)",
-                cursor: onShowQueue ? "pointer" : "default",
-                fontFamily: fontMono,
-                fontSize: 11,
-                fontWeight: 650,
-                letterSpacing: 0.08,
+                fontFamily: fontPoster,
+                fontSize: "clamp(34px, 9.5vw, 64px)",
+                fontWeight: 800,
+                letterSpacing: 0.2,
+                lineHeight: 0.94,
                 textTransform: "uppercase",
-                color: color.lcdMute,
-                maxWidth: "100%",
+                color: "#fff",
+                textShadow: "0 2px 18px rgba(6,8,12,0.55)",
                 overflow: "hidden",
                 textOverflow: "ellipsis",
-                whiteSpace: "nowrap",
+                display: "-webkit-box",
+                WebkitLineClamp: 2,
+                WebkitBoxOrient: "vertical",
+                maxWidth: "min(100%, 20ch)",
+                paddingRight: 8,
               }}
             >
-              <span style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0 }}>
-                {upNextTrack.albumCover ? (
-                  <span
-                    aria-hidden="true"
-                    style={{
-                      width: 34,
-                      height: 34,
-                      flexShrink: 0,
-                      borderRadius: 6,
-                      backgroundImage: `url(${upNextTrack.albumCover})`,
-                      backgroundSize: "cover",
-                      backgroundPosition: "center",
-                      border: "1px solid rgba(200,210,222,0.22)",
-                    }}
-                  />
-                ) : null}
-                <span style={{ minWidth: 0, display: "flex", flexDirection: "column", gap: 2 }}>
-                  <span style={{ color: color.lcdSignal }}>Up next</span>
-                  <span style={{ overflow: "hidden", textOverflow: "ellipsis" }}>
-                    {upNextTrack.title}
-                    {upNextTrack.artist ? ` — ${upNextTrack.artist}` : ""}
-                  </span>
-                </span>
-              </span>
-            </button>
-          )}
+              {currentTrack.title}
+            </div>
+            {onOpenArtist ? (
+              <button
+                type="button"
+                onClick={() => onOpenArtist(currentTrack.artist)}
+                style={{
+                  background: "none",
+                  border: "none",
+                  padding: 0,
+                  marginTop: 7,
+                  color: "rgba(255,255,255,0.92)",
+                  fontFamily: fontDisplay,
+                  fontSize: 17,
+                  fontWeight: 600,
+                  cursor: "pointer",
+                  letterSpacing: -0.2,
+                  textShadow: shadowText,
+                  maxWidth: "100%",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  whiteSpace: "nowrap",
+                  textAlign: "left",
+                }}
+              >
+                {currentTrack.artist}
+              </button>
+            ) : (
+              <div
+                style={{
+                  marginTop: 7,
+                  color: "rgba(255,255,255,0.92)",
+                  fontFamily: fontDisplay,
+                  fontSize: 17,
+                  fontWeight: 600,
+                  letterSpacing: -0.2,
+                  textShadow: shadowText,
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                {currentTrack.artist}
+              </div>
+            )}
+            <div
+              style={{
+                marginTop: 8,
+                textShadow: shadowText,
+                whiteSpace: "nowrap",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+              }}
+            >
+              <LcdMetaLine bits={metaBits} on="lcd" inline />
+            </div>
+          </div>
+          <span
+            aria-hidden="true"
+            className="pmp-hero-callsign"
+            style={{
+              flexShrink: 0,
+              fontFamily: fontPoster,
+              fontSize: 13,
+              fontWeight: 800,
+              letterSpacing: 0.28,
+              textTransform: "uppercase",
+              color: "rgba(255,255,255,0.55)",
+              textShadow: shadowText,
+              paddingBottom: 2,
+            }}
+          >
+            {STATION_CALLSIGN}
+          </span>
         </div>
       </div>
 
-      {/* Booth drawer — demoted secondary tools */}
-      {showBooth && hasBoothTools && (
-        <div
-          style={{
-            position: "relative",
-            zIndex: 3,
-            flexShrink: 0,
-            padding: "0 16px 10px",
-            animation: `rise 0.28s ${EASE} both`,
-          }}
-        >
+      {/* ── The deck ───────────────────────────────────────────────── */}
+      <div
+        className="pmp-player-deck"
+        style={{
+          position: "relative",
+          zIndex: 3,
+          flexShrink: 0,
+          display: "flex",
+          flexDirection: "column",
+          padding: "8px 16px 0",
+        }}
+      >
+        {showBooth && hasBoothTools && (
           <div
             style={{
-              maxWidth: 720,
-              margin: "0 auto",
+              flexShrink: 0,
+              width: "min(100%, 1100px)",
+              margin: "0 auto 8px",
               padding: "12px 14px 14px",
               borderRadius: 16,
               background: radio.moduleFace,
               border: radio.border,
               boxShadow: radio.moduleShadow,
-              backdropFilter: glass.blurSoft,
-              WebkitBackdropFilter: glass.blurSoft,
               display: "flex",
               flexDirection: "column",
               gap: 10,
+              animation: `rise 0.28s ${EASE} both`,
             }}
           >
             {sessionArc?.energies?.length > 1 && (
@@ -825,10 +774,7 @@ export default function ImmersivePlayer({
                 </svg>
               </div>
             )}
-            <BoothStrip
-              track={currentTrack}
-              onDedicate={onDedicate}
-            />
+            <BoothStrip track={currentTrack} onDedicate={onDedicate} />
             {onTuneSceneChannel && (
               <SceneSurfRail
                 tracks={tracks}
@@ -838,23 +784,13 @@ export default function ImmersivePlayer({
               />
             )}
           </div>
-        </div>
-      )}
+        )}
 
-      {/* Transport — same device chassis */}
-      <div
-        style={{
-          position: "relative",
-          zIndex: 3,
-          padding: "0 16px calc(16px + env(safe-area-inset-bottom, 0px))",
-          flexShrink: 0,
-        }}
-      >
         <div
           style={{
-            width: "min(92vw, 1100px)",
+            width: "min(100%, 1100px)",
             margin: "0 auto",
-            padding: "10px 4px 8px",
+            flexShrink: 0,
             animation: `dockRise 0.5s ${EASE} both`,
           }}
         >
@@ -892,23 +828,101 @@ export default function ImmersivePlayer({
             }
           />
 
+          {/* Up next + volume — one quiet row under the keys */}
           <div
+            className="pmp-player-foot"
             style={{
               display: "flex",
               alignItems: "center",
-              justifyContent: "space-between",
-              marginTop: 10,
+              gap: 12,
+              marginTop: 8,
               padding: "0 4px",
-              gap: 8,
+              minWidth: 0,
             }}
           >
+            {upNextTrack ? (
+              <button
+                type="button"
+                onClick={() => onShowQueue?.()}
+                aria-label={`Up next: ${upNextTrack.title}`}
+                style={{
+                  flex: "1 1 50%",
+                  minWidth: 0,
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 10,
+                  padding: "6px 10px 6px 6px",
+                  borderRadius: 10,
+                  background: "rgba(255,255,255,0.05)",
+                  border: "1px solid rgba(255,255,255,0.07)",
+                  cursor: onShowQueue ? "pointer" : "default",
+                  textAlign: "left",
+                  color: color.ink,
+                }}
+              >
+                <span
+                  aria-hidden="true"
+                  style={{
+                    width: 32,
+                    height: 32,
+                    flexShrink: 0,
+                    borderRadius: 4,
+                    overflow: "hidden",
+                    background: color.surfaceRaised,
+                    border: "1px solid rgba(200,210,222,0.18)",
+                  }}
+                >
+                  {upNextTrack.albumCover ? (
+                    <CoverImage
+                      src={upNextTrack.albumCover}
+                      alt=""
+                      width={32}
+                      height={32}
+                      style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                    />
+                  ) : null}
+                </span>
+                <span style={{ minWidth: 0, display: "flex", flexDirection: "column", gap: 1 }}>
+                  <span
+                    style={{
+                      fontFamily: fontPoster,
+                      fontSize: 11,
+                      fontWeight: 800,
+                      letterSpacing: mtv.caps,
+                      textTransform: "uppercase",
+                      color: color.muted,
+                    }}
+                  >
+                    Up next
+                  </span>
+                  <span
+                    style={{
+                      fontSize: 13,
+                      fontWeight: 600,
+                      letterSpacing: -0.15,
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    {upNextTrack.title}
+                    {upNextTrack.artist ? ` — ${upNextTrack.artist}` : ""}
+                  </span>
+                </span>
+              </button>
+            ) : (
+              <span style={{ flex: "1 1 50%" }} />
+            )}
+
             <div
+              className="pmp-player-volume"
               style={{
-                flex: 1,
+                flex: "1 1 40%",
+                minWidth: 0,
                 display: "flex",
                 alignItems: "center",
                 gap: 10,
-                padding: "0 6px",
+                padding: "0 4px",
               }}
             >
               <span style={{ color: y2k.chromeMid, display: "flex", flexShrink: 0 }} aria-hidden="true">
@@ -951,29 +965,52 @@ export default function ImmersivePlayer({
               </ChromeIconButton>
             )}
           </div>
+        </div>
 
-          {!isRadioMode && onCycleRepeat && onShowQueue && (
-            <div style={{ display: "flex", justifyContent: "center", marginTop: 10 }}>
-              <button
-                type="button"
-                onClick={() => onShowQueue()}
+        {/* The crawl at the foot of the channel — same crawl as the Home screen. */}
+        <div
+          style={{
+            flexShrink: 0,
+            width: "min(100%, 1100px)",
+            margin: "8px auto 0",
+            paddingBottom: "calc(8px + env(safe-area-inset-bottom, 0px))",
+            minHeight: 10,
+          }}
+        >
+          {tickerText ? (
+            <div
+              aria-hidden="true"
+              className="pmp-hero-ticker"
+              style={{
+                padding: "7px 0",
+                overflow: "hidden",
+                borderTop: "1px solid rgba(255,255,255,0.08)",
+                maskImage: "linear-gradient(90deg, transparent 0%, #000 6%, #000 94%, transparent 100%)",
+                WebkitMaskImage: "linear-gradient(90deg, transparent 0%, #000 6%, #000 94%, transparent 100%)",
+              }}
+            >
+              <div
+                className="pmp-ticker-track"
                 style={{
-                  background: "none",
-                  border: "none",
-                  cursor: "pointer",
-                  fontSize: 12,
-                  fontWeight: 650,
-                  fontFamily: fontMono,
-                  letterSpacing: 1,
+                  display: "inline-block",
+                  whiteSpace: "nowrap",
+                  fontFamily: fontPoster,
+                  fontSize: 13,
+                  fontWeight: 800,
+                  letterSpacing: "0.14em",
                   textTransform: "uppercase",
-                  color: y2k.chromeMid,
-                  padding: "6px 12px",
+                  color: color.body,
                 }}
               >
-                Up Next
-              </button>
+                {[0, 1].map((i) => (
+                  <span key={i}>
+                    {tickerText}
+                    <span style={{ color: mtv.hot, margin: "0 16px" }}>■</span>
+                  </span>
+                ))}
+              </div>
             </div>
-          )}
+          ) : null}
         </div>
       </div>
     </div>

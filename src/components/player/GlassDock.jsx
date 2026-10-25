@@ -1,6 +1,6 @@
 import { lazy, Suspense } from "react";
 import {
-  artShadow, color, dock, fontDisplay, motion, neons, radio,
+  artShadow, color, dock, fontDisplay, motion, radio,
 } from "../../theme";
 import Icon from "../ui/Icon";
 import BottomNavigation from "../home/BottomNavigation";
@@ -22,8 +22,8 @@ const EnergyShiftFeedback = lazy(() =>
 
 /**
  * Mobile dock — collapsed now-playing over the four tabs.
- * Cover + title + play/skip. Tap the bar opens the immersive player.
- * Pace lives on the hero and immersive decks, not here.
+ * Sleeve + title + play/skip, a hairline of progress. Tap the bar opens the
+ * channel. No meters, no pace here: the decks carry those.
  */
 export default function GlassDock({
   screen, setScreen, showAdmin = false,
@@ -125,12 +125,12 @@ export default function GlassDock({
                 style={{
                   width: 44,
                   height: 44,
-                  borderRadius: 12,
+                  borderRadius: 4,
                   overflow: "hidden",
                   flexShrink: 0,
-                  border: "1.5px solid rgba(255,255,255,0.12)",
+                  border: "1px solid rgba(255,255,255,0.14)",
                   background: color.surfaceRaised,
-                  boxShadow: artShadow.raised,
+                  boxShadow: artShadow.quiet,
                 }}
               >
                 {track.albumCover ? (
@@ -176,8 +176,6 @@ export default function GlassDock({
                 </div>
               </div>
 
-              <VuBars isPlaying={isPlaying} track={track} />
-
               <PlayKey
                 isPlaying={isPlaying}
                 buffering={isBuffering}
@@ -202,14 +200,6 @@ export default function GlassDock({
         <BottomNavigation items={items} activeId={activeTab} onSelect={setScreen} />
       </div>
 
-      <style>{`
-        @keyframes pmpVuPulse1 { 0%,100%{height:3px} 40%{height:10px} 70%{height:6px} }
-        @keyframes pmpVuPulse2 { 0%,100%{height:5px} 35%{height:12px} 65%{height:4px} }
-        @keyframes pmpVuPulse3 { 0%,100%{height:7px} 30%{height:14px} 60%{height:9px} }
-        @keyframes pmpVuPulse4 { 0%,100%{height:4px} 45%{height:11px} 75%{height:3px} }
-        @keyframes pmpVuPulse5 { 0%,100%{height:6px} 38%{height:13px} 68%{height:5px} }
-      `}</style>
-
       {menu && (
         <TrackActionsMenu
           track={menu.track}
@@ -220,47 +210,6 @@ export default function GlassDock({
           onClose={close}
         />
       )}
-    </div>
-  );
-}
-
-/** Five-bar VU meter — animates when playing, frozen when paused. */
-function VuBars({ isPlaying, track }) {
-  const energy = track?.energy ?? 5;
-  const base = Math.max(0.4, energy / 10);
-  const bars = [
-    { anim: "pmpVuPulse2", dur: 0.55, delay: 0,    color: neons.cyan   },
-    { anim: "pmpVuPulse4", dur: 0.6,  delay: 0.1,  color: neons.lime   },
-    { anim: "pmpVuPulse1", dur: 0.5,  delay: 0.05, color: neons.phosphor },
-    { anim: "pmpVuPulse3", dur: 0.65, delay: 0.12, color: neons.lime   },
-    { anim: "pmpVuPulse5", dur: 0.58, delay: 0.08, color: neons.cyan   },
-  ];
-  return (
-    <div
-      style={{
-        display: "flex",
-        alignItems: "flex-end",
-        gap: 2,
-        height: 14,
-        flexShrink: 0,
-        opacity: isPlaying ? 0.85 : 0.28,
-      }}
-    >
-      {bars.map((b, i) => (
-        <div
-          key={i}
-          style={{
-            width: 3,
-            borderRadius: 1.5,
-            background: b.color,
-            height: isPlaying ? undefined : `${Math.round(4 + base * 8)}px`,
-            animation: isPlaying
-              ? `${b.anim} ${b.dur}s ease-in-out ${b.delay}s infinite`
-              : "none",
-            boxShadow: isPlaying ? `0 0 4px ${b.color}` : "none",
-          }}
-        />
-      ))}
     </div>
   );
 }

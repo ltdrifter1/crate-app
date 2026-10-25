@@ -1,8 +1,8 @@
 /**
- * Desktop sticky mini-player — same device language as the dock / hero.
+ * Desktop sticky mini-player — a flat broadcast strip, same language as the dock and the screen.
  */
 import {
-  fontDisplay, color, dock, glass, motion,
+  fontDisplay, color, dock, motion,
 } from "../../theme";
 import { usePlayerPlayback } from "../../usePlayerPlayback";
 import { useIsPlaying } from "../../usePlayerTransport";
@@ -11,7 +11,6 @@ import FreePlaysMeter from "../billing/FreePlaysMeter";
 import { freePlaysMeterLabel } from "../../lib/freePlays";
 import Icon from "../ui/Icon";
 import { PlayKey } from "./OrbitalControls";
-import { dockTintStyle } from "../../lib/dockTint";
 import CoverImage from "../ui/CoverImage";
 import { LcdMetaLine, LcdSeek, LcdTimes, HardwareIconButton, formatBitrate, trackLcdBits } from "./DeviceChrome";
 
@@ -63,10 +62,9 @@ export default function DesktopMiniPlayer({
           position: "relative",
           animation: `dockRise 0.4s ${motion.ease} both`,
           padding: "10px 16px 8px",
-          background: glass.fillStrong,
-          backdropFilter: glass.blurHeavy,
-          WebkitBackdropFilter: glass.blurHeavy,
-          ...dockTintStyle(track),
+          background: "rgba(10,13,17,0.96)",
+          border: "1px solid rgba(255,255,255,0.09)",
+          boxShadow: "0 18px 40px rgba(6,10,16,0.55)",
         }}
       >
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
@@ -74,10 +72,10 @@ export default function DesktopMiniPlayer({
           style={{
             width: 48,
             height: 48,
-            borderRadius: 12,
+            borderRadius: 4,
             overflow: "hidden",
             flexShrink: 0,
-            border: "1px solid rgba(255,255,255,0.10)",
+            border: "1px solid rgba(255,255,255,0.14)",
           }}
         >
           {track.albumCover ? (

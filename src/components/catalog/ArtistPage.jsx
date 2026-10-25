@@ -17,7 +17,10 @@ import Icon from "../ui/Icon";
 import { useIsPlaying } from "../../usePlayerTransport";
 import { SCENE_CHANNELS } from "../../lib/sceneChannels";
 import { displayGenre } from "../../lib/genres";
+import { buildArtists } from "../../lib/catalog";
+import { formatChannelNum } from "../../lib/mtvChannel";
 import { radio, neons } from "../../theme";
+import { useMemo } from "react";
 
 /** The dial channel this artist sits on — same classifier the stations use. */
 function channelForArtist(artist) {
@@ -62,17 +65,103 @@ function artistFile(artist) {
   return rows;
 }
 
-/** Artist destination — name, albums, tracks. No generated copy. */
+/**
+ * Same shelf — other artists the dial files on this artist's channel.
+ * The rabbit hole: an artist page should lead to the next artist, not end.
+ */
+function sameShelfArtists(artist, tracks = [], channel = null, limit = 12) {
+  if (!artist || !channel || !tracks.length) return [];
+  return buildArtists(tracks)
+    .filter((a) => a.slug !== artist.slug && a.name !== artist.name)
+    .filter((a) => channelForArtist(a)?.id === channel.id)
+    .slice(0, limit);
+}
+
+function SameShelfRail({ artists = [], channel, onOpenArtist }) {
+  if (!artists.length || !channel) return null;
+  const ink = channel.accent || color.accent;
+  return (
+    <section aria-label="Same shelf" style={{ padding: "24px 20px 0" }}>
+      <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 12, marginBottom: 12 }}>
+        <SectionTitle>Same shelf</SectionTitle>
+        <span
+          style={{
+            ...type.lcd,
+            color: ink,
+            letterSpacing: 0.12,
+            whiteSpace: "nowrap",
+          }}
+        >
+          {formatChannelNum(channel.num)} · {channel.shortTitle || channel.title}
+        </span>
+      </div>
+      <div className="hide-scroll" style={{ display: "flex", gap: 14, overflowX: "auto", paddingBottom: 8 }}>
+        {artists.map((a) => (
+          <button
+            key={a.slug}
+            type="button"
+            onClick={() => onOpenArtist?.(a.name)}
+            aria-label={`Open ${a.name}`}
+            style={{
+              flexShrink: 0,
+              width: 112,
+              background: "none",
+              border: "none",
+              padding: 0,
+              cursor: onOpenArtist ? "pointer" : "default",
+              textAlign: "left",
+              color: color.ink,
+            }}
+          >
+            <div
+              style={{
+                position: "relative",
+                width: 112,
+                height: 112,
+                overflow: "hidden",
+                marginBottom: 8,
+                background: color.surfaceRaised,
+                borderRadius: 6,
+                border: "1px solid rgba(255,255,255,0.08)",
+              }}
+            >
+              {a.coverTrack ? <AlbumArt track={a.coverTrack} size={112} borderRadius={6} /> : null}
+              <span
+                aria-hidden="true"
+                style={{ position: "absolute", left: 0, right: 0, bottom: 0, height: 3, background: ink }}
+              />
+            </div>
+            <div style={{ fontSize: 13, fontWeight: 650, fontFamily: fontDisplay, letterSpacing: -0.2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+              {a.name}
+            </div>
+            <div style={{ fontSize: 11, color: color.muted, marginTop: 3 }}>
+              {a.count} track{a.count === 1 ? "" : "s"}
+            </div>
+          </button>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+/** Artist destination — name, file, same shelf, albums, tracks. No generated copy. */
 export default function ArtistPage({
   artist,
   onBack,
   onPlay,
   onOpenAlbum,
+  onOpenArtist = null,
+  tracks = [],
   currentTrack,
   isPlaying,
   onLike,
   playlistCtx,
 }) {
+  const channelForShelf = useMemo(() => (artist ? channelForArtist(artist) : null), [artist]);
+  const shelf = useMemo(
+    () => sameShelfArtists(artist, tracks, channelForShelf),
+    [artist, tracks, channelForShelf]
+  );
   if (!artist) {
     return (
       <EmptyEntity
@@ -205,6 +294,8 @@ export default function ArtistPage({
           </div>
         </section>
       )}
+
+      <SameShelfRail artists={shelf} channel={channelForShelf} onOpenArtist={onOpenArtist} />
 
       {artist.albums?.length > 0 && (
         <section style={{ padding: "24px 20px 8px" }}>

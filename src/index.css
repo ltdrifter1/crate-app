@@ -168,19 +168,26 @@ body::before { display: none; }
 .pmp-sleeve-crossfade {
   animation: trackSwap 0.32s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
+/* Immersive player — the screen fills the width, the deck takes the rest.
+   Phone: a portrait frame; desktop: a wide still, like the Home screen. */
+.pmp-player-screen {
+  width: auto;
+  margin: 0 12px;
+  /* The picture takes what the deck leaves, capped so it never swallows the keys. */
+  flex: 1 1 auto;
+  min-height: 220px;
+  max-height: 58vh;
+  max-height: 58dvh;
+}
 @media (min-width: 860px) {
-  .pmp-device-stage {
-    flex-direction: row !important;
-    align-items: center !important;
-    justify-content: center !important;
-    gap: 36px !important;
-    width: min(92vw, 1100px) !important;
-    margin: 0 auto !important;
+  .pmp-player-screen {
+    width: min(92vw, 1100px);
+    margin: 0 auto;
+    max-height: 60vh;
+    min-height: 320px;
   }
-  .pmp-device-sleeve {
-    max-height: 68vh !important;
-    /* Square, so width sets height: also cap by viewport height (header + deck ≈ 440px) or it overflows the stage. */
-    width: min(42vw, 520px, max(240px, calc(100vh - 440px))) !important;
+  .pmp-player-screen .pmp-hero-title {
+    font-size: clamp(44px, 4.6vw, 68px) !important;
   }
 }
 .pmp-crate-spread {

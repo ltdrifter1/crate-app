@@ -576,7 +576,8 @@ export default function ClubScreen({
           </button>
         )}
 
-        {/* Membership privileges */}
+        {/* Membership privileges — a plan list is pricing-page furniture; in beta the card already says it all. */}
+        {!BETA_LAUNCH && (
         <section style={{ marginBottom: 26 }}>
           <div style={sectionLabel}>Included</div>
           <ul style={{ listStyle: "none", margin: 0, padding: 0 }}>
@@ -629,7 +630,9 @@ export default function ClubScreen({
             ))}
           </ul>
         </section>
+        )}
 
+        {!BETA_LAUNCH && (
         <section style={{ marginBottom: 26 }}>
           <div style={sectionLabel}>Membership</div>
           <div style={{ fontSize: 15, color: color.body, lineHeight: 1.45, marginBottom: 6 }}>
@@ -666,6 +669,7 @@ export default function ClubScreen({
             </button>
           )}
         </section>
+        )}
 
         <section style={{ marginBottom: 26 }}>
           <div style={sectionLabel}>How it works</div>

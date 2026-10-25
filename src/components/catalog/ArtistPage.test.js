@@ -4,7 +4,7 @@
 import React from "react";
 import { createRoot } from "react-dom/client";
 import { act } from "react-dom/test-utils";
-import { AlbumPage } from "./ArtistPage";
+import ArtistPage, { AlbumPage } from "./ArtistPage";
 
 jest.mock("../../usePlayerTransport", () => ({
   useIsPlaying: () => false,
@@ -107,5 +107,83 @@ describe("AlbumPage", () => {
     });
     expect(div.textContent).toMatch(/Album not found/);
     expect(div.textContent).not.toMatch(/as an object/);
+  });
+});
+
+describe("ArtistPage", () => {
+  let div;
+  let root;
+
+  beforeEach(() => {
+    div = document.createElement("div");
+    document.body.appendChild(div);
+    root = createRoot(div);
+  });
+
+  afterEach(async () => {
+    await act(async () => {
+      root.unmount();
+    });
+    document.body.removeChild(div);
+  });
+
+  const techno = (id, title, artist) => ({
+    id, title, artist, genre: "Techno", albumCover: `${id}.jpg`, duration: 200, bpm: 130, camelot: "8A",
+  });
+
+  test("Same shelf lists other artists filed on the same channel and opens them", async () => {
+    const catalog = [
+      techno("s1", "Modular", "Signal"),
+      techno("s2", "Concrete", "Signal"),
+      techno("g1", "Iron Lung", "Gridlock"),
+      techno("f1", "Slag", "Foundry"),
+      { id: "w1", title: "Porch Light", artist: "Willow", genre: "Country & Folk", albumCover: "w1.jpg", duration: 180 },
+    ];
+    const artist = {
+      slug: "signal", name: "Signal", count: 2, tracks: catalog.slice(0, 2), coverTrack: catalog[0], albums: [], topGenre: "Techno",
+    };
+    const onOpenArtist = jest.fn();
+    await act(async () => {
+      root.render(
+        React.createElement(ArtistPage, {
+          artist,
+          tracks: catalog,
+          onBack: jest.fn(),
+          onPlay: jest.fn(),
+          onOpenAlbum: jest.fn(),
+          onOpenArtist,
+        })
+      );
+    });
+    const shelf = div.querySelector('section[aria-label="Same shelf"]');
+    expect(shelf).toBeTruthy();
+    expect(shelf.textContent).toMatch(/Same shelf/);
+    expect(shelf.textContent).toMatch(/Gridlock/);
+    expect(shelf.textContent).toMatch(/Foundry/);
+    // Not itself, and not an artist from another channel.
+    expect(shelf.textContent).not.toMatch(/Signal/);
+    expect(shelf.textContent).not.toMatch(/Willow/);
+    expect(shelf.textContent).toMatch(/CH-\d\d/);
+    await act(async () => {
+      shelf.querySelector('button[aria-label="Open Gridlock"]').click();
+    });
+    expect(onOpenArtist).toHaveBeenCalledWith("Gridlock");
+  });
+
+  test("no shelf when the catalog holds nobody else on the channel", async () => {
+    const artist = {
+      slug: "signal", name: "Signal", count: 1, tracks: [techno("s1", "Modular", "Signal")], coverTrack: null, albums: [], topGenre: "Techno",
+    };
+    await act(async () => {
+      root.render(
+        React.createElement(ArtistPage, {
+          artist,
+          tracks: artist.tracks,
+          onBack: jest.fn(),
+          onPlay: jest.fn(),
+        })
+      );
+    });
+    expect(div.querySelector('section[aria-label="Same shelf"]')).toBeNull();
   });
 });

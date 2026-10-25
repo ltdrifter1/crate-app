@@ -3755,8 +3755,9 @@ export default function App() {
             onBack={goBack}
             onPlay={(t, pool) => playTrack(t, pool)}
             onOpenAlbum={(slug) => openAlbum(slug)}
+            onOpenArtist={(name) => openArtist(name)}
+            tracks={tracks}
             currentTrack={currentTrack}
-           
             onLike={toggleLike}
             playlistCtx={playlistCtx}
           /></Suspense>

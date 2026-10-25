@@ -136,6 +136,49 @@ side; on desktop it keeps the middle half. The full sleeve is one tap away in th
 and in Up next. Over the real catalog (Yung Bae, Zari Alexandria, XFLEX) it reads as broadcast; over
 a text-heavy cover the lower third may sit on lettering — the scrim is tuned for that but check it.
 
+### 6. Third pass — the immersive player and the rest of the app
+
+Looked at again fresh: the immersive player, the phone dock and desktop mini player, Profile,
+Artist, Search, Charts, Set Builder, Onboarding, the chat. Charts, Set Builder, Onboarding and
+Search were left alone. Four areas changed:
+
+**6a. The immersive player is the channel, full screen.** It was an "alternate-2003 device": a
+blurred, saturated copy of the cover as a backdrop, eighteen fake visualiser bars behind the
+title, a `NOW PLAYING` pill and a `PLANET / 003` plate in the top bar, a square sleeve floating in
+the middle, and the crawl at 8px. Now it is the Home screen at full size: the sleeve fills the frame
+(it takes whatever height the deck leaves, capped at 58dvh), `● LIVE` and the CH ident in the
+corners, the lower third cut in with the title up to 68px, `PMP3` watermark, then a flat deck —
+timeline, transport, Slow / Fast, one row with Up next and volume, and the same crawl as Home at
+the foot. Booth tools stay in their drawer; the `⋯` menu keeps Request, Liner notes, Near this,
+Crossfade. Removed: the blur backdrop, the bars, the pill, the plate, the title marquee.
+`ChannelIdent` moved to `components/station/ChannelIdent.jsx` so Home and the player share it.
+
+**6b. Mini players are broadcast strips.** The phone dock bar had five neon VU bars pulsing beside
+the title — decoration with nothing behind it — and an app-icon sleeve (12px radius). Now: sleeve
+with square corners, title, play, skip, the progress hairline. The desktop mini player drops the
+tinted frosted glass for the same flat near-black plate.
+
+**6c. Profile in beta is the card, not a pricing page.** The numbered `INCLUDED` plan list, the
+`MEMBERSHIP / Membership` block and the empty `YOUR COLLECTION` box ("When Club Copy editions
+arrive…") are gone while `BETA_LAUNCH` is on; the card already says *Full access is included during
+this trial period*. Review the guide and Sign out stay. Off beta, the plan sections return unchanged.
+
+**6d. Artist pages lead somewhere: Same shelf.** Under the ON FILE card, a rail of the other
+artists the dial files on this artist's channel (same classifier the stations and the Board use),
+labelled with the channel number and ink. Tap one, you are on their page — the rabbit hole the brief
+asked for, built from catalog facts. Hidden when nobody else is on the shelf. `App` and the site
+preview now pass `tracks` and `onOpenArtist`.
+
+- Files: `components/player/ImmersivePlayer.jsx` (rewritten), `components/station/ChannelIdent.jsx`
+  (new), `components/player/GlassDock.jsx`, `components/player/DesktopMiniPlayer.jsx`,
+  `components/club/ClubScreen.jsx`, `components/club/CollectorPanel.jsx`,
+  `components/catalog/ArtistPage.jsx`, `App.jsx`, `preview/SitePreview.jsx`, `index.css`
+  (`.pmp-player-screen`; the old device-stage rules removed).
+- Screens: `12`–`14` in `docs/audits/design-audit-2026-10-25/`.
+- Tests: Same shelf rail (lists same-channel artists, not itself or other channels, opens on tap;
+  hidden when empty); ship assertions for the player (framed screen, callsign, ident, none of the
+  removed chrome).
+
 ### Docs
 
 - `CREATIVE_DIRECTION.md` no longer asks for glassmorphism; the shipped chassis is flat and the brief
@@ -143,7 +186,7 @@ a text-heavy cover the lower third may sit on lettering — the scrim is tuned f
 
 ## Tests
 
-Baseline 98 suites / 645 tests → **98 / 648**, all passing. New or rewritten:
+Baseline 98 suites / 645 tests → **98 / 650**, all passing. New or rewritten:
 
 - Discover: one tablist of six (`New Trending Genres Artists Mix Energy`), no `TOOLS`, Charts is a
   `role="button"` on the shelf, the Crate Dig section precedes the shelf and has a `Dig` key.
@@ -165,10 +208,10 @@ Baseline 98 suites / 645 tests → **98 / 648**, all passing. New or rewritten:
 | 1 | Navigation | Four-tab dock is right. Discover now has one nav row instead of two. |
 | 2 | Discovery | Dig is at the front door; sections are numbered bins. Genres/Keys/Energy unchanged and good. |
 | 3 | Personal library | Now owns an object (the disc) and a label. Liked and Recents are still lists — fine. |
-| 4 | Player | Home hero rebuilt as a broadcast screen (section 5). Immersive player untouched. |
+| 4 | Player | Home hero and the immersive player are one broadcast screen (sections 5, 6a). |
 | 5 | Playlists | Discs read as yours; building is unchanged. |
 | 6 | Charts | The Board is right. Reachable from Home, the shelf, the sidebar. |
-| 7 | Artist discovery | ON FILE card is right; the A–Z index is plain but honest. |
+| 7 | Artist discovery | ON FILE card is right; Same shelf now leads to the next artist (6d). |
 | 8 | Music history | Still dark until tracks carry `year`. Data work, not design. |
 | 9 | Requests | Key on every Board row. A Requests surface of its own is the next step. |
 | 10 | Mobile | Hero fits, crawl is back. Discover and Library tested at 390px. |
@@ -177,10 +220,9 @@ Baseline 98 suites / 645 tests → **98 / 648**, all passing. New or rewritten:
 
 1. **A Requests surface.** The request key exists; a "Requests tonight" strip on Home or the Board,
    fed from real `requestCount` deltas, would make participation visible.
-2. **Profile below the card.** Keep the card; turn `INCLUDED / MEMBERSHIP / HOW IT WORKS` into one
-   plain paragraph until pricing is live.
+2. ~~**Profile below the card.**~~ Done in beta (6c); revisit the plan sections when pricing goes live.
 3. **Backfill `year`** at ingest so History opens and the disc data line can print an era.
-4. **Artist page: a "Same shelf" rail** — other artists on the same channel — for rabbit holes.
+4. ~~**Artist page: a "Same shelf" rail.**~~ Done (6d).
 5. **Dedications.** Read `stationDedications` back; the crawl should carry real ones.
 
 ## Not verified

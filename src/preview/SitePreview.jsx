@@ -188,9 +188,11 @@ export default function SitePreview() {
         {screen === "artist" && (
           <ArtistPage
             artist={artist}
+            tracks={tracks}
             onBack={noop}
             onPlay={noop}
             onOpenAlbum={noop}
+            onOpenArtist={noop}
             currentTrack={tracks[0]}
             isPlaying={false}
             onLike={toggleLike}

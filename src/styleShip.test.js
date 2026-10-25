@@ -224,7 +224,14 @@ test("ice phosphor is the play pip, dock LCD, Mix/Energy sleeves, and poster sta
   expect(home).not.toMatch(/maxWidth:\s*960/);
   const immersive = fs.readFileSync(path.join(root, "src/components/player/ImmersivePlayer.jsx"), "utf8");
   expect(immersive).toMatch(/flexShrink:\s*0/);
-  expect(immersive).toMatch(/min\(72vw,\s*520px\)/);
+  // The channel, full screen: one framed picture with the lower third cut in.
+  expect(immersive).toMatch(/pmp-player-screen/);
+  expect(immersive).toMatch(/STATION_CALLSIGN/);
+  expect(immersive).toMatch(/ChannelIdent/);
+  expect(immersive).not.toMatch(/HypnoVisualizer|DeviceCatalogMark|PLANET \/ 003|blur\(48px\)|PlayerNowPlaying/);
+  const css = fs.readFileSync(path.join(root, "src/index.css"), "utf8");
+  expect(css).toMatch(/\.pmp-player-screen\s*\{[^}]*flex:\s*1 1 auto/m);
+  expect(css).not.toMatch(/pmp-device-sleeve/);
   const mix = fs.readFileSync(path.join(root, "src/components/explore/MixBoard.jsx"), "utf8");
   expect(mix).toMatch(/position:\s*"absolute"/);
   expect(mix).toMatch(/objectFit:\s*"cover"/);

@@ -16,24 +16,8 @@ export default function CollectorPanel({
     [tracks, collection]
   );
 
-  if (!rows.length) {
-    return (
-      <section style={{ marginBottom: 26 }}>
-        <div style={sectionLabel}>Your collection</div>
-        <div style={{
-          padding: "16px 18px",
-          borderRadius: radius.lg,
-          border: `1px solid ${glass.borderSoft}`,
-          background: glass.plate,
-          fontSize: 14,
-          color: color.body,
-          lineHeight: 1.45,
-        }}>
-          When Club Copy editions arrive, they’ll appear here.
-        </div>
-      </section>
-    );
-  }
+  // Nothing to collect yet: say nothing. A box promising a future feature is furniture.
+  if (!rows.length) return null;
 
   return (
     <section style={{ marginBottom: 26, animation: `rise 0.55s ${motion.ease} 0.12s both` }}>

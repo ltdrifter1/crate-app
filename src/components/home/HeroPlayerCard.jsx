@@ -12,9 +12,9 @@ import { useIsBuffering, useIsPlaying } from "../../usePlayerTransport";
 import {
   STATION_CALLSIGN,
   channelBugLine,
-  onInk,
   resolveChannelBug,
 } from "../../lib/mtvChannel";
+import ChannelIdent from "../station/ChannelIdent";
 import { trackHasVideo } from "../../lib/video";
 import CoverImage from "../ui/CoverImage";
 import { HERO_IDLE_ART, HERO_IDLE_FOCUS } from "../../lib/heroIdle";
@@ -26,58 +26,6 @@ import {
 import PlayerDeck from "../player/PlayerDeck";
 
 const VideoStage = lazy(() => import("../station/VideoStage"));
-
-/**
- * CH plate. On a tuned station it is printed in that station's ink — the same colour as its
- * card on the dial — so Home says which channel you are on. The live feed keeps the white sticker.
- */
-function ChannelIdent({ bugLine, slug, ink = null }) {
-  const plate = ink || mtv.plate;
-  return (
-    <span
-      style={{
-        display: "inline-flex",
-        alignItems: "stretch",
-        overflow: "hidden",
-        borderRadius: 2,
-        border: `1px solid ${plate}`,
-        background: "rgba(0,0,0,0.55)",
-        maxWidth: "100%",
-      }}
-    >
-      <span
-        style={{
-          padding: "5px 9px",
-          fontFamily: fontPoster,
-          fontSize: 13,
-          fontWeight: 800,
-          letterSpacing: mtv.caps,
-          color: ink ? onInk(ink) : mtv.plateInk,
-          background: plate,
-          whiteSpace: "nowrap",
-        }}
-      >
-        {bugLine.split(" · ")[0]}
-      </span>
-      <span
-        style={{
-          padding: "5px 10px",
-          fontFamily: fontPoster,
-          fontSize: 13,
-          fontWeight: 800,
-          letterSpacing: mtv.caps,
-          textTransform: "uppercase",
-          color: mtv.plate,
-          overflow: "hidden",
-          textOverflow: "ellipsis",
-          whiteSpace: "nowrap",
-        }}
-      >
-        {slug}
-      </span>
-    </span>
-  );
-}
 
 /**
  * The picture. The sleeve fills the frame like a video still — cropped, not
