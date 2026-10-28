@@ -10,7 +10,7 @@
  */
 import { memo } from "react";
 import { color, fontMono, fontPoster } from "../../theme";
-import { CLIMB_GREEN, HEAT_SEGMENTS, rankLabel } from "../../lib/board";
+import { HEAT_SEGMENTS, rankLabel } from "../../lib/board";
 import { onInk } from "../../lib/mtvChannel";
 import { catalogSleeveUrl } from "../../lib/catalogSleeve";
 import CoverImage from "../ui/CoverImage";
@@ -89,7 +89,7 @@ export function MovementStamp({ movement, delta }) {
       <span
         className="pmp-stamp pmp-rank-up"
         aria-label={`Up ${delta}`}
-        style={{ color: CLIMB_GREEN }}
+        style={{ color: color.ink }}
       >
         <Tri dir="up" />
         {delta}
@@ -202,7 +202,7 @@ export function trackMetaBits(entry) {
   return bits.join(" · ");
 }
 
-const rowCover = (variant, rank) => (variant === "home" ? (rank === 1 ? 60 : 50) : 52);
+const rowCover = () => 44;
 
 /**
  * One line of the chart.
@@ -225,9 +225,9 @@ export const BoardRow = memo(function BoardRow({
   onRequest,
 }) {
   const full = variant === "full";
-  const cover = rowCover(variant, entry.rank);
+  const cover = rowCover();
   const bits = trackMetaBits(entry);
-  const numeralSize = variant === "home" && entry.rank === 1 ? 46 : 36;
+  const numeralSize = 40;
 
   return (
     <li
@@ -241,9 +241,9 @@ export const BoardRow = memo(function BoardRow({
           <RankNumeral
             rank={entry.rank}
             size={numeralSize}
-            treatment={variant === "home" && entry.rank === 1 ? "print" : "plain"}
+            treatment="plain"
             ink={ink}
-            style={active ? { color: color.ink } : entry.rank <= 5 ? { color: color.ink } : undefined}
+            style={{ color: "#F74D7A", fontWeight: 400 }}
           />
           <span className="pmp-board-row__stamp">
             {active ? <NowBars playing={playing} /> : <MovementStamp movement={entry.movement} delta={entry.delta} />}
@@ -260,7 +260,7 @@ export const BoardRow = memo(function BoardRow({
             <CoverImage src={catalogSleeveUrl(entry.albumCover)} width={cover} height={cover} alt="" wellColor={entry.color || ""} />
           </span>
           <span className="pmp-board-row__text">
-            <span className="pmp-board-row__title" style={{ fontFamily: fontPoster }}>
+            <span className="pmp-board-row__title">
               {entry.title}
             </span>
             <span className="pmp-board-row__artist">
@@ -278,6 +278,7 @@ export const BoardRow = memo(function BoardRow({
               </span>
             )}
           </span>
+          <span className="pmp-board-chev" aria-hidden="true">▸</span>
         </button>
 
         <div className="pmp-board-row__actions">

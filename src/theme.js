@@ -516,12 +516,26 @@ export const sectionTitle = {
 export const sectionTitlePoster = {
   ...sectionTitle,
   fontFamily: fontPoster,
-  fontSize: 42,
+  fontSize: "clamp(28px, 4.6vw, 42px)",
   fontWeight: 400,
   letterSpacing: -0.2,
   lineHeight: 0.86,
   textTransform: "uppercase",
-  textShadow: "0.045em 0.045em 0 #F74D7A",
+};
+
+/** Right-hand index link — Courier caps on the same rule as the section title. */
+export const indexLink = {
+  fontFamily: fontMono,
+  fontSize: 12,
+  fontWeight: 700,
+  letterSpacing: "0.14em",
+  lineHeight: 1.2,
+  textTransform: "uppercase",
+  color: color.ink,
+  background: "transparent",
+  border: "none",
+  cursor: "pointer",
+  padding: "6px 0",
 };
 
 export const sectionSubtitle = {
@@ -563,10 +577,10 @@ export function chromeIconButton(size = 36) {
     width: size,
     height: size,
     padding: 0,
-    borderRadius: "50%",
-    border: "1px solid rgba(255,255,255,0.09)",
-    background: "rgba(255,255,255,0.07)",
-    boxShadow: "none",
+    borderRadius: 0,
+    border: "3px solid #F1E5D7",
+    background: "transparent",
+    boxShadow: "3px 3px 0 #F1E5D7",
     backdropFilter: "none",
     WebkitBackdropFilter: "none",
     color: color.ink,
@@ -657,11 +671,11 @@ export const glassStage = {
   isolation: "isolate",
   overflow: "hidden",
   borderRadius: 0,
-  border: "2px solid #F1E5D7",
-  background: "#0B0909",
-  boxShadow: "6px 6px 0 #F1E5D7",
-  backdropFilter: glass.blur,
-  WebkitBackdropFilter: glass.blur,
+  border: "none",
+  background: "transparent",
+  boxShadow: "none",
+  backdropFilter: "none",
+  WebkitBackdropFilter: "none",
 };
 
 /**
@@ -756,10 +770,7 @@ export function brandGlassHalo(size = 280) {
 /** App shell — obsidian steel chassis, ice signal. */
 export const APP_STYLE = {
   fontFamily: font,
-  background: `
-    radial-gradient(ellipse 110% 55% at 50% -18%, rgba(${SPEC},0.10) 0%, transparent 52%),
-    ${color.canvas}
-  `,
+  background: color.canvas,
   color: color.ink,
   minHeight: "100dvh",
   display: "flex",

@@ -60,7 +60,6 @@ export default function PageHeader({
             ...type.largeTitle,
             margin: 0,
             color: y2k.offWhite,
-            textShadow: "0.045em 0.045em 0 #F74D7A",
           }}>{title}</h1>
           {subtitle && (
             <p

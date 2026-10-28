@@ -4,11 +4,8 @@ import {
   BTN_SECONDARY,
   color,
   fontDisplay,
-  glass,
   homeSpace,
   motion,
-  radius,
-  radio,
   y2k,
 } from "../theme";
 import { countPlayableTracks } from "../lib/catalogLoad";
@@ -19,6 +16,7 @@ import { runAfterPaint, runWhenIdle } from "../lib/afterPaint";
 import { buildOnAirRotations, msUntilNextSlot, onAirNow, onAirSlot } from "../lib/onAir";
 import { useCurrentTrack, useIsPlaying, useTransportTrackId } from "../usePlayerTransport";
 import HomeHeader from "../components/home/HomeHeader";
+import HomeBandHeader from "../components/home/HomeBandHeader";
 import HeroPlayerCard from "../components/home/HeroPlayerCard";
 import MusicSection, { Rail } from "../components/home/MusicSection";
 import TrackCard from "../components/home/TrackCard";
@@ -28,9 +26,8 @@ import ChannelSurfingSection from "../components/home/ChannelSurfingSection";
 import HomeBoard from "../components/home/HomeBoard";
 import OnAirPanel from "../components/home/OnAirPanel";
 
-/** Desktop Home splits into stage + side column once both fit beside the sidebar. */
+/** Desktop Home splits the ruled sheet once it fits beside the sidebar. */
 export const WIDE_HOME_QUERY = "(min-width: 1280px)";
-const SIDE_COLUMN = 360;
 
 function useMediaQuery(query) {
   const read = () =>
@@ -82,12 +79,10 @@ function HomeCatalogStatus({ error, isEmpty, playableCount, totalCount, onRetry 
       style={{
         margin: `20px ${homeSpace.gutter}px 0`,
         padding: "18px 20px",
-        borderRadius: radius.xl,
-        border: `1px solid ${error ? "rgba(255,51,79,0.22)" : "rgba(216,223,232,0.1)"}`,
-        background: glass.plate,
-        boxShadow: `inset 0 1px 0 ${glass.highlight}, ${glass.shadowSoft}`,
-        backdropFilter: glass.blurSoft,
-        WebkitBackdropFilter: glass.blurSoft,
+        borderRadius: 0,
+        border: "2px solid #F1E5D7",
+        background: "transparent",
+        boxShadow: "4px 4px 0 #F1E5D7",
       }}
     >
       {error ? (
@@ -159,10 +154,10 @@ function HomeStandBy() {
       style={{
         margin: `${homeSpace.sectionGap}px ${homeSpace.gutter}px 0`,
         padding: "18px 20px",
-        borderRadius: radius.xl,
-        border: "1px solid rgba(255,255,255,0.08)",
-        background: glass.plate,
-        boxShadow: `inset 0 1px 0 ${glass.highlight}, ${glass.shadowSoft}`,
+        borderRadius: 0,
+        border: "2px solid #F1E5D7",
+        background: "transparent",
+        boxShadow: "none",
         display: "flex",
         alignItems: "center",
         gap: 14,
@@ -204,11 +199,12 @@ function EmptyShelfCard({ title, body, actionLabel = null, onAction = null }) {
         onClick={onAction}
         ariaLabel={actionLabel || title}
         padding="22px 20px"
-        rounded={18}
+        rounded={0}
         style={{
-          background: radio.moduleFace,
-          border: `1px solid ${glass.borderSoft}`,
-          boxShadow: `inset 0 1px 0 ${glass.highlight}, 0 12px 28px rgba(6,10,16,0.18)`,
+          background: "transparent",
+          border: "2px solid #F1E5D7",
+          boxShadow: "4px 4px 0 #F1E5D7",
+          borderRadius: 0,
         }}
       >
         <div
@@ -233,7 +229,7 @@ function EmptyShelfCard({ title, body, actionLabel = null, onAction = null }) {
               fontSize: 14,
               fontWeight: 600,
               letterSpacing: -0.15,
-              color: color.accent,
+              color: color.ink,
             }}
           >
             {actionLabel}
@@ -369,6 +365,64 @@ function HomeBoardShelf({ countdown, onPlayTrack, onOpenCharts, onTuneCountdown,
   );
 }
 
+const SHEET_RULE = "2px solid #F1E5D7";
+
+/** Short dotted index for the ruled sheet — the broadsheet's third column. */
+function HomeCrateIndex({ title, rows, onPlayTrack }) {
+  if (!rows.length) return null;
+  return (
+    <section aria-label={title} style={{ padding: `4px ${homeSpace.gutter}px 0` }}>
+      <HomeBandHeader title={title} meta={`${rows.length} cuts`} flush />
+      <ol style={{ listStyle: "none", margin: 0, padding: 0 }}>
+        {rows.map((track) => (
+          <li key={track.id} style={{ borderBottom: "1px dotted rgba(241,229,215,0.55)" }}>
+            <button
+              type="button"
+              className="pmp-press"
+              onClick={() => onPlayTrack?.(track, rows)}
+              aria-label={`Play ${track.title} by ${track.artist || "unknown artist"}`}
+              style={{
+                width: "100%",
+                display: "flex",
+                alignItems: "center",
+                gap: 10,
+                padding: "10px 0",
+                border: "none",
+                background: "transparent",
+                color: color.ink,
+                textAlign: "left",
+                cursor: "pointer",
+              }}
+            >
+              <span style={{ minWidth: 0, flex: 1 }}>
+                <span style={{ display: "block", fontSize: 15, fontWeight: 700, letterSpacing: -0.1 }}>
+                  {track.title}
+                </span>
+                {track.artist && (
+                  <span
+                    style={{
+                      display: "block",
+                      marginTop: 2,
+                      fontSize: 11,
+                      fontWeight: 500,
+                      letterSpacing: "0.08em",
+                      textTransform: "uppercase",
+                      color: color.muted,
+                    }}
+                  >
+                    {track.artist}
+                  </span>
+                )}
+              </span>
+              <span aria-hidden="true">▸</span>
+            </button>
+          </li>
+        ))}
+      </ol>
+    </section>
+  );
+}
+
 function HomeEditorial({
   tracks,
   onPlayTrack,
@@ -452,6 +506,13 @@ function HomeScreen({
   const onAir = useOnAirNow(tracks, channels, catalogComplete);
   const hasOnAir = Object.keys(onAir).length > 0;
   const showBoard = shelvesReady && catalogReady && countdown.length >= 3;
+  const crate = useMemo(() => {
+    const feature = buildHomeCollections(tracks)[0];
+    return {
+      title: feature?.label || "In the crate",
+      rows: (feature?.tracks || []).filter((t) => t?.id && t?.title).slice(0, 4),
+    };
+  }, [tracks]);
   const scrollToChannels = () => {
     if (typeof document === "undefined") return;
     document.querySelector(".pmp-channel-surf")?.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -535,6 +596,39 @@ function HomeScreen({
     />
   );
 
+  const sheetCells = [
+    tonight ? { key: "tonight", node: tonight } : null,
+    wide && channels.length > 0
+      ? {
+          key: "onair",
+          node: (
+            <div style={{ padding: `0 ${homeSpace.gutter}px` }}>
+              <OnAirPanel
+                loading={!hasOnAir}
+                channels={channels}
+                onAir={onAir}
+                activeChannelId={sceneChannelsActiveId}
+                onTuneChannel={onTuneSceneChannel}
+                onShowAll={scrollToChannels}
+              />
+            </div>
+          ),
+        }
+      : null,
+    crate.rows.length
+      ? {
+          key: "crate",
+          node: (
+            <HomeCrateIndex
+              title={crate.title}
+              rows={crate.rows}
+              onPlayTrack={onPlayTrack}
+            />
+          ),
+        }
+      : null,
+  ].filter(Boolean);
+
   return (
     <div
       className="pmp-home-mtv"
@@ -551,62 +645,48 @@ function HomeScreen({
         onOpenMenu={onOpenMenu}
       />
 
-      {wide ? (
+      <div
+        className="pmp-home-poster"
+        style={{
+          padding: `${homeSpace.sectionGapFirst}px ${homeSpace.gutter}px 18px`,
+          borderBottom: SHEET_RULE,
+          animation: `rise 0.5s ${motion.ease} 0.04s both`,
+        }}
+      >
+        {stage}
+      </div>
+      {catalogStatus}
+
+      {sheetCells.length > 0 && (
         <div
-          className="pmp-home-split"
+          className="pmp-home-sheet"
           style={{
             display: "grid",
-            gridTemplateColumns: `minmax(0, 1fr) ${SIDE_COLUMN}px`,
-            columnGap: 28,
-            alignItems: "start",
-            padding: `0 ${homeSpace.gutter}px`,
-            marginTop: homeSpace.sectionGapFirst,
+            gridTemplateColumns: wide
+              ? `repeat(${sheetCells.length}, minmax(0, 1fr))`
+              : "minmax(0, 1fr)",
+            borderBottom: SHEET_RULE,
           }}
         >
-          <div style={{ minWidth: 0, animation: `rise 0.5s ${motion.ease} 0.04s both` }}>
-            {stage}
-            {/* Bands below carry their own gutter; the split already has one.
-                Channel Surfing sits here too so the stage column runs as long as the side column. */}
-            <div style={{ margin: `0 -${homeSpace.gutter}px` }}>
-              {catalogStatus}
-              {tonight}
-              {surfing}
+          {sheetCells.map((cell, i) => (
+            <div
+              key={cell.key}
+              style={{
+                minWidth: 0,
+                padding: "12px 0 8px",
+                borderRight: wide && i < sheetCells.length - 1 ? SHEET_RULE : "none",
+                borderBottom: !wide && i < sheetCells.length - 1 ? SHEET_RULE : "none",
+              }}
+            >
+              {cell.node}
             </div>
-          </div>
-          {/* Sticky: the stage column runs longer, so the side column rides along instead of leaving a hole. */}
-          <aside aria-label="Station right now" style={{ minWidth: 0, position: "sticky", top: 16 }}>
-            {channels.length > 0 && (
-              <OnAirPanel
-                loading={!hasOnAir}
-                channels={channels}
-                onAir={onAir}
-                activeChannelId={sceneChannelsActiveId}
-                onTuneChannel={onTuneSceneChannel}
-                onShowAll={scrollToChannels}
-              />
-            )}
-            {board(true)}
-          </aside>
+          ))}
         </div>
-      ) : (
-        <>
-          <div
-            style={{
-              padding: `0 ${homeSpace.gutter}px`,
-              marginTop: homeSpace.sectionGapFirst,
-              animation: `rise 0.5s ${motion.ease} 0.04s both`,
-            }}
-          >
-            {stage}
-          </div>
-          {catalogStatus}
-          {tonight}
-        </>
       )}
 
-      {!wide && surfing}
+      {surfing}
 
-      {!wide && board(false)}
+      {board(false)}
 
       {shelvesReady && catalogReady && (
         <HomePersonal
