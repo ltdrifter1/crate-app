@@ -5,11 +5,9 @@ import {
   fontDisplay,
   fontMono,
   fontPoster,
-  glass,
   glassStage,
   homeSpace,
   mtv,
-  trim,
   y2k,
 } from "../../theme";
 import { usePlayerPlayback } from "../../usePlayerPlayback";
@@ -22,7 +20,6 @@ import {
 import { trackHasVideo } from "../../lib/video";
 import CoverImage from "../ui/CoverImage";
 import { HERO_IDLE_ART, HERO_IDLE_FOCUS } from "../../lib/heroIdle";
-import ScanlineWash from "./ScanlineWash";
 import {
   LcdMetaLine,
   formatBitrate,
@@ -46,7 +43,6 @@ function PlanetPip({ size = 26 }) {
         backgroundSize: "contain",
         backgroundRepeat: "no-repeat",
         backgroundPosition: "center",
-        filter: `drop-shadow(0 0 8px ${trim.blue}88)`,
       }}
     />
   );
@@ -119,10 +115,8 @@ function JewelSleeve({ src, idleSrc, playing, eager = false, size = 148, wellCol
         borderRadius: 0,
         overflow: "hidden",
         border: "3px solid #F1E5D7",
-        boxShadow:
-          playing && /^#[0-9a-f]{6}$/i.test(wellColor)
-            ? `${artShadow.raised}, 0 22px 64px ${wellColor}44`
-            : artShadow.raised,
+        boxShadow: "6px 6px 0 #F1E5D7",
+        transform: "rotate(-1.5deg)",
         background: wellColor || "#0E1116",
       }}
     >
@@ -167,18 +161,6 @@ function JewelSleeve({ src, idleSrc, playing, eager = false, size = 148, wellCol
           draggable={false}
         />
       )}
-      <span
-        aria-hidden="true"
-        style={{
-          position: "absolute",
-          inset: 0,
-          pointerEvents: "none",
-          background: `
-            repeating-linear-gradient(0deg, rgba(0,0,0,0.07) 0 1px, transparent 1px 3px),
-            linear-gradient(180deg, rgba(255,255,255,0.06) 0%, transparent 30%)
-          `,
-        }}
-      />
     </span>
   );
 }
@@ -194,14 +176,15 @@ function UpNextGlass({ track }) {
         display: "flex",
         alignItems: "center",
         gap: 12,
-        padding: "9px 12px 9px 9px",
-        borderRadius: 14,
-        background: "rgba(255,255,255,0.05)",
-        border: "1px solid rgba(255,255,255,0.07)",
+        padding: "10px 0",
+        borderRadius: 0,
+        background: "transparent",
+        border: "none",
+        borderTop: "1px dotted rgba(241,229,215,0.55)",
       }}
     >
       {track.albumCover ? (
-        <span style={{ display: "block", width: 40, height: 40, flexShrink: 0, borderRadius: 8, overflow: "hidden" }}>
+        <span style={{ display: "block", width: 40, height: 40, flexShrink: 0, borderRadius: 0, overflow: "hidden" }}>
           <CoverImage
             src={track.albumCover}
             alt=""
@@ -211,7 +194,7 @@ function UpNextGlass({ track }) {
             style={{
               width: 40,
               height: 40,
-              borderRadius: 8,
+              borderRadius: 0,
               objectFit: "cover",
               flexShrink: 0,
             }}
@@ -362,14 +345,9 @@ export default function HeroPlayerCard({
           inset: 0,
           zIndex: 0,
           overflow: "hidden",
-          background: `
-            radial-gradient(70% 80% at 18% 20%, ${track?.color ? `${track.color}55` : color.accentSoft} 0%, transparent 62%),
-            linear-gradient(180deg, rgba(213,220,230,0.08) 0%, rgba(0,0,0,0.4) 100%)
-          `,
+          background: "transparent",
         }}
       />
-
-      <ScanlineWash />
 
       <div
         style={{
@@ -385,25 +363,6 @@ export default function HeroPlayerCard({
       >
         <div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0 }}>
           <PlanetPip />
-          {live && (
-            <span
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 6,
-                padding: "4px 8px",
-                borderRadius: 2,
-                background: color.alert,
-                color: "#fff",
-                fontFamily: fontPoster,
-                fontSize: 11,
-                fontWeight: 800,
-                letterSpacing: 0.16,
-              }}
-            >
-              LIVE
-            </span>
-          )}
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 8, marginLeft: "auto" }}>
           {hasVideo && (
@@ -411,14 +370,14 @@ export default function HeroPlayerCard({
               aria-hidden="true"
               style={{
                 padding: "5px 10px",
-                borderRadius: 980,
-                border: "1px solid rgba(255,255,255,0.10)",
-                background: "rgba(255,255,255,0.06)",
-                fontFamily: fontDisplay,
-                fontSize: 12,
-                fontWeight: 600,
-                letterSpacing: -0.08,
-                textTransform: "none",
+                borderRadius: 0,
+                border: "2px solid #F1E5D7",
+                background: "transparent",
+                fontFamily: fontMono,
+                fontSize: 11,
+                fontWeight: 700,
+                letterSpacing: "0.14em",
+                textTransform: "uppercase",
                 color: color.ink,
               }}
             >
@@ -485,31 +444,20 @@ export default function HeroPlayerCard({
         >
           <div
             className="pmp-hero-id"
-            style={{ position: "relative", padding: "2px 0 2px 16px" }}
+            style={{ position: "relative", padding: "2px 0" }}
           >
-            <span
-              aria-hidden="true"
-              style={{
-                position: "absolute",
-                left: 0,
-                top: 3,
-                bottom: 3,
-                width: 4,
-                background: live ? mtv.hot : color.faint,
-              }}
-            />
             <div
               style={{
                 display: "flex",
                 alignItems: "center",
                 gap: 8,
                 marginBottom: 6,
-                fontFamily: fontPoster,
-                fontSize: 13,
-                fontWeight: 800,
-                letterSpacing: mtv.caps,
+                fontFamily: fontMono,
+                fontSize: 12,
+                fontWeight: 700,
+                letterSpacing: "0.16em",
                 textTransform: "uppercase",
-                color: color.body,
+                color: color.muted,
               }}
             >
               {!live && (
@@ -535,12 +483,13 @@ export default function HeroPlayerCard({
               style={{
                 fontFamily: fontPoster,
                 fontStyle: "normal",
-                fontSize: "clamp(36px, 10.5vw, 54px)",
-                fontWeight: 800,
-                letterSpacing: 0.3,
-                lineHeight: 1,
+                fontSize: "clamp(48px, 8vw, 92px)",
+                fontWeight: 400,
+                letterSpacing: -0.3,
+                lineHeight: 0.84,
                 textTransform: "uppercase",
                 color: color.ink,
+                textShadow: "0.045em 0.045em 0 #F74D7A",
                 overflow: "hidden",
                 textOverflow: "ellipsis",
                 display: "-webkit-box",
@@ -638,7 +587,7 @@ export default function HeroPlayerCard({
               {[0, 1].map((i) => (
                 <span key={i}>
                   {tickerText}
-                  <span style={{ color: mtv.hot, margin: "0 16px" }}>■</span>
+                  <span style={{ margin: "0 16px" }}>✦</span>
                 </span>
               ))}
             </div>

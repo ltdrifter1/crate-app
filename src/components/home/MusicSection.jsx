@@ -1,13 +1,12 @@
 import { useCallback, useRef } from "react";
 import {
-  color,
   homeSpace,
+  indexLink,
   motion,
   sectionEyebrow,
   sectionSubtitle,
   sectionTitle,
   sectionTitlePoster,
-  type,
 } from "../../theme";
 
 /**
@@ -71,8 +70,6 @@ export default function MusicSection({
             style={{
               ...titleStyle,
               overflow: "hidden",
-              textOverflow: "ellipsis",
-              whiteSpace: "nowrap",
             }}
           >
             {title}
@@ -98,21 +95,14 @@ export default function MusicSection({
             className="pmp-view-all"
             style={{
               flexShrink: 0,
+              ...indexLink,
               marginTop: 1,
-              cursor: "pointer",
-              padding: "6px 2px",
-              ...type.seeAll,
-              textTransform: "none",
+              height: "auto",
               display: "inline-flex",
               alignItems: "center",
-              gap: 2,
-              color: color.accent,
-              height: 32,
-              border: "none",
-              background: "transparent",
             }}
           >
-            {action.label || "See All"}
+            {action.label || "See all"} →
           </button>
         )}
       </div>

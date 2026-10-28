@@ -674,11 +674,13 @@ const injectStyles = () => {
       transition: box-shadow ${motion.settle} ${motion.ease}, border-color ${motion.base};
     }
     .pmp-hero .pmp-hero-art { transition: transform 1.2s ${motion.ease}; }
-    .pmp-hero:hover .pmp-hero-sleeve { transform: translateY(-2px); }
+    .pmp-hero:hover .pmp-hero-sleeve { transform: translate(-1px, -3px) rotate(-1.5deg); }
     .pmp-hero:hover .pmp-hero-art { transform: scale(1.04); }
     .pmp-hero-sleeve { transition: transform 0.45s ${motion.ease}; }
     .pmp-view-all { transition: color ${motion.fast} ${motion.ease}, transform ${motion.fast} ${motion.ease}; }
-    .pmp-view-all:hover { color: ${color.accent} !important; transform: none; }
+    .pmp-view-all:hover { color: ${color.ink} !important; transform: none; }
+    .pmp-stamp-btn:hover { transform: translate(-1px, -1px); box-shadow: 5px 5px 0 #F1E5D7; }
+    .pmp-stamp-btn:active { transform: translate(3px, 3px); box-shadow: 1px 1px 0 #F1E5D7; opacity: 1; }
     .pmp-rail { cursor: grab; }
     .pmp-rail:active { cursor: grabbing; }
     @media (prefers-reduced-transparency: reduce) {

@@ -191,7 +191,6 @@ export default function ChartsScreen({
             letterSpacing: "-0.005em",
             textTransform: "uppercase",
             color: color.ink,
-            textShadow: "0.045em 0.045em 0 #F74D7A",
           }}
         >
           Charts

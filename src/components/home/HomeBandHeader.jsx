@@ -1,10 +1,9 @@
 import {
-  color,
   homeSpace,
+  indexLink,
   sectionEyebrow,
   sectionSubtitle,
-  sectionTitle,
-  type,
+  sectionTitlePoster,
 } from "../../theme";
 
 /**
@@ -29,7 +28,9 @@ export default function HomeBandHeader({
         columnGap: 12,
         padding: flush ? 0 : `0 ${homeSpace.gutter}px`,
         marginBottom: homeSpace.titleToRail,
-        minHeight: subtitle || eyebrow ? 44 : 26,
+        minHeight: subtitle || eyebrow ? 52 : 36,
+        borderBottom: "2px solid #F1E5D7",
+        paddingBottom: 8,
       }}
     >
       <div style={{ minWidth: 0 }}>
@@ -48,10 +49,8 @@ export default function HomeBandHeader({
         <h2
           className="pmp-section-title"
           style={{
-            ...sectionTitle,
+            ...sectionTitlePoster,
             overflow: "hidden",
-            textOverflow: "ellipsis",
-            whiteSpace: "nowrap",
           }}
         >
           {title}
@@ -74,8 +73,8 @@ export default function HomeBandHeader({
       {meta && !action && (
         <div
           style={{
-            ...type.subhead,
-            color: color.muted,
+            ...indexLink,
+            padding: 0,
             paddingBottom: subtitle ? 2 : 4,
             flexShrink: 0,
             whiteSpace: "nowrap",
@@ -92,21 +91,15 @@ export default function HomeBandHeader({
           className="pmp-view-all"
           style={{
             flexShrink: 0,
+            ...indexLink,
             marginBottom: subtitle ? 1 : 2,
-            cursor: "pointer",
-            padding: "6px 2px",
-            height: 32,
-            border: "none",
-            background: "transparent",
-            color: color.accent,
-            ...type.seeAll,
+            height: "auto",
             display: "inline-flex",
             alignItems: "center",
-            gap: 2,
             WebkitTapHighlightColor: "transparent",
           }}
         >
-          {action.label || "See All"}
+          {action.label || "See all"} →
         </button>
       )}
     </div>

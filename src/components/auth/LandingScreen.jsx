@@ -135,11 +135,11 @@ function ChannelPill({ ch }) {
   return (
     <div
       style={{
-        padding: "10px 16px",
-        borderRadius: 10,
-        background: ch.color,
-        border: `1px solid ${ch.accent}44`,
-        boxShadow: `0 0 18px ${ch.accent}22, inset 0 1px 0 rgba(255,255,255,0.06)`,
+        padding: "8px 12px",
+        borderRadius: 0,
+        background: "transparent",
+        border: "2px solid #F1E5D7",
+        boxShadow: "3px 3px 0 #F1E5D7",
         display: "flex",
         alignItems: "center",
         gap: 8,
@@ -148,23 +148,20 @@ function ChannelPill({ ch }) {
     >
       <span
         style={{
-          width: 6,
-          height: 6,
-          borderRadius: "50%",
+          width: 8,
+          height: 8,
+          borderRadius: 0,
           background: ch.accent,
-          boxShadow: `0 0 6px ${ch.accent}`,
-          animation: "pmpLcdPip 1.8s ease-in-out infinite",
-          animationDelay: `${Math.random() * 1.5}s`,
           flexShrink: 0,
         }}
       />
       <span
         style={{
-          fontSize: 13,
+          fontSize: 12,
           fontWeight: 700,
-          fontFamily: fontDisplay,
-          color: ch.accent,
-          letterSpacing: 0.3,
+          fontFamily: fontMono,
+          color: color.ink,
+          letterSpacing: "0.12em",
           whiteSpace: "nowrap",
           textTransform: "uppercase",
         }}
@@ -449,9 +446,9 @@ export default function LandingScreen({
               fontFamily: fontMono,
               fontSize: 13,
               fontWeight: 700,
-              letterSpacing: 0.22,
+              letterSpacing: "0.16em",
               textTransform: "uppercase",
-              color: "#FF6A91",
+              color: color.muted,
             }}
           >
             Next on the station
@@ -548,7 +545,7 @@ export default function LandingScreen({
             fontWeight: 700,
             letterSpacing: 0.16,
             textTransform: "uppercase",
-            color: "#FF6A91",
+            color: color.ink,
             display: "flex",
             alignItems: "center",
             gap: 8,
@@ -599,7 +596,7 @@ export default function LandingScreen({
                   fontWeight: 700,
                   letterSpacing: 0.16,
                   textTransform: "uppercase",
-                  color: "#FF6A91",
+                  color: color.ink,
                 }}
               >
                 {liveRows ? "This Month's Chart · Top 5" : "Sample board · Top 5"}
@@ -671,7 +668,7 @@ export default function LandingScreen({
                 fontWeight: 700,
                 letterSpacing: 0.16,
                 textTransform: "uppercase",
-                color: "#FF6A91",
+                color: color.ink,
               }}
             >
               Liner Notes — What's On This Disc

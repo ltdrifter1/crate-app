@@ -85,20 +85,24 @@ export default function HomeBoard({
           <button
             type="button"
             onClick={onTune}
-            className="pmp-press"
+            className="pmp-press pmp-stamp-btn"
             style={{
               marginTop: 14,
               display: "inline-flex",
               alignItems: "center",
               gap: 8,
               minHeight: 42,
-              padding: "0 18px 0 14px",
-              borderRadius: 980,
-              border: "1px solid rgba(255,255,255,0.12)",
-              background: "rgba(255,255,255,0.06)",
+              padding: "8px 16px",
+              borderRadius: 0,
+              border: "3px solid #F1E5D7",
+              background: "transparent",
+              boxShadow: "4px 4px 0 #F1E5D7",
               color: color.ink,
-              fontSize: 15,
-              fontWeight: 600,
+              fontSize: 13,
+              fontWeight: 700,
+              letterSpacing: "0.12em",
+              textTransform: "uppercase",
+              fontFamily: fontMono,
               cursor: "pointer",
               WebkitTapHighlightColor: "transparent",
             }}
