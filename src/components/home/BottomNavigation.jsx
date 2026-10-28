@@ -31,13 +31,11 @@ export default function BottomNavigation({ items = [], activeId, onSelect }) {
               flex: 1,
               minWidth: 0,
               height: 50,
-              borderRadius: 10,
-              border: "1px solid transparent",
-              background: active ? "rgba(91,101,116,0.14)" : "none",
-              boxShadow: active
-                ? "inset 0 1px 0 rgba(216,223,232,0.08), 0 0 0 1px rgba(91,101,116,0.28)"
-                : "none",
-              color: active ? color.accent : color.muted,
+              borderRadius: 0,
+              border: active ? "2px solid #F1E5D7" : "2px solid transparent",
+              background: active ? "#F1E5D7" : "none",
+              boxShadow: "none",
+              color: active ? "#141414" : color.muted,
               cursor: "pointer",
               display: "flex",
               flexDirection: "column",

@@ -185,12 +185,13 @@ export default function ChartsScreen({
             position: "relative",
             margin: "12px 0 0",
             fontFamily: fontPoster,
-            fontWeight: 800,
+            fontWeight: 400,
             fontSize: "clamp(52px, 15vw, 96px)",
             lineHeight: 0.84,
             letterSpacing: "-0.005em",
             textTransform: "uppercase",
             color: color.ink,
+            textShadow: "0.045em 0.045em 0 #F74D7A",
           }}
         >
           Charts

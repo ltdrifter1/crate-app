@@ -5,8 +5,8 @@
     <link rel="icon" href="%PUBLIC_URL%/favicon.svg" type="image/svg+xml" />
     <link rel="icon" href="%PUBLIC_URL%/favicon.png" type="image/png" sizes="32x32" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <meta name="theme-color" content="#12161C" />
-      <meta name="pmp-chassis" content="broadcast-glass-20260930" />
+    <meta name="theme-color" content="#0B0909" />
+      <meta name="pmp-chassis" content="wavclub-night-20261028" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
@@ -32,6 +32,9 @@
     <meta name="twitter:image" content="%PUBLIC_URL%/icon-512.png" />
     <link rel="apple-touch-icon" href="%PUBLIC_URL%/apple-touch-icon.png" />
     <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
+    <link rel="preload" href="%PUBLIC_URL%/fonts/tanker-regular.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="%PUBLIC_URL%/fonts/nippo-400.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="%PUBLIC_URL%/fonts/nippo-700.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="preload" href="%PUBLIC_URL%/fonts/outfit-400.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="preload" href="%PUBLIC_URL%/fonts/outfit-700.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="preload" href="%PUBLIC_URL%/fonts/barlow-condensed-800.woff2" as="font" type="font/woff2" crossorigin />
@@ -47,6 +50,34 @@
     <link rel="dns-prefetch" href="https://firestore.googleapis.com" />
     <title>Planet MP3</title>
     <style>
+      @font-face {
+        font-family: "Tanker";
+        src: url("%PUBLIC_URL%/fonts/tanker-regular.woff2") format("woff2");
+        font-weight: 400;
+        font-style: normal;
+        font-display: swap;
+      }
+      @font-face {
+        font-family: "Nippo";
+        src: url("%PUBLIC_URL%/fonts/nippo-400.woff2") format("woff2");
+        font-weight: 400;
+        font-style: normal;
+        font-display: swap;
+      }
+      @font-face {
+        font-family: "Nippo";
+        src: url("%PUBLIC_URL%/fonts/nippo-500.woff2") format("woff2");
+        font-weight: 500;
+        font-style: normal;
+        font-display: swap;
+      }
+      @font-face {
+        font-family: "Nippo";
+        src: url("%PUBLIC_URL%/fonts/nippo-700.woff2") format("woff2");
+        font-weight: 700;
+        font-style: normal;
+        font-display: swap;
+      }
       @font-face {
         font-family: "IBM Plex Sans";
         font-style: normal;
@@ -134,10 +165,10 @@
       }
       body {
         margin: 0;
-        background: #12161C;
-        color: #F4F7FB;
+        background: #0B0909;
+        color: #F1E5D7;
         color-scheme: dark;
-        font-family: "Outfit", "IBM Plex Sans", "Lucida Grande", "Helvetica Neue", Helvetica, Inter, -apple-system, BlinkMacSystemFont, Arial, sans-serif;
+        font-family: "Nippo", "Outfit", "IBM Plex Sans", "Lucida Grande", "Helvetica Neue", Helvetica, Inter, -apple-system, BlinkMacSystemFont, Arial, sans-serif;
         -webkit-font-smoothing: antialiased;
         -moz-osx-font-smoothing: grayscale;
       }
@@ -160,9 +191,8 @@
         box-sizing: border-box;
         padding: 24px;
         background:
-          radial-gradient(ellipse 70% 48% at 50% 42%, rgba(168,180,198,0.12) 0%, transparent 58%),
-          radial-gradient(ellipse 90% 70% at 50% 100%, rgba(12,15,19,0.7) 0%, transparent 55%),
-          #12161C;
+          radial-gradient(ellipse 70% 48% at 50% 42%, rgba(247,77,122,0.16) 0%, transparent 58%),
+          #0B0909;
       }
       .pmp-spin-planet {
         width: min(220px, 52vw);
@@ -262,12 +292,12 @@
         animation-direction: reverse;
       }
       #boot-splash .boot-label {
-        font-family: "Outfit", "IBM Plex Sans", "Lucida Grande", "Helvetica Neue", Helvetica, Inter, -apple-system, BlinkMacSystemFont, Arial, sans-serif;
-        font-size: 13px;
-        font-weight: 500;
-        letter-spacing: 0.36em;
+        font-family: "Tanker", "Nippo", "Outfit", "IBM Plex Sans", sans-serif;
+        font-size: 22px;
+        font-weight: 400;
+        letter-spacing: 0.04em;
         text-transform: uppercase;
-        color: #8A94A3;
+        color: #F1E5D7;
         margin: 0;
         animation: pmpSplashPulse 2.4s ease-in-out infinite;
       }

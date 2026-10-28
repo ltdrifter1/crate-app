@@ -40,23 +40,19 @@ function NavRow({ item, active, onClick }) {
         width: "100%",
         minHeight: 40,
         borderRadius: radius.sm,
-        background: active
-          ? "rgba(91,101,116,0.12)"
-          : "transparent",
-        border: "1px solid transparent",
-        color: active ? color.accent : color.body,
+        background: active ? "#F1E5D7" : "transparent",
+        border: active ? "2px solid #F1E5D7" : "1px solid transparent",
+        color: active ? "#141414" : color.body,
         cursor: "pointer",
         display: "flex",
         alignItems: "center",
         gap: 10,
         padding: "8px 10px",
         textAlign: "left",
-        boxShadow: active
-          ? "inset 2px 0 0 #5B6574, inset 0 1px 0 rgba(216,223,232,0.35)"
-          : "none",
+        boxShadow: "none",
       }}
     >
-      <span style={{ width: 18, display: "flex", justifyContent: "center", flexShrink: 0, color: active ? color.accent : color.muted }}>
+      <span style={{ width: 18, display: "flex", justifyContent: "center", flexShrink: 0, color: active ? "#141414" : color.muted }}>
         <Icon name={item.icon} size={16} />
       </span>
       <span

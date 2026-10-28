@@ -7,7 +7,7 @@ const fs = require("fs");
 const path = require("path");
 
 const ROOT = path.join(__dirname, "..");
-const CHASSIS = "broadcast-glass-20260930";
+const CHASSIS = "wavclub-night-20261028";
 const htmlPath = path.join(ROOT, "build", "index.html");
 
 if (!fs.existsSync(htmlPath)) {
@@ -26,10 +26,11 @@ const css = cssFiles
 
 const need = [
   [`pmp-chassis ${CHASSIS}`, html.includes(`content="${CHASSIS}"`) || html.includes(`content='${CHASSIS}'`)],
-  ["deep charcoal canvas #12161C", /#12161C/i.test(html)],
+  ["stone canvas #0B0909", /#0B0909/i.test(html)],
   ["IBM Plex", /IBM\+Plex|IBM Plex/i.test(html)],
-  ["Outfit", /Outfit/i.test(html)],
-  ["steel splash 168,180,198", /168\s*,\s*180\s*,\s*198/.test(html)],
+  ["Tanker", /Tanker/i.test(html)],
+  ["Nippo", /Nippo/i.test(html)],
+  ["spot pink splash 247,77,122", /247\s*,\s*77\s*,\s*122/.test(html)],
 ];
 
 const forbid = [
@@ -51,6 +52,7 @@ const forbid = [
   ["retired quiet-neon chassis stamp", /dark-premium-quiet-neon-20260925/.test(html)],
   ["retired discover chassis stamp", /dark-premium-discover-20260925/.test(html)],
   ["retired graphite glass chassis stamp", /graphite-glass-20260930/.test(html)],
+  ["retired broadcast glass chassis stamp", /broadcast-glass-20260930/.test(html)],
 ];
 
 let failed = false;

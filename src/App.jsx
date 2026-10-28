@@ -282,14 +282,14 @@ const injectStyles = () => {
     input.chrome-seek::-webkit-slider-thumb {
       -webkit-appearance: none; appearance: none; width: 14px; height: 14px; margin-top: -2px;
       border-radius: 50%;
-      background: #F4F7FB;
+      background: #F1E5D7;
       border: none;
       box-shadow: 0 2px 6px rgba(6,10,16,0.55), 0 0 0 4px rgba(244,247,251,0.10);
       cursor: pointer;
     }
     input.chrome-seek::-moz-range-thumb {
       width: 14px; height: 14px; border-radius: 50%;
-      background: #F4F7FB;
+      background: #F1E5D7;
       border: none;
       box-shadow: 0 2px 6px rgba(6,10,16,0.55), 0 0 0 4px rgba(244,247,251,0.10);
       cursor: pointer;
@@ -317,7 +317,7 @@ const injectStyles = () => {
       height: 22px;
       margin-top: -6px;
       border-radius: 4px;
-      background: linear-gradient(180deg, #222932 0%, #181D24 48%, #12161C 100%);
+      background: #0B0909;
       border: 2px solid ${trim.blue};
       box-shadow:
         0 0 0 1px ${trim.lime},
@@ -330,7 +330,7 @@ const injectStyles = () => {
       width: 16px;
       height: 22px;
       border-radius: 4px;
-      background: linear-gradient(180deg, #222932 0%, #181D24 48%, #12161C 100%);
+      background: #0B0909;
       border: 2px solid ${trim.blue};
       box-shadow:
         0 0 0 1px ${trim.lime},
@@ -567,32 +567,27 @@ const injectStyles = () => {
       .dock-xtra { display: none !important; }
     }
     .glass-dock {
-      background: ${radio.moduleFace};
-      border: 1px solid rgba(255,255,255,0.08);
-      box-shadow:
-        inset 0 1px 0 rgba(255,255,255,0.07),
-        0 12px 28px rgba(6,10,16,0.5);
-      -webkit-backdrop-filter: ${glass.blurHeavy};
-      backdrop-filter: ${glass.blurHeavy};
+      background: #0B0909;
+      border: 2px solid #F1E5D7;
+      border-top: 3px solid #F74D7A;
+      border-radius: 0;
+      box-shadow: none;
+      -webkit-backdrop-filter: none;
+      backdrop-filter: none;
       transition: background 0.6s ease, box-shadow 0.35s ease;
     }
-    /* ── Obsidian device chrome ─────────────────────────────────────────── */
+    /* Printed night chrome — cream rules, square plates. */
     .pill-nav {
-      background: ${radio.moduleFace};
-      border: 1px solid rgba(200,210,222,0.14);
-      box-shadow:
-        inset 0 1px 0 rgba(200,210,222,0.14),
-        inset 0 -1px 0 rgba(6,10,16,0.5),
-        0 12px 28px rgba(6,10,16,0.45);
+      background: transparent;
+      border: none;
+      box-shadow: none;
     }
     @media (min-width: 768px) {
       .pmp-mobile-dock { display: none !important; }
     }
     .pmp-hero-bezel {
-      box-shadow:
-        inset 0 1px 0 rgba(200,210,222,0.16),
-        inset 0 -1px 0 rgba(6,10,16,0.4),
-        0 24px 56px rgba(6,10,16,0.5);
+      border-radius: 0 !important;
+      box-shadow: 6px 6px 0 #F1E5D7;
     }
     .pmp-home-mtv::before { display: none; }
     .pmp-home-mtv > * { position: relative; z-index: 1; }

@@ -54,7 +54,7 @@ test("theme source does not ship mint phosphor or DistroKid trim", () => {
   expect(theme).not.toMatch(/#367FC7/i);
   expect(theme).toMatch(/lcdSignal/);
   expect(theme).not.toMatch(/lcdPhosphor/);
-  expect(theme).toMatch(/broadcast-glass-20260930/);
+  expect(theme).toMatch(/wavclub-night-20261028/);
   expect(theme).not.toMatch(/graphite-glass-20260930/);
   expect(theme).not.toMatch(/#A8FF6A/i);
   expect(theme).not.toMatch(/#7DFFB3/i);
@@ -258,8 +258,8 @@ test("premium drivetrain: one chassis, self-hosted Plex, no lucide", () => {
 
 test("broadcast chassis: flat controls, pearl play key, condensed caps that actually load", () => {
   const html = fs.readFileSync(path.join(root, "public/index.html"), "utf8");
-  // font-display: optional drops any face that is not ready at first paint, so Barlow must be preloaded.
-  expect(html).toMatch(/rel="preload"[^>]*barlow-condensed-800\.woff2/);
+  // Display face has to be preloaded or the first paint falls back to Nippo/Outfit.
+  expect(html).toMatch(/rel="preload"[^>]*tanker-regular\.woff2/);
 
   const play = fs.readFileSync(path.join(root, "src/components/player/OrbitalControls.jsx"), "utf8");
   expect(play).toMatch(/pmp-play-planet/);

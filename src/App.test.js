@@ -5,30 +5,31 @@ import {
 
 test('theme exports core tokens', () => {
   expect(color.ink).toBeTruthy();
-  expect(color.accent).toMatch(/#D5DCE6/i);
-  expect(color.onAccent).toMatch(/#12161C/i);
-  expect(color.canvas).toMatch(/#12161C/i);
+  expect(color.accent).toMatch(/#F74D7A/i);
+  expect(color.onAccent).toMatch(/#141414/i);
+  expect(color.canvas).toMatch(/#0B0909/i);
   expect(color.alert).toBeTruthy();
   expect(color.select).toMatch(/rgba/);
   expect(BRAND_TAGLINE).toMatch(/YOUR WORLD/i);
   expect(BRAND_NAME).toBe("Planet MP3");
-  expect(font).toMatch(/Outfit/);
-  expect(fontDisplay).toMatch(/Outfit/);
+  expect(font).toMatch(/Nippo/);
+  expect(fontDisplay).toMatch(/Nippo/);
   expect(fontDisplay).toMatch(/IBM Plex Sans/);
   expect(font).not.toMatch(/^system-ui/);
+  expect(fontLcd).toMatch(/Courier New/);
   expect(fontLcd).toMatch(/IBM Plex Mono/);
-  expect(STYLE_CHASSIS).toBe("broadcast-glass-20260930");
-  expect(color.lcdSignal).toMatch(/#D5DCE6/i);
-  expect(color.cta).toMatch(/#D5DCE6/i);
-  expect(color.onCta).toMatch(/#E8EDF4/i);
-  expect(color.lcdSignalSoft).toMatch(/213,\s*220,\s*230/);
-  expect(color.lcdInk).toMatch(/#F4F7FB/i);
+  expect(STYLE_CHASSIS).toBe("wavclub-night-20261028");
+  expect(color.lcdSignal).toMatch(/#F74D7A/i);
+  expect(color.cta).toMatch(/#F74D7A/i);
+  expect(color.onCta).toMatch(/#141414/i);
+  expect(color.lcdSignalSoft).toMatch(/247,\s*77,\s*122/);
+  expect(color.lcdInk).toMatch(/#F1E5D7/i);
   expect(type.lcd.fontFamily).toMatch(/IBM Plex Mono/);
   expect(type.lcd.fontSize).toBe(12);
   expect(sectionTitle.fontSize).toBe(22);
   expect(y2k.chromeBright).toBeTruthy();
-  expect(y2k.chrome).toMatch(/#A8B2C0/i);
-  expect(y2k.cyan).toMatch(/#A8B4C6/i);
+  expect(y2k.chrome).toMatch(/#E4D5C6/i);
+  expect(y2k.cyan).toMatch(/#C4B5A6/i);
   expect(y2k.artGradient).not.toMatch(/139,\s*92,\s*246|purple/i);
   expect(homeSpace.sectionGap).toBeLessThanOrEqual(32);
   expect(homeSpace.sectionGap).toBeGreaterThan(0);
@@ -48,23 +49,23 @@ test('theme exports core tokens', () => {
 
 test('radio module tokens are hardware-shaped', () => {
   const { radio } = require('./theme');
-  expect(radio.radius).toBeGreaterThanOrEqual(16);
-  expect(radio.radius).toBeLessThanOrEqual(22);
+  expect(radio.radius).toBeGreaterThan(0);
+  expect(radio.radius).toBeLessThanOrEqual(8);
   expect(radio.moduleFace).toMatch(/linear-gradient/);
   expect(radio.glassFace || radio.moduleFace).toMatch(/linear-gradient/);
   expect(radio.tuneFace).toMatch(/linear-gradient/);
-  expect(radio.lcdFill).toMatch(/#8E99A9|#E8EDF4/i);
+  expect(radio.lcdFill).toMatch(/#F74D7A/i);
   expect(radio.lcdFill).not.toMatch(/#A8FF6A|#7DFFB3|#7ED9B8|#4E9A7A|#C8F5E4/i);
 });
 
 test('canvas is a deep cool charcoal, not a void and not the retired slate', () => {
-  expect(color.canvas).toMatch(/#12161C/i);
+  expect(color.canvas).toMatch(/#0B0909/i);
   expect(color.canvas).not.toMatch(/#1C222B/i);
-  expect(color.ink).toMatch(/#F4F7FB/i);
-  expect(y2k.offWhite).toMatch(/#F4F7FB/i);
+  expect(color.ink).toMatch(/#F1E5D7/i);
+  expect(y2k.offWhite).toMatch(/#F1E5D7/i);
   expect(color.canvas).not.toMatch(/#090A0D/i);
   expect(y2k.nearBlack).not.toMatch(/#090A0D/i);
-  expect(color.lcdSignal).toMatch(/#D5DCE6/i);
+  expect(color.lcdSignal).toMatch(/#F74D7A/i);
   expect(color.accent).not.toMatch(/#B8F24A|#A8FF6A/i);
   expect(color.lcdSignal).not.toMatch(/#7ED9B8|#4E9A7A|#C8F5E4/i);
   expect(color.lcdSignalGlow).not.toMatch(/126\s*,\s*217\s*,\s*184/);
@@ -72,13 +73,13 @@ test('canvas is a deep cool charcoal, not a void and not the retired slate', () 
 
 test('primary buttons use silver, not DistroKid blue or neon green', () => {
   const { BTN_PRIMARY, trim } = require('./theme');
-  expect(trim.lime).toMatch(/#9AA4B6/i);
+  expect(trim.lime).toMatch(/#C4B5A6/i);
   expect(trim.lime).not.toMatch(/#A8FF6A|#B8C430|#B8F24A/i);
   expect(trim.lime).not.toMatch(/#A8B4C6/i);
-  expect(trim.blue).toMatch(/#D5DCE6/i);
+  expect(trim.blue).toMatch(/#F74D7A/i);
   expect(trim.blue).not.toMatch(/#367FC7/i);
-  expect(trim.gradient).toMatch(/#8A94A3|#F2F5F9/i);
+  expect(trim.gradient).toMatch(/#C4B5A6|#F1E5D7/i);
   expect(trim.gradient).not.toMatch(/#A8FF6A|#7DFFB3|#B8C430|#367FC7/i);
-  expect(BTN_PRIMARY.color).toMatch(/#12161C/i);
+  expect(BTN_PRIMARY.color).toMatch(/#141414/i);
   expect(String(BTN_PRIMARY.background)).not.toMatch(/#A8FF6A|#367FC7|#B8C430|#4A92D4|#2C6FB3/i);
 });

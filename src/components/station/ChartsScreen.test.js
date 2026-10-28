@@ -59,7 +59,7 @@ describe("ChartsScreen", () => {
     });
     const h1 = div.querySelector("h1");
     expect(h1.textContent).toBe("Charts");
-    expect(h1.style.fontFamily).toContain("Barlow Condensed");
+    expect(h1.style.fontFamily).toContain("Tanker");
 
     const viewsEl = div.querySelector('[aria-label="Chart view"]');
     const scopeEl = div.querySelector('[aria-label="Chart scope"]');
