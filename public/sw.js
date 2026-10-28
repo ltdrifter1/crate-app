@@ -3,6 +3,10 @@ const CACHE = "pmp-shell-v2";
 // The faces the UI actually sets type in (see theme.js): Outfit body/display, Barlow Condensed
 // caps, Plex Mono LCD. Plex Sans is only a fallback in the stack, so it is no longer precached.
 const PRECACHE = [
+  "/fonts/tanker-regular.woff2",
+  "/fonts/nippo-400.woff2",
+  "/fonts/nippo-500.woff2",
+  "/fonts/nippo-700.woff2",
   "/fonts/outfit-400.woff2",
   "/fonts/outfit-600.woff2",
   "/fonts/outfit-700.woff2",

@@ -56,7 +56,12 @@ export default function PageHeader({
           </button>
         )}
         <div style={{ minWidth: 0 }}>
-          <h1 style={{ ...type.largeTitle, margin: 0, color: y2k.offWhite }}>{title}</h1>
+          <h1 style={{
+            ...type.largeTitle,
+            margin: 0,
+            color: y2k.offWhite,
+            textShadow: "0.045em 0.045em 0 #F74D7A",
+          }}>{title}</h1>
           {subtitle && (
             <p
               style={{

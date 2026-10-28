@@ -116,9 +116,9 @@ function JewelSleeve({ src, idleSrc, playing, eager = false, size = 148, wellCol
         alignSelf: "center",
         aspectRatio: "1 / 1",
         flexShrink: 0,
-        borderRadius: 16,
+        borderRadius: 0,
         overflow: "hidden",
-        border: "1px solid rgba(255,255,255,0.10)",
+        border: "3px solid #F1E5D7",
         boxShadow:
           playing && /^#[0-9a-f]{6}$/i.test(wellColor)
             ? `${artShadow.raised}, 0 22px 64px ${wellColor}44`
@@ -447,9 +447,9 @@ export default function HeroPlayerCard({
               position: "relative",
               width: "100%",
               aspectRatio: "16 / 9",
-              borderRadius: 14,
+              borderRadius: 0,
               overflow: "hidden",
-              border: "1px solid rgba(255,255,255,0.10)",
+              border: "3px solid #F1E5D7",
               boxShadow: artShadow.raised,
               background: "#0E1116",
             }}

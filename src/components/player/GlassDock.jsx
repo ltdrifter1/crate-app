@@ -78,13 +78,14 @@ export default function GlassDock({
       <div
         className={`glass-dock pmp-dock-stack pmp-dock-faceplate${hasPlayer ? " pmp-dock-stack--playing" : ""}`}
         style={{
-          borderRadius: dock.radius,
+          borderRadius: 0,
           overflow: "hidden",
           pointerEvents: "auto",
-          background: radio.moduleFace,
-          border: "1px solid rgba(255,255,255,0.10)",
-          boxShadow:
-            "inset 0 1px 0 rgba(255,255,255,0.08), 0 16px 36px rgba(0,0,0,0.45)",
+          background: "#0B0909",
+          borderTop: "3px solid #F74D7A",
+          borderLeft: "2px solid #F1E5D7",
+          borderRight: "2px solid #F1E5D7",
+          boxShadow: "none",
         }}
       >
         {hasPlayer && (

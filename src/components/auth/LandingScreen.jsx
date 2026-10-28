@@ -7,7 +7,7 @@
  */
 import { useState, useEffect, useRef } from "react";
 import {
-  font, fontDisplay, fontMono, color, radius, glass,
+  font, fontDisplay, fontMono, fontPoster, color, radius, glass,
   aluminumGradient, trim, y2k, radio as radioStyle,
   APP_STYLE, INPUT_ST, BTN_PRIMARY, BTN_SECONDARY, trimStroke,
 } from "../../theme";
@@ -233,7 +233,7 @@ function ChartRow({ rank, title, artist, dir }) {
           fontSize: 11,
           fontWeight: 700,
           fontFamily: fontMono,
-          color: up ? "#6DBF87" : flat ? color.muted : "#E0314A",
+          color: up ? "#6DBF87" : flat ? color.muted : "#F74D7A",
           flexShrink: 0,
         }}
       >
@@ -394,7 +394,7 @@ export default function LandingScreen({
       {/* Ambient neon blooms */}
       <NeonPulse color={color.lcdSignal} size={360} style={{ top: "5%", left: "-8%", opacity: 0.45 }} />
       <NeonPulse color="#C87ADB" size={280} style={{ top: "18%", right: "-4%", opacity: 0.4 }} />
-      <NeonPulse color="#E0314A" size={200} style={{ bottom: "30%", left: "60%", opacity: 0.3 }} />
+      <NeonPulse color="#F74D7A" size={200} style={{ bottom: "30%", left: "60%", opacity: 0.3 }} />
 
       <style>{`
         @keyframes pmpNeonPulse {
@@ -423,17 +423,17 @@ export default function LandingScreen({
         style={{
           position: "relative",
           zIndex: 1,
-          padding: "48px 20px 0",
+          padding: "28px 20px 0",
           display: "flex",
           flexDirection: "column",
-          alignItems: "center",
-          textAlign: "center",
+          alignItems: "flex-start",
+          textAlign: "left",
           gap: 16,
           animation: "stationIn 0.55s cubic-bezier(0.22,1,0.36,1) both",
         }}
       >
-        <div style={{ width: "min(68vw, 240px)" }}>
-          <BrandLockup size={240} />
+        <div style={{ width: 96 }}>
+          <BrandLockup size={96} />
         </div>
         <BrandTagline
           size={12}
@@ -442,16 +442,30 @@ export default function LandingScreen({
         <BetaBadge />
 
         {/* Hero statement */}
-        <div style={{ maxWidth: 420, marginTop: 8 }}>
+        <div style={{ maxWidth: 720, marginTop: 8 }}>
+          <p
+            style={{
+              margin: "0 0 8px",
+              fontFamily: fontMono,
+              fontSize: 13,
+              fontWeight: 700,
+              letterSpacing: 0.22,
+              textTransform: "uppercase",
+              color: "#FF6A91",
+            }}
+          >
+            Next on the station
+          </p>
           <h1
             style={{
-              fontFamily: fontDisplay,
-              fontSize: "clamp(26px, 7vw, 38px)",
-              fontWeight: 800,
-              letterSpacing: -0.9,
+              fontFamily: fontPoster,
+              fontSize: "clamp(64px, 14vw, 120px)",
+              fontWeight: 400,
+              letterSpacing: -1,
               color: color.ink,
-              lineHeight: 1.1,
+              lineHeight: 0.82,
               margin: 0,
+              textShadow: "0.045em 0.045em 0 #F74D7A",
             }}
           >
             Open all night.
@@ -534,13 +548,13 @@ export default function LandingScreen({
             fontWeight: 700,
             letterSpacing: 0.16,
             textTransform: "uppercase",
-            color: "#B7E4EE",
+            color: "#FF6A91",
             display: "flex",
             alignItems: "center",
             gap: 8,
           }}
         >
-          <span className="pmp-lcd-pip" style={{ display: "inline-block", width: 6, height: 6, borderRadius: "50%", background: "#E0314A", flexShrink: 0 }} />
+          <span className="pmp-lcd-pip" style={{ display: "inline-block", width: 6, height: 6, borderRadius: "50%", background: "#F74D7A", flexShrink: 0 }} />
           Live Channels — Streaming Now
         </div>
 
@@ -577,7 +591,7 @@ export default function LandingScreen({
             }}
           >
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <span className="pmp-lcd-pip" style={{ width: 6, height: 6, borderRadius: "50%", background: "#E0314A", display: "inline-block" }} />
+              <span className="pmp-lcd-pip" style={{ width: 6, height: 6, borderRadius: "50%", background: "#F74D7A", display: "inline-block" }} />
               <span
                 style={{
                   fontFamily: fontMono,
@@ -585,7 +599,7 @@ export default function LandingScreen({
                   fontWeight: 700,
                   letterSpacing: 0.16,
                   textTransform: "uppercase",
-                  color: "#B7E4EE",
+                  color: "#FF6A91",
                 }}
               >
                 {liveRows ? "This Month's Chart · Top 5" : "Sample board · Top 5"}
@@ -657,7 +671,7 @@ export default function LandingScreen({
                 fontWeight: 700,
                 letterSpacing: 0.16,
                 textTransform: "uppercase",
-                color: "#B7E4EE",
+                color: "#FF6A91",
               }}
             >
               Liner Notes — What's On This Disc
