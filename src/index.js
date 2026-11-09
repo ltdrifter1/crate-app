@@ -1,24 +1,18 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import { BrowserRouter } from 'react-router-dom';
 import './index.css';
-import App from './App.jsx';
+import UnderConstruction from './screens/UnderConstructionScreen';
 import ErrorBoundary from './components/ErrorBoundary';
-import reportWebVitals from './reportWebVitals';
-import { registerServiceWorker } from './lib/registerServiceWorker';
-import { installButtonFeedback } from './lib/feedback';
+import { dismissBootSplash } from './lib/bootSplash';
 
+// Public site is the construction splash until the beta opens.
+// The player still lives in App.jsx — mount that here to bring it back.
 const root = ReactDOM.createRoot(document.getElementById('root'));
+dismissBootSplash();
 root.render(
   <React.StrictMode>
     <ErrorBoundary>
-      <BrowserRouter>
-        <App />
-      </BrowserRouter>
+      <UnderConstruction />
     </ErrorBoundary>
   </React.StrictMode>
 );
-
-reportWebVitals();
-registerServiceWorker();
-installButtonFeedback();

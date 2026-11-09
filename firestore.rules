@@ -235,6 +235,20 @@ service cloud.firestore {
       );
     }
 
+    // Beta launch list from the under-construction splash.
+    // Anyone may add or refresh their own email. Only an admin can read the list.
+    match /betaWaitlist/{emailId} {
+      allow create, update: if emailId == request.resource.data.email
+        && request.resource.data.keys().hasOnly(['email', 'source', 'createdAt'])
+        && request.resource.data.email is string
+        && request.resource.data.email.size() >= 6
+        && request.resource.data.email.size() <= 120
+        && request.resource.data.email.matches('^[a-z0-9._%+-]+@[a-z0-9.-]+\\.[a-z]{2,}$')
+        && request.resource.data.source == 'splash'
+        && request.resource.data.createdAt == request.time;
+      allow read, delete: if isAdmin();
+    }
+
     match /{document=**} {
       allow read, write: if false;
     }
